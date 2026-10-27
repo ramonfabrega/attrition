@@ -33333,7 +33333,9 @@ launch row from this measurement, one shot. Ours prints a `cavarch_o` on
 `pivot` beside piece 138 rather than in `launch`. A second shot pins the
 bearing. The Mongol Musketeer's piece-1105 `ATTACK1` row stands beside it
 on the word, perhaps piece 49's bays as piece 1177 takes piece 121's. I
-built nothing.
+built nothing. **Built by item 3692 (§352.1)**: the Horde is a pivot piece
+and reads piece 153's rows, not 138's; piece 1105 is its own model, with
+bays of its own.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **215 of
 302**, unmoved: the pair parts, so it is not lockstep. The booking's line
@@ -33341,6 +33343,116 @@ built nothing.
 Horde` (204, `GOLDENHORDE`), 5,480 guy records, the word's own shooter.
 It is the pair's only type new to the lockstep ledger. The pair fields 17
 types.
+
+### 352.1 The Golden Horde reads the Horde's pivot, the Asian Musketeer has bays: the word 4854 → 4949, the pair whole (item 3692)
+
+*Item 3692, 2026-10-27, Opus 5.5. Run 1361, a packet at logger frame 4840.*
+
+**The frame, both sides.** On 4854 theirs spends 18 draws and ours 17. Index
+17 is theirs' `Unit::close+0xcb6 < Object::die+0x29 < Unit::die`: **theirs
+acts**, the human's Citizen `0/6` (TI 50) dying after a round's
+`graphic_finish`. Walked back, two rounds of who=1's leave from the
+shooter's own square in ours (`RON_DEBUG_UNIT` names each):
+
+- **The Golden Horde `1/97`** (TI 204, `GOLDENHORDE`, land, piece 154) on
+  4841, playing `CHAR_ATTACK2` at frame 16. Its round flies 11 frames against
+  10, and `0/6` takes the blow on 4851 against 4850.
+- **The Musketeer `1/21`** (TI 99, `MUSKETEERS`, land, piece 1105) on 4854,
+  playing `CHAR_ATTACK1` at frame 1. Its round flies 3 against 2: the killing
+  round, a frame late.
+
+**The direction against the hypothesis.** 3673 read the Horde as a cavalry
+archer beside piece 138, from ours' `cavarch_o` print. The install's own
+`unit_graphics.xml` says otherwise. `GOLDENHORDE-DEFAULT-AGE0` is
+`nomad_goldenhorde.bh3` on the `Nomad` animations, with `CHAR_ATTACK2` and
+`CHAR_ATTACK3` crossed as the Nomad and the Horde cross them, and
+`<RESTRICTION name="GOLDENHORDE" node="4">` makes it a pivot piece. Its
+release turns with the rider's turret as well as the figure, and no dump
+prints the turret. Piece 1105 is `MUSKETEERS-ASIAN-AGE0`,
+`musketeer_asian.bh3`: not piece 49's `musketeer.bh3`, so 3691's bays are
+not its rows.
+
+**The disk, first.** I scanned the 296 dumps of 1,833 that hold `AMMO` for
+TI-204 shooters. Only run1346b and run1346c field one (they are the same
+game): 13 Horde first prints and three Musketeer ones. That is enough to
+test a row, but not to fit a pivot without its turret, and none of the 78
+packets on disk fills either piece (`get_position.py … entries`). So run
+1361 is a packet, on this lobby at logger frame 4840.
+
+**The packet.** It answers both:
+
+| piece | `pos_start` | rows | `RData +0x88` | what they are |
+|---|---|---|---|---|
+| 154 | 126 | 9 | 1.0 | **piece 153's, bit for bit** (run1294, item 3632): the `(4, 0, 0)` pivot `(0.0, −3.38, 32.63)` and the four `<RELEASEEVENT>`s' pivot and release rows |
+| 1105 | 77 | 3 | 1.1 | node 0 at `CHAR_ATTACK1`..`3`, frames 1, 7 and 4 |
+
+`fit_bay.py` fits each piece-1105 sweep to one region: 411, 196 and 113
+lattice points at all 361 headings. Piece 49's rows reproduce this sweep at
+357, 361 and 329 headings, which is why they are not reused.
+
+**Built.**
+
+- `sim::pivot::SAME_AS` gains `(154, 153)`.
+- `sim::launch::BAYS` gains piece 1105's three rows, each region's centroid:
+
+| key | `right` | `fwd` | `dz` |
+|---|---|---|---|
+| `CHAR_ATTACK1`, 1 | 33,049 | 139,808 | 218 |
+| `CHAR_ATTACK2`, 7 | 11,451 | 166,599 | 176 |
+| `CHAR_ATTACK3`, 4 | 12,330 | 162,102 | 178 |
+
+**The tests.**
+
+- **`run1346c_s_golden_horde_rounds_leave_through_piece_153_s_pivot`**
+  (`sim::pivot`) holds eleven of the thirteen Horde rounds. Each is some
+  key's cell at some turret step, at the dump's `sx − x`, `sy − y` and
+  `sz − z`.
+  - The three standing shots fit the figure's pose on the block before.
+  - The eight shots on the move (`CHAR_ATTACKWALK`, `dz` 260) fit the
+    round's own block, and not the block before.
+  - The other two (4872, 4937) print an earlier round's launch at a target
+    of −1, a reused slot.
+- **`run1346c_s_mongol_musketeers_leave_from_piece_1105_s_bays`**
+  (`sim::launch`) holds the three Musketeer rounds. Each is reproduced by
+  exactly one key.
+- **Mutations** (`tools/mutate.py`, each held, `zsh` exiting 101):
+  - `(154, 153)` out of `SAME_AS` takes the word to 4870 and parts the
+    closing state on 2 units.
+  - Piece 1105's `CHAR_ATTACK1` row out takes the word back to 4854.
+
+**The value diff, 4841 and 4854.**
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 4841 | `1/97`'s round `ammo[0]` at `0/6` | `sx, sy, sz`; `total_time` | 6264, 28728, 480; 11 | 6180, 28775, 715; 10 | 6180, 28775, 715; 10 |
+| 4854 | `1/21`'s round `ammo[0]` at `0/6` | `sx, sy, sz`; `total_time` | 6552, 28728, 423; 3 | 6415, 28769, 641; 2 | 6415, 28769, 641; 2 |
+
+**The word: 4854 → 4949 of 4949**, the game's last frame, by the count and
+the sequence (`mongol_enlightenment_pair_first_parting`).
+
+- **The closing state** is run1346's closing block 4950
+  (`mongol_enlightenment_pair_run1346_s_closing_state`): 216 units, none
+  off, torn, unlinked or extra, `Closing fields: none`.
+- **run1346c**, the word's window, reaches the closing block. It goes from
+  754 keys to 89 (87 of them on block 4795's standing families, 2 on group
+  67's pool on 4818). Rounds read 294 against 294, and 99 → 24 part: the
+  Cannons' launches and two reused slots' targets (parked 3692a–b).
+- **The stride** goes from 104 keys to 99.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **216 → 217 of
+302**: `Golden Horde` (204) is lockstep. `census::RUBRIC_UNIT_TYPES_SEEN` is
+re-pinned.
+
+**What is not established.**
+
+- **The piece-1105 rows are centroids.** Each is exact at every heading of
+  its sweep, which is what this crate computes. The packet's floats are not
+  carried.
+- **Which other lobbies reach piece 1105.** The art's `ASIAN` style also
+  draws other nations' Musketeers. Their lobbies' `first_parting` runs in
+  this item's gate, and it is the next Asian Enlightenment pair's to read.
+- **Why the moving Horde fits its own block's pose.** It is read off eight
+  rounds, and no reading backs it.
 
 ## 353. The Greeks at a held Enlightenment age, Great Lakes: whole on its first try, 4705 of 4705 (item 3674)
 

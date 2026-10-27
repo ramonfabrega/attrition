@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const MONGOL_ENLIGHTENMENT: Pair = Pair {
     name: "GreatLakesMongolEnlightenment",
@@ -33,9 +33,17 @@ pub(crate) const MONGOL_ENLIGHTENMENT: Pair = Pair {
     length: 4949,
     // Item 3673, first try: frame 4854, by the count and the sequence —
     // theirs 18 draws against 17, parting at index 17, theirs
-    // `Unit::close+0xcb6`, ours none (`docs/AI.md` §352).
-    count: 4854,
-    sequence: 4854,
+    // `Unit::close+0xcb6`, ours none (`docs/AI.md` §352). Item 3692 closes
+    // it, 4854 → 4949, the game's last frame (§352.1): piece 154, the
+    // Golden Horde, reads piece 153's pivot rows (`sim::pivot::SAME_AS`),
+    // so who=1's `1/97` looses its `CHAR_ATTACK2` round of 4841 from
+    // (6180, 28775, 715), the dump's, flying 10 frames, where it left from
+    // the figure's own (6264, 28728, 480) and flew 11; and piece 1105, the
+    // Mongol Musketeer, has three bays (`sim::launch`), so `1/21`'s round
+    // of 4854 leaves (6415, 28769, 641) and kills the Citizen `0/6` on the
+    // word, as theirs does.
+    count: 4949,
+    sequence: 4949,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -175,7 +183,7 @@ fn mongol_enlightenment_pair_the_long_s_stride_walks_back_from_4854() {
     // who=1's groups' `held` and pools 64..70 as each is minted — and one
     // unit row, who=1's `1/119`: its five angle fields on 4701, ours
     // 1769734144 against theirs 1848311808.
-    pin_eq!(w.firsts.len(), 104, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 99, "the stride's baseline");
 }
 
 /// run1346c: the word 4854's window, blocks 4795..4950 at the long's
@@ -245,11 +253,68 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
     // row. Theirs' round lands on 4850, ours' on 4851. On the word 4854
     // the Musketeer `1/21`'s round (piece 1105, ours from its own square, 3 frames
     // against 2) kills `0/6` in theirs — `Unit::close+0xcb6`, index 17 —
-    // and ours holds it on 4855.
-    pin_eq!(w.firsts.len(), 754, "run1346c baseline");
+    // and ours holds it on 4855. Item 3692, piece 154 on 153's pivot rows
+    // and piece 1105's bays: 754 → 89 keys, nothing parting on 4850 or
+    // 4854; what stands is the families block 4795 carries.
+    pin_eq!(w.firsts.len(), 89, "run1346c baseline");
     // Every round, both directions: 294 round-blocks theirs, 275 ours, 99
     // parting, the first on the window's first block 4795 (the Cannon
-    // `1/91`'s, from its own square in ours).
-    pin_eq!(w.rounds_read, (294, 275), "the rounds read");
-    pin_eq!(w.rounds.len(), 99, "the rounds that part");
+    // `1/91`'s, from its own square in ours). Item 3692: 294 against 294,
+    // 24 parting.
+    pin_eq!(w.rounds_read, (294, 294), "the rounds read");
+    pin_eq!(w.rounds.len(), 24, "the rounds that part");
+}
+
+/// **The closing state** (item 3692): run1346's closing block 4950, the
+/// whole map's units, walked from run1345's start.
+#[test]
+fn mongol_enlightenment_pair_run1346_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &MONGOL_ENLIGHTENMENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Mongol Enlightenment pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4950, "the closing block");
+    // Item 3692, the pair whole: 216 units, none off, torn, unlinked or
+    // extra, `Closing fields: none` — the game ends itself on 4949.
+    pin_eq!(e.compared, 216, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }
