@@ -10871,3 +10871,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1340b --map 14 --end-frame 3961 --allow-early-end --timeout 3600 --log-window 3695 3961 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1339's lobby   (the word 3711's window)
 #   run1340c --map 14 --end-frame 3751 --allow-early-end --timeout 3600 --log-window 3395 3751 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1339's lobby   (the damage's window)
 # Checks: `rngcmp.py` run1339 vs run1340 -> 37 identical; run1340 vs run1340b -> 3962 identical; vs run1340c -> 3752 identical.
+# ==== item 3672: the French at a held Enlightenment age, East Indies, at difficulty 4 (`docs/AI.md` §351; `docs/RUNS.md` run1343, run1344, run1344b) ====
+#   run1343  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1344  run1334's line with --map 18 --ai-tribe 10 and run1343's lobby   (the draw stream; ended itself on 4940)
+#   run1344b --map 18 --end-frame 4756 --allow-early-end --timeout 3600 --log-window 4495 4756 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1343's lobby   (the word 4505's window)
+# Checks: `rngcmp.py` run1343 vs run1344 -> 37 identical; run1344 vs run1344b -> 4757 identical.

@@ -30520,3 +30520,70 @@ SHA-256 `17c00b2a7c247b8fe24a71f49a77d1ea35e1c1ceaa00931af48853c47761a44f`.
 **What it holds**: `russian_gunpowder_pair_run1340c_s_damage_window_is_widened_whole` walks it from run1339 (356
 blocks, 227 keys, no round). The first unit row is the blow of 3440: who=1's Heavy Knight `1/32` (TY 229) strikes
 `0/5` for 29 in theirs against 26 in ours (block 3441).
+## run1343 — the French at a held Enlightenment age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-26, item 3672, `att-3672`)
+
+`docs/AI.md` §351. run1333's lobby with the map, the nation, the age and the difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1343 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 22:51:40, exited 22:52:10 (29.5 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks, seed 12345, players tribe 4 and tribe 10, map style 18, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 4`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` (`Pair::assert_lobby`). Filed with `filerun.py
+  run1343 eastindies-french-enlightenment-start`. `df -g ~` read 57 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1343-eastindies-french-enlightenment-start.txt`, 153,816,991 bytes,
+SHA-256 `2ec8ac662dc9e9e3d72f0f4b94336be8e20d09b36d5989d95c9e0bfd1a64458a`.
+
+Archive `rontrace-run1343.log`, 10,258,240 bytes,
+SHA-256 `58c2b00040f7e112e5f4fea254ed102461aaf0c67dfcdc7e090e54440c91540b`.
+
+**What it holds**: the start of `french_enlightenment_pair::FRENCH_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1344 — the French at a held Enlightenment age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-26, item 3672, `att-3672`)
+
+`docs/AI.md` §351. run1334's line with `--map 18 --ai-tribe 10` and run1343's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 10 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1343. Launched 22:51:40, exited 22:52:26 (45.4 s launch to exit). `success`. **The game
+  ended itself on 4940** (closing block 4941, `ended_early`). `GAME INFO` reads back as run1343's. `rngcmp.py`
+  against run1343: 37 frames identical. Filed with `filerun.py run1344 eastindies-french-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1344-eastindies-french-enlightenment-trace.txt`, 35,415,317 bytes,
+SHA-256 `49dbedde0369e54f1bd98e6f584d246d917c6c38876b8aec5259976f68e88293`.
+
+Archive `rontrace-run1344.log`, 128,143,200 bytes,
+SHA-256 `9742179f32b84e64077e22d46d3b7392602ccaffddc11fae6522b4ef101c399f`.
+
+**What it holds**: the pair's first try. `french_enlightenment_pair_first_parting` walks it from run1343: **4505 of
+4940** by the count and the sequence (ours 154 draws against 152, index 151, ours `Ammo::do_damage+0xc59`).
+`french_enlightenment_pair_the_long_s_stride_walks_back_from_4505` walks its stride 101..4501: 45 blocks, 171 keys
+— the standing families and two of who=1's Fusiliers (TY 136).
+
+## run1344b — the French at a held Enlightenment age, East Indies, at difficulty 4: the word 4505's window, blocks 4495..4756 (2026-10-26, item 3672, `att-3672`)
+
+`docs/AI.md` §351. **What the disk could not answer**: every record between the stride's last block 4501 and the
+word, and every round — run1344's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1344b --map 18 --end-frame 4756 --allow-early-end --timeout 3600
+--log-window 4495 4756 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover
+cover=0` and run1343's lobby: six blocks before the stride's 4501, and 250 after the word's block 4506.
+- Pool lane 1. Launched 22:55:08, exited 22:56:02 (53.7 s launch to exit). `success`: 4757 frames. `rngcmp.py`
+  against run1344: 4757 of 4757 identical. Filed with `filerun.py run1344b
+  eastindies-french-enlightenment-window-4495-4756`. `df -g ~` read 55 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1344b-eastindies-french-enlightenment-window-4495-4756.txt`, 639,060,841 bytes,
+SHA-256 `aaf4a608237073d2f15429d69a46c037061df6c58c34e5e307e46342eeaf55e8`.
+
+Archive `rontrace-run1344b.log`, 116,390,144 bytes,
+SHA-256 `1dee2b0a0caacebd2f802f719bfc2a510f285e1da26be27060cd685d6afd4ee1`.
+
+**What it holds**: `french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole` walks it from run1343 (261
+blocks, 2344 keys, rounds 421 theirs against 446 ours, 255 parting from 4495). On 4499 who=1's Musketeer `1/37` (TY
+99) fires a `CHAR_ATTACK2` round from its own square in ours — (6072, 9480, 127) against theirs' (6152, 9334, 303),
+5 frames' flight against 4 — and it resolves on the word 4505 in ours, a frame after theirs retired.
+

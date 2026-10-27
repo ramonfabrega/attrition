@@ -11473,13 +11473,11 @@ Nothing parked: the one finding, the Heavy Knight's blow on a Citizen 3
 short in ours, names the word's frame and is the next item's (`docs/AI.md`
 §350).
 
-## Parked by the next landing, slot TO — reserved
+## Parked by item 3672, 2026-10-26 — the French at a held Enlightenment age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the one finding, the Musketeer's unmeasured `CHAR_ATTACK2`
+launch row, names the word's frame and is the next item's (`docs/AI.md`
+§351).
 
 ## Parked by the next landing, slot TP — reserved
 
