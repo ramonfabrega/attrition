@@ -10748,6 +10748,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3704,
         Some(crate::diff::chinese_enlightenment_pair::WIDENING_CHINESE_ENLIGHTENMENT_CLOSING),
     ),
+    // **The Spanish at a held Industrial age** (item 3697): Great Lakes at
+    // Toughest — its first try parts at 3229 of a game that ends itself on
+    // 4200; widened on run1368b over 3195..3480, the rounds compared, and
+    // the stride over 101..3201.
+    (
+        "SPANISH_INDUSTRIAL_PAIR_WORD",
+        crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL_PAIR_WORD,
+        Some("spanish_industrial_pair_run1368b_s_word_frame_is_widened_whole"),
+        3697,
+        Some(crate::diff::spanish_industrial_pair::WIDENING_SPANISH_INDUSTRIAL_FRAME_3229),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13015,6 +13026,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_701,
         endpoint: Some("japanese_enlightenment_pair_run1366_s_closing_state"),
         window: Some("japanese_enlightenment_closing_window"),
+    },
+    // The Spanish at a held Industrial age (`STARTING_TECHNOLOGY` 5,
+    // `ENDING_TECHNOLOGY` 5), Great Lakes at Toughest (item 3697): its first
+    // try parts at 3229 of a game that ends itself on 4200, widened on
+    // run1368b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesSpanishIndustrial",
+        named: "Great Lakes (Spanish, Industrial)",
+        word: crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL_PAIR_WORD,
+        length: 4_200,
+        endpoint: Some("spanish_industrial_pair_run1368_s_closing_state"),
+        window: Some("spanish_industrial_frame_3229_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

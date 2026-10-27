@@ -437,6 +437,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatSaharaJapaneseTier1`'s `(7, 15, 1)`, other maps; the battery
     // fields no Japanese.
     (18, 15, 4),
+    // Item 3697: the Spanish at a held Industrial age on Great Lakes at
+    // Toughest (`diff::spanish_industrial_pair`), minted under rule (3) —
+    // not the held-out `GreatLakesSpanishTier4`'s `(14, 9, 4)`, this map
+    // at another difficulty, nor `(7, 9, 3)`, `(7, 9, 5)`, `(18, 9, 3)` or
+    // `(18, 9, 5)`, other maps; the battery fields no Spanish.
+    (14, 9, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

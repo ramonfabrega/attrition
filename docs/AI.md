@@ -33765,12 +33765,72 @@ frames identical.
 **`Gun Samurai` (161, `GUNSAMURAI`)**, the booking's line, is fielded and new to the lockstep ledger; all 264 of its
 figure rows on the lockstep count are this pair's.
 
-## 357. Reserved for the next item on the AI track
+## 357. The Spanish at a held Industrial age, Great Lakes: first try 3229 of 4200 (item 3697)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §346's lobby with the nation moved: Great Lakes
+(`MAP_STYLE 14`), human Nubians (4) against the **Spanish (9)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`, read back `5` on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1367 (a `DUMP_ALL` start) and run1368 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4200; run1367 against run1368 is 37 of 37 frames
+identical. The walk is seeded from run1367's initial state (3506a). `diff::spanish_industrial_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 9, 5)`, is minted into `battery::SCORED_LOBBIES`. The held-out battery fields no
+Spanish (`battery::BATTERY` has no tribe-9 game). The Spanish lobbies: `spanish_word` `(7, 9, 3)`,
+`spanish_classical_pair` `(7, 9, 5)`, `spanish_east_word` `(18, 9, 3)` and `spanish_gunpowder_pair` `(18, 9, 5)`
+are other maps; `spanish_lakes_word` `(14, 9, 4)` is this map at another difficulty. `(14, 9, 5)` appeared nowhere
+in the tree. `spanish_industrial_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 3229 of 4200**, by the count and the sequence. On 3229 ours spends 22 game draws against theirs'
+23, parting at index 19: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. **Theirs acts**: a round
+wounds the human's building `0/2003` in theirs on 3229, and ours' is still in flight.
+
+**The stride** (run1368, 101..3201: **99 keys**) parts on the standing families until its last block: `form` on 27
+units, the buildings' `build:extra` and who=1's groups 64..66's `held` and pools as each is minted. On 3201 the
+human's Citizen `0/4` (TY 50) parts: `damage_frame` 3189 in ours against 3188, then its position. So the state
+first parts between the stride blocks 3101 and 3201, before the window (parked 3697a).
+
+**The word's window** (run1368b, blocks 3195..3480 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1367 with every round compared: 285 blocks, **776 keys**, the two `gaia:` keys unprinted; rounds 98 theirs
+against 105 ours, 55 parting, the first on 3198). run1368 against run1368b is 3481 of 3481 frames identical. Block
+3195 carries the standing families, the human's `SITE[i].reg` and `aggression[1]`, and `0/4`'s `damage_frame` with
+the city `0/2000`'s `raid_stamp` (3189 against 3188).
+
+**The value diff** (`AMMO`, `UNIT` and `BUILD` on run1368b; the shooters named by `unitat.py` on 3229):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3195 | the Citizen `0/4` (TY 50) | `damage_frame` | 3189 | 3188 |
+| 3198 | the Rifleman `1/54`'s round `ammo[0]` (TY 100) | `sx, sy, sz` | 4344, 33768, 480 | 4315, 33650, 648 |
+| 3198 | the same | `total_time` | 3 | 2 |
+| 3202 | the Rifleman `1/55`'s round `ammo[0]` | `sx, sy, sz` | 4776, 34200, 379 | 4712, 34083, 501 |
+| 3229 | the Rifleman `1/53`'s round `ammo[0]` (at `0/2003`) | `sx, sy, sz` | 4392, 33912, 466 | 4328, 33795, 588 |
+| 3229 | the same | `total_time`; `v1z` | 3; 46731251 | 2; -4012500 |
+| 3229 | the draw stream, index 19 | site | `Farms::inc_time+0x1ae` | `Object::take_damage+0xe1` |
+| 3230 | the building `0/2003` | `build:damage`, `damage_frac` | 0, 0 | 5, 5 |
+| 3230 | the city `0/2000` | `city_flags[0x2,0x4,0x8]` | 0 | 1 |
+
+The three shooters are who=1's group 64 Riflemen (TY 100 `RIFLEMAN`, land) `1/53`, `1/54` and `1/55`, each on an
+`ATTACKORDER` at `0/2003` (uid 3), `1/53` standing at (4392, 33912): ours' launch point is the guy's own square.
+
+**The direction: ours' Rifleman rounds leave the unit's own square.** Every Rifleman round in the window parts on
+its launch point, `sx, sy` at the guy's `x, y` and `sz` about 120 to 170 lower; theirs' leave forward and higher,
+and fly a frame shorter. The impact agrees within ten. The draws hold until a round lands in theirs a frame before
+ours on a building, which is 3229. This is §354's shape (the Manchu Musketeer and Fusilier) and 3695a/3696a's (the
+Repeating Rifle Horse, the Cannon, the Gun Samurai) on a fourth launcher.
+
+**Not this item's.** The human's Citizen `0/4`'s orders from 3252, `0/5`'s wound on 3258, who=1's `1/53` and `1/42`
+attack rows on 3270–3271 and `1/117`'s path from 3271 are all past the word. The closing state is also downstream:
+run1368's closing block 4201 compares 176 units, with who=1's army off, `1/170` torn and `1/174` extra. Every
+who=1 building's `myhits` reads a tenth low in ours (7500 against 8250 on `1/2000`), and cities 2000..2054 part in
+the closing fields (parked 3697b).
+
+**The next item's hypothesis** is the Rifleman's launch row (TY 100), from the shots this window holds: `1/54` on
+3198, `1/55` on 3202 and `1/53` on 3229, read beside §354's two rows. I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **222 of 302**, unmoved: the pair parts, so it is not
+lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1368 and run1368b): `Commando`
+(74, `COMMANDOSPANISH`), 1,320 figure rows. It stays in the never list until a lockstep game holds it.
 
 ## 358. Reserved for the next item on the AI track
 
