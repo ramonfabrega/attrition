@@ -407,6 +407,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // word `GreatSaharaFrenchTier4`'s `(7, 10, 4)`, other maps; no battery
     // game fields the French.
     (18, 10, 4),
+    // The Greeks at a held Enlightenment age, Great Lakes (item 3674): not
+    // the AI word `GreatSaharaGreekTier1`'s `(7, 5, 1)`, the Classical
+    // pair's `(18, 5, 5)` or the Gunpowder pair's `(7, 5, 5)`, other maps;
+    // no battery game fields the Greeks.
+    (14, 5, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
