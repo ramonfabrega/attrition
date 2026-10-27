@@ -30673,3 +30673,78 @@ blocks, 2344 keys, rounds 421 theirs against 446 ours, 255 parting from 4495). O
 99) fires a `CHAR_ATTACK2` round from its own square in ours — (6072, 9480, 127) against theirs' (6152, 9334, 303),
 5 frames' flight against 4 — and it resolves on the word 4505 in ours, a frame after theirs retired.
 
+
+## run1345 — the Mongols at a held Enlightenment age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3673, `att-3673`)
+
+`docs/AI.md` §352. run1341's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1345 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 17 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 00:46:44, exited 00:47:09 (25.3 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 17, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1345 greatlakes-mongol-enlightenment-start`. `df -g ~` read 50 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1345-greatlakes-mongol-enlightenment-start.txt`, 151,130,247 bytes,
+SHA-256 `6f7f9bd50d342992b08728b06ef7cc3582c84ab8283d37e01381af674c1c19bd`.
+
+Archive `rontrace-run1345.log`, 8,807,904 bytes,
+SHA-256 `a7381e1401a29655c593010735fcb8ebbb0a1db23cbd337ade3c5e6ccf9e3898`.
+
+**What it holds**: the start of `mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1346 — the Mongols at a held Enlightenment age, Great Lakes: the draw stream to the game's end (2026-10-27, item 3673, `att-3673`)
+
+`docs/AI.md` §352. run1334's line with `--map 14 --ai-tribe 17` and run1345's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 17 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1345. Launched 00:46:44, exited 00:47:15 (31.1 s launch to exit). `success`. **The game
+  ended itself on 4949** (closing block 4950, `ended_early`). `GAME INFO` reads back as run1345's. `rngcmp.py`
+  against run1345: 37 frames identical. Filed with `filerun.py run1346 greatlakes-mongol-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1346-greatlakes-mongol-enlightenment-trace.txt`, 31,871,877 bytes,
+SHA-256 `2ee3b0d6c0ec4e47b29def1a7d7e216f73bb12012aa286a6ce0b50204092806c`.
+
+Archive `rontrace-run1346.log`, 145,261,824 bytes,
+SHA-256 `fb24ad88f29209d5b4c6ea2d6dde5f957bef63ed6c8721d1a792f67794bd6e79`.
+
+**What it holds**: the pair's first try. `mongol_enlightenment_pair_first_parting` walks it from run1345: **4854 of
+4949** by the count and the sequence (theirs 18 draws against 17, index 17, theirs `Unit::close+0xcb6`).
+`mongol_enlightenment_pair_the_long_s_stride_walks_back_from_4854` walks its stride 101..4801: 48 blocks, 104 keys
+— the standing families and who=1's `1/119`'s heading from 4701.
+
+## run1346b — the Mongols at a held Enlightenment age, Great Lakes: a dead take of the word's window (2026-10-27, item 3673, `att-3673`)
+
+run1346c's line. Pool lane 1, launched 00:51:09 at a host load of 34; the runner paced 7.9 frames a second and the
+process exited 5, so `autostart_receipt.py` raised `process failed: 5` and wrote no receipt (1503). Its staged
+`rontrace.log` reads 4950 frames identical to run1346 by `rngcmp.py`, but a take with no receipt is not filed:
+nothing of it is in the archive, and run1346c retook it. `df -g ~` read 47 GiB free before it.
+
+## run1346c — the Mongols at a held Enlightenment age, Great Lakes: the word 4854's window, blocks 4795..4950 (2026-10-27, item 3673, `att-3673`)
+
+`docs/AI.md` §352. **What the disk could not answer**: every record between the stride's last block 4801 and the
+word, and every round — run1346's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1346c --map 14 --end-frame 4949 --allow-early-end --timeout 3600
+--log-window 4795 4950 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover
+cover=0` and run1345's lobby: six blocks before the stride's 4801, and on to the closing block 4950, the game's end.
+- Pool lane 1. Launched 00:54:30, exited 00:55:12 (41.8 s launch to exit). `success`: 4950 frames, the game's last
+  4949. `rngcmp.py` against run1346: 4950 of 4950 identical. Filed with `filerun.py run1346c
+  greatlakes-mongol-enlightenment-window-4795-4950`. `df -g ~` read 44 GiB free after it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1346c-greatlakes-mongol-enlightenment-window-4795-4950.txt`, 356,681,779 bytes,
+SHA-256 `4c1a5ad8dbff8824a8a9299e56f1f3214f9eae828e6cd4c84ed9639e545c9845`.
+
+Archive `rontrace-run1346c.log`, 145,149,536 bytes,
+SHA-256 `cda997907670ebee605e89accf6a358c7244232b584d3efe1f6c3fb104d2d63b`.
+
+**What it holds**: `mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole` walks it from run1345 (155
+blocks, 754 keys, rounds 294 theirs against 275 ours, 99 parting from 4795). On 4841 who=1's Golden Horde `1/97` (TI
+204, piece 154) looses a `CHAR_ATTACK2` round at the Citizen `0/6` from its own square in ours — (6264, 28728, 480)
+against theirs' (6180, 28775, 715), 11 frames' flight against 10 — and `0/6` takes it on 4851 in ours against 4850;
+on the word 4854 it dies in theirs and not in ours.
