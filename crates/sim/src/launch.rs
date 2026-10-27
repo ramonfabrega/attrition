@@ -406,6 +406,47 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 50, `RIFLEMAN`** (unit type 100, the Riflemen; item 3705,
+    // `docs/AI.md` §357.2): run1382's `RON_STATE_FRAME=3228` packet on the
+    // Spanish Industrial Great Lakes seed holds its three attack
+    // `AttachPos` rows (node 0, frames 10, 15 and 16), `RData +0x88` 1.0,
+    // and `fit_bay.py` fits each sweep (629, 15 and 412 lattice points; the
+    // centroid is kept, 361 of 361 headings each): the same three keys and
+    // regions as piece 65's, the Black Watch's, below. No other packet on
+    // disk loads the piece. Without them who=1's `1/53` loosed its round of 3229
+    // at the human's building `0/2003` from its own square (4392, 33912,
+    // 466) against the original's (4328, 33795, 588), flew 3 frames
+    // against 2, and the building was struck a frame late.
+    (
+        50,
+        11,
+        10,
+        Bay {
+            right: 15_269,
+            fwd: 121_470,
+            dz: 168,
+        },
+    ),
+    (
+        50,
+        12,
+        15,
+        Bay {
+            right: 5_281,
+            fwd: 133_941,
+            dz: 122,
+        },
+    ),
+    (
+        50,
+        13,
+        16,
+        Bay {
+            right: 13_151,
+            fwd: 120_822,
+            dz: 167,
+        },
+    ),
     // **The Caravel's piece 275** (unit type 325; item 3633, `docs/AI.md`
     // §330): run1293's `RON_STATE_FRAME=3606` packet on the Roman Medieval
     // East Indies seed holds its nine attack `AttachPos` rows, node 0 at
@@ -3712,6 +3753,35 @@ mod tests {
     /// beside its figure's `GUY` pose on the block before, reproduced at the
     /// dump's `sx, sy` and `sz − z` by exactly one of the piece's three
     /// attack keys (the dump does not print which the figure played).
+    /// **The Spanish Riflemen loose from piece 50's bays** (item 3705):
+    /// two rounds of each attack key run1368b prints from a shooter's
+    /// first frame, beside its figure's `GUY` pose on the block before,
+    /// reproduced at the dump's `sx, sy` and `sz − z` by exactly one of the
+    /// piece's three attack keys. Made to fail with the rows out of
+    /// `BAYS`: each round leaves the figure's own square.
+    #[test]
+    fn run1368b_s_spanish_riflemen_leave_from_piece_50_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 6] = [
+            (4344, 33768, -249_954_304, 4315, 33650, 168), // 3198 1/54
+            (4392, 33912, -361_758_720, 4343, 33801, 168), // 3264 1/53
+            (4392, 33912, -361_758_720, 4328, 33795, 122), // 3229 1/53
+            (4344, 33768, -377_946_112, 4278, 33652, 122), // 3243 1/54
+            (4392, 33912, -361_758_720, 4342, 33802, 167), // 3310 1/53
+            (4776, 34200, -428_736_512, 4714, 34096, 167), // 3283 1/55
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<(i8, u32)> = [(11, 10), (12, 15), (13, 16)]
+                .into_iter()
+                .filter(|&(anim, t)| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 50, anim, t, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(50, anim, t, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
     #[test]
     fn run1266_s_aztec_javelins_leave_from_the_royal_atl_atls_bays() {
         // (x, y, facing, sx, sy, sz − z)

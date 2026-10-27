@@ -31288,3 +31288,45 @@ SHA-256 `6cddf64fbef6e64f07ffba151fe1d8e8b593057f41db3f15d26cd17e466591a3`.
 blocks and 809 keys, no rounds in the window. On the word, ours spends one more `Leader::create_units+0x642`
 roll than theirs (8 against 7), the AI's first military valuation of the game. The leaders' make lists agree on
 block 1181 and part on 1183 (`MAKE[6].t` ours 98, theirs -1).
+
+## run1382 — the Spanish at a held Industrial age, Great Lakes: a packet at logger frame 3228, piece 50's `AttachPos` rows (2026-10-27, item 3705, `att-3705`)
+
+`docs/AI.md` §357.2. **What the disk could not answer**: the Rifleman's (TY 100, piece 50) release nodes.
+`get_position.py … entries 50` on all 80 packets on disk finds the piece loaded by none, and run1368b prints every
+round but not the animation each plays. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1382 --map 14
+--end-frame 3230 --timeout 3600 --log-window 3226 3230 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 9 --cover
+cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --tracer-def RON_STATE_FRAME=3228 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 07:42:47, exited 07:43:11 (23.3 s launch to exit). `success`, 3231 frames. Not
+  filed: the packet is the product. `df -g ~` read 166 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1382/map-14/frame-snapshot.bin`, 916,455,664 bytes,
+SHA-256 `058502196e034f7a79d609fa8f4698e40d5834e95f9d43fa4b9e97bbe8ab4475`.
+
+**What it holds**: `get_position.py entries 50` gives three rows (node 0, `CHAR_ATTACK1`..`3` at frames 10, 15 and
+16), `RData +0x88` 1.0. `get_position.py sweep 50 0 <anim> <time>` for each key is kept at
+`~/ron-data/lab-experiments/2026-10-27-item-3705/bay-50-a<anim>-t<time>.txt`; `fit_bay.py` fits each to one region
+(629, 15 and 412 lattice points), the same regions as piece 65's (run1355, item 3683).
+
+## run1382b — the Spanish at a held Industrial age, Great Lakes: the closing window, blocks 3944..4201 (2026-10-27, item 3705, `att-3705`)
+
+`docs/AI.md` §357.2. **What the disk could not answer**: every record of the pair's last blocks once the word reached
+the game's last frame. run1368's stride prints units every hundred frames, no `AMMO` and no leader, building or city
+record past the start, and run1368b ends on 3480. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1382b
+--map 14 --end-frame 4200 --allow-early-end --timeout 3600 --log-window 3944 4201 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0` and run1367's lobby: the
+258 blocks through the closing block.
+- Pool lane 1. Launched 07:47:08, exited after 45.4 s. `success`: 4201 frames, not ended early. `rngcmp.py` against
+  run1368: 4201 of 4201 identical. Filed with `filerun.py run1382b greatlakes-spanish-industrial-window-3944-4201`.
+  `df -g ~` read 165 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1382b-greatlakes-spanish-industrial-window-3944-4201.txt`, 561,287,323 bytes,
+SHA-256 `6248269323c6ca002bc0019225dc3ba15750befe9a339f432abc135ecee76264`.
+
+**What it holds**: 257 blocks walked from run1367's start, **70 keys**, every one a standing family; rounds 458
+against 458, none parting. The word's widening (`spanish_industrial_pair_run1382b_s_closing_frame_is_widened_whole`)
+and in the coverage driver. Block 4201 is the closing `GameInfo` alone; the per-frame `BUILD` records never print
+who=1's foundations `1/2056..2058` (parked 3705a).
+

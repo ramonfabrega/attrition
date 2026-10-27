@@ -3603,6 +3603,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::chinese_enlightenment_pair::chinese_enlightenment_closing_window(),
         || super::spanish_industrial_pair::spanish_industrial_frame_3229_window(),
         || super::spanish_industrial_pair::spanish_industrial_stride_window(),
+        || super::spanish_industrial_pair::spanish_industrial_closing_window(),
         || super::persian_gunpowder_pair::persian_gunpowder_frame_1180_window(),
         || super::persian_gunpowder_pair::persian_gunpowder_stride_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),
