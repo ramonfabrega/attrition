@@ -11571,13 +11571,22 @@ it names no score; a packet that loads the piece fits its bays.
 4624 (−686227456 against −1140523008) and `1/61` on 4626. No position or
 draw parts; it names no score.
 
-## Parked by the next landing, slot TX — reserved
+## Parked by item 3686, 2026-10-26 — a CEO's heal and a rifle's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3686a — the Monarch's and the Comrade's heal arms.**
+  `Unit::process_healing@005e0670:149`–`:208`: `0x161` and `0x163` on
+  `FRENCH_SUPPLY_HEAL_RATE`, each also asking an allied cell. They are
+  read and not built (`heal.rs`'s SEAM); which captures reach them is not
+  scanned. They name no score.
+- **3686b — `repair_damage`'s reinforcement.** Past a squad's last live
+  figure, a squad under its `uber_size` trains a figure back:
+  `Objects::find_free`, `init`, a spot, a move order, and the groups
+  rejoin it (`0060de10`). `Sim::repair_unit_damage` drops the remainder
+  instead. Whether a dump shows a squad regrown under a heal is not
+  scanned. It names no score.
+- **3686c — piece 87's `CHAR_ATTACK1` and `2` rows.** These are 1143's,
+  unmeasured on this piece. Only the `CHAR_ATTACK3` row of 3105 is
+  checked against a dump. They name no score.
 
 ## Parked by the next landing, slot TY — reserved
 

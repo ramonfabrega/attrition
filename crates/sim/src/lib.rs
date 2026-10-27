@@ -6961,6 +6961,7 @@ impl Sim {
         // garrison branch inside, and on the map the civilian heal
         // (`crate::heal`, `docs/COMBAT.md` §72).
         self.garrison_heal(i, frame);
+        self.ceo_heal(i, frame);
         self.civilian_heal(i, frame);
         // **The frozen frame's mark is cleared here** —
         // `Unit::process@00610bc0`'s `unit_masks2 & 0xffffffef`,
