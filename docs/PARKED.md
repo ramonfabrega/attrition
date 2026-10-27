@@ -11706,13 +11706,22 @@ the game's end and the closing block agrees, so none of these names a score. Eac
 - **3695b. Two Musketeers' `dest_angle`.** `1/39` on 4656 and `1/38` on 4661 (TY 99, group 64, guarding),
   -1027145728 against -1560805376 and -1219624960 against -1650196480. Nothing else on them parts. Names no score.
 
-## Parked by the next landing, slot UE — reserved
+## Parked by item 3696, 2026-10-27 — the Japanese at a held Enlightenment age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Japanese Enlightenment pair is whole on its first try, 4701 of 4701 (`docs/AI.md` §356); the draw stream holds
+to the game's end and the closing block agrees, so none of these names a score. Each is a residue of run1366b's
+window (4446..4702): 148 keys and 72 parting round rows.
+
+- **3696a. The Gun Samurai's rounds leave from the unit's own position.** All 72 parting round rows are who=1's
+  Gun Samurai (TY 161, `ELITESAMURAI`) `1/53`, `1/54` and `1/55`, group 66, at the human's city `0/2000`.
+  `1/53`'s `ammo[0]` on 4555 leaves (6840, 8616, 281) in ours, the unit's position, and (6842, 8472, 439) in
+  theirs; `v1z` -1025000 against -66268745; `ex, ey` within ten. Every parting round flies `total_time` one frame
+  longer in ours (4 against 3, 3 against 2), so `0/2000`'s `build:damage` reads 715 against 722 on 4557. 3695a's
+  shape on a third launcher (after the Repeating Rifle Horse and the Cannon): read the three together. It books if a
+  lobby's word lands on one of their rounds.
+- **3696b. Two Musketeers' `dest_angle`.** `1/129` on 4619 and `1/111` on 4643 (TY 99, group 88, guarding),
+  -158400512 against 277413888 and 1719074816 against 1788805120. Nothing else on them parts; 3695b's shape. Names
+  no score.
 
 ## Parked by the next landing, slot UF — reserved
 

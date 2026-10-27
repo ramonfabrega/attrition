@@ -138,6 +138,8 @@ mod iroquois_word;
 #[cfg(test)]
 mod japanese_ancient_pair;
 #[cfg(test)]
+mod japanese_enlightenment_pair;
+#[cfg(test)]
 mod japanese_gunpowder_pair;
 #[cfg(test)]
 mod japanese_industrial_pair;
