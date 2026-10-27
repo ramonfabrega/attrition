@@ -10909,3 +10909,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1366  run1334's line with --map 18 --ai-tribe 15 and run1365's lobby   (the draw stream; ended itself on 4701)
 #   run1366b --map 18 --end-frame 4701 --allow-early-end --timeout 3600 --log-window 4446 4702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1365's lobby   (the closing window)
 # Checks: `rngcmp.py` run1365 vs run1366 -> 37 identical; run1366 vs run1366b -> 4702 identical.
+# ==== item 3697: the Spanish at a held Industrial age, Great Lakes (`docs/AI.md` §357; `docs/RUNS.md` run1367, run1368, run1368b) ====
+#   run1367  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1368  run1334's line with --ai-tribe 9 and run1367's lobby   (the draw stream; ended itself on 4200)
+#   run1368b --map 14 --end-frame 3480 --timeout 3600 --log-window 3195 3480 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1367's lobby   (the word 3229's window)
+# Checks: `rngcmp.py` run1367 vs run1368 -> 37 identical; run1368 vs run1368b -> 3481 identical.

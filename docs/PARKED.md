@@ -11723,13 +11723,21 @@ window (4446..4702): 148 keys and 72 parting round rows.
   -158400512 against 277413888 and 1719074816 against 1788805120. Nothing else on them parts; 3695b's shape. Names
   no score.
 
-## Parked by the next landing, slot UF — reserved
+## Parked by item 3697, 2026-10-27 — the Spanish at a held Industrial age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Spanish Industrial pair's first try parts at 3229 of 4200 (`docs/AI.md` §357). The word's residue item, the
+Riflemen's (TY 100) launch row, is the commander's to book on 3229. Neither row below names a score on its own.
+
+- **3697a. The state first parts before the word's window.** run1368's stride is quiet on unit rows through
+  3101. On 3201 the human's Citizen `0/4` (TY 50) reads `damage_frame` 3189 in ours against 3188 in theirs, and
+  run1368b's first block 3195 carries the same row with the city `0/2000`'s `raid_stamp`. So a round wounds `0/4`
+  a frame late in ours somewhere in 3102..3188. That round is draw-silent, and no dump on disk prints its launch.
+  It is the same launch shape as the word's, and a residue item on 3229 that wants the first parting walks back
+  to it with a window over about 3100..3195.
+- **3697b. Every who=1 building's `myhits` is a tenth low in ours at the close.** On run1368's closing block 4201
+  (7500 against 8250 on `1/2000`, 1360 against 1496 on `1/2001`), with `constr_time` and `construct_hits` parting
+  on the buildings under construction. This is downstream of 3229 (an upgrade theirs took and ours did not, or took
+  later). It names no score until the word reaches it.
 
 ## Parked by the next landing, slot UG — reserved
 
