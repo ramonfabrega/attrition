@@ -7308,6 +7308,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3702: the Mongol Medieval pair's closing state, run1378 walked
     // to its closing block 5593 past the word 2595: 2 inexact corners.
     ("mongol_medieval_pair_run1378_s_closing_state", 2),
+    // Item 3709: run1386, the Mongol Medieval word 3989's window,
+    // 3895..4240: 1 inexact corner.
+    (
+        "mongol_medieval_pair_run1386_s_word_frame_is_widened_whole",
+        1,
+    ),
     // Item 3698: the Persian Gunpowder pair's closing state, run1370
     // walked to its closing block 5674 past the word 1180: 2 inexact
     // corners. Item 3706 (the word at 3020): 3.
@@ -10790,13 +10796,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 3706 moved it 1180 → 3020 (the Elite Pikemen's mask), widened
     // on run1383b over 3014..3270: 672 keys, no rounds. Item 3708 moved
     // it 3020 → 3130 (`find_fort` and an unbuilt fort); the word's block
-    // 3131 is inside run1383b's window, 295 keys, no rounds.
+    // 3131 is inside run1383b's window, 295 keys, no rounds. Item 3709
+    // moved it 3130 → 4842 (owner 9 never heads a cell's chain), past
+    // every window on disk: the widening is owed by the item on the word,
+    // 3710.
     (
         "PERSIAN_GUNPOWDER_PAIR_WORD",
         crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
-        Some("persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole"),
-        3708,
-        Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_3020),
+        None,
+        3710,
+        None,
     ),
     // **The Inca at a held Industrial age** (item 3699): Great Lakes at
     // Toughest — whole on its first try, 4471 of 4471, the closing state
@@ -10836,13 +10845,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Mongols at a held Medieval age** (item 3702): East Indies at
     // Hard — first try 2595 of 5592, the Fishermen `1/85`'s first
     // `think_fish`; widened on run1378b over 2495..2846, the rounds
-    // compared.
+    // compared. Item 3709: 2595 → 3989 (owner 9 never heads a cell's
+    // chain), a round's landing; widened on run1386 over 3895..4240, the
+    // rounds compared.
     (
         "MONGOL_MEDIEVAL_PAIR_WORD",
         crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL_PAIR_WORD,
-        Some("mongol_medieval_pair_run1378b_s_word_frame_is_widened_whole"),
-        3702,
-        Some(crate::diff::mongol_medieval_pair::WIDENING_MONGOL_MEDIEVAL_FRAME_2595),
+        Some("mongol_medieval_pair_run1386_s_word_frame_is_widened_whole"),
+        3709,
+        Some(crate::diff::mongol_medieval_pair::WIDENING_MONGOL_MEDIEVAL_FRAME_3989),
     ),
     // **The Greeks at a held Medieval age** (item 3703): East Indies at
     // Hard — first try 5626 of 5942, the Heavy Fire Raft `1/70`'s
@@ -13194,7 +13205,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Mongols at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies at Hard (item 3702): first try
     // 2595 of 5592, the Fishermen `1/85`'s first `think_fish` accepting one
-    // cell more in ours; widened on run1378b over 2495..2846.
+    // cell more in ours; widened on run1378b over 2495..2846. Item 3709:
+    // 2595 → 3989, theirs' round from the Crossbowmen `1/45` lands a frame
+    // sooner; widened on run1386 over 3895..4240.
     AiWord {
         line: "Late ages",
         map: "EastIndiesMongolMedieval",
@@ -13202,7 +13215,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL_PAIR_WORD,
         length: 5_592,
         endpoint: Some("mongol_medieval_pair_run1378_s_closing_state"),
-        window: Some("mongol_medieval_frame_2595_window"),
+        window: Some("mongol_medieval_frame_3989_window"),
     },
     // The Greeks at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies at Hard (item 3703): first try

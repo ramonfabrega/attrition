@@ -450,6 +450,12 @@ pub(crate) fn ordered_group_steps(
 /// is not alive and on the map, or has no block) and otherwise its
 /// `coll_size` and unit cell. A hit is Chebyshev `<= mine + r` on both axes
 /// (`65b3db`, `65b3fe`).
+/// Whether `Object::add_to_world` and `remove_from_world` touch an owner's
+/// objects at all: both test the owner byte `< 9` unsigned at their head.
+pub(crate) fn threads(owner: crate::Player) -> bool {
+    owner < 9
+}
+
 pub(crate) fn chain_hit_steps<O: Copy>(
     c: (i32, i32),
     mine: i32,
@@ -1740,7 +1746,17 @@ impl Sim {
 
     /// `Object::add_to_world`'s chain half: push onto the head of the
     /// world cell's list.
+    ///
+    /// **Owner 9 is never threaded** (`docs/COLLISION.md` §3.1, item
+    /// 3709): `Object::add_to_world@0064d8c0` (at `0064d8e9`) and
+    /// `Object::remove_from_world@00647970` (at `00647993`) both open on
+    /// `cmp byte who, 9; jae` past the whole body, so a bird and a
+    /// pasture's carry never head a cell — and a bird over a deployed boat
+    /// must not hide the boat's claim from `think_fish`.
     pub(crate) fn chain_add(&mut self, u: usize) {
+        if !threads(self.units[u].owner) {
+            return;
+        }
         let Some(s) = self.chain_slot(self.units[u].pos) else {
             return;
         };
@@ -1778,8 +1794,12 @@ impl Sim {
         out
     }
 
-    /// `Object::remove_from_world`'s chain half.
+    /// `Object::remove_from_world`'s chain half, under the same owner gate
+    /// as [`Self::chain_add`].
     pub(crate) fn chain_remove(&mut self, u: usize) {
+        if !threads(self.units[u].owner) {
+            return;
+        }
         let (up, down) = (self.units[u].up, self.units[u].down);
         match up {
             Some(p) => self.units[p].down = down,
