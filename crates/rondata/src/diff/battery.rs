@@ -461,6 +461,13 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the held-out `(18, 7, 3)` or the Classical pair's `(18, 7, 5)`,
     // other difficulties, nor `(7, 7, 4)` or `(7, 7, 5)`, another map.
     (18, 7, 4),
+    // Item 3701: the British at a held Medieval age on Great Lakes at
+    // Hard (`diff::british_medieval_pair`), minted under rule (3) — not the
+    // first pair's `(14, 11, 0)` or the second's `(14, 11, 5)`, this map
+    // at other difficulties, nor the Classical pair's `(18, 11, 4)` or the
+    // Industrial pair's `(7, 11, 4)`, other maps; the battery fields no
+    // British.
+    (14, 11, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
