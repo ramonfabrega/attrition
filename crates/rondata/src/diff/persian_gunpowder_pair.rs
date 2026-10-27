@@ -52,11 +52,13 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // (34, 32) where theirs takes (34, 33) (run1385, run1385p, §358.3). On
     // 3130 ours spends 98 draws against theirs' 97, parting at index 54:
     // ours `Unit::think_fish+0x27a`, theirs `Guy::init_real+0x52`.
-    // Item 3709's fix (owner 9 never heads a cell's chain, carried here)
-    // moves it 3130 → 4842: the Fishermen `1/125` was 3709's bird-headed
-    // claim. On 4842 ours spends 21 draws against 22, parting at index 5:
-    // theirs' idle Citizen `1/95` rolls `Unit::do_idle+0x7d` where ours has
-    // sent it to the unbuilt `1/2052`.
+    // Item 3709: 3130 → 4842. `Object::add_to_world` threads no owner-9
+    // object; ours chained a bird over the deployed boat on (45, 58), so
+    // `1/125`'s `think_fish` read the cell's head as `who 9` and took the
+    // claimed Fish (`docs/AI.md` §362.1). On 4842 ours spends 21 draws
+    // against theirs' 22, parting at index 5: ours `Guy::set_anim+0x97a <
+    // Unit::do_guard+0x7f4`, theirs `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d`.
     // Item 3710: 4842 → 4948. `Group::action_move_near` takes each member's
     // builder mark off (`unit_masks & ~0x400`, `705fe3`); ours kept `1/95`'s
     // from its build on 2861 through group 80's move (4001..4101), so its
@@ -360,7 +362,9 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     // idle and orderless on 3130) takes a `MOVEORDER` to (34968, 44952) in
     // ours against (29592, 41880) in theirs (`orders_x`, `orders_y`,
     // `order:move.angle`); on 3132 its path is 1 node against 7.
-    pin_eq!(w.firsts.len(), 295, "run1383b baseline");
+    // Item 3709 (the word at 4842): **102** keys — the Fishermen `1/125`'s
+    // rows leave with the owner-9 gate on the chain.
+    pin_eq!(w.firsts.len(), 102, "run1383b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -532,7 +536,9 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // `0/11` and `0/13` and who=1's `1/235` stand in ours alone (extra).
     // Item 3708 (the word at 3130): 250 compared, counts
     // `[237, 7, 1, 7, 180, 1, 83]`, the human's `0/13` the one extra.
-    pin_eq!(e.compared, 250, "units compared");
-    pin_eq!(e.counts(), [237, 7, 1, 7, 180, 1, 83], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(0, 13)], "the closing extras");
+    // Item 3709 (the word at 4842): 256 compared, counts
+    // `[215, 1, 1, 0, 75, 0, 61]`, who=1's `1/235` the one extra.
+    pin_eq!(e.compared, 256, "units compared");
+    pin_eq!(e.counts(), [215, 1, 1, 0, 75, 0, 61], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![(1, 235)], "the closing extras");
 }

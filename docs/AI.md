@@ -34415,6 +34415,67 @@ and run1378b reads 8070 figure rows. It stays on the never list.
 **Not established**: which cell ours accepts and theirs refuses, and on which of `think_fish`'s terms; whether
 the bucket and queued-cost partings before the word are its cause or a separate residue.
 
+### 362.1 A bird is never on a cell's chain: the word moves 2595 → 3989 (item 3709)
+
+*Item 3709, 2026-10-27, Opus 5.5.*
+
+**The cell ours accepts.** A probe on ours' 2595 (`think_fish`'s accepted cells, reverted whole) lists 52. The
+eleventh, cell (45, 58), holds a Fish (TI 6) and scores 1,000,000 / 2. Its chain head reads `(19, who 9)`, so the
+claim test (`who < 8`) lets it through and it wins: `best` 19, a move to (−2, 0), x 34968. Theirs' x 30360 is
+(−8, 0).
+
+**What stands on the cell.** In run1378b's 2595, the deployed Fishermen `1/76` (TY 267, `rare 6`) sits at the
+cell's centre (34968, 44952). It prints `up −1`: it is the head of theirs' chain, its `down` is the who=8 Fish
+`8/88`. Ours' chain is `[9/19, 1/76, 8/88, 8/87, 8/86]`. The bird `9/19` (owner 9, flying at (34754, 44716)) was
+pushed on top, and owner 9 is never dumped.
+
+**The original never threads owner 9.** `Object::add_to_world@0064d8c0` opens on `cmp byte who, 9; jae` at
+`0064d8e9`, past the whole body, and `Object::remove_from_world@00647970` does the same at `00647993`
+(`docs/COLLISION.md` §3.1). So `1/76` heads the cell, the Fish is claimed, and theirs' boat goes elsewhere.
+
+**Built.** `Sim::chain_add` and `chain_remove` take the gate (`collide::threads`).
+`fish::tests::a_bird_over_a_deployed_boat_does_not_free_its_fish` fails with the gate mutated to `owner < 10`.
+
+**What moved.**
+- **The word, 2595 → 3989.** On 2595 ours' `1/85` now takes the same 51 cells and goes to (−8, 0).
+- **The Persian Gunpowder word, 3130 → 4842** (3710's). 3708's `1/125` was headed for (34968, 44952) in ours,
+  the same cell.
+- **The other lobbies' `first_parting`**: none moved (95 of 97 green, these two re-pinned).
+- **run1378b's window**: 910 → 125 keys. `1/85` agrees throughout.
+- **The closing state**: 157 → 162 compared, counts `[108, 0, 0, 4, 81, 1, 25]`, extras 16 → 0.
+- **The Persian closing state**: 250 → 256, counts `[215, 1, 1, 0, 75, 0, 61]`.
+
+**The booking's hypothesis is killed.** The economy's accounting before 2495 was not the boat's cause. The word
+moved with who=1's buckets and the Light Cavalry's queued costs still parting (parked 3709a).
+
+**The new word, 3989**: ours 8 draws against theirs' 9, parting at index 7. Ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1 < Object::do_damage+0x159e < Ammo::do_damage+0xc11`, preceded by its
+`SoundGlobal::play` on the sound stream. **The direction: theirs acts.** A round lands in theirs one frame before
+ours.
+
+run1378's stride, walked back to 3901 (39 blocks, 162 keys), parts on the standing families only, so the window was taken:
+**run1386**: blocks 3895..4240 at run1378b's detail, 4241 of 4241 frames identical to run1378. Its widening
+compares 345 blocks, 221 keys and rounds (209, 210):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3981 | the Crossbowmen `1/43`'s round (TI 172, land, attacking `0/2004`) | `ammo.sx`, `sy`, `sz` | 6120, 11208, 19 | 6103, 11142, 159 |
+| 3981 | the same | `total_time` | 11 | 10 |
+| 3983 | `1/44`'s round | `sz`; `total_time` | 15; 11 | 188; 10 |
+| 3989 | `1/45`'s round | `sx` | 6264 | 6238 |
+| 3990 | the human's `0/2004` | `damage`, `damage_frac` | 0, 0 | 1, 10 |
+| 3990 | city `0/2000` | `raid_stamp` | 0 | 3989 |
+| 3990 | both leaders | `treaties[1]`, `treaties[0]` | 1 | 3 |
+
+The shooters' own rows agree: `1/43` stands at (6120, 11208) on both sides, and no unit row parts before 4066. So
+the parting is the round's **launch point and height**, and with it the flight time. Theirs launches 66 north and
+140 higher. It is the same shape as the launch rows 3704 and 3705 read off packets.
+
+**Not established**:
+- the Crossbowmen's launch offset, and whether ours has a launch row for TY 122 at all;
+- whether `9/19` ever stood over another chain read (`find_nearby_target`, the collision walks) earlier in any game.
+  No other floor moved.
+
 ## 363. The Greeks at a held Medieval age, East Indies, at difficulty 4: first try 5626 of 5942 (item 3703)
 
 *Item 3703, 2026-10-27, Opus 5.5.*

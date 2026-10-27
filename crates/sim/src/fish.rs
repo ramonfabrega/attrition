@@ -694,4 +694,48 @@ mod tests {
             "the deployed boat's fish is not a candidate for the second boat"
         );
     }
+
+    /// **A bird over a deployed boat hides nothing** (item 3709,
+    /// `docs/COLLISION.md` §3.1): `Object::add_to_world` threads no owner-9
+    /// object, so the boat stays its cell's head and its fish stays
+    /// claimed. Threaded, the bird headed the chain with `who 9`, the
+    /// `who < 8` test let the cell through, and the Mongol Medieval pair's
+    /// Fishermen `1/85` took the claimed fish on frame 2595.
+    #[test]
+    fn a_bird_over_a_deployed_boat_does_not_free_its_fish() {
+        let (mut s, u) = fish_sim();
+        let at = Pos::new(17 * 768 + 384, 18 * 768 + 384);
+        s.world.add_good(crate::world::Good {
+            pos: at,
+            ty: A_GOOD,
+            alive: true,
+        });
+        let ty = s.units[u].ty;
+        let mut other = crate::Unit::new(1, 15, at, 20);
+        other.ty = ty;
+        let o = s.add_unit(other);
+        s.units[o].combat.packed = false;
+        let mut bird = crate::Unit::new(9, 19, Pos::new(at.x - 200, at.y - 200), 1);
+        bird.ty = ty;
+        let b = s.add_unit(bird);
+        assert_eq!(
+            s.units[b].pos.cell(),
+            at.cell(),
+            "the bird is over the cell"
+        );
+        assert_eq!(
+            s.cell_chain(at.cell()),
+            vec![o],
+            "owner 9 is never threaded"
+        );
+        assert_eq!(s.claim_of(at.cell()), Some((15, 1)));
+        s.chain_remove(b);
+        assert_eq!(s.cell_chain(at.cell()), vec![o], "nor unthreaded");
+        s.units[u].idle = 1;
+        assert!(s.think_fish(u, 0));
+        let Some(Body::Move(m)) = s.units[u].orders.front().map(|o| o.body) else {
+            panic!("a move order")
+        };
+        assert_ne!(m.dest.cell(), Cell::new(17, 18), "the boat's claim holds");
+    }
 }

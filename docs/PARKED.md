@@ -11892,13 +11892,22 @@ The Persian Gunpowder word moves 3020 → 3130 (`docs/AI.md` §358.3). Its next 
   membership. A fort's death leaves the list, and `alive` stands for that; its capture is the arm nobody holds, and
   no capture on disk takes a fort. It names no score until one does.
 
-## Parked by the next landing, slot UR — reserved
+## Parked by item 3709, 2026-10-27 — owner 9 never heads a cell's chain: the Mongol Medieval word moves 2595 → 3989
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Mongol Medieval word moves 2595 → 3989 and the Persian Gunpowder word 3130 → 4842 (`docs/AI.md` §362.1). The
+next residue item on 3989 (a round's launch point) is the commander's to book. Neither row below names a score.
+
+- **3709a. The economy's accounting parts before 2495, and it was not the fisherman's cause** (the booking's
+  hypothesis, killed by the floor: the word moved 2595 → 3989 with it standing). On run1378b's 2495 who=1's
+  buckets read food 17182 against 17188, timber 14828 against 14832, wealth 18222 against 18256, metal 16561
+  against 16602; on 2586 three Stables (`1/2015`, `1/2018`, `1/2029`, orig type 428) queue Light Cavalry (TI 210,
+  6f/4t) at 132/88 in ours against 126/84 in theirs — ours prices one step dearer, and its buckets read lower in
+  all four. On run1386's 3895 the buckets still part (food 14960 against 15008). No draw parts on it to 3989. The
+  first step: run1377 to 2495 has no leader record; a window at `LEADERS=9` over the first queued Light Cavalry,
+  or `RON_DEBUG_MAKE`, and `seams.py --field cost`.
+- **3709b. The rest of `add_to_world`'s body for owner 9 is not checked.** The gate skips the whole function — the
+  collision index and the vision half too — and this item gates only the chain. A bird is air and its `coll_add`
+  is believed inert, but no test says so. It names no score until a who=9 collision or sight parts a row.
 
 ## Parked by the next landing, slot US — reserved
 

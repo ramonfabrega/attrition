@@ -1748,8 +1748,9 @@ impl Sim {
     /// world cell's list.
     ///
     /// **Owner 9 is never threaded** (`docs/COLLISION.md` §3.1, item
-    /// 3709): `add_to_world@0064d8e9` and `remove_from_world@00647993` both
-    /// open on `cmp byte who, 9; jae` past the whole body, so a bird and a
+    /// 3709): `Object::add_to_world@0064d8c0` (at `0064d8e9`) and
+    /// `Object::remove_from_world@00647970` (at `00647993`) both open on
+    /// `cmp byte who, 9; jae` past the whole body, so a bird and a
     /// pasture's carry never head a cell — and a bird over a deployed boat
     /// must not hide the boat's claim from `think_fish`.
     pub(crate) fn chain_add(&mut self, u: usize) {

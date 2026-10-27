@@ -302,6 +302,28 @@ Both functions report `"UNIT LINKED LIST LOOPS <ADD>"` / `<REMOVE>` if the
 list ever points at itself, which is how the original says the invariant is
 load-bearing.
 
+### 3.1 Owner 9 is never threaded (2026-10-27, item 3709)
+
+`Object::add_to_world@0064d8c0` opens on `cmp byte [who], 9; jae` at
+`0064d8e9`, and `Object::remove_from_world@00647970` on the same test at
+`00647993`; both jump past the whole body. So a **bird** and a **pasture's
+carry** (owner 9) never head a cell's chain, and an owner-8 animal does.
+`Sim::chain_add` and `Sim::chain_remove` take the same gate
+(`collide::threads`).
+
+**What it was worth.** The Mongol Medieval pair's bird `9/19` was chained over
+the deployed Fishermen `1/76` on (45, 58); `think_fish` read the cell's head
+as `who 9`, the claim test (`who < 8`) let the Fish through, and `1/85` took it
+on 2595 (`docs/AI.md` §362.1). The word moved 2595 → 3989 and the Persian
+Gunpowder word 3130 → 4842 (the same fish cell).
+`fish::tests::a_bird_over_a_deployed_boat_does_not_free_its_fish` fails
+without the gate (mutated to `owner < 10`).
+
+**Confidence.** The gate is read in the listing on both functions, and the
+floor moved on two games with no other lobby's `first_parting` moving.
+**Not established**: the rest of the body this skips for owner 9 — the
+collision index and the vision half — is not checked here (parked 3709b).
+
 ## 4. `Unit::detect_unit_collision`
 
 `detect_unit_collision(x, y, quick, boats, _, nocoll, top_only)`. The three
