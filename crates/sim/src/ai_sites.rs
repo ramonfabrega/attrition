@@ -2251,4 +2251,55 @@ mod tests {
             "though the idler is the one that went"
         );
     }
+
+    /// **"Last" is by object number, not by slot** (item 3710): the loop
+    /// walks `units[who][o]`, so a gatherer holding a reused, lower number
+    /// at the end of `self.units` is examined *before* an idler numbered
+    /// above it. run1387's 4777: ours ended on `1/59` (a gatherer) and
+    /// took the builder from the gatherers; theirs ended on `1/179`.
+    #[test]
+    fn the_last_examined_citizen_is_the_highest_numbered_not_the_last_slot() {
+        let (mut sim, k) = kit(64, 8, 2);
+        sim.frame = 1;
+        let village_t = sim.build_types[k.village].tree.unwrap();
+        let home = sim.init_build(
+            1,
+            k.village,
+            Pos::new(50 * UNITS_PER_CELL, 4 * UNITS_PER_CELL),
+            false,
+        );
+        sim.activate(home, false, true);
+        own_around(&mut sim, 1);
+        sim.ai[1].census.free_peasants = 5;
+        sim.ai[1].census.gatherers = 5;
+        sim.ai[1].census.reg_free_peasants[0] = 5;
+        sim.ai[1].census.reg_gatherers[0] = 5;
+
+        let idler = spawn(
+            &mut sim,
+            1,
+            k.citizen_unit,
+            Pos::new(2 * UNITS_PER_CELL, UNITS_PER_CELL),
+        );
+        let gatherer = spawn(
+            &mut sim,
+            1,
+            k.citizen_unit,
+            Pos::new(40 * UNITS_PER_CELL, UNITS_PER_CELL),
+        );
+        set_gathering(&mut sim, gatherer);
+        // The gatherer took a number below the idler's — a reused slot —
+        // while it sits after it in this crate's list.
+        let (a, b) = (sim.units[idler].index, sim.units[gatherer].index);
+        sim.units[idler].index = b;
+        sim.units[gatherer].index = a;
+        assert!(gatherer > idler && sim.units[gatherer].index < sim.units[idler].index);
+
+        assert!(sim.produce_city(1, village_t, 1, 1, 0));
+        assert_eq!(
+            sim.ai[1].census.free_peasants, 4,
+            "the idler, numbered last, is the last examined"
+        );
+        assert_eq!(sim.ai[1].census.gatherers, 5, "the gatherers keep theirs");
+    }
 }

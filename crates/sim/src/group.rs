@@ -5766,6 +5766,51 @@ mod tests {
     /// does not (`docs/ORDERS.md` §8.2's gate), and a group with no army
     /// takes none at all — this crate's own line, since a player's
     /// selection has no persistent group for `do_group_move` to read.
+    /// **A group move takes the builder's mark off** (item 3710,
+    /// `Group::action_move_near@00704990`'s `705fe3`, after either arm's
+    /// order): run1370's Citizen `1/95` left its site for group 80's move
+    /// between 4001 and 4101 and lost `unit_masks & 0x400`; this crate kept
+    /// `was_builder` and its idle think on 4841 searched for a build. Both
+    /// arms: an army's `GroupMoveOrder` and a selection's plain move.
+    #[test]
+    fn a_group_move_takes_the_builder_s_mark_off() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        s.units[a].was_builder = true;
+        s.units[b].was_builder = true;
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert!(s.current_move(a).expect("a move").group.is_some());
+        assert!(!s.units[a].was_builder && !s.units[b].was_builder, "the grouped arm");
+
+        let plain = group_of(1, &[a, b]);
+        s.units[a].was_builder = true;
+        s.group_action_move_to(
+            &plain,
+            Pos::new(0x5000, 0x5000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert!(s.current_move(a).expect("a move").group.is_none());
+        assert!(!s.units[a].was_builder, "the plain arm");
+    }
+
     #[test]
     fn an_army_s_move_is_a_group_order_and_a_selection_s_is_not() {
         let mut s = sim();

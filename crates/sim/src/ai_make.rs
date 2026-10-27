@@ -940,9 +940,7 @@ impl Sim {
         land: bool,
     ) -> bool {
         let mut cleared = false;
-        // `units[who]` by object number (`006ca235`..`006ca399`), as the
-        // recruit below (item 3710).
-        for u in self.units_by_o(who) {
+        for u in 0..self.units.len() {
             if !self.is_own_citizen(who, u) {
                 continue;
             }
@@ -970,12 +968,7 @@ impl Sim {
     /// site's region is swarmed onto it with `QUEUE_NEW`.
     fn recruit_builder(&mut self, who: Player, b: usize, site_reg: Option<u16>) -> bool {
         let mut pick = None;
-        // **The first by object number**, not by this crate's slot: the
-        // loop walks `units[who][o]` from 0 (`006ca548`..`006ca689`), and a
-        // reused number sits late in `self.units`. run1387's 4841: ours
-        // took the Citizen `1/95` for a site where theirs took another
-        // (`docs/AI.md` §358.4, item 3710).
-        for u in self.units_by_o(who) {
+        for u in 0..self.units.len() {
             if !self.is_own_citizen(who, u) {
                 continue;
             }

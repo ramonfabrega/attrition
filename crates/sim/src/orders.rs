@@ -10335,6 +10335,30 @@ mod all_gathering_tests {
         assert!(sim.units[u].was_builder, "a repair swarm marks it");
     }
 
+    /// **A gather order takes the mark off** (item 3710,
+    /// `Unit::add_gather_order@0061a5c0`'s `61a5f7`, every queue position):
+    /// the sweep's view clears `+0x68 & 0x400` in `take_order`, and this
+    /// crate's left `was_builder` standing.
+    #[test]
+    fn a_gather_order_takes_the_builder_s_mark_off() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let site = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+        let mut u = crate::Unit::new(1, 0, Pos::new(0x1400, 0x1000), 10);
+        u.ty = Some(citizen);
+        u.on_map = true;
+        let u = sim.add_unit(u);
+        for pos in [QueuePos::Last, QueuePos::New] {
+            sim.units[u].was_builder = true;
+            sim.add_gather_order(u, site, pos, true);
+            assert!(!sim.units[u].was_builder, "{pos:?}");
+        }
+    }
+
     /// **`find_repair_spot` is a tier arm** (item 3187,
     /// `Unit::find_repair_spot@00604320`): a computer below difficulty 2
     /// answers 0, and from 2 up it swarms the nearest damaged friendly
