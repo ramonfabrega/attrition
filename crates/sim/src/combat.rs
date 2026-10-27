@@ -455,6 +455,20 @@ pub struct Projectile {
     /// as a burning death: three draws, not one (`docs/COMBAT.md` §7.1
     /// step 6, §42.1; item 3580, `docs/AI.md` §313).
     pub flame: bool,
+    /// The round's ammo piece carries `ammo_flags & 1`, the `puncture="1"`
+    /// of `effects_graphics.xml` (`init_ammo_piece_ranges`' first
+    /// attribute, `internal_strings.xml` 3794): the arrows, the flaming
+    /// arrows and the Spear. `Ammo::do_damage@00678060` asks it with
+    /// `verify_ammo_flags(…, 1)` on a round that struck nothing, and such a
+    /// round **sticks** ([`Self::spent`]) where the others close.
+    pub punctures: bool,
+    /// **A spent arrow** (`flags 1`, item 3679, `docs/COMBAT.md` §46.7): a
+    /// puncturing round that struck nothing on ground that is not ocean,
+    /// left by `do_damage` in its slot with `cur_time` reset.
+    /// `Ammo::inc_time@0067d380` ages it a frame at a time, bumps its dead
+    /// shooter's `hold_frames` as for any round, and closes it at 200 —
+    /// so the shooter's number stays held that long.
+    pub spent: bool,
     /// `AmmoData::sz` and `ez` — the height the shot leaves from and the
     /// one it is aimed to come down at (`docs/COMBAT.md` §46.1). Only a
     /// rolled shot reads them, through [`arc_z`].

@@ -4472,7 +4472,10 @@ pub(crate) mod tests {
         use std::collections::{BTreeMap, BTreeSet};
         let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(raw)
             .into_iter()
-            .filter(|(a, _)| a.flags & 2 != 0)
+            // A live round (`flags & 2`) or a spent arrow (`flags 1`, item
+            // 3679, `docs/COMBAT.md` §46.7) — both hold their slot; a
+            // closed record (`flags 0`) holds nothing.
+            .filter(|(a, _)| a.flags & 3 != 0)
             .map(|(a, _)| ((a.who, a.o, a.index), a))
             .collect();
         let ident = |o: sim::combat::Obj| match o {

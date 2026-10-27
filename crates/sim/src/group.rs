@@ -4748,16 +4748,16 @@ mod tests {
             [(
                 crate::anim::ATTACK2,
                 vec![
-                    (1, 0, false, false, false),
-                    (2, 1, false, false, false),
-                    (5, 0, false, false, false),
-                    (8, 1, false, false, false),
-                    (10, 0, false, false, false),
-                    (13, 1, false, false, false),
-                    (16, 0, false, false, false),
-                    (18, 1, false, false, false),
-                    (21, 0, false, false, false),
-                    (24, 1, false, false, false),
+                    (1, 0, false, false, false, false),
+                    (2, 1, false, false, false, false),
+                    (5, 0, false, false, false, false),
+                    (8, 1, false, false, false, false),
+                    (10, 0, false, false, false, false),
+                    (13, 1, false, false, false, false),
+                    (16, 0, false, false, false, false),
+                    (18, 1, false, false, false, false),
+                    (21, 0, false, false, false, false),
+                    (24, 1, false, false, false, false),
                 ],
             )]
             .into_iter()

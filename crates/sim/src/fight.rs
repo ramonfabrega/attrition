@@ -67,6 +67,13 @@ pub(crate) enum Leash {
 /// lands on the type whose tech-tree id is this.
 pub const HOPLITES: crate::tech::TypeId = 0x84;
 
+/// `Ammo::inc_time@0067d380`'s `cur_time < 200` on a round whose `flags & 2`
+/// is clear — the frames a spent arrow keeps its slot (item 3679,
+/// `docs/COMBAT.md` §46.7). run1353b: who=1's Royal Hwarang `1/139`'s
+/// arrow reads `cur_time` 57 on block 4195 and 199 on 4337, and is gone on
+/// 4338.
+pub const SPENT_LIFE: i32 = 200;
+
 pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4";
 
 /// `TypeIndex::FIRESHIP` (`0x150`), the lineage `Object::compare_target`'s
@@ -2118,7 +2125,7 @@ impl Sim {
         missile: bool,
     ) {
         self.fire_ammo_release(
-            shooter, target, angle, frame, launch, sz, node, harmless, missile, false,
+            shooter, target, angle, frame, launch, sz, node, harmless, missile, false, false,
         );
     }
 
@@ -2137,6 +2144,7 @@ impl Sim {
         harmless: bool,
         missile: bool,
         flame: bool,
+        punctures: bool,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -2149,6 +2157,7 @@ impl Sim {
             harmless,
             missile,
             flame,
+            punctures,
         );
     }
 
@@ -2221,6 +2230,7 @@ impl Sim {
             false,
             false,
             false,
+            false,
         );
     }
 
@@ -2241,6 +2251,7 @@ impl Sim {
         harmless: bool,
         missile: bool,
         flame: bool,
+        punctures: bool,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -2253,6 +2264,7 @@ impl Sim {
             harmless,
             missile,
             flame,
+            punctures,
         );
     }
 
@@ -2329,6 +2341,7 @@ impl Sim {
         harmless: bool,
         missile: bool,
         flame: bool,
+        punctures: bool,
     ) {
         // **A round at an aircraft rolls to hit** (item 1102,
         // `docs/COMBAT.md` §81): `Ammo::init`'s air arm, ahead of the
@@ -2387,6 +2400,8 @@ impl Sim {
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
                 flame,
+                punctures,
+                spent: false,
                 crash: None,
             });
             return;
@@ -2542,6 +2557,8 @@ impl Sim {
             v1z: combat::arc_v1z(sz, ez, total_time),
             slot: 0,
             flame,
+            punctures,
+            spent: false,
             crash: None,
         });
     }
@@ -5582,6 +5599,8 @@ impl Sim {
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
                 flame: false,
+                punctures: false,
+                spent: false,
                 crash: None,
             });
         }
@@ -5628,6 +5647,18 @@ impl Sim {
         while i < self.projectiles.len() {
             self.projectiles[i].cur_time += 1;
             let p = self.projectiles[i];
+            // **A spent arrow** (item 3679, `docs/COMBAT.md` §46.7):
+            // `inc_time`'s `flags & 2` clear arm returns until `cur_time`
+            // reaches 200, and then closes it. Its dead shooter's bump is
+            // [`Sim::hold_frames_tick`]'s, as for any round.
+            if p.spent {
+                if p.cur_time >= SPENT_LIFE {
+                    self.projectiles.remove(i);
+                } else {
+                    i += 1;
+                }
+                continue;
+            }
             if p.crash.is_some() {
                 // `inc_time`'s first statement, here rather than in
                 // [`Sim::hold_frames_tick`]: a crash is laid inside this walk,
@@ -5730,7 +5761,9 @@ impl Sim {
             if !p.harmless {
                 self.land(p, frame);
             }
-            if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot) {
+            if let Some(k) = self.projectiles.iter().position(|q| q.slot == p.slot)
+                && !self.projectiles[k].spent
+            {
                 self.projectiles.remove(k);
             }
             i = self.projectiles.partition_point(|q| q.slot <= p.slot);
@@ -5793,6 +5826,33 @@ impl Sim {
             })
     }
 
+    /// **`do_damage`'s puncture arm, after its two draws** (`678c59`..,
+    /// item 3679, `docs/COMBAT.md` §46.7): the point is
+    /// `WorldData::restrict`ed and, when the round's piece punctures
+    /// (`verify_ammo_flags(…, 1)`) and the tile under the point is not
+    /// ocean (`mask & 0x30 != 0x20`; `is_valid` cannot refuse a restricted
+    /// point), the round is left in its slot as `flags 1` with `cur_time`
+    /// 0 — [`combat::Projectile::spent`] — rather than closed. The point
+    /// is the decal's; the record keeps its own `ex`/`ey` and its target.
+    fn stick(&mut self, p: combat::Projectile, at: Pos) {
+        if !p.punctures || p.crash.is_some() {
+            return;
+        }
+        let at = self.restrict_pos(at);
+        if self.world.is_tocean(at.tile()) {
+            return;
+        }
+        // `flags = 1` whole, so the rolled and missed bits go with the live
+        // one (run1331b: `1/52`'s spent arrow reads `flags 1` from 3333,
+        // where ours kept `4` and `8`); the target pair is not written.
+        if let Some(q) = self.projectiles.iter_mut().find(|q| q.slot == p.slot) {
+            q.spent = true;
+            q.cur_time = 0;
+            q.rolling = false;
+            q.missed = false;
+        }
+    }
+
     /// `Ammo::do_damage` (§9.3): the hit test at the landing point, then
     /// `Object::do_damage` on what was hit — the target, or whatever stood
     /// there instead — and the splash around it.
@@ -5807,9 +5867,10 @@ impl Sim {
                 // (§39). Marked per draw, because the original spends them
                 // at two addresses.
                 self.mark(SITE_PUNCTURE_X);
-                let _ = self.rng.roll();
+                let dx = self.rng.roll() % 41 - 20;
                 self.mark(SITE_PUNCTURE_Y);
-                let _ = self.rng.roll();
+                let dy = self.rng.roll() % 41 - 20;
+                self.stick(p, Pos::new(p.landing.x + dx, p.landing.y + dy));
                 return;
             };
             if t == p.shooter {
@@ -6734,6 +6795,8 @@ mod tests {
             v1z: combat::arc_v1z(0, 0, 1),
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         }
     }
@@ -10228,6 +10291,8 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         };
         assert_eq!(sim.check_hit(&ammo), None);
@@ -10287,6 +10352,8 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         };
         assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
@@ -10368,6 +10435,8 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         };
         assert!(
@@ -10446,6 +10515,8 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         };
         let mut tree = sim.tech_tree.clone();
@@ -10603,6 +10674,8 @@ mod tests {
             v1z: combat::arc_v1z(sz, ez, total),
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         }
     }
@@ -10677,6 +10750,46 @@ mod tests {
             sim.units[foe].health < full,
             "the same round, harmful, hits"
         );
+    }
+
+    /// **A puncturing round that strikes nothing is left as a spent
+    /// arrow** (item 3679, `docs/COMBAT.md` §46.7): `Ammo::do_damage`'s
+    /// puncture arm keeps it in its slot at `flags 1`, `cur_time` 0, and
+    /// `Ammo::inc_time` closes it at 200 — bumping a dead shooter's
+    /// `hold_frames` every frame it lives, which is what held the Korean
+    /// Medieval pair's decoy `1/139` past the squad born on 4308. The same
+    /// round from a piece that does not puncture closes at once. Made to
+    /// fail with `stick` returning before the write, and with the walk's
+    /// spent arm closing at once.
+    #[test]
+    fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let (a, b) = (Pos::new(0x1000, 0x1000), Pos::new(0x1000, 0x1400));
+        let ground = |punctures: bool| {
+            let mut p = shot(me, a, b, 1, 0, 0);
+            (p.rolling, p.punctures) = (false, punctures);
+            p
+        };
+        sim.add_ammo(ground(false));
+        sim.process_projectiles(0);
+        assert!(sim.projectiles.is_empty(), "no puncture: closed");
+        sim.add_ammo(ground(true));
+        sim.process_projectiles(0);
+        let p = *sim.projectiles.first().expect("the spent arrow");
+        assert!(p.spent && !p.rolling && !p.missed, "flags 1");
+        assert_eq!((p.slot, p.cur_time), (0, 0), "in its slot, clock reset");
+        sim.units[me].health = 0;
+        let held = sim.units[me].hold_frames;
+        sim.hold_frames_tick();
+        assert_eq!(sim.units[me].hold_frames, held + 1, "its dead shooter held");
+        for f in 1..SPENT_LIFE {
+            sim.process_projectiles(i64::from(f));
+        }
+        assert_eq!(sim.projectiles.len(), 1, "199 frames on");
+        assert_eq!(sim.projectiles[0].cur_time, SPENT_LIFE - 1);
+        sim.process_projectiles(i64::from(SPENT_LIFE));
+        assert!(sim.projectiles.is_empty(), "closed at 200");
     }
 
     /// **A dead unit's number is held while its death object lives**

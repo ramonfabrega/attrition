@@ -2670,6 +2670,12 @@ mod tests {
                 let sim = &built.sim;
                 let mut ours = BTreeMap::new();
                 for p in &sim.projectiles {
+                    // Keyed on the birth frame, which a spent arrow's reset
+                    // `cur_time` does not carry: set aside on both sides, as
+                    // the dump's `flags & 2 == 0` above (item 3679).
+                    if p.spent {
+                        continue;
+                    }
                     let (w, o) = crate::diff::golden::obj_ident(sim, p.shooter);
                     assert!(
                         ours.insert((w, o, n - i64::from(p.cur_time)), p).is_none(),
