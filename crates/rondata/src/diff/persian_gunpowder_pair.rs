@@ -157,7 +157,7 @@ fn persian_gunpowder_pair_is_no_other_lobby() {
 /// **The long's stride, walked back from the word** (item 3698, from 1180;
 /// item 3706 extended it to 3001, the last stride block before 3020's
 /// window): only run1370's stride blocks are on disk outside the windows.
-pub(crate) const WIDENING_PERSIAN_GUNPOWDER_STRIDE: (i64, i64) = (101, 3001);
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_STRIDE: (i64, i64) = (101, 4801);
 
 pub(crate) fn persian_gunpowder_stride_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
@@ -350,6 +350,60 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     // ours against (29592, 41880) in theirs (`orders_x`, `orders_y`,
     // `order:move.angle`); on 3132 its path is 1 node against 7.
     pin_eq!(w.firsts.len(), 295, "run1383b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1387: the word 4842's window, blocks 4795..5093 at run1383b's detail
+/// with the figures' clocks (`GUYS=4`) — six blocks before the stride's
+/// last block 4801 and 250 past the word's own block 4843 (item 3710).
+pub(crate) const RUN1387: &str =
+    "gamelog-run1387-eastindies-persian-gunpowder-window-4795-5093.txt";
+
+/// The window: block 4795 through 5093; the word 4842's own block is 4843.
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_FRAME_4842: (i64, i64) = (4795, 5093);
+
+/// **The word 4842's window**: run1387 walked from run1369's start with
+/// the recorder on and every round compared (item 3710).
+pub(crate) fn persian_gunpowder_frame_4842_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_GUNPOWDER.start],
+        true,
+        PERSIAN_GUNPOWDER.long,
+        "run1387",
+        &[(RUN1387, WIDENING_PERSIAN_GUNPOWDER_FRAME_4842.0)],
+        WIDENING_PERSIAN_GUNPOWDER_FRAME_4842,
+        1,
+        &[4843],
+        true,
+    )
+}
+
+#[test]
+fn persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_gunpowder_frame_4842_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 298, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1387 baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
