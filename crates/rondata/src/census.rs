@@ -503,7 +503,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3692: 216 -> 217, the Mongol Enlightenment pair whole at 4949 —
 /// `Golden Horde` (204, `GOLDENHORDE`, land; 646 figure rows), the line
 /// §352 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 217;
+/// Item 3674: 216 -> 217, the Greek Enlightenment pair whole on its first
+/// try at 4705 — `Royal Stratiotai` (234, `STRATIOTAIHEAVY`, land; 268
+/// figure rows), the line §353 named, read by `rubric.py --tables 3`.
+/// Both on the merged tree: 218 (`rubric.py --tables 3`).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 218;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

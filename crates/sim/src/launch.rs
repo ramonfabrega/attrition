@@ -2413,6 +2413,180 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 167, the Greyhound** (type 217, `GREYHOUND`,
+    // `GREYHOUND-DEFAULT-AGE0`, `armoredscoutcar_na.bh3`; item 3690,
+    // `docs/AI.md` §348.2): no `<RESTRICTION>` names it and its
+    // `turret_angles` are 0, so its rounds take `get_position`'s non-pivot
+    // arm. run1359's `RON_STATE_FRAME=5619` packet on the American
+    // Industrial Great Sahara game holds its 37 `AttachPos` rows (`pos_start`
+    // 136, `RData +0x88` 1.1): node 0 at the nine `<RELEASEEVENT>`s of
+    // `CHAR_ATTACKWALK` and of `CHAR_ATTACK2` (frames 3, 9, 12, 17, 20, 22,
+    // 24 and 29 twice, the two 29s the same bits). Each row is the centroid
+    // of the exact region `tools/recomp/fit_bay.py` finds for its
+    // `get_position.py` sweep, all 361 headings, x and y. The muzzle stands
+    // some 177 units ahead of the figure: without the rows run1356's `1/104`
+    // round of 5620 left the figure's square (7926, 30423) at 655, where
+    // theirs left (7758, 30368) at 672, and flew 3 frames against 2.
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        3,
+        Bay {
+            right: 496,
+            fwd: 177_238,
+            dz: 17,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        9,
+        Bay {
+            right: 691,
+            fwd: 177_606,
+            dz: 13,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        12,
+        Bay {
+            right: 591,
+            fwd: 177_528,
+            dz: 14,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        17,
+        Bay {
+            right: 0,
+            fwd: 177_722,
+            dz: 12,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        20,
+        Bay {
+            right: -703,
+            fwd: 177_226,
+            dz: 17,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        22,
+        Bay {
+            right: -717,
+            fwd: 177_502,
+            dz: 15,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        24,
+        Bay {
+            right: -834,
+            fwd: 177_267,
+            dz: 17,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACKWALK,
+        29,
+        Bay {
+            right: -87,
+            fwd: 177_560,
+            dz: 14,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        3,
+        Bay {
+            right: 0,
+            fwd: 176_708,
+            dz: 17,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 0,
+            fwd: 177_096,
+            dz: 13,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: 176_983,
+            dz: 14,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        17,
+        Bay {
+            right: 0,
+            fwd: 177_197,
+            dz: 12,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        20,
+        Bay {
+            right: 0,
+            fwd: 176_708,
+            dz: 17,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 0,
+            fwd: 176_983,
+            dz: 15,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        24,
+        Bay {
+            right: 0,
+            fwd: 176_747,
+            dz: 17,
+        },
+    ),
+    (
+        167,
+        crate::anim::ATTACK2,
+        29,
+        Bay {
+            right: 0,
+            fwd: 177_029,
+            dz: 14,
+        },
+    ),
     // **Piece 65, the Black Watch** (type 115, `EHIGHLANDERS`,
     // `HIGHLANDERELITE-DEFAULT-AGE0`; item 3683, `docs/AI.md` §347):
     // run1355's `RON_STATE_FRAME=2933` packet on the British Industrial

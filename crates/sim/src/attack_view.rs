@@ -765,7 +765,14 @@ impl AttackView for SimAttack<'_> {
         let found = match self.sim.melee_squad_head(h) {
             crate::orders::SquadHead::Nothing => None,
             crate::orders::SquadHead::Captain(t, _) => Some(t),
-            crate::orders::SquadHead::Search => self.sim.find_melee_target_with(h, maxd, word),
+            // `find_nearby_target`'s packed-siege shortcut sits ahead of
+            // its add flag (`00649240`–`00649263`), so this caller's
+            // `(…, 0, 0, word)` takes it too: the army's target, added
+            // mandatory `QUEUE_FIRST` (item 3690, `docs/AI.md` §348.2).
+            crate::orders::SquadHead::Search => self
+                .sim
+                .take_siege_army_target(h)
+                .or_else(|| self.sim.find_melee_target_with(h, maxd, word)),
         };
         match found {
             Some(t) => obj_key(self.sim, t),

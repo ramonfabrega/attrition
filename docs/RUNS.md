@@ -30674,6 +30674,53 @@ blocks, 2344 keys, rounds 421 theirs against 446 ours, 255 parting from 4495). O
 5 frames' flight against 4 — and it resolves on the word 4505 in ours, a frame after theirs retired.
 
 
+## run1359 — the Americans at a held Industrial age, Great Sahara: a packet at logger frame 5619, piece 167 (2026-10-26, item 3690, `att-3690`)
+
+`docs/AI.md` §348.2. **What the disk could not answer**: the release node of who=1's Armored Car `1/104` (TY 217, `GREYHOUND`), piece 167: none of the 75 packets under `~/ron-golden` loads it (`get_position.py … entries 167`). `df -g ~` read 53 GiB free before it. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1359 --map 7 --end-frame 5621 --timeout 3600 --log-window 5618 5621 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+--ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5619 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 23:33:27, exited 23:34:00 (33.7 s). `success`, 5622 frames, seed 12345. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1359/map-7/frame-snapshot.bin`, 889,872,376 bytes,
+SHA-256 `c7500ed0fdeae73a5177dffe0102e77fcecd3a63490b061bb5adff1912988289`.
+
+**What it holds**: piece 167 (`GREYHOUND-DEFAULT-AGE0`), 37 rows at `pos_start` 136, `RData +0x88` 1.1; its `turret_angles` are 0, so the rows are bays. Sixteen node-0 rows at `CHAR_ATTACKWALK` and `CHAR_ATTACK2`, frames 3, 9, 12, 17, 20, 22, 24 and 29, fit by `fit_bay.py` at 361 of 361 headings — `launch.rs`'s rows (`e7a47e97b`).
+
+## run1359b — the Americans at a held Industrial age, Great Sahara: a packet at logger frame 5677, the wrong frame (2026-10-26, item 3690, `att-3690`)
+
+`docs/AI.md` §348.2. **What the disk could not answer**: who writes who=1's Artillery `1/131`'s orders on the word 5678; no dump prints a writer. `df -g ~` read 51 GiB free before it. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1359b --map 7 --end-frame 5679 --timeout 3600 --log-window 5676 5679 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+--ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5677 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 23:40:42, exited 23:42:07 (84.1 s). `success`, 5680 frames, seed 12345. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1359b/map-7/frame-snapshot.bin`, 873,676,836 bytes,
+SHA-256 `1197828b4804f8c1b45d760dacf4568d2af1d63e6734cbe5e4f691ef26ece82a`.
+
+**What it holds**: the state at logger frame 5677's boundary — one frame early for the word's decision; run1359c re-took it at 5678. Kept for the record, read for nothing.
+
+## run1359c — the Americans at a held Industrial age, Great Sahara: a packet at logger frame 5678, `1/131`'s attack (2026-10-26, item 3690, `att-3690`)
+
+`docs/AI.md` §348.2. **What the disk could not answer**: the same as run1359b's, at the right frame. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1359c --map 7 --end-frame 5680 --timeout 3600 --log-window 5677 5680 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+--ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5678 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 23:45:00, exited 23:45:31 (31.8 s). `success`, 5681 frames, seed 12345. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1359c/map-7/frame-snapshot.bin`, 907,485,328 bytes,
+SHA-256 `b33154444958f08f3c7cf651a8e5f5264a86b1aa551a4b1aa035f7a1ea7bc1fe`.
+
+**What it holds**: logger frame 5678 entered under `step4.py --entry 65dce0 --this c0ab70 --hook 712490` (`1/73`'s `do_group_move` calling `Group::action_attack(group 65, 0/10, 0, QUEUE_FIRST, 0)` from `+0x215`), with `5e5410:300` and `5e2cb0:400` hooked: `1/131` takes `0/2000` mandatory `QUEUE_FIRST` from `find_nearby_target+0x4c8` — the packed-siege shortcut's add, return `649268` — then `action_attack+0xeb1`'s `QUEUE_NEW` add and one `kill_current_order`. Built as the shortcut in `attack_view.rs`'s member search; the word 5678 → 5701.
 ## run1345 — the Mongols at a held Enlightenment age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3673, `att-3673`)
 
 `docs/AI.md` §352. run1341's lobby with the nation and the age moved, through `viadriver.sh
@@ -30798,3 +30845,69 @@ piece 153's off run1294, bit for bit. `entries 1105` gives three rows (node 0, `
 and 4), `RData +0x88` 1.1. `get_position.py sweep 1105 0 <anim> <time>` for each key is kept at
 `~/ron-data/lab-experiments/2026-10-27-item-3692/bay-1105-a<anim>-t<time>.txt`; `fit_bay.py` fits each to one region
 (411, 196 and 113 lattice points).
+## run1347 — the Greeks at a held Enlightenment age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3674, `att-3674`)
+
+`docs/AI.md` §353. run1341's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1347 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 2. Launched 01:24:13, exited 01:24:42 (29.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 5, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1347 greatlakes-greek-enlightenment-start`. `df -g ~` read 56 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1347-greatlakes-greek-enlightenment-start.txt`, 151,518,318 bytes,
+SHA-256 `74cce27a3e4450518b293eaeb59e1a0a6e46b5a179d6524355dccad3f0f87a06`.
+
+Archive `rontrace-run1347.log`, 9,382,304 bytes,
+SHA-256 `1e1b99a835b1a34bf1f4f4f2af7512f4131faa9880f4a14de1573eccb53fabc0`.
+
+**What it holds**: the start of `greek_enlightenment_pair::GREEK_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1348 — the Greeks at a held Enlightenment age, Great Lakes: the draw stream to the game's end (2026-10-27, item 3674, `att-3674`)
+
+`docs/AI.md` §353. run1334's line with `--ai-tribe 5` and run1347's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 5 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1, beside run1347. Launched 01:24:13, exited 01:24:56 (43.0 s launch to exit). `success`. **The game
+  ended itself on 4705** (closing block 4706, `ended_early`). `GAME INFO` reads back as run1347's. `rngcmp.py`
+  against run1347: 37 frames identical. Filed with `filerun.py run1348 greatlakes-greek-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1348-greatlakes-greek-enlightenment-trace.txt`, 29,686,020 bytes,
+SHA-256 `5c3515e1b297c1ef6a5d507a951ffc0a18602d2d7abb2c70a2f6c0d810ff1f77`.
+
+Archive `rontrace-run1348.log`, 109,333,472 bytes,
+SHA-256 `ccfb5d6fa299f25fe0b5a9dca8552092bf60de55ab3a43088f7b07686d472090`.
+
+**What it holds**: the pair's first try. `greek_enlightenment_pair_first_parting` walks it from run1347: **whole,
+4705 of 4705** by the count and the sequence. `greek_enlightenment_pair_run1348_s_closing_state` compares the closing
+block 4706: 237 units, every count zero.
+
+## run1348b — the Greeks at a held Enlightenment age, Great Lakes: the closing window, blocks 4450..4706 (2026-10-27, item 3674, `att-3674`)
+
+`docs/AI.md` §353. **What the disk could not answer**: every record of the pair's last blocks, and every round.
+run1348's stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1348b --map 14 --end-frame 4705
+--allow-early-end --timeout 3600 --log-window 4450 4706 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 5 --cover cover=0` and run1347's lobby: the
+256 blocks through the closing block.
+- Pool lane 1. Launched 01:28:42, exited 01:29:44 (61.4 s launch to exit). `success`: 4706 frames. `rngcmp.py`
+  against run1348: 4706 of 4706 identical. Filed with `filerun.py run1348b
+  greatlakes-greek-enlightenment-window-4450-4706`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1348b-greatlakes-greek-enlightenment-window-4450-4706.txt`, 598,752,607 bytes,
+SHA-256 `f658f33c29cb429a5487bf099b2ca36bc282c3ebd7da9f3017e07831d733675e`.
+
+Archive `rontrace-run1348b.log`, 109,187,456 bytes,
+SHA-256 `411681c26df94a971bb2ac391c94743c320ea8707fdebdc538052978ed8f0bb7`.
+
+**What it holds**: `greek_enlightenment_pair_run1348b_s_closing_frame_is_widened_whole` walks it from run1347. That
+is 256 blocks and 74 keys: the standing families, and who=1's four Barracks' later queue slots dearer in ours with
+leader 1's buckets (parked 3674a). The rounds read 40 a side, none parting. The draw stream holds to 4705, the
+game's last frame.

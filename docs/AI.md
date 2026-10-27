@@ -32815,6 +32815,70 @@ keys, rounds (166, 191), 52 parting.
   none. An Armored Car's gun is a turret, so 3677's pivot-versus-bay test
   applies, fit off a packet before 5620.
 
+### 348.2 A Greyhound's bays and a packed siege's army target: the word 5678 → 5701 (item 3690)
+
+*Item 3690, 2026-10-26/27, Opus 5.5, two sessions. Packets run1359
+(`RON_STATE_FRAME` 5619), run1359b (5677, the wrong frame) and run1359c
+(5678), run1337's lobby; no new window.*
+
+**Piece 167's bays** (`crates/sim/src/launch.rs`). The Greyhound (TY
+217, `GREYHOUND-DEFAULT-AGE0`, `armoredscoutcar_na.bh3`) is not a pivot
+piece: no `<RESTRICTION>` names it, and its `turret_angles` are 0 on
+`GUYS=4`. Its sixteen rows are node 0 at `CHAR_ATTACKWALK` and
+`CHAR_ATTACK2`, frames 3, 9, 12, 17, 20, 22, 24 and 29, each the centroid
+of `tools/recomp/fit_bay.py`'s exact region over run1359's sweep of all
+361 headings. §348.1's "flies 3 frames against 2" was a misreading: both
+sides read `total_time` 3.
+
+**The packed-siege shortcut answers `Group::action_attack` too.** On
+5678, who=1's Anti-tank Rifle `1/73` is blocked by the Citizen `0/10`,
+and its `do_group_move` calls `Group::action_attack(group 65, 0/10, 0,
+QUEUE_FIRST, 0)` from `+0x215` on both sides. The member loop's
+`find_melee_target(maxd, &ww, 0, 0, word)` reaches
+`Object::find_nearby_target`, whose **head** (`00649240`–`00649263`)
+holds the shortcut: a packed AI siege unit takes its army's target
+(`+0x30`/`+0x34`) when it is valid and inside `unit_respond_range ×
+0x180`, `add_attack_order(…, QUEUE_FIRST, mandatory 1, 0)` — ahead of
+the add flag, so this `(0, 0)` caller takes it. run1359c's hook
+(`5e5410`) names the add `find_nearby_target+0x4c8`, i.e. the return
+address `649268`. Theirs' `1/131` (the packed Artillery, TY 269, army 2)
+takes `0/2000`, the human's capital, mandatory. Ours'
+`take_siege_army_target` (item 3654) was asked by every other caller
+and, per its own SEAM, not by `attack_view.rs`'s member search; it is
+now (`SimAttack::find_melee_target`).
+- **The previous session's hypothesis is killed**: `find_nearby_target`'s
+  *tail* siege arm (`00649934`–`00649b43`, the city find that writes the
+  army's target and muster) sits behind `param_3 != 0 && param_4 == 0`,
+  and `action_attack` passes both 0. It was built as WIP (`2344c1620`),
+  did not move the word, and is reverted; it stays unbuilt, and AI
+  §238's "Not established" for it stands.
+
+**The value diff:**
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 5620 | `1/104`'s round | `sx, sy, sz` | (7926, 30423), 655 | (7758, 30368), 672 | (7758, 30368), 672 |
+| 5679 | `1/131`'s attack | `mandatory`, target | 0, `0/2000` | 1, `0/2000` | 1, `0/2000` |
+
+On block 5679, theirs' orders read `[ATTACK mandatory 1 → 0/2000,
+CASTORDER 652 paid 0]`, and ours' now read the same pair. Ours' `fight`
+no longer spends the one-in-five re-search (`Unit::fight+0x9b0`).
+
+**What moved:**
+- **`AMERICAN_INDUSTRIAL`: 5678 → 5701 of 5861**, by the count and the
+  sequence. The bays alone left it on 5678.
+- **run1356**: 2670 → 2153 keys; rounds (166, 191) → (166, 49); 52 → 27
+  parting. The first round to part is 5735's (`1/104`). Block 5595's
+  standing families stand. On 5679, group 65's move orders still part
+  (`1/145`'s `x` 12216 against 11448).
+- **Every lobby**: `first_parting` 86 of 86 on this tree.
+
+**The next word, 5701: ours 20 draws against 19, index 2**, ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a <
+Animal::do_idle+0x19`. It is inside run1356, whose `near` list now
+carries 5702. Group 65's move orders on 5679 are the nearest standing
+non-family rows; whether they reach 5701's draw is that item's to read.
+
 ## 349. The Russians at a held Gunpowder age, Great Lakes: first try 3711 of 5341 (item 3670)
 
 **The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
@@ -33390,12 +33454,50 @@ re-pinned.
 - **Why the moving Horde fits its own block's pose.** It is read off eight
   rounds, and no reading backs it.
 
-## 353. Reserved for the next item on the AI track
+## 353. The Greeks at a held Enlightenment age, Great Lakes: whole on its first try, 4705 of 4705 (item 3674)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3). §350's lobby with the nation and the age moved: Great Lakes
+(`MAP_STYLE 14`), human Nubians (4) against the **Greeks (5)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`. Both age settings read back `4` on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1347 (a `DUMP_ALL` start) and run1348 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4705. The walk is seeded from run1347's initial
+state (3506a). run1347 against run1348 is 37 of 37 frames identical. `diff::greek_enlightenment_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 5, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery fields no Greeks since `GreatSaharaGreekTier1`, `(7, 5, 1)`, left it for the AI word (`diff::greek_word`).
+It is no pinned lobby's: `greek_classical_pair` is `(18, 5, 5)` and `greek_gunpowder_pair` `(7, 5, 5)`, other maps.
+`greek_enlightenment_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 4705 of 4705**, by the count and the sequence. **The closing state** (run1348's closing
+block 4706, `greek_enlightenment_pair_run1348_s_closing_state`) compares 237 units, none off, torn, unlinked or
+extra, and no building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1348b, blocks 4450..4706 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1347 with every round compared: 256 blocks, **74 keys**, the two `gaia:` keys unprinted; rounds 40 a side, none
+parting). run1348's stride prints units every hundredth block, no `AMMO`, and no leader, building or city record
+past the start, so no dump held the last blocks. run1348 against run1348b is 4706 of 4706 frames identical.
+- The standing families on 4450: `form` on 27 units, both leaders' `SITE[i].reg`, who=0's `aggression[1]` (ours 0
+  against theirs 1), who=1's groups 64..67, 70 and 71's `held` and pools; 68's on 4503, 69's on 4533.
+- **One family that is not standing: who=1's queued prices.** Four Barracks (type 427), `1/2014`, `1/2017`, `1/2026`
+  and `1/2028`, hold their first two queue slots at the same price on both sides and their later slots dearer in
+  ours:
+
+| unit queued | ours `cost[0]/cost[1]` | theirs |
+|---|---|---|
+| Musketeers (99) | 140 / 120 | 125 / 108 |
+| Fusiliers (136) | 120 / 99 | 108 / 89 |
+| Explorer (71) | 44 / 44 | 35 / 35 |
+
+  Leader 1's buckets stand lower in ours with them on 4450: food 2750 against 2804, timber 2202 against 2226, wealth
+  15598 against 15607, metal 12198 against 12227. The same slots part again on 4533, 4616 and 4698 as each moves up
+  the queue. The price is set when the slot is queued, before the window's first block, and the stride prints no
+  `BUILDS`. It moves neither the draw stream nor the closing block, so it names no score (parked 3674a).
+- No unit, round, building or city field parts in the window beyond those.
+
+**The rubric.** Unit types seen 216 → **217** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Royal Stratiotai` (234, `STRATIOTAIHEAVY`)**, the booking's line, is fielded and new to the lockstep ledger, with
+268 figure rows on the lockstep count.
 
 ## 354. Reserved for the next item on the AI track
 
