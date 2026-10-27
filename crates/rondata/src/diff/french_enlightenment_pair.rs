@@ -269,6 +269,69 @@ fn french_enlightenment_pair_run1344_s_closing_state() {
     );
 }
 
+/// run1360: the closing window, blocks 4685..4941 at run1344b's detail,
+/// `cover=0` (item 3691) — 257 blocks through the closing block, so the
+/// word 4940, the game's last frame, sits inside a window.
+pub(crate) const RUN1360: &str =
+    "gamelog-run1360-eastindies-french-enlightenment-closing-window-4685-4941.txt";
+
+/// The window: block 4685 through the closing block 4941.
+pub(crate) const WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4940: (i64, i64) = (4685, 4941);
+
+/// **The closing window**: run1360 walked from run1343's start with the
+/// recorder on, the rounds compared (item 3691).
+pub(crate) fn french_enlightenment_frame_4940_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[FRENCH_ENLIGHTENMENT.start],
+        true,
+        FRENCH_ENLIGHTENMENT.long,
+        "run1360",
+        &[(RUN1360, WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4940.0)],
+        WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4940,
+        1,
+        &[4941],
+        true,
+    )
+}
+
+#[test]
+fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_enlightenment_frame_4940_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3691: **117** — the standing families on 4685 (`form`, who=1's
+    // groups' `held` and pools as each is minted, both leaders'
+    // `SITE[*].reg`, the human's `aggression[1]`); the Horse Guard
+    // Grenadier `1/29`'s damage, 5 in ours since 4552 (parked 3691c); and
+    // the capital `0/2000`'s `build:damage` on 4691, ours 421 against
+    // theirs' 427, under the Fusiliers' rounds (parked 3691a).
+    pin_eq!(w.firsts.len(), 117, "run1360 baseline");
+    pin_eq!(w.rounds_read, (465, 477), "the rounds read");
+    // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
+    // 3691a) and the Musketeers' slot swaps on 4724, 4725, 4900 and 4902,
+    // a slot index, never an identity.
+    pin_eq!(w.rounds.len(), 202, "the rounds that part");
+}
+
 /// run1344b: the word 4505's window, blocks 4495..4756 at the long's
 /// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
 /// last block 4501 and 250 after the word's block 4506 (item 3672).
