@@ -294,9 +294,19 @@ impl Sim {
 
     /// `Forts::find_fort(wx, wy, who)`: a live fort of `who` standing on
     /// exactly this cell.
+    ///
+    /// **A fort counts once it is built** (item 3708, `docs/AI.md` §358.3).
+    /// `find_fort@0073ebe0` walks `forts.lists[who]`, the entries with
+    /// `+6 & 1`; `Fort::init@0073eac0` sets that byte and is reached only
+    /// through `Forts::init_fort@0073ed70`, whose one caller is
+    /// `Build::activate@00623e20:566` (the type's vslot `+0xfc` arm, beside
+    /// `UnbuiltForts::remove_unbuilt_fort`). A placed fort is an
+    /// `UnbuiltFort` and is not on the list — the census's
+    /// [`Sim::reg_forts`] reads the same list and already asks `active`.
     fn fort_at(&self, who: Player, c: Cell) -> bool {
         self.buildings.iter().any(|b| {
             b.alive
+                && b.active
                 && b.owner == who
                 && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t))
                 && b.pos.cell() == c
@@ -1887,6 +1897,39 @@ mod tests {
         let slid = sim.compute_site_stats(1, 8, 8, false, false, 0, true);
         assert_eq!((slid.wx, slid.wy), (10, 9), "keep = 1 slides to the 200s");
         assert!(slid.val > stay.val);
+    }
+
+    /// **A placed fort is not on the forts list** (item 3708, `docs/AI.md`
+    /// §358.3): `find_fort` answers only for a fort `Build::activate` has
+    /// put there, so the sampler's `forts` term — the `×3/2` a leader of
+    /// three cities gives a site with a fort in its 5×5 — waits for the
+    /// fort to finish. Ours counted the Persians' unbuilt `1/2034` at
+    /// (44, 53) from 2375 and scored their home region's samples half
+    /// again too high.
+    #[test]
+    fn a_fort_is_found_once_it_is_built_not_once_it_is_placed() {
+        let (mut sim, _) = kit(16, 16, 2);
+        let fort = sim.add_build_type(BuildType {
+            ident: Ident::Fort,
+            x_size: 3,
+            y_size: 3,
+            flags: flags::parse("ean"),
+            job_time: 100,
+            hits: 100,
+            ..BuildType::default()
+        });
+        let at = Cell::new(6, 6);
+        let b = sim.init_build(
+            1,
+            fort,
+            Pos::new(at.x * UNITS_PER_CELL, at.y * UNITS_PER_CELL),
+            false,
+        );
+        assert_eq!(sim.buildings[b].pos.cell(), at);
+        assert!(!sim.fort_at(1, at), "placed, not built: an UnbuiltFort");
+        sim.activate(b, false, true);
+        assert!(sim.fort_at(1, at), "activated: on forts.lists[1]");
+        assert!(!sim.fort_at(0, at), "another leader's list");
     }
 
     // ------------------------------------------------------------------
