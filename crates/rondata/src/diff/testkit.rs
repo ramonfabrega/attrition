@@ -10723,6 +10723,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3674,
         Some(crate::diff::greek_enlightenment_pair::WIDENING_GREEK_ENLIGHTENMENT_CLOSING),
     ),
+    // **The Chinese at a held Enlightenment age** (item 3675): Great Lakes —
+    // its first try parts at 3263 of 3836, the Manchu Musketeer `1/42`'s
+    // round landing a frame early in theirs; widened on run1350b over
+    // 3195..3514, the rounds compared, and the stride over 101..3201.
+    (
+        "CHINESE_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT_PAIR_WORD,
+        Some("chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole"),
+        3675,
+        Some(crate::diff::chinese_enlightenment_pair::WIDENING_CHINESE_ENLIGHTENMENT_FRAME_3263),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12939,6 +12950,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_705,
         endpoint: Some("greek_enlightenment_pair_run1348_s_closing_state"),
         window: Some("greek_enlightenment_closing_window"),
+    },
+    // The Chinese at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), Great Lakes (item 3675): its first try parts
+    // at 3263 of a game that ends itself on 3836, widened on run1350b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesChineseEnlightenment",
+        named: "Great Lakes (Chinese, Enlightenment)",
+        word: crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT_PAIR_WORD,
+        length: 3_836,
+        endpoint: Some("chinese_enlightenment_pair_run1350_s_closing_state"),
+        window: Some("chinese_enlightenment_frame_3263_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

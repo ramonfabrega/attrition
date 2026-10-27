@@ -30911,3 +30911,69 @@ SHA-256 `411681c26df94a971bb2ac391c94743c320ea8707fdebdc538052978ed8f0bb7`.
 is 256 blocks and 74 keys: the standing families, and who=1's four Barracks' later queue slots dearer in ours with
 leader 1's buckets (parked 3674a). The rounds read 40 a side, none parting. The draw stream holds to 4705, the
 game's last frame.
+
+## run1349 — the Chinese at a held Enlightenment age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3675, `att-3675`)
+
+`docs/AI.md` §354. run1347's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1349 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 05:47:19, exited 05:47:44 (24.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 14, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1349 greatlakes-chinese-enlightenment-start`. `df -g ~` read 185 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1349-greatlakes-chinese-enlightenment-start.txt`, 151,500,887 bytes,
+SHA-256 `0b0934b401065d05c461f786c563d7118fdcff695c02e94f394ec0f035cb394b`.
+
+Archive `rontrace-run1349.log`, 8,922,720 bytes,
+SHA-256 `e60c1593fddce65c6c78b22f1ef99a7486a434485b7da84c0c08a9779d77bf5f`.
+
+**What it holds**: the start of `chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1350 — the Chinese at a held Enlightenment age, Great Lakes: the draw stream to the game's end (2026-10-27, item 3675, `att-3675`)
+
+`docs/AI.md` §354. run1334's line with `--ai-tribe 14` and run1349's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 14 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1349. Launched 05:47:20, exited 05:48:25 (64.9 s launch to exit). `success`. **The game
+  ended itself on 3836** (closing block 3837, `ended_early`). `GAME INFO` reads back as run1349's. `rngcmp.py`
+  against run1349: 37 frames identical. Filed with `filerun.py run1350 greatlakes-chinese-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1350-greatlakes-chinese-enlightenment-trace.txt`, 24,491,371 bytes,
+SHA-256 `e0cf25187aa533b120f2d398ab6e94f8dbfd4579b7f35582e8983348246c50de`.
+
+Archive `rontrace-run1350.log`, 75,430,528 bytes,
+SHA-256 `b58986cb8c9188b5dfa413eb1247d6bf8c6e1e553838d54962d9c11f6f408421`.
+
+**What it holds**: the pair's first try. `chinese_enlightenment_pair_first_parting` walks it from run1349: **3263
+of 3836** by the count and the sequence. `chinese_enlightenment_pair_the_long_s_stride_walks_back_from_3263` walks
+its stride, 101..3201: 32 blocks, 92 keys, the standing families alone.
+
+## run1350b — the Chinese at a held Enlightenment age, Great Lakes: the word 3263's window, blocks 3195..3514 (2026-10-27, item 3675, `att-3675`)
+
+`docs/AI.md` §354. **What the disk could not answer**: every record and every round on the word's frame. run1350's
+stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1350b --map 14 --end-frame 3514 --timeout 3600
+--log-window 3195 3514 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover
+cover=0` and run1349's lobby: six blocks before the stride's last block 3201 and 250 past the word's block 3264.
+- Pool lane 2. Launched 05:51:04, exited 05:51:48 (44.4 s launch to exit). `success`: 3515 frames. `rngcmp.py`
+  against run1350: 3515 of 3515 identical. Filed with `filerun.py run1350b
+  greatlakes-chinese-enlightenment-window-3195-3514`. `df -g ~` read 182 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1350b-greatlakes-chinese-enlightenment-window-3195-3514.txt`, 670,931,455 bytes,
+SHA-256 `3cc28c0cc3332221fd5145ec8b43b403b11a9ec27e422d4dabd53ecaee2ff798`.
+
+Archive `rontrace-run1350b.log`, 67,277,472 bytes,
+SHA-256 `b1f6adebfe288c2901a801b840a69c13e89084cee2c492dea15a34ce1a15d935`.
+
+**What it holds**: `chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole` walks it from run1349: 319
+blocks and 1575 keys, rounds 263 theirs against 305 ours, 209 parting. Who=1's Manchu Musketeers (TI 116) and
+Fusiliers (TI 136) loose every round from their own square in ours; on the word the Musketeer `1/42`'s round at the
+human's city centre `0/2000` lands in theirs (`Object::take_damage`) and a frame later in ours.

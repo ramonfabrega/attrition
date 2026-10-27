@@ -33539,12 +33539,69 @@ past the start, so no dump held the last blocks. run1348 against run1348b is 470
 **`Royal Stratiotai` (234, `STRATIOTAIHEAVY`)**, the booking's line, is fielded and new to the lockstep ledger, with
 268 figure rows on the lockstep count.
 
-## 354. Reserved for the next item on the AI track
+## 354. The Chinese at a held Enlightenment age, Great Lakes: first try 3263 of 3836 (item 3675)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §353's lobby with the nation moved: Great Lakes
+(`MAP_STYLE 14`), human Nubians (4) against the **Chinese (14)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`, read back `4` on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1349 (a `DUMP_ALL` start) and run1350 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 3836; run1349 against run1350 is 37 of 37 frames
+identical. The walk is seeded from run1349's initial state (3506a). `diff::chinese_enlightenment_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 14, 5)`, is minted into `battery::SCORED_LOBBIES`. Of the held-out battery, only
+`GreatLakesChineseTier1` fields the Chinese, at `(14, 14, 1)`, another difficulty. Of the pinned lobbies,
+`chinese_medieval_pair` is `(7, 14, 5)`, `chinese_industrial_pair` `(7, 14, 3)` and `chinese_gunpowder_pair`
+`(18, 14, 5)`, other maps; no other tribe-14 triple in `SCORED_LOBBIES` shares this map and difficulty.
+`chinese_enlightenment_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 3263 of 3836**, by the count and the sequence. On 3263 ours spends 6 game draws against theirs'
+7, parting at index 3: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`. **Theirs acts**: a round
+wounds the human's city centre `0/2000` in theirs on 3263, and ours' is still in flight.
+
+**The stride** (run1350, 101..3201: 32 blocks, **92 keys**) parts on the standing families alone: `form` on 27
+units, 51 buildings' `build:extra` and who=1's groups 64..70's `held` and pools as each is minted. No unit row
+parts on a stride block.
+
+**The word's window** (run1350b, blocks 3195..3514 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1349 with every round compared: 319 blocks, **1575 keys**, the two `gaia:` keys unprinted; rounds 263
+theirs against 305 ours, 209 parting, the first on the window's first block). run1350's stride prints no `AMMO`
+and no leader past the start. run1350 against run1350b is 3515 of 3515 frames identical. Block 3195 carries the
+standing families and who=1's leader `SITE[3].rank` (ours 6, theirs 7), `SITE[6].rank` (7, 6), `SITE[6].val`
+(1098547, 549258) and `SITE[6]`'s square (53, 11 against 57, 42), which the stride does not print (parked 3675a).
+
+**The value diff** (`AMMO`, `UNIT` and `BUILD` on run1350b):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3195 | the Fusilier `1/52`'s round `ammo[0]` (TI 136) | `sx, sy, sz` | 6216, 29448, 492 | 6117, 29386, 609 |
+| 3195 | the guy `1/52` (both sides) | `x, y` | 6216, 29448 | the same |
+| 3198 | the Manchu Musketeer `1/47`'s round `ammo[0]` (TI 116) | `sx, sy, sz` | 6216, 30360, 426 | 6147, 30247, 640 |
+| 3246 | the human's Citizen `0/6` (TY 50) | `hits:damage`; `damage_frame` | 0; 0 | 10; 3245 |
+| 3261 | the Manchu Musketeer `1/42`'s round `ammo[0]` (TI 116, at `0/2000`) | `sx, sy, sz` | 5208, 31512, 464 | 5094, 31444, 678 |
+| 3261 | the same | `total_time` | 5 | 4 |
+| 3263 | the draw stream, index 3 | site | `Farms::inc_time+0x1ae` | `Object::take_damage+0xe1` |
+| 3264 | the city centre `0/2000` | `build:damage`; `city_flags[0x2,0x4,0x8]` | 0; 0 | 4; 1 |
+
+**The direction: ours' Manchu Musketeer and Fusilier rounds leave the unit's own square.** Every round the two
+lines loose in the window parts on its launch point, `sx, sy` at the guy's own `x, y` and `sz` a couple of hundred
+lower, from the window's first block; theirs' leave forward and higher, and fly a frame shorter. The Citizen `0/6`
+takes its first wound a frame late in ours (3246 against 3245), draw-silent, and on the word the Musketeer `1/42`'s
+round at the human's city centre lands in theirs and not yet in ours. Neither piece has a row in `sim::launch` that
+the walk reaches; the guys' `GUY` records do not print a piece, so ours' `RON_DEBUG_UNIT` names it.
+
+**Not this item's.** The rounds parting through the window on other shooters, who=1's leader sites at 3195, and
+the closing state: run1350's closing block 3837 compares 151 units, who=1's army off, `1/44` torn, `1/149`..`1/153`
+unlinked and the human's `0/9` extra, with who=1's buildings 2043..2051 and cities 2000, 2021 and 2046 parting in
+the closing fields — downstream of the word.
+
+**The next item's hypothesis** is the two pieces' launch rows, the Manchu Musketeer's (TI 116) and the Chinese
+Fusilier's (TI 136), from the shots this window holds: `1/52` on 3195, `1/47` on 3198 and `1/42` on 3261, the
+guy's pose on the block before the round's first print, in the shape of 3692's piece-1105 bays. I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **220 of 302**, unmoved: the pair parts, so it is not
+lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1350 and run1350b): `Manchu
+Musketeers` (116, `MANCHUMUSKETEERS`), 22,212 guy rows, the word's own shooter; the pair fields 16 types.
 
 ## 355. Reserved for the next item on the AI track
 
