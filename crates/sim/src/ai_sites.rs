@@ -960,6 +960,13 @@ impl Sim {
             return;
         };
 
+        if std::env::var("RON_PROBE_3708").is_ok() {
+            eprintln!(
+                "PROBE3708 f{} found_cities who={who} sites={:?}",
+                self.frame,
+                self.ai[w].sites.iter().map(|s| (s.wx, s.wy, s.val, s.rank)).collect::<Vec<_>>()
+            );
+        }
         let mut want = false;
         if self.total_cities(who) < self.city_limit(who)
             && self.type_available(who, village_t)
@@ -1151,6 +1158,9 @@ impl Sim {
         };
         let scaled = mul(vv / 256, f) / 256;
         let val = scaled / (queued + 1);
+        if std::env::var("RON_PROBE_3708").is_ok() {
+            eprintln!("PROBE3708 f{} offer i={i} ({}, {}) val={val}", self.frame, s.wx, s.wy);
+        }
         self.ai[w]
             .make_list
             .make_me(village_t as i32, val, 1, 9, -1, 0, 1, s.wx, s.wy);
@@ -1165,6 +1175,9 @@ impl Sim {
     /// and a citizen sent (the original's 0).
     pub fn produce_city(&mut self, who: Player, t: TypeId, wx: i32, wy: i32, escrow: i32) -> bool {
         let w = who as usize;
+        if std::env::var("RON_PROBE_3708").is_ok() {
+            eprintln!("PROBE3708 f{} produce_city ({wx}, {wy})", self.frame);
+        }
         let Some(rec) = self.build_record(t) else {
             return false;
         };
