@@ -9021,8 +9021,9 @@ score.
 
 ## Parked by item 3390, 2026-10-20 — the Spanish at Great Lakes close: the draw-silent residue
 
-- **3390a. run1013's `leader:attack` on 13576** (who=1, ours 269 against theirs 275), the AI leader's attack
-  tally; it parts no draw to the game's end, and the close compares whole. Names no score.
+- ~~**3390a. run1013's `leader:attack` on 13576** (who=1, ours 269 against theirs 275), the AI leader's attack
+  tally; it parts no draw to the game's end, and the close compares whole. Names no score.~~ Answered by item 3688:
+  the Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1); the row agrees.
 - **3390b. `dest_angle` on run1013's `1/74` (13710) and `1/78` (13732)**, ours 1073741824 and 671481856 against
   1251016704 and −70647808, with positions agreeing: the shape run1007's 3383a parked. No draw parts.
 - **3390c. Newborns' `g.angle[0]`** (`1/62` on run1013b's 8557, `1/89` on run1013's 13735), ours 1431655765

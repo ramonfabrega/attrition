@@ -32860,7 +32860,7 @@ standing families and four draw-silent rows (parked 3688b); rounds 504
 a side, 153 parting by a unit or two at the Crossbowmen's launch and at
 the Bombards' height (parked 3688a). Every other lobby's
 `first_parting` holds (83 of 83), and the Roman Gunpowder pair that
-landed beside it closes whole on the same arm (§350.1). The mutation `0x162` → `0x9162`
+landed beside it closes whole on the same arm (§350.1). The mutation that renames the Monarch's type in the arm
 takes the word back to 3711 (exit 101).
 
 **The rubric**: unit types seen 213 → **214**, the Cossack (225) — the
