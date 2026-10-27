@@ -169,7 +169,8 @@ fn persian_gunpowder_pair_is_no_other_lobby() {
 
 /// **The long's stride, walked back from the word** (item 3698, from 1180;
 /// item 3706 extended it to 3001, the last stride block before 3020's
-/// window): only run1370's stride blocks are on disk outside the windows.
+/// window; item 3710 to 4801, the last before run1387's): only run1370's
+/// stride blocks are on disk outside the windows.
 pub(crate) const WIDENING_PERSIAN_GUNPOWDER_STRIDE: (i64, i64) = (101, 4801);
 
 pub(crate) fn persian_gunpowder_stride_window() -> Option<harness::tests::Widened> {
@@ -195,7 +196,7 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     let Some(w) = persian_gunpowder_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 30, "every stride block in the window");
+    pin_eq!(w.blocks, 48, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -226,7 +227,11 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     // land, a `GUARDORDER` on `1/17` that has just changed posts)
     // `dest_angle` ours -1073741824 against 1556283392 — on the base too
     // (the mutation's stride prints it), and quiet again by run1383b's 3014.
-    pin_eq!(w.firsts.len(), 132, "the stride's baseline");
+    // Item 3710, walked on to 4801 (48 blocks, the last before run1387's
+    // window): **187** keys, with 3709's owner-9 chain and the builder
+    // clear. Past the standing families the one unit row is still `1/42`'s
+    // `dest_angle` on 2901; nothing else parts before 4801.
+    pin_eq!(w.firsts.len(), 187, "the stride's baseline");
 }
 
 /// run1370b: the word 1180's window, blocks 1095..1431 at the long's
@@ -379,7 +384,8 @@ pub(crate) const RUN1387: &str =
 pub(crate) const WIDENING_PERSIAN_GUNPOWDER_FRAME_4842: (i64, i64) = (4795, 5093);
 
 /// **The word 4842's window**: run1387 walked from run1369's start with
-/// the recorder on and every round compared (item 3710).
+/// the recorder on and every round compared (item 3710). It holds the
+/// word 4948 too.
 pub(crate) fn persian_gunpowder_frame_4842_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings_with_rounds(
         &[PERSIAN_GUNPOWDER.start],
@@ -418,9 +424,20 @@ fn persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1387 baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    // Item 3710, with `Group::action_move_near`'s builder clear (the word
+    // at 4948): **1933** keys. Before the word the rows are the standing
+    // families, `1/21`'s `dest_angle` (4886), and who=1's formation
+    // `g.des_x`/`g.des_y` off by a few units from 4883 (`1/162`, `1/166`, `1/169`, `1/160`). **The value
+    // diff on 4948**: the Gun Mahout `1/99` (TI 263)'s round, launched on
+    // 4907, leaves from (6921, 8712, 273) in ours against (6929, 8608,
+    // 699) in theirs (`ammo[0].sx`/`sy`/`sz`, `v1z` 60474998 against
+    // -46025002), lands on (7604, 6349) against (7598, 6370) with
+    // `total_time` 4 against 3 — theirs' kills the human's `0/11` on 4948
+    // (`Unit::close`), and ours' is still in flight on 4949 with `0/11`
+    // alive (`extra`). The rest follow from 4950.
+    pin_eq!(w.firsts.len(), 1933, "run1387 baseline");
+    pin_eq!(w.rounds_read, (5, 6), "the rounds read");
+    pin_eq!(w.rounds.len(), 9, "the rounds that part");
 }
 
 /// run1385: the site's window, blocks 2695..2801 at run1383b's detail —
@@ -538,7 +555,13 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // `[237, 7, 1, 7, 180, 1, 83]`, the human's `0/13` the one extra.
     // Item 3709 (the word at 4842): 256 compared, counts
     // `[215, 1, 1, 0, 75, 0, 61]`, who=1's `1/235` the one extra.
-    pin_eq!(e.compared, 256, "units compared");
-    pin_eq!(e.counts(), [215, 1, 1, 0, 75, 0, 61], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(1, 235)], "the closing extras");
+    // Item 3710 (the word at 4948): 257 compared, counts
+    // `[209, 0, 2, 0, 60, 0, 49]`, who=1's `1/235` and `1/246` extra.
+    pin_eq!(e.compared, 257, "units compared");
+    pin_eq!(e.counts(), [209, 0, 2, 0, 60, 0, 49], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        vec![(1, 235), (1, 246)],
+        "the closing extras"
+    );
 }

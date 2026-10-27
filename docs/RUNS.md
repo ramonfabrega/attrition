@@ -31820,3 +31820,28 @@ SHA-256 `75fa7a75986321c169d86f5b98757ca154c7aa48ed5f7d231f6fb6deafa1c79a`.
 and 3660 keys, rounds read (1205, 1199) with 243 parting. On 5627 the Heavy Fire Raft `1/70` (TI 335) holds no order
 in ours against a move to (46056, 38088) in theirs. It is the pair's widening in `WIDENINGS` and the `AI_WORDS`
 window, and it sits in the coverage driver.
+
+## run1387 — the Persians at a held Gunpowder age, East Indies, at difficulty 4: the word 4842's window, blocks 4795..5093 (2026-10-27, item 3710, `att-3710`)
+
+`docs/AI.md` §358.4. **What the disk could not answer**: a figure's clock and the leader on the moved word's frame
+4842. run1370's stride prints `GUYS=2` (no `cur_anim`/`cur_time`) and no leader past the start; run1383b ends at
+3270. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1387 --map 18 --end-frame 5093 --timeout 3600
+--log-window 4795 5093 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover
+cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4`: six blocks before the stride's 4801 and 250 past the word's block 4843.
+- Pool lane 1. Launched 13:05:16, exited 13:07:40 (143.6 s launch to exit). `success`: 5094 frames, not ended
+  early. `rngcmp.py` against run1370: 5094 of 5094 identical. Filed with `filerun.py run1387
+  eastindies-persian-gunpowder-window-4795-5093`. `df -g ~` read 137 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1387-eastindies-persian-gunpowder-window-4795-5093.txt`, 921,046,822 bytes,
+SHA-256 `4e85a99fb517e9fb9a36664304dcee13648b910f54fb1e8926227d461b3d1a44`.
+
+Archive `rontrace-run1387.log`, 216,092,320 bytes,
+SHA-256 `31f1160b05260fee8f2e8f974cc3041864e03c52ed8f5a966764ed0bd48427e8`.
+
+**What it holds**: `persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole` walks it from run1369: 298 blocks,
+1933 keys, rounds (5, 6) with 9 parting. It holds the word 4842 (the Citizen `1/95`'s builder mark) and, after item
+3710, the word 4948: the Gun Mahout `1/99`'s round launches on 4907 from (6921, 8712, 273) in ours against (6929,
+8608, 699) and flies 4 frames against 3; on 4948 theirs' round has killed the human's `0/11`. It is the pair's
+widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.

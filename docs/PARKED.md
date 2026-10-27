@@ -11909,13 +11909,18 @@ next residue item on 3989 (a round's launch point) is the commander's to book. N
   collision index and the vision half too — and this item gates only the chain. A bird is air and its `coll_add`
   is believed inert, but no test says so. It names no score until a who=9 collision or sight parts a row.
 
-## Parked by the next landing, slot US — reserved
+## Parked by item 3710, 2026-10-27 — a group move takes the builder's mark off: the Persian Gunpowder word moves 4842 → 4948
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot US renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Persian Gunpowder word moves 4842 → 4948 (`docs/AI.md` §358.4); the residue item on 4948 (the Gun Mahout
+`1/99`'s round, launched on 4907 from `sz` 273 against 699) is the commander's to book, on run1387. Neither row
+below names a score.
+
+- **3710a. `Leader::check_orphaned_buildings@006c9f20` walks `units[who]` by object number** (`006ca235`..`006ca399`,
+  `006ca548`..`006ca689`), as `produce_city` does; ours walks slots. Built with `Sim::units_by_o` and reverted:
+  no floor moved either way. It names a score when a reused number leads its walk to a different building.
+- **3710b. `Unit::add_gather_order@0061a5c0`'s builder clear (`61a5f7`) is built and read by no floor.** Its test
+  is `a_gather_order_takes_the_builder_s_mark_off`; mutated out, every `first_parting` holds. It names a score when
+  a citizen keeps the mark through a gather order on a frame a dump reaches.
 
 ## Parked by the next landing, slot UT — reserved
 

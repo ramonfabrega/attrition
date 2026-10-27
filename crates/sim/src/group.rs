@@ -5794,7 +5794,10 @@ mod tests {
             true,
         );
         assert!(s.current_move(a).expect("a move").group.is_some());
-        assert!(!s.units[a].was_builder && !s.units[b].was_builder, "the grouped arm");
+        assert!(
+            !s.units[a].was_builder && !s.units[b].was_builder,
+            "the grouped arm"
+        );
 
         let plain = group_of(1, &[a, b]);
         s.units[a].was_builder = true;
