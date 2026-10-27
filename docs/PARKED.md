@@ -11690,13 +11690,21 @@ residue of run1346c's window (4795..4950) after piece 154's pivot rows and piece
   launch is an earlier round's at a target of −1 (4872, 4937), so this reads as
   a reused slot's target, the same shape as 3691b.
 
-## Parked by the next landing, slot UD — reserved
+## Parked by item 3695, 2026-10-27 — the Lakota at a held Enlightenment age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Lakota Enlightenment pair is whole on its first try, 4673 of 4673 (`docs/AI.md` §355); the draw stream holds to
+the game's end and the closing block agrees, so none of these names a score. Each is a residue of run1364b's window
+(4418..4674): 57 keys and 45 parting round rows.
+
+- **3695a. The Lakota riders' and Cannon's rounds leave from the unit's own position.** All 45 parting round rows
+  are who=1's Repeating Rifle Horse (TY 208, `RIFLEHORSE`) `1/71` and `1/76` and Cannon (TY 268) `1/75`, at the
+  human's city `0/2003`. `1/71`'s `ammo[1]` on 4424 leaves (5976, 32664, 276) in ours, the unit's position, and
+  (5938, 32613, 538) in theirs; `v1z` 95724998 against 30225000; `ex, ey` within three. `1/71`'s round of 4459
+  flies `total_time` 4 against 3, so `0/2003`'s `build:damage` reads 203 against 210 on 4461. Read it as a launch
+  row this crate lacks for the mounted rifle's piece; the Cannon's is 3692a's. It books if a lobby's word lands on
+  one of their rounds.
+- **3695b. Two Musketeers' `dest_angle`.** `1/39` on 4656 and `1/38` on 4661 (TY 99, group 64, guarding),
+  -1027145728 against -1560805376 and -1219624960 against -1650196480. Nothing else on them parts. Names no score.
 
 ## Parked by the next landing, slot UE — reserved
 

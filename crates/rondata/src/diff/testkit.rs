@@ -10723,6 +10723,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3674,
         Some(crate::diff::greek_enlightenment_pair::WIDENING_GREEK_ENLIGHTENMENT_CLOSING),
     ),
+    // **The Lakota at a held Enlightenment age** (item 3695): Great Lakes —
+    // whole on its first try, 4673 of 4673, the closing state compared;
+    // widened on run1364b over 4418..4674 (the closing block), the rounds
+    // compared.
+    (
+        "LAKOTA_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT_PAIR_WORD,
+        Some("lakota_enlightenment_pair_run1364b_s_closing_frame_is_widened_whole"),
+        3695,
+        Some(crate::diff::lakota_enlightenment_pair::WIDENING_LAKOTA_ENLIGHTENMENT_CLOSING),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12939,6 +12950,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_705,
         endpoint: Some("greek_enlightenment_pair_run1348_s_closing_state"),
         window: Some("greek_enlightenment_closing_window"),
+    },
+    // The Lakota at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), Great Lakes (item 3695): whole on its first
+    // try, 4673 of a game that ends itself on 4673, widened on run1364b
+    // through the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesLakotaEnlightenment",
+        named: "Great Lakes (Lakota, Enlightenment)",
+        word: crate::diff::lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT_PAIR_WORD,
+        length: 4_673,
+        endpoint: Some("lakota_enlightenment_pair_run1364_s_closing_state"),
+        window: Some("lakota_enlightenment_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
