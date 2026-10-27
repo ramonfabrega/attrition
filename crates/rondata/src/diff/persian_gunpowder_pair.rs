@@ -207,6 +207,12 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     // against (26088, 26184) in theirs — ours places the Village 768 lower
     // (`y_internal` 24672 against 25440 on run1383b's 3014). No draw parts
     // there; on 2901 `1/10`'s `pos` parts, and on 3001 the Explorer `1/0`'s.
+    // Item 3708 (`find_fort` waits for a built fort): **132** keys. The
+    // Village stands where theirs does and `1/10`'s rows agree; the first
+    // row that is not standing is on 2901, the Gun Mahout `1/42` (TI 263,
+    // land, a `GUARDORDER` on `1/17` that has just changed posts)
+    // `dest_angle` ours -1073741824 against 1556283392 — on the base too
+    // (the mutation's stride prints it), and quiet again by run1383b's 3014.
     pin_eq!(w.firsts.len(), 132, "the stride's baseline");
 }
 
@@ -338,6 +344,11 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     // (`orders.len` 0 against 1), at the same `pos` (24304, 25076); on
     // 3021 it is idle in ours (`idle` 1 against 0) and its `do_idle` roll
     // is the draw ours spends first. No round flies in the window.
+    // Item 3708 (the word at 3130): **295** keys, the standing families to
+    // the word's block. **On 3131** who=1's Fishermen `1/125` (TI 317, sea;
+    // idle and orderless on 3130) takes a `MOVEORDER` to (34968, 44952) in
+    // ours against (29592, 41880) in theirs (`orders_x`, `orders_y`,
+    // `order:move.angle`); on 3132 its path is 1 node against 7.
     pin_eq!(w.firsts.len(), 295, "run1383b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -392,6 +403,14 @@ fn persian_gunpowder_pair_run1385_s_site_window_is_widened_whole() {
             }
         }
     }
+    // Item 3708, before its build: **118** keys — the standing families,
+    // and who=1's site table already parted on 2695 (theirs holds
+    // (42, 53) at 198 in slot 8, ours (44, 52) at 247); on 2776 `SITE[9]`
+    // (34, 33) at 53784 in ours against (34, 32) at 215784, and on 2778 the
+    // Village `1/2039`'s `y_internal` 24672 against 25440 (cells 32 and
+    // 33). Built (`find_fort` waits for `Build::activate`): **91** keys,
+    // every one a standing family (`form`, the leaders' `SITE[i].reg` and
+    // `aggression`, who=1's groups and pools); the site table agrees.
     pin_eq!(w.firsts.len(), 91, "run1385 baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -446,6 +465,8 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // high in ours (6000 against 5500 on `1/2000`, parked 3698a).
     // Item 3706 (the word at 3020): 250 units compared, and the human's
     // `0/11` and `0/13` and who=1's `1/235` stand in ours alone (extra).
+    // Item 3708 (the word at 3130): 250 compared, counts
+    // `[237, 7, 1, 7, 180, 1, 83]`, the human's `0/13` the one extra.
     pin_eq!(e.compared, 250, "units compared");
     pin_eq!(e.counts(), [237, 7, 1, 7, 180, 1, 83], "the closing counts");
     pin_eq!(e.extra.clone(), vec![(0, 13)], "the closing extras");
