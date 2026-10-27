@@ -718,8 +718,16 @@ mod tests {
         let mut bird = crate::Unit::new(9, 19, Pos::new(at.x - 200, at.y - 200), 1);
         bird.ty = ty;
         let b = s.add_unit(bird);
-        assert_eq!(s.units[b].pos.cell(), at.cell(), "the bird is over the cell");
-        assert_eq!(s.cell_chain(at.cell()), vec![o], "owner 9 is never threaded");
+        assert_eq!(
+            s.units[b].pos.cell(),
+            at.cell(),
+            "the bird is over the cell"
+        );
+        assert_eq!(
+            s.cell_chain(at.cell()),
+            vec![o],
+            "owner 9 is never threaded"
+        );
         assert_eq!(s.claim_of(at.cell()), Some((15, 1)));
         s.chain_remove(b);
         assert_eq!(s.cell_chain(at.cell()), vec![o], "nor unthreaded");
