@@ -11540,13 +11540,16 @@ shot); this crate reads no ammo piece for either, so both close on a miss (`SEAM
 `do_damage`'s puncture arm is also entered for a round whose target is its own shooter, which `land` returns from
 before the draws. **Score**: none on file; promote it when a slot or a number parts on a building's miss.
 
-## Parked by the next landing, slot TV — reserved
+## Parked by item 3682, 2026-10-26 — the German Industrial pair whole: the Citizen keeps the siege anchor
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3682a) **who=1's German Artillery `1/71` (TY 270, `ARTILLERYGERMAN`) launches from the figure's square on 4770**
+  (run1354): ours from (7320, 31848) at `sz` 94 against theirs' (7269, 31837) at 230, `v1z` 99758339 against
+  88425011 (`docs/AI.md` §346.2). Its piece has no `launch::BAYS` or `pivot::SAME_AS` row, as the A7V's and the
+  Anti-tank Rifle's had none before item 3677. The pair is whole, so the row names no score; read the piece's entries
+  on a packet (run1351's shape) before building one.
+- (3682b) **The German Anti-tank Rifles `1/62` (4664) and `1/68` (4686), TY 138, part `dest_angle`** in run1354 while
+  they guard the Artillery `1/71` at their posts: ours −2147483648 and 0 against theirs −1716781056 and −876740608.
+  Draw-silent: the pair is whole and the closing state agrees on 141 units. Names no score.
 
 ## Parked by item 3683, 2026-10-26 — the desert Light Tank's rows
 
