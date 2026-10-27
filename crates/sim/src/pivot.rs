@@ -135,6 +135,13 @@ pub struct Node {
 /// packet reads its `(4, 0, 0)` entry as `(0.0, −3.96, 37.31)`
 /// (`0xc07d70a7`), `RData +0x88` 0.9 — one `<RESTRICTION>`, the turret.
 ///
+/// **Piece 190, the British and Russian Light Tank `MARK4`** (item 3683,
+/// unit type 240): run1355's packet (logger frame 2933, the British
+/// Industrial Great Sahara lobby) reads its `(4, 0, 0)` entry as `(−0.08,
+/// −11.53, 31.2)` (`0xbda3d70a 0xc1387ae2`), `RData +0x88` 0.9 — one
+/// `<RESTRICTION name="MARK4">`, the turret. Its own model
+/// (`lighttank_mkiv.bh3`), so not piece 189's rows.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -166,6 +173,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (278, 5, Node { px: 0, py: -3695 }),
     (278, 6, Node { px: 0, py: 10774 }),
     (189, 4, Node { px: 0, py: -396 }),
+    (190, 4, Node { px: -8, py: -1153 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -185,6 +193,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (298, (9, 10)),
     (278, (9, 10)),
     (189, (9, 10)),
+    (190, (9, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -414,6 +423,10 @@ const FLOAT_LANDS_189_A12: &[(i32, i32, i32, i32)] = &[
 ];
 const FLOAT_LANDS_189_A13: &[(i32, i32, i32, i32)] = &[];
 
+/// Piece 190's [`Release::float_lands`] (item 3683): the three anims'
+/// entries are the same bits, so one sweep serves all three rows.
+const FLOAT_LANDS_190: &[(i32, i32, i32, i32)] = &[];
+
 /// Piece 298's [`Release::float_lands`], one list per anim and turret
 /// (item 3523): `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s entries differ in
 /// their bits, so each row is its own sweep.
@@ -559,6 +572,51 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [32_120, -466_466, 37_334_103],
             at: [155_086, -27_273_699, 3_934_948],
             float_lands: FLOAT_LANDS_189_A13,
+        },
+    ),
+    // **The British and Russian Light Tank `MARK4`, piece 190** (unit type
+    // 240; item 3683, `docs/AI.md` §347): run1355's packet holds the piece's
+    // seven entries — the turret `(4, 0, 0)` and, for each of its three
+    // `<RELEASEEVENT>`s (node 0, the muzzle: frame 4 of `CHAR_ATTACK1`, 21
+    // of `CHAR_ATTACK2`, 1 of `CHAR_ATTACK3`), the turret's and the
+    // muzzle's, the same bits on all three. The muzzle sits 28 model units
+    // ahead of the turret and 30 below it. who=1's `1/28` round of 2934
+    // leaves (9218, 31078) at 757 on the British Industrial pair, where
+    // this crate's left the hull's square (9432, 31128) at 619.
+    (
+        190,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 190,
+            node: 0,
+            pivot: [-80_000, -11_530_001, 31_199_999],
+            at: [-71_684, -39_843_819, 783_760],
+            float_lands: FLOAT_LANDS_190,
+        },
+    ),
+    (
+        190,
+        crate::anim::ATTACK2,
+        21,
+        Release {
+            piece: 190,
+            node: 0,
+            pivot: [-80_000, -11_530_001, 31_199_999],
+            at: [-71_684, -39_843_819, 783_760],
+            float_lands: FLOAT_LANDS_190,
+        },
+    ),
+    (
+        190,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 190,
+            node: 0,
+            pivot: [-80_000, -11_530_001, 31_199_999],
+            at: [-71_684, -39_843_819, 783_760],
+            float_lands: FLOAT_LANDS_190,
         },
     ),
     // **The Destroyer, piece 278** (unit type 328; item 3525, `docs/AI.md`
@@ -2390,6 +2448,72 @@ mod tests {
             .collect();
         assert!(!fits.is_empty(), "a turret step: {fits:?}");
         assert_eq!(409 + release_offset(&r, f, 0).2, 587, "the dump's height");
+    }
+
+    /// **The `MARK4`'s round leaves from its turret's muzzle** (item 3683,
+    /// `docs/AI.md` §347): run1352's `AMMO=5` record of who=1's `1/28`
+    /// `CHAR_ATTACK1` round of 2934 — the figure at (9432, 31128), z 619,
+    /// angle −1081802752 on block 2933 — leaves from (9218, 31078) at
+    /// height 757, which one turret step fits. Made to fail with piece 190's
+    /// rows out.
+    #[test]
+    fn the_mark4_s_round_leaves_from_its_turret() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+        for (a, t) in [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 1)] {
+            assert!(release(190, a, t).is_some(), "anim {a}");
+        }
+        assert_eq!(node(190, 4), Some(Node { px: -8, py: -1153 }));
+        let r = release(190, ATTACK1, 4).unwrap();
+        let f = Angle(-1_081_802_752);
+        let fits: Vec<i32> = (-128..128)
+            .filter(|i| {
+                let (dx, dy, _) = release_offset(&r, f, i << 24);
+                (9432 + dx, 31128 + dy) == (9218, 31078)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "a turret step: {fits:?}");
+        assert_eq!(619 + release_offset(&r, f, 0).2, 757, "the dump's height");
+    }
+
+    /// **The original's pivot branch on every cell, for piece 190** (item
+    /// 3683): `tools/recomp/get_position.py … pivot 190 0 11 4 1` on
+    /// run1355's packet, one sweep for the three rows (their entries are the
+    /// same bits). `$RON_RELEASE_TABLE_190` is the directory holding
+    /// `pivot-190-n0-a11-t4.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-26-item-3683/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_190() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_190") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_190 (item 3683's oracle, run1355)");
+            return;
+        };
+        let path = format!("{dir}/pivot-190-n0-a11-t4.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_190");
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 4),
+            (crate::anim::ATTACK2, 21),
+            (crate::anim::ATTACK3, 1),
+        ] {
+            let r = release(190, slot, time).expect("the row");
+            assert_eq!(r.node, 0);
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "a{slot} ({}, {}, {}, {}) z {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
     /// **The Mongol Nomad's rounds leave from its pivot** (item 3581):
