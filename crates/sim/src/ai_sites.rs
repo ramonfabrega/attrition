@@ -774,6 +774,11 @@ impl Sim {
             wx: sx,
             wy: sy,
         };
+        if pr {
+            let cs: Vec<_> = self.cities.iter().filter(|c| c.owner == who).map(|c| (c.alive, c.reg, c.pos.cell().x, c.pos.cell().y)).collect();
+            let t = self.site_stats_tail(who, stats, sx, sy, cities, ally_land);
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) k={k} v={v} cities={cities} {cs:?} final={}", self.frame, t.val);
+        }
         self.site_stats_tail(who, stats, sx, sy, cities, ally_land)
     }
 
