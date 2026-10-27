@@ -10860,3 +10860,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1338  run1336's line with --ai-tribe 20 and run1337's lobby   (the draw stream; ended itself on 5861)
 #   run1338b --map 7 --end-frame 3425 --allow-early-end --timeout 3600 --log-window 3095 3425 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0, run1337's lobby   (the word 3174's window)
 # Checks: `rngcmp.py` run1337 vs run1338 -> 37 identical; run1338 vs run1338b -> 3426 identical.
+# ==== item 3671: the Romans at a held Gunpowder age, Great Lakes (`docs/AI.md` §350; `docs/RUNS.md` run1341, run1342, run1342b) ====
+#   run1341  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1342  run1334's line with --ai-tribe 6 and run1341's lobby   (the draw stream; ended itself on 4062)
+#   run1342b --map 14 --end-frame 3177 --allow-early-end --timeout 3600 --log-window 2895 3177 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 6 --cover cover=0, run1341's lobby   (the word 2926's window)
+# Checks: `rngcmp.py` run1341 vs run1342 -> 37 identical; run1342 vs run1342b -> 3178 identical.

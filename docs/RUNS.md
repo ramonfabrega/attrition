@@ -30366,3 +30366,70 @@ SHA-256 `84668435258f1e17ce981fb6135b6a438ec6477df31cbad688cb3659f84556d5`.
 blocks, 2030 keys, rounds read 326 and 359, 223 parting). Its first block 3095 holds who=1's Airbases' Biplane queues
 parted (`cost[0]` 107 in ours, 90 in theirs). The first round to part is on 3105: who=1's Anti-tank Rifle `1/18`
 (TY 137) launches `ammo[0]` from (9528, 31080) at `sz` 612 in ours and from (9379, 31019) at 695 in theirs.
+
+## run1341 — the Romans at a held Gunpowder age, Great Lakes: the `DUMP_ALL` start (2026-10-26, item 3671, `att-3671`)
+
+`docs/AI.md` §350. run1333's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1341 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 21:53:08, exited 21:53:35 (27.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 6, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1341 greatlakes-roman-gunpowder-start`. `df -g ~` read 63 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1341-greatlakes-roman-gunpowder-start.txt`, 151,150,377 bytes,
+SHA-256 `407e36edb080443b16fe2d6b14c491766124f9c3fcc42dbc7c6b623db069228e`.
+
+Archive `rontrace-run1341.log`, 8,957,856 bytes,
+SHA-256 `ac87699c6d4ae0554735e0a3c344464b6f113df7b2c9b5b390f1e6996a2b9676`.
+
+**What it holds**: the start of `roman_gunpowder_pair::ROMAN_GUNPOWDER`, and the walk's initial state.
+
+## run1342 — the Romans at a held Gunpowder age, Great Lakes: the draw stream to the game's end (2026-10-26, item 3671, `att-3671`)
+
+`docs/AI.md` §350. run1334's line with `--ai-tribe 6` and run1341's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 6 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1341. Launched 21:53:12, exited 21:53:37 (24.9 s launch to exit). `success`. **The game
+  ended itself on 4062** (closing block 4063, `ended_early`). `GAME INFO` reads back as run1341's. `rngcmp.py`
+  against run1341: 37 frames identical. Filed with `filerun.py run1342 greatlakes-roman-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1342-greatlakes-roman-gunpowder-trace.txt`, 26,356,552 bytes,
+SHA-256 `f86c62b5d5761af7933a0c73e0a20e55173f7c772dabf56801b3cf1a862f1fd1`.
+
+Archive `rontrace-run1342.log`, 74,001,664 bytes,
+SHA-256 `cfbe5a9d774cb4ddcb74d2425da21d3a31f12c1578487ce6c218cf3a98f03fad`.
+
+**What it holds**: the pair's first try. `roman_gunpowder_pair_first_parting` walks it from run1341: **2926 of 4062**
+by the count and the sequence (theirs 15 draws against 14, index 2, theirs `Unit::close+0xcb6`).
+`roman_gunpowder_pair_the_long_s_stride_walks_back_from_2926` walks its stride 101..2901: 29 blocks, 94 keys — the
+standing families and the human's Citizens' damage from 2701.
+
+## run1342b — the Romans at a held Gunpowder age, Great Lakes: the word 2926's window, blocks 2895..3177 (2026-10-26, item 3671, `att-3671`)
+
+`docs/AI.md` §350. **What the disk could not answer**: every record between the stride's last block 2901 and the
+word, and every round — run1342's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1342b --map 14 --end-frame 3177 --allow-early-end --timeout 3600
+--log-window 2895 3177 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 6 --cover
+cover=0` and run1341's lobby: six blocks before the stride's 2901, and 250 after the word's block 2927.
+- Pool lane 1. Launched 21:56:07, exited 21:56:56 (49.5 s launch to exit). `success`: 3178 frames. `rngcmp.py`
+  against run1342: 3178 of 3178 identical. Filed with `filerun.py run1342b
+  greatlakes-roman-gunpowder-window-2895-3177`. `df -g ~` read 60 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1342b-greatlakes-roman-gunpowder-window-2895-3177.txt`, 599,465,849 bytes,
+SHA-256 `1e5b68065396f14a50b989a27ac3e9a8bcd2bf4863c381d1e6e2313c8497e50e`.
+
+Archive `rontrace-run1342b.log`, 51,896,416 bytes,
+SHA-256 `fb0dd830b5d03bff15eaf0736d4d3306e6c60f3af0f578df84a7d77aed88ac45`.
+
+**What it holds**: `roman_gunpowder_pair_run1342b_s_word_frame_is_widened_whole` walks it from run1341 (282 blocks,
+2059 keys, rounds 17 theirs against 11 ours, 7 parting from 2960). On the word's block 2927 the human's leader holds
+a unit more in ours and `0/4` is ours alone; the Citizens' damage stands 3 higher in theirs from each Heavy Knight
+(TY 229) blow (2631 on `0/13`, 2788 on `0/4`).
