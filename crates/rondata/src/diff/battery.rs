@@ -401,6 +401,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // nor the AI word's `(18, 6, 2)`, the Classical pair's `(7, 6, 5)` or
     // the Medieval pair's `(18, 6, 5)`, other maps.
     (14, 6, 5),
+    // The French at a held Enlightenment age, East Indies, at difficulty 4
+    // (item 3672): not the third pair's `(18, 10, 5)`, another difficulty,
+    // nor its `(14, 10, 5)`, the Classical pair's `(7, 10, 5)` or the AI
+    // word `GreatSaharaFrenchTier4`'s `(7, 10, 4)`, other maps; no battery
+    // game fields the French.
+    (18, 10, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

@@ -32957,12 +32957,77 @@ not read.
 `Praetorian Guards` (148, `PIKELEGION`), 10,402 guy records. It is the
 pair's only type new to the lockstep ledger. The pair fields 18 types.
 
-## 351. Reserved for the next item on the AI track
+## 351. The French at a held Enlightenment age, East Indies, at difficulty 4: first try 4505 of 4940 (item 3672)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against
+the French (10) at Hard (4), seed 12345, `STARTING_RESOURCES 7`, the age
+held at Enlightenment (`STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`),
+both takes read back by `Pair::assert_lobby`, difficulty 4 by the walk.
+The triple `(18, 10, 4)` is new. The other French lobbies are the third
+pair's `(18, 10, 5)`, which is this map at another difficulty, and
+`(14, 10, 5)`; the Classical pair's `(7, 10, 5)`; and the AI word
+`GreatSaharaFrenchTier4`'s `(7, 10, 4)`. No battery game fields the
+French (`french_enlightenment_pair_is_no_other_lobby`). Captures: run1343
+(the `DUMP_ALL` start), run1344 (the draw stream; the game ended itself
+on 4940) and run1344b (the word's window, 4495..4756). The pair is
+`rondata::diff::french_enlightenment_pair`.
+
+**The score.** First try **4505 of 4940**, by the count and the
+sequence. On 4505 ours spends 154 draws against theirs' 152, parting at
+index 151: ours `Ammo::do_damage+0xc59`, theirs `Farms::inc_time+0x1ae`.
+**Ours acts**: indices 149..152 are two `do_damage` pairs (`+0xc59`,
+`+0xc7e`) in ours and one in theirs. The rounds of who=1's Musketeers
+`1/37` and `1/45` both resolve on 4505 in ours. In theirs `1/45`'s
+resolves on 4505 and `1/37`'s retired on 4504.
+
+**The stride** (run1344, 101..4501: 45 blocks, **171 keys**) parts on the
+standing families: 57 buildings' `build:extra`, `form` on 56 units, and
+who=1's groups' `held` and pools 64..91. It parts on two unit rows, both
+who=1's Fusiliers (TY 136): `1/59`'s `dest_angle` on 3901, and `1/48`'s
+attack target on 4401 (ours `0/4`, theirs `0/12`).
+
+**The word's window** (run1344b, 4495..4756: 261 blocks, **2344 keys**;
+rounds 421 theirs against 446 ours, 255 parting, the first on the
+window's first block) is walked from run1343 with every round compared.
+
+**The value diff** (`AMMO` and `GUY` on run1344b; ours'
+`RON_DEBUG_AMMO` and `RON_DEBUG_UNIT`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4499 | the Musketeer `1/37`'s round `ammo[1]` (TY 99, at `0/10`) | `sx, sy, sz` | 6072, 9480, 127 | 6152, 9334, 303 |
+| 4499 | the same | `total_time` | 5 | 4 |
+| 4499 | the guy `1/37` (both sides) | `x, y, z`, `angle` | 6072, 9480, 127, 315359232 | the same |
+| 4499 | ours' `1/37` | animation at the shot | slot 12 (`ATTACK2`), `t7/44`, piece 49 | — |
+| 4502 | the round | `flags & 8` | 0 | 8 |
+| 4504 | the round | held | ours | retired |
+| 4505 | the draw stream, index 151 | site | `Ammo::do_damage+0xc59` | `Farms::inc_time+0x1ae` |
+
+**The direction: ours' `1/37` round leaves the unit's own square.**
+`sim::launch` holds two rows for the Musketeer's piece 49: `CHAR_ATTACK1`
+at frame 1 and `CHAR_ATTACK3` at frame 4. Its own comment says
+"`CHAR_ATTACK2`'s frame 7 is not measured". `1/37` fires from exactly
+that animation, so ours' round launches from the guy's own position. It
+flies a frame longer and resolves on the word beside `1/45`'s, which
+fired from `ATTACK1` and matches theirs within 2 in `sy`. Theirs measures
+the missing row: guy (6072, 9480, z 127) at angle 315359232, launch
+(6152, 9334, z 303), an offset of (+80, −146) and `dz` 176.
+
+**Not this item's.** The rounds part from 4495 by a pixel of launch on
+other shooters. The stride prints no `AMMO`, so they are not walked back
+before the window. Also not mine: the Citizen `0/11`'s blow on 4503 in
+theirs (14, `damage_o` 36: the Musketeer `1/36`, with no round of its own
+in flight on 4495..4506), and the Fusilier `1/48`'s target from 4401.
+
+**The next item's hypothesis** is the piece-49 `ATTACK2` launch row from
+this measurement, one shot. A second shot at another facing would pin the
+bearing. I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **213 of
+302**, unmoved: the pair parts, so it is not lockstep. The booking's line
+**is fielded** (`rubric.py --dumps` over run1344 and run1344b): `Horse
+Guard Grenadier` (238, `HORSEGUARDGREN`), 2,894 guy records. It is the
+pair's only type new to the lockstep ledger. The pair fields 23 types.
 
 ## 352. Reserved for the next item on the AI track
 
