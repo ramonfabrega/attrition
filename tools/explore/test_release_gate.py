@@ -69,11 +69,12 @@ error: 1 target failed:
 WORD = ['the_gate_has_a_bounded_test_width']
 
 
-def git_fixture(commits=(), theirs=(), ours=()):
+def git_fixture(commits=(), theirs=(), ours=(), theirs_diff=None):
     """A `git` runner for the gate's own reads (`branch_paths`,
     `base_moved`), so no case reads the real tree. Item 3366: 3360's lane
     gate refused for a moved base, and seven of these cases failed above
-    the refusal because they read the tree the gate ran in."""
+    the refusal because they read the tree the gate ran in. `theirs_diff`
+    (Loop 3694) is the base side's `-U0` hunk text by path."""
     def run(args, **kwargs):
         if args[:2] == ['git', 'merge-base']:
             out = 'f0rk\n'
@@ -81,6 +82,8 @@ def git_fixture(commits=(), theirs=(), ours=()):
             out = ''.join(c + '\n' for c in commits)
         elif args[:3] == ['git', 'diff', '--name-only']:
             out = ''.join(p + '\n' for p in (ours if args[-1] == 'HEAD' else theirs))
+        elif args[:3] == ['git', 'diff', '-U0'] and args[4] != 'HEAD':
+            out = (theirs_diff or {}).get(args[-1], '')  # the base's side (Loop 3694)
         elif args[:3] in (['git', 'diff', '--name-status'], ['git', 'diff', '-U0']):
             out = ''  # `row_only_edits` (Loop 3608): no row-list edit in these cases
         else:
@@ -1148,6 +1151,79 @@ class GateTests(unittest.TestCase):
             self.assertIn('battery.rs', str(refused.exception))
             self.assertNotIn('PARKED', str(refused.exception))
             self.assertIn('before the offline step', str(refused.exception))
+
+    def test_a_moved_base_whose_overlap_is_row_lists_on_the_base_s_side_gates_and_lands(self):
+        # Loop 3694 (the fifty-ninth pass's finding, built by the sixtieth):
+        # the residue lanes of the fifty-ninth ran their lane gate three to
+        # five times each on `Base moved:`, because every landing touches
+        # the rubric pin, `docs/AI.md`, the test-kit rows and the coverage
+        # driver's window line, and the sixtieth's two lanes still took a
+        # `--keep-conflicts` update and a second gate on the same paths
+        # (3704 three gates, 3706 four). A path whose hunks on the base's
+        # side are rows a merge keeps both of — a row list's added rows,
+        # a document, the census pin and its comment — is no reason to gate
+        # again: the lane updates, keeps both sides, re-pins, runs the
+        # guards and lands on this verdict; the booking gate is the check on
+        # every merge. A removed row, or any other path, still refuses.
+        commits = ['c2729a5 Book 3702 and 3709', '4a8c010 Merge worktree-att-3702 (2 commits)']
+        rows = {'crates/rondata/src/diff/coverage.rs':
+                    '@@ -40,0 +41 @@\n+        || super::mongol_medieval_pair::window(),\n',
+                'crates/rondata/src/diff/testkit.rs':
+                    '@@ -7519,0 +7520,2 @@\n+    ("mongol_medieval_pair_first_parting", 131),\n'
+                    '+    ("run1378_s_closing_state", 131),\n',
+                'crates/rondata/src/census.rs':
+                    '@@ -544,2 +544,3 @@\n-/// Item 3701: 226 -> 227.\n-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 227;\n'
+                    '+/// Item 3701: 226 -> 227.\n+/// Item 3702: 227 -> 228, the Steppe Nomad.\n'
+                    '+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 228;\n',
+                'docs/AI.md': '@@ -34467 +34467,40 @@\n-## 362. Reserved\n+## 362. The Mongols at Medieval\n+\n+Prose.\n'}
+        overlap = sorted(rows)
+        line = gate.base_line('worktree-replan-pdb', commits, overlap, row_lists=overlap)
+        self.assertIn("row lists on the base's side", line)
+        self.assertIn('--keep-conflicts', line)
+        self.assertIn('land on this verdict', line)
+        self.assertNotIn('gate again', line)
+        # (a) Before the offline step: the four alone, the gate runs all six
+        # and the receipt names the classes.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits, theirs=overlap + ['docs/QUEUE.md'],
+                                          ours=overlap + ['crates/sim/src/launch.rs'], theirs_diff=rows))
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual(len(calls), 6)
+            self.assertIn("row lists on the base's side", said)
+            self.assertIn('land on this verdict', said)
+            policy = json.loads((path/'report'/'gate-policy.json').read_text())
+            self.assertEqual(policy['lane']['base_overlap'],
+                             {'blocking': [], 'row_lists': overlap, 'paperwork': []})
+        # (b) A removed row on the base's side is an edit: refused, for that path.
+        removed = dict(rows)
+        removed['crates/rondata/src/diff/coverage.rs'] = '@@ -41 +40,0 @@\n-        || super::old_pair::window(),\n'
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed, self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits, theirs=overlap, ours=overlap, theirs_diff=removed))
+            self.assertEqual(calls, [])
+            self.assertIn('coverage.rs', str(refused.exception))
+            self.assertNotIn('testkit.rs', str(refused.exception))
+            moved=[str(c.args[0]) for c in printed.call_args_list if c.args and str(c.args[0]).startswith('Base moved:')]
+            self.assertEqual(len(moved), 1)
+            self.assertIn('gate again', moved[0])
+        # (c) A sim path beside them still refuses, for the sim path alone.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed, self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits, theirs=overlap + ['crates/sim/src/launch.rs'],
+                                          ours=overlap + ['crates/sim/src/launch.rs'], theirs_diff=rows))
+            self.assertEqual(calls, [])
+            self.assertIn('launch.rs', str(refused.exception))
+            self.assertNotIn('coverage.rs', str(refused.exception))
 
     # Item 3373: `writers::a_field_the_sim_writes_is_read_by_something` timed
     # at 1.08 s, over the lane budget, so `--lane --no-widen` left it to the

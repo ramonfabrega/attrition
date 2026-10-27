@@ -21598,3 +21598,25 @@ seconds a window, the 3600 s cap good for eighty more). Booked: 3675 first,
 then the refill's six and three Medieval lobbies off the braces
 (3695–3703), two Opus lanes at medium. **DECISIONS 98.**
 `docs/audit/2026-10-27-fable-pass-59.md`.
+
+**2026-10-27 — the sixtieth Fable pass** (the `steer` session, cleared
+into at the drain, unattended until Ramon asked for a talk mid-pass): the
+sixtieth tranche measured — twenty landings on two Opus lanes from
+`6a0ca349e` in 10 h 46; ten early-age pairs stood up, four whole, five of
+six partings closed (the Chinese and Spanish on launch rows, the Egyptians
+on a pivot row, the Greeks on a move clamp, the Persians in five items),
+the Mongol word open at 4220; unit types seen 220 → 229 of 302, lockstep
+bytes 77.4 unmoved; 6.81 USD and 37.4 minutes waiting a landing against
+8.77 / 57.3 (the drain's line had read 8.89 / 45.5: a residue booking's
+title names the item it mints, and `tranche.py` counts it once now, Loop
+3715). Two lanes without Loop 3694's lever still ran fifteen gates past the
+first, every overlap a row list, so the pass built the lever: the gate
+reads the base's own hunks and a row-list overlap lands on the verdict
+after a kept-both-sides update; the sixty-first measures it. The braces'
+land lines of ages 1–5 are spent but for the French Heavy Chevalier, and
+the Modern and Information ages by nation follow — one Modern lobby fields
+eight never-seen lines. Booked: 3714 open, 3717–3726 (the Heavy Chevalier,
+then the Spanish and Germans at Modern, the Egyptians and Russians at
+Information, and five more). 3716 filed (empty waiter logs). **The
+commander is not cleared: Ramon's talk first.** **DECISIONS 99.**
+`docs/audit/2026-10-27-fable-pass-60.md`.

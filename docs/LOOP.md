@@ -113,7 +113,15 @@ tranche, on no rule (entry 56). **A conflicted update is taken with
 `ccc update <ref> --keep-conflicts`** (exit 3, the markers left in the
 worktree): the lane resolves, `git add`s and `git commit`s the merge
 itself — its own `git merge` is what the classifier denies, and one
-lane sat 86 minutes for want of this (parked 1315; ccc 0.1.38). **A message that
+lane sat 86 minutes for want of this (parked 1315; ccc 0.1.38). **A
+`Base moved:` whose every shared path is a row list on the base's side
+lands on the gate's verdict** (Loop 3694, the sixtieth pass): the
+line names them — a row list's added rows, a document, a capture's
+row, the census pin — and the lane updates with `--keep-conflicts`,
+keeps both sides' rows, re-pins, runs `tools/guard.sh` and lands,
+saying which base the gate ran on; the booking gate is the check on
+every merge. A removed row or any other path is still an update and a
+second gate. **A message that
 arrives during a gate says it is to be applied after it**, and the worker
 holds its write-ups until the gate exits. **An instruction about what to
 start is never one about what to stop**: "pause new lanes" is answered
@@ -303,7 +311,15 @@ rows and the window line, 908 of 1,145 waiting minutes on the gate
 class (Loop 3694); **so the lane returns when Loop 3694's lever is
 built and measured on a two-lane tranche — a base move on row-list
 paths alone no longer re-runs the lane gate — or on Ramon's word,
-never on a two-lane gate figure alone, which 25.3 already was**); a
+never on a two-lane gate figure alone, which 25.3 already was**; **the
+sixtieth measured two lanes without the lever** — waiting 37.4 a
+landing, the gate 26.3 a session, the door 1,096 s, and fifteen lane
+gates past the first with every quoted overlap a row list — **and the
+sixtieth pass built it** (`release_gate.py`'s `row_list_overlap`,
+DECISIONS 99 §2): the sixty-first's drain counts the lane receipts'
+`base_overlap` and the gates past the first, and the lane returns for
+the sixty-second if the re-gates on row lists read zero and waiting
+holds under 40.2); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

@@ -159,6 +159,20 @@ class TheHandoff(unittest.TestCase):
                     'Book 3666, 3667 and drain the tranche at twenty']
         self.assertEqual(tranche.booked_items(subjects), [3666, 3667, 3677, 3678, 3674, 3690])
 
+    def test_an_item_a_booking_only_minted_is_counted_once_where_it_landed(self):
+        # Loop 3715 (the sixtieth pass): a residue booking is titled `Book
+        # <landed> and <minted>` (`Book 3702 and 3709`, then `Book 3709 and
+        # 3712`), and 3709, 3710, 3711 and 3712 each appeared under two
+        # bookings with their sessions summed twice — the drain's line read
+        # 177.78 USD over 29 sessions where 23 had run. An item's sessions
+        # are its own however many bookings name it: once, where it landed.
+        subjects = ['Book 3712 and 3714: the Mongol word 3989 -> 4220',
+                    'Merge worktree-att-3712 (6 commits)',
+                    'Book 3709 and 3712: the owner-9 chain moves two words',
+                    'Merge worktree-att-3709 (9 commits)',
+                    'Book 3702 and 3709: the Mongols part at 2595']
+        self.assertEqual(tranche.booked_items(subjects), [3702, 3709, 3712, 3714])
+
     def test_the_line_counts_landings_deep_lanes_waiting_and_price(self):
         rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
                 {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},

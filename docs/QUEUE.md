@@ -12,13 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-27, **the sixtieth tranche (commander, Opus): drained at twenty from `6a0ca349e`**, every lane reaped; the last whole gate is `a7925e61e` and the drain's whole gate runs on this commit; **the pass is due**.*
-- **Words**: one open — the Mongols at Medieval, 4220 of 5,592 (lower map first — East Indies (Mongol, Medieval)), 3714 booked on 4220 (3702 stood it up at 2595; 3709 moved it to 3989 — owner 9 was never threaded onto a cell's chain, so a bird headed a fish cell and `think_fish` missed a boat's claim; 3712 to 4220 — piece 1178's `launch::BAYS` rows) — a Steppe Nomad's round, piece 150, which wants a packet at 4174. **The headline, the early ages**: ten pairs stood up off the braces (3675, 3695–3703), four whole on their first try (the Lakota and Japanese at Enlightenment, 3695, 3696; the Inca at Industrial, 3699; the British at Medieval, 3701) and five of the six that parted closed — the Chinese at Enlightenment (3675 → 3704) and Spanish at Industrial (3697 → 3705) on launch rows read off a packet, the Egyptians at Industrial (3700 → 3707) on a turret's `pivot::SAME_AS` row, the Greeks at Medieval (3703 → 3711) on `Group::action_move_near`'s clamp written back into the slot table, the Persians at Gunpowder (3698 → 3706, 3708, 3709, 3710, 3713: 1180 → 3020 → 3130 → 4842 → 4948 → 5673) on the Arqimmortal's tribe mask, a fort counted when built, the owner-9 chain, a group move's builder mark and piece 213's bays. The braces hold one free land line of ages 1–5 (the French `Heavy Chevalier` (236) at Medieval, `(14, 10, 4)`); what follows is the sixtieth pass's to name.
-- **The rubric, lockstep**: unit types 220 → 229 of 302 this tranche (73 never: Air 20, Sea 2, Land 51 — seven Nubian, the human's; the Militia and Minuteman nationless; seven lines booked before and never fielded): the Repeating Rifle Horse, 3695; the Gun Samurai, 3696; the Manchu Musketeers, 3704; the Commando, 3705; the Siege Mortar, 3699; the Light Tank, 3707; the King's Longbowmen, 3701; the Royal Companion, 3711; the Gun Mahout, 3713 (the Steppe Nomad fielded, not yet lockstep). Ages 8 of 8, **bytes 77.4 %** at the pass.
-- **For the pass** (`tranche.py --base 6a0ca349e`, `gates.py … --since gate-pass59.log`): 20 landings in 10 h 44 on two Opus lanes at medium (19 `Book` commits: 3706 + 3707 booked together); `tranche.py`'s own line reads **45.5 minutes waiting a landing, 8.89 USD a landing (177.78 over 29 sessions)** and five DEEP, but it counts a lane twice when a booking's title names an item it only minted (Loop 3715) — **by session, 23 sessions, 135.93 USD, 6.80 a landing, 36.3 minutes waiting a landing (40.2 on the fifty-eighth's two lanes, 57.3 on the fifty-ninth's three)**, three DEEP (3708 327 k, 3710 311 k, 3711 333 k), 2.4 captures a landing; 18 booking gates logged before the drain's: 6 whole (41.6–44.8 min), 12 scoped and widened (16.6–19.2), **0 red**, 478.2 minutes; admission 1,086.6 s summed, longest 79.0 s; 2 gate ends past the cores. One lane fix moved two words (3709, the owner-9 chain: the Mongol and Persian) and a live lane carried it rather than build a second (3710).
-- **Two lanes, by the lane rule** (DECISIONS 98 §2): Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`; the third returns when Loop 3694's lever is built and measured on a two-lane tranche, or on Ramon's word — this tranche is the two-lane measure. **The lane gate's cut reads the branch's paths alone** (Loop 3676); a stand-up's gate ran release 6.6–9.2.
-- **Lanes: none live; one booked** (3714, the Mongol Medieval word on 4220). Next 3716, run 1392. Pools: AI §364–370 free; park UW (3714) — the slot pool spent after it, the pass's to refill.
-- **Fable backlog: 9 Loop items** (3715, 3694, 3684, 3382, 3350, 3237, 3188, 3143, 3118).
+*2026-10-27, **the sixtieth pass (steer, Fable): the sixtieth tranche measured, the lever built, the queue booked**; the last whole gate is the drain's on `4e61c1fb7`; **the launch waits on Ramon's word** — he asked for a talk before the commander goes out, so no row was cleared.*
+- **Words**: one open — the Mongols at Medieval, 4220 of 5,592 (lower map first — East Indies (Mongol, Medieval)), 3714 booked on 4220 (3702 stood it up at 2595; 3709 to 3989 — the owner-9 chain; 3712 to 4220 — piece 1178's `launch::BAYS` rows): a Steppe Nomad's round, piece 150, wanting a packet at 4174. **The headline, the ages**: the sixtieth stood ten pairs up off the braces, four whole (3695, 3696, 3699, 3701) and five of six partings closed (3704, 3705, 3707, 3711, 3713); the braces' land lines of ages 1–5 are spent but for the French `Heavy Chevalier` (3717), **and what follows is the Modern and Information ages by nation** (DECISIONS 99 §3): the Modern lobbies on file field their whole family in lockstep — run1151c carries eleven Modern military types by frame 4,500 — so the 51 never-seen land lines and 20 air lines are the nations never run there, and one lobby fields eight; nine are booked (3718–3726), two never-seen lines first.
+- **The rubric, lockstep**: unit types 220 → 229 of 302 this tranche (73 never: Air 20, Sea 2, Land 51): the Repeating Rifle Horse, Gun Samurai, Manchu Musketeers, Commando, Siege Mortar, Light Tank, King's Longbowmen, Royal Companion, Gun Mahout; the Steppe Nomad fielded, not yet lockstep. Ages 8 of 8, **bytes 77.4 %** unmoved for the ninth tranche; the Modern pairs are the first bookings that can move it.
+- **For the next pass** (`tranche.py --base <the sixty-first's base>`, `gates.py … --since gate-pass60.log`): the sixtieth read **136.22 USD over 23 sessions, 6.81 a landing, 37.4 minutes waiting a landing** (the drain's 177.78 / 8.89 / 45.5 double-counted four minted items — Loop 3715 built), three DEEP, 2.2 captures a landing; 19 booking gates, 7 whole (39.7–44.3), 12 scoped (14.7–17.2), **0 red**, 519.8 minutes; admission 1,096.2 s, longest 79.0; **35 lane receipts, fifteen gates past a lane's first, every overlap a row list** — Loop 3694's lever is built (`release_gate.py`'s `row_list_overlap`; the receipt's `base_overlap`), and the sixty-first's drain counts the re-gates it forgave and the gates past the first against fifteen; the lane returns for the sixty-second if the row-list re-gates read zero and waiting holds under 40.2 (DECISIONS 99 §2).
+- **Two lanes, by the lane rule**: Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`. **A `Base moved:` on row lists alone now lands on the verdict** after a kept-both-sides update, a re-pin and `guard.sh`; the brief's landing row says so (Loop 3694). The lane gate's cut reads the branch's paths alone (Loop 3676); a stand-up's gate ran release 6.8–10.3.
+- **Lanes: none live; eleven booked** (3714; 3717–3726). Next 3727, run 1412. Pools: AI §364–380 (seventeen stubs); park UX–VQ (twenty slots).
+- **Fable backlog: 9 Loop items** (3716, 3694, 3684, 3382, 3350, 3237, 3188, 3143, 3118).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,7 +37,7 @@ Blind: never 249 · residue 208 · open 41
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 229 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the sixtieth pass (steer, Fable) — the tranche drained at twenty from `6a0ca349e` on two Opus lanes; this handoff, one word open (the Mongols at Medieval, 4220, 3714 booked), the braces' last free line and what the early ages hand on, the two-lane measure for Loop 3694, Loop 3715, the park pool, the backlog.**
+**Opener: the sixty-first tranche (commander, Opus) — on Ramon's word after the sixtieth pass's talk; the queue's eleven items on two Opus lanes at medium (3714 the Mongol word first, then 3717–3726 off the braces into the Modern and Information ages), the lever's receipts to count at the drain, the pass's record `docs/audit/2026-10-27-fable-pass-60.md`.**
 
 ## The queue
 
@@ -52,6 +52,48 @@ from 3989, AI §362): the human's `0/13` dies in theirs, struck on 4188 by the S
 piece: `<RESTRICTION ELITENOMADS node 4 ±160>`), whose rounds launch ~233 higher and fly one frame less from 4175 (run1386). The
 hypothesis is piece 150's launch point; no packet on disk fills it, so it wants `RON_STATE_FRAME=4174` on this lobby. Run 1391;
 amend §362; park UW.
+
+3717. **The French at a held Medieval age, Great Lakes, at difficulty 4** (`GreatLakesFrenchMedieval`, map 14, tribe 10, difficulty 4, age 2
+held; rule (3): the French hold `(14, 10, 5)`, `(18, 10, 4)`, `(18, 10, 5)`, `(7, 10, 4)` and `(7, 10, 5)`, so Great Lakes at 4 is the free
+triple): the line is `Heavy Chevalier` (236), the braces' last land line of ages 1–5. Runs 1392–1393; AI §364; park UX.
+
+3718. **The Spanish at a held Modern age, East Indies, at difficulty 4** (`EastIndiesSpanishModern`, map 18, tribe 9, difficulty 4, age 6
+held; rule (3): the Spanish hold Great Lakes at 4 and 5, East Indies at 3 and 5, Great Sahara at 3 and 5, so East Indies at 4 is the free
+triple): eight never-seen lines — `Special Forces` (76), `Infantry[INFANTRYGER]` (103), `Heavy Machine Gun[HVYMACHINEGUNGERMAN]` (126),
+`Bazooka[BAZOOKAGERMAN]` (140), `Armored Scout Car[ARMOREDCAR2]` (219), `Tank[PANZER]` (250), `Howitzer[HUMMEL]` (272),
+`Anti-Aircraft Battery[FLAKGUNGERMAN]` (283) — and the `ME109` (292) in the air. Runs 1394–1395; AI §365; park UY.
+
+3719. **The Germans at a held Modern age, Great Lakes, at difficulty 4** (`GreatLakesGermanModern`, map 14, tribe 12, difficulty 4, age 6
+held; rule (3): the Germans hold Great Lakes at 5, East Indies at 3 and 5, Great Sahara at 3 and 5): `Volksgrenadiers` (109), `MG42` (130),
+`Tiger Tank` (258), and the four German-pattern lines shared with the Spanish (140, 219, 272, 283); the `ME109`. Runs 1396–1397; AI §366; park UZ.
+
+3720. **The Egyptians at a held Information age, Great Lakes** (`GreatLakesEgyptianInformation`, map 14, tribe 7, difficulty 5, age 7
+held; rule (3): the Egyptians hold East Indies at 3, 4 and 5 and Great Sahara at 4 and 5, so Great Lakes at 5 is free): the three
+`Main Battle Tank` variants (252, 253, 257) and the `MIGDES` (300). Runs 1398–1399; AI §367; park VA.
+
+3721. **The Russians at a held Information age, East Indies, at difficulty 4** (`EastIndiesRussianInformation`, map 18, tribe 13,
+difficulty 4, age 7 held; rule (3): the Russians hold Great Lakes at 2 and 5, East Indies at 5, Great Sahara at 4 and 5): `Shock Infantry`
+(108), `T80 Tank[RUSSHEAVYTANK]` (260), the `HIND` (312). Runs 1400–1401; AI §368; park VB.
+
+3722. **The Japanese at a held Modern age, Great Lakes, at difficulty 4** (`GreatLakesJapaneseModern`, map 14, tribe 15, difficulty 4,
+age 6 held; rule (3): the Japanese hold every map at 5, East Indies at 4, Great Sahara at 1): `Infantry` (102), `Tank[CHIHA]` (249), the
+`Zero` (293). Runs 1402–1403; AI §369; park VC.
+
+3723. **The Bantu at a held Modern age, Great Lakes** (`GreatLakesBantuModern`, map 14, tribe 3, difficulty 5, age 6 held; rule (3): the
+Bantu hold East Indies at 5 and Great Sahara at 4 and 5, so Great Lakes at 5 is free): `Infantry` (102), `Tank[SHERMANDES]` (247), the
+`Hawk Fighter` (302). Runs 1404–1405; AI §370; park VD.
+
+3724. **The Egyptians at a held Modern age, Great Lakes, at difficulty 4** (`GreatLakesEgyptianModern`, map 14, tribe 7, difficulty 4,
+age 6 held; rule (3): 3720 takes Great Lakes at 5, so 4 is the free triple): `Infantry` (102), `Tank[CHURCHILLDES]` (245), the `P40DES`
+(291). Runs 1406–1407; AI §371; park VE.
+
+3725. **The Americans at a held Information age, Great Lakes** (`GreatLakesAmericanInformation`, map 14, tribe 20, difficulty 5, age 7
+held; rule (3): the Americans hold Great Lakes at 4, East Indies at 1 and 5, Great Sahara at 3 and 5): `Assault Marines` (122) and the
+generic Information air (301, 306, 309, 314). Runs 1408–1409; AI §372; park VF.
+
+3726. **The Maya at a held Information age, Great Lakes** (`GreatLakesMayaInformation`, map 14, tribe 1, difficulty 5, age 7 held; rule
+(3): the Maya hold East Indies at 5 and Great Sahara at 4): `Dragon AT Missile` (145), and the generic lines the Maya do not replace.
+Runs 1410–1411; AI §373; park VG.
 
 ## How to maintain this file
 

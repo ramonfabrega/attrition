@@ -457,13 +457,76 @@ def branch_paths(base, run=subprocess.run):
 COMMANDER_PAPERWORK = ('docs/QUEUE.md', 'docs/PARKED.md', 'docs/JOURNAL.md', 'docs/RUNS.md')
 
 
-def split_paperwork(overlap):
+def split_paperwork(overlap, row_lists=()):
     """(blocking, paperwork): an overlap parted into the paths that refuse a
     lane's done line and the commander's paperwork, which does not (Loop
-    3401)."""
+    3401) — nor do the row lists `row_list_overlap` found (Loop 3694)."""
     overlap = list(overlap or [])
     paperwork = [p for p in overlap if p in COMMANDER_PAPERWORK]
-    return [p for p in overlap if p not in COMMANDER_PAPERWORK], paperwork
+    forgiven = set(paperwork) | set(row_lists or ())
+    return [p for p in overlap if p not in forgiven], paperwork
+
+
+# Loop 3694 (the fifty-ninth pass's finding, built by the sixtieth): the
+# fifty-ninth's residue lanes ran their lane gate three to five times each
+# on `Base moved:` — 908 of the tranche's 1,145 waiting minutes on the gate
+# class while the door had room — because every landing touches the same
+# paths: the rubric pin in `census.rs`, the item's section in `docs/AI.md`,
+# the test-kit rows, the coverage driver's window line, a capture's row.
+# The sixtieth's two lanes still took a `--keep-conflicts` update and a
+# second gate on exactly those (3704 three gates, 3706 four, 3698 and 3700
+# two). A path whose hunks on the base's side are rows a merge keeps both
+# of cannot make the merged tree red where both sides were green: a row
+# list's added rows (`ROW_LISTS`, the lane cut's own regexes), a document
+# (the paperwork guards read it, and `guard.sh` runs after the update), a
+# capture's row, and the census pin with its comment (re-pinned after the
+# update, as every landing does). So the lane updates with
+# `--keep-conflicts`, keeps both sides, re-pins, runs the guards and lands
+# on this verdict; the scoped booking gate is the check on every merge. A
+# removed row, an edit, or any other path still refuses as before.
+ROW_LIST_CAPTURES = 'tools/gamelog/captures.txt'
+ROW_LIST_CENSUS = 'crates/rondata/src/census.rs'
+CENSUS_PIN_LINES = re.compile(r'^\s*///.*$|^pub const RUBRIC_UNIT_TYPES_SEEN: usize = \d+;$|^\s*$')
+ANY_ROW = re.compile(r'^.*$')
+
+
+def row_list_overlap(base, overlap, run=subprocess.run):
+    """The overlap paths whose hunks on `base`'s side, since this branch
+    left it, are rows a merge keeps both of (Loop 3694): a document under
+    `docs/`, a `ROW_LISTS` file or the captures file whose hunks only add
+    rows, and the census file whose changed lines are the rubric pin and
+    its comment. Empty when `base` is not a ref this tree knows."""
+    overlap = [p for p in (overlap or []) if p not in COMMANDER_PAPERWORK]
+    if not overlap:
+        return []
+    try:
+        fork = run(['git', 'merge-base', base, 'HEAD'], capture_output=True, text=True,
+                   cwd=ROOT, check=True).stdout.strip()
+    except subprocess.CalledProcessError:
+        return []
+    found = []
+    for path in overlap:
+        if path.startswith('docs/') and path.endswith('.md'):
+            found.append(path)
+            continue
+        row = ROW_LISTS.get(path)
+        removals_ok = False
+        if path == ROW_LIST_CAPTURES:
+            row = ANY_ROW
+        elif path == ROW_LIST_CENSUS:
+            row, removals_ok = CENSUS_PIN_LINES, True
+        if row is None:
+            continue
+        try:
+            diff = run(['git', 'diff', '-U0', fork, base, '--', path], capture_output=True, text=True,
+                       cwd=ROOT, check=True).stdout
+        except subprocess.CalledProcessError:
+            continue
+        lines = [l for l in diff.splitlines()
+                 if (l.startswith('+') or l.startswith('-')) and not l.startswith(('+++', '---'))]
+        if lines and all((l.startswith('+') or removals_ok) and row.match(l[1:]) for l in lines):
+            found.append(path)
+    return found
 
 
 def base_moved(base, run=subprocess.run):
@@ -487,7 +550,7 @@ def base_moved(base, run=subprocess.run):
     return [c for c in commits if c.strip()], sorted(theirs & ours)
 
 
-def base_line(base, commits, overlap):
+def base_line(base, commits, overlap, row_lists=()):
     """The `Base moved:` line a lane gate prints last: how far the base has
     moved since the branch left it and what that means for the done line."""
     if commits is None:
@@ -498,14 +561,25 @@ def base_line(base, commits, overlap):
     last = commits[-1].split(' ', 1)[0]
     line = (f"Base moved: {len(commits)} commit(s) on {base} since this branch left it "
             f"({first}{'..' + last if len(commits) > 1 else ''}); ")
-    blocking, paperwork = split_paperwork(overlap)
+    blocking, paperwork = split_paperwork(overlap, row_lists)
+    row_lists = [p for p in (row_lists or ()) if p in set(overlap or [])]
     if blocking:
         shown = ', '.join(blocking[:4]) + (', …' if len(blocking) > 4 else '')
+        forgiven = ([f"the commander's paperwork ({', '.join(paperwork)})"] if paperwork else []) + \
+                   ([f"the row lists on the base's side ({', '.join(row_lists)})"] if row_lists else [])
         return line + (f"{len(blocking)} path(s) both sides touched ({shown}): take `ccc update <your ref>` "
                        "(`--keep-conflicts` on a conflict), gate again, and only then your done line — a "
                        "landing announced here backs out at `ccc merge` (Loop 3341)"
-                       + (f"; the commander's paperwork ({', '.join(paperwork)}) is no reason of its "
-                          "own (Loop 3401)" if paperwork else ''))
+                       + (f"; {' and '.join(forgiven)} are no reason of their own (Loops 3401, 3694)"
+                          if forgiven else ''))
+    if row_lists:
+        return line + (f"the only path(s) both sides touched are row lists on the base's side "
+                       f"({', '.join(row_lists)})"
+                       + (f" and the commander's paperwork ({', '.join(paperwork)})" if paperwork else '')
+                       + ": take `ccc update <your ref> --keep-conflicts` at this gate's exit, keep both "
+                       "sides' rows, re-pin `census::RUBRIC_UNIT_TYPES_SEEN` where it conflicted, run "
+                       "`tools/guard.sh`, and land on this verdict saying which base the gate ran on — the "
+                       "booking gate is the check on every merge (Loop 3694)")
     if paperwork:
         return line + (f"the only path(s) both sides touched are the commander's paperwork "
                        f"({', '.join(paperwork)}): take `ccc update <your ref>` at this gate's exit and "
@@ -632,9 +706,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # Loop 3401: an overlap on the commander's paperwork alone does not
         # refuse; the line after the steps names it.
         commits, overlap = base_moved(base, run=git)
-        blocking, _ = split_paperwork(overlap)
+        # Loop 3694: an overlap whose hunks on the base's side are rows a
+        # merge keeps both of does not refuse either; the receipt names
+        # the classes so the next pass can count what the rule forgave.
+        row_lists = row_list_overlap(base, overlap, run=git)
+        blocking, paperwork_overlap = split_paperwork(overlap, row_lists)
+        base_overlap = {'blocking': blocking, 'row_lists': row_lists, 'paperwork': paperwork_overlap}
         if blocking:
-            print(base_line(base, commits, overlap), flush=True)
+            print(base_line(base, commits, overlap, row_lists), flush=True)
             raise ValueError(f"the base moved under this branch and both sides touched "
                              f"{', '.join(blocking)}: refused before the offline step, nothing ran; "
                              "take `ccc update <your ref>` and gate again (Loop 3341, item 3366)")
@@ -706,6 +785,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
                           'row_only': row_only,
+                          'base_overlap': base_overlap,
                           'sim_crate': 'left to the booking gate' if sim_left else 'run'}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
@@ -775,8 +855,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             # Loop 3341: the base is read after the steps, so the line is
             # the freshest a lane can have before its done line.
             commits, overlap = base_moved(base, run=git)
-            print(base_line(base, commits, overlap), flush=True)
-            blocking, _ = split_paperwork(overlap)
+            row_lists = row_list_overlap(base, overlap, run=git)
+            print(base_line(base, commits, overlap, row_lists), flush=True)
+            blocking, _ = split_paperwork(overlap, row_lists)
             if blocking:
                 raise ValueError(f"the base moved under this branch and both sides touched "
                                  f"{', '.join(blocking)}: take `ccc update <your ref>` and gate again "

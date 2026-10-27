@@ -195,10 +195,18 @@ def booked_items(subjects: list[str]) -> list[int]:
     (the fifty-ninth pass: two co-booked lanes, 25.54 USD and 164 waiting
     minutes, were missing from the drain's handoff line) — oldest first. A
     `Queue:` or `Merge` commit is not a landing (the fifty-fourth pass,
-    Loop 3564)."""
+    Loop 3564). An item a booking only minted is counted once, where its
+    own booking names it (Loop 3715, the sixtieth pass: `Book 3702 and
+    3709` and then `Book 3709 and 3712` summed 3709's sessions twice, and
+    the drain's line read 29 sessions where 23 had run)."""
     commits = [[int(n) for n in re.findall(r"\d+", m.group(1))]
                for sub in subjects if (m := BOOK.match(sub))]
-    return [item for items in commits[::-1] for item in items]
+    seen: dict[int, None] = {}
+    for items in commits[::-1]:
+        for item in items:
+            seen.pop(item, None)
+            seen[item] = None
+    return list(seen)
 
 
 def handoff_line(rows: list[dict], deep_k: int) -> str:

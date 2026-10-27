@@ -406,6 +406,24 @@ gates on the coverage walk's cap, six `DEEP`. The pass added this row.
   read as the build's cost. The tree with the switch off builds the
   base's binary, or the probe is not a probe.
 
+## The brief checklist, from the sixtieth pass
+
+The sixtieth tranche (DECISIONS 99): twenty landings on two Opus lanes
+in 10 h 46, six words closed and ten pairs stood up, four whole; 6.81
+USD and 37.4 minutes waiting a landing (8.77 / 57.3), no red booking
+gate, three `DEEP`. The pass added this row.
+
+- **A `Base moved:` on row lists alone lands on the verdict** (3694;
+  the fifty-ninth's finding, measured on the sixtieth): fifteen lane
+  gates past the first in one tranche, every quoted overlap a row list
+  (`battery.rs`'s triples, `coverage.rs`'s window line, `testkit.rs`'s
+  rows, `docs/AI.md`, the census pin), each a `--keep-conflicts` update
+  with both sides kept and a 17–22-minute gate again. The gate reads the
+  base's own hunks on each overlap path: rows a merge keeps both of are
+  no reason to gate again; the lane updates, keeps both, re-pins, runs
+  the guards and lands; the receipt's `base_overlap` counts what the
+  rule forgave.
+
 ## The brief checklist, from the fifty-second pass
 
 The fifty-second tranche (DECISIONS 91): twenty landings on two Opus
