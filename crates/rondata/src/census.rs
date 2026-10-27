@@ -517,7 +517,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3696: 221 -> 222, the Japanese Enlightenment pair whole on its
 /// first try at 4701 — `Gun Samurai` (161, `GUNSAMURAI`, land; 264 figure
 /// rows), the line §356 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 222;
+/// Item 3705: 222 -> 223, the Spanish Industrial pair whole at 4200 —
+/// `Commando` (74, `COMMANDOSPANISH`, land; 200 figure rows), the line
+/// §357 named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 223;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

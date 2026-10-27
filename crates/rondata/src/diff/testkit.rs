@@ -10748,13 +10748,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Spanish at a held Industrial age** (item 3697): Great Lakes at
     // Toughest — its first try parts at 3229 of a game that ends itself on
     // 4200; widened on run1368b over 3195..3480, the rounds compared, and
-    // the stride over 101..3201.
+    // the stride over 101..3201. Item 3705 closed it, 4200 of 4200 (piece
+    // 50's bays), widened on run1382b over 3944..4201 (the closing block):
+    // 70 keys, rounds 458 against 458.
     (
         "SPANISH_INDUSTRIAL_PAIR_WORD",
         crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL_PAIR_WORD,
-        Some("spanish_industrial_pair_run1368b_s_word_frame_is_widened_whole"),
-        3697,
-        Some(crate::diff::spanish_industrial_pair::WIDENING_SPANISH_INDUSTRIAL_FRAME_3229),
+        Some("spanish_industrial_pair_run1382b_s_closing_frame_is_widened_whole"),
+        3705,
+        Some(crate::diff::spanish_industrial_pair::WIDENING_SPANISH_INDUSTRIAL_CLOSING),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13025,7 +13027,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Spanish at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Lakes at Toughest (item 3697): its first
     // try parts at 3229 of a game that ends itself on 4200, widened on
-    // run1368b.
+    // run1368b; whole since item 3705, 4200 of 4200, widened on run1382b
+    // through the closing block.
     AiWord {
         line: "Late ages",
         map: "GreatLakesSpanishIndustrial",
@@ -13033,7 +13036,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL_PAIR_WORD,
         length: 4_200,
         endpoint: Some("spanish_industrial_pair_run1368_s_closing_state"),
-        window: Some("spanish_industrial_frame_3229_window"),
+        window: Some("spanish_industrial_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
