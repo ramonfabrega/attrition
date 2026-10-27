@@ -183,6 +183,15 @@ class RuntimePolicy(unittest.TestCase):
             self.assertEqual(json.loads((report / 'gate-policy.json').read_text())['test_allocator']['MallocLargeCache'], '0')
             self.assertNotIn('MallocLargeCache', os.environ)
 
+    def test_the_coverage_walk_alone_runs_under_an_hour_s_cap(self):
+        # Loop 3681: the walk was killed at the budget's 1800 s default in a whole gate.
+        name = 'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned'
+        self.assertEqual(runtime.execution_timeout(name), 3600)
+        self.assertIsNone(runtime.execution_timeout('diff::third_pair::anything'))
+        capped = runner.wrapper('/tmp/budget', 2048, timeout=runtime.execution_timeout(name))
+        self.assertEqual(capped[capped.index('--timeout') + 1], '3600')
+        self.assertNotIn('--timeout', runner.wrapper('/tmp/budget', 2048))
+
     def test_isolated_gate_does_not_force_policy_on_unrelated_tests(self):
         import json
         with tempfile.TemporaryDirectory() as d, patch.dict(os.environ, {}, clear=True), patch.object(runtime.sys, 'platform', 'darwin'):
