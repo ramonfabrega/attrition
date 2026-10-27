@@ -10763,6 +10763,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3697,
         Some(crate::diff::spanish_industrial_pair::WIDENING_SPANISH_INDUSTRIAL_FRAME_3229),
     ),
+    // **The Persians at a held Gunpowder age** (item 3698): East Indies at
+    // Hard — its first try parts at 1180 of a game that ends itself on
+    // 5673; widened on run1370b over 1095..1431, the rounds compared.
+    (
+        "PERSIAN_GUNPOWDER_PAIR_WORD",
+        crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
+        Some("persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole"),
+        3698,
+        Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_1180),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13043,6 +13053,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_200,
         endpoint: Some("spanish_industrial_pair_run1368_s_closing_state"),
         window: Some("spanish_industrial_frame_3229_window"),
+    },
+    // The Persians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), East Indies at Hard (item 3698): its first
+    // try parts at 1180 of a game that ends itself on 5673, widened on
+    // run1370b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesPersianGunpowder",
+        named: "East Indies (Persian, Gunpowder)",
+        word: crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
+        length: 5_673,
+        endpoint: Some("persian_gunpowder_pair_run1370_s_closing_state"),
+        window: Some("persian_gunpowder_frame_1180_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

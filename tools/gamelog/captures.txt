@@ -10918,3 +10918,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1368  run1334's line with --ai-tribe 9 and run1367's lobby   (the draw stream; ended itself on 4200)
 #   run1368b --map 14 --end-frame 3480 --timeout 3600 --log-window 3195 3480 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1367's lobby   (the word 3229's window)
 # Checks: `rngcmp.py` run1367 vs run1368 -> 37 identical; run1368 vs run1368b -> 3481 identical.
+# ==== item 3698: the Persians at a held Gunpowder age, East Indies, at difficulty 4 (`docs/AI.md` §358; `docs/RUNS.md` run1369, run1370, run1370b) ====
+#   run1369  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 23 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1370  run1334's line with --map 18 --ai-tribe 23 and run1369's lobby   (the draw stream; ended itself on 5673)
+#   run1370b --map 18 --end-frame 1431 --timeout 3600 --log-window 1095 1431 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1369's lobby   (the word 1180's window)
+# Checks: `rngcmp.py` run1369 vs run1370 -> 37 identical; run1370 vs run1370b -> 1432 identical.

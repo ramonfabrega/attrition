@@ -33832,12 +33832,77 @@ the closing fields (parked 3697b).
 lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1368 and run1368b): `Commando`
 (74, `COMMANDOSPANISH`), 1,320 figure rows. It stays in the never list until a lockstep game holds it.
 
-## 358. Reserved for the next item on the AI track
+## 358. The Persians at a held Gunpowder age, East Indies, at difficulty 4: first try 1180 of 5673 (item 3698)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §356's lobby with the nation and the age moved: East
+Indies (`MAP_STYLE 18`), human Nubians (4) against the **Persians (23)** at Hard (4), seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 3`, `ENDING_TECHNOLOGY 3`, read back `3` and `DIFFICULTY 4` on both
+`GAME INFO`s (`Pair::assert_lobby`). Captures: run1369 (a `DUMP_ALL` start) and run1370 (the draw stream,
+`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 5673; run1369 against run1370 is 37 of
+37 frames identical. The walk is seeded from run1369's initial state (3506a). `diff::persian_gunpowder_pair` pins
+it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 23, 4)`, is minted into `battery::SCORED_LOBBIES`. The held-out battery fields no
+Persians (`battery::BATTERY` has no tribe-23 game; `GreatLakesPersianTier2` left it for the AI word on item 3355).
+The Persian lobbies: the coverage pair `EastIndiesPersianAllTech` and `persian_medieval_pair` are `(18, 23, 5)`,
+this map at another difficulty; `sahara_coverage`'s `GreatSaharaPersianAllTech` `(7, 23, 5)`,
+`persian_classical_pair` `(14, 23, 5)` and `persian_word` `(14, 23, 2)` are other maps. `(18, 23, 4)` appeared
+nowhere in the tree. `persian_gunpowder_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 1180 of 5673**, by the count and the sequence. On 1180 ours spends 17 game draws against
+theirs' 14, parting at index 7: ours `Leader::create_units+0x642`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`.
+
+| side | draws on 1180, in order |
+|---|---|
+| ours | `create_units+0x642` ×8, `move_step`'s `set_anim+0x97a`, `resolve_unit_collision+0xb52`, `set_anim+0x104b` ×3, `Farms::inc_time+0x1ae` ×4 |
+| theirs | `create_units+0x642` ×7, `move_step`'s `set_anim+0x97a`, `resolve_unit_collision+0xb52`, `set_anim+0x104b` ×1, `Farms::inc_time+0x1ae` ×4 |
+
+**The direction: ours acts.** `RON_DEBUG_SITES=0-1180` prints no `create_units` draw on either side before 1180:
+the word is the AI's first military valuation of the game, and ours rolls the `SITE_UNIT_BIAS` (`roll % 3 + 4`,
+the `d != 2` arm, `d` = 4) once more than theirs. A probe (`RON_PROBE_3698`, `ca631f57c`, reverted whole in
+`417d760d5`) named ours' eight candidates, all in city 1, `owned` 0, `cap` -1, `land_army` 0, `mil_level` 2:
+the Arquebusiers (98), Elite Pikemen (135), **`Arqimmortal` (165)**, Crossbowmen (172), Dragoon (189), Elite Light
+Cavalry (211), Heavy Knight (229) and Gun Mahout (263). **Which one theirs does not value is not established.**
+It is not the Arquebusiers: theirs' make list on block 1181 holds 263, 229, 211 and 98 at `val` 4950000, `num` 5,
+and theirs fields 987 who=1 Arquebusier unit rows over run1370 (and 264 Arqimmortal rows).
+
+**The value diff** (run1370b, blocks 1095..1431 at the long's detail with `LEADERS=9` and `AMMO=5`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 1180 | the draw stream, index 7 | site | `Leader::create_units+0x642` | `Guy::set_anim+0x97a < Unit::move_step+0x823` |
+| 1181 | who=1's Citizen `1/12` (TI 50, land; `EXPLORETOORDER`, colliding from 1175) | `order:move.pause` | 4 | 9 |
+| 1183 | who=1's leader | `MAKE[6].t`; `MAKE[0].t`, `MAKE[7].t`, `MAKE[8].t` | 98; -1 | -1; 552, 430, 552 |
+| 1186 | who=1's Barracks `1/2014` | `queue[3].type` | 135 (Elite Pikemen) | 165 (`Arqimmortal`) |
+| 1186 | who=1's leader | `num_queued[85]`; `num_queued[115]` | 1; 0 | 0; 1 |
+| 1188 | `1/12` | `pos` | (41784, 37560) | (41761, 37560) |
+
+`1/12`'s `pause` is the collision's (`resolve_unit_collision`, which draws after the shift), so the dump's first
+parted field is downstream of the extra roll. The leaders' make lists agree on 1181 and part on 1183, and the
+first unit trained parts on 1186: ours queues the Elite Pikemen where theirs queues the `Arqimmortal`.
+
+**The stride** (run1370, 101..1101: **61 keys**) is the standing families alone: `form` and the leaders on 101,
+the buildings' `build:extra` (which the stride does not print) and who=1's groups 64 and 66's `held` and pools on
+801. No unit row parts. **The window** (run1370b: 336 blocks, **809 keys**, the two `gaia:` keys unprinted, no
+rounds on either side; run1370 against run1370b is 1432 of 1432 frames identical). Block 1095 carries the standing
+families (`form`, both leaders' `SITE[i].reg`, `aggression`, who=1's groups 64..66 and pools), group 67 is minted
+on 1146, and `1/12` on 1181 is the first row that is not standing. `standing.py` over the print reads the
+families only.
+
+**The closing state** is downstream: run1370's closing block 5674 compares 238 units, counts `[237, 19, 0, 4,
+321, 1, 123]`, nearly every unit off and who=1's `1/226`..`1/245` unlinked; every who=1 building's `myhits`
+reads high in ours (6000 against 5500 on `1/2000`). The walk to it reads 2 inexact ground corners (`GROUND_INEXACT`).
+
+**The next item's hypothesis** is a gate in ours' `create_units` before the bias roll (steps 1–7: availability,
+trainers, `city_could_queue`, the count cap, the military gate) that admits one of the seven non-98 candidates
+theirs refuses at `mil_level` 2 under a held Gunpowder age. The candidate is named by a packet at
+`RON_STATE_FRAME=1179` with `Leader::create_units@006c40a0` entered and its `Random::get` caller's `local_8` watched,
+or by theirs' `MAKE` rows against a probe of ours' values. I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **223 of 302**, unmoved: the pair parts, so it is not
+lockstep. The booking's line **is fielded**: `Arqimmortal` (165), 528 figure rows over run1370 and run1370b
+(`rubric.py --tables 3 --dumps`). It stays in the never list until a lockstep game holds it.
 
 ## 359. Reserved for the next item on the AI track
 

@@ -36,7 +36,9 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // Item 3698, first try: parts at 1180 by the count and the sequence,
     // ours 17 draws against theirs 14, index 7 — ours
     // `Leader::create_units+0x642`, theirs `Guy::set_anim+0x97a <
-    // Unit::move_step+0x823` (`docs/AI.md` §358).
+    // Unit::move_step+0x823`. The AI's first military valuation of the
+    // game: ours rolls the bias on eight candidates, theirs on seven
+    // (`docs/AI.md` §358).
     count: 1180,
     sequence: 1180,
 };
@@ -179,7 +181,10 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_1180() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3698.
+    // Item 3698: 61 keys, every one a standing family — `form` and the
+    // leaders on 101, the buildings' `build:extra` (which the stride does
+    // not print) and who=1's groups 64 and 66's `held` and pools on 801.
+    // No unit row parts before the word's window.
     pin_eq!(w.firsts.len(), 61, "the stride's baseline");
 }
 
@@ -237,9 +242,18 @@ fn persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3698, the first walk.
+    // Item 3698, the first walk: **809** keys. Block 1095 carries the
+    // standing families (`form`, both leaders' `SITE[i].reg` and
+    // `aggression`, who=1's groups 64..66 and pools); group 67 is minted
+    // on 1146. **The first row that is not standing is on the word's
+    // block 1181**: who=1's Citizen `1/12` (TI 50, colliding on an
+    // `EXPLORETOORDER`) `order:move.pause` ours 4 against theirs 9 — the
+    // collision's pause on a seed the extra `create_units` roll shifted.
+    // The make lists agree on 1181 and part on 1183 (`MAKE[6].t` ours 98,
+    // theirs -1); on 1186 the Barracks `1/2014` queues the Elite Pikemen
+    // (135) in ours against the `Arqimmortal` (165) in theirs.
     pin_eq!(w.firsts.len(), 809, "run1370b baseline");
-    // Every round, both directions.
+    // Every round, both directions: none fly in the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -287,7 +301,10 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 5674, "the closing block");
-    // Item 3698, the first try: the pair parts at 1180.
+    // Item 3698, the first try: the pair parts at 1180, and the closing
+    // block 5674 compares 238 units, nearly every one off and who=1's
+    // `1/226`..`1/245` unlinked; every who=1 building's `myhits` reads
+    // high in ours (6000 against 5500 on `1/2000`, parked 3698a).
     pin_eq!(e.compared, 238, "units compared");
     pin_eq!(
         e.counts(),

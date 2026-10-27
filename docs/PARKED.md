@@ -11739,13 +11739,20 @@ Riflemen's (TY 100) launch row, is the commander's to book on 3229. Neither row 
   on the buildings under construction. This is downstream of 3229 (an upgrade theirs took and ours did not, or took
   later). It names no score until the word reaches it.
 
-## Parked by the next landing, slot UG — reserved
+## Parked by item 3698, 2026-10-27 — the Persians at a held Gunpowder age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Persian Gunpowder pair's first try parts at 1180 of 5673 (`docs/AI.md` §358). The word's residue item, the
+eighth `create_units` bias roll in ours, is the commander's to book on 1180. Neither row below names a score on
+its own.
+
+- **3698a. Every who=1 building's `myhits` reads high in ours at the close.** On run1370's closing block 5674,
+  6000 against 5500 on `1/2000` and 1296 against 1188 on `1/2001`: ours carries one hit-point upgrade theirs does
+  not, or carries it from earlier. It is 3697b's shape with the sign reversed (there ours read a tenth low). It is
+  downstream of 1180 and names no score until the word reaches it.
+- **3698b. The Citizen `1/12`'s collision `pause` is the dump's first parted field on the word, not its cause.**
+  `order:move.pause` reads 4 in ours against 9 in theirs on block 1181. `resolve_unit_collision+0xb52` draws after
+  the extra `create_units` roll in both streams, so the pause takes a shifted seed. A residue item that builds the
+  roll should see `1/12` agree. If it does not, the collision's own pause arithmetic is the next suspect.
 
 ## Parked by the next landing, slot UH — reserved
 
