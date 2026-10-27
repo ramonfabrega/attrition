@@ -11480,13 +11480,12 @@ Nothing parked: the one finding, the Musketeer's unmeasured `CHAR_ATTACK2`
 launch row, names the word's frame and is the next item's (`docs/AI.md`
 §351).
 
-## Parked by the next landing, slot TP — reserved
+## Parked by item 3673, 2026-10-27 — the Mongols at a held Enlightenment age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the finding, the Golden Horde's unmeasured piece-154
+`CHAR_ATTACK2` launch row, names the word's frame and is the next item's
+(`docs/AI.md` §352), as does the Mongol Musketeer's piece-1105 row beside
+it.
 
 ## Parked by item 3674, 2026-10-27 — the Greeks at a held Enlightenment age, Great Lakes
 
