@@ -10931,6 +10931,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1383  --map 18 --end-frame 1182 --timeout 3600 --log-window 1179 1182 --detail end:MISC,UNITS=3,LEADERS=9 --ai-tribe 23 --cover cover=0 --tracer-def RON_STATE_FRAME=1180 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1369's lobby   (the packet: create_units on 1180)
 #   run1383b --map 18 --end-frame 3270 --timeout 3600 --log-window 3014 3270 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1369's lobby   (the word 3020's window)
 # Checks: `rngcmp.py` run1370 vs run1383b -> 3271 identical.
+# ==== item 3700: the Egyptians at a held Industrial age, East Indies, at difficulty 4 (`docs/AI.md` §360; `docs/RUNS.md` run1373, run1374, run1374b) ====
+#   run1373  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1374  run1334's line with --map 18 --ai-tribe 7 and run1373's lobby   (the draw stream; ended itself on 5689)
+#   run1374b --map 18 --end-frame 5210 --timeout 3600 --log-window 4895 5210 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0, run1373's lobby   (the word 4959's window)
+# Checks: `rngcmp.py` run1373 vs run1374 -> 37 identical; run1374 vs run1374b -> 5211 identical.
 # ==== item 3699: the Inca at a held Industrial age, Great Lakes (`docs/AI.md` §359; `docs/RUNS.md` run1371, run1372, run1372b) ====
 #   run1371  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 2 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1372  run1334's line with --ai-tribe 2 and run1371's lobby   (the draw stream; ended itself on 4471)

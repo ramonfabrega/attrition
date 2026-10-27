@@ -11771,13 +11771,21 @@ draw stream; each is a sub-score of the closed pair.
   window's 10 parting round rows (`inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole` pins 10). The
   rows come off a packet that loads piece 225, as 3705's did for piece 50.
 
-## Parked by the next landing, slot UI — reserved
+## Parked by item 3700, 2026-10-27 — the Egyptians at a held Industrial age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Egyptian Industrial pair's first try parts at 4959 of 5689 (`docs/AI.md` §360). The word's residue item, the
+Light Tank's (TI 243, piece 193) launch row, is the commander's to book on 4959. Neither row below names a score on
+its own.
+
+- **3700a. Who=1's leader stands apart before the word's window.** run1374b's first block 4895 reads who=1's
+  `bucket[0:food]` 11965 against 11966, `escrow[0:food]` 82 against 83 and `leftover[2:wealth]` 4576 against
+  5536 (§311's and §318.2's family). run1374's stride prints no leader record past the start, so the walk back from
+  4895 is blind. No draw feels it through the word, and the first unit row in the window (4944) is the launch's.
+  A word that parts on a who=1 purchase walks it back with a `LEADERS=9` window before 4895.
+- **3700b. The closing state is downstream of 4959.** run1374's closing block 5690 compares 189 units with
+  counts `[105, 2, 2, 0, 48, 0, 39]`: who=1's army off, `1/112` and `1/182` unlinked, the human's `0/4` and `0/11`
+  extra in ours, and who=1's cities `1/2018` and `1/2047` and buildings 2033..2053 in the closing fields. The
+  slot `1/2047` holds a different city on each side. It names no score until the word reaches it.
 
 ## Parked by the next landing, slot UJ — reserved
 
