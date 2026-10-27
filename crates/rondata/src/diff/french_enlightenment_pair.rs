@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const FRENCH_ENLIGHTENMENT: Pair = Pair {
     name: "EastIndiesFrenchEnlightenment",
@@ -35,9 +35,13 @@ pub(crate) const FRENCH_ENLIGHTENMENT: Pair = Pair {
     // Item 3672, first try: frame 4505, by the count and the sequence —
     // ours 154 draws against 152, parting at index 151, ours
     // `Ammo::do_damage+0xc59`, theirs `Farms::inc_time+0x1ae`
-    // (`docs/AI.md` §351).
-    count: 4505,
-    sequence: 4505,
+    // (`docs/AI.md` §351). Item 3691 closes it, 4505 → 4940, the game's
+    // last frame: piece 49's three release bays (`sim::launch`), so
+    // who=1's Musketeer `1/37` looses its `CHAR_ATTACK2` round of 4499
+    // from (6152, 9334, 303), the dump's, flying 4 frames, where it left
+    // from the figure's own (6072, 9480, 127) and flew 5.
+    count: 4940,
+    sequence: 4940,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -181,6 +185,90 @@ fn french_enlightenment_pair_the_long_s_stride_walks_back_from_4505() {
     pin_eq!(w.firsts.len(), 171, "the stride's baseline");
 }
 
+/// **The closing state** (item 3691): run1344's closing block 4941, the
+/// whole map's units, walked from run1343's start.
+#[test]
+fn french_enlightenment_pair_run1344_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &FRENCH_ENLIGHTENMENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "French Enlightenment pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    for b in &fin.builds {
+        if (0..2).contains(&b.who) && harness::link_building(&built.sim, b.who, b.o).is_none() {
+            eprintln!(
+                "    unlinked building {}/{} at {:?} type {:?}",
+                b.who, b.o, b.pos, b.orig_type
+            );
+            for x in built
+                .sim
+                .buildings
+                .iter()
+                .filter(|x| i64::from(x.pos.x) == b.pos.x && i64::from(x.pos.y) == b.pos.y)
+            {
+                eprintln!(
+                    "      ours {}/{} alive {} hits {} health {} ty {:?}",
+                    x.owner, x.index, x.alive, x.hits, x.health, x.ty
+                );
+            }
+        }
+    }
+    pin_eq!(e.frame, 4941, "the closing block");
+    // Item 3691, the pair whole: 195 units, none off, torn, unlinked or
+    // extra, `Closing fields: none` — the game ends itself on 4940.
+    pin_eq!(e.compared, 195, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
+}
+
 /// run1344b: the word 4505's window, blocks 4495..4756 at the long's
 /// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
 /// last block 4501 and 250 after the word's block 4506 (item 3672).
@@ -247,9 +335,19 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // on the word 4505 beside `1/45`'s, ours' extra `Ammo::do_damage`
     // pair at index 151. On 4504 the Citizen `0/11` carries theirs' 14
     // from `1/36` on 4503, ours none.
-    pin_eq!(w.firsts.len(), 2344, "run1344b baseline");
+    //
+    // Item 3691, piece 49's bays: 2344 → 122 keys. `1/37`'s round of 4499
+    // agrees in `sx, sy, sz` and `total_time` (6152, 9334, 303 and 4, both
+    // sides), and nothing parts at the word 4505. What stands is block
+    // 4495's families, `1/48`'s target, group 77's `held` on 4518 and the
+    // Horse Guard Grenadier `1/29`'s `damage_frac` on 4552 (TY 238; ours 5,
+    // theirs 0).
+    pin_eq!(w.firsts.len(), 122, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
-    // parting, the first on the window's first block 4495.
-    pin_eq!(w.rounds_read, (421, 446), "the rounds read");
-    pin_eq!(w.rounds.len(), 255, "the rounds that part");
+    // parting, the first on the window's first block 4495. Item 3691: 428
+    // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;
+    // the Musketeers' `ox`/`whom` (ours −1) on three rounds; and two slot
+    // swaps on 4724–4725.
+    pin_eq!(w.rounds_read, (421, 428), "the rounds read");
+    pin_eq!(w.rounds.len(), 139, "the rounds that part");
 }
