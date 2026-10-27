@@ -10634,13 +10634,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // sequence, widened on run1336b over 2295..2633 (the word's block
     // 2383), the rounds compared. Item 3678 moved it to 2939 (the British
     // AA Gun's `BRITISH_AA_COST`), widened on run1352 over 2933..3190 (the
-    // word's block 2940), the rounds compared.
+    // word's block 2940), the rounds compared. Item 3683 closed it, 4767 of
+    // 4767 (piece 190's turret and piece 65's bays; 2918 between, widened
+    // on run1355b over 2903..3168), widened on run1355c over 4512..4768
+    // (the closing block), the closing state compared.
     (
         "BRITISH_INDUSTRIAL_PAIR_WORD",
         crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL_PAIR_WORD,
-        Some("british_industrial_pair_run1352_s_word_frame_is_widened_whole"),
-        3678,
-        Some(crate::diff::british_industrial_pair::WIDENING_BRITISH_INDUSTRIAL_FRAME_2939),
+        Some("british_industrial_pair_run1355c_s_closing_window_is_widened_whole"),
+        3683,
+        Some(crate::diff::british_industrial_pair::WIDENING_BRITISH_INDUSTRIAL_FRAME_4767),
     ),
     // **The Americans at a held Industrial age** (item 3669): Great
     // Sahara — first try 3174 of 5861 by the count and the sequence,
@@ -12790,15 +12793,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
     // first try 2382 of a game that ends itself on 4767, widened on
-    // run1336b; 2939 since item 3678, widened on run1352.
+    // run1336b; 2939 since item 3678, widened on run1352; whole since item
+    // 3683, 4767 of 4767, widened on run1355c through the closing block.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaBritishIndustrial",
         named: "Great Sahara (British, Industrial)",
         word: crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL_PAIR_WORD,
         length: 4_767,
-        endpoint: None,
-        window: Some("british_industrial_frame_2939_window"),
+        endpoint: Some("british_industrial_pair_run1336_s_closing_state"),
+        window: Some("british_industrial_frame_4767_window"),
     },
     // The Americans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3669): first try 3174 of
