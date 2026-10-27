@@ -33959,8 +33959,8 @@ theirs refuses at `mil_level` 2 under a held Gunpowder age. The candidate is nam
 `RON_STATE_FRAME=1179` with `Leader::create_units@006c40a0` entered and its `Random::get` caller's `local_8` watched,
 or by theirs' `MAKE` rows against a probe of ours' values. I built nothing.
 
-**The rubric.** `rubric.py --tables 3` reads unit types seen **223 of 302**, unmoved: the pair parts, so it is not
-lockstep. The booking's line **is fielded**: `Arqimmortal` (165), 528 figure rows over run1370 and run1370b
+**The rubric.** `rubric.py --tables 3` reads unit types seen **224 of 302** on the tree merged with 3705's
+landing, unmoved by this pair: it parts, so it is not lockstep. The booking's line **is fielded**: `Arqimmortal` (165), 528 figure rows over run1370 and run1370b
 (`rubric.py --tables 3 --dumps`). It stays in the never list until a lockstep game holds it.
 
 ## 359. Reserved for the next item on the AI track
