@@ -289,7 +289,19 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
 /// pivot piece. who=1's `1/48` fired its `CHAR_ATTACK3` round of 4304 from
 /// the hull's square (5544, 31512, 409) here, where the original's left the
 /// muzzle at (5427, 31534, 587).
-const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189)];
+///
+/// **Piece 154, the Golden Horde** (unit type 204, `GOLDENHORDE`,
+/// `nomad_goldenhorde.bh3`; item 3692, `docs/AI.md` §352.1): run1361's
+/// packet (logger frame 4840, the Mongol Enlightenment Great Lakes lobby)
+/// holds its nine entries, `pos_start` 126, `RData +0x88` 1.0, and every
+/// float is piece 153's off run1294 — the `(4, 0, 0)` pivot `(0.0, −3.38,
+/// 32.63)` (`0xc05851ec`) and the four `<RELEASEEVENT>`s' pivot and release
+/// rows. `<RESTRICTION name="GOLDENHORDE" node="4">` makes it a pivot
+/// piece. who=1's `1/97` loosed its `CHAR_ATTACK2` round of 4841 from its
+/// own square (6264, 28728, 480) here, where the original's left from
+/// (6180, 28775, 715), flew 11 frames against 10, and struck the Citizen
+/// `0/6` a frame late.
+const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189), (154, 153)];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
 fn rows_of(piece: i32) -> i32 {
@@ -3580,6 +3592,59 @@ mod tests {
             );
         }
         assert_eq!(node(153, 4), Some(Node { px: 0, py: -338 }));
+    }
+
+    /// **The Golden Horde's dumped rounds read piece 153's rows** (item
+    /// 3692, `docs/AI.md` §352.1): every round run1346c prints from a Golden
+    /// Horde's first frame, beside its figure's `GUY` pose — the block
+    /// before for the three that stand, the round's own block for the eight
+    /// that loose on the move (`CHAR_ATTACKWALK`, whose figure has stepped
+    /// by the release) — is one of piece 154's cells at the facing's degree — some
+    /// key, some turret step — and `sz − z` is the key's height. Two prints
+    /// whose launch is an earlier round's, at a target of −1, are a reused
+    /// slot and are left out. Made to fail with piece 154 out of
+    /// `SAME_AS`: every round would leave from the figure.
+    #[test]
+    fn run1346c_s_golden_horde_rounds_leave_through_piece_153_s_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        // (x, y, z, facing, sx, sy, sz)
+        let rounds: [(i32, i32, i32, i32, i32, i32, i32); 11] = [
+            (6264, 28728, 480, -1_476_001_792, 6180, 28775, 715), // 4841 1/97 at 0/6
+            (5976, 28248, 445, -1_642_528_768, 5917, 28325, 680), // 4845 1/109
+            (7032, 28344, 269, -1_137_115_136, 6949, 28391, 504), // 4855 1/99
+            (6641, 28971, 445, 1_582_825_472, 6586, 28991, 705),  // 4901 1/109
+            (6006, 29631, 511, -1_586_495_488, 5920, 29630, 771), // 4902 1/108
+            (5895, 30114, 493, -1_648_295_936, 5816, 30100, 753), // 4912 1/98
+            (6342, 29724, 444, 2_105_212_928, 6273, 29733, 704),  // 4913 1/97
+            (6131, 29338, 516, -1_073_808_640, 6050, 29297, 776), // 4921 1/110
+            (5437, 30156, 548, -1_586_954_240, 5362, 30212, 808), // 4927 1/108
+            (5335, 30550, 536, -1_197_015_040, 5242, 30565, 796), // 4937 1/98
+            (5544, 29646, 567, -1_531_969_536, 5456, 29669, 827), // 4946 1/110
+        ];
+        let mut off = Vec::new();
+        for (x, y, z, facing, sx, sy, sz) in rounds {
+            let d = release_rotation(Angle(facing));
+            let hit = [
+                (ATTACKWALK, 18),
+                (ATTACK1, 18),
+                (ATTACK2, 16),
+                (ATTACK3, 19),
+            ]
+            .into_iter()
+            .any(|(slot, time)| {
+                let r = release(154, slot, time).expect("the Golden Horde's row");
+                (0..256).any(|i| {
+                    release_offset_at(&r, d, fast_degrees(i << 24)) == (sx - x, sy - y, sz - z)
+                })
+            });
+            if !hit {
+                off.push(format!(
+                    "({x}, {y}) at {facing} (degree {d}): ({sx}, {sy}, {sz})"
+                ));
+            }
+        }
+        assert!(off.is_empty(), "{off:#?}");
+        assert_eq!(node(154, 4), Some(Node { px: 0, py: -338 }));
     }
 
     /// The table is the sine: a quarter turn, the thirty and the axes.

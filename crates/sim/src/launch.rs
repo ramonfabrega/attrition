@@ -822,6 +822,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 115,
         },
     ),
+    // **Piece 1105, `MUSKETEERS-ASIAN`** (unit type 99, `musketeer_asian.bh3`,
+    // the Mongols' Musketeer; item 3692, `docs/AI.md` §352.1): run1361's
+    // `RON_STATE_FRAME=4840` packet on the Mongol Enlightenment Great Lakes
+    // seed holds its three attack `AttachPos` rows (node 0, frames 1, 7 and
+    // 4), `RData +0x88` 1.1, and `fit_bay.py` fits each sweep (411, 196 and
+    // 113 lattice points; the centroid is kept, 361 of 361 headings each).
+    // Its own model, so not piece 49's rows, which miss its sweep at 4 and
+    // 32 headings of `CHAR_ATTACK1` and `CHAR_ATTACK3`. Without them who=1's
+    // `1/21` loosed its `CHAR_ATTACK1` round of 4854 from its own square
+    // (6552, 28728, 423) against the original's (6415, 28769, 641), flew 3
+    // frames against 2, and the Citizen `0/6` outlived the word.
+    (
+        1105,
+        11,
+        1,
+        Bay {
+            right: 33_049,
+            fwd: 139_808,
+            dz: 218,
+        },
+    ),
+    (
+        1105,
+        12,
+        7,
+        Bay {
+            right: 11_451,
+            fwd: 166_599,
+            dz: 176,
+        },
+    ),
+    (
+        1105,
+        13,
+        4,
+        Bay {
+            right: 12_330,
+            fwd: 162_102,
+            dz: 178,
+        },
+    ),
     // **Piece 69, `MARINES`** (unit type 119, the Americans' Continental
     // Marines; item 3661, `docs/AI.md` §341): run1325c's
     // `RON_STATE_FRAME=5578` packet on the American Enlightenment East
@@ -3440,6 +3481,32 @@ mod tests {
                 .filter(|&anim| {
                     let at = launch_point(Pos::new(x, y), Angle(facing), 36, anim, 11, 0);
                     (at.x, at.y) == (sx, sy) && release_dz(36, anim, 11, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
+    /// **The Mongol Musketeers loose from piece 1105's bays** (item 3692):
+    /// the three rounds run1346c prints from a Musketeer's first frame, each
+    /// beside its figure's `GUY` pose on the block before, reproduced at the
+    /// dump's `sx, sy` and `sz − z` by exactly one of the piece's three
+    /// attack keys. Made to fail with the rows out of `BAYS`: each round
+    /// leaves the figure's own square.
+    #[test]
+    fn run1346c_s_mongol_musketeers_leave_from_piece_1105_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 3] = [
+            (6456, 28584, -1_454_309_376, 6312, 28659, 178), // 4844 1/19
+            (6552, 28728, -1_424_556_032, 6415, 28769, 218), // 4854 1/21
+            (6312, 28344, -1_432_485_888, 6176, 28387, 218), // 4863 1/28
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<(i8, u32)> = [(11, 1), (12, 7), (13, 4)]
+                .into_iter()
+                .filter(|&(anim, t)| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 1105, anim, t, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(1105, anim, t, 0) == Some(dz)
                 })
                 .collect();
             assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
