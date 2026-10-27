@@ -1772,6 +1772,10 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// `0x481`, the chase move's `vector_dist` gate, read as built from the
 /// decimal `1153` in piece 190's `pivot::NODES` row (`py: -1153`, the
 /// `MARK4`'s turret) — 813's collision again, now in production code.
+///
+/// **Item 3690 lowered one, and it is not a build either**: ECONOMY 9 →
+/// 8, `0x2bf` (Agriculture's tech index), read as built from the decimal
+/// `703` in piece 167's `BAYS` row (`right: -703`, the Greyhound).
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 11),
     ("ANIM.md", 2),
@@ -1780,7 +1784,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("CITIES.md", 3),
     ("COMBAT.md", 3),
     ("COSTS.md", 1),
-    ("ECONOMY.md", 9),
+    ("ECONOMY.md", 8),
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 3),
