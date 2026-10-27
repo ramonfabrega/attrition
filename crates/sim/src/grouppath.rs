@@ -344,6 +344,48 @@ mod tests {
             .collect()
     }
 
+    /// **A slot past the map's edge is planned clamped** (`Group::
+    /// action_move_near@00704990:521`–`536`, item 3711, `docs/AI.md`
+    /// §363.1): the order loop's clamp is a store into the slot table
+    /// itself, so the plan below it — the leader's base, a member's
+    /// translation, `group_plan_each`'s goal — never sees the raw slot.
+    /// A move aimed at the map's corner puts a member's slot off the map;
+    /// its stack's goal is inside. Greek East Indies' Heavy Fire Raft
+    /// `1/70` on 5626 carried x 46259 on a map 46080 wide, and `find_path`
+    /// pulled it back onto its own square.
+    ///
+    /// Made to fail by dropping the write-back (`slots.to[i] = slot`) in
+    /// `group_action_move_to`: the leader's off-map base refuses the
+    /// search, and every member takes its raw slot.
+    #[test]
+    fn a_slot_past_the_map_s_edge_is_planned_clamped() {
+        let mut s = flat(24);
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x480, 0x480));
+        let b = spawn(&mut s, 1, t, Pos::new(0x480 + 0xc0, 0x480));
+        let mut g = stack(1, &[a, b]);
+        assert!(s.push_group(&mut g, true));
+        let edge = 24 * 0x300;
+        s.group_action_move_to(
+            &g,
+            Pos::new(edge - 10, edge - 10),
+            QueuePos::New,
+            false,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        for u in [a, b] {
+            let goal = s.units[u].path.first().copied().expect("a planned goal");
+            assert!(
+                (0..edge).contains(&goal.to.x) && (0..edge).contains(&goal.to.y),
+                "unit {u}'s goal {:?} is inside the world; chain {:?}",
+                goal.to,
+                chain(&s, u)
+            );
+        }
+    }
+
     /// **A copied move replays to its click, not its slot**
     /// (`Group::finish_insert@0070e620` cases 1–4, `docs/GOLDEN.md` §24).
     /// A player's explore to an unaligned point stores the click as its

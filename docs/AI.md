@@ -34681,6 +34681,65 @@ run1380 and run1380b reads 5734 figure rows. It stays on the never list.
 whether both sides were handed the same order on 5626 and ours' planner refuses it, or theirs alone was handed
 one; who issued it (the raft is in army 1).
 
+### 363.1 The word closes: a group's slot is clamped in the table (2026-10-27, item 3711)
+
+*Item 3711, Opus 5.5.* **5626 → 5942 of 5942**, by the count and the sequence: the pair runs lockstep to the
+game's last frame, and its closing block is whole.
+
+**The direction, read before any building.** §363 left open whether ours' planner refused a move theirs kept, or
+theirs alone was handed one. Both were handed one. The Heavy Fire Raft `1/70` (TI 335, sea, army 1, group 72) is one
+of ten members of a group `ATTACK_TO` issued on 5626, and its order agrees on both sides: `dest` (46056, 38088),
+`orig` (44968, 37829). The other members' final path entries agree too (`1/21`'s (45691, 38615), `1/44`'s
+(43482, 44268), `RON_DEBUG_UNIT` against `unitat.py`). What parts is the raft's own goal.
+
+**The value diff, walked back to the decision** (a probe behind `RON_PROBE_3711`, reverted whole):
+
+| tick 5626 | ours | theirs |
+|---|---|---|
+| the raft's slot in `Form::compute`'s table | (46259, 38109) | (46259, 38109), clamped in place to (46079, 38109) |
+| the goal `group_plan_each` pushes | (46259, 38109), past the map's edge at 46080 | (46079, 38109) |
+| `find_path`'s pull-back, speed 48 | steps of (39, 29), clamped onto its own square (45675, 37688): `avoid` set, return 1, the grid draw | 12 steps of (33, 35) to (45683, 37689) |
+| block 5627, `path[0]`; `orders.len` | none; 0 | (45683, 37689) `f1`; 1 |
+
+The group's leader search refuses here (−1 from the raft's own square and from the group's location alike), so
+§6.7's fallback has each member plan its own goal, and the goal is the slot table's entry. The pull-back from the
+clamped slot lands exactly on the dump's `path[0]`: 46079 − 12 × 33 = 45683 and 38109 − 12 × 35 = 37689. Theirs'
+straight line to it is 8 units long, so it spends no draw.
+
+**The rule** (`Group::action_move_near@00704990`, the decompile's lines 521–536): the order loop's world clamp is
+four stores into `param_9 + 0x514`/`+0x714` themselves — below 0 to 0, at or past `world × 0x300` to one less —
+so everything after it reads the clamped slot: the different-region arm, §6.7's base and translation, and
+`group_plan_each`'s goal. Ours clamped into a local (`restrict_pos`) and wrote the table back only in the
+different-region arm. `Sim::group_action_move_to` now writes it back on every member it orders.
+
+**Killed on the way**, each by a number: the AI handing only theirs an order (both orders agree); a speed of 60
+from the GUARD arm of `UnitData::get_speed` (`AttackToOrder::get_type` is `mov eax, 2` at `0x470810`, and no
+whole-step speed lands on (45683, 37689) from the raw slot); the different-region arm re-placing the slot (both
+tiles read region 0, and the arm's ring gives (44760, 37896)).
+
+**Tests**: `grouppath::tests::a_slot_past_the_map_s_edge_is_planned_clamped` (a two-member `ATTACK_TO` at the map's
+corner; every goal inside the world), and `greek_medieval_pair_first_parting` at 5942. `tools/mutate.py`,
+dropping the write-back: the sim test fails (a goal at y 18490 on a world 18432 high), and the pair's walk returns
+to 5626.
+
+**The windows, re-pinned**: run1380b's widening 3660 → **137** keys (121 standing families on 5595; group pools,
+`form`, `g.angle[0]` and `dest_angle` rows; the Crossbowmen `1/195`'s `order:target` on 5875, parked 3711a), rounds
+read (1205, 1205), 115 parting. **The closing block 5943**: 322 units, none off, torn, unlinked or extra,
+`Closing fields: none` (parked 3703b, answered). Every other lobby's `first_parting` holds.
+
+**The rubric**: unit types seen **227 → 228 of 302**. The Royal Companion (232, `COMPANIONELITE`, 834 figure rows),
+the line §363 named, now counts because the pair runs lockstep.
+
+**Elsewhere**: golden chapter sixty-two's `1/14` (parked 2118, a path 120 east of the original's at order point
+46056) is the same off-edge slot, and its 56 rows on 901–903 leave the chapter's widening.
+
+**The closing window**: run1388, blocks 5686..5943, 5943 of 5943 frames identical to run1380.
+`greek_medieval_pair_run1388_s_closing_frame_is_widened_whole` reads 257 blocks and 141 keys, with nothing on 5943.
+Its rounds read 1239 each side, 133 parting, among them the Trebuchet `1/132`'s (TI 266) launch point (parked 3711b).
+
+**Not established**: whether any other reader of a group's slot table in this crate reads it before the order
+loop's clamp. `group_plan_path` reads it after, which is the case this word reached.
+
 ## 364. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

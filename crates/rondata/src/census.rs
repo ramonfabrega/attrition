@@ -535,7 +535,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// at 5282 — `King's Longbowmen` (178, `LONGBOWMENELITE`, land; 2028 figure
 /// rows, every one this pair's), the line §361 named, read by `rubric.py
 /// --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 227;
+/// Item 3711: 227 -> 228, the Greek Medieval pair whole at 5942 —
+/// `Royal Companion` (232, `COMPANIONELITE`, land; 834 figure rows), the
+/// line §363 named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 228;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

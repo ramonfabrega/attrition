@@ -10967,6 +10967,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1380  run1378's line with --ai-tribe 5 and run1379's lobby   (the draw stream; ended itself on 5942)
 #   run1380b --map 18 --end-frame 5877 --timeout 3600 --log-window 5595 5877 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 5 --cover cover=0, run1379's lobby   (the word 5626's window)
 # Checks: `rngcmp.py` run1379 vs run1380 -> 37 identical; run1380 vs run1380b -> 5878 identical.
+# ==== item 3711: the Greek Medieval word closes (`docs/AI.md` §363.1; `docs/RUNS.md` run1388) ====
+#   run1388  --map 18 --end-frame 5942 --allow-early-end --timeout 3600 --log-window 5686 5943 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 5 --cover cover=0, run1379's lobby   (the closing window)
+# Checks: `rngcmp.py` run1380 vs run1388 -> 5943 identical.
 # ==== item 3710: the Persian Gunpowder word moves 4842 -> 4948 (`docs/AI.md` §358.4; `docs/RUNS.md` run1387) ====
 #   run1387  --map 18 --end-frame 5093 --timeout 3600 --log-window 4795 5093 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1369's lobby   (the word 4842's window)
 # Checks: `rngcmp.py` run1370 vs run1387 -> 5094 identical.

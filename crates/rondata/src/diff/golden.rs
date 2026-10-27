@@ -5063,7 +5063,10 @@ fn chapter_sixty_two_s_word_frame_is_widened_whole() {
 // original's order point and slot (46056, `off` 744/72) and a path whose
 // waypoints stand 120 east of the original's from the second on, so its
 // first step and heading part (parked 2118). `1/9`'s rows on 702–703 left
-// with item 2117's `QUEUE_FIRST`.
+// with item 2117's `QUEUE_FIRST`. **`1/14`'s left with item 3711**: its slot
+// stood past the map's edge, and the group's clamp is now written back into
+// the slot table, so its path is planned from the clamped slot, as the
+// original's is (`docs/AI.md` §363.1).
 const WANT_CH62: &[&str] = &[
     // Item 2384: the two `aggression` rows, ours 0 theirs 1 (parked 2385).
     "605 0/-1 leader:aggression[1]",
@@ -5081,62 +5084,6 @@ const WANT_CH62: &[&str] = &[
     "605 1/5 form",
     "757 0/-1 leader:treaties[1]",
     "757 1/-1 leader:treaties[0]",
-    "901 1/14 g.angle[0]",
-    "901 1/14 g.des_angle[0]",
-    "901 1/14 g.des_x[0]",
-    "901 1/14 g.des_y[0]",
-    "901 1/14 g.x[0]",
-    "901 1/14 g.y[0]",
-    "901 1/14 heading",
-    "901 1/14 order:move.dest_x",
-    "901 1/14 path[10].to",
-    "901 1/14 path[11].to",
-    "901 1/14 path[12].to",
-    "901 1/14 path[13].to",
-    "901 1/14 path[14].to",
-    "901 1/14 path[15].to",
-    "901 1/14 path[16].to",
-    "901 1/14 path[17].to",
-    "901 1/14 path[18].to",
-    "901 1/14 path[19].to",
-    "901 1/14 path[1].to",
-    "901 1/14 path[20].to",
-    "901 1/14 path[21].to",
-    "901 1/14 path[22].to",
-    "901 1/14 path[23].to",
-    "901 1/14 path[24].to",
-    "901 1/14 path[25].to",
-    "901 1/14 path[26].to",
-    "901 1/14 path[27].to",
-    "901 1/14 path[28].to",
-    "901 1/14 path[29].to",
-    "901 1/14 path[2].to",
-    "901 1/14 path[30].to",
-    "901 1/14 path[31].to",
-    "901 1/14 path[32].to",
-    "901 1/14 path[33].to",
-    "901 1/14 path[34].to",
-    "901 1/14 path[35].to",
-    "901 1/14 path[36].to",
-    "901 1/14 path[37].to",
-    "901 1/14 path[38].to",
-    "901 1/14 path[39].to",
-    "901 1/14 path[3].to",
-    "901 1/14 path[40].to",
-    "901 1/14 path[41].to",
-    "901 1/14 path[42].to",
-    "901 1/14 path[4].to",
-    "901 1/14 path[5].to",
-    "901 1/14 path[6].to",
-    "901 1/14 path[7].to",
-    "901 1/14 path[8].to",
-    "901 1/14 path[9].to",
-    "901 1/14 pos",
-    "902 1/14 dest_angle",
-    "902 1/14 orders_x",
-    "902 1/14 orders_y",
-    "903 1/14 angle:Facing",
-    "903 1/14 angle:Heading",
 ];
 
 // Empty: no slot of the pool parts through the word.
