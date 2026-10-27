@@ -271,6 +271,13 @@ impl Sim {
             };
             let start = self.units[u].path.last().map_or(from, |p| p.to);
             let saved = std::mem::replace(&mut self.units[u].path, vec![goal]);
+            if std::env::var("RON_PROBE_3711").is_ok() && u == 212 && (5624..=5626).contains(&self.frame) {
+                let me = self.units[u].pos;
+                let saved2 = std::mem::replace(&mut self.units[u].path, vec![goal]);
+                let r0 = self.find_wpath_from(u, me, false);
+                let c0 = std::mem::replace(&mut self.units[u].path, saved2);
+                eprintln!("PROBE3711 from own pos {me:?} -> {r0} chain {c0:?}");
+            }
             let r = self.find_wpath_from(u, start, false);
             let mut chain = std::mem::replace(&mut self.units[u].path, saved);
             if std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&self.frame) {
