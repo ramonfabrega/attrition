@@ -280,9 +280,14 @@ fn aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole() {
     // `whom`/`ox` on 2557, which theirs keeps on a dead target and ours
     // forgets; the slot shifts from 2683 on, theirs' spent arrows holding
     // their slots (`docs/COMBAT.md` §46.7); and three launches one unit
-    // off, `1/29`'s on 2601 and 2651 and `1/22`'s on 2631 (3658a).
-    pin_eq!(w.rounds_read, (163, 163), "the rounds read");
-    pin_eq!(w.rounds.len(), 20, "the rounds that part");
+    // off, `1/29`'s on 2601 and 2651 and `1/22`'s on 2631 (3658a). Item
+    // 3679: theirs' spent arrows are compared and ours keeps its own
+    // (§46.7) — 363 a side, 21 parting, and no slot shift: `1/22`'s
+    // `whom`/`ox` on 2557 (parked 3679) and the one-unit launches of
+    // `1/22`, `1/29` and `1/102` (3658a), each spent record now carrying
+    // its launch's row.
+    pin_eq!(w.rounds_read, (363, 363), "the rounds read");
+    pin_eq!(w.rounds.len(), 21, "the rounds that part");
 }
 
 /// run1322: the closing window, blocks 4347..4603 at run1308b's detail,
@@ -364,14 +369,18 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
     // theirs print the unit's own, and `1/118`'s `dest_angle` parts on
     // 4496. No position, hit or draw parts through the closing block.
     pin_eq!(w.firsts.len(), 57, "run1322 baseline");
-    pin_eq!(w.rounds_read, (362, 362), "the rounds read");
+    pin_eq!(w.rounds_read, (537, 537), "the rounds read");
     // Every round, both directions: 362 a side, 38 parting — the slot
     // shifts from theirs' spent arrows (`docs/COMBAT.md` §46.7), the Heavy
     // Horse Archers' one-unit launches (3658a), and the Trebuchets'
     // (TypeIndex 266, `1/56`, `1/79`, `1/107`, `1/124`) from 4553 on, which
     // leave their own square in ours and about 300 out and 693 up in
-    // theirs (3658b); their landings and flights agree.
-    pin_eq!(w.rounds.len(), 38, "the rounds that part");
+    // theirs (3658b); their landings and flights agree. Item 3679: 537 a
+    // side, 45 parting, and no slot shift — the spent arrows held (§46.7)
+    // pair the Trebuchets' stones from 4370 on, each parting on its launch
+    // (3658b), and `1/29`'s one-unit launches on 4356, 4382 and 4539
+    // (3658a).
+    pin_eq!(w.rounds.len(), 45, "the rounds that part");
 }
 
 /// **The closing state** (item 3658): run1308's closing block 4603, the

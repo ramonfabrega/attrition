@@ -289,9 +289,10 @@ fn korean_medieval_pair_run1331b_s_word_frame_is_widened_whole() {
 /// game's own end, so the closing window since the word closed (item 3679).
 pub(crate) const RUN1353: &str = "gamelog-run1353-greatlakes-korean-medieval-window-4373-4559.txt";
 
-/// The window: block 4373 through 4559; the old word 4379's own block is
-/// 4380, and the closing block 4560 is the endpoint's.
-pub(crate) const WIDENING_KOREAN_MEDIEVAL_FRAME_4559: (i64, i64) = (4373, 4559);
+/// The window: block 4373 through the closing block 4560, so the word
+/// 4559, the game's last frame, sits inside it; the old word 4379's own
+/// block is 4380.
+pub(crate) const WIDENING_KOREAN_MEDIEVAL_FRAME_4559: (i64, i64) = (4373, 4560);
 
 /// **The closing window**: run1353 walked from run1330's start with the
 /// recorder on and every round compared (item 3679).

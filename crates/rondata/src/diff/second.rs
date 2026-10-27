@@ -2750,8 +2750,9 @@ mod tests {
         assert_eq!(w.theirs, 131);
         assert_eq!(w.ours, w.theirs, "all projectile lifetimes");
         // Item 2609: twenty-two, once `rolling` and the crash's bank pair are
-        // compared on every round (`docs/AI.md` §228).
-        assert_eq!(w.fields, 2882, "twenty-two comparisons per paired record");
+        // compared on every round (`docs/AI.md` §228). Item 3679:
+        // twenty-three, with the live bit (`flags & 2`).
+        assert_eq!(w.fields, 3013, "twenty-three comparisons per paired record");
         assert!(
             w.firsts
                 .keys()
@@ -2847,9 +2848,10 @@ mod tests {
         pin_eq!(a.frames, 81, "run594 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1326, 1339, 29172),
+            (1326, 1339, 30498),
             "all live rounds and paired fields"
         );
+        // Item 3679: twenty-three fields a round with the live bit.
         // 351 → 337 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
         // Catapult's and the Trireme's release rows read off two packets,
         // and a half-way heading byte rounded up; not attributed per round.
@@ -2949,7 +2951,7 @@ mod tests {
         pin_eq!(a.frames, 64, "run589 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1084, 1093, 23848),
+            (1084, 1093, 24932),
             "all live rounds and paired fields"
         );
         // 279 → 276 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
@@ -2957,8 +2959,10 @@ mod tests {
         // and a half-way heading byte rounded up; not attributed per round.
         // Item 3603: ours' rounds 1096 → 1093 and the baseline 276 → 209 once
         // piece 48's bays (the Arquebusiers' art, run1254c) move its rounds
-        // onto theirs' launch points.
-        pin_eq!(a.firsts.len(), 209, "run589 projectile baseline");
+        // onto theirs' launch points. Item 3679: 209 → 185 and twenty-three
+        // fields a round, theirs' spent arrows compared and ours' held
+        // (`docs/COMBAT.md` §46.7).
+        pin_eq!(a.firsts.len(), 185, "run589 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (90, 4975466785581637854),
@@ -3038,13 +3042,15 @@ mod tests {
         pin_eq!(a.frames, 64, "run588 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (973, 975, 21406),
+            (973, 975, 22379),
             "all live rounds and paired fields"
         );
         // Item 3603: ours' rounds 978 → 975 and the baseline 173 → 106 once
         // piece 48's bays (the Arquebusiers' art, run1254c) move its rounds
-        // onto theirs' launch points.
-        pin_eq!(a.firsts.len(), 106, "run588 projectile baseline");
+        // onto theirs' launch points. Item 3679: 106 → 82 and twenty-three
+        // fields a round, theirs' spent arrows compared and ours' held
+        // (`docs/COMBAT.md` §46.7).
+        pin_eq!(a.firsts.len(), 82, "run588 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (71, 10002085738206419128),
