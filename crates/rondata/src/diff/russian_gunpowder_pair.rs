@@ -255,9 +255,9 @@ fn russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole() {
     // 946) and the Citizen `0/5`'s damage the stride already parts
     // (`hits_left` 30 against 27). **On the word's block 3712 `0/5` is
     // ours alone** — theirs' draw at index 2 is `Unit::close+0xcb6`, the
-    // Citizen's death under who=1's Elite Knight `1/32` (TY 229) — and the
+    // Citizen's death under who=1's Heavy Knight `1/32` (TY 229) — and the
     // human's leader holds a unit more (`num_units[0]` 13 against 12);
-    // who=1's Elite Knight `1/42`, whose guard took `0/4` on 3711, pushes
+    // who=1's Heavy Knight `1/42`, whose guard took `0/4` on 3711, pushes
     // its move on 3712 in ours and on 3714 in theirs, 48 units apart.
     pin_eq!(w.firsts.len(), 3037, "run1340b baseline");
     // Every round, both directions: none — the window's fighting is
@@ -318,7 +318,7 @@ fn russian_gunpowder_pair_run1340c_s_damage_window_is_widened_whole() {
     // Item 3670, the first walk: 227 keys. Block 3395 carries the
     // standing families and who=1's leader's `attack` (888 against 894,
     // `mongol_gunpowder_pair`'s standing row). **The first unit row is
-    // the blow of 3440: who=1's Elite Knight `1/32` (TY 229) strikes the
+    // the blow of 3440: who=1's Heavy Knight `1/32` (TY 229) strikes the
     // human's Citizen `0/5` — `hits:damage` 26 in ours against 29 in
     // theirs on block 3441** (`hits_left` 24 against 21); `0/5` flees
     // on both sides. The rest is the word's block 3712 and after, as
