@@ -11787,13 +11787,16 @@ its own.
   extra in ours, and who=1's cities `1/2018` and `1/2047` and buildings 2033..2053 in the closing fields. The
   slot `1/2047` holds a different city on each side. It names no score until the word reaches it.
 
-## Parked by the next landing, slot UJ — reserved
+## Parked by item 3701, 2026-10-27 — the British at a held Medieval age, Great Lakes, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The British Medieval pair is whole on its first try, 5282 of 5282 (`docs/AI.md` §361). The row below does not part
+the draw stream; it is a sub-score of the closed pair.
+
+- **3701a. The Trebuchet's piece 216 has no `launch::BAYS` row.** On run1376b, who=1's Trebuchets (TI 266, TY 216,
+  slot 12 `CHAR_ATTACK2`) `1/142` (5027, `ammo[1]`) and `1/60` (5029, `ammo[0]`) loose from the lead figure's own
+  square in ours, about 300 back in x and 700 low in z against theirs, `v1z` and `angle` with them. Those are the
+  window's 10 parting round rows (`british_medieval_pair_run1376b_s_closing_frame_is_widened_whole` pins 10). The
+  rows come off a packet that loads piece 216, as 3705's did for piece 50 and 3699b asks for piece 225.
 
 ## Parked by the next landing, slot UK — reserved
 

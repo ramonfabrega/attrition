@@ -34320,12 +34320,64 @@ packet. A turret step no round reached would be a cell no test reads, as for pie
 **The rubric.** `rubric.py --tables 3` reads unit types seen 225 → **226** of 302: `Light Tank` (243, `A7VDES`,
 land), the line §360 named, now lockstep with 540 figure rows (`census::RUBRIC_UNIT_TYPES_SEEN`).
 
-## 361. Reserved for the next item on the AI track
+## 361. The British at a held Medieval age, Great Lakes, at difficulty 4: whole on its first try, 5282 of 5282 (item 3701)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3701, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §359's lobby with the nation, age and difficulty moved:
+`MAP_STYLE 14`, human Nubians (4) against the **British (11)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 2`, `ENDING_TECHNOLOGY 2`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1375 (a `DUMP_ALL` start) and run1376 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 5282; run1375 against run1376 is 37 of 37 frames identical. The walk is seeded from run1375's
+initial state (3506a). `diff::british_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 11, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no British (`battery::BATTERY` has no tribe-11 game). The British lobbies already scored are
+`(14, 11, 0)` and `(14, 11, 5)` (this map, other difficulties: the first and second pairs), `(18, 11, 0)`,
+`(18, 11, 5)`, `(7, 11, 0)` and `(7, 11, 5)`, `british_classical_pair`'s `(18, 11, 4)` and
+`british_industrial_pair`'s `(7, 11, 4)`. `british_enlightenment_pair` is `(18, 11, 5)`. `(14, 11, 4)` appeared
+nowhere in the tree. `british_medieval_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, 5282 of 5282**, by the count and the sequence — the game's last frame. The game ends on who=1's
+capture of the human's capital, Napata (`1/2063` on the closing block: `race 0`, `capture_stamp 5282`,
+`assimilation_timer 5282`), and who=0's `defeat_stamp 5282`.
+
+**The closing window** (run1376b, blocks 5027..5283 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1375 with every round compared: 256 blocks, **56 keys**, the two `gaia:` keys unprinted; rounds 296
+against 296, **10 rows parting**). run1376 against run1376b is 5283 of 5283 frames identical. What parts:
+- the standing families on block 5027: `form` on 27 units, both leaders' `SITE[i].reg` (10 rows), who=1's groups
+  64..71's `held` and pools, who=0's `aggression[1]`;
+- who=1's groups 69 (5088: ours `held` [241], theirs none) and 72 (5160: ours [248, 249, 250], theirs none), the
+  same group family;
+- **the Trebuchets' launch points**, below.
+
+**The value diff** (`AMMO` on run1376b; the shooters named by `RON_DEBUG_UNIT`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5027 | the Trebuchet `1/142`'s round `ammo[1]` | `sx, sy, sz` | 6840, 30264, 301 | 7138, 30223, 994 |
+| 5027 | the same | `v1z`; `angle` | 205446716; −1170407424 | 187209869; −1169817600 |
+| 5029 | the Trebuchet `1/60`'s round `ammo[0]` | `sx, sy, sz` | 6888, 31752, 159 | 7182, 31820, 852 |
+| 5029 | the same | `v1z`; `angle` | 209183548; −907149312 | 190946716; −908197888 |
+
+**The direction: ours' Trebuchet rounds leave the lead figure's own square.** `1/142` and `1/60` are TI 266
+(`Trebuchet`), TY 216, land, packed, the lead figure on **piece 216**, slot 12 (`CHAR_ATTACK2`), each on an
+`ATTACKORDER` at the human's `0/2000` under `StandGround`. Ours' `sx, sy` are exactly the unit's square ((6840,
+30264) and (6888, 31752)); theirs' leave about 300 forward in x and about 700 higher in z. `launch::BAYS` and
+`GUNS` have no piece-216 row. The rows are launch fields only, and the draws never feel them. This is §359's shape
+(piece 225, 3699b) on a sixth launcher, and it does not part the pair (parked 3701a).
+
+**The closing state** (run1376's block 5283): **274 units compared, none off, torn, unlinked or extra, no building
+row and no closing field** — Napata's `assimilation_timer` agrees here (5282 both), unlike §359's 3699a, where the
+city was taken a frame earlier against the timer's step.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **226 → 227 of 302**: the pair is lockstep, and the
+booking's line **is fielded and new** — `King's Longbowmen` (178, `LONGBOWMENELITE`), 2028 figure rows, every one
+this pair's (`--dumps` on run1375 and run1376 alone reads the same 2028). `census::RUBRIC_UNIT_TYPES_SEEN` is
+re-pinned.
+
+**Not established**: piece 216's attach rows (a packet that loads a Trebuchet, as 3705's loaded piece 50); whether
+the group-`held` rows on 5088 and 5160 are the standing family's forming order or a choice — neither parts the draws.
 
 ## 362. Reserved for the next item on the AI track
 

@@ -31596,3 +31596,70 @@ SHA-256 `ea440184086adf4ce8afe9c9a29ae2b76c0817bdc801c3378efeea44356da640`.
 blocks, **128 keys**, every one a standing family; rounds 122 against 122, 19 parting. The 19 are the Artillery's
 (TY 269) launches from the figures' squares (parked 3707b). It is the word's widening in `WIDENINGS` and the
 `AI_WORDS` window, and it sits in the coverage driver.
+## run1375 — the British at a held Medieval age, Great Lakes, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3701, `att-3701`)
+
+`docs/AI.md` §361. run1371's lobby with the nation, age and difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1375 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 2. Launched 10:49:25, exited 10:49:54 (29.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 11, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 2` (`Pair::assert_lobby`). Filed with `filerun.py run1375
+  greatlakes-british-medieval-start`. `df -g ~` read 150 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1375-greatlakes-british-medieval-start.txt`, 151,120,994 bytes,
+SHA-256 `803bb3d680bbbc5739f854b175fa02285675311e02e108f01d283cdd10f7d686`.
+
+Archive `rontrace-run1375.log`, 9,064,480 bytes,
+SHA-256 `addbe1d57fdbad8bf0669bbc7da116dc90c46129684e0128c8aea7f5cf92746c`.
+
+**What it holds**: the start of `british_medieval_pair::BRITISH_MEDIEVAL`, and the walk's initial state.
+
+## run1376 — the British at a held Medieval age, Great Lakes, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3701, `att-3701`)
+
+`docs/AI.md` §361. run1372's line with `--ai-tribe 11` and run1375's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 11 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1, beside run1375. Launched 10:49:25, exited 10:50:15 (50.2 s launch to exit). `success`. **The game
+  ended itself on 5282** (closing block 5283, `ended_early`): who=1 takes the human's capital Napata (`1/2063`).
+  `GAME INFO` reads back as run1375's. `rngcmp.py` against run1375: 37 frames identical. Filed with `filerun.py
+  run1376 greatlakes-british-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1376-greatlakes-british-medieval-trace.txt`, 31,575,519 bytes,
+SHA-256 `73ca866111e249145287a7247f0df13e2dc5591aec3da5687b5c52b47b36a41d`.
+
+Archive `rontrace-run1376.log`, 150,524,768 bytes,
+SHA-256 `88e35f3272cfd497d5522a6037f1735948f860019b7cb49b3cb0fc772d132648`.
+
+**What it holds**: the pair's first try. `british_medieval_pair_first_parting` walks it from run1375: **5282 of
+5282**, whole, by the count and the sequence. `british_medieval_pair_run1376_s_closing_state` compares the closing
+block 5283: 274 units, none apart, no closing field.
+
+## run1376b — the British at a held Medieval age, Great Lakes, at difficulty 4: the closing window, blocks 5027..5283 (2026-10-27, item 3701, `att-3701`)
+
+`docs/AI.md` §361. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1376's stride prints units every hundred frames, no `AMMO` and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1376b --map 14 --end-frame 5282
+--allow-early-end --timeout 3600 --log-window 5027 5283 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0` and run1375's lobby: 256
+blocks to the closing block.
+- Pool lane 1. Launched 10:53:03, exited 10:53:55 (52.0 s launch to exit). `success`: 5283 frames. `rngcmp.py`
+  against run1376: 5283 of 5283 identical. Filed with `filerun.py run1376b
+  greatlakes-british-medieval-window-5027-5283`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1376b-greatlakes-british-medieval-window-5027-5283.txt`, 615,303,425 bytes,
+SHA-256 `3346a58da2eec39d40b3eb790250bd12da56697b47447634c7f779c1834bf3d8`.
+
+Archive `rontrace-run1376b.log`, 150,407,360 bytes,
+SHA-256 `33d3c591ae2d50f429e6516b3448ad66320151e8727348b43598de0c42c3d5fc`.
+
+**What it holds**: `british_medieval_pair_run1376b_s_closing_frame_is_widened_whole` walks it from run1375: 256
+blocks and 56 keys, the standing families and who=1's groups 69 and 72. The rounds read 296 against 296, with 10
+rows parting, every one a Trebuchet (piece 216) launch point (parked 3701a). It is the pair's widening in
+`WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.

@@ -10803,6 +10803,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3707,
         Some(crate::diff::egyptian_industrial_pair::WIDENING_EGYPTIAN_INDUSTRIAL_CLOSING),
     ),
+    // **The British at a held Medieval age** (item 3701): Great Lakes at
+    // Hard — whole on its first try, 5282 of 5282, the closing state
+    // compared; widened on run1376b over 5027..5283 (the closing block),
+    // the rounds compared.
+    (
+        "BRITISH_MEDIEVAL_PAIR_WORD",
+        crate::diff::british_medieval_pair::BRITISH_MEDIEVAL_PAIR_WORD,
+        Some("british_medieval_pair_run1376b_s_closing_frame_is_widened_whole"),
+        3701,
+        Some(crate::diff::british_medieval_pair::WIDENING_BRITISH_MEDIEVAL_CLOSING),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13125,6 +13136,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_689,
         endpoint: Some("egyptian_industrial_pair_run1374_s_closing_state"),
         window: Some("egyptian_industrial_closing_window"),
+    },
+    // The British at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), Great Lakes at Hard (item 3701): whole on its
+    // first try, 5282 of 5282, the game ending on who=1's capture of the
+    // human's last city; widened on run1376b through the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesBritishMedieval",
+        named: "Great Lakes (British, Medieval)",
+        word: crate::diff::british_medieval_pair::BRITISH_MEDIEVAL_PAIR_WORD,
+        length: 5_282,
+        endpoint: Some("british_medieval_pair_run1376_s_closing_state"),
+        window: Some("british_medieval_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
