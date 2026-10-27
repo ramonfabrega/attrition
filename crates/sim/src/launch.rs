@@ -2316,6 +2316,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 87, the Anti-tank Rifle in the default art style** (type
+    // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
+    // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
+    // piece 1143's three rows, as 3677 found piece 88's: run1338b's `1/18`
+    // round of 3105 (`CHAR_ATTACK3` frame 16, the figure at (9528, 31080)
+    // and −798359552, `z` 612) left (9379, 31019) at 695, which the
+    // `CHAR_ATTACK3` row reproduces exactly, x, y and height. The other
+    // two rows are 1143's unmeasured on this piece: no packet was taken.
+    // Without them the round left the figure's square, and run1338b's
+    // `1/44` round of 3142 flew 3 frames against 2.
+    (
+        87,
+        crate::anim::ATTACK1,
+        18,
+        Bay {
+            right: 17_058,
+            fwd: 180_195,
+            dz: 60,
+        },
+    ),
+    (
+        87,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 4_863,
+            fwd: 179_398,
+            dz: 63,
+        },
+    ),
+    (
+        87,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -2_310,
+            fwd: 161_815,
+            dz: 83,
+        },
+    ),
     // **Piece 65, the Black Watch** (type 115, `EHIGHLANDERS`,
     // `HIGHLANDERELITE-DEFAULT-AGE0`; item 3683, `docs/AI.md` §347):
     // run1355's `RON_STATE_FRAME=2933` packet on the British Industrial
@@ -3977,6 +4017,26 @@ mod tests {
             assert_eq!(launch_point(at, Angle(facing), 88, anim, start, 0), want);
             assert_eq!(release_dz(88, anim, start, 0), Some(dz));
         }
+    }
+
+    /// **The American Anti-tank Rifle's round leaves from piece 87's bay**
+    /// (item 3686): run1338b's `AMMO=5` record of `1/18`'s `CHAR_ATTACK3`
+    /// round of 3105 beside its `GUY` pose on 3104, at the dump's `sx, sy`
+    /// and `sz − z`. Made to fail with the rows out of `BAYS`.
+    #[test]
+    fn run1338b_s_american_anti_tank_rifle_leaves_from_piece_87_s_bay() {
+        assert_eq!(
+            launch_point(
+                Pos::new(9528, 31080),
+                Angle(-798_359_552),
+                87,
+                crate::anim::ATTACK3,
+                16,
+                0
+            ),
+            Pos::new(9379, 31019)
+        );
+        assert_eq!(release_dz(87, crate::anim::ATTACK3, 16, 0), Some(695 - 612));
     }
 
     /// **The Chinese Anti-tank Rifles' rounds leave from piece 1143's

@@ -3585,6 +3585,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::british_industrial_pair::british_industrial_frame_4767_window(),
         || super::american_industrial_pair::american_industrial_frame_3174_window(),
         || super::american_industrial_pair::american_industrial_stride_window(),
+        || super::american_industrial_pair::american_industrial_frame_5678_window(),
         || super::russian_gunpowder_pair::russian_gunpowder_frame_3711_window(),
         || super::russian_gunpowder_pair::russian_gunpowder_stride_window(),
         || super::russian_gunpowder_pair::russian_gunpowder_damage_window(),
