@@ -5854,11 +5854,17 @@ impl Sim {
             };
             self.units[u].path.push(goal);
             let r = self.find_wpath(u);
+            if probe_3711(self.frame, u) {
+                eprintln!("PROBE3711 find_wpath goal {:?} -> {r} path {:?}", goal, self.units[u].path);
+            }
             if r < 1 {
                 if self.units[u].path.is_empty() {
                     self.units[u].path.push(goal);
                 }
                 let r2 = self.find_tpath(u);
+                if probe_3711(self.frame, u) {
+                    eprintln!("PROBE3711 find_tpath -> {r2} path {:?}", self.units[u].path);
+                }
                 if r2 < 1 && self.units[u].path.is_empty() {
                     self.units[u].path.push(goal);
                 }
