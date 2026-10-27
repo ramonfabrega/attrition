@@ -12,7 +12,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const BRITISH_INDUSTRIAL: Pair = Pair {
     name: "GreatSaharaBritishIndustrial",
@@ -382,7 +382,10 @@ fn british_industrial_pair_run1352_s_word_frame_is_widened_whole() {
     // on 2937 theirs' round lands on `0/3` (32 damage, `hits_left` 33)
     // and ours' is still flying on 2938; on the word 2939 `0/3` walks a
     // different path and ours' `Unit::fight` draws where theirs does not
-    // (`docs/AI.md` §347).
+    // (`docs/AI.md` §347). Item 3683: **53**, the standing families
+    // alone; `1/28`'s round leaves the `MARK4`'s muzzle (piece 190) at
+    // (9218, 31078) and 757 as theirs' does, and the rounds part (306, 278)
+    // → (306, 306), 110 → 6, all dead targets' `whom`/`ox`.
     pin_eq!(w.firsts.len(), 53, "run1352 baseline");
     // Rounds are in flight on both sides over the window.
     pin_eq!(w.rounds_read, (306, 306), "the rounds read");
@@ -446,9 +449,163 @@ fn british_industrial_pair_run1355b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3683: **52**, the standing families alone. Before piece 65's
+    // bays: 1788, the first non-standing row on 2903 the Citizen `0/8`'s
+    // `hits:damage` (54 against 41), `damage_o` (15, the Black Watch
+    // `1/15`, against 28, the `MARK4` `1/28`) and `damage_frame` (2901
+    // against 2871).
     pin_eq!(w.firsts.len(), 52, "run1355b baseline");
     pin_eq!(w.rounds_read, (363, 363), "the rounds read");
+    // 363 a side, 10 parting: dead targets' `whom`/`ox` alone. Before
+    // piece 65's bays: 363 against 402, 122 parting, the Black Watch's
+    // throws from the figures' squares (`1/16`'s of 2911 from (8568,
+    // 31080, 641) against (8435, 31093, 763)).
     pin_eq!(w.rounds.len(), 10, "the rounds that part");
+}
+
+/// run1355c: the closing window, blocks 4512..4768 at run1352's detail,
+/// `cover=0` (item 3683) — 257 blocks through the closing block, so the
+/// word 4767, the game's last frame, sits inside a window.
+pub(crate) const RUN1355C: &str =
+    "gamelog-run1355c-greatsahara-british-industrial-window-4512-4768.txt";
+
+/// The window: block 4512 through the closing block 4768.
+pub(crate) const WIDENING_BRITISH_INDUSTRIAL_FRAME_4767: (i64, i64) = (4512, 4768);
+
+/// **The closing window**: run1355c walked from run1335's start with the
+/// recorder on, the rounds compared (item 3683).
+pub(crate) fn british_industrial_frame_4767_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[BRITISH_INDUSTRIAL.start],
+        true,
+        BRITISH_INDUSTRIAL.long,
+        "run1355c",
+        &[(RUN1355C, WIDENING_BRITISH_INDUSTRIAL_FRAME_4767.0)],
+        WIDENING_BRITISH_INDUSTRIAL_FRAME_4767,
+        1,
+        &[4768],
+        true,
+    )
+}
+
+#[test]
+fn british_industrial_pair_run1355c_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = british_industrial_frame_4767_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3683: **58** — the standing families (`form`, who=1's groups'
+    // `held` and pools, the human leader's `SITE[*].reg` and
+    // `aggression[1]`) and two idle Black Watch's `dest_angle` (`1/83` on
+    // 4624, `1/61` on 4626; parked 3683c).
+    pin_eq!(w.firsts.len(), 58, "run1355c baseline");
+    pin_eq!(w.rounds_read, (295, 295), "the rounds read");
+    // 295 a side, 37 parting: the Artillery's (`1/68`, `1/94`, `1/106`,
+    // TY 269) eight launches, 136 below theirs and some 40 behind (parked
+    // 3683b), and dead targets' `whom`/`ox`.
+    pin_eq!(w.rounds.len(), 37, "the rounds that part");
+}
+
+/// **The closing state** (item 3683): run1336's closing block 4768, the
+/// whole map's units, walked from run1335's start.
+#[test]
+fn british_industrial_pair_run1336_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &BRITISH_INDUSTRIAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "British Industrial pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    for b in &fin.builds {
+        if (0..2).contains(&b.who) && harness::link_building(&built.sim, b.who, b.o).is_none() {
+            eprintln!(
+                "    unlinked building {}/{} at {:?} type {:?}",
+                b.who, b.o, b.pos, b.orig_type
+            );
+            for x in built
+                .sim
+                .buildings
+                .iter()
+                .filter(|x| i64::from(x.pos.x) == b.pos.x && i64::from(x.pos.y) == b.pos.y)
+            {
+                eprintln!(
+                    "      ours {}/{} alive {} hits {} health {} ty {:?}",
+                    x.owner, x.index, x.alive, x.hits, x.health, x.ty
+                );
+            }
+        }
+    }
+    pin_eq!(e.frame, 4768, "the closing block");
+    // Item 3683, the pair whole: 179 units, none off, torn, unlinked or
+    // extra, `Closing fields: none` — the game ends itself on 4767.
+    pin_eq!(e.compared, 179, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }
 
 /// run1336c: the long's stride to 2301 again, with `BUILDS=7`, `CITIES=5`

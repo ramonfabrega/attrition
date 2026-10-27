@@ -11536,13 +11536,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot TW — reserved
+## Parked by item 3683, 2026-10-26 — the desert Light Tank's rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3683a) **Piece 191, `MARK4DES`** — the desert texture of piece 190's
+`lighttank_mkiv.bh3`, with its own `<RESTRICTION name="MARK4DES" node="4">`
+— has no `pivot` rows. run1355's packet holds it at `pos_num 0` (no unit
+of it built), so its entries are unmeasured, and a `SAME_AS (191, 190)`
+row would be assumed off the name (AI §347). The British Industrial pair
+does not field it (`rubric.py --tables 3` counts 8 guy records of TY 241
+in another lockstep game); it names no score.
+
+(3683b) **The Artillery's launches** (TY 269, `1/68`, `1/94` and `1/106`
+on run1355c, the British Industrial closing window): eight rounds thrown
+from the figure's square, 136 below theirs' and some 40 behind (`1/68`'s of
+4520 from (10248, …, 423) against (10206, …, 559)). The pair is whole, so
+it names no score; a packet that loads the piece fits its bays.
+
+(3683c) **Two idle Black Watch's `dest_angle`** on run1355c: `1/83` on
+4624 (−686227456 against −1140523008) and `1/61` on 4626. No position or
+draw parts; it names no score.
 
 ## Parked by the next landing, slot TX — reserved
 
