@@ -2869,6 +2869,16 @@ impl Sim {
             // SEAM: a loaded boat's passenger type (a sea member with
             // `num_inside`); and the same-region `invalid_loc` arm, which a
             // computer's unit (`unit_masks & 0x40000`) skips.
+            if i > 0 && u == 212 && std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&self.frame) {
+                let s0 = self.restrict_pos(slots.to[0]);
+                let alt = self.region_spot_type(u, s0).and_then(|t| self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555)));
+                eprintln!(
+                    "PROBE3711 slot u{u} slot {slot:?} tile {:?} alt {:?} tregion {:?} | s0 {s0:?} tile {:?} alt {:?} tregion {:?} | spot {alt:?} | inv {}",
+                    slot.tile(), self.world.tregion_alt(slot.tile()), self.world.tregion(slot.tile()),
+                    s0.tile(), self.world.tregion_alt(s0.tile()), self.world.tregion(s0.tile()),
+                    self.invalid_loc(u, slot.tile(), true, true, false, false, false)
+                );
+            }
             if i > 0 {
                 let s0 = self.restrict_pos(slots.to[0]);
                 if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
