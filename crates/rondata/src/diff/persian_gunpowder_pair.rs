@@ -336,6 +336,60 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
+/// run1385: the site's window, blocks 2695..2801 at run1383b's detail —
+/// six blocks before the stride's 2701 and through 2801, the block the
+/// state first parts on (item 3708).
+pub(crate) const RUN1385: &str =
+    "gamelog-run1385-eastindies-persian-gunpowder-window-2695-2801.txt";
+
+/// The window: block 2695 through 2801.
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_FRAME_2801: (i64, i64) = (2695, 2801);
+
+/// **The site's window**: run1385 walked from run1369's start with the
+/// recorder on and every round compared (item 3708).
+pub(crate) fn persian_gunpowder_frame_2801_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_GUNPOWDER.start],
+        true,
+        PERSIAN_GUNPOWDER.long,
+        "run1385",
+        &[(RUN1385, WIDENING_PERSIAN_GUNPOWDER_FRAME_2801.0)],
+        WIDENING_PERSIAN_GUNPOWDER_FRAME_2801,
+        1,
+        &[2801],
+        true,
+    )
+}
+
+#[test]
+fn persian_gunpowder_pair_run1385_s_site_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_gunpowder_frame_2801_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1385 baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3698): run1370's closing block 5674,
 /// the whole map's units, walked from run1369's start.
 #[test]
