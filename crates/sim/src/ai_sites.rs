@@ -967,6 +967,13 @@ impl Sim {
             }
         }
 
+        if std::env::var("RON_PROBE_3708").is_ok() && matches!(self.frame, 2375 | 2575 | 2775) {
+            for (bi, b) in self.buildings.iter().enumerate() {
+                if b.owner == who && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t)) {
+                    eprintln!("PROBE3708 f{} fort b{bi} idx={} ty={:?} cell=({}, {}) alive={} active={} started={} activated={}", self.frame, b.index, b.ty, b.pos.cell().x, b.pos.cell().y, b.alive, b.active, b.started, b.activated);
+                }
+            }
+        }
         if std::env::var("RON_PROBE_3708").is_ok() {
             eprintln!(
                 "PROBE3708 f{} compute_sites who={who} sites={:?}",
