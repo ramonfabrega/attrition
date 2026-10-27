@@ -1,5 +1,5 @@
 //! The on-map heals of `Unit::process_healing@005e0670` — the civilian
-//! heal alone so far. `docs/COMBAT.md` §72.
+//! heal (`docs/COMBAT.md` §72) and the CEO's (`docs/AI.md` §348.1).
 //!
 //! The function's `inside_up ≥ 0` branch is the garrison heal
 //! ([`crate::Sim::garrison_heal`], `docs/CITIES.md` §6.7). Its on-map
@@ -52,6 +52,94 @@ impl Sim {
     /// alone. The second argument 0 is the no-sparkle arm, so the heal
     /// draws nothing. `healing` is not carried: the aircraft heal that
     /// also writes it is a seam (`crate::cast`).
+    /// **The CEO's heal** — the third of `process_healing`'s three
+    /// economic-patriot arms (`005e0670:149`–`:232`, item 3686,
+    /// `docs/AI.md` §348):
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// FRENCH_SUPPLY_HEAL_RATE != 0 and (o + frame) % rate == 0:
+    ///   …the Monarch's (0x161) and the Comrade's (0x163) arms…  # not built
+    ///   leader counts a 0x165:
+    ///     unit_masks & 0x80 and !(unit_masks2 & 0x40000) and !is_supply
+    ///                                         → skip to the next heal
+    ///     has_general(0, 0x165) → repair_damage(1, 1, 1)
+    /// ```
+    ///
+    /// Unlike the other two it asks nothing of the cell's owner, so a CEO
+    /// heals its army abroad. `unit_masks & 0x80` is the period
+    /// `Unit::process_attrition` assigns (it clears the bit on entry and
+    /// sets it with the period), so it is read here as
+    /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
+    /// draws `internal_random` only for the console's allies, which is no
+    /// stream this crate keeps; the third is the Conquer-the-World bonus.
+    /// `healing` (`+0x38`) and the `0x4000` clear are not carried.
+    ///
+    /// SEAM: the Monarch's and the Comrade's arms, which also ask an
+    /// allied cell; read, not built (parked 3686a).
+    pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
+        const THECEO: i32 = 0x165;
+        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if !u.captain || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let squad = self.squad_members(i);
+        let damaged = squad.iter().any(|&f| {
+            let f = &self.units[f];
+            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
+        });
+        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+            return;
+        }
+        if u.attrition != 0 && u.unit_masks2 & 0x40000 == 0 {
+            return;
+        }
+        if !self.has_general(i, THECEO) {
+            return;
+        }
+        self.repair_unit_damage(i, 1);
+    }
+
+    /// **`Unit::repair_damage@0060de10`** on a figure, the whole-point
+    /// half: the figure's own damage first — `amount` off it, floored at
+    /// none, and its fraction (`+0x3b`) zeroed when it had any — and what
+    /// is left over, `amount − damage`, handed down `o_down` to the next
+    /// live figure with the same call. A figure with no damage hands the
+    /// whole of it on, so a captain's heal reaches the hurt figure below.
+    ///
+    /// SEAM: past the chain's last live figure, a squad under its
+    /// `uber_size` (`+0x308`) **trains a figure back** (a free object slot,
+    /// `init`, a spot and a move order, the group joins): read, not built,
+    /// and here the remainder is dropped (parked 3686b).
+    pub(crate) fn repair_unit_damage(&mut self, i: usize, amount: i32) {
+        let mut cur = Some(i);
+        let mut left = amount;
+        while let Some(f) = cur {
+            if left <= 0 || !self.units[f].alive() {
+                return;
+            }
+            let u = &mut self.units[f];
+            let damage = u.max_health - u.health;
+            if damage != 0 {
+                u.health += left.min(damage);
+                u.damage_frac = 0;
+            }
+            left -= damage;
+            cur = self.units[f].o_down;
+        }
+    }
+
     pub(crate) fn civilian_heal(&mut self, i: usize, frame: i64) {
         let rate = i64::from(self.tuning.civilian_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
@@ -173,5 +261,94 @@ mod tests {
             sim.units[c].max_health - 2,
             "outside an ally's territory, nothing"
         );
+    }
+
+    /// **A CEO heals its army abroad, a point every 20 frames, down the
+    /// squad** (item 3686, `docs/AI.md` §348.1): `process_healing`'s third
+    /// economic-patriot arm runs on the captain, phased on the captain's
+    /// `o`, and its `repair_damage(1, …)` hands the point down `o_down`
+    /// past an unhurt figure to the hurt one, zeroing its fraction. The
+    /// cell is nobody's. Off the phase, without a CEO, or under an
+    /// attrition period, nothing. run1338b's `1/36` (captain `1/35`) went
+    /// 4 and 14/16 to 3 and 6/16 on block 3167, a point and then the
+    /// bleed. Made to fail with the repair stopping at the captain
+    /// (`tools/mutate.py`, `cur = None`).
+    #[test]
+    fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
+        use crate::ai_load::{UnitCols, uflags2};
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let rifle = sim.add_unit_type(crate::UnitType {
+            hits: 645,
+            type_index: 137,
+            combat: crate::combat::Profile {
+                uber_size: 3,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let ceo = sim.add_unit_type(crate::UnitType {
+            hits: 110,
+            type_index: 0x165,
+            cols: UnitCols {
+                unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                ..UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let put = |sim: &mut crate::Sim, t: usize, hits: i32| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(1, index, at, hits);
+            u.ty = Some(t);
+            u.type_index = sim.unit_types[t].type_index;
+            u.on_map = true;
+            u.kind = sim.unit_types[t].kind;
+            sim.add_unit(u)
+        };
+        let squad = [
+            put(&mut sim, rifle, 215),
+            put(&mut sim, rifle, 215),
+            put(&mut sim, rifle, 215),
+        ];
+        sim.units[squad[0]].captain = true;
+        sim.units[squad[0]].o_down = Some(squad[1]);
+        sim.units[squad[1]].captain = false;
+        sim.units[squad[1]].o_up = Some(squad[0]);
+        sim.units[squad[1]].o_down = Some(squad[2]);
+        sim.units[squad[2]].captain = false;
+        sim.units[squad[2]].o_up = Some(squad[0]);
+        let hurt = squad[2];
+        sim.units[hurt].health = 215 - 4;
+        sim.units[hurt].damage_frac = 14;
+        let c = squad[0];
+        let o = i64::from(sim.units[c].index);
+        let due = 20 * 160 - o;
+        let state = |sim: &crate::Sim| (sim.units[hurt].health, sim.units[hurt].damage_frac);
+        sim.ceo_heal(c, due);
+        assert_eq!(state(&sim), (211, 14), "no CEO, nothing");
+        let boss = put(&mut sim, ceo, 110);
+        sim.units[boss].captain = true;
+        sim.ceo_heal(c, due - 1);
+        assert_eq!(state(&sim), (211, 14), "off the phase, nothing");
+        sim.ceo_heal(hurt, due);
+        assert_eq!(
+            state(&sim),
+            (211, 14),
+            "a figure below the captain is not asked"
+        );
+        sim.ceo_heal(c, due);
+        assert_eq!(
+            state(&sim),
+            (212, 0),
+            "a point down the chain, and the fraction"
+        );
+        assert_eq!(
+            sim.units[squad[1]].health, 215,
+            "the unhurt figure passes it on"
+        );
+        sim.units[c].attrition = 48;
+        sim.ceo_heal(c, due + 20);
+        assert_eq!(state(&sim), (212, 0), "under an attrition period, nothing");
     }
 }
