@@ -493,8 +493,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// --tables 3` on the merged tree.
 /// Item 3688: 213 -> 214, the Russian Gunpowder pair whole at 5341 —
 /// `Cossack` (225, land; 422 guy records once the pair is lockstep), the
-/// line §349 named, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 214;
+/// line §349 named, read by `rubric.py --tables 3` on this tree; and 214 ->
+/// 215 with it, the Roman Gunpowder pair whole at 4062 on the same arm —
+/// `Praetorian Guards` (148, `PIKELEGION`, land; 814 guy records), the line
+/// §350 named, read by `rubric.py --tables 3` on the merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 215;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

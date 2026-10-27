@@ -10632,13 +10632,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Romans at a held Gunpowder age** (item 3671): Great Lakes —
     // first try 2926 of 4062 by the count and the sequence, widened on
     // run1342b over 2895..3177 (the word's block 2927), the rounds
-    // compared.
+    // compared. Item 3688 closed it, 4062 of 4062 (the Monarch's cavalry
+    // arm of `UnitData::attack`), widened on run1357c over 3807..4063 (the
+    // closing block), the closing state compared.
     (
         "ROMAN_GUNPOWDER_PAIR_WORD",
         crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER_PAIR_WORD,
-        Some("roman_gunpowder_pair_run1342b_s_word_frame_is_widened_whole"),
-        3671,
-        Some(crate::diff::roman_gunpowder_pair::WIDENING_ROMAN_GUNPOWDER_FRAME_2926),
+        Some("roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole"),
+        3688,
+        Some(crate::diff::roman_gunpowder_pair::WIDENING_ROMAN_GUNPOWDER_FRAME_4062),
     ),
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
@@ -12805,15 +12807,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Romans at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Lakes (item 3671): first try 2926 of a
-    // game that ends itself on 4062, widened on run1342b.
+    // game that ends itself on 4062, widened on run1342b; whole since item
+    // 3688, 4062 of 4062, widened on run1357c through the closing block.
     AiWord {
         line: "Late ages",
         map: "GreatLakesRomanGunpowder",
         named: "Great Lakes (Romans, Gunpowder)",
         word: crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER_PAIR_WORD,
         length: 4_062,
-        endpoint: None,
-        window: Some("roman_gunpowder_frame_2926_window"),
+        endpoint: Some("roman_gunpowder_pair_run1342_s_closing_state"),
+        window: Some("roman_gunpowder_frame_4062_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
