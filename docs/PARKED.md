@@ -11484,7 +11484,8 @@ launch row, names the word's frame and is the next item's (`docs/AI.md`
 
 Nothing parked: the finding, the Golden Horde's unmeasured piece-154
 `CHAR_ATTACK2` launch row, names the word's frame and is the next item's
-(`docs/AI.md` §352); the Musketeer's `ATTACK2` row beside it is 3691's.
+(`docs/AI.md` §352), as does the Mongol Musketeer's piece-1105 row beside
+it.
 
 ## Parked by the next landing, slot TQ — reserved
 

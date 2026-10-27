@@ -243,7 +243,7 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
     // square in ours — (6264, 28728, 480), 11 frames' flight — against
     // theirs' (6180, 28775, 715) and 10: `sim::launch` holds no piece-154
     // row. Theirs' round lands on 4850, ours' on 4851. On the word 4854
-    // the Musketeer `1/21`'s round (ours from its own square, 3 frames
+    // the Musketeer `1/21`'s round (piece 1105, ours from its own square, 3 frames
     // against 2) kills `0/6` in theirs — `Unit::close+0xcb6`, index 17 —
     // and ours holds it on 4855.
     pin_eq!(w.firsts.len(), 754, "run1346c baseline");

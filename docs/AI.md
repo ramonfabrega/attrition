@@ -33238,7 +33238,7 @@ buildings `1/2029` and `1/2030`, ours 99 and 114 against theirs 94 and
 | 4841 | ours' `1/97` | animation at the shot | slot 12 (`ATTACK2`), `t16/25`, piece 154 | — |
 | 4850 | the Citizen `0/6` | `hits:damage` | 35 | 46 |
 | 4850 | the round | held | ours | retired |
-| 4854 | the Musketeer `1/21`'s round `ammo[0]` (TY 99, at `0/6`) | `sx, sy, sz`; `total_time` | 6552, 28728, 423; 3 | 6415, 28769, 641; 2 |
+| 4854 | the Musketeer `1/21`'s round `ammo[0]` (TI 99, piece 1105, at `0/6`) | `sx, sy, sz`; `total_time` | 6552, 28728, 423; 3 | 6415, 28769, 641; 2 |
 | 4854 | the draw stream, index 17 | site | none | `Unit::close+0xcb6` |
 
 **The direction: ours' Golden Horde round leaves the unit's own
@@ -33251,7 +33251,10 @@ theirs and kills `0/6`, with 19 hits left. In ours that round is also
 launched from its own square and lands a frame later. Theirs measures the
 Horde's missing row in one shot: guy (6264, 28728) at angle −1476001792,
 launch (6180, 28775, z 715), an offset of (−84, +47) and `dz` 235 over
-ours' launch. The Musketeer's is §351's piece-49 class (3691).
+ours' launch. The Musketeer `1/21` (TI 99) is the Mongols' own model,
+piece 1105, shooting from `ATTACK1` at frame 1 (`RON_DEBUG_UNIT`), and
+`launch` holds no piece-1105 row: 3691's piece-49 bays do not reach it,
+and the merged tree's walk is unmoved by them.
 
 **Not this item's.** The rounds part from 4795 by their launch point on
 other shooters: the Cannon `1/91`'s (TY 268) from its own square in ours,
@@ -33264,8 +33267,9 @@ Also not mine: who=1's queue costs and buckets standing at 4795, and
 launch row from this measurement, one shot. Ours prints a `cavarch_o` on
 `1/97`, so the Horde is read as a cavalry archer, and the row may belong in
 `pivot` beside piece 138 rather than in `launch`. A second shot pins the
-bearing. The Musketeer's `ATTACK2` row (3691) stands beside it on the
-word. I built nothing.
+bearing. The Mongol Musketeer's piece-1105 `ATTACK1` row stands beside it
+on the word, perhaps piece 49's bays as piece 1177 takes piece 121's. I
+built nothing.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **215 of
 302**, unmoved: the pair parts, so it is not lockstep. The booking's line
