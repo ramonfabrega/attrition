@@ -531,7 +531,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3707: 225 -> 226, the Egyptian Industrial pair whole at 5689 —
 /// `Light Tank` (243, `A7VDES`, land; 540 figure rows), the line §360
 /// named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 226;
+/// Item 3701: 226 -> 227, the British Medieval pair whole on its first try
+/// at 5282 — `King's Longbowmen` (178, `LONGBOWMENELITE`, land; 2028 figure
+/// rows, every one this pair's), the line §361 named, read by `rubric.py
+/// --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 227;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
