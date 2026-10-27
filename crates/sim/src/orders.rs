@@ -6737,8 +6737,20 @@ impl Sim {
     /// march, the pull-back and the detour's replay are described there and
     /// in `docs/PATHFINDER.md` §9.
     fn find_path(&mut self, u: usize, mo: &mut MoveOrder, goal: Pos) -> u8 {
+        if probe_3711(self.frame, u) {
+            eprintln!(
+                "PROBE3711 f{} u{} find_path here {:?} goal {:?} mo {:?} path {:?} orders {:?} speed {}",
+                self.frame, u, self.units[u].pos, goal, mo, self.units[u].path,
+                self.units[u].orders.iter().map(|o| o.body).collect::<Vec<_>>(),
+                self.get_speed(u, 0)
+            );
+        }
         let mut view = SimFindPath { sim: self, u, mo };
-        crate::find_path_view::find_path_steps(&mut view, goal) as u8
+        let r = crate::find_path_view::find_path_steps(&mut view, goal) as u8;
+        if probe_3711(self.frame, u) {
+            eprintln!("PROBE3711 find_path -> {r} path {:?} avoid {:?}", self.units[u].path, self.units[u].avoid);
+        }
+        r
     }
 
     /// `Unit::go_around_building@005fc350` (§4.6) — the answer to a
@@ -9863,7 +9875,7 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
         self.sim.units[self.u].pos
     }
     fn invalid_loc(&mut self, at: Pos, ignore_buildings: bool, fog_relax: bool) -> bool {
-        self.sim.invalid_loc(
+        let r = self.sim.invalid_loc(
             self.u,
             at.tile(),
             ignore_buildings,
@@ -9871,7 +9883,14 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
             false,
             false,
             false,
-        ) != 0
+        );
+        if probe_3711(self.sim.frame, self.u) {
+            eprintln!(
+                "PROBE3711 f{} u{} invalid_loc at {:?} tile {:?} ib {} fog {} -> {}",
+                self.sim.frame, self.u, at, at.tile(), ignore_buildings, fog_relax, r
+            );
+        }
+        r != 0
     }
     fn relocate(&mut self) {
         let here = self.sim.units[self.u].pos;
@@ -13645,4 +13664,9 @@ impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
         // The order's `+0xc` is the owner `add_build_order` was handed: the unit's own.
         (i32::from(self.s.units[o].owner), b as i32)
     }
+}
+
+/// Item 3711's probe: the Heavy Fire Raft's `find_path` on 5626.
+fn probe_3711(frame: i64, u: usize) -> bool {
+    std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&frame) && u == 212
 }
