@@ -2316,6 +2316,40 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 87, the Anti-tank Rifle in the default art style** (type
+    // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348): the Americans'
+    // style has no piece of its own, so `get_unit_gpiece`'s walk lands on
+    // the type's base. PROBE: rows equal to piece 1143's, under test.
+    (
+        87,
+        crate::anim::ATTACK1,
+        18,
+        Bay {
+            right: 17_058,
+            fwd: 180_195,
+            dz: 60,
+        },
+    ),
+    (
+        87,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 4_863,
+            fwd: 179_398,
+            dz: 63,
+        },
+    ),
+    (
+        87,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -2_310,
+            fwd: 161_815,
+            dz: 83,
+        },
+    ),
     // **Piece 64, the Highlanders** (type 114, `HIGHLANDER-DEFAULT-AGE0`;
     // item 3542, `docs/AI.md` §306): node 0 at frame 6 of `CHAR_ATTACK1`, 10
     // of `2` and 12 of `3`, `RData +0x88` 1.05, off the same run1185 packet
@@ -3935,6 +3969,22 @@ mod tests {
             assert_eq!(launch_point(at, Angle(facing), 88, anim, start, 0), want);
             assert_eq!(release_dz(88, anim, start, 0), Some(dz));
         }
+    }
+
+    #[test]
+    fn run1338b_s_american_anti_tank_rifle_leaves_from_piece_87_s_bay() {
+        assert_eq!(
+            launch_point(
+                Pos::new(9528, 31080),
+                Angle(-798_359_552),
+                87,
+                crate::anim::ATTACK3,
+                16,
+                0
+            ),
+            Pos::new(9379, 31019)
+        );
+        assert_eq!(release_dz(87, crate::anim::ATTACK3, 16, 0), Some(695 - 612));
     }
 
     /// **The Chinese Anti-tank Rifles' rounds leave from piece 1143's

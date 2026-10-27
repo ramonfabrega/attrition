@@ -52,6 +52,67 @@ impl Sim {
     /// alone. The second argument 0 is the no-sparkle arm, so the heal
     /// draws nothing. `healing` is not carried: the aircraft heal that
     /// also writes it is a seam (`crate::cast`).
+    /// **The CEO's heal** — the third of `process_healing`'s three
+    /// economic-patriot arms (`005e0670:149`–`:232`, item 3686,
+    /// `docs/AI.md` §348):
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// FRENCH_SUPPLY_HEAL_RATE != 0 and (o + frame) % rate == 0:
+    ///   …the Monarch's (0x161) and the Comrade's (0x163) arms…  # not built
+    ///   leader counts a 0x165:
+    ///     unit_masks & 0x80 and !(unit_masks2 & 0x40000) and !is_supply
+    ///                                         → skip to the next heal
+    ///     has_general(0, 0x165) → repair_damage(1, 1, 1)
+    /// ```
+    ///
+    /// Unlike the other two it asks nothing of the cell's owner, so a CEO
+    /// heals its army abroad. `unit_masks & 0x80` is the period
+    /// `Unit::process_attrition` assigns (it clears the bit on entry and
+    /// sets it with the period), so it is read here as
+    /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
+    /// draws `internal_random` only for the console's allies, which is no
+    /// stream this crate keeps; the third is the Conquer-the-World bonus.
+    /// `healing` (`+0x38`) and the `0x4000` clear are not carried.
+    ///
+    /// SEAM: the Monarch's and the Comrade's arms, which also ask an
+    /// allied cell; no capture on file reaches them.
+    pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
+        const THECEO: i32 = 0x165;
+        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if self.captain_of(i) != i || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let damaged = self.squad_of(i).iter().any(|&f| {
+            self.units[f].health < self.units[f].max_health || self.units[f].damage_frac != 0
+        });
+        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+            return;
+        }
+        if u.attrition != 0 && u.unit_masks2 & 0x40000 == 0 {
+            return;
+        }
+        if !self.has_general(i, THECEO) {
+            return;
+        }
+        let u = &mut self.units[i];
+        if u.health < u.max_health {
+            u.health += 1;
+            u.damage_frac = 0;
+        }
+    }
+
     pub(crate) fn civilian_heal(&mut self, i: usize, frame: i64) {
         let rate = i64::from(self.tuning.civilian_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
