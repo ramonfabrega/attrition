@@ -68,9 +68,6 @@ impl Sim {
         // `tolerance 0`.
         const TOLERANCE: i32 = 0;
 
-        if std::env::var("RON_PROBE_3711").is_ok() && g.list.contains(&212) && (5624..=5626).contains(&self.frame) {
-            eprintln!("PROBE3711 group_plan_path enter list {:?} idx {} to {:?} members {:?} from {:?}", g.list, f.idx, f.to, members.len(), from);
-        }
         let Some(base) = f.to.get(f.idx).copied() else {
             return;
         };
@@ -152,16 +149,7 @@ impl Sim {
                 let slot = f.to[i];
                 let p =
                     self.restrict_pos(Pos::new(w.to.x + slot.x - base.x, w.to.y + slot.y - base.y));
-                let p0 = p;
                 let p = self.group_plan_keep_area(u, p, w.to, short);
-                if std::env::var("RON_PROBE_3711").is_ok() && u == 212 && (5624..=5626).contains(&self.frame) {
-                    eprintln!(
-                        "PROBE3711 group_plan u{u} leader {leader} w {:?} base {:?} slot {:?} p0 {:?} reg(p0) {:?} reg(w) {:?} inv(p0) {} short {short} -> p {:?} last {last}",
-                        w, base, slot, p0,
-                        self.world.tregion_alt(p0.tile()), self.world.tregion_alt(w.to.tile()),
-                        self.invalid_loc(u, p0.tile(), true, true, false, false, false), p
-                    );
-                }
                 // The leader walks the whole chain and so does every final
                 // waypoint. An intermediate leg reaches a follower only
                 // when that follower is **not** in the formation — the
@@ -271,18 +259,8 @@ impl Sim {
             };
             let start = self.units[u].path.last().map_or(from, |p| p.to);
             let saved = std::mem::replace(&mut self.units[u].path, vec![goal]);
-            if std::env::var("RON_PROBE_3711").is_ok() && u == 212 && (5624..=5626).contains(&self.frame) {
-                let me = self.units[u].pos;
-                let saved2 = std::mem::replace(&mut self.units[u].path, vec![goal]);
-                let r0 = self.find_wpath_from(u, me, false);
-                let c0 = std::mem::replace(&mut self.units[u].path, saved2);
-                eprintln!("PROBE3711 from own pos {me:?} -> {r0} chain {c0:?}");
-            }
-            let r = self.find_wpath_from(u, start, false);
+            self.find_wpath_from(u, start, false);
             let mut chain = std::mem::replace(&mut self.units[u].path, saved);
-            if std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&self.frame) {
-                eprintln!("PROBE3711 plan_each u{u} pos {:?} start {:?} goal {:?} -> {r:?} chain {:?}", self.units[u].pos, start, goal.to, chain);
-            }
             if chain.is_empty() {
                 // The search refused: the goal goes on by itself, off the
                 // copy `action_move_near` kept before the call.

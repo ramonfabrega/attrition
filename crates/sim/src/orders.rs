@@ -5369,9 +5369,6 @@ impl Sim {
     /// waypoint take with both arrival tests, the straight-line check, the
     /// step.
     pub(crate) fn do_move(&mut self, u: usize, frame: i64) -> Did {
-        if probe_3711(self.frame, u) {
-            eprintln!("PROBE3711 do_move enter orders {:?} path {:?}", self.units[u].orders, self.units[u].path);
-        }
         let Some(Order {
             body: Body::Move(mut mo),
             flags,
@@ -5857,17 +5854,11 @@ impl Sim {
             };
             self.units[u].path.push(goal);
             let r = self.find_wpath(u);
-            if probe_3711(self.frame, u) {
-                eprintln!("PROBE3711 find_wpath goal {:?} -> {r} path {:?}", goal, self.units[u].path);
-            }
             if r < 1 {
                 if self.units[u].path.is_empty() {
                     self.units[u].path.push(goal);
                 }
                 let r2 = self.find_tpath(u);
-                if probe_3711(self.frame, u) {
-                    eprintln!("PROBE3711 find_tpath -> {r2} path {:?}", self.units[u].path);
-                }
                 if r2 < 1 && self.units[u].path.is_empty() {
                     self.units[u].path.push(goal);
                 }
@@ -6746,20 +6737,8 @@ impl Sim {
     /// march, the pull-back and the detour's replay are described there and
     /// in `docs/PATHFINDER.md` §9.
     fn find_path(&mut self, u: usize, mo: &mut MoveOrder, goal: Pos) -> u8 {
-        if probe_3711(self.frame, u) {
-            eprintln!(
-                "PROBE3711 f{} u{} find_path here {:?} goal {:?} mo {:?} path {:?} orders {:?} speed {}",
-                self.frame, u, self.units[u].pos, goal, mo, self.units[u].path,
-                self.units[u].orders.iter().map(|o| o.body).collect::<Vec<_>>(),
-                self.get_speed(u, 0)
-            );
-        }
         let mut view = SimFindPath { sim: self, u, mo };
-        let r = crate::find_path_view::find_path_steps(&mut view, goal) as u8;
-        if probe_3711(self.frame, u) {
-            eprintln!("PROBE3711 find_path -> {r} path {:?} avoid {:?}", self.units[u].path, self.units[u].avoid);
-        }
-        r
+        crate::find_path_view::find_path_steps(&mut view, goal) as u8
     }
 
     /// `Unit::go_around_building@005fc350` (§4.6) — the answer to a
@@ -9884,7 +9863,7 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
         self.sim.units[self.u].pos
     }
     fn invalid_loc(&mut self, at: Pos, ignore_buildings: bool, fog_relax: bool) -> bool {
-        let r = self.sim.invalid_loc(
+        self.sim.invalid_loc(
             self.u,
             at.tile(),
             ignore_buildings,
@@ -9892,14 +9871,7 @@ impl crate::find_path_view::FindPathView for SimFindPath<'_> {
             false,
             false,
             false,
-        );
-        if probe_3711(self.sim.frame, self.u) {
-            eprintln!(
-                "PROBE3711 f{} u{} invalid_loc at {:?} tile {:?} ib {} fog {} -> {}",
-                self.sim.frame, self.u, at, at.tile(), ignore_buildings, fog_relax, r
-            );
-        }
-        r != 0
+        ) != 0
     }
     fn relocate(&mut self) {
         let here = self.sim.units[self.u].pos;
@@ -13672,25 +13644,5 @@ impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
         };
         // The order's `+0xc` is the owner `add_build_order` was handed: the unit's own.
         (i32::from(self.s.units[o].owner), b as i32)
-    }
-}
-
-/// Item 3711's probe: the Heavy Fire Raft's `find_path` on 5626.
-fn probe_3711(frame: i64, u: usize) -> bool {
-    std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&frame) && u == 212
-}
-
-#[cfg(test)]
-mod probe_3711_tests {
-    #[test]
-    fn probe_3711_pull_back_by_speed() {
-        let here = crate::Pos::new(45675, 37688);
-        let goal = crate::Pos::new(46259, 38109);
-        let a = crate::movement::find_angle(goal.x - here.x, goal.y - here.y).0;
-        for s in [48, 54, 59, 60, 61] {
-            let bx = crate::movement::sin_component(crate::movement::Angle(a), s);
-            let by = crate::movement::cos_component(crate::movement::Angle(a), s);
-            eprintln!("PROBE3711 speed {s}: back ({bx}, {by}); 12 steps -> ({}, {})", goal.x - 12 * bx, goal.y + 12 * by);
-        }
     }
 }
