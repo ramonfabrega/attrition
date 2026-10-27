@@ -9,6 +9,18 @@ def bounded_test(name):
             or name.startswith('diff::third_pair::'))
 
 
+# The coverage walk ran 1613-1693 s in the fifty-eighth tranche's whole
+# gates and was killed at resource_budget's default 1800 s in two of the
+# fifty-ninth's (green alone in 345 s; Loop 3681): it alone gets an hour
+# until a pass measures it.
+LONG_TESTS = {'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned': 3600}
+
+
+def execution_timeout(name):
+    """Seconds an isolated test may run; None keeps the budget's default."""
+    return LONG_TESTS.get(name)
+
+
 def child_environment(environ=None, *, platform=None, test_name=None, dispatcher=False):
     env = dict(os.environ if environ is None else environ)
     mode = env.get('RON_TEST_ALLOCATOR', 'auto')

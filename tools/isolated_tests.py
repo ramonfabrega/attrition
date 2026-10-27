@@ -22,7 +22,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 from resource_budget import DEFAULT, MEMORY_MIB, QUANTUM_MIB
-from test_runtime import child_environment, allocator_policy
+from test_runtime import child_environment, allocator_policy, execution_timeout
 
 PROFILE = ROOT / 'docs/audit/2026-10-16-isolated-profile.json'
 ONE = re.compile(r'^test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured; \d+ filtered out;', re.M)
@@ -58,10 +58,11 @@ def reservation(name, profile):
         math.ceil(row['rss_bytes'] / (QUANTUM_MIB * 2**20)) * QUANTUM_MIB))
 
 
-def wrapper(directory, memory, cpu=1, limit=None):
+def wrapper(directory, memory, cpu=1, limit=None, timeout=None):
     return [sys.executable, str(ROOT / 'tools/resource_budget.py'), '--directory', str(directory),
             '--cpu', str(cpu), '--memory-mib', str(memory)] + (
-            ['--limit-mib', str(limit)] if limit is not None else []) + ['--']
+            ['--limit-mib', str(limit)] if limit is not None else []) + (
+            ['--timeout', str(timeout)] if timeout is not None else []) + ['--']
 
 
 def read_result(log):
@@ -106,7 +107,7 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
     env = child_environment(test_name=name)
     with log.open('x') as sink:
         limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
-        command = wrapper(directory, memory, limit=limit) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
+        command = wrapper(directory, memory, limit=limit, timeout=execution_timeout(name)) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
         with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT, env=env) as child:
             while child.poll() is None:
                 if cancelled():

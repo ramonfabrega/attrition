@@ -30433,3 +30433,90 @@ SHA-256 `fb0dd830b5d03bff15eaf0736d4d3306e6c60f3af0f578df84a7d77aed88ac45`.
 2059 keys, rounds 17 theirs against 11 ours, 7 parting from 2960). On the word's block 2927 the human's leader holds
 a unit more in ours and `0/4` is ours alone; the Citizens' damage stands 3 higher in theirs from each Heavy Knight
 (TY 229) blow (2631 on `0/13`, 2788 on `0/4`).
+## run1339 — the Russians at a held Gunpowder age, Great Lakes: the `DUMP_ALL` start (2026-10-26, item 3670, `att-3670`)
+
+`docs/AI.md` §349. run1333's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1339 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 21:22:11, exited 21:22:38 (26.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 13, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1339 greatlakes-russian-gunpowder-start`. `df -g ~` read 66 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1339-greatlakes-russian-gunpowder-start.txt`, 151,141,514 bytes,
+SHA-256 `1880b321e7aa8a29be48a5cd3f486e28582d924a74d0b15b2abca7b8b1fb0e64`.
+
+Archive `rontrace-run1339.log`, 9,292,064 bytes,
+SHA-256 `26752f925ff8de0c7bd0d79a7dc4ee76e9848e69586ba5391aeab72e3bb78ca5`.
+
+**What it holds**: the start of `russian_gunpowder_pair::RUSSIAN_GUNPOWDER`, and the walk's initial state.
+
+## run1340 — the Russians at a held Gunpowder age, Great Lakes: the draw stream to the game's end (2026-10-26, item 3670, `att-3670`)
+
+`docs/AI.md` §349. run1334's line with `--ai-tribe 13` and run1339's lobby: `--map 14 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 13
+--profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1339. Launched 21:22:18, exited 21:22:47 (28.7 s launch to exit; the runner retook it once
+  after a first take's exit 5). `success`. **The game ended itself on 5341** (closing block 5342, `ended_early`).
+  `GAME INFO` reads back as run1339's. `rngcmp.py` against run1339: 37 frames identical. Filed with `filerun.py
+  run1340 greatlakes-russian-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1340-greatlakes-russian-gunpowder-trace.txt`, 34,323,931 bytes,
+SHA-256 `647761072c960b0432b2ed1b969af797e7ca405ea20ad5ff4bc1527129a6005b`.
+
+Archive `rontrace-run1340.log`, 192,380,640 bytes,
+SHA-256 `bebe28b50d6adbe58550ac77bcf935a02165890714519c0c4f5cd2e881614ec5`.
+
+**What it holds**: the pair's first try. `russian_gunpowder_pair_first_parting` walks it from run1339: **3711 of 5341**
+by the sequence, 3712 by the count (19 draws a side, index 2, theirs `Unit::close+0xcb6`).
+`russian_gunpowder_pair_the_long_s_stride_walks_back_from_3711` walks its stride 101..3701: 37 blocks, 102 keys — the
+standing families and the Citizen `0/5`'s damage from 3501.
+
+## run1340b — the Russians at a held Gunpowder age, Great Lakes: the word 3711's window, blocks 3695..3961 (2026-10-26, item 3670, `att-3670`)
+
+`docs/AI.md` §349. **What the disk could not answer**: every record between the stride's last block 3701 and the
+word, and every round — run1340's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1340b --map 14 --end-frame 3961 --allow-early-end --timeout 3600
+--log-window 3695 3961 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover
+cover=0` and run1339's lobby: six blocks before the stride's 3701, and 250 after the word's block 3712.
+- Pool lane 1. 44.8 s launch to exit. `success`: 3962 frames. `rngcmp.py` against run1340: 3962 of 3962 identical.
+  Filed with `filerun.py run1340b greatlakes-russian-gunpowder-window-3695-3961`. `df -g ~` read 65 GiB free before
+  it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1340b-greatlakes-russian-gunpowder-window-3695-3961.txt`, 574,744,627 bytes,
+SHA-256 `325809ab90e5a166fffe2adaa0f9602b3e9a940f0e291a964fa0711737aef485`.
+
+Archive `rontrace-run1340b.log`, 94,674,528 bytes,
+SHA-256 `7d45f1c07c423fc9fef31a53d4245ef5d14df6d5755602a8a4e016f945aed6dc`.
+
+**What it holds**: `russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole` walks it from run1339 (266 blocks,
+3037 keys, no round on either side). On the word's block 3712 the Citizen `0/5` is ours alone and the human's
+leader holds a unit more in ours.
+
+## run1340c — the Russians at a held Gunpowder age, Great Lakes: the damage's window, blocks 3395..3751 (2026-10-26, item 3670, `att-3670`)
+
+`docs/AI.md` §349. **What the disk could not answer**: the blow behind the Citizen `0/5`'s damage, which run1340's
+stride agrees on at 3401 and parts on at 3501, with no block between. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1340c --map 14 --end-frame 3751 --allow-early-end --timeout 3600
+--log-window 3395 3751 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover
+cover=0` and run1339's lobby: six blocks before 3401, and 250 after 3501.
+- Pool lane 1. Launched 21:28:53, exited 21:29:45 (52.3 s launch to exit). `success`: 3752 frames. `rngcmp.py`
+  against run1340: 3752 of 3752 identical. Filed with `filerun.py run1340c
+  greatlakes-russian-gunpowder-window-3395-3751`. `df -g ~` read 62 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1340c-greatlakes-russian-gunpowder-window-3395-3751.txt`, 764,366,094 bytes,
+SHA-256 `eb7b14b521ef9afa632b3f0c27afadabaf81a6db28c7dbb41b4def7d7e684d51`.
+
+Archive `rontrace-run1340c.log`, 75,980,544 bytes,
+SHA-256 `17c00b2a7c247b8fe24a71f49a77d1ea35e1c1ceaa00931af48853c47761a44f`.
+
+**What it holds**: `russian_gunpowder_pair_run1340c_s_damage_window_is_widened_whole` walks it from run1339 (356
+blocks, 227 keys, no round). The first unit row is the blow of 3440: who=1's Heavy Knight `1/32` (TY 229) strikes
+`0/5` for 29 in theirs against 26 in ours (block 3441).

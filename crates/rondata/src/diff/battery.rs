@@ -391,6 +391,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Enlightenment pair's `(18, 20, 5)`, `(18, 20, 1)` or `(14, 20, 4)`,
     // other maps; the battery fields no Americans.
     (7, 20, 5),
+    // The Russians at a held Gunpowder age, Great Lakes (item 3670): not
+    // the AI word's `(14, 13, 2)`, another difficulty, nor the Modern and
+    // Medieval pairs' `(18, 13, 5)` and `(7, 13, 5)`, other maps, nor the
+    // held-out `GreatSaharaRussianTier4`'s `(7, 13, 4)`.
+    (14, 13, 5),
     // The Romans at a held Gunpowder age, Great Lakes (item 3671): not the
     // held-out `GreatLakesRomanTier2`'s `(14, 6, 2)`, another difficulty,
     // nor the AI word's `(18, 6, 2)`, the Classical pair's `(7, 6, 5)` or
