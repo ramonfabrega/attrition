@@ -2716,6 +2716,54 @@ mod tests {
         );
     }
 
+    /// **A unique unit takes its nations out of its graft's mask**
+    /// (`Types::finalize_grafting@00669840`, item 3706, `docs/AI.md`
+    /// §358.2): the Arqimmortal's `GRAFT` is the Elite Pikemen, whose
+    /// shipped `TRIBE_MASK` still holds the Persians (23); run1383's packet
+    /// reads the Pikemen's `+0x10` as `0x7b6dbf` and `tribe_can_type(135)`
+    /// as 0 for them. Under "No Unique Units" the nations join it instead.
+    #[test]
+    fn a_unique_unit_s_nations_leave_its_graft_s_mask() {
+        let f = fixture();
+        let mut tree = f.tree.clone();
+        while tree.types.len() < 0x32 {
+            tree.add(TypeDef::new("pad", Kind::Plain));
+        }
+        let unique = UnitTraits { unique: true, ..H };
+        let generic = tree.add(
+            TypeDef::unit("Elite Pikemen", H)
+                .at(f.barracks)
+                .tribes(0xfb6dbf),
+        );
+        let mut arq = TypeDef::unit("Arqimmortal", unique)
+            .at(f.barracks)
+            .tribes(1 << 23);
+        arq.graft = Some(generic);
+        let arq = tree.add(arq);
+        while tree.tribes.len() < 24 {
+            tree.add_tribe(Tribe::default());
+        }
+        tree.finalize();
+        assert_eq!(
+            tree.types[generic].tribe_mask, 0xfb6dbf,
+            "the file's mask stays"
+        );
+        let s = Setup::STANDARD;
+        assert_eq!(tree.live_tribe_mask(&s, generic), 0x7b6dbf);
+        assert_eq!(tree.live_tribe_mask(&s, arq), 1 << 23);
+        let mut p = PlayerTech::new(&tree);
+        p.tribe = 23;
+        assert_eq!(tree.tribe_can_type(&s, &p, generic), 0);
+        assert_eq!(tree.tribe_can_type(&s, &p, arq), 4);
+        p.tribe = 11;
+        assert_eq!(tree.tribe_can_type(&s, &p, generic), 4);
+        let nouu = Setup {
+            no_unique_units: true,
+            ..Setup::STANDARD
+        };
+        assert_eq!(tree.live_tribe_mask(&nouu, generic), 0xfb6dbf);
+    }
+
     #[test]
     fn the_starting_units_follow_the_leader_s_nation() {
         let f = fixture();
