@@ -443,6 +443,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // at another difficulty, nor `(7, 9, 3)`, `(7, 9, 5)`, `(18, 9, 3)` or
     // `(18, 9, 5)`, other maps; the battery fields no Spanish.
     (14, 9, 5),
+    // Item 3699: the Inca at a held Industrial age on Great Lakes at
+    // Toughest (`diff::inca_industrial_pair`), minted under rule (3) —
+    // not `(18, 2, 3)`, `(7, 2, 3)`, `(18, 2, 5)` or `(7, 2, 5)`, other
+    // maps; the battery fields no Inca.
+    (14, 2, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
