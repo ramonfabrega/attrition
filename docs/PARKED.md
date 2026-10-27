@@ -11506,13 +11506,13 @@ it.
   closing block are whole, so this names no score. It is the shape of 1878's ramp row and 3510's Barracks arm of
   `get_cost`. The first frame a slot parts would be read off a `BUILDS=7` stride on run1347's lobby.
 
-## Parked by the next landing, slot TR — reserved
+## Parked by item 3675, 2026-10-27 — the Chinese at a held Enlightenment age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3675a. Who=1's leader sites stand parted on the window's first block** (`docs/AI.md` §354; run1350b, block
+  3195): `SITE[3].rank` ours 6 against theirs 7, `SITE[6].rank` 7 against 6, `SITE[6].val` 1098547 against 549258
+  and `SITE[6]`'s square (53, 11) against (57, 42). run1350's stride prints no leader past the start, so the frame
+  they part is not on disk. The draw stream parts at 3263 on a round's launch point, not on a site, so this names
+  no score. A `LEADERS=9` stride on run1349's lobby would read the first frame.
 
 ## Parked by item 3677, 2026-10-26 — the German Industrial word 4323 → 4348
 
