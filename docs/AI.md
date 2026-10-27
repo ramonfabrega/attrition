@@ -32919,7 +32919,7 @@ is four `0xc0` more, a group range of 20 against 16.
 members, not workers.** `do_attack` passes its own `is_worker` (`:120`–
 `:122`). The function compares that argument with each member's type
 vslot `+0x10c`, which is `is_siege` (the `Type` table read from the PE,
-§ the vslot table near the top of this document). With 0, only
+§2.10). With 0, only
 non-siege members count. This crate's emulator sweep already read it so
 (`sweep/group_data_get_max_range.rs`: "answers non-zero exactly when the
 argument a[0] is"), but the live view tested each member's `is_worker`.
