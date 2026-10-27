@@ -80,10 +80,6 @@ impl Sim {
     /// allied cell; no capture on file reaches them.
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
         const THECEO: i32 = 0x165;
-        if std::env::var_os("RON_PROBE_3686").is_some() && self.units[i].owner == 1 && self.units[i].index == 36 && (3160..3170).contains(&frame) {
-            let u = &self.units[i];
-            eprintln!("PROBE3686 f{frame} idx{} cap{} on{} h{}/{} frac{} attr{} m2{:x} gen{} dom{:?}", u.index, self.captain_of(i) == i, u.on_map, u.health, u.max_health, u.damage_frac, u.attrition, u.unit_masks2, self.has_general(i, THECEO), u.kind.domain);
-        }
         let rate = i64::from(self.tuning.french_supply_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
@@ -92,14 +88,16 @@ impl Sim {
         if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
             return;
         }
-        if self.captain_of(i) != i || !matches!(u.kind.domain, Domain::Land) {
+        if !u.captain || !matches!(u.kind.domain, Domain::Land) {
             return;
         }
         let Some(t) = u.ty else {
             return;
         };
-        let damaged = self.squad_of(i).iter().any(|&f| {
-            self.units[f].health < self.units[f].max_health || self.units[f].damage_frac != 0
+        let squad = self.squad_members(i);
+        let damaged = squad.iter().any(|&f| {
+            let f = &self.units[f];
+            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
         });
         if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
             return;
@@ -110,10 +108,35 @@ impl Sim {
         if !self.has_general(i, THECEO) {
             return;
         }
-        let u = &mut self.units[i];
-        if u.health < u.max_health {
-            u.health += 1;
-            u.damage_frac = 0;
+        self.repair_unit_damage(i, 1);
+    }
+
+    /// **`Unit::repair_damage@0060de10`** on a figure, the whole-point
+    /// half: the figure's own damage first — `amount` off it, floored at
+    /// none, and its fraction (`+0x3b`) zeroed when it had any — and what
+    /// is left over, `amount − damage`, handed down `o_down` to the next
+    /// live figure with the same call. A figure with no damage hands the
+    /// whole of it on, so a captain's heal reaches the hurt figure below.
+    ///
+    /// SEAM: past the chain's last live figure, a squad under its
+    /// `uber_size` (`+0x308`) **trains a figure back** (`Objects::find_free`,
+    /// `init`, a spot and a move order, the group joins): no capture on
+    /// file reaches it, and here the remainder is dropped.
+    pub(crate) fn repair_unit_damage(&mut self, i: usize, amount: i32) {
+        let mut cur = Some(i);
+        let mut left = amount;
+        while let Some(f) = cur {
+            if left <= 0 || !self.units[f].alive() {
+                return;
+            }
+            let u = &mut self.units[f];
+            let damage = u.max_health - u.health;
+            if damage != 0 {
+                u.health += left.min(damage);
+                u.damage_frac = 0;
+            }
+            left -= damage;
+            cur = self.units[f].o_down;
         }
     }
 
