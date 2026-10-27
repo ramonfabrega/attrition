@@ -10642,6 +10642,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3688,
         Some(crate::diff::roman_gunpowder_pair::WIDENING_ROMAN_GUNPOWDER_FRAME_4062),
     ),
+    // **The French at a held Enlightenment age, at difficulty 4** (item
+    // 3672): East Indies — first try 4505 of 4940 by the count and the
+    // sequence, widened on run1344b over 4495..4756 (the word's block
+    // 4506), the rounds compared.
+    (
+        "FRENCH_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT_PAIR_WORD,
+        Some("french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole"),
+        3672,
+        Some(crate::diff::french_enlightenment_pair::WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4505),
+    ),
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
     // sequence, widened on run1336b over 2295..2633 (the word's block
@@ -12819,6 +12830,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_062,
         endpoint: Some("roman_gunpowder_pair_run1342_s_closing_state"),
         window: Some("roman_gunpowder_frame_4062_window"),
+    },
+    // The French at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), East Indies, at difficulty 4 (item 3672):
+    // first try 4505 of a game that ends itself on 4940, widened on
+    // run1344b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesFrenchEnlightenment",
+        named: "East Indies (French, Enlightenment)",
+        word: crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT_PAIR_WORD,
+        length: 4_940,
+        endpoint: None,
+        window: Some("french_enlightenment_frame_4505_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
