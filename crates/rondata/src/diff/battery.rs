@@ -443,6 +443,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // at another difficulty, nor `(7, 9, 3)`, `(7, 9, 5)`, `(18, 9, 3)` or
     // `(18, 9, 5)`, other maps; the battery fields no Spanish.
     (14, 9, 5),
+    // Item 3700: the Egyptians at a held Industrial age on East Indies at
+    // Hard (`diff::egyptian_industrial_pair`), minted under rule (3) — not
+    // the held-out `(18, 7, 3)` or the Classical pair's `(18, 7, 5)`,
+    // other difficulties, nor `(7, 7, 4)` or `(7, 7, 5)`, another map.
+    (18, 7, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

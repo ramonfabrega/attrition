@@ -31265,3 +31265,69 @@ against 458, none parting. The word's widening (`spanish_industrial_pair_run1382
 and in the coverage driver. Block 4201 is the closing `GameInfo` alone; the per-frame `BUILD` records never print
 who=1's foundations `1/2056..2058` (parked 3705a).
 
+
+## run1373 — the Egyptians at a held Industrial age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3700, `att-3700`)
+
+`docs/AI.md` §360. run1365's lobby with the nation and age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1373 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 09:02:49, exited 09:03:13 (24.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 7, map style 18, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4`, `STARTING_TECHNOLOGY 5` and `ENDING_TECHNOLOGY 5` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1373 eastindies-egyptian-industrial-start`. `df -g ~` read 156 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1373-eastindies-egyptian-industrial-start.txt`, 153,819,806 bytes,
+SHA-256 `c764ed20180184e76bfe661a98dc08bc092242d882f59956b43b7c153a89c926`.
+
+Archive `rontrace-run1373.log`, 10,145,600 bytes,
+SHA-256 `682792e572ee20b4f268f48cff28c13ec59700eb77fe56a983adc2f7538faa66`.
+
+**What it holds**: the start of `egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL`, and the walk's initial state.
+
+## run1374 — the Egyptians at a held Industrial age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3700, `att-3700`)
+
+`docs/AI.md` §360. run1366's line with `--ai-tribe 7` and run1373's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 7 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1373. Launched 09:02:49, exited 09:03:27 (38.6 s launch to exit). `success`. **The game
+  ended itself on 5689** (closing block 5690, `ended_early`). `GAME INFO` reads back as run1373's. `rngcmp.py`
+  against run1373: 37 frames identical. Filed with `filerun.py run1374 eastindies-egyptian-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1374-eastindies-egyptian-industrial-trace.txt`, 39,091,117 bytes,
+SHA-256 `84402ec18f1476158f4d4f34cdbe4ef953c50bae7721101f966df16f7360891a`.
+
+Archive `rontrace-run1374.log`, 143,440,960 bytes,
+SHA-256 `b47c290e2f0ec2b18ba8fd7a006bd6566b3385fbd8741259bca05d8094c5849b`.
+
+**What it holds**: the pair's first try. `egyptian_industrial_pair_first_parting` walks it from run1373: **4959 of
+5689** by the count and the sequence. `egyptian_industrial_pair_the_long_s_stride_walks_back_from_4959` walks its
+stride 101..4901 (155 keys, the standing families alone). `egyptian_industrial_pair_run1374_s_closing_state`
+compares the closing block 5690: 189 units, downstream of the word (parked 3700b).
+
+## run1374b — the Egyptians at a held Industrial age, East Indies, at difficulty 4: the word 4959's window, blocks 4895..5210 (2026-10-27, item 3700, `att-3700`)
+
+`docs/AI.md` §360. **What the disk could not answer**: every record and every round on the word's frame. run1374's
+stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1374b --map 18 --end-frame 5210 --timeout 3600
+--log-window 4895 5210 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover
+cover=0` and run1373's lobby: six blocks before the stride's last block 4901 and 250 past the word's block 4960.
+- Pool lane 1. Launched 09:06:26, exited 09:07:17 (50.5 s launch to exit). `success`: 5211 frames. `rngcmp.py`
+  against run1374: 5211 of 5211 identical. Filed with `filerun.py run1374b
+  eastindies-egyptian-industrial-window-4895-5210`. `df -g ~` read 154 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1374b-eastindies-egyptian-industrial-window-4895-5210.txt`, 694,952,337 bytes,
+SHA-256 `8cb36ebcc79046335f6399ef1046ac9d982fca0760e403d3350954f11ba60b52`.
+
+Archive `rontrace-run1374b.log`, 130,391,392 bytes,
+SHA-256 `c3c90c609880c8a505a0a90841256a601e075e77056a6419901c40f5b6919e51`.
+
+**What it holds**: `egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole` walks it from run1373: 315
+blocks and 1132 keys. The rounds read 46 ours against 54 theirs, 13 parting; the first is the Light Tank `1/54`'s
+(TI 243, piece 193) launch on 4940, which wounds the human's Citizen `0/10` on 4943 in theirs alone.
