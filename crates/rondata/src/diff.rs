@@ -117,6 +117,8 @@ mod greek_enlightenment_pair;
 #[cfg(test)]
 mod greek_gunpowder_pair;
 #[cfg(test)]
+mod greek_medieval_pair;
+#[cfg(test)]
 mod greek_word;
 mod harness;
 #[cfg(test)]
