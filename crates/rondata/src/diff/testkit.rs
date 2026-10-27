@@ -10653,6 +10653,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3669,
         Some(crate::diff::american_industrial_pair::WIDENING_AMERICAN_INDUSTRIAL_FRAME_3174),
     ),
+    // **The Russians at a held Gunpowder age** (item 3670): Great Lakes —
+    // first try 3711 of 5341 by the sequence (3712 by the count), widened
+    // on run1340b over 3695..3961 (the word's block 3712), the rounds
+    // compared.
+    (
+        "RUSSIAN_GUNPOWDER_PAIR_WORD",
+        crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER_PAIR_WORD,
+        Some("russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole"),
+        3670,
+        Some(crate::diff::russian_gunpowder_pair::WIDENING_RUSSIAN_GUNPOWDER_FRAME_3711),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12800,6 +12811,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_861,
         endpoint: None,
         window: Some("american_industrial_frame_3174_window"),
+    },
+    // The Russians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), Great Lakes (item 3670): first try 3711 of a
+    // game that ends itself on 5341, widened on run1340b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesRussianGunpowder",
+        named: "Great Lakes (Russians, Gunpowder)",
+        word: crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER_PAIR_WORD,
+        length: 5_341,
+        endpoint: None,
+        window: Some("russian_gunpowder_frame_3711_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
