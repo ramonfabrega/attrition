@@ -10,7 +10,8 @@
 //! Captures: run1349 (a `DUMP_ALL` start) and run1350 (the draw stream to
 //! the game's end, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100,
 //! walked from the start's initial state). The first try is in
-//! `docs/AI.md` §354.
+//! `docs/AI.md` §354; item 3704 closes it whole, 3836 of 3836 (§354.2),
+//! widened on run1381b through the closing block.
 
 use super::coverage_pair::Pair;
 use super::testkit::*;
@@ -34,9 +35,16 @@ pub(crate) const CHINESE_ENLIGHTENMENT: Pair = Pair {
     length: 3836,
     // Item 3675, first try: 3263 by the count and the sequence, ours 6
     // draws against theirs 7, at index 3 ours `Farms::inc_time+0x1ae`,
-    // theirs `Object::take_damage+0xe1` (`docs/AI.md` §354).
-    count: 3263,
-    sequence: 3263,
+    // theirs `Object::take_damage+0xe1` (`docs/AI.md` §354). Item 3704
+    // closes it, 3263 → 3836, the game's last frame (§354.2): pieces 66
+    // (the Manchu Musketeers, TI 116) and 1142 (the Fusiliers, TI 136) take
+    // three bays each (`sim::launch`, off run1381's packet), so the
+    // Musketeer `1/42`'s round of 3261 leaves (5094, 31444, 678), the
+    // dump's, and flies 4 frames, where it left from the figure's own
+    // (5208, 31512, 464) and flew 5; it strikes the city centre `0/2000`
+    // on the word, as theirs does.
+    count: 3836,
+    sequence: 3836,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -252,16 +260,94 @@ fn chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole() {
     // city centre `0/2000`, loosed on 3261 — ours (5208, 31512, 464) in 5
     // frames, theirs (5094, 31444, 678) in 4 — lands in theirs
     // (`Object::take_damage+0xe1`, index 3) and ours holds it to 3264:
-    // `0/2000`'s `build:damage` 4 in theirs on block 3264, ours 0.
-    pin_eq!(w.firsts.len(), 1575, "run1350b baseline");
+    // `0/2000`'s `build:damage` 4 in theirs on block 3264, ours 0. Item
+    // 3704, pieces 66 and 1142's bays: 1575 → 58 keys, nothing parting on
+    // 3246 or 3264; what stands is the families block 3195 carries (and
+    // 69's on 3228), with who=1's `SITE[8].rank` on 3376 (ours 6, theirs
+    // 7; 3675a's family).
+    pin_eq!(w.firsts.len(), 58, "run1350b baseline");
     // Every round, both directions: 263 round-blocks theirs, 305 ours (each
     // of ours flies a frame longer), 209 parting, the first on the
-    // window's first block 3195 (item 3675).
-    pin_eq!(w.rounds_read, (263, 305), "the rounds read");
-    pin_eq!(w.rounds.len(), 209, "the rounds that part");
+    // window's first block 3195 (item 3675). Item 3704: 263 against 263,
+    // 2 parting — the Manchu Musketeer `1/48`'s `ammo[1]` on 3286, `whom`
+    // and `ox` (ours −1, theirs `0/8`), its launch and landing agreeing
+    // (parked 3704a).
+    pin_eq!(w.rounds_read, (263, 263), "the rounds read");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
 
-/// **The pair's closing state** (item 3675): run1350's closing block 4706,
+/// run1381b: the pair's last blocks, 3580..3837 at the long's detail with
+/// `LEADERS=9` and `AMMO=5` — item 3704 closes the word at the game's last
+/// frame 3836, and 3837 is its closing block. run1350 prints units only
+/// every hundredth block, no `AMMO` and no `LEADERS`, `BUILDS` or `CITIES`
+/// record past the start, and run1350b ends on 3514, so no dump held the
+/// last blocks.
+pub(crate) const RUN1381B: &str =
+    "gamelog-run1381b-greatlakes-chinese-enlightenment-closing-window-3580-3837.txt";
+
+/// The window: block 3580 through the closing block 3837.
+pub(crate) const WIDENING_CHINESE_ENLIGHTENMENT_CLOSING: (i64, i64) = (3580, 3837);
+
+/// **The pair's last blocks**: run1381b walked from run1349's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3704).
+pub(crate) fn chinese_enlightenment_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[CHINESE_ENLIGHTENMENT.start],
+        true,
+        CHINESE_ENLIGHTENMENT.long,
+        "run1381b",
+        &[(RUN1381B, WIDENING_CHINESE_ENLIGHTENMENT_CLOSING.0)],
+        WIDENING_CHINESE_ENLIGHTENMENT_CLOSING,
+        1,
+        &[3837],
+        true,
+    )
+}
+
+#[test]
+fn chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_enlightenment_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3704, the first walk: **62** keys, every one a standing family
+    // on block 3580 — `form`, who=1's groups and pools 64..70 (69's on
+    // 3799), the human's `SITE[i].reg` and `aggression[1]` (ours 0, theirs
+    // 1), and who=1's `SITE[0..6]` ranks, values and squares (3675a's
+    // family; `SITE[3].reg` on 3776). No unit, building or city field and
+    // no round parts, and the closing block 3837 agrees.
+    pin_eq!(w.firsts.len(), 62, "run1381b baseline");
+    // Every round, both directions: 231 round-blocks each side, none
+    // parting.
+    pin_eq!(w.rounds_read, (231, 231), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The pair's closing state** (item 3675): run1350's closing block 3837,
 /// the whole map's units, walked from run1349's start.
 #[test]
 fn chinese_enlightenment_pair_run1350_s_closing_state() {
@@ -308,8 +394,14 @@ fn chinese_enlightenment_pair_run1350_s_closing_state() {
     // block 3837 compares 151 units — who=1's army off (`1/0`, `1/3`..`1/148`),
     // `1/44` torn, `1/149`..`1/153` unlinked, the human's `0/10` off and
     // `0/9` extra; who=1's buildings 2043..2051 and cities 2000, 2021 and
-    // 2046 part in the closing fields.
-    pin_eq!(e.compared, 151, "units compared");
-    pin_eq!(e.counts(), [102, 5, 1, 0, 12, 0, 12], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(0, 9)], "the closing extras");
+    // 2046 part in the closing fields. Item 3704, the pair whole: 156
+    // units, none off, torn, unlinked or extra, `Closing fields: none` —
+    // the game ends itself on 3836.
+    pin_eq!(e.compared, 156, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

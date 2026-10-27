@@ -514,7 +514,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3695: 220 -> 221, the Lakota Enlightenment pair whole on its first
 /// try at 4673 — `Repeating Rifle Horse` (208, `RIFLEHORSE`, land; 352
 /// figure rows), the line §355 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 221;
+/// Item 3704: 221 -> 222, the Chinese Enlightenment pair whole at 3836 —
+/// `Manchu Musketeers` (116, `MANCHUMUSKETEERS`, land; 1356 figure rows),
+/// the line §354 named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 222;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

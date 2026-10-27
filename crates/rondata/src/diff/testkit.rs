@@ -10738,12 +10738,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // its first try parts at 3263 of 3836, the Manchu Musketeer `1/42`'s
     // round landing a frame early in theirs; widened on run1350b over
     // 3195..3514, the rounds compared, and the stride over 101..3201.
+    // Item 3704 closed it, 3836 of 3836 (pieces 66 and 1142's bays),
+    // widened on run1381b over 3580..3837 (the closing block): 62 keys,
+    // rounds 231 against 231, the closing state whole.
     (
         "CHINESE_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT_PAIR_WORD,
-        Some("chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole"),
-        3675,
-        Some(crate::diff::chinese_enlightenment_pair::WIDENING_CHINESE_ENLIGHTENMENT_FRAME_3263),
+        Some("chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole"),
+        3704,
+        Some(crate::diff::chinese_enlightenment_pair::WIDENING_CHINESE_ENLIGHTENMENT_CLOSING),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12977,7 +12980,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Chinese at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), Great Lakes (item 3675): its first try parts
-    // at 3263 of a game that ends itself on 3836, widened on run1350b.
+    // at 3263 of a game that ends itself on 3836, widened on run1350b;
+    // whole since item 3704, 3836 of 3836, widened on run1381b through the
+    // closing block.
     AiWord {
         line: "Late ages",
         map: "GreatLakesChineseEnlightenment",
@@ -12985,7 +12990,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT_PAIR_WORD,
         length: 3_836,
         endpoint: Some("chinese_enlightenment_pair_run1350_s_closing_state"),
-        window: Some("chinese_enlightenment_frame_3263_window"),
+        window: Some("chinese_enlightenment_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
