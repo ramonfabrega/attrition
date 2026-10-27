@@ -265,7 +265,9 @@ fn chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole() {
     // 3246 or 3264; what stands is the families block 3195 carries (and
     // 69's on 3228), with who=1's `SITE[8].rank` on 3376 (ours 6, theirs
     // 7; 3675a's family).
-    pin_eq!(w.firsts.len(), 58, "run1350b baseline");
+    // Item 3708: 58 → 52, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 52, "run1350b baseline");
     // Every round, both directions: 263 round-blocks theirs, 305 ours (each
     // of ours flies a frame longer), 209 parting, the first on the
     // window's first block 3195 (item 3675). Item 3704: 263 against 263,
@@ -340,7 +342,9 @@ fn chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole() {
     // 1), and who=1's `SITE[0..6]` ranks, values and squares (3675a's
     // family; `SITE[3].reg` on 3776). No unit, building or city field and
     // no round parts, and the closing block 3837 agrees.
-    pin_eq!(w.firsts.len(), 62, "run1381b baseline");
+    // Item 3708: 62 → 47, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 47, "run1381b baseline");
     // Every round, both directions: 231 round-blocks each side, none
     // parting.
     pin_eq!(w.rounds_read, (231, 231), "the rounds read");

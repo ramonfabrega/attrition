@@ -34054,76 +34054,47 @@ barbarian term of the rewrite is carried but unexercised: the roster's `barbaria
 
 *Item 3708, 2026-10-27, Opus 5.5. The word 3020 moves to **3130 of 5673**.*
 
-**The frame, both sides.** The booking was the word 3020, whose state first parts on the stride's 2801: the
-Village `1/2039` (TI 414) stands 768 lower in ours. 768 is one cell (`0x300`). run1385 (blocks 2695..2801, with
-`LEADERS` and the build records) puts the Village on 2778 at `y_internal` 24672 in ours against 25440 in theirs:
-cell (34, 32) against (34, 33), both at the `+0x60` corner offset. **Theirs takes the cell its make list offers
-first**:
-- On 2777 both sides' `found_cities` offer two sites, (34, 32) and (34, 33).
-- Both offers saturate (`vv = 999999`), so each reads 3906 on both sides.
-- `make_stuff` takes the first slot. Theirs holds (34, 33) in slot 8 and (34, 32) in slot 9; ours holds them the other
-  way round.
-
-So the slot order parts, and it is set by the 2775 sweep (`Leader::compute_sites@006cc950`, block 2776).
-
-**The sweep, inside it.** run1385p is a packet at logger frame 2775. `step4.py --entry 6cc950 --this e4127c --args
-0` runs who=1's sweep to its return, and its ten sites come out as block 2776's table exactly. Watched at the
-sweep's locals (`ebp-4`, `-8`, `-0x10`):
-- **The rescore agrees.** Theirs' slot 9 (34, 33) rescores to 53784, as ours does. Theirs' slot 8 (42, 53) rescores
-  to 0.
-- **The sampler agrees on region 8.** All 53 of theirs' calls into `compute_site_stats` (`006cceaf`, `keep` 1) read
-  the cell and give the value ours does, call for call: (33, 30) slides to (34, 32) at 215784, (36, 35) slides to
-  (34, 33) at 129600. **The row-major `cells_in` walks the original's order here**, the `Region.coords` seam
-  `ai_sites.rs`' header names.
-- **The insertion follows the table.** In theirs, slot 8 sits empty, so (34, 32) takes slot 9 and (34, 33) then
-  takes slot 8. In ours, slot 8 holds a positive (44, 52), so the insertion takes it first. Read in the listing
-  (`006cced4`..`006ccf05`), the rule is ours' clause for clause.
-
-So the tables going *into* 2775 differ. run1385c (leaders on a stride, 1502..2602) against ours' sweeps:
+**The frame.** The word 3020's state first parts on the stride's 2801: the Village `1/2039` (TI 414) is one cell
+(`0x300`) lower in ours. run1385 (2695..2801, with `LEADERS`) places it on 2778 at cell (34, 32) in ours against
+(34, 33) in theirs. On 2777 both sides offer both cells, both saturate to 3906, and `make_stuff` takes the first
+slot; the two sides hold them in slots 8 and 9 the other way round. The order is set by the 2775 sweep
+(`Leader::compute_sites@006cc950`). On the packet run1385p (`step4.py --entry 6cc950 --this e4127c --args 0`) theirs'
+sweep reproduces block 2776's table exactly; its rescore and its 53 region-8 samples (`compute_site_stats`, `keep` 1)
+agree with ours call for call, so **the row-major `cells_in` walks the original's order here** (the `Region.coords`
+seam). The insertion rule (`006cced4`..`006ccf05`) is ours' clause for clause: the tables going *into* 2775 differ.
+run1385c (leaders on a stride, 1502..2602) walks them back (the full table is the item's journal):
 
 | sweep (block) | site | ours | theirs |
 |---|---|---|---|
-| 1575..2175 (1602..2202) | every slot | agree | agree |
+| 1575..2175 | every slot | agree | agree |
 | 2375 (2402) | (43, 53) `val` | 336 | 231 |
-| 2575 (2602) | slots 7..8 | (44, 52) 247; no (42, 53) | (44, 52) 152, (42, 53) 198 |
-| 2775 (2776) | region 12's samples | (44, 52) 1995 and 1311, (42, 53) 242 | 1330, 874, 154 |
+| 2775 (2776) | region 12's samples | 1995, 1311, 242 | 1330, 874, 154 |
 
-**The direction: ours scores the home region's samples ×3/2.** On the packet, theirs' region-12 calls read 1330, 874
-and 154 where ours' read 1995, 1311 and 242. Ours' *rescore* of (44, 52) (`keep` 0) reads 1330 on both sides. With
-three cities, the only `×3/2` inside the slide gate is step 6's `forts != 0` arm, and `forts` is counted in the 5×5
-only under `keep`. Ours counted the Persians' **Fort `1/2034` (TI 30) at (44, 53)**. It was placed by 2375 and is
-not built (`active` false, `activated` false on 2775).
+**Ours scores the home region's samples ×3/2**, while its `keep` 0 rescore of (44, 52) reads 1330 as theirs does.
+With three cities the only ×3/2 inside the slide gate is step 6's `forts != 0` arm, counted only under `keep`. Ours
+counted the **Fort `1/2034` (TI 30) at (44, 53)**: placed by 2375, `active` and `activated` false on 2775.
 
 **The predicate.** `Forts::find_fort@0073ebe0` walks `forts.lists[who]` (count `LeaderData +0x428`) for an entry
 with `+6 & 1` at the cell. `Fort::init@0073eac0` sets that byte, and its one caller is `Forts::init_fort@0073ed70`,
-whose one caller is `Build::activate@00623e20:566`: the type's vslot `+0xfc` arm, beside
-`UnbuiltForts::remove_unbuilt_fort`. A placed fort is an `UnbuiltFort` and is not on the list. Ours' `fort_at` asked
-`alive` and the Fort line. It now also asks `active`, as the census's `Sim::reg_forts` (the same list's count)
-already did.
+whose one caller is `Build::activate@00623e20:566` (beside `UnbuiltForts::remove_unbuilt_fort`). A placed fort is
+not on the list. Ours' `fort_at` now asks `active` too, as the census's `Sim::reg_forts` already did.
 
-**Built.** `Sim::fort_at` (`crates/sim/src/ai_sites.rs`). Test:
-`ai_sites::tests::a_fort_is_found_once_it_is_built_not_once_it_is_placed`. **Mutation** (`tools/mutate.py`, the
-`&& b.active` line taken out, on the committed tree): `persian_gunpowder_pair_first_parting` reads 3020 again, `held
-— zsh exited 101`.
+**Built.** `Sim::fort_at` (`ai_sites.rs`); test `a_fort_is_found_once_it_is_built_not_once_it_is_placed`. With
+`&& b.active` mutated out, `persian_gunpowder_pair_first_parting` reads 3020 again (held).
 
-**The score: 3020 → 3130 of 5673**, by the count and the sequence. On 3130 ours spends 98 draws against theirs' 97,
-parting at index 54: ours `Unit::think_fish+0x27a`, theirs `Guy::init_real+0x52`.
-
-**The value diff on the word** (run1383b, whose window 3014..3270 holds the word's block 3131: **295** keys, no
-rounds, every key before 3131 a standing family):
+**The score: 3020 → 3130 of 5673**, by the count and the sequence. The value diff on the word (run1383b, 3014..3270:
+**295** keys, every key before 3131 a standing family):
 
 | block | record | field | ours | theirs |
 |---|---|---|---|---|
-| 3130 | the draw stream, index 54 | site | `Unit::think_fish+0x27a` | `Guy::init_real+0x52` |
-| 3130 | who=1's Fishermen `1/125` (TI 317, sea), at (35928, 44664) | `idle`, `orders.len` | 0, 0 | 0, 0 |
+| 3130 | draws 98 / 97, index 54 | site | `Unit::think_fish+0x27a` | `Guy::init_real+0x52` |
+| 3130 | who=1's Fishermen `1/125` (TI 317, sea), idle | `orders.len` | 0 | 0 |
 | 3131 | `1/125` | `orders_x`, `orders_y` (its `MOVEORDER`) | 34968, 44952 | 29592, 41880 |
 | 3132 | `1/125` | `path:length`; `pos` | 1; (35891, 44676) | 7; (35890, 44663) |
 
-**The windows.** run1385 is 118 keys before the build and **91** after it, all standing families. The site table
-agrees and the Village stands at (34, 33). The stride (run1370, 101..3001) is **132** keys. Its first row that is
-not standing is on 2901: the Gun Mahout `1/42` (TI 263, land, a `GUARDORDER` on `1/17` that has just changed posts),
-`dest_angle` −1073741824 against 1556283392. The mutated tree prints the same row, so it predates this build, and
-run1383b's 3014 reads it quiet again. run1370b's 1180 window holds at 52.
+**The windows** (re-pinned in `persian_gunpowder_pair.rs`): run1385 118 → **91** keys, the stride (run1370) 150 →
+**132**, run1370b's 1180 window holds at 52; all standing families but the stride's 2901 row (`1/42`'s
+`dest_angle`), which the mutated tree prints too (3708a).
 
 **The closing state** (run1370's 5674): 250 units compared, counts `[237, 7, 1, 7, 180, 1, 83]`, and the human's `0/13`
 the one extra (`GROUND_INEXACT` stays 3).
