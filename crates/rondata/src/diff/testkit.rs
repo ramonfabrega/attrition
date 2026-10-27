@@ -10614,12 +10614,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Germans at a held Industrial age** (item 3667): Great Lakes —
     // first try 4323 of 4772 by the count and the sequence, widened on
     // run1334b over 4295..4574 (the word's block 4324), the rounds
-    // compared.
+    // compared. Item 3677 moved it to 4348 (the Citizen's attack arm) and
+    // walked the same window again: the word's block 4349 parts group
+    // 64's orders.
     (
         "GERMAN_INDUSTRIAL_PAIR_WORD",
         crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL_PAIR_WORD,
         Some("german_industrial_pair_run1334b_s_word_frame_is_widened_whole"),
-        3667,
+        3677,
         Some(crate::diff::german_industrial_pair::WIDENING_GERMAN_INDUSTRIAL_FRAME_4323),
     ),
     // **The British at a held Industrial age, at difficulty 4** (item

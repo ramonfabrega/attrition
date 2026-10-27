@@ -34,9 +34,13 @@ pub(crate) const GERMAN_INDUSTRIAL: Pair = Pair {
     // Item 3667, first try: frame 4323, by the count and the sequence —
     // ours 17 draws against 18, parting at index 11, ours
     // `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6` (`docs/AI.md`
-    // §346).
-    count: 4323,
-    sequence: 4323,
+    // §346). Item 3677: **4323 → 4348**, the Citizen's attack (`UnitData::
+    // attack`'s `0x164` arm: who=1's Armored Car `1/27` struck the Citizen
+    // `0/13` on 3521 for 7 6/16 in theirs, 6 12/16 in ours). On 4348 ours
+    // spends 17 draws against 20, parting at index 1: theirs
+    // `Unit::fight+0x824` under `Unit::do_attack`, ours `Guy::move`'s.
+    count: 4348,
+    sequence: 4348,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -185,8 +189,10 @@ fn german_industrial_pair_the_long_s_stride_walks_back_from_4323() {
     // `myspeed` 55 in ours against 68 in theirs**, each as it is built,
     // 1/41's on 3901 with `g.z[0]` 0 against 426. The human's Citizens'
     // damage parts from 3601 (`0/13` `hits_left` ours 34 theirs 31) and
-    // on 4301 (`0/11` 23 against 19, `0/12` 53 against 52).
-    pin_eq!(w.firsts.len(), 135, "the stride's baseline");
+    // on 4301 (`0/11` 23 against 19, `0/12` 53 against 52). Item 3677:
+    // 135 → 125, the damage rows gone with the Citizen's attack arm; the
+    // standing families and the Albatrosses' `myspeed` stay.
+    pin_eq!(w.firsts.len(), 125, "the stride's baseline");
 }
 
 /// run1334b: the word 4323's window, blocks 4295..4574 at the long's
@@ -251,14 +257,84 @@ fn german_industrial_pair_run1334b_s_word_frame_is_widened_whole() {
     // the human's leader holds a unit more in ours** (`num_units[0]` 13
     // against 12, `peasants` likewise) and `0/11` is ours alone: theirs'
     // draw at index 11 is `Unit::close+0xcb6`, the Citizen's death.
-    pin_eq!(w.firsts.len(), 2841, "run1334b baseline");
+    // Item 3677: 2841 → 2796. The damage rows and the word's block agree;
+    // before 4349 only the standing families, the Albatrosses' `myspeed`
+    // and `1/41`'s `g.z[0]` part. **On 4349 who=1's group 64 — group 67's
+    // two Supply Wagons and the General `1/128` merged into it on 4348 —
+    // re-orders in ours alone**: `1/17`, `1/21`, `1/22` and the rest guard
+    // the wagon `1/127` at (38808, 19656) and walk off, where theirs keep
+    // guarding the Citizen `1/17` and send the joiners to the front.
+    pin_eq!(w.firsts.len(), 2796, "run1334b baseline");
     // Every round, both directions: 1018 round-blocks theirs, 246 ours,
     // 168 parting. **The first launch that parts is on 4304, who=1's A7V
     // `1/48`** (TY 242, the Light Tank): theirs fires from (5427, 31534)
     // at `sz` 587, ours from the figure's own square (5544, 31512) at
     // 409; the German Anti-tank Rifles `1/50`, `1/51` (TY 138) part the
     // same way on 4305, `1/51`'s in 2 frames against 3. The hypothesis:
-    // neither piece has a `launch::BAYS` row (`docs/AI.md` §346).
-    pin_eq!(w.rounds_read, (1018, 246), "the rounds read");
-    pin_eq!(w.rounds.len(), 168, "the rounds that part");
+    // neither piece has a `launch::BAYS` row (`docs/AI.md` §346). Item
+    // 3677: piece 192 reads piece 189's turret rows (`pivot::SAME_AS`)
+    // and piece 88 piece 1143's bays, and the launches agree: 168 → 132,
+    // ours 246 → 251; the first parting round is 4324's dead target
+    // (`1/27`'s `whom`, §338's standing row), then the rounds past 4349.
+    pin_eq!(w.rounds_read, (1018, 251), "the rounds read");
+    pin_eq!(w.rounds.len(), 132, "the rounds that part");
+}
+
+/// run1351b: the window over the Citizens' damage parting, blocks
+/// 3495..3851 at run1334b's detail — six blocks before the stride's 3501,
+/// where the damage still agrees, and 250 after its 3601 (item 3677).
+pub(crate) const RUN1351B: &str =
+    "gamelog-run1351b-greatlakes-german-industrial-window-3495-3851.txt";
+
+/// The window: block 3495 through 3851.
+pub(crate) const WIDENING_GERMAN_INDUSTRIAL_DAMAGE: (i64, i64) = (3495, 3851);
+
+/// **The damage's window**: run1351b walked from run1333's start with the
+/// recorder on and every round compared (item 3677).
+pub(crate) fn german_industrial_damage_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[GERMAN_INDUSTRIAL.start],
+        true,
+        GERMAN_INDUSTRIAL.long,
+        "run1351b",
+        &[(RUN1351B, WIDENING_GERMAN_INDUSTRIAL_DAMAGE.0)],
+        WIDENING_GERMAN_INDUSTRIAL_DAMAGE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn german_industrial_pair_run1351b_s_damage_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_industrial_damage_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 356, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3677, with the Citizen's attack arm: 70 keys (75 without it,
+    // whose first unit row was the blow of 3522 — `0/13` `hits:damage` 6
+    // and 12/16 in ours against 7 and 6/16), all of them the standing
+    // families, both leaders and the Albatrosses' `myspeed`; every round
+    // agrees.
+    pin_eq!(w.firsts.len(), 70, "run1351b baseline");
+    pin_eq!(w.rounds_read, (51, 51), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

@@ -32242,11 +32242,68 @@ damage parting from 3601 is not placed here; who=1's Albatrosses run
 (68/55 ≈ 1.24: a speed bonus ours does not apply), parked in their
 airports (`inside_up` 2026, 2034, 2040).
 
-**The next item's hypothesis** is two `launch::BAYS` rows, the A7V's and
+~~**The next item's hypothesis** is two `launch::BAYS` rows, the A7V's and
 the German Anti-tank Rifle's pieces, fit off a packet at the throw's
 frame (3663's recipe), and a window over 3500..3601 that places the
-damage's first round. The Albatrosses' `myspeed` is a second
-hypothesis: it names no frame the draws part on yet.
+damage's first round.~~ **Answered by item 3677 (§346.1)**: the damage
+was the Armored Car's attack, a Citizen's aura; the launches were one
+`pivot` row and three bays, both off rows already measured. The
+Albatrosses' `myspeed` is a second hypothesis: it names no frame the
+draws part on yet.
+
+### 346.1 The Citizen's attack, and the word 4323 → 4348 (item 3677)
+
+**The blow.** run1351b (3495..3851, `AMMO=5`) parts first on 3522: the
+human's Citizen `0/13` takes 6 and 12/16 in ours and 7 and 6/16 in
+theirs from who=1's Armored Car `1/27` (TY 216), whose round of 3517
+agrees in every field. On run1351c's packet (logger frame 3521) the
+original's `ObjectData::get_damage@00644130` on the pair returns 37 —
+table 170, armour 0, **attack 220** — where ours computes 34 at attack
+200. `UnitData::attack@006103c0`'s base is 200 on both sides; its
+second term, `has_general(this, 0, 0x164) >= 0`, answers 17 — who=1's
+THECITIZEN `1/17` (TY 356), 368 units off — and adds
+`THECITIZEN_ATTACK_BONUS × 10` (`rules.xml` 2). `Sim::attack_of` carried
+no `UnitData::attack` term; `Sim::citizen_attack` is that arm, over
+`Sim::has_general` (`near_monarch`'s walk with the type a parameter).
+The other terms stay in `unit_attack_view`, swept and unwired.
+
+**The launches.** Ours' `gpiece` is 192 for the A7V and 88 for the
+German Anti-tank Rifle. run1351's packet (logger frame 4303) loads both;
+no packet on disk did. Piece 192 is a pivot piece (`<RESTRICTION
+name="A7V" node="4">`) and its seven entries are piece 189's bit for
+bit (item 3529's Light Tank), so it is a `pivot::SAME_AS` row, not a
+`launch::BAYS` row. Piece 88's three sweeps admit piece 1143's regions
+exactly (62, 160 and 57 lattice points), so its rows are 1143's.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3522 | the Citizen `0/13` | `hits:damage`, `damage_frac` | 6, 12 | 7, 6 | 7, 6 |
+| 4304 | A7V `1/48`'s round | `sx, sy, sz` | (5544, 31512), 409 | (5427, 31534), 587 | (5427, 31534), 587 |
+| 4305 | Anti-tank Rifle `1/51`'s round | `sx, sy, sz`, `total_time` | (4392, 31656), 589, 3 | (4217, 31694), 652, 2 | (4217, 31694), 652, 2 |
+| 4348 | the draw stream, index 1 | site | — | `Guy::move+0x19f`'s | `Unit::fight+0x824` |
+
+**The word moves 4323 → 4348**, by the count and the sequence: on 4348
+theirs spends 20 draws against ours' 17, parting at index 1 — theirs
+`Unit::fight+0x824` twice and `Unit::fight+0x19f6`'s `set_anim` under
+`Unit::do_attack`, a unit's fight that ours does not run (which unit
+is not placed: the draws sit before `1/87`'s `Guy::move`). The stride parts the
+standing families and the Albatrosses' `myspeed` alone (135 → 125);
+run1334b 2841 → 2796, its rounds parting 168 → 132.
+
+**The next parting, 4349, both directions**: group 67 — two Supply
+Wagons (`1/126`, `1/127`, TY 63) and the General `1/128` (TY 57) —
+merges into group 64 on 4348 on both sides. On 4349 theirs sends the
+joiners to the front (`orders_at` (4392, 32376), (3912, 31032), (4248,
+31896)) and its members keep guarding the Citizen `1/17`. **Ours acts**:
+`1/17`, `1/21`, `1/22` and the rest take a guard on the wagon `1/127`
+at (38808, 19656) and walk off. The next
+item's hypothesis is the merged group's order — which member it
+guards — not a mechanism this item read.
+
+**Not established.** The Citizen's armour arm (`UnitData::armor@
+00610160`, `THECITIZEN_ARMOR_BONUS` 2) is read and not built: no blow on
+a unit beside a Citizen parts in a window on disk. `has_general`'s
+leader count at `+0x56fe` stays the SEAM `near_monarch` named.
 
 **The rounds**, both directions: run1334b reads 1018 round-blocks theirs
 against 246 ours, 168 parting (by slot).
