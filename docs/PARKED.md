@@ -10486,7 +10486,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3580, 2026-10-24 — the Chinese Medieval pair's closing window
 
-- **3580a. The Crossbowmen's piece 1178 has no bay, so its round lands a frame late.** run1223, block 4452: the
+- ~~**3580a. The Crossbowmen's piece 1178 has no bay, so its round lands a frame late.** run1223, block 4452: the
   Nubian capital `0/2000` (VILLAGE, type 414) reads `damage_frac` ours 2 against theirs 12, `damage` 1082 on both
   sides. Ours takes the same 10 sixteenths on block 4453, and the two agree from then to the closing block. The
   round is the Crossbowmen `1/69`'s (TypeIndex 172, land, uid 102, figure piece 1178, `CHAR_ATTACK3`). Ours'
@@ -10494,7 +10494,7 @@ words and edits nothing here; a refill lands when two remain.
   holds piece 122's Crossbowmen bays (item 3577's shape: piece 46), and no row for 1178. Building it takes a packet's
   `AttachPos` rows for piece 1178, as run1220b took piece 46's. No draw moves: the walk is whole to 4520 and the
   closing state compares 206 units with nothing off. **Score**: none. It books only if a later lobby's walk
-  parts on a 1178 round (`docs/AI.md` §313).
+  parts on a 1178 round (`docs/AI.md` §313).~~ Answered by item 3712 (`docs/AI.md` §362.2): piece 1178's three `BAYS` rows; run1223's 4452 agrees.
 - **3580b. Three `dest_angle` rows on the closing window, 3567a's shape.** run1223: the `1/86` on block 4424 (ours
   -1073741824, theirs -892141568), the `1/96` on 4427 (-1378942976 against -691798016) and the `1/97` on 4428 (0
   against -718929920). No other field of the three parts, and the closing block agrees. **Score**: none
@@ -11942,13 +11942,18 @@ lockstep to the game's last frame, its closing state whole. The row below names 
   36) in ours against (6476, 10981, 729) in theirs: the shape of 3704b, a graphic piece with no `sim::launch::BAYS`
   row. The draws never feel it here. It joins 3704b's list of pieces to read off the art files.
 
-## Parked by the next landing, slot UU — reserved
+## Parked by item 3712, 2026-10-27 — the Mongols' Crossbowmen loose from piece 1178's bays: the Mongol Medieval word moves 3989 → 4220
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Mongol Medieval word moves 3989 → 4220 (`docs/AI.md` §362.2). The next residue item on 4220 (the Steppe Nomads'
+rounds, a pivot piece no packet on disk fills) is the commander's to book. The row below names no score.
+
+- **3712a. The Crossbowmen's other art styles have no launch row.** Piece 122 (the default style) keeps run982's
+  planar `MEASURED` rows, and piece 1178 (`122 + 3 × 0x160`, the Asian style) now has `BAYS` rows. The `NA`
+  (`122 + 4 × 0x160` = 1530) and Persian (`122 + 5 × 0x160` = 1882) styles, and any other style the Crossbowmen
+  field, still loose from the figure's own square, and so does piece 122 under `BAYS`' model. The rows 1178's
+  packet gives are not piece 122's (ATTACK2's height is 140 against 122's 134), so a style's rows are its own.
+  This names no score until a lobby fields a Crossbowman of another style and its rounds part: `get_position.py
+  … entries <piece>` on a packet of that lobby.
 
 ## Parked by item 3713, 2026-10-27 — the Gun Mahout's howdah bays: the Persian Gunpowder word closes, 4948 → 5673
 
