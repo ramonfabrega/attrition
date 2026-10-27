@@ -31663,3 +31663,70 @@ SHA-256 `33d3c591ae2d50f429e6516b3448ad66320151e8727348b43598de0c42c3d5fc`.
 blocks and 56 keys, the standing families and who=1's groups 69 and 72. The rounds read 296 against 296, with 10
 rows parting, every one a Trebuchet (piece 216) launch point (parked 3701a). It is the pair's widening in
 `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+
+## run1377 — the Mongols at a held Medieval age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3702, `att-3702`)
+
+`docs/AI.md` §362. run1375's lobby with the map and nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1377 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 17 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 11:16:22, exited 11:16:47 (24.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 17, map style 18, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 2` (`Pair::assert_lobby`). Filed with `filerun.py run1377
+  eastindies-mongol-medieval-start --map 18`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1377-eastindies-mongol-medieval-start.txt`, 153,437,257 bytes,
+SHA-256 `9bc96bb5ede5f783e58d75230ce9e561947472706ccbe986a30315a4eeebf925`.
+
+Archive `rontrace-run1377.log`, 9,971,936 bytes,
+SHA-256 `4e8e50752be732208664cf1a4be5093b477006184964d5115c6749d770a09613`.
+
+**What it holds**: the start of `mongol_medieval_pair::MONGOL_MEDIEVAL`, and the walk's initial state.
+
+## run1378 — the Mongols at a held Medieval age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3702, `att-3702`)
+
+`docs/AI.md` §362. run1376's line with `--map 18 --ai-tribe 17` and run1377's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0
+24000 --ai-tribe 17 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1377. Launched 11:16:22, exited 11:16:54 (31.9 s launch to exit). `success`. **The game
+  ended itself on 5592** (closing block 5593, `ended_early`). `GAME INFO` reads back as run1377's. `rngcmp.py`
+  against run1377: 37 frames identical. Filed with `filerun.py run1378 eastindies-mongol-medieval-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1378-eastindies-mongol-medieval-trace.txt`, 38,107,439 bytes,
+SHA-256 `1523d4852cdd2cd6da659a80ef176a2bd991b84d12946772afa13394947d073e`.
+
+Archive `rontrace-run1378.log`, 146,386,336 bytes,
+SHA-256 `44a27da81199f79ba558d1a769924b1fba2bc2e2a5171b49bc468290dbc47d92`.
+
+**What it holds**: the pair's first try. `mongol_medieval_pair_first_parting` walks it from run1377: **2595 of
+5592**, by the count and the sequence, ours 55 draws against 54 at index 53 (ours `Unit::think_fish+0x27a`, theirs
+`Farms::inc_time+0x1ae`). Its stride 101..2501 is the pair's walk-back (100 keys, standing families only), and its
+closing block 5593 the pair's closing state (157 units, downstream; parked 3702a).
+
+## run1378b — the Mongols at a held Medieval age, East Indies, at difficulty 4: the word 2595's window, blocks 2495..2846 (2026-10-27, item 3702, `att-3702`)
+
+`docs/AI.md` §362. **What the disk could not answer**: every record and every round on the word's frame. run1378's
+stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1378b --map 18 --end-frame 2846 --timeout 3600
+--log-window 2495 2846 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover
+cover=0` and run1377's lobby: six blocks before the stride's last block 2501 and 250 past the word's block 2596.
+- Pool lane 1. Launched 11:19:33, exited 11:21:16 (102.8 s launch to exit). `success`: 2847 frames. `rngcmp.py`
+  against run1378: 2847 of 2847 identical. Filed with `filerun.py run1378b
+  eastindies-mongol-medieval-window-2495-2846 --map 18`. `df -g ~` read 144 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1378b-eastindies-mongol-medieval-window-2495-2846.txt`, 742,369,818 bytes,
+SHA-256 `86922abeeacb8d2ac2fc5e52569fd5d96f816e2e83e99f57dade57d98ea6588d`.
+
+Archive `rontrace-run1378b.log`, 43,121,152 bytes,
+SHA-256 `210d08614f4e84f6a26225f3eefe9733adcaa9dc6d8e6243bb68fc3a9da8c1ac`.
+
+**What it holds**: `mongol_medieval_pair_run1378b_s_word_frame_is_widened_whole` walks it from run1377: 351 blocks
+and 910 keys. Rounds read (0, 0). On 2596 the Fishermen `1/85` (TI 317), born on 2595, heads for x 34968 in ours
+against 30360 in theirs. Who=1's buckets already part on 2495. It is the pair's widening in `WIDENINGS` and the
+`AI_WORDS` window, and it sits in the coverage driver.

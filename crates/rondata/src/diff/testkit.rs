@@ -7289,6 +7289,9 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3702: the Mongol Medieval pair's closing state, run1378 walked
+    // to its closing block 5593 past the word 2595: 2 inexact corners.
+    ("mongol_medieval_pair_run1378_s_closing_state", 2),
     // Item 3698: the Persian Gunpowder pair's closing state, run1370
     // walked to its closing block 5674 past the word 1180: 2 inexact
     // corners. Item 3706 (the word at 3020): 3.
@@ -10814,6 +10817,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3701,
         Some(crate::diff::british_medieval_pair::WIDENING_BRITISH_MEDIEVAL_CLOSING),
     ),
+    // **The Mongols at a held Medieval age** (item 3702): East Indies at
+    // Hard — first try 2595 of 5592, the Fishermen `1/85`'s first
+    // `think_fish`; widened on run1378b over 2495..2846, the rounds
+    // compared.
+    (
+        "MONGOL_MEDIEVAL_PAIR_WORD",
+        crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL_PAIR_WORD,
+        Some("mongol_medieval_pair_run1378b_s_word_frame_is_widened_whole"),
+        3702,
+        Some(crate::diff::mongol_medieval_pair::WIDENING_MONGOL_MEDIEVAL_FRAME_2595),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13149,6 +13163,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_282,
         endpoint: Some("british_medieval_pair_run1376_s_closing_state"),
         window: Some("british_medieval_closing_window"),
+    },
+    // The Mongols at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), East Indies at Hard (item 3702): first try
+    // 2595 of 5592, the Fishermen `1/85`'s first `think_fish` accepting one
+    // cell more in ours; widened on run1378b over 2495..2846.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesMongolMedieval",
+        named: "East Indies (Mongol, Medieval)",
+        word: crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL_PAIR_WORD,
+        length: 5_592,
+        endpoint: Some("mongol_medieval_pair_run1378_s_closing_state"),
+        window: Some("mongol_medieval_frame_2595_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

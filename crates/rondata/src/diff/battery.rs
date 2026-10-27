@@ -468,6 +468,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Industrial pair's `(7, 11, 4)`, other maps; the battery fields no
     // British.
     (14, 11, 4),
+    // Item 3702: the Mongols at a held Medieval age on East Indies at
+    // Hard (`diff::mongol_medieval_pair`), minted under rule (3) — not the
+    // successor pair's `(18, 17, 3)` or the Gunpowder pair's `(18, 17, 5)`,
+    // this map at other difficulties, nor `(7, 17, 3)`, `(7, 17, 5)` or
+    // `(14, 17, 5)`, other maps; the battery fields no Mongols.
+    (18, 17, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
