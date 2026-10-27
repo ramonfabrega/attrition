@@ -3579,6 +3579,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::british_industrial_pair::british_industrial_frame_2939_window(),
         || super::british_industrial_pair::british_industrial_frame_2918_window(),
         || super::british_industrial_pair::british_industrial_frame_4767_window(),
+        || super::american_industrial_pair::american_industrial_frame_3174_window(),
+        || super::american_industrial_pair::american_industrial_stride_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_4045_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),

@@ -32487,7 +32487,8 @@ seen, so they are the two new to it once the pair closes.
 
 ~~205 of 302~~ **207 of 302** since item 3683: the pair is whole, and
 `Black Watch` (115) and `Light Tank` (240) are the two it adds
-(`census::RUBRIC_UNIT_TYPES_SEEN`).
+(`census::RUBRIC_UNIT_TYPES_SEEN`); 208 on the tree merged with item
+3679's Royal Hwarang.
 
 ### 347.1 The pair whole: the `MARK4`'s turret and the Black Watch's musket, 2939 → 2918 → 4767 (item 3683)
 
@@ -32594,12 +32595,83 @@ own pivot arm, and run1352's 2934 round); piece 65's three rows (the sweeps
 at 361 headings, and run1355b's rounds, 363 a side, none parting at the
 launch); the closing state.
 
-## 348. Reserved for the next item on the AI track
+## 348. The Americans at a held Industrial age, Great Sahara: first try 3174 of 5861 (item 3669)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Sahara (`MAP_STYLE 7`), human Nubians (4) against
+the Americans (20) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`,
+the age held at Industrial (`STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY
+5`), both takes read back by `Pair::assert_lobby`. The triple `(7, 20,
+5)` is new: the other American lobbies are `american_word`'s `(18, 20,
+1)`, `american_lakes_word`'s `(14, 20, 4)`, `american_modern_pair`'s `(7,
+20, 3)` (this map, another difficulty) and `american_enlightenment_pair`'s
+`(18, 20, 5)`, and the battery fields no Americans
+(`american_industrial_pair_is_no_other_lobby`). Captures: run1337 (the
+`DUMP_ALL` start), run1338 (the draw stream; the game ended itself on
+5861) and run1338b (the word's window, 3095..3425). The pair is
+`rondata::diff::american_industrial_pair`.
+
+**The score.** First try **3174 of 5861**, by the count and the
+sequence: on 3174 ours spends 24 draws against theirs' 25, parting at
+index 1 — ours `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`.
+
+**The value diff, walked back.** The stride (run1338, 101..3101, 31
+blocks, 100 keys) parts on the standing families alone — `form`,
+`build:extra`, who=1's groups' `held` and pools 64..71, and `1/14`'s
+`g.angle[0]` from 401 (ours 1431655765, the unset facing, against 0; the
+Modern pair's standing row) — and prints no leader, building or round.
+run1338b (330 blocks, 2030 keys, rounds read 326 and 359, 223 rounds
+part) is walked from run1337 with every round compared:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3095 | Airbase `1/2022`'s `queue[0..2]` (Biplane, 287) | `cost[0]`, `cost[1]` | 107, 113, 117 | 90, 96, 99 |
+| 3095 | Airbase `1/2025`'s `queue[0..3]` (Biplane) | `cost[0]`, `cost[1]` | 105, 109, 111, 115 | 88, 92, 94, 98 |
+| 3095 | who=1's leader | `MAKE[2].val`, `bucket[2:wealth]`, `bucket[5:oil]` | 447, 15023, 18500 | 468, 15302, 18779 |
+| 3105 | Anti-tank Rifle `1/18`'s `ammo[0]` (TY 137, at `0/10`) | `sx`, `sy`, `sz`, `v1z` | 9528, 31080, 612, 55462505 | 9379, 31019, 695, 41629169 |
+| 3142 | Anti-tank Rifle `1/44`'s `ammo[0]` (TY 137, at `0/10`) | `sx`, `sy`, `sz`, `total_time` | 8472, 31560, 620, 3 | 8300, 31607, 683, 2 |
+| 3143 | Citizen `0/10` (TY 50) | `hits_left`, `damage_frame`, `orders.len` | 65, 0, 0 | 53, 3142, 1 |
+| 3144 | Citizen `0/10` | `pos` | (7320, 31896) | (7295, 31904) |
+
+**The direction: theirs' rifle rounds leave the muzzle and ours' leave
+the figure's square.** `1/18` and `1/44` are who=1's Anti-tank Riflemen
+(TY 137, `ANTITANKRIFLE`, land) in group 64, attacking the human's
+Citizen `0/10`. Ours launches each round from the figure's own point
+(`1/18` stands at (9528, 31080) on 3105); theirs launches it some 160
+units off it and higher. `1/44`'s round of 3142 flies 3 frames in ours
+and 2 in theirs, so theirs' lands on `0/10` on 3142 (12 damage) and the
+Citizen flees on 3143 (orders to (5832, 32328)); ours' Citizen is
+unhurt and stands. The group's other members' facings and moves part
+from 3151 (`1/45`, `1/46`, `1/25`, `1/26`), and on the word 3174 ours'
+`Unit::fight` draws where theirs' `Unit::move_step` does.
+
+**The next item's hypothesis** is a `launch::BAYS` row for the
+Anti-tank Rifle's piece in the Americans' art style. `launch.rs` holds
+the type's rows for piece 1143 (`87 + 3 × 0x160`, the Asian style, item
+3538) and piece 88 (the German one, item 3677), and none for this one;
+3538's note on the Chinese rifle reads as this word's shape (the round
+from the unit's own square, landing a frame late, a Citizen fleeing a
+frame late). Fit off a packet before 3105, as 3538 and 3677 did. I did
+not read the piece number off the Americans' `UNIT_CONTINENT`.
+
+**A second parting stands in the window, not on the word's chain**:
+who=1's Biplanes cost 16 % less in theirs on 3095 (above), and who=1's
+`MAKE[2]` and two buckets part with them. `TypeData::get_cost@00664090:268`–`281`:
+an American leader (`has_tribe_bonus(0x14)`) takes `AMERICANS_AIRCRAFT`
+(20, `rules.xml`) off a type `0x1bf`, or one that `is(0x15f, 0)` or
+`is(0x134, 0)` — the last two through `this`'s own vslot `0x60`, not
+`unittypes[param_1]`'s as the British arm reads. `docs/NATIONS.md` lists
+the constant as "not carried". 107 × 80 % is 85, not theirs' 90, so the
+arm's place in the price is not settled here (parked 3669a).
+
+**The rounds**, both directions: 326 read in ours and 359 in theirs over
+run1338b; 223 part, the first `1/18`'s on 3105.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **206 of
+302**, unmoved: the pair parts, so it is not lockstep. The booking's two
+lines **are fielded** (`rubric.py --dumps` over run1338 and run1338b):
+`Marine Riflemen` (120, `MARINERIFLEMEN`) 13,110 guy records and
+`Armored Car` (217, `GREYHOUND`) 722. The pair fields 22 types.
 
 ## 349. Reserved for the next item on the AI track
 

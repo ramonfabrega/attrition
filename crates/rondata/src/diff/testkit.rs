@@ -10643,6 +10643,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3683,
         Some(crate::diff::british_industrial_pair::WIDENING_BRITISH_INDUSTRIAL_FRAME_4767),
     ),
+    // **The Americans at a held Industrial age** (item 3669): Great
+    // Sahara — first try 3174 of 5861 by the count and the sequence,
+    // widened on run1338b over 3095..3425 (the word's block 3175), the
+    // rounds compared.
+    (
+        "AMERICAN_INDUSTRIAL_PAIR_WORD",
+        crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL_PAIR_WORD,
+        Some("american_industrial_pair_run1338b_s_word_frame_is_widened_whole"),
+        3669,
+        Some(crate::diff::american_industrial_pair::WIDENING_AMERICAN_INDUSTRIAL_FRAME_3174),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12777,6 +12788,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_767,
         endpoint: Some("british_industrial_pair_run1336_s_closing_state"),
         window: Some("british_industrial_frame_4767_window"),
+    },
+    // The Americans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
+    // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3669): first try 3174 of
+    // a game that ends itself on 5861, widened on run1338b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaAmericanIndustrial",
+        named: "Great Sahara (Americans, Industrial)",
+        word: crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL_PAIR_WORD,
+        length: 5_861,
+        endpoint: None,
+        window: Some("american_industrial_frame_3174_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -11447,13 +11447,15 @@ Nothing parked: the pair lands at its first parting, 4323 of 4772, and its next 
 Nothing parked: the pair lands at its first parting, 2382 of 4767, and its next word is booked by frame
 (`docs/AI.md` §347).
 
-## Parked by the next landing, slot TL — reserved
+## Parked by item 3669, 2026-10-26 — the Americans at a held Industrial age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3669a. The American aircraft discount** (`docs/AI.md` §348). On run1338b's first block 3095 who=1's two Airbases
+  queue Biplanes (287) at `cost[0]` 107..117 in ours against 90..99 in theirs, and `MAKE[2].val` and the wealth and
+  oil buckets stand parted with them. `TypeData::get_cost@00664090:268`–`281` takes `AMERICANS_AIRCRAFT` (20) off an
+  American leader's type `0x1bf` or one that `is(0x15f, 0)` or `is(0x134, 0)` through `this`'s own vslot; the crate
+  carries none (`docs/NATIONS.md`). 107 × 80 % is 85, not 90: the arm's step in the price is unread. Names no score:
+  the word 3174's chain is the rifle rounds', and no dump on disk prints a building before 3095 to say when the
+  queues parted (a `BUILDS=7` stride, as run1336c was, would).
 
 ## Parked by the next landing, slot TM — reserved
 
