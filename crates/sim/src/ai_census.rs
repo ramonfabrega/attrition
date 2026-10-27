@@ -740,13 +740,6 @@ impl Sim {
             }
         }
 
-        if std::env::var("RON_PROBE_3710").is_ok() && w == 1 {
-            eprintln!(
-                "PROBE3710 f{} census 1/{} kind {} pos ({}, {}) orders {:?}",
-                self.frame, self.units[u].index, kind, self.units[u].pos.x, self.units[u].pos.y,
-                self.units[u].orders.iter().map(|o| o.index()).collect::<Vec<_>>()
-            );
-        }
         if kind == index::NONE || kind == index::EXPLORE_TO {
             self.ai[w].census.free_peasants += 1;
             if land_reg {

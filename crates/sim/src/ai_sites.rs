@@ -1205,9 +1205,6 @@ impl Sim {
             last_kind = self
                 .action_of(u)
                 .map_or(index::NONE, |i| self.units[u].orders[i].index());
-            if std::env::var("RON_PROBE_3710").is_ok() && w == 1 {
-                eprintln!("PROBE3710 f{} sites-examine slot {} 1/{} kind {}", self.frame, u, self.units[u].index, last_kind);
-            }
             if !matches!(last_kind, index::NONE | index::GATHER | index::EXPLORE_TO) {
                 continue;
             }
@@ -1298,9 +1295,6 @@ impl Sim {
                 let f = &mut self.ai[w].city_ai[ci].free;
                 *f = f.wrapping_sub(1);
             }
-        }
-        if std::env::var("RON_PROBE_3710").is_ok() && w == 1 {
-            eprintln!("PROBE3710 f{} sites-take last_kind {} gatherer {}", self.frame, last_kind, gatherer);
         }
         let census = &mut self.ai[w].census;
         let slot = reg as usize;
