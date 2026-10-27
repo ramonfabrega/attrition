@@ -271,7 +271,8 @@ mod tests {
     /// cell is nobody's. Off the phase, without a CEO, or under an
     /// attrition period, nothing. run1338b's `1/36` (captain `1/35`) went
     /// 4 and 14/16 to 3 and 6/16 on block 3167, a point and then the
-    /// bleed. Made to fail with the arm out of `Unit::process`'s heal.
+    /// bleed. Made to fail with the repair stopping at the captain
+    /// (`tools/mutate.py`, `cur = None`).
     #[test]
     fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
         use crate::ai_load::{UnitCols, uflags2};
