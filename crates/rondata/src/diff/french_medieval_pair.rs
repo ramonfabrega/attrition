@@ -269,6 +269,84 @@ fn french_medieval_pair_run1393b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
+/// run1414: the pair's closing window, blocks 4408..4665 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` (item 3735). The word reached the
+/// game's last frame; run1393's stride prints units every hundred frames
+/// and run1393b ends on 3359, so no dump held the last blocks.
+pub(crate) const RUN1414: &str =
+    "gamelog-run1414-greatlakes-french-medieval-closing-window-4408-4665.txt";
+
+/// The window: block 4408 through the closing block 4665.
+pub(crate) const WIDENING_FRENCH_MEDIEVAL_CLOSING: (i64, i64) = (4408, 4665);
+
+/// **The pair's last blocks**: run1414 walked from run1392's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3735).
+pub(crate) fn french_medieval_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[FRENCH_MEDIEVAL.start],
+        true,
+        FRENCH_MEDIEVAL.long,
+        "run1414",
+        &[(RUN1414, WIDENING_FRENCH_MEDIEVAL_CLOSING.0)],
+        WIDENING_FRENCH_MEDIEVAL_CLOSING,
+        1,
+        &[4665],
+        true,
+    )
+}
+
+#[test]
+fn french_medieval_pair_run1414_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_medieval_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3735, the pair whole: **55** keys. Block 4408 carries the
+    // standing families (`form` on 27 units, both leaders' `SITE[i].reg`,
+    // who=0's `aggression[1]`, who=1's groups 64, 67, 68 and 70 with their
+    // pools), and later blocks groups 66, 65 and 69's as each is minted
+    // (4457, 4465, 4473). **Two rows are not standing families**:
+    // `dest_angle` on group 64's guards of the Trebuchet `1/71` — the
+    // Peltasts `1/35` (TI 84) on 4443, -2147483648 against -1571028992,
+    // and the Crossbowmen `1/149` (TI 172) on 4453, -1716781056 against
+    // -1696333824 — 3567a's shape (parked 3735a). No other unit, building
+    // or city field parts, no draw parts to 4664, and the closing block
+    // 4665 agrees.
+    pin_eq!(w.firsts.len(), 55, "run1414 baseline");
+    // Every round, both directions: 287 each side, 10 rows parting — the
+    // Trebuchets `1/70`'s `ammo[1]` and `1/71`'s `ammo[0]` (TI 266) on
+    // 4408, each round's `sx`, `sy`, `sz`, `angle` and `v1z`: they leave
+    // from the figure's own point, `sz` 127 against 820 — 3711b's shape,
+    // a piece with no `launch::BAYS` row (parked 3735c). The draws never
+    // feel it.
+    pin_eq!(w.rounds_read, (287, 287), "the rounds read");
+    pin_eq!(w.rounds.len(), 10, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3717): run1393's closing block 4665,
 /// the whole map's units, walked from run1392's start past the word 3108.
 #[test]

@@ -34852,7 +34852,8 @@ seen stays **229 of 302**.
 **Not established**: ~~whether theirs' Trebuchet enters `CHAR_TURN_LEFT` on 3080 and holds it longer, never enters
 it, or leaves it on 3108 with no draw (`set_anim` to the idle without the roll). A `GUYS=4` window over 3079..3110,
 or a packet at 3107 with `Guy::inc_time` watched for `1/98`'s figures, tells them apart.~~ **Answered by item 3735
-(§364.1)**: the turn loops, and the install says so; no capture was needed.
+(§364.1)**: the turn loops, and the install says so; the word needed no capture, and run1414 is the closing
+window.
 
 ## 364.1 The French Medieval pair closes: a turn animation loops (item 3735)
 
@@ -34900,13 +34901,21 @@ against 0), standing families; and **two rows that are not**, both `dest_angle` 
 3567a's shape (parked 3735a). No other unit, building or city field parts in the window, no round flies (0 against
 0), and no draw parts to the game's end.
 
+**The closing window** (run1414, blocks 4408..4665; `rngcmp.py` against run1393, 4665 of 4665 identical): 257 blocks,
+**55** keys. Block 4408's standing families (`form` on 27 units, both leaders' `SITE[i].reg`, who=0's
+`aggression[1]`, who=1's groups and pools), and groups 66, 65 and 69 as each is minted. Two more guards'
+`dest_angle`: the Peltasts `1/35` (TI 84) on 4443, −2147483648 against −1571028992, and the Crossbowmen `1/149` (TI
+172) on 4453, −1716781056 against −1696333824 (3735a). The rounds read 287 against 287, and 10 rows part, all on
+4408: the Trebuchets `1/70`'s `ammo[1]` and `1/71`'s `ammo[0]` leave from the figure's own point, `sz` 127 against
+820. That is 3711b's shape (parked 3735c). It is the word's `WIDENINGS` row and the coverage driver's window.
+
 **The rubric**: `Heavy Chevalier` (236, `CHEVALIERHEAVY`; 242 figure rows) enters with the pair whole, **unit
 types seen 229 → 230 of 302** (`rubric.py --tables 3`), `census::RUBRIC_UNIT_TYPES_SEEN` re-pinned. The state
 counter reads seen 230 · moved 200 · attacked 74 · boarded 114.
 
 **What is not established.** The loop flag is still a rule by slot, not the per-piece table `docs/ANIM.md`'s gap
 paragraph asks for: the turns are exact for the shipped install (the test says so), the dumps' split is not.
-Run 1414 was reserved and not taken.
+The closing window is run 1414.
 
 ## 365. Reserved for the next item on the AI track
 

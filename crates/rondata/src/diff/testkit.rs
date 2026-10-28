@@ -10905,13 +10905,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The French at a held Medieval age** (item 3717): Great Lakes at
     // Hard — first try 3108 of 4664, the Trebuchet `1/98`'s turn-left
     // animation ending in ours with one `Guy::inc_time` draw; widened on
-    // run1393b over 3077..3359, the rounds compared.
+    // run1393b over 3077..3359, the rounds compared. Item 3735 closed it,
+    // 4664 of 4664 (a turn animation loops), widened on run1414 over
+    // 4408..4665 (the closing block), the closing state whole.
     (
         "FRENCH_MEDIEVAL_PAIR_WORD",
         crate::diff::french_medieval_pair::FRENCH_MEDIEVAL_PAIR_WORD,
-        Some("french_medieval_pair_run1393b_s_word_frame_is_widened_whole"),
-        3717,
-        Some(crate::diff::french_medieval_pair::WIDENING_FRENCH_MEDIEVAL_FRAME_3108),
+        Some("french_medieval_pair_run1414_s_closing_frame_is_widened_whole"),
+        3735,
+        Some(crate::diff::french_medieval_pair::WIDENING_FRENCH_MEDIEVAL_CLOSING),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13287,7 +13289,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The French at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Lakes at Hard (item 3717): first try
     // 3108 of 4664, the Trebuchet `1/98` ending a `CHAR_TURN_LEFT` with one
-    // draw more in ours; widened on run1393b over 3077..3359.
+    // draw more in ours; widened on run1393b over 3077..3359. Item 3735
+    // closed it, 4664 of 4664, widened on run1414 over 4408..4665.
     AiWord {
         line: "Late ages",
         map: "GreatLakesFrenchMedieval",
@@ -13295,7 +13298,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::french_medieval_pair::FRENCH_MEDIEVAL_PAIR_WORD,
         length: 4_664,
         endpoint: Some("french_medieval_pair_run1393_s_closing_state"),
-        window: Some("french_medieval_frame_3108_window"),
+        window: Some("french_medieval_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
