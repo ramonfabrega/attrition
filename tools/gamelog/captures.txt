@@ -10990,3 +10990,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1395b --map 18 --end-frame 4021 --timeout 3600 --log-window 3677 4021 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1394's lobby   (the word 3770's window)
 #   run1395c --map 18 --end-frame 3210 --timeout 3600 --log-window 3095 3210 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1394's lobby   (the walk back to 3119)
 # Checks: `rngcmp.py` run1394 vs run1395 -> 37 identical; run1395 vs run1395b -> 4022 identical; run1395 vs run1395c -> 3211 identical.
+# ==== item 3719: the Germans at a held Modern age, Great Lakes, at difficulty 4 (`docs/AI.md` §366; `docs/RUNS.md` run1396, run1397, run1397b) ====
+#   run1396  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1397  run1395's line with --map 14 --ai-tribe 12 and run1396's lobby   (the draw stream; ended itself on 5304)
+#   run1397b --map 14 --end-frame 4328 --timeout 3600 --log-window 3995 4328 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1396's lobby   (the word 4077's window)
+# Checks: `rngcmp.py` run1396 vs run1397 -> 37 identical; run1397 vs run1397b -> 4329 identical.
