@@ -2019,7 +2019,9 @@ seventh** — the setup's creation order, not `BUILDDATA`'s. Three
 loop is `Setup::build_game@005ac190`'s walk over `info.player[k]`'s
 start-slot field (unread beyond that). The sim keeps `Sim::farm_order`,
 filled at `activate` and walked by `farms_inc_time`; `build_sim` orders
-the starting farms higher slot first.
+the starting farms ~~higher slot first~~ **as the start dump lists them**
+(item 3757, `docs/GOLDEN.md` §149.1: the list is `Game::start_list`'s,
+and a three-seat lobby prints 1, 0, 2 where the slot sort read 2, 1, 0).
 
 ### 4.2 Frame 0 on two other maps, and the "fifteen missing draws" (2026-08-26)
 

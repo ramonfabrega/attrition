@@ -12371,13 +12371,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WC — reserved
+## Parked by item 3757, 2026-10-28 — the melee's farms, in the start dump's order
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3757a. run1412's block-37 sprout prints on `0/2002`; under the array's own walk the third roll is
+  `1/2004`'s** (`docs/GOLDEN.md` §149.1). Both sides spend eight chance rolls on 37, with the sprout draw after
+  the third. `Farms::inc_time` walks the array the dump prints, so ours' sprout lands on `1/2004` cell 12 and
+  theirs' on `0/2002` cell 12. Player 0's three farms also read cell 10 at 73 adds, against 74 on every other
+  farm, which suggests the closing block prints partway through the human's part of the frame.
+  - It names no score: no draw parts on it through 684, and no dump after 37 prints the farms.
+  - What would answer it: a packet at `RON_STATE_FRAME=36` with `step4.py` over `Farms::inc_time`, watching
+    the array's status bytes. It becomes a booking the day a farmer re-picks onto either cell 12.
+- **3757b. `Game::start_list` is not read into the harness.** The farms' order comes from the start dump's
+  printed list. A lobby whose start take prints no farms falls back to the higher-slot sort, which holds for
+  two seats and not three.
 
 ## Parked by the next landing, slot WD — reserved
 
