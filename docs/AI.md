@@ -35490,7 +35490,96 @@ on disk reaches either (3739b).
   read here.
 - Whether `update_action` answering null is the whole of "no action" for a unit whose front order is neither a
   move nor an action, as the crate's `action_of` takes it.
-- The `leader:strong[0]` row on 4545, and group 65's lists on 4587.
+- ~~The `leader:strong[0]` row on 4545~~ (gone with the Aluminum arm, §366.3), and group 65's lists on 4587.
+
+## 366.3 Aluminum's air speed: the word 4586 → 5304, closed (item 3742)
+
+*Item 3742, 2026-10-28, Opus 5.5.*
+
+**The frame.** On 4586 ours spends 94 draws against theirs' 99, parting at index 87. Both sides spend the same
+opening for the Special Forces `1/0` (TI 75). Then theirs spends 35 `Unit::think_scout+0xaba` draws and ours 36:
+that site is the region fallback's one draw per accepted cell. After the wrap and the farms, theirs spends seven
+`Guy::set_anim+0x104b` bird coins against ours' one. The wild birds are who=9, which no dump prints; with the scout
+fixed they agree too.
+
+**The cell** (run1420, a packet at logger frame 4586, `docs/RUNS.md`). `think_scout` run on `1/0` under
+`step4.py` draws theirs' 35 cells as ours' 36 in the same order, less **(23, 28)**. It is refused on the fog: the
+seen byte at `[world+0x160] + fy·[world+0xc] + fx` = (47, 57) reads 2, who=1's bit, where ours reads 0. The whole
+120 × 120 grid parts in 439 bytes, every one ours 0 against theirs 2, a diagonal swath from about (88, 31) to (43,
+59) and a strip at x≈86, y 31–47. run1417's packet (4016) reads 0 at (47, 57), so who=1 saw the cell after 4016.
+
+**The walk back.** run1418's standing rows on 4495 put theirs' Bombers `1/94`, `1/95`, `1/106` and `1/107` (TI 304)
+in the air toward Napata, and ours' inside the airports `1/2029` and `1/2032`. In run1397b theirs gives `1/95` and
+`1/107` an `AIRPATROLORDER` on Napata (3168, 30816) on block 4177, `oxx` 2032, and `1/94` and `1/106` the same on
+4180, `oxx` 2029. The airport takes no damage. The writer is `Object::do_launch`'s computer sortie (`air.rs`
+`computer_sortie`): `(4176 + 2032) % 32 == 0` and `(4179 + 2029) % 32 == 0`. Ours finds Napata and passes every
+gate, then skips every plane on `d >= get_speed × mana`. From `1/2032` (39648, 15648) Napata is about 39,500 away.
+A Bomber's tank is 600: ours' speed 60 reaches 36,000 and theirs' 75 reaches 45,000.
+
+The speed is parked 3719a's `myspeed` family: theirs is ⌊ours × 5/4⌋ on every who=1 aircraft (55→68, 60→75, 75→93,
+115→143). For air, `UnitData::speed` returns the cached `+0x9a` and nothing else, so the term is in
+`update_speed`.
+
+**The reading.** `Unit::update_speed@006055c0` has an arm after the French siege arms and before the Spy's:
+
+```text
+type +0x218 == 2 (air)
+and (leader 0x6da7 & 1 or leader 0x6dcf & 1)      -- rare or rare_conquest, bit 24: Aluminum (TI 30)
+    speed = (ALUMINUM_AIR_SPEED + 100) * speed / 100
+```
+
+The byte is the Whales arm's: Aluminum is mask bit 24 (byte 3, bit 0), and Whales (31) the bit beside it.
+`0x6dcf` is `rare_conquest`, which this crate keeps unioned into `Ledger::rare`, so `has_rare` reads both.
+`rules.xml` ships `ALUMINUM_AIR_SPEED` at 25. `Leader::calc_unit_stats` already re-speeds every unit when a rare is
+gained, so the arm needs no new caller.
+
+**Built**: `crates/sim/src/rares.rs` (`speed_of`) and `crates/sim/src/tuning.rs` (`aluminum_air_speed`, the
+`ALUMINUM_AIR_SPEED` slot). Test: `rares::tests::aluminum_speeds_the_aircraft_and_nothing_else`.
+
+**The score: 4586 → 5304 of 5304, closed**, count and sequence. Every other lobby's `first_parting` holds (101 of
+101).
+
+**The value diff**, on the frame the state first parted (run1397b, block 4177):
+
+| block | record | field | before | now |
+|---|---|---|---|---|
+| 4177 | `1/95`, `1/107` | `order:kind`; `orders_x, orders_y` | ours none, theirs `AIRPATROLORDER`; (3168, 30816) | agree |
+| 4180 | `1/94`, `1/106` | the same, `oxx` 2029 | ours none | agree |
+| 4586 | who=1's fog | byte at (47, 57) | ours 0, theirs 2 | agree: 2 |
+| 4586 | `1/0` | `think_scout+0xaba` draws | ours 36, theirs 35 | agree: 35 |
+
+**The windows** (`german_modern_pair::`):
+- the stride: 114 → **101** keys, the `myspeed` family gone. What stands is `form`, `build:extra`, and who=1's
+  groups and pools.
+- run1397b: 180 → **61**. The aircraft fly from 4177 in ours too. What parts on them is `mirror` on each one's
+  takeoff block, ours 0 against theirs 1, eight rows (3742a). Past block 3995's standing rows: `1/49`'s
+  `dest_angle` on 4103, groups 65 and 69's lists on 4171 and 4180, and `1/69`'s `dest_angle` on 4320.
+- run1418: 877 → **58**, nothing past the word. Who=1's `leader:strong[0]` on 4545 is gone. What stands: block
+  4495's standing rows (with the eight aircraft's `mirror`), the Bomber `1/36`'s `g.z` on 4528, and groups 65 and
+  69's lists on 4587 and 4687. Rounds read (912, 912), up from (912, 102); **32** part, every one a Bomber's over
+  Napata from 4770: `accuracy` ours 0 against theirs 252..256, and `sy`/`ey` one unit apart (3742b).
+- the closing state (run1397's block 5305): `[112, 2, 2, 3, 27, 1, 8]` → `[0, 0, 0, 0, 0, 0, 1]`, 148 units, all on
+  and linked, no extra. The one count is the city `1/2069`'s `assimilation_timer`, 5304 against 5301 (3742c).
+- **run1422, the closing window** (5048..5305, `docs/RUNS.md`), the word's widening now that it is the game's last
+  frame: 257 blocks, **55** keys. They are the standing families, the eight aircraft's `mirror` (3742a), and one
+  record that is not standing: the human's city `0/2000` on 5157, `city_flags[0x4]` 0 against 1 and `reduce_stamp`
+  4806 against 5156 (3742d). Rounds 228 against 228, 13 rows parting: the Bomber `1/36`'s (3742b) and the
+  Volksgrenadiers `1/48` and `1/50`'s launch points (3742e). No position or order parts, and no draw.
+- **The other aircraft lobbies.** The arm also clears the Albatrosses' and Biplanes' `myspeed` from the German,
+  Inca and Spanish Industrial pairs' windows: German Industrial's stride 125 → 107, run1334b 76 → 58, run1351b
+  70 → 54, run1354 73 → 55; Inca Industrial's run1372b 78 → 60; Spanish Industrial's run1382b 70 → 52. Every
+  `first_parting` holds.
+
+**Coverage.** Diff-backed: the arm, through the sortie's orders on 4177 and 4180, the fog byte and the draw count on
+4586, and the stride's `myspeed` on every who=1 aircraft. Reading-only: the `rare_conquest` half of the test (no
+capture on disk holds an air unit whose leader has Aluminum only by conquest), and the arm's order against the
+Spy's, which no air unit reaches.
+
+**Not established**:
+- Whether a leader that holds Aluminum by conquest alone speeds its aircraft in the original. The reading says
+  yes, and no run has shown it.
+- The aircraft's `mirror` on takeoff (3742a), the Bombers' `accuracy` (3742b), and `1/2069`'s
+  `assimilation_timer` (3742c): none names a draw, since the game is closed.
 
 ## 367. The Egyptians at a held Information age, Great Lakes: first try 3244 of 3797 (item 3720)
 

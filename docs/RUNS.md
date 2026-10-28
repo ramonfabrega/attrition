@@ -32340,3 +32340,48 @@ SHA-256 `358f5ac5c504c8d231a31e8b19889e0c51be0af26e3432d5ef42268e01d6db66`.
 877 keys, rounds 912 against 102 with 55 parting, the first the Bomber `1/95`'s on 4753. Past block 4495's
 standing rows, the first rows are who=1's `leader:strong[0]` on 4545, then group 65's lists on the word's block
 4587. It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+## run1420 — the Germans at a held Modern age, Great Lakes, at difficulty 4: a packet at logger frame 4586, who=1's fog grid (2026-10-28, item 3742, `att-3742`)
+
+`docs/AI.md` §366.3. **What the disk could not answer**: which of ours' 36 accepted cells in `1/0`'s region scan
+theirs refuses on the word 4586. The answer is who=1's fog grid, and no dump prints it. `RON_CAPTURE_LANE=2
+viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1420 --map 14 --end-frame 4588 --timeout 3600
+--log-window 4585 4587 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 12 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4
+--tracer-def RON_STATE_FRAME=4586 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`, run1396's lobby.
+- Pool lane 2, pinned by the commander after Loop 3741's lane-1 faults. Launched 02:25:13, exited 02:25:42 (29.5 s
+  launch to exit). `success`, 4589 frames, seed 12345, `map_verified`, tribes 4 and 12. Not filed: the packet is
+  the product. `df -g ~` read 141 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1420/map-14/frame-snapshot.bin`, 921,899,432 bytes,
+SHA-256 `dc07116d58642f3f9ca7cdde41be741c41c0d143b2ca94672c802c769c0492c1`.
+
+**What it holds**: `think_scout` run on `1/0` (`141f724c`) under `step4.py … --entry 5f6010 --poke e37a8c=74d6d8ee`
+draws theirs' 35 cells, which are ours' 36 less (23, 28). Its fog byte at (47, 57) reads 2, who=1's bit. The whole
+120 × 120 grid parts from ours in 439 bytes, every one ours 0 against theirs 2: the Bombers' sight on their way to
+Napata.
+## run1422 — the Germans at a held Modern age, Great Lakes, at difficulty 4: the closing window, blocks 5048..5305 (2026-10-28, item 3742, `att-3742`)
+
+`docs/AI.md` §366.3. **What the disk could not answer**: every record of the pair's last blocks once the word reached
+the game's last frame. run1397's stride prints units every hundred frames, with no `AMMO` and no leader, building or
+city record, and run1418 ends on 4836. `RON_CAPTURE_LANE=2 viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1422 --map 14 --end-frame 5304 --allow-early-end --timeout 3600 --log-window 5048 5305 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0` and run1396's lobby
+(`--profile STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6 STARTING_RESOURCES=7 DIFFICULTY=4`): the 258 blocks through
+the closing block.
+- Pool lane 2. Launched 03:21:39, exited 03:22:28 (48.8 s launch to exit). `success`: 5305 frames, not ended early,
+  `map_verified`, tribes 4 and 12. `rngcmp.py` against run1397's trace: 5305 of 5305 identical. Filed with
+  `filerun.py run1422 greatlakes-german-modern-closing-window-5048-5305 --map 14`. `df -g ~` read 141 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1422-greatlakes-german-modern-closing-window-5048-5305.txt`, 565,285,124 bytes,
+SHA-256 `0101426e3b29fe99a49ba2eaa570d716e8302f7855c16d0e47baee724ae1998b`.
+
+Archive `rontrace-run1422.log`, 123,519,072 bytes,
+SHA-256 `bb494243747f0e7418aee3576f8e1a0760296c54fd2d8a7e2a0708f8c481c8fa`.
+
+**What it holds**: `german_modern_pair_run1422_s_closing_frame_is_widened_whole` walks it from run1396: 257 blocks,
+**55** keys (the standing families, eight aircraft's `mirror` (3742a), and the city `0/2000` on 5157 (3742d)),
+rounds 228 against 228 with 13 rows parting (the Bomber `1/36`'s, 3742b, and two Volksgrenadiers' launch points,
+3742e). It is the `WIDENINGS` row for the closed word 5304, the `AI_WORDS` window and the coverage driver's.

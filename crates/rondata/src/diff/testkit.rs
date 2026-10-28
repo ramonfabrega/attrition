@@ -10964,13 +10964,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 4299 → 4586 on `target_opportunity`'s counter-craft arm (an idle
     // Commando-line unit answers a land attacker with Sabotage), past
     // run1397b's last block; widened on run1418 over 4495..4836, the
-    // rounds compared.
+    // rounds compared. Item 3742 closed it whole, 5304 of 5304, on
+    // `update_speed`'s Aluminum arm; widened on run1422 over 5048..5305
+    // (the closing block), the rounds compared.
     (
         "GERMAN_MODERN_PAIR_WORD",
         crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
-        Some("german_modern_pair_run1418_s_word_frame_is_widened_whole"),
-        3739,
-        Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4586),
+        Some("german_modern_pair_run1422_s_closing_frame_is_widened_whole"),
+        3742,
+        Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_CLOSING),
     ),
     // **The Egyptians at a held Information age** (item 3720): Great Lakes
     // at difficulty 5 — first try 3244 of 3797, widened on run1399b over
@@ -13385,7 +13387,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // widened on run1397b over 3995..4328. Item 3738: 4299, the Special
     // Forces `0/0`'s cast in theirs alone; the same window. Item 3739:
     // 4586, `1/0`'s `think_scout` draws; widened on run1418 over
-    // 4495..4836.
+    // 4495..4836. Item 3742 closed it, 5304 of 5304, widened on run1422
+    // through the closing block.
     AiWord {
         line: "Late ages",
         map: "GreatLakesGermanModern",
@@ -13393,7 +13396,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
         length: 5_304,
         endpoint: Some("german_modern_pair_run1397_s_closing_state"),
-        window: Some("german_modern_frame_4586_window"),
+        window: Some("german_modern_closing_window"),
     },
     // The Egyptians at a held Information age (`STARTING_TECHNOLOGY` 7,
     // `ENDING_TECHNOLOGY` 7), Great Lakes at difficulty 5 (item 3720):
