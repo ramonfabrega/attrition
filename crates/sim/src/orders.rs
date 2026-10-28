@@ -3827,13 +3827,14 @@ impl Sim {
                 }
                 let t = self.find_melee_target(u, range)?;
                 self.nearby_normalize(u);
+                let mandatory = self.nearby_siege_city(u, t);
                 // A guard's attack-move leg goes under the find
                 // ([`Self::nearby_add`]'s `local_2c`); every other head
                 // keeps the `QUEUE_FIRST` this arm always had.
                 if self.guard_activity(u).is_some() && self.order_type(u) == index::ATTACK_TO {
                     self.kill_current_order(u);
                 }
-                self.add_attack_order(u, t, QueuePos::First, false, false);
+                self.add_attack_order(u, t, QueuePos::First, mandatory, false);
                 Some(t)
             }
         }
@@ -3923,6 +3924,7 @@ impl Sim {
     /// refusal (`+0x218 == 2`). No capture reaches either.
     fn attack_move_add(&mut self, u: usize, t: Obj) {
         self.nearby_normalize(u);
+        let mandatory = self.nearby_siege_city(u, t);
         // `local_2c` first: a guard's leg is killed under the attack, and
         // its group never takes the find (`:551`, [`Self::nearby_add`]).
         let group_move = self.guard_activity(u).is_none()
@@ -3939,7 +3941,7 @@ impl Sim {
             self.group_action_attack(&g, t, false, QueuePos::First, 4);
             return;
         }
-        self.nearby_add_order(u, t);
+        self.nearby_add_order(u, t, mandatory);
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an
@@ -9287,12 +9289,13 @@ impl Sim {
                     return false;
                 };
                 self.nearby_normalize(u);
+                let mandatory = self.nearby_siege_city(u, t);
                 let pos = if state.stance == combat::Stance::Defensive {
                     QueuePos::First
                 } else {
                     QueuePos::New
                 };
-                self.add_attack_order(u, t, pos, false, false);
+                self.add_attack_order(u, t, pos, mandatory, false);
                 t
             }
         } else {
@@ -9783,8 +9786,57 @@ impl Sim {
         }
     }
 
-    /// [`Self::nearby_add`]'s order, once the group is normalized.
-    fn nearby_add_order(&mut self, u: usize, t: Obj) {
+    /// **`find_nearby_target`'s siege-city arm** (`00649912`–`00649b40`,
+    /// read off the listing; item 3744, `docs/AI.md` §368.1): between the
+    /// group's `normalize` and the queue choice, the add's `mandatory`
+    /// (the reused `param_1` slot, `0x8(%ebp)`) is written 0 at `64992a`
+    /// and **1** at `649a2d` for a unit that is an active member of its
+    /// group (`+0x80 >= 0`, `GroupData::member(o, who, 1)@0070f8f0`), of
+    /// a siege type (vslot `+0x10c`, `is_siege`), computer-driven
+    /// (`unit_masks & 0x40000`, [`Sim::ai_driven`]'s stand-in), whose find
+    /// is a building (vslot `+0x1c`) with `flags & 0x20` — a city centre.
+    /// The same arm then points the unit's army (`Object::get_army@00649d70`)
+    /// at the find: `+0x30/+0x34` the target, `+0x48/+0x4c` the **unit's**
+    /// cell (`div_3_table[x >> 8]`), and `+0x50`
+    /// `find_angle(target − unit)` — the muster cell and angle the next
+    /// march's formation origin is stepped from.
+    ///
+    /// Witness: East Indies' MLRS `1/99` (TI 273) on 5887, whose
+    /// attack-move look ranks the city `0/2000` at `attack_dist` 4684, past
+    /// the packed shortcut's 4608 ([`Self::take_siege_army_target`]):
+    /// run1423b holds its `ATTACKORDER mandatory=1` where this crate added
+    /// 0.
+    pub(crate) fn nearby_siege_city(&mut self, u: usize, t: Obj) -> bool {
+        let Obj::Building(b) = t else {
+            return false;
+        };
+        let who = self.units[u].owner;
+        let siege = self.units[u]
+            .ty
+            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
+        let city = self.buildings[b]
+            .city
+            .is_some_and(|c| self.cities[c].building == b);
+        if !siege
+            || !self.ai_driven(who)
+            || !city
+            || !self.group_of(u).is_some_and(|g| g.list.contains(&u))
+        {
+            return false;
+        }
+        if let Some(slot) = self.army_of(u) {
+            let (at, to) = (self.units[u].pos, self.buildings[b].pos);
+            let a = &mut self.armies[who as usize].list[slot];
+            a.target = Some(t);
+            a.muster = at.cell();
+            a.muster_angle = find_angle(to.x - at.x, to.y - at.y);
+        }
+        true
+    }
+
+    /// [`Self::nearby_add`]'s order, once the group is normalized, with
+    /// [`Self::nearby_siege_city`]'s `mandatory`.
+    fn nearby_add_order(&mut self, u: usize, t: Obj, mandatory: bool) {
         let head = self.order_type(u);
         let pos = if self.guard_activity(u).is_some() {
             if head == index::ATTACK_TO {
@@ -9798,7 +9850,7 @@ impl Sim {
         } else {
             QueuePos::New
         };
-        self.add_attack_order(u, t, pos, false, false);
+        self.add_attack_order(u, t, pos, mandatory, false);
     }
 
     /// **`do_move`'s flank clause on a chase** (item 1061, `docs/COMBAT.md`
