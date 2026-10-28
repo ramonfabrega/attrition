@@ -2028,7 +2028,13 @@ two passes.
   `Sim::packet_has` now, so a slot the packet does not name is non-looping
   however the rule reads it (§3.6). What is still a rule rather than a
   table is the flag itself, for the slots a packet *does* name, and the
-  `CHAR_DUMP_WOOD` split above is what a table would settle.
+  `CHAR_DUMP_WOOD` split above is what a table would settle. **The turns
+  were the first slot a capture reached where the rule was wrong**
+  (item 3735, `docs/AI.md` §364.1): all 546 shipped `CHAR_TURN_LEFT`/
+  `CHAR_TURN_RIGHT` rows name a `<LOOPING>` file — a packed Trebuchet's
+  its wagon's walk — so the rule now calls them looping, and
+  `rondata::artdata`'s `every_turn_slot_names_a_looping_file` holds the
+  install to it. A turn that runs out restarts itself with no idle roll.
 - **A walking guy's clock.** run44's citizen counts its carrying walk
   1…14 while it moves and restarts it on the frame it arrives; this crate
   re-issues the walk from `guys_follow` every frame, so the clock sits at

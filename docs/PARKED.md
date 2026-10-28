@@ -12129,13 +12129,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VJ — reserved
+## Parked by item 3735, 2026-10-27 — the French Medieval pair closes: a turn animation loops
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3735a. Two guards' `dest_angle` on the French Medieval pair's window** (`docs/AI.md` §364.1; run1393b). Group
+  67's guards of `1/83`: the General `1/78` (TI 54) on 3160, ours 392757248 against theirs 882769920, and the
+  Peltasts `1/82` (TI 84) on 3164, 600702976 against 693043200. No draw parts and the closing block agrees, so it
+  names no score; 3567a's and 3624a's shape on a third pair. The closing window (run1414) has two more: the
+  Peltasts `1/35` (TI 84) on 4443, −2147483648 against −1571028992, and the Crossbowmen `1/149` (TI 172) on 4453,
+  −1716781056 against −1696333824, both group 64's guards of the Trebuchet `1/71`.
+- **3735b. The loop flag as a per-piece table** (`docs/ANIM.md`'s loop-flag gap paragraph; `sim::anim::non_looping`).
+  The turns are exact for the shipped install now (`every_turn_slot_names_a_looping_file`), but the dumps' split
+  (42/38 `CHAR_DUMP_WOOD`, 28/38 `CHAR_DUMP_ORE`) and two non-looping `CHAR_WALK` entries still read by slot. No
+  capture on file reaches a piece where the rule and the file disagree, so it names no score until one does.
+- **3735c. Two Trebuchet rounds leave from the figure's own point** (`docs/AI.md` §364.1; run1414, block 4408). The
+  Trebuchets `1/70`'s `ammo[1]` and `1/71`'s `ammo[0]` (TI 266): `sx`, `sy`, `sz`, `angle` and `v1z` apart, `sz` 127
+  in ours against 820 in theirs. That is 3711b's shape, a piece with no `sim::launch::BAYS` row. The draws never
+  feel it, and the closing block agrees. It joins 3704b's list of pieces to read off the art files.
 
 ## Parked by the next landing, slot VK — reserved
 

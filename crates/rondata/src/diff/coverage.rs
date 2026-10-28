@@ -3624,6 +3624,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::greek_medieval_pair::greek_medieval_closing_window(),
         || super::french_medieval_pair::french_medieval_stride_window(),
         || super::french_medieval_pair::french_medieval_frame_3108_window(),
+        || super::french_medieval_pair::french_medieval_closing_window(),
         || super::spanish_modern_pair::spanish_modern_stride_window(),
         || super::spanish_modern_pair::spanish_modern_walk_back_window(),
         || super::spanish_modern_pair::spanish_modern_frame_3770_window(),

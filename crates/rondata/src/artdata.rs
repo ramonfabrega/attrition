@@ -1089,6 +1089,54 @@ mod tests {
         assert!(lengths.contains_key(&12682), "and its crew's");
     }
 
+    /// **Every turn slot the install ships names a looping file** (item
+    /// 3735, `docs/AI.md` §364.1). `sim::anim::non_looping` decides by
+    /// slot, and calls `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` looping because
+    /// all 546 of `unit_graphics.xml`'s turn rows resolve to an `<ANIM>`
+    /// under `<LOOPING>` — the packed Trebuchet's to `TrebuchetWagon
+    /// Walk`. A turn row naming a non-looping file would make the rule
+    /// wrong for that piece, and this is where it would show.
+    #[test]
+    fn every_turn_slot_names_a_looping_file() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let apath = inst.data("anim_graphics.xml");
+        let upath = inst.data("unit_graphics.xml");
+        let atext = crate::read(&apath).expect("anim_graphics.xml");
+        let utext = crate::read(&upath).expect("unit_graphics.xml");
+        let adoc = crate::parse(&apath, &atext).expect("anim_graphics.xml parses");
+        let udoc = crate::parse(&upath, &utext).expect("unit_graphics.xml parses");
+        let files = anim_files(&adoc);
+        let mut turns = 0;
+        let mut not_looping = Vec::new();
+        for (unit, rows) in unit_anims(&udoc) {
+            for (slot, anim) in rows {
+                if slot != sim::anim::TURN_LEFT && slot != sim::anim::TURN_RIGHT {
+                    continue;
+                }
+                turns += 1;
+                if !files.get(&anim_key(&anim)).is_some_and(|(_, l)| *l) {
+                    not_looping.push(format!("{unit} {slot} {anim}"));
+                }
+            }
+        }
+        assert_eq!(turns, 546, "the shipped turn rows");
+        assert!(not_looping.is_empty(), "{not_looping:?}");
+        assert!(
+            !sim::anim::non_looping(sim::anim::TURN_LEFT)
+                && !sim::anim::non_looping(sim::anim::TURN_RIGHT),
+            "the slot rule agrees with the install"
+        );
+        let packed = unit_anims(&udoc);
+        let treb = &packed["TREBUCHET-DEFAULT-AGE0-PACKED"];
+        assert!(
+            treb.contains(&(sim::anim::TURN_LEFT, "TrebuchetWagon Walk".to_string())),
+            "the packed Trebuchet turns on its wagon's walk"
+        );
+    }
+
     #[test]
     fn a_pivot_restriction_binds_by_graph_whatever_its_case() {
         let Some(inst) = crate::testenv::install() else {

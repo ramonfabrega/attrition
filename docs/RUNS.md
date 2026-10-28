@@ -32003,6 +32003,30 @@ SHA-256 `26072df0d606725dd53227e2cbfcb7723d94d074260127f01f49823e33123354`.
 and 424 keys; the first unit row is `1/98`'s `path:length` on 3110. No round flies, 0 against 0. It is the pair's
 widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
 
+## run1414 — the French at a held Medieval age, Great Lakes, at difficulty 4: the closing window, blocks 4408..4665 (2026-10-27, item 3735, `att-3735`)
+
+`docs/AI.md` §364.1. **What the disk could not answer**: every record of the pair's last blocks once the word reached
+the game's last frame. run1393's stride prints units every hundred frames, with no `AMMO` and no leader, building or
+city record past the start, and run1393b ends on 3359. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1414 --map 14 --end-frame 4664 --allow-early-end --timeout 3600 --log-window 4408 4665 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0` and run1392's lobby
+(`--profile STARTING_TECHNOLOGY=2 ENDING_TECHNOLOGY=2 STARTING_RESOURCES=7 DIFFICULTY=4`): the 258 blocks through
+the closing block.
+- Pool lane 1. Launched 21:34:52, exited 21:35:38 (46.1 s launch to exit). `success`: 4665 frames, not ended early.
+  `rngcmp.py` against run1393's trace: 4665 of 4665 identical. Filed with `filerun.py run1414
+  greatlakes-french-medieval-closing-window-4408-4665 --map 14`. `df -g ~` read 154 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1414-greatlakes-french-medieval-closing-window-4408-4665.txt`, 585,940,113 bytes,
+SHA-256 `0bf1b589d1a420e25a84479380e48c02bdc11e06d18bc8ad81ece2a5d3712412`.
+
+Archive `rontrace-run1414.log`, 132,864,992 bytes,
+SHA-256 `47c29801464d9f961c2e70c6d20e147238c90ff8577b0baec0bb8cb239addc9f`.
+
+**What it holds**: `french_medieval_pair_run1414_s_closing_frame_is_widened_whole` walks it from run1392: 257
+blocks, **55** keys (standing families, and two guards' `dest_angle`, parked 3735a), rounds 287 against 287 with 10
+rows parting (two Trebuchet rounds' launch points, parked 3735c). It is the `WIDENINGS` row for the closed word
+4664 and the coverage driver's window.
 ## run1394 — the Spanish at a held Modern age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3718, `att-3718`)
 
 `docs/AI.md` §365. run1392's line with the map and nation moved, through `viadriver.sh
