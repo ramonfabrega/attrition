@@ -136,6 +136,128 @@ fn german_modern_pair_is_no_other_lobby() {
     }
 }
 
+/// **The long's stride, walked back from the word** (item 3719, from
+/// 4077): only run1397's stride blocks are on disk before the word's
+/// window, 101 through 4001.
+pub(crate) const WIDENING_GERMAN_MODERN_STRIDE: (i64, i64) = (101, 4001);
+
+pub(crate) fn german_modern_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN_MODERN.start],
+        true,
+        GERMAN_MODERN.long,
+        "run1397 stride",
+        &[(GERMAN_MODERN.long.0, WIDENING_GERMAN_MODERN_STRIDE.0)],
+        WIDENING_GERMAN_MODERN_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn german_modern_pair_the_long_s_stride_walks_back_from_the_word() {
+    let _pins = Pins::hold();
+    let Some(w) = german_modern_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 40, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3719: 114 keys over 40 blocks. The standing families — `form`
+    // on every unit, the buildings' `build:extra` (which the stride does
+    // not print) and who=1's groups with their pools — and, from block
+    // 3101, `myspeed` on who=1's units, theirs a quarter above ours (75
+    // against 93, 60 against 75, 115 against 143) with no `pos` parting:
+    // parked 3677a's and 3705b's family.
+    pin_eq!(w.firsts.len(), 114, "the stride's baseline");
+}
+
+/// run1397b: the word 4077's window, blocks 3995..4328 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
+/// last block 4001 and 250 past the word's own block 4078 (item 3719).
+/// run1397 prints units only every hundred frames, no `AMMO` and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start.
+pub(crate) const RUN1397B: &str = "gamelog-run1397b-greatlakes-german-modern-window-3995-4328.txt";
+
+/// The window: block 3995 through 4328.
+pub(crate) const WIDENING_GERMAN_MODERN_FRAME_4077: (i64, i64) = (3995, 4328);
+
+/// **The word 4077's window**: run1397b walked from run1396's start with
+/// the recorder on and every round compared (item 3719).
+pub(crate) fn german_modern_frame_4077_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[GERMAN_MODERN.start],
+        true,
+        GERMAN_MODERN.long,
+        "run1397b",
+        &[(RUN1397B, WIDENING_GERMAN_MODERN_FRAME_4077.0)],
+        WIDENING_GERMAN_MODERN_FRAME_4077,
+        1,
+        &[4078],
+        true,
+    )
+}
+
+#[test]
+fn german_modern_pair_run1397b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_modern_frame_4077_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 333, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3719, the first walk: **1946** keys. Block 3995 carries the
+    // standing families (both leaders' `SITE[i].reg`, `aggression[1]`,
+    // `form`, groups and pools, the airports' `myspeed`). **The word**: on
+    // 4017 theirs' Tiger Tank `1/38` (TI 258, piece 208, which neither
+    // `launch` nor `pivot` holds) looses a round that is made and explodes
+    // inside the frame and wounds the Citizen `0/12` (TI 50, hits 85 → 49);
+    // ours' leaves from the guy's own square, (4392, 31416), and is still
+    // in flight on 4018 (`t1/2`). Theirs' citizen flees on a `FLEETOORDER`
+    // to (2136, 32616), arrives on 4077, drops the order and goes idle with
+    // one `Guy::set_anim+0x97a < Unit::do_idle+0x7d` draw ours never
+    // spends; the same frame theirs' Tiger `1/62` drops its attack on the
+    // Citizen `0/13`, fled since its own round of 4038, and spends no
+    // `Unit::fight+0x824` draw where ours does.
+    pin_eq!(w.firsts.len(), 1946, "run1397b baseline");
+    // Every round, both directions: 137 in ours against 176, the first
+    // parting the Tiger `1/38`'s on 4018, which ours holds alone.
+    pin_eq!(w.rounds_read, (137, 176), "the rounds read");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,
 /// the whole map's units, walked from run1396's start.
 #[test]

@@ -10936,6 +10936,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3718,
         Some(crate::diff::spanish_modern_pair::WIDENING_SPANISH_MODERN_FRAME_3770),
     ),
+    // **The Germans at a held Modern age** (item 3719): Great Lakes at
+    // Hard — first try 4077 of 5304, the Citizen `0/12` going idle in
+    // theirs at the end of a flee from a Tiger Tank round ours did not land;
+    // widened on run1397b over 3995..4328, the rounds compared.
+    (
+        "GERMAN_MODERN_PAIR_WORD",
+        crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
+        Some("german_modern_pair_run1397b_s_word_frame_is_widened_whole"),
+        3719,
+        Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4077),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13334,6 +13345,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_081,
         endpoint: Some("spanish_modern_pair_run1395_s_closing_state"),
         window: Some("spanish_modern_frame_3770_window"),
+    },
+    // The Germans at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3719): first try
+    // 4077 of 5304, the Citizen `0/12`'s `do_idle` draw in theirs alone;
+    // widened on run1397b over 3995..4328.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesGermanModern",
+        named: "Great Lakes (German, Modern)",
+        word: crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
+        length: 5_304,
+        endpoint: Some("german_modern_pair_run1397_s_closing_state"),
+        window: Some("german_modern_frame_4077_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
