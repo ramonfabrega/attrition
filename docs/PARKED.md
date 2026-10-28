@@ -12267,13 +12267,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VS — reserved
+## Parked by item 3745, 2026-10-28 — pieces 1108, 1145 and 199, the Japanese Modern word whole at 3866
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3745a. The Bomber's rounds carry `accuracy` 0 in ours.** On the Japanese Modern lobby's closing window
+  (run1424b, 3834..3867) who=1's Bombers `1/95`, `1/103` and `1/106` (TI 304) drop rounds whose `accuracy` reads
+  0 in ours against 256..300 in theirs, 13 rows from 3834. `1/106`'s `ammo[3]` of 3860 is also one unit off in
+  `sx` and `ex` (3588 against 3587). None reaches the draws or the closing state, so it names no score. Grep this
+  crate for the field's writer before reading `Ammo::init`'s.
+- **3745b. Group 68 holds `[104]` on 3167 in ours alone.** In run1403b, who=1's group 68 `held` and pool 68 read
+  `[104]` in ours against nothing in theirs from 3167. On the same window `1/36`'s `ammo[5]` of 3163 has lost its
+  target in ours (`whom` −1 against 0, `ox` −1 against 4), and `mirror` parts on four craft as they are minted
+  (`1/95`, `1/103`, `1/106`, `1/110`). The pair is whole at 3866, so none reaches a draw.
 
 ## Parked by the next landing, slot VT — reserved
 

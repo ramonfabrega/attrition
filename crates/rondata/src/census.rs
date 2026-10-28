@@ -586,7 +586,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// air; piece 203's bays and piece 207's
 /// pivot rows closed the word (§367.2), read by `rubric.py --tables 3`
 /// against the same scan with run1398 and run1399 left out.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 245;
+/// Item 3745: 245 -> 248, the Japanese Modern pair whole at 3866 —
+/// `Infantry` (102) and `Tank[CHIHA]` (249), land, and the `Zero`
+/// (`FIGHTERZERO`, 293), air, the three lines item 3722 found fielded and
+/// new to the ledger; piece 1108's and 1145's bays and piece 199's pivot
+/// rows closed the word (§369.1), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 248;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

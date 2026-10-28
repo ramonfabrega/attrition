@@ -35979,11 +35979,97 @@ stays **245 of 302** and the lockstep bytes stay at 77.4 %.
 node may need a packet, as pieces 203 and 207 did (§367.2).
 
 **Not established**:
-- Which farm skips its draw in theirs on 3160, and by how many cells. run1403b's detail prints no farm record. The
-  chain from `0/4`'s gather to the farm's empty count is the hypothesis; a fix that lands the round on time
-  decides it.
-- Piece 52's release node, or whether the Infantry is a bay piece (§367.2's arm question).
+- ~~Which farm skips its draw in theirs on 3160, and by how many cells.~~ **Decided by item 3745 (§369.1)**: with
+  the round on time the farm draw agrees, so the chain held; which farm and how many cells is still unread.
+- ~~Piece 52's release node, or whether the Infantry is a bay piece (§367.2's arm question).~~ **Answered by item
+  3745 (§369.1)**: "TY 52" is the crate's unit-type row, not a piece. The Infantry plays piece **1108** (base 52
+  at the Asian style 3, `INFANTRY-ASIAN-AGE0`), with no `<RESTRICTION>`, so it is a bay piece.
 - The `1/18` `dest_angle` of 1801 (3722a).
+
+## 369.1 The word closes: three pieces of the Japanese Modern foot and armour (2026-10-28, item 3745)
+
+*Item 3745, 2026-10-28, Opus 5.5. The pair runs **whole, 3866 of 3866**, and the closing state is scored: 130
+units, every count zero, nothing torn, extra or unlinked, and no closing field.*
+
+**The piece was misnamed.** §369 read `RON_DEBUG_UNIT`'s `TY 52` as the graphic piece. `TY` is the crate's
+unit-type row (`harness.rs`'s debug line prints `u.ty`). Neither crate table held piece 52, but the Infantry never
+plays it. `Sim::unit_gpiece` gives TI 102 base 52 and walks the leader's art style: the Japanese are style 3, so
+the Infantry plays **1108** (52 + 3 × `PIECES_PER_STYLE`), `INFANTRY-ASIAN-AGE0`.
+
+**The disk, then the packet.**
+- `get_position.py … entries 52` over all 88 packets on disk: every one raises (`RData` NULL). The piece is never
+  loaded.
+- **run1424** is the packet at `RON_STATE_FRAME=3156`, the block before `1/18`'s launch (pool lane 2, 25.5 s).
+  `entries 52` raises there too. A scan of every piece the packet loads names those with rows:
+  - **1108**: six rows (node 0 at 12 and 13 of `CHAR_ATTACK1`, 4 and 14 twice of `2`, 12 of `3`), scale 1.0;
+  - **199**, the Chi-Ha (TI 249 at style 0, `CHIHA-DEFAULT-AGE0`): the `(4, 0, 0)` node, (−5.69, −9.19, 38.36), and
+    a node-4 row and a node-0 row at 4 of `CHAR_ATTACK1`, 21 of `2` and 1 of `3`, scale 0.8;
+  - **1145**, the Bazooka (TI 139 at style 3, `BAZOOKA-ASIAN-AGE0`): three rows (node 0 at 17, 7, 13), scale 1.0.
+
+**The arms.** `INFANTRY-ASIAN-AGE0` and `BAZOOKA-ASIAN-AGE0` carry no `<RESTRICTION>`, so they take the non-pivot
+arm: `launch::BAYS`. `fit_bay.py` fits each sweep to one region (1108: 49, 98, 915, 819 and 322 lattice points;
+1145: 85, 1278 and 187), and I kept the centroids. `<RESTRICTION name="CHIHA" node="4">` makes 199 a pivot piece,
+so it gets `pivot::NODES`, `RDATA_SCALE` (4/5) and three `RELEASES` rows. Its every-cell test agrees on 277,248
+cells with 11 `float_lands`.
+
+**Checks.**
+- (12, 14)'s `dz` 118 is the dump's 607 − 489: `run1403b_s_japanese_infantry_leaves_from_its_bay` is exact at
+  (4203, 33991, 607).
+- (12, 7)'s `dz` 150 is the dump's 664 − 514: `run1424b_s_japanese_bazooka_leaves_from_its_bay` is exact at (5299,
+  30765, 664).
+
+**The score: 3160 → 3270 → 3866 of 3866, whole.**
+
+| step | the word | what parted first |
+|---|---|---|
+| base | 3160: 45 draws against 44, index 44, ours' fourth `Farms::inc_time+0x1ae` | the Infantry's rounds from 3143 |
+| + piece 1108 | 3270: 15 against 17, index 2, theirs' `Unit::fight+0x9b0` | the Chi-Ha `1/35`'s round of 3183 |
+| + piece 199 | **3866, whole** | — |
+
+**The value diff on the old word's chain** (run1403b):
+
+| block | record | field | before | after (both sides) |
+|---|---|---|---|---|
+| 3158 | `1/18`'s `ammo[0]`, `ammo[1]` | `sx, sy, sz`; `total_time` | 4200, 34056, 489; 3 against 4203, 33991, 607; 2 | 4203, 33991, 607; 2 |
+| 3159 | the Citizen `0/4` | `hits:damage`; `hits_left` | 52; 33 against 59; 26 | 59; 26 |
+| 3160 | the draw stream, index 44 | `Farms::inc_time+0x1ae` | ours alone | neither |
+| 3184 | the Chi-Ha `1/35`'s `ammo[2]` | `sx, sy, sz`; `total_time` | 4152, 34728, 480; 6 against 4142, 34576, 629; 5 | 4142, 34576, 629; 5 |
+| 3187 | `0/2003` | `build:damage` | 6 against 21 | 21 |
+
+**The windows.**
+
+| window | keys before → after | rounds read; parting before → after |
+|---|---|---|
+| run1403b, 3095..3411 | 850 → 59 | (269, 320); 247 → (269, 269); 2 |
+| run1424b, 3834..3867 (new) | 56 before piece 1145 → 53 | (282, 285); 79 → (282, 282); 15 |
+
+- **run1424b** is the closing window: 33 blocks at run1403b's detail, lane 2, 37.1 s, 3867 of 3867 draws identical
+  to run1403. `WIDENINGS` and the `AiWord` name it, and the coverage driver walks it.
+- Its 53 keys are all standing families: `form` on 23 units, who=0's `SITE[i].reg` and `aggression[1]`, who=1's
+  five groups and pools, and `mirror` on seven craft.
+- Its 15 rounds are the Bombers' (TI 304): `accuracy` 0 in ours against 256..300, and `1/106`'s `ammo[3]` of 3860
+  a unit off (3745a).
+- Before piece 1145 the Bazookas' rounds struck `0/2002` (3850, `build:damage` 74 against 84) and `0/2000` (3860)
+  late. Neither reached a draw or the closing state. The rows were on the same packet, so I built them.
+- **run1403b's 59** are the standing families, plus three more rows: group 68's `held` [104] and its pool on 3167
+  (ours alone), `mirror` on four craft, and `1/36`'s round of 3163 whose target is gone (3745b).
+
+**Mutations** (`tools/mutate.py --patch`, each piece's rows negated, on committed trees):
+- **1108**: `japanese_modern_pair_first_parting` exited 101 at 3160, the old draw. Held.
+- **199**: it exited 101 at 3270. Held.
+- **1145** is held by its own test and by run1424b's 56 → 53. The draws need nothing from it.
+
+**The rubric.** `rubric.py --tables 3`: unit types seen **245 → 248**. The three new lines are the ones §369 found
+fielded: `Infantry` (102), `Tank[CHIHA]` (249) and the `Zero` (293). Lockstep bytes hold at 77.4 % (2247 of 3611).
+
+**Not established**:
+- The Bombers' `accuracy` field: ours writes 0, theirs about 300 (3745a).
+- Group 68's `held` [104] on 3167 in ours alone (3745b).
+- Which farm skipped its draw on 3160.
+- Pieces 1108 and 1145 at another age or gender: only the age-0, gender-0 pieces are loaded on this packet.
+
+**Coverage.** Diff-backed: all three pieces' rows (the word, both windows' rounds, and the every-cell oracle for
+199). Reading-only: none.
 
 ## 370. Reserved for the next item on the AI track
 
