@@ -12259,13 +12259,27 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   run1421b 26, the first `1/42`'s of 3772). None reaches the draws or the closing state, so it names no score.
   The instrument is on disk: `sweep 207 1 <12|13> <1|7>` on `~/ron-golden/run1419b/map-14/frame-snapshot.bin`.
 
-## Parked by the next landing, slot VR — reserved
+## Parked by item 3744, 2026-10-28 — the Russian Information word closes whole on the siege-city arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3744a. The MLRS `1/99`'s (TI 273) rockets leave from another point**: from 5913 (run1423) every round's `sx`,
+  `sy`, `sz`, `angle` and `v1z` part — on 5913 `sx` 7320 against 7285, `sy` 12552 against 12579, `sz` 35 against
+  275 — so ours launches from the unit's centre at ground height where theirs leaves a rack offset and raised
+  (`docs/AI.md` §368.1). 94 of run1423's rounds and 40 of run1401b's. The rounds land, wound and spend no draw:
+  the pair runs whole to 6706. The pivot or bay rows of the MLRS's piece are the first reading.
+- **3744b. The `1/198`'s rounds part on run1401b** (58 rows from 6295: `sx` 6601 against 6565, `accuracy` 0
+  against 6), with its `airorder.mandatory` 0 against 1 from 6203. They are 3721's first parting round; no draw
+  reads them.
+- **3744c. The Strategic Bombers' air orders part from 5805** (run1423b): `1/196`'s order kind 16 against 17 and
+  length 2 against 1 on 5805, then `airorder.mandatory` 0 against 1 on `1/173` (5812), `1/196` (5821) and `1/194`
+  (5823), and `1/173`'s order on 5848 and `returning` on 5876. 3721 saw them on stride block 5901. No draw reads
+  them; the pair closes whole.
+- **3744d. The T80 `1/59`'s (`RUSSHEAVYTANK`, TI 260) rounds leave from another point from 6605** (run1423c:
+  `sx` 7992 against 7939, `angle` −308019200 against −310247424), and on 6636 ours alone still holds a round.
+  Theirs reduces the city `0/2000` on 6635 (`reduce_stamp` 6635, `damage` 1200, `city_flags` `0x2`/`0x4`); ours
+  still has `damage` 1191 and `reduce_stamp` 6310. The game ends on 6706 with no draw parted, so it names no
+  score. It is the tranche's turret-row family on the T80's piece, and the T80 cannot go lockstep without it.
+- **3744e. `Shock Infantry` `1/49` (TI 108) faces another way on 6703** (`dest_angle` 2055798784 against
+  1568079872, run1423c), three frames before the game ends.
 
 ## Parked by item 3745, 2026-10-28 — pieces 1108, 1145 and 199, the Japanese Modern word whole at 3866
 

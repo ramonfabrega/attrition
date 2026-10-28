@@ -9428,3 +9428,83 @@ fn a_script_s_second_ask_for_a_tech_in_research_is_refused() {
     assert_eq!(ask(&mut sim), 0, "the second is `could_queue`'s refusal");
     assert_eq!(sim.buildings[lib].queue.items.len(), 1);
 }
+
+/// **`find_nearby_target`'s siege-city arm** (item 3744, `docs/AI.md`
+/// §368.1; `00649912`–`00649b40`): a computer's siege unit, an active
+/// member of its army's group, that adds a find which is a city centre
+/// adds it **mandatory** and points its army there — the target, the
+/// muster cell at the unit's own cell and the muster angle the bearing
+/// to the city. Every other find, and the same find by a human's unit, a
+/// non-siege type or a unit in no group, adds it with `mandatory` 0 and
+/// leaves the army alone. East Indies' MLRS `1/99` on 5887 (run1423b).
+#[test]
+fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
+    for case in ["city", "human", "not siege", "no army", "a unit"] {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+        while sim.nation.len() < 2 {
+            sim.nation.push(Default::default());
+        }
+        sim.nation[1].human = case == "human";
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            cols: crate::ai_load::UnitCols {
+                unit_flags: if case == "not siege" {
+                    0
+                } else {
+                    crate::ai_load::uflags::SIEGE
+                },
+                ..crate::ai_load::UnitCols::default()
+            },
+            combat: combat::Profile {
+                attack: 40,
+                max_range: 20,
+                uber_size: 1,
+                ..combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(tile_pos(32, 32).x + 1097, tile_pos(32, 32).y + 5527);
+        let me = spawn(&mut sim, 1, ty, at);
+        let foe = spawn(&mut sim, 0, ty, tile_pos(36, 36));
+        let army = (case != "no army").then(|| {
+            let a = sim.init_army(1, None);
+            sim.army_add_unit(1, a, me);
+            sim.armies[1].list[a].muster = crate::world::Cell { x: 8, y: 8 };
+            a
+        });
+        let find = if case == "a unit" {
+            Obj::Unit(foe)
+        } else {
+            Obj::Building(city)
+        };
+        sim.nearby_add(me, find);
+        assert_eq!(sim.units[me].combat.target, Some(find), "{case}");
+        assert!(
+            matches!(
+                sim.units[me].orders.front().map(|o| o.body),
+                Some(crate::orders::Body::Attack(_))
+            ),
+            "{case}: the find is added"
+        );
+        let taken = case == "city";
+        assert_eq!(sim.units[me].combat.mandatory, taken, "{case}");
+        if let Some(a) = army {
+            let a = &sim.armies[1].list[a];
+            let to = sim.buildings[city].pos;
+            if taken {
+                assert_eq!(a.target, Some(find), "{case}");
+                assert_eq!(a.muster, at.cell(), "{case}: the unit's own cell");
+                assert_eq!(
+                    a.muster_angle,
+                    crate::movement::find_angle(to.x - at.x, to.y - at.y),
+                    "{case}: the bearing to the city"
+                );
+            } else {
+                assert_eq!(a.target, None, "{case}");
+                assert_eq!(a.muster, crate::world::Cell { x: 8, y: 8 }, "{case}");
+            }
+        }
+    }
+}
