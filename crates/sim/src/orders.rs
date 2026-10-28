@@ -3854,6 +3854,16 @@ impl Sim {
     pub(crate) fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
         let who = self.units[u].owner;
         let p = self.profile(Obj::Unit(u));
+        if std::env::var("RON_PROBE_SIEGE").is_ok_and(|v| v == format!("{}/{}", who, self.units[u].index)) {
+            let t = self.army_of(u).and_then(|s| self.armies[who as usize].list.get(s)).and_then(|a| a.target);
+            eprintln!(
+                "probe siege {}/{} at ({},{}) packs {} siege {} packed {} ai {} search_ai {} target {:?} valid {:?} dist {:?} limit {}",
+                who, self.units[u].index, self.units[u].pos.x, self.units[u].pos.y,
+                p.packs, p.siege, self.units[u].combat.packed, self.ai_driven(who), self.search_ai(who),
+                t, t.map(|t| self.valid_target(Obj::Unit(u), t)), t.map(|t| self.attack_dist(Obj::Unit(u), t)),
+                self.tuning.unit_respond_range * 0x180
+            );
+        }
         if !p.packs
             || !p.siege
             || !self.units[u].combat.packed
