@@ -535,6 +535,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // difficulty, nor `(18, 20, 1)`, `(18, 20, 5)`, `(7, 20, 3)` or
     // `(7, 20, 5)`, other maps; the battery fields no Americans.
     (14, 20, 5),
+    // The Maya at a held Information age, Great Lakes (item 3726,
+    // `diff::maya_information_pair`), minted under rule (3) — not
+    // `maya_word`'s `(7, 1, 4)` (once the battery's `GreatSaharaMayaTier4`)
+    // nor `maya_ancient_pair`'s `(18, 1, 5)`, other maps: no Maya lobby held
+    // Great Lakes, and the battery fields no Maya.
+    (14, 1, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
