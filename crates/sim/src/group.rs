@@ -4025,6 +4025,7 @@ impl Sim {
             angle.0.wrapping_sub(self.units[u].movement.heading.0),
         ));
         self.units[u].movement.heading = angle;
+        self.units[u].movement.crew_des = true;
         // `605424`: the unit's own mirror flips before the leader test.
         if turned {
             self.units[u].movement.mirror = !self.units[u].movement.mirror;

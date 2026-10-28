@@ -1313,6 +1313,8 @@ impl Sim {
     /// [`SITE_TURN_CREW`], the recursion's own chain, and the caller's
     /// label is restored after it so nothing past the turn is relabelled.
     pub(crate) fn do_turn_anim(&mut self, u: usize, was: Angle, to: Angle, heading: Angle) {
+        // `do_turn:31`–`37`: the trackless crew take `angle == des_angle`.
+        self.units[u].movement.crew_des = false;
         for g in 0..self.units[u].guys.len() {
             if self.units[u].guys[g].follow.is_some() {
                 continue;
@@ -1448,7 +1450,12 @@ impl Sim {
     fn guy_settled(&self, u: usize, g: usize) -> bool {
         match self.units[u].guys.get(g).and_then(|x| x.follow) {
             Some(f) => f.facing == f.des_angle,
-            None if g >= SQUAD_SIZE => true,
+            // A trackless crew figure's pair is guy 0's heading and facing
+            // only while a `set_angle` stands unturned ([`crate::Movement::crew_des`]).
+            None if g >= SQUAD_SIZE => {
+                let m = self.units[u].movement;
+                !m.crew_des || m.facing == m.heading
+            }
             None => {
                 let m = self.units[u].movement;
                 m.facing == m.heading

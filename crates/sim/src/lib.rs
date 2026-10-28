@@ -781,6 +781,19 @@ pub struct Movement {
     /// One reader here: `Unit::do_guard@005e5c70` negates a guard's `dx`
     /// when its **target** carries it.
     pub mirror: bool,
+    /// **The trackless crew's `des_angle` (`GuyData +0x64`) stands apart
+    /// from its `angle` (`+0x18`)** — set by every `Unit::set_angle` with
+    /// the snap flag clear, cleared by the next `Guy::do_turn` and by the
+    /// snap (item 3762, `docs/GOLDEN.md` §149.3). `Guy::set_angle@005d9010`
+    /// writes every crew figure's `+0x64` from `+0x304` up and leaves its
+    /// `+0x18`; `Guy::do_turn@005d97a0` writes both equal on the figures
+    /// it recurses into. Between the two, a trackless crew figure reads
+    /// `des_angle != angle` exactly when guy 0's heading is not its facing
+    /// — and `Guy::set_anim`'s attack test (`005da38a`–`005da3ba`) defers
+    /// its swing. run1413's Bombard `2/23` on 759: `do_attack_ground`
+    /// turns it and swings on one frame, and the two trackless crew pay
+    /// the swing in `Guy::move+0x166`.
+    pub crew_des: bool,
 }
 
 impl Movement {
@@ -804,6 +817,7 @@ impl Movement {
             },
             body: movement::Body::at(pos),
             mirror: false,
+            crew_des: false,
         }
     }
 
@@ -831,6 +845,7 @@ impl Movement {
         self.frame_facing = facing;
         self.heading = facing;
         self.des_angle = facing;
+        self.crew_des = false;
     }
 
     /// Points the unit a given way and **leaves the body to turn** —
@@ -857,6 +872,7 @@ impl Movement {
     pub const fn set_heading(&mut self, heading: movement::Angle) {
         self.flip_mirror(heading);
         self.heading = heading;
+        self.crew_des = true;
     }
 }
 
