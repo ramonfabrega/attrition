@@ -32517,3 +32517,72 @@ SHA-256 `b91b1d7ef5c8d4fafa8aa961b0e46c257f907a3cb9b01d1ec5ca82644a74aca3`.
 **850** keys, rounds 269 against 320 with 247 rows parting, the first group 65's Infantry rounds (piece 52) from
 3143. It is the `WIDENINGS` row for the word 3160, the `AI_WORDS` window and the coverage driver's. It prints no
 farm cells (no `farms_of` record at this detail).
+## run1400 — the Russians at a held Information age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-28, item 3721, `att-3721`)
+
+`docs/AI.md` §368. run1394's line with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1400 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 2, pinned with `RON_CAPTURE_LANE=2` (the commander's word after Loop 3741's lane-1 faults). Launched
+  03:59:49, exited 04:00:13 (24.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA` blocks on frame 1, seed
+  12345, players tribe 4 and tribe 13, map style 18, five files restored. `GAME INFO` reads back `DIFFICULTY 4`,
+  `STARTING_TECHNOLOGY 7` and `ENDING_TECHNOLOGY 7` (`Pair::assert_lobby`). Filed with `filerun.py run1400
+  eastindies-russian-information-start`. `df -g ~` read 140 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1400-eastindies-russian-information-start.txt`, 153,810,091 bytes,
+SHA-256 `02ddcd92179c355f747612fb156c0dcdef6d8a0e23027245b3d04a828bc7184e`.
+
+Archive `rontrace-run1400.log`, 10,013,120 bytes,
+SHA-256 `9e16bd9c868f6f9eb74d7937e149217ed7047671f357f2d5c96c89d4f0299c07`.
+
+**What it holds**: the start of `russian_information_pair::RUSSIAN_INFORMATION`, and the walk's initial state.
+
+## run1401 — the Russians at a held Information age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-28, item 3721, `att-3721`)
+
+`docs/AI.md` §368. run1395's line with `--ai-tribe 13` and run1400's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 13 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, pinned, after run1400. Launched 04:00:46, exited 04:01:22 (36.3 s launch to exit). `success`. **The
+  game ended itself on 6706** (closing block 6707, `ended_early`). `GAME INFO` reads back as run1400's. `rngcmp.py`
+  against run1400: 37 frames identical. Filed with `filerun.py run1401 eastindies-russian-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1401-eastindies-russian-information-trace.txt`, 45,598,486 bytes,
+SHA-256 `91a12726a369bb64ef5a98c7f4b21415b1e53351ddfe979433793c56d78edc06`.
+
+Archive `rontrace-run1401.log`, 207,328,864 bytes,
+SHA-256 `9304568b95f076e8e940239a713c930f376f9f9d8ce6d243747534eb0fbd7cd3`.
+
+**What it holds**: the pair's first try. `russian_information_pair_first_parting` walks it from run1400: **6153 of
+6706**, the count and the sequence together — the MLRS `1/99`'s `Unit::do_idle+0x7d` draw in ours alone.
+`russian_information_pair_the_long_s_stride_walks_back_from_the_word` reads its stride, 101..6101: 61 blocks, 294
+keys. `russian_information_pair_run1401_s_closing_state` pins the closing block 6707 as a floor: 194 units, counts
+`[112, 1, 2, 2, 50, 1, 11]`.
+
+## run1401b — the Russians at a held Information age, East Indies, at difficulty 4: the word 6153's window, blocks 6095..6403 (2026-10-28, item 3721, `att-3721`)
+
+`docs/AI.md` §368. **What the disk could not answer**: every record and every round on the word's blocks. run1401's
+stride prints units every hundred frames (6101, then 6201), no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1401b --map 18 --end-frame 6403 --timeout
+3600 --log-window 6095 6403 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13
+--cover cover=0 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 2, pinned. Launched 04:05:09, exited 04:06:16 (66.9 s launch to exit). `success`, 6404 frames.
+  `rngcmp.py` against run1401: 6404 frames identical. Filed with `filerun.py run1401b
+  eastindies-russian-information-window-6095-6403`. `df -g ~` read 138 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1401b-eastindies-russian-information-window-6095-6403.txt`, 754,460,881 bytes,
+SHA-256 `bf595806ba5b15d69a9be0605965495d326818cd0db901a6a2875ea7a36a0b98`.
+
+Archive `rontrace-run1401b.log`, 193,700,832 bytes,
+SHA-256 `6a67391e27d791ef523ed68bb4cda17e9562491af584834ddf6d83116e50da17`.
+
+**What it holds**: `russian_information_pair_run1401b_s_word_frame_is_widened_whole`, walked from run1400: 308
+blocks, **1900** keys, rounds 408 against 227 with 66 parting. Group 72's orders part on 6141 (the MLRS `1/99` and
+the Flamethrower `1/114`). It is the `WIDENINGS` row for the word 6153, the `AI_WORDS` window and the coverage
+driver's.

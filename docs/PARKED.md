@@ -12083,13 +12083,15 @@ Neither row below names a score on its own.
   run1399b's first block 3195 (`docs/AI.md` §367). It is 3718b's and 3719b's family on a third lobby, and no draw
   on the word's frame 3244 reads them.
 
-## Parked by the next landing, slot VB — reserved
+## Parked by item 3721, 2026-10-28 — the Russians at a held Information age, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3721a. The Attack Submarine `1/74` (TI 339) rests (96, 720) apart from run1401's stride block 2801**, at
+  (42456, 44760) in ours against (42552, 45480) in theirs (`pos`, `orders_x/y`; `docs/AI.md` §368). It does not
+  move again in either before the word 6153, and no draw on 6153 reads it.
+- **3721b. `mirror` 0 against 1 on nine, and `g.angle[0]` 1431655765 against 0 on four, of who=1's units born
+  after 5000**, from stride block 5101 (`mirror` first on the Strategic Bombers `1/147` and `1/173`, on 5101;
+  `g.angle[0]` first on the Scholars `1/192`, on 5501). They are 3742a's aircraft `mirror` family, widened to the Scholars and land units of this lobby.
+  No draw on the word reads them.
 
 ## Parked by item 3722, 2026-10-28 — the Japanese Modern pair's stride
 
