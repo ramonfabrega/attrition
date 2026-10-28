@@ -226,6 +226,13 @@ pub struct Modifiers {
     /// percent is written in the executable; `SALT_BARRACKS_COST`'s 15% is
     /// never read here (item 3318, `docs/AI.md` §264).
     pub salt: bool,
+    /// The **American aircraft arm** (`get_cost:268`–`282`): up to three
+    /// `AMERICANS_AIRCRAFT` percentages — the Airbase trainer, then
+    /// `is(0x15f, 0)`, then `is(0x134, 0)` — each its own truncating step
+    /// after the German arm and before the British AA's, so a Fighter
+    /// Bomber trained at the Airbase takes it twice (item 3755,
+    /// `docs/AI.md` §372.1). Zero is the identity.
+    pub american_aircraft: [i32; 3],
     /// The British Anti-Aircraft Gun percentage (`get_cost:283`–`289`),
     /// its own truncating step after the American aircraft arm and before
     /// the Nubian merchants' and the Russian spy's (item 3678, `docs/AI.md`
@@ -633,6 +640,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled;
     if m.salt {
         cost = cost * 9 / 10;
+    }
+    for pct in m.american_aircraft {
+        cost = (100 - pct) * cost / 100;
     }
     if m.british_aa != 0 {
         cost = (100 - m.british_aa) * cost / 100;

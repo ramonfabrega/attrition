@@ -37,8 +37,8 @@ pub(crate) const AMERICAN_INFORMATION: Pair = Pair {
     // `Guy::set_anim+0x97a` against theirs' sixth
     // `Leader::make_stuff+0x63d` (`SITE_EXPIRE_SLOT`): who=1's make list
     // holds one more slot to expire in theirs (`docs/AI.md` §372).
-    count: 2385,
-    sequence: 2385,
+    count: 3653,
+    sequence: 3653,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -146,7 +146,7 @@ fn american_information_pair_is_no_other_lobby() {
 /// **The long's stride, walked back from the word** (item 3725, from
 /// 2385): only run1409's stride blocks are on disk before the word's
 /// window, 101 through 2301.
-pub(crate) const WIDENING_AMERICAN_INFORMATION_STRIDE: (i64, i64) = (101, 2301);
+pub(crate) const WIDENING_AMERICAN_INFORMATION_STRIDE: (i64, i64) = (101, 3601);
 
 pub(crate) fn american_information_stride_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
@@ -171,7 +171,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     let Some(w) = american_information_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 23, "every stride block in the window");
+    pin_eq!(w.blocks, 36, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -188,7 +188,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // the buildings' `build:extra` (40, which the stride does not print),
     // `form` on 27 units, who=1's groups 64..68 with their pools (10), and
     // `1/14`'s `g.angle[0]` from 401. No position, order or hit parts.
-    pin_eq!(w.firsts.len(), 78, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 111, "the stride's baseline");
 }
 
 /// run1409b: the word 2385's window, blocks 2295..2635 at the long's
@@ -261,7 +261,7 @@ fn american_information_pair_run1409b_s_word_frame_is_widened_whole() {
     // 10, `escrow` 0, and `MAKE[2].val` 180836 against 191072; on 2385
     // theirs expires one more slot (the word). No round flies in the window
     // on either side (`docs/AI.md` §372).
-    pin_eq!(w.firsts.len(), 1392, "run1409b baseline");
+    pin_eq!(w.firsts.len(), 60, "run1409b baseline");
     // Every round, both directions: `AMMO=5` was staged and none prints
     // on either side over 2295..2635.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
@@ -316,18 +316,6 @@ fn american_information_pair_run1409_s_closing_state() {
     // nothing torn or unlinked, ours' `1/128`..`1/134` extra. A floor, not
     // a score.
     pin_eq!(e.compared, 136, "units compared");
-    pin_eq!(e.counts(), [118, 0, 7, 5, 145, 0, 63], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![
-            (1, 128),
-            (1, 129),
-            (1, 130),
-            (1, 131),
-            (1, 132),
-            (1, 133),
-            (1, 134)
-        ],
-        "the closing extras"
-    );
+    pin_eq!(e.counts(), [77, 0, 0, 7, 24, 1, 16], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

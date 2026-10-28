@@ -1095,6 +1095,10 @@ pub struct Tuning {
     /// Percentage off a British leader's unit of the Anti-Aircraft Gun's
     /// lineage (`get_cost:283`–`289`, `is(0x119, 0)`).
     pub british_aa_cost: i32,
+    /// `AMERICANS_AIRCRAFT` — percentage off an American leader's unit
+    /// trained at the Airbase (`0x1bf`), then again off one of the Aircraft
+    /// Carrier's or the Fighter Bomber's lineage (`get_cost:268`–`282`).
+    pub americans_aircraft: i32,
     /// Percent faster Citizen creation with the Wool rare —
     /// `ObjectData::train_time@006508c0`'s tail, on a type whose `TypeIndex`
     /// is a Citizen (0x32, 0x33). Ships as 33 (`docs/AI.md` §184).
@@ -1719,6 +1723,7 @@ impl Tuning {
         british_archer_speed: 0,
         british_aa_speed: 33,
         british_aa_cost: 25,
+        americans_aircraft: 20,
         wool_citizens_speed: 33,
         cotton_creation_speed: 25,
         monarchy_unit_prod: [25, 25],
@@ -2570,6 +2575,7 @@ impl Tuning {
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
             ("BRITISH_AA_COST", Slot::Value(T.british_aa_cost)),
+            ("AMERICANS_AIRCRAFT", Slot::Value(T.americans_aircraft)),
             ("WOOL_CITIZENS_SPEED", Slot::Value(T.wool_citizens_speed)),
             (
                 "COTTON_CREATION_SPEED",
