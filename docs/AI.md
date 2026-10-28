@@ -34923,12 +34923,84 @@ seen stays **229 of 302**.
 it, or leaves it on 3108 with no draw (`set_anim` to the idle without the roll). A `GUYS=4` window over 3079..3110,
 or a packet at 3107 with `Guy::inc_time` watched for `1/98`'s figures, tells them apart.
 
-## 365. Reserved for the next item on the AI track
+## 365. The Spanish at a held Modern age, East Indies, at difficulty 4: first try 3770 of 4081 (item 3718)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3718, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §304's lobby with the nation and difficulty moved:
+`MAP_STYLE 18`, human Nubians (4) against the **Spanish (9)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1394 (a `DUMP_ALL` start) and run1395 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 4081. The walk is seeded from run1394's initial state (3506a). `diff::spanish_modern_pair`
+pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 9, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Spanish (no `battery::BATTERY` game is tribe 9). The Spanish lobbies already pinned are
+`spanish_east_word`'s `(18, 9, 3)` and `spanish_gunpowder_pair`'s `(18, 9, 5)` (this map, other difficulties),
+`spanish_lakes_word`'s `(14, 9, 4)`, `spanish_industrial_pair`'s `(14, 9, 5)`, `spanish_word`'s `(7, 9, 3)` and
+`spanish_classical_pair`'s `(7, 9, 5)` (other maps). `spanish_modern_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 3770 of 4081**, by the count and the sequence. On 3770 ours spends **3212 draws against theirs'
+3216**, parting at index 0: ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389` (the Howitzer
+`1/111`'s turn — TI 272, `HUMMEL`, packed — which is theirs' index 1), theirs **`Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::do_idle+0x7d`**. Theirs' game draws on 3770 (`report.py … draws 3770`): the `do_idle` draw, `1/111`'s
+`move_step` draw, 3207 `PathFinder::calc_road_cost+0x46` draws from `astar_caravan_road`, four `Guy::inc_time`
+draws, one `Guy::set_anim+0x104b` and the farms' two. Ours (`RON_DEBUG_SITES=3769-3770`) spends the same tail with
+no `do_idle` draw and **three fewer road-cost draws (3204)**.
+
+**The direction: theirs acts, on a wound ours never dealt.** The `do_idle` draw is the **Citizen `0/13`** (TI 50,
+land; `RON_DEBUG_UNIT`). Theirs' Battleship round wounds it on 3704 (hits 85 → 79, `damage_frame` 3704). It flees
+on a `FLEETOORDER` to (6888, 7752), reaches the spot on 3770, drops the order and goes idle with the draw (`idle`
+1 on 3771). Ours' citizen is not wounded on 3704: `hits_left` reads 85 against 79 on block 3705, it holds no order, and it stands idle at (5784, 8856) (`idle` 234 against 0 on 3706). Theirs' has healed back to 85 by 3765.
+
+**The shooters**: the **Battleships `1/45` and `1/46`** (TI 349, TY 299 — **piece 299**, sea, army 2, stance
+Raid). Theirs' `AMMO` on block 3704 shows the round that lands: `1/45`'s, loosed on 3693 with `total_time` 13 at
+`whom 0`, `ox 13`, `ex/ey` (5787, 8855). It leaves from (2629, 11443, z 106) with `graph_index 3`, and `1/46`'s
+from `graph_index 4`: turrets, as the Cruiser's are (piece 279, item 3519). **Neither `sim::launch` nor
+`sim::pivot` has a row for piece 299.** So ours' rounds leave from the guy's own square, (2808, 11832, z 0), and
+fly 14 frames against 13. This is the launch-point family of 3704–3714. Why ours' 14-frame round lands no wound is
+the next item's.
+
+**The state parts first on 3119, a birth.** The stride's first unit row is block 3201. run1395c walks 3095..3210
+and finds the **Submarine `1/109`** (TI 338, TY 288, sea), trained at who=1's Dock `1/2016` (35904, 43776,
+`q[338@300]` on 3118). Ours places it on 3119 at **(36696, 44760)**, theirs at **(36696, 45240)**, 480 further
+south. Its move angle, path and destination follow (3120, 3130, 3131). It spends no draw, so the stream holds for
+650 frames. Both partings feed the closing state; only the citizen's reaches the draw stream first.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3119 | the Submarine `1/109` (run1395c) | `pos` | (36696, 44760) | (36696, 45240) |
+| 3693 | the Battleship `1/45`'s round `ammo[0]` (run1395b) | `sx, sy, sz`; `total_time` | 2808, 11832, 0; 14 | 2629, 11443, 106; 13 |
+| 3705 | the Citizen `0/13` | `hits_left`; `damage_frame`; `orders.len` | 85; 0; 0 | 79; 3704; 1 |
+| 3770 | the draw stream, index 0 | site | `1/111`'s `move_step` turn | `0/13`'s `Unit::do_idle+0x7d` |
+
+**The windows.**
+- run1395's stride, 101..3701 (37 blocks, **163 keys**): the standing families (`form`, `build:extra`, who=1's
+  groups and pools), and the Submarine `1/109` from 3201.
+- run1395c, blocks 3095..3210 (115 blocks, **108 keys**; rounds 21 against 21, none parting): the birth on 3119.
+- run1395b, blocks 3677..4021 at the long's detail with `LEADERS=9` and `AMMO=5` (344 blocks, **1983 keys**, the
+  two `gaia:` keys unprinted; **rounds 654 against 680, 213 parting**, the first `1/45`'s on 3693). Block 3677
+  carries both leaders' `SITE[i].reg` (ours 65, theirs 0) and `aggression[1]` (0 against 1) as standing rows.
+
+**The closing state** is downstream. run1395's block 4082 compares 151 units: counts `[56, 2, 2, 2, 24, 1, 10]`,
+extras `1/142` and `1/147`, `1/127` and `1/141` unlinked. A floor, not a score.
+
+**The rubric.** Seven of the booking's nine lines were fielded (`rubric.py --tables 3 --dumps` on run1394 and
+run1395): `Special Forces[SPECIALFORCESSPANISH]` (76, 192 rows), `Infantry[INFANTRYGER]` (103, 732),
+`Bazooka[BAZOOKAGERMAN]` (140, 678), `Armored Scout Car[ARMOREDCAR2]` (219, 98), `Tank[PANZER]` (250, 316),
+`Howitzer[HUMMEL]` (272, 162) and `Anti-Aircraft Battery[FLAKGUNGERMAN]` (283, 100). `Heavy Machine
+Gun[HVYMACHINEGUNGERMAN]` (126) and the `ME109` (292) were not. The rubric counts whole lockstep games only, so unit
+types seen stays **230 of 302** and the lockstep bytes stay at 77.4 %.
+
+**Not established**:
+- Piece 299's turret release nodes. Theirs' `AMMO` prints `sx, sy, sz` and `graph_index` for every round in
+  run1395b, which is the Cruiser's measurement (item 3519). The angle each turret holds may need a packet, as the
+  Cruiser's did.
+- Why ours' round lands no wound on `0/13`.
+- The Dock's ship-placement rule that puts the Submarine 480 apart.
+- The three road-cost draws.
 
 ## 366. Reserved for the next item on the AI track
 
