@@ -11025,3 +11025,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1423b --map 18 --end-frame 5900 --timeout 3600 --log-window 5795 5900 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (the gap before it: 1/99's attack on 5887)
 #   run1423c --map 18 --end-frame 6706 --allow-early-end --timeout 3600 --log-window 6450 6707 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (the closing window)
 # Checks: `rngcmp.py` run1401 vs run1423 -> 6102 identical; vs run1423b -> 5901 identical; vs run1423c -> 6707 identical.
+# ==== item 3722: the Japanese at a held Modern age, Great Lakes, at difficulty 4 (`docs/AI.md` §369; `docs/RUNS.md` run1402, run1403, run1403b) ====
+#   run1402  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1403  run1397's line with --ai-tribe 15 and run1402's lobby   (the draw stream; ended itself on 3866)
+#   run1403b --map 14 --end-frame 3411 --timeout 3600 --log-window 3095 3411 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby   (the word 3160's window)
+# Checks: `rngcmp.py` run1402 vs run1403 -> 37 identical; run1403 vs run1403b -> 3412 identical.

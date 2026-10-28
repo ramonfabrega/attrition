@@ -36004,12 +36004,90 @@ re-pinned. Lockstep bytes stay at 77.4 %. The closing state is scored (195 units
 - Theirs' `attack_dist` on 5887 is inferred, not measured: the arm accounts for the `mandatory` without it.
 - The MLRS's launch point (3744a) and the `1/198`'s rounds (3744b) part without a draw; they are parked.
 
-## 369. Reserved for the next item on the AI track
+## 369. The Japanese at a held Modern age, Great Lakes, at difficulty 4: first try 3160 of 3866 (item 3722)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3722, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §366's lobby with the nation moved:
+`MAP_STYLE 14`, human Nubians (4) against the **Japanese (15)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1402 (a `DUMP_ALL` start) and run1403 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 3866. The walk is seeded from run1402's initial state (3506a). `diff::japanese_modern_pair`
+pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 15, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Japanese (no `battery::BATTERY` game is tribe 15). The Japanese lobbies already pinned
+are `japanese_medieval_pair`'s `(14, 15, 5)` (this map, another difficulty), `japanese_enlightenment_pair`'s
+`(18, 15, 4)`, `japanese_ancient_pair`'s and `japanese_industrial_pair`'s `(18, 15, 5)`, `japanese_word`'s
+`(7, 15, 1)` and `japanese_gunpowder_pair`'s `(7, 15, 5)` (other maps). `japanese_modern_pair_is_no_other_lobby`
+asserts all of it.
+
+**First try: 3160 of 3866**, by the count and the sequence. On 3160 ours spends **45 draws against theirs' 44**,
+parting at index 44: ours spends a fourth **`Farms::inc_time+0x1ae`** where theirs spends three. The rest of the
+frame is the same, site by site (`report.py rontrace-run1403.log draws 3160`; ours with `RON_DEBUG_SITES=3159-3160`).
+Theirs' frame is 32 bird coins (`Animal::think_bird`), four `Ammo::init` draws (`1/19`, `1/29`), five guy anims
+and the farms. On 3155–3159 theirs spends four farm draws a frame, as ours does. The site is the farm's chance roll
+(`sim::farms::SITE_CHANCE`), spent only by a farm with five or more empty cells. So on 3160 one of theirs' farms
+has one more cell sown than ours'.
+
+**The direction: theirs' round lands a frame earlier.** The first unit parting in the widening is the human's
+**Citizen `0/4`** (TI 50, land, farmer of `0/2003`) on block 3159:
+- `hits:damage` reads ours 52 against theirs 59, `hits_left` 33 against 26;
+- its city `0/2000`'s `raid_stamp` reads 3155 against 3158.
+
+It is the target of group 65's **Infantry** (TI 102, TY 52 — **piece 52** — land, the booking's own `Infantry`).
+`RON_DEBUG_AMMO=3157-3161` shows `1/18`'s two rounds of 3157 leaving **the guy's own square**, (4200, 34056, z
+489), and flying three frames (`t1/3`). The dump's same rounds leave (4203, 33991, z 607) with `total_time` 2.
+**Neither `sim::launch` nor `sim::pivot` has a row for piece 52.**
+
+On 3160, theirs' `0/4` reaches its flee's end at (3384, 32952), drops the move, and holds its `GATHERORDER` alone.
+Ours' takes a second `FleeTo`, to (2472, 31704), on its late wound (`order:kind` 4 against 7, `orders.len` 2
+against 1). So theirs' farmer is back on the farm a frame ahead of ours. That is the hypothesis for the farm
+draw; no dump on disk prints the farm cells that would show it (below).
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3158 | `1/18`'s rounds `ammo[0]`, `ammo[1]` | `sx, sy, sz`; `total_time` | 4200, 34056, 489; 3 | 4203, 33991, 607; 2 |
+| 3159 | the Citizen `0/4` | `hits:damage`; `hits_left` | 52; 33 | 59; 26 |
+| 3159 | the city `0/2000` | `raid_stamp` | 3155 | 3158 |
+| 3160 | the Citizen `0/4` | `order:kind`; `orders.len`; `orders_x, orders_y` | 4; 2; 2472, 31704 | 7; 1; 3384, 32952 |
+| 3160 | the draw stream, index 44 | site | `Farms::inc_time+0x1ae` (a fourth) | — (three) |
+
+**The windows.**
+- run1403's stride, 101..3001 (30 blocks, **95 keys**): the standing families (`form` on 27 units, `build:extra`,
+  who=1's groups and pools), and the Infantry `1/18`'s lone `dest_angle` on 1801 (3722a).
+- run1403b, blocks 3095..3411 at the long's detail with `LEADERS=9` and `AMMO=5` (316 blocks, **850 keys**, the
+  two `gaia:` keys unprinted; **rounds 269 against 320, 247 rows parting**). Block 3095 carries both leaders'
+  `SITE[i].reg` and who=0's `aggression[1]` (3719b's family), `form`, and who=1's groups 64..70 with their pools.
+  The first rounds parting are group 65's Infantry (`1/21`, `1/23`, `1/28`) from 3143, each one's `sx, sy, sz`,
+  `angle` and `v1z`: the launch point, before the wound. The state's first unit parting is `0/4` on 3159, inside
+  the window, so no walk back is owed.
+
+**The closing state** is downstream. run1403's block 3867 compares 130 units: counts `[81, 0, 0, 8, 39, 1, 8]`,
+`1/14` and `1/20` torn, nothing extra or unlinked. A floor, not a score.
+
+**The rubric.** All three of the booking's lines were fielded (`rubric.py --tables 3 --dumps` on run1402 and
+run1403):
+- `Infantry` (102): seen, moved, attacked;
+- `Tank[CHIHA]` (249): seen, moved, attacked;
+- the `Zero` (293, `FIGHTERZERO`, Air): seen and boarded, never moved.
+
+None of the three is in the lockstep ledger yet. The rubric counts whole lockstep games only, so unit types seen
+stays **245 of 302** and the lockstep bytes stay at 77.4 %.
+
+**The booking for the next item**: frame 3160, ours 45 draws against theirs' 44, index 44, ours' fourth
+`Farms::inc_time+0x1ae`. The hypothesis is the Infantry's (piece 52) launch point: the rounds of 3157 that wound
+`0/4` a frame late in ours. The instrument is run1403b's `AMMO` on every Infantry round from 3143. Piece 52's
+node may need a packet, as pieces 203 and 207 did (§367.2).
+
+**Not established**:
+- Which farm skips its draw in theirs on 3160, and by how many cells. run1403b's detail prints no farm record. The
+  chain from `0/4`'s gather to the farm's empty count is the hypothesis; a fix that lands the round on time
+  decides it.
+- Piece 52's release node, or whether the Infantry is a bay piece (§367.2's arm question).
+- The `1/18` `dest_angle` of 1801 (3722a).
 
 ## 370. Reserved for the next item on the AI track
 
