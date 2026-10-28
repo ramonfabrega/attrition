@@ -3635,6 +3635,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::german_modern_pair::german_modern_closing_window(),
         || super::egyptian_information_pair::egyptian_information_stride_window(),
         || super::egyptian_information_pair::egyptian_information_frame_3244_window(),
+        || super::egyptian_information_pair::egyptian_information_frame_3519_window(),
+        || super::egyptian_information_pair::egyptian_information_closing_window(),
         || super::russian_information_pair::russian_information_stride_window(),
         || super::russian_information_pair::russian_information_frame_6153_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),

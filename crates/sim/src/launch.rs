@@ -2532,6 +2532,49 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 139,
         },
     ),
+    // **Piece 203, the Main Battle Tank** (type 253, `HEAVYTANKCTWW`,
+    // `challenger.bh3`; item 3743, `docs/AI.md` §367.2): run1419b's packet
+    // (`RON_STATE_FRAME=3212`) holds its seven `AttachPos` rows — node 4 and
+    // node 0 at 11 of `CHAR_ATTACK1`, 23 of `2` and 27 of `3`, `RData +0x88`
+    // 0.8. **No `<RESTRICTION>` names `HEAVYTANKCTWW`** (the foot's
+    // `HEAVYTANK` is type 251's graph), so the event's `node & 3` is not
+    // below a count of 0 and `get_position` takes its non-pivot arm: the
+    // muzzle alone, about 350 out and 38 up, not the turret's 143. `fit_bay.py`
+    // fits each sweep (638, 268 and 178 lattice points; the centroid is
+    // kept, 361 of 361 headings each). Without them who=1's `1/55` loosed
+    // its round of 3514 at the human's Citizen `0/10` from its own square
+    // (5352, 30792, 515) against the original's (5166, 30496, 553), flew 7
+    // frames against 6, and the citizen died a frame late.
+    (
+        203,
+        crate::anim::ATTACK1,
+        11,
+        Bay {
+            right: -541,
+            fwd: 347_780,
+            dz: 38,
+        },
+    ),
+    (
+        203,
+        crate::anim::ATTACK2,
+        23,
+        Bay {
+            right: -534,
+            fwd: 350_174,
+            dz: 38,
+        },
+    ),
+    (
+        203,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: -541,
+            fwd: 308_736,
+            dz: 35,
+        },
+    ),
     // **Piece 54, the Assault Infantry** (type 104, `MECHINFANTRY`,
     // `ASSAULTINFANTRY-DEFAULT-AGE0`, `assault_infantry.bh3`; item 3740,
     // `docs/AI.md` §367.1): six packets on disk load it — run785, run789,
@@ -4113,6 +4156,25 @@ mod tests {
             let z = gz + release_dz(1178, anim, t, 0).unwrap_or(0);
             assert_eq!((got.x, got.y, z), (sx, sy, sz), "anim {anim} t {t}");
         }
+    }
+
+    /// **The Main Battle Tank looses from piece 203's bay** (item 3743):
+    /// run1421's `1/55` round of 3514, `CHAR_ATTACK2` frame 23, the figure
+    /// at (5352, 30792) and −371654656 with `z` 515, prints (5166, 30496,
+    /// 553) on 3515. Made to fail with the rows out of `BAYS`: the round
+    /// leaves the figure's own square.
+    #[test]
+    fn run1421_s_egyptian_main_battle_tank_leaves_from_its_bay() {
+        let got = launch_point(
+            Pos::new(5352, 30792),
+            Angle(-371_654_656),
+            203,
+            crate::anim::ATTACK2,
+            23,
+            0,
+        );
+        let z = 515 + release_dz(203, crate::anim::ATTACK2, 23, 0).unwrap_or(0);
+        assert_eq!((got.x, got.y, z), (5166, 30496, 553));
     }
 
     /// **The Egyptian Assault Infantry looses from piece 54's bay** (item

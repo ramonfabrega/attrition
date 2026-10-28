@@ -12248,13 +12248,17 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   661). It is 3711b's shape, a figure's launch point read off the wrong piece or none. The game is closed, so it
   names no draw.
 
-## Parked by the next landing, slot VQ — reserved
+## Parked by item 3743, 2026-10-28 — piece 203's bays and piece 207's turret, the Egyptian Information word whole at 3797
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3743a. The T80DES's node-1 rounds leave the hull's square in ours, fired from `WALK`.** On the Egyptian
+  Information lobby, theirs' `1/29` round of 3216 (run1399b) leaves (6419, 31775, 321): about 148 out and 130 up
+  from the hull at (6504, 31896, z 191). That is piece 207's node 1 (−41.23 and 36.38 model units at scale 0.75),
+  which run1419b's packet holds at frames 1 and 7 of `CHAR_ATTACK2` and `3`. Node 1 takes `get_position`'s
+  non-pivot arm (`1 & 3` is not below the count of 1), so it wants `launch::BAYS` rows. But ours fires the round
+  from `WALK` (anim 8, time 44 of 51; `RON_DEBUG_UNIT=1/29@3214-3215`), where theirs plays an attack anim, so bays
+  alone would not reach it: the pose comes first. The rounds part on all three windows (run1399b 95, run1421 74,
+  run1421b 26, the first `1/42`'s of 3772). None reaches the draws or the closing state, so it names no score.
+  The instrument is on disk: `sweep 207 1 <12|13> <1|7>` on `~/ron-golden/run1419b/map-14/frame-snapshot.bin`.
 
 ## Parked by the next landing, slot VR — reserved
 
