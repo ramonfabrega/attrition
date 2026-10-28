@@ -134,6 +134,8 @@ mod greek_gunpowder_pair;
 mod greek_medieval_pair;
 #[cfg(test)]
 mod greek_word;
+#[cfg(test)]
+mod gunpowder_melee;
 mod harness;
 #[cfg(test)]
 mod inca_classical_pair;

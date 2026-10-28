@@ -174,6 +174,7 @@ mod tests {
             type_index: vec![],
             unit_type_names: vec![],
             unit_tree: vec![],
+            staged: None,
         }
     }
     #[test]

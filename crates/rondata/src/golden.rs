@@ -3208,6 +3208,7 @@ mod tests {
             type_index: vec![],
             unit_type_names: Vec::new(),
             unit_tree: vec![],
+            staged: None,
         };
         let refused = |built: &Built, text: &str| {
             refused_object(built, &parse_issuer(text).expect("an issuer line"))
