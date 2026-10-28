@@ -31,8 +31,11 @@ pub(crate) const FRENCH_MEDIEVAL: Pair = Pair {
     ),
     // The game ended itself on 4664 (closing block 4665).
     length: 4664,
-    count: 4664,
-    sequence: 4664,
+    // Item 3717, first try: 3108 of 4664 by the count and the sequence —
+    // ours 5 draws against 4, index 4 ours' `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271` against none (`docs/AI.md` §364).
+    count: 3108,
+    sequence: 3108,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -129,4 +132,49 @@ fn french_medieval_pair_is_no_other_lobby() {
         assert_eq!(l.1, p.ai_tribe, "{name} fields the French");
         assert_ne!(l, triple, "{name} is this lobby");
     }
+}
+
+/// **The long's stride, walked back from the word** (item 3717, from
+/// 3108): only run1393's stride blocks are on disk before the word's
+/// window, 101 through 3101.
+pub(crate) const WIDENING_FRENCH_MEDIEVAL_STRIDE: (i64, i64) = (101, 3101);
+
+pub(crate) fn french_medieval_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[FRENCH_MEDIEVAL.start],
+        true,
+        FRENCH_MEDIEVAL.long,
+        "run1393 stride",
+        &[(FRENCH_MEDIEVAL.long.0, WIDENING_FRENCH_MEDIEVAL_STRIDE.0)],
+        WIDENING_FRENCH_MEDIEVAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn french_medieval_pair_the_long_s_stride_walks_back_from_the_word() {
+    let _pins = Pins::hold();
+    let Some(w) = french_medieval_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 31, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3717: 84 keys over 31 blocks, every one a standing family —
+    // `form` on 27 units and the buildings' `build:extra` on 45 (which the
+    // stride does not print), and who=1's groups 64..69 with their pools
+    // as each is minted. No unit row parts before the word's window.
+    pin_eq!(w.firsts.len(), 84, "the stride's baseline");
 }
