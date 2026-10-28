@@ -306,7 +306,7 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
     let Some(w) = egyptian_information_frame_3519_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 275, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -329,9 +329,26 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1421 baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    // Item 3743, the first walk: **436** keys. Block 3495 carries 54
+    // standing rows (who=0's `aggression[1]`, `form`, who=1's groups and
+    // pools, `mirror` on nine of who=1's craft). Past them: building
+    // `0/2006`'s `damage` on 3505 (289 against 303), group 67's `held` on
+    // 3507, `1/124`'s `mirror` on 3511; then **the word's block 3520**:
+    // the Citizen `0/10` (TI 50) is held by ours alone, and who=0's
+    // `active`, `control` (9 against 8), `num_units[0]` and `peasants` (8
+    // against 7) and `gather_down` of `0/2001` (10 against 8) part with
+    // it. The Heavy Tank `1/55` (TI 253, piece 203) attacks `0/10`; its
+    // `ammo[1]` of 3514 leaves (5352, 30792, z 515), the tank's own
+    // square, in ours against (5166, 30496, z 553) in theirs and flies 7
+    // frames against 6, so theirs kills on 3519 and ours on 3520 (the
+    // leader rows agree again on 3521). `docs/AI.md` §367.2.
+    pin_eq!(w.firsts.len(), 436, "run1421 baseline");
+    // Every round, both directions: 655 in ours against 697, the first
+    // parting the T80DES `1/29`'s `ammo[6]` on 3501 (`sx, sy, sz` 4920,
+    // 30888, 560 against 4641, 31056, 691; piece 207), then `1/55`'s
+    // `ammo[1]` on 3515.
+    pin_eq!(w.rounds_read, (655, 697), "the rounds read");
+    pin_eq!(w.rounds.len(), 367, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,
