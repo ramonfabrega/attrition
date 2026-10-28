@@ -406,6 +406,45 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 91, the TOW** (`TOW`, unit type 141; item 3760, `docs/AI.md`
+    // §372.4): run1437's packet on the American Information Great Lakes
+    // seed loads its three attack `AttachPos` rows (node 0, frame 17 of
+    // `CHAR_ATTACK1`, 7 of `CHAR_ATTACK2`, 13 of `CHAR_ATTACK3`), `RData
+    // +0x88` 1.0, and `fit_bay.py` fits each sweep (720, 191 and 361 lattice
+    // points, 361 of 361 headings; the centroid is kept). Without them
+    // who=1's `1/17` loosed its missile of 4291 from its own square (5832,
+    // 31320, 384) against the original's (5742, 31270, 531), and `1/18`'s of
+    // 4302 and `1/26`'s of 4303 the same.
+    (
+        91,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: 32_149,
+            fwd: 121_967,
+            dz: 124,
+        },
+    ),
+    (
+        91,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: 34_159,
+            fwd: 98_259,
+            dz: 147,
+        },
+    ),
+    (
+        91,
+        crate::anim::ATTACK3,
+        13,
+        Bay {
+            right: 47_814,
+            fwd: 110_240,
+            dz: 142,
+        },
+    ),
     // **Piece 126, `APEDEMAKARCHERS`** (unit type 176, the Apedemak
     // Archers; item 3759, `docs/GOLDEN.md` §149.2): run1438's
     // `RON_STATE_FRAME=684` packet on the first melee's lobby holds its
@@ -4225,6 +4264,67 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: 39,
         },
     ),
+    // **Piece 245, the Jet Fighter's two `AARocket`s** (`JETFIGHTER`, unit
+    // type 295; item 3760, `docs/AI.md` §372.4): run1437's
+    // `RON_STATE_FRAME=3894` packet on the American Information Great
+    // Lakes seed loads its two `AttachPos` rows (`CHAR_ATTACK2`, node 0 at
+    // frame 9 and node 1 at frame 4), `RData +0x88` 0.654, and `fit_bay.py`
+    // fits each sweep (152 and 236 lattice points, 361 of 361 headings;
+    // the centroid is kept): one under the wings and behind them, 36 below
+    // the figure. Without them who=1's strafing `1/57` loosed its rounds of
+    // 4225 and 4230 from its own square, (4703, 30220, 2127) against the
+    // original's (4889, 30343, 2091), and the second's splash on 4242 took
+    // building `0/2006`'s `damage_frac` to 8 against 11.
+    (
+        245,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: 184_080,
+            fwd: -126_691,
+            dz: -36,
+        },
+    ),
+    (
+        245,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: -184_152,
+            fwd: -126_707,
+            dz: -36,
+        },
+    ),
+    // **Piece 255, the Strategic Bomber's two bays** (`STRATEGICBOMBER`,
+    // unit type 305; item 3760, `docs/AI.md` §372.4): run1437's packet loads
+    // twelve `AttachPos` rows, `RData +0x88` 0.9, all in `CHAR_ATTACK2` — six
+    // on node 0 (frames 1, 2, 4, 7, 9, 11) and six on node 1 (1, 3, 5, 8,
+    // 10, 13), each node one point at all of its frames (the sweeps at the
+    // first and last frame agree on every heading) — and `fit_bay.py` fits
+    // each (149 and 884 lattice points, 361 of 361 headings; the centroid
+    // is kept), level with the figure. Without them who=1's `1/45` dropped
+    // its bombs of 4270 from its own square, (3717, 30596) against the
+    // original's (3805, 30661) and (3732, 30489).
+    (
+        255,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -93_878,
+            fwd: -57_148,
+            dz: 0,
+        },
+    ),
+    (
+        255,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 93_885,
+            fwd: -54_260,
+            dz: 0,
+        },
+    ),
     // **Piece 589, the same two guns on the human Biplane's graph** (item
     // 2693, `docs/GOLDEN.md` §99): run875's rounds leave from the plane's
     // own `GUY` point plus the 237 rows' vector, node for node — the
@@ -4312,6 +4412,75 @@ pub fn launch_point(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The American Information lobby's aircraft and TOWs leave from their
+    /// rows** (item 3760, `docs/AI.md` §372.4): every round of who=1's Jet
+    /// Fighters (piece 245), Strategic Bomber (255) and TOW (91) that
+    /// run1439 prints from its first block over 4220..4292, beside its
+    /// figure's `GUY` pose on that block — `(piece, x, y, angle, sx, sy,
+    /// sz − z)` — is reproduced by one of the piece's rows, and each row of
+    /// the two aircraft reproduces at least one. Made to fail with the
+    /// rows removed: every one leaves from the figure's own point.
+    #[test]
+    fn run1439_s_aircraft_and_tow_rounds_leave_from_their_rows() {
+        type Row = (i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Row] = &[
+            (245, 4703, 30220, -1_327_890_432, 4889, 30343, -36),
+            (245, 4315, 30372, -1_327_300_608, 4363, 30154, -36),
+            (245, 4712, 30217, -1_327_759_360, 4898, 30340, -36),
+            (245, 4287, 30382, -1_327_693_824, 4335, 30164, -36),
+            (245, 1538, 30399, 891_563_984, 1368, 30254, -36),
+            (245, 1971, 30487, 1_337_763_188, 1787, 30613, -36),
+            (245, 1591, 30380, 891_563_984, 1421, 30235, -36),
+            (255, 3717, 30596, -1_335_164_928, 3805, 30661, 0),
+            (255, 3717, 30596, -1_335_164_928, 3732, 30489, 0),
+            (255, 3642, 30626, -1_335_164_928, 3730, 30691, 0),
+            (255, 3567, 30656, -1_335_230_464, 3582, 30549, 0),
+            (255, 3492, 30686, -1_335_361_536, 3580, 30751, 0),
+            (255, 3417, 30716, -1_335_492_608, 3432, 30609, 0),
+            (255, 3267, 30777, -1_332_805_632, 3355, 30842, 0),
+            (255, 3192, 30807, -1_331_232_768, 3207, 30700, 0),
+            (255, 3117, 30836, -1_320_157_184, 3203, 30903, 0),
+            (255, 3042, 30865, -1_320_157_184, 3059, 30758, 0),
+            (255, 2967, 30894, -1_320_157_184, 3053, 30961, 0),
+            (255, 2817, 30952, -1_320_157_184, 2834, 30845, 0),
+            (91, 5832, 31320, -950_730_752, 5742, 31270, 147),
+        ];
+        let keys = |piece: i32| -> Vec<(i8, u32, i8)> {
+            match piece {
+                91 => vec![
+                    (crate::anim::ATTACK1, 17, 0),
+                    (crate::anim::ATTACK2, 7, 0),
+                    (crate::anim::ATTACK3, 13, 0),
+                ],
+                _ => vec![(crate::anim::ATTACK2, 1, 0), (crate::anim::ATTACK2, 1, 1)],
+            }
+        };
+        let mut hit = std::collections::BTreeSet::new();
+        for &(piece, x, y, angle, sx, sy, dz) in M {
+            let at = Pos::new(x, y);
+            let fits: Vec<_> = keys(piece)
+                .into_iter()
+                .filter(|&(a, t, n)| {
+                    launch_point(at, Angle(angle), piece, a, t, n) == Pos::new(sx, sy)
+                        && release_dz(piece, a, t, n) == Some(dz)
+                })
+                .collect();
+            assert!(
+                !fits.is_empty(),
+                "piece {piece} at ({x}, {y}): no row lands ({sx}, {sy})"
+            );
+            hit.extend(fits.into_iter().map(|k| (piece, k)));
+        }
+        for piece in [245, 255] {
+            for n in [0, 1] {
+                assert!(
+                    hit.contains(&(piece, (crate::anim::ATTACK2, 1, n))),
+                    "piece {piece} node {n} reproduces none"
+                );
+            }
+        }
+    }
 
     /// **The Royal Atl-Atls throw from piece 36's bays** (item 3613): all
     /// ten rounds run1266 and run1256b print from their first frame, each

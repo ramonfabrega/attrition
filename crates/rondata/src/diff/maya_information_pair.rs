@@ -257,7 +257,9 @@ fn maya_information_pair_run1411b_s_closing_frame_is_widened_whole() {
     // Strategic Bombers (`1/83`, `1/99`, TI 305) and Jet Fighters (`1/91`,
     // `1/100`, TI 295) part on angle and `accuracy` (parked 3726a). Item
     // 3756: 121 → 90, piece 170's rounds agree; piece 874's still part.
-    pin_eq!(w.rounds.len(), 90, "the rounds that part");
+    // Item 3760, the Jet Fighter's guns (piece 245) and the Strategic
+    // Bomber's bays (255): 90 → **8** (`docs/AI.md` §372.4).
+    pin_eq!(w.rounds.len(), 8, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3726): run1411's closing block 3331,

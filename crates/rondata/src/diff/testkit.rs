@@ -11117,12 +11117,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // widened on run1434b over 3495..3903 (§372.1). Item 3756's piece 170
     // pivot rows moved it to 3898, inside the same window (§372.2). Item
     // 3758's piece 204 pivot rows (the Abrams) moved it to 4291, widened
-    // on run1437b over 4285..4321, the closing block (§372.3).
+    // on run1437b over 4285..4321, the closing block (§372.3). Item 3760
+    // closed it — the Jet Fighter's guns, the Strategic Bomber's bays, the
+    // TOW's rows and the Abrams' tracers: **whole at 4320**, the gap
+    // widened on run1439 over 3897..4292 and the closing block on run1437b,
+    // the rounds compared (§372.4).
     (
         "AMERICAN_INFORMATION_PAIR_WORD",
         crate::diff::american_information_pair::AMERICAN_INFORMATION_PAIR_WORD,
         Some("american_information_pair_run1437b_s_word_frame_is_widened_whole"),
-        3758,
+        3760,
         Some(crate::diff::american_information_pair::WIDENING_AMERICAN_INFORMATION_FRAME_4291),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
@@ -13622,7 +13626,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // run1409b over 2295..2635. Item 3755's American aircraft arm moved it
     // to 3653, widened on run1434b over 3495..3903; item 3756's piece 170
     // pivot rows to 3898, inside the same window; item 3758's piece 204
-    // pivot rows to 4291, widened on run1437b over 4285..4321.
+    // pivot rows to 4291, widened on run1437b over 4285..4321. Item 3760:
+    // whole at 4320; the gap run1439 over 3897..4292.
     AiWord {
         line: "Late ages",
         map: "GreatLakesAmericanInformation",

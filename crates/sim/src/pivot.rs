@@ -457,6 +457,11 @@ const FLOAT_LANDS_170_A13_T19: &[(i32, i32, i32, i32)] = &[];
 /// (item 3758, run1437's packet).
 const FLOAT_LANDS_204_A11_T11: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_204_A12_T23: &[(i32, i32, i32, i32)] = &[];
+/// The four tracers' (item 3760, run1437's packet).
+const FLOAT_LANDS_204_A12_T1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A12_T7: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A13_T1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A13_T7: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_204_A13_T27: &[(i32, i32, i32, i32)] = &[
     (286, 59, 75, 279),
     (254, 91, 75, 279),
@@ -1910,8 +1915,11 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // 0.75: the `(4, 0, 0)` pivot and, for each of its seven
     // `<RELEASEEVENT>`s, the pivot node's and the release node's. The three
     // gun rounds (`BazookaRocket`, node 0: frame 11 of `CHAR_ATTACK1`, 23
-    // of `CHAR_ATTACK2`, 27 of `CHAR_ATTACK3`) are rowed here; the four
-    // node-1 `NoDamage Tracer`s are not. Without them who=1's `1/29` loosed
+    // of `CHAR_ATTACK2`, 27 of `CHAR_ATTACK3`) and the four node-1
+    // `NoDamage Tracer`s (frames 1 and 7 of `CHAR_ATTACK2` and
+    // `CHAR_ATTACK3`; item 3760, `docs/AI.md` §372.4) are rowed here: a
+    // tracer is a round the dump prints, harmless (`flags` 22), and it
+    // holds a slot. Without the gun's rows who=1's `1/29` loosed
     // its round of 3895 on the human's `0/12` from its own square (4296,
     // 34056, 474) where the original's left the muzzle at (4153, 33763,
     // 605).
@@ -1949,6 +1957,54 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, 139_500, 27_138_798],
             at: [140_000, -80_489_395, 8_974_987],
             float_lands: FLOAT_LANDS_204_A13_T27,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK2,
+        1,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-4_200_000, -41_229_996, 36_380_001],
+            float_lands: FLOAT_LANDS_204_A12_T1,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK2,
+        7,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-4_200_000, -41_404_877, 35_217_476],
+            float_lands: FLOAT_LANDS_204_A12_T7,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-4_200_000, -41_229_996, 36_380_001],
+            float_lands: FLOAT_LANDS_204_A13_T1,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK3,
+        7,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-6_611_136, -41_091_362, 35_218_819],
+            float_lands: FLOAT_LANDS_204_A13_T7,
         },
     ),
     // **The Armored Scout Car, piece 168** (unit type 218; item 3518,
@@ -3293,6 +3349,37 @@ pub fn release_offset(r: &Release, facing: Angle, turret: i32) -> (i32, i32, i32
     release_offset_at(r, release_rotation(facing), fast_degrees(turret))
 }
 
+/// The offset a [`Release`] row puts a round at, for a piece with
+/// `restrictions` pivots whose turrets read `turrets`.
+///
+/// **A node past the restriction count is the release node alone** (item
+/// 3760, `docs/AI.md` §372.4): `execute_game_events` (`8e4c9d`) hands
+/// `get_position` the `pivot_angles` and the count on every release, and for
+/// a node no restriction governs the original adds neither the pivot node
+/// nor a turret — run1437's sweep of the Abrams' tracer (node 1, one
+/// restriction) reads one point at all 256 turret steps, 130 over the
+/// figure: the tracer's own entry, without the pivot's 27.11.
+pub fn release_point(
+    r: &Release,
+    facing: Angle,
+    turrets: &[i32; 4],
+    restrictions: usize,
+) -> (i32, i32, i32) {
+    let k = (r.node & 3) as usize;
+    if k < restrictions {
+        release_offset(r, facing, turrets[k])
+    } else {
+        release_offset(
+            &Release {
+                pivot: [0; 3],
+                ..*r
+            },
+            facing,
+            0,
+        )
+    }
+}
+
 /// The degree the release rotates by: `fast_angle_to_degrees` of the
 /// figure's angle less a half turn (`8e4c7d`–`8e4c98`), `0..=360`.
 pub const fn release_rotation(facing: Angle) -> i32 {
@@ -4359,6 +4446,74 @@ mod tests {
             }
         }
         assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The Abrams' tracers leave from their own node, turned by the
+    /// facing alone** (item 3760, `docs/AI.md` §372.4): `1/38`'s two
+    /// tracers of run1439, first printed on 4256 and 4262 with the figure
+    /// at (5304, 31512), angle −1503002624, `z` 448, leave from (5177,
+    /// 31589, 578) and (5176, 31589, 574) — the node-1 rows of frame 1 and
+    /// 7, past piece 204's one restriction, whatever the turret reads. Made
+    /// to fail with the pivot node kept, and with the turret applied.
+    #[test]
+    fn a_node_past_the_restriction_count_is_its_own_entry_alone() {
+        let facing = Angle(-1_503_002_624);
+        let turrets = [0x1234_5678, 0, 0, 0];
+        for (time, want) in [(1, (-127, 77, 130)), (7, (-128, 77, 126))] {
+            let r = release(204, crate::anim::ATTACK2, time).expect("the tracer's row");
+            assert_eq!(r.node, 1);
+            assert_eq!(release_point(&r, facing, &turrets, 1), want, "frame {time}");
+            assert_eq!(release_point(&r, facing, &[0; 4], 1), want, "no turret");
+        }
+        // The gun, node 0, is governed: its turret turns it.
+        let gun = release(204, crate::anim::ATTACK2, 23).expect("the gun's row");
+        assert_ne!(
+            release_point(&gun, facing, &turrets, 1),
+            release_point(&gun, facing, &[0; 4], 1)
+        );
+    }
+
+    /// **The original's `get_position` on every cell, for piece 204's four
+    /// tracers** (item 3760): `tools/recomp/get_position.py … pivot 204 1
+    /// <anim> <time> 1` on run1437's packet — the call `execute_game_events`
+    /// makes, the count 1 — reads one point per facing at all 256 turret
+    /// steps, and [`release_point`] reproduces it. `$RON_RELEASE_TABLE_204_TRACERS`
+    /// is the directory holding `pivot-204-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-28-item-3760/sweeps/`).
+    #[test]
+    fn the_original_s_tracer_agrees_on_every_cell_for_piece_204() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_204_TRACERS") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_204_TRACERS (item 3760's oracle, run1437)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK2, 1),
+            (crate::anim::ATTACK2, 7),
+            (crate::anim::ATTACK3, 1),
+            (crate::anim::ATTACK3, 7),
+        ] {
+            let path = format!("{dir}/pivot-204-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_204_TRACERS");
+            let r = release(204, slot, time).expect("the row");
+            let alone = Release { pivot: [0; 3], ..r };
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&alone, f[0], 0) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "A{slot}_T{time} ({}, {}, {}, {})",
+                        f[0], f[2], f[3], f[4]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
