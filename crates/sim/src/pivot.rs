@@ -178,6 +178,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (153, 4, Node { px: 0, py: -338 }),
     (139, 4, Node { px: 0, py: -148 }),
     (168, 4, Node { px: 0, py: 179 }),
+    (170, 4, Node { px: -448, py: 1420 }),
     (166, 4, Node { px: 0, py: 1114 }),
     (279, 4, Node { px: 0, py: -9165 }),
     (279, 5, Node { px: 0, py: -6548 }),
@@ -212,6 +213,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (194, (9, 10)),
     (279, (9, 10)),
     (168, (19, 20)),
+    (170, (7, 10)),
     (166, (11, 10)),
     (298, (9, 10)),
     (278, (9, 10)),
@@ -431,6 +433,17 @@ pub struct Release {
     pub float_lands: &'static [(i32, i32, i32, i32)],
 }
 
+/// Piece 170's [`Release::float_lands`], one list per `(anim, time)` row
+/// (item 3756, run854's packet).
+const FLOAT_LANDS_170_A10_T4: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_170_A10_T19: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_170_A11_T4: &[(i32, i32, i32, i32)] = &[(281, 319, 87, -72)];
+const FLOAT_LANDS_170_A11_T19: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_170_A12_T4: &[(i32, i32, i32, i32)] =
+    &[(278, 295, 9, -138), (277, 356, 106, -12)];
+const FLOAT_LANDS_170_A12_T19: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_170_A13_T4: &[(i32, i32, i32, i32)] = &[(281, 319, 87, -72)];
+const FLOAT_LANDS_170_A13_T19: &[(i32, i32, i32, i32)] = &[];
 /// Piece 169's [`Release::float_lands`], one list per `(anim, time)` row
 /// (item 3738, run1417's packet).
 const FLOAT_LANDS_169_A10_T3: &[(i32, i32, i32, i32)] =
@@ -1747,6 +1760,113 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, 11_139_999, 28_069_998],
             at: [0, -19_058_563, -304_922],
             float_lands: &[],
+        },
+    ),
+    // **The Armored Cavalry, piece 170** (unit type 220, `ARMOREDCAVALRY`,
+    // `armoredcavalry.bh3`; item 3756, `docs/AI.md` §372.2): its
+    // `<RESTRICTION name="ARMOREDCAVALRY" node="4">` sits at the foot of
+    // `unit_graphics.xml`, not in its `<UNIT>` block. run854's packet (and
+    // run865's, run882b's, run883b's, row for row) holds the piece's
+    // seventeen entries, `RData +0x88` 0.7: the `(4, 0, 0)` pivot and, for
+    // each of its eight `<RELEASEEVENT>`s (node 0, frames 4 and 19 of
+    // `CHAR_ATTACKWALK` and `CHAR_ATTACK1..3`), the pivot node's and the
+    // release node's. Without them who=1's `1/16` loosed its round of 3587
+    // on the human's `0/13` from its own square (6418, 32805, 171) where the
+    // original's left the muzzle at (6307, 32645, 309).
+    (
+        170,
+        crate::anim::ATTACKWALK,
+        4,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-3_658_126, 14_200_000, 41_171_295],
+            at: [-77_994, -46_929_089, 601_677],
+            float_lands: FLOAT_LANDS_170_A10_T4,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACKWALK,
+        19,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-5_545_757, 14_200_000, 40_699_749],
+            at: [-105_554, -46_874_546, 597_458],
+            float_lands: FLOAT_LANDS_170_A10_T19,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-4_480_000, 14_200_000, 41_220_001],
+            at: [-90_000, -46_929_089, 599_998],
+            float_lands: FLOAT_LANDS_170_A11_T4,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACK1,
+        19,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-4_480_000, 14_200_000, 41_200_001],
+            at: [-90_000, -46_874_546, 599_998],
+            float_lands: FLOAT_LANDS_170_A11_T19,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACK2,
+        4,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-4_480_000, 14_200_000, 41_220_001],
+            at: [9_007_834, -46_055_683, 599_998],
+            float_lands: FLOAT_LANDS_170_A12_T4,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACK2,
+        19,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-4_480_000, 14_200_000, 41_200_001],
+            at: [18_548_830, -43_047_009, 599_998],
+            float_lands: FLOAT_LANDS_170_A12_T19,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACK3,
+        4,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-4_480_000, 14_200_000, 41_220_001],
+            at: [-90_000, -46_929_089, 599_998],
+            float_lands: FLOAT_LANDS_170_A13_T4,
+        },
+    ),
+    (
+        170,
+        crate::anim::ATTACK3,
+        19,
+        Release {
+            piece: 170,
+            node: 0,
+            pivot: [-4_480_000, 14_200_000, 41_200_001],
+            at: [-90_000, -46_874_546, 599_998],
+            float_lands: FLOAT_LANDS_170_A13_T19,
         },
     ),
     // **The Armored Scout Car, piece 168** (unit type 218; item 3518,
@@ -3261,6 +3381,79 @@ mod tests {
         assert_eq!(node(193, 4), node(189, 4));
     }
 
+    /// **The Armored Cavalry's rounds leave from its turret's muzzle**
+    /// (item 3756, `docs/AI.md` §372.2): piece 170 is a pivot piece by
+    /// `<RESTRICTION name="ARMOREDCAVALRY" node="4">` at the foot of
+    /// `unit_graphics.xml`, and its rows are run854's packet's. All 29 of
+    /// run1434b's rounds from who=1's Armored Cavalry (unit type 220) at
+    /// their first frame, beside the figure's `GUY` pose on the same block,
+    /// are reproduced at the dump's `sx, sy` and `sz − z` by one of its eight
+    /// keys at some turret step; the seven fired on the move, by the
+    /// `CHAR_ATTACKWALK` key at the frame this crate's clock reads there.
+    /// Without the rows, `1/16`'s round of 3587 left the hull's square.
+    #[test]
+    fn run1434b_s_armored_cavalry_rounds_leave_from_its_turret() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        // (x, y, facing, sx, sy, sz − z, the walk key's frame or 0)
+        let rows: [(i32, i32, i32, i32, i32, i32, u32); 29] = [
+            (6418, 32805, -1_867_776_923, 6307, 32645, 138, 19), // 3587 1/16
+            (6258, 33429, -1_902_209_484, 6182, 33245, 140, 4),  // 3602 1/16
+            (6038, 33844, -1_413_723_124, 6020, 33655, 138, 19), // 3617 1/16
+            (7016, 30893, -1_475_176_589, 6892, 30848, 140, 4),  // 3619 1/33
+            (5273, 34075, -1_398_093_810, 5167, 33975, 140, 4),  // 3632 1/16
+            (6641, 31304, -1_842_472_436, 6495, 31204, 138, 19), // 3634 1/33
+            (4563, 34598, -1_541_668_864, 4490, 34431, 138, 19), // 3647 1/16
+            (4136, 34877, -1_171_827_246, 4131, 34710, 140, 0),  // 3662 1/16
+            (3884, 34620, -625_062_205, 3873, 34489, 138, 0),    // 3677 1/16
+            (3446, 34488, -1_108_104_113, 3452, 34321, 140, 0),  // 3692 1/16
+            (5698, 30683, -810_063_876, 5599, 30635, 140, 0),    // 3720 1/28
+            (3336, 34488, -299_958_272, 3275, 34400, 140, 0),    // 3726 1/16
+            (3336, 34488, -299_958_272, 3251, 34423, 140, 0),    // 3741 1/16
+            (3336, 34488, -299_958_272, 3358, 34368, 140, 0),    // 3757 1/16
+            (3336, 34488, -299_958_272, 3326, 34374, 140, 0),    // 3772 1/16
+            (3770, 34204, -383_703_436, 3784, 34082, 140, 0),    // 3779 1/33
+            (3336, 34488, -299_958_272, 3389, 34369, 140, 0),    // 3787 1/16
+            (3336, 34488, -299_958_272, 3389, 34369, 140, 0),    // 3802 1/16
+            (3336, 34488, -299_958_272, 3358, 34368, 140, 0),    // 3820 1/16
+            (3336, 34488, -299_958_272, 3326, 34374, 140, 0),    // 3835 1/16
+            (3336, 34488, -299_958_272, 3389, 34369, 140, 0),    // 3851 1/16
+            (5606, 31406, -793_431_754, 5506, 31362, 140, 0),    // 3856 1/20
+            (2589, 33785, 1_663_874_657, 2625, 33627, 138, 0),   // 3857 1/28
+            (3336, 34488, -299_958_272, 3389, 34369, 140, 0),    // 3866 1/16
+            (4782, 31254, -1_078_687_663, 4674, 31215, 138, 0),  // 3871 1/20
+            (2568, 33768, 203_948_032, 2582, 33661, 140, 0),     // 3878 1/28
+            (3336, 34488, -299_958_272, 3304, 34383, 140, 0),    // 3882 1/16
+            (2568, 33768, 203_948_032, 2549, 33662, 140, 0),     // 3893 1/28
+            (3336, 34488, -299_958_272, 3275, 34400, 140, 0),    // 3897 1/16
+        ];
+        let fits = |a: i8, t: u32, (x, y, facing, sx, sy, dz): (i32, i32, i32, i32, i32, i32)| {
+            let Some(r) = release(170, a, t) else {
+                return false;
+            };
+            let f = Angle(facing);
+            release_offset(&r, f, 0).2 == dz
+                && (-128..128).any(|i| {
+                    let (dx, dy, _) = release_offset(&r, f, i << 24);
+                    (x + dx, y + dy) == (sx, sy)
+                })
+        };
+        for (x, y, facing, sx, sy, dz, walk) in rows {
+            let shot = (x, y, facing, sx, sy, dz);
+            if walk != 0 {
+                assert!(
+                    fits(ATTACKWALK, walk, shot),
+                    "({x}, {y}) at {facing}: walk {walk}"
+                );
+                continue;
+            }
+            let any = [ATTACKWALK, ATTACK1, ATTACK2, ATTACK3]
+                .into_iter()
+                .any(|a| [4, 19].into_iter().any(|t| fits(a, t, shot)));
+            assert!(any, "({x}, {y}) at {facing}: no key");
+        }
+        assert_eq!(node(170, 4), Some(Node { px: -448, py: 1420 }));
+    }
+
     /// **The `MARK4`'s round leaves from its turret's muzzle** (item 3683,
     /// `docs/AI.md` §347): run1352's `AMMO=5` record of who=1's `1/28`
     /// `CHAR_ATTACK1` round of 2934 — the figure at (9432, 31128), z 619,
@@ -4001,6 +4194,49 @@ mod tests {
             }
         }
         assert!(rows >= 16 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 170, the
+    /// Armored Cavalry** (item 3756): `tools/recomp/get_position.py … pivot
+    /// 170 0 <anim> <time> 1` on run854's packet for its eight rows.
+    /// `$RON_RELEASE_TABLE_170` is the directory holding
+    /// `pivot-170-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-28-item-3756/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_170() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_170") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_170 (item 3756's oracle, run854)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for slot in [
+            crate::anim::ATTACKWALK,
+            crate::anim::ATTACK1,
+            crate::anim::ATTACK2,
+            crate::anim::ATTACK3,
+        ] {
+            for time in [4, 19] {
+                let path = format!("{dir}/pivot-170-a{slot}-t{time}.txt");
+                let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_170");
+                let r = release(170, slot, time).expect("the row");
+                for line in table.lines() {
+                    let f: Vec<i32> = line
+                        .split_whitespace()
+                        .take(6)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect();
+                    if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                        off.push(format!(
+                            "A{slot}_T{time} ({}, {}, {}, {})",
+                            f[0], f[2], f[3], f[4]
+                        ));
+                    }
+                    rows += 1;
+                }
+            }
+        }
+        assert!(rows >= 8 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 

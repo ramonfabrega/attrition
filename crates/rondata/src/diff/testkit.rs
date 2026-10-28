@@ -11103,12 +11103,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // parted on 2384 downstream of who=1's Jet Fighters (295) priced
     // without `AMERICANS_AIRCRAFT`; widened on run1409b over 2295..2635
     // (`docs/AI.md` §372). Item 3755 built the arm: the word moved to 3653,
-    // widened on run1434b over 3495..3903 (§372.1).
+    // widened on run1434b over 3495..3903 (§372.1). Item 3756's piece 170
+    // pivot rows moved it to 3898, inside the same window (§372.2).
     (
         "AMERICAN_INFORMATION_PAIR_WORD",
         crate::diff::american_information_pair::AMERICAN_INFORMATION_PAIR_WORD,
         Some("american_information_pair_run1434b_s_word_frame_is_widened_whole"),
-        3755,
+        3756,
         Some(crate::diff::american_information_pair::WIDENING_AMERICAN_INFORMATION_FRAME_3653),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
@@ -13606,7 +13607,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 7), Great Lakes at 5 (item 3725): first try 2385
     // of 4320, theirs' sixth slot expiry where ours has five; widened on
     // run1409b over 2295..2635. Item 3755's American aircraft arm moved it
-    // to 3653, widened on run1434b over 3495..3903.
+    // to 3653, widened on run1434b over 3495..3903; item 3756's piece 170
+    // pivot rows to 3898, inside the same window.
     AiWord {
         line: "Late ages",
         map: "GreatLakesAmericanInformation",
