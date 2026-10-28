@@ -7909,6 +7909,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3723: the Bantu Modern pair's closing walk, run1405 from
     // run1404's start to the closing block 4396, past the word 3410.
     ("bantu_modern_pair_run1405_s_closing_state", 8),
+    // Item 3746: run1425's window walks to the same closing block, 4295
+    // through 4395 — the same eight corners.
+    ("bantu_modern_pair_run1425_s_word_frame_is_widened_whole", 8),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -11051,16 +11054,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_CLOSING),
     ),
     // **The Bantu at a held Modern age** (item 3723): Great Lakes at
-    // Toughest — first try 3410 of 4395, an anim draw ours' walking
-    // Citizen `1/105` spends, downstream of the computer's builder pick on
-    // 3376 (run1405c); widened on run1405b over 3395..3661, the rounds
+    // Toughest — first try 3410 of 4395. Item 3746 → 4304: the orphan
+    // check's builder scans walk by object number (the builder pick on
+    // 3376, run1405c); widened on run1425 over 4295..4395, the rounds
     // compared.
     (
         "BANTU_MODERN_PAIR_WORD",
         crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
-        Some("bantu_modern_pair_run1405b_s_word_frame_is_widened_whole"),
-        3723,
-        Some(crate::diff::bantu_modern_pair::WIDENING_BANTU_MODERN_FRAME_3410),
+        Some("bantu_modern_pair_run1425_s_word_frame_is_widened_whole"),
+        3746,
+        Some(crate::diff::bantu_modern_pair::WIDENING_BANTU_MODERN_FRAME_4304),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
