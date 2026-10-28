@@ -46,8 +46,12 @@ pub(crate) const AMERICAN_INFORMATION: Pair = Pair {
     // `Unit::do_air_physics+0xba` against theirs' `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`: the human's `0/12` walks off the Abrams
     // `1/29`'s blow of 3896 in theirs alone (`docs/AI.md` §372.2).
-    count: 3898,
-    sequence: 3898,
+    // Item 3758, piece 204's pivot rows (the Abrams' turret): 3898 → 4291
+    // — on 4291 ours 112 draws against theirs' 113, index 109, ours'
+    // `Farms::inc_time+0x1ae` against theirs' `Object::take_damage+0xe1`
+    // (`docs/AI.md` §372.3).
+    count: 4291,
+    sequence: 4291,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -154,8 +158,9 @@ fn american_information_pair_is_no_other_lobby() {
 
 /// **The long's stride, walked back from the word** (item 3725, from
 /// 2385): only run1409's stride blocks are on disk before the word's
-/// window, 101 through 2301.
-pub(crate) const WIDENING_AMERICAN_INFORMATION_STRIDE: (i64, i64) = (101, 3601);
+/// window, 101 through 2301. Item 3758 walks it to 4201, the last stride
+/// block before the word 4291's window.
+pub(crate) const WIDENING_AMERICAN_INFORMATION_STRIDE: (i64, i64) = (101, 4201);
 
 pub(crate) fn american_information_stride_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
@@ -180,7 +185,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     let Some(w) = american_information_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 36, "every stride block in the window");
+    pin_eq!(w.blocks, 42, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -197,7 +202,11 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // the buildings' `build:extra` (40, which the stride does not print),
     // `form` on 27 units, who=1's groups 64..68 with their pools (10), and
     // `1/14`'s `g.angle[0]` from 401. No position, order or hit parts.
-    pin_eq!(w.firsts.len(), 94, "the stride's baseline");
+    // Item 3758, the stride walked to 4201 (42 blocks): 94 → **121** keys,
+    // the same families on the six blocks 3701..4201 — `build:extra` on
+    // nine more buildings, `mirror` on more of who=1's units, and groups
+    // 69..71 with their pools. No position, order or hit parts.
+    pin_eq!(w.firsts.len(), 121, "the stride's baseline");
 }
 
 /// run1409b: the word 2385's window, blocks 2295..2635 at the long's
@@ -348,10 +357,86 @@ fn american_information_pair_run1434b_s_word_frame_is_widened_whole() {
     // rows: 544 → **96** keys, rounds 126 → 111 in theirs and 55 → 7
     // parting. The first round to part is the Abrams `1/29`'s on 3895,
     // (4296, 34056, 474) in ours against (4153, 33763, 605), and the
-    // human's `0/12` parts on 3897 (`docs/AI.md` §372.2).
-    pin_eq!(w.firsts.len(), 96, "run1434b baseline");
-    pin_eq!(w.rounds_read, (110, 111), "the rounds read");
-    pin_eq!(w.rounds.len(), 7, "the rounds that part");
+    // human's `0/12` parts on 3897 (`docs/AI.md` §372.2). Item 3758,
+    // piece 204's pivot rows: 96 → **71** keys, rounds (110, 111) →
+    // (110, 110) and 7 → **0** parting: `1/29`'s round of 3895 leaves
+    // (4153, 33763, 605) as theirs, and `0/12` agrees (`docs/AI.md`
+    // §372.3). What still parts is the standing families and `mirror`.
+    pin_eq!(w.firsts.len(), 71, "run1434b baseline");
+    pin_eq!(w.rounds_read, (110, 110), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1437b: the word 4291's window, blocks 4285..4321 at run1434b's
+/// detail (item 3758) — six blocks before the word to the closing block
+/// 4321. run1409's stride prints units only every hundred frames (4201,
+/// then 4301), no `AMMO` and no `LEADERS`, `BUILDS` or `CITIES` record
+/// past the start, and run1434b ends on 3903.
+pub(crate) const RUN1437B: &str =
+    "gamelog-run1437b-greatlakes-american-information-closing-window-4285-4321.txt";
+
+/// The window: block 4285 through the closing block 4321.
+pub(crate) const WIDENING_AMERICAN_INFORMATION_FRAME_4291: (i64, i64) = (4285, 4321);
+
+/// **The word 4291's window**: run1437b walked from run1408's start with
+/// the recorder on and every round compared (item 3758).
+pub(crate) fn american_information_frame_4291_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AMERICAN_INFORMATION.start],
+        true,
+        AMERICAN_INFORMATION.long,
+        "run1437b",
+        &[(RUN1437B, WIDENING_AMERICAN_INFORMATION_FRAME_4291.0)],
+        WIDENING_AMERICAN_INFORMATION_FRAME_4291,
+        1,
+        &[4292],
+        true,
+    )
+}
+
+#[test]
+fn american_information_pair_run1437b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_information_frame_4291_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 36, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3758: **154** keys. The window opens parted: on 4285 stand the
+    // standing families (who=0's `SITE[0..9].reg` and `aggression[1]`,
+    // `form`, who=1's groups and pools, its wealth and oil buckets 53
+    // apart, `1/14`'s `g.angle[0]`) and who=0's building `0/2006`'s
+    // `damage`, 2 against 3; `0/2002`, `0/2005` part on 4292..4294, and
+    // who=1's `1/112` takes another move on 4295 (`docs/AI.md` §372.3).
+    pin_eq!(w.firsts.len(), 154, "run1437b baseline");
+    pin_eq!(w.rounds_read, (493, 504), "the rounds read");
+    // Every round, both directions: 291 parting. On 4285 the Strategic
+    // Bombers' (`1/45`, TI 305; `1/57`, `1/88`) already part on
+    // `accuracy`, `sx, sy` and `ex, ey`; on the word's frame 4291 the TOW
+    // `1/17`'s (TI 141) `ammo[6]` leaves its own square, (5832, 31320,
+    // 384) against (5742, 31270, 531), and `1/18`'s on 4302 the same.
+    pin_eq!(w.rounds.len(), 291, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3725): run1409's closing block 4321,
@@ -402,7 +487,10 @@ fn american_information_pair_run1409_s_closing_state() {
     // nothing torn or unlinked, ours' `1/128`..`1/134` extra. A floor, not
     // a score.
     pin_eq!(e.compared, 136, "units compared");
-    pin_eq!(e.counts(), [59, 0, 0, 7, 3, 1, 0], "the closing counts");
+    // Item 3758, piece 204's pivot rows: [59, 0, 0, 7, 3, 1, 0] → [4, 0,
+    // 0, 0, 3, 0, 1]; four of who=1's units off (`1/88`, `1/112`, `1/124`,
+    // `1/127`) and three buildings' `damage`.
+    pin_eq!(e.counts(), [4, 0, 0, 0, 3, 0, 1], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
 

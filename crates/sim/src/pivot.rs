@@ -156,6 +156,13 @@ pub struct Node {
 /// (`0x40b28f5b`), `RData +0x88` 0.8 — one `<RESTRICTION name="PANZER">`,
 /// the turret.
 ///
+/// **Piece 204, the Main Battle Tank `ABRAM`** (item 3758, unit type 254,
+/// `HvyTank.bh3`): run1437's packet (logger frame 3894, the American
+/// Information Great Lakes lobby) reads its `(4, 0, 0)` entry as `(0.0,
+/// 0.0, 27.11)` (`0x41d8e147`), `RData +0x88` 0.75 — one `<RESTRICTION
+/// name="ABRAM">` at the foot of `unit_graphics.xml`, the turret. Its
+/// desert twin `ABRAMDES` plays the same model and is not rowed.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -198,6 +205,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (200, 4, Node { px: 0, py: 558 }),
     (207, 4, Node { px: 0, py: 0 }),
     (199, 4, Node { px: -569, py: -919 }),
+    (204, 4, Node { px: 0, py: 0 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -225,6 +233,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (200, (4, 5)),
     (207, (3, 4)),
     (199, (4, 5)),
+    (204, (3, 4)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -444,6 +453,31 @@ const FLOAT_LANDS_170_A12_T4: &[(i32, i32, i32, i32)] =
 const FLOAT_LANDS_170_A12_T19: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_170_A13_T4: &[(i32, i32, i32, i32)] = &[(281, 319, 87, -72)];
 const FLOAT_LANDS_170_A13_T19: &[(i32, i32, i32, i32)] = &[];
+/// Piece 204's [`Release::float_lands`], one list per `(anim, time)` row
+/// (item 3758, run1437's packet).
+const FLOAT_LANDS_204_A11_T11: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A12_T23: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A13_T27: &[(i32, i32, i32, i32)] = &[
+    (286, 59, 75, 279),
+    (254, 91, 75, 279),
+    (40, 135, -25, -289),
+    (130, 135, 289, -25),
+    (220, 135, 25, 289),
+    (151, 204, 26, 289),
+    (241, 204, -289, 26),
+    (331, 204, -26, -289),
+    (50, 215, 289, -26),
+    (140, 215, 26, 289),
+    (320, 215, -26, -289),
+    (82, 243, 167, 236),
+    (130, 246, -79, 278),
+    (220, 246, -278, -79),
+    (29, 326, 26, 288),
+    (50, 326, -79, 278),
+    (119, 326, -288, 26),
+    (140, 326, -278, -79),
+    (209, 326, -26, -288),
+];
 /// Piece 169's [`Release::float_lands`], one list per `(anim, time)` row
 /// (item 3738, run1417's packet).
 const FLOAT_LANDS_169_A10_T3: &[(i32, i32, i32, i32)] =
@@ -1867,6 +1901,54 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [-4_480_000, 14_200_000, 41_200_001],
             at: [-90_000, -46_874_546, 599_998],
             float_lands: FLOAT_LANDS_170_A13_T19,
+        },
+    ),
+    // **The Main Battle Tank `ABRAM`, piece 204** (unit type 254,
+    // `HvyTank.bh3`; item 3758, `docs/AI.md` §372.3): its `<RESTRICTION
+    // name="ABRAM" node="4">` sits at the foot of `unit_graphics.xml`.
+    // run1437's packet holds the piece's fifteen entries, `RData +0x88`
+    // 0.75: the `(4, 0, 0)` pivot and, for each of its seven
+    // `<RELEASEEVENT>`s, the pivot node's and the release node's. The three
+    // gun rounds (`BazookaRocket`, node 0: frame 11 of `CHAR_ATTACK1`, 23
+    // of `CHAR_ATTACK2`, 27 of `CHAR_ATTACK3`) are rowed here; the four
+    // node-1 `NoDamage Tracer`s are not. Without them who=1's `1/29` loosed
+    // its round of 3895 on the human's `0/12` from its own square (4296,
+    // 34056, 474) where the original's left the muzzle at (4153, 33763,
+    // 605).
+    (
+        204,
+        crate::anim::ATTACK1,
+        11,
+        Release {
+            piece: 204,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -90_680_344, 9_331_987],
+            float_lands: FLOAT_LANDS_204_A11_T11,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK2,
+        23,
+        Release {
+            piece: 204,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -91_304_268, 9_352_728],
+            float_lands: FLOAT_LANDS_204_A12_T23,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK3,
+        27,
+        Release {
+            piece: 204,
+            node: 0,
+            pivot: [0, 139_500, 27_138_798],
+            at: [140_000, -80_489_395, 8_974_987],
+            float_lands: FLOAT_LANDS_204_A13_T27,
         },
     ),
     // **The Armored Scout Car, piece 168** (unit type 218; item 3518,
@@ -4237,6 +4319,46 @@ mod tests {
             }
         }
         assert!(rows >= 8 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 204, the
+    /// `ABRAM`** (item 3758): `tools/recomp/get_position.py … pivot 204 0
+    /// <anim> <time> 1` on run1437's packet for its three gun rows.
+    /// `$RON_RELEASE_TABLE_204` is the directory holding
+    /// `pivot-204-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-28-item-3758/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_204() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_204") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_204 (item 3758's oracle, run1437)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 11),
+            (crate::anim::ATTACK2, 23),
+            (crate::anim::ATTACK3, 27),
+        ] {
+            let path = format!("{dir}/pivot-204-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_204");
+            let r = release(204, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "A{slot}_T{time} ({}, {}, {}, {})",
+                        f[0], f[2], f[3], f[4]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 

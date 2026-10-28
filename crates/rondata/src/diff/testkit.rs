@@ -11115,13 +11115,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // without `AMERICANS_AIRCRAFT`; widened on run1409b over 2295..2635
     // (`docs/AI.md` §372). Item 3755 built the arm: the word moved to 3653,
     // widened on run1434b over 3495..3903 (§372.1). Item 3756's piece 170
-    // pivot rows moved it to 3898, inside the same window (§372.2).
+    // pivot rows moved it to 3898, inside the same window (§372.2). Item
+    // 3758's piece 204 pivot rows (the Abrams) moved it to 4291, widened
+    // on run1437b over 4285..4321, the closing block (§372.3).
     (
         "AMERICAN_INFORMATION_PAIR_WORD",
         crate::diff::american_information_pair::AMERICAN_INFORMATION_PAIR_WORD,
-        Some("american_information_pair_run1434b_s_word_frame_is_widened_whole"),
-        3756,
-        Some(crate::diff::american_information_pair::WIDENING_AMERICAN_INFORMATION_FRAME_3653),
+        Some("american_information_pair_run1437b_s_word_frame_is_widened_whole"),
+        3758,
+        Some(crate::diff::american_information_pair::WIDENING_AMERICAN_INFORMATION_FRAME_4291),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13619,7 +13621,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // of 4320, theirs' sixth slot expiry where ours has five; widened on
     // run1409b over 2295..2635. Item 3755's American aircraft arm moved it
     // to 3653, widened on run1434b over 3495..3903; item 3756's piece 170
-    // pivot rows to 3898, inside the same window.
+    // pivot rows to 3898, inside the same window; item 3758's piece 204
+    // pivot rows to 4291, widened on run1437b over 4285..4321.
     AiWord {
         line: "Late ages",
         map: "GreatLakesAmericanInformation",
@@ -13627,7 +13630,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::american_information_pair::AMERICAN_INFORMATION_PAIR_WORD,
         length: 4_320,
         endpoint: Some("american_information_pair_run1409_s_closing_state"),
-        window: Some("american_information_frame_3653_window"),
+        window: Some("american_information_frame_4291_window"),
     },
     // The Maya at a held Information age (`STARTING_TECHNOLOGY` 7,
     // `ENDING_TECHNOLOGY` 7), Great Lakes at difficulty 5 (item 3726):

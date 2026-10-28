@@ -3659,6 +3659,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::american_information_pair::american_information_stride_window(),
         || super::american_information_pair::american_information_frame_2385_window(),
         || super::american_information_pair::american_information_frame_3653_window(),
+        || super::american_information_pair::american_information_frame_4291_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_4045_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
