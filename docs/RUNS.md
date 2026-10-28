@@ -32027,3 +32027,89 @@ SHA-256 `47c29801464d9f961c2e70c6d20e147238c90ff8577b0baec0bb8cb239addc9f`.
 blocks, **55** keys (standing families, and two guards' `dest_angle`, parked 3735a), rounds 287 against 287 with 10
 rows parting (two Trebuchet rounds' launch points, parked 3735c). It is the `WIDENINGS` row for the closed word
 4664 and the coverage driver's window.
+## run1394 — the Spanish at a held Modern age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3718, `att-3718`)
+
+`docs/AI.md` §365. run1392's line with the map and nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1394 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 21:28:48, exited 21:29:13 (25.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 9, map style 18, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 6` (`Pair::assert_lobby`). Filed with `filerun.py run1394
+  eastindies-spanish-modern-start`. `df -g ~` read 158 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1394-eastindies-spanish-modern-start.txt`, 153,810,780 bytes,
+SHA-256 `bb40d3e1f4411f365928eb99f77f62e3a482ccd341bba03b2170269ca781c9bc`.
+
+Archive `rontrace-run1394.log`, 9,963,264 bytes,
+SHA-256 `6d446c60a981894643ca59d7736f445f22dc9abc60c9c3b61bd96dec787c72ad`.
+
+**What it holds**: the start of `spanish_modern_pair::SPANISH_MODERN`, and the walk's initial state.
+
+## run1395 — the Spanish at a held Modern age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3718, `att-3718`)
+
+`docs/AI.md` §365. run1393's line with `--map 18 --ai-tribe 9` and run1394's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 9 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1394. Launched 21:28:52, exited 21:29:18 (26.0 s launch to exit). `success`. **The game
+  ended itself on 4081** (closing block 4082, `ended_early`). `GAME INFO` reads back as run1394's. `rngcmp.py`
+  against run1394: 37 frames identical. Filed with `filerun.py run1395 eastindies-spanish-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1395-eastindies-spanish-modern-trace.txt`, 28,922,989 bytes,
+SHA-256 `8bba2c30fab7d69de2eb8893593e44d6ff149b7b8fde5963a596e7a7941b60c6`.
+
+Archive `rontrace-run1395.log`, 99,706,752 bytes,
+SHA-256 `6eb0b3ab854097c8f657da9a8689a6c03505b8ab33669240996fe3afc4bd37f4`.
+
+**What it holds**: the pair's first try. `spanish_modern_pair_first_parting` walks it from run1394: **3770 of
+4081**, by the count and the sequence — the Citizen `0/13`'s `do_idle` draw in theirs alone.
+`spanish_modern_pair_the_long_s_stride_walks_back_from_the_word` reads its stride, 101..3701: 37 blocks, 163 keys,
+the Submarine `1/109` from 3201. `spanish_modern_pair_run1395_s_closing_state` pins the closing block 4082 as a
+floor: 151 units, counts `[56, 2, 2, 2, 24, 1, 10]`, 2 extra.
+
+## run1395b — the Spanish at a held Modern age, East Indies, at difficulty 4: the word 3770's window, blocks 3677..4021 (2026-10-27, item 3718, `att-3718`)
+
+`docs/AI.md` §365. **What the disk could not answer**: every record and every round on the word's blocks. run1395's
+stride prints units every hundred frames, no `AMMO` and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1395b --map 18 --end-frame 4021 --timeout 3600
+--log-window 3677 4021 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover
+cover=0` and run1394's lobby: 24 blocks before the stride's last block 3701, 250 past the word's block 3771.
+- Pool lane 1. Launched 21:31:50, exited 21:33:00 (69.6 s launch to exit). `success`: 4022 frames. `rngcmp.py`
+  against run1395: 4022 of 4022 identical. Filed with `filerun.py run1395b
+  eastindies-spanish-modern-window-3677-4021`. `df -g ~` read 157 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1395b-eastindies-spanish-modern-window-3677-4021.txt`, 780,827,178 bytes,
+SHA-256 `2446520d144edc813659db6de058649f92a70fa75735c2914067b41d3a0194f8`.
+
+Archive `rontrace-run1395b.log`, 97,428,224 bytes,
+SHA-256 `60fce1daa2b7d61638ef5f61bf9db9efd526c95d5e7c465841885f92f90ff7b6`.
+
+**What it holds**: `spanish_modern_pair_run1395b_s_word_frame_is_widened_whole` walks it from run1394: 344 blocks
+and 1983 keys, rounds 654 against 680 with 213 parting, the first the Battleship `1/45`'s on 3693 (piece 299, from
+the guy's square in ours). It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the
+coverage driver.
+
+## run1395c — the Spanish at a held Modern age, East Indies, at difficulty 4: the walk back, blocks 3095..3210 (2026-10-27, item 3718, `att-3718`)
+
+`docs/AI.md` §365. **What the disk could not answer**: the frame the stride's first unit row (the Submarine
+`1/109`'s `pos` on block 3201, block 3101 agreeing) first parts. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1395c --map 18 --end-frame 3210 --timeout 3600 --log-window 3095 3210 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0` and run1394's lobby.
+- Pool lane 1. Launched 21:34:05, exited 21:34:35 (30.0 s launch to exit). `success`: 3211 frames. `rngcmp.py`
+  against run1395: 3211 of 3211 identical. Filed with `filerun.py run1395c
+  eastindies-spanish-modern-window-3095-3210`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1395c-eastindies-spanish-modern-window-3095-3210.txt`, 246,955,894 bytes,
+SHA-256 `32831937076c5548c5a8d44dd47fe987c9aaf85ee698009381249bc7094664ae`.
+
+Archive `rontrace-run1395c.log`, 55,906,592 bytes,
+SHA-256 `cf062b7f5dbb125e83eb6a08723a8fc051415c006b37668406e8d134775fbec8`.
+
+**What it holds**: `spanish_modern_pair_run1395c_walks_the_state_back`: 115 blocks, 108 keys, rounds 21 against 21.
+The state's first parting is the Submarine `1/109`'s birth on 3119, (36696, 44760) in ours against (36696, 45240).
+It sits in the coverage driver.

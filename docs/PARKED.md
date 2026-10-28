@@ -12038,13 +12038,16 @@ run1385p's packet (`docs/AI.md` §358.4). Neither row below names a score: the p
   score; it is the setting the word's turn plays in, and why a packed siege engine sat still for 30 frames is
   unread.
 
-## Parked by the next landing, slot UY — reserved
+## Parked by item 3718, 2026-10-27 — the Spanish at a held Modern age, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3718a. The Submarine `1/109`'s birth, 480 apart** (`docs/AI.md` §365; run1395c, 3118..3120). who=1's Dock
+  `1/2016` (35904, 43776) finishes `338@300` on 3118. On 3119 ours places the Submarine (TI 338, TY 288) at (36696,
+  44760), theirs at (36696, 45240). It is the state's first parting and spends no draw, so the stream holds to 3770.
+  It names no score until a word reaches the sub's wake. The Dock's ship-placement rule is unread.
+- **3718b. Both leaders' `SITE[i].reg`, 65 against 0** (run1395b's block 3677, both `0/-1` and `1/-1`, `SITE[0..9]`),
+  with who=0's `aggression[1]` 0 against 1. `aggression[1]` stands from run1395c's first block 3095. `SITE[i].reg`
+  does not part anywhere in run1395c (3095..3210), so it parts somewhere in 3211..3677, where no dump prints the
+  leaders. These are standing rows, and no draw on the word's frame reads them.
 
 ## Parked by the next landing, slot UZ — reserved
 

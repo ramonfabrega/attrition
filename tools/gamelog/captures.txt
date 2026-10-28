@@ -10984,3 +10984,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3735: the French Medieval word closes, 3108 -> 4664 (`docs/AI.md` §364.1; `docs/RUNS.md` run1414) ====
 #   run1414  --map 14 --end-frame 4664 --allow-early-end --timeout 3600 --log-window 4408 4665 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1392's lobby   (the closing window)
 # Checks: `rngcmp.py` run1393 vs run1414 -> 4665 identical.
+# ==== item 3718: the Spanish at a held Modern age, East Indies, at difficulty 4 (`docs/AI.md` §365; `docs/RUNS.md` run1394, run1395, run1395b, run1395c) ====
+#   run1394  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1395  run1393's line with --map 18 --ai-tribe 9 and run1394's lobby   (the draw stream; ended itself on 4081)
+#   run1395b --map 18 --end-frame 4021 --timeout 3600 --log-window 3677 4021 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1394's lobby   (the word 3770's window)
+#   run1395c --map 18 --end-frame 3210 --timeout 3600 --log-window 3095 3210 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1394's lobby   (the walk back to 3119)
+# Checks: `rngcmp.py` run1394 vs run1395 -> 37 identical; run1395 vs run1395b -> 4022 identical; run1395 vs run1395c -> 3211 identical.
