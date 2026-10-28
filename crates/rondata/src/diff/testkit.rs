@@ -7906,6 +7906,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("roman_medieval_pair_corrections_change_nothing", 27),
     ("russian_modern_pair_corrections_change_nothing", 131),
     ("spanish_gunpowder_pair_corrections_change_nothing", 28),
+    // Item 3723: the Bantu Modern pair's closing walk, run1405 from
+    // run1404's start to the closing block 4396, past the word 3410.
+    ("bantu_modern_pair_run1405_s_closing_state", 8),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -11047,6 +11050,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3745,
         Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_CLOSING),
     ),
+    // **The Bantu at a held Modern age** (item 3723): Great Lakes at
+    // Toughest — first try 3410 of 4395, an anim draw ours' walking
+    // Citizen `1/105` spends, downstream of the computer's builder pick on
+    // 3376 (run1405c); widened on run1405b over 3395..3661, the rounds
+    // compared.
+    (
+        "BANTU_MODERN_PAIR_WORD",
+        crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
+        Some("bantu_modern_pair_run1405b_s_word_frame_is_widened_whole"),
+        3723,
+        Some(crate::diff::bantu_modern_pair::WIDENING_BANTU_MODERN_FRAME_3410),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13520,6 +13535,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_866,
         endpoint: Some("japanese_modern_pair_run1403_s_closing_state"),
         window: Some("japanese_modern_closing_window"),
+    },
+    // The Bantu at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Toughest (item 3723): first
+    // try 3410 of 4395, a `Unit::move_step` anim draw in ours alone, the
+    // state parted on 3376's builder pick; widened on run1405b over
+    // 3395..3661.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesBantuModern",
+        named: "Great Lakes (Bantu, Modern)",
+        word: crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
+        length: 4_395,
+        endpoint: Some("bantu_modern_pair_run1405_s_closing_state"),
+        window: Some("bantu_modern_frame_3410_window"),
     },
     // The Egyptians at a held Modern age (`STARTING_TECHNOLOGY` 6,
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3724): first try

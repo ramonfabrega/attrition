@@ -12100,13 +12100,12 @@ Neither row below names a score on its own.
   is the same one-field family as `german_modern_pair`'s `1/49` on 4103 and `1/69` on 4320 (§366.1, §366.2). It
   names no score; read it if a word ever parts on an idle soldier's facing.
 
-## Parked by the next landing, slot VD — reserved
+## Parked by item 3723, 2026-10-28 — the Bantu Modern pair's gap
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3723a. who=1's leader `SITE[2].reg` and `SITE[3].reg`, ours 1 against theirs 0, from 3376**
+  (`bantu_modern_pair`'s gap window, run1405c, 3295..3395): two more entries of 3719b's standing `SITE[i].reg`
+  family. They part on the block on which who=1 places `1/2046` and `1/2047` (§370). No draw before the word 3410
+  reads them. It names no score; read it if a word ever parts on a building site's registration.
 
 ## Parked by item 3724, 2026-10-28 — the Egyptians at a held Modern age, Great Lakes
 
