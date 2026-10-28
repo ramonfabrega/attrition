@@ -32861,3 +32861,66 @@ SHA-256 `bb2b0099ed413483f2bd6790710a60684e14b11b59d04a94ba6b482dab202948`.
 
 **What it holds**: the word 4304's widening (`bantu_modern_pair_run1425_s_word_frame_is_widened_whole`), the
 Bazooka `1/86`'s round on `0/13` launched from (6527, 31190, 394) in theirs.
+## run1408 — the Americans at a held Information age, Great Lakes: the `DUMP_ALL` start (2026-10-28, item 3725, `att-3725`)
+
+`docs/AI.md` §372. run1398's line with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1408 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 20 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 11:57:27, exited 11:57:50 (23.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 20, map style 14, five files restored. `page_faults` 0;
+  no `relaunches` in the receipt. `GAME INFO` reads back `DIFFICULTY 5` and `STARTING_TECHNOLOGY 7`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1408 greatlakes-american-information-start`. `df -g ~` read 143
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1408-greatlakes-american-information-start.txt`, 151,135,423 bytes,
+SHA-256 `3860fa21427e166cc8ae9e459002b93f2718b822759e11abd363f3c740bed077`.
+
+Archive `rontrace-run1408.log`, 8,883,072 bytes,
+SHA-256 `8781a1534c403a5917b548b96dc0bcf51fbec42fef676756d68b7f58c1f9a07f`.
+
+**What it holds**: the start of `american_information_pair::AMERICAN_INFORMATION`, and the walk's initial state.
+
+## run1409 — the Americans at a held Information age, Great Lakes: the draw stream to the game's end (2026-10-28, item 3725, `att-3725`)
+
+`docs/AI.md` §372. run1407's line with `--ai-tribe 20` and run1408's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 20 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1, after run1408. Launched 11:58:25, exited 11:58:51 (25.9 s launch to exit). `success`. **The game
+  ended itself on 4320** (closing block 4321, `ended_early`). `page_faults` 0; no `relaunches`. `GAME INFO` reads
+  back as run1408's. `rngcmp.py` against run1408: 37 frames identical. Filed with `filerun.py run1409
+  greatlakes-american-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1409-greatlakes-american-information-trace.txt`, 23,933,390 bytes,
+SHA-256 `f1b265963e72dc56fcfce6819a7597762881dbd6d88e50a58a5fc5f131410d09`.
+
+Archive `rontrace-run1409.log`, 95,427,104 bytes,
+SHA-256 `5800a544ea6e3083ed370bea6bcfcd13a83007980b484bb3b217873042071911`.
+
+**What it holds**: the long of `american_information_pair::AMERICAN_INFORMATION`, first try 2385 of 4320, and the
+closing state's floor (`american_information_pair_run1409_s_closing_state`).
+
+## run1409b — the Americans at a held Information age, Great Lakes: the word 2385's window, blocks 2295..2635 (2026-10-28, item 3725, `att-3725`)
+
+`docs/AI.md` §372. **What the disk could not answer**: every record and every round on the word's blocks. run1409's
+stride prints units every hundred frames (2301, then 2401), no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1409b --map 14 --end-frame 2635 --timeout
+3600 --log-window 2295 2635 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover
+cover=0` and run1408's lobby: six blocks before the stride's last block 2301, 250 past the word's block 2386.
+- Pool lane 1. Launched 12:02:04, exited 12:02:56 (51.6 s launch to exit). `success`: 2636 frames. `page_faults` 0;
+  no `relaunches`. `rngcmp.py` against run1409: 2636 of 2636 identical. Filed with `filerun.py run1409b
+  greatlakes-american-information-window-2295-2635`. `df -g ~` read 141 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1409b-greatlakes-american-information-window-2295-2635.txt`, 638,675,510 bytes,
+SHA-256 `96bc673e41eefebfc50aade07f29b6acfcfa35afb743cf1cd6a3b47efff01d76`.
+
+Archive `rontrace-run1409b.log`, 36,126,048 bytes,
+SHA-256 `5950d8ce72a97a917ab133e3a500ef431886748af998e38f933b326c8f5c91f3`.
+
+**What it holds**: the word 2385's widening, `american_information_pair_run1409b_s_word_frame_is_widened_whole`:
+340 blocks, 1392 keys, no round on either side. The Airbase `1/2021`'s Jet Fighters are queued at 89 in ours against
+71 in theirs from 2295, and who=1's make list parts on 2384.

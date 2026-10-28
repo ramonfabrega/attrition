@@ -11048,3 +11048,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1407  run1403's line with --ai-tribe 7 and run1406's lobby   (the draw stream; ended itself on 3878)
 #   run1407b --map 14 --end-frame 3702 --timeout 3600 --log-window 3395 3702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby   (the word 3451's window)
 # Checks: `rngcmp.py` run1406 vs run1407 -> 37 identical; run1407 vs run1407b -> 3703 identical.
+# ==== item 3725: the Americans at a held Information age, Great Lakes (`docs/AI.md` §372; `docs/RUNS.md` run1408, run1409, run1409b) ====
+#   run1408  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 20 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1409  run1407's line with --ai-tribe 20 and run1408's lobby   (the draw stream; ended itself on 4320)
+#   run1409b --map 14 --end-frame 2635 --timeout 3600 --log-window 2295 2635 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0, run1408's lobby   (the word 2385's window)
+# Checks: `rngcmp.py` run1408 vs run1409 -> 37 identical; run1409 vs run1409b -> 2636 identical.
