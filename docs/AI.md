@@ -36256,6 +36256,85 @@ none is lockstep:
 **What is not established**: why the pick differs. No dump prints the pick's scores, and this item read neither
 `produce_building`'s original nor the weight of building types 417 and 418. The fix is the next item's.
 
+## 370.1 The orphan check's builder scans walk by object number: 3410 → 4304 (item 3746)
+
+*Item 3746, 2026-10-28, Opus 5.5.*
+
+**The pick is not `produce_building`'s.** 3723's hypothesis named the wrong function; the frame was right.
+A probe behind an env guard, committed whole and reverted whole, printed ours' `produce_building` builder loop.
+That loop runs on who=1's x82 and x85 frames, and `produce_city`'s on x77. Neither ran between 3200 and 3381.
+A backtrace at `Sim::swarm_around` on ours' frame 3375 (block 3376) named the caller: all three
+`EXPLORETOORDER`s over a `BUILDORDER` come from **`Sim::check_orphaned_buildings`** under `strategy_all`. These
+are `1/88` to `1/2045`, `1/95` to `1/2046` and `1/105` to `1/2047`. It is the orphan check's recruit arm
+(`check_orphaned_buildings@006c9f20`). The sites `1/2046` and `1/2047` were placed unbuilt with no builder, and
+on this frame the arm sends each the first Citizen it finds.
+
+**The arm's order.** The original's recruit scan walks `units[who]` **by object number**, with `iVar1` from 0 to
+`objects +0x15c[who]`. It takes the first Citizen (TI `0x32` or `0x33`, exact) whose `get_action` is none or
+`GATHER` (7) and whose cell's region is the site's. It sends that Citizen `Group::action_swarm_around(…,
+QUEUE_NEW, BUILD_AT, 1)`. The scan above it, for a builder already on the site, also walks by object number.
+Ours walked `0..self.units.len()`, this crate's slots. The three Citizens are all who=1's TI 50, land:
+
+| unit | uid | at 3375 | first by `o` | first by slot |
+|---|---|---|---|---|
+| `1/94` | 162 (born into a freed number) | `GATHERORDER` at `1/2001` (418) | 1st | 3rd |
+| `1/95` | 137 | `MOVEORDER` over `GATHERORDER` at `1/2003` (417) | 2nd | 1st |
+| `1/105` | 149 | `GATHERORDER` at `1/2004` (417) | 3rd | 2nd |
+
+`get_action` skips `1/95`'s transit move on both sides. The original sends `1/94` and then `1/95`; the slot walk
+sent `1/95` and then `1/105`. It is the lesson of §210 (`produce_building`) and §358.4 (`produce_city`) a third
+time. `Sim::recruit_builder` and `Sim::site_has_builder` now walk `Sim::units_by_o`.
+
+**The kill and the mutation.** Returning `recruit_builder` to the slot walk (`tools/mutate.py`) fails six of the
+pair's tests: `first_parting` back to 3410, both widenings, the gap, the late stride and the closing state.
+Returning `site_has_builder` fails none of the 105 `first_parting`s, because no walk holds that arm (3746b).
+Every other lobby's `first_parting` stands.
+
+**The score: 3410 → 4304 of 4395**, by the count and the sequence. On 4304 ours spends **110 draws against
+theirs' 112**, parting at 107. Theirs' two extra draws are `Ammo::do_damage+0xc59` and `+0xc7e < Ammo::inc_time+0x6e9`
+(`report.py rontrace-run1405.log draws 4304`). They follow `AmmoOut::explode < AmmoOut::graphic_finish` on the
+graphics stream. That is a round exploding.
+
+**The value diff** (run1425, below; `RON_DEBUG_AMMO=4288-4305` for ours). The round is the Bazooka **`1/86`**'s
+(TI 139, land, uid 128, on an `ATTACKORDER` at the Nubian Citizen `0/13`, who flees on a `FLEETOORDER`). Each
+side holds that one round at `cur_time` 3 on block 4295, so it was launched on about 4292, before any dumped
+round:
+
+| block 4295, `1/86`'s round | ours | theirs |
+|---|---|---|
+| launch `sx, sy, sz` | 6648, 31224, 267 (the shooter's own point) | 6527, 31190, 394 |
+| land `ex, ey, ez` | 4399, 31423, 664 | 4419, 31413, 664 |
+| `total_time` | 10 | 9 |
+| `angle` | −1104805888 | −1118109696 |
+| `index` | 0 | 1 |
+
+Both rounds lose their target as they arrive: theirs' `whom` reads −1 and `flags` 6 → 14 on 4301, and ours'
+target reads none from 4300. Both then fly on past `total_time`. Theirs explodes on 4304, at `cur_time` 12
+against 9; ours, a frame longer, has not exploded by 4304. So the draw delta is a flight one frame longer in
+ours, from a launch point at the shooter's own centre where theirs launches from an offset point. That is the
+bay family that 3745 closed for the Japanese Bazooka, art piece 1145 (§369.1). **The hypothesis**, for the next
+item: the Bantu Bazooka's bay, at its own art style's piece. It is a hypothesis, not a reading. Nothing on disk
+prints a Bantu Bazooka's launch before 4292, and no round of `1/86` is dumped before 4295.
+
+**The windows.**
+- run1405c (3295..3395) is down to **51 keys**, the standing families alone plus 3723a's `SITE[2]`/`SITE[3]`
+  `.reg` on 3376. No unit parts.
+- run1405b (3395..3661) is at **51 keys**: the standing families at 3395, and who=1's groups 67 and 68 forming on
+  3399 and 3400. No unit parts. Rounds read 195 against 195, none parting.
+- The long's late stride (run1405, 3701..4301, 7 blocks, **98 keys**,
+  `bantu_modern_pair_the_long_s_late_stride_walks_back_from_4304`) holds the standing families. On 4301 it also
+  holds two units, the Helicopter `1/34`'s `mirror` and the Scholar `1/35`'s `g.angle[0]` (3746a).
+- **The word's widening**, run1425 (4295..4395, to the game's end, 100 blocks, **2640 keys**,
+  `bantu_modern_pair_run1425_s_word_frame_is_widened_whole`). Its rounds read 70 against 98, with 17 parting, and
+  the first is `1/86`'s on 4295, above. The units part from 4315 on, past the word.
+- The closing state (block 4396) reads counts `[60, 0, 0, 0, 1, 0, 5]` over the same 184 units. Nothing is torn
+  or unlinked, and `1/151` is no longer extra.
+
+**What is not established**:
+- **Where the Bantu Bazooka's round is launched from.** The next item's question is the hypothesis above.
+- **The outer building loop's order** (3746b).
+- **Why `1/34` and `1/35` part on 4301** (3746a).
+
 ## 371. The Egyptians at a held Modern age, Great Lakes, at difficulty 4: first try 3451 of 3878 (item 3724)
 
 *Item 3724, 2026-10-28, Opus 5.5.*

@@ -35,8 +35,17 @@ pub(crate) const BANTU_MODERN: Pair = Pair {
     // ours 12 draws against theirs' 11, index 0 ours'
     // `Guy::set_anim+0x97a` under `Unit::move_step+0x823` where theirs'
     // is under `Guy::inc_time+0x271` (`docs/AI.md` §370).
-    count: 3410,
-    sequence: 3410,
+    //
+    // Item 3746, 3410 → **4304**: `check_orphaned_buildings`' builder
+    // scans walk by object number, so the reused `1/94` takes `1/2046`'s
+    // site on 3376 (`docs/AI.md` §370.1). On 4304 ours 110 draws against
+    // theirs' 112, parting at 107: theirs' two are
+    // `Ammo::do_damage+0xc59`/`+0xc7e`, the Bazooka `1/86`'s round on
+    // `0/13` exploding, which flies 9 frames from (6527, 31190, 394) in
+    // theirs and 10 from the shooter's own (6648, 31224, 267) in ours
+    // (run1425).
+    count: 4304,
+    sequence: 4304,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -174,6 +183,53 @@ fn bantu_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     pin_eq!(w.firsts.len(), 94, "the stride's baseline");
 }
 
+/// **The long's stride past run1405b's window, walked back from the word
+/// 4304** (item 3746): run1405's stride blocks 3701 through 4301, the last
+/// before the word; nothing else on disk prints a unit between 3661 and
+/// the closing block 4396.
+pub(crate) const WIDENING_BANTU_MODERN_LATE_STRIDE: (i64, i64) = (3701, 4301);
+
+pub(crate) fn bantu_modern_late_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_MODERN.start],
+        true,
+        BANTU_MODERN.long,
+        "run1405 late stride",
+        &[(BANTU_MODERN.long.0, WIDENING_BANTU_MODERN_LATE_STRIDE.0)],
+        WIDENING_BANTU_MODERN_LATE_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn bantu_modern_pair_the_long_s_late_stride_walks_back_from_4304() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_modern_late_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 7, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3746: 98 keys, the standing families at 3701 (`form`,
+    // `build:extra`, who=1's groups and pools) and their later entries,
+    // and on 4301 two units: the Helicopter `1/34` (TI 310) `mirror`, ours
+    // 1 theirs 0, and the garrisoned Scholar `1/35` (TI 52, in `1/2006`)
+    // `g.angle[0]`, ours 1431655765 theirs 0.
+    pin_eq!(w.firsts.len(), 98, "the late stride's baseline");
+}
+
 /// run1405b: the word 3410's window, blocks 3395..3661 at the long's
 /// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
 /// last block 3401 and 250 past the word's own block 3411 (item 3723).
@@ -237,10 +293,79 @@ fn bantu_modern_pair_run1405b_s_word_frame_is_widened_whole() {
     // against 11: index 0 is ours' `1/105` (TI 50, a Citizen walking to
     // 2047's site) setting an anim in `Unit::move_step+0x823`; theirs'
     // `1/105` stands gathering at `1/2004` (`docs/AI.md` §370).
-    pin_eq!(w.firsts.len(), 1418, "run1405b baseline");
+    // Item 3746: **51 keys**, the standing families at block 3395 and
+    // who=1's groups 67 and 68 forming on 3399 and 3400; no unit parts.
+    pin_eq!(w.firsts.len(), 51, "run1405b baseline");
     // Every round, both directions: 195 against 195, none parting.
     pin_eq!(w.rounds_read, (195, 195), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1425: the word 4304's window, blocks 4295..4395 at run1405b's
+/// detail, to the game's own end (item 3746). The disk printed no unit
+/// between the stride's 4301 and the closing block 4396, and no `AMMO`
+/// past run1405b's 3661, and theirs' extra draws on 4304 are a round's.
+pub(crate) const RUN1425: &str = "gamelog-run1425-greatlakes-bantu-modern-window-4295-4395.txt";
+
+/// The window: block 4295 through 4395.
+pub(crate) const WIDENING_BANTU_MODERN_FRAME_4304: (i64, i64) = (4295, 4395);
+
+/// **The word 4304's window**: run1425 walked from run1404's start with
+/// every round compared (item 3746).
+pub(crate) fn bantu_modern_frame_4304_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[BANTU_MODERN.start],
+        true,
+        BANTU_MODERN.long,
+        "run1425",
+        &[(RUN1425, WIDENING_BANTU_MODERN_FRAME_4304.0)],
+        WIDENING_BANTU_MODERN_FRAME_4304,
+        1,
+        &[4305],
+        true,
+    )
+}
+
+#[test]
+fn bantu_modern_pair_run1425_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_modern_frame_4304_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 100, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3746: 2640 keys. Block 4295 opens with the late stride's 4301
+    // rows (`1/34`, `1/35`), who=0's `aggression[1]` and the standing
+    // families; the units part from 4315 on, past the word. The rounds
+    // part on the first block: the Bazooka `1/86` (TI 139) holds one round
+    // on the Citizen `0/13` in each, launched from (6527, 31190, 394),
+    // landing (4419, 31413), `total_time` 9 in theirs, and from (6648,
+    // 31224, 267), landing (4399, 31423), `total_time` 10 in ours; theirs
+    // explodes on 4304, ours a frame later (`docs/AI.md` §370.1).
+    pin_eq!(w.firsts.len(), 2640, "run1425 baseline");
+    pin_eq!(w.rounds_read, (70, 98), "the rounds read");
+    pin_eq!(w.rounds.len(), 17, "the rounds that part");
 }
 
 /// run1405c: the gap before the word's window, blocks 3295..3395 at
@@ -291,6 +416,10 @@ fn bantu_modern_pair_run1405c_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3746: **51 keys**, the standing families alone, with 3723a's
+    // `SITE[2]`/`SITE[3]` `.reg` on 3376: every unit agrees through the
+    // window once the orphan check's builder scans walk by object number.
+    //
     // Item 3723: 140 keys. Block 3295 carries the standing families
     // (`form`, both leaders' `SITE[i].reg`, who=0's `aggression[1]`,
     // who=1's groups 64..69 and their pools). **The state's first parting
@@ -303,7 +432,7 @@ fn bantu_modern_pair_run1405c_s_gap_is_widened_whole() {
     // (`gather_down` of 2001 and 2004 swap). The draws agree until the
     // word 3410, where ours' walking `1/105` spends a
     // `Unit::move_step` anim draw (`docs/AI.md` §370).
-    pin_eq!(w.firsts.len(), 140, "run1405c baseline");
+    pin_eq!(w.firsts.len(), 51, "run1405c baseline");
     // Every round, both directions: 43 against 43, none parting.
     pin_eq!(w.rounds_read, (43, 43), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -355,8 +484,9 @@ fn bantu_modern_pair_run1405_s_closing_state() {
     // Item 3723, first try: 986 frames past the word 3410 the game has
     // parted widely — 184 units compared, counts [140, 0, 1, 2, 93, 1, 35],
     // nothing torn or unlinked, who=1's `1/151` extra in ours. A floor,
-    // not a score.
+    // not a score. Item 3746, 91 frames past the word 4304: counts [60, 0,
+    // 0, 0, 1, 0, 5] over the same 184 units, and no extra.
     pin_eq!(e.compared, 184, "units compared");
-    pin_eq!(e.counts(), [140, 0, 1, 2, 93, 1, 35], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(1, 151)], "the closing extras");
+    pin_eq!(e.counts(), [60, 0, 0, 0, 1, 0, 5], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
