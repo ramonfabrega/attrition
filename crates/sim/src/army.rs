@@ -1473,6 +1473,7 @@ impl Sim {
         let weak = s & 4 != 0;
         let level = self.transport_level(who) as i32 >= 2;
         if std::env::var("RON_PROBE_3763").is_ok() {
+            eprintln!("  PROBE f{} strategy {s} reg {reg:?} expand {expand} weak {weak} table {:?}", self.frame, self.ai[w].census.strategy);
             let a = &self.armies[w].list[slot];
             eprintln!(
                 "  PROBE f{} do_mustering {who}/{slot} released {released} city {:?} std {} cap {} eff_pop {} muster {:?} city_num {} navy {} diff {} rush {} early {} mil {}",
