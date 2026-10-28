@@ -33142,3 +33142,50 @@ SHA-256 `ca013f4ffa3883696e41aa8991b49113e97635ccec59b2a846e0aca54c7f0593`.
 **What it holds**: the word 3653's widening, `american_information_pair_run1434b_s_word_frame_is_widened_whole`:
 408 blocks, 544 keys, rounds read 110 in ours and 126 in theirs, 55 parting. The first parted round is the Armored
 Cavalry `1/16`'s on 3587, launched from its own square in ours.
+
+## run1437 — the Americans at a held Information age, Great Lakes: a packet at logger frame 3894, piece 204 (2026-10-28, item 3758, `att-3758`)
+
+`docs/AI.md` §372.3. **What the disk could not answer**: the `AttachPos` rows of the Abrams' piece 204.
+`get_position.py … entries 204` (and `205`, the desert twin's by its place in `unit_graphics.xml`) raised on all 90 packets on disk; no sibling playing
+`HvyTank.bh3` carries rows. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1437 --map 14 --end-frame
+3896 --timeout 3600 --log-window 3893 3896 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 20 --cover cover=0
+--profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3894 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`: the block before
+`1/29`'s round of 3895.
+- Pool lane 1. Launched 15:50:03, exited 15:50:31 (27.6 s launch to exit). `success`: 3897 frames, seed 12345,
+  `map_verified`. `page_faults` 0; the receipt prints no `relaunches` field. Not filed: the packet is the product.
+  `df -g ~` read 136 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1437/map-14/frame-snapshot.bin`, 918,418,020 bytes,
+SHA-256 `4bd1ab1cda5163f219db3820bf582e08cab7aec0b540f9d8072045a73db1e3c7`.
+
+**What it holds**: piece 204's fifteen rows, `RData +0x88` 0.75 (`entries 204`), and the original's pivot branch on
+its three gun rows, 277,248 cells (`pivot 204 0 <anim> <time> 1`, kept at
+`~/ron-data/lab-experiments/2026-10-28-item-3758/sweeps/`).
+
+## run1437b — the Americans at a held Information age, Great Lakes: the word 4291's window, blocks 4285..4321 (2026-10-28, item 3758, `att-3758`)
+
+`docs/AI.md` §372.3. **What the disk could not answer**: every record and every round on the word 4291's blocks.
+run1409's stride prints units every hundred frames (4201, then 4301) and no `AMMO`, leader, building or city record
+past the start; run1434b ends on 3903. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1437b --map 14
+--end-frame 4320 --allow-early-end --timeout 3600 --log-window 4285 4321 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0` and run1408's lobby
+(`--profile STARTING_TECHNOLOGY=7 ENDING_TECHNOLOGY=7 STARTING_RESOURCES=7 DIFFICULTY=5`): six blocks before the
+word to the closing block.
+- Pool lane 1. Launched 15:55:35, exited 15:56:04 (28.7 s launch to exit). `success`: 4321 frames, not ended early,
+  `map_verified`. `page_faults` 0; the receipt prints no `relaunches` field. `rngcmp.py` against run1409: 4321 of
+  4321 identical. Filed with `filerun.py run1437b greatlakes-american-information-closing-window-4285-4321 --map 14`.
+  `df -g ~` read 132 GiB free before it, 129 after.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1437b-greatlakes-american-information-closing-window-4285-4321.txt`, 76,603,556 bytes,
+SHA-256 `ee6a249598eb411ba63bf204cd95c88027d360c7d24bfa5247ced9de63848ddf`.
+
+Archive `rontrace-run1437b.log`, 95,411,872 bytes,
+SHA-256 `1d8d2b55f59a061f2befb131e34be52bb011f225035f907470c873ff46eafa21`.
+
+**What it holds**: the word 4291's widening, `american_information_pair_run1437b_s_word_frame_is_widened_whole`: 36
+blocks, 154 keys, rounds read 493 in ours and 504 in theirs, 291 parting. The window opens parted: the Strategic
+Bombers' rounds and who=0's building `0/2006`'s `damage` already differ on 4285.

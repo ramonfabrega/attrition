@@ -12386,13 +12386,14 @@ words and edits nothing here; a refill lands when two remain.
   printed list. A lobby whose start take prints no farms falls back to the higher-slot sort, which holds for
   two seats and not three.
 
-## Parked by the next landing, slot WD — reserved
+## Parked by item 3758, 2026-10-28 — the Abrams' turret
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3758a. The Abrams' desert twin `ABRAMDES` is not rowed** (`docs/AI.md` §372.3). It plays piece 204's model
+  (`HvyTank.bh3`, scale 0.75) and its own foot-of-file `<RESTRICTION name="ABRAMDES" node="4">`, but no packet on
+  disk loads it (`entries 205`, the piece its place beside `ABRAM` in `unit_graphics.xml` suggests — not read off
+  a type record — raised on all 90), so a `SAME_AS` row to 204 is a supposition. Names no
+  score: no scored lobby fields it. Its killer is a packet from a game that fields it, read with `entries`, against
+  piece 204's fifteen rows.
 
 ## Parked by the next landing, slot WE — reserved
 
