@@ -11002,3 +11002,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1417  --map 14 --end-frame 4018 --timeout 3600 --log-window 4014 4018 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 12 --cover cover=0 --tracer-def RON_STATE_FRAME=4016 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1396's lobby   (the packet: pieces 208 and 169)
 # ==== item 3737: the Spanish Modern word 4021 -> 4081, a packet (`docs/AI.md` §365.2; `docs/RUNS.md` run1416) ====
 #   run1416  --map 18 --end-frame 4018 --timeout 3600 --log-window 4015 4017 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 9 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --tracer-def RON_STATE_FRAME=4016 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (a packet: pieces 200 and 90)
+# ==== item 3739: the German Modern word 4299 -> 4586, the new word's window (`docs/AI.md` §366.2; `docs/RUNS.md` run1418) ====
+#   run1418  --map 14 --end-frame 4836 --timeout 3600 --log-window 4495 4836 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (the word 4586's window)
+# Checks: `rngcmp.py` run1397 vs run1418 -> 4837 identical.

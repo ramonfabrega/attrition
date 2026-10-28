@@ -12187,13 +12187,17 @@ words and edits nothing here; a refill lands when two remain.
   `~/ron-golden/run1417/map-14/frame-snapshot.bin` reads each in a minute. No round of these types parts in the
   word's window, so this names no score.
 
-## Parked by the next landing, slot VN — reserved
+## Parked by item 3739, 2026-10-28 — the Special Forces' counter-craft, the German Modern word 4299 → 4586
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3739a. The Volksgrenadier `1/69`'s `dest_angle` parts alone on 4320** (`docs/AI.md` §366.2; run1397b). TI 109,
+  `INFANTRYGERMAN`, on a `GUARDORDER` at (31896, 25416): ours 0, theirs 1476001792. No other field of the unit
+  parts in the window, and no `pos` follows. It spends no draw the word reads. It is 3738a's shape (the same type,
+  guarding, one field) and the same unread writer.
+- **3739b. The Spy's counter-Bribe and the saboteur's halved clock are built and reached by no capture** (§366.2).
+  `target_opportunity`'s `0x275` arm (an idle Spy struck by a land unit lays a Bribe) and its cast-action arm (a
+  Sabotage caster struck by a unit of another player with another number halves `spell_time`) are read off the
+  listing and tested synthetically. No dump on disk holds a struck idle Spy or a struck saboteur mid-cast with a
+  stranger's blow, so neither names a score.
 
 ## Parked by the next landing, slot VO — reserved
 

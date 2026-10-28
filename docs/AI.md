@@ -35382,10 +35382,115 @@ gives itself spell 640 on the Scout Car `1/53` on 4298, and ours does not. The a
 Forces' auto-cast is unread here. `seams.py --item 3738` names no seam for `SPECIALFORCES` or spell 640.
 
 **Not established**:
-- Which spell 640 is, and the predicate by which an idle Special Forces picks its target.
+- ~~Which spell 640 is, and the predicate by which an idle Special Forces picks its target.~~ Answered: Sabotage
+  (`0x280`), laid by `Unit::target_opportunity`'s counter-craft arm on the unit that struck it (§366.2).
 - The other loaded restricted piece. `FLAKGUNGERMAN` (TI 283, scale 0.8) carries `<RESTRICTION node="4">`, and
   run1417 loads pieces 222 and 233 at 0.8 with no `pivot` row (3738b). No round of the type parts in the window.
 - `1/49`'s `dest_angle` on 4103 (3738a).
+
+## 366.2 The Special Forces' counter-craft: the word 4299 → 4586 (item 3739)
+
+*Item 3739, 2026-10-28, Opus 5.5.*
+
+**The direction, as booked**: on 4298 theirs' Special Forces `0/0` (TI 75, `SPECIALFORCES`, land, who=0, the idle
+human's) takes a `CASTORDER`, spell 640, on the Armored Scout Car `1/53` (TI 219, `ARMOREDSCOUTCAR2`, land, uid
+90), and pays its mana on 4299. **Both sides act, differently.** run1397b's widening shows that `1/53` takes an
+`ATTACKORDER` on `0/0` on 4292 (`in_range` on 4293) on both sides, and that the two sides part on 4298: ours'
+`0/0` takes `order:kind` 4, a `FLEETOORDER` toward (4392, 30360), and theirs takes the cast at its own square
+(4248, 31896). So each side answers the same hit with a different arm.
+
+**The craft.** `craftrules.xml`'s 640 is `0x280`, **Sabotage**: `FLAGS fcm`, no `COST`, `MANA` 1000, `JOB_TIME`
+150, `FROM Commando`. This crate already casts it (`Sim::do_cast_targeted`, `cast_on`'s `cast_sniper_unit(v, 3)`
+for a unit). Its `is_valid_target` arm wants a vehicle when the craft lacks `b`, and the Scout Car is one. What was
+missing was the caller that lays it.
+
+**The caller**: `Unit::target_opportunity@005fffc0`, between the action block and the flee arm (`60051b`..
+`60061e`, read off the listing; the decompile's arguments to `add_cast_order` are in the wrong order):
+
+```text
+action = update_action(this)
+action is an attack                     -> the yield block (as before)
+action's order type is 0xe, a cast:
+    spell != 0x280                      -> return
+    target.who == attacker.who          -> return           (600547)
+    target.o   == attacker.o            -> return           (600550)
+    spell_time = spell_time / 2  (signed short +0x98)        -> return
+the front order is a move (-0x8(%ebp), set at 600190)        -> the on-duty gate
+action != null                                               -> the flee arm
+is(SPY = 0x3a):      attacker a unit (vslot +0x18), its type's +0x218 == 0 (land),
+                     types[0x275]'s can_pay_cost(who, -1, o, 1) (vslot +0x84),
+                     is_valid_target(Bribe, who, attacker),
+                     Bribe's mana (+0x1d0) 0 or <= mana_left           -> 0x275
+is(COMMANDO = 0x49): the same with Sabotage                            -> 0x280
+    add_cast_order(caster, attacker.who, attacker.o, my x, my y, spell, 2 = QUEUE_NEW, 1); return
+else                                                                   -> the flee arm
+```
+
+The halving needs **both** the attacker's `who` and its `o` to differ from the cast's target's: either one equal
+jumps to the return. The Special Forces line `is` the Commando (`0x49`), and the cast's `x, y` is the caster's own
+position, which run1397b's `CASTORDER x=4248 y=31896` reads.
+
+**Built**: `Sim::counter_craft` (`crates/sim/src/fight.rs`), called from `target_opportunity_in` ahead of the flee
+arm, when the held attack did not yield. A craft whose tests fail falls through to the next, then to the flee arm.
+
+**The score: 4299 → 4586 of 5304**, count and sequence. On 4586 ours spends 94 draws against theirs' 99, parting at
+index 87: ours `Unit::think_scout+0xaba`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Both are who=1's
+Special Forces `1/0` (TI 75, land, the AI's) under `Unit::think < Unit::do_idle`. By site:
+- `Unit::think_scout+0xaba`: theirs 35, ours 36;
+- `Guy::set_anim+0x104b < Guy::inc_time+0x271 < Unit::inc_time+0x3e`: theirs 7, ours 1;
+- the rest of the frame agrees by count.
+
+Every other lobby's `first_parting` holds (101 of 101).
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4298 | `0/0` | `order:kind`; `orders_x, orders_y` | agree: 14 (`CASTORDER`, spell 640, `1/53`); 4248, 31896 | |
+| 4299 | `0/0` | `mana_burn`; `cavarch_who/o`; `orders.len` | agree: 1000; 1/53; 2 | |
+| 4300 | `0/0` | `path[0].to` | agree: (4104, 33624) | |
+| 4303 | `0/0` | `hits_left` | agree | |
+| 4587 | group 65 | `held`; `pool` | `[0]`; `[0]` | none; `[]` |
+
+**The windows.**
+- run1397b (3995..4328): **282 → 180** keys. Rounds 137 against 137, none parting (from 18). Nothing parts on
+  `0/0` past block 3995's standing `form`. Past the aircraft family (3719a), the one unit row is the Volksgrenadier
+  `1/69`'s lone `dest_angle` on 4320 (3739a).
+- **run1418**, the new word's window (4495..4836, run1397b's detail, 4837 of 4837 frames identical to run1397;
+  `docs/RUNS.md` run1418). run1397b ends on 4328, and run1397's stride prints units only. 341 blocks, **877** keys.
+  Block 4495 carries 172 standing rows: `form`, both leaders' `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups
+  and pools, and the eight aircraft parted since 4177. Past them:
+  - the Bomber `1/36`'s `myspeed` on 4528 (115 against 143, 3719a);
+  - **who=1's `leader:strong[0]` on 4545**, ours 2016 against theirs 1984;
+  - **the word's block 4587**: group 65's `held` and `pool`. Both sides' `1/0` leave group 68 for 65 under the same
+    `EXPLORETOORDER` to (10488, 43512), and its unit record agrees;
+  - the first position parting, `1/12` on 4629.
+
+  Rounds: 912 against 102, 55 parting, the first the Bomber `1/95`'s on 4753. It is the airports' family again.
+
+**Mutations** (`tools/mutate.py`, on committed `11e044056`), both held:
+- with the arm's call off, `german_modern_pair_first_parting` exits 101 at 4299;
+- with the halving's `&&` written `||`,
+  `sim::fight::tests::a_saboteur_struck_mid_cast_halves_its_clock_only_for_a_stranger` exits 101.
+
+**The closing state** (run1397's block 5305) is still a floor: counts `[116, 2, 3, 2, 27, 1, 23]` →
+`[112, 2, 2, 3, 27, 1, 8]`, and `0/13` is no longer extra.
+
+**The next word's hypothesis, not a build order**: `1/0`'s `think_scout` spends one more `+0xaba` draw in ours. In
+the same frame theirs spends six more `Guy::set_anim+0x104b` animation draws, which ours never reaches. The first
+leader row parting before it is who=1's `strong[0]` on 4545. Whether `think_scout` or anything on its path reads
+that field is unread.
+
+**Coverage.** Diff-backed: the Sabotage arm, on run1397b's 4298 (the order, its target and its position) and 4299
+(the mana). Reading-only, with synthetic tests: the cast-action arm's halving, and the Spy's Bribe arm. No capture
+on disk reaches either (3739b).
+
+**Not established**:
+- `can_pay_cost` for both crafts is taken as yes. Both rows' shipped `COST` is empty, and the function is not
+  read here.
+- Whether `update_action` answering null is the whole of "no action" for a unit whose front order is neither a
+  move nor an action, as the crate's `action_of` takes it.
+- The `leader:strong[0]` row on 4545, and group 65's lists on 4587.
 
 ## 367. Reserved for the next item on the AI track
 
