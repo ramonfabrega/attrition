@@ -11004,6 +11004,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3743,
         Some(crate::diff::egyptian_information_pair::WIDENING_EGYPTIAN_INFORMATION_CLOSING),
     ),
+    // **The Russians at a held Information age** (item 3721): East Indies
+    // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
+    // 6095..6403, the rounds compared.
+    (
+        "RUSSIAN_INFORMATION_PAIR_WORD",
+        crate::diff::russian_information_pair::RUSSIAN_INFORMATION_PAIR_WORD,
+        Some("russian_information_pair_run1401b_s_word_frame_is_widened_whole"),
+        3721,
+        Some(crate::diff::russian_information_pair::WIDENING_RUSSIAN_INFORMATION_FRAME_6153),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13437,6 +13447,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_797,
         endpoint: Some("egyptian_information_pair_run1399_s_closing_state"),
         window: Some("egyptian_information_closing_window"),
+    },
+    // The Russians at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), East Indies at difficulty 4 (item 3721):
+    // first try 6153 of 6706, the MLRS `1/99`'s `do_idle` draw in ours
+    // alone; widened on run1401b over 6095..6403.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesRussianInformation",
+        named: "East Indies (Russian, Information)",
+        word: crate::diff::russian_information_pair::RUSSIAN_INFORMATION_PAIR_WORD,
+        length: 6_706,
+        endpoint: Some("russian_information_pair_run1401_s_closing_state"),
+        window: Some("russian_information_frame_6153_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

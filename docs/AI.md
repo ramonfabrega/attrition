@@ -35819,12 +35819,86 @@ only.
   none reaches the draws. So it is a pose and bay question, not a word.
 - §367's leaders' standing `SITE[i].reg` and `aggression[1]` (3719b's family) stand as written.
 
-## 368. Reserved for the next item on the AI track
+## 368. The Russians at a held Information age, East Indies, at difficulty 4: first try 6153 of 6706 (item 3721)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against the **Russians (13)** at difficulty 4, seed
+12345, `STARTING_RESOURCES 7`, the age held at Information (`STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`). It is
+the second pair to hold age 7, after §367's. The triple `(18, 13, 4)` is new and minted in `battery::SCORED_LOBBIES`.
+The Russians hold Great Lakes at 2 (`russian_word`) and 5 (`russian_gunpowder_pair`), East Indies at 5
+(`russian_modern_pair`), and Great Sahara at 4 (the held-out `GreatSaharaRussianTier4`) and 5
+(`russian_medieval_pair`). `russian_information_pair_is_no_other_lobby` asserts it.
+
+**The takes** (`docs/RUNS.md`), all on pool lane 2:
+- run1400, the `DUMP_ALL` start;
+- run1401, the long, which ended itself on 6706 (closing block 6707);
+- run1401b, the word's window over 6095..6403 with `LEADERS=9` and `AMMO=5`.
+
+`rngcmp.py` finds run1400 and run1401 identical on 37 frames, and run1401 and run1401b identical on 6404.
+
+**The cast.** who=1 fields `Shock Infantry` (108) and the `T80 Tank[RUSSHEAVYTANK]` (260). It does not field the
+`HIND` (312). Beside them: the MLRS (273), Flamethrower (131), TOW (141), BMP (223), Elite Special Forces (77),
+the Avenger (284), the `MIG` (299), the Strategic Bomber (305), the ICBM (316), the Attack Submarine (339) and the
+Advanced Battleship (350).
+
+**First try: 6153 of 6706**, the count and the sequence together. On 6153 ours spends **562 draws against theirs'
+554**, parting at index 3:
+- **both** open with `1/25`'s three `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+- **ours** then spends **the MLRS `1/99`'s** (TI 273, land) `Guy::set_anim+0x97a < Unit::do_idle+0x7d` and one
+  `Guy::do_turn` draw, which theirs does not.
+- **both** then run a caravan road search (`PathFinder::astar_caravan_road`): **545 `calc_road_cost+0x46` draws
+  in ours against 539 in theirs**. The tail is the same: seven `Guy::inc_time` animation draws, then five farms.
+  Theirs' trace also prints five `Surf::inc_time` draws.
+
+**The direction: both sides act, 12 frames before the word.** run1401b's widening covers every unit on the block:
+1. On 6141, who=1's **group 72** takes new orders on both sides, and the points part.
+   - The MLRS `1/99` moves to (6734, 7090) in ours against (6491, 9412) in theirs.
+   - The Flamethrower `1/114` (TI 131) guards (7128, 6888) against (7272, 7848), on a path of 10 against 8.
+2. On 6153 ours' `1/99` ends its move (`orders.len` 0 against 1). On 6154 it idles (`idle` 1 against 0), which is
+   the word's `do_idle` draw.
+
+The group's state was already apart in the stride: on 5901 `1/99`'s `attack[1].mandatory` reads 0 against 1.
+Nothing on disk prints a block between 5901 and 6095. So the army's choice of point on 6141 is where this item
+lands, and the walk back from it is the next item's.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5901 | the MLRS `1/99` | `attack[1].mandatory` | 0 | 1 |
+| 6141 | the MLRS `1/99` | `order:move.dest_x, dest_y` | 6734, 7090 | 6491, 9412 |
+| 6141 | the Flamethrower `1/114` | `order:guard.guard_x, guard_y` | 7128, 6888 | 7272, 7848 |
+| 6153 | the MLRS `1/99` | `orders.len` | 0 | 1 |
+| 6153 | the draw stream, index 3 | site | `1/99`'s `Unit::do_idle+0x7d` | `PathFinder::calc_road_cost+0x46` |
+
+**The windows:**
+- **The stride** (run1401, 101..6101): 61 blocks and **294 keys**. Most are the standing families: `form` 110,
+  `build:extra` 88, who=1's groups' `held` 37 and pools 37. The other 22 rows:
+  - the Attack Submarine `1/74` (TI 339) rests (96, 720) apart from 2801 (3721a);
+  - from 5101, `mirror` on nine and `g.angle[0]` on four of who=1's newer units (3721b);
+  - on 5901, three Strategic Bombers' `airorder.returning`/`mandatory`, and `1/99`'s `attack[1].mandatory`.
+- **The word's widening** (run1401b, 6095..6403, walked from run1400 with every round compared): 308 blocks and
+  **1900 keys**, the two `gaia:` keys unprinted. Block 6095 carries 157 standing rows. The first unit to part
+  after it is group 72's, on 6141; `1/128`'s, `1/181`'s and `1/184`'s earlier rows are `form`.
+  - **Rounds read 408 against 227, with 66 parting.** The first is the `1/198`'s on 6295 (`sx` 6601 against
+    6565, `accuracy` 0 against 6).
+- **The closing state** (run1401's block 6707) is a floor: 194 units, counts `[112, 1, 2, 2, 50, 1, 11]`, none
+  torn, `1/97` unlinked, `1/177` and `1/126` extra.
+- **`GROUND_INEXACT`**: none of the four walks makes an inexact height read.
+
+**The seams.** `seams.py --item 3721` names nothing for `RUSSHEAVYTANK`. `--field guard_x` names `orders.rs`'s
+`GuardOrder` comment, where `Group::action_guard`'s building arm is a seam; group 72's guard target here is a
+point, so the comment does not apply.
+
+**The next item's booking**: frame 6153, ours 562 draws against theirs' 554, index 3, the MLRS `1/99`'s
+`Unit::do_idle+0x7d` in ours alone. **The hypothesis**: group 72's order of 6141 picks another point. The window
+does not reach the state's first parting, which is in the stride at or before 5901. A window over 5895..6101 with
+`RON_DEBUG_ARMIES` on group 72 is the first step.
+
+**What is not established.**
+- Which army decision parts group 72's points, and when the group first parted between 5801 and 5901.
+- Whether the road search's 545 against 539 draws is a consequence of the group or a separate parting. Both sides
+  start the search on the same frame.
+- Whether the `HIND` (312) ever fields at this difficulty. It does not here.
 
 ## 369. Reserved for the next item on the AI track
 
