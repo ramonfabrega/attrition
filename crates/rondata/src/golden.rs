@@ -2386,6 +2386,8 @@ mod tests {
         ("chapter97.cmd", &[]),
         ("chapter98.cmd", &[]),
         ("chapter99.cmd", &[]),
+        // Item 3733: `resource` and `add` only (GOLDEN §149).
+        ("melee-gunpowder.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
