@@ -178,8 +178,21 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // (§149.2). On 759 who=2's Bombard `2/23` re-searches alike and then
     // takes `Guy::set_anim+0xf2f < Unit::set_anim+0xb6` twice where theirs
     // takes `< Guy::move+0x166` twice: index 1, 17 draws a side.
+    //
+    // Item 3762: **759 → 760** (sequence; the count stays 760). Theirs did
+    // not move the Bombard: `< Guy::move+0x166` is the deferred attack
+    // paid (`anim::SITE_ATTACK_STAND`). `2/23` fires on the Camel Raider
+    // `0/17` through `do_attack_ground`, whose `Unit::set_angle(…, 0)`
+    // leaves the two trackless crew's `des_angle` apart from their
+    // `angle`, so `Guy::set_anim` defers their swing and guy 0's
+    // `Guy::move` pays it on the same frame; `Unit::fight`'s strike
+    // re-seats the figures first and so plays its crew at once
+    // (`Movement::crew_des`, §149.3). On 760 ours spends 123 draws against
+    // 122: index 40 is ours' `Army::find_target+0x7df`, who=2's army
+    // `2/0` going status 17 → 18 on its own city `2/2000`, its muster
+    // (7, 32) → (1, 36) — where ours' `2/23` walks by 801.
     count: 760,
-    sequence: 759,
+    sequence: 760,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -209,12 +222,12 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733, moved by 3757 and 3759): run1413's
-/// stride blocks 701..1001 — the word's frame 759 writes no block (the
-/// stride prints every hundred), so the window is the stride block before
-/// it through 250 frames past it. 3733's was 101..432, on 182; 3757's
-/// 601..934, on 684.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (701, 1009);
+/// **The word's window** (item 3733, moved by 3757, 3759 and 3762):
+/// run1413's stride blocks 701..1001 — the word's frame 760 writes no
+/// block (the stride prints every hundred), so the window is the stride
+/// block before it through 250 frames past it. 3733's was 101..432, on
+/// 182; 3757's 601..934, on 684; 3759's 701..1009, on 759.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (701, 1010);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -292,7 +305,86 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // another road**: its move order's goal (1320, 28152) in ours against
     // (5736, 24792), `path:length` 24 against 13, `hits:damage` 97 against
     // 87 — and 801 fans out over 26 units of the three seats.
+    //
+    // Item 3762, on the word moved to 760 (window 701..1010): the same
+    // **758** keys, row for row — the crew's deferred swing on 759 writes
+    // nothing a stride block prints, and 801's `2/23` rows stand as 3759
+    // left them: the goal (1320, 28152) against (5736, 24792) is the muster
+    // ours' army `2/0` moves on 760.
     pin_eq!(w.firsts.len(), 758, "run1413's word window");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     pin_eq!(w.rounds.len(), 31, "the rounds that part");
+}
+
+/// **The Bombard's ground swing waits on its crew's turn** (item 3762,
+/// `docs/GOLDEN.md` §149.3). On 759 who=2's Bombard `2/23` (TI 267, land)
+/// re-searches (`Unit::fight+0x9b0`) and fires on the Camel Raider `0/17`
+/// through `Unit::do_attack_ground`, whose `Unit::set_angle(…, 0)` writes
+/// every crew figure's `des_angle` and leaves its `angle`: the two
+/// trackless crew defer the swing, and guy 0's `Guy::move` turns them and
+/// pays it at `+0x166` on the same frame. `Unit::fight`'s own strike
+/// re-seats the figures (`set_new_location(…, 1, 0)`) before it swings,
+/// and that snaps the crew — which is why every other lobby's crew swing
+/// is `Unit::set_anim+0xb6`.
+#[test]
+fn gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    built.sim.trace_phases = true;
+    const WORD: i64 = 759;
+    while built.sim.frame < WORD {
+        built.tick();
+    }
+    built.tick();
+    let (f, ours) = built.frame_sites.last().expect("759's draws");
+    assert_eq!(*f, WORD);
+    let bombard: Vec<String> = crate::diff::harness::attributed_sites(&built)
+        .into_iter()
+        .filter(|(_, who)| who == "unit 2/23")
+        .map(|(label, _)| label)
+        .collect();
+    assert_eq!(
+        bombard,
+        [
+            sim::fight::SITE_FIGHT_RESEARCH,
+            sim::anim::SITE_ATTACK_STAND,
+            sim::anim::SITE_ATTACK_STAND
+        ],
+        "2/23's draws on 759: the re-search, then the two trackless crew's deferred swing"
+    );
+    assert_eq!(*ours, tr.labels(WORD), "759's whole draw sequence");
+    let u = built
+        .sim
+        .units
+        .iter()
+        .position(|x| x.owner == 2 && x.index == 23)
+        .expect("2/23");
+    assert!(
+        matches!(
+            built.sim.units[u].orders.front().map(|o| &o.body),
+            Some(sim::orders::Body::AttackGround(_))
+        ),
+        "the swing is the ground order's"
+    );
 }
