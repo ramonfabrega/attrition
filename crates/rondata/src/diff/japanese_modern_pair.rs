@@ -261,12 +261,92 @@ fn japanese_modern_pair_run1403b_s_word_frame_is_widened_whole() {
     // takes a second flee to (2472, 31704) on the late wound. The same
     // frame theirs spends three `Farms::inc_time+0x1ae` chance draws
     // against ours' four (`docs/AI.md` §369).
+    // Item 3745: **59** — piece 1108's and piece 199's rows put every
+    // Infantry and Chi-Ha round on its bay or turret. What parts is the
+    // standing families, who=1's group 68 `held` [104] and its pool on
+    // 3167 (ours alone), and `mirror` on four craft minted in the window
+    // (`1/95`, `1/103`, `1/106` and `1/110`); no draw parts (parked 3745b).
     pin_eq!(w.firsts.len(), 59, "run1403b baseline");
     // Every round, both directions: 269 in ours against 320, 247 rows
     // parting, the first group 65's Infantry rounds from 3143 (`1/21`,
     // `1/23`, `1/28`: `sx, sy, sz`, `angle`, `v1z`), the launch point.
+    // Item 3745: 269 a side, 2 parting — `1/36`'s `ammo[5]` of 3163, a
+    // round whose target is gone (`whom` −1 in ours against 0, `ox` −1
+    // against 4; parked 3745b).
     pin_eq!(w.rounds_read, (269, 269), "the rounds read");
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
+}
+
+/// run1424b: the pair's closing window, blocks 3834..3867 at run1403b's
+/// detail (item 3745). The word reached the game's last frame; run1403b
+/// ends on 3411 and run1403's stride prints units only.
+pub(crate) const RUN1424B: &str =
+    "gamelog-run1424b-greatlakes-japanese-modern-closing-window-3834-3867.txt";
+
+/// The window: block 3834 through the closing block 3867.
+pub(crate) const WIDENING_JAPANESE_MODERN_CLOSING: (i64, i64) = (3834, 3867);
+
+/// **The pair's last blocks**: run1424b walked from run1402's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3745).
+pub(crate) fn japanese_modern_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[JAPANESE_MODERN.start],
+        true,
+        JAPANESE_MODERN.long,
+        "run1424b",
+        &[(RUN1424B, WIDENING_JAPANESE_MODERN_CLOSING.0)],
+        WIDENING_JAPANESE_MODERN_CLOSING,
+        1,
+        &[3867],
+        true,
+    )
+}
+
+#[test]
+fn japanese_modern_pair_run1424b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_modern_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 33, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3745, the pair whole: **53** keys, every one a standing family
+    // — `form` on 23 units, who=0's `SITE[i].reg` (12) and
+    // `aggression[1]`, who=1's groups 65, 66, 67, 69 and 71 with their
+    // pools, and `mirror` on seven of who=1's craft. No other unit,
+    // building, city or leader field parts, no draw parts to 3866, and the
+    // closing block 3867 agrees. Before piece 1145's bays it was 56: the
+    // Bazookas' rounds struck `0/2002` (3850, `build:damage` 74 against
+    // 84) and `0/2000` (3860) late, and `0/2000`'s `raid_stamp` parted.
+    pin_eq!(w.firsts.len(), 53, "run1424b baseline");
+    // Every round, both directions: 282 a side, 15 parting — the Bombers'
+    // (TI 304, `1/95`, `1/103`, `1/106`): `accuracy` 0 in ours against
+    // 256..300, and `1/106`'s `ammo[3]` of 3860 one unit off in `sx` and
+    // `ex` (parked 3745a).
+    pin_eq!(w.rounds_read, (282, 282), "the rounds read");
+    pin_eq!(w.rounds.len(), 15, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3722): run1403's closing block 3867,
@@ -315,7 +395,9 @@ fn japanese_modern_pair_run1403_s_closing_state() {
     // Item 3722, first try: 706 frames past the word 3160 the game has
     // parted widely — 130 units compared, counts [81, 0, 0, 8, 39, 1, 8],
     // `1/14` and `1/20` torn, nothing extra or unlinked. A floor, not a
-    // score.
+    // score. Item 3745: **the pair whole, the closing state scored** —
+    // 130 units, counts all zero, nothing torn, extra or unlinked, and no
+    // closing field.
     pin_eq!(e.compared, 130, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
