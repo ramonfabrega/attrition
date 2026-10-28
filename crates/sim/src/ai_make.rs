@@ -940,7 +940,9 @@ impl Sim {
         land: bool,
     ) -> bool {
         let mut cleared = false;
-        for u in 0..self.units.len() {
+        // By object number, as the recruit scan below (`check_orphaned_buildings`'s loop
+        // over `objects +0x15c[who]`).
+        for u in self.units_by_o(who) {
             if !self.is_own_citizen(who, u) {
                 continue;
             }
@@ -966,9 +968,18 @@ impl Sim {
 
     /// The recruit arm: the first idle or gathering citizen of mine in the
     /// site's region is swarmed onto it with `QUEUE_NEW`.
+    ///
+    /// **First by object number, not by this crate's slot**
+    /// (`check_orphaned_buildings@006c9f20`: `iVar1` from 0 to `objects
+    /// +0x15c[who]`, the list indexed by `o`). A reused number puts the two
+    /// apart: the Bantu Modern pair's 3376 (`docs/AI.md` §370.1), where
+    /// `1/94` (uid 162, born into a freed number) is the original's first
+    /// gatherer for the site `1/2046` and the slot walk reached `1/95` (uid
+    /// 137) and then `1/105` (uid 149) first. The same lesson as
+    /// `produce_building`'s (§210) and `produce_city`'s (§358.4).
     fn recruit_builder(&mut self, who: Player, b: usize, site_reg: Option<u16>) -> bool {
         let mut pick = None;
-        for u in 0..self.units.len() {
+        for u in self.units_by_o(who) {
             if !self.is_own_citizen(who, u) {
                 continue;
             }
