@@ -33037,3 +33037,44 @@ SHA-256 `5950d8ce72a97a917ab133e3a500ef431886748af998e38f933b326c8f5c91f3`.
 **What it holds**: the word 2385's widening, `american_information_pair_run1409b_s_word_frame_is_widened_whole`:
 340 blocks, 1392 keys, no round on either side. The Airbase `1/2021`'s Jet Fighters are queued at 89 in ours against
 71 in theirs from 2295, and who=1's make list parts on 2384.
+
+## run1434 — the Americans at a held Information age, Great Lakes: the word 3653's window, a dead take (2026-10-28, item 3755, `att-3755`)
+
+`docs/AI.md` §372.1. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1434 --map 14 --end-frame 3903
+--timeout 3600 --log-window 3495 3903 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20
+--cover cover=0`. **Without run1408's `--profile` lobby** (difficulty 5, technology and resources 7), so the game is
+another lobby's.
+- Pool lane 1. Launched 13:05:56, exited 13:06:46 (50.1 s launch to exit). `success`: 3904 frames. `page_faults` 0;
+  no `relaunches` key. `rngcmp.py` against run1409: **0 of 3904 identical**, parting from frame 0. Filed with
+  `filerun.py run1434 greatlakes-american-information-window-3495-3903`. `df -g ~` read 141 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1434-greatlakes-american-information-window-3495-3903.txt`, 662,958,362 bytes,
+SHA-256 `84c0ec2f8d00effa70a0a1fbf95b2e1e37aa276b075614a20b9c4d9ad2b4012e`.
+
+Archive `rontrace-run1434.log`, 17,235,680 bytes,
+SHA-256 `d64b1d00e556e5dbd5e1e6909a5cdf5b5efb7ac2c3e7fb802e83c98225e887ec`.
+
+**What it holds**: nothing a test reads. run1434b is the take.
+
+## run1434b — the Americans at a held Information age, Great Lakes: the word 3653's window, blocks 3495..3903 (2026-10-28, item 3755, `att-3755`)
+
+`docs/AI.md` §372.1. **What the disk could not answer**: every record and every round on the word's blocks. run1409's
+stride prints units every hundred frames (3501, then 3601) and no `AMMO`, leader, building or city record past the
+start; run1409b ends on 2635. run1434's line with run1408's lobby (`--profile STARTING_TECHNOLOGY=7 --profile
+ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`): six blocks before the stride's 3501, 250
+past the word's block 3654.
+- Pool lane 1. Launched 13:09:00, exited 13:09:58 (57.2 s launch to exit). `success`: 3904 frames. `page_faults` 0;
+  no `relaunches` key. `rngcmp.py` against run1409: 3904 of 3904 identical. Filed with `filerun.py run1434b
+  greatlakes-american-information-window-3495-3903`. `df -g ~` read 141 GiB free before it, 137 after.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1434b-greatlakes-american-information-window-3495-3903.txt`, 842,583,062 bytes,
+SHA-256 `134590b5f78ce4150dc80eee99c4cdbf2a6b6a6c79fb1f926e269d23a47f7b10`.
+
+Archive `rontrace-run1434b.log`, 74,068,864 bytes,
+SHA-256 `ca013f4ffa3883696e41aa8991b49113e97635ccec59b2a846e0aca54c7f0593`.
+
+**What it holds**: the word 3653's widening, `american_information_pair_run1434b_s_word_frame_is_widened_whole`:
+408 blocks, 544 keys, rounds read 110 in ours and 126 in theirs, 55 parting. The first parted round is the Armored
+Cavalry `1/16`'s on 3587, launched from its own square in ours.

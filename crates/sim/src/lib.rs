@@ -2438,6 +2438,7 @@ impl Sim {
         let discount = self.nation_unit_discount(who, ty);
         let russian_spy = self.russian_spy_discount(who, ty);
         let british_aa = self.british_aa_discount(who, ty);
+        let american_aircraft = self.american_aircraft_discounts(who, ty);
         let roman_legion = self.roman_legion_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
         let citizens = self.citizen_discounts(who, ty);
@@ -2451,6 +2452,7 @@ impl Sim {
             Some(r) => cost::Modifiers {
                 research: Some(r),
                 indian_elephant,
+                american_aircraft,
                 british_aa,
                 russian_spy,
                 roman_legion,
@@ -2473,6 +2475,7 @@ impl Sim {
                 socialism: self.socialism_cost_discount(who, ty),
                 salmon: self.salmon_cost_discount(who, ty),
                 maize: self.has_rare(who, economy::MAIZE),
+                american_aircraft,
                 british_aa,
                 russian_spy,
                 roman_legion,
@@ -2906,6 +2909,40 @@ impl Sim {
         } else {
             0
         }
+    }
+
+    /// `get_cost:268`–`282`: an American leader (`has_tribe_bonus(0x14)`)
+    /// takes `AMERICANS_AIRCRAFT` (20) off a unit whose trainer
+    /// (`UnitTypeData +0x40`) is the Airbase (`0x1bf`), by equality; then
+    /// again off one that `is(0x15f, 0)`, the Aircraft Carrier's lineage;
+    /// then again off one that `is(0x134, 0)`, the Fighter Bomber's — three
+    /// tests, each its own truncating step, so they stack. The Great Lakes
+    /// American Information pair's Airbase `1/2021` prices its Jet Fighters
+    /// 71, 73, 75, 77 there on 2295 and 89, 91, 93, 95 here before item
+    /// 3755 (`docs/AI.md` §372.1).
+    pub fn american_aircraft_discounts(&self, who: Player, ty: usize) -> [i32; 3] {
+        let american = self.tech.get(who as usize).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+        });
+        if !american {
+            return [0; 3];
+        }
+        let k = self.tuning.americans_aircraft;
+        let line = |root: usize| {
+            self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(root).is_some() && self.tech_tree.is(t, root, false)
+            })
+        };
+        [
+            if self.trainer_where(ty) == Some(0x1bf) {
+                k
+            } else {
+                0
+            },
+            if line(0x15f) { k } else { 0 },
+            if line(0x134) { k } else { 0 },
+        ]
     }
 
     /// `get_cost:299`–`305`: a Russian leader's unit of the Spy's lineage

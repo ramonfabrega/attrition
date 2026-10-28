@@ -341,7 +341,7 @@ left out; a constant with no reader in the export is dead there too.
 | `LAKOTA_CAV_DMG_BONUS` | 1/3 | Object::do_damage | not carried | `lakota_cav_dmg_bonus` |
 | `AMERICANS_FREE_SCHOLAR` | 1 | Build::activate | modelled at nations.rs | `americans_free_scholar` |
 | `AMERICANS_FREE_BOMBER` | 1 | Build::activate, Leader::gain_tech, LeaderData::get_support_count | modelled at nations.rs | `americans_free_bomber` |
-| `AMERICANS_AIRCRAFT` | 20 | TypeData::get_cost | not carried | `americans_aircraft` |
+| `AMERICANS_AIRCRAFT` | 20 | TypeData::get_cost | modelled at cost.rs | `americans_aircraft` |
 | `AMERICANS_MARINE_SPEED_BONUS` | 2 | Unit::update_speed | modelled at rares.rs | `americans_marine_speed_bonus` |
 | `AMERICANS_MARINE_HP_BONUS` | 70 | Unit::update_hits | modelled at cast.rs | `americans_marine_hp_bonus` |
 | `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | modelled at tuning.rs | `americans_marine_entrench` |
