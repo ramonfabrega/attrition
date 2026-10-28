@@ -561,7 +561,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Gun Mahout` (263, `GUNMAHOUT`, land; 1926 figure rows), the shooter
 /// whose howdah bays closed the word (§358.4), read by `rubric.py
 /// --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 229;
+/// Item 3714: 229 -> 230, the Mongol Medieval pair whole at 5592 —
+/// `Steppe Nomad` (200, `ELITENOMADS`, land), the shooter whose pivot
+/// release rows closed the word (§362.3), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 230;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
