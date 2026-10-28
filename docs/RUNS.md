@@ -32523,3 +32523,70 @@ SHA-256 `6a67391e27d791ef523ed68bb4cda17e9562491af584834ddf6d83116e50da17`.
 blocks, **1900** keys, rounds 408 against 227 with 66 parting. Group 72's orders part on 6141 (the MLRS `1/99` and
 the Flamethrower `1/114`). It is the `WIDENINGS` row for the word 6153, the `AI_WORDS` window and the coverage
 driver's.
+
+## run1423 — the Russians at a held Information age, East Indies, at difficulty 4: the stride's gap, blocks 5895..6101 (2026-10-28, item 3744, `att-3744`)
+
+`docs/AI.md` §368.1. **What the disk could not answer**: every record between the stride's 5901 and run1401b's
+6095. On stride block 5901 the MLRS `1/99` was already apart (`attack[1].mandatory` 0 against 1), and no dump
+printed a block between 5901 and 6095. `RON_CAPTURE_LANE=2 viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1423 --map 18 --end-frame 6101 --timeout 3600 --log-window 5895 6101 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0` and run1400's lobby
+(`--profile STARTING_TECHNOLOGY=7 ENDING_TECHNOLOGY=7 STARTING_RESOURCES=7 DIFFICULTY=4`).
+- Pool lane 2, pinned as the brief preferred. Launched 05:09:14, exited 05:10:05 (50.5 s launch to exit).
+  `success`, 6102 frames. `rngcmp.py` against run1401: 6102 frames identical. Filed with `filerun.py run1423
+  eastindies-russian-information-window-5895-6101`. `df -g ~` read 139 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1423-eastindies-russian-information-window-5895-6101.txt`, 512,577,335 bytes,
+SHA-256 `19f7e6143bf787a5deefcb8c2f1d1b931d4c8b07f64ce40b42ca1dc2bf1bb448`.
+
+Archive `rontrace-run1423.log`, 183,821,984 bytes,
+SHA-256 `ac12ede1379f9bce149de2f6aae801d55240ae18a2f7c039d74e3f4b84aa433c`.
+
+**What it holds**: `russian_information_pair_run1423_s_gap_is_widened_whole`, walked from run1400 with every round
+compared: 206 blocks, **168** keys with the siege-city arm (170 before), rounds 408 against 408 with 94 parting
+(the MLRS's launch point, 3744a). `1/99`'s `attack[1].mandatory` stood from the window's first block, so the
+parting was earlier still: run1423b.
+
+## run1423b — the Russians at a held Information age, East Indies, at difficulty 4: blocks 5795..5900 (2026-10-28, item 3744, `att-3744`)
+
+`docs/AI.md` §368.1. **What the disk could not answer**: the frame `1/99`'s attack order was added. run1423 opens
+with it already standing, and the stride's 5801 holds `1/99` inside `1/96` with no orders. `RON_CAPTURE_LANE=2
+viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1423b --map 18 --end-frame 5900 --timeout 3600
+--log-window 5795 5900`, with run1423's detail and lobby.
+- Pool lane 2. Launched 05:13:42, exited 05:14:23 (40.9 s launch to exit). `success`, 5901 frames. `rngcmp.py`
+  against run1401: 5901 frames identical. Filed with `filerun.py run1423b
+  eastindies-russian-information-window-5795-5900`. `df -g ~` read 137 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1423b-eastindies-russian-information-window-5795-5900.txt`, 259,070,857 bytes,
+SHA-256 `d82d6bc6e153086865fd49aed34b3ad28117bfbe1cc3f87f5dfed9d67e15998d`.
+
+Archive `rontrace-run1423b.log`, 173,565,792 bytes,
+SHA-256 `fad89ac71761964a91014decfb38d79581e53a0203e88cb79ab596a9ff91a865`.
+
+**What it holds**: `russian_information_pair_run1423b_s_gap_is_widened_whole`: 105 blocks, **175** keys with the
+siege-city arm. Before it, `1/99` parted on 5887: its attack on the city `0/2000` was added `mandatory` 0 in ours
+against 1 (`find_nearby_target`'s siege-city arm, §368.1).
+
+## run1423c — the Russians at a held Information age, East Indies, at difficulty 4: the closing window, blocks 6450..6707 (2026-10-28, item 3744, `att-3744`)
+
+`docs/AI.md` §368.1. **What the disk could not answer**: every record of the pair's last blocks once the word
+reached the game's last frame. run1401b ends on 6403, and run1401's stride prints units only.
+`RON_CAPTURE_LANE=2 viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1423c --map 18 --end-frame 6706
+--allow-early-end --timeout 3600 --log-window 6450 6707`, with run1423's detail and lobby: the 258 blocks
+through the closing block.
+- Pool lane 2. Launched 05:35:00, exited 05:35:54 (54.7 s launch to exit). `success`, 6707 frames. `rngcmp.py`
+  against run1401: 6707 frames identical. Filed with `filerun.py run1423c
+  eastindies-russian-information-closing-window-6450-6707`. `df -g ~` read 132 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1423c-eastindies-russian-information-closing-window-6450-6707.txt`, 619,130,367 bytes,
+SHA-256 `b7c842eb02501134f1ec28ca9c143c331cbd1ab3a08cabb3ce5e7136af84a55e`.
+
+Archive `rontrace-run1423c.log`, 207,083,424 bytes,
+SHA-256 `21b530ecc63308ae3df6ee059ba38025f0ecf6a3aa19580bdaf407d39819ff14`.
+
+**What it holds**: `russian_information_pair_run1423c_s_closing_frame_is_widened_whole`: 257 blocks, **157** keys,
+rounds 29 against 30 with 12 parting (the T80 `1/59`'s, 3744d). It is the `WIDENINGS` row for the closed word, the
+`AI_WORDS` window and the coverage driver's.
