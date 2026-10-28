@@ -12446,13 +12446,22 @@ words and edits nothing here; a refill lands when two remain.
 - **3760e. `ABRAMDES` and the Strategic Bomber's Asian graph (`STRATEGICBOMBER-ASIAN`) take no rows**: they play
   other pieces, and no scored lobby fields them. 3758a's row stands for the first.
 
-## Parked by the next landing, slot WG — reserved
+## Parked by item 3762, 2026-10-28 — the Bombard's crew pays its ground swing in `Guy::move`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3762a. The trackless crew's `des_angle` is a per-unit flag, not a per-guy field** (`docs/GOLDEN.md` §149.3).
+  `Movement::crew_des` holds the frame an order's `Unit::set_angle(…, 0)` wrote the crew's `+0x64`, and
+  `crew_unturned` reads the crew unsettled while it is that frame's and guy 0's heading is not its facing. The
+  original keeps the pair on every figure: a crew figure whose `+0x64` is written by something other than
+  `Guy::set_angle`'s loop (`Guy::set_new_location`'s `param_3 == 0` arm writes `+0x64` from guy 0's angle and
+  leaves `+0x18`) is not modelled, nor a gap that outlives the frame on a unit whose guys run no `Guy::move`.
+  - It names no score: 108 of 109 `first_parting`s hold, and the melee moves.
+  - What would answer it: `seams.py --field des_angle`, then a packet's `--watch` of a crew figure's `+0x18`
+    and `+0x64` (`VA+0x18:4`, `VA+0x64:4`) over the unit's process on a frame where a swing follows a
+    `set_angle` from `do_cast`, `do_non_flat_gather` or a turret arm.
+- **3762b. The booking's "theirs moves the Bombard" was the site label read as a walk** — killed, unbuilt.
+  `Guy::set_anim+0xf2f < Guy::move+0x166` is `anim::SITE_ATTACK_STAND`, the deferred attack paid; both sides fire.
+  The killer was the label table in `crates/sim/src/anim.rs`; the frame was right and the mechanism was not
+  (DECISIONS 42).
 
 ## Parked by the next landing, slot WH — reserved
 

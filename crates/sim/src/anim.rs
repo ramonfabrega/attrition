@@ -1313,6 +1313,8 @@ impl Sim {
     /// [`SITE_TURN_CREW`], the recursion's own chain, and the caller's
     /// label is restored after it so nothing past the turn is relabelled.
     pub(crate) fn do_turn_anim(&mut self, u: usize, was: Angle, to: Angle, heading: Angle) {
+        // `do_turn:31`–`37`: the trackless crew take `angle == des_angle`.
+        self.units[u].movement.crew_des = None;
         for g in 0..self.units[u].guys.len() {
             if self.units[u].guys[g].follow.is_some() {
                 continue;
@@ -1445,6 +1447,25 @@ impl Sim {
     /// `Guy::do_turn` recurses into it with guy 0's new angle as both
     /// members of the pair ([`Sim::guys_follow_on`]) — and a tracked crew
     /// figure keeps its own.
+    /// **A trackless crew figure an order has just turned** (item 3762,
+    /// `docs/GOLDEN.md` §149.3): `Unit::set_angle` with the snap flag clear
+    /// writes every crew figure's `des_angle` and leaves its `angle`, so
+    /// until guy 0's next `Guy::do_turn` the figure's own pair reads apart
+    /// whenever the heading is not the facing ([`crate::Movement::crew_des`]).
+    /// run1413's Bombard `2/23` on 759: `do_attack_ground` turns it and
+    /// asks for the swing, and its two trackless crew defer it to
+    /// `Guy::move+0x166`.
+    fn crew_unturned(&self, u: usize, g: usize) -> bool {
+        let m = self.units[u].movement;
+        g >= SQUAD_SIZE
+            && self.units[u]
+                .guys
+                .get(g)
+                .is_some_and(|x| x.follow.is_none())
+            && m.crew_des == Some(self.frame)
+            && m.facing != m.heading
+    }
+
     fn guy_settled(&self, u: usize, g: usize) -> bool {
         match self.units[u].guys.get(g).and_then(|x| x.follow) {
             Some(f) => f.facing == f.des_angle,
@@ -1523,7 +1544,7 @@ impl Sim {
         // is the one exemption, and it plays its attack where it is asked.
         if category(anim) == 12 && !self.is_plane(u) {
             let v = if p3 { 1 } else { anim };
-            if !self.body_at_des(u, g) || !self.guy_settled(u, g) {
+            if !self.body_at_des(u, g) || !self.guy_settled(u, g) || self.crew_unturned(u, g) {
                 self.units[u].guys[g].pending_attack = v;
                 return;
             }

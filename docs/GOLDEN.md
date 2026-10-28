@@ -14119,6 +14119,100 @@ twice. The booking is the commander's.
 **Coverage.** The rows are diff-backed (run1438's rounds, the walk and the mutation). The packet's `AttachPos`
 rows are read by `get_position.py` under unicorn, as items 3705 and 3613 read theirs.
 
+## 149.3 The Bombard's ground swing waits on its crew's turn — 759 → 760 (item 3762)
+
+**The booking.** Frame 759, 17 draws a side, parting at index 1. Both sides spend who=2's Bombard `2/23`'s
+`Unit::fight+0x9b0` at index 0. Then ours spends `Guy::set_anim+0xf2f < Unit::set_anim+0xb6` twice, where theirs
+spends `Guy::set_anim+0xf2f < Guy::move+0x166` twice. `2/23` is TI 267 (TY 217, Bombard), land, a packer, with
+four figures: guy 0, the tracked crew figure guy 2, and two trackless crew figures.
+
+**The direction: both sides fire.** The booking read theirs' label as a walk. It is not:
+`< Guy::move+0x166` is `anim::SITE_ATTACK_STAND`, the attack a figure deferred and `Guy::move` pays (`docs/ANIM.md`
+§6.2). `RON_DEBUG_UNIT=2/23` shows ours' Bombard finishing its unpack (`CASTORDER 652`, 80 frames) on 758. On 759
+its attack on the Camel Raider `0/17` is in range, and the siege arm pushes `ATTACKGROUND` at (17400, 15672).
+`Unit::do_attack_ground` turns it from −111° to −106° and swings. Ours plays the two trackless crew's swing at
+once. Theirs defers it and pays it in `Guy::move` on the same frame. The hypothesis "theirs moves the Bombard" is
+killed, unbuilt (parked 3762b).
+
+**Why theirs defers.**
+- **The test is each figure's own.** `Guy::set_anim@005da300`'s attack test (`005da38a`–`005da3ba`) defers the
+  swing when the figure's `des != pos` or its own `des_angle` (`+0x64`) differs from its `angle` (`+0x18`).
+- **`Unit::set_angle@00605400` with its third argument 0** hands on to `Guy::set_angle@005d9010(guy 0, a, 0)`.
+  That writes guy 0's `+0x64` and, from `+0x304` up, every crew figure's `+0x64`, and leaves every `+0x18`.
+- **`Guy::do_turn@005d97a0` closes the gap**: it sets guy 0's angle and recurses into the trackless crew, which
+  end with `+0x18 == +0x64`. Guy 0's `Guy::move` runs it whenever the heading is not the facing.
+- **`do_attack_ground@005f1410:200`–`218` calls `set_angle(…, 0)` and then `set_anim`**, with nothing between. So
+  the trackless crew are unsettled at the swing and defer it.
+- **`Unit::fight@005fd4d0:724`–`762` calls `set_angle(…, 0)` and then `set_new_location(this, cell centre, 1,
+  0)`** before its swing. `Unit::set_new_location@005f8d20` hands the snap to `Guy::set_new_location@005d86f0(guy
+  0, …, 1)`. Its crew loop (`:83`–`127`) writes every crew figure's `+0x64` from guy 0's angle and calls
+  `set_angle(crew, +0x64, 1)`, which snaps it. So the crew are settled at `fight`'s own swing and play at once.
+  That is why every capture on file reads `Unit::set_anim+0xb6` for a crew swing: they are all `fight`'s.
+
+**This crate before the fix.** `guy_settled` read every trackless crew figure as settled
+(`None if g >= SQUAD_SIZE => true`). That was right after a `do_turn` and wrong between a `set_angle` and the next
+`do_turn`.
+
+**The fix** (`crates/sim/src/lib.rs`, `group.rs`, `anim.rs`, `collide.rs`):
+- `Movement::crew_des` holds the frame on which an order's `Sim::unit_set_angle` wrote the crew's `des_angle`.
+- `do_turn_anim`, the body follow at the foot of guy 0's `Guy::move`, the snapping `set_facing`, and
+  `set_new_location` with `move_guys` each clear it.
+- `crew_unturned` defers a trackless crew figure's swing while the flag is the frame's and guy 0's heading is not
+  its facing.
+- `Unit::move_step`'s own `set_angle` (`Movement::set_heading`) does not set it, because its `do_turn` follows in
+  the same step.
+
+Two narrower shapes were built and refuted on the way, each by the other lobbies' floors:
+- **The flag on `set_heading` too, read in `guy_settled`.** 41 of 109 `first_parting`s moved, many on the
+  turn-slot idle arm.
+- **The flag kept across frames.** 39 moved, all `< Unit::set_anim+0xb6` in theirs against `< Guy::move+0x166` in
+  ours. The Egyptian Gunpowder pair's Bombard `1/94` on 4428 is one: run1254 unpacks it and then `fight`'s strike
+  swings, and theirs plays all three crew.
+
+That second shape is what found `fight`'s `set_new_location` snap.
+
+**The score: 759 → 760** (the sequence; the count stays 760). Frame 759 now matches theirs' 17 labels.
+108 of 109 lobbies' `first_parting`s hold at their floors.
+
+**The value diff.** Stride blocks print every hundred, so 759's deferral writes nothing a block prints. The
+widening (`gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 701..1010) reads the same **758**
+keys, row for row. On 801, `2/23` still reads:
+
+| field | ours | theirs |
+|---|---|---|
+| move goal | (1320, 28152) | (5736, 24792) |
+| `path:length` | 24 | 13 |
+| `hits:damage` | 97 | 87 |
+
+**The next word**: frame 760, ours 123 draws against 122. At index 40 ours spends `Army::find_target+0x7df`, and
+theirs goes straight to who=1's `1/25`'s `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, which ours draws next.
+**Ours acted.** `RON_DEBUG_ARMIES=758-761` shows who=2's army `2/0` (leader `2/20`, `2/23` in its list) going from
+status 17 to 18 in ours on 760. It targets its own city `2/2000` at (6240, 30048) and moves its muster from (7, 32)
+to (1, 36). Theirs' goal for `2/23` on 801, (5736, 24792), lies in cell (7, 32), the old muster. Ours' goal,
+(1320, 28152), lies in (1, 36), the new one. So 801's goal parting is the army's re-target. Why ours' army
+re-targets on 760 and theirs' does not is the next item's.
+
+**Tests.**
+- `gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move` walks to 759. It checks `2/23`'s three draws
+  (the re-search and two `SITE_ATTACK_STAND`), the frame's whole sequence against run1413's trace, and the
+  `ATTACKGROUND` at the head.
+- `gunpowder_melee_first_parting` is re-pinned to (760, 760), and the widening's window to 701..1010.
+
+**Mutations** (`tools/mutate.py`):
+- Without `|| self.crew_unturned(u, g)`: **held**. `…_first_parting` and the new test fail.
+- Without `set_new_location`'s clear: **held**. `egyptian_gunpowder_pair_first_parting` fails.
+
+**What is not established.**
+- The flag is per unit and lasts one frame. The original keeps the pair on every figure (parked 3762a).
+- Other `set_angle(…, 0)` callers that swing without a re-seat (`do_cast`, `do_non_flat_gather`) are not walked by
+  any capture on file.
+- No capture prints a figure's `+0x64`. The deferral is diff-backed by the draw stream alone: 759's labels, and
+  the 108 floors that hold.
+
+**Coverage.** The arm and its snap are diff-backed (run1413's trace on 759, run1254's on 4428 through the
+Egyptian floor, both mutations). The writes of `Guy::set_angle`, `Guy::do_turn` and `Guy::set_new_location` rest
+on the export.
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

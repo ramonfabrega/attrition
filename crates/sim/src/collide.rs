@@ -1922,6 +1922,14 @@ impl Sim {
         }
         if move_guys {
             self.units[u].movement.body.pos = to;
+            // `Guy::set_new_location(guy 0, pos, 1)`'s crew loop
+            // (`005d86f0:83`–`127`): every crew figure takes guy 0's
+            // `angle` as its `des_angle` and is snapped to it, so the
+            // pair an order's `set_angle` left apart is closed
+            // ([`crate::Movement::crew_des`]; item 3762). `Unit::fight`'s
+            // strike reaches it before its swing; `do_attack_ground` does
+            // not.
+            self.units[u].movement.crew_des = None;
             // `Guy::set_new_location(guy 0, pos, 1)` moves the disc now.
             self.coll_follow(u);
             // Its helicopter climb, and `param_3`'s `last_z = z` after it
