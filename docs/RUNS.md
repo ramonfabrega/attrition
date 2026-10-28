@@ -32757,6 +32757,49 @@ SHA-256 `183f19d69a3db5a750798c45d71749086ef8cdbbc91aa6a19386f45ea94fe8ed`.
 **What it holds**: the word 3451's widening, `egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole`: 307
 blocks, 1287 keys, rounds 11 against 18 with 27 parting — group 64's Churchills (piece 195) leaving their own
 square from 3438.
+## run1426 — the Egyptians at a held Modern age, Great Lakes, at difficulty 4: the word 3748's window, blocks 3695..3878 (2026-10-28, item 3747, `att-3747`)
+
+`docs/AI.md` §371.1. **What the disk could not answer**: who kills the Citizen `0/12` on 3748, and with what round.
+run1407's stride prints units only on 3701 and 3801, with no `AMMO`, and its 3701 block parts no unit row. run1407b
+ends on 3702. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1426 --map 14 --end-frame 3878
+--allow-early-end --timeout 3600 --log-window 3695 3878 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`: six
+blocks before the stride's 3701, to the game's last frame.
+- Pool lane 1. Launched 10:47:23, exited 10:48:00 (37.0 s launch to exit). `success`: 3879 frames, seed 12345.
+  `page_faults` 0; the receipt prints no `relaunches` field. `rngcmp.py` against run1407: 3879 of 3879 identical.
+  Filed with `filerun.py run1426 greatlakes-egyptian-modern-window-3695-3878 --map 14`. `df -g ~` read 153 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1426-greatlakes-egyptian-modern-window-3695-3878.txt`, 372,334,279 bytes,
+SHA-256 `94031f853302fad7a004ca05bffe9bdbce92cf41dd4b62c66dad11ce082c4d6a`.
+
+Archive `rontrace-run1426.log`, 59,630,432 bytes,
+SHA-256 `abe2ea8fb27ecfdb7cd708b0191544972640041073699fed4180cc8daf8a331c`.
+
+**What it holds**: the word 3748's widening, `egyptian_modern_pair_run1426_s_word_frame_is_widened_whole`: 183
+blocks. On its first walk: 1123 keys, rounds 222 against 191 with 216 parting. The first unit parting was the
+Infantry `1/19`'s round of 3723, leaving its own square. With pieces 52 and 89 built: 51 keys, all standing families,
+and rounds 222 against 222 with 16 parting, all on a dead target's `whom`.
+
+## run1426b — the Egyptians at a held Modern age, Great Lakes, at difficulty 4: a packet at logger frame 3722, pieces 52, 89 and 195 (2026-10-28, item 3747, `att-3747`)
+
+`docs/AI.md` §371.1. **What the disk could not answer**: the `AttachPos` rows of the Egyptian Infantry's piece 52.
+`get_position.py … entries 52` raised on all 89 packets on disk; none is a game whose style-0 nation fields TI
+102. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1426b --map 14 --end-frame 3724 --timeout 3600
+--log-window 3720 3724 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 7 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4
+--tracer-def RON_STATE_FRAME=3722 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`: the block before
+`1/19`'s round of 3723.
+- Pool lane 1. Exited after 23.9 s, launch to exit. `success`, seed 12345. `page_faults` 0; the receipt prints no
+  `relaunches` field. Not filed: the packet is the product. `df -g ~` read 152 GiB free before it.
+- Minutes waited on another lane: none.
+
+**What it holds**: piece 52's six rows, piece 89's three and piece 195's seven (`entries`). The sweeps
+`fit_bay.py` fits are `sw-52-*` and `sw-89-*`, in the job's tmp directory, outside git.
+
 ## run1404 — the Bantu at a held Modern age, Great Lakes, at difficulty 5: the `DUMP_ALL` start (2026-10-28, item 3723, `att-3723`)
 
 `docs/AI.md` §370. run1402's line with the nation and the difficulty moved, through `viadriver.sh
