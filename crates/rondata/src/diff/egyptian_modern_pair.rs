@@ -284,8 +284,8 @@ fn egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole() {
 /// and 3801, no `AMMO`, and its 3701 parts no unit row.
 pub(crate) const RUN1426: &str = "gamelog-run1426-greatlakes-egyptian-modern-window-3695-3878.txt";
 
-/// The window: block 3695 through 3878.
-pub(crate) const WIDENING_EGYPTIAN_MODERN_FRAME_3748: (i64, i64) = (3695, 3878);
+/// The window: block 3695 through the closing block 3879.
+pub(crate) const WIDENING_EGYPTIAN_MODERN_FRAME_3748: (i64, i64) = (3695, 3879);
 
 /// **The word 3748's window**: run1426 walked from run1406's start with
 /// the recorder on and every round compared (item 3747).
