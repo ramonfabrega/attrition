@@ -34658,9 +34658,79 @@ piece 138 (item 3633, `pivot::RELEASES`). No packet on disk fills it: all 83 loa
 the next item's hypothesis, and it needs a packet of this lobby before the launch (`RON_STATE_FRAME=4174`).
 
 **Not established**:
-- whether piece 150's release turns with the rider's turret as 138's does, or sits on a fixed node;
-- which keys the Steppe Nomads' attack animations release on (ours plays `CHAR_ATTACK1` at 18 and
-  `CHAR_ATTACK2` at 16).
+- ~~whether piece 150's release turns with the rider's turret as 138's does, or sits on a fixed node~~ — it
+  turns with the turret: §362.3;
+- ~~which keys the Steppe Nomads' attack animations release on (ours plays `CHAR_ATTACK1` at 18 and
+  `CHAR_ATTACK2` at 16)~~ — piece 149's four, `CHAR_ATTACKWALK` and `CHAR_ATTACK1`..`3` at 18, 18, 16 and 19:
+  §362.3.
+
+### 362.3 The Steppe Nomads loose from piece 150's pivot: the word closes, 4220 → 5592 of 5592 (item 3714)
+
+*Item 3714, 2026-10-27, Opus 5.5. Captures run1391 (a `RON_STATE_FRAME=4174` packet) and run1391b (the closing
+window, blocks 5336..5593).*
+
+**The frame.** §362.2's word 4220: ours 11 draws against theirs' 12, index 10, theirs `Unit::close+0xcb6`. The
+human's `0/13` dies in theirs. It was struck on 4188 by rounds of the Steppe Nomads `1/20`..`1/22` (TI 200, TY
+150, land). Those rounds leave ~233 higher in theirs and fly a frame less; the first parts on 4175 (run1386).
+**Theirs acts**: the round is the first parted record on the window, and every shooter's own row agrees.
+
+**The packet.** No packet on disk filled piece 150, so run1391 took one on this lobby at logger frame 4174.
+`tools/recomp/get_position.py … entries 150` reads nine `AttachPos` rows (`pos_start` 93, `RData +0x88` 1.0):
+- the `(4, 0, 0)` pivot node, `(0.0, −3.38, 32.63)`;
+- for each of four `<RELEASEEVENT>`s, the pivot node's entry and the release node's (node 0). These are
+  `CHAR_ATTACKWALK` at frame 18 and `CHAR_ATTACK1`..`3` at 18, 16 and 19, the same keys as the plain Nomad's
+  piece 149 (item 3581, §311).
+
+The rows are the Steppe Nomad's own rider, not 149's. The pivot sits 1.9 model units further back (−3.38
+against −1.48), `CHAR_ATTACKWALK`'s pivot entry is `(0, −4.59, 34.51)` against 149's `(0, −2.69, 34.51)`, and
+every release node differs.
+
+**Built.**
+- `pivot::RELEASES`: four rows for piece 150, in millionths, as every row there is.
+- `pivot::NODES`: the `(150, 4)` node.
+- The original's pivot branch was swept on every cell: `get_position.py … pivot 150 0 <anim> <time> 1`, 361
+  facings × 256 turret steps per row, 369,664 cells. All agree with `pivot::release_offset` but one, which is
+  `CHAR_ATTACK3`'s `(307°, 187°)`: the float lands on `(82, −47)`. That cell is the row's `float_lands`.
+- Test: `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_150`, gated on
+  `RON_RELEASE_TABLE_150`. The sweeps sit under `~/ron-data/lab-experiments/2026-10-27-item-3714/sweeps/`.
+
+**The value diff, on the frame the state first parted** (run1386):
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 4175 | `1/22`'s round | `sx`, `sy`, `sz` | 6312, 10440, 38 | 6319, 10344, 271 | 6319, 10344, 271 |
+| 4175 | the same | `total_time` | 16 | 15 | 15 |
+| 4189 | the human's `0/13` | `hits:damage` | 0 | 18 | 18 |
+| 4221 | who=0 | `active`, `control` | 14 | 13 | 13 |
+
+**The word closes: 4220 → 5592 of 5592**, by the count and the sequence. That is the game's last frame (it ends
+itself; closing block 5593).
+- run1386's widening: 211 → **135** keys, which are the standing families of 3895 and group-pool and `form`
+  rows. Its rounds read 209 a side and agree, except one row: `1/20`'s round on 4221, whose target `0/13` died
+  on 4220. Theirs' round keeps `ox` 13 and `whom` 0; ours' reads −1 (parked 3714a).
+- **The closing state** (run1378's block 5593): counts `[0; 7]`, `Closing fields: none`.
+- **The closing window run1391b**, walked whole: 257 blocks, **103** keys, none on the closing block. Its rounds
+  read 1674 a side, and 50 part. All 50 belong to the Trebuchets `1/64`, `1/74` and `1/79` (TI 266), whose
+  rounds leave from the figure's own point ~700 below theirs'. That is parked 3711b, on a second lobby.
+- Every lobby's `first_parting`: 98 green. No other word moved.
+
+**Mutation** (`tools/mutate.py` on `cddaed5e1`): piece 150 filtered out of `pivot::release`. **Held**, exit 101:
+the word reads 4220 again, run1386 211 keys, rounds `(209, 206)` with 47 parting, and the closing counts
+`[83, 0, 0, 4, 94, 1, 28]`.
+
+**The rubric**: unit types seen 229 → **230** of 302. The new one is the Steppe Nomad (200).
+
+**Not established.**
+- Piece 150's rows are read from one packet, and the every-cell sweep is that packet's `get_position`. The
+  walks compare the rounds every Steppe Nomad looses, and all of them agree, but which of the four rows each
+  round took was not read off the figures.
+- Why theirs' round keeps a dead target's `ox` and ours' clears it (3714a). No draw reads it on this pair.
+
+**Coverage.** Diff-backed: the rows by `mongol_medieval_pair_first_parting` (the game's last frame) and
+`mongol_medieval_pair_run1386_s_word_frame_is_widened_whole`. The closing state is backed by
+`mongol_medieval_pair_run1378_s_closing_state` and
+`mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole`. The sweep is the emulated original's. Nothing
+here rests on a reading alone.
 
 ## 363. The Greeks at a held Medieval age, East Indies, at difficulty 4: first try 5626 of 5942 (item 3703)
 

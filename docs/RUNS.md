@@ -31893,3 +31893,46 @@ SHA-256 `cb5f6ab1cfb3261aed011d09150311b43fc4ee278a6206c8c8ed1af674085090`.
 **What it holds**: `persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole` walks it from run1369: 258
 blocks, 152 keys, rounds (219, 219) with 40 parting: the six Bombards' (piece 1977) launches, 104 low (parked
 3713c). It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+
+## run1391 — the Mongols at a held Medieval age, East Indies, at difficulty 4: a packet at logger frame 4174, piece 150 (2026-10-27, item 3714, `att-3714`)
+
+`docs/AI.md` §362.3. **What the disk could not answer**: the release of the Steppe Nomads' piece 150
+(`ELITENOMADS`, a pivot piece). All 83 packets on disk load it with `pos_num` 0 (item 3712). `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1391 --map 18 --end-frame 4176 --timeout 3600 --log-window 4173
+4175 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0 --profile STARTING_TECHNOLOGY=2
+--profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --tracer-def
+RON_STATE_FRAME=4174 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 3. Launched 20:13:24, exited 20:13:47 (23.3 s). `success`, 4177 frames. Not filed: the packet is the
+  product. `df -g ~` read 171 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1391/map-18/frame-snapshot.bin`, 882,843,192 bytes,
+SHA-256 `6c3900039bc2236a927682bd704f35a3e58a312b9b04aa8b00e6c4af4d3c8fc4`.
+
+**What it holds**: `get_position.py … entries 150`: nine rows at `pos_start` 93, `RData +0x88` 1.0. These are the
+pivot node `(4, 0, 0)` and node 0 at 18 of `CHAR_ATTACKWALK`, 18 of `CHAR_ATTACK1`, 16 of `2` and 19 of `3`. `pivot
+150 0 <anim> <time> 1` swept 92,416 cells a row. The sweeps are under
+`~/ron-data/lab-experiments/2026-10-27-item-3714/sweeps/`.
+
+## run1391b — the Mongols at a held Medieval age, East Indies, at difficulty 4: the closing window, blocks 5336..5593 (2026-10-27, item 3714, `att-3714`)
+
+`docs/AI.md` §362.3. **What the disk could not answer**: every record on the closed word's last blocks. run1378's
+stride prints units every hundred frames, with no `AMMO` and no leader record, and run1386 ends on 4240.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1391b --map 18 --end-frame 5592 --allow-early-end
+--timeout 3600 --log-window 5336 5593 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 17 --cover cover=0` and run1386's lobby.
+- Pool lane 1. Launched 20:20:41, exited 47.7 s later. `success`: 5593 frames, ended on its own at 5592.
+  `rngcmp.py` against run1378: 5593 of 5593 identical. Filed with `filerun.py run1391b
+  eastindies-mongol-medieval-closing-window-5336-5593 --map 18`. `df -g ~` read 165 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1391b-eastindies-mongol-medieval-closing-window-5336-5593.txt`, 568,586,375 bytes,
+SHA-256 `a52ed96e9c8e8f582160e56d9b5723253189e0c692ddece7265f3ade322aee6a`.
+
+Archive `rontrace-run1391b.log`, 146,181,728 bytes,
+SHA-256 `ca97108821343100551d8569ee33b1b7ec6457902387aa5e07cfa90c2e5a131b`.
+
+**What it holds**: `mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole` walks it from run1377: 257
+blocks, 103 keys, none on the closing block 5593. Rounds read (1674, 1674), with 50 parting: the Trebuchets'
+launches (`1/64`, `1/74`, `1/79`, TI 266), ~700 low (parked 3711b). It is the pair's widening in `WIDENINGS` and
+the `AI_WORDS` window, and it sits in the coverage driver.
