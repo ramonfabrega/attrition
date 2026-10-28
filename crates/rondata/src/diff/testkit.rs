@@ -7312,11 +7312,13 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3702: the Mongol Medieval pair's closing state, run1378 walked
     // to its closing block 5593 past the word 2595: 2 inexact corners.
-    ("mongol_medieval_pair_run1378_s_closing_state", 2),
+    // Item 3714 (the word closed at 5592, piece 150's rows): 7.
+    ("mongol_medieval_pair_run1378_s_closing_state", 7),
     // Item 3712: the Mongol Medieval pair's first try, run1378 walked from
     // run1377's start to the word 4220 past piece 1178's bolts: 1 inexact
-    // corner.
-    ("mongol_medieval_pair_first_parting", 1),
+    // corner. Item 3714: walked to the game's last frame 5592 past piece
+    // 150's rounds, 7.
+    ("mongol_medieval_pair_first_parting", 7),
     // Item 3709: run1386, the Mongol Medieval word 3989's window,
     // 3895..4240: 1 inexact corner.
     (

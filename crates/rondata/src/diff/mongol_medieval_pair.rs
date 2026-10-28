@@ -48,8 +48,13 @@ pub(crate) const MONGOL_MEDIEVAL: Pair = Pair {
     // keys off run1296's packet (§362.2). On 4220 ours spends 11 draws
     // against theirs' 12, parting at index 10: ours `Farms::inc_time+0x1ae`,
     // theirs `Unit::close+0xcb6`.
-    count: 4220,
-    sequence: 4220,
+    // Item 3714: 4220 → 5592, the game's last frame: the word closes. The
+    // Steppe Nomads play piece 150, a pivot piece with no
+    // `pivot::RELEASES` row, so their rounds left the figure's own point;
+    // run1391's packet holds its four rows (§362.3), and `1/22`'s round of
+    // 4175 now leaves (6319, 10344) at 271, theirs' own.
+    count: 5592,
+    sequence: 5592,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -346,9 +351,9 @@ fn mongol_medieval_pair_run1386_s_word_frame_is_widened_whole() {
     // `0/13` on 4189: struck on 4188 in theirs (`hits:damage` 18), not in
     // ours; it dies on 4220 in theirs (`Unit::close`), and block 4221 reads
     // who=0's `active`/`control` 14 against 13.
-    pin_eq!(w.firsts.len(), 211, "run1386 baseline");
-    pin_eq!(w.rounds_read, (209, 206), "the rounds read");
-    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+    pin_eq!(w.firsts.len(), 135, "run1386 baseline");
+    pin_eq!(w.rounds_read, (209, 209), "the rounds read");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3702): run1378's closing block 5593,
@@ -403,6 +408,6 @@ fn mongol_medieval_pair_run1378_s_closing_state() {
     // Item 3712 (the word at 4220): 162 compared, counts
     // `[83, 0, 0, 4, 94, 1, 28]`, no extra.
     pin_eq!(e.compared, 162, "units compared");
-    pin_eq!(e.counts(), [83, 0, 0, 4, 94, 1, 28], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.len(), 0, "the closing extras");
 }
