@@ -11030,3 +11030,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1403  run1397's line with --ai-tribe 15 and run1402's lobby   (the draw stream; ended itself on 3866)
 #   run1403b --map 14 --end-frame 3411 --timeout 3600 --log-window 3095 3411 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby   (the word 3160's window)
 # Checks: `rngcmp.py` run1402 vs run1403 -> 37 identical; run1403 vs run1403b -> 3412 identical.
+# ==== item 3745: the Japanese Modern word whole at 3866 (`docs/AI.md` §369.1; `docs/RUNS.md` run1424, run1424b) ====
+#   run1424  --map 14 --end-frame 3158 --timeout 3600 --log-window 3154 3158 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby, --tracer-def RON_STATE_FRAME=3156 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet)
+#   run1424b --map 14 --end-frame 3866 --allow-early-end --timeout 3600 --log-window 3834 3867 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby   (the closing window)
+# Checks: `rngcmp.py` run1403 vs run1424b -> 3867 identical.

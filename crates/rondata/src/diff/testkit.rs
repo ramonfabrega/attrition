@@ -11036,13 +11036,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Hard — first try 3160 of 3866, a farm's chance draw ours spends and
     // theirs does not, downstream of who=1's Infantry (piece 52, no row)
     // rounds landing a frame late on the Citizen `0/4`; widened on
-    // run1403b over 3095..3411, the rounds compared.
+    // run1403b over 3095..3411, the rounds compared — and item 3745 closed
+    // it on piece 1108's and 1145's bays and piece 199's pivot rows:
+    // **whole at 3866**, widened on run1424b over 3834..3867 (the closing
+    // block), the rounds compared (`docs/AI.md` §369.1).
     (
         "JAPANESE_MODERN_PAIR_WORD",
         crate::diff::japanese_modern_pair::JAPANESE_MODERN_PAIR_WORD,
-        Some("japanese_modern_pair_run1403b_s_word_frame_is_widened_whole"),
-        3722,
-        Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_FRAME_3160),
+        Some("japanese_modern_pair_run1424b_s_closing_frame_is_widened_whole"),
+        3745,
+        Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_CLOSING),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13495,7 +13498,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Japanese at a held Modern age (`STARTING_TECHNOLOGY` 6,
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3722): first try
     // 3160 of 3866, a farm's `Farms::inc_time` chance draw in ours alone;
-    // widened on run1403b over 3095..3411.
+    // widened on run1403b over 3095..3411. Item 3745: whole at 3866; the
+    // closing window run1424b over 3834..3867.
     AiWord {
         line: "Late ages",
         map: "GreatLakesJapaneseModern",
@@ -13503,7 +13507,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::japanese_modern_pair::JAPANESE_MODERN_PAIR_WORD,
         length: 3_866,
         endpoint: Some("japanese_modern_pair_run1403_s_closing_state"),
-        window: Some("japanese_modern_frame_3160_window"),
+        window: Some("japanese_modern_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

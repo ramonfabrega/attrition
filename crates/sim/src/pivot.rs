@@ -196,6 +196,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (169, 4, Node { px: 0, py: -7 }),
     (200, 4, Node { px: 0, py: 558 }),
     (207, 4, Node { px: 0, py: 0 }),
+    (199, 4, Node { px: -569, py: -919 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -221,6 +222,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (169, (11, 10)),
     (200, (4, 5)),
     (207, (3, 4)),
+    (199, (4, 5)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -465,6 +467,20 @@ const FLOAT_LANDS_169_A12_T29: &[(i32, i32, i32, i32)] = &[
     (277, 323, 102, -58),
     (15, 343, 4, 117),
     (285, 343, 117, -4),
+];
+/// Piece 199's [`Release::float_lands`], one list per anim
+/// (item 3745, run1424's packet).
+const FLOAT_LANDS_199_A11: &[(i32, i32, i32, i32)] = &[(172, 55, 105, -111), (349, 291, 97, 65)];
+const FLOAT_LANDS_199_A12: &[(i32, i32, i32, i32)] = &[(97, 51, -70, -101)];
+const FLOAT_LANDS_199_A13: &[(i32, i32, i32, i32)] = &[
+    (302, 28, 70, 140),
+    (29, 79, -144, -22),
+    (119, 79, 22, -144),
+    (209, 79, 144, 22),
+    (299, 79, -22, 144),
+    (46, 159, 14, -93),
+    (136, 159, 93, 14),
+    (226, 159, -14, 93),
 ];
 /// Piece 207's [`Release::float_lands`], one list per anim
 /// (item 3743, run1419b's packet).
@@ -2228,6 +2244,52 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: FLOAT_LANDS_169_A12_T29,
         },
     ),
+    // **Piece 199, the Chi-Ha** (unit type 249, `CHIHA-DEFAULT-AGE0`,
+    // `mediumtank_asian.bh3`; item 3745, `docs/AI.md` §369.1): run1424's
+    // packet (`RON_STATE_FRAME=3156` on the Japanese Modern Great Lakes
+    // seed) holds seven entries — the `(4, 0, 0)` [`NODES`] read, `(−5.69,
+    // −9.19, 38.36)`, and for each node-0 `<RELEASEEVENT>` (`CHAR_ATTACK1`
+    // frame 4, `CHAR_ATTACK2` 21, `CHAR_ATTACK3` 1) the pivot node's and
+    // the release node's, `RData +0x88` 0.8. The art's `<RESTRICTION
+    // name="CHIHA" node="4">` makes it a pivot piece. who=1's `1/35` loosed
+    // at the human's `0/2003` on 3183 from the figure's own square (4152,
+    // 34728, 480) against the original's (4142, 34576, 629).
+    (
+        199,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 199,
+            node: 0,
+            pivot: [-5_690_000, -9_190_001, 38_359_997],
+            at: [-1_854_394, -29_868_113, 607_136],
+            float_lands: FLOAT_LANDS_199_A11,
+        },
+    ),
+    (
+        199,
+        crate::anim::ATTACK2,
+        21,
+        Release {
+            piece: 199,
+            node: 0,
+            pivot: [-5_690_000, -9_129_395, 38_359_997],
+            at: [-1_822_477, -21_904_575, 607_136],
+            float_lands: FLOAT_LANDS_199_A12,
+        },
+    ),
+    (
+        199,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 199,
+            node: 0,
+            pivot: [-5_690_000, -9_190_001, 38_359_997],
+            at: [-1_855_385, -30_115_305, 607_136],
+            float_lands: FLOAT_LANDS_199_A13,
+        },
+    ),
     // **Piece 207, the T80DES** (unit type 257, `T80DES-DEFAULT-AGE0`,
     // `T80.bh3`; item 3743, `docs/AI.md` §367.2): run1419b's packet
     // (`RON_STATE_FRAME=3212` on the Egyptian Information Great Lakes seed)
@@ -3932,6 +3994,46 @@ mod tests {
             }
         }
         assert!(rows >= 16 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 199, the
+    /// Chi-Ha** (item 3745): `tools/recomp/get_position.py … pivot 199 0
+    /// <anim> <time> 1` on run1424's packet for its three rows.
+    /// `$RON_RELEASE_TABLE_199` is the directory holding
+    /// `pivot-199-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-28-item-3745/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_199() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_199") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_199 (item 3745's oracle, run1424)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 4),
+            (crate::anim::ATTACK2, 21),
+            (crate::anim::ATTACK3, 1),
+        ] {
+            let path = format!("{dir}/pivot-199-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_199");
+            let r = release(199, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "199 {slot} ({}, {}, {}, {})",
+                        f[0], f[2], f[3], f[4]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
