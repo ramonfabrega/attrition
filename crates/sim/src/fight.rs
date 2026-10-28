@@ -9961,6 +9961,48 @@ mod tests {
         );
     }
 
+    /// **A saboteur struck mid-cast loses half its clock to a stranger
+    /// only** (`Unit::target_opportunity@005fffc0`, `600534`..`60056e`,
+    /// item 3739, `docs/AI.md` §366.2): a unit whose action is a Sabotage
+    /// cast (`0x280`) halves `spell_time` when the attacker's `who` and
+    /// `o` both differ from the cast's target's, and otherwise answers
+    /// nothing. Any other craft answers nothing either way, and no cast
+    /// is ever answered with an attack or a flight.
+    ///
+    /// Made to fail with the arm's `&&` written `||` (the stranger of the
+    /// target's own player kept its clock).
+    #[test]
+    fn a_saboteur_struck_mid_cast_halves_its_clock_only_for_a_stranger() {
+        use crate::orders::QueuePos;
+        let clock = |spell: i32, target_owner: u8, target_index: i16| {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+            let mark = put(&mut sim, target_owner, ty, Pos::new(0x4400, 0x4000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x4100, 0x4000));
+            sim.units[mark].index = target_index;
+            sim.units[foe].index = 7;
+            let at = sim.units[me].pos;
+            sim.add_cast_order_on(me, spell, Some(Obj::Unit(mark)), at, QueuePos::New, true);
+            sim.units[me].spell_time = 9;
+            let before = sim.units[me].orders.clone();
+            sim.target_opportunity(me, Obj::Unit(foe), 10);
+            assert_eq!(
+                sim.units[me].orders, before,
+                "a cast is never answered with an order"
+            );
+            assert_eq!(sim.units[me].combat.target, None);
+            sim.units[me].spell_time
+        };
+        assert_eq!(
+            clock(0x280, 0, 3),
+            4,
+            "another player's unit, another number: halved"
+        );
+        assert_eq!(clock(0x280, 1, 3), 9, "the target's own player: kept");
+        assert_eq!(clock(0x280, 0, 7), 9, "the attacker's own number: kept");
+        assert_eq!(clock(0x281, 0, 3), 9, "the Sniper's cast: kept");
+    }
+
     /// **A busy unit answers a hit only on duty** (item 1040,
     /// `docs/COMBAT.md` §70): `Unit::target_opportunity`'s `600863`
     /// returns for a unit that holds any order and is not

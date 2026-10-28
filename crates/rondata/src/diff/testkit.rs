@@ -10948,13 +10948,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // widened on run1397b over 3995..4328, the rounds compared. Item 3738
     // moved it 4077 → 4299 on pieces 208 and 169's turret rows: theirs'
     // Special Forces `0/0` casts on the Scout Car `1/53` on 4298; the same
-    // window holds the word, re-pinned at 282 keys.
+    // window holds the word, re-pinned at 282 keys. Item 3739 moved it
+    // 4299 → 4586 on `target_opportunity`'s counter-craft arm (an idle
+    // Commando-line unit answers a land attacker with Sabotage), past
+    // run1397b's last block; widened on run1418 over 4495..4836, the
+    // rounds compared.
     (
         "GERMAN_MODERN_PAIR_WORD",
         crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
-        Some("german_modern_pair_run1397b_s_word_frame_is_widened_whole"),
-        3738,
-        Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4077),
+        Some("german_modern_pair_run1418_s_word_frame_is_widened_whole"),
+        3739,
+        Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4586),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13362,7 +13366,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3719): first try
     // 4077 of 5304, the Citizen `0/12`'s `do_idle` draw in theirs alone;
     // widened on run1397b over 3995..4328. Item 3738: 4299, the Special
-    // Forces `0/0`'s cast in theirs alone; the same window.
+    // Forces `0/0`'s cast in theirs alone; the same window. Item 3739:
+    // 4586, `1/0`'s `think_scout` draws; widened on run1418 over
+    // 4495..4836.
     AiWord {
         line: "Late ages",
         map: "GreatLakesGermanModern",
@@ -13370,7 +13376,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
         length: 5_304,
         endpoint: Some("german_modern_pair_run1397_s_closing_state"),
-        window: Some("german_modern_frame_4077_window"),
+        window: Some("german_modern_frame_4586_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -40,9 +40,14 @@ pub(crate) const GERMAN_MODERN: Pair = Pair {
     // draws against theirs' 15, index 2 ours' `Guy::set_anim+0xf2f <
     // Unit::set_anim+0x56` against theirs' `Unit::fight+0x824`; on 4298
     // theirs' Special Forces `0/0` takes a `CASTORDER` (spell 640) on the
-    // Scout Car `1/53` that ours never gives (§366.1).
-    count: 4299,
-    sequence: 4299,
+    // Scout Car `1/53` that ours never gives (§366.1). Item 3739:
+    // **4586**, count and sequence — `target_opportunity`'s counter-craft
+    // arm: an idle Commando-line unit struck by a land unit answers with
+    // Sabotage (4299 → 4586). On 4586 ours 94 draws against theirs' 99,
+    // index 87 ours' `Unit::think_scout+0xaba` (`1/0`) against theirs'
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (§366.2).
+    count: 4586,
+    sequence: 4586,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -264,13 +269,95 @@ fn german_modern_pair_run1397b_s_word_frame_is_widened_whole() {
     // orders in their airports from 4177 (3719a's family), then the Special
     // Forces `0/0` on 4298: `order:kind` ours 4 theirs 14, `orders_x/y` ours
     // (4392, 30360) theirs (4248, 31896).
-    pin_eq!(w.firsts.len(), 282, "run1397b baseline");
+    // Item 3739, the counter-craft arm: **180** keys. Theirs' and ours'
+    // `0/0` take the same `CASTORDER` (spell 640 on `1/53`) on 4298 and
+    // pay 1000 mana on 4299; nothing parts on `0/0` past block 3995's
+    // `form`. Past the aircraft family, the one unit row is `1/69`'s lone
+    // `dest_angle` on 4320 (ours 0, theirs 1476001792).
+    pin_eq!(w.firsts.len(), 180, "run1397b baseline");
     // Every round, both directions: 137 in ours against 176, the first
     // parting the Tiger `1/38`'s on 4018, which ours holds alone. Item 3738:
     // 137 against 144 and 18 parting, the first `1/53`'s `ammo[1]` on 4301
     // (`ex, ey` (4264, 31704) against (4236, 32019)), past the word.
-    pin_eq!(w.rounds_read, (137, 144), "the rounds read");
-    pin_eq!(w.rounds.len(), 18, "the rounds that part");
+    // Item 3739: 137 against 137, none parting — the saboteur's target
+    // `1/53` holds its ground and fires the same rounds.
+    pin_eq!(w.rounds_read, (137, 137), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1418: the word 4586's window, blocks 4495..4836 at run1397b's
+/// detail — six blocks before the stride's last block before the word,
+/// 4501, and 250 past the word's own block 4587 (item 3739). run1397b
+/// ends on 4328, and run1397's stride prints units only.
+pub(crate) const RUN1418: &str = "gamelog-run1418-greatlakes-german-modern-window-4495-4836.txt";
+
+/// The window: block 4495 through 4836.
+pub(crate) const WIDENING_GERMAN_MODERN_FRAME_4586: (i64, i64) = (4495, 4836);
+
+/// **The word 4586's window**: run1418 walked from run1396's start with
+/// the recorder on and every round compared (item 3739).
+pub(crate) fn german_modern_frame_4586_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[GERMAN_MODERN.start],
+        true,
+        GERMAN_MODERN.long,
+        "run1418",
+        &[(RUN1418, WIDENING_GERMAN_MODERN_FRAME_4586.0)],
+        WIDENING_GERMAN_MODERN_FRAME_4586,
+        1,
+        &[4587],
+        true,
+    )
+}
+
+#[test]
+fn german_modern_pair_run1418_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_modern_frame_4586_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 341, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3739, the first walk: **877** keys. Block 4495 carries 172
+    // standing rows (`form`, both leaders' `SITE[i].reg` and who=0's
+    // `aggression[1]`, who=1's groups and pools, the airports' `myspeed`
+    // and eight aircraft parted since 4177, 3719a's family). Past them:
+    // the Bomber `1/36`'s `myspeed` on 4528 (115 against 143, the same
+    // family); who=1's `leader:strong[0]` on 4545 (ours 2016, theirs
+    // 1984); then **the word's block 4587**: group 65's `held` and `pool`
+    // hold `[0]` in ours and nothing in theirs, where both sides' Special
+    // Forces `1/0` (TI 75) leave group 68 for 65 under the same
+    // `EXPLORETOORDER` to (10488, 43512) and its unit record agrees. On
+    // 4586 ours spends 36 `Unit::think_scout+0xaba` draws against theirs'
+    // 35 and one `Guy::set_anim+0x104b` against seven (`docs/AI.md`
+    // §366.2). The first unit position parting is `1/12`'s on 4629.
+    pin_eq!(w.firsts.len(), 877, "run1418 baseline");
+    // Every round, both directions: 912 against 102, 55 parting, the
+    // first the Bomber `1/95`'s `ammo[0]` on 4753, which the dump holds
+    // alone — the airports' family, past the word.
+    pin_eq!(w.rounds_read, (912, 102), "the rounds read");
+    pin_eq!(w.rounds.len(), 55, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,
@@ -320,12 +407,13 @@ fn german_modern_pair_run1397_s_closing_state() {
     // parted widely — 146 units compared, counts [127, 2, 3, 1, 51, 0, 55],
     // `0/13`, `1/36` and `1/111` extra in ours, `1/139` and `1/141`
     // unlinked. A floor, not a score. Item 3738 (the word at 4299): counts
-    // [116, 2, 3, 2, 27, 1, 23].
+    // [116, 2, 3, 2, 27, 1, 23]. Item 3739 (the word at 4586): counts
+    // [112, 2, 2, 3, 27, 1, 8], `0/13` no longer extra.
     pin_eq!(e.compared, 146, "units compared");
-    pin_eq!(e.counts(), [116, 2, 3, 2, 27, 1, 23], "the closing counts");
+    pin_eq!(e.counts(), [112, 2, 2, 3, 27, 1, 8], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        vec![(0, 13), (1, 36), (1, 111)],
+        vec![(1, 36), (1, 111)],
         "the closing extras"
     );
 }
