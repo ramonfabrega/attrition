@@ -36,8 +36,15 @@ pub(crate) const SPANISH_MODERN: Pair = Pair {
     // ours 3212 draws against 3216, index 0 ours' `Guy::set_anim+0x97a <
     // Guy::do_turn+0x4a < Unit::move_step+0x389` against theirs'
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (`docs/AI.md` §365).
-    count: 3770,
-    sequence: 3770,
+    // Item 3736: **3770 → 4021**, by the count and the sequence — piece
+    // 299's pivot and release rows (`sim::pivot`, off run1165's packet) put
+    // the Battleships' rounds at their turrets, so the Citizen `0/13` is
+    // struck on 3704 in ours too. On 4021 ours spends 17 draws against 18,
+    // index 12: theirs' `Unit::close+0xcb6 < Object::die+0x29 <
+    // Unit::die+0x19`, a death ours does not deal, against ours'
+    // `Farms::inc_time+0x1ae` (`docs/AI.md` §365.1).
+    count: 4021,
+    sequence: 4021,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -252,11 +259,94 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     // 349, piece 299, which neither `launch` nor `pivot` holds) loose from
     // the guy's own square in ours, `sz` 0 against theirs' 105–106, and fly
     // 14 frames against 13.
-    pin_eq!(w.firsts.len(), 1983, "run1395b baseline");
+    //
+    // Item 3736: 1983 → **145** with piece 299's rows. Block 3677's
+    // standing families stand (101); after them the Submarine `1/109`'s
+    // order and facing, who=1's new units' `form`, group 76, and the
+    // Citizen `0/13`: `hits_left` 62 against 51 on 3933, the block the Tank
+    // `1/25`'s round of 3928 lands on (it parts: `sz` 66 against 210, 7
+    // frames against 6), then on 4018 theirs' Bazooka
+    // `1/31` strikes it (`damage_frame` 4017) and it flees, which ours
+    // does not (`orders.len` 0 against 1).
+    pin_eq!(w.firsts.len(), 145, "run1395b baseline");
     // Every round, both directions: 654 in ours against 680, the first
-    // parting the Battleship `1/45`'s on 3693.
-    pin_eq!(w.rounds_read, (654, 680), "the rounds read");
-    pin_eq!(w.rounds.len(), 213, "the rounds that part");
+    // parting the Battleship `1/45`'s on 3693. Item 3736: (654, 656), 28
+    // parting — the Tanks `1/25` and `1/35` (TI 250, `PANZER`, a pivot
+    // piece no row holds), the Bazookas `1/32` and `1/33` (TI 140), and
+    // the Battleship `1/71`'s round of 4013, which leaves the hull's pose
+    // after its move step in ours and before it in theirs (parked 3736a).
+    pin_eq!(w.rounds_read, (654, 656), "the rounds read");
+    pin_eq!(w.rounds.len(), 28, "the rounds that part");
+}
+
+/// **run1415, the word 4021's window**: blocks 4015 through the closing
+/// block 4082 at run1395b's detail (`LEADERS=9`, `AMMO=5`), six blocks
+/// before the word and through the game's own end (item 3736). run1395b
+/// ends on block 4021, so the word's own block 4022 was on no disk.
+pub(crate) const RUN1415: &str = "gamelog-run1415-eastindies-spanish-modern-window-4015-4082.txt";
+
+/// The window: block 4015 through 4082.
+pub(crate) const WIDENING_SPANISH_MODERN_FRAME_4021: (i64, i64) = (4015, 4082);
+
+/// **The word 4021's window**: run1415 walked from run1394's start with
+/// the recorder on and every round compared (item 3736).
+pub(crate) fn spanish_modern_frame_4021_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[SPANISH_MODERN.start],
+        true,
+        SPANISH_MODERN.long,
+        "run1415",
+        &[(RUN1415, WIDENING_SPANISH_MODERN_FRAME_4021.0)],
+        WIDENING_SPANISH_MODERN_FRAME_4021,
+        1,
+        &[4022],
+        true,
+    )
+}
+
+#[test]
+fn spanish_modern_pair_run1415_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_modern_frame_4021_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 67, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3736: **389** keys. Block 4015 carries 108 standing rows. **The
+    // word**: theirs' Citizen `0/13` reaches 4018 with 10 hits against
+    // ours' 23 (`damage_frame` 4017, `damage_o` 31 against 3979, 97) and
+    // flees; on 4021 a round explodes and it dies (`Unit::close+0xcb6 <
+    // Object::die+0x29`), so block 4022 holds it in ours alone and who=0's
+    // `peasants` read 8 against 7. Past the word the game parts widely.
+    pin_eq!(w.firsts.len(), 389, "run1415 baseline");
+    pin_eq!(w.rounds_read, (394, 400), "the rounds read");
+    // Every round, both directions: 394 in ours against 400, 99 parting.
+    // The Tanks `1/25` and `1/35` (TI 250, `PANZER`, `<RESTRICTION
+    // name="PANZER" node="4">`, no `pivot` row) loose from the hull, `sz`
+    // 168 against 312 for `1/35`'s round of 4017, and fly 7 frames against
+    // 6: theirs' has landed by 4022 and ours' is still in the air.
+    pin_eq!(w.rounds.len(), 99, "the rounds that part");
 }
 
 /// run1395c: the walk back from the stride's first unit row, blocks
@@ -366,11 +456,10 @@ fn spanish_modern_pair_run1395_s_closing_state() {
     // who=1's `1/142` and `1/147` extra in ours, `1/127` and `1/141`
     // unlinked, and the cities' and buildings' records apart. A floor, not
     // a score.
-    pin_eq!(e.compared, 151, "units compared");
-    pin_eq!(e.counts(), [56, 2, 2, 2, 24, 1, 10], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(1, 142), (1, 147)],
-        "the closing extras"
-    );
+    //
+    // Item 3736, the word at 4021: 153 units, 13 off and nothing else —
+    // no torn, unlinked or extra unit; `Closing fields: none`.
+    pin_eq!(e.compared, 153, "units compared");
+    pin_eq!(e.counts(), [13, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

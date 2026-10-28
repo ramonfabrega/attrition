@@ -10995,3 +10995,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1397  run1395's line with --map 14 --ai-tribe 12 and run1396's lobby   (the draw stream; ended itself on 5304)
 #   run1397b --map 14 --end-frame 4328 --timeout 3600 --log-window 3995 4328 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1396's lobby   (the word 4077's window)
 # Checks: `rngcmp.py` run1396 vs run1397 -> 37 identical; run1397 vs run1397b -> 4329 identical.
+# ==== item 3736: the Spanish Modern word 3770 -> 4021, its window (`docs/AI.md` §365.1; `docs/RUNS.md` run1415) ====
+#   run1415  --map 18 --end-frame 4081 --allow-early-end --timeout 3600 --log-window 4015 4082 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (the word 4021's window, through the closing block)
+# Checks: `rngcmp.py` run1395 vs run1415 -> 4082 identical.
