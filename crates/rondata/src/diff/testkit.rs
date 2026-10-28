@@ -7300,6 +7300,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "russian_information_pair_run1401b_s_word_frame_is_widened_whole",
         8,
     ),
+    // Item 3744: the closing window 6450..6707 on run1423c: 8.
+    (
+        "russian_information_pair_run1423c_s_closing_frame_is_widened_whole",
+        8,
+    ),
     // Item 3703: the Greek Medieval pair's first try, run1380 walked from
     // run1379's start to the word 5626: 1 inexact corner.
     ("greek_medieval_pair_first_parting", 1),
@@ -11017,13 +11022,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
-    // 6095..6403, the rounds compared.
+    // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
+    // `find_nearby_target`'s siege-city arm, widened on run1423c over the
+    // closing window 6450..6707.
     (
         "RUSSIAN_INFORMATION_PAIR_WORD",
         crate::diff::russian_information_pair::RUSSIAN_INFORMATION_PAIR_WORD,
-        Some("russian_information_pair_run1401b_s_word_frame_is_widened_whole"),
-        3721,
-        Some(crate::diff::russian_information_pair::WIDENING_RUSSIAN_INFORMATION_FRAME_6153),
+        Some("russian_information_pair_run1423c_s_closing_frame_is_widened_whole"),
+        3744,
+        Some(crate::diff::russian_information_pair::WIDENING_RUSSIAN_INFORMATION_CLOSING),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13462,7 +13469,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Russians at a held Information age (`STARTING_TECHNOLOGY` 7,
     // `ENDING_TECHNOLOGY` 7), East Indies at difficulty 4 (item 3721):
     // first try 6153 of 6706, the MLRS `1/99`'s `do_idle` draw in ours
-    // alone; widened on run1401b over 6095..6403.
+    // alone; widened on run1401b over 6095..6403. Item 3744: whole at 6706,
+    // the closing window run1423c over 6450..6707.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRussianInformation",
@@ -13470,7 +13478,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::russian_information_pair::RUSSIAN_INFORMATION_PAIR_WORD,
         length: 6_706,
         endpoint: Some("russian_information_pair_run1401_s_closing_state"),
-        window: Some("russian_information_frame_6153_window"),
+        window: Some("russian_information_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

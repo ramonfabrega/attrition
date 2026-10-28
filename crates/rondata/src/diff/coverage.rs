@@ -3641,6 +3641,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::russian_information_pair::russian_information_frame_6153_window(),
         || super::russian_information_pair::russian_information_gap_5795_window(),
         || super::russian_information_pair::russian_information_gap_5895_window(),
+        || super::russian_information_pair::russian_information_closing_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_4045_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),

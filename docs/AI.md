@@ -35895,10 +35895,110 @@ does not reach the state's first parting, which is in the stride at or before 59
 `RON_DEBUG_ARMIES` on group 72 is the first step.
 
 **What is not established.**
-- Which army decision parts group 72's points, and when the group first parted between 5801 and 5901.
+- ~~Which army decision parts group 72's points, and when the group first parted between 5801 and 5901.~~
+  Answered in §368.1: `find_nearby_target`'s siege-city arm, on 5887.
 - Whether the road search's 545 against 539 draws is a consequence of the group or a separate parting. Both sides
   start the search on the same frame.
 - Whether the `HIND` (312) ever fields at this difficulty. It does not here.
+
+## 368.1 The word closes whole: a computer siege unit's find of a city moves its army's muster (item 3744)
+
+*Item 3744, 2026-10-28, Opus 5.5. Booked on 6153 (ours 562 draws against 554, index 3, the MLRS `1/99`'s
+`Unit::do_idle+0x7d` in ours alone), with §368's hypothesis: group 72's order of 6141 picks another point.*
+
+**The pair runs whole: 6706 of 6706**, the count and the sequence together. The closing state is one unit off,
+the Attack Submarine `1/74` at rest (−96, −720), standing since 2801 (3721a).
+
+**The windows.** Nothing on disk printed a block between the stride's 5801 and run1401b's 6095. Both new takes
+are on pool lane 2, and `rngcmp.py` finds each identical to run1401 on every frame:
+- run1423, blocks 5895..6101;
+- run1423b, blocks 5795..5900;
+- run1423c, the closing window 6450..6707.
+
+**The first parting on group 72 is 5887, and theirs acts.** On 5801 theirs' MLRS `1/99` (TI 273, land, a
+`Rocket Artillery` that packs) rides inside `1/96` with no orders. It lands and walks group 72's `ATTACK_TO`.
+On 5887 both sides add an `ATTACKORDER` on the city `0/2000` in front of the move, and only `1/99` of army 1/0
+does so. **Theirs adds it `mandatory=1`, ours 0** (run1423b's `attack[0].mandatory`). Every other key of
+`1/99` agrees on the block. The draw stream agrees until 6153.
+
+**Why ours' add is not mandatory.** Ours reaches the packed computer siege shortcut
+([`Sim::take_siege_army_target`], `find_nearby_target@00648da0:198–222`), whose gates all pass but the
+distance: `attack_dist` 4684 to the city against `unit_respond_range × 0x180` = 4608. The extents agree with the
+shipped data (the city 7 × 7, `x_size × 0x60` = 672; the MLRS `BLOCK_RADIUS` 3, 144 + 0x18), and the listing of
+`ObjectData::attack_dist@006488f0` is ours' formula. So theirs is past the shortcut as well, and the
+`mandatory` comes from the ranking's own add.
+
+**The arm** (`00649912`–`00649b40`, read off the listing; the decompile prints `param_1`, the search radius, as
+the add's `mandatory`, a reused slot). The add's `mandatory` is `0x8(%ebp)`: written 0 at `64992a`, and **1 at
+`649a2d`** when all of these hold:
+1. the add flag is set and the call is not the fire-on-the-move search (`param_4 == 0`);
+2. the searcher is a unit whose group (`+0x80`) is set — `Group::normalize@00711540` runs, as ours'
+   `nearby_normalize` already did — and it is an active member (`GroupData::member(o, who, 1)@0070f8f0`);
+3. its type is siege (vslot `+0x10c`, `is_siege`, `unit_flags & 0x20000`);
+4. it is computer-driven (`unit_masks & 0x40000`);
+5. the find is a building (vslot `+0x1c`) with `flags & 0x20`, a city centre.
+
+The arm then **points the unit's army at the find** (`Object::get_army@00649d70`):
+- `+0x30/+0x34`, the target;
+- `+0x48/+0x4c`, the muster cell, set to **the unit's own** cell (`div_3_table[x >> 8]`);
+- `+0x50`, the muster angle, `find_angle(target − unit)`.
+
+Only after that does the tail choose the queue and hand a non-siege `GROUP_ATTACK_TO` member's find to
+`Group::action_attack` (`649c88`–`649d13`), so the hand-off never meets the arm.
+
+**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders.rs`), asked after `nearby_normalize` on the three
+adds that follow it:
+- the attack-move look's `attack_move_add`;
+- `find_melee_target_added_in` (`find_new_target`, `think`, `target_opportunity`);
+- the packer's chase re-search.
+
+The push takes its answer as `mandatory`.
+
+**What closes the word is the army write, not the `mandatory`.** Two mutations through `tools/mutate.py`
+put the word back at 6153: the arm off whole, and the arm with `mandatory` kept but the army write dropped.
+The muster cell and angle are what the next march steps its formation origin from
+(`Army::march_to_target@006f4d80`), so group 72's points on 6141 follow from them.
+
+**The value diff**, on the frame the state first parted:
+
+| block | record | field | before | after | theirs |
+|---|---|---|---|---|---|
+| 5887 | the MLRS `1/99` | `attack[0].mandatory` | 0 | 1 | 1 |
+| 5901 | the MLRS `1/99` | `attack[1].mandatory` (the stride) | 0 | 1 | 1 |
+| 6141 | the MLRS `1/99` | `order:move.dest` | (6734, 7090) | agrees | (6491, 9412) |
+| 6141 | the Flamethrower `1/114` | `order:guard` | (7128, 6888) | agrees | (7272, 7848) |
+| 6153 | the draw stream | index 3 | `1/99`'s `do_idle+0x7d` | agrees | `calc_road_cost+0x46` |
+
+**The windows, re-pinned:**
+- **The stride** (run1401): 294 → **293** keys; `1/99`'s `attack[1].mandatory` on 5901 goes.
+- **run1423b** (5795..5900): **175** keys, the standing families and the Strategic Bombers' air orders from 5805
+  (3744c); before the arm, `1/99` parted on 5887.
+- **run1423** (5895..6101): 170 → **168** keys; rounds 408 against 408, **94** parting — the MLRS's launch point
+  from 5913 (3744a).
+- **run1401b** (6095..6403): 1900 → **169** keys; group 72's rows go. Rounds 408 against 408 (227 before),
+  **98** parting: `1/99`'s launch point (40, 3744a) and `1/198`'s rounds (58, 3744b).
+- **run1423c** (6450..6707, the closing window): 257 blocks, **157** keys, rounds 29 against 30 with **12**
+  parting. Beyond the standing families: the T80 `1/59`'s (260) launch point from 6605, and with it the city
+  `0/2000` reduced on 6635 in theirs but not yet in ours (3744d); `1/49`'s `dest_angle` on 6703 (3744e). No draw
+  parts.
+- **The closing state** (run1401's 6707): 195 units, counts `[1, 0, 0, 0, 0, 0, 0]` — `1/74` alone (3721a).
+- **`GROUND_INEXACT`**: 8 on the first parting, the closing state and run1401b's window, now that the walk
+  runs past 6153.
+
+**Tests** (`russian_information_pair::` and `cities_tests::`):
+- `a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster`: the city case takes the arm;
+  the human, non-siege, no-army and unit-target cases do not. The arm off fails it.
+- `russian_information_pair_run1423_s_gap_is_widened_whole`, `…_run1423b_s_gap_is_widened_whole` and
+  `…_run1423c_s_closing_frame_is_widened_whole`: the three new windows, all in the coverage driver.
+  `WIDENINGS` names the closing window and `AI_WORDS` its window.
+
+**What is not established.**
+- The arm's `flags & 0x20` is read as ours' city-centre test (`city.building == b`). Another object carrying
+  the bit has not been seen.
+- `GroupData::member(o, who, 1)` is read as membership of the unit's army group (`g.list.contains`). A pushed
+  group's member reaching the arm has not been seen.
+- Theirs' `attack_dist` on 5887 is inferred, not measured: the arm accounts for the `mandatory` without it.
+- The MLRS's launch point (3744a) and the `1/198`'s rounds (3744b) part without a draw; they are parked.
 
 ## 369. Reserved for the next item on the AI track
 
