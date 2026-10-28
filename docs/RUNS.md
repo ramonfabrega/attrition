@@ -33189,3 +33189,30 @@ SHA-256 `1d8d2b55f59a061f2befb131e34be52bb011f225035f907470c873ff46eafa21`.
 **What it holds**: the word 4291's widening, `american_information_pair_run1437b_s_word_frame_is_widened_whole`: 36
 blocks, 154 keys, rounds read 493 in ours and 504 in theirs, 291 parting. The window opens parted: the Strategic
 Bombers' rounds and who=0's building `0/2006`'s `damage` already differ on 4285.
+
+## run1439 — the Americans at a held Information age, Great Lakes: the gap 3903..4285, blocks 3897..4292 (2026-10-28, item 3760, `att-3760`)
+
+`docs/AI.md` §372.4. **What the disk could not answer**: every record and every round between run1434b's last block
+3903 and run1437b's first, 4285. run1437b opens already parted, and run1409's stride prints no `AMMO`, leader,
+building or city record past the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1439 --map 14
+--end-frame 4292 --timeout 3600 --log-window 3897 4292 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0` and run1408's lobby (one
+`--profile` per pair: `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, `DIFFICULTY=5`): six
+blocks before 3903 to one past the word 4291.
+- Pool lane 1. Launched 16:33:25, exited 16:34:35 (70.4 s launch to exit). `success`: 4293 frames, not ended early,
+  `map_verified`. `page_faults` 0; the receipt prints no `relaunches` field. `rngcmp.py` against run1409: 4293 of
+  4293 identical. Filed with `filerun.py run1439 greatlakes-american-information-gap-window-3897-4292 --map 14`.
+  `df -g ~` read 134 GiB free before it, 133 after. A first launch with the four `--profile` pairs after one flag
+  exited 2 in `argparse` before staging anything.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1439-greatlakes-american-information-gap-window-3897-4292.txt`, 827,479,148 bytes,
+SHA-256 `ac3b280371636642dbd0b6257ae0793b400c320207455f387fb3a4e71e901d9f`.
+
+Archive `rontrace-run1439.log`, 94,545,280 bytes,
+SHA-256 `94bb96c07959700eb22f546a155dc3dc01c16efbce107e115efa88079d06c6e5`.
+
+**What it holds**: the gap's widening, `american_information_pair_run1439_s_gap_is_widened_whole`: 395 blocks. Before
+item 3760's rows: 79 keys, rounds read 420 in ours and 424 in theirs, 106 parting, the Jet Fighter `1/57`'s round of
+4225 the first launch point to part and building `0/2006`'s `damage_frac` the first hit point (4242). After: 76 keys,
+(420, 420), 21 parting.

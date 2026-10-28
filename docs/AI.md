@@ -36888,6 +36888,99 @@ run1434b's 110 rounds all agree without them. `ABRAMDES` is not rowed (parked 37
 are pinned only by the oracle and by `1/29`'s one round of 3895; which of the three that round was is not pinned.
 The rubric was not run: the pair still parts.
 
+## 372.4. The Strategic Bomber's bays: the word 4291 → 4320, whole (item 3760)
+
+*Item 3760, 2026-10-28, Opus 5.5. Run 1439, the gap 3897..4292; run1437's packet (logger frame 3894) for the rows.*
+
+**The gap's window.** 3758's closing window, run1437b, opened already parted, so the first act was run1439 over
+3897..4292 at the same detail (`UNITS=3,GUYS=2,BUILDS=7,AMMO=5`, rounds compared both directions; `docs/RUNS.md`).
+Walked from run1408's start, past the standing families (`form`, `mirror`, who=1's groups 66..71 and their pools),
+the first rows to part were:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3924 | `1/28`'s `ammo[1]` | `whom`, `ox` | −1, −1 | 0, 12 |
+| 4120 | who=1's leader | `bucket[0:food]` | 12598 | 12698 |
+| 4225 | the **Jet Fighter** `1/57`'s `ammo[0]` (TI 295, on a `STRAFEORDER`) | `sx, sy, sz` | 4703, 30220, 2127 | 4889, 30343, 2091 |
+| 4242 | who=0's building `0/2006` | `damage_frac` | 8 | 11 |
+| 4256 | the Abrams `1/38`'s `ammo[0]` (`flags` 22, a tracer) | `sx, sy, sz` | 5304, 31512, 448 | 5177, 31589, 578 |
+| 4270 | the **Strategic Bomber** `1/45`'s `ammo[2]`, `ammo[3]` (TI 305) | `sx, sy` | 3717, 30596 (both) | 3805, 30661; 3732, 30489 |
+| 4291 | the TOW `1/17`'s `ammo[6]` (TI 141) | `sx, sy, sz` | 5832, 31320, 384 | 5742, 31270, 531 |
+
+**The direction: theirs launched from a node and ours from the figure's own point**, four times over. In each
+case the figure's own position agreed, and ours' round left from it. Hypothesis (a), the Bombers' `accuracy`, is
+not the cause. It is `fight.rs`'s bomb-arm `SEAM` (the arm writes no `accuracy`, so the original's recycled slot
+keeps its last round's), and it is still the only field the Bombers' rounds part on once the bays are in. It parks
+with 3745a. Hypothesis (b), the TOW's launch point, is real, but it is the last of the four, not the gap's first.
+
+**The rows, off one packet.** run1437's packet (this lobby, logger frame 3894) loads every piece involved.
+`get_position.py … entries` read them, and `fit_bay.py` fitted each `sweep` (all 361 headings; the centroid of the
+lattice region is kept):
+
+- **Piece 245, `JETFIGHTER`** (`jetfighter_f16.bh3`, `RData +0x88` 0.654): two `AARocket` nodes in `CHAR_ATTACK2`,
+  node 0 at frame 9 and node 1 at frame 4. `sim::launch::GUNS`: node 0 `right` 184,080, `fwd` −126,691; node 1
+  −184,152, −126,707; both 36 below the figure (152 and 236 lattice points).
+- **Piece 255, `STRATEGICBOMBER`** (`RData +0x88` 0.9): twelve `CHAR_ATTACK2` rows, six a node, each node one
+  point at every one of its frames (the sweeps at a node's first and last frame are equal). `GUNS`: node 0 −93,878,
+  −57,148; node 1 93,885, −54,260; level with the figure (149 and 884 points).
+- **Piece 91, `TOW`** (`RData +0x88` 1.0, no `RESTRICTION`): three node-0 rows, frame 17 of `CHAR_ATTACK1`, 7 of
+  `CHAR_ATTACK2` and 13 of `CHAR_ATTACK3`. `sim::launch::BAYS`: (32,149, 121,967, 124), (34,159, 98,259, 147),
+  (47,814, 110,240, 142) (720, 191 and 361 points).
+- **Piece 204's four tracers** (node 1; frames 1 and 7 of `CHAR_ATTACK2` and `CHAR_ATTACK3`) enter
+  `pivot::RELEASES`. 3758 left them out, and they are rounds the dump prints: harmless, `flags` 22, and each holds
+  a slot.
+
+**A node past the restriction count is the release node alone.** The tracers' rows changed nothing at first.
+`sim::anim` used a `Release` row only when its node was one a restriction governs (`node & 3 < pivots`), so a
+node-1 event on the one-restriction Abrams fell back to the figure's own point. `execute_game_events@008e48e0`
+(line 84, `8e4c9d`) makes no such cut: it hands `get_position` the `pivot_angles` and the restriction count on
+every release. The original's own answer for that call (`get_position.py … pivot 204 1 <anim> <time> 1`, 4 ×
+92,416 cells, kept at `~/ron-data/lab-experiments/2026-10-28-item-3760/sweeps/`) reads **one point per facing at
+all 256 turret steps**, 130 over the figure. That is the tracer's own entry (36.38 × 0.75 × 4.8), without the pivot
+node's 27.11. `pivot::release_point` is that arm: for a node at or past the count, neither the pivot node nor a
+turret. It agrees on every one of the 369,664 cells, with no `float_lands`
+(`pivot::tests::the_original_s_tracer_agrees_on_every_cell_for_piece_204`, `RON_RELEASE_TABLE_204_TRACERS`), and
+reproduces `1/38`'s two dumped tracers (`a_node_past_the_restriction_count_is_its_own_entry_alone`).
+
+**Which row moved the word: the bays.** Four mutations (`tools/mutate.py`, each on a committed tree), scored on
+`american_information_pair::`:
+
+| mutation | exit | failed |
+|---|---|---|
+| piece 255's two rows keyed off the piece | 101 | `first_parting` (back to **4291**), the closing state, run1437b, run1439 |
+| piece 245's two rows keyed off the piece | 101 | the closing state (`[0, 0, 0, 0, 1, 0, 1]`), run1437b, run1439 |
+| `release_point` keeping the pivot node past the count | 101 | run1437b, run1439 |
+| piece 91's three rows keyed off the piece | 101 | run1437b, run1439 |
+
+So the blow of 4291 is a Strategic Bomber's bomb. `1/45`'s bombs of 4270..4282 left its own square in ours, and the
+one of 4274 (`ammo[9]`) came down on (3238, 30788) against the original's (3253, 30681), the block before theirs'
+`Object::take_damage+0xe1`. Which object that splash reached is not read: with the bays in, the two streams agree.
+The Jet Fighter's guns are what keep building `0/2006` whole. Without them its `damage` parts at the close.
+
+**The word: 4291 → 4320, whole**, count and sequence, of 4320. The closing state on run1409's block 4321 compares
+136 units: counts `[4, 0, 0, 0, 3, 0, 1]` → **`[0, 0, 0, 0, 0, 0, 1]`**. Every unit and building agrees. The one
+city row is `1/2055`'s `assimilation_timer`, 4320 against 4317 (parked 3760d, 3742c's family). The widenings:
+
+| window | keys | rounds read | rounds parting |
+|---|---|---|---|
+| run1439, 3897..4292 (new; `american_information_pair_run1439_s_gap_is_widened_whole`) | 79 → **76** | (420, 424) → **(420, 420)** | 106 → **21** |
+| run1437b, 4285..4321 | 154 → **68** | (493, 504) → **(493, 493)** | 291 → **30** |
+
+What still parts is the standing families, the strafers' rounds' `angle` (parked 3760a: theirs carries the
+figure's own angle), the Bombers' `accuracy` (3745a), and two rounds that lose their target in ours (3760b). No
+building `damage`, position or order parts on either window. Every other lobby's `first_parting` holds: 108 of
+109, the one failing being this word (`first_parting`, the lane's filter).
+
+**What is not established.** The strafer round's `angle` (3760a). Which object the 4274 bomb's splash struck in
+theirs on 4291 (the mutation names the bays; no detail capture of the blow was taken, because the fixed tree agrees).
+The `ABRAMDES` and `STRATEGICBOMBER-ASIAN` graphs (3760e). The TOW's nation variants (`TOW-ARAB`, `-INDIA`, `-NA`)
+play other pieces and have no rows. The Bombers' `accuracy` stays the bomb arm's `SEAM`.
+
+**Coverage.** Diff-backed: the four pieces' rows and the node-past-the-count arm, by run1439's and run1437b's
+rounds (every launch point alike) and `launch::tests::run1439_s_aircraft_and_tow_rounds_leave_from_their_rows`
+(twenty dumped rounds, every row hit); the tracer arm also by the packet oracle on every cell. Reading alone: that
+`8e4c9d` passes the count on every release (the export's line 84; the sweep is its own answer for the call).
+
 ## 373. The Maya at a held Information age, Great Lakes: whole on its first try, 3330 of 3330 (item 3726)
 
 *Item 3726, 2026-10-28, Opus 5.5.*
