@@ -32587,6 +32587,47 @@ blocks, **1900** keys, rounds 408 against 227 with 66 parting. Group 72's orders
 the Flamethrower `1/114`). It is the `WIDENINGS` row for the word 6153, the `AI_WORDS` window and the coverage
 driver's.
 
+## run1424 — the Japanese at a held Modern age, Great Lakes, at difficulty 4: a packet at logger frame 3156, pieces 1108, 199 and 1145 (2026-10-28, item 3745, `att-3745`)
+
+`docs/AI.md` §369.1. **What the disk could not answer**: the `AttachPos` rows of the Infantry's piece.
+`get_position.py … entries 52` (§369's piece) over all 88 packets on disk raised on every one, `RData` NULL: no
+packet on disk is a Japanese Modern game. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1424
+--map 14 --end-frame 3158 --timeout 3600 --log-window 3154 3158 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe
+15 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4 --tracer-def RON_STATE_FRAME=3156 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`,
+run1402's lobby: the block before `1/18`'s rounds of 3157.
+- Pool lane 2. Launched 05:49:56, exited 05:50:21 (25.5 s launch to exit). `success`, 3159 frames, seed 12345. Not
+  filed: the packet is the product. `df -g ~` read 134 GiB free before it. No fault.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1424/map-14/frame-snapshot.bin`, 928,661,900 bytes.
+
+**What it holds**: `entries 52` raises here too. "TY 52" was the crate's unit-type row; the Infantry plays piece
+1108. `entries 1108`: six rows at `pos_start` 92, `RData +0x88` 1.0. `entries 199`: seven rows at `pos_start` 116,
+0.8. `entries 1145`: three rows at `pos_start` 103, 1.0. The `sweep 1108|1145` listings and the three `pivot 199`
+sweeps are under `~/ron-data/lab-experiments/2026-10-28-item-3745/sweeps/`.
+
+## run1424b — the Japanese at a held Modern age, Great Lakes, at difficulty 4: the closing window, blocks 3834..3867 (2026-10-28, item 3745, `att-3745`)
+
+`docs/AI.md` §369.1. **What the disk could not answer**: every record of the pair's last blocks once the word
+reached the game's last frame. run1403b ends on 3411, and run1403's stride prints units only.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1424b --map 14 --end-frame 3866 --allow-early-end
+--timeout 3600 --log-window 3834 3867 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 15 --cover cover=0` and run1402's lobby: the 34 blocks through the closing block.
+- Pool lane 2. Launched 06:00:09, exited 06:00:46 (37.1 s launch to exit). `success`: 3867 frames, not ended early.
+  `rngcmp.py` against run1403: 3867 of 3867 identical. Filed with `filerun.py run1424b
+  greatlakes-japanese-modern-closing-window-3834-3867 --map 14`. `df -g ~` read 129 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1424b-greatlakes-japanese-modern-closing-window-3834-3867.txt`, 68,948,224 bytes,
+SHA-256 `442d2add89619bfaef3a8f49715d1d5b8654c869b8b9c51bce2b5ee425f8dc51`.
+
+Archive `rontrace-run1424b.log`, 74,368,224 bytes,
+SHA-256 `3fd7547d1fdd7787f0a5eaa7d8c6493cd0405c0780ae9f9555a1a1f2396af08f`.
+
+**What it holds**: `japanese_modern_pair_run1424b_s_closing_frame_is_widened_whole`, walked from run1402: 33
+blocks, **53** keys, all standing families, and rounds 282 a side with 15 parting (the Bombers', 3745a). It is the
+`WIDENINGS` row for the whole word 3866, the `AI_WORDS` window and the coverage driver's.
 ## run1423 — the Russians at a held Information age, East Indies, at difficulty 4: the stride's gap, blocks 5895..6101 (2026-10-28, item 3744, `att-3744`)
 
 `docs/AI.md` §368.1. **What the disk could not answer**: every record between the stride's 5901 and run1401b's
