@@ -3773,6 +3773,19 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's. **The fifty-first pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2537 → 2566 functions, 9,745,971 → 9,798,451 bytes (86.0 %) on the tranche's 46 pool captures (`Census entered: simulation 2566 of 3611 functions · 1410 entered and unbacked`); the definition yours. Ramon's. **The fifty-second pass**: bytes 37.9 % unmoved; the census's `entered` column moves on the tranche's 38 captures (the record); 2,449 lines landed in `crates/sim` on six late-age pairs and the census counts none of it, which is the column's whole case; the definition yours. Ramon's. **The fifty-third pass**: backed 1696, port 568, layout 1128 unmoved through 785 sim lines on ten files (the launch rows, `fight`'s wait, the eject path, a tower's sight); the `audit` column is not built, the definition yours. Ramon's. **The fifty-fifth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 1,111 sim lines on eleven files (`launch.rs` +338, `pivot.rs` +252, `fight.rs` +143) and the census counts none of it; the definition yours. Ramon's. **The fifty-fifth and fifty-sixth passes**: bytes 37.9 % and port 568 unmoved (no sweep ran either tranche); the fifty-fifth appended no line here though its record says it did. Ramon's.
 
+## Loop, filed 2026-10-28 — the sixty-first tranche's
+
+(3741) **The capture lane's one known start-up fault costs a relaunch every time, and once a lane** (the sixty-first tranche,
+run1419, Ramon at the commander's word: "file for loop … whenever you are ready, no need to force"): `docs/RUNS.md` names the same Wine
+fault about fifteen times since run1031 — `Unhandled page fault on read access to 00004ECD at address 7BF21139` (once `7BF2123D`),
+before frame 0, most often on pool lane 1 — and parked 3510b and 3591b are two of them. On run1419 the fault came first and the
+relaunch then stalled silent for 300 s, `unattended_capture.py`'s one relaunch was spent, and lane 3740 stopped for a person who
+found no dialog on the screen. For the pass: whether `unattended_capture.py` (1) matches the signature in Wine's output and
+relaunches at once on its own budget of two or three, apart from parked 762's DXVK stall; (2) runs `wineserver -k` on the lane's
+prefix between tries; (3) sets the prefix's `AeDebug` so a crash exits rather than waiting in `winedbg`; and (4) tallies the
+signature per pool lane in the capture's report, so a lane's prefix can be rebuilt (`prefix.sh`) if one lane carries it; a test
+red first on a recorded `wine-stalled.log` and a lane that relaunched once.
+
 ## Loop, filed 2026-10-27 — the sixtieth tranche's
 
 One row filed by the commander at the drain, ruled by the sixtieth pass with its text kept in
@@ -12185,13 +12198,17 @@ words and edits nothing here; a refill lands when two remain.
   `~/ron-golden/run1417/map-14/frame-snapshot.bin` reads each in a minute. No round of these types parts in the
   word's window, so this names no score.
 
-## Parked by the next landing, slot VN — reserved
+## Parked by item 3739, 2026-10-28 — the Special Forces' counter-craft, the German Modern word 4299 → 4586
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3739a. The Volksgrenadier `1/69`'s `dest_angle` parts alone on 4320** (`docs/AI.md` §366.2; run1397b). TI 109,
+  `INFANTRYGERMAN`, on a `GUARDORDER` at (31896, 25416): ours 0, theirs 1476001792. No other field of the unit
+  parts in the window, and no `pos` follows. It spends no draw the word reads. It is 3738a's shape (the same type,
+  guarding, one field) and the same unread writer.
+- **3739b. The Spy's counter-Bribe and the saboteur's halved clock are built and reached by no capture** (§366.2).
+  `target_opportunity`'s `0x275` arm (an idle Spy struck by a land unit lays a Bribe) and its cast-action arm (a
+  Sabotage caster struck by a unit of another player with another number halves `spell_time`) are read off the
+  listing and tested synthetically. No dump on disk holds a struck idle Spy or a struck saboteur mid-cast with a
+  stranger's blow, so neither names a score.
 
 ## Parked by item 3740, 2026-10-28 — piece 54's bays, the Egyptian Information word 3244 → 3519
 
@@ -12217,6 +12234,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot VQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot VR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot VR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot VS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot VS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot VT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot VT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot VU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot VU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot VV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot VV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot VW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot VW renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
