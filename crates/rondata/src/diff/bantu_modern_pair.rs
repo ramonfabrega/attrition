@@ -229,10 +229,83 @@ fn bantu_modern_pair_run1405b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3723, the first walk: PENDING.
+    // Item 3723, the first walk: **1418** keys, the state parted already
+    // at its first block — the builder pick of 3376 (run1405c's window
+    // above) has `1/94`, `1/95` and `1/105` walking elsewhere, who=1's
+    // leader one food gatherer short (`gatherers` 3 against 4, `income`
+    // food 640 against 800). On the word 3410 ours spends 12 draws
+    // against 11: index 0 is ours' `1/105` (TI 50, a Citizen walking to
+    // 2047's site) setting an anim in `Unit::move_step+0x823`; theirs'
+    // `1/105` stands gathering at `1/2004` (`docs/AI.md` §370).
     pin_eq!(w.firsts.len(), 1418, "run1405b baseline");
     // Every round, both directions: 195 against 195, none parting.
     pin_eq!(w.rounds_read, (195, 195), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1405c: the gap before the word's window, blocks 3295..3395 at
+/// run1405b's detail — six blocks before the stride's block 3301 to the
+/// window's first. Block 3395 already holds units apart, and run1405
+/// prints none between 3301 and 3401 (item 3723).
+pub(crate) const RUN1405C: &str = "gamelog-run1405c-greatlakes-bantu-modern-window-3295-3395.txt";
+
+/// The gap: block 3295 through 3395.
+pub(crate) const WIDENING_BANTU_MODERN_GAP_3295: (i64, i64) = (3295, 3395);
+
+/// **The gap's window**: run1405c walked from run1404's start with every
+/// round compared (item 3723).
+pub(crate) fn bantu_modern_gap_3295_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[BANTU_MODERN.start],
+        true,
+        BANTU_MODERN.long,
+        "run1405c",
+        &[(RUN1405C, WIDENING_BANTU_MODERN_GAP_3295.0)],
+        WIDENING_BANTU_MODERN_GAP_3295,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn bantu_modern_pair_run1405c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_modern_gap_3295_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 100, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3723: 140 keys. Block 3295 carries the standing families
+    // (`form`, both leaders' `SITE[i].reg`, who=0's `aggression[1]`,
+    // who=1's groups 64..69 and their pools). **The state's first parting
+    // is 3376, the computer's builder pick**: who=1 places buildings 2046
+    // and 2047, and theirs hands their `BUILDORDER`s to the Citizens
+    // `1/94` (off its `GATHERORDER` at `1/2001`) and `1/95`, each under an
+    // `EXPLORETOORDER` to the site, (42696, 23928) and (41784, 29880);
+    // ours hands them to `1/95` and `1/105` (off its `GATHERORDER` at
+    // `1/2004`), so `1/94` keeps gathering in ours and `1/105` in theirs
+    // (`gather_down` of 2001 and 2004 swap). The draws agree until the
+    // word 3410, where ours' walking `1/105` spends a
+    // `Unit::move_step` anim draw (`docs/AI.md` §370).
+    pin_eq!(w.firsts.len(), 140, "run1405c baseline");
+    // Every round, both directions: 43 against 43, none parting.
+    pin_eq!(w.rounds_read, (43, 43), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 

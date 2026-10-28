@@ -11047,6 +11047,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3722,
         Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_FRAME_3160),
     ),
+    // **The Bantu at a held Modern age** (item 3723): Great Lakes at
+    // Toughest — first try 3410 of 4395, an anim draw ours' walking
+    // Citizen `1/105` spends, downstream of the computer's builder pick on
+    // 3376 (run1405c); widened on run1405b over 3395..3661, the rounds
+    // compared.
+    (
+        "BANTU_MODERN_PAIR_WORD",
+        crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
+        Some("bantu_modern_pair_run1405b_s_word_frame_is_widened_whole"),
+        3723,
+        Some(crate::diff::bantu_modern_pair::WIDENING_BANTU_MODERN_FRAME_3410),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13507,6 +13519,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_866,
         endpoint: Some("japanese_modern_pair_run1403_s_closing_state"),
         window: Some("japanese_modern_frame_3160_window"),
+    },
+    // The Bantu at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Toughest (item 3723): first
+    // try 3410 of 4395, a `Unit::move_step` anim draw in ours alone, the
+    // state parted on 3376's builder pick; widened on run1405b over
+    // 3395..3661.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesBantuModern",
+        named: "Great Lakes (Bantu, Modern)",
+        word: crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
+        length: 4_395,
+        endpoint: Some("bantu_modern_pair_run1405_s_closing_state"),
+        window: Some("bantu_modern_frame_3410_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
