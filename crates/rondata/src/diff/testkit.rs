@@ -7906,6 +7906,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("roman_medieval_pair_corrections_change_nothing", 27),
     ("russian_modern_pair_corrections_change_nothing", 131),
     ("spanish_gunpowder_pair_corrections_change_nothing", 28),
+    // Item 3723: the Bantu Modern pair's closing walk, run1405 from
+    // run1404's start to the closing block 4396, past the word 3410.
+    ("bantu_modern_pair_run1405_s_closing_state", 8),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

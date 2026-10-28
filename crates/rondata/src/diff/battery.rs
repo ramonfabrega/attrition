@@ -517,6 +517,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 15, 4)`, `(18, 15, 5)`, `(7, 15, 1)` or `(7, 15, 5)`, other
     // maps; the battery fields no Japanese.
     (14, 15, 4),
+    // The Bantu at a held Modern age, Great Lakes at Toughest (item 3723,
+    // `diff::bantu_modern_pair`), minted under rule (3) — not the Bantu
+    // word's `(7, 3, 4)` or the Medieval pair's `(7, 3, 5)`, Great Sahara,
+    // nor the Ancient pair's `(18, 3, 5)`, East Indies; the battery fields
+    // no Bantu.
+    (14, 3, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
