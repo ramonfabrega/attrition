@@ -36403,16 +36403,115 @@ launch-point family of 3740's piece 54, 3743's 203 and 207 and 3745's 1108, 1145
 Air: seen, boarded). The pair is not lockstep, so `census::RUBRIC_UNIT_TYPES_SEEN` stays 250 and the bytes 77.4 %.
 
 **What is not established.**
-- Piece 195's rows. The model is `Euro_Mtank.bh3` at scale 0.9, which `MEDIUMTANK-DEFAULT-AGE0` (piece 194, the
+- ~~Piece 195's rows. The model is `Euro_Mtank.bh3` at scale 0.9, which `MEDIUMTANK-DEFAULT-AGE0` (piece 194, the
   same `RESTRICTION` node 4) shares, and 194 has `pivot::NODES`, `RDATA_SCALE` 9/10 and `RELEASES` rows. A
   `pivot::SAME_AS` row `(195, 194)` is **the next item's hypothesis**, never checked here; the killer is
   `1/47`'s round of 3438 leaving (3698, 33775, z 728). If the model's node differs, piece 195 needs a packet,
-  as 199 did (§369.1).
-- What parts past 3451: the closing floor says much does; the walk past the word is the next item's.
+  as 199 did (§369.1).~~ Answered in §371.1: `SAME_AS (195, 194)` holds, and the killer agrees.
+- ~~What parts past 3451: the closing floor says much does; the walk past the word is the next item's.~~ Answered
+  in §371.1: pieces 52's and 89's bays, then whole.
 
 **The booking for the next item**: frame 3451, 20 draws against 21, index 17, theirs' `Unit::close+0xcb6` (the
 Special Forces `0/0` dies in theirs alone). The instrument is run1407b's `AMMO` on the Churchills' rounds from
 3438.
+
+## 371.1. Pieces 195, 52 and 89: the Egyptian Modern word whole at 3878 (item 3747)
+
+*Item 3747, 2026-10-28, Opus 5.5.*
+
+**3451 → 3748: piece 195 reads piece 194's rows.** `unit_graphics.xml`'s `CHURCHILLDES-DEFAULT-AGE0` (piece 195,
+TI 245) and `MEDIUMTANK-DEFAULT-AGE0` (piece 194) are the same block with the name and the texture changed
+(`Euro_Mtank_desert.tga` against `Euro_Mtank.tga`). The model, the scale, the `RESTRICTION` node and every event
+line are the same. So `pivot::SAME_AS` takes the row `(195, 194)`. **The killer held**: `1/47`'s round of 3438
+leaves (3698, 33775, z 728) on both sides. run1407b's rounds read 11 against 11, with none parting (from 11 against
+18 with 27 parting), and its keys fall from 1287 to 46, all standing families. The Special Forces `0/0` dies on
+3451 on both sides.
+
+**3748: the Citizen `0/12` dies in theirs alone.** Theirs spends `Unit::close+0xcb6` < `Object::die` <
+`Unit::die` at index 17 again (`report.py rontrace-run1407.log draws 3748`). Comparing run1407's stride blocks 3701
+and 3801, the unit gone in theirs is who=0's Citizen `0/12` (TI 50, land, idle at (5016, 30360)). The stride's
+3701 block parts no unit row, and nothing on disk prints a round past 3702. That was what the disk could not
+answer, so I took **run1426**, the window 3695..3878 (to the game's last frame), at run1407b's detail.
+
+**The direction: theirs' Infantry rounds leave higher.** run1426's first walk had 1123 keys and rounds 222 against
+191, 216 of them parting. Past the standing families, the first unit parting was group 64's **Infantry** (TI 102,
+land; `1/19`, `1/28` and the rest):
+- `1/19`'s `ammo[0]` of 3723 leaves (6456, 31752, z 221) in ours, the figure's own square, against (6417, 31701,
+  z 341) in theirs;
+- `1/28`'s of 3728 parts the same way;
+- `0/12` is struck harder in theirs from 3739 (`hits:damage` 29 against 35, `hits_left` 56 against 50).
+
+**The piece.** The Egyptians' `UNIT_CONTINENT` is 0 (Europe), so TI 102 plays base piece **52**,
+`INFANTRY-DEFAULT-AGE0` (`inf.bh3`, no `<RESTRICTION>`, so the bay arm). `launch::BAYS` had no row for it, and
+`get_position.py … entries 52` raised on all 89 packets on disk. So I took **run1426b**, a packet at
+`RON_STATE_FRAME=3722`. It loads piece 52's six `AttachPos` rows at `RData +0x88` 1.0. `fit_bay.py` fits each
+sweep:
+
+| key | lattice points | `right, fwd, dz` |
+|---|---|---|
+| `CHAR_ATTACK1` 12 | 49 | 23820, 87417, 167 |
+| `CHAR_ATTACK1` 13 | 98 | 20717, 82052, 170 |
+| `CHAR_ATTACK2` 4 | 915 | 9667, 64207, 120 |
+| `CHAR_ATTACK2` 14 | 819 | 25919, 60398, 118 |
+| `CHAR_ATTACK2` 24 | 348 | 21173, 62648, 121 |
+| `CHAR_ATTACK3` 12 | 322 | 31494, 138342, 107 |
+
+Five keys are piece 1108's rows (§369.1) to the unit. `CHAR_ATTACK2` at 24 is this piece's own.
+
+**3748 → 3853 → 3878.** With piece 52's bays the word moves to **3853**. There theirs' extra draws are an
+`Ammo::do_damage` pair (`+0xc59`, `+0xc7e`). The first rounds parting are then the **Bazookas'** (TI 139, `1/52`,
+`1/53`, `1/54`): `1/54`'s of 3840 leaves (5880, 30648, z 462) against (5859, 30547, z 612). At style 0 they play
+piece **89**, `BAZOOKA-DEFAULT-AGE0`, which also had no row. run1426b holds its three rows (17 of `CHAR_ATTACK1`,
+7 of `2`, 13 of `3`, scale 1.0), and they fit piece 1145's rows to the unit. With them the pair is **whole, 3878
+of 3878**, count and sequence. The closing state (block 3879) is 130 units, counts `[0, 0, 0, 0, 0, 0, 0]`,
+nothing torn, unlinked or extra, and no closing field.
+
+**The value diff**:
+
+| block | record | field | before | after (both sides) |
+|---|---|---|---|---|
+| 3438 | the Churchill `1/47`'s `ammo[0]` | `sx, sy, sz`; `total_time` | 3720, 33960, 582; 6 against 3698, 33775, 728; 5 | 3698, 33775, 728; 5 |
+| 3451 | the Special Forces `0/0` | dies | theirs alone | both |
+| 3723 | the Infantry `1/19`'s `ammo[0]` | `sx, sy, sz` | 6456, 31752, 221 against 6417, 31701, 341 | 6417, 31701, 341 |
+| 3739 | the Citizen `0/12` | `hits:damage`; `hits_left` | 29; 56 against 35; 50 | 35; 50 |
+| 3748 | the Citizen `0/12` | dies | theirs alone | both |
+| 3840 | the Bazooka `1/54`'s `ammo[2]` | `sx, sy, sz` | 5880, 30648, 462 against 5859, 30547, 612 | 5859, 30547, 612 |
+
+| pin | before | after |
+|---|---|---|
+| the word (count, sequence) | 3451 | **3878**, whole |
+| closing counts (block 3879) | `[68, 0, 2, 0, 6, 0, 7]`, ours' `0/7` and `0/10` extra | `[0, 0, 0, 0, 0, 0, 0]`, none |
+| run1407b keys; rounds; parting | 1287; (11, 18); 27 | 46; (11, 11); 0 |
+| run1426 keys; rounds; parting (new) | — | 51; (222, 222); 16 |
+
+**What still parts on run1426** (51 keys) is the standing families alone:
+- `form` on 22 units;
+- who=0's ten `SITE[i].reg` and `aggression[1]`;
+- who=1's two `SITE[i].reg`, and its six groups with their pools;
+- `mirror` on four craft minted in the window (parked 3747a).
+
+16 round rows part on `whom` and `ox` alone, on rounds whose target is already dead (parked 3747b). None reaches
+a draw.
+
+**Mutations** (`tools/mutate.py`, on the committed tree):
+- the `SAME_AS` row out: `egyptian_modern_pair_first_parting` exits 101 at 3451;
+- piece 52's rows out: it exits 101 at 3748;
+- piece 89's rows out: it exits 101 at 3853.
+All held. `launch::tests::run1426_s_egyptian_infantry_and_bazooka_leave_from_their_bays` reproduces `1/19`'s round
+of 3723 and `1/54`'s of 3840, each from the figure's `GUY` pose on the block before, by exactly one attack key. It
+exits 101 with piece 52's rows out.
+
+**The rubric.** `rubric.py --tables 3` reads **unit types seen 252 of 302**: `Tank[CHURCHILLDES]` (245) and the
+`P40DES` (291) enter. The lockstep bytes stay at 77.4 % (2247 of 3611).
+
+**What is not established.**
+- Nothing for piece 195. run1426b's packet also loads it (`entries 195`): seven rows at `RData +0x88` 0.9. Its
+  `(4, 0, 0)` pivot is (0.0, −0.96, 31.92), its three `<RELEASEEVENT>`s are on node 0 at `CHAR_ATTACK1` 4,
+  `CHAR_ATTACK2` 21 and `CHAR_ATTACK3` 1, and every float is piece 194's `RELEASES` and `NODES` row to the printed
+  digit. So the `SAME_AS` row is read off the packet as well as checked by the walk.
+- `float_lands` for 194, and so for 195: piece 194's rows carry none (`pivot.rs`: the unicorn sweep of the cells
+  has not been run for it). The walk is whole without them.
+- Pieces 52 and 89 have `-AGE0` art only, so no other age bracket's rows are owed.
 
 ## 372. Reserved for the next item on the AI track
 

@@ -596,7 +596,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (`FIGHTERZERO`, 293), air, the three lines item 3722 found fielded and
 /// new to the ledger; piece 1108's and 1145's bays and piece 199's pivot
 /// rows closed the word (§369.1), read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 250;
+/// Item 3747: 250 -> 252, the Egyptian Modern pair whole at 3878 —
+/// `Tank[CHURCHILLDES]` (245), land, and the `P40DES` (291), air, the two
+/// lines item 3724 found fielded and new to the ledger; piece 195's
+/// `pivot::SAME_AS` row and piece 52's and 89's bays closed the word
+/// (§371.1), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 252;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
