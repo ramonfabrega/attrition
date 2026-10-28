@@ -406,6 +406,45 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 91, the TOW** (`TOW`, unit type 141; item 3760, `docs/AI.md`
+    // §372.4): run1437's packet on the American Information Great Lakes
+    // seed loads its three attack `AttachPos` rows (node 0, frame 17 of
+    // `CHAR_ATTACK1`, 7 of `CHAR_ATTACK2`, 13 of `CHAR_ATTACK3`), `RData
+    // +0x88` 1.0, and `fit_bay.py` fits each sweep (720, 191 and 361 lattice
+    // points, 361 of 361 headings; the centroid is kept). Without them
+    // who=1's `1/17` loosed its missile of 4291 from its own square (5832,
+    // 31320, 384) against the original's (5742, 31270, 531), and `1/18`'s of
+    // 4302 and `1/26`'s of 4303 the same.
+    (
+        91,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: 32_149,
+            fwd: 121_967,
+            dz: 124,
+        },
+    ),
+    (
+        91,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: 34_159,
+            fwd: 98_259,
+            dz: 147,
+        },
+    ),
+    (
+        91,
+        crate::anim::ATTACK3,
+        13,
+        Bay {
+            right: 47_814,
+            fwd: 110_240,
+            dz: 142,
+        },
+    ),
     // **Piece 50, `RIFLEMAN`** (unit type 100, the Riflemen; item 3705,
     // `docs/AI.md` §357.2): run1382's `RON_STATE_FRAME=3228` packet on the
     // Spanish Industrial Great Lakes seed holds its three attack
