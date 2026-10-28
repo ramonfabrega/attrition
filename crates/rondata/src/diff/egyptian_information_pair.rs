@@ -274,6 +274,66 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 144, "the rounds that part");
 }
 
+/// run1421: the word 3519's window, blocks 3495..3770 at run1399b's
+/// detail — from run1399b's last block 3494 (six blocks before the
+/// stride's last block 3501) to 250 past the word's own block 3520 (item
+/// 3743). run1399 prints units only every hundred frames.
+pub(crate) const RUN1421: &str =
+    "gamelog-run1421-greatlakes-egyptian-information-window-3495-3770.txt";
+
+/// The window: block 3495 through 3770.
+pub(crate) const WIDENING_EGYPTIAN_INFORMATION_FRAME_3519: (i64, i64) = (3495, 3770);
+
+/// **The word 3519's window**: run1421 walked from run1398's start with
+/// the recorder on and every round compared (item 3743).
+pub(crate) fn egyptian_information_frame_3519_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[EGYPTIAN_INFORMATION.start],
+        true,
+        EGYPTIAN_INFORMATION.long,
+        "run1421",
+        &[(RUN1421, WIDENING_EGYPTIAN_INFORMATION_FRAME_3519.0)],
+        WIDENING_EGYPTIAN_INFORMATION_FRAME_3519,
+        1,
+        &[3520],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_information_frame_3519_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1421 baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,
 /// the whole map's units, walked from run1398's start.
 #[test]
