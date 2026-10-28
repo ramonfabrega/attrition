@@ -12049,13 +12049,18 @@ run1385p's packet (`docs/AI.md` §358.4). Neither row below names a score: the p
   does not part anywhere in run1395c (3095..3210), so it parts somewhere in 3211..3677, where no dump prints the
   leaders. These are standing rows, and no draw on the word's frame reads them.
 
-## Parked by the next landing, slot UZ — reserved
+## Parked by item 3719, 2026-10-27 — the German Modern pair's standing rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The German Modern pair stands up at 4077 of 5304 (`docs/AI.md` §366): a Tiger Tank round (piece 208) that theirs
+makes and explodes inside 4017 and that ours looses from the guy's square. That is the commander's to book on 4077.
+Neither row below names a score on its own.
+
+- **3719a. who=1's aircraft's `myspeed`, a quarter above ours in theirs**: the `ME109` `1/51` (TI 292) and the
+  Bomber `1/94` (TI 304), and their kin, parked in an airport (`inside_up` 2029). The stride reads 75 against 93,
+  60 against 75 and 115 against 143 from block 3101, with no `pos` parting. It is 3677a's and 3705b's family on a
+  third lobby, and it spends no draw to the word.
+- **3719b. The leaders' `SITE[i].reg`, ours 1 against theirs 0**, and who=0's `aggression[1]`, 0 against 1, are
+  standing from run1397b's first block 3995. This is 3718b's family. No draw on the word's frame reads them.
 
 ## Parked by the next landing, slot VA — reserved
 

@@ -35143,12 +35143,88 @@ theirs before); 3736b, the `graph_index` misreading.
   round has landed by 4022. Its `whom` is not read here.
 - Why `0/13`'s hits part on 3933.
 
-## 366. Reserved for the next item on the AI track
+## 366. The Germans at a held Modern age, Great Lakes, at difficulty 4: first try 4077 of 5304 (item 3719)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3719, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §364's lobby with the nation and the age moved:
+`MAP_STYLE 14`, human Nubians (4) against the **Germans (12)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1396 (a `DUMP_ALL` start) and run1397 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 5304. The walk is seeded from run1396's initial state (3506a). `diff::german_modern_pair`
+pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 12, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Germans (no `battery::BATTERY` game is tribe 12). The German lobbies already pinned are
+`german_industrial_pair`'s `(14, 12, 5)` (this map, another difficulty), `german_word`'s `(18, 12, 3)`,
+`german_alltech_pair`'s `(18, 12, 5)`, `german_sahara_word`'s `(7, 12, 3)` and `german_ancient_pair`'s
+`(7, 12, 5)` (other maps). `german_modern_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 4077 of 5304**, by the sequence (the count parts at 4079). On 4077 both sides spend **370 draws**,
+parting at index 0: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (the Bazooka `1/41`'s guard — TI 140,
+`BAZOOKAGERMAN` — which is theirs' index 1), theirs **`Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::do_idle+0x7d`**. The rest of the frame is the same but for one swap: ours spends a `Unit::fight+0x824` draw
+at index 1 (the Tiger Tank `1/62`, `RON_DEBUG_SITES=4076-4077`) that theirs does not. So the count holds two more
+frames. On 4076 both sides spend `1/62`'s fight draw.
+
+**The direction: theirs acts, on a wound ours never dealt.** The `do_idle` draw is the **Citizen `0/12`** (TI 50,
+land; `unitat.py` on run1397b). Theirs' Tiger Tank round wounds it on 4017 (hits 85 → 49, `damage_frame` 4017).
+It flees on a `FLEETOORDER` to (2136, 32616), reaches the spot on 4077, drops the order and goes idle with the draw
+(`idle` 1 on 4078). Ours' citizen is not wounded on 4017: block 4018 reads `hits_left` 85 against 49, and it holds
+no order. On the same frame 4077, theirs' **Tiger Tank `1/62`** drops its `ATTACKORDER` on the **Citizen `0/13`**,
+which has fled since `1/62`'s own round wounded it on 4038 (hits 85 → 49) and which ours also never wounded. So
+theirs spends no `fight` draw where ours does: two chains, one cause.
+
+**The shooters**: the **Tiger Tanks `1/38` and `1/62`** (TI 258, `TIGERTANK` — **piece 208**, by `launch.rs`'s
+type = `0x32` + piece; land, group 64, a `GUARDORDER` under an `ATTACKORDER`).
+- **Theirs' round lives under a frame.** On 4017, theirs' trace has `1/38`'s shot made (`Ammo::init+0xcd9 <
+  Objects::add_ammo+0x119 < GraphicEvents::execute_game_events+0x40d`) and exploded (`AmmoOut::explode+0x70 <
+  AmmoOut::graphic_finish < Ammo::inc_time`, `Object::do_damage < Ammo::do_damage`) in the same frame, so no block
+  prints its `AMMO`.
+- **Ours' round leaves from the guy's own square.** `RON_DEBUG_AMMO=4016-4024` shows it in flight on 4018 at
+  `t1/2`, launched from (4392, 31416, z 604), the Tiger's position, and landing at (3477, 31899). The widening
+  reads it as `ammo[0]: this crate holds it alone` on 4018, and the same for `1/62`'s on 4039.
+- **Theirs' later Tiger rounds do print.** `1/38` on 4141 is `gpiece` 60185 with `graph_index` 41, from (3439,
+  32711, z 679), with the guy at (3720, 33000, z 554). That is about 403 out on the bearing to its target (2500,
+  31760), so a muzzle on the turret. **Neither `sim::launch` nor `sim::pivot` has a row for piece 208.** This is the
+  launch-point family of 3704–3714 and 3718's Battleship (piece 299), on a land turret.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4017 | `1/38`'s round (ours `RON_DEBUG_AMMO`; theirs' trace) | launch; flight | (4392, 31416, z 604), the guy's square; in flight on 4018 at `t1/2` | made and exploded on 4017 |
+| 4018 | the Citizen `0/12` | `hits_left`; `damage_frame`; `orders.len` | 85; 0; 0 | 49; 4017; 1 |
+| 4141 | `1/38`'s round `ammo[0]` (theirs only) | `sx, sy, sz`; `graph_index` | — | 3439, 32711, 679; 41 (guy at 3720, 33000, 554) |
+| 4077 | the draw stream, index 0 | site | `1/41`'s `do_guard` | `0/12`'s `Unit::do_idle+0x7d` |
+
+**The windows.**
+- run1397's stride, 101..4001 (40 blocks, **114 keys**): the standing families (`form`, `build:extra`, who=1's
+  groups and pools), and from 3101 `myspeed` on who=1's aircraft parked in an airport (the `ME109` `1/51`, TI 292;
+  the Bomber `1/94`, TI 304). Theirs is a quarter above ours (75 against 93, 60 against 75, 115 against 143), with
+  no `pos` parting: parked 3677a's family, 3719a.
+- run1397b, blocks 3995..4328 at the long's detail with `LEADERS=9` and `AMMO=5` (333 blocks, **1946 keys**, the
+  two `gaia:` keys unprinted; **rounds 137 against 176, 47 parting**, the first `1/38`'s on 4018, which ours holds
+  alone). Block 3995 carries both leaders' `SITE[i].reg` (ours 1, theirs 0) and who=0's `aggression[1]` (0
+  against 1) as standing rows (3719b, 3718b's family). The state's first unit parting is `0/12` on 4018, inside
+  the window, so no walk back is owed.
+
+**The closing state** is downstream. run1397's block 5305 compares 146 units: counts `[127, 2, 3, 1, 51, 0, 55]`,
+extras `0/13`, `1/36` and `1/111`, and `1/139` and `1/141` unlinked. A floor, not a score.
+
+**The rubric.** Six of the booking's seven lines were fielded (`rubric.py --tables 3 --dumps` on run1396 and
+run1397): `Volksgrenadiers` (109), `Bazooka[BAZOOKAGERMAN]` (140), `Armored Scout Car[ARMOREDCAR2]` (219), `Tiger
+Tank` (258), `Howitzer[HUMMEL]` (272), `Anti-Aircraft Battery[FLAKGUNGERMAN]` (283) and the `ME109` (292, the
+Fighter, in the airport only — seen, not moved). The `MG42` (130) was not fielded. The rubric counts whole lockstep
+games only, so unit types seen stays **231 of 302** and the lockstep bytes stay at 77.4 %.
+
+**Not established**:
+- Piece 208's turret release node. Theirs' `AMMO` prints `sx, sy, sz` and `graph_index` for every round that
+  outlives a frame in run1397b (41, 49, 63 on `1/38` and `1/62`). The angle the turret holds may need a packet, as
+  the Cruiser's did (item 3519).
+- Whether theirs' 4017 round's one-frame life is the launch point alone (a shorter plan distance) or also the
+  flight-time rule.
+- The aircraft's `myspeed` quarter (3719a).
 
 ## 367. Reserved for the next item on the AI track
 

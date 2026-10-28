@@ -32114,6 +32114,71 @@ SHA-256 `cf062b7f5dbb125e83eb6a08723a8fc051415c006b37668406e8d134775fbec8`.
 The state's first parting is the Submarine `1/109`'s birth on 3119, (36696, 44760) in ours against (36696, 45240).
 It sits in the coverage driver.
 
+## run1396 — the Germans at a held Modern age, Great Lakes, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3719, `att-3719`)
+
+`docs/AI.md` §366. run1394's line with the map and nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1396 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 22:54:52, exited 22:55:30 (38.0 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 12, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 6` (`Pair::assert_lobby`). Filed with `filerun.py run1396
+  greatlakes-german-modern-start`. `df -g ~` read 150 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1396-greatlakes-german-modern-start.txt`, 151,502,286 bytes,
+SHA-256 `da4de13ce908ba6d3e3bf42585892e144cbc4cbbd4d6759d9deb582847658acf`.
+
+Archive `rontrace-run1396.log`, 9,384,992 bytes,
+SHA-256 `eb5004c43dbabc0783cb8bbd52c9560845a5dadbb965335c832bfb81bd7065cb`.
+
+**What it holds**: the start of `german_modern_pair::GERMAN_MODERN`, and the walk's initial state.
+
+## run1397 — the Germans at a held Modern age, Great Lakes, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3719, `att-3719`)
+
+`docs/AI.md` §366. run1395's line with `--map 14 --ai-tribe 12` and run1396's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 12 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1396. Launched 22:54:58, exited 22:55:33 (35.8 s launch to exit). `success`. **The game
+  ended itself on 5304** (closing block 5305, `ended_early`). `GAME INFO` reads back as run1396's. `rngcmp.py`
+  against run1396: 37 frames identical. Filed with `filerun.py run1397 greatlakes-german-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1397-greatlakes-german-modern-trace.txt`, 28,832,263 bytes,
+SHA-256 `16ed7f860ba8d910dc915a5011067d9588461e8609470c16f6b79ba3fc6b4d36`.
+
+Archive `rontrace-run1397.log`, 123,597,088 bytes,
+SHA-256 `92b6ab7ea2c6d0fb02e72675e1430b846ebb4231e1fd864732fc64672c66434e`.
+
+**What it holds**: the pair's first try. `german_modern_pair_first_parting` walks it from run1396: **4077 of
+5304** by the sequence, the count at 4079 — the Citizen `0/12`'s `do_idle` draw in theirs alone.
+`german_modern_pair_the_long_s_stride_walks_back_from_the_word` reads its stride, 101..4001: 40 blocks, 114 keys,
+the airports' `myspeed` from 3101. `german_modern_pair_run1397_s_closing_state` pins the closing block 5305 as a
+floor: 146 units, counts `[127, 2, 3, 1, 51, 0, 55]`, 3 extra.
+
+## run1397b — the Germans at a held Modern age, Great Lakes, at difficulty 4: the word 4077's window, blocks 3995..4328 (2026-10-27, item 3719, `att-3719`)
+
+`docs/AI.md` §366. **What the disk could not answer**: every record and every round on the word's blocks. run1397's
+stride prints units every hundred frames (4001, then 4101), no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1397b --map 14 --end-frame 4328 --timeout
+3600 --log-window 3995 4328 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover
+cover=0` and run1396's lobby: six blocks before the stride's last block 4001, 250 past the word's block 4078.
+- Pool lane 1. Launched 23:00:22, exited 23:01:40 (78.2 s launch to exit). `success`: 4329 frames. `rngcmp.py`
+  against run1397: 4329 of 4329 identical. Filed with `filerun.py run1397b
+  greatlakes-german-modern-window-3995-4328`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1397b-greatlakes-german-modern-window-3995-4328.txt`, 693,749,174 bytes,
+SHA-256 `3f94d4357a311a498a7aa20e73a447f98abb766f885d34dcecd395884c032b0e`.
+
+Archive `rontrace-run1397b.log`, 81,933,216 bytes,
+SHA-256 `f4ef9c3893f074c48b77019518fffc8eacedb2e8418910f915b9abea2266794d`.
+
+**What it holds**: `german_modern_pair_run1397b_s_word_frame_is_widened_whole` walks it from run1396: 333 blocks
+and 1946 keys, rounds 137 against 176 with 47 parting, the first the Tiger Tank `1/38`'s on 4018, which ours holds
+alone (piece 208, from the guy's square in ours; theirs' made and exploded on 4017). It is the pair's widening in
+`WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
 ## run1415 — the Spanish at a held Modern age, East Indies, at difficulty 4: the word 4021's window, blocks 4015..4082 (2026-10-27, item 3736, `att-3736`)
 
 `docs/AI.md` §365.1. **What the disk could not answer**: every record and round on the word 4021's own block. run1395b
