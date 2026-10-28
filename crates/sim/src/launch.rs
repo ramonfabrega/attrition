@@ -2492,6 +2492,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 90, the German Bazooka** (type 140, `BAZOOKAGERMAN`,
+    // `bazooka_german.bh3`; item 3737, `docs/AI.md` §365.2): run1416's
+    // `RON_STATE_FRAME=4016` packet on the Spanish Modern East Indies game
+    // holds its three `AttachPos` rows (node 0 at 17 of `CHAR_ATTACK1`, 7 of
+    // `2` and 13 of `3`), `RData +0x88` 1.0, and `fit_bay.py` fits each sweep
+    // (114, 396 and 254 lattice points; the centroid is kept, 361 of 361
+    // headings each). No other packet on disk loads the piece. who=1's `1/33`
+    // and `1/32` loosed their rounds at the human's Citizen `0/13` from the
+    // figures' own squares here, 146 and 120 below the original's, and flew
+    // a frame longer.
+    (
+        90,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: 37_009,
+            fwd: 121_444,
+            dz: 120,
+        },
+    ),
+    (
+        90,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: 37_800,
+            fwd: 98_330,
+            dz: 146,
+        },
+    ),
+    (
+        90,
+        crate::anim::ATTACK3,
+        13,
+        Bay {
+            right: 52_635,
+            fwd: 109_819,
+            dz: 139,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
