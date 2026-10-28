@@ -316,10 +316,16 @@ sixtieth measured two lanes without the lever** — waiting 37.4 a
 landing, the gate 26.3 a session, the door 1,096 s, and fifteen lane
 gates past the first with every quoted overlap a row list — **and the
 sixtieth pass built it** (`release_gate.py`'s `row_list_overlap`,
-DECISIONS 99 §2): the sixty-first's drain counts the lane receipts'
-`base_overlap` and the gates past the first, and the lane returns for
-the sixty-second if the re-gates on row lists read zero and waiting
-holds under 40.2); a
+DECISIONS 99 §2) **and the sixty-first measured it** (DECISIONS 101
+§1): nine lane gates past a lane's first against fifteen, five base
+moves on row lists alone landed on their verdict with no re-gate, the
+gate class 26.9 a session against 26.3 — **and waiting read 44.6 a
+landing against 40.2, so the lane does not return for the
+sixty-second**: the rise was the capture class, 3.2 → 9.8 a session on
+five packets and run1419's two stalls, not the gate's, and a third
+lane contends for both; the lane returns when a two-lane tranche reads
+waiting under 40.2 and the gate class under 26.1 — the figure it was
+taken at — or on Ramon's word); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

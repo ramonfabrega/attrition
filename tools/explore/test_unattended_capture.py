@@ -406,6 +406,168 @@ class RunnerTest(unittest.TestCase):
         report['retaken_after_exit_seconds']=12.0
         self.assertIsNone(runner.exit_verdict(report,True))
 
+    # Loop 3741: the tail of run1419's first take (`wine-stalled.log`, pool
+    # lane 1, 2026-10-28) — the fault came first and `winedbg` waited, so
+    # the take sat silent until the stall rule spent its one relaunch on it.
+    RUN1419_FAULT = (
+        '[mvk-info] Created VkInstance for Vulkan version 1.0.334, as requested by app, '
+        'with the following 3 Vulkan extensions enabled:\n'
+        '\tVK_KHR_get_physical_device_properties2 v2\n'
+        'wine: Unhandled page fault on read access to 00004ECD at address 7BF21139 (thread 0114), '
+        'starting debugger...\n'
+        '0148:fixme:thread:get_thread_times not implemented on this platform\n')
+    # run1153's first take (`wine-died.log`): the same fault, and the game exited 41.
+    RUN1153_FAULT = (
+        '[mvk-info] Destroying VkInstance for Vulkan version 1.1.334 with 6 Vulkan extensions enabled.\n'
+        'wine: Unhandled page fault on read access to 00004ECD at address 7BF21139 (thread 0134), '
+        'starting debugger...\n'
+        '0154:fixme:thread:get_thread_times not implemented on this platform\n')
+    # A take past the device: DXVK's banner and nothing else.
+    CLEAN = ('info:  Game: riseofnations_trace.exe\n'
+             'info:  DXVK: v1.10.3-20230507-async (macOS)\n'
+             'info:  Enabled instance extensions:\n')
+
+    def test_the_wow64cpu_page_fault_is_matched_in_the_wine_log(self):
+        # Loop 3741: `docs/RUNS.md` names `7BF21139` about fifteen times since
+        # run1031, and run659's take once at `7BF2123D` — wow64cpu's two bop
+        # entries (ORACLE, "What `7BF21139` actually is").
+        log=self.root/'wine.log'
+        self.assertIsNone(runner.page_fault_line(log),'no file, no fault')
+        log.write_text(self.CLEAN)
+        self.assertIsNone(runner.page_fault_line(log))
+        log.write_text(self.RUN1419_FAULT)
+        self.assertEqual(runner.page_fault_line(log),
+                         'wine: Unhandled page fault on read access to 00004ECD at address 7BF21139 '
+                         '(thread 0114), starting debugger...')
+        log.write_text(self.RUN1153_FAULT)
+        self.assertIn('7BF21139',runner.page_fault_line(log))
+        log.write_text('wine: Unhandled page fault on read access to 00004DC9 at address 7BF2123D (thread 0170), '
+                       'starting debugger...\n')
+        self.assertIn('7BF2123D',runner.page_fault_line(log))
+        # Another module's fault is not this one, and is not relaunched for.
+        log.write_text('wine: Unhandled page fault on read access to 00000000 at address 0040F00D (thread 0114)\n')
+        self.assertIsNone(runner.page_fault_line(log))
+
+    def test_a_page_fault_has_two_relaunches_of_its_own_apart_from_the_stall(self):
+        # Loop 3741 (run1419): the fault and the DXVK stall shared one
+        # relaunch, so a fault followed by a stall had none left.
+        report={}
+        self.assertIsNone(runner.fault_verdict(report,None,True),'no fault')
+        self.assertIsNone(runner.fault_verdict(report,'wine: Unhandled page fault',False),'a game past frame 0 is the verifier\'s')
+        self.assertEqual(runner.fault_verdict(report,'wine: Unhandled page fault',True),'relaunch')
+        report['relaunches']=[{'reason':'page_fault'},{'reason':'stall'}]
+        report['relaunched_after_seconds']=300.0
+        self.assertEqual(runner.fault_verdict(report,'wine: Unhandled page fault',True),'relaunch',
+                         'the stall\'s relaunch is not the fault\'s')
+        report['relaunches'].append({'reason':'page_fault'})
+        self.assertEqual(runner.fault_verdict(report,'wine: Unhandled page fault',True),'give_up')
+        self.assertEqual(runner.PAGE_FAULT_RELAUNCHES,2)
+        # And a fault's relaunch leaves the stall's one standing.
+        self.assertEqual(runner.stall_verdict({'relaunches':[{'reason':'page_fault'}]*2},400,300,True),'relaunch')
+
+    def test_wineserver_k_runs_on_the_lanes_prefix_between_tries(self):
+        # Loop 3741: run1153's retake beside its faulted first take exited 5
+        # in 1.35 s; a wedged server is not inherited by the next try.
+        calls=[]
+        def run(command,**kwargs):
+            calls.append((command,kwargs.get('env',{}).get('WINEPREFIX')))
+            return SimpleNamespace(returncode=0,stdout='',stderr='')
+        self.assertEqual(runner.wineserver_kill('/h/wine-ron-2',run=run),0)
+        (command,prefix),=calls
+        self.assertEqual(command[1:],['-k'])
+        self.assertEqual(Path(command[0]),Path(os.environ['RON_WINE_BIN']).parent/'wineserver')
+        self.assertEqual(prefix,'/h/wine-ron-2')
+        def missing(command,**kwargs):
+            raise FileNotFoundError(command[0])
+        self.assertIsNone(runner.wineserver_kill('/h/wine-ron-2',run=missing),'a missing server never fails the take')
+
+    def fake_takes(self,output,takes):
+        """A `Popen` that starts the next of `takes` — `('fault', None)` a
+        fault that waits in winedbg, `('fault', 41)` one that exits,
+        `('silent', None)` a stall, `('exit', 0)` a game that wrote a
+        gamelog — writing that take's `wine.log` as it launches."""
+        test=self
+        pending=list(takes)
+        class Game:
+            pid=0
+            def __init__(self,kind,code):
+                self.kind,self.code,self.killed=kind,code,False
+                (output/'wine.log').write_text(test.RUN1419_FAULT if kind=='fault' else test.CLEAN)
+                if kind=='exit':(output/'gamelog.txt').write_text('FRAME 0\n')
+            def wait(self,timeout=None):
+                if self.killed:return -9
+                if self.code is None:raise subprocess.TimeoutExpired('game',timeout)
+                return self.code
+            def poll(self):return None if self.code is None and not self.killed else self.code
+        games=[]
+        def popen(*a,**k):
+            games.append(Game(*pending.pop(0)));return games[-1]
+        def killpg(pid,sig):
+            for g in games:g.killed=True
+        return popen,killpg
+
+    def run_takes(self,takes):
+        output=self.root/'faults';output.mkdir()
+        args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36,seed=12345,timeout=100000,
+                             stall_seconds=300)
+        popen,killpg=self.fake_takes(output,takes)
+        killed=[]
+        def wineserver(command,**kwargs):
+            killed.append((command[-1],kwargs['env']['WINEPREFIX']))
+            return SimpleNamespace(returncode=0,stdout='',stderr='')
+        clock=iter(range(10**6))
+        with patch.object(runner.live_session,'require_closed'), \
+             patch.object(runner.live_session,'stage'), \
+             patch.object(runner,'set_map'),patch.object(runner,'mute'), \
+             patch.object(runner,'set_lobby'),patch.object(runner,'set_ai_tribe'), \
+             patch.object(runner.live_session,'key',return_value=''), \
+             patch.object(runner,'sha',return_value=''), \
+             patch.object(runner.subprocess,'run'), \
+             patch.object(runner.subprocess,'Popen',side_effect=popen), \
+             patch.object(runner.os,'killpg',side_effect=killpg), \
+             patch.object(runner.time,'monotonic',side_effect=lambda:float(next(clock))), \
+             patch.object(runner.live_session,'restore'), \
+             patch.object(runner,'verify_restored',return_value=5), \
+             patch.dict(runner.HELD,{'lane':2,'prefix':str(self.root/'wine-ron-2')}):
+            (self.root/'rise.ini').write_text('Seed (0 for random)=1\n')
+            (self.root/'rise2.ini').write_text('StartReveal=1\n')
+            with self.assertRaises(Exception) as raised:runner.capture(args,output,7,run=wineserver)
+        return output,json.loads((output/'receipt.json').read_text()),killed,raised.exception
+
+    def test_run1419s_fault_then_stall_still_has_a_try_left(self):
+        # Loop 3741 (lane 3740, run1419): the fault, then a silent stall, and
+        # the lane stopped for a person who found no dialog. Now the fault is
+        # relaunched at once on its own budget, the stall keeps its one, and
+        # every try is preceded by `wineserver -k` on the lane's prefix.
+        # The verification after the last take's exit fails here, on purpose.
+        output,receipt,killed,_=self.run_takes([('fault',None),('fault',41),('silent',None),('exit',0)])
+        self.assertEqual([r['reason'] for r in receipt['relaunches']],['page_fault','page_fault','stall'])
+        first,second,stall=receipt['relaunches']
+        self.assertLess(first['after_seconds'],60,'relaunched at once, not after the 300 s stall')
+        self.assertIn('7BF21139',first['fault'])
+        self.assertEqual(second['exit_code'],41)
+        self.assertEqual((first['log'],second['log'],stall['log']),('wine-fault-1.log','wine-fault-2.log','wine-stalled.log'))
+        for r in receipt['relaunches']:self.assertTrue((output/r['log']).is_file(),r['log'])
+        self.assertEqual(receipt['relaunched_on_page_fault_seconds'],[first['after_seconds'],second['after_seconds']])
+        self.assertIn('relaunched_after_seconds',receipt)
+        self.assertEqual(killed,[('-k',str(self.root/'wine-ron-2'))]*3)
+        self.assertEqual(receipt['page_faults'],{'lane':2,'count':2})
+        self.assertNotIn('stalled twice',receipt['error'])
+        lane_log=(self.root/'wine-ron-2'/'.lane.log')
+        self.assertFalse(lane_log.exists(),'no prefix directory here: the lane log is best effort')
+
+    def test_a_third_page_fault_gives_up_and_the_receipt_counts_the_lanes_faults(self):
+        (self.root/'wine-ron-2').mkdir()
+        output,receipt,killed,exc=self.run_takes([('fault',None),('fault',None),('fault',None)])
+        self.assertIn('page fault',str(exc))
+        self.assertIn('wine-fault-3.log',str(exc))
+        self.assertTrue((output/'wine-fault-3.log').is_file())
+        self.assertEqual([r['reason'] for r in receipt['relaunches']],['page_fault','page_fault'])
+        self.assertEqual(receipt['page_faults'],{'lane':2,'count':3})
+        self.assertEqual(len(killed),3,'the server is killed after the last fault too')
+        lines=(self.root/'wine-ron-2'/'.lane.log').read_text().splitlines()
+        self.assertEqual([l.split()[2:4] for l in lines],[['page_fault','2']]*3)
+
     def test_a_staged_line_past_the_end_frame_is_one_line_not_a_traceback(self):
         # Parked 1987 (1988's reach): `--end-frame` below a staged line's
         # frame died with a traceback where a one-line hint saves a take.

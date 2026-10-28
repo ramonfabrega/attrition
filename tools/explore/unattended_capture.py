@@ -404,6 +404,71 @@ def stall_verdict(report, seconds_since_launch, stall, stalled):
     return None
 
 
+# Loop 3741: Wine's startup fault, a 32-bit thread entering one of wow64cpu's
+# two bop entries (+0x1139 a syscall, +0x123d a unix call) still in 32-bit
+# mode (docs/ORACLE.md, "What `7BF21139` actually is"). `docs/RUNS.md` names
+# it about fifteen times since run1031, before frame 0, most on pool lane 1;
+# on run1419 `winedbg` waited, the take sat silent, and the stall rule spent
+# its one relaunch on it.
+PAGE_FAULT = re.compile(r'^.*Unhandled page fault on read access to [0-9A-F]{8} '
+                        r'at address 7BF2(?:1139|123D)\b.*$', re.M | re.I)
+# The fault's own relaunches, counted apart from the stall's one.
+PAGE_FAULT_RELAUNCHES = 2
+DEFAULT_WINE_BIN = '/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine'
+
+
+def page_fault_line(log):
+    """The line of a take's Wine output (`wine.log`) that carries the
+    wow64cpu startup fault, or None — no file, or no such line."""
+    try:
+        text = log.read_text(errors='replace')
+    except FileNotFoundError:
+        return None
+    found = PAGE_FAULT.search(text)
+    return found[0].strip() if found else None
+
+
+def fault_verdict(report, fault, stalled):
+    """What a take whose Wine output carries the startup fault gets, while
+    it has written no gamelog: `'relaunch'` at once, `PAGE_FAULT_RELAUNCHES`
+    times — the fault's own budget, apart from the stall's one, so a fault
+    followed by a stall still has a try left (run1419) — and `'give_up'`
+    after. A game past frame 0 is the verifier's."""
+    if not fault or not stalled:
+        return None
+    spent = sum(1 for r in report.get('relaunches', ()) if r.get('reason') == 'page_fault')
+    return 'relaunch' if spent < PAGE_FAULT_RELAUNCHES else 'give_up'
+
+
+def wineserver_kill(prefix, run=None):
+    """`wineserver -k` on the lane's prefix between tries (Loop 3741), so a
+    server wedged by the faulted process is not inherited by the next — the
+    `wineserver` beside `RON_WINE_BIN`, as `lane.sh` finds it. Its exit code,
+    or None when it could not run; it never fails the take."""
+    run = run or subprocess.run
+    server = Path(os.environ.get('RON_WINE_BIN') or DEFAULT_WINE_BIN).parent / 'wineserver'
+    try:
+        code = run([str(server), '-k'], env=dict(os.environ, WINEPREFIX=str(prefix)),
+                   capture_output=True, text=True, timeout=30).returncode
+    except (OSError, subprocess.SubprocessError):
+        return None
+    # The receipt is JSON: anything but an exit code is recorded as none.
+    return code if isinstance(code, int) else None
+
+
+def lane_prefix():
+    """The prefix this take's launches run in: the held lane's, a hand-set
+    `RON_WINEPREFIX`, or `lanes.sh`'s; None when none can be read."""
+    if HELD.get('prefix'):
+        return HELD['prefix']
+    if os.environ.get('RON_WINEPREFIX'):
+        return os.environ['RON_WINEPREFIX']
+    try:
+        return lane_paths(lane_env())['prefix']
+    except (OSError, ValueError):
+        return None
+
+
 def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None,
                 allow_early_end=False):
     # Read back the game's identity, never infer it from requested settings.
@@ -529,11 +594,18 @@ def wall():
     return time.strftime('%Y-%m-%dT%H:%M:%S%z')
 
 
-def capture(args, output, style):
+def capture(args, output, style, run=None):
+    """One map's take. `run` runs `wineserver -k` between tries (injected by
+    the tests; `subprocess.run` otherwise)."""
     report = {'map_requested': style, 'success': False, 'settings_restored': False}
     if HELD:
         report['lane'] = HELD['lane']
         report['lane_prefix'] = HELD['prefix']
+    # Loop 3741: the startup fault's tally on this take's pool lane, so a
+    # lane that carries it is the one whose prefix `tools/gamelog/prefix.sh`
+    # rebuilds.
+    report['page_faults'] = {'lane': HELD.get('lane') or int(os.environ.get('RON_CAPTURE_LANE') or 1),
+                             'count': 0}
     recording = getattr(args, 'recording', None)
     playback = recording is not None
     gamelog = capture_log(output, playback)
@@ -637,6 +709,34 @@ def capture(args, output, style):
                                     str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*launch_args],
                                    cwd=output, start_new_session=True)
         process = start()
+
+        def settle(log):
+            """Between tries (Loop 3741): the take's Wine output kept as
+            `log`, and `wineserver -k` on the lane's prefix."""
+            if (output/'wine.log').exists():
+                (output/'wine.log').replace(output/log)
+            prefix = lane_prefix()
+            return wineserver_kill(prefix, run=run) if prefix else None
+
+        def on_fault(verdict, fault, seconds, code):
+            """The startup fault seen: tallied, its log kept, the server
+            killed, and the relaunch recorded — or, past its budget, the
+            take given up with the receipt naming it."""
+            n = report['page_faults']['count'] = report['page_faults']['count'] + 1
+            log = f'wine-fault-{n}.log'
+            lane_log(lane_prefix() or '/nonexistent', 'page_fault', f'after={seconds:.1f}', f'take={n}',
+                     f'out={output}')
+            killed = settle(log)
+            if verdict == 'give_up':
+                report['page_fault_gave_up_after_seconds'] = seconds
+                raise RuntimeError(f'Wine page fault before frame 0 {n} times (wow64cpu, docs/ORACLE.md '
+                                   f'"What `7BF21139` actually is"); lane {report["page_faults"]["lane"]}\'s '
+                                   f'prefix may want tools/gamelog/prefix.sh — see {log}')
+            report.setdefault('relaunches', []).append(
+                {'reason': 'page_fault', 'after_seconds': seconds, 'log': log, 'fault': fault,
+                 'exit_code': code, 'wineserver_k': killed})
+            report.setdefault('relaunched_on_page_fault_seconds', []).append(seconds)
+
         # A launch that has written no gamelog by `--stall-seconds` is
         # DXVK's device setup stalled before frame 0 (parked 762: run157 and
         # run223 each sat for the whole timeout with `wine.log` ending at
@@ -647,14 +747,28 @@ def capture(args, output, style):
         while True:
             try:
                 report['exit_code'] = process.wait(timeout=5)
+                stalled = stalled_before_frame_zero(gamelog)
+                # The startup fault first, on its own budget (Loop 3741).
+                fault = page_fault_line(output/'wine.log') if stalled else None
+                verdict = fault_verdict(report, fault, stalled)
+                if verdict:
+                    on_fault(verdict, fault, time.monotonic() - launch, report.pop('exit_code'))
+                    launch = time.monotonic()
+                    deadline = launch + timeout
+                    report['launched_at'] = wall()
+                    process = start()
+                    continue
                 # A take that died before frame 0 (no gamelog at all) is
                 # taken once more (parked 1987), the first take's log kept.
-                if exit_verdict(report, stalled_before_frame_zero(gamelog)) == 'retake':
+                if exit_verdict(report, stalled) == 'retake':
                     now = time.monotonic()
-                    if (output/'wine.log').exists():
-                        (output/'wine.log').replace(output/'wine-died.log')
                     report['retaken_after_exit_seconds'] = now - launch
                     report['first_take_exit_code'] = report.pop('exit_code')
+                    killed = settle('wine-died.log')
+                    report.setdefault('relaunches', []).append(
+                        {'reason': 'exit_before_frame_zero', 'after_seconds': now - launch,
+                         'log': 'wine-died.log', 'exit_code': report['first_take_exit_code'],
+                         'wineserver_k': killed})
                     launch = time.monotonic()
                     deadline = launch + timeout
                     report['launched_at'] = wall()
@@ -664,6 +778,20 @@ def capture(args, output, style):
             except subprocess.TimeoutExpired:
                 pass
             now = time.monotonic()
+            # A fault that waits in `winedbg` writes nothing more: relaunched
+            # now, not after the stall's wait (run1419, Loop 3741).
+            stalled = stalled_before_frame_zero(gamelog)
+            fault = page_fault_line(output/'wine.log') if stalled else None
+            verdict = fault_verdict(report, fault, stalled)
+            if verdict:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=10)
+                on_fault(verdict, fault, now - launch, None)
+                launch = time.monotonic()
+                deadline = launch + timeout
+                report['launched_at'] = wall()
+                process = start()
+                continue
             if 'pace' not in report:
                 frames = trace_frames_so_far(output/'rontrace.log')
                 said = pace_line(frames, now - launch, args.end_frame, timeout)
@@ -681,8 +809,10 @@ def capture(args, output, style):
             if verdict == 'relaunch':
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait(timeout=10)
-                (output/'wine.log').replace(output/'wine-stalled.log')
                 report['relaunched_after_seconds'] = now - launch
+                report.setdefault('relaunches', []).append(
+                    {'reason': 'stall', 'after_seconds': now - launch, 'log': 'wine-stalled.log',
+                     'wineserver_k': settle('wine-stalled.log')})
                 launch = time.monotonic()
                 report['launched_at'] = wall()
                 process = start()
@@ -690,7 +820,7 @@ def capture(args, output, style):
             if verdict == 'give_up':
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait(timeout=10)
-                (output/'wine.log').replace(output/'wine-stalled-2.log')
+                settle('wine-stalled-2.log')
                 report['stalled_twice_after_seconds'] = now - launch
                 raise RuntimeError(f'stalled before frame 0 twice, {stall} s each; '
                                    'a permission prompt or a dead device — see wine-stalled-2.log')

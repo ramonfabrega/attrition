@@ -21637,3 +21637,28 @@ locally with the origin deletion left to Ramon; 3731 stays for the
 sixty-second. The commander is cleared into the sixty-first on two Opus
 lanes at medium. **DECISIONS 100.** `docs/audit/2026-10-27-fable-pass-60.md`,
 "The sequel".
+
+**2026-10-28 — the sixty-first Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the sixty-first tranche measured — twenty
+landings on two Opus lanes with Loop 3694's lever from `f57270d8b` in
+12 h 41; eight words closed (the Mongols and French at Medieval, the
+Spanish, Germans and Japanese at Modern, the Egyptians and Russians at
+Information) and the Bantu and Egyptian Modern words open; 143.09 USD for
+the workers, 7.15 a landing, waiting 44.6 a landing against 37.4, the gate
+class 26.9 against 26.3 and the capture class 9.8 against 3.2 on five
+packets and run1419's two stalls; nine lane gates past the first against
+fifteen, five base moves on row lists alone landed on their verdict, so
+the lever works and the third lane stays out by the letter and the
+reading; unit types 229 → 250 of 302, lockstep bytes 77.4 for the tenth
+tranche, the territory unmoved. Built under the pass by two Opus 5.5
+subagents, red first: the click-free lane's relaunch budget on the Wine
+start-up fault with `wineserver -k` between tries and `page_faults` in the
+receipt (Loop 3741), the waiter's `WAITING` start line (3716) and a
+landing push told from a `DEEP` draft by the lane's own done line (3749,
+filed and built on 3744's clear that fired on a finished lane). 3694 and
+3684 close, 3731 is booked as a lane item, the six standing rows stay
+Ramon's. The sixty-second is launched on two Opus lanes at medium: the two
+Modern words first, the Information lobbies, the melee, map generation,
+the sweeps' driver, and three one-line Modern refills (the Aztecs,
+Chinese and British). **DECISIONS 101.**
+`docs/audit/2026-10-28-fable-pass-61.md`.

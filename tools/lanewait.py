@@ -38,6 +38,10 @@ session. A lane is named as `ccc list` names it. The exits:
 
 And the lines that are not exits — the wait goes on past each:
 
+       WAITING <lane> <branch> <tip>; … — <ISO> pid <pid> [arm-after-push <lane> …]
+                                             the first line, flushed before the first
+                                             poll (stdout; Loop 3716): an empty log is
+                                             a waiter that never ran
        PUSHED <lane> <branch> <old>..<new>   a push while the row works (stdout)
        DRAFT <lane> <branch> <old>..<new> — …  a push under a clear, never a
                                              landing (stderr; item 3368, Loop 3458)
@@ -46,6 +50,10 @@ And the lines that are not exits — the wait goes on past each:
        ARM-REFUSED <lane>: <ccc's first line>  ccc refused that arm, or is missing,
                                              failed or timed out (stdout); the lane
                                              stopping is then an ENDED to arm by hand
+       PUSHED <lane> … — its done line, '…'; a landing, not armed
+                                             an --arm-after-push lane's push sent with
+                                             its done line (stdout; Loop 3749): the
+                                             row stopping is its LANDED
 
 A push while the row still works is printed as `PUSHED <lane> <branch>
 <old>..<new>` and watched on (the twenty-fifth pass): the twenty-fifth
@@ -125,10 +133,33 @@ on a committed tree; the ref is recorded (never a PUSHED or a LANDED),
 and `ARMED` or `ARM-REFUSED` says how it went. A clear already armed, or
 one that fired on the push's poll, is not armed again. The flag lives in
 the process: a re-arm after `ARMED` leaves the lane off it.
+
+And the push the arm waits for can be the landing itself (Loop 3749,
+the sixty-first pass): lane-3744 crossed DEEP while its lane gate ran,
+and its next push, `none..10e53239`, was the finished landing the merge
+took, sent with its done line `3744 landed and pushed` — the waiter
+armed a clear on a landed lane, and the clear's new session announced
+the landing a second time. Two of the twenty-five DEEP-answer pushes on
+the commander's transcripts were landings (3591, 3744). What tells them
+apart is the lane's own word: a worker pushes and then sends its
+commander one line, and every done line and every draft note those
+lanes sent reads one way or the other on its summary alone. So an
+--arm-after-push lane's push is held while its row works, and the
+lane's transcript is asked each poll for a `SendMessage` since the
+push; a done line makes the push a landing (said as `PUSHED … — its
+done line`, never armed, and LANDED when the row stops), and the row
+stopping with none is the draft, armed as before.
+
+And the first line is the waiter's own (Loop 3716, the sixtieth pass):
+fourteen of the sixtieth tranche's thirty-four logs and nine of the
+sixty-first's sixteen were empty, a waiter replaced, a quiet one and a
+dead one alike. `WAITING` names each lane, its branch and its pushed
+tip, the time and the pid, flushed before the first poll.
 """
 import os
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -623,7 +654,74 @@ def arm_clear(lane, prompt, run=subprocess.run):
     return True, first or 'armed'
 
 
-def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_armed=armed_clear):
+# A worker's done line names the landing; a DEEP draft's note names the
+# draft. Measured on the forty-three lines the twenty-five DEEP lanes of
+# the fifty-third to sixty-first tranches sent their commander (Loop 3749).
+DONE = re.compile(r'\b(landed|landing|done line|done report|ready to merge)\b'
+                  r'|^\s*(att-)?(item )?\d+:? done\b|^\s*done\b', re.I)
+NOT_DONE = re.compile(r'\b(drafts?|drafted|handover|handoff|handed over|deep exit|unlanded|not landed|'
+                      r'not cleanly landed|no landing|not a landing|yet|before landing|status|asks?|ack|partial|'
+                      r'nearly|run\d+\w* landed|gate running|first commit|landing the)\b', re.I)
+# A line to the lane's own subagent or to another lane is never its done line.
+NOT_TO = re.compile(r'^(a[0-9a-f]{16}|(att|lane)-\S+)$')
+
+
+def is_done_line(summary, message=''):
+    """Whether a `SendMessage` reads as a landing's done line and not a
+    draft's note or a status: its summary when it has one, else its
+    message's first line. Over the lines this repo's lanes had sent by
+    2026-10-28, every line it calls done is a landing's; a landing it
+    misses is armed as before."""
+    text = (summary or '').strip() or ((message or '').strip().splitlines() or [''])[0][:200]
+    return bool(DONE.search(text)) and not NOT_DONE.search(text)
+
+
+def done_line(lines, since):
+    """The summary of the first done line a transcript's JSONL lines
+    carry at or after `since` (epoch seconds), or None."""
+    from datetime import datetime
+    for line in lines:
+        if 'SendMessage' not in line:
+            continue
+        try:
+            d = json.loads(line)
+        except ValueError:
+            continue
+        if d.get('type') != 'assistant':
+            continue
+        try:
+            at = datetime.fromisoformat((d.get('timestamp') or '').replace('Z', '+00:00')).timestamp()
+        except ValueError:
+            continue
+        if at < since:
+            continue
+        for part in (d.get('message') or {}).get('content') or []:
+            if not isinstance(part, dict) or part.get('type') != 'tool_use' or part.get('name') != 'SendMessage':
+                continue
+            given = part.get('input') or {}
+            if NOT_TO.match(str(given.get('to') or '')):
+                continue
+            summary, message = given.get('summary') or '', given.get('message') or ''
+            if is_done_line(summary, message):
+                return summary.strip() or message.strip().splitlines()[0][:200]
+    return None
+
+
+def done_line_of(lane, since, where, sessions):
+    """`done_line` over the lane's newest transcript; None when there is
+    none or it cannot be read."""
+    path = newest_transcript(where.get(lane), sessions.get(lane))
+    if not path:
+        return None
+    try:
+        with open(path, errors='replace') as f:
+            return done_line(f, since)
+    except OSError:
+        return None
+
+
+def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_armed=armed_clear,
+               states=None, landed=None, since=None):
     """Arm each pending lane's clear on its first push (Loop 3526), as
     `(drafts, lines)`: the DRAFT lines for stderr and the ARMED /
     ARM-REFUSED lines for stdout. Called before `event` on every poll.
@@ -635,24 +733,53 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
     the answer. A clear already armed is not armed again, and a push on
     the poll the lane's session moved is the clear's own (it has fired):
     both leave the lane, and the second leaves the push to `event`, which
-    reads it as the draft it is."""
+    reads it as the draft it is.
+
+    With `states` and `landed` (Loop 3749), the push may be the landing:
+    `landed(lane, since)` is the lane's done line since the push (`since`,
+    epoch seconds, is the previous poll) or None. A done line makes the
+    push a landing — a PUSHED line, `pending` left, and the push left to
+    `event` as a push noted while working, so the row stopping lands it.
+    With none, a push while the row works is held — its ref recorded, its
+    range and poll kept in `seen['held']`, nothing said — and the row
+    stopping with still no done line is the draft, armed as before."""
     drafts, lines = [], []
     for lane in sorted(pending):
         seen = watch.get(lane)
         tip = tips.get(lane)
-        if seen is None or not tip or tip == seen['tip']:
+        held = seen.get('held') if seen is not None else None
+        if seen is None or (not held and (not tip or tip == seen['tip'])):
             continue
-        pending.discard(lane)
         now, then = sessions.get(lane), seen.get('session')
         if now and then and now != then:
+            pending.discard(lane)
+            if held:
+                seen.pop('held')
+                drafts.append(f"DRAFT {lane} {seen['branch']} {held[0]}..{seen['tip'][:8]} — held for its "
+                              f"done line, and its clear fired (session {then[:8]}..{now[:8]}); watching on")
             lines.append(f"ARMED {lane} — its clear has fired (session {then[:8]}..{now[:8]}); "
                          "not armed again")
             continue
-        old = seen['tip'][:8] if seen['tip'] else 'none'
-        seen['tip'] = tip
+        old = held[0] if held else (seen['tip'][:8] if seen['tip'] else 'none')
+        pushed_at = held[1] if held else since
+        if tip and tip != seen['tip']:
+            seen['tip'] = tip
         seen.pop('pushed', None)
-        drafts.append(f"DRAFT {lane} {seen['branch']} {old}..{tip[:8]} — the DEEP answer's push; "
-                      "arming its clear")
+        moved = f"{lane} {seen['branch']} {old}..{seen['tip'][:8]}"
+        if landed is not None:
+            said = landed(lane, pushed_at if pushed_at is not None else 0)
+            if said:
+                pending.discard(lane)
+                seen.pop('held', None)
+                seen['pushed'] = moved
+                lines.append(f"PUSHED {moved} — its done line, {said!r}; a landing, not armed")
+                continue
+        if states is not None and states.get(lane) == WORKING:
+            seen['held'] = (old, pushed_at)
+            continue
+        pending.discard(lane)
+        seen.pop('held', None)
+        drafts.append(f"DRAFT {moved} — the DEEP answer's push; arming its clear")
         if already_armed(lane):
             lines.append(f"ARMED {lane} — a clear was already armed; not armed again")
             continue
@@ -732,7 +859,15 @@ def main(argv=None):
         watch[lane] = {'branch': branch, 'tip': origin_tip(cwd, branch), 'still': 0,
                        'session': getattr(roster, 'sessions', {}).get(lane)}
 
+    from datetime import datetime, timezone
+    begun = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    named = '; '.join(f"{lane} {seen['branch']} {seen['tip'][:8] if seen['tip'] else 'none'}"
+                      for lane, seen in watch.items())
+    arming = f" arm-after-push {' '.join(args.arm_after_push)}" if args.arm_after_push else ''
+    print(f"WAITING {named} — {begun} pid {os.getpid()}{arming}", flush=True)
+
     started = time.monotonic()
+    polled_at = time.time()
     polls = 0
     reported = set()
     stalled_reported = set()
@@ -773,10 +908,13 @@ def main(argv=None):
             if found:
                 print(found[1], flush=True)
                 return found[0]
+        since, polled_at = polled_at, time.time()
         tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
         sessions = {lane: getattr(roster, 'sessions', {}).get(lane) for lane in watch}
         if arm_pending:
-            arm_drafts, arm_lines = arm_pushes(watch, tips, sessions, arm_pending, args.then)
+            arm_drafts, arm_lines = arm_pushes(
+                watch, tips, sessions, arm_pending, args.then, states=states, since=since,
+                landed=lambda lane, at: done_line_of(lane, at, where, sessions))
             for draft in arm_drafts:
                 print(draft, file=sys.stderr, flush=True)
             for line in arm_lines:

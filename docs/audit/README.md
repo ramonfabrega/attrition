@@ -2195,3 +2195,23 @@ from a landing of the fifty-fourth tranche
 - **The handoff's counts are the tables'** (Loop 3564): `tranche.py --base
   <base>` prints the `For the pass` line from the tranche's `Book` commits,
   and `gates.py`'s last two lines are the gate count; a drain pastes both.
+
+## The sixty-first pass's rows, 2026-10-28
+
+Two rows of the commander's chain and one of the capture lane, each from
+the sixty-first tranche (`docs/audit/2026-10-28-fable-pass-61.md`):
+
+- **An empty waiter log is a waiter that never ran** (Loop 3716):
+  `lanewait.py` prints one `WAITING <lane> <branch> <tip>; … pid <pid>`
+  line before its first sleep; nine of sixteen logs were empty with no
+  way to tell a quiet waiter from a dead one.
+- **A landing push is not a `DEEP` draft** (Loop 3749): the waiter reads
+  the lane's own done line off its transcript and arms nothing on it;
+  commit subjects, `Lane verdict:` and the row going idle were measured
+  unreliable (two of 25 `DEEP`-answer pushes on disk were landings).
+- **The Wine start-up fault has a relaunch budget of its own** (Loop
+  3741): `unattended_capture.py` matches the signature at the game's exit
+  and on every poll, relaunches twice apart from the DXVK stall's one with
+  `wineserver -k` between tries, and the receipt tallies `page_faults`
+  per pool lane — a lane's prefix is rebuilt with `prefix.sh` when one
+  lane carries them.

@@ -563,5 +563,216 @@ class TheRosterIsAwaited(unittest.TestCase):
         self.assertIsNone(rows)
 
 
+class TheWaiterSaysItStarted(unittest.TestCase):
+    """Loop 3716 (the sixtieth pass): fourteen of the sixtieth tranche's
+    thirty-four waiter logs were empty, and nine of the sixty-first's
+    sixteen, because the waiter printed nothing until an event — a waiter
+    the commander replaced, a quiet one and a dead one all read the same.
+    The waiter's first line, flushed before its first poll, names what it
+    watches; an empty log is a waiter that never ran."""
+
+    class Stop(Exception):
+        pass
+
+    def run_quiet(self, argv, polls=3):
+        import contextlib
+        from unittest import mock
+        rows = {'lane-1': ('working', '/t/att-1', 'worktree-att-1', '1', None),
+                'lane-2': ('working', '/t/att-2', 'worktree-att-2', '1', None)}
+
+        def fake_roster():
+            fake_roster.trees = {'lane-1': '/t/att-1', 'lane-2': '/t/att-2'}
+            fake_roster.rests = {}
+            fake_roster.sessions = {'lane-1': 's1', 'lane-2': 's2'}
+            return dict(rows)
+
+        tips = {'/t/att-1': None, '/t/att-2': '5' * 40}
+        seen_at_first_poll = []
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / 'lanewait-1.log'
+
+            def fake_sleep(seconds):
+                if not seen_at_first_poll:
+                    seen_at_first_poll.append(log.read_text())
+                if len(seen_at_first_poll) > polls:
+                    raise self.Stop()
+                seen_at_first_poll.append(None)
+
+            with open(log, 'w') as out, contextlib.redirect_stdout(out), \
+                    mock.patch.object(lanewait, 'roster', fake_roster), \
+                    mock.patch.object(lanewait, 'origin_tip', lambda cwd, branch: tips[cwd]), \
+                    mock.patch.object(lanewait.time, 'sleep', fake_sleep):
+                with self.assertRaises(self.Stop):
+                    lanewait.main(argv + ['--deep', '0', '--stalled-after', '0', '--uncleared-after', '0',
+                                          '--quiet-after', '1000', '--interval', '1', '--deep-state', ''])
+            return log.read_text(), seen_at_first_poll[0]
+
+    def test_a_wait_whose_roster_never_changes_leaves_exactly_its_start_line(self):
+        import re
+        text, at_first_poll = self.run_quiet(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'])
+        lines = text.splitlines()
+        self.assertEqual(len(lines), 1, text)
+        self.assertRegex(lines[0], r'^WAITING lane-1 worktree-att-1 none; lane-2 worktree-att-2 55555555 '
+                                   r'— \d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ pid \d+ arm-after-push lane-1$')
+        # Flushed before the first poll: a waiter killed in its first sleep
+        # still says it ran.
+        self.assertEqual(at_first_poll, text)
+        self.assertTrue(re.match(r'^WAITING ', at_first_poll))
+
+    def test_the_start_line_is_not_an_exit_line(self):
+        # The commander reads a waiter's log with `cat` and its exit from
+        # the task's last line; the start line opens on a word no exit and
+        # no event line uses.
+        text, _ = self.run_quiet(['lane-2'], polls=1)
+        self.assertTrue(text.startswith('WAITING lane-2 worktree-att-2 55555555 — '), text)
+        for word in ('LANDED', 'ENDED', 'QUIET', 'DEEP', 'STALLED', 'UNCLEARED', 'PUSHED', 'DRAFT', 'ARMED',
+                     'ARM-REFUSED'):
+            self.assertFalse(text.startswith(word))
+
+
+def send(at, summary, message='', to='commander'):
+    """One assistant record carrying a SendMessage call, as the harness
+    writes it."""
+    import json
+    return json.dumps({'type': 'assistant', 'timestamp': at, 'message': {'content': [
+        {'type': 'tool_use', 'name': 'SendMessage', 'input': {'to': to, 'summary': summary, 'message': message}}]}})
+
+
+class ALandingPushIsNotADraft(unittest.TestCase):
+    """Loop 3749 (the sixty-first pass, item 3744): lane-3744 crossed DEEP
+    at 308 k while its lane gate ran; the commander answered and re-armed
+    with `--arm-after-push lane-3744`, and the lane's next push was its
+    finished landing — `none..10e53239`, the very tip the merge took —
+    sent with its done line, `3744 landed and pushed`. `arm_pushes` read
+    the push as the DEEP draft and armed a clear on a landed lane; the
+    clear fired and a second session re-announced the landing. Of the
+    twenty-five DEEP-answer pushes on the commander's transcripts two were
+    landings (3591, 3744), and every one of the forty-three done lines and
+    draft notes those lanes sent reads one way or the other on its summary
+    alone. So a pending lane's push is armed only once the row has stopped
+    with no done line since the push; a done line makes it a landing."""
+
+    LANDINGS = ['3744 landed and pushed', 'Announce item 3539 landed', 'Item 3543 landed, done line',
+                "Announce item 3567's landing", '3591 landed and pushed', "Announce 3615's landing to the commander",
+                'Announce 3646 landed', 'Announce item 3654 landing', 'announce 3666 landing',
+                'Item 3708 done line', '3711 landed, done line']
+    DRAFTS = ['3539 draft pushed, base moved', '3567 handoff draft pushed', '3615 handover pushed',
+              '3634 draft journal pushed at DEEP clear', '3661 draft handoff pushed',
+              'Draft pushed at 311k for the clear', 'deep exit: tip and state', '3711 handoff pushed, gate owed',
+              '3742 handover pushed, word closed', '3710 confirms 4842, run1387 capturing',
+              '90-minute status for item 1194', '1477 status: cause found, re-pinning a wide fix',
+              '2971 partial landing report to commander', 'Tell commander landing is nearly done',
+              '566: run138 landed, mechanism found', '3099 DEEP draft committed and pushed; not landed',
+              '919 evidence landed, gate running', 'Lane released, landing the floor now']
+
+    def watching(self):
+        watch = watching(a='1' * 40)
+        watch['a']['session'] = 's1'
+        return watch
+
+    def test_a_done_line_reads_as_a_landing_and_a_draft_note_never(self):
+        for summary in self.LANDINGS:
+            self.assertTrue(lanewait.is_done_line(summary), summary)
+        for summary in self.DRAFTS:
+            self.assertFalse(lanewait.is_done_line(summary), summary)
+        # No summary: the message's head is read, and "unlanded" is not landed.
+        self.assertTrue(lanewait.is_done_line('', 'Item 3588 landed: worktree-att-3588 at 1e4ed3e67'))
+        self.assertFalse(lanewait.is_done_line('', '3646 draft pushed, unlanded (not gated): the pair'))
+        self.assertFalse(lanewait.is_done_line('', '865 status: I haven\'t landed yet. No gate is running'))
+        self.assertTrue(lanewait.is_done_line('', '3099 DONE: tip 61d07908 on worktree-att-3099, pushed'))
+        self.assertTrue(lanewait.is_done_line('3346 done: six swept, pushed'))
+
+    def test_the_transcript_s_done_line_since_the_push_is_found(self):
+        from datetime import datetime
+        since = datetime.fromisoformat('2026-10-28T11:18:40+00:00').timestamp()
+        lines = [send('2026-10-28T10:02:00.000Z', 'Item 3744 landed, done line'),
+                 '{"type": "user", "timestamp": "2026-10-28T11:18:46.849Z", "message": {"content": "pushed"}}',
+                 send('2026-10-28T11:18:57.134Z', '3744 landed and pushed')]
+        self.assertEqual(lanewait.done_line(lines, since), '3744 landed and pushed')
+        self.assertIsNone(lanewait.done_line(lines[:2], since), 'a done line before the push is not this push')
+        self.assertIsNone(lanewait.done_line([send('2026-10-28T11:18:57.134Z', '3744 draft pushed for the clear')],
+                                             since))
+        self.assertIsNone(lanewait.done_line(['not json', ''], since))
+        # A line to the lane's own subagent, or to another lane, is not its done line.
+        self.assertIsNone(lanewait.done_line([send('2026-10-28T11:18:57.134Z', '', 'The lane has its ten; '
+                                                   'landed work stops now', to='a0651062ff871c606')], since))
+        self.assertIsNone(lanewait.done_line([send('2026-10-28T11:18:57.134Z', '1127 landed', to='att-1133')],
+                                             since))
+        self.assertEqual(lanewait.done_line([send('2026-10-28T11:18:57.134Z', '', '3744 landed: tip 10e53239',
+                                                  to='uds:/tmp/cc-socks/76694.sock')], since),
+                         '3744 landed: tip 10e53239')
+
+    def test_a_push_sent_with_its_done_line_is_not_armed_and_lands(self):
+        watch, pending = self.watching(), {'a'}
+        drafts, lines = lanewait.arm_pushes(
+            watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}',
+            lambda lane, prompt: self.fail('armed a landed lane'), already_armed=lambda lane: False,
+            states={'a': 'working'}, landed=lambda lane, since: '3744 landed and pushed', since=100.0)
+        self.assertEqual(drafts, [])
+        self.assertEqual(lines, ['PUSHED a worktree-a 11111111..22222222 — its done line, '
+                                 "'3744 landed and pushed'; a landing, not armed"])
+        self.assertEqual(pending, set())
+        # The landing is event()'s: the row stopping lands it, as any push
+        # noted while the row worked.
+        states, tips = {'a': 'idle'}, {'a': '2' * 40}
+        self.assertIsNone(lanewait.event(watch, states, tips, 6, 100, sessions={'a': 's1'}))
+        self.assertEqual(lanewait.event(watch, states, tips, 7, 100, sessions={'a': 's1'},
+                                        armed=lambda lane: False),
+                         (0, 'LANDED a worktree-a 11111111..22222222'))
+
+    def test_a_push_while_the_row_works_is_held_until_its_done_line_or_its_stop(self):
+        asked = []
+
+        def landed(answer):
+            return lambda lane, since: asked.append(since) or answer
+
+        # Held: the row works on with no done line yet — nothing armed,
+        # nothing said, and event() never reads the push as a PUSHED.
+        watch, pending, armed = self.watching(), {'a'}, []
+        arm = lambda lane, prompt: armed.append(lane) or (True, 'armed')  # noqa: E731
+        out = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}', arm,
+                                  already_armed=lambda lane: False, states={'a': 'working'},
+                                  landed=landed(None), since=100.0)
+        self.assertEqual((out, pending, armed), (([], []), {'a'}, []))
+        notes = []
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 6, 100, notes,
+                                         sessions={'a': 's1'}))
+        self.assertEqual(notes, [])
+        # The row stops with no done line since the push: the draft, armed
+        # on its first push's range and asked from that push's poll.
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}', arm,
+                                            already_armed=lambda lane: False, states={'a': 'idle'},
+                                            landed=landed(None), since=130.0)
+        self.assertEqual(drafts, ["DRAFT a worktree-a 11111111..22222222 — the DEEP answer's push; "
+                                  "arming its clear"])
+        self.assertEqual((lines, armed, pending), (['ARMED a — armed'], ['a'], set()))
+        self.assertEqual(asked, [100.0, 100.0])
+        # Held, and the done line follows on the next poll: a landing.
+        watch, pending = self.watching(), {'a'}
+        lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}', arm,
+                            already_armed=lambda lane: False, states={'a': 'working'}, landed=landed(None),
+                            since=100.0)
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}',
+                                            lambda lane, prompt: self.fail('armed a landed lane'),
+                                            already_armed=lambda lane: False, states={'a': 'working'},
+                                            landed=landed('Item 3744 landed'), since=130.0)
+        self.assertEqual((drafts, pending), ([], set()))
+        self.assertEqual(lines, ["PUSHED a worktree-a 11111111..22222222 — its done line, 'Item 3744 landed'; "
+                                 "a landing, not armed"])
+        self.assertEqual(watch['a']['pushed'], 'a worktree-a 11111111..22222222')
+
+    def test_a_second_push_while_held_keeps_the_first_push_s_range(self):
+        watch, pending = self.watching(), {'a'}
+        for tip in ('2' * 40, '3' * 40):
+            lanewait.arm_pushes(watch, {'a': tip}, {'a': 's1'}, pending, '{item}',
+                                lambda lane, prompt: self.fail('armed'), already_armed=lambda lane: False,
+                                states={'a': 'working'}, landed=lambda lane, since: None, since=100.0)
+        drafts, _ = lanewait.arm_pushes(watch, {'a': '3' * 40}, {'a': 's1'}, pending, '{item}',
+                                        lambda lane, prompt: (True, 'armed'), already_armed=lambda lane: False,
+                                        states={'a': 'idle'}, landed=lambda lane, since: None, since=160.0)
+        self.assertEqual(drafts, ["DRAFT a worktree-a 11111111..33333333 — the DEEP answer's push; "
+                                  "arming its clear"])
+
+
 if __name__ == '__main__':
     unittest.main()
