@@ -480,6 +480,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(7, 5, 1)`, `(7, 5, 5)` or `(14, 5, 5)`, other maps; the battery
     // fields no Greeks.
     (18, 5, 4),
+    // Item 3717: the French at a held Medieval age on Great Lakes at Hard
+    // (`diff::french_medieval_pair`), minted under rule (3) — not the third
+    // pair's `(14, 10, 5)`, this map at another difficulty, nor
+    // `(18, 10, 4)`, `(18, 10, 5)`, `(7, 10, 4)` or `(7, 10, 5)`, other
+    // maps; the battery fields no French.
+    (14, 10, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

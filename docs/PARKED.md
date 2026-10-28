@@ -12030,13 +12030,13 @@ run1385p's packet (`docs/AI.md` §358.4). Neither row below names a score: the p
   lands on this pair. No draw parts (the word is the game's last frame, `docs/AI.md` §362.3). It names a score
   when a round whose target died parts a landing or a draw on a word's frame.
 
-## Parked by the next landing, slot UX — reserved
+## Parked by item 3717, 2026-10-27 — the French Medieval pair's first try
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3717a. The Trebuchet `1/98`'s re-path, every frame, on both sides** (`docs/AI.md` §364; run1393b, 3106..3111).
+  Through the word its `ATTACKTOORDER`'s move alternates `dest` between (39144, 14040) and (40680, 12504) each
+  frame, the path between 18 and 16 nodes, and it never leaves (41286, 12237). Both sides agree, so it names no
+  score; it is the setting the word's turn plays in, and why a packed siege engine sat still for 30 frames is
+  unread.
 
 ## Parked by the next landing, slot UY — reserved
 

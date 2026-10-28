@@ -34857,12 +34857,71 @@ Its rounds read 1239 each side, 133 parting, among them the Trebuchet `1/132`'s 
 **Not established**: whether any other reader of a group's slot table in this crate reads it before the order
 loop's clamp. `group_plan_path` reads it after, which is the case this word reached.
 
-## 364. Reserved for the next item on the AI track
+## 364. The French at a held Medieval age, Great Lakes, at difficulty 4: first try 3108 of 4664 (item 3717)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3717, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §361's lobby with the nation moved: `MAP_STYLE
+14`, human Nubians (4) against the **French (10)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 2`, `ENDING_TECHNOLOGY 2`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1392 (a `DUMP_ALL` start) and run1393 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 4664; run1392 against run1393 is 37 of 37 frames identical. The walk is seeded from run1392's
+initial state (3506a). `diff::french_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 10, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no French (no `battery::BATTERY` game is tribe 10). The French lobbies already pinned are
+the third pair's `(14, 10, 5)` (this map, another difficulty) and `(18, 10, 5)`, `french_enlightenment_pair`'s
+`(18, 10, 4)`, `french_classical_pair`'s `(7, 10, 5)` and `french_word`'s `(7, 10, 4)` (other maps). `(14, 10, 4)`
+appeared nowhere in the tree. `french_medieval_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 3108 of 4664**, by the count and the sequence. On 3108 ours spends **5 draws against theirs' 4**,
+parting at index 4: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs none. `RON_DEBUG_SITES=3108-3108`
+lists ours' frame: `1/98`'s `Unit::do_move+0xe84`, `1/60`'s `Guy::inc_time` draw, `1/77`'s two, then **`1/98`'s
+own `Guy::inc_time` draw**. `report.py … draws 3108` on theirs: the `do_move+0xe84`, then three `Guy::inc_time`
+draws (one through `Unit::inc_time+0x3e`, two through `+0x6e`), as many as ours spends for the Merchant `1/60` and the Caravan `1/77`, and no fourth.
+
+**The direction: ours acts.** `1/98` is a **Trebuchet** (TI 266, TY 216, land, packed, army 2;
+`RON_DEBUG_UNIT=1/98@3078-3109`), the same type as §361's parked launch points. It holds an `ATTACKTOORDER` to
+(36072, 26328) at (41286, 12237) and does not move: on both sides its move's `dest` alternates between (39144,
+14040) and (40680, 12504) every frame, the path between 18 and 16 nodes. In ours its four figures enter
+**`CHAR_TURN_LEFT` (slot 21, `anim::TURN_LEFT`)** on 3080, through `Sim::do_turn_anim`. Ours ends the turn on 3108
+(lead figure `t29/30`) and resets all four figures to the idle (`a0` on 3109), with the extra draw. Theirs spends
+nothing for it on 3108. **The record is the draw stream alone**: run1393b prints `GUYS=2`, so no `cur_anim` (`anim ?`
+in `unitat.py`), and whether theirs entered the turn on 3080 at all is not in any dump. `turnanim.py`'s docstring
+says the turn override had never executed in a capture; this one needs `GUYS=4` to ask.
+
+**The value diff** (run1393b):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3108 | the draw stream, index 4 | site | `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`1/98`'s) | none |
+| 3110 | the Trebuchet `1/98` | `path:length`; `path_recursion` | 14; 0 | 18; 10 |
+| 3114 | the light cavalry `1/90` (TI 210) | `order:guard.retry` | 6 | 7 |
+| 3121 | the same | `orders.len`; `order:kind`; `pos` | 2; 2; (36264, 27147) | 1; 12; (36264, 27096) |
+
+**The state first parts two blocks after the word.** In run1393b's window (3077..3359) block 3077 carries only the
+standing families (49 rows: `form` on 27 units, both leaders' rows, who=1's groups and pools). No unit, building or
+city row parts before 3110, and `1/98` is the first. run1393's stride (101..3101, 31 blocks, **84 keys**) is
+standing families only: `form` on 27 units, `build:extra` on 45 and who=1's groups 64..69 with their pools.
+
+**The rounds**: none fly in the window, 0 against 0.
+
+**The windows.**
+- run1393's stride, 101..3101 (31 blocks, 84 keys): standing families only.
+- run1393b, blocks 3077..3359 at the long's detail with `LEADERS=9` and `AMMO=5` (282 blocks, **424 keys**, the two
+  `gaia:` keys unprinted). run1393 against run1393b is 3360 of 3360 frames identical.
+
+**The closing state** is downstream. run1393's block 4665 compares 202 units: counts `[186, 0, 5, 2, 164, 0, 34]`,
+5 extra (`1/188`..`1/192`), and the cities' `busy`, `gatherers` and `space[i]` in the closing fields. A floor, not a
+score.
+
+**The rubric.** `Heavy Chevalier` (236, `CHEVALIERHEAVY`), the booking's line, **was fielded**: 242 rows in
+run1393, the first on block 1301, long before the word. The rubric counts whole lockstep games only, so unit types
+seen stays **229 of 302**.
+
+**Not established**: whether theirs' Trebuchet enters `CHAR_TURN_LEFT` on 3080 and holds it longer, never enters
+it, or leaves it on 3108 with no draw (`set_anim` to the idle without the roll). A `GUYS=4` window over 3079..3110,
+or a packet at 3107 with `Guy::inc_time` watched for `1/98`'s figures, tells them apart.
 
 ## 365. Reserved for the next item on the AI track
 

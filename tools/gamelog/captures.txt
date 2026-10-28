@@ -10976,3 +10976,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3713: the Persian Gunpowder word closes, 4948 -> 5673 (`docs/AI.md` §358.4; `docs/RUNS.md` run1390) ====
 #   run1390  --map 18 --end-frame 5673 --allow-early-end --timeout 3600 --log-window 5416 5674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1369's lobby   (the closing window)
 # Checks: `rngcmp.py` run1370 vs run1390 -> 5674 identical.
+# ==== item 3717: the French at a held Medieval age, Great Lakes, at difficulty 4 (`docs/AI.md` §364; `docs/RUNS.md` run1392, run1393, run1393b) ====
+#   run1392  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1393  run1376's line with --ai-tribe 10 and run1392's lobby   (the draw stream; ended itself on 4664)
+#   run1393b --map 14 --end-frame 3359 --timeout 3600 --log-window 3077 3359 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1392's lobby   (the word 3108's window)
+# Checks: `rngcmp.py` run1392 vs run1393 -> 37 identical; run1393 vs run1393b -> 3360 identical.
