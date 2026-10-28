@@ -1289,29 +1289,6 @@ pub fn run_with(
 /// only in test builds.
 #[cfg(test)]
 pub(crate) fn debug_watch(built: &Built, frame: i64) {
-    // PROBE 3757: `RON_DEBUG_FARMS=<who>@<lo>-<hi>` — that player's farm cells.
-    if let Ok(v) = std::env::var("RON_DEBUG_FARMS")
-        && let Some((w, r)) = v.split_once('@')
-        && let Some((lo, hi)) = r.split_once('-')
-        && let (Ok(w), Ok(lo), Ok(hi)) = (w.parse::<i64>(), lo.parse::<i64>(), hi.parse::<i64>())
-        && (lo..=hi).contains(&frame)
-    {
-        for (b, bd) in built.sim.buildings.iter().enumerate() {
-            if i64::from(bd.owner) != w || !bd.farm.valid {
-                continue;
-            }
-            let nz: Vec<String> = (0..16)
-                .filter(|&c| bd.farm.state[c] != 0 || bd.farm.adds[c] != 0)
-                .map(|c| format!("({c},{},{})", bd.farm.adds[c], bd.farm.state[c]))
-                .collect();
-            eprintln!(
-                "  FARM f{frame} b{b} o{} ft{} {}",
-                bd.index,
-                bd.farm.farm_type,
-                nz.join(" ")
-            );
-        }
-    }
     // A comma list watches several units on one run (item 795's four
     // walkers): each spec is read as the single form below.
     let Ok(all) = std::env::var("RON_DEBUG_UNIT") else {
