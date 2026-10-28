@@ -10941,11 +10941,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // moved it 3770 → 4021 on piece 299's turret rows: theirs' `0/13` dies
     // on 4021 under a Tank's round ours flies a frame longer; widened on
     // run1415 over 4015..4082 (the closing block), the rounds compared.
+    // Item 3737 closed it whole, 4081 of 4081, on the Tank's pivot rows
+    // (piece 200) and the German Bazooka's bays (piece 90); run1415 holds
+    // the closing block, so it stays the word's widening.
     (
         "SPANISH_MODERN_PAIR_WORD",
         crate::diff::spanish_modern_pair::SPANISH_MODERN_PAIR_WORD,
         Some("spanish_modern_pair_run1415_s_word_frame_is_widened_whole"),
-        3736,
+        3737,
         Some(crate::diff::spanish_modern_pair::WIDENING_SPANISH_MODERN_FRAME_4021),
     ),
     // **The Germans at a held Modern age** (item 3719): Great Lakes at
@@ -13360,7 +13363,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 6), East Indies at Hard (item 3718): first try
     // 3770 of 4081, the Citizen `0/13`'s `do_idle` draw in theirs alone;
     // widened on run1395b over 3677..4021. Item 3736: 4021, the citizen's
-    // death in theirs alone; widened on run1415 over 4015..4082.
+    // death in theirs alone; widened on run1415 over 4015..4082. Item
+    // 3737: whole at 4081, the closing state compared (one unit off, the
+    // Submarine `1/109`, 3718a).
     AiWord {
         line: "Late ages",
         map: "EastIndiesSpanishModern",

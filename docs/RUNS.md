@@ -32275,3 +32275,24 @@ SHA-256 `46c6487cf865a687cc5138669028a929cb9b5119a9997acd13583cde4317b52e`.
 blocks and 2625 keys, rounds 648 against 684 with 528 parting, the first the Mechanized Infantry `1/34`'s on 3205
 (piece 54, from the guy's square in ours, from a muzzle 111 out and 169 up in theirs). It is the pair's widening in
 `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+## run1416 — the Spanish at a held Modern age, East Indies, at difficulty 4: a packet at logger frame 4016, pieces 200 and 90 (2026-10-27, item 3737, `att-3737`)
+
+`docs/AI.md` §365.2. **What the disk could not answer**: the release of the Tank `PANZER`'s piece 200 (a pivot
+piece) and the German Bazooka's piece 90. All 82 packets on disk raise on either piece's `RData` (item 3736 for
+200, item 3737 for 90). `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1416 --map 18 --end-frame
+4018 --timeout 3600 --log-window 4015 4017 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 9 --cover cover=0
+--profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --tracer-def RON_STATE_FRAME=4016 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`: the block
+before the Tank `1/35`'s launch block 4017.
+- Pool lane 1. Launched 23:26:09, exited 23:26:38 (28.6 s). `success`, 4019 frames, seed 12345, tribes 4 and 9.
+  Not filed: the packet is the product. `df -g ~` read 150 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1416/map-18/frame-snapshot.bin`, 929,304,956 bytes,
+SHA-256 `b0e4737641cf4898c9a460073b6ac43c7544689f532ac65cd70362aed7227ce3`.
+
+**What it holds**: `get_position.py … entries 200`: seven rows at `pos_start` 85, `RData +0x88` 0.8 — the turret
+`(4, 0, 0)` and node 0 with its turret entry at 4 of `CHAR_ATTACK1`, 21 of `2` and 1 of `3`. `entries 90`: three
+rows at `pos_start` 139, `RData +0x88` 1.0, node 0 at 17 of `CHAR_ATTACK1`, 7 of `2` and 13 of `3`. `pivot 200 0
+<anim> <time> 1` swept 92,416 cells a row, and `sweep 90 0 <anim> <time>` 361 headings a row. The sweeps are under
+`~/ron-data/lab-experiments/2026-10-27-item-3737/sweeps/`.
