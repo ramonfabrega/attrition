@@ -11010,3 +11010,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3739: the German Modern word 4299 -> 4586, the new word's window (`docs/AI.md` §366.2; `docs/RUNS.md` run1418) ====
 #   run1418  --map 14 --end-frame 4836 --timeout 3600 --log-window 4495 4836 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (the word 4586's window)
 # Checks: `rngcmp.py` run1397 vs run1418 -> 4837 identical.
+# ==== item 3721: the Russians at a held Information age, East Indies, at difficulty 4 (`docs/AI.md` §368; `docs/RUNS.md` run1400, run1401, run1401b) ====
+#   run1400  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1401  run1395's line with --ai-tribe 13 and run1400's lobby   (the draw stream; ended itself on 6706)
+#   run1401b --map 18 --end-frame 6403 --timeout 3600 --log-window 6095 6403 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1400's lobby   (the word 6153's window)
+# Checks: `rngcmp.py` run1400 vs run1401 -> 37 identical; run1401 vs run1401b -> 6404 identical.
