@@ -98,6 +98,45 @@ fn gunpowder_melee_staging_walk() {
     );
 }
 
+/// **The starting `Farms` list is the start dump's** (item 3757,
+/// `docs/GOLDEN.md` §149.1): `Farms::inc_time` walks the array in index
+/// order and spends one chance roll on every farm it does not skip, and
+/// `Array<FarmStruct>::walk_data` prints the same array, so run1412's
+/// frame-0 list — player 1's three farms, player 0's, player 2's — is the
+/// order the rolls are spent in. The two-seat sort this replaced reads
+/// 2, 1, 0 here.
+#[test]
+fn gunpowder_melee_s_farms_stand_in_the_dump_s_order() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let Some(path) = dump(MELEE_START) else {
+        eprintln!("skipping: no {MELEE_START} (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let init = log.initial().expect("a start dump");
+    let want: Vec<(i64, i64)> = init.farms.iter().map(|f| (f.who, f.o)).collect();
+    assert_eq!(
+        want.iter().map(|w| w.0).collect::<Vec<_>>(),
+        [1, 1, 1, 0, 0, 0, 2, 2, 2],
+        "run1412's list, as the dump prints it"
+    );
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    let got: Vec<(i64, i64)> = built
+        .sim
+        .farm_order
+        .iter()
+        .map(|&b| {
+            let bd = &built.sim.buildings[b];
+            (i64::from(bd.owner), i64::from(bd.index))
+        })
+        .collect();
+    assert_eq!(got, want, "the Farms list the rolls are spent in");
+}
+
 /// run1413: the staged game, the draw stream to its end at `cover=0`, the
 /// melee's records on a stride of 100.
 pub(crate) const MELEE_LONG: (&str, &str) = (
@@ -121,8 +160,16 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // human's Citizen `0/4`'s (TI 50, land, on a `Gather` of building 5,
     // `been_there`), and theirs goes straight to the `Guy::set_anim+0x97a`
     // ours draws third (`docs/GOLDEN.md` §149).
-    count: 182,
-    sequence: 182,
+    //
+    // Item 3757: **182 → 684**, both together. The starting `Farms` list
+    // is ordered as the start dump prints it — player 1's farms, then
+    // 0's, then 2's — not `start_of_game`'s higher-slot-first 2, 1, 0,
+    // which handed the frame-37 sprout's chance roll to `1/2002` where
+    // theirs' walk spends it two farms later; the cells parted from 37
+    // and `0/2003`'s farmer re-picked on 182 alone (§149.1). Past the
+    // script's lines on 600–660, all 28 staged alike.
+    count: 684,
+    sequence: 684,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -152,10 +199,11 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733): run1413's stride blocks 101..401 —
-/// the word's frame 182 writes no block (the stride prints every hundred),
-/// so the window is the stride block before it through 250 frames past it.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (101, 432);
+/// **The word's window** (item 3733, moved by 3757): run1413's stride
+/// blocks 601..901 — the word's frame 684 writes no block (the stride
+/// prints every hundred), so the window is the stride block before it
+/// through 250 frames past it. 3733's was 101..432, on 182.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (601, 934);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -215,8 +263,16 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // gather leg ahead, where theirs' 0/4 stands on 301 — the two
     // `Unit::do_job+0x67` draws ours spends on 182. From 301 the parting
     // fans out to `0/3` and who=1's citizens (`1/0`'s move order).
-    pin_eq!(w.firsts.len(), 224, "run1413's word window");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    // No round flies before 432: the squads land from 610.
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    //
+    // Item 3757, on the word moved to 684 (window 601..934): **818** keys.
+    // Block 601 carries the standing families alone — the staging's 28
+    // lines and the squads stand alike. **On 701 the fight parts a frame
+    // late in ours**: who=1's Bombard `1/23` reads `damage_frame` 684
+    // against theirs' 683, `pos` (15768, 14616) against (15816, 14664),
+    // `path:length` 3 against 4 and `spell_time` 15 against 16; `2/17`
+    // dies on 696 against 695, `1/14` is dead in theirs alone, and
+    // `0/4`'s next re-pick reads the shifted stream. 801 and 901 fan out.
+    pin_eq!(w.firsts.len(), 818, "run1413's word window");
+    pin_eq!(w.rounds_read, (23, 20), "the rounds read");
+    pin_eq!(w.rounds.len(), 41, "the rounds that part");
 }
