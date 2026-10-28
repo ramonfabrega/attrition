@@ -12022,13 +12022,13 @@ run1385p's packet (`docs/AI.md` §358.4). Neither row below names a score: the p
   (40 round rows, 5463..5641). run1385p's packet holds its one `AttachPos` row (node 0, anim 12, time 9), so the row
   is a fit away. It names a score when a Bombard's round lands a frame apart on a word's frame.
 
-## Parked by the next landing, slot UW — reserved
+## Parked by item 3714, 2026-10-27 — the Steppe Nomads' pivot, the Mongol Medieval word closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3714a. A round keeps its dead target.** On run1386's block 4221, the Steppe Nomad `1/20`'s round still flies at
+  the human's `0/13`, which died on 4220. Theirs keeps `ammo[2].ox` 13 and `whom` 0; ours reads −1 for both.
+  `Ammo`'s target fields on a target's close are this crate's write, and nothing reads them before the round
+  lands on this pair. No draw parts (the word is the game's last frame, `docs/AI.md` §362.3). It names a score
+  when a round whose target died parts a landing or a draw on a word's frame.
 
 ## Parked by item 3717, 2026-10-27 — the French Medieval pair's first try
 

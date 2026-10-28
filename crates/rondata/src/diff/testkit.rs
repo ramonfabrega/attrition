@@ -7312,11 +7312,19 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3702: the Mongol Medieval pair's closing state, run1378 walked
     // to its closing block 5593 past the word 2595: 2 inexact corners.
-    ("mongol_medieval_pair_run1378_s_closing_state", 2),
+    // Item 3714 (the word closed at 5592, piece 150's rows): 7.
+    ("mongol_medieval_pair_run1378_s_closing_state", 7),
     // Item 3712: the Mongol Medieval pair's first try, run1378 walked from
     // run1377's start to the word 4220 past piece 1178's bolts: 1 inexact
-    // corner.
-    ("mongol_medieval_pair_first_parting", 1),
+    // corner. Item 3714: walked to the game's last frame 5592 past piece
+    // 150's rounds, 7.
+    ("mongol_medieval_pair_first_parting", 7),
+    // Item 3714: run1391b, the Mongol Medieval closing window 5336..5593:
+    // 7 inexact corners.
+    (
+        "mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole",
+        7,
+    ),
     // Item 3709: run1386, the Mongol Medieval word 3989's window,
     // 3895..4240: 1 inexact corner.
     (
@@ -10881,13 +10889,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // compared. Item 3709: 2595 → 3989 (owner 9 never heads a cell's
     // chain), a round's landing; widened on run1386 over 3895..4240, the
     // rounds compared. Item 3712: 3989 → 4220 (piece 1178's launch rows),
-    // a death; the same window holds it.
+    // a death; the same window holds it. Item 3714 closed it, 5592 of 5592
+    // (piece 150's pivot release rows), widened on run1391b over
+    // 5336..5593 (the closing block), the closing state whole.
     (
         "MONGOL_MEDIEVAL_PAIR_WORD",
         crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL_PAIR_WORD,
-        Some("mongol_medieval_pair_run1386_s_word_frame_is_widened_whole"),
-        3712,
-        Some(crate::diff::mongol_medieval_pair::WIDENING_MONGOL_MEDIEVAL_FRAME_3989),
+        Some("mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole"),
+        3714,
+        Some(crate::diff::mongol_medieval_pair::WIDENING_MONGOL_MEDIEVAL_CLOSING),
     ),
     // **The Greeks at a held Medieval age** (item 3703): East Indies at
     // Hard — first try 5626 of 5942, the Heavy Fire Raft `1/70`'s
@@ -13258,7 +13268,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // 2595 → 3989, theirs' round from the Crossbowmen `1/45` lands a frame
     // sooner; widened on run1386 over 3895..4240. Item 3712: 3989 → 4220,
     // the Crossbowmen's piece 1178 launch rows; theirs' `0/13` dies, on the
-    // same window.
+    // same window. Item 3714 closed it, 5592 of 5592, widened on run1391b
+    // through the closing block.
     AiWord {
         line: "Late ages",
         map: "EastIndiesMongolMedieval",
@@ -13266,7 +13277,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL_PAIR_WORD,
         length: 5_592,
         endpoint: Some("mongol_medieval_pair_run1378_s_closing_state"),
-        window: Some("mongol_medieval_frame_3989_window"),
+        window: Some("mongol_medieval_closing_window"),
     },
     // The Greeks at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies at Hard (item 3703): first try

@@ -153,6 +153,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (491, 4, Node { px: 0, py: -148 }),
     (137, 4, Node { px: -6, py: -148 }),
     (149, 4, Node { px: 0, py: -148 }),
+    (150, 4, Node { px: 0, py: -338 }),
     (194, 4, Node { px: 0, py: -96 }),
     (1545, 4, Node { px: -6, py: -148 }),
     (1546, 4, Node { px: -6, py: -148 }),
@@ -1646,6 +1647,64 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: &[],
         },
     ),
+    // **Piece 150, the Steppe Nomad** (unit type 200, `ELITENOMADS`; item
+    // 3714, `docs/AI.md` §362.3): run1391's packet (`RON_STATE_FRAME=4174`
+    // on the Mongol Medieval East Indies seed) holds its nine entries — the
+    // `(4, 0, 0)` [`NODES`] read, `(0.0, −3.38, 32.63)`, and for each of the
+    // four `<RELEASEEVENT>`s piece 149 has (node 0; `CHAR_ATTACKWALK` and
+    // `CHAR_ATTACK1`..`3` at frames 18, 18, 16 and 19) the pivot node's and
+    // the release node's. Its own rider, not piece 149's rows: the pivot
+    // sits 1.9 further back and every release node differs. who=1's `1/22`
+    // loosed at the human's `0/13` on 4175 from (6319, 10344) at 271, where
+    // this crate loosed from the figure's own (6312, 10440) at 38.
+    (
+        150,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 150,
+            node: 0,
+            pivot: [0, -4_586_834, 34_506_775],
+            at: [224_176, -15_053_246, 19_689_476],
+            float_lands: &[],
+        },
+    ),
+    (
+        150,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 150,
+            node: 0,
+            pivot: [0, -3_380_000, 32_630_001],
+            at: [888_244, -16_728_748, 16_062_641],
+            float_lands: &[],
+        },
+    ),
+    (
+        150,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 150,
+            node: 0,
+            pivot: [0, -3_380_000, 32_630_001],
+            at: [1_242_316, -16_864_357, 16_494_263],
+            float_lands: &[],
+        },
+    ),
+    (
+        150,
+        crate::anim::ATTACK3,
+        19,
+        Release {
+            piece: 150,
+            node: 0,
+            pivot: [0, -3_380_000, 32_583_332],
+            at: [-18_684_111, 2_242_623, 26_876_545],
+            float_lands: &[(307, 187, 82, -47)],
+        },
+    ),
     (
         145,
         crate::anim::ATTACKWALK,
@@ -3052,6 +3111,47 @@ mod tests {
             let path = format!("{dir}/pivot-138-a{slot}-t{time}.txt");
             let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_138");
             let r = release(138, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "{slot} {} {} {} {} {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 150, the
+    /// Steppe Nomad** (item 3714): `tools/recomp/get_position.py … pivot
+    /// 150 0 <anim> <time> 1` on run1391's packet for its four rows.
+    /// `$RON_RELEASE_TABLE_150` is the directory holding
+    /// `pivot-150-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-27-item-3714/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_150() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_150") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_150 (item 3714's oracle, run1391)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 19),
+        ] {
+            let path = format!("{dir}/pivot-150-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_150");
+            let r = release(150, slot, time).expect("the row");
             for line in table.lines() {
                 let f: Vec<i32> = line
                     .split_whitespace()
