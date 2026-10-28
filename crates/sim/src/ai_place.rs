@@ -861,9 +861,15 @@ impl Sim {
                 .filter(|&u| self.units[u].owner == who)
                 .collect();
             order.sort_by_key(|&u| self.units[u].index);
+            let dbg = std::env::var("RON_DEBUG_PICK").ok().and_then(|v| v.parse::<u32>().ok())
+                == Some(frame as u32);
+            if dbg {
+                eprintln!("PICK f{frame} who={who:?} rec={rec} corner={corner:?} radius={radius} areg={areg:?}");
+            }
             for u in order {
                 let unit = &self.units[u];
                 if !unit.alive() || !unit.on_map {
+                    if dbg { eprintln!("PICK   o{} dead/offmap", unit.index); }
                     continue;
                 }
                 let is_citizen = citizen.is_some_and(|c| {
@@ -873,6 +879,10 @@ impl Sim {
                 });
                 if !is_citizen {
                     continue;
+                }
+                if dbg {
+                    eprintln!("PICK   o{} ty={:?} pos={:?} orders={:?} action={:?} reg={:?}", unit.index, unit.ty, unit.pos,
+                        unit.orders.iter().map(|o| o.index()).collect::<Vec<_>>(), self.action_of(u), self.world.region_of(unit.pos.cell()));
                 }
                 let kind = self
                     .action_of(u)
@@ -929,6 +939,7 @@ impl Sim {
                     }
                     _ => {}
                 }
+                if dbg { eprintln!("PICK   o{} kind={kind} score={d} best={best_d}", unit.index); }
                 if d < best_d {
                     best_d = d;
                     builder = Some((u, kind));
