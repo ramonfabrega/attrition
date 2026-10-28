@@ -13929,7 +13929,7 @@ squads stand in the open land between the two: who 1 on tile row 76, who 2 on ro
 own token (`local_4c = -2`) and walks every type below `0x326`. A type that passes `is_tech_type` takes
 `Leader::gain_tech`, and every other type's bit is set in `LeaderData +0x6c0c` (`tech`, `BitMask<806>`). The PE's
 `TypeData::is_tech_type@004706c0` reads `0x21f < type < 0x275`. It was read with `llvm-objdump`, because every type
-vtable's slot `0x28` folds to the one function. The seven ages, `0x220..0x226` in `crates/sim/src/tech.rs`, are
+vtable's slot `0x28` folds to the one function. The seven ages, the seven types from `0x220` in `crates/sim/src/tech.rs`, are
 inside that range. So the line would gain all seven ages, lift the held age to Information and empty the cell the
 item is booked on. The premise does not need the techs: `add` places the units and the lobby holds the age. The
 crate's `Cheat::Tech` reads `all` as a name prefix, which does not match this arm (parked 3733a).
