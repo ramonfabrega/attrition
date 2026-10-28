@@ -4185,6 +4185,67 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: 39,
         },
     ),
+    // **Piece 245, the Jet Fighter's two `AARocket`s** (`JETFIGHTER`, unit
+    // type 295; item 3760, `docs/AI.md` §372.4): run1437's
+    // `RON_STATE_FRAME=3894` packet on the American Information Great
+    // Lakes seed loads its two `AttachPos` rows (`CHAR_ATTACK2`, node 0 at
+    // frame 9 and node 1 at frame 4), `RData +0x88` 0.654, and `fit_bay.py`
+    // fits each sweep (152 and 236 lattice points, 361 of 361 headings;
+    // the centroid is kept): one under the wings and behind them, 36 below
+    // the figure. Without them who=1's strafing `1/57` loosed its rounds of
+    // 4225 and 4230 from its own square, (4703, 30220, 2127) against the
+    // original's (4889, 30343, 2091), and the second's splash on 4242 took
+    // building `0/2006`'s `damage_frac` to 8 against 11.
+    (
+        245,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: 184_080,
+            fwd: -126_691,
+            dz: -36,
+        },
+    ),
+    (
+        245,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: -184_152,
+            fwd: -126_707,
+            dz: -36,
+        },
+    ),
+    // **Piece 255, the Strategic Bomber's two bays** (`STRATEGICBOMBER`,
+    // unit type 305; item 3760, `docs/AI.md` §372.4): run1437's packet loads
+    // twelve `AttachPos` rows, `RData +0x88` 0.9, all in `CHAR_ATTACK2` — six
+    // on node 0 (frames 1, 2, 4, 7, 9, 11) and six on node 1 (1, 3, 5, 8,
+    // 10, 13), each node one point at all of its frames (the sweeps at the
+    // first and last frame agree on every heading) — and `fit_bay.py` fits
+    // each (149 and 884 lattice points, 361 of 361 headings; the centroid
+    // is kept), level with the figure. Without them who=1's `1/45` dropped
+    // its bombs of 4270 from its own square, (3717, 30596) against the
+    // original's (3805, 30661) and (3732, 30489).
+    (
+        255,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -93_878,
+            fwd: -57_148,
+            dz: 0,
+        },
+    ),
+    (
+        255,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 93_885,
+            fwd: -54_260,
+            dz: 0,
+        },
+    ),
     // **Piece 589, the same two guns on the human Biplane's graph** (item
     // 2693, `docs/GOLDEN.md` §99): run875's rounds leave from the plane's
     // own `GUY` point plus the 237 rows' vector, node for node — the

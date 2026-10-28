@@ -457,6 +457,11 @@ const FLOAT_LANDS_170_A13_T19: &[(i32, i32, i32, i32)] = &[];
 /// (item 3758, run1437's packet).
 const FLOAT_LANDS_204_A11_T11: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_204_A12_T23: &[(i32, i32, i32, i32)] = &[];
+/// The four tracers' (item 3760, run1437's packet).
+const FLOAT_LANDS_204_A12_T1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A12_T7: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A13_T1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_204_A13_T7: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_204_A13_T27: &[(i32, i32, i32, i32)] = &[
     (286, 59, 75, 279),
     (254, 91, 75, 279),
@@ -1910,8 +1915,11 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // 0.75: the `(4, 0, 0)` pivot and, for each of its seven
     // `<RELEASEEVENT>`s, the pivot node's and the release node's. The three
     // gun rounds (`BazookaRocket`, node 0: frame 11 of `CHAR_ATTACK1`, 23
-    // of `CHAR_ATTACK2`, 27 of `CHAR_ATTACK3`) are rowed here; the four
-    // node-1 `NoDamage Tracer`s are not. Without them who=1's `1/29` loosed
+    // of `CHAR_ATTACK2`, 27 of `CHAR_ATTACK3`) and the four node-1
+    // `NoDamage Tracer`s (frames 1 and 7 of `CHAR_ATTACK2` and
+    // `CHAR_ATTACK3`; item 3760, `docs/AI.md` §372.4) are rowed here: a
+    // tracer is a round the dump prints, harmless (`flags` 22), and it
+    // holds a slot. Without the gun's rows who=1's `1/29` loosed
     // its round of 3895 on the human's `0/12` from its own square (4296,
     // 34056, 474) where the original's left the muzzle at (4153, 33763,
     // 605).
@@ -1949,6 +1957,54 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, 139_500, 27_138_798],
             at: [140_000, -80_489_395, 8_974_987],
             float_lands: FLOAT_LANDS_204_A13_T27,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK2,
+        1,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-4_200_000, -41_229_996, 36_380_001],
+            float_lands: FLOAT_LANDS_204_A12_T1,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK2,
+        7,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-4_200_000, -41_404_877, 35_217_476],
+            float_lands: FLOAT_LANDS_204_A12_T7,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-4_200_000, -41_229_996, 36_380_001],
+            float_lands: FLOAT_LANDS_204_A13_T1,
+        },
+    ),
+    (
+        204,
+        crate::anim::ATTACK3,
+        7,
+        Release {
+            piece: 204,
+            node: 1,
+            pivot: [0, 0, 27_109_999],
+            at: [-6_611_136, -41_091_362, 35_218_819],
+            float_lands: FLOAT_LANDS_204_A13_T7,
         },
     ),
     // **The Armored Scout Car, piece 168** (unit type 218; item 3518,
