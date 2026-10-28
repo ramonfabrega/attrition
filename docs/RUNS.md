@@ -33142,3 +33142,31 @@ SHA-256 `ca013f4ffa3883696e41aa8991b49113e97635ccec59b2a846e0aca54c7f0593`.
 **What it holds**: the word 3653's widening, `american_information_pair_run1434b_s_word_frame_is_widened_whole`:
 408 blocks, 544 keys, rounds read 110 in ours and 126 in theirs, 55 parting. The first parted round is the Armored
 Cavalry `1/16`'s on 3587, launched from its own square in ours.
+
+## run1438 — the first melee, a held Gunpowder age on Great Sahara: a packet at logger frame 684, piece 126's `AttachPos` rows (2026-10-28, item 3759, `att-3759`)
+
+`docs/GOLDEN.md` §149.2. **What the disk could not answer**: the release nodes of the Apedemak Archers (TI 176,
+piece 126). `get_position.py … entries 126` on all 91 packets on disk finds the piece's `pos_num` 0 on every packet
+that reads it. run1413 prints the archers' rounds only on its stride blocks, never from their first frame, and it
+does not print which animation each plays. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1438 --map
+7 --end-frame 686 --timeout 3600 --log-window 670 686 --ffwd-minute 3 --cmd-file
+tools/gamelog/golden/melee-gunpowder.cmd --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --cover cover=0 --profile
+PLAYERS=2 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --tracer-def
+RON_STATE_FRAME=684 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 15:58:50, exited 15:59:07 (17.1 s launch to exit). `success`: 687 frames,
+  `page_faults` 0, no `relaunches` key. `rngcmp.py` against run1413: 687 identical. Not filed: the packet and the
+  window's gamelog stay in the run's directory. `df -g ~` read 131 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1438/map-7/frame-snapshot.bin`, 870,199,064 bytes,
+SHA-256 `8dc5c753db9c06b96751e69fff3369861e527b4aa197879dee7369694873f397`.
+
+**What it holds**:
+- `get_position.py entries 126` gives four rows. Three are the attack rows: node 0, `CHAR_ATTACK1`..`3` (anims
+  11, 12, 13), all at frame 15. `RData +0x88` reads 1.0.
+- `sweep 126 0 <anim> 15` for each key is kept at
+  `~/ron-data/lab-experiments/2026-10-28-item-3759/bay-126-a<anim>-t15.txt`. `fit_bay.py` fits each to one
+  region: 386, 495 and 3512 lattice points.
+- The window's `AMMO` records print the three archers' rounds of 674 from their first frame, 675, all at
+  `CHAR_ATTACK2`'s height (101). `0/14`'s round leaves (16634, 15605, 640) and flies 10 frames.
+- The window also holds the Camel Raider `0/17`'s round of 674 (parked 3759a).
