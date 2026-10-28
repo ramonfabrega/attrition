@@ -32275,6 +32275,26 @@ SHA-256 `46c6487cf865a687cc5138669028a929cb9b5119a9997acd13583cde4317b52e`.
 blocks and 2625 keys, rounds 648 against 684 with 528 parting, the first the Mechanized Infantry `1/34`'s on 3205
 (piece 54, from the guy's square in ours, from a muzzle 111 out and 169 up in theirs). It is the pair's widening in
 `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+## run1417 — the Germans at a held Modern age, Great Lakes, at difficulty 4: a packet at logger frame 4016, pieces 208 and 169 (2026-10-28, item 3738, `att-3738`)
+
+`docs/AI.md` §366.1. **What the disk could not answer**: the Tiger Tank's piece 208, a pivot piece with no row.
+`get_position.py … entries 208` raises on the piece's `RData` on all 85 packets on disk. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1417 --map 14 --end-frame 4018 --timeout 3600 --log-window 4014
+4018 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 12 --cover cover=0 --profile STARTING_TECHNOLOGY=6
+--profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --tracer-def
+RON_STATE_FRAME=4016 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`, run1396's lobby.
+- Pool lane 1. Launched 23:46:13, exited 23:46:38 (24.2 s launch to exit). `success`, 4019 frames, seed 12345,
+  `map_verified`. Not filed: the packet is the product. `df -g ~` read 150 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1417/map-14/frame-snapshot.bin`, 916,803,792 bytes,
+SHA-256 `f37ccf1612f45d4abed9e79c7a472bc14d5fba0722bcfbd2db7fab000ecd2686`.
+
+**What it holds**: `get_position.py … entries 208`: seven rows at `pos_start` 115, `RData +0x88` 0.85. That is the
+pivot `(4, 0, 0)` and node 0 at frame 3 of `CHAR_ATTACK1`..`3`. `entries 169` (the German Armored Scout Car): 37
+rows at `pos_start` 130, `RData +0x88` 1.1. That is the pivot and node 0 at eight frames of `CHAR_ATTACKWALK` and
+`CHAR_ATTACK2`. Pieces 222, 233, 242 and 254 load as well (3738b). The nineteen `pivot` sweeps are under
+`~/ron-data/lab-experiments/2026-10-27-item-3738/sweeps/`.
 ## run1416 — the Spanish at a held Modern age, East Indies, at difficulty 4: a packet at logger frame 4016, pieces 200 and 90 (2026-10-27, item 3737, `att-3737`)
 
 `docs/AI.md` §365.2. **What the disk could not answer**: the release of the Tank `PANZER`'s piece 200 (a pivot
