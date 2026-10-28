@@ -40,6 +40,8 @@ mod american_modern_pair;
 #[cfg(test)]
 mod american_word;
 #[cfg(test)]
+mod audit;
+#[cfg(test)]
 mod aztec_alltech_pair;
 #[cfg(test)]
 mod aztec_ancient_pair;

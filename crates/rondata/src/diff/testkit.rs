@@ -7839,6 +7839,25 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3539: the pair's closing walk, run1153 to block 4548, reads the
     // same two.
     ("run1153_japanese_industrial_pair_closing_state", 2),
+    // Loop 3728: the correction audit's replays (`diff::audit`), each pair's
+    // long walked from its start to the closing record with the audit on.
+    ("bantu_ancient_pair_corrections_change_nothing", 143),
+    ("coverage_pair_corrections_change_nothing", 217),
+    ("dutch_medieval_pair_corrections_change_nothing", 9),
+    ("german_alltech_pair_corrections_change_nothing", 1585),
+    ("greek_medieval_pair_corrections_change_nothing", 1),
+    ("iroquois_enlightenment_pair_corrections_change_nothing", 2),
+    ("japanese_ancient_pair_corrections_change_nothing", 43),
+    ("japanese_industrial_pair_corrections_change_nothing", 2),
+    ("korean_ancient_pair_corrections_change_nothing", 181),
+    ("lakota_medieval_pair_corrections_change_nothing", 2),
+    ("lakota_pair_corrections_change_nothing", 583),
+    ("maya_ancient_pair_corrections_change_nothing", 52),
+    ("mongol_gunpowder_pair_corrections_change_nothing", 2),
+    ("mongol_pair_corrections_change_nothing", 205),
+    ("roman_medieval_pair_corrections_change_nothing", 27),
+    ("russian_modern_pair_corrections_change_nothing", 131),
+    ("spanish_gunpowder_pair_corrections_change_nothing", 28),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

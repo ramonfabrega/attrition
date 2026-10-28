@@ -21620,3 +21620,20 @@ then the Spanish and Germans at Modern, the Egyptians and Russians at
 Information, and five more). 3716 filed (empty waiter logs). **The
 commander is not cleared: Ramon's talk first.** **DECISIONS 99.**
 `docs/audit/2026-10-27-fable-pass-60.md`.
+
+**2026-10-27 — the sixtieth pass's sequel** (the `steer` session, cleared
+into after Ramon's talk): the six talk rows taken. The scoreboard is a
+territory map — `tools/census.py --territory`, `rubric.py` tables 0 and 5:
+ported 529, replaced by design 318 (five layers on Ramon's word), open 1305
+of 3611; 21 of 235 lockstep traces carry coverage and none holds Gunpowder;
+the `Rubric:` line opens with the three numbers. The correction audit is a
+test per whole pair (`diff::audit`, an Opus worker's; 70 replays, 82 s): no
+sync word or clock install changed anything, seven sheep re-seats on Great
+Lakes' long word, and the zero is the start block's — a pair's game is
+uncorrected from frame 1 by construction. The melee is `docs/GOLDEN.md`
+§155 and its first lobby is 3733, `unit` at Gunpowder on Great Sahara;
+map generation's reading is 3734; Astra's three branches are deleted
+locally with the origin deletion left to Ramon; 3731 stays for the
+sixty-second. The commander is cleared into the sixty-first on two Opus
+lanes at medium. **DECISIONS 100.** `docs/audit/2026-10-27-fable-pass-60.md`,
+"The sequel".

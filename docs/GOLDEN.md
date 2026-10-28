@@ -13941,3 +13941,76 @@ A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
+
+## 155. The melee — a staged late-age chapter shape, every seat a computer (Loop 3729; the sixtieth pass's sequel)
+
+**Why a shape and not a chapter.** The pairs' units never fight: the human
+slot is idle and every pair's capture ends before the computer musters, so
+the late ages' combat, projectile, death, air, anti-air and artillery
+functions are entered by no lockstep trace (table 5 of `tools/rubric.py`,
+the entered × age matrix, says which stem at which age has the most). Ramon's
+word at the sixtieth pass's talk: "make all NPCs and let them hash it out".
+Everything the shape needs exists: the click-free lane stages a chat
+script from `--cmd-file` (§3's form), `--profile PLAYERS=2` seats two
+computers beside the idle human (run1077; `docs/ORACLE.md`, "A third seat"),
+and at the default `TEAM_STYLE 1` who 1 is the human's ally and who 2 the
+enemy of both (item 3456: leader 2 "the enemy"), so the two computers are at
+war from frame 0 with no `war` line; `--ffwd-minute` skips the drawn scene;
+`STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` holds the age and
+`STARTING_RESOURCES=7` funds both; the channel's `add`, `resource`, `tech`
+and `age` are modelled by `crate::golden` (`docs/INPUT.md` §11).
+
+**The chapter form, filled** (§3's five things):
+
+1. **Premise**: a dozen of the age's unit types spawned for each computer at
+   the two capitals' common border, with resources and the age's techs
+   granted to both, fight to the death under the computers' own target
+   selection — `Unit::think`'s computer block, `Unit::fight`, the
+   projectile and death families of the age, air and anti-air where the age
+   fields them — on a draw stream this crate can follow for two thousand
+   frames. The function that kills the premise is `Leader::set_diplo`'s
+   team read: if the two computers are not at war on frame 0 the melee is a
+   parade.
+2. **Cheat lines**, in `tools/gamelog/golden/melee-<age>.cmd`: `0 !ai off`
+   is **not** staged (the AI is the point); `600 resource who=1 all +100000`,
+   `602 resource who=2 all +100000`; `604 tech who=1 all on` and
+   `606 tech who=2 all on` only for a held age below Information (an age
+   held by the lobby needs no `age` line); then one `add <type> who=1 x,y`
+   and its `who=2` twin per type, two frames apart from 610, the types the
+   matrix's cell names (the age's never-seen lines first, `rubric.py
+   --tables 3`), placed by `parse_coord`'s TILE arm at the border cell the
+   start dump's owner grid says both capitals reach (§4's method); no
+   `war` line, no `select`, no issuer.
+3. **Records**: `start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`
+   as every chapter; `end:UNITS=3,GUYS=2,DEATHS=1,AMMO=5` on `--stride 100`
+   at `cover=0` for the word, and the same script at `cover=1` on the pool
+   for the blind list and table 5 (the twin is what moves the matrix).
+4. **Falsifiers**: (a) the two computers are not at war on frame 0 —
+   `LEADERDATA`'s `diplos` row in the start block, before any unit moves;
+   (b) a spawned squad never acquires a target — no `TARGETORDER` on any of
+   its records by frame 900; (c) the granted resources are not spent — the
+   buckets on the first dumped block after 600 read their start values;
+   (d) a type the cell names is refused by `add` (`parse_type`'s prefix or
+   the nation's `TRIBE_MASK`) — `INFO cmd`'s return for that line.
+5. **Where each fires**: (a) the start block, frame 0; (b) the first
+   `end:` block after 900; (c) the block after 600; (d) the trace's `INFO
+   cmd` record on the spawn's own frame.
+
+**Each chapter changes one lever**: the age. The first melee is staged in
+the matrix's emptiest cell on the tree that books it (the queue's item
+names the cell and the types); the next takes the next cell, never two ages
+in one script.
+
+**The cheat arms this crate does not model** are three replicated commands
+of `docs/COMMANDS.md` §3 — `cheat_ai_toggle` 0x40 (the console `ai` is
+modelled on the frame-head half, `Sim::ai_off`; the command-stream half is
+not), `cheat_give_techs` 0x3c and `cheat_increase_buckets` 0x41 — each a
+widening row of the first melee's item: the chat `tech` and `resource` lines
+this shape uses reach `gain_tech` and `bucket_set` directly, so the melee
+can run without them, and a run that carries one of the three in its order
+stream (`docs/ORACLE.md`, the `.rcx`) parts there until the row lands.
+
+**What a melee costs**: a `cover=0` take of 2,600 frames with the `end:`
+set on a stride is in the pairs' class (82 frames a wall second, ~35 s of
+simulation; the dumps 300–700 MB at `UNITS=3`), its `cover=1` twin the
+same lobby again. The first cell's booking is item 3733.

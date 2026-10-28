@@ -151,6 +151,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "scoped replay state and installation reuse; all oracle comparisons remain in harness.rs",
     ),
     (
+        "diff/audit.rs",
+        "the correction audit pinned at zero on every whole pair (Loop 3728): it reads the harness's own install counters and compares no field of the original's records",
+    ),
+    (
         "diff/bantu_ancient_pair.rs",
         "the Ancient-start Bantu pair's walks: it compares no field itself (item 3562)",
     ),

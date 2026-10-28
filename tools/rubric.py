@@ -58,7 +58,9 @@ tool: it changes no score, pins nothing, and no gate runs it.
    record) — in the same dumps. Printed against `unitrules.xml`'s 364
    records (name, `DOMAIN`, `CAT`), with each type's loaded `age` from the
    start-of-game types dump (`gamelog-run3-fulldump-types.txt`) when the
-   archive holds it; the never-seen types grouped by domain, then age.
+   archive holds it; the never-seen types grouped by domain, then age. **3b** (`rubric_states.py`,
+   Loop 3727): what each type did in the same dumps — seen, moved, attacked,
+   died (printed by no lockstep dump; `vanished` inferred beside it), boarded.
    **The denominator is the skirmish types**: a record whose `TRIBE_MASK`
    is all zero — no nation's bit, so `LeaderData::tribe_can_type` answers 0
    for every player (`docs/TECH.md`, "Nation variants") — is excluded
@@ -686,6 +688,119 @@ def print_lockstep(s, ntraces):
           f"{s['entered_bytes']} of {s['bytes']} bytes ({tenths(s['bytes_tenths'])}%) · {ntraces} traces")
 
 
+# --- table 0: the territory; table 5: entered × age -------------------------
+#
+# Loop 3727 (Ramon, the sixtieth pass's talk). Table 0 is `census.territory`
+# — the scoreboard's first table, every simulation function as ported,
+# replaced by design, layout-only, name-only, open, or excluded — and table
+# 5 crosses the open functions with the ages: of each stem's open functions,
+# how many no lockstep trace entered in a game that held each age. A
+# `cover=0` trace carries no function entry (RUBRIC.md §4), so a cell is
+# read against the traces with coverage whose game's dumps held an active
+# leader in that age (table 2's `ages_get()` reading, per run); the header
+# says how many such traces each age has, and an age with none reads every
+# function never — which is the finding, not a defect of the table. The
+# emptiest cell — the stem and age with the most never-entered open
+# functions — is what the next capture stages (Loop 3729).
+
+
+def ages_by_run(per_age):
+    """`{run: set(ages)}` from `walk`'s `per_age`: each (dump, frame) key's
+    dump names its run (`file_run`)."""
+    out = defaultdict(set)
+    for a in range(8):
+        for base, _frame in per_age[a]["any"]:
+            r = file_run(base)
+            if r:
+                out[r].add(a)
+    return out
+
+
+def entered_by_trace(traces, index):
+    """`{run: set(va)}` for every trace that entered a function at all:
+    `census.entered_in | census.hooked_in` per trace, as table 4 reads
+    them together."""
+    out = {}
+    for t in traces:
+        r = file_run(os.path.basename(t))
+        if not r:
+            continue
+        # A `cover=0` trace holds the five trampolined hooks and no function
+        # entry; it carries no coverage and places nothing. Only a trace
+        # that entered a function counts, with its hooks beside.
+        ent = census.entered_in([t], index)
+        if ent:
+            out[r] = ent | census.hooked_in([t], index)
+    return out
+
+
+def entered_age_matrix(funcs, run_ages, run_entered):
+    """`(cells, traces_per_age, never_any, unplaced)`: `cells[stem][age]`
+    the stem's open functions (`census.TERRITORY_OPEN` kinds) entered by no
+    trace whose game held `age`; `traces_per_age[age]` the traces with
+    coverage counted toward it; `never_any[stem]` the open functions no
+    trace entered at all; `unplaced` the traces with coverage whose run's
+    dumps held no age (counted toward no cell)."""
+    by_age = {a: set() for a in range(8)}
+    traces_per_age = Counter()
+    unplaced = []
+    for r, ent in run_entered.items():
+        ages = run_ages.get(r, set())
+        if not ages:
+            unplaced.append(r)
+            continue
+        for a in ages:
+            by_age[a] |= ent
+            traces_per_age[a] += 1
+    everything = set().union(*run_entered.values()) if run_entered else set()
+    cells, never_any = {}, Counter()
+    for va, _name, stem, kind, _group in funcs:
+        if kind not in census.TERRITORY_OPEN:
+            continue
+        row = cells.setdefault(stem, Counter())
+        for a in range(8):
+            if va not in by_age[a]:
+                row[a] += 1
+        if va not in everything:
+            never_any[stem] += 1
+    return cells, traces_per_age, never_any, unplaced
+
+
+def emptiest_cell(cells):
+    """`(stem, age, never)` with the most never-entered open functions;
+    ties to the later age (the ages with the fewest traces), then the stem."""
+    best = None
+    for stem, row in cells.items():
+        for a in range(8):
+            key = (row[a], a, stem)
+            if best is None or key > best:
+                best = key
+    return (best[2], best[1], best[0]) if best else None
+
+
+def print_matrix(cells, traces_per_age, never_any, unplaced, top=None):
+    print("# 5. entered × age — of each stem's open functions (layout + name + open), how many no lockstep "
+          "trace with coverage entered in a game that held the age; most never-at-any-age first")
+    print(f"{'stem':18} {'open':>5} {'never':>5} " + " ".join(f"{AGE_NAMES[a][:5]:>6}" for a in range(8)))
+    print(f"{'traces':18} {'':>5} {'':>5} " + " ".join(f"{traces_per_age[a]:6}" for a in range(8)))
+    order = sorted(cells.items(), key=lambda kv: (-never_any[kv[0]], -sum(kv[1].values()), kv[0]))
+    shown = order if top is None else order[:top]
+    for stem, row in shown:
+        opens = max(row.values()) if row else 0
+        print(f"{stem:18} {opens:5} {never_any[stem]:5} " + " ".join(f"{row[a]:6}" for a in range(8)))
+    if top is not None and len(order) > top:
+        print(f"… {len(order) - top} more stems (--top)")
+    tot = Counter()
+    for row in cells.values():
+        tot.update(row)
+    print(f"{'total':18} {'':>5} {sum(never_any.values()):5} " + " ".join(f"{tot[a]:6}" for a in range(8)))
+    cell = emptiest_cell(cells)
+    if cell:
+        print(f"emptiest cell: {cell[0]} at {AGE_NAMES[cell[1]]} ({cell[1]}), {cell[2]} open functions never "
+              f"entered there; traces with coverage {sum(traces_per_age.values())} placements"
+              + (f"; unplaced (no age in their dumps): {' '.join(unplaced)}" if unplaced else ""))
+
+
 # --- the denominator of table 3 ---------------------------------------------
 
 
@@ -750,13 +865,16 @@ LEDGER_COLUMNS = ("date", "pass", "groups_full", "groups", "backed", "functions"
                   "ages_held", "ages_never", "types_seen", "types", "dumps",
                   # the fifty-first pass's lockstep definition: which dumps tables 2 and 3 read,
                   # and table 4; a row recorded before it carries empty cells
-                  "types_source", "lockstep_entered", "lockstep_functions", "lockstep_bytes")
+                  "types_source", "lockstep_entered", "lockstep_functions", "lockstep_bytes",
+                  # the territory (Loop 3727, the sixtieth pass's sequel): table 0's three numbers
+                  "ported", "replaced", "open")
 INT_COLUMNS = ("groups_full", "groups", "backed", "functions", "ages_held", "types_seen", "types", "dumps",
-               "lockstep_entered", "lockstep_functions")
+               "lockstep_entered", "lockstep_functions", "ported", "replaced", "open")
 FLOAT_COLUMNS = ("byte_share", "lockstep_bytes")
 
 
-def ledger_row(date, label, mech, per_age, seen, total_types, dumps, source="traces", lockstep=None):
+def ledger_row(date, label, mech, per_age, seen, total_types, dumps, source="traces", lockstep=None,
+               territory=None):
     """One pass's rubric as a ledger row (Ramon, the forty-ninth steer: the
     rubric is shown at every steering pass against the pass before, never
     computed per landing). `mech` is `mechanics_summary`'s dict; `per_age`
@@ -769,7 +887,9 @@ def ledger_row(date, label, mech, per_age, seen, total_types, dumps, source="tra
                 backed=mech["backed"], functions=mech["functions"], byte_share=round(mech["byte_share"], 1),
                 ages_held=len(held), ages_never=never, types_seen=seen, types=total_types, dumps=dumps,
                 types_source=source, lockstep_entered=ls.get("entered"), lockstep_functions=ls.get("functions"),
-                lockstep_bytes=float(tenths(ls["bytes_tenths"])) if "bytes_tenths" in ls else None)
+                lockstep_bytes=float(tenths(ls["bytes_tenths"])) if "bytes_tenths" in ls else None,
+                ported=(territory or {}).get("port"), replaced=(territory or {}).get("replaced"),
+                open=(sum(territory[k] for k in census.TERRITORY_OPEN) if territory else None))
 
 
 def read_ledger(path):
@@ -842,6 +962,7 @@ def delta_table(prev, cur):
                      ("bytes backed, %", "byte_share"),
                      ("lockstep bytes, %", "lockstep_bytes"), ("lockstep functions entered", "lockstep_entered"),
                      ("of simulation functions", "lockstep_functions"),
+                     ("territory ported", "ported"), ("replaced by design", "replaced"), ("territory open", "open"),
                      ("dumps read from", "types_source"),
                      ("ages held, of 8", "ages_held"),
                      ("ages never held", "ages_never"), ("unit types seen", "types_seen"),
@@ -853,7 +974,9 @@ def delta_table(prev, cur):
 def main():
     ap = argparse.ArgumentParser(description="A steering pass's holistic scorecard: by mechanic, by age, "
                                              "by unit type, bytes in lockstep. The module docstring has the rules.")
-    ap.add_argument("--tables", default="1,2,3,4")
+    ap.add_argument("--tables", default="0,1,2,3,4,5",
+                    help="0 the territory, 1 by mechanic, 2 by age, 3 by unit type, 4 bytes in lockstep, "
+                         "5 entered × age (needs the dumps of 2 and the traces of 4)")
     ap.add_argument("--limit", type=int, help="read only the first N dumps (tables 2 and 3)")
     src = ap.add_mutually_exclusive_group()
     src.add_argument("--dumps", nargs="*", help="tables 2 and 3: these dumps instead of the lockstep games'")
@@ -861,7 +984,7 @@ def main():
                      "(rondata::blind::TRACES), the definition before the fifty-first pass")
     ap.add_argument("--sources", action="store_true", help="print every pinned word's game, the lockstep runs "
                     "and their files, then stop")
-    ap.add_argument("--top", type=int, help="table 1: show only the first N groups")
+    ap.add_argument("--top", type=int, help="tables 0, 1 and 5: show only the first N groups")
     ap.add_argument("--index", default=os.path.expanduser("~/ghidra-projects/decomp/INDEX.tsv"))
     ap.add_argument("--docs", default=os.path.join(HERE, "..", "docs"))
     ap.add_argument("--sim-src", default=os.path.join(HERE, "..", "crates", "sim", "src"))
@@ -887,10 +1010,17 @@ def main():
         return 0
     tables = {int(t) for t in a.tables.split(",") if t.strip()}
     if a.record:
-        tables = {1, 2, 3, 4}
+        tables = {0, 1, 2, 3, 4, 5}
     parts = {}
-    mech = seen = ntypes = share = None
+    mech = seen = ntypes = share = terr = states_line = None
     source = "lockstep"
+    if tables & {0, 5}:
+        t_rows, t_funcs, terr, t_groups = census.territory(a.index, a.docs, a.sim_src, a.pdb)
+    if 0 in tables:
+        census.print_territory(t_rows, terr, t_groups, a.top)
+        parts[0] = (f"ported {terr['port']} · replaced by design {terr['replaced']} · "
+                    f"open {sum(terr[k] for k in census.TERRITORY_OPEN)} of {terr['functions']}")
+        print()
     if 1 in tables:
         rows = mechanics_now(a.index, a.docs, a.sim_src, a.pdb)
         print_mechanics(rows, a.top)
@@ -926,6 +1056,11 @@ def main():
             held = [x for x in range(8) if per_age[x]["any"]]
             parts[2] = (f"ages held {len(held)} of 8 (never: "
                         f"{','.join(str(x) for x in range(8) if x not in held) or 'none'}; {source})" + partial)
+        if 5 in tables:
+            run_entered = entered_by_trace(ls_traces if not (a.dumps or a.traces) else [], a.index)
+            cells, per_trace, never_any, unplaced = entered_age_matrix(t_funcs, ages_by_run(per_age), run_entered)
+            print_matrix(cells, per_trace, never_any, unplaced, a.top)
+            print()
         if 3 in tables:
             inst = install_dir(a.pdb)
             xml = os.path.join(inst, "data", "unitrules.xml")
@@ -946,15 +1081,28 @@ def main():
                                                   tribe_nations(text))
                 parts[3] = (f"unit types seen {seen} of {ntypes} ({never} never; {len(excluded)} excluded; "
                             f"{source})" + partial)
+                # Table 3b (Loop 3727): what each type *did* — seen, moved,
+                # attacked, died (not printed in any lockstep dump), boarded —
+                # off the same dumps; its totals line stands beside the
+                # `Rubric:` line and is not part of the pinned one.
+                import rubric_states
+                s_rows, s_tot = rubric_states.unit_states(paths, rules, excluded, a.limit)
+                print()
+                rubric_states.print_states(s_rows, s_tot, partial)
+                states_line = rubric_states.summary(s_tot, partial)
             print()
-    print("Rubric: " + " · ".join(parts[k] for k in (1, 4, 2, 3) if k in parts))
+    # The line is the territory's first (Loop 3727): table 1's mechanics
+    # summary stays in the table and the ledger, off the line.
+    print("Rubric: " + " · ".join(parts[k] for k in (0, 4, 2, 3) if k in parts))
+    if states_line:
+        print(states_line)
     if a.record:
-        if mech is None or seen is None or share is None or a.limit:
-            print("--record needs all four tables whole (no --limit, unitrules.xml present)")
+        if mech is None or seen is None or share is None or terr is None or a.limit:
+            print("--record needs every table whole (no --limit, unitrules.xml present)")
             return 1
         import datetime
         row = ledger_row(datetime.date.today().isoformat(), a.record, mech, per_age, seen, ntypes, len(paths),
-                         source=source, lockstep=share)
+                         source=source, lockstep=share, territory=terr)
         before = read_ledger(a.ledger)
         append_ledger(a.ledger, row)
         print()

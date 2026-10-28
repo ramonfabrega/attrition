@@ -796,6 +796,22 @@ start-of-game assignment away from the real ones. **A position diff cannot
 see this either** — the phantom units match nothing and are never compared;
 it surfaced as ten starting citizens whose derived order came out `None`.
 
+**The corrections are audited to zero (2026-10-27, Loop 3728).** The
+harness installs three things where a capture holds them (`Built::tick`):
+the sync word at a `DUMP_ALL` frame end, each linked figure's animation
+clock on that frame, and gaia's animals at their dumped cells.
+`diff::audit` replays every whole pair's long capture — and both long
+words — from its start sibling and its trace's pasture with
+`ReplaySession::enable_correction_audit` on, to the closing record, and
+**fails if an installed word or clock differs from the one the simulation
+already held**. Zero means the game ran on its own: the correction wrote
+back what was there. The re-seats that moved an animal are pinned (only
+Great Lakes' long word has any, run69's seven sheep re-seats on 94..=100),
+and each counter's `attempted` is pinned beside it, because the
+corrections run only on the frames a `DUMP_ALL` sibling carries — one word
+and 33–138 clocks at the start of a pair, so the audit covers a pair's
+first frames and the rest of the game runs uncorrected by construction.
+
 ### 3.1 The order diff — the intent, every frame
 
 `check_start_orders` makes that comparison once, at frame 0, for one order

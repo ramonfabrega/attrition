@@ -104,8 +104,9 @@ is append-only and amended in place, as it always was.
 - 95 standing — The fifty-sixth tranche: two Opus lanes, twenty landings in 11 h 45, eleven pairs stand, the Maya word closes, unit types 189 of 302, Loop 3608 measured at zero, the fifty-seventh booked on the Roman word and seven pairs
 - 96 standing — The fifty-seventh tranche: two Opus lanes, twenty landings in 13 h 22, six pairs stand, the Roman word closes, unit types 195 of 302, the sim crate cut from a lane touching no sim path, the fifty-eighth booked on two words and seven pairs
 - 97 standing — The fifty-eighth tranche: two Opus lanes, twenty landings in 12 h 34, nine pairs stand, unit types 205 of 302, the cut read on the branch's paths alone, the third lane returns, the fifty-ninth booked on the Korean word and nine pairs
-- 98 standing — The fifty-ninth tranche: three Opus lanes, twenty landings in 11 h 34, nine words close, unit types 220 of 302, waiting 57.3 on lane gates re-run after `Base moved:`, the third lane goes, Loop 3694 names its return, the sixtieth booked on ten pairs
-- 99 standing — The sixtieth tranche: two Opus lanes, twenty landings in 10 h 46, six words close and four pairs whole, unit types 229 of 302, waiting 37.4 on fifteen re-gates over row lists, Loop 3694's lever built, the braces hand on to the Modern and Information ages, the launch waits on Ramon
+- 98 standing — The fifty-ninth tranche: three Opus lanes, twenty landings in 11 h 34, nine words close, unit types 220 of 302, waiting 57.3 on lane gates re-run after `Base moved:`, the third lane goes, the sixtieth booked on ten pairs
+- 99 standing — The sixtieth tranche: two Opus lanes, twenty landings in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next, the launch waits on Ramon
+- 100 standing — The sixtieth pass's sequel: the territory map, five layers replaced by design, the audit at zero on seventy replays, the melee booked, map generation in scope, Astra retired
 - 92 amended by 93 — The fifty-third tranche is scored on two Opus lanes at twenty landings in 9 h 57 on the late ages, nine pairs stand up and eight run whole, every whole pair's `cover=1` twin lands and lockstep bytes move 77.0 → 77.4 with the twins spent, the rubric reads unit types 162 of 302, a third lane is added by the rule, the fifty-fourth tranche is booked on the Persian word and eight early-age pairs, and eleven Loop items become tools, rules, closes or Ramon's
 - 90 amended in place — The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
 - 89 amended in place — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
@@ -9243,3 +9244,70 @@ gate class against 26.3; every stand-up's release minutes against
 6.8–10.3; the admission against 1,096.2 s; red gates against zero; items
 past 300 k against three; the lane rows at the drain against zero; the
 backlog against 9; the disk against 171 GiB.
+
+## 100. The sixtieth pass's sequel takes Ramon's talk: the scoreboard becomes a territory map with five layers marked replaced by design, the correction audit is pinned at zero on seventy replays and the zero is the start block's by construction, the melee is a chapter shape and its first lobby is booked in the matrix's emptiest cell, map generation comes into scope as a reading, and Astra's three branches are retired
+
+*2026-10-27, the sixtieth pass's second session (the `steer` session,
+Fable), cleared into after Ramon's talk; the record is
+`docs/audit/2026-10-27-fable-pass-60.md`, "The sequel". Extends entry 99;
+amends entries 89 and 90's headline clause (the `Rubric:` line's shape);
+overturns nothing.*
+
+**What was measured.** `tools/census.py --territory` on this tree: ported
+529, replaced by design 318, open 1305 of 3611 simulation functions
+(layout-only sweeps 903, name-only 4, unmarked 398; excluded 1459). Of 235
+lockstep traces 21 carry function coverage and none of them a game at
+Gunpowder; 616 open functions are entered at no age; the emptiest cell is
+`unit` at Gunpowder, 106. `diff::audit` on 68 whole pairs and both long
+words: no sync-word or clock install changed anything; seven gaia re-seats
+moved one sheep on Great Lakes' long word (run69's); a pair's corrections
+run on its start block only, because the harness corrects only on frames a
+`DUMP_ALL` sibling has a record for. Astra's three branches held 51
+September commits and tools this tree never carried.
+
+**What it means.**
+
+1. **The scoreboard's first table is the territory, and the `Rubric:` line
+   opens with it.** `lockstep bytes` counts what a game entered, not what
+   was compared; the census's `backed` counts a sweep's offset identity as
+   backing. Neither says how much of the simulation is *ported*. The line
+   now reads `ported P · replaced by design R · open O of 3611` before the
+   lockstep bytes, ages and unit types; `open` counts a layout-only sweep
+   as open; table 1's mechanics summary stays in the table and the ledger.
+   The pins are `census::RUBRIC_TERRITORY_*`, re-pinned by the pass as the
+   rubric always was (entry 88).
+2. **Five layers are replaced by design, on Ramon's word, reversible per
+   group.** The command packaging and manager, the turn pump, the XML
+   loaders, the scripting VM and the order classes' plumbing are what the
+   project set out to escape (CLAUDE.md: "the engine is not" the treasure);
+   their 318 unported functions stop counting as missing. The mark is a
+   list (`census.REPLACED_BY_DESIGN`), one line a group, and a group that
+   turns out to hold a rule the sim needs comes off it by deleting its
+   line. The mark never touches a ported function.
+3. **The braces' refill reads the matrix.** A pair's twin is what moves an
+   age's column; an age column with no coverage trace reads every open
+   function as never, which is the finding and names the next capture. The
+   first melee (`docs/GOLDEN.md` §155; item 3733) is booked where the
+   matrix is emptiest — `unit` at Gunpowder — and each later melee takes
+   the next cell, one age a script.
+4. **The pairs' games are uncorrected by construction, and the test says
+   so on every commit.** The audit's zero on a pair is the start block's;
+   from frame 1 the harness installs nothing. That is a stronger statement
+   than run69's — the game runs on its own — and it is now a test per pair
+   rather than a measurement in a record.
+5. **Map generation is in scope.** It was assumed in on 2026-08-24 when
+   DATALAYER §3 took the start dump's cell grid, never decided out; a sim
+   that cannot start a game is not the sim CLAUDE.md names. Item 3734 is
+   the reading, `docs/MAPGEN.md` its product, the port chain parked by it;
+   the oracle is the 956 grids on disk and the setup checksum trace; the
+   float risk is the fractal's, under entries 13 and 19.
+6. **Astra's branches are retired, the remote deletion Ramon's.** The
+   local branches are deleted and the tips recorded; `git push origin
+   --delete` was refused twice by the auto-mode classifier as destructive,
+   and a refusal with a human remedy ends with the line for the human, not
+   a workaround.
+
+**The estimate for the sixty-first stands as entry 99 wrote it**, with two
+rows added: the first melee stands up and its `cover=1` twin moves the
+Gunpowder column from 1305 to under 900; the map-generation reading lands
+`docs/MAPGEN.md` with every claim naming its grid.

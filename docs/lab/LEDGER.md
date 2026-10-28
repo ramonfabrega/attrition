@@ -115,8 +115,14 @@ No new capture or main-loop adoption is requested by this handoff.
 
 The typed-state charter starts fresh from main `5c8e6d4`, on
 `codex/typed-state-oracle`. The continuation line parks at L87 (`3ff12db`),
-with its handoff retained on `codex/continuation-lab`; L88's additional owner
-gap is archived at `c205210`. A* replay remains available for counterfactuals.
+~~with its handoff retained on `codex/continuation-lab`; L88's additional owner
+gap is archived at `c205210`~~ — **the three September lab branches were
+retired on 2026-10-27 (Loop 3732, the sixtieth pass's sequel): `codex/continuation-lab`
+at `c2052109e` (29 commits, L64–L88), `codex/saved-tree-lab` at `af4ed7385`
+(14) and `codex/replay-allocator-lab` at `d74544699` (8), each ten thousand
+commits behind and holding tools this tree never carried, so none of their
+documents reads true here; the tips are recorded, nothing was cherry-picked**.
+A* replay remains available for counterfactuals.
 The new [working review](TYPED-STATE-REVIEW.md) carries the four-step charter,
 measured results and explicit unresolved coverage. L91 validates the first
 aligned Great Lakes packet at logger frame 11186; settings were restored and

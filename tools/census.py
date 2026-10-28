@@ -1140,6 +1140,152 @@ def lost_backed(listed, live):
     return [(va, name, by) for va, (name, by) in sorted(listed.items()) if va not in live]
 
 
+# --- the territory map (Loop 3727; Ramon, the sixtieth pass's talk) ----------
+#
+# The scoreboard's first table: every simulation-layer function classified
+# by what this port has done with it, per PDB source stem. The headline
+# counters flattered — `lockstep bytes` counts functions a whole game
+# entered and says nothing of whether their outputs were compared, and the
+# census's `backed` holds 1,167 functions whose only backing is a sweep test
+# asserting a raw word (a layout, not a port). The kinds, in the order the
+# table prints them:
+#
+#   port      backed, and `crates/sim` consumes it (`is_port_backed`)
+#   replaced  not ported, in a layer the project replaced on purpose — the
+#             mark below, given per group on Ramon's word, reversible per
+#             group if a port is wanted after all
+#   layout    backed by a sweep alone: the offset identity, not a consumer
+#   name      unbacked; the crate defines the method's snake-case name
+#   open      unbacked, unmarked — the work
+#   dead/ui/op/cut  `is_dead_weight`, `is_ui_body`, an `operator`, `is_cut`
+#
+# `port + replaced + open-ish (layout + name + open) + excluded (dead + ui +
+# op + cut)` is the simulation layer whole; the `Territory:` line names the
+# first three against the layer's count. The mark never touches a ported
+# function (a port in a replaced layer stays a port) nor an excluded one.
+REPLACED_BY_DESIGN = (
+    # label, the stems marked whole, a name rule for functions marked by name
+    ("the command packaging and manager", frozenset(("commandpackage", "commandmanager")), None),
+    ("the turn pump", frozenset(("turncontrol", "timesync")), None),
+    # The engine's XML parser is the `engine` layer already; these are the
+    # simulation-layer bodies that walk a parsed document into a table —
+    # `ObjectType::load_support`, `Type::load_cost`, `Tribe::parse`,
+    # `Map::load_map_data` — which `crates/rondata`'s typed loaders replace.
+    ("the XML loaders", frozenset(),
+     re.compile(r"::(load_(map_data|from_config|from_playback|support|upgrade|cost|sound_tables|old_bh3)"
+                r"|parse(_cmd|_element)?|get_parse_name|set_parse_data|get_(abbrev|desc)_parsed)$")),
+    # The VM itself (`game\script\`) is the AI layer; in the simulation
+    # layer the VM's only hands are the map script's.
+    ("the scripting VM", frozenset(), re.compile(r"::(run_map_script|get_full_script_path)$")),
+    # `orders.cpp` is `walk_data`, `get_type`, the `get_*_order` casts and
+    # `copy_order`/`get_new_order`; an order's *semantics* live in
+    # `unit.cpp` and `groups.cpp`, which the mark does not touch.
+    ("the order classes' plumbing", frozenset(("orders",)), None),
+)
+
+TERRITORY_KINDS = ("port", "replaced", "layout", "name", "open", "dead", "ui", "op", "cut")
+TERRITORY_OPEN = ("layout", "name", "open")
+
+
+def replaced_group(stem, name):
+    """The `REPLACED_BY_DESIGN` label a simulation function falls under, or
+    None: by its source stem, else by its name."""
+    for label, stems, rule in REPLACED_BY_DESIGN:
+        if stem in stems or (rule is not None and rule.search(name)):
+            return label
+    return None
+
+
+def territory_kind(va, name, backed, port, spelled):
+    """A simulation function's kind before the mark (`TERRITORY_KINDS` less
+    `replaced`), by the same tests `rank_unbacked` and `is_port_backed`
+    apply."""
+    short = name.rsplit("::", 1)[-1]
+    if va in backed:
+        return "port" if (snake(short) in port and name in spelled) else "layout"
+    if "operator" in short:
+        return "op"
+    if is_dead_weight(name):
+        return "dead"
+    if is_ui_body(name):
+        return "ui"
+    if is_cut(name):
+        return "cut"
+    if snake(short) in port:
+        return "name"
+    return "open"
+
+
+def territory(index, docs, sim_src, pdb):
+    """The territory map: `(rows, funcs, totals, groups)` — `rows` `{stem:
+    Counter}` over `TERRITORY_KINDS` plus `bytes` and `open_bytes`; `funcs`
+    every simulation function as `(va, name, stem, kind, group)` with
+    `kind` after the mark and `group` the mark's label or None; `totals`
+    the Counter over kinds with `functions`; `groups` `{label: Counter}` of
+    what each replaced group covers, by the kind it would have had."""
+    full = index_entries(index)
+    by_name = {}
+    for va, name, _, _, _ in full:
+        by_name.setdefault(name, []).append(va)
+    source = source_of(source_ranges(pdb), [e[0] for e in full])
+    backed = doc_backed(docs, by_name) | sweep_backed(sim_src, by_name, os.path.join(HERE, "emu"))
+    port, spelled = port_names(sim_src), port_spellings(sim_src)
+    rows, funcs, totals, groups = {}, [], Counter(), {}
+    for va, name, _, size, _ in full:
+        path = source.get(va)
+        if layer_of(path) != "simulation":
+            continue
+        stem = path.rsplit("\\", 1)[-1].rsplit(".", 1)[0]
+        kind = territory_kind(va, name, backed, port, spelled)
+        group = replaced_group(stem, name) if kind in TERRITORY_OPEN else None
+        if group is not None:
+            groups.setdefault(group, Counter())[kind] += 1
+            kind = "replaced"
+        r = rows.setdefault(stem, Counter())
+        r[kind] += 1
+        r["bytes"] += size
+        if kind in TERRITORY_OPEN:
+            r["open_bytes"] += size
+        totals[kind] += 1
+        totals["functions"] += 1
+        funcs.append((va, name, stem, kind, group))
+    return rows, funcs, totals, groups
+
+
+def territory_line(totals):
+    """`Territory: simulation ported P · replaced by design R · open O of N`
+    — `open` is every function neither ported, replaced nor excluded
+    (`TERRITORY_OPEN`: layout-only, name-only, unmarked), the number the
+    territory map says is left."""
+    return (f"Territory: simulation ported {totals['port']} · replaced by design {totals['replaced']} · "
+            f"open {sum(totals[k] for k in TERRITORY_OPEN)} of {totals['functions']}")
+
+
+def print_territory(rows, totals, groups, top=None, as_json=False):
+    if as_json:
+        import json
+        print(json.dumps({"rows": {k: dict(v) for k, v in rows.items()}, "totals": dict(totals),
+                          "groups": {k: dict(v) for k, v in groups.items()}}, indent=1, sort_keys=True))
+        return
+    order = sorted(rows.items(), key=lambda kv: (-sum(kv[1][k] for k in TERRITORY_OPEN), kv[0]))
+    print("# the territory map — simulation functions by PDB source stem and what this port did with each "
+          "(Loop 3727); most open first")
+    print("# open = layout + name + open: neither ported, replaced by design, nor dead/ui/operator/cut")
+    print(f"{'stem':18} {'fns':>4} " + " ".join(f"{k:>8}" for k in TERRITORY_KINDS) + f" {'open b':>8}  replaced by design")
+    shown = order if top is None else order[:top]
+    for stem, r in shown:
+        label = replaced_group(stem, "") or ("by name" if r["replaced"] else "")
+        print(f"{stem:18} {sum(r[k] for k in TERRITORY_KINDS):4} " + " ".join(f"{r[k]:8}" for k in TERRITORY_KINDS)
+              + f" {r['open_bytes']:8}  {label}")
+    if top is not None and len(order) > top:
+        print(f"… {len(order) - top} more stems (--top)")
+    print(f"{'total':18} {totals['functions']:4} " + " ".join(f"{totals[k]:8}" for k in TERRITORY_KINDS))
+    print("# replaced by design, per group (Ramon's word, 2026-10-27; reversible per group): "
+          + "; ".join(f"{label} {sum(c.values())} ({', '.join(f'{k} {n}' for k, n in sorted(c.items()))})"
+                      for label, c in groups.items()))
+    print(territory_line(totals))
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="The executable as the denominator: the class census (default), the census by "
@@ -1155,6 +1301,10 @@ def main():
                          "those no other document cites, ending on the line a booking quotes (Loop 3415)")
     ap.add_argument("--pin", action="store_true",
                     help="read the traces rondata::blind::TRACES pins, from $RON_GAMELOG_DIR")
+    ap.add_argument("--territory", action="store_true",
+                    help="the territory map (Loop 3727): simulation functions by source stem as ported, "
+                         "replaced by design, layout-only, name-only, open, or dead/ui/operator/cut; "
+                         "--json for the same as JSON, --top N for the first N stems")
     ap.add_argument("--layers", action="store_true",
                     help="the census by layer with the backed column and the byte-weighted one, and the "
                          "board's number (item 1467) with its `Census bytes:` twin")
@@ -1189,6 +1339,10 @@ def main():
         ap.error("--write goes with --backed-list")
     if a.cites and not a.never:
         ap.error("--cites goes with --never")
+    if a.territory:
+        rows, _funcs, totals, groups = territory(a.index, a.docs, a.sim_src, a.pdb)
+        print_territory(rows, totals, groups, None if a.top == 40 else a.top, a.json)
+        return
     if a.layers:
         # The `entered` column needs traces (`--pin`, or logs given); with
         # none the table, the lines and the JSON are what they were.

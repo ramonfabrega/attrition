@@ -3791,52 +3791,26 @@ per waiter; a test red first on a log with no events.
 
 ## Loop, filed 2026-10-27 — the sixtieth pass's talk with Ramon
 
-Six rows from the steer with Ramon after the sixtieth pass (`docs/audit/2026-10-27-fable-pass-60.md`, "The talk"); the next
-steer takes them before the sixty-first is launched, in this order.
-
-(3727) **The scoreboard is rebuilt as a territory map** (Ramon, the sixtieth steer): the headline counters flatter — lockstep
-bytes count functions a whole game entered and say nothing of whether their outputs were compared, and the sweep count holds
-1,167 functions whose exact Rust copy lives in a test and not in `crates/sim`. The pass's scratch (`territory.py`, in its tmp)
-classifies every simulation function per source file as ported, layout-only, name-only, open, or marked dead/UI/operator/cut
-(529 / 1,167 / 4 / 452 / 1,459 on this tree). For the steer: graduate it into `tools/census.py` and `tools/rubric.py` as the
-scoreboard's first table; add a **`replaced by design`** mark, given per group on Ramon's word, for the layers the project
-replaced on purpose (the command packaging and manager, the turn pump, the XML loaders, the scripting VM, the order classes'
-plumbing) so they stop counting as missing — **Ramon's word, 2026-10-27 at the talk: all five groups take the mark**, reversible per group if a port is wanted after all; add an **entered × age matrix** from the `rontrace-run*.log` function coverage and
-each run's held age (which cell has the most never-entered functions is what the next capture stages); and a **per-unit-type
-state counter** off the dumps — seen, moved, attacked, died, boarded — beside "seen". The queue's `Rubric:` line is then this
-table's, and the braces' refill reads the matrix, not the age buckets.
-
-(3728) **The correction audit is pinned at zero on every whole pair** (the sixtieth pass, measured): on run69's 3,001 frames
-the RNG word installs changed nothing (0 of 14), the clock installs nothing (0 of 748) and seven of 560 gaia re-seats moved one
-animal — so that game ran on its own. The audit lives on the lab's `ReplaySession` only; the harness's `run_traced` reports
-installs in notes. For the steer: a test per whole pair that runs with the audit on and asserts `seed.changed == 0`,
-`clock.changed == 0` and names the re-seats, red first on a seeded break; the long pairs and the Modern lobbies first.
-
-(3729) **A staged late-age melee is a capture shape** (Ramon: "make all NPCs and let them hash it out"): the click-free lane
-already stages chat cheats from a `--cmd-file` (`add <unit> who= x,y`, `war`, `peace`, `tech`, `cheat age N`), fast-forwards
-with `--ffwd-minute`, and the engine's replicated cheats include `ai on|off`, `give_techs`, `increase_buckets` and `init_unit`
-(`docs/COMMANDS.md` 0x3b–0x43). A lobby at Modern with both slots AI, resources and techs granted, a dozen types spawned each
-side at the border and `war` at a chosen frame exercises combat, projectiles, deaths, air, AA and artillery in two thousand
-frames — one capture, a family. For the steer: the brief shape (a golden chapter's, `docs/GOLDEN.md`), the cheat arms the sim
-does not yet model (`ai_toggle`, `give_techs`, `increase_buckets` — each a widening row), and the first lobby booked off the
-matrix's emptiest cell.
-
-(3730) **Map generation comes into scope** (Ramon): it was never decided out — DATALAYER §3 took the start dump's cell grid on
-2026-08-24 and the loop inherited it — and a sim that cannot start a game is not a full sim; the renderer and a launcher need
-it. About 300 functions (terrain, mountains, rivers, cliffs, surf, fractal, terraingroups; 116 open or layout-only), with the
-best oracle in the project: 956 captured grids and the setup path's checksum trace, which is the RNG stream of setup. The one
-risk is float noise in the fractal, which entries 13 and 19 already govern. For the steer: a reading item on the generator's
-entry (`Map::make` is swept), then a port diffed against every grid on disk, as a chain of items after the Modern lobbies.
+Six rows from the steer with Ramon after the sixtieth pass (`docs/audit/2026-10-27-fable-pass-60.md`, "The talk"); five
+ruled by the sixtieth pass's sequel with their text kept in that record's "The sequel": **3727** (the scoreboard as a territory
+map) — **built**, `census.py --territory`, `rubric.py` tables 0 and 5, the `Rubric:` line's first three numbers, the state
+counter `rubric_states.py`; **3728** (the correction audit at zero on every whole pair) — **built**, `diff::audit`, 70 replays,
+the zero the start block's by construction; **3729** (the staged melee) — **written** as `docs/GOLDEN.md` §155 **and booked** as
+3733 in the matrix's emptiest cell; **3730** (map generation into scope) — **booked** as 3734, a reading lane after the Modern
+lobbies; **3732** (Astra's branches) — **retired**, the local branches deleted and the tips in `docs/lab/LEDGER.md`, the origin
+deletion Ramon's (the classifier refused it). One row stays:
 
 (3731) **The Python sweeps become one driver and a spec table** (Ramon): 1,699 generated unicorn scripts, 678 k lines, whose
 only content is each docstring's windows and argument edges; the rows they produce are cached outside the repo (23 GiB). For
 the steer: one driver reading one row per function (the windows, the edges, the stubs), the generated scripts deleted, and the
 layout-only sweeps of layers marked `replaced by design` deleted with their mark; the cache pruned to the functions the sim
 calls.
-
-(3732) **Astra's three September branches are retired** (the sixtieth pass): seven of the ten Codex branches are fully merged;
-`continuation-lab` (29 commits), `saved-tree-lab` (14) and `replay-allocator-lab` (8) hold September lab commits ten thousand
-behind. For the steer: cherry-pick their documents if any still reads true, then delete the branches (DECISIONS 60).
+ **The sixtieth pass's sequel**: **stays, a `sweep`-kind lane item for the sixty-second** — not in the sequel's opener, and
+tool work a lane does under a brief, not a steer: the mark it waits on exists now (`census.REPLACED_BY_DESIGN`, five groups,
+318 functions of which 264 layout-only sweeps are the ones to delete), the census pin (`census::SIMULATION_BACKED`) moves
+with the deletion and the lane re-pins it, and the territory's `replaced` count does not move (the mark counts functions,
+never sweeps). The driver's spec table is one row per swept function — windows, argument edges, stubs — read from the 1,699
+docstrings before they are deleted; the 23 GiB cache is pruned to the functions `crates/sim` spells.
 
 ## Loop, filed 2026-10-26 — the fifty-ninth tranche's
 

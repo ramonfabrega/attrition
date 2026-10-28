@@ -1,9 +1,10 @@
 # The rubric
 
 `tools/rubric.py` is a steering pass's holistic scorecard of how close
-this port is to a 1:1 simulation of the original: four tables, each from
+this port is to a 1:1 simulation of the original: six tables, each from
 data the tree or the machine's archive already holds, and one `Rubric:`
-line at the end. It is a measurement tool — it changes no score, pins
+line at the end — the territory's three numbers first (table 0, Loop
+3727), then bytes in lockstep, ages held and unit types seen. It is a measurement tool — it changes no score, pins
 nothing, and no gate runs it. Its rules are the module docstring's; this
 page says what each table means and what it does not.
 
@@ -42,6 +43,52 @@ On ``1f8f04ef9``'s tree every one of the 49 pinned games is whole: 99 runs,
 `cover=1` twins (run1016–run1022, run1024, run1062). The scored captures
 are `cover=0` — draw stream, setup and closing records — so the dumps
 of a game are its start, its closing block and whatever its twin printed.
+
+## 0. The territory
+
+**What it measures** (Loop 3727; Ramon at the sixtieth pass's talk,
+2026-10-27). Every simulation-layer function — the census's layer rule,
+3,611 functions — classified by what this port has done with it, per PDB
+source stem, in `tools/census.py --territory` (`census.territory`;
+`--json` for the same as data):
+
+- **ported**: backed, and `crates/sim` consumes it (`is_port_backed`: a
+  coverage section diffs it, or the crate spells the `Class::method`
+  outside `sweep/`);
+- **replaced by design**: not ported, in one of the five layers the project
+  replaced on purpose — **the command packaging and manager**
+  (`commandpackage`, `commandmanager`), **the turn pump** (`turncontrol`,
+  `timesync`), **the XML loaders** (the simulation-layer bodies that walk a
+  parsed document into a table: `Type::load_cost`, `Tribe::parse`,
+  `Map::load_map_data` and twelve more, by name), **the scripting VM** (in
+  this layer only the map script's hands; the VM itself is the AI layer),
+  **the order classes' plumbing** (`orders`: `walk_data`, `get_type`, the
+  `get_*_order` casts, `copy_order`; an order's semantics live in
+  `unit.cpp` and `groups.cpp`, untouched). **Every group took the mark on
+  Ramon's word at the talk**, reversible per group if a port is wanted
+  after all; `census.REPLACED_BY_DESIGN` is the list. The mark never
+  touches a ported or an excluded function;
+- **open**: neither ported, replaced nor excluded — a sweep-backed
+  **layout** (the offset identity asserted by a test, no consumer), a
+  **name** the crate defines without backing, or **unmarked**. This is the
+  work left;
+- **excluded**: dead weight, UI, operator, cut — the census's own marks.
+
+On this tree: **ported 529 · replaced by design 318 · open 1305 of 3611**
+(layout 903, name 4, unmarked 398; excluded 1459: dead 1160, UI 235,
+operator 57, cut 7). The replaced groups: the command packaging and
+manager 168 (layout 140, open 28), the order classes' plumbing 97 (94, 3),
+the turn pump 35 (23, 12), the XML loaders 15 (6, 9), the scripting VM 3
+(1, 2). The `Rubric:` line carries the three numbers first, pinned as
+`census::RUBRIC_TERRITORY_*`; the stems with the most open functions
+(`unit` 106, `groups` 99, `map` 79, `world` 73, `game` 59) are the table's
+head.
+
+**What it does not measure.** Ported is the census's `port` test: a
+consumer exists, not that its every predicate was checked (a ported
+function can still be wrong). Open counts a layout-only sweep as open
+because an offset identity is not a port — the number the old `Census:`
+line's `backed` flattered by 1,167. Bytes are the decompile file's size.
 
 ## 1. By mechanic
 
@@ -112,6 +159,23 @@ in a start dump has not fought, been trained or upgraded in a dump. The
 twenty-odd nation variants of one unit (`GRAPH` differs, `NAME` repeats)
 are separate types and are listed separately.
 
+**Table 3b, what each type did** (Loop 3727; `tools/rubric_states.py`,
+an Opus worker's at the sixtieth pass's sequel): in how many lockstep dumps
+a unit of the type was **seen** (table 3's rule), **moved** (its
+`x_internal`/`y_internal` differ between two unit snapshots with the same
+`uid`), **attacked** (a victim's `damage_frame` with `damage_o`/`damage_who`
+naming it — `do_damage`'s overkill record — or an `AMMO` record's shooter),
+**died** — printed by **no** lockstep dump (`DeathObjData::log_data`'s
+`DEATHS` record; the captures run `DEATHS=0`), so reported as not printed
+with **vanished** inferred beside it (a unit with a `uid` absent from the
+next whole snapshot; transports dissolving on landing are most of it) —
+and **boarded** (`inside_up` ≥ 0, a transport or a garrison). On this tree:
+**seen 229 · moved 199 · attacked 74 · died not printed (vanished 53) ·
+boarded 114** of 302. Blows on buildings are not counted (`BUILDDATA`
+prints no `damage_o`, so the siege lines read 0); the cache is
+`~/ron-data/rubric-states/cache.json`, 25 s cold, 0.3 s warm. Its totals
+line stands beside the `Rubric:` line and is not part of the pinned one.
+
 ## The denominator
 
 Of `unitrules.xml`'s 364 records, **62 are out of a skirmish's
@@ -178,12 +242,53 @@ whole game is what moves it. Entered is not checked: a function the
 original ran inside a lockstep game is one whose *effects* agreed with
 ours on the draw stream, never one whose every field a dump compared.
 
+## 5. Entered × age
+
+**What it measures** (Loop 3727, with table 0). Of each stem's **open**
+functions, how many no lockstep trace with coverage entered in a game
+that held each age — the ages table 2 reads off the dumps' `ages_get()`
+per run (`rubric.ages_by_run`), the coverage `census.entered_in` per trace
+(`entered_by_trace`: a trace counts only when it entered a function; a
+`cover=0` trace holds the five hooks and nothing else and places
+nothing). The header row says how many traces with coverage each age has;
+`never` is the open functions no trace entered at any age. The **emptiest
+cell** — the stem and age with the most never-entered open functions, ties
+to the later age — is what the next capture stages (Loop 3729, the melee;
+`docs/GOLDEN.md` §155), and the braces' refill reads this matrix rather
+than the age buckets alone.
+
+On this tree (the sixtieth pass's sequel, 235 lockstep traces, 21 with
+coverage: the long words run53 and run54, the battery twins run1016–1024
+and run1062, the pair twins run1176–1179, 1187, 1188, 1190, 1191, 1215 and
+1216): traces with coverage by age **Ancient 20 · Classical 1 · Medieval 2
+· Gunpowder 0 · Enlightenment 3 · Industrial 2 · Modern 2 · Information
+7**; never at any age 616 of the 1305 open (`groups` 76, `map` 43, `world`
+41, `unit` 39, `game` 31); **the emptiest cell is `unit` at Gunpowder, 106
+— the whole stem, because no coverage trace's game held Gunpowder**, and
+after it every stem at Gunpowder, then `groups` at Classical (78). The
+`unit` functions never entered at any age are the melee's targets:
+`do_board`, `do_await_board`, `do_garrison`, `do_group_attack`,
+`do_flee_to`, `do_form_change`, `think_hero`, `think_supply`,
+`check_meet_ship`, `air_alt_speed`, `kill_group_order` among the 39.
+run1176 carries coverage and no age (its dumps hold no leader record) and
+places nothing.
+
+**What it does not measure.** Entered is not compared (table 4's caveat);
+an age column rests on the few twins that hold it, so a column with one
+trace says what one game reached; and every run holds Ancient because the
+start block's leaders read `ages_get()` 0 before the lobby's age applies,
+which is why the Ancient column equals `never`.
+
 ## The headline
 
 From the fifty-second tranche the queue's headline is table 3's count —
 **unit types seen, of the skirmish types** — with the blind list's open
 rows kept as a floor (`docs/DECISIONS.md` entry 89, amended with Ramon;
-entry 90). **Seen means stood in a lockstep game's dump**: a `coverage`
+entry 90). **From the sixty-first the `Rubric:` line opens with table 0's
+three numbers** — `ported P · replaced by design R · open O of 3611` — and
+table 1's mechanics summary stays in the table and the ledger (Loop 3727,
+DECISIONS 100); the braces' refill reads table 5's matrix, not the age
+buckets alone. **Seen means stood in a lockstep game's dump**: a `coverage`
 item that takes a lobby for the units it puts on the map moves the count
 only once that lobby's game is a whole word — its own `cover=0` capture to
 the game's end, walked to its length, and its `cover=1` twin pinned in

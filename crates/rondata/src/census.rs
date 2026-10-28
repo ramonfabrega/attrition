@@ -303,6 +303,25 @@ pub const SIMULATION_FUNCTIONS: usize = 3611;
 pub const RUBRIC_GROUPS_FULL: usize = 36;
 /// The PDB's simulation source groups (a header with the `.cpp` of its stem).
 pub const RUBRIC_GROUPS: usize = 112;
+/// **The territory** (Loop 3727; Ramon, the sixtieth pass's talk):
+/// `tools/census.py --territory`, the scoreboard's first table — every
+/// simulation-layer function as **ported** (backed, and `crates/sim`
+/// consumes it), **replaced by design** (not ported, in one of the five
+/// layers the project replaced on purpose — the command packaging and
+/// manager, the turn pump, the XML loaders, the scripting VM, the order
+/// classes' plumbing — each group marked whole on Ramon's word of
+/// 2026-10-27, reversible per group), **open** (layout-only, name-only or
+/// unmarked: neither ported, replaced nor excluded), or excluded (dead
+/// weight, UI, operator, cut). The three sum with the excluded to
+/// [`SIMULATION_FUNCTIONS`]; the queue's `Rubric:` line carries them first,
+/// and the steering pass re-pins them with `tools/rubric.py --record`.
+/// The sixtieth pass's sequel: ported 529, replaced 318 (the command
+/// packaging and manager 168, the order classes' plumbing 97, the turn
+/// pump 35, the XML loaders 15, the scripting VM 3), open 1305 (layout 903,
+/// name 4, unmarked 398), excluded 1459.
+pub const RUBRIC_TERRITORY_PORTED: usize = 529;
+pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1305;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose
@@ -555,6 +574,8 @@ pub const RUBRIC_UNIT_TYPES_EXCLUDED: usize = 62;
 const _: () = assert!(
     RUBRIC_AGES_HELD <= 8
         && RUBRIC_GROUPS_FULL <= RUBRIC_GROUPS
+        && RUBRIC_TERRITORY_PORTED + RUBRIC_TERRITORY_REPLACED + RUBRIC_TERRITORY_OPEN
+            <= SIMULATION_FUNCTIONS
         && RUBRIC_UNIT_TYPES_EXCLUDED <= RUBRIC_UNIT_TYPES
         && RUBRIC_UNIT_TYPES_SEEN <= RUBRIC_UNIT_TYPES - RUBRIC_UNIT_TYPES_EXCLUDED
         && RUBRIC_LOCKSTEP_BYTES_TENTHS <= 1000

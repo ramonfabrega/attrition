@@ -343,11 +343,15 @@ mod tests {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
         let tenths = crate::census::RUBRIC_LOCKSTEP_BYTES_TENTHS;
+        // Loop 3727: the territory's three numbers lead the line; table
+        // 1's mechanics summary stays in the table and the ledger.
         let want = format!(
-            "Rubric: mechanics {} of {} at 100 % \u{b7} lockstep bytes {}.{} % \u{b7} ages held {} of 8 \
-             \u{b7} unit types seen {} of {}",
-            crate::census::RUBRIC_GROUPS_FULL,
-            crate::census::RUBRIC_GROUPS,
+            "Rubric: ported {} \u{b7} replaced by design {} \u{b7} open {} of {} \u{b7} lockstep bytes {}.{} % \
+             \u{b7} ages held {} of 8 \u{b7} unit types seen {} of {}",
+            crate::census::RUBRIC_TERRITORY_PORTED,
+            crate::census::RUBRIC_TERRITORY_REPLACED,
+            crate::census::RUBRIC_TERRITORY_OPEN,
+            crate::census::SIMULATION_FUNCTIONS,
             tenths / 10,
             tenths % 10,
             crate::census::RUBRIC_AGES_HELD,
