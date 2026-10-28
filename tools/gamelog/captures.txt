@@ -11066,3 +11066,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1411  run1399's line with --ai-tribe 1 and run1410's lobby   (the draw stream; ended itself on 3330)
 #   run1411b --map 14 --end-frame 3330 --allow-early-end --timeout 3600 --log-window 3075 3331 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 1 --cover cover=0, run1410's lobby   (the closing window)
 # Checks: `rngcmp.py` run1410 vs run1411 -> 37 identical; run1411 vs run1411b -> 3331 identical.
+# ==== item 3733: the first melee, a held Gunpowder age on Great Sahara (`docs/GOLDEN.md` §149; `docs/RUNS.md` run1412, run1413, run1413b) ====
+#   run1412  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7   (start)
+#   run1413  --map 7 --end-frame 2600 --timeout 3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file tools/gamelog/golden/melee-gunpowder.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1, run1412's profiles   (the staged melee)
+#   run1413b run1413's line with --cover cover=1   (the coverage twin)
+# Checks: `rngcmp.py` run1412 vs run1413 -> 37 identical; run1413 vs run1413b -> 2601 identical; `samegame.py` run1413 vs run1413b -> 26 common, 0 differing.

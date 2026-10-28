@@ -59,6 +59,43 @@ pub struct Built {
     /// Each simulation unit type's own id, so a queue entry holding a unit
     /// can be turned into a `TypeIndex` through `type_index` above.
     pub unit_tree: Vec<usize>,
+    /// **A chat script this walk stages itself** (item 3733, the first
+    /// melee): [`Built::tick`] runs [`crate::golden::Script::stage`] at
+    /// each frame's head, as the golden walk does by hand, so a pair-shaped
+    /// walk or widening of a staged lobby stages it with no argument of
+    /// its own. Installed by [`build_sim`] inside [`with_staged_script`];
+    /// `None` on every other walk.
+    pub staged: Option<Staging>,
+}
+
+/// [`Built::staged`]: the script, the tables its `add` lines read, and what
+/// it has done so far.
+#[derive(Clone, Debug)]
+pub struct Staging {
+    pub script: crate::golden::Script,
+    pub loaded: std::sync::Arc<Loaded>,
+    pub applied: crate::golden::Applied,
+}
+
+thread_local! {
+    static STAGED_SCRIPT: std::cell::RefCell<Option<crate::golden::Script>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Run `f` with `script` handed to every [`build_sim`] on this thread
+/// (item 3733): the walk and the widening stand their own simulation up,
+/// and this is how a staged lobby reaches it without a parameter.
+#[cfg(test)]
+pub(crate) fn with_staged_script<R>(script: crate::golden::Script, f: impl FnOnce() -> R) -> R {
+    struct Clear;
+    impl Drop for Clear {
+        fn drop(&mut self) {
+            STAGED_SCRIPT.with(|s| *s.borrow_mut() = None);
+        }
+    }
+    STAGED_SCRIPT.with(|s| *s.borrow_mut() = Some(script));
+    let _clear = Clear;
+    f()
 }
 
 /// A sim guy from a dump's `GUY` record, when the record carries the
@@ -1097,6 +1134,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             .map(|id| loaded.type_index(id))
             .collect(),
         unit_tree: loaded.unit_tree.clone(),
+        staged: STAGED_SCRIPT
+            .with(|s| s.borrow().clone())
+            .map(|script| Staging {
+                script,
+                loaded: std::sync::Arc::new(loaded.clone()),
+                applied: crate::golden::Applied::default(),
+            }),
     }
 }
 
@@ -1512,6 +1556,11 @@ impl Built {
     /// That is a correction, and it is noted as one; the counts are the
     /// number each modelled draw site moves.
     pub fn tick(&mut self) {
+        if let Some(mut st) = self.staged.take() {
+            let did = st.script.stage(self.sim.frame, self, &st.loaded);
+            st.applied.merge(&did);
+            self.staged = Some(st);
+        }
         let frame = self.sim.frame;
         let word_before = self.sim.rng.seed;
         self.sim.tick();

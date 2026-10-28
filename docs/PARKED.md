@@ -12104,13 +12104,25 @@ Its chain runs through 3669a's American aircraft discount. 3669a named no score;
   on who=1's units are also in the window (`1/43` on 3130, `1/19` on 3151, `1/106` on 3283). No draw reads any
   of them.
 
-## Parked by the next landing, slot VH — reserved
+## Parked by item 3733, 2026-10-28 — the first melee
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3733a. `tech who=N all on` is not modelled by `crate::golden`.** `ConsoleWin::run_cmd`'s `tech` case reads
+  `all` as its own token (`local_4c = -2`). It walks every `TypeIndex` below `0x326`: an `is_tech_type` type
+  (`0x220..0x274`, `TypeData::is_tech_type@004706c0`, read in the PE) takes `Leader::gain_tech`, and every
+  other type's bit is set in the leader's `tech` (`LeaderData +0x6c0c`, `BitMask<806>`) with no gain. Here
+  `Cheat::Tech` takes `all` for a prefix of a technology's name. The melee does not stage it, because the
+  seven ages are `0x220..0x226` and the line would lift a held age to Information (`docs/GOLDEN.md` §149). It
+  names no score: build it when a script stages the line.
+- **3733b. Tables 4 and 5 of `rubric.py` read a coverage trace only when its game is whole.** run1413b is the
+  first coverage trace of a game that holds Gunpowder. It enters 54 of the `unit` stem's 106 open functions there,
+  but `lockstep_files` reads whole games alone, so the matrix's Gunpowder column and the 77.4 % do not move until
+  the melee runs whole to 2600. It is the rule as written, not a fault: it names the melee's word as the lever
+  for both.
+- **3733c. None of the `never` column's 39 `unit` rows is entered by the melee**: `do_board`, `do_garrison`,
+  `do_group_attack`, `do_flee_to`, `think_hero`, `think_supply` and the rest stay out, although a General, The
+  Monarch and a Supply Wagon were staged on each side. That is 0 of the 616 never-entered open functions across
+  all stems. Great Sahara has no sea, so a ship can reach none of the boarding rows. Which predicate keeps
+  `think_supply` and `think_hero` from a staged wagon and hero is a reading for a chapter that stages them.
 
 ## Parked by the next landing, slot VI — reserved
 

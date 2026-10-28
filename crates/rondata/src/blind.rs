@@ -523,6 +523,12 @@ pub const TRACES: &[&str] = &[
     // (`docs/RUNS.md` run1216): run1181's game on every frame (rngcmp 4760
     // identical, 0 differing) — the sea map's age-2 Medieval line.
     "rontrace-run1216.log",
+    // Item 3733: the first melee (Great Sahara, three seats, a held
+    // Gunpowder age, `tools/gamelog/golden/melee-gunpowder.cmd`) at
+    // `cover=1` on the click-free pool, to 2600 (`docs/RUNS.md` run1413b):
+    // run1413's game on every frame (rngcmp 2601 identical, 0 differing) —
+    // the first coverage trace of a game that holds Gunpowder.
+    "rontrace-run1413b.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked

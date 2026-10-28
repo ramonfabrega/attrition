@@ -33038,6 +33038,70 @@ SHA-256 `5950d8ce72a97a917ab133e3a500ef431886748af998e38f933b326c8f5c91f3`.
 340 blocks, 1392 keys, no round on either side. The Airbase `1/2021`'s Jet Fighters are queued at 89 in ours against
 71 in theirs from 2295, and who=1's make list parts on 2384.
 
+## run1412 — the first melee, a held Gunpowder age on Great Sahara: the `DUMP_ALL` start (2026-10-28, item 3733, `att-3733`)
+
+`docs/GOLDEN.md` §149. **What the disk could not answer**: no capture on disk holds a three-seat game at a held
+Gunpowder age, the owner grid the squads' placement is read from, or the frame-0 `diplos` falsifier (a). The run
+went through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1412 --map 7 --end-frame 36 --timeout
+1200 --dump-all-start --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7`.
+- Pool lane 1. Launched 13:50:31, exited 13:50:55 (24.0 s launch to exit). `success`, 37 frames. The receipt
+  lists three seats: who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 11) and who 2 (flags 1, tribe 2). Map style
+  7, seed 12345. It reads `page_faults` 0 and no `relaunches`. Filed with `filerun.py run1412
+  greatsahara-gunpowder-melee-start`. `df -g ~` read 137 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1412-greatsahara-gunpowder-melee-start.txt`, 153,286,798 bytes,
+SHA-256 `9feda24e30100b23c76c02ab9200a8e9830e9ba584cffd29eac37f1d82363d35`.
+
+Archive `rontrace-run1412.log`, 8,473,152 bytes,
+SHA-256 `a01902affdff9cc5c5e970ccc9cc05e8be8c921b55a88312b53b4151ed05141a`.
+
+**What it holds**: the melee's initial state, which `gunpowder_melee_staging_walk` and
+`gunpowder_melee_first_parting` start from. In its start block every seat reads `diplos` 0 to both others.
+
+## run1413 — the first melee, a held Gunpowder age on Great Sahara: the staged script to 2600 (2026-10-28, item 3733, `att-3733`)
+
+`docs/GOLDEN.md` §149. **What the disk could not answer**: no capture on disk holds a staged melee, or any
+computer-versus-computer fight at Gunpowder. The run used run1412's lobby with `--end-frame 2600 --timeout 3600
+--allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file
+tools/gamelog/golden/melee-gunpowder.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1. Launched 14:02:09, exited 14:02:34 (24.2 s launch to exit). `success`, 2601 frames. It reads
+  `page_faults` 0 and no `relaunches`. `rngcmp.py` against run1412: 37 identical. `cmdsran.py`: 30 parsed and 30
+  ran, every one returning 1. Filed with `filerun.py run1413 greatsahara-gunpowder-melee-trace`. `df -g ~` read 135
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1413-greatsahara-gunpowder-melee-trace.txt`, 18,919,905 bytes,
+SHA-256 `dbfdc672d329bf640279dd39e29f5b4f610b6ba686aecc294bd23e5d4bd916a0`.
+
+Archive `rontrace-run1413.log`, 46,561,472 bytes,
+SHA-256 `9b5a955f9059f49274184a4a79211b3b2535bf0a0ac1bda02ae371b5eea503f2`.
+
+**What it holds**: the melee's first try, **182 of 2600** (`gunpowder_melee_first_parting`). Its stride 101..432 is
+the word's widening (`gunpowder_melee_run1413_s_word_window_is_widened_whole`), which reads 4 blocks and 224 keys.
+It also holds falsifiers (b) to (d).
+
+## run1413b — the first melee, a held Gunpowder age on Great Sahara: the `cover=1` twin (2026-10-28, item 3733, `att-3733`)
+
+`docs/GOLDEN.md` §149. **What the disk could not answer**: no coverage trace on disk holds the Gunpowder age. The run
+used run1413's line with `--cover cover=1`.
+- Pool lane 1. Launched 14:04:24, exited 14:04:48 (23.9 s launch to exit). `success`, 2601 frames, with 6,839
+  `HIT`. It reads `page_faults` 0 and no `relaunches`. `rngcmp.py` against run1413: 2601 in common, 0 differing.
+  `samegame.py`: 26 blocks in common (1..2501), 0 differing. Filed with `filerun.py run1413b
+  greatsahara-gunpowder-melee-cover1`. `df -g ~` read 135 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1413b-greatsahara-gunpowder-melee-cover1.txt`, 18,919,904 bytes,
+SHA-256 `ad0e372ac04f239f3033702715affbf5ad0197b069607c07415b443ec489cc49`.
+
+Archive `rontrace-run1413b.log`, 46,771,904 bytes,
+SHA-256 `d938e66df6d00dd2571574283271f2a2c8b1d139a5e192085ad86d5aff223141`.
+
+**What it holds**: the trace `blind::TRACES` pins. It enters 54 of the `unit` stem's 106 open Gunpowder functions
+and no `NEVER` row. The matrix does not move until the melee runs whole (parked 3733b).
 ## run1434 — the Americans at a held Information age, Great Lakes: the word 3653's window, a dead take (2026-10-28, item 3755, `att-3755`)
 
 `docs/AI.md` §372.1. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1434 --map 14 --end-frame 3903

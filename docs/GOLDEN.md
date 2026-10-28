@@ -13900,12 +13900,89 @@ caller, which has the same body on the defensive personality's script.
 **Coverage.** The four bullets above are diff-backed by run1068's `U3` blocks against run1068b. The `push_group`
 reading of gap 2 rests on the export (`citizen_repair_order@009f85b0`) and the dumped `group` values.
 
-## 149. Reserved for the next item on the rules track
+## 149. The first melee — a held Gunpowder age on Great Sahara, every seat a computer (item 3733, run1412, run1413, run1413b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** §155's shape, staged in the matrix's emptiest cell on the base tree. `rubric.py --tables 2,3,4,5`
+on `0d60332f` names **`unit` at Gunpowder, 106 open functions**, with no coverage trace holding the age.
+The lobby is `--map 7 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7`, seed 12345. That seats the idle human Nubians (who 0, tribe 4), British (who 1, tribe 11,
+London) and Inca (who 2, tribe 2, Cuzco). The three takes are run1412 (the `DUMP_ALL` start), run1413 (the staged
+melee to 2600, `cover=0`) and run1413b (its `cover=1` twin). The capture lines are in `docs/RUNS.md`.
+
+**1. The premise.** Twelve of the age's types per computer, plus the age's two never-seen Nubian lines on the human,
+who is at war with both computers. The units are funded and left to fight under the computers' own target selection.
+Gunpowder's never-seen lines are 176 Apedemak Archers, 193 Camel Raider (both Nubian) and 332 Fluyt (Dutch). None
+can be fielded by who 1 or who 2, so the two Nubian lines go on who 0.
+
+**2. The script**, `tools/gamelog/golden/melee-gunpowder.cmd`, 28 lines:
+- `600 resource who=1 all +100000` and `602 resource who=2 all +100000`.
+- Twelve `add` twins, two frames apart from 610 to 656: Arquebusiers, Elite Pikemen, Dragoon, Elite Light
+  Cavalry, Heavy Knight, Bombard, Supply Wagon, General, Spy, Explorer, The Monarch, and the nation's own line
+  (King's Yeomanry for who 1, Inti Macemen for who 2).
+- `658 add apedemak_archers who=0 86,81` and `660 add camel_raider who=0 90,81`.
+
+*Placement.* §155 asks for the border cell both capitals reach, and on this map there is none. In run1412's
+frame-0 owner grid, London's territory runs over cells x 24–45, y 0–17, and Cuzco's over x 0–18, y 28–49. So the
+squads stand in the open land between the two: who 1 on tile row 76, who 2 on row 86, x 66..110.
+
+*The `tech who=N all on` lines are not staged.* `ConsoleWin::run_cmd@007d6a70`'s `tech` case reads `all` as its
+own token (`local_4c = -2`) and walks every type below `0x326`. A type that passes `is_tech_type` takes
+`Leader::gain_tech`, and every other type's bit is set in `LeaderData +0x6c0c` (`tech`, `BitMask<806>`). The PE's
+`TypeData::is_tech_type@004706c0` reads `0x21f < type < 0x275`. It was read with `llvm-objdump`, because every type
+vtable's slot `0x28` folds to the one function. The seven ages, `0x220..0x226` in `crates/sim/src/tech.rs`, are
+inside that range. So the line would gain all seven ages, lift the held age to Information and empty the cell the
+item is booked on. The premise does not need the techs: `add` places the units and the lobby holds the age. The
+crate's `Cheat::Tech` reads `all` as a name prefix, which does not match this arm (parked 3733a).
+
+**3. The records.** The `start:` set as every chapter. `end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5` on `--stride 100`,
+with `misc:CHECKSUM=2` and the `endgame:` set at `cover=0`. Then the same script and lobby at `cover=1`.
+
+**4–5. The falsifiers, and where each was read.**
+- **(a) At war on frame 0: not fired.** In run1412's start block, every leader reads `diplos` 0 to both others and
+  2 to itself. All three seats are mutually at war, the idle human included, with no `war` line.
+- **(b) No target by 900: not fired.** On block 701, `2/14` (Arquebusiers) carries an `ATTACKORDER` on who=1's
+  `o` 14. The Dragoons `1/20` and `2/20` and the Heavy Knights `1/22` and `2/22` carry `ATTACKTOORDER`s. `0/14`
+  (Apedemak Archers) attacks `1/23`, the British Bombard. By 801 the squads sit under `GUARDORDER`s on their own
+  sides' 1/23 and 2/23.
+- **(c) Resources unspent: not fired.** The start block reads `bucket` 20,000 a good (10,000 on one). Both
+  `resource` lines returned 1. In the closing block 2601, who 1's buckets read 369, 248, 813, 442 and 482, and
+  who 2's read 52, 150, 44, 416 and 152. No leader record prints between 600 and the close, so this is the
+  outcome, not the grant itself.
+- **(d) A type refused by `add`: not fired.** All 28 lines returned 1 (`cmdsran.py`: 30 parsed, 30 ran, counting
+  the runner's `!ffwd` on 37 and `!quit` on 2600).
+- **(e) `tech all` lifts the held age**: settled from the PE before the run, and not staged (above).
+
+**The harness.** `crate::diff::setup::Built` carries `staged: Option<Staging>`, and `Built::tick` runs
+`Script::stage` at the frame's head before the tick. `with_staged_script` (test-only) installs it for `build_sim`.
+`gunpowder_melee_staging_walk` walks run1412's start to 700. It reads 28 lines ran, 40 units, and 0 carried and not
+acted on, with each `add` landing near its ask.
+
+**The score: first try 182 of 2600**, count and sequence together (`gunpowder_melee_first_parting`). This is
+before the script's first line, so the walk parts on the unstaged three-seat lobby. On 182, ours spends 51 draws
+against theirs' 49, and indices 0–39 agree. At index 40 ours spends two `GameAccess::rnd+0x20 < Unit::do_job+0x67`
+for the human's Citizen `0/4`, which is on a `Gather` of building 5 at (39288, 36600). Theirs goes straight to the
+`Guy::set_anim+0x97a` that ours draws third. Ours acted and theirs did not.
+
+The widening is `gunpowder_melee_run1413_s_word_window_is_widened_whole`, over run1413's stride 101..432: 4
+blocks and 224 keys, with rounds read (0, 0). The word's own unit parts first. On block 201, `0/4` reads `pos`
+(39096, 36408) in ours against (39288, 36600) in theirs, and ours' heading and mirror are those theirs reaches on
+301. So ours is one gather leg ahead. The rest of the keys are the standing families: `form`, `build:extra`, the
+`group:*.held` pair, and `gaia:cur_anim`/`cur_time` missing.
+
+**The twin.** `rngcmp.py` run1413 → run1413b: 2601 in common, 0 differing. `samegame.py`: 26 blocks in common
+(1..2501), 0 differing. run1413b's trace enters **54 of the `unit` stem's 106 open Gunpowder functions**, but
+none of the `never` column's 39 `unit` rows (parked 3733c). The matrix and the lockstep bytes do not move, because
+`rubric.py`'s `lockstep_files` counts whole games alone (parked 3733b). The bytes stay at 77.4 %, and
+`RUBRIC_UNIT_TYPES_SEEN` stays where it was. `blind::TRACES` pins run1413b, and the blind list stays at 249.
+
+**What is not established.**
+- Why ours' Citizen `0/4` acts on 182 and theirs does not. That is the next word.
+- Every frame past 182: the melee itself, its kills and its projectiles, is not yet compared.
+- The British and Inca buckets between the grant and the close.
+- The `tech all` arm in the crate (3733a).
+
+**Coverage.** Falsifiers (a)–(d), the twin and the score are diff-backed by the three takes' dumps and traces.
+(e) and the `is_tech_type` range rest on the export and the PE listing.
 
 ## 150. Reserved for the next item on the rules track
 

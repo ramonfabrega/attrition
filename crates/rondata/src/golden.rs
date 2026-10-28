@@ -2386,6 +2386,8 @@ mod tests {
         ("chapter97.cmd", &[]),
         ("chapter98.cmd", &[]),
         ("chapter99.cmd", &[]),
+        // Item 3733: `resource` and `add` only (GOLDEN §149).
+        ("melee-gunpowder.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
@@ -3208,6 +3210,7 @@ mod tests {
             type_index: vec![],
             unit_type_names: Vec::new(),
             unit_tree: vec![],
+            staged: None,
         };
         let refused = |built: &Built, text: &str| {
             refused_object(built, &parse_issuer(text).expect("an issuer line"))
