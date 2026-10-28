@@ -695,6 +695,11 @@ impl Sim {
         let mut decoys = 0;
         let mut aa = 0;
         for &u in &units {
+            if std::env::var("RON_PROBE_3763").is_ok() && (self.frame == 760 || self.frame == 759) {
+                let x = &self.units[u];
+                eprintln!("  PROBE f{} norm {who}/{slot} {}/{} ty {:?} captain {} up {:?} down {:?} caster {} supply {} decoy {}", self.frame, x.owner, x.index, x.ty.map(|t| self.unit_types[t].name.clone()), self.is_captain(u), x.o_up, x.o_down,
+                    x.ty.is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::CASTER)), self.is_supply_wagon(u), x.decoy);
+            }
             let captain = self.is_captain(u);
             captains += i32::from(captain);
             if self.units[u].decoy {
