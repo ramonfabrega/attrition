@@ -12172,13 +12172,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VM — reserved
+## Parked by item 3738, 2026-10-28 — the Tiger's and the Scout Car's turrets, the German Modern word 4077 → 4299
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3738a. The Volksgrenadier `1/49`'s `dest_angle` parts alone on 4103** (`docs/AI.md` §366.1; run1397b). TI 109,
+  `INFANTRYGERMAN`, on a `GUARDORDER` at (3912, 34488): ours −1204224000, theirs −535232512. No other field of the
+  unit parts there, and no `pos` follows. It spends no draw the word reads. The writer of a guarding unit's
+  `dest_angle` with no move is unread.
+- **3738b. run1417's packet loads four more pieces that `pivot` holds no row for** (§366.1). A scan of pieces
+  100..320 names 222 and 233 (`RData +0x88` 0.8), 242 (0.765) and 254 (0.85). `FLAKGUNGERMAN` (TI 283, scale 0.8)
+  carries `<RESTRICTION node="4">` and is one of 222 or 233, unconfirmed. `get_position.py … entries <piece>` on
+  `~/ron-golden/run1417/map-14/frame-snapshot.bin` reads each in a minute. No round of these types parts in the
+  word's window, so this names no score.
 
 ## Parked by the next landing, slot VN — reserved
 
