@@ -529,6 +529,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 7, 4)`, `(18, 7, 5)`, `(7, 7, 4)` or `(7, 7, 5)`, nor the
     // held-out `EastIndiesEgyptianTier3`'s `(18, 7, 3)`, all other maps.
     (14, 7, 4),
+    // The Americans at a held Information age, Great Lakes at 5 (item
+    // 3725, `diff::american_information_pair`), minted under rule (3) —
+    // not `american_lakes_word`'s `(14, 20, 4)`, this map at another
+    // difficulty, nor `(18, 20, 1)`, `(18, 20, 5)`, `(7, 20, 3)` or
+    // `(7, 20, 5)`, other maps; the battery fields no Americans.
+    (14, 20, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

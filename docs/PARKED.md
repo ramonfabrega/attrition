@@ -12079,13 +12079,11 @@ Neither row below names a score on its own.
 Nothing parked: run1407's stride parts on the standing families alone, and every row of run1407b's widening up to
 the word is the word's own chain (`docs/AI.md` §371).
 
-## Parked by the next landing, slot VF — reserved
+## Parked by item 3725, 2026-10-28 — the Americans at a held Information age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the pair lands at its first parting, 2385 of 4320, and its word books by frame (`docs/AI.md` §372).
+Its chain runs through 3669a's American aircraft discount. 3669a named no score; here the Airbase's Jet Fighters
+(295) cost 89 in ours against 71 in theirs on the word's own window, and who=1's make list parts on 2384.
 
 ## Parked by the next landing, slot VG — reserved
 

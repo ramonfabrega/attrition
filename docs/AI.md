@@ -36584,12 +36584,91 @@ exits 101 with piece 52's rows out.
   has not been run for it). The walk is whole without them.
 - Pieces 52 and 89 have `-AGE0` art only, so no other age bracket's rows are owed.
 
-## 372. Reserved for the next item on the AI track
+## 372. The Americans at a held Information age, Great Lakes: first try 2385 of 4320 (item 3725)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3725, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4). §367's lobby with the nation moved:
+`MAP_STYLE 14`, human Nubians (4) against the **Americans (20)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1408 (a `DUMP_ALL` start) and run1409 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 4320. The walk is seeded from run1408's initial state (3506a). `diff::american_information_pair`
+pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 20, 5)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Americans. The American lobbies already pinned are `american_lakes_word`'s `(14, 20, 4)`
+(this map, another difficulty), `american_word`'s `(18, 20, 1)`, `american_enlightenment_pair`'s `(18, 20, 5)`,
+`american_modern_pair`'s `(7, 20, 3)` and `american_industrial_pair`'s `(7, 20, 5)` (other maps).
+`american_information_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 2385 of 4320**, by the count and the sequence. On 2385 ours spends **9 draws against theirs' 10**,
+parting at index 6 (`report.py rontrace-run1409.log draws 2385`). Both open on who=1's production
+(`Leader::production_ai` < `Leader::make_stuff`): the head's expiry (`make_stuff+0x221`, `SITE_EXPIRE_HEAD`), then
+the slot loop's expiries (`make_stuff+0x63d`, `SITE_EXPIRE_SLOT`) — **five in ours, six in theirs**. Then a
+`Guy::set_anim+0x97a` under `Unit::inc_time+0x3e` and two farm draws on both sides. The head both sides buy is the
+**Supply Wagon** (TI 64, `SUPPLYWAGONAMER`; `RON_DEBUG_MAKE=2385`: `num` 1, cost 120 food and timber, paid).
+**Theirs acts: its slot loop expires one slot more.** The expiry walk draws once for each later slot holding the
+bought type, so theirs' list holds one more such slot, or buys one more.
+
+**The direction: who=1's make list parts on block 2384, a frame before the word.** `MAKE[3]` reads `t` −1, `num` 1,
+`escrow` 1 in ours against the **Jet Fighter** (TI 295, `JETFIGHTER`, air), `num` 10, `escrow` 0, in theirs, and
+`MAKE[2].val` reads 180836 against 191072. On 2386, ours' `MAKE[5]` still holds the Citizen (50) where theirs has
+expired it, and theirs' `MAKE[10]` holds 575.
+
+**Behind it, a price, standing from the window's first block.** On block 2295, the Airbase `1/2021` (`orig_type`
+447, `0x1bf`) queues four Jet Fighters. Their `cost[0]` and `cost[1]` read **89, 91, 93, 95 in ours against 71, 73,
+75, 77 in theirs**. who=1's wealth and oil buckets read 17727 against 17799 and 17415 against 17487, so theirs is
+**72 richer: 4 × 18**, the queue's own gap. `TypeData::get_cost@00664090:268`–`281` is the American aircraft arm. An
+American leader (`has_tribe_bonus(0x14)`) takes `AMERICANS_AIRCRAFT` (20 %, `rules.xml`) off a type whose trainer
+is `0x1bf`, then again for `is(0x15f, 0)` and for `is(0x134, 0)` through `this`'s vslot `0x60`. This crate carries
+none of it (`docs/NATIONS.md` §4.4: "not carried"; parked 3669a). **3669a named no score; on this pair it sits on
+the word's chain.**
+
+**Where the arm sits in the price: before the ramp.** This is a reading of the two queues, not of the listing. Both
+sides step by 2 a queued unit. A 20 % taken after the ramp would read 71, 72, 74, 76; 71, 73, 75, 77 is 20 % off the
+base with the ramp added after it. 3669a's Biplane fits the same placement, which 3669a could not: 107 in ours and
+90 in theirs is a base of 85 and a ramp of 22 (85 + 22 = 107; 68 + 22 = 90). The arm's three predicates (the
+`0x1bf` trainer and the two vslot `0x60` lineages) and whether two of them can stack on one type are not read here.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2295 | the Airbase `1/2021`'s `queue[0..3]` (Jet Fighter, 295) | `cost[0]`, `cost[1]` | 89, 91, 93, 95 | 71, 73, 75, 77 |
+| 2295 | who=1's leader | `bucket[2:wealth]`; `bucket[5:oil]` | 17727; 17415 | 17799; 17487 |
+| 2384 | who=1's `MAKE[3]` | `t`; `num`; `escrow` | −1; 1; 1 | 295; 10; 0 |
+| 2384 | who=1's `MAKE[2]` | `val` | 180836 | 191072 |
+| 2385 | the draw stream, index 6 | site | `Guy::set_anim+0x97a` | `Leader::make_stuff+0x63d` |
+
+**The windows:**
+- **The stride** (run1409, 101..2301): 23 blocks and **78 keys**, the standing families alone (`build:extra` 40,
+  `form` 27, who=1's groups 64..68 and their pools 10, `1/14`'s `g.angle[0]` from 401). The stride prints no
+  building or leader record, so it cannot say when the queues parted.
+- **The word's widening** (run1409b, 2295..2635, walked from run1408 with every round compared): 340 blocks and
+  **1392 keys**, the two `gaia:` keys unprinted. **No round flies** on either side: `AMMO=5` was staged and none
+  prints (rounds read 0 against 0). Block 2295 carries 63 standing rows, the price rows above among them. Past them,
+  the first rows are group 68's `held` on 2348 and the make list on 2384.
+- **The closing state** (run1409's block 4321) is a floor: 136 units, counts `[118, 0, 7, 5, 145, 0, 63]`, nothing
+  torn or unlinked, ours' `1/128`..`1/134` extra.
+- **`GROUND_INEXACT`**: none of the six walks makes an inexact height read, so no row is named.
+
+**The cast** (`rubric.py --tables 3 --dumps` on run1408, run1409 and run1409b): the booking's **`Assault Marines`
+(122, `ASSAULTMARINES`) is fielded** (2112 guy records, moved, never attacked). The generic **`Jet Fighter` (295)**
+is fielded too (716). **The four booked Information air lines are not**: the Advanced Fighter (301), the Stealth
+Bomber (306), the Jet Fighter Bomber (309) and the Cruise Missile (314) never appear. The Strategic Bomber (305), the
+Abrams (254), the MLRS (273), the Avenger (284) and the Nuclear ICBM (316) do appear. The Americans field 23 types.
+None is lockstep: the pair parts.
+
+**The booking for the next item**: frame 2385, ours 9 draws against theirs' 10, index 6, theirs' sixth
+`Leader::make_stuff+0x63d`. **The hypothesis** is `get_cost`'s American aircraft arm, taken before the ramp: the
+Airbase's Jet Fighters cost 20 % less in theirs, and the make list keeps the fighter in slot 3. **Its killer**: with
+the arm built, the Airbase `1/2021`'s `queue[0].cost[0]` on block 2295 still reads 89 against 71, or who=1's
+`MAKE[3]` on 2384 still reads `t` −1. Either one kills the arm as the cause of this word, whatever it does to
+3669a's Biplanes. **The instrument** is run1409b's block-2295 `BUILDQUEUE` and the `LEADERDATA` make list on
+2384..2386. Nothing on disk prints a building record between the start and 2295 to say when the queues parted; a
+`BUILDS=7` stride would.
+
+I built nothing. The residue is the next item's.
 
 ## 373. Reserved for the next item on the AI track
 
