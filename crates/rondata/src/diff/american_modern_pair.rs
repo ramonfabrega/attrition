@@ -284,7 +284,10 @@ fn american_modern_pair_run1151b_s_word_frame_is_widened_whole() {
     // theirs 710507) before the Airbases `1/2022` and `1/2025` queue at
     // ours' dearer price on 2186 (`queue[0].cost[0]` ours 89, theirs 71;
     // `docs/AI.md` section 302).
-    pin_eq!(w.firsts.len(), 72, "run1151b baseline");
+    // Item 3755: 72 → 57, `get_cost`'s American aircraft arm built —
+    // the Airbase's fighters and the buckets with them agree; the Bomber
+    // (304) still reads 67 against 57 on 2186 (parked 3755a).
+    pin_eq!(w.firsts.len(), 57, "run1151b baseline");
 }
 
 /// run1151c: the word 4488's window, blocks 4482..4549 — six blocks before
@@ -347,7 +350,10 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // Item 3518: 97 -> 76, the car's round leaving from its turret. The 74
     // standing on 4482 and group 66's two keys on 4508 are what is left;
     // `0/5` parts nothing.
-    pin_eq!(w.firsts.len(), 76, "run1151c baseline");
+    // Item 3755: 76 → 59, `get_cost`'s American aircraft arm built —
+    // the Airbase's fighters agree; the Bomber (304) at `1/2022` still
+    // reads 115 against 100 on 4482, the buckets with it (parked 3755a).
+    pin_eq!(w.firsts.len(), 59, "run1151c baseline");
 }
 
 /// **The long's stride, walked back from the word 4488** (item 3517): run1151
@@ -457,5 +463,8 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     // its two flag reads and not by health: block 4396's `0/2000
     // build:damage_frac` (ours 4 against theirs 14), a round coming down
     // on the city at its ceiling, agrees (`docs/AI.md` section 303).
-    pin_eq!(w.firsts.len(), 79, "run1163 baseline");
+    // Item 3755: 79 → 62, `get_cost`'s American aircraft arm built —
+    // the Airbase's fighters agree; the Bomber (304) at `1/2022` still
+    // reads 115 against 100 on 4396, the buckets with it (parked 3755a).
+    pin_eq!(w.firsts.len(), 62, "run1163 baseline");
 }
