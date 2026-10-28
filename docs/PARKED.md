@@ -12193,13 +12193,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VO — reserved
+## Parked by item 3740, 2026-10-28 — piece 54's bays, the Egyptian Information word 3244 → 3519
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3740a. run1419 stalled before frame 0 twice on pool lane 1.** It was a packet take on this lobby at
+  `RON_STATE_FRAME=3212`, for the T80DES's piece 207 (`docs/AI.md` §367.1).
+  - The first launch hit a Wine page fault: `Unhandled page fault on read access to 00004ECD at address 7BF21139
+    (thread 0114)`, after MoltenVK created its instance (`~/ron-golden/run1419/map-14/wine-stalled.log`).
+  - The second was a silent 300 s stall, with an empty `wine-stalled-2.log`.
+  - The runner raised `stalled before frame 0 twice, 300 s each; a permission prompt or a dead device`
+    (`/tmp/ron-runs/viadriver-20261028-014133-15090.log`). The build log shows the tracer DLL built with
+    `-DRON_STATE_FRAME=3212` and item 597's `RON_STATE_PLAN`. All three pool lanes read free afterwards.
+  - The commander put the lane to Ramon. Run 1419 stays reserved for the next item's retake. Names no score.
 
 ## Parked by the next landing, slot VP — reserved
 
