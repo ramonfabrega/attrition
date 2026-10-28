@@ -32653,3 +32653,84 @@ SHA-256 `21b530ecc63308ae3df6ee059ba38025f0ecf6a3aa19580bdaf407d39819ff14`.
 **What it holds**: `russian_information_pair_run1423c_s_closing_frame_is_widened_whole`: 257 blocks, **157** keys,
 rounds 29 against 30 with 12 parting (the T80 `1/59`'s, 3744d). It is the `WIDENINGS` row for the closed word, the
 `AI_WORDS` window and the coverage driver's.
+
+## run1404 — the Bantu at a held Modern age, Great Lakes, at difficulty 5: the `DUMP_ALL` start (2026-10-28, item 3723, `att-3723`)
+
+`docs/AI.md` §370. run1402's line with the nation and the difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1404 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 3 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2 (`RON_CAPTURE_LANE=2`, the brief's preference). Launched 06:35:43, exited 06:36:08 (25.3 s launch to
+  exit). `success`: 37 frames, 3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 3, map
+  style 14, five files restored. `GAME INFO` reads back `DIFFICULTY 5` and `STARTING_TECHNOLOGY 6`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1404 greatlakes-bantu-modern-start`. `df -g ~` read 131 GiB
+  free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1404-greatlakes-bantu-modern-start.txt`, 151,101,180 bytes,
+SHA-256 `ada1adfb8b8f2813ae1e923473b56c1bb5fbfe85d6a696f0a6d01d46a26bf8e7`.
+
+Archive `rontrace-run1404.log`, 8,878,336 bytes,
+SHA-256 `ddb56de5e038db7d061bf32ce02d0c034e73876c8b375ac4fd334581e969fdc4`.
+
+**What it holds**: the start of `bantu_modern_pair::BANTU_MODERN`, and the walk's initial state.
+
+## run1405 — the Bantu at a held Modern age, Great Lakes, at difficulty 5: the draw stream to the game's end (2026-10-28, item 3723, `att-3723`)
+
+`docs/AI.md` §370. run1403's line with `--ai-tribe 3` and run1404's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 3 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, after run1404. Launched 06:36:43, exited 06:37:46 (62.8 s launch to exit). `success`. **The game
+  ended itself on 4395** (closing block 4396, `ended_early`). `GAME INFO` reads back as run1404's. `rngcmp.py`
+  against run1404: 37 frames identical. Filed with `filerun.py run1405 greatlakes-bantu-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1405-greatlakes-bantu-modern-trace.txt`, 24,967,253 bytes,
+SHA-256 `496c3f591fabbf23e7d689b8182237f6cb88a5db3d13f970fc43408d9104963c`.
+
+Archive `rontrace-run1405.log`, 98,065,824 bytes,
+SHA-256 `b0e691cd47ac48993a62f09c1bac61c7372918a5ba1ab04a2b294fd3771da62b`.
+
+**What it holds**: the long of `bantu_modern_pair::BANTU_MODERN`, first try 3410 of 4395, and the closing state's
+floor (`bantu_modern_pair_run1405_s_closing_state`).
+
+## run1405b — the Bantu at a held Modern age, Great Lakes, at difficulty 5: the word 3410's window, blocks 3395..3661 (2026-10-28, item 3723, `att-3723`)
+
+`docs/AI.md` §370. **What the disk could not answer**: every record and every round on the word's blocks.
+run1405's stride prints units every hundred frames (3401, then 3501), no `AMMO` and no leader, building or city
+record past the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1405b --map 14 --end-frame
+3661 --timeout 3600 --log-window 3395 3661 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`: six blocks before the stride's block 3401, 250 past the word's block 3411.
+- Pool lane 2. Launched 06:41:34, exited 06:42:23 (49.3 s launch to exit). `success`: 3662 frames. `rngcmp.py`
+  against run1405: 3662 of 3662 identical. Filed with `filerun.py run1405b
+  greatlakes-bantu-modern-window-3395-3661`. `df -g ~` read 129 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1405b-greatlakes-bantu-modern-window-3395-3661.txt`, 550,362,772 bytes,
+SHA-256 `eb382f6e67a8b53021ea9418b6d6852faa00c14a9ca86cc2b56c4a1e8100959e`.
+
+Archive `rontrace-run1405b.log`, 76,705,760 bytes,
+SHA-256 `6dd8a1158c710f11cec239e0f517088cb002192e5f9baf528e38bafbb071e3af`.
+
+**What it holds**: the word's widening (`bantu_modern_pair_run1405b_s_word_frame_is_widened_whole`).
+
+## run1405c — the Bantu at a held Modern age, Great Lakes, at difficulty 5: the gap before the word's window, blocks 3295..3395 (2026-10-28, item 3723, `att-3723`)
+
+`docs/AI.md` §370. **What the disk could not answer**: run1405b's first block 3395 already holds `1/94`, `1/95`
+and `1/105` apart, and run1405 prints no unit between its stride blocks 3301 (agreeing) and 3401. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1405c --map 14 --end-frame 3395 --timeout 3600 --log-window 3295
+3395 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2. Launched 06:44:36, exited 06:45:05 (29.0 s launch to exit). `success`: 3396 frames. `rngcmp.py`
+  against run1405: 3396 of 3396 identical. Filed with `filerun.py run1405c
+  greatlakes-bantu-modern-window-3295-3395`. `df -g ~` read 128 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1405c-greatlakes-bantu-modern-window-3295-3395.txt`, 203,050,668 bytes,
+SHA-256 `d8f9c625e7247342ac4dd354ec5772a89fc26d55ddc5a54e5b23e7b1758523f2`.
+
+Archive `rontrace-run1405c.log`, 71,561,120 bytes,
+SHA-256 `d4670e5307ed4a4fb4cbd1bdd59da1aa9568058dedabe230b7d258ce00eacfbb`.
+
+**What it holds**: the state's first parting, the builder pick of 3376
+(`bantu_modern_pair_run1405c_s_gap_is_widened_whole`).

@@ -11030,3 +11030,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1403  run1397's line with --ai-tribe 15 and run1402's lobby   (the draw stream; ended itself on 3866)
 #   run1403b --map 14 --end-frame 3411 --timeout 3600 --log-window 3095 3411 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby   (the word 3160's window)
 # Checks: `rngcmp.py` run1402 vs run1403 -> 37 identical; run1403 vs run1403b -> 3412 identical.
+# ==== item 3723: the Bantu at a held Modern age, Great Lakes, at difficulty 5 (`docs/AI.md` §370; `docs/RUNS.md` run1404, run1405, run1405b, run1405c) ====
+#   run1404  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 3 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1405  run1403's line with --ai-tribe 3 and run1404's lobby   (the draw stream; ended itself on 4395)
+#   run1405b --map 14 --end-frame 3661 --timeout 3600 --log-window 3395 3661 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the word 3410's window)
+#   run1405c --map 14 --end-frame 3395 --timeout 3600 --log-window 3295 3395 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the gap: the builder pick of 3376)
+# Checks: `rngcmp.py` run1404 vs run1405 -> 37 identical; run1405 vs run1405b -> 3662 identical; vs run1405c -> 3396 identical.

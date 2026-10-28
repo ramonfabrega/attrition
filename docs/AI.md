@@ -36089,12 +36089,86 @@ node may need a packet, as pieces 203 and 207 did (§367.2).
 - Piece 52's release node, or whether the Infantry is a bay piece (§367.2's arm question).
 - The `1/18` `dest_angle` of 1801 (3722a).
 
-## 370. Reserved for the next item on the AI track
+## 370. The Bantu at a held Modern age, Great Lakes: first try 3410 of 4395 (item 3723)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3723, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §369's lobby with the nation and the difficulty
+moved: `MAP_STYLE 14`, human Nubians (4) against the **Bantu (3)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`, read back on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1404 (a `DUMP_ALL` start) and run1405 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4395. The walk is seeded from run1404's initial
+state (3506a). `diff::bantu_modern_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 3, 5)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Bantu (no `battery::BATTERY` game is tribe 3). The Bantu lobbies already pinned are
+`bantu_word`'s `(7, 3, 4)` and `bantu_medieval_pair`'s `(7, 3, 5)` (Great Sahara) and `bantu_ancient_pair`'s
+`(18, 3, 5)` (East Indies). `bantu_modern_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 3410 of 4395**, by the count and the sequence. On 3410 ours spends **12 draws against theirs' 11**,
+parting at index 0. Ours' index 0 is the Citizen **`1/105`** (TI 50, land) setting an anim in
+**`Guy::set_anim+0x97a < Unit::move_step+0x823`**. Theirs' index 0 is the frame's first `Guy::inc_time+0x271`
+anim. After it, both sides spend nine `Guy::inc_time+0x271` anims and two `Farms::inc_time+0x1ae` draws, site by
+site (`report.py rontrace-run1405.log draws 3410`; ours with `RON_DEBUG_SITES=3409-3410`). In theirs, `1/105`
+stands on its `GATHERORDER` at `1/2004` (building type 417); in ours it is walking.
+
+**The state parted first on 3376, on the computer's builder pick.** run1405b's first block, 3395, already holds
+`1/94`, `1/95` and `1/105` apart. The stride agreed on every unit at 3301 and prints none between 3301 and 3401,
+so run1405c filled the gap (3295..3395). On 3376 who=1 places buildings `1/2046` and `1/2047` and hands each a
+builder, an `EXPLORETOORDER` to the site over a `BUILDORDER`:
+
+| building | site | theirs' builder | ours' builder |
+|---|---|---|---|
+| `1/2046` | (42696, 23928) | `1/94`, off its `GATHERORDER` at `1/2001` (type 418) | `1/95` |
+| `1/2047` | (41784, 29880) | `1/95`, between its move and its `GATHERORDER` at `1/2003` | `1/105`, off its `GATHERORDER` at `1/2004` |
+
+So `1/94` keeps gathering in ours and `1/105` in theirs. Both sides spend the same draws until 3410. That is the
+first frame on which the Citizen that walks in ours alone spends one: the anim draw of a guy changing step.
+
+**The direction**: each side acted on 3376, and each side made a record. The two builds were placed alike: same
+sites, same order indices, and the same placement draws. Only the Citizen each order went to differs. **The
+hypothesis** is `sim::ai_place`'s builder pick in `produce_building`. It scores each Citizen by `vector_dist` to
+the site's corner, plus a weight by the good its `GATHERORDER` gathers (`radius · 3/2` food, `radius / 2` wood,
+`radius / 3` else), or `radius · 2` for a builder. The scores of `1/94` (gathering at type 418, `non_flat_gather
+1`, `dist_mod 4`) and `1/105` (at type 417, `goto_build 1`) rank them the other way round. The good each type
+reads as is the first thing to check. That is the next item's.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3376 | the Citizen `1/94` | `order:kind`; `orders.len`; `orders_x, orders_y` | 7; 1; 40680, 17688 | 3; 2; 42696, 23928 |
+| 3376 | the Citizen `1/95` | `orders_x, orders_y`; `path:length` | 42744, 23928; 13 | 41784, 29880; 16 |
+| 3376 | the Citizen `1/105` | `order:kind`; `orders.len`; `orders_x, orders_y` | 3; 2; 41784, 29880 | 7; 1; 41208, 16440 |
+| 3376 | the buildings `1/2001`, `1/2004` | `gather_down[-1]` | 94; −1 | −1; 105 |
+| 3395 | who=1's leader | `gatherers`; `income[0:food]` | 3; 640 | 4; 800 |
+| 3410 | the draw stream, index 0 | site | `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/105`) | `Guy::set_anim+0x97a < Guy::inc_time+0x271` |
+
+**The windows.**
+- run1405's stride, 101..3301 (33 blocks, **94 keys**): the standing families alone. These are `form` on 27
+  units, 55 `build:extra`, and who=1's groups 64..69 with their pools.
+- run1405c, blocks 3295..3395 at run1405b's detail (100 blocks, **140 keys**; **rounds 43 against 43, none
+  parting**). Block 3295 carries both leaders' `SITE[i].reg` and who=0's `aggression[1]` (3719b's family), with
+  `form` and the groups. The first unit parting is the builder pick on 3376, above. who=1's leader's `SITE[2]` and
+  `SITE[3]` `.reg` part on the same block (3723a).
+- run1405b, blocks 3395..3661 with `LEADERS=9` and `AMMO=5` (266 blocks, **1418 keys**, the two `gaia:` keys
+  unprinted; **rounds 195 against 195, none parting**). It is walked from run1404 with the rounds compared.
+- **The closing state** (run1405's block 4396) is a floor: 184 units, counts `[140, 0, 1, 2, 93, 1, 35]`, nothing
+  torn or unlinked, `1/151` extra in ours. Its walk reads eight inexact ground corners (`GROUND_INEXACT`).
+
+**The booked lines**, `rubric.py --tables 3 --dumps` on run1404, run1405 and run1405b. All three were fielded, and
+none is lockstep:
+
+| id | line | seen · moved · attacked · boarded |
+|---|---|---|
+| 102 | `Infantry` | 2 · 2 · 0 · 0 |
+| 247 | `Tank[SHERMANDES]` | 2 · 2 · 0 · 0 |
+| 302 | the `Hawk Fighter` (Air) | 2 · 0 · 0 · 2 |
+
+`seams.py --item 3723` names nothing for `SHERMANDES`, and the word turns on a Citizen.
+
+**What is not established**: why the pick differs. No dump prints the pick's scores, and this item read neither
+`produce_building`'s original nor the weight of building types 417 and 418. The fix is the next item's.
 
 ## 371. Reserved for the next item on the AI track
 
