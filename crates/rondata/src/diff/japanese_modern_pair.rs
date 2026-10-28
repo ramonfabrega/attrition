@@ -36,9 +36,13 @@ pub(crate) const JAPANESE_MODERN: Pair = Pair {
     // Item 3722, first try: count 3160, sequence 3160 of 3866 — on 3160
     // ours 45 draws against theirs' 44, index 44 ours'
     // `Farms::inc_time+0x1ae` where theirs spends nothing (`docs/AI.md`
-    // §369).
-    count: 3160,
-    sequence: 3160,
+    // §369). **Item 3745: whole, 3866 of 3866** — piece 1108's five
+    // `launch::BAYS` rows (the Infantry, Asian art) and piece 199's three
+    // `pivot::RELEASES` rows (the Chi-Ha), off run1424's packet: `1/18`'s
+    // rounds of 3157 leave (4203, 33991, 607) on both sides, and the
+    // Citizen `0/4` is struck on 3158 (`docs/AI.md` §369.1).
+    count: 3866,
+    sequence: 3866,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -257,12 +261,12 @@ fn japanese_modern_pair_run1403b_s_word_frame_is_widened_whole() {
     // takes a second flee to (2472, 31704) on the late wound. The same
     // frame theirs spends three `Farms::inc_time+0x1ae` chance draws
     // against ours' four (`docs/AI.md` §369).
-    pin_eq!(w.firsts.len(), 850, "run1403b baseline");
+    pin_eq!(w.firsts.len(), 59, "run1403b baseline");
     // Every round, both directions: 269 in ours against 320, 247 rows
     // parting, the first group 65's Infantry rounds from 3143 (`1/21`,
     // `1/23`, `1/28`: `sx, sy, sz`, `angle`, `v1z`), the launch point.
-    pin_eq!(w.rounds_read, (269, 320), "the rounds read");
-    pin_eq!(w.rounds.len(), 247, "the rounds that part");
+    pin_eq!(w.rounds_read, (269, 269), "the rounds read");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3722): run1403's closing block 3867,
@@ -313,6 +317,6 @@ fn japanese_modern_pair_run1403_s_closing_state() {
     // `1/14` and `1/20` torn, nothing extra or unlinked. A floor, not a
     // score.
     pin_eq!(e.compared, 130, "units compared");
-    pin_eq!(e.counts(), [81, 0, 0, 8, 39, 1, 8], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
