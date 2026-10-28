@@ -34664,7 +34664,7 @@ the next item's hypothesis, and it needs a packet of this lobby before the launc
   `CHAR_ATTACK2` at 16)~~ — piece 149's four, `CHAR_ATTACKWALK` and `CHAR_ATTACK1`..`3` at 18, 18, 16 and 19:
   §362.3.
 
-### 362.3 The Steppe Nomads loose from piece 150's pivot: the word closes, 4220 → 5592 of 5592 (item 3714)
+## 362.3 The Steppe Nomads loose from piece 150's pivot: the word closes, 4220 → 5592 of 5592 (item 3714)
 
 *Item 3714, 2026-10-27, Opus 5.5. Captures run1391 (a `RON_STATE_FRAME=4174` packet) and run1391b (the closing
 window, blocks 5336..5593).*
