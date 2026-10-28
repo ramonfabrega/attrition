@@ -35985,6 +35985,10 @@ The muster cell and angle are what the next march steps its formation origin fro
 - **`GROUND_INEXACT`**: 8 on the first parting, the closing state and run1401b's window, now that the walk
   runs past 6153.
 
+**The rubric** (`rubric.py --tables 3,4`): unit types seen **245 → 247**, the two lines the lobby was booked for
+— `Shock Infantry` (108) and `T80 Tank[RUSSHEAVYTANK]` (260), land — and `census::RUBRIC_UNIT_TYPES_SEEN`
+re-pinned. Lockstep bytes stay at 77.4 %. The closing state is scored (195 units, `1/74` alone off).
+
 **Tests** (`russian_information_pair::` and `cities_tests::`):
 - `a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster`: the city case takes the arm;
   the human, non-siege, no-army and unit-target cases do not. The arm off fails it.

@@ -586,7 +586,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// air; piece 203's bays and piece 207's
 /// pivot rows closed the word (§367.2), read by `rubric.py --tables 3`
 /// against the same scan with run1398 and run1399 left out.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 245;
+/// Item 3744: 245 -> 247, the Russian Information pair whole at 6706 —
+/// `Shock Infantry` (108) and `T80 Tank[RUSSHEAVYTANK]` (260), land, the
+/// two lines the lobby was booked for; `find_nearby_target`'s siege-city
+/// arm closed the word (§368.1), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 247;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
