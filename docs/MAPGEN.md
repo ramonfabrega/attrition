@@ -120,7 +120,7 @@ parts 0..14 and then −1 (all), so a record's sixteen `World` lines are:
 | 7 | `wcoord_seen` |
 | 8 | `danger[8]` |
 | 9 | each cell's `CollBlock`, if any |
-| 10–13 | four `MiscAccess::terrain` arrays (fields 0x4b80, 0x4b9c, 0x4bb8, 0x4bd4) |
+| 10–13 | four `MiscAccess::terrain` arrays, one `Array<WCoordData>` and three `SimpleArray<int>` |
 | 15 | all of the above |
 
 **Diff-backed (2026-10-28).** I packed each start-dump cell's sixteen
