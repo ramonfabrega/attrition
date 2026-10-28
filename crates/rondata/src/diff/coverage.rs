@@ -3618,6 +3618,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::mongol_medieval_pair::mongol_medieval_stride_window(),
         || super::mongol_medieval_pair::mongol_medieval_frame_2595_window(),
         || super::mongol_medieval_pair::mongol_medieval_frame_3989_window(),
+        || super::mongol_medieval_pair::mongol_medieval_closing_window(),
         || super::greek_medieval_pair::greek_medieval_stride_window(),
         || super::greek_medieval_pair::greek_medieval_frame_5626_window(),
         || super::greek_medieval_pair::greek_medieval_closing_window(),

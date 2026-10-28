@@ -48,8 +48,13 @@ pub(crate) const MONGOL_MEDIEVAL: Pair = Pair {
     // keys off run1296's packet (§362.2). On 4220 ours spends 11 draws
     // against theirs' 12, parting at index 10: ours `Farms::inc_time+0x1ae`,
     // theirs `Unit::close+0xcb6`.
-    count: 4220,
-    sequence: 4220,
+    // Item 3714: 4220 → 5592, the game's last frame: the word closes. The
+    // Steppe Nomads play piece 150, a pivot piece with no
+    // `pivot::RELEASES` row, so their rounds left the figure's own point;
+    // run1391's packet holds its four rows (§362.3), and `1/22`'s round of
+    // 4175 now leaves (6319, 10344) at 271, theirs' own.
+    count: 5592,
+    sequence: 5592,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -346,9 +351,84 @@ fn mongol_medieval_pair_run1386_s_word_frame_is_widened_whole() {
     // `0/13` on 4189: struck on 4188 in theirs (`hits:damage` 18), not in
     // ours; it dies on 4220 in theirs (`Unit::close`), and block 4221 reads
     // who=0's `active`/`control` 14 against 13.
-    pin_eq!(w.firsts.len(), 211, "run1386 baseline");
-    pin_eq!(w.rounds_read, (209, 206), "the rounds read");
-    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+    // Item 3714, the word 5592 (piece 150's pivot release rows): **135**
+    // keys, the standing families of 3895 and group-pool and `form` rows
+    // on 3898..4013; the rounds read 209 a side and agree but for
+    // `1/20`'s on 4221, whose target `0/13` died on 4220: theirs' round
+    // keeps `ox` 13 and `whom` 0, ours' reads -1 (parked 3714a).
+    pin_eq!(w.firsts.len(), 135, "run1386 baseline");
+    pin_eq!(w.rounds_read, (209, 209), "the rounds read");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
+}
+
+/// run1391b: the pair's closing window, blocks 5336..5593 at run1386's
+/// detail (item 3714). The word reached the game's last frame; run1378's
+/// stride prints units every hundred frames with no `AMMO` and no leader
+/// record, and run1386 ends on 4240, so no dump held the last blocks.
+pub(crate) const RUN1391B: &str =
+    "gamelog-run1391b-eastindies-mongol-medieval-closing-window-5336-5593.txt";
+
+/// The window: block 5336 through the closing block 5593.
+pub(crate) const WIDENING_MONGOL_MEDIEVAL_CLOSING: (i64, i64) = (5336, 5593);
+
+/// **The pair's last blocks**: run1391b walked from run1377's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3714).
+pub(crate) fn mongol_medieval_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[MONGOL_MEDIEVAL.start],
+        true,
+        MONGOL_MEDIEVAL.long,
+        "run1391b",
+        &[(RUN1391B, WIDENING_MONGOL_MEDIEVAL_CLOSING.0)],
+        WIDENING_MONGOL_MEDIEVAL_CLOSING,
+        1,
+        &[5593],
+        true,
+    )
+}
+
+#[test]
+fn mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_medieval_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3714, the first walk: **103** keys. 94 standing families on
+    // block 5336 (`form`, who=1's groups and pools, the human's
+    // `SITE[i].reg` and `aggression[1]`); then group-pool and `form` rows
+    // on 5368, 5375, 5376, 5418 and 5576. Nothing parts on the closing
+    // block 5593, and no draw parts to 5592.
+    pin_eq!(w.firsts.len(), 103, "run1391b baseline");
+    // Every round, both directions: 1674 each side, 50 parting — every one
+    // a Trebuchet's (TI 266: `1/64`, `1/74`, `1/79`), leaving from the
+    // figure's own point ~700 below theirs' (`1/64`'s on 5523: (7800,
+    // 10536, 228) against (7922, 10811, 921)), parked 3711b.
+    pin_eq!(w.rounds_read, (1674, 1674), "the rounds read");
+    pin_eq!(w.rounds.len(), 50, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3702): run1378's closing block 5593,
@@ -403,6 +483,6 @@ fn mongol_medieval_pair_run1378_s_closing_state() {
     // Item 3712 (the word at 4220): 162 compared, counts
     // `[83, 0, 0, 4, 94, 1, 28]`, no extra.
     pin_eq!(e.compared, 162, "units compared");
-    pin_eq!(e.counts(), [83, 0, 0, 4, 94, 1, 28], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.len(), 0, "the closing extras");
 }
