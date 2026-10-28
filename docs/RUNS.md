@@ -32316,3 +32316,27 @@ SHA-256 `b0e4737641cf4898c9a460073b6ac43c7544689f532ac65cd70362aed7227ce3`.
 rows at `pos_start` 139, `RData +0x88` 1.0, node 0 at 17 of `CHAR_ATTACK1`, 7 of `2` and 13 of `3`. `pivot 200 0
 <anim> <time> 1` swept 92,416 cells a row, and `sweep 90 0 <anim> <time>` 361 headings a row. The sweeps are under
 `~/ron-data/lab-experiments/2026-10-27-item-3737/sweeps/`.
+## run1418 — the Germans at a held Modern age, Great Lakes, at difficulty 4: the word 4586's window, blocks 4495..4836 (2026-10-28, item 3739, `att-3739`)
+
+`docs/AI.md` §366.2. **What the disk could not answer**: every record and every round on the word 4586's blocks.
+run1397b ends on 4328, and run1397's stride prints units every hundred frames, with no `AMMO` and no leader,
+building or city record. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1418 --map 14 --end-frame
+4836 --timeout 3600 --log-window 4495 4836 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 12 --cover cover=0` and run1396's lobby (`--profile STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6
+STARTING_RESOURCES=7 DIFFICULTY=4`). The window opens six blocks before the stride's last block before the word,
+4501, and runs 250 past the word's block 4587.
+- Pool lane 1. Launched 01:15:32, exited 01:16:31 (58.0 s launch to exit). `success`: 4837 frames, seed 12345,
+  both seats' tribes read back (4 and 12). `rngcmp.py` against run1397: 4837 of 4837 identical. Filed with
+  `filerun.py run1418 greatlakes-german-modern-window-4495-4836`. `df -g ~` read 140 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1418-greatlakes-german-modern-window-4495-4836.txt`, 746,946,725 bytes,
+SHA-256 `5fa005fe09ef7dea8ca01226ccef6e0271db12f72e8a32e0a3b23fa7550105b3`.
+
+Archive `rontrace-run1418.log`, 102,478,208 bytes,
+SHA-256 `358f5ac5c504c8d231a31e8b19889e0c51be0af26e3432d5ef42268e01d6db66`.
+
+**What it holds**: `german_modern_pair_run1418_s_word_frame_is_widened_whole` walks it from run1396: 341 blocks and
+877 keys, rounds 912 against 102 with 55 parting, the first the Bomber `1/95`'s on 4753. Past block 4495's
+standing rows, the first rows are who=1's `leader:strong[0]` on 4545, then group 65's lists on the word's block
+4587. It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
