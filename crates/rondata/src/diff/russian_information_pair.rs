@@ -327,6 +327,65 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
+/// run1423b: the stride's gap before run1423, blocks 5795..5900 (item
+/// 3744): the MLRS `1/99` leaves its carrier and takes group 72's orders
+/// between the stride's 5801 and run1423's first block.
+pub(crate) const RUN1423B: &str =
+    "gamelog-run1423b-eastindies-russian-information-window-5795-5900.txt";
+
+/// The window: block 5795 through 5900.
+pub(crate) const WIDENING_RUSSIAN_INFORMATION_GAP_5795: (i64, i64) = (5795, 5900);
+
+/// **The earlier gap's window**: run1423b walked from run1400's start with
+/// every round compared (item 3744).
+pub(crate) fn russian_information_gap_5795_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[RUSSIAN_INFORMATION.start],
+        true,
+        RUSSIAN_INFORMATION.long,
+        "run1423b",
+        &[(RUN1423B, WIDENING_RUSSIAN_INFORMATION_GAP_5795.0)],
+        WIDENING_RUSSIAN_INFORMATION_GAP_5795,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn russian_information_pair_run1423b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_information_gap_5795_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1423b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3721): run1401's closing block 6707,
 /// the whole map's units, walked from run1400's start.
 #[test]
