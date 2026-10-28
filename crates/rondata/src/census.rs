@@ -609,7 +609,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3726: 254 -> 255, the Maya Information pair whole on its first
 /// try at 3330 — the `Dragon AT Missile[DRAGON]` (145), land, the pass's
 /// never-fielded Maya line (§373), read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 255;
+/// Item 3760: 255 -> 256, the American Information pair whole at 4320 —
+/// `Assault Marines[ASSAULTMARINES]` (122), land, the line item 3725 found
+/// fielded and new to the ledger; piece 255's bays closed the word
+/// (§372.4), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 256;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

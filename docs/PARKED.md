@@ -12409,13 +12409,22 @@ words and edits nothing here; a refill lands when two remain.
     loads the type. `get_position.py … entries <its piece>` reads its rows, and `fit_bay.py` fits them, as 3759
     did for piece 126. A rider's launch is probably a pivot piece, so `pivot` comes before `sweep`.
 
-## Parked by the next landing, slot WF — reserved
+## Parked by item 3760, 2026-10-28 — the American Information word closes on the Strategic Bomber's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3760a. A strafer's round carries the figure's own angle in theirs.** On run1439 every round of who=1's Jet
+  Fighters (`1/57`, `1/70`, TI 295) agrees on `sx, sy, sz, ex, ey, v1z` with piece 245's rows and parts on `angle`
+  alone: `1/57`'s `ammo[4]` of 4230 reads −1419509760 in ours against −1327300608 in theirs, which is the figure's
+  own `GUY` angle on that block; ours is `find_angle` from the launch to the landing. Twelve such rows on run1439,
+  none reaching a draw or a hit point (`docs/AI.md` §372.4). Grep this crate's `Projectile::angle` readers before
+  reading `Ammo::init@0067bbf0`'s angle for a strafer.
+- **3760b. Two of who=1's rounds lose their target in ours**: `1/28`'s `ammo[1]` on 3924 and `1/33`'s on 4123 read
+  `whom` −1, `ox` −1 against theirs' 0/12 and 0/11 (run1439). 3745b's family on a second lobby; no hit parts.
+- **3760c. who=1's food bucket is 100 short in ours from 4120** (12598 against 12698, run1439), beside 3755a's wealth
+  and oil 53 apart. The pair is whole, so it names no score.
+- **3760d. City `1/2055`'s `assimilation_timer` reads 4320 in ours against 4317 at the close** (run1409's block
+  4321, the one count of `[0, 0, 0, 0, 0, 0, 1]`). 3742c's and 3699a's family on a third lobby.
+- **3760e. `ABRAMDES` and the Strategic Bomber's Asian graph (`STRATEGICBOMBER-ASIAN`) take no rows**: they play
+  other pieces, and no scored lobby fields them. 3758a's row stands for the first.
 
 ## Parked by item 3762, 2026-10-28 — the Bombard's crew pays its ground swing in `Guy::move`
 

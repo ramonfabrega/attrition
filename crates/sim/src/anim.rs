@@ -2087,11 +2087,12 @@ impl Sim {
                     // anim, starttime) vector to the guy's position first,
                     // and the aim is then taken from *that* point —
                     // `find_angle(T − launch)`, which is what run108's
-                    // `ex, ey` reproduce.
-                    let (from, dz) = match pivot.filter(|r| ((r.node & 3) as usize) < pivots) {
+                    // `ex, ey` reproduce. A node past the piece's restriction
+                    // count is its own entry alone ([`crate::pivot::release_point`]).
+                    let (from, dz) = match pivot {
                         Some(r) => {
-                            let turret = guy.turret.angles[(r.node & 3) as usize];
-                            let (x, y, z) = crate::pivot::release_offset(&r, facing, turret);
+                            let (x, y, z) =
+                                crate::pivot::release_point(&r, facing, &guy.turret.angles, pivots);
                             let at = self.units[u].pos;
                             (Pos::new(at.x + x, at.y + y), z)
                         }
