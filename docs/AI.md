@@ -35306,12 +35306,86 @@ Fighter, in the airport only — seen, not moved). The `MG42` (130) was not fiel
 games only, so unit types seen stays **231 of 302** and the lockstep bytes stay at 77.4 %.
 
 **Not established**:
-- Piece 208's turret release node. Theirs' `AMMO` prints `sx, sy, sz` and `graph_index` for every round that
-  outlives a frame in run1397b (41, 49, 63 on `1/38` and `1/62`). The angle the turret holds may need a packet, as
-  the Cruiser's did (item 3519).
-- Whether theirs' 4017 round's one-frame life is the launch point alone (a shorter plan distance) or also the
-  flight-time rule.
+- ~~Piece 208's turret release node.~~ Answered: run1417's packet, §366.1.
+- ~~Whether theirs' 4017 round's one-frame life is the launch point alone or also the flight-time rule.~~ The
+  launch point alone: with piece 208's rows the round is made and lands inside 4017 on both sides (§366.1).
 - The aircraft's `myspeed` quarter (3719a).
+
+## 366.1 Pieces 208 and 169, the Tiger's and the Scout Car's turrets: the word 4077 → 4299 (item 3738)
+
+*Item 3738, 2026-10-28, Opus 5.5.*
+
+**The direction, as booked**: on 4017 theirs' Tiger Tank `1/38` (TI 258, `TIGERTANK`, land) looses a round that is
+made and explodes inside the frame and wounds the Citizen `0/12`; ours' leaves from the guy's square and still flies
+on 4018. **Theirs acts.** run1397b's widening already held the frame (every round compared, 3995..4328): `1/38`'s
+round of 4018 was the first round parting, so no new window was owed.
+
+**The table.** `unit_graphics.xml`'s `TIGERTANK-DEFAULT-AGE0` carries no restriction in its own block. The foot of
+the file has `<RESTRICTION name="TigerTank" node="4" minangle="-180" maxangle="180">`, so piece 208 is a pivot
+piece, as 3736 found the Battleship's to be. `pivot` held no row for it.
+
+**The disk could not answer.** `get_position.py … entries 208` over all 85 packets on disk: every one raises on
+the piece's `RData`. So run1417 took a packet at `RON_STATE_FRAME=4016`, the block before the launch, on the
+pair's own lobby (`docs/RUNS.md` run1417).
+
+**What the packet holds, piece 208** (`RData +0x88` 0.85): seven entries. The pivot `(4, 0, 0)` is `(0.0, 3.13,
+28.48)`. The three `<RELEASEEVENT>`s are node 0 at frame 3 of `CHAR_ATTACK1`, `2` and `3`, each with the pivot at
+`(0.0, 3.13, 28.36)` and the release node about 101 model units forward (×4.8×0.85, about 412 units out: the
+muzzle 3719 measured on 4141's round). Three `pivot 208 0 <anim> 3 1` sweeps (92,416 cells each) name **20**
+`float_lands`; `sim::pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_208` is green on all
+277,248 cells.
+
+**The word moved 4077 → 4167**, and the next round parting was the Armored Scout Car `1/53`'s on 4043 (TI 219,
+`ARMOREDCAR2`, land): ours `sx, sy, sz` (4632, 31608, 551), the figure's square, against theirs' (4529, 31666,
+721), about 118 out and 170 up. `<RESTRICTION name="ARMOREDCAR2" node="4">`, and no row. **The same packet loads
+it**: scanning pieces 100..320 on run1417 names six with entries (169, 208, 222, 233, 242, 254), and piece 169 is
+the one at `RData +0x88` 1.1, the `ARMOREDCAR2` art's `scale`. Its 37 entries: the pivot `(4, 0, 0)` at `(0.0,
+−0.07, 32.23)`, and sixteen release rows, node 0 at frames 3, 9, 12, 17, 20, 22, 24 and 29 of `CHAR_ATTACKWALK`
+and `CHAR_ATTACK2`. The `CHAR_ATTACKWALK` pivot moves with the frame and `CHAR_ATTACK2`'s does not. The table
+carries `(10, 29)` twice, with the same bits. Sixteen sweeps name **36** `float_lands`; the every-cell test for
+piece 169 is green on 1,478,656 cells. The sweeps are under
+`~/ron-data/lab-experiments/2026-10-27-item-3738/sweeps/`.
+
+**Mutations** (`tools/mutate.py --patch`, each piece's `RELEASES` rows keyed negative, on committed `aa2141d47`):
+both held. Without 208, `german_modern_pair_first_parting` exits 101 at 4077. Without 169, it exits 101 at 4167.
+
+**The score: 4077 → 4299 of 5304**, count and sequence. On 4299 ours spends 16 draws against theirs' 15, parting at
+index 2: ours `Guy::set_anim+0xf2f < Unit::set_anim+0x56`, theirs `Unit::fight+0x824`. Every other lobby's
+`first_parting` holds (100 of 101), the Spanish Modern pair's among them.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4018 | the Citizen `0/12` | `hits_left`; `orders.len` | agree: 49; 1 | |
+| 4018 | `1/38`'s round of 4017 | present | no (landed on 4017) | no |
+| 4043 | `1/53`'s round `ammo[0]` | `sx, sy, sz` | agree: 4529, 31666, 721 | |
+| 4298 | the Special Forces `0/0` (TI 75, `SPECIALFORCES`) | `order:kind`; `orders_x, orders_y` | 4; 4392, 30360 | 14; 4248, 31896 |
+| 4299 | `0/0` | `orders.len`; `cavarch_who/o`; `mana_burn`; `pos` | 1; −1/−1; 0; (4251, 31858) | 2; 1/53; 1000; (4248, 31896) |
+
+Theirs' `0/0` takes a `CASTORDER` on 4298 (spell 640, the target `1/53`, uid 90), and on 4299 it is paid with a
+`MOVEORDER` above it. Ours' `0/0` walks toward (4392, 30360) instead. **Theirs acts.**
+
+**The window** (run1397b, 3995..4328, the same widening; the word's block 4300 is inside it): **1946 → 282** keys,
+rounds 137 against 144 (from 176) with **18** parting (from 47), the first `1/53`'s `ammo[1]` on 4301, past the
+word. Past block 3995's standing rows, the first unit parting is the Volksgrenadier `1/49`'s `dest_angle` on 4103
+(TI 109, one field, guarding, 3738a). Then who=1's aircraft in their airports from 4177: `1/95`, `1/107`, `1/114` and `1/120`
+hold an order in theirs alone on 4177 and `1/94`, `1/106`, `1/113` and `1/119` on 4180, each with a dozen
+position rows a frame or more later. `1/95` is a Bomber (TI 304): on 4178 ours holds it in the airport (`inside`
+2032) and theirs has it out (−1, `g.z` 159). These are the units 3719a's `myspeed` rows name, 3719a's family. Then `0/0` on 4298.
+
+**The closing state** (run1397's block 5305): counts `[127, 2, 3, 1, 51, 0, 55]` → `[116, 2, 3, 2, 27, 1, 23]`. It
+is still a floor.
+
+**The next word's hypothesis, not a build order**: the Special Forces' cast. Theirs' `0/0` (who=0, the idle human)
+gives itself spell 640 on the Scout Car `1/53` on 4298, and ours does not. The arm that decides an idle Special
+Forces' auto-cast is unread here. `seams.py --item 3738` names no seam for `SPECIALFORCES` or spell 640.
+
+**Not established**:
+- Which spell 640 is, and the predicate by which an idle Special Forces picks its target.
+- The other loaded restricted piece. `FLAKGUNGERMAN` (TI 283, scale 0.8) carries `<RESTRICTION node="4">`, and
+  run1417 loads pieces 222 and 233 at 0.8 with no `pivot` row (3738b). No round of the type parts in the window.
+- `1/49`'s `dest_angle` on 4103 (3738a).
 
 ## 367. Reserved for the next item on the AI track
 

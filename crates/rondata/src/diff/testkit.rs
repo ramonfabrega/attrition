@@ -10945,12 +10945,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Germans at a held Modern age** (item 3719): Great Lakes at
     // Hard — first try 4077 of 5304, the Citizen `0/12` going idle in
     // theirs at the end of a flee from a Tiger Tank round ours did not land;
-    // widened on run1397b over 3995..4328, the rounds compared.
+    // widened on run1397b over 3995..4328, the rounds compared. Item 3738
+    // moved it 4077 → 4299 on pieces 208 and 169's turret rows: theirs'
+    // Special Forces `0/0` casts on the Scout Car `1/53` on 4298; the same
+    // window holds the word, re-pinned at 282 keys.
     (
         "GERMAN_MODERN_PAIR_WORD",
         crate::diff::german_modern_pair::GERMAN_MODERN_PAIR_WORD,
         Some("german_modern_pair_run1397b_s_word_frame_is_widened_whole"),
-        3719,
+        3738,
         Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4077),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
@@ -13358,7 +13361,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Germans at a held Modern age (`STARTING_TECHNOLOGY` 6,
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3719): first try
     // 4077 of 5304, the Citizen `0/12`'s `do_idle` draw in theirs alone;
-    // widened on run1397b over 3995..4328.
+    // widened on run1397b over 3995..4328. Item 3738: 4299, the Special
+    // Forces `0/0`'s cast in theirs alone; the same window.
     AiWord {
         line: "Late ages",
         map: "GreatLakesGermanModern",
