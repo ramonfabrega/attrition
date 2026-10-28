@@ -109,6 +109,8 @@ mod german_ancient_pair;
 #[cfg(test)]
 mod german_industrial_pair;
 #[cfg(test)]
+mod german_modern_pair;
+#[cfg(test)]
 mod german_sahara_word;
 #[cfg(test)]
 mod german_word;
