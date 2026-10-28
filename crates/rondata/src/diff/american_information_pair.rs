@@ -50,13 +50,14 @@ pub(crate) const AMERICAN_INFORMATION: Pair = Pair {
     // — on 4291 ours 112 draws against theirs' 113, index 109, ours'
     // `Farms::inc_time+0x1ae` against theirs' `Object::take_damage+0xe1`
     // (`docs/AI.md` §372.3).
-    // Item 3760, the Jet Fighter's guns (piece 245), the Strategic Bomber's
-    // bays (255), the TOW's launch rows (91) and the Abrams' four tracers,
-    // a node past the restriction count taking its own entry alone: 4291 →
-    // **4320, whole** — the Jet Fighter `1/57`'s round of 4230 had left its
-    // own square, (4315, 30372, 2271) against (4363, 30154, 2235), and its
-    // splash on 4242 took building `0/2006`'s `damage_frac` to 8 against
-    // 11 (`docs/AI.md` §372.4).
+    // Item 3760, the Strategic Bomber's two bays (piece 255): 4291 →
+    // **4320, whole** — `1/45`'s bombs of 4270..4282 had left its own
+    // square, and the one of 4274 came down on (3238, 30788) against the
+    // original's (3253, 30681), the block before theirs' blow of 4291. The
+    // Jet Fighter's guns (245), the TOW's rows (91) and the Abrams' four
+    // tracers (a node past the restriction count is its own entry alone)
+    // land with it and move the windows, not the word (`docs/AI.md`
+    // §372.4).
     count: 4320,
     sequence: 4320,
 };
