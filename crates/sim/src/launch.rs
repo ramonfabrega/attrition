@@ -406,6 +406,46 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 126, `APEDEMAKARCHERS`** (unit type 176, the Apedemak
+    // Archers; item 3759, `docs/GOLDEN.md` §149.2): run1438's
+    // `RON_STATE_FRAME=684` packet on the first melee's lobby holds its
+    // three attack `AttachPos` rows (node 0, anims 11, 12 and 13, all at
+    // frame 15), `RData +0x88` 1.0, and `fit_bay.py` fits each sweep (386,
+    // 495 and 3512 lattice points; the centroid is kept, 361 of 361
+    // headings each). Without them the human's `0/14` loosed its round of
+    // 674 at the British Bombard `1/23` from its own square (16632, 15672,
+    // 539) against the original's (16634, 15605, 640), flew 11 frames
+    // against 10, and `1/23` was struck on 684 a frame late.
+    (
+        126,
+        11,
+        15,
+        Bay {
+            right: 102_456,
+            fwd: 44_072,
+            dz: 116,
+        },
+    ),
+    (
+        126,
+        12,
+        15,
+        Bay {
+            right: 23_036,
+            fwd: 63_394,
+            dz: 101,
+        },
+    ),
+    (
+        126,
+        13,
+        15,
+        Bay {
+            right: 38_786,
+            fwd: 60_881,
+            dz: 153,
+        },
+    ),
     // **Piece 50, `RIFLEMAN`** (unit type 100, the Riflemen; item 3705,
     // `docs/AI.md` §357.2): run1382's `RON_STATE_FRAME=3228` packet on the
     // Spanish Industrial Great Lakes seed holds its three attack
@@ -4278,6 +4318,36 @@ mod tests {
     /// beside its figure's `GUY` pose on the block before, reproduced at the
     /// dump's `sx, sy` and `sz − z` by exactly one of the piece's three
     /// attack keys (the dump does not print which the figure played).
+    /// **The Apedemak Archers loose from piece 126's bays** (item 3759):
+    /// the three rounds run1438 prints from their first frame, 675, each
+    /// beside its figure's `GUY` pose on the block before, reproduced at
+    /// the dump's `sx, sy` and `sz − z` by exactly one of the piece's three
+    /// attack keys, and the six rounds of block 801 in run1413 by the pose
+    /// that block prints. Made to fail with the rows out of `BAYS`: each
+    /// round leaves the figure's own square.
+    #[test]
+    fn run1438_s_apedemak_archers_leave_from_piece_126_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 6] = [
+            (16632, 15672, -205_914_112, 16634, 15605, 101), // 674 0/14
+            (16776, 15672, -304_218_112, 16768, 15606, 101), // 674 0/15
+            (16680, 15816, -208_207_872, 16682, 15749, 101), // 674 0/16
+            (16632, 15672, -451_149_824, 16626, 15601, 153), // run1413 801 0/14
+            (16776, 15672, -507_838_464, 16819, 15570, 116), // run1413 801 0/15
+            (16680, 15816, -427_360_256, 16735, 15720, 116), // run1413 801 0/16
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<i8> = [11, 12, 13]
+                .into_iter()
+                .filter(|&anim| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 126, anim, 15, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(126, anim, 15, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
     /// **The Spanish Riflemen loose from piece 50's bays** (item 3705):
     /// two rounds of each attack key run1368b prints from a shooter's
     /// first frame, beside its figure's `GUY` pose on the block before,

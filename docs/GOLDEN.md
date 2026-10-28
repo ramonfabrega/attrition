@@ -14047,6 +14047,78 @@ the frame. Ours now puts the sprout on `1/2004`. That is a farm-cell difference,
 The skip predicate and the walk order rest on the export (`Farms::inc_time`, `walk_data`). The frame-37
 attribution is open.
 
+## 149.2 The melee's first fight was the Apedemak Archers' launch — 684 → 759 (item 3759, run1438)
+
+**The booking.** On frame 684 ours spent 18 draws and theirs 19. Theirs' extra draw is index 0,
+`Unit::fight+0x9b0`, the one-in-five re-search a captain takes on a unit target (`fight::SITE_FIGHT_RESEARCH`).
+Every draw after it agrees with ours. **The direction: theirs acted.**
+
+**Walked back.** The fight is who=1's Bombard `1/23` (TI 267, land). On block 701 it reads `damage_frame` 683 in
+theirs and 684 in ours, so it was struck a frame earlier in theirs. A struck captain fights on the next frame.
+
+`RON_DEBUG_AMMO=660-684` names the round. The human's Apedemak Archers `0/14`, `0/15` and `0/16` (TI 176, land,
+piece 126) loose at `1/23` on 674, with the same draws on both sides. `0/14`'s round lands first: in ours on 684,
+after 11 frames.
+
+Theirs' rounds on run1413's block 801 leave 71 to 111 units off each figure, at a steady bearing from its facing.
+Ours leaves from the figure's own square. No `launch.rs` or `pivot.rs` row held piece 126.
+
+A probe confirmed it. A hand-fitted node (radius 71, bearing 33°, dz 153) on all three attack keys moved the word
+to 759. The probe was committed behind `RON_PROBE_NODE` and reverted whole.
+
+**What the disk could not say**: the piece's `AttachPos` rows. No packet on disk loads the piece: every one of the
+91 that reads it has `pos_num` 0. **run1438** is a `RON_STATE_FRAME=684` packet on run1413's lobby and script
+(`docs/RUNS.md`). Its trace is identical to run1413's on all 687 frames, and it holds:
+- Three attack rows: node 0, anims 11, 12 and 13, all at frame 15, scale 1.0.
+- A per-frame window over 670–686. The three rounds of 674 print there from their first frame. All three are
+  `CHAR_ATTACK2`'s (height 101), and `0/14`'s leaves (16634, 15605, 640) and flies **10** frames.
+
+**The fix**: three `launch::BAYS` rows for piece 126, the `fit_bay.py` centroids of each key's sweep:
+
+| anim | right | fwd | dz | lattice points |
+|---|---|---|---|---|
+| 11 | 102,456 | 44,072 | 116 | 386 |
+| 12 | 23,036 | 63,394 | 101 | 495 |
+| 13 | 38,786 | 60,881 | 153 | 3512 |
+
+`launch::tests::run1438_s_apedemak_archers_leave_from_piece_126_s_bays` checks six rounds. Each is reproduced at
+its `sx, sy` and `sz − z` by exactly one key: run1438's three of 674 (anim 12), and run1413's three on block 801
+(anims 13, 11 and 11).
+
+**The score: 684 → 759** (sequence; the count parts on 760). Ours' `0/14` now looses from (16634, 15605) and
+lands on (15819, 14650) on 683, as theirs does, and `1/23` takes the re-search on 684.
+
+**The value diff** (`gunpowder_melee_run1413_s_word_window_is_widened_whole`, the window moved to 701..1009; 758
+keys, rounds read (29, 30), 31 parting). Block 701 now carries the standing families alone. `1/23`'s `damage_frame`,
+`pos`, `path:length` and `spell_time`, `2/17`'s death frame and `1/14`'s death all agree. The first unit rows are on
+801, where who=2's Bombard `2/23` (the word's unit) reads:
+
+| field | ours | theirs |
+|---|---|---|
+| move goal | (1320, 28152) | (5736, 24792) |
+| `path:length` | 24 | 13 |
+| `hits:damage` | 97 | 87 |
+
+801 fans out over 26 units of the three seats.
+
+**The next word**: frame 759, 17 draws a side, index 1. Both sides spend `2/23`'s re-search at index 0. Then ours
+takes `Guy::set_anim+0xf2f < Unit::set_anim+0xb6` twice, where theirs takes `Guy::set_anim+0xf2f < Guy::move+0x166`
+twice. The booking is the commander's.
+
+**Tests**:
+- `gunpowder_melee_first_parting` re-pinned to 760 and 759.
+- The widening re-pinned, as above.
+- `tools/mutate.py`, keying the anim-12 row away, gives **mutation: held**. The two walk tests fail.
+
+**What is not established.**
+- Anims 11 and 13 are checked against run1413's 801 poses. Those were printed seven frames after each round's launch,
+  and the figure's facing may have moved in between. The six rounds each find exactly one key, but no walk reaches
+  those keys through 759.
+- The Camel Raider `0/17` (TI 193) looses from its own square in ours. The landing and the time agree (parked 3759a).
+
+**Coverage.** The rows are diff-backed (run1438's rounds, the walk and the mutation). The packet's `AttachPos`
+rows are read by `get_position.py` under unicorn, as items 3705 and 3613 read theirs.
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
