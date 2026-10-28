@@ -45,9 +45,16 @@ pub(crate) const GERMAN_MODERN: Pair = Pair {
     // arm: an idle Commando-line unit struck by a land unit answers with
     // Sabotage (4299 → 4586). On 4586 ours 94 draws against theirs' 99,
     // index 87 ours' `Unit::think_scout+0xaba` (`1/0`) against theirs'
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (§366.2).
-    count: 4586,
-    sequence: 4586,
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (§366.2). Item 3742:
+    // **4586 → 5304, the game's last frame**, by the count and the
+    // sequence — `Unit::update_speed`'s Aluminum arm: who=1's aircraft move
+    // `ALUMINUM_AIR_SPEED` faster, so the computer's sortie of 4176 finds
+    // Napata inside a Bomber's speed times its tank (75 × 600 against ours'
+    // 60 × 600) and its Bombers fly; their sight is the fog cell (23, 28)
+    // that turned `1/0`'s region scan's thirty-sixth draw away on 4586
+    // (`docs/AI.md` §366.3).
+    count: 5304,
+    sequence: 5304,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -190,8 +197,10 @@ fn german_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // not print) and who=1's groups with their pools — and, from block
     // 3101, `myspeed` on who=1's units, theirs a quarter above ours (75
     // against 93, 60 against 75, 115 against 143) with no `pos` parting:
-    // parked 3677a's and 3705b's family.
-    pin_eq!(w.firsts.len(), 114, "the stride's baseline");
+    // parked 3677a's and 3705b's family. Item 3742: 114 → **101**, the
+    // `myspeed` family gone with the Aluminum arm; what stands is `form`,
+    // `build:extra`, and who=1's groups and pools.
+    pin_eq!(w.firsts.len(), 101, "the stride's baseline");
 }
 
 /// run1397b: the word 4077's window, blocks 3995..4328 at the long's
@@ -274,7 +283,13 @@ fn german_modern_pair_run1397b_s_word_frame_is_widened_whole() {
     // pay 1000 mana on 4299; nothing parts on `0/0` past block 3995's
     // `form`. Past the aircraft family, the one unit row is `1/69`'s lone
     // `dest_angle` on 4320 (ours 0, theirs 1476001792).
-    pin_eq!(w.firsts.len(), 180, "run1397b baseline");
+    // Item 3742, the Aluminum arm: 180 → **61**. The aircraft fly from 4177
+    // in ours too, under the same `AIRPATROLORDER` on Napata (3168, 30816);
+    // what parts on them is `mirror` on each one's takeoff block (ours 0,
+    // theirs 1, eight rows, 3742a). Past block 3995's 47 standing rows:
+    // `1/49`'s `dest_angle` on 4103, groups 65 and 69's lists on 4171 and
+    // 4180, and `1/69`'s `dest_angle` on 4320.
+    pin_eq!(w.firsts.len(), 61, "run1397b baseline");
     // Every round, both directions: 137 in ours against 176, the first
     // parting the Tiger `1/38`'s on 4018, which ours holds alone. Item 3738:
     // 137 against 144 and 18 parting, the first `1/53`'s `ammo[1]` on 4301
@@ -352,12 +367,20 @@ fn german_modern_pair_run1418_s_word_frame_is_widened_whole() {
     // 4586 ours spends 36 `Unit::think_scout+0xaba` draws against theirs'
     // 35 and one `Guy::set_anim+0x104b` against seven (`docs/AI.md`
     // §366.2). The first unit position parting is `1/12`'s on 4629.
-    pin_eq!(w.firsts.len(), 877, "run1418 baseline");
+    // Item 3742, the Aluminum arm: 877 → **58**, nothing past the word.
+    // Block 4495's 53 standing rows (`form`, the leaders' `SITE[i].reg`,
+    // who=1's groups and pools, and the eight aircraft's `mirror`, 3742a),
+    // the Bomber `1/36`'s `g.z` on 4528, and groups 65 and 69's lists on
+    // 4587 and 4687.
+    pin_eq!(w.firsts.len(), 58, "run1418 baseline");
     // Every round, both directions: 912 against 102, 55 parting, the
     // first the Bomber `1/95`'s `ammo[0]` on 4753, which the dump holds
-    // alone — the airports' family, past the word.
-    pin_eq!(w.rounds_read, (912, 102), "the rounds read");
-    pin_eq!(w.rounds.len(), 55, "the rounds that part");
+    // alone — the airports' family, past the word. Item 3742: (912, 912),
+    // **32** parting, every one a Bomber's (`1/94`, `1/95`, `1/106`,
+    // `1/107`, `1/113`) over Napata from 4770: `accuracy` ours 0 against
+    // theirs 252..256, and `sy`/`ey` one unit apart (3742b).
+    pin_eq!(w.rounds_read, (912, 912), "the rounds read");
+    pin_eq!(w.rounds.len(), 32, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,
@@ -408,12 +431,11 @@ fn german_modern_pair_run1397_s_closing_state() {
     // `0/13`, `1/36` and `1/111` extra in ours, `1/139` and `1/141`
     // unlinked. A floor, not a score. Item 3738 (the word at 4299): counts
     // [116, 2, 3, 2, 27, 1, 23]. Item 3739 (the word at 4586): counts
-    // [112, 2, 2, 3, 27, 1, 8], `0/13` no longer extra.
-    pin_eq!(e.compared, 146, "units compared");
-    pin_eq!(e.counts(), [112, 2, 2, 3, 27, 1, 8], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(1, 36), (1, 111)],
-        "the closing extras"
-    );
+    // [112, 2, 2, 3, 27, 1, 8], `0/13` no longer extra. Item 3742, the word
+    // closed at 5304: **148** units, every one on and linked, no extra; the
+    // one count is a city, `1/2069`'s `assimilation_timer` 5304 against
+    // 5301 (3742c).
+    pin_eq!(e.compared, 148, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
