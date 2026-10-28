@@ -3774,6 +3774,10 @@ beside `port`, measured first; whether it joins `backed` is the score's definiti
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's. **The fifty-first pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2537 → 2566 functions, 9,745,971 → 9,798,451 bytes (86.0 %) on the tranche's 46 pool captures (`Census entered: simulation 2566 of 3611 functions · 1410 entered and unbacked`); the definition yours. Ramon's. **The fifty-second pass**: bytes 37.9 % unmoved; the census's `entered` column moves on the tranche's 38 captures (the record); 2,449 lines landed in `crates/sim` on six late-age pairs and the census counts none of it, which is the column's whole case; the definition yours. Ramon's. **The fifty-third pass**: backed 1696, port 568, layout 1128 unmoved through 785 sim lines on ten files (the launch rows, `fight`'s wait, the eject path, a tower's sight); the `audit` column is not built, the definition yours. Ramon's. **The fifty-fifth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 1,111 sim lines on eleven files (`launch.rs` +338, `pivot.rs` +252, `fight.rs` +143) and the census counts none of it; the definition yours. Ramon's. **The fifty-fifth and fifty-sixth passes**: bytes 37.9 % and port 568 unmoved (no sweep ran either tranche); the fifty-fifth appended no line here though its record says it did. Ramon's.
  **The sixty-first pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 1,791 sim lines on ten files (`pivot.rs` +1,088, `launch.rs` +345, `fight.rs` +137) and the census counts none of it; the definition yours. Ramon's.
 
+## Loop, filed 2026-10-28 — the sixty-second tranche's
+
+(3753) **`lanewait.py` ends at once, every arm, on a lane whose row reads `done` while its own lane gate still runs in the background** (the sixty-second tranche's commander) — lane-3747 committed three commits, started its lane gate backgrounded and ended its turn; `ccc list` then read the row `done busy` with the gate's process alive and nothing on origin, and two arms of `tools/lanewait.py lane-3747 lane-3748` printed `ENDED lane-3747 done — …` within a minute of `WAITING` (`$CLAUDE_JOB_DIR/tmp/t62/lanewait-1.log`, `-2.log`, 2026-10-28 16:16–16:17Z), so the wait on the other lane is lost with it. The commander split the wait by hand — lanewait on the other lane, a backgrounded `git ls-remote` loop on the gating lane's branch. Candidate: an `ENDED` row with a live child that is a `release_gate.py` under the lane's worktree is `GATING`, not an exit — held, and re-read on the gate's exit or the branch's push; measured first on how many of the sixty-first's `ENDED` exits were rows mid-gate.
+
 ## Loop, filed 2026-10-28 — the sixty-first pass's
 
 **3749** (a lane that lands in the very push its `DEEP` answer asked for is read as a draft, and a clear is armed on a finished lane: 3744, the commander's finding, unfiled until the pass) — **filed and built** by the sixty-first pass, the same subagent's, red first, its text kept in `docs/audit/2026-10-28-fable-pass-61.md` ("Rulings"): the signal is the lane's own done line, its `SendMessage` to the commander read off its newest transcript — commit subjects, `Lane verdict:` and the row going idle were measured unreliable; a push while an `--arm-after-push` row works is held, a done line since the last poll prints `PUSHED … a landing, not armed` and lands, and a row that stops without one is the draft, armed on the idle row. Two of 25 `DEEP`-answer pushes on disk were landings (3591, 3744), 3655 a probable third. Five tests; 53 green. The sixty-second's `DEEP` answers measure it.
@@ -12278,13 +12282,19 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   on 3749 (the Citizen `0/12`, dead on 3748), five rounds on 3848 (`0/7`) and two on 3875 (`0/10`). Every other
   field of those rounds agrees, and none reaches a draw. 3745b's `1/36` round of 3163 is the same shape.
 
-## Parked by the next landing, slot VV — reserved
+## Parked by item 3748, 2026-10-28 — piece 441, the Bantu Bazooka's bay
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3748a. Three Bantu siege and scout rounds leave their own square in ours, past the closed word.** In
+  `bantu_modern_pair_run1425_s_word_frame_is_widened_whole` (run1425, 4295..4395), fifteen round rows part on
+  launch alone (`sx`, `sy`, `sz`, `angle`, `v1z`): the Howitzers `1/84` (TI 271, 4320: (7752, 31800, 51) against
+  (7579, 31767, 257)) and `1/102` (TI 271, 4336: (7608, 28968, 244) against (7447, 29039, 450)) and the Armored
+  Scout Car `1/82` (TI 218, 4367: (6987, 30793, 230) against (6864, 30683, 384)). `total_time` agrees on each,
+  and no draw parts to the game's end, so none names a score. The pieces are the style-1 walks of bases 221 and
+  168 (`Sim::unit_gpiece`); neither has a `launch` or `pivot` row, and no packet on disk is known to load them.
+- **3748b. `1/86`'s round loses its target a frame apart.** On 4300 ours' round reads `whom` −1 and `ox` −1 where
+  theirs still holds `0/13`; theirs drops it on 4301 (`flags` 6 → 14). Both rounds now fly 9 frames from the
+  same bay and explode on 4304, so the frame names no draw. Grep this crate's writer of a round's target on the
+  target's death before reading `Ammo::inc_time`.
 
 ## Parked by the next landing, slot VW — reserved
 

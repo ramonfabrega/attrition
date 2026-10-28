@@ -2873,6 +2873,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 146,
         },
     ),
+    // **Piece 441, the Bazooka in the Arab art style** (type 139,
+    // `BAZOOKA-ARAB-AGE0`, `bazooka_arab.bh3`: base 89 at style 1, the
+    // Bantu's `UNIT_CONTINENT`; item 3748, `docs/AI.md` §370.2): no packet
+    // on disk loads it, and its three attack keys are taken as piece 1145's
+    // above — the same `Bazooka Attack1..3` animations and release keys.
+    // run1425's `1/86` round on the human's `0/13` (block 4295, the figure
+    // at (6648, 31224) and −1041694720, `z` 267) left (6527, 31190, 394),
+    // which the `CHAR_ATTACK1` row reproduces exactly; without it the
+    // round left the figure's own square, flew 10 frames against 9 and
+    // exploded a frame late on 4304. The `CHAR_ATTACK2` and `CHAR_ATTACK3`
+    // rows rest on the shape alone.
+    (
+        441,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: 32_578,
+            fwd: 121_906,
+            dz: 127,
+        },
+    ),
+    (
+        441,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: 33_663,
+            fwd: 97_657,
+            dz: 150,
+        },
+    ),
+    (
+        441,
+        crate::anim::ATTACK3,
+        13,
+        Bay {
+            right: 48_137,
+            fwd: 109_678,
+            dz: 146,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
@@ -4444,6 +4485,25 @@ mod tests {
                 "{piece} ({x}, {y}) at {facing}: keys {keys:?}"
             );
         }
+    }
+
+    /// **The Bantu Bazooka looses from piece 441's bay** (item 3748):
+    /// run1425's `1/86` round of about 4292, `CHAR_ATTACK1` frame 17, the
+    /// figure at (6648, 31224) and −1041694720 with `z` 267, prints
+    /// (6527, 31190, 394). Made to fail with the rows out of `BAYS`: the
+    /// round leaves the figure's own square.
+    #[test]
+    fn run1425_s_bantu_bazooka_leaves_from_its_bay() {
+        let got = launch_point(
+            Pos::new(6648, 31224),
+            Angle(-1_041_694_720),
+            441,
+            crate::anim::ATTACK1,
+            17,
+            0,
+        );
+        let z = 267 + release_dz(441, crate::anim::ATTACK1, 17, 0).unwrap_or(0);
+        assert_eq!((got.x, got.y, z), (6527, 31190, 394));
     }
 
     /// **The Japanese Infantry looses from piece 1108's bay** (item 3745):
