@@ -567,7 +567,14 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3735: 230 -> 231 on the merged tree, the French Medieval pair
 /// whole at 4664 — `Heavy Chevalier` (236, `CHEVALIERHEAVY`, land; 242
 /// figure rows), the line §364 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 231;
+/// Item 3737: 231 -> 238, the Spanish Modern pair whole at 4081 — the
+/// seven lines §365 fielded: `Special Forces[SPECIALFORCESSPANISH]` (76),
+/// `Infantry[INFANTRYGER]` (103), `Bazooka[BAZOOKAGERMAN]` (140), `Armored
+/// Scout Car[ARMOREDCAR2]` (219), `Tank[PANZER]` (250), `Howitzer[HUMMEL]`
+/// (272) and `Anti-Aircraft Battery[FLAKGUNGERMAN]` (283), all land; the
+/// Tank's pivot rows and the Bazooka's bays closed the word (§365.2), read
+/// by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 238;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
