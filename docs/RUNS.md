@@ -32208,6 +32208,73 @@ SHA-256 `138c869b760e403f1e64ac40c644a295d2b2cc1db097021771ee25836f65535e`.
 `peasants` 8 against 7). The Tanks' rounds (TI 250, `PANZER`) part, from the hull in ours. It is the pair's widening
 in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
 
+## run1398 — the Egyptians at a held Information age, Great Lakes: the `DUMP_ALL` start (2026-10-28, item 3720, `att-3720`)
+
+`docs/AI.md` §367. run1396's line with the nation, the difficulty and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1398 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 00:31:07, exited 00:31:33 (26.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 7, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 7` and `ENDING_TECHNOLOGY 7` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1398 greatlakes-egyptian-information-start`. `df -g ~` read 141 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1398-greatlakes-egyptian-information-start.txt`, 151,511,544 bytes,
+SHA-256 `2645f089bd0ef5bbb3016fe807b25a1e73acc57cc70e0ac9fe00dcc0ed48e8fc`.
+
+Archive `rontrace-run1398.log`, 8,915,840 bytes,
+SHA-256 `043b1ef1b7a036b7dcccf8eb403d9667cbd63837d76c935c8b63a72695774965`.
+
+**What it holds**: the start of `egyptian_information_pair::EGYPTIAN_INFORMATION`, and the walk's initial state.
+
+## run1399 — the Egyptians at a held Information age, Great Lakes: the draw stream to the game's end (2026-10-28, item 3720, `att-3720`)
+
+`docs/AI.md` §367. run1397's line with `--ai-tribe 7` and run1398's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 7 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1398. Launched 00:31:11, exited 00:31:35 (24.1 s launch to exit). `success`. **The game
+  ended itself on 3797** (closing block 3798, `ended_early`). `GAME INFO` reads back as run1398's. `rngcmp.py`
+  against run1398: 37 frames identical. Filed with `filerun.py run1399 greatlakes-egyptian-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1399-greatlakes-egyptian-information-trace.txt`, 22,505,886 bytes,
+SHA-256 `d0c73bee48b3c794b8b48a831c75a715ed83b171f7bbd541660649c47c293536`.
+
+Archive `rontrace-run1399.log`, 61,609,344 bytes,
+SHA-256 `879d7f227f50420d10f04e0a8e54eec7f2e5ccf847ed179d23c5a8e44f0ff6db`.
+
+**What it holds**: the pair's first try. `egyptian_information_pair_first_parting` walks it from run1398: **3244 of
+3797**, the count and the sequence together — the T80DES `1/42`'s `Unit::fight+0x824` draw in ours alone.
+`egyptian_information_pair_the_long_s_stride_walks_back_from_the_word` reads its stride, 101..3201: 32 blocks, 92
+keys, the standing families alone. `egyptian_information_pair_run1399_s_closing_state` pins the closing block 3798
+as a floor: 137 units, counts `[70, 0, 0, 7, 3, 1, 0]`, two torn.
+
+## run1399b — the Egyptians at a held Information age, Great Lakes: the word 3244's window, blocks 3195..3494 (2026-10-28, item 3720, `att-3720`)
+
+`docs/AI.md` §367. **What the disk could not answer**: every record and every round on the word's blocks. run1399's
+stride prints units every hundred frames (3201, then 3301), no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1399b --map 14 --end-frame 3494 --timeout
+3600 --log-window 3195 3494 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover
+cover=0` and run1398's lobby: six blocks before the stride's last block 3201, 250 past the word's block 3245.
+- Pool lane 1. Launched 00:35:47, exited 00:36:36 (49.1 s launch to exit). `success`: 3495 frames. `rngcmp.py`
+  against run1399: 3495 of 3495 identical. Filed with `filerun.py run1399b
+  greatlakes-egyptian-information-window-3195-3494`. `df -g ~` read 142 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1399b-greatlakes-egyptian-information-window-3195-3494.txt`, 615,246,476 bytes,
+SHA-256 `93a2a145d18501e90643fffe6e48d94dddb3b02ae8cb1d10b0e821d0503b2ae6`.
+
+Archive `rontrace-run1399b.log`, 57,034,208 bytes,
+SHA-256 `46c6487cf865a687cc5138669028a929cb9b5119a9997acd13583cde4317b52e`.
+
+**What it holds**: `egyptian_information_pair_run1399b_s_word_frame_is_widened_whole` walks it from run1398: 299
+blocks and 2625 keys, rounds 648 against 684 with 528 parting, the first the Mechanized Infantry `1/34`'s on 3205
+(piece 54, from the guy's square in ours, from a muzzle 111 out and 169 up in theirs). It is the pair's widening in
+`WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
 ## run1417 — the Germans at a held Modern age, Great Lakes, at difficulty 4: a packet at logger frame 4016, pieces 208 and 169 (2026-10-28, item 3738, `att-3738`)
 
 `docs/AI.md` §366.1. **What the disk could not answer**: the Tiger Tank's piece 208, a pivot piece with no row.

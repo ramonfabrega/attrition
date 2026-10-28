@@ -499,6 +499,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 12, 3)`, `(18, 12, 5)`, `(7, 12, 3)` or `(7, 12, 5)`, other
     // maps; the battery fields no Germans.
     (14, 12, 4),
+    // The Egyptians at a held Information age, Great Lakes (item 3720,
+    // `diff::egyptian_information_pair`), minted under rule (3) — not
+    // `(18, 7, 4)` or `(18, 7, 5)`, nor `(7, 7, 4)` or `(7, 7, 5)`, nor the
+    // held-out `EastIndiesEgyptianTier3`'s `(18, 7, 3)`, all other maps: no
+    // Egyptian lobby held Great Lakes.
+    (14, 7, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
