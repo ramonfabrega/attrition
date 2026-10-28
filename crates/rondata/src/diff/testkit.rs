@@ -7289,6 +7289,17 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3744: the Russian Information pair's first try, run1401 walked
+    // from run1400's start past the word 6153 once the siege-city arm lands
+    // (`docs/AI.md` §368.1): 8 inexact corners.
+    ("russian_information_pair_first_parting", 8),
+    // Item 3744: its closing state, run1401 walked to the closing block
+    // 6707, and the word's window 6095..6403 on run1401b: 8 each.
+    ("russian_information_pair_run1401_s_closing_state", 8),
+    (
+        "russian_information_pair_run1401b_s_word_frame_is_widened_whole",
+        8,
+    ),
     // Item 3703: the Greek Medieval pair's first try, run1380 walked from
     // run1379's start to the word 5626: 1 inexact corner.
     ("greek_medieval_pair_first_parting", 1),
