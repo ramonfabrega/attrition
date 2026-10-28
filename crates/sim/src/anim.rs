@@ -1458,7 +1458,10 @@ impl Sim {
     fn crew_unturned(&self, u: usize, g: usize) -> bool {
         let m = self.units[u].movement;
         g >= SQUAD_SIZE
-            && self.units[u].guys.get(g).is_some_and(|x| x.follow.is_none())
+            && self.units[u]
+                .guys
+                .get(g)
+                .is_some_and(|x| x.follow.is_none())
             && m.crew_des == Some(self.frame)
             && m.facing != m.heading
     }
