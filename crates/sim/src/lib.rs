@@ -782,9 +782,15 @@ pub struct Movement {
     /// when its **target** carries it.
     pub mirror: bool,
     /// **The trackless crew's `des_angle` (`GuyData +0x64`) stands apart
-    /// from its `angle` (`+0x18`)** — set by every `Unit::set_angle` with
-    /// the snap flag clear, cleared by the next `Guy::do_turn` and by the
-    /// snap (item 3762, `docs/GOLDEN.md` §149.3). `Guy::set_angle@005d9010`
+    /// from its `angle` (`+0x18`)** — set by an order's `Unit::set_angle`
+    /// with the snap flag clear ([`Sim::unit_set_angle`]), cleared by the
+    /// next `Guy::do_turn`, by guy 0's `Guy::move` and by the snap (item
+    /// 3762, `docs/GOLDEN.md` §149.3). `Unit::move_step`'s own `set_angle`
+    /// is not counted: its `do_turn` follows it in the same step. It holds
+    /// the frame it was written on, because guy 0's `Guy::move` turns the
+    /// crew on every frame its heading is not its facing — whatever order
+    /// the unit stands on — and this crate runs no body follow for some
+    /// of them (a packer's unpack, the Bombard `1/94` of run1254 on 4428). `Guy::set_angle@005d9010`
     /// writes every crew figure's `+0x64` from `+0x304` up and leaves its
     /// `+0x18`; `Guy::do_turn@005d97a0` writes both equal on the figures
     /// it recurses into. Between the two, a trackless crew figure reads
@@ -793,7 +799,7 @@ pub struct Movement {
     /// its swing. run1413's Bombard `2/23` on 759: `do_attack_ground`
     /// turns it and swings on one frame, and the two trackless crew pay
     /// the swing in `Guy::move+0x166`.
-    pub crew_des: bool,
+    pub crew_des: Option<i64>,
 }
 
 impl Movement {
@@ -817,7 +823,7 @@ impl Movement {
             },
             body: movement::Body::at(pos),
             mirror: false,
-            crew_des: false,
+            crew_des: None,
         }
     }
 
@@ -845,7 +851,7 @@ impl Movement {
         self.frame_facing = facing;
         self.heading = facing;
         self.des_angle = facing;
-        self.crew_des = false;
+        self.crew_des = None;
     }
 
     /// Points the unit a given way and **leaves the body to turn** —
@@ -872,7 +878,6 @@ impl Movement {
     pub const fn set_heading(&mut self, heading: movement::Angle) {
         self.flip_mirror(heading);
         self.heading = heading;
-        self.crew_des = true;
     }
 }
 
@@ -7380,6 +7385,9 @@ impl Sim {
         // its own process, and the body turns no further (item 3571,
         // `docs/AI.md` §310).
         unit.movement.frame_facing = follow.facing;
+        // Guy 0's `Guy::move` has turned the crew with it, or there was
+        // nothing to turn ([`Movement::crew_des`]).
+        unit.movement.crew_des = None;
         unit.movement.body = follow.body;
         // `Guy::move`'s `Guy::set_new_location` is what moves the
         // collision disc (`CollCheck::move_unit`, its only caller): the
