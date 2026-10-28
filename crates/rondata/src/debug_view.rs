@@ -332,6 +332,7 @@ mod tests {
             type_index: vec![],
             unit_type_names: Vec::new(),
             unit_tree: vec![],
+            staged: None,
         };
         let frame = Frame {
             units: vec![crate::gamelog::UnitDump {

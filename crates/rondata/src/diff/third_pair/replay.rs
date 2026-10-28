@@ -200,6 +200,7 @@ fn full_state_audit_accepts_only_future_inputs_and_rejects_value_changes() {
         type_index: vec![],
         unit_type_names: vec![],
         unit_tree: vec![],
+        staged: None,
     };
     let mut actual = make();
     let mut fresh = make();
