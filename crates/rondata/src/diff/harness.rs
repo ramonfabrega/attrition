@@ -1304,7 +1304,12 @@ pub(crate) fn debug_watch(built: &Built, frame: i64) {
                 .filter(|&c| bd.farm.state[c] != 0 || bd.farm.adds[c] != 0)
                 .map(|c| format!("({c},{},{})", bd.farm.adds[c], bd.farm.state[c]))
                 .collect();
-            eprintln!("  FARM f{frame} b{b} o{} ft{} {}", bd.index, bd.farm.farm_type, nz.join(" "));
+            eprintln!(
+                "  FARM f{frame} b{b} o{} ft{} {}",
+                bd.index,
+                bd.farm.farm_type,
+                nz.join(" ")
+            );
         }
     }
     // A comma list watches several units on one run (item 795's four

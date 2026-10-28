@@ -999,6 +999,24 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             "farms: {} from the dump, {pastures} pasture(s) carrying {animals} animals of owner 9",
             init.farms.len()
         ));
+        // **The list's own order, where the dump printed it** (item 3757,
+        // `docs/GOLDEN.md` §149.1): `Farms::log_data` walks the list, so
+        // the start dump is the activation order `start_of_game`'s
+        // higher-slot-first sort only guesses at. The guess holds for two
+        // seats; run1412's three print player 1's farms, then 0's, then
+        // 2's, and the sort's 2, 1, 0 handed the frame-37 sprout to
+        // `1/2002` where theirs gives it to `0/2002`. A farm the dump does
+        // not list keeps its place behind the listed ones.
+        let rank = |h: usize| {
+            let bd = &sim.buildings[h];
+            init.farms
+                .iter()
+                .position(|f| f.who == i64::from(bd.owner) && f.o == i64::from(bd.index))
+                .unwrap_or(usize::MAX)
+        };
+        let mut order = std::mem::take(&mut sim.farm_order);
+        order.sort_by_key(|&h| rank(h));
+        sim.farm_order = order;
     }
     // On the flat fallback world a camp's survey (`gather.rs`) finds no
     // forest and would cap it at zero slots; the map-less dumps (run6, run7)
