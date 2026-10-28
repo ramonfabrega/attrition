@@ -35226,12 +35226,82 @@ games only, so unit types seen stays **231 of 302** and the lockstep bytes stay 
   flight-time rule.
 - The aircraft's `myspeed` quarter (3719a).
 
-## 367. Reserved for the next item on the AI track
+## 367. The Egyptians at a held Information age, Great Lakes: first try 3244 of 3797 (item 3720)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3720, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §366's lobby with the nation, the difficulty and
+the age moved: `MAP_STYLE 14`, human Nubians (4) against the **Egyptians (7)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, **`STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`** — the first pair to hold the Information
+age. Both `GAME INFO`s read the 7s back, and `Pair::assert_lobby` asserts them. Captures: run1398 (a `DUMP_ALL`
+start) and run1399 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on
+3797. The walk is seeded from run1398's initial state (3506a). `diff::egyptian_information_pair` pins it. No twin
+(DECISIONS 93 §2).
+
+**What holding age 7 changes.** Nothing in the harness: the lobby is two `GAME INFO` integers, and the walk reads
+the age from the start's leader records like every pair before it. The AI fields the age's own lines: Assault
+Infantry (104), Elite Special Forces (77), Flamethrower (131), the three `Main Battle Tank`s (252, 253, 257), MLRS
+(273), the Avenger (284), the `MIGDES` (300), the Strategic Bomber (305) and the Nuclear ICBM (316). The game is
+the shortest of the late pairs, 3797 frames.
+
+**The lobby's triple**, `(14, 7, 5)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery's one Egyptian game is `EastIndiesEgyptianTier3`, `(18, 7, 3)`. The pinned Egyptian lobbies are
+`egyptian_classical_pair`'s `(18, 7, 5)`, `egyptian_industrial_pair`'s `(18, 7, 4)`, `egyptian_gunpowder_pair`'s
+`(7, 7, 5)` and `egyptian_word`'s `(7, 7, 4)`. None holds Great Lakes. `egyptian_information_pair_is_no_other_lobby`
+asserts all of it.
+
+**First try: 3244 of 3797**, the count and the sequence together. On 3244 ours spends **11 draws against theirs'
+10**, parting at index 1: ours **`Unit::fight+0x824`**, the **T80DES `1/42`** (TI 257, a `Main Battle Tank`, land,
+on an `ATTACKORDER`), where theirs spends nothing; the rest of the frame is the same, one place on (theirs' index 1
+is `Unit::do_guard+0x8fb`, ours' 2).
+
+**The direction: theirs acts, 38 frames before the word.** The state first parts on block 3206, in run1399b's
+window:
+- On 3204 the **Mechanized Infantry `1/34`** (TI 104, `MECHINFANTRY`, `Assault Infantry`; land; **`gpiece 54`**,
+  attack slot 11; a `GUARDORDER` under an `ATTACKORDER` on the Citizen `0/13`, TI 50) looses a round both sides.
+- **Theirs' round leaves from a muzzle**: `AMMO` on block 3205 prints `sx, sy, sz` (5530, 31784, 533), `total_time`
+  2, `gpiece 60173`, `graph_index 42`. The guy stands at (5640, 31800, z 364), so the node is about 111 out on the
+  bearing to the target, 169 up.
+- **Ours' leaves from the guy's own square**, (5640, 31800, z 364), and flies 3 frames (`RON_DEBUG_AMMO=3203-3207`:
+  `t1/3` on 3205). **Neither `sim::launch::BAYS` nor `sim::pivot` has a row for piece 54.** This is the launch-point
+  family of 3704–3714, 3718's Battleship (299) and 3719's Tiger (208).
+- Theirs' round lands on 3205: `0/13` takes 18 (`hits_left` 85 → 67, `damage_frame` 3205) and flees on a
+  `FLEETOORDER` to (2808, 31416). Ours' `0/13` stands idle at (4248, 31896) on block 3206 and flees a frame later.
+- From there the draw stream holds to 3244, where the T80DES' fight draw is ours alone.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3205 | `1/34`'s round `ammo[0]` | `sx, sy, sz`; `total_time`; `v1z` | 5640, 31800, 364 (the guy's square); 3; 119.06 | 5530, 31784, 533; 2; 80.99 |
+| 3206 | the Citizen `0/13` | `hits_left`; `damage_frame`; `orders.len`; `orders_x, orders_y` | 85; 0; 0; 4248, 31896 | 67; 3205; 1; 2808, 31416 |
+| 3244 | the draw stream, index 1 | site | `1/42`'s `Unit::fight+0x824` | `Unit::do_guard+0x8fb` |
+
+**The windows.**
+- run1399's stride, 101..3201 (32 blocks, **92 keys**): the standing families alone — `build:extra` on 53
+  buildings, `form` on 27 units, who=1's six groups' `held` and their pools. No position, order or hit parts
+  before the word.
+- run1399b, blocks 3195..3494 at the long's detail with `LEADERS=9` and `AMMO=5` (299 blocks, **2625 keys**, the
+  two `gaia:` keys unprinted; **rounds 648 against 684, 528 parting**, the first `1/34`'s on 3205). Block 3195
+  carries who=0's `SITE[i].reg` (ours 1, theirs 0) and `aggression[1]` (0 against 1) as standing rows: 3719b's
+  family, on a third lobby. The state's first unit parting is `0/13` on 3206, inside the window, so no walk back is
+  owed.
+
+**The closing state** is downstream. run1399's block 3798 compares 137 units: counts `[70, 0, 0, 7, 3, 1, 0]`, `1/1`
+and `1/28` torn, none extra or unlinked. A floor, not a score.
+
+**The rubric.** All four of the booking's lines were fielded (`rubric.py --tables 3 --dumps` on run1398, run1399
+and run1399b): `Main Battle Tank[HEAVYTANKCTWE]` (252, moved), `Main Battle Tank[HEAVYTANKCTWW]` (253, moved and
+attacked), `Main Battle Tank[T80DES]` (257, moved and attacked) and the `MIGDES` (300, the Jet Fighter, moved and
+boarded). All four are new to the ledger, and none is lockstep. The rubric counts whole lockstep games only, so
+unit types seen stays **231 of 302** and the lockstep bytes stay at 77.4 %.
+
+**Not established**:
+- Piece 54's release node. run1399b's `AMMO` prints `sx, sy, sz` on every Mechanized Infantry round that outlives
+  a frame (528 rounds part in the window). Whether it is a fixed bay (`launch::BAYS`) or a turret (`pivot`) is the
+  next item's first reading.
+- Whether theirs' two-frame flight against ours' three is the launch point alone (a shorter plan distance).
+- The leaders' standing `SITE[i].reg` and `aggression[1]` (3719b's family).
 
 ## 368. Reserved for the next item on the AI track
 
