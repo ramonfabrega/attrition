@@ -36,8 +36,15 @@ pub(crate) const SPANISH_MODERN: Pair = Pair {
     // ours 3212 draws against 3216, index 0 ours' `Guy::set_anim+0x97a <
     // Guy::do_turn+0x4a < Unit::move_step+0x389` against theirs'
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (`docs/AI.md` §365).
-    count: 3770,
-    sequence: 3770,
+    // Item 3736: **3770 → 4021**, by the count and the sequence — piece
+    // 299's pivot and release rows (`sim::pivot`, off run1165's packet) put
+    // the Battleships' rounds at their turrets, so the Citizen `0/13` is
+    // struck on 3704 in ours too. On 4021 ours spends 17 draws against 18,
+    // index 12: theirs' `Unit::close+0xcb6 < Object::die+0x29 <
+    // Unit::die+0x19`, a death ours does not deal, against ours'
+    // `Farms::inc_time+0x1ae` (`docs/AI.md` §365.1).
+    count: 4021,
+    sequence: 4021,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -252,11 +259,24 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     // 349, piece 299, which neither `launch` nor `pivot` holds) loose from
     // the guy's own square in ours, `sz` 0 against theirs' 105–106, and fly
     // 14 frames against 13.
-    pin_eq!(w.firsts.len(), 1983, "run1395b baseline");
+    //
+    // Item 3736: 1983 → **145** with piece 299's rows. Block 3677's
+    // standing families stand (101); after them the Submarine `1/109`'s
+    // order and facing, who=1's new units' `form`, group 76, and the
+    // Citizen `0/13`: `hits_left` 62 against 51 on 3933, the block the Tank
+    // `1/25`'s round of 3928 lands on (it parts: `sz` 66 against 210, 7
+    // frames against 6), then on 4018 theirs' Bazooka
+    // `1/31` strikes it (`damage_frame` 4017) and it flees, which ours
+    // does not (`orders.len` 0 against 1).
+    pin_eq!(w.firsts.len(), 145, "run1395b baseline");
     // Every round, both directions: 654 in ours against 680, the first
-    // parting the Battleship `1/45`'s on 3693.
-    pin_eq!(w.rounds_read, (654, 680), "the rounds read");
-    pin_eq!(w.rounds.len(), 213, "the rounds that part");
+    // parting the Battleship `1/45`'s on 3693. Item 3736: (654, 656), 28
+    // parting — the Tanks `1/25` and `1/35` (TI 250, `PANZER`, a pivot
+    // piece no row holds), the Bazookas `1/32` and `1/33` (TI 140), and
+    // the Battleship `1/71`'s round of 4013, which leaves the hull's pose
+    // after its move step in ours and before it in theirs (parked 3736a).
+    pin_eq!(w.rounds_read, (654, 656), "the rounds read");
+    pin_eq!(w.rounds.len(), 28, "the rounds that part");
 }
 
 /// run1395c: the walk back from the stride's first unit row, blocks
@@ -366,11 +386,10 @@ fn spanish_modern_pair_run1395_s_closing_state() {
     // who=1's `1/142` and `1/147` extra in ours, `1/127` and `1/141`
     // unlinked, and the cities' and buildings' records apart. A floor, not
     // a score.
-    pin_eq!(e.compared, 151, "units compared");
-    pin_eq!(e.counts(), [56, 2, 2, 2, 24, 1, 10], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(1, 142), (1, 147)],
-        "the closing extras"
-    );
+    //
+    // Item 3736, the word at 4021: 153 units, 13 off and nothing else —
+    // no torn, unlinked or extra unit; `Closing fields: none`.
+    pin_eq!(e.compared, 153, "units compared");
+    pin_eq!(e.counts(), [13, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
