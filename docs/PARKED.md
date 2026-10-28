@@ -11581,9 +11581,10 @@ it.
 
 ## Parked by item 3677, 2026-10-26 — the German Industrial word 4323 → 4348
 
-- **3677a. who=1's Albatrosses' `myspeed`** (TY 288), 55 in ours against 68 in theirs on every one from its first
+- ~~**3677a. who=1's Albatrosses' `myspeed`** (TY 288), 55 in ours against 68 in theirs on every one from its first
   stride block (3001), each parked in its airport (`docs/AI.md` §346). Draw-silent to 4348 and unread here: it names
-  no frame the draws part on. `UnitData::speed`'s terms (`unit_speed_view`) are the first reading.
+  no frame the draws part on. `UnitData::speed`'s terms (`unit_speed_view`) are the first reading.~~ Closed by item
+  3742: `update_speed`'s Aluminum arm (`docs/AI.md` §366.3).
 - **3677b. The Citizen's armour arm** (`UnitData::armor@00610160`, `has_general(0, 0x164)`, `THECITIZEN_ARMOR_BONUS`
   2), read beside the attack arm item 3677 built and not built: no window on disk holds a blow on a unit beside a
   Citizen that parts. Names no score.
@@ -11914,9 +11915,9 @@ are sub-scores of the pair that name no frame of it.
   clear. run1382b's per-frame `BUILD` records never print the three (no `o 2056..2058` in 3944..4200), so no dump on
   disk dates the flag or names its writer. The game ends on 4200, so no road search follows and no draw parts: it
   names no score. A reading of `Build::init@00629740`'s `build_masks` writes on a foundation is the first step.
-- **3705b. The Albatrosses' `myspeed` (TY 288), 55 in ours against 68**, on every one in run1382b from 3944 and on
+- ~~**3705b. The Albatrosses' `myspeed` (TY 288), 55 in ours against 68**, on every one in run1382b from 3944 and on
   each built after (4074, 4086, 4098). It is 3677a's family on another lobby, parked in their airports and
-  draw-silent to the game's end.
+  draw-silent to the game's end.~~ Closed by item 3742: the Aluminum arm (`docs/AI.md` §366.3).
 
 ## Parked by item 3706, 2026-10-27 — the Elite Pikemen are not Persian: `finalize_grafting`'s mask
 
@@ -12068,10 +12069,11 @@ The German Modern pair stands up at 4077 of 5304 (`docs/AI.md` §366): a Tiger T
 makes and explodes inside 4017 and that ours looses from the guy's square. That is the commander's to book on 4077.
 Neither row below names a score on its own.
 
-- **3719a. who=1's aircraft's `myspeed`, a quarter above ours in theirs**: the `ME109` `1/51` (TI 292) and the
+- ~~**3719a. who=1's aircraft's `myspeed`, a quarter above ours in theirs**: the `ME109` `1/51` (TI 292) and the
   Bomber `1/94` (TI 304), and their kin, parked in an airport (`inside_up` 2029). The stride reads 75 against 93,
   60 against 75 and 115 against 143 from block 3101, with no `pos` parting. It is 3677a's and 3705b's family on a
-  third lobby, and it spends no draw to the word.
+  third lobby, and it spends no draw to the word.~~ Closed by item 3742: the Aluminum arm, and it was the word
+  (`docs/AI.md` §366.3).
 - **3719b. The leaders' `SITE[i].reg`, ours 1 against theirs 0**, and who=0's `aggression[1]`, 0 against 1, are
   standing from run1397b's first block 3995. This is 3718b's family. No draw on the word's frame reads them.
 
@@ -12222,13 +12224,27 @@ words and edits nothing here; a refill lands when two remain.
     `-DRON_STATE_FRAME=3212` and item 597's `RON_STATE_PLAN`. All three pool lanes read free afterwards.
   - The commander put the lane to Ramon. Run 1419 stays reserved for the next item's retake. Names no score.
 
-## Parked by the next landing, slot VP — reserved
+## Parked by item 3742, 2026-10-28 — Aluminum's air speed, the German Modern word 4586 → 5304, closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
+
+- **3742a. Each aircraft's `mirror` parts on its takeoff block**, ours 0 against theirs 1 (run1397b from 4177;
+  run1418's standing rows on 4495, eight aircraft). The sortie's orders, positions and `up` agree. The writer of
+  `mirror` when a plane leaves its airport is unread.
+- **3742b. The Bombers' rounds over Napata: `accuracy` ours 0 against theirs 252..256**, from 4770 in run1418, 32
+  rounds of `1/94`, `1/95`, `1/106`, `1/107` and `1/113`, with `sy`/`ey` one unit apart. A Bomber's drop is
+  carried with an `accuracy` ours never writes, and its writer is unread. The game is closed, so it names no score.
+- **3742c. The city `1/2069`'s `assimilation_timer`, 5304 in ours against 5301**, the one count in run1397's
+  closing block 5305. Every unit agrees. The three frames are when the timer was last set, which no dump on disk
+  dates.
+- **3742d. The human's city `0/2000` on 5157: `city_flags[0x4]` ours 0 against theirs 1, and `reduce_stamp` 4806
+  against 5156** (run1422, the closing window). No other city or unit field parts with it, and no draw follows to
+  5304. The writer of `0x4` and of the stamp on that frame is unread. It may be 3742c's family (a city's timer
+  stamped on a different frame); nothing on disk says.
+- **3742e. Two Volksgrenadiers' rounds leave from another point**: `1/48` on 5291 and `1/50` on 5304 (TI 109,
+  `INFANTRYGERMAN`), each round's `sx`, `sy`, `sz`, `angle` and `v1z` (run1422; `sz` 375 against 542, 554 against
+  661). It is 3711b's shape, a figure's launch point read off the wrong piece or none. The game is closed, so it
+  names no draw.
 
 ## Parked by item 3743, 2026-10-28 — piece 203's bays and piece 207's turret, the Egyptian Information word whole at 3797
 

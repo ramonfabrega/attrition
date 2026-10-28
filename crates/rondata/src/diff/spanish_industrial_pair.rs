@@ -392,7 +392,9 @@ fn spanish_industrial_pair_run1382b_s_closing_frame_is_widened_whole() {
     // Albatrosses' `myspeed` as each is built (4074, 4086, 4098) and
     // groups 66 and 70 minted (4151, 4182). No unit position, order,
     // building or city row parts.
-    pin_eq!(w.firsts.len(), 70, "run1382b baseline");
+    // Item 3742: 70 → **52**, every Albatross's `myspeed` gone with
+    // `update_speed`'s Aluminum arm (`docs/AI.md` §366.3).
+    pin_eq!(w.firsts.len(), 52, "run1382b baseline");
     // Every round, both directions, none parting.
     pin_eq!(w.rounds_read, (458, 458), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

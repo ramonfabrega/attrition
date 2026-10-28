@@ -627,6 +627,11 @@ pub struct Tuning {
     /// — the same arm's air branch (`+0x218 == 2`), ahead of the Space
     /// Program's. Ships as `15%`.
     pub aluminum_air_cost: i32,
+    /// Percentage an air type's cached speed gains while the player holds
+    /// Aluminium — `Unit::update_speed@006055c0`'s air arm (`+0x218 ==
+    /// 2`, the `rare` byte the Whales arm reads; `docs/AI.md` §366.3).
+    /// Ships as `25%`.
+    pub aluminum_air_speed: i32,
     /// Percentage off an air unit's price while the player holds the
     /// Space Program — the air branch's second step (`has_wonder(0x21e)`;
     /// `docs/AI.md` §301). Ships as `50%`.
@@ -1531,6 +1536,7 @@ impl Tuning {
         uranium_nuke_cost: 5,
         angkor_ships: 25,
         aluminum_air_cost: 15,
+        aluminum_air_speed: 25,
         space_air_cost: 50,
         liberty_bombers: 33,
         liberty_missiles: 0,
@@ -2202,6 +2208,7 @@ impl Tuning {
             ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
             ("ANGKOR_SHIPS", Slot::Value(T.angkor_ships)),
             ("ALUMINUM_AIR_COST", Slot::Value(T.aluminum_air_cost)),
+            ("ALUMINUM_AIR_SPEED", Slot::Value(T.aluminum_air_speed)),
             ("SPACE_AIR_COST", Slot::Value(T.space_air_cost)),
             ("LIBERTY_BOMBERS", Slot::Value(T.liberty_bombers)),
             ("LIBERTY_MISSILES", Slot::Value(T.liberty_missiles)),
