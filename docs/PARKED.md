@@ -12087,13 +12087,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VG — reserved
+## Parked by item 3726, 2026-10-28 — the Maya at a held Information age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3726a. The Maya Armored Cavalry's rounds leave from the car's own square in ours**, with no score parting:
+  the pair is whole at 3330 of 3330 and the closing block agrees (`docs/AI.md` §373). On run1411b's window
+  (3075..3331) 121 of the rounds part, 240 in ours against 243. The first is `1/31`'s `ammo[0]` on 3205 (TI 220,
+  `ARMOREDCAVALRY`, **piece 874**: base 170 plus 352 × the Maya's `UNIT_CONTINENT` 2). Its `sx, sy, sz` are
+  6223, 32469, 219 in ours against 6099, 32440, 359 in theirs, and `1/48` and `1/58` part the same way.
+  Neither `sim::launch::BAYS` nor `sim::pivot` holds piece 874. The Strategic Bombers (`1/83`, `1/99`, TI 305)
+  and Jet Fighters (`1/91`, `1/100`, TI 295) part on `angle`, `ex/ey` and `accuracy` (`1/83`'s `ammo[2]` on
+  3312: 0 against 260). One building field follows: `0/2000`'s `damage` is 1156 against 1157 on 3265, the
+  block one of `1/31`'s rounds is in ours alone. It is the launch-point family (3720, 3740, 3743, 3745, 3748) on
+  a fifth piece. No draw reads it before the game's end.
+- **3726b. who=0's `SITE[0..9].reg` 1 against 0, `aggression[1]` 0 against 1, and who=1's `SITE[0..2].reg`**,
+  standing from run1411b's first block 3075. This is 3720a's family on a fourth lobby. Three `dest_angle` rows
+  on who=1's units are also in the window (`1/43` on 3130, `1/19` on 3151, `1/106` on 3283). No draw reads any
+  of them.
 
 ## Parked by the next landing, slot VH — reserved
 

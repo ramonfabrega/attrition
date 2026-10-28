@@ -194,6 +194,8 @@ mod leader;
 #[cfg(test)]
 mod maya_ancient_pair;
 #[cfg(test)]
+mod maya_information_pair;
+#[cfg(test)]
 mod maya_word;
 #[cfg(test)]
 mod mongol_classical_pair;

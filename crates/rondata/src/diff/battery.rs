@@ -529,6 +529,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 7, 4)`, `(18, 7, 5)`, `(7, 7, 4)` or `(7, 7, 5)`, nor the
     // held-out `EastIndiesEgyptianTier3`'s `(18, 7, 3)`, all other maps.
     (14, 7, 4),
+    // The Maya at a held Information age, Great Lakes (item 3726,
+    // `diff::maya_information_pair`), minted under rule (3) — not
+    // `maya_word`'s `(7, 1, 4)` (once the battery's `GreatSaharaMayaTier4`)
+    // nor `maya_ancient_pair`'s `(18, 1, 5)`, other maps: no Maya lobby held
+    // Great Lakes, and the battery fields no Maya.
+    (14, 1, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

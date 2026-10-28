@@ -11052,3 +11052,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1426  --map 14 --end-frame 3878 --allow-early-end --timeout 3600 --log-window 3695 3878 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby   (the word 3748's window)
 #   run1426b --map 14 --end-frame 3724 --timeout 3600 --log-window 3720 3724 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby, --tracer-def RON_STATE_FRAME=3722 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet)
 # Checks: `rngcmp.py` run1407 vs run1426 -> 3879 identical.
+# ==== item 3726: the Maya at a held Information age, Great Lakes (`docs/AI.md` §373; `docs/RUNS.md` run1410, run1411, run1411b) ====
+#   run1410  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 1 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1411  run1399's line with --ai-tribe 1 and run1410's lobby   (the draw stream; ended itself on 3330)
+#   run1411b --map 14 --end-frame 3330 --allow-early-end --timeout 3600 --log-window 3075 3331 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 1 --cover cover=0, run1410's lobby   (the closing window)
+# Checks: `rngcmp.py` run1410 vs run1411 -> 37 identical; run1411 vs run1411b -> 3331 identical.

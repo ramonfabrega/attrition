@@ -32904,3 +32904,73 @@ SHA-256 `bb2b0099ed413483f2bd6790710a60684e14b11b59d04a94ba6b482dab202948`.
 
 **What it holds**: the word 4304's widening (`bantu_modern_pair_run1425_s_word_frame_is_widened_whole`), the
 Bazooka `1/86`'s round on `0/13` launched from (6527, 31190, 394) in theirs.
+
+## run1410 — the Maya at a held Information age, Great Lakes: the `DUMP_ALL` start (2026-10-28, item 3726, `att-3726`)
+
+`docs/AI.md` §373. run1398's line with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1410 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 1 --profile
+STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 12:38:10, exited 12:38:38 (27.5 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 1, map style 14, five files restored. The receipt reads
+  `page_faults` 0 and no `relaunches`. `GAME INFO` reads back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 7` and
+  `ENDING_TECHNOLOGY 7` (`Pair::assert_lobby`). Filed with `filerun.py run1410 greatlakes-maya-information-start`.
+  `df -g ~` read 142 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1410-greatlakes-maya-information-start.txt`, 151,133,645 bytes,
+SHA-256 `795ff7502ca72e993bc43bd477ba6da83803a0b1e4b6b285ba026b768d644456`.
+
+Archive `rontrace-run1410.log`, 9,305,568 bytes,
+SHA-256 `e8adbb1e5220ebc087669fc8ac77c39274d264625e10e21962c109c514f815ec`.
+
+**What it holds**: the start of `maya_information_pair::MAYA_INFORMATION`, and the walk's initial state.
+
+## run1411 — the Maya at a held Information age, Great Lakes: the draw stream to the game's end (2026-10-28, item 3726, `att-3726`)
+
+`docs/AI.md` §373. run1399's line with `--ai-tribe 1` and run1410's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 1 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1410. Launched 12:38:15, exited 12:38:38 (22.9 s launch to exit). `success`. **The game
+  ended itself on 3330** (closing block 3331, `ended_early`). The receipt reads `page_faults` 0 and no
+  `relaunches`. `GAME INFO` reads back as run1410's. `rngcmp.py` against run1410: 37 frames identical. Filed with
+  `filerun.py run1411 greatlakes-maya-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1411-greatlakes-maya-information-trace.txt`, 20,503,351 bytes,
+SHA-256 `f5254e35ed7e1e9826ac7046d879f6bb507b9dd0897974dfe7b33d6052a72c5f`.
+
+Archive `rontrace-run1411.log`, 70,044,160 bytes,
+SHA-256 `eac292b1dc2c7d4637091eb8690c0f459177cefcbb5a54fe56a058df39f06f5c`.
+
+**What it holds**: the pair's first try, **whole**. `maya_information_pair_first_parting` walks it from run1410:
+count and sequence **3330 of 3330**. `maya_information_pair_the_long_s_stride_is_widened` reads its stride,
+101..3301: 33 blocks and 109 keys, all from the standing families. `maya_information_pair_run1411_s_closing_state`
+compares the closing block 3331: 123 units, counts all zero.
+
+## run1411b — the Maya at a held Information age, Great Lakes: the closing window, blocks 3075..3331 (2026-10-28, item 3726, `att-3726`)
+
+`docs/AI.md` §373. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1411's stride prints units every hundred frames, with no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1411b --map 14 --end-frame 3330
+--allow-early-end --timeout 3600 --log-window 3075 3331 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 1 --cover cover=0 --profile
+STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 12:42:16, exited 12:43:07 (50.7 s launch to exit). `success`, through the closing block
+  3331. The receipt reads `page_faults` 0 and no `relaunches`. `rngcmp.py` against run1411: 3331 frames identical.
+  Filed with `filerun.py run1411b greatlakes-maya-information-closing-window-3075-3331`. `df -g ~` read 141 GiB
+  free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1411b-greatlakes-maya-information-closing-window-3075-3331.txt`, 515,000,230 bytes,
+SHA-256 `55fb0906b0f357ab5f226722af3f4f0459a0a7fbe81b824b1388b7a4c0a19b4c`.
+
+Archive `rontrace-run1411b.log`, 69,770,080 bytes,
+SHA-256 `bb4da8d088cfe40147a8602a7ff5bf5cd759e5372bfd67702046444b78167f9f`.
+
+**What it holds**: the pair's closing widening (`maya_information_pair_run1411b_s_closing_frame_is_widened_whole`):
+256 blocks and 57 keys, with rounds 240 against 243 and 121 parting. The first parting round is the Armored
+Cavalry `1/31`'s (piece 874), which leaves from its own square in ours (parked 3726a). It is the pair's widening
+in `WIDENINGS` and its `AI_WORDS` window, and it sits in the coverage driver.
