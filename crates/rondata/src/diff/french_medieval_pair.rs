@@ -33,9 +33,13 @@ pub(crate) const FRENCH_MEDIEVAL: Pair = Pair {
     length: 4664,
     // Item 3717, first try: 3108 of 4664 by the count and the sequence —
     // ours 5 draws against 4, index 4 ours' `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x271` against none (`docs/AI.md` §364).
-    count: 3108,
-    sequence: 3108,
+    // Guy::inc_time+0x271` against none (`docs/AI.md` §364). Item 3735
+    // closes it, 3108 → 4664, the game's last frame (§364.1): a turn
+    // animation loops — every shipped turn slot names a `<LOOPING>` file,
+    // the packed Trebuchet `1/98`'s its wagon's walk — so its
+    // `CHAR_TURN_LEFT` restarts on 3108 with no idle roll.
+    count: 4664,
+    sequence: 4664,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -249,10 +253,98 @@ fn french_medieval_pair_run1393b_s_word_frame_is_widened_whole() {
     // against 18 (`path_recursion` 0 against 10); then the light cavalry
     // `1/90`'s and `1/79`'s (TI 210) guards (3114, 3116) and orders (3121,
     // 3124).
-    pin_eq!(w.firsts.len(), 424, "run1393b baseline");
+    // Item 3735 closes the word (§364.1): the turn loops, so `1/98`
+    // restarts its `CHAR_TURN_LEFT` on 3108 with no draw, and **56** keys
+    // remain. Block 3077's 49 standing rows; who=1's groups 66 (3155) and
+    // 65 (3203) with their pools as each is minted, and who=1's
+    // `SITE[4].reg` on 3176 (1 against 0), standing families too; and
+    // **two rows that are not**: `dest_angle` on group 67's guards of
+    // `1/83` — the General `1/78` (TI 54) on 3160, 392757248 against
+    // 882769920, and the Peltasts `1/82` (TI 84) on 3164, 600702976 against
+    // 693043200 — 3567a's shape (parked 3735a). No other unit, building or
+    // city field parts, and no draw parts to the game's end.
+    pin_eq!(w.firsts.len(), 56, "run1393b baseline");
     // Every round, both directions: no round flies in the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1414: the pair's closing window, blocks 4408..4665 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` (item 3735). The word reached the
+/// game's last frame; run1393's stride prints units every hundred frames
+/// and run1393b ends on 3359, so no dump held the last blocks.
+pub(crate) const RUN1414: &str =
+    "gamelog-run1414-greatlakes-french-medieval-closing-window-4408-4665.txt";
+
+/// The window: block 4408 through the closing block 4665.
+pub(crate) const WIDENING_FRENCH_MEDIEVAL_CLOSING: (i64, i64) = (4408, 4665);
+
+/// **The pair's last blocks**: run1414 walked from run1392's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3735).
+pub(crate) fn french_medieval_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[FRENCH_MEDIEVAL.start],
+        true,
+        FRENCH_MEDIEVAL.long,
+        "run1414",
+        &[(RUN1414, WIDENING_FRENCH_MEDIEVAL_CLOSING.0)],
+        WIDENING_FRENCH_MEDIEVAL_CLOSING,
+        1,
+        &[4665],
+        true,
+    )
+}
+
+#[test]
+fn french_medieval_pair_run1414_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_medieval_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3735, the pair whole: **55** keys. Block 4408 carries the
+    // standing families (`form` on 27 units, both leaders' `SITE[i].reg`,
+    // who=0's `aggression[1]`, who=1's groups 64, 67, 68 and 70 with their
+    // pools), and later blocks groups 66, 65 and 69's as each is minted
+    // (4457, 4465, 4473). **Two rows are not standing families**:
+    // `dest_angle` on group 64's guards of the Trebuchet `1/71` — the
+    // Peltasts `1/35` (TI 84) on 4443, -2147483648 against -1571028992,
+    // and the Crossbowmen `1/149` (TI 172) on 4453, -1716781056 against
+    // -1696333824 — 3567a's shape (parked 3735a). No other unit, building
+    // or city field parts, no draw parts to 4664, and the closing block
+    // 4665 agrees.
+    pin_eq!(w.firsts.len(), 55, "run1414 baseline");
+    // Every round, both directions: 287 each side, 10 rows parting — the
+    // Trebuchets `1/70`'s `ammo[1]` and `1/71`'s `ammo[0]` (TI 266) on
+    // 4408, each round's `sx`, `sy`, `sz`, `angle` and `v1z`: they leave
+    // from the figure's own point, `sz` 127 against 820 — 3711b's shape,
+    // a piece with no `launch::BAYS` row (parked 3735c). The draws never
+    // feel it.
+    pin_eq!(w.rounds_read, (287, 287), "the rounds read");
+    pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3717): run1393's closing block 4665,
@@ -298,15 +390,23 @@ fn french_medieval_pair_run1393_s_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 4665, "the closing block");
-    // Item 3717, first try: 1556 frames past the word 3108 the game has
-    // parted everywhere — 202 units compared, counts [186, 0, 5, 2, 164, 0,
-    // 34], who=1's `1/188`..`1/192` extra in ours, and the city records'
-    // `busy`, `gatherers` and `space[i]` apart. A floor, not a score.
+    // Item 3717, first try: 1556 frames past the word 3108 the game had
+    // parted everywhere — counts [186, 0, 5, 2, 164, 0, 34], who=1's
+    // `1/188`..`1/192` extra in ours, the cities' `busy`, `gatherers` and
+    // `space[i]` apart. **Item 3735 closes the pair** (§364.1): the
+    // closing block 4665 compares 202 units with every count 0, nothing
+    // torn, off, unlinked or extra, and no closing field apart — the
+    // closing state is scored.
     pin_eq!(e.compared, 202, "units compared");
-    pin_eq!(e.counts(), [186, 0, 5, 2, 164, 0, 34], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        vec![(1, 188), (1, 189), (1, 190), (1, 191), (1, 192)],
+        Vec::<(i64, i64)>::new(),
         "the closing extras"
+    );
+    pin_eq!(
+        harness::compare(&built, &fin, 8).closing_fields(),
+        "none".to_string(),
+        "the closing fields"
     );
 }

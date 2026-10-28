@@ -369,11 +369,21 @@ pub fn category(anim: i8) -> i8 {
 /// `<LOOPING>` / `<NONLOOPING>` in the install's `anim_graphics.xml`
 /// (`GraphicPieces::init_anims_pool@008fca40`); which file a piece's slot
 /// names is packet data this sim does not read, so the rule here is by
-/// slot, from the names: the attacks, deaths, turns, pack/unpack and the
-/// two dumps are non-looping, every walk, idle and work animation loops.
+/// slot, from the names: the attacks, deaths, pack/unpack and the two
+/// dumps are non-looping, every walk, idle, turn and work animation loops.
 /// For a category-0 animation the flag changes nothing — both restarts
-/// go through the idle roll (§4) — so it matters only for the dumps and
-/// the attacks (§6).
+/// go through the idle roll (§4) — so it matters only for the dumps, the
+/// attacks (§6) and the turns.
+///
+/// **The turns loop** (item 3735, `docs/AI.md` §364.1): every one of the
+/// 546 `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` rows of the shipped
+/// `unit_graphics.xml` names a file under `<LOOPING>` — a packed siege
+/// engine's names its wagon's walk — so a turn that runs out restarts
+/// itself, `set_anim(same, 0, 1)`, and pays no idle roll
+/// (`rondata::artdata`'s `every_turn_slot_names_a_looping_file` holds
+/// the install to it). The name rule had them non-looping, and the French
+/// Medieval pair's Trebuchet `1/98` paid the roll on frame 3108 that the
+/// original does not.
 ///
 /// **This is only the third of `Guy::inc_time`'s three tests.** The
 /// original reads `loopings[packet->ids[slot]]` behind `slot <
@@ -382,7 +392,9 @@ pub fn category(anim: i8) -> i8 {
 /// animation id and is non-looping whatever this rule says. The caller
 /// asks both (§3.6).
 pub fn non_looping(anim: i8) -> bool {
-    (ATTACKWALK..=24).contains(&anim) || anim == DUMP_WOOD || anim == DUMP_ORE
+    ((ATTACKWALK..=UNPACK).contains(&anim) && anim != TURN_LEFT && anim != TURN_RIGHT)
+        || anim == DUMP_WOOD
+        || anim == DUMP_ORE
 }
 
 /// One figure's clock — `GuyData` `+0x74..+0x9d` (`docs/ANIM.md` §1).
