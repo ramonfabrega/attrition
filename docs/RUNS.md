@@ -32775,3 +32775,27 @@ SHA-256 `d4670e5307ed4a4fb4cbd1bdd59da1aa9568058dedabe230b7d258ce00eacfbb`.
 
 **What it holds**: the state's first parting, the builder pick of 3376
 (`bantu_modern_pair_run1405c_s_gap_is_widened_whole`).
+
+## run1425 — the Bantu at a held Modern age, Great Lakes, at difficulty 5: the word 4304's window, blocks 4295..4395 (2026-10-28, item 3746, `att-3746`)
+
+`docs/AI.md` §370.1. **What the disk could not answer**: the round on 4304. run1405's stride prints units at 4301
+and on the closing block 4396 only, and no `AMMO` past run1405b's 3661. Theirs' two extra draws on 4304 are
+`Ammo::do_damage`'s. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1425 --map 14 --end-frame 4395
+--timeout 3600 --log-window 4295 4395 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --allow-early-end`: six blocks before the stride's block 4301, to the
+game's last frame 4395.
+- Pool lane 2 (`RON_CAPTURE_LANE=2`, the brief's preference). Launched 07:56:27, exited 07:57:05 (37.8 s launch to
+  exit). `success`: 4396 frames, last frame 4395, not ended early. `rngcmp.py` against run1405: 4396 of 4396
+  identical. Filed with `filerun.py run1425 greatlakes-bantu-modern-window-4295-4395`. `df -g ~` read 124 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1425-greatlakes-bantu-modern-window-4295-4395.txt`, 220,790,169 bytes,
+SHA-256 `390585cc8c245c7803e7f709b26b30041ffa12efb6f66f4bf95af079792a259d`.
+
+Archive `rontrace-run1425.log`, 98,169,664 bytes,
+SHA-256 `bb2b0099ed413483f2bd6790710a60684e14b11b59d04a94ba6b482dab202948`.
+
+**What it holds**: the word 4304's widening (`bantu_modern_pair_run1425_s_word_frame_is_widened_whole`), the
+Bazooka `1/86`'s round on `0/13` launched from (6527, 31190, 394) in theirs.

@@ -11040,3 +11040,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1424  --map 14 --end-frame 3158 --timeout 3600 --log-window 3154 3158 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby, --tracer-def RON_STATE_FRAME=3156 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet)
 #   run1424b --map 14 --end-frame 3866 --allow-early-end --timeout 3600 --log-window 3834 3867 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1402's lobby   (the closing window)
 # Checks: `rngcmp.py` run1403 vs run1424b -> 3867 identical.
+# ==== item 3746: the Bantu Modern word 3410 -> 4304 (`docs/AI.md` §370.1; `docs/RUNS.md` run1425) ====
+#   run1425  --map 14 --end-frame 4395 --allow-early-end --timeout 3600 --log-window 4295 4395 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the word 4304's window)
+# Checks: `rngcmp.py` run1405 vs run1425 -> 4396 identical.

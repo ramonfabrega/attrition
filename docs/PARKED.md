@@ -12292,13 +12292,21 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   target in ours (`whom` −1 against 0, `ox` −1 against 4), and `mirror` parts on four craft as they are minted
   (`1/95`, `1/103`, `1/106`, `1/110`). The pair is whole at 3866, so none reaches a draw.
 
-## Parked by the next landing, slot VT — reserved
+## Parked by item 3746, 2026-10-28 — the orphan check's builder scans by object number
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3746a. Two units part on the long's stride block 4301, three frames before the word 4304.** In
+  `bantu_modern_pair_the_long_s_late_stride_walks_back_from_4304` (run1405, 3701..4301), the Helicopter `1/34`
+  (TI 310, uid 237, on an `ATTACKTOORDER` in group 66) reads `mirror` 1 in ours against 0 in theirs. The
+  garrisoned Scholar `1/35` (TI 52, uid 238, `inside_up` 2006) reads `g.angle[0]` 1431655765 (`0x55555555`) in
+  ours against 0 in theirs. Neither unit is a party to the 4304 round, and the draws agree until 4304, so neither
+  names a score yet. Both are born after 4201. For the Scholar, grep this crate's writers of a garrisoned guy's
+  angle before reading the original's.
+- **3746b. `check_orphaned_buildings`' outer loop walks this crate's building slots.** The original walks two of
+  `objects`' lists by object number (`local_24` from `0x1ec` to `0x1f0`, each from `obj_base`'s start index).
+  `site_has_builder`'s unit scan now walks by object number, as the recruit scan does. A mutation back to slots
+  fails none of the 105 `first_parting`s, because no walk holds its arm: one site with two builders, one of them
+  out of the site's region. Neither order is held by a walk until a site's recruit order turns on which of two
+  sites comes first. The building loop's two lists are not read.
 
 ## Parked by the next landing, slot VU — reserved
 
