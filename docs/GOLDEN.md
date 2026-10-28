@@ -14001,7 +14001,7 @@ The two sides spend identical draws. Both make eight `Farms::inc_time+0x1ae` cha
 
 **The order.** `Farms::inc_time@008d8600` walks the `FarmStruct` array in index order (stride `0xc0`). It skips a
 pasture (`+0xbd == 1`) and a farm whose building's `SubObjectData +0x8 flags & 4` is clear: run1412's `1/2008`
-reads `flags` 1. Every other farm spends one roll. `Farms::walk_data@008d9280` prints the same array through
+reads `flags` 1. Every other farm spends one roll. `Farms::walk_data` prints the same array through
 `Array<FarmStruct>::walk_data`. run1412 prints player 1's three farms, then player 0's, then player 2's. That
 is `Game::start_list` (§3409 of `docs/ORDERS.md`), a permutation when the map randomises starts.
 
