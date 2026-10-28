@@ -44,8 +44,13 @@ pub(crate) const BANTU_MODERN: Pair = Pair {
     // `0/13` exploding, which flies 9 frames from (6527, 31190, 394) in
     // theirs and 10 from the shooter's own (6648, 31224, 267) in ours
     // (run1425).
-    count: 4304,
-    sequence: 4304,
+    //
+    // Item 3748, 4304 → **whole, 4395 of 4395**: the Bazooka plays piece
+    // 441 (`BAZOOKA-ARAB-AGE0`, base 89 at the Bantu's style 1), whose
+    // `CHAR_ATTACK1` bay puts `1/86`'s round at (6527, 31190, 394), and it
+    // flies 9 frames in both (`docs/AI.md` §370.2).
+    count: 4395,
+    sequence: 4395,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -307,8 +312,9 @@ fn bantu_modern_pair_run1405b_s_word_frame_is_widened_whole() {
 /// past run1405b's 3661, and theirs' extra draws on 4304 are a round's.
 pub(crate) const RUN1425: &str = "gamelog-run1425-greatlakes-bantu-modern-window-4295-4395.txt";
 
-/// The window: block 4295 through 4395.
-pub(crate) const WIDENING_BANTU_MODERN_FRAME_4304: (i64, i64) = (4295, 4395);
+/// The window: block 4295 through the closing block 4396 (item 3748: the
+/// word whole at 4395 must sit inside it).
+pub(crate) const WIDENING_BANTU_MODERN_FRAME_4304: (i64, i64) = (4295, 4396);
 
 /// **The word 4304's window**: run1425 walked from run1404's start with
 /// every round compared (item 3746).
@@ -363,8 +369,18 @@ fn bantu_modern_pair_run1425_s_word_frame_is_widened_whole() {
     // landing (4419, 31413), `total_time` 9 in theirs, and from (6648,
     // 31224, 267), landing (4399, 31423), `total_time` 10 in ours; theirs
     // explodes on 4304, ours a frame later (`docs/AI.md` §370.1).
-    pin_eq!(w.firsts.len(), 2640, "run1425 baseline");
-    pin_eq!(w.rounds_read, (70, 98), "the rounds read");
+    //
+    // Item 3748: **51 keys**, the standing families (`form`, who=0's
+    // `SITE[i].reg` and `aggression[1]`, who=1's groups 64..69 and their
+    // pools), 3746a's `1/34` `mirror` and `1/35` `g.angle[0]`, `1/176`'s
+    // `g.angle[0]` on 4375, and two `dest_angle`s (`1/23` on 4315, `1/115`
+    // on 4381); no draw parts to the game's end. Rounds 70 against 70:
+    // `1/86`'s round on `0/13` leaves piece 441's bay in both, and parts
+    // only on `whom`/`ox` on 4300; the other fifteen rows are the
+    // Howitzers `1/84` (4320) and `1/102` (4336) and the Armored Scout Car
+    // `1/82` (4367), each from its own square in ours (3748a).
+    pin_eq!(w.firsts.len(), 51, "run1425 baseline");
+    pin_eq!(w.rounds_read, (70, 70), "the rounds read");
     pin_eq!(w.rounds.len(), 17, "the rounds that part");
 }
 
@@ -485,8 +501,10 @@ fn bantu_modern_pair_run1405_s_closing_state() {
     // parted widely — 184 units compared, counts [140, 0, 1, 2, 93, 1, 35],
     // nothing torn or unlinked, who=1's `1/151` extra in ours. A floor,
     // not a score. Item 3746, 91 frames past the word 4304: counts [60, 0,
-    // 0, 0, 1, 0, 5] over the same 184 units, and no extra.
+    // 0, 0, 1, 0, 5] over the same 184 units, and no extra. Item 3748,
+    // the pair whole at 4395: **[0, 0, 0, 0, 0, 0, 0]**, nothing torn,
+    // unlinked or extra, and no closing field.
     pin_eq!(e.compared, 184, "units compared");
-    pin_eq!(e.counts(), [60, 0, 0, 0, 1, 0, 5], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

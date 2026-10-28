@@ -36331,9 +36331,80 @@ prints a Bantu Bazooka's launch before 4292, and no round of `1/86` is dumped be
   or unlinked, and `1/151` is no longer extra.
 
 **What is not established**:
-- **Where the Bantu Bazooka's round is launched from.** The next item's question is the hypothesis above.
+- ~~**Where the Bantu Bazooka's round is launched from.** The next item's question is the hypothesis above.~~
+  Answered by §370.2: piece 441's `CHAR_ATTACK1` bay, piece 1145's row.
 - **The outer building loop's order** (3746b).
 - **Why `1/34` and `1/35` part on 4301** (3746a).
+
+## 370.2 The Bantu Bazooka plays piece 441, and leaves from piece 1145's bay: 4304 → whole at 4395 (item 3748)
+
+*Item 3748, 2026-10-28, Opus 5.5. No capture and no packet: the disk answered.*
+
+**The direction.** On 4304 theirs spends two draws ours does not, `Ammo::do_damage+0xc59` and `+0xc7e`: the round
+of the Bazooka `1/86` (TI 139, land) on the Citizen `0/13` explodes in theirs. **Theirs acts**, and the record
+that shows it is the round's own `AMMO` print on run1425's block 4295 (§370.1's table): theirs' leaves (6527,
+31190, 394), ours' the figure's own point (6648, 31224, 267), and ours' flies one frame longer.
+
+**The piece, named from the art.** `RON_DEBUG_UNIT`'s `TY` is this crate's unit-type row, not the piece
+(§369.1). `Sim::unit_gpiece` walks TI 139's base 89 (`0x8b − 0x32`) through the leader's art style, and the
+Bantu's tribe file reads `<UNIT_CONTINENT>1 Arab`. So the Bazooka plays **piece 441** (89 + 352 × 1),
+`BAZOOKA-ARAB-AGE0`, `bazooka_arab.bh3`, in `unit_graphics.xml`. Its entry is the Japanese piece 1145's
+(`BAZOOKA-ASIAN-AGE0`) in every line that keys a bay: the same `Bazooka Attack1..3` animations, the same three
+`RELEASEEVENT`s (`node 0` at 1200, 533 and 900), no `<RESTRICTION>`, scale 1. Only the model and texture
+differ. Neither this crate's `launch` nor its `pivot` had a row for 441, so its rounds left the figure's square.
+
+**The killer, run before any build.** The block-4295 figure of `1/86` stands at (6648, 31224), angle
+−1041694720, `z` 267, on a current `ATTACKORDER` at `0/13`, `in_range` 1, at its own `orders_at`, so the facing
+is the launch frame's. Piece 1145's three rows at that pose give:
+
+| key | `sx, sy, sz` |
+|---|---|
+| `CHAR_ATTACK1` frame 17 | **6527, 31190, 394** |
+| `CHAR_ATTACK2` frame 7 | 6551, 31189, 417 |
+| `CHAR_ATTACK3` frame 13 | 6540, 31174, 413 |
+
+The `CHAR_ATTACK1` row reproduces theirs' launch to the unit, `x`, `y` and height. The killer was that no row
+would; it did not fire.
+
+**The build.** `launch::BAYS` gets piece 441's three rows, each piece 1145's. Test:
+`run1425_s_bantu_bazooka_leaves_from_its_bay`. A mutation (`tools/mutate.py`, the `CHAR_ATTACK1` row's piece
+negated) fails `bantu_modern_pair_first_parting`, `…_run1405_s_closing_state` and
+`…_run1425_s_word_frame_is_widened_whole` (exit 101).
+
+**The score: 4304 → whole, 4395 of 4395**, count and sequence. The value diff on the word's frame:
+
+| block | record | field | before | after (both sides) |
+|---|---|---|---|---|
+| 4295 | `1/86`'s round on `0/13` | `sx, sy, sz` | 6648, 31224, 267 against 6527, 31190, 394 | 6527, 31190, 394 |
+| 4295 | the same | `total_time`; `ex, ey` | 10; 4399, 31423 against 9; 4419, 31413 | 9; 4419, 31413 |
+| 4304 | the draw stream, index 107 | `Ammo::do_damage+0xc59`, `+0xc7e` | theirs alone | both |
+
+- **The closing state** (block 4396): 184 units, counts `[0, 0, 0, 0, 0, 0, 0]`. Nothing is torn, unlinked or
+  extra, and there is no closing field. It was `[60, 0, 0, 0, 1, 0, 5]`.
+- **run1425's window** (4295..4395, which reaches the game's last frame): **2640 → 51 keys**. These are the
+  standing families: `form`, who=0's `SITE[i].reg` and `aggression[1]`, and who=1's groups 64..69 and their
+  pools. Also left: 3746a's two units, `1/176`'s `g.angle[0]` on 4375, and the `dest_angle` of `1/23` (4315) and
+  `1/115` (4381). Rounds read 70 against 70. The 17 parting rows are `1/86`'s target lost a frame apart on 4300
+  (3748b), and fifteen launch rows of two Howitzers and an Armored Scout Car (3748a). `total_time` agrees on all
+  of them, and none reaches a draw.
+- `GROUND_INEXACT` gets `bantu_modern_pair_first_parting` at 8. These are the eight corners the closing walk
+  already pinned, now reached by the first parting walking to the end.
+
+**The rubric** (`rubric.py --tables 3`, against the same scan on the base): unit types seen **250 → 252**. The
+two are `Tank[SHERMANDES]` (247, land) and the `Hawk Fighter[HAWKFB]` (302, air). Lockstep bytes are unmoved at
+**77.4 %** (table 4: 2247 of 3611).
+
+**Diff-backed**: the `CHAR_ATTACK1` row on the Bantu piece (one round, exact), and the pair whole.
+
+**Reading alone, or the shape alone**: piece 441's `CHAR_ATTACK2` and `CHAR_ATTACK3` rows, taken as 1145's. No
+Bantu Bazooka round on disk plays those keys from its first frame. The bay is the model's node 0 under the
+animation, and `bazooka_arab.bh3` is a different mesh from `bazooka_asian.bh3`, so a row could differ. That is
+the same standing as piece 87's rows taken from 1143's (§348.1).
+
+**What is not established**:
+- Piece 441's `CHAR_ATTACK2` and `CHAR_ATTACK3` bays, above.
+- The Bantu Howitzer's and Armored Scout Car's launch points (3748a).
+- Why `1/86`'s round drops its target on 4300 in ours and on 4301 in theirs (3748b).
 
 ## 371. The Egyptians at a held Modern age, Great Lakes, at difficulty 4: first try 3451 of 3878 (item 3724)
 
