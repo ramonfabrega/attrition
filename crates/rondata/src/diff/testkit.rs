@@ -7912,6 +7912,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3746: run1425's window walks to the same closing block, 4295
     // through 4395 — the same eight corners.
     ("bantu_modern_pair_run1425_s_word_frame_is_widened_whole", 8),
+    // Item 3748: the pair whole, its first parting walks to the game's
+    // end over the same eight corners.
+    ("bantu_modern_pair_first_parting", 8),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -11057,7 +11060,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Toughest — first try 3410 of 4395. Item 3746 → 4304: the orphan
     // check's builder scans walk by object number (the builder pick on
     // 3376, run1405c); widened on run1425 over 4295..4395, the rounds
-    // compared.
+    // compared — and item 3748 closed it on piece 441's bay: **whole at
+    // 4395**, the same window reaching the game's last frame
+    // (`docs/AI.md` §370.2).
     (
         "BANTU_MODERN_PAIR_WORD",
         crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
@@ -13543,7 +13548,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Toughest (item 3723): first
     // try 3410 of 4395, a `Unit::move_step` anim draw in ours alone, the
     // state parted on 3376's builder pick; widened on run1405b over
-    // 3395..3661.
+    // 3395..3661. Item 3746: 4304, widened on run1425 over 4295..4395.
+    // Item 3748: whole at 4395, run1425's window reaching the last frame.
     AiWord {
         line: "Late ages",
         map: "GreatLakesBantuModern",
@@ -13551,7 +13557,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::bantu_modern_pair::BANTU_MODERN_PAIR_WORD,
         length: 4_395,
         endpoint: Some("bantu_modern_pair_run1405_s_closing_state"),
-        window: Some("bantu_modern_frame_3410_window"),
+        window: Some("bantu_modern_frame_4304_window"),
     },
     // The Egyptians at a held Modern age (`STARTING_TECHNOLOGY` 6,
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3724): first try
