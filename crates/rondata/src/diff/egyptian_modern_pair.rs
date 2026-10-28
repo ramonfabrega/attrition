@@ -36,9 +36,12 @@ pub(crate) const EGYPTIAN_MODERN: Pair = Pair {
     // Item 3724, first try: count 3451, sequence 3451 of 3878 — on 3451
     // ours 20 draws against theirs' 21, index 17 ours'
     // `Farms::inc_time+0x1ae` against theirs' `Unit::close+0xcb6`
-    // (`docs/AI.md` §371).
-    count: 3451,
-    sequence: 3451,
+    // (`docs/AI.md` §371). Item 3747: whole, 3878 of 3878 — 3451 → 3748
+    // on piece 195's `pivot::SAME_AS` row (the Churchills' rounds), 3748 →
+    // 3853 on piece 52's `launch::BAYS` (the Infantry's), 3853 → 3878 on
+    // piece 89's (the Bazookas'), `docs/AI.md` §371.1.
+    count: 3878,
+    sequence: 3878,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -259,14 +262,91 @@ fn egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole() {
     // (`Unit::close+0xcb6` under `Object::die`, the word's index 17); on
     // block 3452 ours alone holds it, and who=0's `num_units[25]` reads 1
     // against 0 (`docs/AI.md` §371).
-    pin_eq!(w.firsts.len(), 1287, "run1407b baseline");
+    // Item 3747: 1287 → **46**, the standing families alone (`form` on 23
+    // units, who=0's ten `SITE[i].reg` and `aggression[1]`, who=1's two
+    // `SITE[i].reg` and five groups with their pools) once piece 195 reads
+    // piece 194's rows (`pivot::SAME_AS`, `docs/AI.md` §371.1).
+    pin_eq!(w.firsts.len(), 46, "run1407b baseline");
     // Every round, both directions: 11 in ours against 18, 27 rows
     // parting, all the Churchills' (`1/27`, `1/36`, `1/37`, `1/47`) from
     // 3438 — `1/47`'s `ammo[0]` leaves the figure's own square (3720,
     // 33960, z 582) in ours and flies six frames, (3698, 33775, z 728) in
     // theirs and flies five: the launch point.
-    pin_eq!(w.rounds_read, (11, 18), "the rounds read");
-    pin_eq!(w.rounds.len(), 27, "the rounds that part");
+    // Item 3747: (11, 18) with 27 parting → (11, 11) with none: `1/47`'s
+    // round of 3438 leaves (3698, 33775, z 728) both sides, the killer.
+    pin_eq!(w.rounds_read, (11, 11), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1426: the word 3748's window, blocks 3695..3878 at run1407b's
+/// detail — six blocks before the stride's last agreeing block 3701, to
+/// the game's last frame (item 3747). run1407 prints units only on 3701
+/// and 3801, no `AMMO`, and its 3701 parts no unit row.
+pub(crate) const RUN1426: &str = "gamelog-run1426-greatlakes-egyptian-modern-window-3695-3878.txt";
+
+/// The window: block 3695 through 3878.
+pub(crate) const WIDENING_EGYPTIAN_MODERN_FRAME_3748: (i64, i64) = (3695, 3878);
+
+/// **The word 3748's window**: run1426 walked from run1406's start with
+/// the recorder on and every round compared (item 3747).
+pub(crate) fn egyptian_modern_frame_3748_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[EGYPTIAN_MODERN.start],
+        true,
+        EGYPTIAN_MODERN.long,
+        "run1426",
+        &[(RUN1426, WIDENING_EGYPTIAN_MODERN_FRAME_3748.0)],
+        WIDENING_EGYPTIAN_MODERN_FRAME_3748,
+        1,
+        &[3749],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_modern_pair_run1426_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_modern_frame_3748_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 183, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3747, with pieces 195, 52 and 89 built: **51** keys, the
+    // standing families alone — `form` on 22 units, who=0's ten
+    // `SITE[i].reg` and `aggression[1]`, who=1's two `SITE[i].reg` and six
+    // groups with their pools, `mirror` on four craft minted in the window
+    // (3747a). The first walk, before piece 52's and 89's bays: 1123 keys,
+    // rounds (222, 191) with 216 parting; the first unit parting the
+    // Infantry `1/19`'s round of 3723 leaving (6456, 31752, z 221) against
+    // (6417, 31701, z 341), and the Citizen `0/12` struck harder from 3739
+    // and dying on 3748 in theirs alone.
+    pin_eq!(w.firsts.len(), 51, "run1426 baseline");
+    pin_eq!(w.rounds_read, (222, 222), "the rounds read");
+    // 16 rows part, every one a round's `whom`/`ox` read after its target
+    // died (`-1` in ours against the dead unit's number in theirs, 3749,
+    // 3848, 3875); none reaches a draw (3747b).
+    pin_eq!(w.rounds.len(), 16, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3724): run1407's closing block 3879,
@@ -316,6 +396,9 @@ fn egyptian_modern_pair_run1407_s_closing_state() {
     // parted — 130 units compared, counts [68, 0, 2, 0, 6, 0, 7], nothing
     // torn or unlinked, ours' `0/7` and `0/10` extra. A floor, not a score.
     pin_eq!(e.compared, 130, "units compared");
-    pin_eq!(e.counts(), [68, 0, 2, 0, 6, 0, 7], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(0, 7), (0, 10)], "the closing extras");
+    // Item 3747: whole — 130 units, counts [0, 0, 0, 0, 0, 0, 0], nothing
+    // torn, unlinked or extra, no closing field (from [68, 0, 2, 0, 6, 0,
+    // 7] with ours' `0/7` and `0/10` extra).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

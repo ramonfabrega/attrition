@@ -2721,6 +2721,80 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 107,
         },
     ),
+    // **Piece 52, the Infantry in the default art style** (type 102,
+    // `INFANTRY-DEFAULT-AGE0`, `inf.bh3`: base 52 at style 0, the
+    // Egyptians' `UNIT_CONTINENT`; item 3747, `docs/AI.md` §371.1): no
+    // packet on disk loaded it, and run1426b's `RON_STATE_FRAME=3722`
+    // packet on the Egyptian Modern Great Lakes seed holds its six
+    // `AttachPos` rows (node 0 at 12 and 13 of `CHAR_ATTACK1`, 4, 14 and
+    // 24 of `2`, 12 of `3`), `RData +0x88` 1.0. The art has no
+    // `<RESTRICTION>`, so the rounds take the non-pivot arm, and
+    // `fit_bay.py` fits each sweep (49, 98, 915, 819, 348 and 322 lattice
+    // points; the centroid is kept). Five keys fit piece 1108's rows to the
+    // unit; `CHAR_ATTACK2` at 24 is this piece's own. Without them who=1's
+    // `1/19` loosed its round of 3723 at the human's Citizen `0/12` from
+    // its own square (6456, 31752, 221) against the original's (6417,
+    // 31701, 341), and the citizen died on 3748 in theirs alone.
+    (
+        52,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        52,
+        crate::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_717,
+            fwd: 82_052,
+            dz: 170,
+        },
+    ),
+    (
+        52,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 9667,
+            fwd: 64_207,
+            dz: 120,
+        },
+    ),
+    (
+        52,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        52,
+        crate::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        52,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
     // **Piece 1145, the Bazooka in the Asian art style** (type 139,
     // `BAZOOKA-ASIAN-AGE0`, `bazooka_asian.bh3`: base 89 at style 3; item
     // 3745, `docs/AI.md` §369.1): run1424's packet holds its three
@@ -2753,6 +2827,44 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
     (
         1145,
+        crate::anim::ATTACK3,
+        13,
+        Bay {
+            right: 48_137,
+            fwd: 109_678,
+            dz: 146,
+        },
+    ),
+    // **Piece 89, the Bazooka in the default art style** (type 139,
+    // `BAZOOKA-DEFAULT-AGE0`, `bazooka.bh3`: base 89 at style 0; item 3747,
+    // `docs/AI.md` §371.1): run1426b's packet holds its three `AttachPos`
+    // rows (node 0 at 17 of `CHAR_ATTACK1`, 7 of `2`, 13 of `3`), `RData
+    // +0x88` 1.0, no `<RESTRICTION>`; `fit_bay.py` fits each sweep (85, 1278
+    // and 187 lattice points) to piece 1145's rows to the unit. Without them
+    // who=1's `1/54` loosed its round of 3840 from its own square (5880,
+    // 30648, 462) against the original's (5859, 30547, 612).
+    (
+        89,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: 32_578,
+            fwd: 121_906,
+            dz: 127,
+        },
+    ),
+    (
+        89,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: 33_663,
+            fwd: 97_657,
+            dz: 150,
+        },
+    ),
+    (
+        89,
         crate::anim::ATTACK3,
         13,
         Bay {
@@ -4297,6 +4409,41 @@ mod tests {
         );
         let z = 514 + release_dz(1145, crate::anim::ATTACK2, 7, 0).unwrap_or(0);
         assert_eq!((got.x, got.y, z), (5299, 30765, 664));
+    }
+
+    /// **The Egyptian Infantry and Bazooka loose from pieces 52 and 89's
+    /// bays** (item 3747, `docs/AI.md` §371.1): run1426's `1/19` round of
+    /// 3723 and `1/54`'s of 3840, each from the figure's `GUY` pose on the
+    /// block before (3722, 3839) to the dump's `sx, sy, sz − z`, reproduced
+    /// by exactly one of the piece's attack keys. Made to fail with the
+    /// rows out of `BAYS`: each round leaves the figure's own square.
+    #[test]
+    fn run1426_s_egyptian_infantry_and_bazooka_leave_from_their_bays() {
+        // (piece, x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32, i32); 2] = [
+            (52, 6456, 31752, -544_014_336, 6417, 31701, 341 - 221), // 3723 1/19
+            (89, 5880, 30648, -360_513_536, 5859, 30547, 612 - 462), // 3840 1/54
+        ];
+        for (piece, x, y, facing, sx, sy, dz) in rows {
+            let attack: &[(i8, u32)] = if piece == 52 {
+                &[(11, 12), (11, 13), (12, 4), (12, 14), (12, 24), (13, 12)]
+            } else {
+                &[(11, 17), (12, 7), (13, 13)]
+            };
+            let keys: Vec<(i8, u32)> = attack
+                .iter()
+                .copied()
+                .filter(|&(anim, t)| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), piece, anim, t, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(piece, anim, t, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(
+                keys.len(),
+                1,
+                "{piece} ({x}, {y}) at {facing}: keys {keys:?}"
+            );
+        }
     }
 
     /// **The Japanese Infantry looses from piece 1108's bay** (item 3745):
