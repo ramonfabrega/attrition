@@ -11097,6 +11097,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3747,
         Some(crate::diff::egyptian_modern_pair::WIDENING_EGYPTIAN_MODERN_FRAME_3748),
     ),
+    // **The Americans at a held Information age** (item 3725): Great
+    // Lakes at 5 — first try 2385 of 4320, theirs' sixth slot expiry
+    // (`Leader::make_stuff+0x63d`) where ours has five, the make list
+    // parted on 2384 downstream of who=1's Jet Fighters (295) priced
+    // without `AMERICANS_AIRCRAFT`; widened on run1409b over 2295..2635
+    // (`docs/AI.md` §372).
+    (
+        "AMERICAN_INFORMATION_PAIR_WORD",
+        crate::diff::american_information_pair::AMERICAN_INFORMATION_PAIR_WORD,
+        Some("american_information_pair_run1409b_s_word_frame_is_widened_whole"),
+        3725,
+        Some(crate::diff::american_information_pair::WIDENING_AMERICAN_INFORMATION_FRAME_2385),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13587,6 +13600,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_878,
         endpoint: Some("egyptian_modern_pair_run1407_s_closing_state"),
         window: Some("egyptian_modern_frame_3748_window"),
+    },
+    // The Americans at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), Great Lakes at 5 (item 3725): first try 2385
+    // of 4320, theirs' sixth slot expiry where ours has five; widened on
+    // run1409b over 2295..2635.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesAmericanInformation",
+        named: "Great Lakes (American, Information)",
+        word: crate::diff::american_information_pair::AMERICAN_INFORMATION_PAIR_WORD,
+        length: 4_320,
+        endpoint: Some("american_information_pair_run1409_s_closing_state"),
+        window: Some("american_information_frame_2385_window"),
     },
     // The Maya at a held Information age (`STARTING_TECHNOLOGY` 7,
     // `ENDING_TECHNOLOGY` 7), Great Lakes at difficulty 5 (item 3726):
