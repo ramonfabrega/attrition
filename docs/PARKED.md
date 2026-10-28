@@ -12397,13 +12397,17 @@ words and edits nothing here; a refill lands when two remain.
   score: no scored lobby fields it. Its killer is a packet from a game that fields it, read with `entries`, against
   piece 204's fifteen rows.
 
-## Parked by the next landing, slot WE — reserved
+## Parked by item 3759, 2026-10-28 — the melee's first fight, the Apedemak Archers' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3759a. The Camel Raider looses from the figure's square in ours** (`docs/GOLDEN.md` §149.2). run1438 prints
+  the human's Camel Raider `0/17` (TI 193) loosing its round of 674 at who=2's Bombard `2/23` from (17279, 15748,
+  758). Ours looses it from (17400, 15672, 477), the figure's own square: no `launch.rs` or `pivot.rs` row holds
+  the piece. The landing (16038, 16810) and the flight (4 frames) agree on both sides, so nothing parts on it
+  through 759.
+  - It names no score until one of its rounds' times or landings parts.
+  - What would answer it: run1438's packet (`~/ron-golden/run1438/map-7/frame-snapshot.bin`, logger frame 684)
+    loads the type. `get_position.py … entries <its piece>` reads its rows, and `fit_bay.py` fits them, as 3759
+    did for piece 126. A rider's launch is probably a pivot piece, so `pivot` comes before `sweep`.
 
 ## Parked by item 3760, 2026-10-28 — the American Information word closes on the Strategic Bomber's bays
 
