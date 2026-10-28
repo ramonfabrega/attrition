@@ -145,9 +145,9 @@ fn russian_information_pair_is_no_other_lobby() {
     }
 }
 
-/// **The long's stride, walked back from the word** (item 3720, from
-/// 3244): only run1401's stride blocks are on disk before the word, 101
-/// through 3201.
+/// **The long's stride, walked back from the word** (item 3721, from
+/// 6153): only run1401's stride blocks are on disk before the word, 101
+/// through 6101.
 pub(crate) const WIDENING_RUSSIAN_INFORMATION_STRIDE: (i64, i64) = (101, 6101);
 
 pub(crate) fn russian_information_stride_window() -> Option<harness::tests::Widened> {
@@ -186,14 +186,88 @@ fn russian_information_pair_the_long_s_stride_walks_back_from_the_word() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3720: 92 keys over 32 blocks, the standing families alone —
-    // `build:extra` on 53 buildings (which the stride does not print),
-    // `form` on 27 units, and who=1's six groups' `held` with their pools.
-    // No position, order or hit parts before the word.
+    // Item 3721: 294 keys over 61 blocks. The standing families — `form`
+    // 110, `build:extra` 88, who=1's groups' `held` 37 and pools 37 — and
+    // 22 rows besides: the Attack Submarine `1/74` (TI 339, sea) at rest
+    // 96 and 720 off from 2801 (`pos`, `orders`); from 5101 `mirror` (9)
+    // and `g.angle[0]` (4) on who=1's fresh units; on 5901 the Strategic
+    // Bombers' (TI 305) `airorder.returning`/`mandatory` (3) and the MLRS
+    // `1/99`'s (TI 273) `attack[1].mandatory`, 0 against 1.
     pin_eq!(w.firsts.len(), 294, "the stride's baseline");
 }
 
-/// **The pair's closing state** (item 3720): run1401's closing block 3798,
+/// run1401b: the word 6153's window, blocks 6095..6403 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
+/// last block 6101 and 250 past the word's own block 6154 (item 3721).
+/// run1401 prints units only every hundred frames, no `AMMO` and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start.
+pub(crate) const RUN1401B: &str =
+    "gamelog-run1401b-eastindies-russian-information-window-6095-6403.txt";
+
+/// The window: block 6095 through 6403.
+pub(crate) const WIDENING_RUSSIAN_INFORMATION_FRAME_6153: (i64, i64) = (6095, 6403);
+
+/// **The word 6153's window**: run1401b walked from run1400's start with
+/// the recorder on and every round compared (item 3721).
+pub(crate) fn russian_information_frame_6153_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[RUSSIAN_INFORMATION.start],
+        true,
+        RUSSIAN_INFORMATION.long,
+        "run1401b",
+        &[(RUN1401B, WIDENING_RUSSIAN_INFORMATION_FRAME_6153.0)],
+        WIDENING_RUSSIAN_INFORMATION_FRAME_6153,
+        1,
+        &[6154],
+        true,
+    )
+}
+
+#[test]
+fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_information_frame_6153_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 308, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3721, the first walk: **1900** keys. Block 6095 carries the
+    // stride's standing families and rows (157). **The word's units part
+    // on 6141, both sides acting**: who=1's group 72 takes new orders and
+    // the points part — the MLRS `1/99` (TI 273) moves to (6734, 7090) in
+    // ours against (6491, 9412), the Flamethrower `1/114` (TI 131) guards
+    // (7128, 6888) against (7272, 7848). On 6153 ours' `1/99` ends its
+    // move (`orders.len` 0 against 1) and on 6154 idles (`idle` 1 against
+    // 0): the word's `do_idle` draw. The first round to part is the
+    // `1/198`'s on 6295 (`sx` 6601 against 6565).
+    pin_eq!(w.firsts.len(), 1900, "run1401b baseline");
+    // Every round, both directions: 408 in ours against 227.
+    pin_eq!(w.rounds_read, (408, 227), "the rounds read");
+    pin_eq!(w.rounds.len(), 66, "the rounds that part");
+}
+
+/// **The pair's closing state** (item 3721): run1401's closing block 6707,
 /// the whole map's units, walked from run1400's start.
 #[test]
 fn russian_information_pair_run1401_s_closing_state() {
@@ -236,14 +310,14 @@ fn russian_information_pair_run1401_s_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 6707, "the closing block");
-    // Item 3720, first try: 553 frames past the word 3244 — 137 units
-    // compared, counts [70, 0, 0, 7, 3, 1, 0], `1/1` and `1/28` torn, none
-    // extra or unlinked. A floor, not a score.
+    // Item 3721, first try: 553 frames past the word 6153 — 194 units
+    // compared, counts [112, 1, 2, 2, 50, 1, 11], none torn, `1/97`
+    // unlinked, `1/177` and `1/126` extra. A floor, not a score.
     pin_eq!(e.compared, 194, "units compared");
     pin_eq!(e.counts(), [112, 1, 2, 2, 50, 1, 11], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        Vec::<(i64, i64)>::new(),
+        vec![(1, 177), (1, 126)],
         "the closing extras"
     );
 }
