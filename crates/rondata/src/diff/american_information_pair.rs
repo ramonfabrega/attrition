@@ -41,8 +41,13 @@ pub(crate) const AMERICAN_INFORMATION: Pair = Pair {
     // on 3653 ours 10 draws against theirs' 11, index 2, ours'
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs'
     // `< Unit::do_idle+0x7d` (`docs/AI.md` §372.1).
-    count: 3653,
-    sequence: 3653,
+    // Item 3756, piece 170's pivot rows (the Armored Cavalry's turret):
+    // 3653 → 3898 — on 3898 ours 8 draws against theirs' 9, index 0, ours'
+    // `Unit::do_air_physics+0xba` against theirs' `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`: the human's `0/12` walks off the Abrams
+    // `1/29`'s blow of 3896 in theirs alone (`docs/AI.md` §372.2).
+    count: 3898,
+    sequence: 3898,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -192,7 +197,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // the buildings' `build:extra` (40, which the stride does not print),
     // `form` on 27 units, who=1's groups 64..68 with their pools (10), and
     // `1/14`'s `g.angle[0]` from 401. No position, order or hit parts.
-    pin_eq!(w.firsts.len(), 111, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 94, "the stride's baseline");
 }
 
 /// run1409b: the word 2385's window, blocks 2295..2635 at the long's
@@ -339,10 +344,14 @@ fn american_information_pair_run1434b_s_word_frame_is_widened_whole() {
     // the buckets 53 apart. **On 3591 `treaties` part** (who=0's `[1]` and
     // who=1's `[0]`, 1 in ours against 3) and who=0's Citizen `0/13` takes
     // a 20-point blow in theirs alone and walks off on 3592; who=0's `0/4`
-    // on 3636 likewise (`docs/AI.md` §372.1).
-    pin_eq!(w.firsts.len(), 544, "run1434b baseline");
-    pin_eq!(w.rounds_read, (110, 126), "the rounds read");
-    pin_eq!(w.rounds.len(), 55, "the rounds that part");
+    // on 3636 likewise (`docs/AI.md` §372.1). Item 3756, piece 170's pivot
+    // rows: 544 → **96** keys, rounds 126 → 111 in theirs and 55 → 7
+    // parting. The first round to part is the Abrams `1/29`'s on 3895,
+    // (4296, 34056, 474) in ours against (4153, 33763, 605), and the
+    // human's `0/12` parts on 3897 (`docs/AI.md` §372.2).
+    pin_eq!(w.firsts.len(), 96, "run1434b baseline");
+    pin_eq!(w.rounds_read, (110, 111), "the rounds read");
+    pin_eq!(w.rounds.len(), 7, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3725): run1409's closing block 4321,
@@ -393,7 +402,7 @@ fn american_information_pair_run1409_s_closing_state() {
     // nothing torn or unlinked, ours' `1/128`..`1/134` extra. A floor, not
     // a score.
     pin_eq!(e.compared, 136, "units compared");
-    pin_eq!(e.counts(), [77, 0, 0, 7, 24, 1, 16], "the closing counts");
+    pin_eq!(e.counts(), [59, 0, 0, 7, 3, 1, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
 

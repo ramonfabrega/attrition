@@ -12363,13 +12363,14 @@ words and edits nothing here; a refill lands when two remain.
   `1/16`'s round on 3587; the bomber stands in the window from 3495, and only the buckets part with it. Its killer is
   `1/2030`'s `queue[0].cost[0]` on 3495 still reading 110.
 
-## Parked by the next landing, slot WB — reserved
+## Parked by item 3756, 2026-10-28 — the Armored Cavalry's turret
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3756a. who=1's figures' `mirror` flag reads 0 in ours where theirs sets it** (`docs/AI.md` §372.2). On run1434b,
+  thirteen of who=1's units part on `mirror` alone, ours 0 against theirs 1, from 3764 (`1/74`) to 3869 (`1/109`),
+  and the human's `0/12` on 3898 (ours 0 against 1, while it walks off). All stood at the base among the window's 544
+  keys, with six more there that piece 170's rows removed. A hypothesis, not read: the flag's writer on a figure
+  that starts or turns a walk. Names no score: no `mirror` row reaches a draw before the word 3898, whose chain is the
+  Abrams `1/29`'s round on 3895. Its killer is `1/74`'s `mirror` on 3764 still reading 0 with the writer built.
 
 ## Parked by the next landing, slot WC — reserved
 

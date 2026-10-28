@@ -900,7 +900,9 @@ fn run882_s_word_frame_is_widened_whole() {
     // so its units on hostile ground are sheltered where theirs are and
     // their wounds agree. New `sheltered` rows sit on units
     // already apart by their `attrition` period.
-    pin_eq!(w.firsts.len(), 181, "initial run882 baseline");
+    // Item 3756: 181 → 178, piece 170's pivot rows (the Armored Cavalry's
+    // turret, `docs/AI.md` §372.2).
+    pin_eq!(w.firsts.len(), 178, "initial run882 baseline");
     // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -969,7 +971,8 @@ fn run883_s_closing_frame_is_widened_whole() {
     // (`docs/AI.md` §333.3): who=1's wagons reach their researched tiles,
     // so its units on hostile ground are sheltered where theirs are and
     // their wounds agree. No key opens.
-    pin_eq!(w.firsts.len(), 179, "run883 baseline");
+    // Item 3756: 179 → 176, piece 170's pivot rows (`docs/AI.md` §372.2).
+    pin_eq!(w.firsts.len(), 176, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

@@ -245,17 +245,19 @@ fn maya_information_pair_run1411b_s_closing_frame_is_widened_whole() {
     // field parts: `0/2000`'s `damage`, 1156 against 1157 on 3265, the
     // block a round of the Armored Cavalry `1/31` is in ours alone. No
     // position, order or hit parts, no draw parts to 3330, and the closing
-    // block 3331 agrees.
-    pin_eq!(w.firsts.len(), 57, "run1411b baseline");
-    pin_eq!(w.rounds_read, (240, 243), "the rounds read");
+    // block 3331 agrees. Item 3756, piece 170's pivot rows (the Armored
+    // Cavalry at art style 0): 57 → 56 keys, theirs' rounds read 243 → 240.
+    pin_eq!(w.firsts.len(), 56, "run1411b baseline");
+    pin_eq!(w.rounds_read, (240, 240), "the rounds read");
     // Every round, both directions: 240 in ours against 243, 121 parting.
     // The first is the Armored Cavalry `1/31`'s (TI 220, piece 874 at the
     // Maya's art style 2, which neither `launch::BAYS` nor `pivot` holds)
     // `ammo[0]` on 3205: `sx, sy, sz` 6223, 32469, 219 — its own square —
     // against 6099, 32440, 359; `1/48` and `1/58` part the same way. The
     // Strategic Bombers (`1/83`, `1/99`, TI 305) and Jet Fighters (`1/91`,
-    // `1/100`, TI 295) part on angle and `accuracy` (parked 3726a).
-    pin_eq!(w.rounds.len(), 121, "the rounds that part");
+    // `1/100`, TI 295) part on angle and `accuracy` (parked 3726a). Item
+    // 3756: 121 → 90, piece 170's rounds agree; piece 874's still part.
+    pin_eq!(w.rounds.len(), 90, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3726): run1411's closing block 3331,
