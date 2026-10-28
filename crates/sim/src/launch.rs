@@ -2532,6 +2532,89 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 139,
         },
     ),
+    // **Piece 54, the Assault Infantry** (type 104, `MECHINFANTRY`,
+    // `ASSAULTINFANTRY-DEFAULT-AGE0`, `assault_infantry.bh3`; item 3740,
+    // `docs/AI.md` §367.1): six packets on disk load it — run785, run789,
+    // run795, run810, run823 and run825, the same floats in each — with its
+    // eight `AttachPos` rows (node 0 at 12 and 13 of `CHAR_ATTACK1`, 4, 14
+    // twice and 24 of `2`, 12 and 17 of `3`: the art's eight
+    // `RELEASEEVENT`s, tracers among them), `RData +0x88` 1.0, and
+    // `fit_bay.py` fits each sweep on run785's packet (147, 103, 57, 167,
+    // 124, 97 and 378 lattice points; the centroid is kept, 361 of 361
+    // headings each). Without them who=1's `1/34` loosed its round of 3204
+    // at the human's Citizen `0/13` from its own square (5640, 31800, 364)
+    // against the original's (5530, 31784, 533), flew 3 frames against 2,
+    // and the citizen was struck a frame late.
+    (
+        54,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 24_607,
+            fwd: 108_706,
+            dz: 169,
+        },
+    ),
+    (
+        54,
+        crate::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_358,
+            fwd: 103_245,
+            dz: 173,
+        },
+    ),
+    (
+        54,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 8_133,
+            fwd: 85_578,
+            dz: 121,
+        },
+    ),
+    (
+        54,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 31_037,
+            fwd: 80_976,
+            dz: 118,
+        },
+    ),
+    (
+        54,
+        crate::anim::ATTACK2,
+        24,
+        Bay {
+            right: 22_929,
+            fwd: 83_745,
+            dz: 122,
+        },
+    ),
+    (
+        54,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 27_684,
+            fwd: 159_512,
+            dz: 106,
+        },
+    ),
+    (
+        54,
+        crate::anim::ATTACK3,
+        17,
+        Bay {
+            right: 38_064,
+            fwd: 146_570,
+            dz: 117,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
@@ -4030,6 +4113,25 @@ mod tests {
             let z = gz + release_dz(1178, anim, t, 0).unwrap_or(0);
             assert_eq!((got.x, got.y, z), (sx, sy, sz), "anim {anim} t {t}");
         }
+    }
+
+    /// **The Egyptian Assault Infantry looses from piece 54's bay** (item
+    /// 3740): run1399b's `1/34` round of 3204, `CHAR_ATTACK1` frame 12, the
+    /// figure at (5640, 31800) and −1116995584 with `z` 364 on block 3204,
+    /// prints (5530, 31784, 533) on 3205. Made to fail with the rows out of
+    /// `BAYS`: the round leaves the figure's own square.
+    #[test]
+    fn run1399b_s_egyptian_assault_infantry_leaves_from_its_bay() {
+        let got = launch_point(
+            Pos::new(5640, 31800),
+            Angle(-1_116_995_584),
+            54,
+            crate::anim::ATTACK1,
+            12,
+            0,
+        );
+        let z = 364 + release_dz(54, crate::anim::ATTACK1, 12, 0).unwrap_or(0);
+        assert_eq!((got.x, got.y, z), (5530, 31784, 533));
     }
 
     /// **The Chinese Manchu Musketeers and Fusiliers loose from pieces 66
