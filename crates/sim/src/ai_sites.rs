@@ -1203,6 +1203,13 @@ impl Sim {
         // gatherers; theirs ended on `1/179` (a builder) and took it from
         // the free (`docs/AI.md` §358.4, item 3710).
         let mut last_kind = index::NONE;
+        let dbg = std::env::var("RON_DEBUG_PICK").ok().is_some_and(|v| {
+            let (a, b) = v.split_once('-').unwrap_or((&v, &v));
+            (a.parse::<i64>().unwrap_or(0)..=b.parse::<i64>().unwrap_or(0)).contains(&(self.frame as i64))
+        });
+        if dbg {
+            eprintln!("CITY f{} who={who} t={t:?} site=({wx},{wy}) reg={site_reg:?}", self.frame);
+        }
         for u in self.units_by_o(who) {
             let unit = &self.units[u];
             if !unit.alive() || !unit.on_map {
@@ -1227,6 +1234,10 @@ impl Sim {
             } else {
                 d
             };
+            if dbg {
+                eprintln!("CITY   o{} pos={:?} cell={up:?} orders={:?} kind={last_kind} d={d} score={score} best={best}",
+                    self.units[u].index, self.units[u].pos, self.units[u].orders.iter().map(|o| o.index()).collect::<Vec<_>>());
+            }
             if score >= best {
                 continue;
             }
