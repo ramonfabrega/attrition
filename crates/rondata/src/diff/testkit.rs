@@ -7859,6 +7859,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "egyptian_information_pair_run1399b_s_word_frame_is_widened_whole",
         6,
     ),
+    // Item 3743: the word 3519's window, run1421 walked from run1398's
+    // start over 3495..3770.
+    (
+        "egyptian_information_pair_run1421_s_word_frame_is_widened_whole",
+        1,
+    ),
+    // Item 3743: the closing window, run1421b walked from run1398's start
+    // over 3765..3798.
+    (
+        "egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole",
+        1,
+    ),
     // Loop 3728: the correction audit's replays (`diff::audit`), each pair's
     // long walked from its start to the closing record with the audit on.
     ("bantu_ancient_pair_corrections_change_nothing", 143),
@@ -10979,6 +10991,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 3195..3494. Item 3740 moved the word to 3519 (piece 54's bays), past
     // run1399b's last block, so its row is out until a window capture over
     // the new word pays it (item 3385's shape; `docs/AI.md` §367.1).
+    // Item 3743 widened 3519 on run1421 over 3495..3770 — the Main Battle
+    // Tank `1/55`'s round of 3514 (piece 203, no row) left the tank's
+    // square in ours and struck the Citizen `0/10` a frame late — and
+    // closed it on piece 203's bays and piece 207's pivot rows: **whole at
+    // 3797**, widened on run1421b over 3765..3798 (the closing block), the
+    // rounds compared (`docs/AI.md` §367.2).
+    (
+        "EGYPTIAN_INFORMATION_PAIR_WORD",
+        crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION_PAIR_WORD,
+        Some("egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole"),
+        3743,
+        Some(crate::diff::egyptian_information_pair::WIDENING_EGYPTIAN_INFORMATION_CLOSING),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13401,7 +13426,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Egyptians at a held Information age (`STARTING_TECHNOLOGY` 7,
     // `ENDING_TECHNOLOGY` 7), Great Lakes at difficulty 5 (item 3720):
     // first try 3244 of 3797, the T80DES `1/42`'s `Unit::fight` draw in
-    // ours alone; widened on run1399b over 3195..3494.
+    // ours alone; widened on run1399b over 3195..3494. Item 3740: 3519,
+    // a death in theirs alone; widened on run1421 over 3495..3770. Item
+    // 3743: whole at 3797; the closing window run1421b over 3765..3798.
     AiWord {
         line: "Late ages",
         map: "GreatLakesEgyptianInformation",
@@ -13409,7 +13436,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION_PAIR_WORD,
         length: 3_797,
         endpoint: Some("egyptian_information_pair_run1399_s_closing_state"),
-        window: Some("egyptian_information_frame_3244_window"),
+        window: Some("egyptian_information_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

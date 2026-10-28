@@ -579,7 +579,14 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (109, land), `Tiger Tank[TIGERTANK]` (258, land) and `Fighter[ME109]`
 /// (292, air, whose speed the Aluminum arm closed the word on, §366.3),
 /// read by `rubric.py --tables 3` with and without the pair's dumps.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 241;
+/// Item 3743: 241 -> 245 on the tree merged with 3742's landing, the
+/// Egyptian Information pair whole at 3797 — `Main Battle
+/// Tank[HEAVYTANKCTWE]` (252), `Main Battle Tank[HEAVYTANKCTWW]` (253) and
+/// `Main Battle Tank[T80DES]` (257), land, and `Jet Fighter[MIGDES]` (300),
+/// air; piece 203's bays and piece 207's
+/// pivot rows closed the word (§367.2), read by `rubric.py --tables 3`
+/// against the same scan with run1398 and run1399 left out.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 245;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

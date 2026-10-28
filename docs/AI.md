@@ -35716,11 +35716,108 @@ no rows, and the rest raise on it.
 frame 0 twice (parked 3740a). The run number stays reserved for the retake.
 
 **What is not established.**
-- Who dies on 3519. The draw names `Unit::close`, but no dump on disk prints the frame.
-- Whether the T80DES rows alone carry the word to 3519's death, or other rounds in run1399b's window part on their
-  own. `1/20`, `1/24`, `1/25` and `1/35` all part after 3221.
+- ~~Who dies on 3519. The draw names `Unit::close`, but no dump on disk prints the frame.~~ Answered in §367.2: the
+  human's Citizen `0/10`, struck by the Main Battle Tank `1/55`'s round (item 3743).
+- ~~Whether the T80DES rows alone carry the word to 3519's death, or other rounds in run1399b's window part on their
+  own. `1/20`, `1/24`, `1/25` and `1/35` all part after 3221.~~ Answered in §367.2: they do not; the death is piece
+  203's round, a fixed-bay piece, and its bays close the word (item 3743).
 - §367's other two open rows (the two-frame flight and the leaders' standing fields) stand as written. The first
   is now answered for piece 54: with the muzzle in place, the round flies 2 frames on both sides.
+
+## 367.2 Piece 203's bays and piece 207's turret: the word 3519 → 3797, whole (item 3743)
+
+*Item 3743, 2026-10-28, Opus 5.5.* This section answers §367.1's first two open rows. **The pair is whole at 3797
+of 3797**, count and sequence, and its closing state agrees.
+
+**The widening first.** No dump on disk printed 3519, so run1421 widened it: blocks 3495..3770 at run1399b's detail
+(`docs/RUNS.md`), 275 blocks, **436 keys**, rounds 655 against 697 with 367 parting. Past block 3495's standing
+rows, the first rows are building `0/2006`'s `damage` on 3505, group 67's `held` on 3507 and `1/124`'s `mirror` on
+3511, then **the word's block 3520**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3515 | the Main Battle Tank `1/55`'s round `ammo[1]` | `sx, sy, sz`; `total_time` | 5352, 30792, 515 (the tank's square); 7 | 5166, 30496, 553; 6 |
+| 3520 | the Citizen `0/10` | present | yes | no (died on 3519) |
+| 3520 | who=0's leader | `active`, `control`; `num_units[0]`, `peasants` | 9; 8 | 8; 7 |
+| 3520 | the gather building `0/2001` | `gather_down` | 10 | 8 |
+| 3521 | who=0's leader | `active` … `peasants` | agree (ours' citizen dies on 3520) | |
+
+**Theirs acts**: the round lands a frame sooner. `1/55` is TI 253 (`Main Battle Tank[HEAVYTANKCTWW]`, TY 203, land),
+attacking `0/10` (TI 50, 85 hits) under group 64's guard. It fires `CHAR_ATTACK2` at frame 23 from (5352, 30792),
+facing −371654656, `z` 515. The T80DES `1/29`'s round of 3501 also parts (`ammo[6]`, 4920, 30888, 560 against
+4641, 31056, 691), but no record of the word's chain reads it.
+
+**Which arm.** The packet decided nothing here, the art did. Piece 203 is `challenger.bh3` at scale 0.8. **No
+`<RESTRICTION>` names `HEAVYTANKCTWW`**: the foot's `HEAVYTANK` is TI 251's graph, and `pivot_restrictions` matches
+a name whole. So the event's `node & 3`, which is 0, is not below a restriction count of 0, and `get_position` takes
+the non-pivot arm: the release node's own vector. That is node 0 at −91.19 model units × 4.8 × 0.8 ≈ 350 out, and
+10.1 × 3.84 ≈ 39 up, which is the dump's (−186, −296, +38). The pivot arm would add the turret's 27.11 and put the
+round 143 up. `RData +0x92` reads 1 on piece 54, a fixed-bay piece, too, so it is not the restriction count. The
+T80DES does carry `<RESTRICTION name="T80DES" node="4">`, and its rounds fit the pivot arm: (27.11 + 9.35) × 3.6 ≈
+131 up, as §367.1 measured.
+
+**The packet**, run1419b (`RON_STATE_FRAME=3212` on this lobby, pool lane 2, 26 s; run1419's directory was left by
+3740's two stalls, so the retake is lettered). Both tanks are fielded on 3212 (`1/55` at (7615, 33025)), so it holds
+both pieces:
+- **piece 203**: seven `AttachPos` rows, `RData +0x88` 0.8 — node 4 and node 0 at 11 of `CHAR_ATTACK1`, 23 of
+  `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`. `sweep 203 0 <anim> <time>` and `fit_bay.py` give one region a key (638,
+  268 and 178 lattice points; `dz` 38, 38 and 35). The centroid of each holds at all 361 headings, and those are the
+  three `launch::BAYS` rows.
+- **piece 207**: fifteen rows, `RData +0x88` 0.75 — the pivot node 4 and node 0 at the same three keys, and node 1
+  at frames 1 and 7 of `CHAR_ATTACK2` and `3`. The three node-0 rows are `pivot::RELEASES` rows. `pivot 207 0
+  <anim> <time> 1` swept 92,416 cells a row, and the crate's every-cell test named 19 `float_lands`, all on
+  `CHAR_ATTACK3`. Node 1 is `1 & 3`, not below the count of 1, so it takes the non-pivot arm. It is not rowed (parked
+  3743a).
+
+**The proofs.**
+- `launch::tests::run1421_s_egyptian_main_battle_tank_leaves_from_its_bay`: `1/55`'s pose on 3514 leaves (5166,
+  30496, 553), exactly the dump's point on 3515.
+- `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_207`: green on 277,248 cells against the
+  sweeps (`$RON_RELEASE_TABLE_207`, `~/ron-data/lab-experiments/2026-10-28-item-3743/sweeps/`).
+- `tools/mutate.py`, each piece's keys negated on a committed tree:
+  - 203: `egyptian_information_pair_first_parting` exits 101, the word back at 3519 on the same draw. **Held.**
+  - 207: `first_parting` exits 0, since the draws need nothing from it; `egyptian_information_pair_run1399b_s_word_frame_is_widened_whole`
+    exits 101 (keys 65 → 73, rounds parting 95 → 124). **Held**, on what it is for: the rounds.
+
+**What moved: 3519 → 3797 of 3797, whole.** The value diff on the old word's frame:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3515 | `1/55`'s round `ammo[1]` | `sx, sy, sz`; `total_time` | agree: 5166, 30496, 553; 6 | |
+| 3519 | the draw stream | 14 draws, `Unit::close+0xcb6` at index 13 | agree | |
+| 3520 | `0/10`; who=0's `active`, `peasants` | gone; 8, 7 | agree | |
+
+| pin | before | after |
+|---|---|---|
+| the word (count, sequence) | 3519 | **3797, the game's last frame** |
+| closing state (block 3798, 137 units) | `[12, 0, 0, 7, 0, 1, 0]` | **`[0, 0, 0, 0, 0, 0, 0]`**, no closing field parts |
+| run1399b keys; rounds read; parting | 107; (648, 666); 144 | 65; (648, 654); 95 |
+| run1421 keys; rounds read; parting | 436; (655, 697); 367 | 62; (655, 662); 74 |
+
+**The closing window**, run1421b (3765..3798, 33 blocks): **54 keys**, all standing families — `form` on 20 units,
+who=0's `SITE[i].reg` and `aggression[1]`, who=1's groups 64, 65, 66 and 70 with their pools, `mirror` on the
+craft (and on `1/128` and `1/129` as they are minted). No other field parts, no draw parts, and the closing block
+3798 agrees. Rounds: 109 against 110, 26 parting, the first the T80DES `1/42`'s on 3772 (4392, 32088, 603 against
+4245, 32066, 733): node 1 again.
+
+**The rubric.** Unit types seen **238 → 242 of 302** at this item's base, **245** on the tree merged with 3742's
+landing (`rubric.py --tables 3`, against the same scan with run1398 and run1399 left out): `Main Battle Tank[HEAVYTANKCTWE]` (252), `[HEAVYTANKCTWW]` (253), `[T80DES]` (257), and
+`Jet Fighter[MIGDES]` (300). Lockstep bytes hold at **77.4 %** (table 4, 2247 of 3611 functions).
+
+**Coverage.** Diff-backed: the word whole by `egyptian_information_pair_first_parting`, the closing state by
+`egyptian_information_pair_run1399_s_closing_state`, the window by
+`egyptian_information_pair_run1421_s_word_frame_is_widened_whole`, the last blocks by
+`egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole`. Measured against the original's own
+`get_position` under unicorn: the 203 bays (361 headings each) and the 207 rows (every cell). Reading-backed:
+that the restriction match is whole-name (`pivot_restrictions`, `artdata.rs`), confirmed here by the arithmetic
+only.
+
+**What is not established.**
+- **The T80DES's node-1 rounds** (parked 3743a). Theirs' `1/29` round of 3216 leaves about 148 out and 130 up
+  (node 1 at −41.23 × 3.6, 36.38 × 3.6), from an attack anim's frame 1 or 7. Ours fires that round from `WALK`
+  (anim 8, time 44 of 51), from the hull's square. 95 rounds part in run1399b, 74 in run1421 and 26 in run1421b, and
+  none reaches the draws. So it is a pose and bay question, not a word.
+- §367's leaders' standing `SITE[i].reg` and `aggression[1]` (3719b's family) stand as written.
 
 ## 368. Reserved for the next item on the AI track
 
