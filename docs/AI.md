@@ -35800,8 +35800,8 @@ craft (and on `1/128` and `1/129` as they are minted). No other field parts, no 
 3798 agrees. Rounds: 109 against 110, 26 parting, the first the T80DES `1/42`'s on 3772 (4392, 32088, 603 against
 4245, 32066, 733): node 1 again.
 
-**The rubric.** Unit types seen **238 → 242 of 302** (`rubric.py --tables 3`, against the same scan with run1398
-and run1399 left out): `Main Battle Tank[HEAVYTANKCTWE]` (252), `[HEAVYTANKCTWW]` (253), `[T80DES]` (257), and
+**The rubric.** Unit types seen **238 → 242 of 302** at this item's base, **245** on the tree merged with 3742's
+landing (`rubric.py --tables 3`, against the same scan with run1398 and run1399 left out): `Main Battle Tank[HEAVYTANKCTWE]` (252), `[HEAVYTANKCTWW]` (253), `[T80DES]` (257), and
 `Jet Fighter[MIGDES]` (300). Lockstep bytes hold at **77.4 %** (table 4, 2247 of 3611 functions).
 
 **Coverage.** Diff-backed: the word whole by `egyptian_information_pair_first_parting`, the closing state by
