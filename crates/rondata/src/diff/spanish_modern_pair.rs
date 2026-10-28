@@ -43,8 +43,14 @@ pub(crate) const SPANISH_MODERN: Pair = Pair {
     // index 12: theirs' `Unit::close+0xcb6 < Object::die+0x29 <
     // Unit::die+0x19`, a death ours does not deal, against ours'
     // `Farms::inc_time+0x1ae` (`docs/AI.md` §365.1).
-    count: 4021,
-    sequence: 4021,
+    // Item 3737: **4021 → 4081, the game's last frame**, by the count and
+    // the sequence — piece 200's pivot rows (the Tank `PANZER`, `sim::pivot`)
+    // and piece 90's bays (the German Bazooka, `sim::launch`), both off
+    // run1416's packet, put the Tanks' and Bazookas' rounds at their
+    // muzzles, so `0/13` is wounded on 4017 and killed on 4021 in ours too
+    // (`docs/AI.md` §365.2). Piece 200's rows alone reach 4026.
+    count: 4081,
+    sequence: 4081,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -268,15 +274,23 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     // frames against 6), then on 4018 theirs' Bazooka
     // `1/31` strikes it (`damage_frame` 4017) and it flees, which ours
     // does not (`orders.len` 0 against 1).
-    pin_eq!(w.firsts.len(), 145, "run1395b baseline");
+    //
+    // Item 3737: 145 → **126** with pieces 200's and 90's rows. `0/13`
+    // parts nowhere: the Tank's and the Bazookas' rounds leave from their
+    // muzzles and wound it on 3928 and 4017 in ours too. What stands is
+    // block 3677's 101 rows, who=1's new units' `form`, groups 76 and 84,
+    // and the Submarine `1/109` from its birth (3718a).
+    pin_eq!(w.firsts.len(), 126, "run1395b baseline");
     // Every round, both directions: 654 in ours against 680, the first
     // parting the Battleship `1/45`'s on 3693. Item 3736: (654, 656), 28
     // parting — the Tanks `1/25` and `1/35` (TI 250, `PANZER`, a pivot
     // piece no row holds), the Bazookas `1/32` and `1/33` (TI 140), and
     // the Battleship `1/71`'s round of 4013, which leaves the hull's pose
     // after its move step in ours and before it in theirs (parked 3736a).
-    pin_eq!(w.rounds_read, (654, 656), "the rounds read");
-    pin_eq!(w.rounds.len(), 28, "the rounds that part");
+    // Item 3737: (654, 654), **3** parting — `1/71`'s round of 4013 alone
+    // (`angle`, `sx`, `sy`, 3736a).
+    pin_eq!(w.rounds_read, (654, 654), "the rounds read");
+    pin_eq!(w.rounds.len(), 3, "the rounds that part");
 }
 
 /// **run1415, the word 4021's window**: blocks 4015 through the closing
@@ -339,14 +353,22 @@ fn spanish_modern_pair_run1415_s_word_frame_is_widened_whole() {
     // flees; on 4021 a round explodes and it dies (`Unit::close+0xcb6 <
     // Object::die+0x29`), so block 4022 holds it in ours alone and who=0's
     // `peasants` read 8 against 7. Past the word the game parts widely.
-    pin_eq!(w.firsts.len(), 389, "run1415 baseline");
-    pin_eq!(w.rounds_read, (394, 400), "the rounds read");
+    //
+    // Item 3737: 389 → **117**, the word gone from the window (4081). Block
+    // 4015's 108 standing rows, who=1's groups 67 and 70 (4027, 4028), and
+    // the Submarine `1/109`'s path, heading and tolerance (4030..4070,
+    // 3718a). Nothing parts on the word's old frame.
+    pin_eq!(w.firsts.len(), 117, "run1415 baseline");
+    pin_eq!(w.rounds_read, (394, 394), "the rounds read");
     // Every round, both directions: 394 in ours against 400, 99 parting.
     // The Tanks `1/25` and `1/35` (TI 250, `PANZER`, `<RESTRICTION
     // name="PANZER" node="4">`, no `pivot` row) loose from the hull, `sz`
     // 168 against 312 for `1/35`'s round of 4017, and fly 7 frames against
     // 6: theirs' has landed by 4022 and ours' is still in the air.
-    pin_eq!(w.rounds.len(), 99, "the rounds that part");
+    // Item 3737: (394, 394), **7** parting — `1/71`'s round of 4013 on 4015
+    // (3736a), and `1/25`'s and `1/32`'s on 4022, whose target `0/13` died
+    // on 4021: theirs keep `whom` 0, `ox` 13, ours −1 (parked 3714a).
+    pin_eq!(w.rounds.len(), 7, "the rounds that part");
 }
 
 /// run1395c: the walk back from the stride's first unit row, blocks
@@ -459,7 +481,11 @@ fn spanish_modern_pair_run1395_s_closing_state() {
     //
     // Item 3736, the word at 4021: 153 units, 13 off and nothing else —
     // no torn, unlinked or extra unit; `Closing fields: none`.
+    //
+    // Item 3737, the word closed at 4081: **one** off — the Submarine
+    // `1/109`, (−13, −43) from theirs, the Dock birth of 3119 (3718a) —
+    // and nothing else; `Closing fields: none`.
     pin_eq!(e.compared, 153, "units compared");
-    pin_eq!(e.counts(), [13, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

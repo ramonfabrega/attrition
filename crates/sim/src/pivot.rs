@@ -150,6 +150,12 @@ pub struct Node {
 /// `<RESTRICTION name="Battleship">` at the foot of `unit_graphics.xml`,
 /// not in its own `<UNIT>` block.
 ///
+/// **Piece 200, the Tank `PANZER`** (item 3737, unit type 250,
+/// `panzer.bh3`): run1416's packet (logger frame 4016, the Spanish Modern
+/// East Indies lobby) reads its `(4, 0, 0)` entry as `(0.0, 5.58, 35.68)`
+/// (`0x40b28f5b`), `RData +0x88` 0.8 — one `<RESTRICTION name="PANZER">`,
+/// the turret.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -188,6 +194,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (299, 6, Node { px: 0, py: 11749 }),
     (208, 4, Node { px: 0, py: 313 }),
     (169, 4, Node { px: 0, py: -7 }),
+    (200, 4, Node { px: 0, py: 558 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -211,6 +218,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (299, (9, 10)),
     (208, (17, 20)),
     (169, (11, 10)),
+    (200, (4, 5)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -584,6 +592,16 @@ const FLOAT_LANDS_299_A12_N1: &[(i32, i32, i32, i32)] = &[
     (285, 7, 338, 100),
     (352, 352, 75, 344),
 ];
+
+/// Piece 200's [`Release::float_lands`], one list per anim (item 3737).
+const FLOAT_LANDS_200_A11: &[(i32, i32, i32, i32)] = &[
+    (91, 177, 282, -7),
+    (142, 155, 245, 136),
+    (218, 79, 218, 136),
+    (269, 359, 239, -7),
+];
+const FLOAT_LANDS_200_A12: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_200_A13: &[(i32, i32, i32, i32)] = &[];
 
 /// Piece 189's [`Release::float_lands`], one list per anim (item 3529).
 const FLOAT_LANDS_189_A11: &[(i32, i32, i32, i32)] = &[(35, 193, 82, -72), (305, 193, -72, -82)];
@@ -990,6 +1008,53 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [1_092_826, -49_659_996, 22_763_744],
             at: [514_329, -32_191_490, 10_714_073],
             float_lands: FLOAT_LANDS_299_A12_N1,
+        },
+    ),
+    // **The Tank `PANZER`, piece 200** (unit type 250; item 3737,
+    // `docs/AI.md` §365.2): run1416's packet (logger frame 4016 of the
+    // Spanish Modern East Indies lobby) holds the piece's seven entries — the
+    // turret `(4, 0, 0)` and, for each of its three `<RELEASEEVENT>`s (node 0:
+    // frame 4 of `CHAR_ATTACK1`, 21 of `CHAR_ATTACK2`, 1 of `CHAR_ATTACK3`),
+    // the turret's and the muzzle's. The muzzle sits 68 model units ahead
+    // of a turret 36 up, so a round leaves about 240 ahead of the hull at
+    // height 144: who=1's `1/35` round of 4017 at the human's Citizen
+    // `0/13` left (7154, 9226, 312) in the original and the hull's square
+    // (7032, 9432, 168) here, flew 7 frames against 6, and the citizen
+    // outlived the original's on 4021.
+    (
+        200,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 200,
+            node: 0,
+            pivot: [0, 5_579_999, 35_680_000],
+            at: [-453_512, -68_010_040, 1_908_176],
+            float_lands: FLOAT_LANDS_200_A11,
+        },
+    ),
+    (
+        200,
+        crate::anim::ATTACK2,
+        21,
+        Release {
+            piece: 200,
+            node: 0,
+            pivot: [0, 5_640_605, 35_680_000],
+            at: [-421_595, -60_046_501, 1_908_176],
+            float_lands: FLOAT_LANDS_200_A12,
+        },
+    ),
+    (
+        200,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 200,
+            node: 0,
+            pivot: [0, 5_579_999, 35_680_000],
+            at: [-454_502, -68_257_225, 1_908_176],
+            float_lands: FLOAT_LANDS_200_A13,
         },
     ),
     // **The Cruiser, piece 279** (unit type 329; item 3519, `docs/AI.md`
@@ -3371,6 +3436,45 @@ mod tests {
             }
         }
         assert!(rows >= 6 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 200** (item
+    /// 3737): `tools/recomp/get_position.py … pivot 200 0 <anim> <time> 1`
+    /// on run1416's packet, one sweep a row. `$RON_RELEASE_TABLE_200` is the
+    /// directory holding `pivot-200-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-27-item-3737/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_200() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_200") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_200 (item 3737's oracle, run1416)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 4),
+            (crate::anim::ATTACK2, 21),
+            (crate::anim::ATTACK3, 1),
+        ] {
+            let path = format!("{dir}/pivot-200-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_200");
+            let r = release(200, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "a{slot} ({}, {}, {}, {}) z {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
