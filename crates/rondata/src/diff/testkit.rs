@@ -10923,6 +10923,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3717,
         Some(crate::diff::french_medieval_pair::WIDENING_FRENCH_MEDIEVAL_FRAME_3108),
     ),
+    // **The Spanish at a held Modern age** (item 3718): East Indies at
+    // Hard — first try 3770 of 4081, the Citizen `0/13` going idle in
+    // theirs at the end of a flee from a Battleship round ours did not land;
+    // widened on run1395b over 3677..4021, the rounds compared.
+    (
+        "SPANISH_MODERN_PAIR_WORD",
+        crate::diff::spanish_modern_pair::SPANISH_MODERN_PAIR_WORD,
+        Some("spanish_modern_pair_run1395b_s_word_frame_is_widened_whole"),
+        3718,
+        Some(crate::diff::spanish_modern_pair::WIDENING_SPANISH_MODERN_FRAME_3770),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13307,6 +13318,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_664,
         endpoint: Some("french_medieval_pair_run1393_s_closing_state"),
         window: Some("french_medieval_frame_3108_window"),
+    },
+    // The Spanish at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), East Indies at Hard (item 3718): first try
+    // 3770 of 4081, the Citizen `0/13`'s `do_idle` draw in theirs alone;
+    // widened on run1395b over 3677..4021.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesSpanishModern",
+        named: "East Indies (Spanish, Modern)",
+        word: crate::diff::spanish_modern_pair::SPANISH_MODERN_PAIR_WORD,
+        length: 4_081,
+        endpoint: Some("spanish_modern_pair_run1395_s_closing_state"),
+        window: Some("spanish_modern_frame_3770_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
