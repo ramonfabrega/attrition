@@ -388,3 +388,18 @@ fn gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move() {
         "the swing is the ground order's"
     );
 }
+
+/// PROBE 3763 (reverted whole): theirs' frames carrying `Army::` draws.
+#[test]
+fn probe_3763_theirs_army_frames() {
+    let Some(tr) = trace(MELEE_LONG.1) else {
+        return;
+    };
+    for f in 600..2600 {
+        let l = tr.labels(f);
+        let a: Vec<_> = l.iter().filter(|s| s.contains("Army::")).collect();
+        if !a.is_empty() {
+            eprintln!("  theirs f{f}: {} draws, {:?}", l.len(), a);
+        }
+    }
+}
