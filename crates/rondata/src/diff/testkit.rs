@@ -7289,6 +7289,22 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3744: the Russian Information pair's first try, run1401 walked
+    // from run1400's start past the word 6153 once the siege-city arm lands
+    // (`docs/AI.md` §368.1): 8 inexact corners.
+    ("russian_information_pair_first_parting", 8),
+    // Item 3744: its closing state, run1401 walked to the closing block
+    // 6707, and the word's window 6095..6403 on run1401b: 8 each.
+    ("russian_information_pair_run1401_s_closing_state", 8),
+    (
+        "russian_information_pair_run1401b_s_word_frame_is_widened_whole",
+        8,
+    ),
+    // Item 3744: the closing window 6450..6707 on run1423c: 8.
+    (
+        "russian_information_pair_run1423c_s_closing_frame_is_widened_whole",
+        8,
+    ),
     // Item 3703: the Greek Medieval pair's first try, run1380 walked from
     // run1379's start to the word 5626: 1 inexact corner.
     ("greek_medieval_pair_first_parting", 1),
@@ -11006,13 +11022,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
-    // 6095..6403, the rounds compared.
+    // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
+    // `find_nearby_target`'s siege-city arm, widened on run1423c over the
+    // closing window 6450..6707.
     (
         "RUSSIAN_INFORMATION_PAIR_WORD",
         crate::diff::russian_information_pair::RUSSIAN_INFORMATION_PAIR_WORD,
-        Some("russian_information_pair_run1401b_s_word_frame_is_widened_whole"),
-        3721,
-        Some(crate::diff::russian_information_pair::WIDENING_RUSSIAN_INFORMATION_FRAME_6153),
+        Some("russian_information_pair_run1423c_s_closing_frame_is_widened_whole"),
+        3744,
+        Some(crate::diff::russian_information_pair::WIDENING_RUSSIAN_INFORMATION_CLOSING),
     ),
     // **The Japanese at a held Modern age** (item 3722): Great Lakes at
     // Hard — first try 3160 of 3866, a farm's chance draw ours spends and
@@ -13463,7 +13481,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Russians at a held Information age (`STARTING_TECHNOLOGY` 7,
     // `ENDING_TECHNOLOGY` 7), East Indies at difficulty 4 (item 3721):
     // first try 6153 of 6706, the MLRS `1/99`'s `do_idle` draw in ours
-    // alone; widened on run1401b over 6095..6403.
+    // alone; widened on run1401b over 6095..6403. Item 3744: whole at 6706,
+    // the closing window run1423c over 6450..6707.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRussianInformation",
@@ -13471,7 +13490,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::russian_information_pair::RUSSIAN_INFORMATION_PAIR_WORD,
         length: 6_706,
         endpoint: Some("russian_information_pair_run1401_s_closing_state"),
-        window: Some("russian_information_frame_6153_window"),
+        window: Some("russian_information_closing_window"),
     },
     // The Japanese at a held Modern age (`STARTING_TECHNOLOGY` 6,
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3722): first try
