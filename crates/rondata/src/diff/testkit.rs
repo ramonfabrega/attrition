@@ -7847,6 +7847,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3539: the pair's closing walk, run1153 to block 4548, reads the
     // same two.
     ("run1153_japanese_industrial_pair_closing_state", 2),
+    // Item 3740: the Egyptian Information pair's first parting, run1399
+    // walked to the word 3519, once piece 54's rounds leave their bays.
+    ("egyptian_information_pair_first_parting", 1),
     // Item 3720: the Egyptian Information pair's closing walk, run1399
     // from run1398's start to the closing block 3798, past the word 3244.
     ("egyptian_information_pair_run1399_s_closing_state", 6),

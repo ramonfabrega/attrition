@@ -35,9 +35,12 @@ pub(crate) const EGYPTIAN_INFORMATION: Pair = Pair {
     // Item 3720, first try: count 3244, sequence 3244 of 3797 — on 3244
     // ours 11 draws against theirs' 10, index 1 ours' `Unit::fight+0x824`
     // (the T80DES `1/42`, TI 257) against theirs' `Unit::do_guard+0x8fb`
-    // (`docs/AI.md` §367).
-    count: 3244,
-    sequence: 3244,
+    // (`docs/AI.md` §367). Item 3740: 3244 → 3519, piece 54's bays
+    // (`sim::launch::BAYS`): `1/34`'s round of 3204 leaves the muzzle and
+    // lands on 3205 on both sides; on 3519 ours 13 draws against theirs'
+    // 14, index 13 theirs' `Unit::close+0xcb6` (`docs/AI.md` §367.1).
+    count: 3519,
+    sequence: 3519,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -263,12 +266,12 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // (5640, 31800, z 364), and flies 3. The draws hold to 3244, where ours'
     // T80DES `1/42` (TI 257) spends a `Unit::fight+0x824` draw theirs does
     // not.
-    pin_eq!(w.firsts.len(), 2625, "run1399b baseline");
+    pin_eq!(w.firsts.len(), 107, "run1399b baseline");
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).
-    pin_eq!(w.rounds_read, (648, 684), "the rounds read");
-    pin_eq!(w.rounds.len(), 528, "the rounds that part");
+    pin_eq!(w.rounds_read, (648, 666), "the rounds read");
+    pin_eq!(w.rounds.len(), 144, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,
@@ -318,7 +321,7 @@ fn egyptian_information_pair_run1399_s_closing_state() {
     // compared, counts [70, 0, 0, 7, 3, 1, 0], `1/1` and `1/28` torn, none
     // extra or unlinked. A floor, not a score.
     pin_eq!(e.compared, 137, "units compared");
-    pin_eq!(e.counts(), [70, 0, 0, 7, 3, 1, 0], "the closing counts");
+    pin_eq!(e.counts(), [12, 0, 0, 7, 0, 1, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
         Vec::<(i64, i64)>::new(),
