@@ -195,6 +195,8 @@ const NODES: &[(i32, i32, Node)] = &[
     (208, 4, Node { px: 0, py: 313 }),
     (169, 4, Node { px: 0, py: -7 }),
     (200, 4, Node { px: 0, py: 558 }),
+    (203, 4, Node { px: 0, py: 0 }),
+    (207, 4, Node { px: 0, py: 0 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -219,6 +221,8 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (208, (17, 20)),
     (169, (11, 10)),
     (200, (4, 5)),
+    (203, (4, 5)),
+    (207, (3, 4)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -463,6 +467,45 @@ const FLOAT_LANDS_169_A12_T29: &[(i32, i32, i32, i32)] = &[
     (277, 323, 102, -58),
     (15, 343, 4, 117),
     (285, 343, 117, -4),
+];
+/// Pieces 203's and 207's [`Release::float_lands`], one list per anim
+/// (item 3743, run1419b's packet).
+const FLOAT_LANDS_203_A11: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_203_A12: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_203_A13: &[(i32, i32, i32, i32)] = &[
+    (227, 60, 295, 90),
+    (255, 70, 177, 252),
+    (252, 212, -300, -73),
+    (342, 212, 73, -300),
+    (4, 235, 264, -160),
+    (94, 235, 160, 264),
+    (86, 243, 160, 264),
+    (356, 243, 264, -160),
+    (108, 356, -299, -73),
+    (198, 356, 73, -299),
+];
+const FLOAT_LANDS_207_A11: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_207_A12: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_207_A13: &[(i32, i32, i32, i32)] = &[
+    (286, 59, 75, 279),
+    (254, 91, 75, 279),
+    (40, 135, -25, -289),
+    (130, 135, 289, -25),
+    (220, 135, 25, 289),
+    (151, 204, 26, 289),
+    (241, 204, -289, 26),
+    (331, 204, -26, -289),
+    (50, 215, 289, -26),
+    (140, 215, 26, 289),
+    (320, 215, -26, -289),
+    (82, 243, 167, 236),
+    (130, 246, -79, 278),
+    (220, 246, -278, -79),
+    (29, 326, 26, 288),
+    (50, 326, -79, 278),
+    (119, 326, -288, 26),
+    (140, 326, -278, -79),
+    (209, 326, -26, -288),
 ];
 /// Piece 208's [`Release::float_lands`], one list per anim (item 3738,
 /// run1417's packet).
@@ -2201,6 +2244,91 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: FLOAT_LANDS_169_A12_T29,
         },
     ),
+    // **Piece 203, the Main Battle Tank** (unit type 253, `HEAVYTANKCTWW`,
+    // the Challenger model; item 3743, `docs/AI.md` §367.2), and **piece
+    // 207, the T80DES** (unit type 257): run1419b's packet
+    // (`RON_STATE_FRAME=3212` on the Egyptian Information Great Lakes seed)
+    // holds seven and fifteen entries — the `(4, 0, 0)` [`NODES`] read,
+    // `(0.0, 0.0, 27.11)`, and for each `<RELEASEEVENT>` on node 0
+    // (`CHAR_ATTACK1` frame 11, `CHAR_ATTACK2` 23, `CHAR_ATTACK3` 27) the
+    // pivot node's and the release node's; `RData +0x88` 0.8 and 0.75, one
+    // restriction each (`+0x92`). 207's four node-1 events take the
+    // non-pivot arm (`1 & 3` is not below the count) and are not rowed
+    // here. who=1's `1/55` loosed at the human's Citizen `0/10` on 3514 and
+    // `1/42` at `0/13` on 3214 from the muzzle, about 90 model units out
+    // on the turret, where this crate loosed from the figure's own square.
+    (
+        203,
+        crate::anim::ATTACK1,
+        11,
+        Release {
+            piece: 203,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -90_569_908, 10_065_222],
+            float_lands: FLOAT_LANDS_203_A11,
+        },
+    ),
+    (
+        203,
+        crate::anim::ATTACK2,
+        23,
+        Release {
+            piece: 203,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -91_192_764, 10_107_065],
+            float_lands: FLOAT_LANDS_203_A12,
+        },
+    ),
+    (
+        203,
+        crate::anim::ATTACK3,
+        27,
+        Release {
+            piece: 203,
+            node: 0,
+            pivot: [0, 139_500, 27_138_798],
+            at: [140_000, -80_396_957, 9_363_552],
+            float_lands: FLOAT_LANDS_203_A13,
+        },
+    ),
+    (
+        207,
+        crate::anim::ATTACK1,
+        11,
+        Release {
+            piece: 207,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -90_680_344, 9_331_987],
+            float_lands: FLOAT_LANDS_207_A11,
+        },
+    ),
+    (
+        207,
+        crate::anim::ATTACK2,
+        23,
+        Release {
+            piece: 207,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -91_304_268, 9_352_728],
+            float_lands: FLOAT_LANDS_207_A12,
+        },
+    ),
+    (
+        207,
+        crate::anim::ATTACK3,
+        27,
+        Release {
+            piece: 207,
+            node: 0,
+            pivot: [0, 139_500, 27_138_798],
+            at: [140_000, -80_489_395, 8_974_987],
+            float_lands: FLOAT_LANDS_207_A13,
+        },
+    ),
     // **Piece 208, the Tiger Tank** (unit type 258, `TIGERTANK`; item 3738,
     // `docs/AI.md` §366.1): run1417's packet (`RON_STATE_FRAME=4016` on the
     // German Modern Great Lakes seed) holds its seven entries — the
@@ -3857,6 +3985,48 @@ mod tests {
             }
         }
         assert!(rows >= 16 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for pieces 203 and
+    /// 207, the Main Battle Tank and the T80DES** (item 3743):
+    /// `tools/recomp/get_position.py … pivot <piece> 0 <anim> <time> 1` on
+    /// run1419b's packet for their six rows. `$RON_RELEASE_TABLE_203` is
+    /// the directory holding `pivot-<piece>-a<anim>-t<time>.txt`, outside
+    /// git (`~/ron-data/lab-experiments/2026-10-28-item-3743/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_pieces_203_and_207() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_203") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_203 (item 3743's oracle, run1419b)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for piece in [203, 207] {
+            for (slot, time) in [
+                (crate::anim::ATTACK1, 11),
+                (crate::anim::ATTACK2, 23),
+                (crate::anim::ATTACK3, 27),
+            ] {
+                let path = format!("{dir}/pivot-{piece}-a{slot}-t{time}.txt");
+                let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_203");
+                let r = release(piece, slot, time).expect("the row");
+                for line in table.lines() {
+                    let f: Vec<i32> = line
+                        .split_whitespace()
+                        .take(6)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect();
+                    if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                        off.push(format!(
+                            "{piece} {slot} ({}, {}, {}, {})",
+                            f[0], f[2], f[3], f[4]
+                        ));
+                    }
+                    rows += 1;
+                }
+            }
+        }
+        assert!(rows >= 6 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
