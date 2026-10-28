@@ -34849,9 +34849,64 @@ score.
 run1393, the first on block 1301, long before the word. The rubric counts whole lockstep games only, so unit types
 seen stays **229 of 302**.
 
-**Not established**: whether theirs' Trebuchet enters `CHAR_TURN_LEFT` on 3080 and holds it longer, never enters
+**Not established**: ~~whether theirs' Trebuchet enters `CHAR_TURN_LEFT` on 3080 and holds it longer, never enters
 it, or leaves it on 3108 with no draw (`set_anim` to the idle without the roll). A `GUYS=4` window over 3079..3110,
-or a packet at 3107 with `Guy::inc_time` watched for `1/98`'s figures, tells them apart.
+or a packet at 3107 with `Guy::inc_time` watched for `1/98`'s figures, tells them apart.~~ **Answered by item 3735
+(§364.1)**: the turn loops, and the install says so; no capture was needed.
+
+## 364.1 The French Medieval pair closes: a turn animation loops (item 3735)
+
+*Item 3735, 2026-10-27, Opus 5.5.*
+
+**3108 → 4664, the game's last frame, by the count and the sequence**; the closing block 4665 compares 202 units
+with every count 0, nothing torn, off, unlinked or extra, and `Closing fields: none`. The closing state is scored.
+
+**The frame, both sides.** On 3108 ours spent 5 draws against 4: index 4 is the Trebuchet `1/98`'s (TI 266, TY
+216, land, packed) `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the idle roll when its lead figure's
+`CHAR_TURN_LEFT` (slot 21) ran out at `t29/30`. Theirs spends nothing for it there. **Ours acts.**
+
+**The disk, before any capture.**
+- **Theirs turns too, and at the same rate.** `GUYS=2` prints no `cur_anim`, but it prints each figure's
+  `angle`: run1393b's `1/98` figures read −1384858624 on 3079 and −1504162816 on 3080, the values ours' figures
+  carry. Neither side spends a draw for the turn on 3080, so both entered a slot the packet names — the request is
+  `Guy::do_turn@005d97a0`'s `set_anim(CHAR_TURN_*, 0, 1)` behind `guy_flags & 8`, which a packing type always
+  carries. The figures reach the heading, −1909981184, on 3084 on both sides.
+- **The standing arm keeps the turn.** `Guy::move@005d9240`'s at-destination arm, with the angle reached and no
+  attack queued, calls `set_anim(CHAR_DEFAULT, 0, 1)` only when the slot is `CHAR_WALK`; any other slot plays on.
+  So the turn runs to its `end_time`, 30, on both sides, and `Guy::inc_time@005d9e10`'s wrap decides: a looping
+  file restarts the slot (`set_anim(slot, 0, 1)`, no roll), any other falls to the idle and rolls.
+- **run44's turners** (the only `GUYS=4` dump with siege turns: 452 guy-frames) never reach an end — every
+  catapult turn there is cut by an attack or an unpack — so they cannot say which arm the wrap takes.
+- **The install can.** `TREBUCHET-DEFAULT-AGE0-PACKED` names `TrebuchetWagon Walk` for both turn slots, and
+  `anim_graphics.xml` lists that file under `<LOOPING>`. So do all 546 turn rows of `unit_graphics.xml`: no turn
+  file is in `<NONLOOPING>` (34 turn-named files, every one looping). `sim::anim::non_looping` had decided by slot
+  name, "the attacks, deaths, turns, pack/unpack and the two dumps", and the turns were wrong.
+
+**The build.** `non_looping` drops `CHAR_TURN_LEFT` and `CHAR_TURN_RIGHT` (`crates/sim/src/anim.rs`), and
+`rondata::artdata`'s `every_turn_slot_names_a_looping_file` holds the install to it: 546 rows, none non-looping,
+the packed Trebuchet's on its wagon's walk. Restoring the old rule (`tools/mutate.py`) fails both that test and
+`french_medieval_pair_first_parting`, `…_run1393b_s_word_frame_is_widened_whole` and `…_run1393_s_closing_state`.
+Every other lobby's `first_parting` holds (98 of 98).
+
+**The value diff, the word's window** (run1393b, 3077..3359): 424 → **56** keys. Block 3077's 49 standing rows;
+who=1's groups 66 (3155) and 65 (3203) with their pools as each is minted, and who=1's `SITE[4].reg` on 3176 (1
+against 0), standing families; and **two rows that are not**, both `dest_angle` on group 67's guards of `1/83`:
+
+| block | unit | field | ours | theirs |
+|---|---|---|---|---|
+| 3160 | the General `1/78` (TI 54) | `dest_angle` | 392757248 | 882769920 |
+| 3164 | the Peltasts `1/82` (TI 84) | `dest_angle` | 600702976 | 693043200 |
+
+3567a's shape (parked 3735a). No other unit, building or city field parts in the window, no round flies (0 against
+0), and no draw parts to the game's end.
+
+**The rubric**: `Heavy Chevalier` (236, `CHEVALIERHEAVY`; 242 figure rows) enters with the pair whole, **unit
+types seen 229 → 230 of 302** (`rubric.py --tables 3`), `census::RUBRIC_UNIT_TYPES_SEEN` re-pinned. The state
+counter reads seen 230 · moved 200 · attacked 74 · boarded 114.
+
+**What is not established.** The loop flag is still a rule by slot, not the per-piece table `docs/ANIM.md`'s gap
+paragraph asks for: the turns are exact for the shipped install (the test says so), the dumps' split is not.
+Run 1414 was reserved and not taken.
 
 ## 365. Reserved for the next item on the AI track
 

@@ -561,7 +561,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Gun Mahout` (263, `GUNMAHOUT`, land; 1926 figure rows), the shooter
 /// whose howdah bays closed the word (§358.4), read by `rubric.py
 /// --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 229;
+/// Item 3735: 229 -> 230, the French Medieval pair whole at 4664 —
+/// `Heavy Chevalier` (236, `CHEVALIERHEAVY`, land; 242 figure rows), the
+/// line §364 named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 230;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
