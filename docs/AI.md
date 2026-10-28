@@ -36670,6 +36670,86 @@ the arm built, the Airbase `1/2021`'s `queue[0].cost[0]` on block 2295 still rea
 
 I built nothing. The residue is the next item's.
 
+## 372.1. The American aircraft arm: the word 2385 → 3653 (item 3755)
+
+*Item 3755, 2026-10-28, Opus 5.5.*
+
+**Built: `get_cost`'s American aircraft arm** (`Sim::american_aircraft_discounts`, `cost::Modifiers::american_aircraft`,
+`Tuning::americans_aircraft`). `TypeData::get_cost@00664090:268`–`282`, read in full: an American leader
+(`has_tribe_bonus(0x14)`) takes `AMERICANS_AIRCRAFT` (20) off the scaled base in three tests, each its own truncating
+`(100 − x) × cost / 100`:
+1. the type's trainer (`UnitTypeData +0x40`, read at `:209`) is the Airbase `0x1bf`, by equality;
+2. the type `is(0x15f, 0)`, the Aircraft Carrier's lineage;
+3. the type `is(0x134, 0)`, the Fighter Bomber's.
+
+`this` in the two `is` tests is the priced type itself (`param_1 = this->type` at `:129`), so it is the same vslot `0x60`
+the British and German arms reach through `unittypes[param_1]`. Two tests can enter on one type and then stack. The arm
+sits after the German submarine's and before the British AA's, inside the pre-ramp tail. The ramp's ceiling reads the
+undiscounted scaled base (`iVar20`, `:573`, `:612`), as this crate already does. This crate applies the three steps
+right after Salt; for an American leader no arm between them in the original's order enters.
+
+**The predicate, measured on run1408's start** (`american_information_pair_an_american_aircraft_costs_a_fifth_less`,
+who=1's wealth and oil):
+
+| type | TI | tests that enter | with the arm | without |
+|---|---|---|---|---|
+| Jet Fighter | 295 (`0x127`) | the Airbase | 72, 72 | 90, 90 |
+| Fighter Bomber | 308 (`0x134`) | its own lineage | 72, 72 | 90, 90 |
+| Aircraft Carrier | 351 (`0x15f`) | its own lineage | 520, 520 | 650, 650 |
+
+The Fighter Bomber takes one step here: its trainer in this crate's tree is not the Airbase. Whether the original
+trains it at `0x1bf` and takes two steps is not established. No capture on disk queues one.
+
+**The killer did not fire.** With the arm, run1409b's block 2295 prices the Airbase `1/2021`'s Jet Fighters at theirs'
+71, 73, 75, 77. That fits §372's reading of the arm's place, before the ramp. who=1's buckets agree, and the make list
+on 2384 agrees. The mutation (`tools/mutate.py`, the step's loop removed from `cost_of`) fails six of the pair's eight
+tests and exits 101.
+
+**The word: 2385 → 3653** (count and sequence, of 4320). On 3653 ours spends **10 draws against theirs' 11**, parting at
+index 2: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+run1409b's widening falls from 1392 keys to **60**. Past the standing families, the first row is on 2583: the Airbase
+`1/2021`'s Strategic Bomber (305) at `queue[3].cost` 91 against 86. The closing state falls from counts
+`[118, 0, 7, 5, 145, 0, 63]` and seven extra units to `[77, 0, 0, 7, 24, 1, 16]` and none. The stride, run1409's units
+every hundred frames, is widened to 3601: 36 blocks and 111 keys. The first non-standing row there is who=0's Citizen
+`0/13` on 3601.
+
+**The word's widening: run1434b** (3495..3903, every record and every round, walked from run1408): **544 keys**, rounds
+read 110 in ours and 126 in theirs, 55 parting. The disk could not answer this: nothing printed 2636..3600 at detail,
+and the stride's 3501 and 3601 bracket the first unit parting. The window's first parted rows, in order:
+- **Standing from 3495**: the families §372 names; who=1's wealth and oil buckets (16428 against 16481 and 15334
+  against 15387); the Airbase `1/2030`'s **Strategic Bombers (305)** at `queue[0..1].cost` 110 and 120 against 100
+  and 110 (parked 3755a).
+- **3587, the first parted round**: who=1's **Armored Cavalry `1/16`** (TI 220, `ARMOREDCAVALRY`, land; on an
+  `ATTACKTOORDER`) launches `ammo[0]` from its own square, (6418, 32805) at `sz` 171, in ours. In theirs it launches
+  from (6307, 32645) at 309. `total_time` reads 6 against 5.
+- **3591**: theirs' round lands on who=0's Citizen `0/13` (20 damage, `hits_left` 65 against 85); ours holds the round
+  alone. who=0's and who=1's `treaties` read 1 in ours against 3 in theirs.
+- **3592**: `0/13` walks off in theirs, `order:move` to (4056, 29928) against ours' idle Citizen at (5016, 31128).
+- **3636**: who=0's `0/4` likewise; **3696**: who=0's peasants count 13 against 12.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2295 | the Airbase `1/2021`'s `queue[0..3]` (Jet Fighter, 295) | `cost[0]`, `cost[1]` | 71, 73, 75, 77 (was 89..95) | 71, 73, 75, 77 |
+| 3587 | `1/16`'s `ammo[0]` (Armored Cavalry, 220) | `sx`, `sy`, `sz` | 6418, 32805, 171 | 6307, 32645, 309 |
+| 3587 | the same round | `total_time` | 6 | 5 |
+| 3591 | who=0's Citizen `0/13` | `hits_left` | 85 | 65 |
+| 3653 | the draw stream, index 2 | caller | `Guy::inc_time+0x271` | `Unit::do_idle+0x7d` |
+
+**Other lobbies.** Every lobby's `first_parting` holds: 107 pass, none moves. The closed American pairs' widenings
+shrink, and nothing new parts in them:
+- **Great Sahara American Industrial**: run1338b 76 → 59, run1356 78 → 76. §348's Biplanes now agree. Theirs' 90 is
+  20 % before the ramp, as §372 read it, so **parked 3669a is answered**.
+- **Great Sahara American Modern**: run1151b 72 → 57, run1151c 76 → 59, run1163 79 → 62. The fighters agree; the
+  Bomber (304) does not (3755a).
+
+**The booking for the next item**: the word **3653**, ours 10 draws against theirs' 11, index 2, ours'
+`Guy::inc_time+0x271` against theirs' `Unit::do_idle+0x7d`. The state parts first on **3587**, `1/16`'s round launch
+point. **The hypothesis** is the Armored Cavalry's piece: it has no bay or turret row in this crate, so its round
+leaves the square. This is §367.2's family, not read here. **The killer**: with the row, `1/16`'s `ammo[0]` on 3587
+still launches from (6418, 32805, 171).
+
 ## 373. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

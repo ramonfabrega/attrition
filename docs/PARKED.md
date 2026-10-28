@@ -11496,13 +11496,15 @@ Nothing parked: the pair lands at its first parting, 2382 of 4767, and its next 
 
 ## Parked by item 3669, 2026-10-26 — the Americans at a held Industrial age, Great Sahara
 
-- **3669a. The American aircraft discount** (`docs/AI.md` §348). On run1338b's first block 3095 who=1's two Airbases
+- ~~**3669a. The American aircraft discount** (`docs/AI.md` §348). On run1338b's first block 3095 who=1's two Airbases
   queue Biplanes (287) at `cost[0]` 107..117 in ours against 90..99 in theirs, and `MAKE[2].val` and the wealth and
   oil buckets stand parted with them. `TypeData::get_cost@00664090:268`–`281` takes `AMERICANS_AIRCRAFT` (20) off an
   American leader's type `0x1bf` or one that `is(0x15f, 0)` or `is(0x134, 0)` through `this`'s own vslot; the crate
   carries none (`docs/NATIONS.md`). 107 × 80 % is 85, not 90: the arm's step in the price is unread. Names no score:
   the word 3174's chain is the rifle rounds', and no dump on disk prints a building before 3095 to say when the
-  queues parted (a `BUILDS=7` stride, as run1336c was, would).
+  queues parted (a `BUILDS=7` stride, as run1336c was, would).~~
+  **Answered by item 3755** (`docs/AI.md` §372.1): the arm is built, before the ramp, and run1338b's Biplanes
+  agree.
 
 ## Parked by item 3670, 2026-10-26 — the Russians at a held Gunpowder age, Great Lakes
 
@@ -12328,13 +12330,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WA — reserved
+## Parked by item 3755, 2026-10-28 — the American aircraft arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3755a. An American Bomber costs more in ours** (`docs/AI.md` §372.1). With `AMERICANS_AIRCRAFT` built, who=1's
+  Airbase queues still part on the Bomber line alone: the Strategic Bomber (305) at `1/2021`'s `queue[3].cost` 91
+  against 86 on run1409b's 2583, and at `1/2030` 110, 120 against 100, 110 standing from run1434b's 3495; the Bomber
+  (304) on Great Sahara's Modern pair, 67 against 57 (run1151b, 2186) and 115 against 100 (run1151c 4482, run1163
+  4396). The fighters on the same queues agree. Ours is dearer by 5, then 10 and 15, so a ramp count, not a
+  percentage. A hypothesis, not read: `AMERICANS_FREE_BOMBER`'s reader `LeaderData::get_support_count` (named in
+  `docs/NATIONS.md` §4.4), which `get_cost:543` takes as the ramp's count. Names no score: the word 3653's chain is
+  `1/16`'s round on 3587; the bomber stands in the window from 3495, and only the buckets part with it. Its killer is
+  `1/2030`'s `queue[0].cost[0]` on 3495 still reading 110.
 
 ## Parked by the next landing, slot WB — reserved
 
