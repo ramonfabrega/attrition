@@ -7668,6 +7668,12 @@ impl Sim {
     /// an `EXPLORE_TO` here; the AI repairs on both long captures, so the
     /// change is held until both words are measured with it.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
+        if std::env::var("RON_DEBUG_PICK").ok().is_some_and(|v| {
+            let (a, c) = v.split_once('-').unwrap_or((&v, &v));
+            (a.parse::<i64>().unwrap_or(0)..=c.parse::<i64>().unwrap_or(0)).contains(&(self.frame as i64))
+        }) {
+            eprintln!("SWARM f{} u o{} b {} body {:?}\n{}", self.frame, self.units[u].index, self.buildings.get(b).map_or(-1, |x| x.index as i32), body, std::backtrace::Backtrace::force_capture());
+        }
         let building = matches!(body, Body::Build(_));
         let kind = if self.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
