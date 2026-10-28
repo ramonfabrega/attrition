@@ -36817,6 +36817,77 @@ with the rows, `1/29`'s `ammo[1]` on 3895 still launches from (4296, 34056, 474)
 of the eight produced each is not pinned, and two pairs of keys are equal (`CHAR_ATTACK1` and `3`). The Arab-style twin
 and the CtW graphs are not rowed.
 
+## 372.3. The Abrams' turret: piece 204's pivot rows, the word 3898 → 4291 (item 3758)
+
+*Item 3758, 2026-10-28, Opus 5.5. Run 1437, a packet at logger frame 3894; run1437b, the word 4291's window.*
+
+**The direction.** run1434b's widening on 3895..3898, both directions, every record: the first thing to part past
+the standing families is who=1's Abrams `1/29` (TI 254, `ABRAM`, land; on an `ATTACKORDER` on the human's Citizen
+`0/12`). Its `ammo[1]` on 3895 leaves (4296, 34056, 474) in ours, its own square, against theirs' (4153, 33763, 605),
+`total_time` 4 against 3, `angle` and `v1z` with it. `0/12` follows on 3897. Nothing else parts first.
+
+**The cheap reading failed.** Only `ABRAM-DEFAULT-AGE0` and `ABRAMDES-DEFAULT-AGE0` play `HvyTank.bh3` (scale 0.75),
+and neither has a row in `sim::pivot`. `get_position.py … entries 204` and `entries 205` raised on all 90 packets on
+disk. So no `SAME_AS` was possible, and the rows took a packet.
+
+**The rows** (run1437, `RON_STATE_FRAME=3894`, the lobby of run1434b; `docs/RUNS.md`): piece 204 loads fifteen
+entries, `RData +0x88` 0.75. The `(4, 0, 0)` pivot reads (0.0, 0.0, 27.11), so `NODES` holds (204, 4) at (0, 0). Of
+its seven `<RELEASEEVENT>`s, three are the gun, `BazookaRocket` on node 0: 766 ms of `CHAR_ATTACK1` (frame 11),
+1598 ms of `CHAR_ATTACK2` (23) and 1865 ms of `CHAR_ATTACK3` (27). Each has its pivot entry and its node-0 entry,
+and those three are the rows (`sim::pivot::RELEASES`). The four `NoDamage Tracer`s on node 1 (frames 1 and 7 of
+`CHAR_ATTACK2` and `3`) are not rowed. The `<RESTRICTION name="ABRAM" node="4" minangle="-180" maxangle="180">`
+sits at the foot of `unit_graphics.xml`, as piece 170's does. The original's pivot branch on the packet (`pivot 204 0
+<anim> <time> 1`, 3 × 92,416 cells, kept at `~/ron-data/lab-experiments/2026-10-28-item-3758/sweeps/`) agrees with
+the integer form on every cell of the first two rows, and on all but nineteen of `CHAR_ATTACK3`'s. Those nineteen
+are its `float_lands` (`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_204`,
+`RON_RELEASE_TABLE_204`).
+
+**The killer did not fire.** With the rows, `1/29`'s round of 3895 leaves (4153, 33763, 605) as theirs does, and
+run1434b reads every round alike: (110, 110), none parting. The mutation (`tools/mutate.py --patch`, the three rows
+keyed off piece 204, on committed `10133dff9`) fails five of `american_information_pair::`'s tests and exits 101.
+(Removing the `NODES` row instead fails nothing, as it must: a pivot at (0, 0) adds nothing.)
+
+**The word: 3898 → 4291** (count and sequence, of 4320). On 4291 ours spends **112 draws against theirs' 113**,
+parting at index 109: ours `Farms::inc_time+0x1ae` against theirs `Object::take_damage+0xe1`. run1434b falls from
+96 keys to **71**, with rounds (110, 111) → (110, 110) and 7 → **0** parting. The stride, walked to its last block
+before the word, 4201 (42 blocks), reads **121** keys, all from the standing families: `build:extra`, `mirror`,
+who=1's groups 64..71 and their pools, `form`, `1/14`'s `g.angle[0]`. No position, order or hit parts there. The
+closing counts go from `[59, 0, 0, 7, 3, 1, 0]` to `[4, 0, 0, 0, 3, 0, 1]`.
+
+**The word's window** is run1437b, 4285..4321, at run1434b's detail, through the closing block
+(`american_information_pair_run1437b_s_word_frame_is_widened_whole`, `WIDENINGS` item 3758, in the coverage driver).
+It reads 36 blocks and **154** keys, with rounds read 493 in ours against 504 in theirs and 291 parting. **It opens
+parted.** On 4285 the standing families stand, and who=1's wealth and oil buckets are 53 apart (3755a). Also on 4285:
+who=0's building `0/2006`'s `damage` is 2 against 3 (`damage_frac` 11 against 1), and the Strategic Bombers' rounds
+already differ (`1/45`, TI 305, `ammo[0]` `accuracy` 0 against 284; `1/57`, `1/88` likewise, the family of 3726a).
+None of these is printed between 3903 and 4285.
+
+**The value diff** on the word's frame and either side:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3895 | the Abrams `1/29`'s `ammo[1]` (TI 254) | `sx, sy, sz`; `total_time` | 4153, 33763, 605; 3 (was 4296, 34056, 474; 4) | 4153, 33763, 605; 3 |
+| 4285 | who=0's building `0/2006` | `damage`; `damage_frac` | 2; 11 | 3; 1 |
+| 4285 | the Strategic Bomber `1/45`'s `ammo[0]` (TI 305) | `accuracy`; `sx, sy`; `ex, ey` | 0; 3192, 30807; 3013, 30878 | 284; 3059, 30758; 2879, 30826 |
+| 4291 | the TOW `1/17`'s `ammo[6]` (TI 141) | `sx, sy, sz`; `total_time` | 5832, 31320, 384; 12 | 5742, 31270, 531; 11 |
+| 4291 | the draw stream, index 109 | caller | `Farms::inc_time+0x1ae` | `Object::take_damage+0xe1` |
+| 4293 | `0/2005` | `damage`; `damage_frac` | 10; 2 | 9; 7 |
+
+**The booking for the next item**: the word **4291**, ours 112 draws against theirs' 113, index 109, theirs'
+`Object::take_damage+0xe1`. Theirs takes a blow ours does not. The window cannot say whose blow, because every
+round in flight on 4291 already parts on 4285. **Two hypotheses, both to be checked before reading.** (a) A
+Strategic Bomber's bomb, whose `accuracy` reads 0 in ours (the aircraft-round family of 3726a, here on a lobby
+where it reaches a draw). (b) The TOW's launch point: `1/17`'s round of 4291 leaves its own square, the
+launch-point family on piece 91 (TI 141 − 0x32, by the offset that holds for 170 and 204; not read off a type
+record), and `1/18`'s on 4302 the same. A round launched on 4291 lands 11 frames later, so (b) cannot be the blow
+of 4291 itself. The gap 3903..4285 holds the first parting: a window over it, six blocks before 3903, is the
+widening the next item owes before naming a mechanism.
+
+**What is not established.** The tracers are not rowed. Whether they make an `Ammo` the dump prints is not read;
+run1434b's 110 rounds all agree without them. `ABRAMDES` is not rowed (parked 3758a). The `CHAR_ATTACK1..3` rows
+are pinned only by the oracle and by `1/29`'s one round of 3895; which of the three that round was is not pinned.
+The rubric was not run: the pair still parts.
+
 ## 373. The Maya at a held Information age, Great Lakes: whole on its first try, 3330 of 3330 (item 3726)
 
 *Item 3726, 2026-10-28, Opus 5.5.*
