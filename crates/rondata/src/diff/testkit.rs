@@ -11074,13 +11074,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
     // who=1's Churchills (piece 195, no row) rounds landing late; widened
-    // on run1407b over 3395..3702, the rounds compared (`docs/AI.md` §371).
+    // on run1407b over 3395..3702, the rounds compared (`docs/AI.md` §371)
+    // — and item 3747 closed it on piece 195's `pivot::SAME_AS` row and
+    // piece 52's and 89's bays: **whole at 3878**, widened on run1426 over
+    // 3695..3878 (to the game's last frame), the rounds compared
+    // (`docs/AI.md` §371.1).
     (
         "EGYPTIAN_MODERN_PAIR_WORD",
         crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN_PAIR_WORD,
-        Some("egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole"),
-        3724,
-        Some(crate::diff::egyptian_modern_pair::WIDENING_EGYPTIAN_MODERN_FRAME_3451),
+        Some("egyptian_modern_pair_run1426_s_word_frame_is_widened_whole"),
+        3747,
+        Some(crate::diff::egyptian_modern_pair::WIDENING_EGYPTIAN_MODERN_FRAME_3748),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13562,7 +13566,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Egyptians at a held Modern age (`STARTING_TECHNOLOGY` 6,
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3724): first try
     // 3451 of 3878, theirs' `Unit::close` on the Special Forces `0/0` in
-    // theirs alone; widened on run1407b over 3395..3702.
+    // theirs alone; widened on run1407b over 3395..3702. Item 3747: whole
+    // at 3878; the window run1426 over 3695..3878.
     AiWord {
         line: "Late ages",
         map: "GreatLakesEgyptianModern",
@@ -13570,7 +13575,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN_PAIR_WORD,
         length: 3_878,
         endpoint: Some("egyptian_modern_pair_run1407_s_closing_state"),
-        window: Some("egyptian_modern_frame_3451_window"),
+        window: Some("egyptian_modern_frame_3748_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

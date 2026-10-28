@@ -11048,3 +11048,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1407  run1403's line with --ai-tribe 7 and run1406's lobby   (the draw stream; ended itself on 3878)
 #   run1407b --map 14 --end-frame 3702 --timeout 3600 --log-window 3395 3702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby   (the word 3451's window)
 # Checks: `rngcmp.py` run1406 vs run1407 -> 37 identical; run1407 vs run1407b -> 3703 identical.
+# ==== item 3747: pieces 195, 52 and 89, the Egyptian Modern word whole at 3878 (`docs/AI.md` §371.1; `docs/RUNS.md` run1426, run1426b) ====
+#   run1426  --map 14 --end-frame 3878 --allow-early-end --timeout 3600 --log-window 3695 3878 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby   (the word 3748's window)
+#   run1426b --map 14 --end-frame 3724 --timeout 3600 --log-window 3720 3724 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby, --tracer-def RON_STATE_FRAME=3722 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet)
+# Checks: `rngcmp.py` run1407 vs run1426 -> 3879 identical.

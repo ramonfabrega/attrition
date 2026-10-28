@@ -12270,13 +12270,17 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   out of the site's region. Neither order is held by a walk until a site's recruit order turns on which of two
   sites comes first. The building loop's two lists are not read.
 
-## Parked by the next landing, slot VU — reserved
+## Parked by item 3747, 2026-10-28 — pieces 195, 52 and 89, the Egyptian Modern word whole at 3878
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3747a. `mirror` parts on four craft minted in run1426's window.** On the Egyptian Modern lobby's window
+  (run1426, 3695..3878), `mirror` reads 0 in ours against 1 in theirs on who=1's `1/112` (3795), `1/117` (3800),
+  `1/119` (3811) and `1/122` (3850), each from its first block. 3745b saw the same shape on the Japanese Modern lobby.
+  The pair is whole at 3878 and its closing state agrees, so it names no score. Grep this crate for `mirror`'s
+  writer at a craft's birth before reading the original's.
+- **3747b. A round's target reads `whom` −1 in ours once the target has died.** In run1426, 16 round rows part
+  on `whom` and `ox` alone: ours −1 against the dead unit's number in theirs. These are `1/28`'s and `1/30`'s rounds
+  on 3749 (the Citizen `0/12`, dead on 3748), five rounds on 3848 (`0/7`) and two on 3875 (`0/10`). Every other
+  field of those rounds agrees, and none reaches a draw. 3745b's `1/36` round of 3163 is the same shape.
 
 ## Parked by item 3748, 2026-10-28 — piece 441, the Bantu Bazooka's bay
 
