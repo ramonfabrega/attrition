@@ -12108,13 +12108,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VE — reserved
+## Parked by item 3724, 2026-10-28 — the Egyptians at a held Modern age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: run1407's stride parts on the standing families alone, and every row of run1407b's widening up to
+the word is the word's own chain (`docs/AI.md` §371).
 
 ## Parked by the next landing, slot VF — reserved
 

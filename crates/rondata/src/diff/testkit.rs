@@ -11047,6 +11047,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3745,
         Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_CLOSING),
     ),
+    // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
+    // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
+    // Forces `0/0` where ours spends a farm's chance draw, downstream of
+    // who=1's Churchills (piece 195, no row) rounds landing late; widened
+    // on run1407b over 3395..3702, the rounds compared (`docs/AI.md` §371).
+    (
+        "EGYPTIAN_MODERN_PAIR_WORD",
+        crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN_PAIR_WORD,
+        Some("egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole"),
+        3724,
+        Some(crate::diff::egyptian_modern_pair::WIDENING_EGYPTIAN_MODERN_FRAME_3451),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13508,6 +13520,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_866,
         endpoint: Some("japanese_modern_pair_run1403_s_closing_state"),
         window: Some("japanese_modern_closing_window"),
+    },
+    // The Egyptians at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3724): first try
+    // 3451 of 3878, theirs' `Unit::close` on the Special Forces `0/0` in
+    // theirs alone; widened on run1407b over 3395..3702.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesEgyptianModern",
+        named: "Great Lakes (Egyptian, Modern)",
+        word: crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN_PAIR_WORD,
+        length: 3_878,
+        endpoint: Some("egyptian_modern_pair_run1407_s_closing_state"),
+        window: Some("egyptian_modern_frame_3451_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

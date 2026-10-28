@@ -32694,3 +32694,66 @@ SHA-256 `21b530ecc63308ae3df6ee059ba38025f0ecf6a3aa19580bdaf407d39819ff14`.
 **What it holds**: `russian_information_pair_run1423c_s_closing_frame_is_widened_whole`: 257 blocks, **157** keys,
 rounds 29 against 30 with 12 parting (the T80 `1/59`'s, 3744d). It is the `WIDENINGS` row for the closed word, the
 `AI_WORDS` window and the coverage driver's.
+
+## run1406 — the Egyptians at a held Modern age, Great Lakes, at difficulty 4: the `DUMP_ALL` start (2026-10-28, item 3724, `att-3724`)
+
+`docs/AI.md` §371. run1402's line with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1406 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 2 (`RON_CAPTURE_LANE=2`, the commander's preference after the lane-1 packet faults). Launched 07:18:10,
+  exited 07:18:34 (23.8 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA` blocks on frame 1, seed 12345,
+  players tribe 4 and tribe 7, map style 14, five files restored. `GAME INFO` reads back `DIFFICULTY 4` and
+  `STARTING_TECHNOLOGY 6` (`Pair::assert_lobby`). Filed with `filerun.py run1406 greatlakes-egyptian-modern-start`.
+  `df -g ~` read 127 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1406-greatlakes-egyptian-modern-start.txt`, 151,510,103 bytes,
+SHA-256 `58d735c9548a17b33bc494bd30ee7cd5c6adb0a0a2af20c573fe2f293651eb5d`.
+
+Archive `rontrace-run1406.log`, 9,031,744 bytes,
+SHA-256 `14b2fe86b9bad38c6aeee8c8f6f3c547c7cd442365d1c52e1d37869da60c5260`.
+
+**What it holds**: the start of `egyptian_modern_pair::EGYPTIAN_MODERN`, and the walk's initial state.
+
+## run1407 — the Egyptians at a held Modern age, Great Lakes, at difficulty 4: the draw stream to the game's end (2026-10-28, item 3724, `att-3724`)
+
+`docs/AI.md` §371. run1403's line with `--ai-tribe 7` and run1406's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 7 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, after run1406. Launched 07:18:53, exited 07:19:24 (31.1 s launch to exit). `success`. **The game
+  ended itself on 3878** (closing block 3879, `ended_early`). `GAME INFO` reads back as run1406's. `rngcmp.py`
+  against run1406: 37 frames identical. Filed with `filerun.py run1407 greatlakes-egyptian-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1407-greatlakes-egyptian-modern-trace.txt`, 22,121,992 bytes,
+SHA-256 `14c0d1daa22d48d7f8d1bc42425137e7e401c63cdb3e23849ee03f6a0bd84bf8`.
+
+Archive `rontrace-run1407.log`, 60,000,832 bytes,
+SHA-256 `53dd144f613e40e034b7860ebc00327b03eb1e3bbe4a986417b636ab68d78f16`.
+
+**What it holds**: the long of `egyptian_modern_pair::EGYPTIAN_MODERN`, first try 3451 of 3878, and the closing
+state's floor (`egyptian_modern_pair_run1407_s_closing_state`).
+
+## run1407b — the Egyptians at a held Modern age, Great Lakes, at difficulty 4: the word 3451's window, blocks 3395..3702 (2026-10-28, item 3724, `att-3724`)
+
+`docs/AI.md` §371. **What the disk could not answer**: every record and every round on the word's blocks. run1407's
+stride prints units every hundred frames (3401, then 3501), no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1407b --map 14 --end-frame 3702 --timeout
+3600 --log-window 3395 3702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover
+cover=0` and run1406's lobby: six blocks before the stride's last block 3401, 250 past the word's block 3452.
+- Pool lane 2. Launched 07:22:12, exited 07:23:03 (51.8 s launch to exit). `success`: 3703 frames. `rngcmp.py`
+  against run1407: 3703 of 3703 identical. Filed with `filerun.py run1407b
+  greatlakes-egyptian-modern-window-3395-3702`. `df -g ~` read 125 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1407b-greatlakes-egyptian-modern-window-3395-3702.txt`, 619,245,393 bytes,
+SHA-256 `da55deddc857543a4db8b2222d736c61630dee4ee325635d59e919438fba6e26`.
+
+Archive `rontrace-run1407b.log`, 56,019,456 bytes,
+SHA-256 `183f19d69a3db5a750798c45d71749086ef8cdbbc91aa6a19386f45ea94fe8ed`.
+
+**What it holds**: the word 3451's widening, `egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole`: 307
+blocks, 1287 keys, rounds 11 against 18 with 27 parting — group 64's Churchills (piece 195) leaving their own
+square from 3438.
