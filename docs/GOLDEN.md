@@ -13976,13 +13976,76 @@ none of the `never` column's 39 `unit` rows (parked 3733c). The matrix and the l
 `RUBRIC_UNIT_TYPES_SEEN` stays where it was. `blind::TRACES` pins run1413b, and the blind list stays at 249.
 
 **What is not established.**
-- Why ours' Citizen `0/4` acts on 182 and theirs does not. That is the next word.
+- ~~Why ours' Citizen `0/4` acts on 182 and theirs does not. That is the next word.~~ The starting farms' order: §149.1.
 - Every frame past 182: the melee itself, its kills and its projectiles, is not yet compared.
 - The British and Inca buckets between the grant and the close.
 - The `tech all` arm in the crate (3733a).
 
 **Coverage.** Falsifiers (a)–(d), the twin and the score are diff-backed by the three takes' dumps and traces.
 (e) and the `is_tech_type` range rest on the export and the PE listing.
+
+## 149.1 The melee's first word was the farms' order — 182 → 684 (item 3757)
+
+**The booking.** Frame 182: ours spent 51 draws against theirs' 49. At index 40, ours spent two
+`GameAccess::rnd+0x20 < Unit::do_job+0x67`, both for the idle human's Citizen `0/4` (TI 50, land) on its
+`Gather` of farm `0/2003`. **The direction: ours acted.** Those two draws are the farmer's cell re-pick
+(`orders::SITE_FARM_CELL`, `docs/ORDERS.md` §6.5).
+
+**The walk back.** `RON_DEBUG_UNIT=0/4@1-200` shows ours' farmer re-pick on 101, as theirs does, and arrive at
+(39288, 36600) on 114. On 182 it re-picks again, because the cell it stands on was already ripe. That cell had
+sprouted earlier. The start take prints every farm's cells on its last block. On run1412's block 37, theirs'
+`0/2002` carries a fresh sprout in cell 12 (state 1, no adds). Ours put the same sprout on `1/2002`.
+
+The two sides spend identical draws. Both make eight `Farms::inc_time+0x1ae` chance rolls on 37, with the one
+`+0x1de` sprout draw after the third roll. So the roll lands on a different farm because the list order differs.
+
+**The order.** `Farms::inc_time@008d8600` walks the `FarmStruct` array in index order (stride `0xc0`). It skips a
+pasture (`+0xbd == 1`) and a farm whose building's `SubObjectData +0x8 flags & 4` is clear: run1412's `1/2008`
+reads `flags` 1. Every other farm spends one roll. `Farms::walk_data` prints the same array through
+`Array<FarmStruct>::walk_data`. run1412 prints player 1's three farms, then player 0's, then player 2's. That
+is `Game::start_list` (§3409 of `docs/ORDERS.md`), a permutation when the map randomises starts.
+
+`build_sim`'s higher-slot-first sort reproduced this for every two-seat lobby on file, but it reads 2, 1, 0 on
+three seats. **The fix**: `build_sim` now orders the starting farms as the start dump lists them
+(`crates/rondata/src/diff/setup.rs`). A farm the dump does not list keeps its place behind the listed ones.
+Ranking the seats 2, 0, 1 instead is worse: it parts at 146, on a sprout draw.
+
+**The score: 182 → 684**, the count and the sequence together, past every line of the script.
+`gunpowder_melee_staging_walk` stages all 28 lines on both sides (30 ran in theirs' trace, `cmdsran.py`).
+Block 601 carries the standing families alone, so the grant and the twelve `add` twins land alike.
+
+**The value diff** (`gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 601..934, 818 keys, rounds
+read (23, 20), 41 parting). The fight runs a frame late in ours. On 701, who=1's Bombard `1/23` reads:
+
+| field | ours | theirs |
+|---|---|---|
+| `damage_frame` | 684 | 683 |
+| `pos` | (15768, 14616) | (15816, 14664) |
+| `path:length` | 3 | 4 |
+| `spell_time` | 15 | 16 |
+
+The other rows on 701 follow from it:
+- `2/17` dies on 696 in ours against 695 in theirs.
+- `1/14` is dead in theirs alone.
+- `0/4`'s next re-pick reads the shifted stream.
+
+**The next word**: frame 684, ours 18 draws against 19, index 0. Ours spends `Guy::set_anim+0x97a <
+Unit::do_move+0x11cf` for who=2's `2/24`, and theirs spends `Unit::fight+0x9b0`.
+
+**Tests**:
+- `gunpowder_melee_s_farms_stand_in_the_dump_s_order` checks the list against run1412's own.
+- `gunpowder_melee_first_parting` pins 684.
+- A `tools/mutate.py` mutation that drops the sort turns all three of the module's walk tests red.
+
+**What is not established.** Block 37 is not fully explained. Under the array's order, theirs' third rolling farm
+is `1/2004`, yet the sprout prints on `0/2002`. Player 0's three farms read cell 10 at 73 adds, where every
+other farm, and every farm in ours, reads 74. So the block may be printed partway through the human's part of
+the frame. Ours now puts the sprout on `1/2004`. That is a farm-cell difference, with no draw difference yet
+(parked 3757a). No dump past 37 prints the farms.
+
+**Coverage.** The order fix and the score are diff-backed: the walk, the widening and run1412's printed list.
+The skip predicate and the walk order rest on the export (`Farms::inc_time`, `walk_data`). The frame-37
+attribution is open.
 
 ## 150. Reserved for the next item on the rules track
 
