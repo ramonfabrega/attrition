@@ -178,3 +178,135 @@ fn french_medieval_pair_the_long_s_stride_walks_back_from_the_word() {
     // as each is minted. No unit row parts before the word's window.
     pin_eq!(w.firsts.len(), 84, "the stride's baseline");
 }
+
+/// run1393b: the word 3108's window, blocks 3077..3359 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — 24 blocks before the stride's
+/// last block 3101 and 250 past the word's own block 3109 (item 3717).
+/// run1393 prints units only every hundred frames, no `AMMO` and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start.
+pub(crate) const RUN1393B: &str =
+    "gamelog-run1393b-greatlakes-french-medieval-window-3077-3359.txt";
+
+/// The window: block 3077 through 3359.
+pub(crate) const WIDENING_FRENCH_MEDIEVAL_FRAME_3108: (i64, i64) = (3077, 3359);
+
+/// **The word 3108's window**: run1393b walked from run1392's start with
+/// the recorder on and every round compared (item 3717).
+pub(crate) fn french_medieval_frame_3108_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[FRENCH_MEDIEVAL.start],
+        true,
+        FRENCH_MEDIEVAL.long,
+        "run1393b",
+        &[(RUN1393B, WIDENING_FRENCH_MEDIEVAL_FRAME_3108.0)],
+        WIDENING_FRENCH_MEDIEVAL_FRAME_3108,
+        1,
+        &[3109],
+        true,
+    )
+}
+
+#[test]
+fn french_medieval_pair_run1393b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_medieval_frame_3108_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 282, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3717, the first walk: **424** keys. Block 3077 carries the
+    // standing families (49: `form` on 27 units, both leaders' rows, who=1's
+    // groups and pools). **The word**: the Trebuchet `1/98` (TI 266, TY
+    // 216, land, packed), on an `ATTACKTOORDER` to (36072, 26328) and held
+    // in place by a re-path that alternates its move's `dest` between
+    // (39144, 14040) and (40680, 12504) every frame on both sides, enters
+    // `CHAR_TURN_LEFT` (slot 21) in ours on 3080; ours ends it on 3108
+    // (`t29/30`) and resets its four figures to the idle with one
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` draw that theirs does not
+    // spend. The dump prints no `cur_anim` at `GUYS=2`, so the draw stream
+    // is the record. The first unit row is its `path:length` on 3110, 14
+    // against 18 (`path_recursion` 0 against 10); then the light cavalry
+    // `1/90`'s and `1/79`'s (TI 210) guards (3114, 3116) and orders (3121,
+    // 3124).
+    pin_eq!(w.firsts.len(), 424, "run1393b baseline");
+    // Every round, both directions: no round flies in the window.
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The pair's closing state** (item 3717): run1393's closing block 4665,
+/// the whole map's units, walked from run1392's start past the word 3108.
+#[test]
+fn french_medieval_pair_run1393_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &FRENCH_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "French Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4665, "the closing block");
+    // Item 3717, first try: 1556 frames past the word 3108 the game has
+    // parted everywhere — 202 units compared, counts [186, 0, 5, 2, 164, 0,
+    // 34], who=1's `1/188`..`1/192` extra in ours, and the city records'
+    // `busy`, `gatherers` and `space[i]` apart. A floor, not a score.
+    pin_eq!(e.compared, 202, "units compared");
+    pin_eq!(e.counts(), [186, 0, 5, 2, 164, 0, 34], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        vec![(1, 188), (1, 189), (1, 190), (1, 191), (1, 192)],
+        "the closing extras"
+    );
+}
