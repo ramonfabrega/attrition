@@ -36750,6 +36750,73 @@ point. **The hypothesis** is the Armored Cavalry's piece: it has no bay or turre
 leaves the square. This is §367.2's family, not read here. **The killer**: with the row, `1/16`'s `ammo[0]` on 3587
 still launches from (6418, 32805, 171).
 
+## 372.2. The Armored Cavalry's turret: piece 170's pivot rows, the word 3653 → 3898 (item 3756)
+
+*Item 3756, 2026-10-28, Opus 5.5. No capture: run1434b holds the window, and four packets on disk hold the piece.*
+
+**The direction.** On 3587 who=1's Armored Cavalry `1/16` (TI 220, `ARMOREDCAVALRY`, land; `RON_DEBUG_UNIT`: `TY`
+170, `g170`, on an `ATTACKTOORDER`) looses its round on the human's Citizen `0/13` in both. Ours launches it from the
+figure's own square, (6418, 32805, 171); theirs from (6307, 32645, 309). The figure's `GUY` pose agrees on every block
+of the window, and ours' clock reads `CHAR_ATTACKWALK` (slot 10) frame 19 on the launch.
+
+**The piece and its arm.** Piece 170 is `ARMOREDCAVALRY-DEFAULT-AGE0` (TI 220 − 0x32, the Americans' `UNIT_CONTINENT`
+0), `armoredcavalry.bh3` at scale 0.7: eight `<RELEASEEVENT>`s on node 0 at 333 and 1332 ms (frames 4 and 19) of
+`CHAR_ATTACKWALK` and `CHAR_ATTACK1..3`. Its `<UNIT>` block carries no `<RESTRICTION>`, but **`<RESTRICTION
+name="ARMOREDCAVALRY" node="4" minangle="-180" maxangle="180">` sits at the foot of `unit_graphics.xml`**, bound by
+`GRAPH` (`rondata::artdata::pivot_restrictions`), so the piece takes **the pivot arm**, not a bay. The dump says the
+same before any reading: run1434b's 29 Armored Cavalry rounds include twelve from one hull pose, (3336, 34488) at
+−299958272, launched from six different points, and the moving ones' offsets turn with the bearing to the target, not
+the hull. No sibling carries its rows: `armoredcavalry.bh3` is played only by 170, its Arab-style twin and the two CtW
+graphs, none rowed.
+
+**The rows.** `get_position.py … entries 170` over all 90 packets on disk: **run854, run865, run882b and run883b**
+load it, 17 rows each, identical, `RData +0x88` 0.7. The `(4, 0, 0)` pivot reads (−4.48, 14.2, 41.09); for each of the
+eight releases, the pivot node's and the release node's (`sim::pivot::RELEASES`). The original's pivot branch
+(`get_position.py … pivot 170 0 <anim> <time> 1` on run854's packet, 361 facings × 256 turret steps, eight rows,
+739,328 cells, kept at `~/ron-data/lab-experiments/2026-10-28-item-3756/sweeps/`) agrees with the integer form
+everywhere but four cells, which are the rows' `float_lands`
+(`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_170`, `RON_RELEASE_TABLE_170`).
+
+**The killer did not fire.** With the rows, `1/16`'s round of 3587 leaves (6307, 32645, 309) and flies 5 frames, as
+theirs. All 29 of run1434b's rounds are reproduced at `sx, sy` and `sz − z` by one of the eight keys at some turret
+step, and the seven loosed on the move by the `CHAR_ATTACKWALK` key at the frame ours' clock reads
+(`pivot::tests::run1434b_s_armored_cavalry_rounds_leave_from_its_turret`). The mutation (`tools/mutate.py`, the
+walk-19 row's piece negated) fails four of `american_information_pair::`'s tests and exits 101.
+
+**The word: 3653 → 3898** (count and sequence, of 4320). On 3898 ours spends **8 draws against theirs' 9**, parting
+at index 0: ours `Unit::do_air_physics+0xba` against theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. run1434b
+falls from 544 keys to **96**, rounds read (110, 126) → (110, 111), 55 → **7** parting; the stride 111 → 94 keys; the
+closing counts `[77, 0, 0, 7, 24, 1, 16]` → `[59, 0, 0, 7, 3, 1, 0]`. The word stays inside run1434b's window, so the
+widening is on file.
+
+**The value diff**, walked back from the word:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3587 | `1/16`'s `ammo[0]` (Armored Cavalry, 220) | `sx`, `sy`, `sz`; `total_time` | 6307, 32645, 309; 5 (was 6418, 32805, 171; 6) | 6307, 32645, 309; 5 |
+| 3895 | the Abrams `1/29`'s `ammo[1]` (TI 254, `ABRAM`, land) | `sx`, `sy`, `sz` | 4296, 34056, 474 | 4153, 33763, 605 |
+| 3895 | the same round | `total_time` | 4 | 3 |
+| 3897 | the human's Citizen `0/12` | `hits_left`; `damage_o`; `damage_frame` | 65; 28; 3860 | 24; 29; 3896 |
+| 3898 | `0/12` | `pos` | (3672, 32664) | (3653, 32647), walking off |
+| 3898 | the draw stream, index 0 | caller | `Unit::do_air_physics+0xba` | `Guy::set_anim+0x97a < Unit::move_step+0x823` |
+
+**What still parts on run1434b** (96 keys): the standing families of §372 and §372.1 (the `SITE[*].reg`, `form` and
+pool rows, who=1's buckets and the Strategic Bombers' prices, 3755a); the `mirror` flags of thirteen of who=1's units
+from 3764 (ours 0, theirs 1), which stood at the base among its 544 keys and reach no draw (3756a); and from 3895
+the Abrams' round and `0/12`.
+
+**The booking for the next item**: the word **3898**, ours 8 draws against theirs' 9, index 0. The state parts first
+on **3895**: the Abrams `1/29` (TI 254; on an `ATTACKORDER` on `0/12`, standing at (4296, 34056)) launches its round
+from its own square in ours. **The hypothesis** is the same family: `ABRAM-DEFAULT-AGE0` (piece 204 by the stride,
+`HvyTank.bh3` at scale 0.75) carries `<RESTRICTION name="ABRAM" node="4">` at the file's foot, and this crate has no
+pivot row for it. `entries 204` over all 90 packets on disk: none holds it, so the rows take a packet on this lobby
+(`RON_STATE_FRAME=3894`), unless a sibling playing `HvyTank.bh3` already carries them (`SAME_AS`). **The killer**:
+with the rows, `1/29`'s `ammo[1]` on 3895 still launches from (4296, 34056, 474).
+
+**What is not established.** The `CHAR_ATTACK1..3` keys are fitted only by the standing rounds at one hull pose; which
+of the eight produced each is not pinned, and two pairs of keys are equal (`CHAR_ATTACK1` and `3`). The Arab-style twin
+and the CtW graphs are not rowed.
+
 ## 373. The Maya at a held Information age, Great Lakes: whole on its first try, 3330 of 3330 (item 3726)
 
 *Item 3726, 2026-10-28, Opus 5.5.*
