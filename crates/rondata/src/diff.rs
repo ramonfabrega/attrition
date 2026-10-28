@@ -245,6 +245,8 @@ mod spanish_industrial_pair;
 #[cfg(test)]
 mod spanish_lakes_word;
 #[cfg(test)]
+mod spanish_modern_pair;
+#[cfg(test)]
 mod spanish_word;
 #[cfg(test)]
 mod third;

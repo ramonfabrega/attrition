@@ -486,6 +486,13 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 10, 4)`, `(18, 10, 5)`, `(7, 10, 4)` or `(7, 10, 5)`, other
     // maps; the battery fields no French.
     (14, 10, 4),
+    // The Spanish at a held Modern age, East Indies at Hard (item 3718,
+    // `diff::spanish_modern_pair`), minted under rule (3) — not
+    // `EastIndiesSpanishTier3`'s `(18, 9, 3)` nor the Gunpowder pair's
+    // `(18, 9, 5)`, this map at other difficulties, nor `(14, 9, 4)`,
+    // `(14, 9, 5)`, `(7, 9, 3)` or `(7, 9, 5)`, other maps; the battery
+    // fields no Spanish.
+    (18, 9, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
