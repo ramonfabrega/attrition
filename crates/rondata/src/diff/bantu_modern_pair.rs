@@ -312,8 +312,9 @@ fn bantu_modern_pair_run1405b_s_word_frame_is_widened_whole() {
 /// past run1405b's 3661, and theirs' extra draws on 4304 are a round's.
 pub(crate) const RUN1425: &str = "gamelog-run1425-greatlakes-bantu-modern-window-4295-4395.txt";
 
-/// The window: block 4295 through 4395.
-pub(crate) const WIDENING_BANTU_MODERN_FRAME_4304: (i64, i64) = (4295, 4395);
+/// The window: block 4295 through the closing block 4396 (item 3748: the
+/// word whole at 4395 must sit inside it).
+pub(crate) const WIDENING_BANTU_MODERN_FRAME_4304: (i64, i64) = (4295, 4396);
 
 /// **The word 4304's window**: run1425 walked from run1404's start with
 /// every round compared (item 3746).
