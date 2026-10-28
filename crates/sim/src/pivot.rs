@@ -142,6 +142,14 @@ pub struct Node {
 /// `<RESTRICTION name="MARK4">`, the turret. Its own model
 /// (`lighttank_mkiv.bh3`), so not piece 189's rows.
 ///
+/// **Piece 299, the Battleship** (item 3736, unit type 349,
+/// `superbattleship.bh3`): run1165's packet (logger frame 3719, the Russian
+/// Modern lobby) reads its three pivots, `(4, 0, 0)` `(0.0, −95.34, 13.85)`,
+/// `(5, 0, 0)` `(0.0, −49.66, 22.79)` and `(6, 0, 0)` `(0.0, 117.49, 13.83)`
+/// (`0xc2beae14`, `0xc246a3d6`, `0x42eafae1`), `RData +0x88` 0.9 — one per
+/// `<RESTRICTION name="Battleship">` at the foot of `unit_graphics.xml`,
+/// not in its own `<UNIT>` block.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -175,6 +183,9 @@ const NODES: &[(i32, i32, Node)] = &[
     (278, 6, Node { px: 0, py: 10774 }),
     (189, 4, Node { px: 0, py: -396 }),
     (190, 4, Node { px: -8, py: -1153 }),
+    (299, 4, Node { px: 0, py: -9534 }),
+    (299, 5, Node { px: 0, py: -4966 }),
+    (299, 6, Node { px: 0, py: 11749 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -195,6 +206,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (278, (9, 10)),
     (189, (9, 10)),
     (190, (9, 10)),
+    (299, (9, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -435,6 +447,66 @@ const FLOAT_LANDS_279_N2: &[(i32, i32, i32, i32)] = &[
     (267, 260, -476, -26),
     (308, 207, -394, -324),
     (354, 42, -76, -399),
+];
+
+/// Piece 299's [`Release::float_lands`], one list per row (item 3736):
+/// `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s entries differ in their bits, so
+/// each row is its own sweep.
+const FLOAT_LANDS_299_A11_N0: &[(i32, i32, i32, i32)] = &[
+    (108, 34, -483, -246),
+    (110, 160, -237, -141),
+    (116, 184, -240, -106),
+    (198, 34, 246, -483),
+    (200, 160, 141, -237),
+    (320, 297, 409, 282),
+];
+const FLOAT_LANDS_299_A11_N2: &[(i32, i32, i32, i32)] = &[
+    (51, 270, 483, -207),
+    (104, 295, 400, 232),
+    (113, 332, 323, 207),
+    (141, 270, 207, 483),
+    (203, 332, -207, 323),
+    (282, 236, -549, -238),
+    (321, 236, -277, -531),
+    (321, 270, -207, -483),
+];
+const FLOAT_LANDS_299_A11_N1: &[(i32, i32, i32, i32)] = &[
+    (47, 233, -24, 169),
+    (137, 233, -169, -24),
+    (227, 233, 24, -169),
+    (317, 233, 169, 24),
+];
+const FLOAT_LANDS_299_A12_N0: &[(i32, i32, i32, i32)] = &[
+    (70, 7, -532, 175),
+    (72, 70, -484, 10),
+    (86, 83, -440, -116),
+    (113, 255, -399, -12),
+    (162, 70, -10, -484),
+    (176, 83, 116, -440),
+    (203, 255, 12, -399),
+    (252, 70, 484, -10),
+    (266, 83, 440, 116),
+    (293, 255, 399, 12),
+    (302, 190, 238, 118),
+    (342, 70, 10, 484),
+    (356, 83, -116, 440),
+];
+const FLOAT_LANDS_299_A12_N2: &[(i32, i32, i32, i32)] = &[
+    (26, 342, 205, -311),
+    (45, 70, 228, -417),
+    (116, 342, 311, 205),
+    (187, 34, 30, 392),
+    (204, 170, -241, 604),
+    (267, 0, -361, 15),
+    (277, 34, -392, 30),
+    (296, 342, -311, -205),
+];
+const FLOAT_LANDS_299_A12_N1: &[(i32, i32, i32, i32)] = &[
+    (82, 352, -344, 75),
+    (105, 7, -338, -100),
+    (172, 352, -75, -344),
+    (285, 7, 338, 100),
+    (352, 352, 75, 344),
 ];
 
 /// Piece 189's [`Release::float_lands`], one list per anim (item 3529).
@@ -760,6 +832,88 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [-290_015, 107_739_998, 9_675_645],
             at: [2_406_699, -13_229_012, 4_556_933],
             float_lands: FLOAT_LANDS_278_N2,
+        },
+    ),
+    // **The Battleship, piece 299** (unit type 349; item 3736, `docs/AI.md`
+    // §365.1): run1165's packet (logger frame 3719 of the Russian Modern
+    // lobby) holds the piece's twenty-seven entries — its three pivots at
+    // `(anim 0, time 0)` and, on `CHAR_ATTACK1` and `CHAR_ATTACK2` (whose
+    // bits differ), a release from each turret: node 0 on frame 1 from
+    // pivot 4, node 2 on 7 from pivot 6, node 1 on 12 from pivot 5 (the
+    // `<RELEASEEVENT>`s' 133, 533 and 833 ms). The Spanish Modern pair's
+    // Battleship `1/45` loosed at the Citizen `0/13` on 3693 from
+    // `(2629, 11443, 106)` in the original, where this crate's left the
+    // hull's own square `(2808, 11832, 0)` and flew 14 frames against 13.
+    (
+        299,
+        crate::anim::ATTACK1,
+        1,
+        Release {
+            piece: 299,
+            node: 0,
+            pivot: [-184_538, -95_339_996, 13_848_769],
+            at: [-142_720, -34_599_060, 10_709_489],
+            float_lands: FLOAT_LANDS_299_A11_N0,
+        },
+    ),
+    (
+        299,
+        crate::anim::ATTACK1,
+        7,
+        Release {
+            piece: 299,
+            node: 2,
+            pivot: [-442_118, 117_489_998, 13_822_918],
+            at: [-337_668, -33_652_985, 10_556_601],
+            float_lands: FLOAT_LANDS_299_A11_N2,
+        },
+    ),
+    (
+        299,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 299,
+            node: 1,
+            pivot: [-1_229_429, -49_659_996, 22_756_771],
+            at: [-578_620, -32_191_475, 10_710_815],
+            float_lands: FLOAT_LANDS_299_A11_N1,
+        },
+    ),
+    (
+        299,
+        crate::anim::ATTACK2,
+        1,
+        Release {
+            piece: 299,
+            node: 0,
+            pivot: [206_375, -95_339_996, 13_848_460],
+            at: [159_609, -34_599_060, 10_709_254],
+            float_lands: FLOAT_LANDS_299_A12_N0,
+        },
+    ),
+    (
+        299,
+        crate::anim::ATTACK2,
+        7,
+        Release {
+            piece: 299,
+            node: 2,
+            pivot: [519_764, 117_489_998, 13_820_213],
+            at: [396_971, -33_652_985, 10_554_571],
+            float_lands: FLOAT_LANDS_299_A12_N2,
+        },
+    ),
+    (
+        299,
+        crate::anim::ATTACK2,
+        12,
+        Release {
+            piece: 299,
+            node: 1,
+            pivot: [1_092_826, -49_659_996, 22_763_744],
+            at: [514_329, -32_191_490, 10_714_073],
+            float_lands: FLOAT_LANDS_299_A12_N1,
         },
     ),
     // **The Cruiser, piece 279** (unit type 329; item 3519, `docs/AI.md`
@@ -2783,6 +2937,117 @@ mod tests {
             }
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The Battleship's rounds leave from its three turrets** (item 3736,
+    /// `docs/AI.md` §365.1): every round of the Battleships `1/45` and
+    /// `1/46` run1395b's `AMMO=5` prints at its first frame, beside its
+    /// figure's `GUY` pose on the block before, is reproduced at the dump's
+    /// `sx, sy` and `sz − z` by piece 299's rows at some turret step — and
+    /// its height names the turret: 106 node 0, 105 node 2, 144 node 1.
+    /// Made to fail with piece 299's rows out: each round leaves the hull's
+    /// own square at `z` 0.
+    #[test]
+    fn run1395b_s_battleship_rounds_leave_from_its_turrets() {
+        use crate::anim::{ATTACK1, ATTACK2};
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 32] = [
+            (2808, 11832, -531_824_640, 2629, 11443, 106), // 3693 1/45
+            (3144, 11640, -550_830_080, 3591, 11875, 105), // 3698 1/46
+            (2808, 11832, -531_824_640, 3251, 12075, 105), // 3699 1/45
+            (3144, 11640, -550_830_080, 3084, 11395, 144), // 3703 1/46
+            (2808, 11832, -531_824_640, 2752, 11586, 144), // 3704 1/45
+            (2328, 8904, -613_482_496, 2797, 9091, 105),   // 3803 1/46
+            (2232, 9144, -626_196_480, 2704, 9323, 105),   // 3804 1/45
+            (2328, 8904, -613_482_496, 2246, 8670, 144),   // 3808 1/46
+            (2232, 9144, -626_196_480, 2146, 8911, 144),   // 3809 1/45
+            (2040, 6840, -290_783_232, 2005, 6413, 106),   // 3887 1/46
+            (1512, 6888, -267_124_736, 1499, 6460, 106),   // 3888 1/45
+            (2040, 6840, -290_783_232, 2374, 7222, 105),   // 3893 1/46
+            (1512, 6888, -267_124_736, 1826, 7287, 105),   // 3894 1/45
+            (2040, 6840, -290_783_232, 2071, 6589, 144),   // 3898 1/46
+            (1512, 6888, -267_124_736, 1556, 6639, 144),   // 3899 1/45
+            (2040, 6840, -252_837_888, 2029, 6417, 106),   // 3928 1/46
+            (1512, 6888, -229_572_608, 1513, 6460, 106),   // 3929 1/45
+            (2040, 6840, -252_837_888, 2354, 7239, 105),   // 3934 1/46
+            (1512, 6888, -229_572_608, 1813, 7300, 105),   // 3935 1/45
+            (2040, 6840, -252_837_888, 2086, 6596, 144),   // 3939 1/46
+            (1512, 6888, -229_572_608, 1564, 6641, 144),   // 3940 1/45
+            (2040, 6840, -360_513_536, 1963, 6424, 106),   // 3969 1/46
+            (1512, 6888, -323_747_840, 1455, 6464, 106),   // 3970 1/45
+            (2040, 6840, -360_513_536, 2412, 7185, 105),   // 3975 1/46
+            (1512, 6888, -323_747_840, 1866, 7252, 105),   // 3976 1/45
+            (2040, 6840, -360_513_536, 2047, 6592, 144),   // 3980 1/46
+            (1512, 6888, -323_747_840, 1532, 6641, 144),   // 3981 1/45
+            (2040, 6840, -231_014_400, 2043, 6417, 106),   // 4009 1/46
+            (1512, 6888, -209_518_592, 1529, 6465, 106),   // 4010 1/45
+            (2040, 6840, -231_014_400, 2340, 7250, 105),   // 4015 1/46
+            (1512, 6888, -209_518_592, 1797, 7308, 105),   // 4016 1/45
+            (2040, 6840, -231_014_400, 2094, 6598, 144),   // 4020 1/46
+        ];
+        let keys = [1, 7, 12].map(|t| [(ATTACK1, t), (ATTACK2, t)]).concat();
+        for (x, y, facing, sx, sy, dz) in rows {
+            let f = Angle(facing);
+            let fits: Vec<(i8, u32)> = keys
+                .iter()
+                .copied()
+                .filter(|&(a, t)| {
+                    let Some(r) = release(299, a, t) else {
+                        return false;
+                    };
+                    release_offset(&r, f, 0).2 == dz
+                        && (-128..128).any(|i| {
+                            let (dx, dy, _) = release_offset(&r, f, i << 24);
+                            (x + dx, y + dy) == (sx, sy)
+                        })
+                })
+                .collect();
+            assert!(
+                !fits.is_empty(),
+                "({x}, {y}) at {facing} to ({sx}, {sy}, +{dz})"
+            );
+            let t = fits[0].1;
+            assert!(fits.iter().all(|k| k.1 == t), "one turret: {fits:?}");
+        }
+    }
+
+    /// **The original's pivot branch on every cell, for piece 299** (item
+    /// 3736): `tools/recomp/get_position.py … pivot 299 <node> <anim>
+    /// <time> 3` on run1165's packet, one sweep a row (the two anims'
+    /// entries differ in their bits). `$RON_RELEASE_TABLE_299` is the
+    /// directory holding `pivot-299-n<node>-a<anim>-t<time>.txt`, outside
+    /// git (`~/ron-data/lab-experiments/2026-10-27-item-3736/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_299() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_299") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_299 (item 3736's oracle, run1165)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for slot in [crate::anim::ATTACK1, crate::anim::ATTACK2] {
+            for (node, time) in [(0, 1), (2, 7), (1, 12)] {
+                let path = format!("{dir}/pivot-299-n{node}-a{slot}-t{time}.txt");
+                let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_299");
+                let r = release(299, slot, time).expect("the row");
+                assert_eq!(r.node, node);
+                for line in table.lines() {
+                    let f: Vec<i32> = line
+                        .split_whitespace()
+                        .take(6)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect();
+                    if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                        off.push(format!(
+                            "a{slot} n{node} ({}, {}, {}, {}) z {}",
+                            f[0], f[2], f[3], f[4], f[5]
+                        ));
+                    }
+                    rows += 1;
+                }
+            }
+        }
+        assert!(rows >= 6 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 

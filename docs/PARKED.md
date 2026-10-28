@@ -12146,13 +12146,18 @@ words and edits nothing here; a refill lands when two remain.
   in ours against 820 in theirs. That is 3711b's shape, a piece with no `sim::launch::BAYS` row. The draws never
   feel it, and the closing block agrees. It joins 3704b's list of pieces to read off the art files.
 
-## Parked by the next landing, slot VK — reserved
+## Parked by item 3736, 2026-10-27 — the Battleship's turrets, the Spanish Modern word 3770 → 4021
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3736a. The Battleship `1/71`'s round of 4013 leaves the hull's pose after its move step in ours** (`docs/AI.md`
+  §365.1; run1395b and run1415, block 4014). The round agrees in `sz` and `total_time`. Its `sx, sy` are (2248, 7952)
+  in ours and (2287, 7971) in theirs, and the difference is exactly the hull's step on 4013, (2424, 8376) →
+  (2385, 8357). Ours looses from the moved hull, theirs from the pose before the step. `1/71` is under an
+  `ATTACKTOORDER`, so it fires on the move. It spends no draw and moves no word. The order of the move step and the
+  release on a firing-on-the-move ship is unread.
+- **3736b. "`graph_index` 3 and 4 are turrets" was a misreading** (`docs/AI.md` §365, struck there). `graph_index`
+  is the monotone count of every ammo the game has made (`docs/COMBAT.md` §24.4). `1/45`'s and `1/46`'s rounds on
+  run1395b read 3, 4, 5, … in launch order. The turret is named by the round's height: 106 is node 0 (pivot 4), 105
+  node 2 (pivot 6), 144 node 1 (pivot 5). This is wording, not a score.
 
 ## Parked by the next landing, slot VL — reserved
 
