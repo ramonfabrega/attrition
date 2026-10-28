@@ -50,8 +50,15 @@ pub(crate) const AMERICAN_INFORMATION: Pair = Pair {
     // — on 4291 ours 112 draws against theirs' 113, index 109, ours'
     // `Farms::inc_time+0x1ae` against theirs' `Object::take_damage+0xe1`
     // (`docs/AI.md` §372.3).
-    count: 4291,
-    sequence: 4291,
+    // Item 3760, the Jet Fighter's guns (piece 245), the Strategic Bomber's
+    // bays (255), the TOW's launch rows (91) and the Abrams' four tracers,
+    // a node past the restriction count taking its own entry alone: 4291 →
+    // **4320, whole** — the Jet Fighter `1/57`'s round of 4230 had left its
+    // own square, (4315, 30372, 2271) against (4363, 30154, 2235), and its
+    // splash on 4242 took building `0/2006`'s `damage_frac` to 8 against
+    // 11 (`docs/AI.md` §372.4).
+    count: 4320,
+    sequence: 4320,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -429,14 +436,21 @@ fn american_information_pair_run1437b_s_word_frame_is_widened_whole() {
     // apart, `1/14`'s `g.angle[0]`) and who=0's building `0/2006`'s
     // `damage`, 2 against 3; `0/2002`, `0/2005` part on 4292..4294, and
     // who=1's `1/112` takes another move on 4295 (`docs/AI.md` §372.3).
-    pin_eq!(w.firsts.len(), 154, "run1437b baseline");
-    pin_eq!(w.rounds_read, (493, 504), "the rounds read");
+    // Item 3760, the Jet Fighter's guns, the Strategic Bomber's bays, the
+    // TOW's rows and the Abrams' tracers: 154 → **68**, the standing
+    // families alone (`form`, `mirror`, who=1's groups, pools and buckets,
+    // `1/14`'s `g.angle[0]`); no building's `damage` parts (§372.4).
+    pin_eq!(w.firsts.len(), 68, "run1437b baseline");
+    pin_eq!(w.rounds_read, (493, 493), "the rounds read");
     // Every round, both directions: 291 parting. On 4285 the Strategic
     // Bombers' (`1/45`, TI 305; `1/57`, `1/88`) already part on
     // `accuracy`, `sx, sy` and `ex, ey`; on the word's frame 4291 the TOW
     // `1/17`'s (TI 141) `ammo[6]` leaves its own square, (5832, 31320,
     // 384) against (5742, 31270, 531), and `1/18`'s on 4302 the same.
-    pin_eq!(w.rounds.len(), 291, "the rounds that part");
+    // Item 3760: (493, 504) → (493, 493) read, 291 → **30** parting — the
+    // strafers' `angle` and the Bombers' `accuracy` (`fight.rs`'s bomb-arm
+    // SEAM), every launch point alike.
+    pin_eq!(w.rounds.len(), 30, "the rounds that part");
 }
 
 /// run1439: the gap 3903..4285 between run1434b's window and run1437b's,
@@ -472,7 +486,7 @@ fn american_information_pair_run1439_s_gap_is_widened_whole() {
     let Some(w) = american_information_gap_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 395, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -492,9 +506,18 @@ fn american_information_pair_run1439_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1439 baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    // Item 3760: **76** keys, the standing families (`form`, `mirror`,
+    // who=1's groups 66..71 and pools, its food bucket from 4120, 100
+    // short in ours) and nothing else. Before the rows, building
+    // `0/2006`'s `damage_frac` parted on 4242, 8 against 11, under the Jet
+    // Fighter `1/57`'s splash (`docs/AI.md` §372.4).
+    pin_eq!(w.firsts.len(), 76, "run1439 baseline");
+    pin_eq!(w.rounds_read, (420, 420), "the rounds read");
+    // Every round, both directions: **21** parting, on `angle` (the
+    // strafers' rounds: theirs carries the figure's own angle), `accuracy`
+    // (the Bombers') and `1/28`'s and `1/33`'s `whom`, `ox` on 3924 and
+    // 4123 (ours −1). Before the rows: 424 read in theirs, 106 parting.
+    pin_eq!(w.rounds.len(), 21, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3725): run1409's closing block 4321,
@@ -547,8 +570,11 @@ fn american_information_pair_run1409_s_closing_state() {
     pin_eq!(e.compared, 136, "units compared");
     // Item 3758, piece 204's pivot rows: [59, 0, 0, 7, 3, 1, 0] → [4, 0,
     // 0, 0, 3, 0, 1]; four of who=1's units off (`1/88`, `1/112`, `1/124`,
-    // `1/127`) and three buildings' `damage`.
-    pin_eq!(e.counts(), [4, 0, 0, 0, 3, 0, 1], "the closing counts");
+    // `1/127`) and three buildings' `damage`. Item 3760, the pair whole:
+    // [4, 0, 0, 0, 3, 0, 1] → [0, 0, 0, 0, 0, 0, 1] — every unit and
+    // building agrees; the one city row is `1/2055`'s
+    // `assimilation_timer`, 4320 against 4317 (3742c's family).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
 

@@ -2066,26 +2066,12 @@ impl Sim {
                     // anim, starttime) vector to the guy's position first,
                     // and the aim is then taken from *that* point —
                     // `find_angle(T − launch)`, which is what run108's
-                    // `ex, ey` reproduce.
-                    //
-                    // **A node past the restriction count is the release
-                    // node alone** (item 3760, `docs/AI.md` §372.4):
-                    // `8e4c9d` hands `get_position` the `pivot_angles` and
-                    // the count on every release, and for a node no
-                    // restriction governs the original adds neither the
-                    // pivot node nor the turret — run1437's sweep of the
-                    // Abrams' tracer (node 1, one restriction) reads one
-                    // point at every turret step, 130 over the figure,
-                    // which is the tracer's own entry without the pivot's.
+                    // `ex, ey` reproduce. A node past the piece's restriction
+                    // count is its own entry alone ([`crate::pivot::release_point`]).
                     let (from, dz) = match pivot {
                         Some(r) => {
-                            let k = (r.node & 3) as usize;
-                            let (r, turret) = if k < pivots {
-                                (r, guy.turret.angles[k])
-                            } else {
-                                (crate::pivot::Release { pivot: [0; 3], ..r }, 0)
-                            };
-                            let (x, y, z) = crate::pivot::release_offset(&r, facing, turret);
+                            let (x, y, z) =
+                                crate::pivot::release_point(&r, facing, &guy.turret.angles, pivots);
                             let at = self.units[u].pos;
                             (Pos::new(at.x + x, at.y + y), z)
                         }

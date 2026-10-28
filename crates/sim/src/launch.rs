@@ -4373,6 +4373,75 @@ pub fn launch_point(
 mod tests {
     use super::*;
 
+    /// **The American Information lobby's aircraft and TOWs leave from their
+    /// rows** (item 3760, `docs/AI.md` §372.4): every round of who=1's Jet
+    /// Fighters (piece 245), Strategic Bomber (255) and TOW (91) that
+    /// run1439 prints from its first block over 4220..4292, beside its
+    /// figure's `GUY` pose on that block — `(piece, x, y, angle, sx, sy,
+    /// sz − z)` — is reproduced by one of the piece's rows, and each row of
+    /// the two aircraft reproduces at least one. Made to fail with the
+    /// rows removed: every one leaves from the figure's own point.
+    #[test]
+    fn run1439_s_aircraft_and_tow_rounds_leave_from_their_rows() {
+        type Row = (i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Row] = &[
+            (245, 4703, 30220, -1_327_890_432, 4889, 30343, -36),
+            (245, 4315, 30372, -1_327_300_608, 4363, 30154, -36),
+            (245, 4712, 30217, -1_327_759_360, 4898, 30340, -36),
+            (245, 4287, 30382, -1_327_693_824, 4335, 30164, -36),
+            (245, 1538, 30399, 891_563_984, 1368, 30254, -36),
+            (245, 1971, 30487, 1_337_763_188, 1787, 30613, -36),
+            (245, 1591, 30380, 891_563_984, 1421, 30235, -36),
+            (255, 3717, 30596, -1_335_164_928, 3805, 30661, 0),
+            (255, 3717, 30596, -1_335_164_928, 3732, 30489, 0),
+            (255, 3642, 30626, -1_335_164_928, 3730, 30691, 0),
+            (255, 3567, 30656, -1_335_230_464, 3582, 30549, 0),
+            (255, 3492, 30686, -1_335_361_536, 3580, 30751, 0),
+            (255, 3417, 30716, -1_335_492_608, 3432, 30609, 0),
+            (255, 3267, 30777, -1_332_805_632, 3355, 30842, 0),
+            (255, 3192, 30807, -1_331_232_768, 3207, 30700, 0),
+            (255, 3117, 30836, -1_320_157_184, 3203, 30903, 0),
+            (255, 3042, 30865, -1_320_157_184, 3059, 30758, 0),
+            (255, 2967, 30894, -1_320_157_184, 3053, 30961, 0),
+            (255, 2817, 30952, -1_320_157_184, 2834, 30845, 0),
+            (91, 5832, 31320, -950_730_752, 5742, 31270, 147),
+        ];
+        let keys = |piece: i32| -> Vec<(i8, u32, i8)> {
+            match piece {
+                91 => vec![
+                    (crate::anim::ATTACK1, 17, 0),
+                    (crate::anim::ATTACK2, 7, 0),
+                    (crate::anim::ATTACK3, 13, 0),
+                ],
+                _ => vec![(crate::anim::ATTACK2, 1, 0), (crate::anim::ATTACK2, 1, 1)],
+            }
+        };
+        let mut hit = std::collections::BTreeSet::new();
+        for &(piece, x, y, angle, sx, sy, dz) in M {
+            let at = Pos::new(x, y);
+            let fits: Vec<_> = keys(piece)
+                .into_iter()
+                .filter(|&(a, t, n)| {
+                    launch_point(at, Angle(angle), piece, a, t, n) == Pos::new(sx, sy)
+                        && release_dz(piece, a, t, n) == Some(dz)
+                })
+                .collect();
+            assert!(
+                !fits.is_empty(),
+                "piece {piece} at ({x}, {y}): no row lands ({sx}, {sy})"
+            );
+            hit.extend(fits.into_iter().map(|k| (piece, k)));
+        }
+        for piece in [245, 255] {
+            for n in [0, 1] {
+                assert!(
+                    hit.contains(&(piece, (crate::anim::ATTACK2, 1, n))),
+                    "piece {piece} node {n} reproduces none"
+                );
+            }
+        }
+    }
+
     /// **The Royal Atl-Atls throw from piece 36's bays** (item 3613): all
     /// ten rounds run1266 and run1256b print from their first frame, each
     /// beside its figure's `GUY` pose on the block before, reproduced at the
