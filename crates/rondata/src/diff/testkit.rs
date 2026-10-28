@@ -10969,16 +10969,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4077),
     ),
     // **The Egyptians at a held Information age** (item 3720): Great Lakes
-    // at difficulty 5 — first try 3244 of 3797, the T80DES `1/42`'s
-    // `Unit::fight` draw in ours alone; widened on run1399b over
-    // 3195..3494, the rounds compared.
-    (
-        "EGYPTIAN_INFORMATION_PAIR_WORD",
-        crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION_PAIR_WORD,
-        Some("egyptian_information_pair_run1399b_s_word_frame_is_widened_whole"),
-        3720,
-        Some(crate::diff::egyptian_information_pair::WIDENING_EGYPTIAN_INFORMATION_FRAME_3244),
-    ),
+    // at difficulty 5 — first try 3244 of 3797, widened on run1399b over
+    // 3195..3494. Item 3740 moved the word to 3519 (piece 54's bays), past
+    // run1399b's last block, so its row is out until a window capture over
+    // the new word pays it (item 3385's shape; `docs/AI.md` §367.1).
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
