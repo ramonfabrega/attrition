@@ -11014,6 +11014,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3721,
         Some(crate::diff::russian_information_pair::WIDENING_RUSSIAN_INFORMATION_FRAME_6153),
     ),
+    // **The Japanese at a held Modern age** (item 3722): Great Lakes at
+    // Hard — first try 3160 of 3866, a farm's chance draw ours spends and
+    // theirs does not, downstream of who=1's Infantry (piece 52, no row)
+    // rounds landing a frame late on the Citizen `0/4`; widened on
+    // run1403b over 3095..3411, the rounds compared.
+    (
+        "JAPANESE_MODERN_PAIR_WORD",
+        crate::diff::japanese_modern_pair::JAPANESE_MODERN_PAIR_WORD,
+        Some("japanese_modern_pair_run1403b_s_word_frame_is_widened_whole"),
+        3722,
+        Some(crate::diff::japanese_modern_pair::WIDENING_JAPANESE_MODERN_FRAME_3160),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13460,6 +13472,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_706,
         endpoint: Some("russian_information_pair_run1401_s_closing_state"),
         window: Some("russian_information_frame_6153_window"),
+    },
+    // The Japanese at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Hard (item 3722): first try
+    // 3160 of 3866, a farm's `Farms::inc_time` chance draw in ours alone;
+    // widened on run1403b over 3095..3411.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesJapaneseModern",
+        named: "Great Lakes (Japanese, Modern)",
+        word: crate::diff::japanese_modern_pair::JAPANESE_MODERN_PAIR_WORD,
+        length: 3_866,
+        endpoint: Some("japanese_modern_pair_run1403_s_closing_state"),
+        window: Some("japanese_modern_frame_3160_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -32454,6 +32454,69 @@ SHA-256 `bb494243747f0e7418aee3576f8e1a0760296c54fd2d8a7e2a0708f8c481c8fa`.
 rounds 228 against 228 with 13 rows parting (the Bomber `1/36`'s, 3742b, and two Volksgrenadiers' launch points,
 3742e). It is the `WIDENINGS` row for the closed word 5304, the `AI_WORDS` window and the coverage driver's.
 
+## run1402 — the Japanese at a held Modern age, Great Lakes, at difficulty 4: the `DUMP_ALL` start (2026-10-28, item 3722, `att-3722`)
+
+`docs/AI.md` §369. run1396's line with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1402 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 2 (`RON_CAPTURE_LANE=2`, the commander's word after the lane-1 packet faults). Launched 04:50:29,
+  exited 04:50:56 (26.7 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA` blocks on frame 1, seed 12345,
+  players tribe 4 and tribe 15, map style 14, five files restored. `GAME INFO` reads back `DIFFICULTY 4` and
+  `STARTING_TECHNOLOGY 6` (`Pair::assert_lobby`). Filed with `filerun.py run1402 greatlakes-japanese-modern-start`.
+  `df -g ~` read 139 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1402-greatlakes-japanese-modern-start.txt`, 151,134,872 bytes,
+SHA-256 `3c7ec16df1bef509b4415a0f4a806ca766e969fd42513806704080763bc4dfb1`.
+
+Archive `rontrace-run1402.log`, 8,869,376 bytes,
+SHA-256 `c50a495276bf89c088693ff8a0373fba80f1dda5f5bb93584ae13fdf62c3bd51`.
+
+**What it holds**: the start of `japanese_modern_pair::JAPANESE_MODERN`, and the walk's initial state.
+
+## run1403 — the Japanese at a held Modern age, Great Lakes, at difficulty 4: the draw stream to the game's end (2026-10-28, item 3722, `att-3722`)
+
+`docs/AI.md` §369. run1397's line with `--ai-tribe 15` and run1402's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 15 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, after run1402. Launched 04:51:30, exited 04:51:55 (25.3 s launch to exit). `success`. **The game
+  ended itself on 3866** (closing block 3867, `ended_early`). `GAME INFO` reads back as run1402's. `rngcmp.py`
+  against run1402: 37 frames identical. Filed with `filerun.py run1403 greatlakes-japanese-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1403-greatlakes-japanese-modern-trace.txt`, 22,211,436 bytes,
+SHA-256 `87ba9428a73de3eb600b7912e6eaeae68c99a64e446e9af71264bd8ae037b83a`.
+
+Archive `rontrace-run1403.log`, 74,453,568 bytes,
+SHA-256 `820ab0d0629dbca729b16ac96ab54ec27e474875e764c065c1ff0d418ce441f2`.
+
+**What it holds**: the long of `japanese_modern_pair::JAPANESE_MODERN`, first try 3160 of 3866, and the closing
+state's floor (`japanese_modern_pair_run1403_s_closing_state`).
+
+## run1403b — the Japanese at a held Modern age, Great Lakes, at difficulty 4: the word 3160's window, blocks 3095..3411 (2026-10-28, item 3722, `att-3722`)
+
+`docs/AI.md` §369. **What the disk could not answer**: every record and every round on the word's blocks. run1403's
+stride prints units every hundred frames (3101, then 3201), no `AMMO` and no leader, building or city record past
+the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1403b --map 14 --end-frame 3411 --timeout
+3600 --log-window 3095 3411 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover
+cover=0` and run1402's lobby: six blocks before the stride's last block 3101, 250 past the word's block 3161.
+- Pool lane 2. Launched 04:55:12, exited 04:56:05 (52.7 s launch to exit). `success`: 3412 frames. `rngcmp.py`
+  against run1403: 3412 of 3412 identical. Filed with `filerun.py run1403b
+  greatlakes-japanese-modern-window-3095-3411`. `df -g ~` read 137 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1403b-greatlakes-japanese-modern-window-3095-3411.txt`, 640,906,792 bytes,
+SHA-256 `6f772871e0f38d732c5112aae37611327e76be79a43d5b288fff88c932c05eb3`.
+
+Archive `rontrace-run1403b.log`, 56,855,136 bytes,
+SHA-256 `b91b1d7ef5c8d4fafa8aa961b0e46c257f907a3cb9b01d1ec5ca82644a74aca3`.
+
+**What it holds**: `japanese_modern_pair_run1403b_s_word_frame_is_widened_whole` walks it from run1402: 316 blocks,
+**850** keys, rounds 269 against 320 with 247 rows parting, the first group 65's Infantry rounds (piece 52) from
+3143. It is the `WIDENINGS` row for the word 3160, the `AI_WORDS` window and the coverage driver's. It prints no
+farm cells (no `farms_of` record at this detail).
 ## run1400 — the Russians at a held Information age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-28, item 3721, `att-3721`)
 
 `docs/AI.md` §368. run1394's line with the nation and the age moved, through `viadriver.sh

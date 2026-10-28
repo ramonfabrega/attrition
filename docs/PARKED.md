@@ -12093,13 +12093,12 @@ Neither row below names a score on its own.
   `g.angle[0]` first on the Scholars `1/192`, on 5501). They are 3742a's aircraft `mirror` family, widened to the Scholars and land units of this lobby.
   No draw on the word reads them.
 
-## Parked by the next landing, slot VC — reserved
+## Parked by item 3722, 2026-10-28 — the Japanese Modern pair's stride
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3722a. The Infantry `1/18`'s lone `dest_angle` on 1801** (`japanese_modern_pair`'s stride, run1403, 101..3001):
+  ours −1073741824 against theirs −1355677696. No other field parts on the unit, and the draws hold to 3160. It
+  is the same one-field family as `german_modern_pair`'s `1/49` on 4103 and `1/69` on 4320 (§366.1, §366.2). It
+  names no score; read it if a word ever parts on an idle soldier's facing.
 
 ## Parked by the next landing, slot VD — reserved
 
