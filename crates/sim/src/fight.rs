@@ -4056,6 +4056,9 @@ impl Sim {
         } else {
             false
         };
+        if !yielded && self.counter_craft(responder, attacker, front) {
+            return;
+        }
         // **The flee arm** (`docs/COMBAT.md` §34), and it is reached only
         // with `local_c == 0` — the front order is not one of the seven
         // move kinds (`6002a0`'s `is_move(order_type())`).
@@ -4371,6 +4374,94 @@ impl Sim {
     /// at `600130`); the `unit_flags & 4` packer arm; and the hero and
     /// supply radii, which need `is_hero`/`is_supply` and the attacker's
     /// vslot `+0x130`.
+    /// **The counter-craft arms** — `Unit::target_opportunity@005fffc0`,
+    /// `60051b`..`60061e`, between the action block and the flee arm
+    /// (`docs/AI.md` §366.2, item 3739). Returns whether the hit was
+    /// answered here.
+    ///
+    /// ```text
+    ///   action a cast (order type 0xe):                       return
+    ///       spell 0x280, and the attacker's who AND o both differ
+    ///       from the cast's target's:   spell_time /= 2 (signed short)
+    ///   the front order a move (-0x8(%ebp), 600190):          go on
+    ///   no action:
+    ///     is(SPY):  a land unit attacker, Bribe's can_pay_cost,
+    ///               is_valid_target, mana 0 or <= mana_left     -> 0x275
+    ///     is(COMMANDO): the same with Sabotage                  -> 0x280
+    ///     add_cast_order(who, o, my x, my y, spell, QUEUE_NEW, 1); return
+    /// ```
+    ///
+    /// The halving needs both to differ (`600547`, `600550`: either equal
+    /// jumps to the return), not either. A craft whose test fails falls
+    /// through to the next, then to the flee arm.
+    ///
+    /// SEAM: `can_pay_cost` (vslot `+0x84` of `types[spell]`) is taken as
+    /// yes: both crafts' shipped `COST` is empty.
+    fn counter_craft(
+        &mut self,
+        u: usize,
+        attacker: Obj,
+        front: Option<crate::orders::Order>,
+    ) -> bool {
+        use crate::orders::Body;
+        let action = self.action_of(u).map(|k| self.units[u].orders[k]);
+        if let Some(Body::Cast(c)) = action.map(|o| o.body) {
+            if c.spell == 0x280 {
+                let differs = match c.target {
+                    Some(t) => {
+                        self.owner_of(t) != self.owner_of(attacker)
+                            && self.obj_number(t) != self.obj_number(attacker)
+                    }
+                    None => true,
+                };
+                if differs {
+                    self.units[u].spell_time /= 2;
+                }
+            }
+            return true;
+        }
+        if action.is_some()
+            || front.is_some_and(|o| crate::orders::index::is_move_family(o.index()))
+        {
+            return false;
+        }
+        let Obj::Unit(v) = attacker else {
+            return false;
+        };
+        if self.unit_domain_of(v) != crate::attrition::Domain::Land {
+            return false;
+        }
+        let who = self.units[u].owner;
+        for (line, s) in [
+            (crate::scout::SPY, crate::orders::spell::BRIBE),
+            (COMMANDO, 0x280),
+        ] {
+            if !self.unit_line_is(u, line) {
+                continue;
+            }
+            let Some(d) = self.spell(s) else {
+                continue;
+            };
+            if !self.spell_valid_target(s, who, attacker)
+                || (d.mana != 0 && d.mana > self.mana_left(u))
+            {
+                continue;
+            }
+            let at = self.units[u].pos;
+            self.add_cast_order_on(u, s, Some(attacker), at, crate::orders::QueuePos::New, true);
+            return true;
+        }
+        false
+    }
+
+    /// The object's own number, `o`: a unit's index, a building's.
+    fn obj_number(&self, o: Obj) -> i16 {
+        match o {
+            Obj::Unit(v) => self.units[v].index,
+            Obj::Building(b) => self.buildings[b].index,
+        }
+    }
+
     fn flee_from(&mut self, u: usize, attacker: Obj) -> bool {
         let me = Obj::Unit(u);
         let p = self.profile(me);
@@ -6135,6 +6226,10 @@ impl Sim {
         })
     }
 }
+
+/// `TypeIndex` `0x49`, the Commando line (`enums/TypeIndex.txt`): the
+/// Special Forces rows `is` it.
+const COMMANDO: crate::tech::TypeId = 0x49;
 
 /// `Object::take_damage` on a site: `lost × 50` off the progress, `lost`
 /// the whole points the blow took after its sixteenths carried.

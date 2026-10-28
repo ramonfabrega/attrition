@@ -24,7 +24,7 @@ use crate::world::{Cell, Pos, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Sim};
 
 /// `SPY` — the `TypeIndex` §2's gate and §3's branch test the lineage of.
-const SPY: crate::tech::TypeId = 0x3a;
+pub(crate) const SPY: crate::tech::TypeId = 0x3a;
 
 /// `TypeIndex::PEASANTS` and `PEASANTSKOREAN` — `UnitTypeData +0x4`, the two
 /// citizen ids `think_scout` sends down the region scan (§3).
