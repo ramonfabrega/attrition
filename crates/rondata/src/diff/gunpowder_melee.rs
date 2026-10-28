@@ -168,8 +168,18 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // theirs' walk spends it two farms later; the cells parted from 37
     // and `0/2003`'s farmer re-picked on 182 alone (§149.1). Past the
     // script's lines on 600–660, all 28 staged alike.
-    count: 684,
-    sequence: 684,
+    //
+    // Item 3759: **684 → 759** (sequence; count 760). The human's Apedemak
+    // Archers (TI 176, piece 126) loose from the bow hand, not the
+    // figure's square — `launch::BAYS`' three piece-126 rows, off run1438's
+    // packet — so `0/14`'s round of 674 leaves (16634, 15605, 640), flies
+    // 10 frames against 11 and strikes the British Bombard `1/23` on 683,
+    // whose fight takes `Unit::fight+0x9b0` on 684 as theirs does
+    // (§149.2). On 759 who=2's Bombard `2/23` re-searches alike and then
+    // takes `Guy::set_anim+0xf2f < Unit::set_anim+0xb6` twice where theirs
+    // takes `< Guy::move+0x166` twice: index 1, 17 draws a side.
+    count: 760,
+    sequence: 759,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -199,11 +209,12 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733, moved by 3757): run1413's stride
-/// blocks 601..901 — the word's frame 684 writes no block (the stride
-/// prints every hundred), so the window is the stride block before it
-/// through 250 frames past it. 3733's was 101..432, on 182.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (601, 934);
+/// **The word's window** (item 3733, moved by 3757 and 3759): run1413's
+/// stride blocks 701..1001 — the word's frame 759 writes no block (the
+/// stride prints every hundred), so the window is the stride block before
+/// it through 250 frames past it. 3733's was 101..432, on 182; 3757's
+/// 601..934, on 684.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (701, 1009);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -272,7 +283,16 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // `path:length` 3 against 4 and `spell_time` 15 against 16; `2/17`
     // dies on 696 against 695, `1/14` is dead in theirs alone, and
     // `0/4`'s next re-pick reads the shifted stream. 801 and 901 fan out.
-    pin_eq!(w.firsts.len(), 818, "run1413's word window");
-    pin_eq!(w.rounds_read, (23, 20), "the rounds read");
-    pin_eq!(w.rounds.len(), 41, "the rounds that part");
+    //
+    // Item 3759, on the word moved to 759 (window 701..1009): **758** keys,
+    // rounds read (29, 30), 31 parting (9 on 801, 1 on 901, 21 on 1001).
+    // Block 701 carries the standing families alone: piece 126's bays put
+    // `0/14`'s round of 674 down on 683, and `1/23`, `2/17` and `1/14`
+    // agree. **On 801 who=2's Bombard `2/23`, the word's unit, walks
+    // another road**: its move order's goal (1320, 28152) in ours against
+    // (5736, 24792), `path:length` 24 against 13, `hits:damage` 97 against
+    // 87 — and 801 fans out over 26 units of the three seats.
+    pin_eq!(w.firsts.len(), 758, "run1413's word window");
+    pin_eq!(w.rounds_read, (29, 30), "the rounds read");
+    pin_eq!(w.rounds.len(), 31, "the rounds that part");
 }

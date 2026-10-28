@@ -11042,7 +11042,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The first melee** (item 3733): Great Sahara, three seats, a held
     // Gunpowder age — first try 182 of 2600, widened on run1413's stride
-    // over 101..432, the rounds compared.
+    // over 101..432, the rounds compared. Item 3757: 684, over 601..934;
+    // item 3759: 759 on piece 126's bays, over 701..1009.
     (
         "GUNPOWDER_MELEE_WORD",
         crate::diff::gunpowder_melee::GUNPOWDER_MELEE_WORD,
@@ -13646,7 +13647,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // granted 100,000 a good and twelve of the age's types a side from
     // 610 (`tools/gamelog/golden/melee-gunpowder.cmd`). First try 182 of
     // 2600, before the script's first line; run1413's word window over
-    // 101..432, the rounds compared.
+    // 101..432, the rounds compared. Moved to 684 (3757) and to 759 (3759,
+    // the Apedemak Archers' launch bays), its window 701..1009.
     AiWord {
         line: "Melee",
         map: "GreatSaharaGunpowderMelee",
