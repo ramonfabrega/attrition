@@ -861,10 +861,8 @@ impl Sim {
                 .filter(|&u| self.units[u].owner == who)
                 .collect();
             order.sort_by_key(|&u| self.units[u].index);
-            let dbg = std::env::var("RON_DEBUG_PICK").ok().is_some_and(|v| {
-                let (a, b) = v.split_once('-').unwrap_or((&v, &v));
-                (a.parse::<i64>().unwrap_or(0)..=b.parse::<i64>().unwrap_or(0)).contains(&(frame as i64))
-            });
+            let dbg = std::env::var("RON_DEBUG_PICK").ok().and_then(|v| v.parse::<u32>().ok())
+                == Some(frame as u32);
             if dbg {
                 eprintln!("PICK f{frame} who={who:?} rec={rec} corner={corner:?} radius={radius} areg={areg:?}");
             }
