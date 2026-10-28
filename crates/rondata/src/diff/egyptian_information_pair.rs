@@ -39,8 +39,13 @@ pub(crate) const EGYPTIAN_INFORMATION: Pair = Pair {
     // (`sim::launch::BAYS`): `1/34`'s round of 3204 leaves the muzzle and
     // lands on 3205 on both sides; on 3519 ours 13 draws against theirs'
     // 14, index 13 theirs' `Unit::close+0xcb6` (`docs/AI.md` §367.1).
-    count: 3519,
-    sequence: 3519,
+    // Item 3743: 3519 → **3797, whole**: piece 203's bays
+    // (`sim::launch::BAYS`) put the Main Battle Tank `1/55`'s round of 3514
+    // at (5166, 30496, 553), so the Citizen `0/10` dies on 3519 on both
+    // sides, and piece 207's pivot rows (`sim::pivot::RELEASES`) put the
+    // T80DES rounds at the muzzle (`docs/AI.md` §367.2).
+    count: 3797,
+    sequence: 3797,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -266,12 +271,12 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // (5640, 31800, z 364), and flies 3. The draws hold to 3244, where ours'
     // T80DES `1/42` (TI 257) spends a `Unit::fight+0x824` draw theirs does
     // not.
-    pin_eq!(w.firsts.len(), 107, "run1399b baseline");
+    pin_eq!(w.firsts.len(), 65, "run1399b baseline");
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).
-    pin_eq!(w.rounds_read, (648, 666), "the rounds read");
-    pin_eq!(w.rounds.len(), 144, "the rounds that part");
+    pin_eq!(w.rounds_read, (648, 654), "the rounds read");
+    pin_eq!(w.rounds.len(), 95, "the rounds that part");
 }
 
 /// run1421: the word 3519's window, blocks 3495..3770 at run1399b's
@@ -342,13 +347,13 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
     // square, in ours against (5166, 30496, z 553) in theirs and flies 7
     // frames against 6, so theirs kills on 3519 and ours on 3520 (the
     // leader rows agree again on 3521). `docs/AI.md` §367.2.
-    pin_eq!(w.firsts.len(), 436, "run1421 baseline");
+    pin_eq!(w.firsts.len(), 62, "run1421 baseline");
     // Every round, both directions: 655 in ours against 697, the first
     // parting the T80DES `1/29`'s `ammo[6]` on 3501 (`sx, sy, sz` 4920,
     // 30888, 560 against 4641, 31056, 691; piece 207), then `1/55`'s
     // `ammo[1]` on 3515.
-    pin_eq!(w.rounds_read, (655, 697), "the rounds read");
-    pin_eq!(w.rounds.len(), 367, "the rounds that part");
+    pin_eq!(w.rounds_read, (655, 662), "the rounds read");
+    pin_eq!(w.rounds.len(), 74, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,
@@ -398,7 +403,7 @@ fn egyptian_information_pair_run1399_s_closing_state() {
     // compared, counts [70, 0, 0, 7, 3, 1, 0], `1/1` and `1/28` torn, none
     // extra or unlinked. A floor, not a score.
     pin_eq!(e.compared, 137, "units compared");
-    pin_eq!(e.counts(), [12, 0, 0, 7, 0, 1, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
         Vec::<(i64, i64)>::new(),
