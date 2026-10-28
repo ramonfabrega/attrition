@@ -1684,6 +1684,30 @@ mod tests {
         );
     }
 
+    /// `get_cost:268`–`282`: the American aircraft arm's three tests are
+    /// each their own truncating step, so two that enter stack (item 3755).
+    #[test]
+    fn an_american_aircraft_arm_stacks_its_steps() {
+        let plane = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Wealth, 9)
+        };
+        let price = |american_aircraft: [i32; 3]| {
+            let m = Modifiers {
+                american_aircraft,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &plane, Resource::Wealth, owned(0), &m)
+        };
+        let plain = price([0; 3]);
+        let k = T.americans_aircraft;
+        assert_eq!(k, 20);
+        let once = (100 - k) * plain / 100;
+        assert_eq!(price([k, 0, 0]), once);
+        assert_eq!(price([0, 0, k]), once);
+        assert_eq!(price([k, 0, k]), (100 - k) * once / 100);
+    }
+
     /// `get_cost:283`: a British AA Gun loses `BRITISH_AA_COST` percent in
     /// its own truncating step, ahead of the Russian spy's and the
     /// Spy/General arm's (item 3678).
