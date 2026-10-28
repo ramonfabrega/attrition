@@ -11040,6 +11040,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3726,
         Some(crate::diff::maya_information_pair::WIDENING_MAYA_INFORMATION_CLOSING),
     ),
+    // **The first melee** (item 3733): Great Sahara, three seats, a held
+    // Gunpowder age — first try 182 of 2600, widened on run1413's stride
+    // over 101..432, the rounds compared.
+    (
+        "GUNPOWDER_MELEE_WORD",
+        crate::diff::gunpowder_melee::GUNPOWDER_MELEE_WORD,
+        Some("gunpowder_melee_run1413_s_word_window_is_widened_whole"),
+        3733,
+        Some(crate::diff::gunpowder_melee::WIDENING_GUNPOWDER_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -13626,6 +13636,21 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_330,
         endpoint: Some("maya_information_pair_run1411_s_closing_state"),
         window: Some("maya_information_closing_window"),
+    },
+    // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
+    // Sahara with three seats at a held Gunpowder age, the two computers
+    // granted 100,000 a good and twelve of the age's types a side from
+    // 610 (`tools/gamelog/golden/melee-gunpowder.cmd`). First try 182 of
+    // 2600, before the script's first line; run1413's word window over
+    // 101..432, the rounds compared.
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaGunpowderMelee",
+        named: "Great Sahara (the melee, Gunpowder)",
+        word: crate::diff::gunpowder_melee::GUNPOWDER_MELEE_WORD,
+        length: 2_600,
+        endpoint: None,
+        window: Some("gunpowder_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -246,6 +246,13 @@ mod tests {
         the_handoff_carries("Peace pair");
     }
 
+    /// **The melee's line is its pinned word** (item 3733, `docs/GOLDEN.md`
+    /// §149): the first melee, a staged Gunpowder game on Great Sahara.
+    #[test]
+    fn the_handoff_s_melee_is_the_pinned_word() {
+        the_handoff_carries("Melee");
+    }
+
     /// **The battery word's line is its pinned word** (item 2904,
     /// DECISIONS 72): the battery's lowest lobby, promoted when every pair
     /// had closed.
