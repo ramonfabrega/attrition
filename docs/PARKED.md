@@ -12062,13 +12062,11 @@ Neither row below names a score on its own.
 - **3719b. The leaders' `SITE[i].reg`, ours 1 against theirs 0**, and who=0's `aggression[1]`, 0 against 1, are
   standing from run1397b's first block 3995. This is 3718b's family. No draw on the word's frame reads them.
 
-## Parked by the next landing, slot VA — reserved
+## Parked by item 3720, 2026-10-28 — the Egyptians at a held Information age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3720a. who=0's `SITE[i].reg`, ours 1 against theirs 0, and `aggression[1]`, 0 against 1**, standing from
+  run1399b's first block 3195 (`docs/AI.md` §367). It is 3718b's and 3719b's family on a third lobby, and no draw
+  on the word's frame 3244 reads them.
 
 ## Parked by the next landing, slot VB — reserved
 
