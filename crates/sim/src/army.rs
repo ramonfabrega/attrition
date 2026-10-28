@@ -1467,12 +1467,30 @@ impl Sim {
         let expand = s & 8 != 0;
         let weak = s & 4 != 0;
         let level = self.transport_level(who) as i32 >= 2;
+        if std::env::var("RON_PROBE_3763").is_ok() {
+            let a = &self.armies[w].list[slot];
+            eprintln!(
+                "  PROBE f{} do_mustering {who}/{slot} released {released} city {:?} std {} cap {} eff_pop {} muster {:?} city_num {} navy {} diff {} rush {} early {} mil {}",
+                self.frame, a.city, a.num_standard, self.muster[w].cap, self.ai[w].effective_pop, a.muster,
+                self.city_num(who), a.navy, self.ai_difficulty(), self.ai[w].pers.rush, self.ai[w].pers.early_army,
+                self.tech[w].military_level()
+            );
+            for i in 0..self.players.len() {
+                for c in self.cities_of(i as Player) {
+                    eprintln!("  PROBE   city {c} owner {i} no_heal {} ally {}", self.cities[c].no_heal, self.is_ally(who, i as Player));
+                }
+            }
+        }
         let new_status = if !released {
             if let Some(c) = city
                 && self.cities[c].alive
             {
                 let b = self.cities[c].building;
-                if self.find_muster_spot(who, slot, Obj::Building(b), true) {
+                let ok = self.find_muster_spot(who, slot, Obj::Building(b), true);
+                if std::env::var("RON_PROBE_3763").is_ok() {
+                    eprintln!("  PROBE   find_muster_spot {ok} muster now {:?}", self.armies[w].list[slot].muster);
+                }
+                if ok {
                     self.armies[w].list[slot].status |= status::FORMING;
                     return;
                 }
