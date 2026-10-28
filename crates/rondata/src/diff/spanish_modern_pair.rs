@@ -279,6 +279,76 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 28, "the rounds that part");
 }
 
+/// **run1415, the word 4021's window**: blocks 4015 through the closing
+/// block 4082 at run1395b's detail (`LEADERS=9`, `AMMO=5`), six blocks
+/// before the word and through the game's own end (item 3736). run1395b
+/// ends on block 4021, so the word's own block 4022 was on no disk.
+pub(crate) const RUN1415: &str = "gamelog-run1415-eastindies-spanish-modern-window-4015-4082.txt";
+
+/// The window: block 4015 through 4082.
+pub(crate) const WIDENING_SPANISH_MODERN_FRAME_4021: (i64, i64) = (4015, 4082);
+
+/// **The word 4021's window**: run1415 walked from run1394's start with
+/// the recorder on and every round compared (item 3736).
+pub(crate) fn spanish_modern_frame_4021_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[SPANISH_MODERN.start],
+        true,
+        SPANISH_MODERN.long,
+        "run1415",
+        &[(RUN1415, WIDENING_SPANISH_MODERN_FRAME_4021.0)],
+        WIDENING_SPANISH_MODERN_FRAME_4021,
+        1,
+        &[4022],
+        true,
+    )
+}
+
+#[test]
+fn spanish_modern_pair_run1415_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_modern_frame_4021_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 67, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3736: **389** keys. Block 4015 carries 108 standing rows. **The
+    // word**: theirs' Citizen `0/13` reaches 4018 with 10 hits against
+    // ours' 23 (`damage_frame` 4017, `damage_o` 31 against 3979, 97) and
+    // flees; on 4021 a round explodes and it dies (`Unit::close+0xcb6 <
+    // Object::die+0x29`), so block 4022 holds it in ours alone and who=0's
+    // `peasants` read 8 against 7. Past the word the game parts widely.
+    pin_eq!(w.firsts.len(), 389, "run1415 baseline");
+    pin_eq!(w.rounds_read, (394, 400), "the rounds read");
+    // Every round, both directions: 394 in ours against 400, 99 parting.
+    // The Tanks `1/25` and `1/35` (TI 250, `PANZER`, `<RESTRICTION
+    // name="PANZER" node="4">`, no `pivot` row) loose from the hull, `sz`
+    // 168 against 312 for `1/35`'s round of 4017, and fly 7 frames against
+    // 6: theirs' has landed by 4022 and ours' is still in the air.
+    pin_eq!(w.rounds.len(), 99, "the rounds that part");
+}
+
 /// run1395c: the walk back from the stride's first unit row, blocks
 /// 3095..3210 at the word window's detail — six blocks before the stride's
 /// block 3101, which agrees, through its block 3201, where `1/109`'s `pos`
