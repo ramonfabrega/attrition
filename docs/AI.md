@@ -35652,11 +35652,75 @@ boarded). All four are new to the ledger, and none is lockstep. The rubric count
 this pair moves nothing: unit types seen read **238 of 302** on the tree merged with 3737's close (231 at the base).
 
 **Not established**:
-- Piece 54's release node. run1399b's `AMMO` prints `sx, sy, sz` on every Mechanized Infantry round that outlives
+- ~~Piece 54's release node. run1399b's `AMMO` prints `sx, sy, sz` on every Mechanized Infantry round that outlives
   a frame (528 rounds part in the window). Whether it is a fixed bay (`launch::BAYS`) or a turret (`pivot`) is the
-  next item's first reading.
+  next item's first reading.~~ Answered in §367.1: it is fixed bays, seven rows off run785's packet (item 3740).
 - Whether theirs' two-frame flight against ours' three is the launch point alone (a shorter plan distance).
 - The leaders' standing `SITE[i].reg` and `aggression[1]` (3719b's family).
+
+## 367.1 Piece 54's bays: the word 3244 → 3519 (item 3740)
+
+*Item 3740, 2026-10-28, Opus 5.5.* This section answers §367's first open row. Piece 54's release node is a set
+of **fixed bays** (`sim::launch::BAYS`), not a turret.
+
+**The piece.** `1/34` plays graphic piece 54, `ASSAULTINFANTRY-DEFAULT-AGE0` (`assault_infantry.bh3`). It carries
+no `<RESTRICTION>`. The art has eight `RELEASEEVENT`s, all on node 0: `CHAR_ATTACK1` at 833 and 932, `CHAR_ATTACK2`
+at 333, 999 twice and 1665, and `CHAR_ATTACK3` at 866 and 1166. The `InvisibleAmmo` events are among them, and the
+rest are `NoDamage Tracer`s.
+
+**The disk answered, with no capture.**
+- `get_position.py … entries 54` over all 86 packets on disk: six of them load the piece's eight `AttachPos` rows
+  with the same floats in each (run785, run789, run795, run810, run823 and run825). `RData +0x88` is 1.0. The rows
+  sit at node 0, frames 12 and 13 of `CHAR_ATTACK1`, 4, 14 (twice) and 24 of `2`, and 12 and 17 of `3`. The art's
+  eight events map onto those rows in order.
+- One packet had the piece's `RData` and no rows (run1224b). The other 79 raise on it.
+- `sweep` on run785's packet and `fit_bay.py` give one region for each of the seven keys: 147, 103, 57, 167, 124,
+  97 and 378 lattice points. The centroid of each, which holds at all 361 headings, is the row.
+- `CHAR_ATTACK1` frame 12's `dz` of 169 is the dump's 533 − 364.
+
+**The proof.** `launch::tests::run1399b_s_egyptian_assault_infantry_leaves_from_its_bay` takes `1/34`'s pose on
+block 3204: (5640, 31800), facing −1116995584, `z` 364. Its round leaves (5530, 31784, 533), exactly the point the
+original prints on 3205.
+
+**What moved: 3244 → 3519 of 3797**, by both the count and the sequence. The other 101 lobbies' `first_parting`
+tests are unmoved. `tools/mutate.py` with piece 54's keys negated: the word reads 3244 again (exit 101).
+
+| pin | before | after |
+|---|---|---|
+| the word | 3244 | **3519** |
+| run1399b keys; rounds read; rounds parting | 2625; (648, 684); 528 | 107; (648, 666); 144 |
+| closing counts (block 3798) | `[70, 0, 0, 7, 3, 1, 0]` | `[12, 0, 0, 7, 0, 1, 0]` |
+| `GROUND_INEXACT`, the first parting | 0 | 1 |
+
+**The new word, 3519.** Ours spends 13 draws against theirs' 14, parting at index 13. Theirs' draw is
+`Unit::close+0xcb6 < Object::die+0x29 < Unit::die+0x19`: a unit dies in theirs alone, so **theirs acts**. 3519 is
+past run1399b's last block (3494), and run1399's stride prints units only on 3501. So the word's widening is owed,
+and its `WIDENINGS` row is out until a window capture pays for it (item 3385's shape).
+
+**The value diff, walked back to the state's first parting in run1399b.** The parting is the next turret round in
+the same family:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3214 | the T80DES `1/42`'s round `ammo[0]` | `sx, sy, sz`; `total_time` | 5928, 32280, 287 (the tank's square); 5 | 5608, 32219, 418; 4 |
+| 3216 | the T80DES `1/29`'s round `ammo[1]` | `sx, sy, sz`; `total_time` | 6504, 31896, 191; 6 | 6419, 31775, 321; 5 |
+| 3217 | the Citizen `0/13` | `hits:damage`; `hits_left` | 18; 67 | 31; 54 |
+
+`1/42` and `1/29` are both TI 257 (TY 207, `T80DES-DEFAULT-AGE0`, scale 0.75). That art carries `<RESTRICTION
+name="T80DES" node="4" minangle="-180" maxangle="180">`, so **piece 207 is a pivot piece** (`sim::pivot`). Neither
+`pivot` nor `launch` has a row for it. `entries 207` over every packet on disk: ten load its `RData` (0.75) with
+no rows, and the rest raise on it.
+
+**The next item's hypothesis**: piece 207's pivot release rows, read off a packet on this lobby at
+`RON_STATE_FRAME=3212`, the block before `1/42`'s launch. Run1419 was taken for exactly that and stalled before
+frame 0 twice (parked 3740a). The run number stays reserved for the retake.
+
+**What is not established.**
+- Who dies on 3519. The draw names `Unit::close`, but no dump on disk prints the frame.
+- Whether the T80DES rows alone carry the word to 3519's death, or other rounds in run1399b's window part on their
+  own. `1/20`, `1/24`, `1/25` and `1/35` all part after 3221.
+- §367's other two open rows (the two-frame flight and the leaders' standing fields) stand as written. The first
+  is now answered for piece 54: with the muzzle in place, the round flies 2 frames on both sides.
 
 ## 368. Reserved for the next item on the AI track
 
