@@ -309,7 +309,7 @@ fn german_modern_pair_run1397_s_closing_state() {
     pin_eq!(e.counts(), [127, 2, 3, 1, 51, 0, 55], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        Vec::<(i64, i64)>::new(),
+        vec![(0, 13), (1, 36), (1, 111)],
         "the closing extras"
     );
 }
