@@ -32089,3 +32089,32 @@ SHA-256 `cf062b7f5dbb125e83eb6a08723a8fc051415c006b37668406e8d134775fbec8`.
 **What it holds**: `spanish_modern_pair_run1395c_walks_the_state_back`: 115 blocks, 108 keys, rounds 21 against 21.
 The state's first parting is the Submarine `1/109`'s birth on 3119, (36696, 44760) in ours against (36696, 45240).
 It sits in the coverage driver.
+
+## run1415 — the Spanish at a held Modern age, East Indies, at difficulty 4: the word 4021's window, blocks 4015..4082 (2026-10-27, item 3736, `att-3736`)
+
+`docs/AI.md` §365.1. **What the disk could not answer**: every record and round on the word 4021's own block. run1395b
+ends on block 4021, so block 4022 (frame 4021's result) is on no disk, and run1395's stride prints only units, on
+4001 and the closing 4082. The booked packet was not needed: run1165's packet already holds piece 299, so the run
+went to the new word's window instead. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1415 --map 18
+--end-frame 4081 --allow-early-end --timeout 3600 --log-window 4015 4082 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`: six
+blocks before the word, then through the closing block.
+- Pool lane 1. Launched 22:19:19, exited 22:19:52 (32.8 s launch to exit). `success`: 4082 frames, `DIFFICULTY 4`
+  read back. `rngcmp.py` against run1395: 4082 of 4082 identical. Filed with `filerun.py run1415
+  eastindies-spanish-modern-window-4015-4082`. `df -g ~` read 151 GiB free before it.
+- A first launch at 22:18:03 left out the four `--profile` settings (run1395b's line says "run1394's lobby" for
+  them). I stopped it after 14 s, with 2,276 bytes of log and no frame block, and moved its 34 MB staging directory aside, out of
+  `~/ron-golden`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1415-eastindies-spanish-modern-window-4015-4082.txt`, 153,393,971 bytes,
+SHA-256 `9732e0ae89bab6670714b24c0e4aacab6d158d4d8c8486bdb94ccd2efcf06257`.
+
+Archive `rontrace-run1415.log`, 99,604,928 bytes,
+SHA-256 `138c869b760e403f1e64ac40c644a295d2b2cc1db097021771ee25836f65535e`.
+
+**What it holds**: `spanish_modern_pair_run1415_s_word_frame_is_widened_whole` walks it from run1394: 67 blocks and
+389 keys, rounds 394 against 400 with 99 parting. On block 4022 the Citizen `0/13` is in ours alone (who=0's
+`peasants` 8 against 7). The Tanks' rounds (TI 250, `PANZER`) part, from the hull in ours. It is the pair's widening
+in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.

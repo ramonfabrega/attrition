@@ -34955,11 +34955,12 @@ on a `FLEETOORDER` to (6888, 7752), reaches the spot on 3770, drops the order an
 
 **The shooters**: the **Battleships `1/45` and `1/46`** (TI 349, TY 299 — **piece 299**, sea, army 2, stance
 Raid). Theirs' `AMMO` on block 3704 shows the round that lands: `1/45`'s, loosed on 3693 with `total_time` 13 at
-`whom 0`, `ox 13`, `ex/ey` (5787, 8855). It leaves from (2629, 11443, z 106) with `graph_index 3`, and `1/46`'s
-from `graph_index 4`: turrets, as the Cruiser's are (piece 279, item 3519). **Neither `sim::launch` nor
+`whom 0`, `ox 13`, `ex/ey` (5787, 8855). It leaves from (2629, 11443, z 106) ~~with `graph_index 3`, and `1/46`'s
+from `graph_index 4`: turrets, as the Cruiser's are (piece 279, item 3519)~~ (`graph_index` is the game's ammo
+count, `docs/COMBAT.md` §24.4; the turret is read off the round's height, §365.1). **Neither `sim::launch` nor
 `sim::pivot` has a row for piece 299.** So ours' rounds leave from the guy's own square, (2808, 11832, z 0), and
-fly 14 frames against 13. This is the launch-point family of 3704–3714. Why ours' 14-frame round lands no wound is
-the next item's.
+fly 14 frames against 13. This is the launch-point family of 3704–3714. ~~Why ours' 14-frame round lands no wound is
+the next item's.~~ Built by item 3736 (§365.1): piece 299 is a pivot piece, and the word moves to 4021.
 
 **The state parts first on 3119, a birth.** The stride's first unit row is block 3201. run1395c walks 3095..3210
 and finds the **Submarine `1/109`** (TI 338, TY 288, sea), trained at who=1's Dock `1/2016` (35904, 43776,
@@ -34995,12 +34996,87 @@ Gun[HVYMACHINEGUNGERMAN]` (126) and the `ME109` (292) were not. The rubric count
 types seen stays **230 of 302** and the lockstep bytes stay at 77.4 %.
 
 **Not established**:
-- Piece 299's turret release nodes. Theirs' `AMMO` prints `sx, sy, sz` and `graph_index` for every round in
+- ~~Piece 299's turret release nodes. Theirs' `AMMO` prints `sx, sy, sz` and `graph_index` for every round in
   run1395b, which is the Cruiser's measurement (item 3519). The angle each turret holds may need a packet, as the
-  Cruiser's did.
-- Why ours' round lands no wound on `0/13`.
+  Cruiser's did.~~ §365.1: run1165's packet holds them, and all 32 of run1395b's Battleship rounds fit.
+- ~~Why ours' round lands no wound on `0/13`.~~ §365.1: with the rows, it does, on 3704 as theirs.
 - The Dock's ship-placement rule that puts the Submarine 480 apart.
 - The three road-cost draws.
+
+## 365.1 The Battleship's three turrets: the word 3770 → 4021 (item 3736)
+
+*Item 3736, 2026-10-27, Opus 5.5.*
+
+**The booking**: frame 3770, theirs 3216 draws against ours 3212, index 0, theirs' Citizen `0/13`'s
+`Unit::do_idle+0x7d` draw at the end of a flee from a wound taken on 3704 in theirs alone. **Theirs acts.** The
+hypothesis was the Battleship `1/45`'s round (TI 349, piece 299) with no `launch` or `pivot` row.
+
+**Piece 299 is a pivot piece.** Its own `<UNIT name="BATTLESHIP-DEFAULT-AGE0">` (`superbattleship.bh3`, scale 0.9)
+carries no `<RESTRICTION>`, but the table at the foot of `unit_graphics.xml` does: `name="Battleship"`, nodes 4
+(−135..135), 5 (−110..110) and 6 (50..−50). `artdata::pivot_restrictions` binds the rows by the record's `GRAPH`
+column, so the type already aimed three turrets; only the piece's `AttachPos` rows were missing. Its
+`<RELEASEEVENT>`s are node 0 at 133 ms, node 2 at 533 and node 1 at 833, on `CHAR_ATTACK1` and `CHAR_ATTACK2`
+(frames 1, 7 and 12). `graph_index` is not the turret (parked 3736b).
+
+**The disk held it; no packet was taken.** `get_position.py … entries 299` over all 84 packets on disk: run1161
+and run1164 name the piece with no rows; **run1165** and run1166 (the Russian Modern lobby, item 3519's Cruiser
+packet) hold its 27 entries, bit for bit the same. Those are the three pivots at `(anim 0, time 0)`, `(0.0, −95.34,
+13.85)`, `(0.0, −49.66, 22.79)` and `(0.0, 117.49, 13.83)`, `RData +0x88` 0.9, and for each of the six release keys
+the pivot node's entry `((node & 3) + 4)` and the release node's. `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s bits
+differ (the x component's sign), so there are six rows, each with its own sweep.
+
+**What was built** (`crates/sim/src/pivot.rs`): three `NODES` rows, a `RDATA_SCALE` row and six `RELEASES` rows.
+Each row's `float_lands` comes from `get_position.py … pivot 299 <node> <anim> <time> 3` on run1165, which covers
+361 facings × 256 turret steps a row. The exact integer form disagrees on 6, 8, 4, 13, 8 and 5 cells; those are
+the float lists.
+
+| test | what it asserts |
+|---|---|
+| `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_299` | all 554,496 cells equal the original's (`$RON_RELEASE_TABLE_299`) |
+| `pivot::tests::run1395b_s_battleship_rounds_leave_from_its_turrets` | all 32 rounds `1/45` and `1/46` loose in run1395b, from the `GUY` pose on the block before, at the dump's `sx, sy` and `sz − z` at some turret step; the height names the turret (106 node 0, 105 node 2, 144 node 1) |
+
+**Mutation** (`tools/mutate.py`, the six rows keyed `-299`): held. `spanish_modern_pair_first_parting` reads 3770.
+
+**The score: 3770 → 4021 of 4081**, by the count and the sequence. On 4021 ours spends **17 draws against theirs'
+18**, parting at index 12. Theirs (`report.py … draws 4021`): a round's `Ammo::init` pair, an explosion, then
+**`Unit::close+0xcb6 < Object::die+0x29 < Unit::die+0x19`** and the death's sound. Ours spends the farms'
+`Farms::inc_time+0x1ae` at that index. **Theirs acts: a unit dies in theirs alone.**
+
+**The value diff** (run1415, the word's window, walked from run1394):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3693 | `1/45`'s round (run1395b) | `sx, sy, sz`; `total_time` | agree (2629, 11443, 106; 13) | |
+| 3933 | the Citizen `0/13` (run1395b) | `hits_left` | 62 | 51 |
+| 4018 | the Citizen `0/13` | `hits_left`; `damage_frame`, `damage_o`; `orders.len` | 23; 3979, 97; 0 | 10; 4017, 31; 1 |
+| 4018 | the Tank `1/35`'s round of 4017 | `sx, sy, sz`; `total_time` | 7032, 9432, 168; 7 | 7154, 9226, 312; 6 |
+| 4022 | the Citizen `0/13` | present | yes | no (dead on 4021) |
+| 4022 | who=0's leader | `peasants`, `num_units[0]`, `active` | 8, 8, 9 | 7, 7, 8 |
+
+**The next hypothesis, not a build order**: the Tanks `1/25` and `1/35` (TI 250, `PANZER`) carry `<RESTRICTION
+name="PANZER" node="4" minangle="-180" maxangle="180">`, and `pivot` has no row for the piece (200 by the graph's
+offset, not checked on a `GUY` record). Ours looses from the hull at `sz` 168 against 312 and flies 7 frames against
+6. In theirs the round of 4017 has landed by 4022; in ours it is still in the air. **No packet on disk loads piece
+200** (all 84 tried), so the next item takes one from a game that fields the Tank. Before it, `0/13`'s hits part on
+3933 (62 against 51), the block the Tank `1/25`'s round of 3928 lands (`sz` 66 against 210, 7 frames against 6),
+so the citizen enters 4017 nearer death in theirs either way. The Bazookas `1/32` and `1/33` (TI 140) part too,
+`sz` 120–146 lower in ours; `1/31`, whose round strikes `0/13` on 4017 in theirs, does not part at its launch.
+
+**The windows.**
+- run1395b (3677..4021): **1983 → 145** keys. Rounds 654 against 656, 28 parting.
+- **run1415** (4015..4082, new, the closing block included): 67 blocks, **389 keys**, rounds 394 against 400, 99
+  parting. It is the word's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+- The closing state (run1395's block 4082): **151 → 153** units, counts **[56, 2, 2, 2, 24, 1, 10] → [13, 0, 0, 0,
+  0, 0, 0]**, no extras, `Closing fields: none`. A floor.
+
+**Parked**: 3736a, the Battleship `1/71`'s round of 4013 off by exactly its own move step (ours after the step,
+theirs before); 3736b, the `graph_index` misreading.
+
+**Not established**:
+- Piece 200's rows, and that 200 is the Tank's piece.
+- Which round kills `0/13` on 4021: theirs' trace shows an `AmmoOut::explode` before the death, and theirs' `1/35`
+  round has landed by 4022. Its `whom` is not read here.
+- Why `0/13`'s hits part on 3933.
 
 ## 366. Reserved for the next item on the AI track
 
