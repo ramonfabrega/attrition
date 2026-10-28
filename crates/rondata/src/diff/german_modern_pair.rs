@@ -34,9 +34,15 @@ pub(crate) const GERMAN_MODERN: Pair = Pair {
     // Item 3719, first try: count 4079, sequence 4077 of 5304 — on 4077
     // ours 370 draws against theirs' 370, index 0 ours' `Guy::set_anim+0x97a
     // < Unit::do_guard+0x7f4` against theirs' `Guy::set_anim+0x97a <
-    // Unit::do_idle+0x7d` (`docs/AI.md` §366).
-    count: 4079,
-    sequence: 4077,
+    // Unit::do_idle+0x7d` (`docs/AI.md` §366). Item 3738: **4299**, count
+    // and sequence — pieces 208 (the Tiger Tank) and 169 (the Armored Scout
+    // Car) loose from their turrets (4077 → 4167 → 4299). On 4299 ours 16
+    // draws against theirs' 15, index 2 ours' `Guy::set_anim+0xf2f <
+    // Unit::set_anim+0x56` against theirs' `Unit::fight+0x824`; on 4298
+    // theirs' Special Forces `0/0` takes a `CASTORDER` (spell 640) on the
+    // Scout Car `1/53` that ours never gives (§366.1).
+    count: 4299,
+    sequence: 4299,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -251,11 +257,20 @@ fn german_modern_pair_run1397b_s_word_frame_is_widened_whole() {
     // spends; the same frame theirs' Tiger `1/62` drops its attack on the
     // Citizen `0/13`, fled since its own round of 4038, and spends no
     // `Unit::fight+0x824` draw where ours does.
-    pin_eq!(w.firsts.len(), 1946, "run1397b baseline");
+    // Item 3738, pieces 208 and 169's turret rows: **282** keys. The
+    // Tiger's round of 4017 is made and lands inside its frame on both
+    // sides; the first unit parting past block 3995's standing rows is
+    // `1/49`'s `dest_angle` on 4103 (one field), then who=1's aircraft's
+    // orders in their airports from 4177 (3719a's family), then the Special
+    // Forces `0/0` on 4298: `order:kind` ours 4 theirs 14, `orders_x/y` ours
+    // (4392, 30360) theirs (4248, 31896).
+    pin_eq!(w.firsts.len(), 282, "run1397b baseline");
     // Every round, both directions: 137 in ours against 176, the first
-    // parting the Tiger `1/38`'s on 4018, which ours holds alone.
-    pin_eq!(w.rounds_read, (137, 176), "the rounds read");
-    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+    // parting the Tiger `1/38`'s on 4018, which ours holds alone. Item 3738:
+    // 137 against 144 and 18 parting, the first `1/53`'s `ammo[1]` on 4301
+    // (`ex, ey` (4264, 31704) against (4236, 32019)), past the word.
+    pin_eq!(w.rounds_read, (137, 144), "the rounds read");
+    pin_eq!(w.rounds.len(), 18, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,
@@ -304,9 +319,10 @@ fn german_modern_pair_run1397_s_closing_state() {
     // Item 3719, first try: 1227 frames past the word 4077 the game has
     // parted widely — 146 units compared, counts [127, 2, 3, 1, 51, 0, 55],
     // `0/13`, `1/36` and `1/111` extra in ours, `1/139` and `1/141`
-    // unlinked. A floor, not a score.
+    // unlinked. A floor, not a score. Item 3738 (the word at 4299): counts
+    // [116, 2, 3, 2, 27, 1, 23].
     pin_eq!(e.compared, 146, "units compared");
-    pin_eq!(e.counts(), [127, 2, 3, 1, 51, 0, 55], "the closing counts");
+    pin_eq!(e.counts(), [116, 2, 3, 2, 27, 1, 23], "the closing counts");
     pin_eq!(
         e.extra.clone(),
         vec![(0, 13), (1, 36), (1, 111)],
