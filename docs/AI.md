@@ -35138,10 +35138,97 @@ so the citizen enters 4017 nearer death in theirs either way. The Bazookas `1/32
 theirs before); 3736b, the `graph_index` misreading.
 
 **Not established**:
-- Piece 200's rows, and that 200 is the Tank's piece.
-- Which round kills `0/13` on 4021: theirs' trace shows an `AmmoOut::explode` before the death, and theirs' `1/35`
-  round has landed by 4022. Its `whom` is not read here.
-- Why `0/13`'s hits part on 3933.
+- ~~Piece 200's rows, and that 200 is the Tank's piece.~~ §365.2: run1416's packet loads piece 200 with the
+  Tank's turret and three releases.
+- ~~Which round kills `0/13` on 4021.~~ §365.2: the Tank `1/35`'s round of 4017 (`graph_index` 54, `whom` 0,
+  `ox` 13, `cur_time` 5 of 6 on block 4021).
+- ~~Why `0/13`'s hits part on 3933.~~ §365.2: the Tank `1/25`'s round of 3928 leaves the hull in ours; with piece
+  200's rows it leaves the muzzle and the hits agree.
+
+## 365.2 The Tank's turret and the German Bazooka's bays: the word closes, 4021 → 4081 of 4081 (item 3737)
+
+*Item 3737, 2026-10-27, Opus 5.5.*
+
+**The booking**: frame 4021, theirs 18 draws against ours 17, index 12, theirs' `Unit::close+0xcb6 <
+Object::die+0x29 < Unit::die+0x19`: the Citizen `0/13` (TI 50, land) dies in theirs alone. **Theirs acts.** The
+hypothesis was the Tank `1/35`'s round of 4017 (TI 250, `PANZER`, a pivot piece with no row).
+
+**The frame, on the disk first.** `report.py … draws 4021` on run1395's trace: of theirs' 18 game draws, index 9
+and 10 are a launch's `Ammo::init` pair, 11 a `Guy::inc_time` turn, then `AmmoOut::explode` on the unseeded stream
+and **index 12 `Unit::close+0xcb6`**. Theirs' `AMMO` on run1415 names the round: `1/35`'s, `graph_index` 54,
+`whom` 0, `ox` 13, launched with `cur_time` 1 on block 4017, at `cur_time` 5 of 6 on block 4021. It lands on 4021
+and the citizen dies. **The citizen also entered the frame weaker in theirs.** On block 4018 `0/13` reads
+`hits_left` 10 against ours' 23: theirs took a 13-point wound on 4017 (`damage_frame` 4017, `damage_o` 31) that
+ours never took. The round arriving then is the Bazooka `1/33`'s (TI 140, `BAZOOKAGERMAN`, foot). Its launch parts
+too, `sz` 411 against 557 and 8 frames against 7. So two families part at the launch: the Tanks (`1/25`, `1/35`)
+and the German Bazookas (`1/32`, `1/33`). Neither piece has a `launch::BAYS` row or a `pivot` row.
+
+**Naming the pieces.** A `GUY` record's `type` is the unit type, not the piece: the Tank's reads 250 and the
+Battleship's 349. `Sim::unit_gpiece` puts both units at their age-0 default-style art: the Tank `PANZER-DEFAULT-AGE0`
+(`panzer.bh3`, scale 0.8, `<RESTRICTION name="PANZER" node="4">`) as piece **200**, and the Bazooka
+`BAZOOKAGERMAN-DEFAULT-AGE0` (`bazooka_german.bh3`, no restriction) as piece **90**. No packet on disk loads either
+piece: all 82 raise on the piece's `RData` (3736 for 200, this item for 90).
+
+**The packet: run1416**, `RON_STATE_FRAME=4016` on this lobby, the block before the Tank's launch block 4017, with
+both lines on the field. `get_position.py … entries`:
+- **piece 200**: seven rows at `pos_start` 85, `RData +0x88` 0.8. They are the turret `(4, 0, 0)` `(0.0, 5.58,
+  35.68)` and, for each of the three `<RELEASEEVENT>`s, the turret's entry and the muzzle's on node 0: 4 of
+  `CHAR_ATTACK1`, 21 of `2` and 1 of `3`. The muzzle sits 60–68 model units ahead of the turret.
+- **piece 90**: three rows at `pos_start` 139, `RData +0x88` 1.0, node 0 at 17 of `CHAR_ATTACK1`, 7 of `2` and 13
+  of `3`.
+
+**What was built.**
+- `crates/sim/src/pivot.rs`: piece 200's `NODES` row, its `RDATA_SCALE` (4/5) and three `RELEASES` rows. The
+  original's pivot branch (`pivot 200 0 <anim> <time> 1`, 92,416 cells a row) agrees with the integer form on
+  277,244 of 277,248 cells. The four left are all on `CHAR_ATTACK1`, and they are its `float_lands`.
+- `crates/sim/src/launch.rs`: piece 90's three `BAYS`, each fitted by `fit_bay.py` to its sweep (114, 396 and 254
+  lattice points, 361 of 361 headings; the centroid kept). Their heights are 120, 146 and 139, and ours' round
+  left 146 low on `CHAR_ATTACK2`.
+
+| test | what it asserts |
+|---|---|
+| `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_200` | all 277,248 cells equal the original's (`$RON_RELEASE_TABLE_200`) |
+| `spanish_modern_pair_first_parting` | the word at 4081 |
+
+**Mutation** (`tools/mutate.py --patch`, on the re-pinned `cfc9c2306`), each held with exit 101:
+- piece 200's three `RELEASES` keyed `-200`: the word reads **4021** again, theirs' `Unit::close` at index 12;
+- piece 90's three `BAYS` keyed `-90`: the word reads **4026**, theirs' `Ammo::do_damage+0xc59` at index 1539
+  against ours' `Farms::inc_time`. The Tank alone moves the word five frames, and the Bazooka's wound is the rest.
+
+**The score: 4021 → 4081 of 4081, the game's last frame**, by the count and the sequence. **The word closes.**
+
+**The value diff** (run1415, walked from run1394):
+
+| block | record | field | before | now | theirs |
+|---|---|---|---|---|---|
+| 4017 | the Tank `1/35`'s round, `graph_index` 54 | `sx, sy, sz`; `total_time` | 7032, 9432, 168; 7 | 7154, 9226, 312; 6 | 7154, 9226, 312; 6 |
+| 4015 | the Bazooka `1/33`'s round | `sx, sy, sz`; `total_time` | 9288, 8616, 411; 8 | 9260, 8515, 557; 7 | 9260, 8515, 557; 7 |
+| 4018 | the Citizen `0/13` | `hits_left`; `damage_frame`, `damage_o` | 23; 3979, 97 | 10; 4017, 31 | 10; 4017, 31 |
+| 4022 | the Citizen `0/13` | present | yes | no | no |
+
+**The windows.**
+- run1395b (3677..4021): 145 → **126** keys. `0/13` parts nowhere: block 3677's 101 standing rows, who=1's new
+  units' `form`, groups 76 and 84, and the Submarine `1/109` (3718a). Rounds (654, 654), **3** parting:
+  `1/71`'s of 4013 (3736a).
+- run1415 (4015..4082): 389 → **117** keys: block 4015's 108 standing rows, groups 67 and 70, and `1/109`'s path,
+  heading and tolerance. Rounds (394, 394), **7** parting: `1/71`'s (3736a), and `1/25`'s and `1/32`'s on 4022,
+  whose dead target theirs keeps as `whom` 0, `ox` 13 and ours as −1 (3714a, a second lobby).
+- **The closing state** (run1395's block 4082): 153 units, counts [13, 0, …] → **[1, 0, 0, 0, 0, 0, 0]**. The one
+  off is the Submarine `1/109`, (−13, −43) from theirs, the Dock birth of 3119 (3718a). No torn, unlinked or
+  extra unit; `Closing fields: none`.
+
+**The rubric.** `rubric.py --tables 3`: unit types seen **231 → 238 of 302**. The seven lines §365 fielded are now
+lockstep: 76, 103, 140, 219, 250, 272 and 283. `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned. The lockstep
+bytes stay at **77.4 %**: run1395 is a `cover=0` trace and enters no function.
+
+**Coverage.** Diff-backed: the release rows by the sweep test and by the word, the bays by the word (the
+mutations). Reading-backed: nothing new.
+
+**Not established**:
+- Piece 90's bays are fitted centroids, exact on every round this pair loosed. They are not exact on every
+  lattice point of the region.
+- The Tank's piece at another age or style (the walk takes the age-0 default here).
+- The Dock's ship placement that puts the Submarine 480 apart (§365, 3718a); it is the closing state's one off.
 
 ## 366. Reserved for the next item on the AI track
 

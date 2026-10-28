@@ -10993,3 +10993,5 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3736: the Spanish Modern word 3770 -> 4021, its window (`docs/AI.md` §365.1; `docs/RUNS.md` run1415) ====
 #   run1415  --map 18 --end-frame 4081 --allow-early-end --timeout 3600 --log-window 4015 4082 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (the word 4021's window, through the closing block)
 # Checks: `rngcmp.py` run1395 vs run1415 -> 4082 identical.
+# ==== item 3737: the Spanish Modern word 4021 -> 4081, a packet (`docs/AI.md` §365.2; `docs/RUNS.md` run1416) ====
+#   run1416  --map 18 --end-frame 4018 --timeout 3600 --log-window 4015 4017 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 9 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4 --tracer-def RON_STATE_FRAME=4016 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (a packet: pieces 200 and 90)

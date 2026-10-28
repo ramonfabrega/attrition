@@ -12159,13 +12159,16 @@ words and edits nothing here; a refill lands when two remain.
   run1395b read 3, 4, 5, … in launch order. The turret is named by the round's height: 106 is node 0 (pivot 4), 105
   node 2 (pivot 6), 144 node 1 (pivot 5). This is wording, not a score.
 
-## Parked by the next landing, slot VL — reserved
+## Parked by item 3737, 2026-10-27 — the Tank's turret and the German Bazooka's bays, the Spanish Modern word closed at 4081
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3737a. A round keeps its dead target's `whom` and `ox` in theirs; a second lobby for 3714a** (`docs/AI.md`
+  §365.2; run1415, block 4022). The Tank `1/25`'s and the Bazooka `1/32`'s rounds aimed at the Citizen `0/13`,
+  which died on 4021, read `whom` 0, `ox` 13 in theirs and −1, −1 in ours. They spend no draw and move no word:
+  the pair closed whole at 4081 with them parting. The same shape as 3714a, on the Spanish Modern lobby.
+- **3737b. The GUY record's `type` is the unit type, not the graphic piece** (`docs/AI.md` §365.2). The Tank `1/35`
+  reads 250 and the Battleship `1/45` 349 in the `GUY` record, so the record cannot name a piece. 3736's "piece 200
+  by the graph's offset" was `t − 50` and held here only because the walk lands on the age-0 default art. The
+  piece is `Sim::unit_gpiece`'s, and a packet's `entries` call confirms it. This is wording, not a score.
 
 ## Parked by the next landing, slot VM — reserved
 
