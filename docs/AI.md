@@ -36354,8 +36354,8 @@ Bantu's tribe file reads `<UNIT_CONTINENT>1 Arab`. So the Bazooka plays **piece 
 differ. Neither this crate's `launch` nor its `pivot` had a row for 441, so its rounds left the figure's square.
 
 **The killer, run before any build.** The block-4295 figure of `1/86` stands at (6648, 31224), angle
-−1041694720, `z` 267, on a current `ATTACKORDER` at `0/13`; it is idle in place, so the facing is the launch
-frame's. Piece 1145's three rows at that pose give:
+−1041694720, `z` 267, on a current `ATTACKORDER` at `0/13`, `in_range` 1, at its own `orders_at`, so the facing
+is the launch frame's. Piece 1145's three rows at that pose give:
 
 | key | `sx, sy, sz` |
 |---|---|
