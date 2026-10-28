@@ -505,6 +505,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // held-out `EastIndiesEgyptianTier3`'s `(18, 7, 3)`, all other maps: no
     // Egyptian lobby held Great Lakes.
     (14, 7, 5),
+    // The Japanese at a held Modern age, Great Lakes at Hard (item 3722,
+    // `diff::japanese_modern_pair`), minted under rule (3) — not the
+    // Medieval pair's `(14, 15, 5)`, this map at another difficulty, nor
+    // `(18, 15, 4)`, `(18, 15, 5)`, `(7, 15, 1)` or `(7, 15, 5)`, other
+    // maps; the battery fields no Japanese.
+    (14, 15, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

@@ -3637,6 +3637,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::egyptian_information_pair::egyptian_information_frame_3244_window(),
         || super::egyptian_information_pair::egyptian_information_frame_3519_window(),
         || super::egyptian_information_pair::egyptian_information_closing_window(),
+        || super::japanese_modern_pair::japanese_modern_stride_window(),
+        || super::japanese_modern_pair::japanese_modern_frame_3160_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_4045_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
