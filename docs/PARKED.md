@@ -12107,13 +12107,10 @@ Neither row below names a score on its own.
   family. They part on the block on which who=1 places `1/2046` and `1/2047` (§370). No draw before the word 3410
   reads them. It names no score; read it if a word ever parts on a building site's registration.
 
-## Parked by the next landing, slot VE — reserved
+## Parked by item 3724, 2026-10-28 — the Egyptians at a held Modern age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: run1407's stride parts on the standing families alone, and every row of run1407b's widening up to
+the word is the word's own chain (`docs/AI.md` §371).
 
 ## Parked by the next landing, slot VF — reserved
 

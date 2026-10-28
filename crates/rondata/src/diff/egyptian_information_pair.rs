@@ -133,9 +133,13 @@ fn egyptian_information_pair_is_no_other_lobby() {
             l.name
         );
     }
+    // Item 3724 minted the Modern pair on this map at Hard, `(14, 7, 4)`.
+    let m = &super::egyptian_modern_pair::EGYPTIAN_MODERN;
+    let modern = (m.map_style, m.ai_tribe, m.difficulty);
+    assert_ne!(modern, triple, "the Modern pair is this lobby");
     for l in battery::SCORED_LOBBIES.iter().filter(|l| l.1 == p.ai_tribe) {
         assert!(
-            *l == triple || l.0 != p.map_style,
+            *l == triple || l.0 != p.map_style || *l == modern,
             "{l:?} is another Egyptian lobby on this map"
         );
     }

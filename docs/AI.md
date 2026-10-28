@@ -36335,12 +36335,84 @@ prints a Bantu Bazooka's launch before 4292, and no round of `1/86` is dumped be
 - **The outer building loop's order** (3746b).
 - **Why `1/34` and `1/35` part on 4301** (3746a).
 
-## 371. Reserved for the next item on the AI track
+## 371. The Egyptians at a held Modern age, Great Lakes, at difficulty 4: first try 3451 of 3878 (item 3724)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3724, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3). §369's lobby with the nation moved:
+`MAP_STYLE 14`, human Nubians (4) against the **Egyptians (7)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1406 (a `DUMP_ALL` start) and run1407 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 3878. The walk is seeded from run1406's initial state (3506a). `diff::egyptian_modern_pair`
+pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 7, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery's one Egyptian game is `EastIndiesEgyptianTier3`, `(18, 7, 3)`, another map. The Egyptian lobbies
+already pinned are `egyptian_information_pair`'s `(14, 7, 5)` (this map, another difficulty),
+`egyptian_industrial_pair`'s `(18, 7, 4)`, `egyptian_classical_pair`'s `(18, 7, 5)`, `egyptian_word`'s `(7, 7, 4)`
+and `egyptian_gunpowder_pair`'s `(7, 7, 5)` (other maps). `egyptian_modern_pair_is_no_other_lobby` asserts all of
+it; `egyptian_information_pair_is_no_other_lobby`, which refused any second Egyptian lobby on Great Lakes, now
+names this one.
+
+**First try: 3451 of 3878**, by the count and the sequence. On 3451 ours spends **20 draws against theirs' 21**,
+parting at index 17: theirs spends **`Unit::close+0xcb6`** (under `Object::die` < `Unit::die`, after two
+`AmmoOut::explode` presentation draws) where ours goes on to its farms (`Farms::inc_time+0x1ae`). The seventeen
+draws before agree site by site (`report.py rontrace-run1407.log draws 3451`): two `do_idle` anims, a move anim, a
+`Unit::fight` pair, an animal's idle, an `Ammo::init` pair and nine `Guy::inc_time` anims; both then spend three
+farm draws. **Theirs acts: a unit dies on 3451 in theirs alone.**
+
+**The direction: theirs' rounds strike harder and earlier.** The dead unit is the human's **Special Forces `0/0`**
+(TI 75, land). The first unit parting in the widening is `0/0` on block 3442: `hits:damage` ours 52 against theirs
+93, `hits_left` 58 against 17, `damage_o` 22 against 47. On block 3452 ours alone holds it, and who=0's
+`leader:num_units[25]` and `scouts` read 1 against 0.
+
+Its attackers are group 64's **Churchills** (`1/27`, `1/36`, `1/37`, `1/47`: TI 245, `CHURCHILLDES`, land, the
+booking's own `Tank[CHURCHILLDES]`), each under a `GUARDORDER`, `1/47` with an `ATTACKORDER` on `0/0`. The rounds
+part before the wound: `1/47`'s `ammo[0]` of 3438 leaves **the figure's own square** in ours, (3720, 33960, z 582),
+and flies six frames; the dump's leaves (3698, 33775, z 728) and flies five. `1/37`'s of 3448 and `1/36`'s of 3450
+part the same way.
+
+**The piece.** The Churchill's graphic is `unitrules.xml`'s `GRAPH` ordinal 195, **`CHURCHILLDES-DEFAULT-AGE0`**:
+TI 245 − 50, by the Chi-Ha's 249 → 199 (§369.1), and the only art the line ships, so the Egyptians' style falls
+back to it. It carries `<RESTRICTION name="CHURCHILLDES" node="4">`, so it takes the **pivot** arm, and **neither
+`sim::pivot` nor `sim::launch` has a row for piece 195** (`seams.py --item 3724` names nothing for it). This is the
+launch-point family of 3740's piece 54, 3743's 203 and 207 and 3745's 1108, 1145 and 199.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3438 | `1/47`'s round `ammo[0]` | `sx, sy, sz`; `total_time` | 3720, 33960, 582; 6 | 3698, 33775, 728; 5 |
+| 3448 | `1/37`'s round `ammo[0]` | `sx, sy, sz`; `total_time` | 4200, 33864, 497; 6 | 4136, 33689, 643; 5 |
+| 3442 | the Special Forces `0/0` | `hits:damage`; `hits_left` | 52; 58 | 93; 17 |
+| 3452 | the Special Forces `0/0` | present | yes | no (died on 3451) |
+| 3452 | who=0's leader | `num_units[25]`; `scouts` | 1; 1 | 0; 0 |
+| 3451 | the draw stream, index 17 | site | `Farms::inc_time+0x1ae` | `Unit::close+0xcb6` |
+
+**The windows.**
+- run1407's stride, 101..3301 (33 blocks, **97 keys**): the standing families alone — `build:extra` (58), `form`
+  on 27 units, and who=1's groups and pools (12). No unit row parts.
+- run1407b, blocks 3395..3702 at the long's detail with `LEADERS=9` and `AMMO=5` (307 blocks, **1287 keys**, the
+  two `gaia:` keys unprinted; **rounds 11 against 18, 27 rows parting**, every one a Churchill's, from 3438). The
+  state's first unit parting is `0/0` on 3442, inside the window, so no walk back is owed.
+- The closing state (run1407's block 3879) is a floor: 130 units, counts `[68, 0, 2, 0, 6, 0, 7]`, nothing torn or
+  unlinked, ours' `0/7` and `0/10` extra.
+
+**The rubric.** All three of the booking's lines are fielded in run1406 and run1407 (`rubric.py --tables 3
+--dumps`): `Infantry` (102: seen, moved, attacked), `Tank[CHURCHILLDES]` (245: seen, moved) and the `P40DES` (291,
+Air: seen, boarded). The pair is not lockstep, so `census::RUBRIC_UNIT_TYPES_SEEN` stays 250 and the bytes 77.4 %.
+
+**What is not established.**
+- Piece 195's rows. The model is `Euro_Mtank.bh3` at scale 0.9, which `MEDIUMTANK-DEFAULT-AGE0` (piece 194, the
+  same `RESTRICTION` node 4) shares, and 194 has `pivot::NODES`, `RDATA_SCALE` 9/10 and `RELEASES` rows. A
+  `pivot::SAME_AS` row `(195, 194)` is **the next item's hypothesis**, never checked here; the killer is
+  `1/47`'s round of 3438 leaving (3698, 33775, z 728). If the model's node differs, piece 195 needs a packet,
+  as 199 did (§369.1).
+- What parts past 3451: the closing floor says much does; the walk past the word is the next item's.
+
+**The booking for the next item**: frame 3451, 20 draws against 21, index 17, theirs' `Unit::close+0xcb6` (the
+Special Forces `0/0` dies in theirs alone). The instrument is run1407b's `AMMO` on the Churchills' rounds from
+3438.
 
 ## 372. Reserved for the next item on the AI track
 

@@ -11043,3 +11043,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3746: the Bantu Modern word 3410 -> 4304 (`docs/AI.md` §370.1; `docs/RUNS.md` run1425) ====
 #   run1425  --map 14 --end-frame 4395 --allow-early-end --timeout 3600 --log-window 4295 4395 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the word 4304's window)
 # Checks: `rngcmp.py` run1405 vs run1425 -> 4396 identical.
+# ==== item 3724: the Egyptians at a held Modern age, Great Lakes, at difficulty 4 (`docs/AI.md` §371; `docs/RUNS.md` run1406, run1407, run1407b) ====
+#   run1406  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1407  run1403's line with --ai-tribe 7 and run1406's lobby   (the draw stream; ended itself on 3878)
+#   run1407b --map 14 --end-frame 3702 --timeout 3600 --log-window 3395 3702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0, run1406's lobby   (the word 3451's window)
+# Checks: `rngcmp.py` run1406 vs run1407 -> 37 identical; run1407 vs run1407b -> 3703 identical.

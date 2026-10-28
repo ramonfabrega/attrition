@@ -95,6 +95,8 @@ mod egyptian_industrial_pair;
 #[cfg(test)]
 mod egyptian_information_pair;
 #[cfg(test)]
+mod egyptian_modern_pair;
+#[cfg(test)]
 mod egyptian_word;
 mod endpoint;
 mod floors;
