@@ -314,6 +314,19 @@ impl Sim {
                 speed = (self.tuning.versailles_units_move + 100) * speed / 100;
             }
         }
+        // **The Aluminum arm** (`update_speed@006055c0`, after the French
+        // siege arms and before the Spy's): an air type (`+0x218 == 2`)
+        // whose leader holds Aluminum — `0x6da7 & 1`, byte 3 bit 0 of the
+        // `rare` mask, or the same bit of `rare_conquest` at `0x6dcf`, the
+        // Whales arm's byte — moves `ALUMINUM_AIR_SPEED` faster. The German
+        // Modern word's Bombers sit at 75 on a `MOVES` of 60 (run1397's
+        // stride from 3101), and the range a sortie asks of them is the
+        // speed times the tank (`docs/AI.md` §366.3).
+        if self.unit_types[ty].kind.domain == crate::attrition::Domain::Air
+            && self.has_rare(who, economy::ALUMINUM)
+        {
+            speed = (self.tuning.aluminum_air_speed + 100) * speed / 100;
+        }
         // The Spy's upgrades (`update_speed@006055c0:131`–`134`): a quarter
         // of the speed per level, toward zero (`docs/AI.md` §160).
         if self.is_spy_type(ty) {
@@ -1604,6 +1617,38 @@ mod tests {
         assert_eq!(s.type_speed(1, boat_ty), 40 * 120 / 100);
         assert_eq!(s.type_speed(1, foot_ty), 25, "a foot type is not naval");
         assert_eq!(s.type_speed(0, boat_ty), 40, "and it is the owner's rare");
+    }
+
+    /// **Aluminum speeds the aircraft and nothing else** (item 3742): an air
+    /// type's cached speed takes `ALUMINUM_AIR_SPEED`, truncating — the
+    /// German Modern word's Bomber 60 → 75, its `ME109` 75 → 93 and its
+    /// Albatross 55 → 68 — a sea type's does not, and the rare is the
+    /// owner's.
+    #[test]
+    fn aluminum_speeds_the_aircraft_and_nothing_else() {
+        let (mut s, u) = sea_sim();
+        let boat_ty = s.units[u].ty.unwrap();
+        let plane = |s: &mut Sim, moves: i32| {
+            s.add_unit_type(crate::UnitType {
+                hits: 20,
+                moves,
+                kind: crate::attrition::UnitKind {
+                    domain: crate::attrition::Domain::Air,
+                    ..Default::default()
+                },
+                ..crate::UnitType::default()
+            })
+        };
+        let bomber = plane(&mut s, 60);
+        let fighter = plane(&mut s, 75);
+        let biplane = plane(&mut s, 55);
+        assert_eq!(s.type_speed(1, bomber), 60, "no aluminum, no bonus");
+        s.ledgers[1].rare = 1 << (economy::ALUMINUM - economy::BASE_RARE);
+        assert_eq!(s.type_speed(1, bomber), 75);
+        assert_eq!(s.type_speed(1, fighter), 93, "75 x 125 / 100 truncates");
+        assert_eq!(s.type_speed(1, biplane), 68);
+        assert_eq!(s.type_speed(1, boat_ty), 40, "a ship is not of the air");
+        assert_eq!(s.type_speed(0, bomber), 60, "and it is the owner's rare");
     }
 
     /// **The gunpowder foot line, by identity and truncating** (item 1109):
