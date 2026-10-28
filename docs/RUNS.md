@@ -32360,3 +32360,28 @@ SHA-256 `dc07116d58642f3f9ca7cdde41be741c41c0d143b2ca94672c802c769c0492c1`.
 draws theirs' 35 cells, which are ours' 36 less (23, 28). Its fog byte at (47, 57) reads 2, who=1's bit. The whole
 120 × 120 grid parts from ours in 439 bytes, every one ours 0 against theirs 2: the Bombers' sight on their way to
 Napata.
+## run1422 — the Germans at a held Modern age, Great Lakes, at difficulty 4: the closing window, blocks 5048..5305 (2026-10-28, item 3742, `att-3742`)
+
+`docs/AI.md` §366.3. **What the disk could not answer**: every record of the pair's last blocks once the word reached
+the game's last frame. run1397's stride prints units every hundred frames, with no `AMMO` and no leader, building or
+city record, and run1418 ends on 4836. `RON_CAPTURE_LANE=2 viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1422 --map 14 --end-frame 5304 --allow-early-end --timeout 3600 --log-window 5048 5305 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0` and run1396's lobby
+(`--profile STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6 STARTING_RESOURCES=7 DIFFICULTY=4`): the 258 blocks through
+the closing block.
+- Pool lane 2. Launched 03:21:39, exited 03:22:28 (48.8 s launch to exit). `success`: 5305 frames, not ended early,
+  `map_verified`, tribes 4 and 12. `rngcmp.py` against run1397's trace: 5305 of 5305 identical. Filed with
+  `filerun.py run1422 greatlakes-german-modern-closing-window-5048-5305 --map 14`. `df -g ~` read 141 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1422-greatlakes-german-modern-closing-window-5048-5305.txt`, 565,285,124 bytes,
+SHA-256 `0101426e3b29fe99a49ba2eaa570d716e8302f7855c16d0e47baee724ae1998b`.
+
+Archive `rontrace-run1422.log`, 123,519,072 bytes,
+SHA-256 `bb494243747f0e7418aee3576f8e1a0760296c54fd2d8a7e2a0708f8c481c8fa`.
+
+**What it holds**: `german_modern_pair_run1422_s_closing_frame_is_widened_whole` walks it from run1396: 257 blocks,
+**55** keys (the standing families, eight aircraft's `mirror` (3742a), and the city `0/2000` on 5157 (3742d)),
+rounds 228 against 228 with 13 rows parting (the Bomber `1/36`'s, 3742b, and two Volksgrenadiers' launch points,
+3742e). It is the `WIDENINGS` row for the closed word 5304, the `AI_WORDS` window and the coverage driver's.

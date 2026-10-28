@@ -12233,6 +12233,14 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
 - **3742c. The city `1/2069`'s `assimilation_timer`, 5304 in ours against 5301**, the one count in run1397's
   closing block 5305. Every unit agrees. The three frames are when the timer was last set, which no dump on disk
   dates.
+- **3742d. The human's city `0/2000` on 5157: `city_flags[0x4]` ours 0 against theirs 1, and `reduce_stamp` 4806
+  against 5156** (run1422, the closing window). No other city or unit field parts with it, and no draw follows to
+  5304. The writer of `0x4` and of the stamp on that frame is unread. It may be 3742c's family (a city's timer
+  stamped on a different frame); nothing on disk says.
+- **3742e. Two Volksgrenadiers' rounds leave from another point**: `1/48` on 5291 and `1/50` on 5304 (TI 109,
+  `INFANTRYGERMAN`), each round's `sx`, `sy`, `sz`, `angle` and `v1z` (run1422; `sz` 375 against 542, 554 against
+  661). It is 3711b's shape, a figure's launch point read off the wrong piece or none. The game is closed, so it
+  names no draw.
 
 ## Parked by the next landing, slot VQ — reserved
 

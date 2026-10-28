@@ -35560,6 +35560,15 @@ gained, so the arm needs no new caller.
   Napata from 4770: `accuracy` ours 0 against theirs 252..256, and `sy`/`ey` one unit apart (3742b).
 - the closing state (run1397's block 5305): `[112, 2, 2, 3, 27, 1, 8]` → `[0, 0, 0, 0, 0, 0, 1]`, 148 units, all on
   and linked, no extra. The one count is the city `1/2069`'s `assimilation_timer`, 5304 against 5301 (3742c).
+- **run1422, the closing window** (5048..5305, `docs/RUNS.md`), the word's widening now that it is the game's last
+  frame: 257 blocks, **55** keys. They are the standing families, the eight aircraft's `mirror` (3742a), and one
+  record that is not standing: the human's city `0/2000` on 5157, `city_flags[0x4]` 0 against 1 and `reduce_stamp`
+  4806 against 5156 (3742d). Rounds 228 against 228, 13 rows parting: the Bomber `1/36`'s (3742b) and the
+  Volksgrenadiers `1/48` and `1/50`'s launch points (3742e). No position or order parts, and no draw.
+- **The other aircraft lobbies.** The arm also clears the Albatrosses' and Biplanes' `myspeed` from the German,
+  Inca and Spanish Industrial pairs' windows: German Industrial's stride 125 → 107, run1334b 76 → 58, run1351b
+  70 → 54, run1354 73 → 55; Inca Industrial's run1372b 78 → 60; Spanish Industrial's run1382b 70 → 52. Every
+  `first_parting` holds.
 
 **Coverage.** Diff-backed: the arm, through the sortie's orders on 4177 and 4180, the fog byte and the draw count on
 4586, and the stride's `myspeed` on every who=1 aircraft. Reading-only: the `rare_conquest` half of the test (no

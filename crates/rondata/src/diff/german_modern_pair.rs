@@ -383,6 +383,81 @@ fn german_modern_pair_run1418_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 32, "the rounds that part");
 }
 
+/// run1422: the pair's closing window, blocks 5048..5305 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` (item 3742). The word reached the
+/// game's last frame; run1397's stride prints units every hundred frames
+/// and run1418 ends on 4836, so no dump held the last blocks.
+pub(crate) const RUN1422: &str =
+    "gamelog-run1422-greatlakes-german-modern-closing-window-5048-5305.txt";
+
+/// The window: block 5048 through the closing block 5305.
+pub(crate) const WIDENING_GERMAN_MODERN_CLOSING: (i64, i64) = (5048, 5305);
+
+/// **The pair's last blocks**: run1422 walked from run1396's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3742).
+pub(crate) fn german_modern_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[GERMAN_MODERN.start],
+        true,
+        GERMAN_MODERN.long,
+        "run1422",
+        &[(RUN1422, WIDENING_GERMAN_MODERN_CLOSING.0)],
+        WIDENING_GERMAN_MODERN_CLOSING,
+        1,
+        &[5305],
+        true,
+    )
+}
+
+#[test]
+fn german_modern_pair_run1422_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_modern_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3742, the pair whole: **55** keys. Block 5048 carries the
+    // standing families (`form` on 23 units, both leaders' `SITE[i].reg`,
+    // who=0's `aggression[1]`, who=1's groups 64..67 with their pools) and
+    // eight aircraft's `mirror`, ours 0 against theirs 1 (parked 3742a).
+    // **One record is not a standing family**: the human's city `0/2000`
+    // on 5157, `city_flags[0x4]` 0 against 1 and `reduce_stamp` 4806
+    // against 5156 (parked 3742d). No unit position or order parts, no
+    // draw parts to 5304, and the closing block 5305 agrees.
+    pin_eq!(w.firsts.len(), 55, "run1422 baseline");
+    // Every round, both directions: 228 each side, 13 rows parting. The
+    // Bomber `1/36`'s `ammo[0]` on 5048, `sx`/`sy` one unit apart and
+    // `angle` (3742b's family), and the Volksgrenadiers `1/48` (5291) and
+    // `1/50` (5304), TI 109, each round's `sx`, `sy`, `sz`, `angle` and
+    // `v1z`: a launch point off the figure's own (parked 3742e). The draws
+    // never feel it.
+    pin_eq!(w.rounds_read, (228, 228), "the rounds read");
+    pin_eq!(w.rounds.len(), 13, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3719): run1397's closing block 5305,
 /// the whole map's units, walked from run1396's start.
 #[test]
