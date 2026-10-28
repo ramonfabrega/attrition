@@ -11061,3 +11061,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1434  --map 14 --end-frame 3903 --timeout 3600 --log-window 3495 3903 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0   (dead: without run1408's lobby)
 #   run1434b run1434's line with --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the word 3653's window)
 # Checks: `rngcmp.py` run1409 vs run1434 -> 0 of 3904 identical; run1409 vs run1434b -> 3904 identical.
+# ==== item 3726: the Maya at a held Information age, Great Lakes (`docs/AI.md` §373; `docs/RUNS.md` run1410, run1411, run1411b) ====
+#   run1410  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 1 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1411  run1399's line with --ai-tribe 1 and run1410's lobby   (the draw stream; ended itself on 3330)
+#   run1411b --map 14 --end-frame 3330 --allow-early-end --timeout 3600 --log-window 3075 3331 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 1 --cover cover=0, run1410's lobby   (the closing window)
+# Checks: `rngcmp.py` run1410 vs run1411 -> 37 identical; run1411 vs run1411b -> 3331 identical.

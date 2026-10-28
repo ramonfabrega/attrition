@@ -36750,12 +36750,61 @@ point. **The hypothesis** is the Armored Cavalry's piece: it has no bay or turre
 leaves the square. This is §367.2's family, not read here. **The killer**: with the row, `1/16`'s `ammo[0]` on 3587
 still launches from (6418, 32805, 171).
 
-## 373. Reserved for the next item on the AI track
+## 373. The Maya at a held Information age, Great Lakes: whole on its first try, 3330 of 3330 (item 3726)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3726, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4). This is §367's lobby with the nation
+moved: `MAP_STYLE 14`, human Nubians (4) against the **Maya (1)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`. Both `GAME INFO`s read the 7s back, and
+`Pair::assert_lobby` asserts them. The captures are run1410 (a `DUMP_ALL` start) and run1411 (the draw stream,
+`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1411 ended itself on 3330. The walk is seeded from
+run1410's initial state (3506a). `diff::maya_information_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(14, 1, 5)`, is minted** in `battery::SCORED_LOBBIES`. The Maya held Great Sahara at 4
+(`maya_word`, once the battery's `GreatSaharaMayaTier4`) and East Indies at 5 (`maya_ancient_pair`). The battery
+fields no Maya, and no lobby held the triple. `maya_information_pair_is_no_other_lobby` asserts all of it.
+
+**The cast.** The Maya field the `Dragon AT Missile` (145), their own line, and the generic Information lines
+they do not replace. Those are Assault Infantry (104), Elite Special Forces (77), Flamethrower (131), Armored
+Cavalry (220), the `ABRAM` Main Battle Tank (254), MLRS (273), the Avenger (284), the Jet Fighter (295), the
+Strategic Bomber (305) and one Nuclear ICBM (316), read by `rubric.py --tables 3 --dumps` on the three takes. The
+Dragon was on the pass's never-fielded list. It enters the lockstep ledger here, and
+`census::RUBRIC_UNIT_TYPES_SEEN` moves from 254 to 255.
+
+**The score: whole on the first try, 3330 of 3330**, the count and the sequence together. No draw parts to the
+game's last frame. The closing block 3331 agrees on all 123 units: counts `[0, 0, 0, 0, 0, 0, 0]`, none torn, extra
+or unlinked (`maya_information_pair_run1411_s_closing_state`).
+
+**The windows:**
+- **The stride** (run1411, 101..3301): 33 blocks and **109 keys**, all from the standing families. They are
+  `build:extra` on 56 buildings, `form` on 27 units, who=1's nine groups' `held` with their pools, and `mirror` on
+  eight craft.
+- **The closing window** (run1411b, 3075..3331, at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+  run1410 with every round compared): 256 blocks and **57 keys**.
+  - The standing rows are who=0's `SITE[0..9].reg` (1 against 0), `aggression[1]` (0 against 1), who=1's
+    `SITE[0..2].reg`, `form`, the groups and pools, and `mirror`. Three `dest_angle` rows sit on who=1's units.
+  - One building field parts: `0/2000`'s `damage`, 1156 against 1157, on 3265.
+  - No position, order or hit parts.
+  - **Rounds read 240 against 243, with 121 parting.**
+
+**The round residue** (parked 3726a). It moves no score, so it is not built here:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3205 | the Armored Cavalry `1/31`'s `ammo[0]` | `sx, sy, sz` | 6223, 32469, 219 | 6099, 32440, 359 |
+| 3205 | the same | `v1z` | 81.57 | 64.07 |
+| 3265 | `0/2000` (who=0's building) | `damage` | 1156 | 1157 |
+| 3312 | the Strategic Bomber `1/83`'s `ammo[2]` | `accuracy` | 0 | 260 |
+
+ours' `1/31` round leaves from the car's own square. The Armored Cavalry (TI 220, unit-type row 170) plays
+**piece 874** at the Maya's `UNIT_CONTINENT` 2 (`Sim::unit_gpiece`: 170 + 352 × 2). Neither `sim::launch::BAYS` nor
+`sim::pivot` has a row for it. `1/48` and `1/58` part the same way. This is the launch-point family of §367.1,
+§367.2 and §370.2 on a fifth piece. The aircraft rounds part on `angle`, `ex/ey` and `accuracy`. None of them
+reaches a draw before the game's end.
+
+**Not established**: whether piece 874 is a bay piece or a turret, and so whether its row belongs in `BAYS` or in
+`pivot`. The instrument is run1411b's `AMMO` on `1/31`'s rounds.
 
 ## 374. Reserved for the next item on the AI track
 

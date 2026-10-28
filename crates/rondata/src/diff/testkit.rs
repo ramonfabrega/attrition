@@ -11029,6 +11029,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3743,
         Some(crate::diff::egyptian_information_pair::WIDENING_EGYPTIAN_INFORMATION_CLOSING),
     ),
+    // **The Maya at a held Information age** (item 3726): Great Lakes at
+    // difficulty 5 — whole on its first try, 3330 of 3330, the closing
+    // state compared; widened on run1411b over 3075..3331 (the closing
+    // block), the rounds compared.
+    (
+        "MAYA_INFORMATION_PAIR_WORD",
+        crate::diff::maya_information_pair::MAYA_INFORMATION_PAIR_WORD,
+        Some("maya_information_pair_run1411b_s_closing_frame_is_widened_whole"),
+        3726,
+        Some(crate::diff::maya_information_pair::WIDENING_MAYA_INFORMATION_CLOSING),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -13604,6 +13615,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_320,
         endpoint: Some("american_information_pair_run1409_s_closing_state"),
         window: Some("american_information_frame_3653_window"),
+    },
+    // The Maya at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), Great Lakes at difficulty 5 (item 3726):
+    // whole on its first try, 3330 of 3330; the closing window run1411b
+    // over 3075..3331, the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesMayaInformation",
+        named: "Great Lakes (Maya, Information)",
+        word: crate::diff::maya_information_pair::MAYA_INFORMATION_PAIR_WORD,
+        length: 3_330,
+        endpoint: Some("maya_information_pair_run1411_s_closing_state"),
+        window: Some("maya_information_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
