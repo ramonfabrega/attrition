@@ -2658,6 +2658,69 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 117,
         },
     ),
+    // **Piece 1108, the Infantry in the Asian art style** (type 102,
+    // `INFANTRY-ASIAN-AGE0`, `inf_asian.bh3`: base 52 at style 3; item
+    // 3745, `docs/AI.md` §369.1): no packet on disk loaded it, and run1424's
+    // `RON_STATE_FRAME=3156` packet on the Japanese Modern Great Lakes seed
+    // holds its six `AttachPos` rows (node 0 at 12 and 13 of
+    // `CHAR_ATTACK1`, 4 and 14 twice of `2`, 12 of `3`), `RData +0x88` 1.0.
+    // The art has no `<RESTRICTION>`, so the rounds take the non-pivot arm,
+    // and `fit_bay.py` fits each sweep (49, 98, 915, 819 and 322 lattice
+    // points; the centroid is kept, 361 of 361 headings each). Without them
+    // who=1's `1/18` loosed its rounds of 3157 at the human's Citizen
+    // `0/4` from its own square (4200, 34056, 489) against the original's
+    // (4203, 33991, 607), flew 3 frames against 2, and the citizen was
+    // struck a frame late.
+    (
+        1108,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        1108,
+        crate::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_717,
+            fwd: 82_052,
+            dz: 170,
+        },
+    ),
+    (
+        1108,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 9667,
+            fwd: 64_207,
+            dz: 120,
+        },
+    ),
+    (
+        1108,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        1108,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
@@ -4175,6 +4238,25 @@ mod tests {
         );
         let z = 515 + release_dz(203, crate::anim::ATTACK2, 23, 0).unwrap_or(0);
         assert_eq!((got.x, got.y, z), (5166, 30496, 553));
+    }
+
+    /// **The Japanese Infantry looses from piece 1108's bay** (item 3745):
+    /// run1403b's `1/18` rounds of 3157, `CHAR_ATTACK2` frame 14, the
+    /// figure at (4200, 34056) and −231997440 with `z` 489, print (4203,
+    /// 33991, 607) on 3158. Made to fail with the rows out of `BAYS`: the
+    /// round leaves the figure's own square.
+    #[test]
+    fn run1403b_s_japanese_infantry_leaves_from_its_bay() {
+        let got = launch_point(
+            Pos::new(4200, 34056),
+            Angle(-231_997_440),
+            1108,
+            crate::anim::ATTACK2,
+            14,
+            0,
+        );
+        let z = 489 + release_dz(1108, crate::anim::ATTACK2, 14, 0).unwrap_or(0);
+        assert_eq!((got.x, got.y, z), (4203, 33991, 607));
     }
 
     /// **The Egyptian Assault Infantry looses from piece 54's bay** (item
