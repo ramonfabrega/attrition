@@ -35381,7 +35381,7 @@ and `1/28` torn, none extra or unlinked. A floor, not a score.
 and run1399b): `Main Battle Tank[HEAVYTANKCTWE]` (252, moved), `Main Battle Tank[HEAVYTANKCTWW]` (253, moved and
 attacked), `Main Battle Tank[T80DES]` (257, moved and attacked) and the `MIGDES` (300, the Jet Fighter, moved and
 boarded). All four are new to the ledger, and none is lockstep. The rubric counts whole lockstep games only, so
-unit types seen stays **231 of 302** and the lockstep bytes stay at 77.4 %.
+this pair moves nothing: unit types seen read **238 of 302** on the tree merged with 3737's close (231 at the base).
 
 **Not established**:
 - Piece 54's release node. run1399b's `AMMO` prints `sx, sy, sz` on every Mechanized Infantry round that outlives
