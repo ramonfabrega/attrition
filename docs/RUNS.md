@@ -32340,3 +32340,71 @@ SHA-256 `358f5ac5c504c8d231a31e8b19889e0c51be0af26e3432d5ef42268e01d6db66`.
 877 keys, rounds 912 against 102 with 55 parting, the first the Bomber `1/95`'s on 4753. Past block 4495's
 standing rows, the first rows are who=1's `leader:strong[0]` on 4545, then group 65's lists on the word's block
 4587. It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+## run1421 — the Egyptians at a held Information age, Great Lakes: the word 3519's window, blocks 3495..3770 (2026-10-28, item 3743, `att-3743`)
+
+`docs/AI.md` §367.2. **What the disk could not answer**: every record and round on the word 3519's blocks.
+run1399b ends on 3494, and run1399's stride prints units every hundred frames, with no `AMMO` and no leader,
+building or city record. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1421 --map 14 --end-frame
+3770 --timeout 3600 --log-window 3495 3770 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 7 --cover cover=0` and run1398's lobby (`--profile STARTING_TECHNOLOGY=7 ENDING_TECHNOLOGY=7
+STARTING_RESOURCES=7 DIFFICULTY=5`). The window opens on the block after run1399b's last (six before the stride's
+3501) and runs 250 past the word's block 3520.
+- Pool lane 2 (`RON_CAPTURE_LANE=2`, the commander's word after run1419's lane-1 faults). Launched 02:54:34, exited
+  02:55:18 (43.6 s launch to exit). `success`: 3771 frames, seed 12345, both seats read back (4 and 7).
+  `rngcmp.py` against run1399: 3771 of 3771 identical. Filed with `filerun.py run1421
+  greatlakes-egyptian-information-window-3495-3770`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1421-greatlakes-egyptian-information-window-3495-3770.txt`, 568,186,400 bytes,
+SHA-256 `426b5d97433cc0c0f90db42749c20f89adb08ead88cba38dfa29dff187d93a83`.
+
+Archive `rontrace-run1421.log`, 61,110,528 bytes,
+SHA-256 `fc6f6b2665696c334abeee62d091401321e65537b995fdf48cdf57bbd8e6eaa3`.
+
+**What it holds**: `egyptian_information_pair_run1421_s_word_frame_is_widened_whole` walks it from run1398: 275
+blocks, 436 keys at the first walk (62 once the word closed). On the word's block 3520 the Citizen `0/10` is held by
+ours alone, struck by the Main Battle Tank `1/55`'s round of 3514, which left the tank's square in ours. It is the
+pair's word-window in the coverage driver.
+## run1419b — the Egyptians at a held Information age, Great Lakes: a packet at logger frame 3212, pieces 203 and 207 (2026-10-28, item 3743, `att-3743`)
+
+`docs/AI.md` §367.2. **What the disk could not answer**: the `AttachPos` rows of pieces 203 (the Main Battle Tank
+`HEAVYTANKCTWW`) and 207 (the T80DES). `get_position.py … entries 203` over all 87 packets on disk: ten load the
+`RData` (0.8) with `pos_num` 0, the rest raise; 3740 found the same for 207. run1419's retake (3740a); its directory
+holds 3740's two stalled takes, and the runner refuses an existing one, so it is lettered.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1419b --map 14 --end-frame 3214 --timeout 3600
+--log-window 3210 3214 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 7 --cover cover=0 --profile
+STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3212 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`, run1398's lobby.
+- Pool lane 2. Launched 03:01:59, exited 03:02:25 (26.3 s launch to exit). `success`, 3215 frames, seed 12345. Not
+  filed: the packet is the product. `df -g ~` read 144 GiB free before it. No fault.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1419b/map-14/frame-snapshot.bin`, 922,755,332 bytes.
+
+**What it holds**: `entries 203`: seven rows at `pos_start` 110, `RData +0x88` 0.8 (node 4 and node 0 at 11 of
+`CHAR_ATTACK1`, 23 of `2`, 27 of `3`). `entries 207`: fifteen rows at `pos_start` 95, `RData +0x88` 0.75 (the same
+node-4 and node-0 keys, and node 1 at 1 and 7 of `CHAR_ATTACK2` and `3`). The three `sweep 203` listings and six
+`pivot 203|207` sweeps are under `~/ron-data/lab-experiments/2026-10-28-item-3743/sweeps/`. The `pivot 203` ones
+are not used: piece 203 takes the non-pivot arm (§367.2).
+## run1421b — the Egyptians at a held Information age, Great Lakes: the closing window, blocks 3765..3798 (2026-10-28, item 3743, `att-3743`)
+
+`docs/AI.md` §367.2. **What the disk could not answer**: every record of the pair's last blocks once the word
+reached the game's last frame. run1421 ends on 3770. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1421b --map 14 --end-frame 3797 --allow-early-end --timeout 3600 --log-window 3765 3798 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0` and run1398's lobby: the
+34 blocks through the closing block.
+- Pool lane 2. Launched 03:12:22, exited 03:12:52 (29.7 s launch to exit). `success`: 3798 frames, not ended early.
+  `rngcmp.py` against run1399: 3798 of 3798 identical. Filed with `filerun.py run1421b
+  greatlakes-egyptian-information-closing-window-3765-3798 --map 14`. `df -g ~` read 142 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1421b-greatlakes-egyptian-information-closing-window-3765-3798.txt`, 68,498,242 bytes,
+SHA-256 `de20c045f85e053e4330f72a1c87c7d37c4ab618da8349d926e0a694d0ed15ae`.
+
+Archive `rontrace-run1421b.log`, 61,532,032 bytes,
+SHA-256 `73545f752c0d2b4d32271381ff564e2b4cb1133a89231a440d7acb05a1f1c463`.
+
+**What it holds**: `egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole` walks it from run1398: 33
+blocks and 54 keys, the standing families alone; the closing block 3798 agrees. Rounds 109 against 110, 26
+parting (the T80DES node-1 family, parked 3743a). It is the pair's widening in `WIDENINGS` and the `AI_WORDS`
+window, and it sits in the coverage driver.
