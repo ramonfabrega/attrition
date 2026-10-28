@@ -3858,12 +3858,6 @@ impl Sim {
             let t = self.army_of(u).and_then(|s| self.armies[who as usize].list.get(s)).and_then(|a| a.target);
             let valid = t.map(|t| self.valid_target(Obj::Unit(u), t));
             let dist = t.map(|t| self.attack_dist(Obj::Unit(u), t));
-            if let Some(t) = t {
-                let tp = self.profile(t);
-                let tb = match t { Obj::Building(b) => format!("ty {:?} pos {:?}", self.buildings[b].ty, self.buildings[b].pos), _ => String::new() };
-                eprintln!("probe siege ext unit {:?} target {:?} {} t.x_size {} t.y_size {} a.block_radius {}",
-                    combat::extent(&p, false), combat::extent(&tp, true), tb, tp.x_size, tp.y_size, p.block_radius);
-            }
             let (packed, ai, sai) = (self.units[u].combat.packed, self.ai_driven(who), self.search_ai(who));
             eprintln!(
                 "probe siege {}/{} at ({},{}) packs {} siege {} packed {} ai {} search_ai {} target {:?} valid {:?} dist {:?} limit {}",
