@@ -31893,3 +31893,70 @@ SHA-256 `cb5f6ab1cfb3261aed011d09150311b43fc4ee278a6206c8c8ed1af674085090`.
 **What it holds**: `persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole` walks it from run1369: 258
 blocks, 152 keys, rounds (219, 219) with 40 parting: the six Bombards' (piece 1977) launches, 104 low (parked
 3713c). It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+
+## run1392 — the French at a held Medieval age, Great Lakes, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3717, `att-3717`)
+
+`docs/AI.md` §364. run1375's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1392 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 20:13:12, exited 20:13:38 (26.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 10, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 2` (`Pair::assert_lobby`). Filed with `filerun.py run1392
+  greatlakes-french-medieval-start`. `df -g ~` read 171 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1392-greatlakes-french-medieval-start.txt`, 151,133,942 bytes,
+SHA-256 `97c8aae8c67aef05e3de3414678a9c73f1bc8e935edf732bb702e0942fc55da3`.
+
+Archive `rontrace-run1392.log`, 9,381,888 bytes,
+SHA-256 `02d28c5a6629288ff3fc87b1f59f3a2220af814ec66f0b81f9938412f4b8629c`.
+
+**What it holds**: the start of `french_medieval_pair::FRENCH_MEDIEVAL`, and the walk's initial state.
+
+## run1393 — the French at a held Medieval age, Great Lakes, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3717, `att-3717`)
+
+`docs/AI.md` §364. run1376's line with `--ai-tribe 10` and run1392's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 10 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1392. Launched 20:13:15, exited 20:13:57 (42.2 s launch to exit). `success`. **The game
+  ended itself on 4664** (closing block 4665, `ended_early`). `GAME INFO` reads back as run1392's. `rngcmp.py`
+  against run1392: 37 frames identical. Filed with `filerun.py run1393 greatlakes-french-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1393-greatlakes-french-medieval-trace.txt`, 28,129,191 bytes,
+SHA-256 `2d19af0865a96291c0639850b8e12dcb48f9522f971a79af323a72fefd963125`.
+
+Archive `rontrace-run1393.log`, 132,799,392 bytes,
+SHA-256 `5a83210df338821e2c6d272d83e49e9f620378a6910face9c282d959a077477b`.
+
+**What it holds**: the pair's first try. `french_medieval_pair_first_parting` walks it from run1392: **3108 of
+4664**, by the count and the sequence — the Trebuchet `1/98`'s `CHAR_TURN_LEFT` ending in ours with one draw.
+`french_medieval_pair_the_long_s_stride_walks_back_from_the_word` reads its stride, 101..3101: 31 blocks, 84
+standing keys. `french_medieval_pair_run1393_s_closing_state` pins the closing block 4665 as a floor: 202 units,
+counts `[186, 0, 5, 2, 164, 0, 34]`, 5 extra.
+
+## run1393b — the French at a held Medieval age, Great Lakes, at difficulty 4: the word 3108's window, blocks 3077..3359 (2026-10-27, item 3717, `att-3717`)
+
+`docs/AI.md` §364. **What the disk could not answer**: every record and every round on the word's blocks. run1393's
+stride prints units every hundred frames, no `AMMO` and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1393b --map 14 --end-frame 3359 --timeout 3600
+--log-window 3077 3359 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover
+cover=0` and run1392's lobby: 24 blocks before the stride's last block 3101, 250 past the word's block 3109.
+- Pool lane 1. Launched 20:16:33, exited 20:17:17 (44.4 s launch to exit). `success`: 3360 frames. `rngcmp.py`
+  against run1393: 3360 of 3360 identical. Filed with `filerun.py run1393b
+  greatlakes-french-medieval-window-3077-3359`. `df -g ~` read 171 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1393b-greatlakes-french-medieval-window-3077-3359.txt`, 574,728,179 bytes,
+SHA-256 `db4bab82d6e71789434f4e2a25e9e43a57c82fce56d94c34407870144bdea115`.
+
+Archive `rontrace-run1393b.log`, 72,706,688 bytes,
+SHA-256 `26072df0d606725dd53227e2cbfcb7723d94d074260127f01f49823e33123354`.
+
+**What it holds**: `french_medieval_pair_run1393b_s_word_frame_is_widened_whole` walks it from run1392: 282 blocks
+and 424 keys; the first unit row is `1/98`'s `path:length` on 3110. No round flies, 0 against 0. It is the pair's
+widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
