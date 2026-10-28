@@ -1463,6 +1463,14 @@ impl Sim {
         if (self.frame + id) % 32 != 0 {
             return;
         }
+        if std::env::var("RON_PROBE_3742_SORTIE").is_ok() {
+            eprintln!("probe3742 sortie f{} base {} owner {} garrison {:?}", self.frame, id, owner, self.buildings[b].garrison.iter().map(|&u| (self.units[u].index, self.units[u].orders.len(), self.units[u].mana_burn)).collect::<Vec<_>>());
+            for c in 0..self.cities.len() {
+                let city = &self.cities[c];
+                let cb = city.building;
+                eprintln!("probe3742   city {} owner {} alive {} no_heal {} peace {} defeated {} airdef {} bld {} hits {} health {}", c, city.owner, city.alive, city.no_heal, self.is_peace(owner, city.owner), self.defeated[city.owner as usize], self.enemy_air_defense_near(owner, self.buildings[cb].pos), self.buildings[cb].index, self.buildings[cb].hits, self.buildings[cb].health);
+            }
+        }
         if self.building_ident(b) == crate::build::Ident::MissileSilo {
             self.silo_strike(b);
             return;

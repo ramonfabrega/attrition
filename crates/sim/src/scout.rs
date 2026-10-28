@@ -829,6 +829,27 @@ impl Sim {
 
             // `+0xaba`: the jitter, one draw per accepted cell. The
             // distance is scaled by **16** here, not the city loop's 8.
+            if std::env::var("RON_PROBE_3742").is_ok_and(|f| f == self.frame.to_string()) {
+                if let Ok(path) = std::env::var("RON_PROBE_3742_FOG") {
+                    let mut t = String::new();
+                    for fy in 0..120 {
+                        let row: Vec<String> = (0..120)
+                            .map(|fx| self.world.seen2(fx, fy).map_or(-1, i32::from).to_string())
+                            .collect();
+                        t.push_str(&row.join(" "));
+                        t.push('\n');
+                    }
+                    let _ = std::fs::write(path, t);
+                }
+                eprintln!(
+                    "probe3742 f{} u{} cell ({}, {}) seen2 {:?}",
+                    self.frame,
+                    self.units[u].index,
+                    c.x,
+                    c.y,
+                    self.world.seen2(2 * c.x + 1, 2 * c.y + 1)
+                );
+            }
             self.mark(SITE_REGION_CELL);
             let mut score = vector_dist(here.x - c.x, here.y - c.y) * 16 + self.rng.roll() % 8;
             let owner = self.world.owner(c).player().unwrap_or(who);
