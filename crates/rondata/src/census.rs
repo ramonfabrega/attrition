@@ -574,7 +574,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (272) and `Anti-Aircraft Battery[FLAKGUNGERMAN]` (283), all land; the
 /// Tank's pivot rows and the Bazooka's bays closed the word (§365.2), read
 /// by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 238;
+/// Item 3742: 238 -> 241, the German Modern pair whole at 5304 — its three
+/// lines no other lockstep game fields: `Volksgrenadiers[INFANTRYGERMAN]`
+/// (109, land), `Tiger Tank[TIGERTANK]` (258, land) and `Fighter[ME109]`
+/// (292, air, whose speed the Aluminum arm closed the word on, §366.3),
+/// read by `rubric.py --tables 3` with and without the pair's dumps.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 241;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
