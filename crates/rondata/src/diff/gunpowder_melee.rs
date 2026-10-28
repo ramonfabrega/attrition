@@ -98,6 +98,45 @@ fn gunpowder_melee_staging_walk() {
     );
 }
 
+/// **The starting `Farms` list is the start dump's** (item 3757,
+/// `docs/GOLDEN.md` §149.1): `Farms::inc_time` walks the array in index
+/// order and spends one chance roll on every farm it does not skip, and
+/// `Array<FarmStruct>::walk_data` prints the same array, so run1412's
+/// frame-0 list — player 1's three farms, player 0's, player 2's — is the
+/// order the rolls are spent in. The two-seat sort this replaced reads
+/// 2, 1, 0 here.
+#[test]
+fn gunpowder_melee_s_farms_stand_in_the_dump_s_order() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let Some(path) = dump(MELEE_START) else {
+        eprintln!("skipping: no {MELEE_START} (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let init = log.initial().expect("a start dump");
+    let want: Vec<(i64, i64)> = init.farms.iter().map(|f| (f.who, f.o)).collect();
+    assert_eq!(
+        want.iter().map(|w| w.0).collect::<Vec<_>>(),
+        [1, 1, 1, 0, 0, 0, 2, 2, 2],
+        "run1412's list, as the dump prints it"
+    );
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    let got: Vec<(i64, i64)> = built
+        .sim
+        .farm_order
+        .iter()
+        .map(|&b| {
+            let bd = &built.sim.buildings[b];
+            (i64::from(bd.owner), i64::from(bd.index))
+        })
+        .collect();
+    assert_eq!(got, want, "the Farms list the rolls are spent in");
+}
+
 /// run1413: the staged game, the draw stream to its end at `cover=0`, the
 /// melee's records on a stride of 100.
 pub(crate) const MELEE_LONG: (&str, &str) = (
