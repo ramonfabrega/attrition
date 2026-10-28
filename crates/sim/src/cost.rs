@@ -226,6 +226,13 @@ pub struct Modifiers {
     /// percent is written in the executable; `SALT_BARRACKS_COST`'s 15% is
     /// never read here (item 3318, `docs/AI.md` §264).
     pub salt: bool,
+    /// The **American aircraft arm** (`get_cost:268`–`282`): up to three
+    /// `AMERICANS_AIRCRAFT` percentages — the Airbase trainer, then
+    /// `is(0x15f, 0)`, then `is(0x134, 0)` — each its own truncating step
+    /// after the German arm and before the British AA's, so a Fighter
+    /// Bomber trained at the Airbase takes it twice (item 3755,
+    /// `docs/AI.md` §372.1). Zero is the identity.
+    pub american_aircraft: [i32; 3],
     /// The British Anti-Aircraft Gun percentage (`get_cost:283`–`289`),
     /// its own truncating step after the American aircraft arm and before
     /// the Nubian merchants' and the Russian spy's (item 3678, `docs/AI.md`
@@ -633,6 +640,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled;
     if m.salt {
         cost = cost * 9 / 10;
+    }
+    for pct in m.american_aircraft {
+        cost = (100 - pct) * cost / 100;
     }
     if m.british_aa != 0 {
         cost = (100 - m.british_aa) * cost / 100;
@@ -1672,6 +1682,30 @@ mod tests {
             price(T.korean_tower_cost, [T.colosseum_fort_cost, 0]),
             (100 - 20) * ((100 - 33) * base / 100) / 100
         );
+    }
+
+    /// `get_cost:268`–`282`: the American aircraft arm's three tests are
+    /// each their own truncating step, so two that enter stack (item 3755).
+    #[test]
+    fn an_american_aircraft_arm_stacks_its_steps() {
+        let plane = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Wealth, 9)
+        };
+        let price = |american_aircraft: [i32; 3]| {
+            let m = Modifiers {
+                american_aircraft,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &plane, Resource::Wealth, owned(0), &m)
+        };
+        let plain = price([0; 3]);
+        let k = T.americans_aircraft;
+        assert_eq!(k, 20);
+        let once = (100 - k) * plain / 100;
+        assert_eq!(price([k, 0, 0]), once);
+        assert_eq!(price([0, 0, k]), once);
+        assert_eq!(price([k, 0, k]), (100 - k) * once / 100);
     }
 
     /// `get_cost:283`: a British AA Gun loses `BRITISH_AA_COST` percent in

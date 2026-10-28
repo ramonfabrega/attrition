@@ -37,8 +37,12 @@ pub(crate) const AMERICAN_INFORMATION: Pair = Pair {
     // `Guy::set_anim+0x97a` against theirs' sixth
     // `Leader::make_stuff+0x63d` (`SITE_EXPIRE_SLOT`): who=1's make list
     // holds one more slot to expire in theirs (`docs/AI.md` §372).
-    count: 2385,
-    sequence: 2385,
+    // Item 3755, `get_cost`'s American aircraft arm built: 2385 → 3653 —
+    // on 3653 ours 10 draws against theirs' 11, index 2, ours'
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs'
+    // `< Unit::do_idle+0x7d` (`docs/AI.md` §372.1).
+    count: 3653,
+    sequence: 3653,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -146,7 +150,7 @@ fn american_information_pair_is_no_other_lobby() {
 /// **The long's stride, walked back from the word** (item 3725, from
 /// 2385): only run1409's stride blocks are on disk before the word's
 /// window, 101 through 2301.
-pub(crate) const WIDENING_AMERICAN_INFORMATION_STRIDE: (i64, i64) = (101, 2301);
+pub(crate) const WIDENING_AMERICAN_INFORMATION_STRIDE: (i64, i64) = (101, 3601);
 
 pub(crate) fn american_information_stride_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
@@ -171,7 +175,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     let Some(w) = american_information_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 23, "every stride block in the window");
+    pin_eq!(w.blocks, 36, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -188,7 +192,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // the buildings' `build:extra` (40, which the stride does not print),
     // `form` on 27 units, who=1's groups 64..68 with their pools (10), and
     // `1/14`'s `g.angle[0]` from 401. No position, order or hit parts.
-    pin_eq!(w.firsts.len(), 78, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 111, "the stride's baseline");
 }
 
 /// run1409b: the word 2385's window, blocks 2295..2635 at the long's
@@ -260,12 +264,85 @@ fn american_information_pair_run1409b_s_word_frame_is_widened_whole() {
     // `num` 1, `escrow` 1 in ours against the Jet Fighter's `t` 295, `num`
     // 10, `escrow` 0, and `MAKE[2].val` 180836 against 191072; on 2385
     // theirs expires one more slot (the word). No round flies in the window
-    // on either side (`docs/AI.md` §372).
-    pin_eq!(w.firsts.len(), 1392, "run1409b baseline");
+    // on either side (`docs/AI.md` §372). Item 3755, the arm built: **60**.
+    // The price rows, the buckets, `MAKE[3]` and the make list on 2384 are
+    // gone; past the standing families the first row is the second
+    // Airbase's Strategic Bomber (305), `1/2021`'s `queue[3].cost` 91
+    // against 86 on 2583 (§372.1).
+    pin_eq!(w.firsts.len(), 60, "run1409b baseline");
     // Every round, both directions: `AMMO=5` was staged and none prints
     // on either side over 2295..2635.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1434b: the word 3653's window, blocks 3495..3903 at run1409b's
+/// detail (item 3755): six blocks before the stride's block 3501, the
+/// first after the walk's last quiet stride block, and 250 past the word's
+/// own block 3654. Nothing on disk printed 3502..3600 or any leader,
+/// building or round past run1409b's 2635. (run1434 itself left out
+/// run1408's `--profile` lobby and parts from frame 0: a dead take.)
+pub(crate) const RUN1434B: &str =
+    "gamelog-run1434b-greatlakes-american-information-window-3495-3903.txt";
+
+/// The window: block 3495 through 3903.
+pub(crate) const WIDENING_AMERICAN_INFORMATION_FRAME_3653: (i64, i64) = (3495, 3903);
+
+/// **The word 3653's window**: run1434b walked from run1408's start with
+/// the recorder on and every round compared (item 3755).
+pub(crate) fn american_information_frame_3653_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AMERICAN_INFORMATION.start],
+        true,
+        AMERICAN_INFORMATION.long,
+        "run1434b",
+        &[(RUN1434B, WIDENING_AMERICAN_INFORMATION_FRAME_3653.0)],
+        WIDENING_AMERICAN_INFORMATION_FRAME_3653,
+        1,
+        &[3654],
+        true,
+    )
+}
+
+#[test]
+fn american_information_pair_run1434b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_information_frame_3653_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 408, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3755, the first walk: **544** keys. Block 3495 stands on the
+    // standing families and on who=1's Strategic Bombers (305) at the
+    // Airbase `1/2030`, `cost[0]` and `cost[1]` 110, 120 against 100, 110,
+    // the buckets 53 apart. **On 3591 `treaties` part** (who=0's `[1]` and
+    // who=1's `[0]`, 1 in ours against 3) and who=0's Citizen `0/13` takes
+    // a 20-point blow in theirs alone and walks off on 3592; who=0's `0/4`
+    // on 3636 likewise (`docs/AI.md` §372.1).
+    pin_eq!(w.firsts.len(), 544, "run1434b baseline");
+    pin_eq!(w.rounds_read, (110, 126), "the rounds read");
+    pin_eq!(w.rounds.len(), 55, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3725): run1409's closing block 4321,
@@ -316,18 +393,75 @@ fn american_information_pair_run1409_s_closing_state() {
     // nothing torn or unlinked, ours' `1/128`..`1/134` extra. A floor, not
     // a score.
     pin_eq!(e.compared, 136, "units compared");
-    pin_eq!(e.counts(), [118, 0, 7, 5, 145, 0, 63], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![
-            (1, 128),
-            (1, 129),
-            (1, 130),
-            (1, 131),
-            (1, 132),
-            (1, 133),
-            (1, 134)
-        ],
-        "the closing extras"
+    pin_eq!(e.counts(), [77, 0, 0, 7, 24, 1, 16], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
+}
+
+/// **An American aircraft costs a fifth less** (item 3755):
+/// `get_cost:268`–`282`, an American leader (`has_tribe_bonus(0x14)`)
+/// takes `AMERICANS_AIRCRAFT` (20) off a type trained at the Airbase
+/// (`0x1bf`), again off one that `is(0x15f, 0)` (the Aircraft Carrier's
+/// lineage) and again off one that `is(0x134, 0)` (the Fighter Bomber's),
+/// each its own truncating step. Priced on run1408's start for who=1, the
+/// Americans: wealth and oil, the two resources an aircraft costs.
+///
+/// Made to fail first: with `AMERICANS_AIRCRAFT` at 0, who=1 pays the
+/// whole price (the right-hand column).
+#[test]
+fn american_information_pair_an_american_aircraft_costs_a_fifth_less() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let Some(path) = dump(AMERICAN_INFORMATION.start) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let init = replay_initial(&log).unwrap();
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let sim = &mut built.sim;
+    let types: Vec<_> = [
+        ("Jet Fighter", 0x127),
+        ("Fighter Bomber", 0x134),
+        ("Aircraft Carrier", 0x15f),
+    ]
+    .into_iter()
+    .map(|(name, ti)| {
+        let ty = loaded.unit_named(name).expect(name);
+        let tree = sim.unit_types[ty].tree.expect("in the tree");
+        assert_eq!(loaded.type_index(tree), ti, "{name}'s TypeIndex");
+        (name, ty)
+    })
+    .collect();
+    let read = |sim: &sim::Sim| -> Vec<_> {
+        types
+            .iter()
+            .map(|&(name, ty)| {
+                let p = sim.price_of(1, ty);
+                (name, sim.american_aircraft_discounts(1, ty), p[2], p[5])
+            })
+            .collect()
+    };
+    let with = read(sim);
+    sim.tuning.americans_aircraft = 0;
+    let without = read(sim);
+    // The Fighter Bomber takes one step, not two: its trainer in the
+    // tree is not the Airbase, so only its own lineage's test enters.
+    assert_eq!(
+        with,
+        [
+            ("Jet Fighter", [20, 0, 0], 72, 72),
+            ("Fighter Bomber", [0, 0, 20], 72, 72),
+            ("Aircraft Carrier", [0, 20, 0], 520, 520),
+        ]
+    );
+    assert_eq!(
+        without,
+        [
+            ("Jet Fighter", [0, 0, 0], 90, 90),
+            ("Fighter Bomber", [0, 0, 0], 90, 90),
+            ("Aircraft Carrier", [0, 0, 0], 650, 650),
+        ]
     );
 }
