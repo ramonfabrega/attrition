@@ -7847,6 +7847,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3539: the pair's closing walk, run1153 to block 4548, reads the
     // same two.
     ("run1153_japanese_industrial_pair_closing_state", 2),
+    // Item 3740: the Egyptian Information pair's first parting, run1399
+    // walked to the word 3519, once piece 54's rounds leave their bays.
+    ("egyptian_information_pair_first_parting", 1),
     // Item 3720: the Egyptian Information pair's closing walk, run1399
     // from run1398's start to the closing block 3798, past the word 3244.
     ("egyptian_information_pair_run1399_s_closing_state", 6),
@@ -10970,16 +10973,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::german_modern_pair::WIDENING_GERMAN_MODERN_FRAME_4586),
     ),
     // **The Egyptians at a held Information age** (item 3720): Great Lakes
-    // at difficulty 5 — first try 3244 of 3797, the T80DES `1/42`'s
-    // `Unit::fight` draw in ours alone; widened on run1399b over
-    // 3195..3494, the rounds compared.
-    (
-        "EGYPTIAN_INFORMATION_PAIR_WORD",
-        crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION_PAIR_WORD,
-        Some("egyptian_information_pair_run1399b_s_word_frame_is_widened_whole"),
-        3720,
-        Some(crate::diff::egyptian_information_pair::WIDENING_EGYPTIAN_INFORMATION_FRAME_3244),
-    ),
+    // at difficulty 5 — first try 3244 of 3797, widened on run1399b over
+    // 3195..3494. Item 3740 moved the word to 3519 (piece 54's bays), past
+    // run1399b's last block, so its row is out until a window capture over
+    // the new word pays it (item 3385's shape; `docs/AI.md` §367.1).
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
