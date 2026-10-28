@@ -341,7 +341,14 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
 /// `0/10` from the hull's square (6120, 10968, 22) here, where the
 /// original's left the muzzle at (6098, 10851, 200), and `0/10` was struck
 /// on 4943 in theirs alone.
-const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189), (154, 153), (193, 189)];
+const SAME_AS: &[(i32, i32)] = &[
+    (1195, 139),
+    (842, 138),
+    (192, 189),
+    (154, 153),
+    (193, 189),
+    (195, 194),
+];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
 fn rows_of(piece: i32) -> i32 {
