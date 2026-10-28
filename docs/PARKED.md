@@ -12274,13 +12274,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VV — reserved
+## Parked by item 3748, 2026-10-28 — piece 441, the Bantu Bazooka's bay
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3748a. Three Bantu siege and scout rounds leave their own square in ours, past the closed word.** In
+  `bantu_modern_pair_run1425_s_word_frame_is_widened_whole` (run1425, 4295..4395), fifteen round rows part on
+  launch alone (`sx`, `sy`, `sz`, `angle`, `v1z`): the Howitzers `1/84` (TI 271, 4320: (7752, 31800, 51) against
+  (7579, 31767, 257)) and `1/102` (TI 271, 4336: (7608, 28968, 244) against (7447, 29039, 450)) and the Armored
+  Scout Car `1/82` (TI 218, 4367: (6987, 30793, 230) against (6864, 30683, 384)). `total_time` agrees on each,
+  and no draw parts to the game's end, so none names a score. The pieces are the style-1 walks of bases 221 and
+  168 (`Sim::unit_gpiece`); neither has a `launch` or `pivot` row, and no packet on disk is known to load them.
+- **3748b. `1/86`'s round loses its target a frame apart.** On 4300 ours' round reads `whom` −1 and `ox` −1 where
+  theirs still holds `0/13`; theirs drops it on 4301 (`flags` 6 → 14). Both rounds now fly 9 frames from the
+  same bay and explode on 4304, so the frame names no draw. Grep this crate's writer of a round's target on the
+  target's death before reading `Ammo::inc_time`.
 
 ## Parked by the next landing, slot VW — reserved
 
