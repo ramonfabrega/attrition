@@ -4234,13 +4234,6 @@ pub fn release_dz(gpiece: i32, anim: i8, starttime: u32, node: i8) -> Option<i32
 
 /// The node a piece releases from, or `None` when nothing has measured it.
 pub fn node(gpiece: i32, anim: i8, starttime: u32) -> Option<Node> {
-    // PROBE (item 3759): `RON_PROBE_NODE=piece,bearing,radius,dz`.
-    if let Ok(v) = std::env::var("RON_PROBE_NODE") {
-        let f: Vec<i32> = v.split(',').filter_map(|x| x.trim().parse().ok()).collect();
-        if f.len() == 4 && f[0] == gpiece && (11..=13).contains(&anim) {
-            return Some(Node { bearing: f[1], radius: f[2], dz: f[3] });
-        }
-    }
     MEASURED
         .iter()
         .find(|(p, a, t, _)| *p == gpiece && *a == anim && *t == starttime)
