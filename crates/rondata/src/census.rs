@@ -574,7 +574,13 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (272) and `Anti-Aircraft Battery[FLAKGUNGERMAN]` (283), all land; the
 /// Tank's pivot rows and the Bazooka's bays closed the word (§365.2), read
 /// by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 238;
+/// Item 3743: 238 -> 242, the Egyptian Information pair whole at 3797 —
+/// `Main Battle Tank[HEAVYTANKCTWE]` (252), `Main Battle
+/// Tank[HEAVYTANKCTWW]` (253) and `Main Battle Tank[T80DES]` (257), land,
+/// and `Jet Fighter[MIGDES]` (300), air; piece 203's bays and piece 207's
+/// pivot rows closed the word (§367.2), read by `rubric.py --tables 3`
+/// against the same scan with run1398 and run1399 left out.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 242;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

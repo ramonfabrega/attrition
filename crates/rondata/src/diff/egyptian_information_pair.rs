@@ -270,7 +270,10 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // which flees to (2808, 31416); ours' leaves from the guy's own square,
     // (5640, 31800, z 364), and flies 3. The draws hold to 3244, where ours'
     // T80DES `1/42` (TI 257) spends a `Unit::fight+0x824` draw theirs does
-    // not.
+    // not. Item 3740 (piece 54's bays): 107. Item 3743 (piece 203's bays,
+    // piece 207's pivot rows): **65** — the T80DES `1/42`'s round of 3214
+    // leaves its muzzle on both sides; `1/29`'s of 3216 still parts, a
+    // node-1 round ours fires from `WALK` (parked 3743a).
     pin_eq!(w.firsts.len(), 65, "run1399b baseline");
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
@@ -334,26 +337,95 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3743, the first walk: **436** keys. Block 3495 carries 54
-    // standing rows (who=0's `aggression[1]`, `form`, who=1's groups and
-    // pools, `mirror` on nine of who=1's craft). Past them: building
-    // `0/2006`'s `damage` on 3505 (289 against 303), group 67's `held` on
-    // 3507, `1/124`'s `mirror` on 3511; then **the word's block 3520**:
-    // the Citizen `0/10` (TI 50) is held by ours alone, and who=0's
-    // `active`, `control` (9 against 8), `num_units[0]` and `peasants` (8
-    // against 7) and `gather_down` of `0/2001` (10 against 8) part with
-    // it. The Heavy Tank `1/55` (TI 253, piece 203) attacks `0/10`; its
-    // `ammo[1]` of 3514 leaves (5352, 30792, z 515), the tank's own
-    // square, in ours against (5166, 30496, z 553) in theirs and flies 7
-    // frames against 6, so theirs kills on 3519 and ours on 3520 (the
-    // leader rows agree again on 3521). `docs/AI.md` §367.2.
+    // Item 3743, the first walk: **436** keys; the word's block 3520 held
+    // the Citizen `0/10` (TI 50) in ours alone, who=0's `active`, `control`
+    // (9 against 8), `num_units[0]` and `peasants` (8 against 7) parting
+    // with it: the Main Battle Tank `1/55` (TI 253, piece 203)'s `ammo[1]`
+    // of 3514 left (5352, 30792, z 515), its own square, in ours against
+    // (5166, 30496, z 553) and flew 7 frames against 6, so theirs killed on
+    // 3519 and ours on 3520. With piece 203's bays and piece 207's pivot
+    // rows: **62** keys — block 3495's 53 standing rows (who=0's
+    // `aggression[1]`, `form`, who=1's groups and pools, `mirror` on the
+    // craft), group 67's `held` on 3507, `1/124`'s `mirror` on 3511, and
+    // the same families later; `0/10` dies on 3519 on both sides and the
+    // leader rows agree (`docs/AI.md` §367.2).
     pin_eq!(w.firsts.len(), 62, "run1421 baseline");
-    // Every round, both directions: 655 in ours against 697, the first
-    // parting the T80DES `1/29`'s `ammo[6]` on 3501 (`sx, sy, sz` 4920,
-    // 30888, 560 against 4641, 31056, 691; piece 207), then `1/55`'s
-    // `ammo[1]` on 3515.
+    // Every round, both directions: 655 against 697 and 367 parting before;
+    // now 655 against 662 and 74, none of them `1/55`'s — the T80DES
+    // node-1 rounds (parked 3743a).
     pin_eq!(w.rounds_read, (655, 662), "the rounds read");
     pin_eq!(w.rounds.len(), 74, "the rounds that part");
+}
+
+/// run1421b: the pair's closing window, blocks 3765..3798 at run1421's
+/// detail (item 3743). The word reached the game's last frame; run1421
+/// ends on 3770 and run1399's stride prints units only.
+pub(crate) const RUN1421B: &str =
+    "gamelog-run1421b-greatlakes-egyptian-information-closing-window-3765-3798.txt";
+
+/// The window: block 3765 through the closing block 3798.
+pub(crate) const WIDENING_EGYPTIAN_INFORMATION_CLOSING: (i64, i64) = (3765, 3798);
+
+/// **The pair's last blocks**: run1421b walked from run1398's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3743).
+pub(crate) fn egyptian_information_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[EGYPTIAN_INFORMATION.start],
+        true,
+        EGYPTIAN_INFORMATION.long,
+        "run1421b",
+        &[(RUN1421B, WIDENING_EGYPTIAN_INFORMATION_CLOSING.0)],
+        WIDENING_EGYPTIAN_INFORMATION_CLOSING,
+        1,
+        &[3798],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_information_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 33, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3743, the pair whole: **54** keys. Block 3765 carries 52
+    // standing rows — `form` on 20 units, who=0's `SITE[i].reg` (12) and
+    // `aggression[1]`, who=1's groups 64, 65, 66 and 70 with their pools,
+    // and `mirror` on eleven of who=1's craft (one family) — and the two
+    // craft minted later add their `mirror` (`1/128` on 3767, `1/129` on
+    // 3789). No other unit, building, city or leader field parts, no draw
+    // parts to 3797, and the closing block 3798 agrees.
+    pin_eq!(w.firsts.len(), 54, "run1421b baseline");
+    // Every round, both directions: 109 in ours against 110, 26 parting,
+    // the first the T80DES `1/42`'s `ammo[1]` on 3772 (`sx, sy, sz` 4392,
+    // 32088, 603 against 4245, 32066, 733: piece 207's node 1, which ours
+    // fires from `WALK`; parked 3743a).
+    pin_eq!(w.rounds_read, (109, 110), "the rounds read");
+    pin_eq!(w.rounds.len(), 26, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,
