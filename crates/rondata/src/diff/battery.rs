@@ -505,6 +505,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // held-out `EastIndiesEgyptianTier3`'s `(18, 7, 3)`, all other maps: no
     // Egyptian lobby held Great Lakes.
     (14, 7, 5),
+    // The Russians at a held Information age, East Indies (item 3721,
+    // `diff::russian_information_pair`), minted under rule (3) — not the
+    // Modern pair's `(18, 13, 5)`, this map at another difficulty, nor
+    // `(14, 13, 2)`, `(14, 13, 5)` or `(7, 13, 5)`, nor the held-out
+    // `GreatSaharaRussianTier4`'s `(7, 13, 4)`, all other maps.
+    (18, 13, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
