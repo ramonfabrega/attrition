@@ -491,7 +491,10 @@ fn classical_melee_s_egyptians_catch_up_to_city_state() {
         "2/2012's activation flags the city's roads"
     );
     assert_eq!(
-        (built.sim.ai[2].tech_cat_frame[0], built.sim.ai[1].tech_cat_frame[1]),
+        (
+            built.sim.ai[2].tech_cat_frame[0],
+            built.sim.ai[1].tech_cat_frame[1]
+        ),
         (1157, 1182),
         "theirs' closing LEADERDATA's queue frames"
     );

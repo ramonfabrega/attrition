@@ -14671,7 +14671,7 @@ spends a third `Guy::set_anim+0x97a < Unit::do_idle+0x7d` at 4, where ours goes 
   green, exit 0: no floor researches an age or an epoch that another seat holds (parked 3783a).
 
 **What is not established.**
-- The age and epoch catch-up terms beside it (`LAB_00651454`, `LAB_00651510`) are not carried (3783a).
+- The age ~~and epoch~~ catch-up term~~s~~ beside it (`LAB_00651454`~~, `LAB_00651510`~~) is not carried (3783a); the epoch's is built (item 3790, §150.4).
 - `num_players` is read as the seat count. A defeated seat is not read (3783b).
 - The vslot `+0x74` is named by the export's vtable for `TechTypeData`. No other type's slot was read: the call
   site indexes `techtypes`, so only a tech reaches it.
@@ -15107,7 +15107,63 @@ Block 1201 holds the standing families alone; on **1301** the state parts:
 swapped destinations on 1301 are the first thing to read.
 
 **What is not established**: the stand arm (`Lead::Stand`) is built and on no run (parked 3789a); `unit_masks2 &
-0x20000`, the marines' trench bit, is a `SEAM` (3789b); why theirs spends a thousand draws on 1284.
+0x20000`, the marines' trench bit, is a `SEAM` (3789b); ~~why theirs spends a thousand draws on 1284~~ (§150.4: the Stable
+`2/2012`'s road replan, its city's flag set by its activation once City State's sweep has pulled it in).
+
+## 150.4 An epoch's research takes the catch-up term — 1284 → 1382 (item 3790)
+
+**The booking.** Frame 1284: ours 15 draws against theirs' 1002, parting at index 5. Theirs spends 986
+`PathFinder::calc_road_cost+0x46 < … < PathFinder::astar_caravan_road+0x52b` (`report.py … draws 1284`) where ours
+spends the boar `8/5`'s `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The search is who=2's, from tile (40, 175)
+(`report.py … calls 1284`: `calc_road_cost whoA=2`): the corner of the Stable `2/2012` (corner (37, 172), 4×4, centre
+(7488, 33408)), on its replan slot, `(1284 + 2012) % 16 == 0` (`docs/ROADS.md` §1).
+
+**The direction: theirs acted.** Theirs replans 2012, 2011, 2008, 2007, 2006 and 2005 on their slots 1284–1291
+(`report.py … when PathFinder::calc_road_cost`): one city chain flagged. Ours' `RON_DEBUG_BUILDS` (now printing each
+building's `city`) has the Stable finish on 1279 with `city -1`, so `Build::activate` flags nothing.
+
+**Off the disk.** run1450's stride blocks print no building, city or leader record. Its closing block 2601 does:
+theirs' `2/2012` reads `city 0` (Thebes) at ours' position, and who=2's `LEADERDATA` has `tech_cat_frame` (Military,
+Civic, Commerce, Science) = (1157, 757, 760, 957), who=1's (582, 1182, 382, 982). `tech_cat_frame` is written when a
+tech is *queued* (`Build::queue_up`), so Civic's 757 dates the queueing of City State, not its gain. No run was taken.
+
+**Ours, step by step** (a probe, reverted whole): `get_town` refuses the Stable at placement on 757 — tiles (39, 174),
+(40, 174) and the row 175 lack `T & 0x100` (Thebes' even circle at radius 20; the centre tile (39, 174) is
+`vector_dist` 19 from (32, 156)) — so it stands cityless until a sweep, `civic_epoch_sweep`'s shape (Great Lakes'
+Barracks and Stable, `docs/AI.md` §63). Ours' who=2 City State (565) started on 1087 and was at 19,700 of 27,500 on
+1284: ours gains it on 1362, after the Stable's activation.
+
+**The mechanism** (`train_time@006508c0`, `LAB_00651510`, lines 381–408, read off the export): an epoch type
+(`0x227..0x242`) counts, over the eight leader slots in use, every leader whose `ages + epochs` exceeds this one's by
+more than three — `is_team` (in play `is_ally`) adds 1, anyone else 2 — and with `n > 0` takes `t × (2N − n + 2) /
+(2N + 2)`, `N = num_nations`, then falls into the Greeks' arm (`LAB_006515d7`). Ours' `ages`/`epochs` read: who=1
+holds 8 epochs from 1004 and 9 from 1129, who=2 4 from 811 and 5 from 1019, every `ages` 1. So from 1004 who=2's
+epochs run at 6/8.
+
+**The build** (`crates/sim/src/lib.rs`, `Sim::epoch_catch_up`, in `tech_time`'s tail where `held_elsewhere` sits):
+who=2's Military epoch (572) finishes on 1018 rather than 1087, City State lands by 1228 rather than 1362, its sweep
+pulls the Stable into Thebes, and the Stable's activation on 1279 flags the chain — the replans of 1284–1291.
+
+**Value diff.** Each leader's next queue frame is now theirs' closing `LEADERDATA`'s: who=2 queues its next
+Military epoch on **1157** (ours 957 before) and who=1 its next Civic on **1182** (ours 982); the closing block is
+past the word, so `classical_melee_s_egyptians_catch_up_to_city_state` pins both. On the window: block 1301, which
+parted on `1/16` (pos (21132, 4582) against (21192, 4432), its move's `dest_x` 21240 against 21528), `1/31`, `1/4`,
+`1/20`, `2/5`, `2/15` and the gaia `8/0`, now agrees on every unit; only the standing families stay (the AI's
+`group`/`pool` rows, `1/32`'s and `2/34`'s birth `g.angle`). The window moves to **1301..1632**
+(`WIDENING_CLASSICAL_MELEE`): 686 keys, rounds read (5, 2), 5 parting. The state first parts on **1401**: the human's
+`0/3` (pos (38729, 35466) against (38712, 35448), order kind 1 against 7), `0/26` (`hits_left` 119 against 124,
+`damage_o` 20 against 23), and who=1's `1/12` (pos (23649, 11336) against (23304, 11640), two orders against none)
+and `1/14`.
+
+**By mutation** (`tools/mutate.py`, `tech_time` without the term): the word is 1284 again, and the widening and the
+new test fail. Held. Every lobby's `first_parting` holds (116).
+
+**The next word, frame 1382**: ours 20 draws against theirs' 21, parting at index 2: ours
+`Leader::produce_building+0x1805` where theirs spends `Leader::make_stuff+0x63d`.
+
+**What is not established**: the age's catch-up (`LAB_00651454`, `ages_queued`) stays 3783a; `is_team`'s
+team-style-7 arm is a `SEAM` (3790a); the frame theirs gains City State is inferred from the replans and the queue
+frames, never printed.
 
 ## 151. Reserved for the next item on the rules track
 
