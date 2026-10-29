@@ -11079,3 +11079,5 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1429  run1405's line with --ai-tribe 0 and run1428's lobby   (the draw stream; ended itself on 3389)
 #   run1429b --map 14 --end-frame 3389 --allow-early-end --timeout 3600 --log-window 3295 3390 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the word 3313's window, to the game's end)
 # Checks: `rngcmp.py` run1428 vs run1429 -> 37 identical; run1429 vs run1429b -> 3390 identical.
+# ==== item 3766: pieces 60 and 196, the Aztec Modern word whole at 3389 (`docs/AI.md` §374.1; `docs/RUNS.md` run1441) ====
+#   run1441 --map 14 --end-frame 3296 --timeout 3600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 0 --cover cover=0, run1428's lobby, --tracer-def RON_STATE_FRAME=3294 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet)

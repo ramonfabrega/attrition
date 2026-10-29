@@ -33305,3 +33305,26 @@ Archive `rontrace-run1429b.log`, 72,032,800 bytes,
 SHA-256 `591134b162d9c395774a5a06beb2429533b164e1b6b0dcfac58a70531c0dc1df`.
 
 **What it holds**: the word's widening (`aztec_modern_pair_run1429b_s_word_frame_is_widened_whole`).
+
+## run1441 — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: a packet at logger frame 3294, piece 60 (2026-10-28, item 3766, `att-3766`)
+
+`docs/AI.md` §374.1. **What the disk could not answer**: the `AttachPos` rows of the Jaguar Infantry's piece 60.
+`get_position.py … entries 60` raised on 90 of the 92 packets on disk. run1224b and run1327 load the piece with
+`pos_num` 0, because no Jaguar Infantry had been built there. Piece 196's rows were on disk (run1164's), so this
+take is for piece 60 alone. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1441 --map 14
+--end-frame 3296 --timeout 3600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 0 --cover
+cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --tracer-def RON_STATE_FRAME=3294 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`: the block before
+run1429b's window, ahead of `1/22`'s round of 3296.
+- Pool lane 1. Launched 21:08:31, exited 21:08:56 (25.0 s launch to exit). `success`, seed 12345, 3297 frames.
+  `page_faults` 0; the receipt prints no `relaunches` field. Not filed: the packet is the product. `df -g ~` read
+  147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1441/map-14/frame-snapshot.bin`, 930,881,932 bytes,
+SHA-256 `1bad72eeb634f55395b87823ec7453df598e78368df736dd25f9a8b06ad58b24`.
+
+**What it holds**: piece 60's six rows (`entries 60`: node 0 at frame 12 of `CHAR_ATTACK1`; 14, twice, and 24 of
+`CHAR_ATTACK2`; 12 and 17 of `CHAR_ATTACK3`), `RData +0x88` 1.0. It also holds piece 196's seven rows, bit for bit
+run1164's. The sweeps are kept at `~/ron-data/lab-experiments/2026-10-28-item-3766/sweeps/`.
