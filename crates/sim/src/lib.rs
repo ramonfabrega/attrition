@@ -3933,7 +3933,7 @@ impl Sim {
     /// Thebes, and its activation on 1279 flags the city's roads.
     ///
     /// SEAM: `is_team`'s team-style-7 arm (a seat on team 8 is nobody's
-    /// team) is not carried; `is_ally` answers for it.
+    /// team) is not carried; the alliance test answers for it.
     pub(crate) fn epoch_catch_up(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
         if !matches!(self.tech_tree.kind(t), tech::Kind::Epoch { .. }) {
             return Vec::new();
@@ -3968,7 +3968,7 @@ impl Sim {
     /// researching it (item 3326, `docs/AI.md` §266).
     ///
     /// SEAM: the age's catch-up term ahead of it (`ages_queued`) is not
-    /// carried; the epoch's is [`Sim::epoch_catch_up`] (item 3790).
+    /// carried; the epoch's is built (item 3790).
     pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
         let age_or_epoch = matches!(
             self.tech_tree.kind(t),
@@ -3999,8 +3999,8 @@ impl Sim {
     /// SEAM: the block's other steps — `has_preq(RESEARCH_FASTER)`'s three
     /// quarters, Angkor Wat's `ANGKOR_RESEARCH` (0% shipped), Conquer the
     /// World's cards, the handicap, the lobby's `tech_cost`, and the
-    /// head's age catch-up term — are not carried ([`Sim::epoch_catch_up`]
-    /// carries the epoch's).
+    /// head's age catch-up term — are not carried (the epoch's is built,
+    /// item 3790).
     pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
         if self.has_rare(who, economy::RELICS) {
             vec![production::Adjust::Scale(
