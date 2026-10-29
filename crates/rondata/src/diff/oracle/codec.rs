@@ -13,7 +13,7 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Oracle> {
 pub(super) fn decode_into(bytes: &[u8], value: &mut Oracle) -> Result<()> {
     crate::capture::owned_codec::decode_into(bytes, value)
 }
-record!(Oracle { frame: Frame, groups: Vec<GroupDump>, leaders: [Option<BTreeMap<String, i64>>; 2], regions: [Option<BTreeMap<String, i64>>; 2], civilian: Option<crate::diff::golden::observations::Civilian> });
+record!(Oracle { frame: Frame, groups: Vec<GroupDump>, leaders: Vec<Option<BTreeMap<String, i64>>>, regions: Vec<Option<BTreeMap<String, i64>>>, civilian: Option<crate::diff::golden::observations::Civilian> });
 record!(Frame {
     n: i64,
     units: Vec<UnitDump>,
@@ -306,13 +306,14 @@ mod tests {
                 members: vec![GroupMemberDump::default()],
                 ..GroupDump::default()
             }],
-            regions: [
+            regions: vec![
                 Some(BTreeMap::from([("authored_region[0]".into(), 17)])),
                 None,
             ],
-            leaders: [
+            leaders: vec![
                 Some(BTreeMap::from([("Unicode: λ".into(), i64::MAX)])),
                 None,
+                Some(BTreeMap::from([("a third seat".into(), 3)])),
             ],
         };
         let bytes = encode(&value).unwrap();

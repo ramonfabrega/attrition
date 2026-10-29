@@ -22,9 +22,12 @@ use std::collections::BTreeMap;
 pub(super) struct Oracle {
     pub(super) frame: Frame,
     pub(super) groups: Vec<GroupDump>,
-    pub(super) leaders: [Option<BTreeMap<String, i64>>; 2],
+    /// One slot per seat the frame's `LEADERDATA` blocks name, `0..=max
+    /// who` (item 3791: a fixed two held a three-seat lobby's who=2 out of
+    /// every widening).
+    pub(super) leaders: Vec<Option<BTreeMap<String, i64>>>,
     pub(super) civilian: Option<super::golden::observations::Civilian>,
-    pub(super) regions: [Option<BTreeMap<String, i64>>; 2],
+    pub(super) regions: Vec<Option<BTreeMap<String, i64>>>,
 }
 #[cfg(test)]
 impl Oracle {
@@ -39,18 +42,23 @@ impl Oracle {
         let frame = IndexedCapture::frame_from_log(&log, n).unwrap();
         let block = log.frames().into_iter().find(|(k, _)| *k == n).unwrap().1;
         let groups = crate::gamelog::groups(block);
-        let leaders = std::array::from_fn(|who| {
-            log.leader_block(n, who as i64)
-                .map(|b| super::leader::theirs(&b))
-        });
-        let regions = std::array::from_fn(|who| {
-            include_regions
-                .then(|| {
-                    log.leader_block(n, who as i64)
-                        .map(|b| super::leader::region_theirs(&b))
-                })
-                .flatten()
-        });
+        let seats = log.leader_seats(n);
+        let leaders = (0..seats)
+            .map(|who| {
+                log.leader_block(n, who as i64)
+                    .map(|b| super::leader::theirs(&b))
+            })
+            .collect();
+        let regions = (0..seats)
+            .map(|who| {
+                include_regions
+                    .then(|| {
+                        log.leader_block(n, who as i64)
+                            .map(|b| super::leader::region_theirs(&b))
+                    })
+                    .flatten()
+            })
+            .collect();
         Self {
             frame,
             groups,
@@ -586,8 +594,8 @@ fn entry_rejects_corruption_staleness_and_wrong_frame_identity() {
     let value = Oracle {
         frame: Frame::default(),
         groups: vec![],
-        leaders: [None, None],
-        regions: [None, None],
+        leaders: vec![None, None, None],
+        regions: vec![None, None, None],
         civilian: None,
     };
     let bytes = pack("source version frame-position=0", &value).unwrap();
@@ -702,7 +710,7 @@ fn region_mode_has_distinct_identity_and_preserves_base_observations() {
     assert_eq!(original.frame, expanded.frame);
     assert_eq!(original.groups, expanded.groups);
     assert_eq!(original.leaders, expanded.leaders);
-    assert_eq!(original.regions, [None, None]);
+    assert_eq!(original.regions, vec![None]);
     assert_eq!(
         expanded.regions[0],
         Some(BTreeMap::from([
@@ -1006,4 +1014,39 @@ fn the_schema_key_moves_on_the_parser_and_the_codec_only() {
     }
     assert!(keyed(include_str!("oracle.rs")).contains("fn pack("));
     assert!(!keyed(include_str!("oracle.rs")).contains("fn the_schema_key_moves"));
+}
+
+/// **A leader compare walks the seats the lobby seats, never a literal**
+/// (item 3791): `for who in 0..2usize` in the widenings and a two-slot
+/// oracle cache held a three-seat lobby's who=2 out of every leader
+/// compare, and its Inca refund hid from 860 to a draw on 2160 (item 3788).
+/// The sources that walk a capture's `LEADERDATA` may not bound a seat
+/// loop, or a leader cache, by a number.
+#[test]
+fn a_leader_compare_walks_the_lobby_s_seats_never_a_literal() {
+    let sources: &[(&str, &str)] = &[
+        ("harness.rs", include_str!("harness.rs")),
+        ("golden.rs", include_str!("golden.rs")),
+        ("oracle.rs", include_str!("oracle.rs")),
+        ("oracle/codec.rs", include_str!("oracle/codec.rs")),
+        ("gunpowder_melee.rs", include_str!("gunpowder_melee.rs")),
+        ("classical_melee.rs", include_str!("classical_melee.rs")),
+    ];
+    // Spelt in pieces, so this test's own text is not a match.
+    let seat = |range: &str| format!("for who in {range}");
+    let mut needles: Vec<String> = ["0..2", "0..=1", "1..=2", "0..3", "1..3"]
+        .iter()
+        .map(|r| seat(r))
+        .collect();
+    needles.push(format!("i64>>; {}]", 2));
+    let mut hits = Vec::new();
+    for (name, text) in sources {
+        for (i, line) in text.lines().enumerate() {
+            let code = line.trim_start();
+            if !code.starts_with("//") && needles.iter().any(|n| code.contains(n.as_str())) {
+                hits.push(format!("{name}:{}: {}", i + 1, line.trim()));
+            }
+        }
+    }
+    assert_eq!(hits, Vec::<String>::new(), "a seat bound by a literal");
 }

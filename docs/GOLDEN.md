@@ -14918,7 +14918,8 @@ before).
 - `cities_tests::a_hero_s_killer_takes_general_plunder_in_wealth`.
 - `gunpowder_melee::gunpowder_melee_run1413_s_closing_state`.
 - `gunpowder_melee::gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund`: walks the game and compares who=1's
-  and who=2's six buckets against both windows. It refuses a key that neither side prints.
+  and who=2's six buckets against both windows. It refuses a key that neither side prints. Item 3791 widened it to
+  every seat's whole record as `gunpowder_melee_s_leaders_are_compared_on_every_seat` (§151).
 - **Mutations** (`tools/mutate.py`):
   - With no refund call, the run fails `first_parting`, `closing_state` and the stride widening (exit 101). The
     leader test also fails on 860 who=2 (food 1949 against 1965).
@@ -15303,12 +15304,71 @@ the widening and the closing state fail. Held.
 **What is not established**: every arm of the table but the land ones the Light Horse reads rests on a reading
 (parked 3793c); whether `Unit::process_attrition` and `Leader::action_declare` read the same table (3793b).
 
-## 151. Reserved for the next item on the rules track
+## 151. Every seat's leader is compared — the harness's seat coverage (item 3791)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3788c): the widenings' leader loops were `for who in 0..2usize` and the oracle cache held two
+leaders, so a third seat's `LEADERDATA` was never read. A widening, not a residue item: it names no mechanism.
+
+**The bounds, and what each now reads.**
+- `harness.rs`' `widen_walk` and `widen_east_indies_walk`, and `golden.rs`' `widen_civilians_walk` and its golden
+  walk: `0..players`, the sim's seat count (`setup::player_count`, seats 0..8 off the start dump). The engine prints
+  its reserved leaders 8 and 9 beside the seats, and no loop asks for them.
+- `oracle.rs`/`oracle/codec.rs`: `leaders` and `regions` are one slot per `who` the frame prints
+  (`Log::leader_seats`), read by `.get(who)`. The codec schema moved, so every cached oracle entry is a new
+  generation.
+- `oracle::a_leader_compare_walks_the_lobby_s_seats_never_a_literal` rejects a seat loop or a leader cache bounded
+  by a number in the six sources that walk `LEADERDATA`. It was made to fail once: `harness.rs:4867` set back to
+  `0..2usize` (exit 101, the line named).
+- `leader.rs`, `build.rs`, `city.rs` and the pair modules keep their `0..2` loops. Each reads a two-seat capture.
+
+**Which lobbies seat three.** `GAME INFO`'s `BEGIN PLAYER` blocks, counted over all 1,108 dumps on disk: 1,086 seat
+two, and 21 seat three. The three-seat ones are the two melees (run1412–1413b, run1461–1461b; run1449–1450b) and
+the Great Lakes team game (runs 1077–1114). `blind.rs` reads the team game for coverage alone, so no state compare
+walks it. `CHAIRS` reads 3 in every dump; it is not the seat count.
+
+**What the melees' dumps print.** The long traces (run1413, run1450) print `LEADERDATA` only in the closing dump,
+which sits after the last `BEGIN FRAME`, outside it. `leader_block` never reached it, so both melee widenings read
+0 leader rows on every seat. The start dumps (run1412, run1449) print every seat's record whole on frames 1 and
+37, 37's in a `FULL DUMP` after its frame. `Log::closing_leader_block` reads both shapes. run1461b and run1461 print
+the leaders on every frame of 595..2161 at `LEADERS=2`, which leaves 1,033 keys unprinted, `num_units` among them.
+
+**A trailing dump is written partway through its frame** (measured, three dumps; no reading). It is the dump after
+the last `BEGIN FRAME`. The computers' `leftover` agrees at frame n, and the human's at n − 1:
+- run1412's 37;
+- run1449's 37;
+- run1413's 2601, where who=0's `leftover` and `production_step` agree on 2600 and part on 2601, and who=1's and
+  who=2's part on 2600 and agree on 2601.
+
+`seat_walk` reads a human seat's trailing record one frame early. The mutant that reads every seat at n is held:
+both tests fail on who=0's `leftover`. That the engine writes the dump after the computers' resource step and before
+the human's is the shape of the data, not a function read.
+
+**The verdicts.**
+- **The first melee** (`gunpowder_melee_s_leaders_are_compared_on_every_seat`, which replaces 3788's two-seat bucket
+  test): 1,569 records on each of the three seats, 442,341 rows. All three seats are **whole on every frame of
+  595..2161**, so who=2's stock agrees on every frame from the staging to 2161. The draw floor stands at 2,600 of
+  2,600, and the closing units are unchanged.
+  - **The closing dump parts on one row**: who=1's `num_units[302]` (`TypeIndex` 352), ours 1, theirs 0, on 2601.
+    It is parked as 3791a.
+  - The rest is the standing family the pairs pin (`leader.rs`'s `PARTS_ON_RUN115`, parked 2385), counted by seat
+    (12, 10, 9): `SITE[i].reg` and `aggression[j]`, on frames 1 and 37 on every seat, and on who=0 (with who=1's
+    `SITE[0].reg`) at the close.
+  - The refund mutant is held: who=2's food parts on 860 (1949 against 1965), as in 3788.
+- **The second melee** (`classical_melee_s_leaders_are_compared_on_every_seat`): run1449's frames 1 and 37 on every
+  seat, 2 records each. Only the standing family parts (12, 9, 9). run1450's closing dump at 2601 lies past the
+  word, so it is not compared while the game parts. Its word, 1382, does not move.
+- **Every two-seat lobby**: unchanged by construction. `player_count` is 2 on each, so `0..players` is the old
+  `0..2`.
+
+**The disk's limit.** Ours' who=1 counts one `TypeIndex` 352 from 959, when the hero's type moves from 354 to 352. It
+keeps that count through the Despot `1/28`'s death on 1463 (§149.12) to the close. Theirs closes on 0, with one unit
+of type 354 and none of 352. No dump between run1412's 37 and the close prints `num_units`, so the frame theirs'
+count fell is not on disk. A capture at a `LEADERS` level that prints `num_units`, over 1460..1466, is what would
+read it (3791a). Run 1464 was not taken: the row names no draw floor.
+
+**Tests.** `gunpowder_melee::gunpowder_melee_s_leaders_are_compared_on_every_seat`,
+`classical_melee::classical_melee_s_leaders_are_compared_on_every_seat`,
+`oracle::a_leader_compare_walks_the_lobby_s_seats_never_a_literal`.
 
 ## 152. Reserved for the next item on the rules track
 

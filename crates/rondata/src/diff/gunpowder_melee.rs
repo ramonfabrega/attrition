@@ -17,6 +17,7 @@
 use super::testkit::*;
 use super::*;
 use crate::testenv::{dump, install};
+use std::collections::BTreeMap;
 
 /// run1412: the lobby's `DUMP_ALL` start, 37 frames.
 pub(crate) const MELEE_START: &str = "gamelog-run1412-greatsahara-gunpowder-melee-start.txt";
@@ -1231,37 +1232,85 @@ pub(crate) const RUN1461B: &str =
 pub(crate) const RUN1461: &str =
     "gamelog-run1461-greatsahara-gunpowder-melee-leaders-window-1700-2161.txt";
 
-/// The six goods as [`crate::diff::leader::rows`] and the dump spell a
-/// bucket: `bucket[2:wealth]`.
-const GOODS: [&str; 6] = ["food", "timber", "wealth", "knowledge", "metal", "oil"];
-
-/// **An Inca unit refunds its price, and a hero pays its killer** (item
-/// 3788, `docs/GOLDEN.md` §149.12): run1461b's and run1461's every frame,
-/// both computers' stockpiles, walked from run1412's start with the script
-/// staged. The widening's leader rows read seats 0 and 1 only
-/// (`harness.rs`, `for who in 0..2`, and the oracle's two-leader cache), so
-/// who=2 — the Inca — is read here. Without the refund who=2's buckets
-/// part on logger frame 860 (+16 food, +11 timber) and 864 (+25 timber,
-/// +25 metal); without the hero's plunder on 1464 (+100 wealth).
+/// **Every seat's leader, whole, on every frame that prints one** (item
+/// 3791, `docs/GOLDEN.md` §151; item 3788's bucket test, §149.12, widened):
+/// run1461b's and run1461's every frame (595..2161) and run1413's closing
+/// dump (2601), walked from run1412's start with the script staged. Each
+/// seat the lobby seats (`0..players`, never a literal: who=2's Inca refund
+/// hid from 860 to 2160 behind a loop over two) compares every key
+/// [`crate::diff::leader::rows`] carries and the dump prints. Without the
+/// refund who=2's buckets part on logger frame 860 (+16 food, +11 timber);
+/// without the hero's plunder on 1464 (+100 wealth).
 #[test]
-fn gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund() {
+fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
     let _pins = Pins::hold();
-    let Some(inst) = install() else {
-        return;
-    };
-    let (Some(long), Some(start), Some(tr), Some(early), Some(late)) = (
-        dump(MELEE_LONG.0),
-        dump(MELEE_START),
-        trace(MELEE_LONG.1),
-        dump(RUN1461B),
-        dump(RUN1461),
+    let Some(w) = seat_walk(
+        melee_script,
+        MELEE_START,
+        MELEE_LONG,
+        &[MELEE_START, RUN1461B, RUN1461],
+        true,
     ) else {
-        eprintln!("skipping: no {RUN1461B} (set RON_GAMELOG_DIR)");
         return;
     };
-    let rows = crate::diff::setup::with_staged_script(melee_script(), || {
+    w.report("run1412+run1461b+run1461+closing");
+    pin_eq!(w.players, 3, "the seats the lobby seats");
+    // run1412's frames 1 and 37, the 1566 frames of 595..2161, and the
+    // closing dump: one record a seat on each.
+    pin_eq!(
+        w.records.clone(),
+        vec![1569, 1569, 1569],
+        "leader records compared, by seat"
+    );
+    pin_eq!(
+        w.unprinted.len(),
+        1033,
+        "keys run1461's `LEADERS=2` does not print"
+    );
+    // Item 3791: the standing family on frames 1 and 37 on every seat,
+    // and on who=0 (and who=1's `SITE[0].reg`) at the close.
+    pin_eq!(w.standing(), vec![12, 10, 9], "standing keys, by seat");
+    // Item 3791: the close's one other row (`docs/GOLDEN.md` §151, parked
+    // 3791a). Ours' who=1 counts one `TypeIndex` 352 from 959, through
+    // the Despot `1/28`'s death on 1463, to the close; theirs' closes on
+    // 0, and no dump between run1412's 37 and the close prints
+    // `num_units`.
+    pin_eq!(
+        w.rest(),
+        vec!["who=1 num_units[302] 2601: ours 1 theirs 0 (1, to 2601)".to_string()],
+        "the keys that part, by seat"
+    );
+}
+
+/// Walks a melee from its start dump with its script staged and compares
+/// every seat's `LEADERDATA` (`0..players`) on every frame each of
+/// `windows` prints, and — with `closing` — the long's closing dump at its
+/// last `BEGIN FRAME`'s number (item 3791). That dump is written partway
+/// through its frame: the computers' `leftover` agrees there and the
+/// human's one frame before (run1413, `docs/GOLDEN.md` §151).
+pub(crate) fn seat_walk(
+    script: fn() -> crate::golden::Script,
+    start: &str,
+    long: (&str, &str),
+    windows: &[&str],
+    closing: bool,
+) -> Option<SeatWalk> {
+    let inst = install()?;
+    let (Some(path), Some(start), Some(tr)) = (dump(long.0), dump(start), trace(long.1)) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", long.0);
+        return None;
+    };
+    let mut paths = Vec::new();
+    for w in windows {
+        let Some(p) = dump(w) else {
+            eprintln!("skipping: no {w} (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        paths.push(p);
+    }
+    crate::diff::setup::with_staged_script(script(), || {
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(long);
+        let text = crate::capture::read(path);
         let start_text = crate::capture::read(start);
         let log = Log::parse(&text);
         let start_log = Log::parse(&start_text);
@@ -1270,67 +1319,168 @@ fn gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund() {
         borrow_from_siblings(&mut init, &[&sibling]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        // Each window's buckets, by logger frame and seat.
-        let mut theirs = std::collections::BTreeMap::new();
-        for path in [early, late] {
-            let t = crate::capture::read(path);
-            let l = Log::parse(&t);
-            for (n, b) in l.frames() {
-                for l in b.kids("LEADERDATA") {
-                    let Some(who) = l.int("who").filter(|w| (1..=2).contains(w)) else {
-                        continue;
-                    };
-                    let m = crate::diff::leader::theirs(&l);
-                    let bucket: Vec<Option<i64>> = (0..6)
-                        .map(|g| m.get(&format!("bucket[{g}:{}]", GOODS[g])).copied())
-                        .collect();
-                    theirs.insert((n, who), bucket);
+        let players = built.sim.players.len();
+        let mut theirs = BTreeMap::new();
+        let mut trailing = BTreeMap::new();
+        // Each window's frames, and the dump after its last `BEGIN FRAME`
+        // (a start dump's 37, the long's close), read at that frame's number.
+        let mut read = |l: &Log, frames: bool| {
+            if frames {
+                for (n, _) in l.frames() {
+                    for who in 0..players {
+                        if let Some(block) = l.leader_block(n, who as i64) {
+                            theirs.insert((n, who), crate::diff::leader::theirs(&block));
+                        }
+                    }
                 }
             }
+            let Some(n) = l.frames().last().map(|(n, _)| *n) else {
+                return;
+            };
+            for who in 0..players {
+                if let Some(block) = l.closing_leader_block(who as i64) {
+                    trailing.insert((n, who), crate::diff::leader::theirs(&block));
+                }
+            }
+        };
+        for p in &paths {
+            let t = crate::capture::read(p);
+            read(&Log::parse(&t), true);
         }
-        // A key that reads on neither side compares nothing (the first
-        // spelling of this test read `bucket[2]` and passed every mutant).
-        assert!(
-            theirs.values().all(|b| b.iter().all(Option::is_some)),
-            "every printed bucket read"
-        );
-        let last = theirs.keys().map(|(n, _)| *n).max().unwrap_or(0);
-        let mut compared = 0usize;
-        let mut parted = Vec::new();
+        if closing {
+            read(&log, false);
+        }
+        let mut w = SeatWalk::new(players);
+        let last = theirs
+            .keys()
+            .chain(trailing.keys())
+            .map(|(n, _)| *n)
+            .max()
+            .unwrap_or(0);
         while built.sim.frame < last {
             built.tick();
             // Logger frame n prints the state ours holds after frame n − 1.
             let n = built.sim.frame;
-            for who in 1..=2usize {
-                let Some(want) = theirs.get(&(n, who as i64)) else {
-                    continue;
+            for who in 0..players {
+                let rows = || crate::diff::leader::rows(&loaded, &built, who);
+                if let Some(t) = theirs.get(&(n, who)) {
+                    w.compare(n, who, &rows(), t);
+                }
+                // A trailing dump is written after the computers' resource
+                // step of its frame and before the human's: a computer is
+                // read at n, the human at n − 1 (measured, §151).
+                let at = if built.sim.nation[who].human {
+                    n + 1
+                } else {
+                    n
                 };
-                let m: std::collections::BTreeMap<String, i64> =
-                    crate::diff::leader::rows(&loaded, &built, who)
-                        .into_iter()
-                        .collect();
-                let got: Vec<Option<i64>> = (0..6)
-                    .map(|g| m.get(&format!("bucket[{g}:{}]", GOODS[g])).copied())
-                    .collect();
-                assert!(got.iter().all(Option::is_some), "ours' buckets read");
-                compared += 1;
-                if &got != want && parted.len() < 4 {
-                    parted.push(format!("{n} who={who}: ours {got:?} theirs {want:?}"));
+                if let Some(t) = trailing.get(&(at, who)) {
+                    w.compare(at, who, &rows(), t);
                 }
             }
         }
-        (theirs.len(), compared, parted)
-    });
-    let (printed, compared, parted) = rows;
-    eprintln!("run1461b+run1461 leaders: {printed} printed, {compared} compared, {parted:?}");
-    pin_eq!(
-        parted,
-        Vec::<String>::new(),
-        "the computers' buckets that part"
-    );
-    pin_eq!(compared, printed, "every printed leader compared");
-    // Item 3788: 1566 frames (595..2161) × who=1 and who=2.
-    pin_eq!(printed, 3132, "the leader records printed");
+        Some(w)
+    })
+}
+
+/// One `(who, key)`'s first parting `(frame, ours, theirs)`, the last
+/// frame it parts on, and how many records it parts on.
+pub(crate) type Parting = ((i64, i64, i64), i64, usize);
+
+/// A walk's leader compare, kept by seat: the records each seat compared,
+/// and each `(who, key)`'s first parting (item 3791).
+pub(crate) struct SeatWalk {
+    pub players: usize,
+    pub records: Vec<usize>,
+    pub rows: usize,
+    /// `(who, key)` → its first parting `(frame, ours, theirs)`, the last
+    /// frame it parts on, and how many records it parts on.
+    pub firsts: BTreeMap<(usize, String), Parting>,
+    pub unprinted: std::collections::BTreeSet<String>,
+}
+
+impl SeatWalk {
+    pub(crate) fn new(players: usize) -> Self {
+        Self {
+            players,
+            records: vec![0; players],
+            rows: 0,
+            firsts: BTreeMap::new(),
+            unprinted: Default::default(),
+        }
+    }
+
+    pub(crate) fn compare(
+        &mut self,
+        n: i64,
+        who: usize,
+        mine: &[(String, i64)],
+        theirs: &BTreeMap<String, i64>,
+    ) {
+        self.records[who] += 1;
+        for (k, v) in mine {
+            let Some(&y) = theirs.get(k) else {
+                self.unprinted.insert(k.clone());
+                continue;
+            };
+            self.rows += 1;
+            if *v != y {
+                let e = self
+                    .firsts
+                    .entry((who, k.clone()))
+                    .or_insert(((n, *v, y), n, 0));
+                e.1 = n;
+                e.2 += 1;
+            }
+        }
+    }
+
+    /// `who=<seat> <key> <frame>: ours <v> theirs <v> (<records>, to
+    /// <last>)`, first frame first.
+    pub(crate) fn parted(&self) -> Vec<String> {
+        let mut v: Vec<_> = self.firsts.iter().collect();
+        v.sort_by_key(|((who, k), ((n, ..), ..))| (*n, *who, k.clone()));
+        v.iter()
+            .map(|((who, k), ((n, o, t), last, c))| {
+                format!("who={who} {k} {n}: ours {o} theirs {t} ({c}, to {last})")
+            })
+            .collect()
+    }
+
+    /// The standing family the two-seat pairs pin too (`leader.rs`'s
+    /// `PARTS_ON_RUN115`, parked 2385): each seat's `SITE[i].reg` and
+    /// `aggression[j]` rows, counted by seat.
+    pub(crate) fn standing(&self) -> Vec<usize> {
+        let mut by = vec![0; self.players];
+        for (who, k) in self.firsts.keys() {
+            if is_standing(k) {
+                by[*who] += 1;
+            }
+        }
+        by
+    }
+
+    /// Every other parting, as [`Self::parted`] spells it.
+    pub(crate) fn rest(&self) -> Vec<String> {
+        self.parted()
+            .into_iter()
+            .filter(|l| !is_standing(l.split(' ').nth(1).unwrap_or("")))
+            .collect()
+    }
+
+    pub(crate) fn report(&self, name: &str) {
+        eprintln!(
+            "{name} leaders: {} seats, records {:?}, {} rows, {} keys parted, {} unprinted",
+            self.players,
+            self.records,
+            self.rows,
+            self.firsts.len(),
+            self.unprinted.len()
+        );
+        for l in self.parted() {
+            eprintln!("  {l}");
+        }
+    }
 }
 
 /// **The melee's closing state** (item 3788): run1413's closing block, the
@@ -1383,4 +1533,8 @@ fn gunpowder_melee_run1413_s_closing_state() {
     pin_eq!(e.compared, 145, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
+}
+
+fn is_standing(k: &str) -> bool {
+    (k.starts_with("SITE[") && k.ends_with("].reg")) || k.starts_with("aggression[")
 }
