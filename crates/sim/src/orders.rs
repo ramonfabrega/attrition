@@ -9040,8 +9040,23 @@ impl Sim {
             // its captain's `ATTACK` target with no search, and finds
             // nothing when its captain is not attacking; a captain, or a
             // follower whose captain's target it may not take, searches.
+            //
+            // **And its defensive-post arm** (`bVar3`, item 3784,
+            // `docs/GOLDEN.md` §149.10): `LAB_005fdb9e` calls
+            // `find_new_target` whole, so a `DEFENSIVE` unit whose dead
+            // target ends its attack keeps its post in what it finds or
+            // walks home to it ([`Self::keep_def_post`]). run1413's Dragoon
+            // `2/20` stands back on its post (14808, 16968) on block 1001.
+            let post = if state.stance == combat::Stance::Defensive {
+                self.def_post(u)
+            } else {
+                None
+            };
             self.kill_current_order(u);
-            self.find_melee_target_added(u);
+            let found = self.find_melee_target_added(u);
+            if let Some(p) = post {
+                self.keep_def_post(u, found.is_some(), p);
+            }
             // **The frozen frame's mark** (item 502, `docs/COMBAT.md`
             // §43.2). `Unit::fight@005fd4d0`'s invalid-target branch ends
             // at `LAB_005fdb9e`, and its tail is
