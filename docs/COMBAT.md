@@ -1635,8 +1635,7 @@ target type's `attack`, zeroed for an ANTI_AIR target of an attacker not of
 the air domain. The arm between (`64f171`: a target whose object flags carry
 `0x20` takes the weight only with `num_inside` non-zero) is built by item
 3615 (`docs/AI.md` §326.1) with the class arm's city `×5`: an empty city
-skips the `×5` and the `+1,000,000`. Alone, the gate moved Great Lakes'
-second game (5930 → 5158); together, every floor holds. This crate gave the
+skips the `×5` and the `+1,000,000`. This crate gave the
 ×5 to every attacker until then, and run404's human `0/7` re-pointed its
 strafe at the Radar on tick 818 for it.)* Unit targets: combat-role `×20`;
 spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
@@ -1652,9 +1651,7 @@ packet returns 168 for the Trireme `1/6` where the arm-less value is 66,888,
 unit this crate widens). A city at zero
 hits `99,999`; negative `9,999,999`; **out of range and not raiding `/5`, on
 this function's own range test** (below); `v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 99,996) /
-5` (`0x1869c`, off the listing at `0064f298`), floor 15; **every step in a 32-bit `int`** (`imul`/`idiv`): a product
-past 2³¹ wraps negative and takes the `9,999,999` arm (item 3767, run1440's packet: the pack-casting Bombard `2/23`
-scores 100,000, `docs/GOLDEN.md` §149.5); a detected hidden unit 1; an air target for a non-ANTI_AIR
+5`, floor 15; all in a wrapping 32-bit `int` (GOLDEN §149.5); a detected hidden unit 1; an air target for a non-ANTI_AIR
 attacker 2.
 
 **The `/5` is the function's own range test, and `in_range` is only its
