@@ -11117,3 +11117,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1450  --map 7 --end-frame 2600 --timeout 3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file tools/gamelog/golden/melee-classical.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1, run1449's profiles and seats   (the staged melee)
 #   run1450b run1450's line with --cover cover=1   (the coverage twin)
 # Checks: `rngcmp.py` run1449 vs run1450 -> 37 identical; run1450 vs run1450b -> 2601 identical; `samegame.py` run1450 vs run1450b -> 26 common, 0 differing.
+# ==== item 3785: the second melee's word 718, a packet and a per-frame window (`docs/GOLDEN.md` §150.1; `docs/RUNS.md` run1457) ====
+#   run1457  --map 7 --end-frame 721 --timeout 3600 --log-window 660 720 --ffwd-minute 3 --cover cover=0 --cmd-file tools/gamelog/golden/melee-classical.cmd --detail end:MISC,UNITS=3,GUYS=4,AMMO=5, run1449's profiles and seats, --tracer-def RON_STATE_FRAME=700 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet; not filed)
+# Checks: `rngcmp.py` run1450 vs run1457 -> 722 identical.

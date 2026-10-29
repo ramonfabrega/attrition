@@ -33820,3 +33820,28 @@ SHA-256 `d339e3b1c7b7d85004dc20c4a01a46d9130d94986a435a789033b793d2a03556`.
 **What it holds**: the second melee's coverage, pinned in `blind::TRACES`. It enters 50 of the `unit` stem's 106 open
 functions and **none of the 51 Classical's column lacks** (run1215 entered the other 55); the matrix does not move
 while the game parts (parked 3774b).
+
+## run1457 — the second melee, a held Classical age on Great Sahara: a packet at logger frame 700 and the window 660..720 (2026-10-29, item 3785, `att-3785`)
+
+`docs/GOLDEN.md` §150.1. **What the disk could not answer**: no packet on file fields the Nubians' Kushite Archers
+(piece 124), the Camel Archer (141) or the Royal Balamob Slingers (39), and their `AttachPos` rows exist only in a
+game that builds the type; run1450's stride of 100 prints no round from frame 673 to 700, so which side's round struck
+`1/19` on 687, and when, was not on disk. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1457 --map 7
+--end-frame 721 --timeout 3600 --log-window 660 720 --ffwd-minute 3 --cover cover=0 --cmd-file
+tools/gamelog/golden/melee-classical.cmd --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --profile PLAYERS=2 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --seat-tribe 1=5 --seat-tribe 2=7
+--tracer-def RON_STATE_FRAME=700 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 07:11:10, exited 07:11:30 (20.5 s launch to exit). `success`: 722 frames,
+  `page_faults` 0, `relaunches: []`. `rngcmp.py` against run1450: 722 of 722 identical. Not filed: the packet and the
+  window's gamelog stay in the run's directory. `df -g ~` read 142 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1457/map-7/frame-snapshot.bin`, 822,029,492 bytes,
+SHA-256 `db4ba416c6eb5fa29eb2f8cdf41eb66c035566b5d7a85a6aaf43360ffb803f00`.
+
+**What it holds**:
+- The window: who=0's rounds from their first frame. `0/14`'s of 674 at `1/19` leaves (15167, 15587, 690) and flies
+  14, and `1/19`'s damage steps on 687, 688 and 689. `0/19`'s stone of 713 at the Catapult `1/26` leaves (16772,
+  15529, 699).
+- The packet: `get_position.py … entries` 124 (four rows, three attack, `RData` 1.0), 141 (nine, 0.9) and 39 (three,
+  1.0). The sweeps are under `~/ron-data/lab-experiments/2026-10-29-item-3785/`.

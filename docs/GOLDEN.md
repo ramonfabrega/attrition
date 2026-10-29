@@ -14753,8 +14753,71 @@ own square in ours where theirs looses 269 higher and off the square — **the f
 **What the twin enters**: 50 of the `unit` stem's 106 open functions, all already entered by run1215 — **0 of the
 51** the Classical column lacks (parked 3774b). The matrix and the lockstep bytes do not move while the game parts.
 
-**What is not established**: which unit strikes second on 718 in theirs; whether `1/19`'s earlier blow is the Camel
-Archer's round or another's; the Camel Archer's bay rows (a packet's `AttachPos`, as 3759's).
+**What is not established**: ~~which unit strikes second on 718 in theirs~~ (the Greek Catapult `1/26`, §150.1);
+~~whether `1/19`'s earlier blow is the Camel Archer's round or another's~~ (the Kushite Archers `0/14`'s, §150.1);
+~~the Camel Archer's bay rows~~ (a pivot piece's `RELEASES` rows, §150.1).
+
+## 150.1 The human's bows and slings loose from the figure — 718 → 784 (item 3785)
+
+**The booking.** Frame 718: ours 13 draws against theirs' 14, parting at index 1, where theirs strikes a second
+time (`Unit::fight+0x9b0`) and ours walks the General `2/28`. On block 701 the Greek Phalanx `1/19` (TI 133) read
+`damage_frame` 688 against 687 and `hits_left` 115 against 108, and the Camel Archer `0/17`'s round left (15864,
+15672, 566) against (15828, 15703, 835). 3774's hypothesis: piece 141 has no `launch::BAYS` row.
+
+**The direction, off the disk and run1457.**
+- **Who struck `1/19`.** Block 701 names `damage_o` 14, `damage_who` 0 on both sides: the human's Kushite Archers
+  `0/14` (TI 174, piece 124), with no round of theirs aimed at it in flight on 701. Ours' `RON_DEBUG_AMMO` shows three
+  rounds at it, from `0/14`, `0/15` and `0/16`, all loosed on 673 from each figure's own square. `0/14`'s flies 15 and
+  lands on 688.
+- **run1457's window (660..720, every frame)** prints theirs' three. `0/14`'s leaves (15167, 15587, 690), a bay ahead
+  of the figure, and flies 14. `0/15`'s and `0/16`'s fly 15 and 16 as ours'. `1/19`'s damage steps 0 → 16 + 10/16 on
+  687 → 26 + 15 on 688 → 37 + 4 on 689, and `damage_frame` keeps the first blow's 687. So the parting is the first
+  round landing a frame late. With the row, ours' blows match all three to the sixteenth (block 701 agrees), so the
+  seven hit points were that round's timing too. No `BAYS` row for piece 124 either.
+- **The second strike on 718** is the Greek Catapult `1/26` (TI 265) answering the human's Royal Balamob Slingers
+  (TI 89, piece 39). Their stones leave bays in theirs: `0/19`'s of 713 at (16772, 15529, 699), flying 4. No `BAYS`
+  row for piece 39.
+
+**The rows** (`crates/sim/src/launch.rs` `BAYS`, `crates/sim/src/pivot.rs` `NODES`, `RDATA_SCALE`, `RELEASES`).
+run1457's `RON_STATE_FRAME=700` packet fields all three pieces; `get_position.py … entries`:
+
+| piece | type | rows | `RData +0x88` | fit |
+|---|---|---|---|---|
+| 124, Kushite Archers | 174 | node 0, anims 11–13 at frame 15 | 1.0 | `fit_bay.py`: piece 126's three rows exactly (386, 495, 3512 points) — the Apedemak Archers' model |
+| 39, Royal Balamob Slingers | 89 | node 0, 11 at 18, 12 at 19, 13 at 21 (piece 38's keys) | 1.0 | 46, 223, 428 points; centroids kept |
+| 141, Camel Archer | 191 | pivot node 4 and release node 0; 10, 11, 12 at frame 13, 13 at 10 | 0.9 | a pivot piece, 3770's shape: `pivot 141 0 <anim> <time> 1`, four sweeps of 92,416 cells, seven `float_lands`; `sweep 141 4 0 0` agrees on all 361 degrees |
+
+Sweeps and tables: `~/ron-data/lab-experiments/2026-10-29-item-3785/`. Every who=0 round run1457 prints from its first
+frame is reproduced at the dump's `sx, sy` and `sz − z` from the figure's pose on the frame before: six Kushite rounds,
+six stones, and the Camel Archer's two (`CHAR_ATTACK2` at turret step 1, where step 0 lands on the same point;
+`CHAR_ATTACK1` at step 7, run1450's block-701 round).
+
+**Which row moved the word, by mutation.** With piece 39's `CHAR_ATTACK1` row out, the word is 718 again, with the
+same index-1 parting. With piece 124's or 141's out, the word stays at 784, and the widening's pins move: 513 → 518
+keys, or 15 → 20 parting rounds. So the slingers carry the draw floor, and the archers' rows close block 701's state.
+
+**The score: 718 → 784** (the sequence; the count 786). `gunpowder_melee::` and every other `first_parting` hold.
+
+**The value diff.** `classical_melee_run1450_s_word_window_is_widened_whole`, window 601..968: **513** keys (988
+before), rounds read (14, 13), 15 parting (22). Block 701 is the standing families alone (`group:*.held`, `pool:*`,
+10 rows). `1/19` agrees there (`damage_frame` 687, `hits_left` 108), and so does `0/17`'s `ammo[4]`. The word's frame
+writes no block. The state parts next on block 801. The parted unit is the Barbarians `0/21`, whose draw is index 30:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `0/21`, Barbarians (TI 154, land, who 0) | `pos` | (16714, 15364) | (16440, 15096) |
+| | `order:kind` / `orders.len` | 1 / 2 | 10 / 1 |
+| | `recharging` | 0 | 27 |
+| | `g.ox[0]` (target `o`, who 1) | 26 | 16 |
+| | `path:length` | 3 | 0 |
+
+**The next word, frame 784.** Ours spends 47 draws against 47, parting at index 30. Ours spends the Barbarians
+`0/21`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`; theirs spends `Guy::set_anim+0xf2f < Guy::move+0x166`, which
+ours spends one index later, for `0/25`. **The direction**: ours walks `0/21` where theirs does not. On 801
+theirs' `0/21` stands and swings at `1/16`, and ours' walks toward the Catapult `1/26`.
+
+**What is not established**: why `0/21` walks in ours between 718 and 784 (its target choice, 26 against 16, is the
+first question); the Camel Archer's `CHAR_ATTACKWALK` row against a printed round (none in run1457's window).
 
 ## 151. Reserved for the next item on the rules track
 

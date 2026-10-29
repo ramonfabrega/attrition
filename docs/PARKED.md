@@ -12675,13 +12675,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WX — reserved
+## Parked by item 3785, 2026-10-29 — the second melee's bows and slings
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3785a) **The booked mechanism was the wrong piece, and the right one was off the booking.** 3774 named the Camel
+Archer's piece 141 for the word 718; run1457 put the block-701 blow on the Kushite Archers (piece 124) and the 718
+strike on the Royal Balamob Slingers (piece 39), and mutation says only piece 39's row moves the draw floor (piece 124's
+and 141's move the widening's pins, 513 → 518 keys and 15 → 20 rounds). All three were built off one packet. No score
+is named: the record is DECISIONS 42's shape once more, and the frame was right.
+
+(3785b) **The Camel Archer's `CHAR_ATTACKWALK` row is built and no printed round confirms it.** run1457's window holds
+`0/17`'s rounds of 674 (`CHAR_ATTACK2`) and 699 (`CHAR_ATTACK1`) only; `pivot 141 0 10 13 1` agrees cell for cell
+with the row (one `float_lands`), but no capture has the unit firing on the move. A capture where it moves while
+engaged is the falsifier.
 
 ## Parked by the next landing, slot WY — reserved
 
