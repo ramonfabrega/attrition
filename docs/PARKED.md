@@ -12349,22 +12349,32 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
 
 ## Parked by item 3750, 2026-10-28 — the Aztec Modern pair's first try
 
-- **3750a. Ours reads 86 rounds on run1429b's window where theirs reads 104.** The Jaguar Infantry's piece 60
+- ~~**3750a. Ours reads 86 rounds on run1429b's window where theirs reads 104.** The Jaguar Infantry's piece 60
   releases `InvisibleAmmo` and `NoDamage Tracer` rounds off one attack; the counts may be the tracers, or rounds
   held a frame longer in one side. Past the word 3313 and on a window already parting; it names no score until
-  pieces 60 and 196 take their bays. Read the window's `ammo[i]` rows by `type` before reading `Ammo::release`.
-- **3750b. `1/22`'s round of 3296 lands a frame apart and spends no draw.** It flies 6 frames in ours against 5
+  pieces 60 and 196 take their bays. Read the window's `ammo[i]` rows by `type` before reading `Ammo::release`.~~
+  **Answered by item 3766** (`docs/AI.md` §374.1): with pieces 60's and 196's rows the window reads 86 against 86;
+  the 18 were rounds of those two pieces whose launch and flight parted, not tracers.
+- ~~**3750b. `1/22`'s round of 3296 lands a frame apart and spends no draw.** It flies 6 frames in ours against 5
   and wounds the Citizen `0/7` on 3302 (`hits:damage` 77 against 82), yet neither side spends
   `Ammo::do_damage+0xc59` there, where `1/24`'s round does on 3313. The arm's predicate is unread. It closes with
-  the bays, or names itself once they stand.
+  the bays.~~ **Answered by item 3766** (`docs/AI.md` §374.1): it leaves from piece 60's `CHAR_ATTACK3` frame-12
+  bay on both sides, flies 5 frames and wounds `0/7` alike; the predicate stays unread and names no score.
 
-## Parked by the next landing, slot VX — reserved
+## Parked by item 3751, 2026-10-28 — the Chinese Modern pair's residue under a whole score
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3751a. The Submarine `1/139`'s re-issued attack order takes a different formation slot**, with no score
+  parting: the pair is whole at 4130 of 4130 (`docs/AI.md` §375). `1/139` (type 338, `SUB`, group 71) is on an
+  `ATTACKTOORDER` that agrees on run1431's stride block 3801 (point 44952, 37848, offset 408, 216). By run1431b's
+  first block 3875 the order is re-issued on both sides: ours at (45288, 37992), offset (744, 360), path 19 nodes;
+  theirs at (45000, 37608), offset (456, 744), 17 nodes. It is the one unit off at the closing block 4131, by
+  (70, −591). No draw reads the choice. The instrument is a window over 3801..3875 with `GUYS` and `ARMIES`.
+- **3751b. The Manchu Infantry's rounds leave from the figure's own square in ours**, with no score parting. On
+  run1431b's window (3875..4131) 52 of the rounds part, 71 in ours against 73, every one of who=1's `1/26`,
+  `1/27` or `1/28` (TI 118, `TY` 68, `MANCHUINFANTRY-DEFAULT-AGE0`, the only entry the art has for the line).
+  `1/26`'s `ammo[0]` on 4012: `sx, sy, sz` 6072, 11544, 17 against 6084, 11455, 184; `1/28`'s pair on 4003: `sz`
+  21 against 139. `sim::launch` holds no row for the piece. It is the launch-point family (3726a, 3750, 3766) on
+  another piece; the rows come off a packet that loads it.
 
 ## Parked by the next landing, slot VY — reserved
 
@@ -12499,13 +12509,16 @@ words and edits nothing here; a refill lands when two remain.
 - **3763c. `census_ally_mask` ors in every ally both ways outside the gate**, where `plan_strategy:209`–`215` does it
   only under `ALLY_LOS || reveal_map`. It names no score: no lobby on file allies two computers at `REVEAL_MAP 0`.
 
-## Parked by the next landing, slot WI — reserved
+## Parked by item 3766, 2026-10-28 — the Jaguar Infantry's and the Sherman's rows: the Aztec Modern word whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3766a. `1/34`'s and `1/35`'s three rounds lose their target a frame apart.** On 3313, the frame the Citizen
+  `0/7` dies, ours' rounds read `ox` −1 and `whom` −1 where theirs still hold `0/7` (7, 0). They spend no draw,
+  and the pair is whole past it. It is 3748b's shape on another lobby: grep this crate's writer of a round's target
+  on the target's death before reading `Ammo::inc_time`.
+- **3766b. Piece 196's `CHAR_ATTACK1` row is in no window.** No Sherman plays `CHAR_ATTACK1` in run1429b:
+  zeroing that row fails nothing in `aztec_modern_pair::`. The row rests on run1164's and run1441's packets and on
+  the original's own pivot sweep (`the_original_s_release_agrees_on_every_cell_for_piece_196`), not on a dumped
+  round.
 
 ## Parked by item 3767, 2026-10-28 — the captain's search keeps an `int`
 

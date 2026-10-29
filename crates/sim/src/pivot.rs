@@ -201,6 +201,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (299, 5, Node { px: 0, py: -4966 }),
     (299, 6, Node { px: 0, py: 11749 }),
     (208, 4, Node { px: 0, py: 313 }),
+    (196, 4, Node { px: 0, py: -97 }),
     (169, 4, Node { px: 0, py: -7 }),
     (200, 4, Node { px: 0, py: 558 }),
     (207, 4, Node { px: 0, py: 0 }),
@@ -229,6 +230,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (190, (9, 10)),
     (299, (9, 10)),
     (208, (17, 20)),
+    (196, (17, 20)),
     (169, (11, 10)),
     (200, (4, 5)),
     (207, (3, 4)),
@@ -565,6 +567,40 @@ const FLOAT_LANDS_207_A13: &[(i32, i32, i32, i32)] = &[
     (119, 326, -288, 26),
     (140, 326, -278, -79),
     (209, 326, -26, -288),
+];
+/// Piece 196's [`Release::float_lands`], one list per anim (item 3766,
+/// run1164's packet).
+const FLOAT_LANDS_196_A11: &[(i32, i32, i32, i32)] = &[
+    (25, 11, -149, 203),
+    (115, 11, -203, -149),
+    (86, 187, 243, 15),
+    (68, 281, 42, 245),
+    (158, 281, -245, 42),
+    (274, 359, 251, 15),
+];
+const FLOAT_LANDS_196_A12: &[(i32, i32, i32, i32)] = &[
+    (79, 7, -219, 14),
+    (169, 7, -14, -219),
+    (259, 7, 219, -14),
+    (349, 7, 14, 219),
+    (92, 68, -76, -203),
+    (272, 68, 76, 203),
+    (88, 72, -76, -203),
+    (268, 72, 76, 203),
+    (11, 345, 12, 219),
+    (101, 345, -219, 12),
+    (191, 345, -12, -219),
+    (281, 345, 219, -12),
+];
+const FLOAT_LANDS_196_A13: &[(i32, i32, i32, i32)] = &[
+    (48, 44, -252, -7),
+    (138, 44, 7, -252),
+    (228, 44, 252, 7),
+    (318, 44, -7, 252),
+    (150, 186, 97, 225),
+    (330, 186, -97, -225),
+    (320, 225, 26, -245),
+    (220, 325, 26, -251),
 ];
 /// Piece 208's [`Release::float_lands`], one list per anim (item 3738,
 /// run1417's packet).
@@ -2649,6 +2685,53 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: FLOAT_LANDS_208_A13,
         },
     ),
+    // **Piece 196, the Sherman** (unit type 246, `SHERMAN-DEFAULT-AGE0`,
+    // `mediumTank.bh3`; item 3766, `docs/AI.md` §374.1): run1164's packet
+    // (`RON_STATE_FRAME=4528` on the American Modern Great Sahara seed)
+    // holds its seven entries — the `(4, 0, 0)` [`NODES`] read, `(0.0,
+    // −0.97, 38.36)`, and for each node-0 `<RELEASEEVENT>` (`CHAR_ATTACK1`
+    // frame 4, `CHAR_ATTACK2` 21, `CHAR_ATTACK3` 1) the pivot node's and
+    // the release node's, `RData +0x88` 0.85. The art's `<RESTRICTION
+    // name="SHERMAN" node="4">` at the foot of `unit_graphics.xml` makes it
+    // a pivot piece. The Aztecs' `1/40` loosed at the human's `0/2000` on
+    // 3309 from the figure's own square (4344, 31848, 580) against the
+    // original's (4155, 31681, 744).
+    (
+        196,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 196,
+            node: 0,
+            pivot: [0, -970_000, 38_359_997],
+            at: [-424_810, -60_848_732, 1_908_176],
+            float_lands: FLOAT_LANDS_196_A11,
+        },
+    ),
+    (
+        196,
+        crate::anim::ATTACK2,
+        21,
+        Release {
+            piece: 196,
+            node: 0,
+            pivot: [0, -909_394, 38_359_997],
+            at: [-392_893, -52_885_201, 1_908_176],
+            float_lands: FLOAT_LANDS_196_A12,
+        },
+    ),
+    (
+        196,
+        crate::anim::ATTACK3,
+        1,
+        Release {
+            piece: 196,
+            node: 0,
+            pivot: [0, -970_000, 38_359_997],
+            at: [-425_801, -61_095_924, 1_908_176],
+            float_lands: FLOAT_LANDS_196_A13,
+        },
+    ),
     (
         145,
         crate::anim::ATTACKWALK,
@@ -4592,6 +4675,46 @@ mod tests {
                     }
                     rows += 1;
                 }
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 196, the
+    /// Sherman** (item 3766): `tools/recomp/get_position.py … pivot 196 0
+    /// <anim> <time> 1` on run1164's packet for its three rows.
+    /// `$RON_RELEASE_TABLE_196` is the directory holding
+    /// `pivot-196-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-28-item-3766/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_196() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_196") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_196 (item 3766's oracle, run1164)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 4),
+            (crate::anim::ATTACK2, 21),
+            (crate::anim::ATTACK3, 1),
+        ] {
+            let path = format!("{dir}/pivot-196-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_196");
+            let r = release(196, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "{slot} {} {} {} {} {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
             }
         }
         assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");

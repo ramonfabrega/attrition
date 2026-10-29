@@ -33327,3 +33327,91 @@ SHA-256 `4f59c2d4dc76049c6e0f00bd2e44dadfc7a4b024c29b1f08269c4a26f78be34d`.
 - The window: `0/15` and `0/16` read `whom 2 ox 18` from block 810, and `0/14` from 811.
 - The packet: `step4.py --entry 64e5c0 --this 156332d4` (`0/14`, by `unitaddr.py`), args `(o, 2, 1, 0)`, returns
   100,000 for `2/23`, 278,027 for `2/18` and 194,000 for `2/21`.
+## run1441 — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: a packet at logger frame 3294, piece 60 (2026-10-28, item 3766, `att-3766`)
+
+`docs/AI.md` §374.1. **What the disk could not answer**: the `AttachPos` rows of the Jaguar Infantry's piece 60.
+`get_position.py … entries 60` raised on 90 of the 92 packets on disk. run1224b and run1327 load the piece with
+`pos_num` 0, because no Jaguar Infantry had been built there. Piece 196's rows were on disk (run1164's), so this
+take is for piece 60 alone. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1441 --map 14
+--end-frame 3296 --timeout 3600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 0 --cover
+cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --tracer-def RON_STATE_FRAME=3294 --tracer-def
+'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'`: the block before
+run1429b's window, ahead of `1/22`'s round of 3296.
+- Pool lane 1. Launched 21:08:31, exited 21:08:56 (25.0 s launch to exit). `success`, seed 12345, 3297 frames.
+  `page_faults` 0; the receipt prints no `relaunches` field. Not filed: the packet is the product. `df -g ~` read
+  147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1441/map-14/frame-snapshot.bin`, 930,881,932 bytes,
+SHA-256 `1bad72eeb634f55395b87823ec7453df598e78368df736dd25f9a8b06ad58b24`.
+
+**What it holds**: piece 60's six rows (`entries 60`: node 0 at frame 12 of `CHAR_ATTACK1`; 14, twice, and 24 of
+`CHAR_ATTACK2`; 12 and 17 of `CHAR_ATTACK3`), `RData +0x88` 1.0. It also holds piece 196's seven rows, bit for bit
+run1164's. The sweeps are kept at `~/ron-data/lab-experiments/2026-10-28-item-3766/sweeps/`.
+
+## run1430 — the Chinese at a held Modern age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-28, item 3751, `att-3751`)
+
+`docs/AI.md` §375. run1394's line with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1430 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 14 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1, the pool's pick. Launched 22:10:45, exited 22:11:11 (26.6 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 14, map style 18, five files restored;
+  `page_faults` 0, no `relaunches`. `GAME INFO` reads back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 6`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1430 eastindies-chinese-modern-start`. `df -g ~` read 151 GiB
+  free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1430-eastindies-chinese-modern-start.txt`, 153,818,908 bytes,
+SHA-256 `0d44377a7b592c0fa75d40c874e7d6aa0d1203cf31099e119988cdab44cd0cec`.
+
+Archive `rontrace-run1430.log`, 10,420,480 bytes,
+SHA-256 `8645026e39fb59a9316c1a38815e19fb4a28ba7cb5c381f4945545d3c5e8ef92`.
+
+**What it holds**: the start of `chinese_modern_pair::CHINESE_MODERN`, and the walk's initial state.
+
+## run1431 — the Chinese at a held Modern age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-28, item 3751, `att-3751`)
+
+`docs/AI.md` §375. run1395's line with `--ai-tribe 14` and run1430's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 14 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1430. Launched 22:10:51, exited 22:11:18 (26.2 s launch to exit). `success`; `page_faults`
+  0, no `relaunches`. **The game ended itself on 4130** (closing block 4131, `ended_early`). `GAME INFO` reads back
+  as run1430's. `rngcmp.py` against run1430: 37 frames identical. Filed with `filerun.py run1431
+  eastindies-chinese-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1431-eastindies-chinese-modern-trace.txt`, 32,009,199 bytes,
+SHA-256 `0165897920da18235395be7889bbd4363062bf754caa34037a912a3fb7c5a6e0`.
+
+Archive `rontrace-run1431.log`, 112,688,096 bytes,
+SHA-256 `79cd92c55edfe8e5b8c088302ceb6af8e9bace04d9df9addced3efa17811da79`.
+
+**What it holds**: the pair's first try, **whole: 4130 of 4130** by the count and the sequence
+(`chinese_modern_pair_first_parting`); its stride, 101..4101, 41 blocks and 207 keys
+(`chinese_modern_pair_the_long_s_stride_is_widened`); the closing block 4131 as a floor, 180 units, counts
+`[1, 0, 0, 0, 0, 0, 0]` (`chinese_modern_pair_run1431_s_closing_state`).
+
+## run1431b — the Chinese at a held Modern age, East Indies, at difficulty 4: the closing window, blocks 3875..4131 (2026-10-28, item 3751, `att-3751`)
+
+`docs/AI.md` §375. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1431's stride prints units every hundred frames, with no `AMMO` and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1431b --map 18 --end-frame 4130
+--allow-early-end --timeout 3600 --log-window 3875 4131 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 14 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 22:14:48, exited 22:15:38 (50.5 s launch to exit). `success`, through the closing block
+  4131; `page_faults` 0, no `relaunches`. `rngcmp.py` against run1431: 4131 frames identical. Filed with
+  `filerun.py run1431b eastindies-chinese-modern-closing-window-3875-4131`. `df -g ~` read 149 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1431b-eastindies-chinese-modern-closing-window-3875-4131.txt`, 591,801,772 bytes,
+SHA-256 `4e1d741c0eae46bc0909ec94d37aa6c37578367ef4dd77b922e48ad1ab208e63`.
+
+Archive `rontrace-run1431b.log`, 112,480,992 bytes,
+SHA-256 `96da5bc52a883abea2869b87d6ac6d21df014a5c2eb3c83e80568a031dd1de86`.
+
+**What it holds**: the pair's closing widening (`chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole`):
+256 blocks, 164 keys, rounds read 71 against 73 with 52 parting — every one a Manchu Infantry's.

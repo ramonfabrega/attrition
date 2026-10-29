@@ -37105,12 +37105,152 @@ moved 2, attacked 2), and so are the generic Modern lines Flamethrower 131, Armo
 246 (attacked 1), Howitzer 271, Anti-Aircraft Battery 282, Fighter 290 and Bomber 304 (boarded), and the Nuclear
 Missile 315. None is lockstep: unit types seen stay **256 of 302**, lockstep bytes **77.4 %**.
 
-## 375. Reserved for the next item on the AI track
+## 374.1. The Jaguar Infantry's bays and the Sherman's turret: the Aztec Modern word whole at 3389 (item 3766)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3766, 2026-10-28, Opus 5.5.*
+
+**The frame, before any reading.** The booking was 3313: ours 2 draws against theirs' 4, index 2, theirs'
+`Ammo::do_damage+0xc59` and `+0xc7e` (`report.py rontrace-run1429.log draws 3313`). **Theirs acted.** §374's
+widening of run1429b (3295..3390, every round compared) was already on disk, and it was the first act: every unit
+row past the standing families is downstream of the rounds, and the rounds part from the window's first block. Every
+parting round is a Jaguar Infantry's (TI 110: `1/22`, `1/23`, `1/24`, `1/30`, `1/32`, `1/33`, `1/34`, `1/35`) or a
+Sherman's (TI 246, `1/40`). In each, the figure's own row agrees and ours launches from it.
+
+**§374's premise was half wrong.** Piece 196 (`SHERMAN-DEFAULT-AGE0`) carries no `<RESTRICTION>` inside its
+`<UNIT>` element, but the restriction block at the foot of `unit_graphics.xml` names it: `<RESTRICTION
+name="SHERMAN" node="4" minangle="-180" maxangle="180"/>`. **So the Sherman is a pivot piece**, and it needs
+`sim::pivot::RELEASES` rows, not `launch::BAYS`. The dump says the same: `1/40`'s round of 3309 sits 164 above ours
+(744 against 580), which is node 4's height (38.36 × 0.85 × 4.8) plus node 0's. The Sherman's restriction count was
+already read (`Sim::art.pivots`), so ours passed the `node_flags` gate. What ours lacked was a `RELEASES` row: with
+none, `anim.rs` fell through to `launch_point`, which also had no row, and so to the figure's own square.
+
+**The rows.**
+- **Piece 196, the Sherman** (pivot): `get_position.py … entries 196` over the 92 packets on disk found
+  **run1164's** (the American Modern Great Sahara seed). It holds seven entries: the `(4, 0, 0)` pivot `(0.0, −0.97,
+  38.36)`, and for each node-0 `<RELEASEEVENT>` (`CHAR_ATTACK1` frame 4, `CHAR_ATTACK2` 21, `CHAR_ATTACK3` 1) the
+  pivot node's and the release node's, `RData +0x88` 0.85.
+  - These go in as three `RELEASES` rows (nearest millionth, as piece 199's), a `NODES` row and `RDATA_SCALE`
+    17/20.
+  - The original's pivot branch on every cell (`get_position.py … pivot 196 0 <anim> <time> 1`, 361 facings × 256
+    turret steps × 3 rows = 277,248 cells) disagrees with the integer form on **26** cells. Those are the
+    `float_lands`; with them, `the_original_s_release_agrees_on_every_cell_for_piece_196` is green.
+  - `z` is 164 on every cell.
+- **Piece 60, the Jaguar Infantry** (bays): `entries 60` raised on 90 packets. run1224b and run1327 load the piece
+  with `pos_num` 0. **The disk could not answer**, so I took **run1441**, a packet at `RON_STATE_FRAME=3294` (the
+  block before run1429b's window). It loads six rows (five keys), `RData +0x88` 1.0. `fit_bay.py` fits each
+  sweep, 361 of 361 headings:
+
+| key | anim file | lattice points | `right, fwd, dz` |
+|---|---|---|---|
+| `CHAR_ATTACK1` 12 | `Inf Attack1` | 49 | 23820, 87417, 167 |
+| `CHAR_ATTACK2` 14 | `Inf Attack2` | 819 | 25919, 60398, 118 |
+| `CHAR_ATTACK2` 24 | `Inf Attack2` | 348 | 21173, 62648, 121 |
+| `CHAR_ATTACK3` 12 | `JaguarInf Attack3` | 94 | 17840, 218651, 181 |
+| `CHAR_ATTACK3` 17 | `JaguarInf Attack3` | 540 | 22846, 225519, 170 |
+
+The three `Inf Attack1/2` keys fit piece 52's rows (§371.1) to the unit, the same skeleton playing the same
+animations. Before the packet I built those three as a hypothesis. That closed the word, but it left `1/22`'s and
+`1/33`'s rounds launching from the square at dz 181: the `JaguarInf Attack3` keys, which are this piece's own. Its
+packet entries for 196 are run1164's bit for bit.
+
+**3313 → 3389 of 3389, whole**, count and sequence.
+
+| block | record | field | before | after (both sides) |
+|---|---|---|---|---|
+| 3296 | `1/22`'s round (`CHAR_ATTACK3` 12) | `sx, sy, sz` | 6024, 30792, 426 against 5891, 30618, 607 | 5891, 30618, 607 |
+| 3301 | the same | `total_time`; `ex, ey` | 6; 4078, 28693 against 5; 4094, 28710 | 5; 4094, 28710 |
+| 3302 | the Citizen `0/7` | `hits:damage`; `hits_left` | 77; 8 against 82; 3 | 82; 3 |
+| 3309 | `1/24`'s rounds 0 and 1 | `sx, sy, sz`; `total_time` | 5640, 30840, 474; 6 against 5625, 30777, 592; 5 | 5625, 30777, 592; 5 |
+| 3309 | the Sherman `1/40`'s round 4 | `sz` | 580 against 744 | 744 |
+| 3313 | the draw stream, index 2 | `Ammo::do_damage+0xc59`, `+0xc7e` | theirs alone | both |
+
+| pin | before | after |
+|---|---|---|
+| the word (count, sequence) | 3313 | **3389** |
+| closing counts (block 3390, 117 units) | `[33, 0, 0, 0, 6, 0, 5]` | **`[0, 0, 0, 0, 0, 0, 0]`**, no closing field |
+| run1429b keys; rounds read; parting | 895; (86, 104); 157 | **53; (86, 86); 6** |
+| `GROUND_INEXACT` `aztec_modern_pair_first_parting` | 1 | 2, the window's two corners |
+
+**What still parts on run1429b**: the standing families (`form`, both leaders' `SITE[i].reg`, who=0's
+`aggression[1]`, who=1's groups and pools, five `mirror`s), and `1/34`'s and `1/35`'s three rounds on 3313. Those
+three hold `0/7`, which dies that frame, in theirs and drop it in ours (3766a, 3748b's shape). None spends a draw.
+
+**The mutations** (`tools/mutate.py --edit`, committed tree, scored on `aztec_modern_pair::`), all exit 101:
+
+| mutation | failed |
+|---|---|
+| piece 60's `CHAR_ATTACK2` 14 re-keyed | `first_parting`, closing state, run1429b |
+| piece 60's `CHAR_ATTACK3` 12 `right` negated | run1429b (rounds parting 12) |
+| piece 196's `CHAR_ATTACK2` 21 re-keyed | run1429b (keys 54, rounds read (86, 87), parting 20) |
+| piece 196's `CHAR_ATTACK3` 1 re-keyed | run1429b (keys 54, rounds read (86, 87), parting 13) |
+
+Zeroing piece 196's `CHAR_ATTACK1` row failed nothing: no Sherman plays it in the window (3766b). **So the word
+rests on piece 60's bays.** `1/24`'s round of 3309 is its `CHAR_ATTACK2` 14.
+
+**The rubric** (`rubric.py --tables 3,4,5` on this tree): unit types seen **256 → 257 of 302**, `Jaguar
+Infantry` (110) entering, with `census::RUBRIC_UNIT_TYPES_SEEN` re-pinned. Lockstep bytes are **77.4 %, unmoved**
+(2247 of 3611 functions, 259 traces). Every lobby's `first_parting` holds unmoved.
+
+**Not established.** Piece 196's `CHAR_ATTACK1` row against a dumped round (3766b). Why a round ours launches
+alike drops its dead target a frame early (3766a). `1/22`'s 3296 round still spends no `+0xc59` where `1/24`'s does.
+Both sides now agree there, so the arm's predicate is still unread and names no score (3750b, struck).
+
+## 375. The Chinese at a held Modern age, East Indies: whole on its first try, 4130 of 4130 (item 3751)
+
+*Item 3751, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4). This is §365's lobby with the nation
+moved: `MAP_STYLE 18`, human Nubians (4) against the **Chinese (14)** at Difficulty 4, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. Both `GAME INFO`s read the 6s back, and
+`Pair::assert_lobby` asserts them. The captures are run1430 (a `DUMP_ALL` start) and run1431 (the draw stream,
+`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1431 ended itself on 4130. The walk is seeded from
+run1430's initial state (3506a). `diff::chinese_modern_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(18, 14, 4)`, is minted** in `battery::SCORED_LOBBIES`. The Chinese held Great Sahara at 3
+(`chinese_industrial_pair`) and 5 (`chinese_medieval_pair`), East Indies at 5 (`chinese_gunpowder_pair`) and Great
+Lakes at 5 (`chinese_enlightenment_pair`); the battery's one Chinese game is the held-out
+`GreatLakesChineseTier1`, `(14, 14, 1)`. `chinese_modern_pair_is_no_other_lobby` asserts all of it.
+
+**The cast.** The Chinese field the `Manchu Infantry` (118), their own line, and the generic Modern lines they do
+not replace: Flamethrower (131), Bazooka (139), the Armored Scout Car (218), the `T34` Tank (248), Howitzer (271),
+the Anti-Aircraft Battery (282), one Nuclear Missile (315), and at sea the Transport Freighter (322), Cruiser
+(329), Submarine (338) and Battleship (349), read by `rubric.py --tables 3 --dumps` on the three takes. No air
+line is fielded. The Manchu Infantry was on the pass's never-fielded list; it enters the lockstep ledger here,
+and `census::RUBRIC_UNIT_TYPES_SEEN` moves from 257 to 258. The lockstep bytes stay at 77.4 % (`cover=0`).
+
+**The score: whole on the first try, 4130 of 4130**, the count and the sequence together. No draw parts to the
+game's last frame. The closing block 4131 compares 180 units with counts `[1, 0, 0, 0, 0, 0, 0]`, none torn, extra
+or unlinked (`chinese_modern_pair_run1431_s_closing_state`): one unit's position is off, below.
+
+**The windows:**
+- **The stride** (run1431, 101..4101): 41 blocks and **207 keys** — the standing families (`form` on 69 units,
+  `build:extra` on 64 buildings, who=1's groups' `held` and pools) and, from 3901, the Submarine `1/139`.
+- **The closing window** (run1431b, 3875..4131, at the long's detail with `BUILDS`, `CITIES`, `LEADERS=9` and
+  `AMMO=5`, walked from run1430 with every round compared): 256 blocks and **164 keys**. Block 3875 carries who=0's
+  `aggression[1]` (0 against 1), `form`, the groups and pools, and `1/139` already parted. **Rounds read 71
+  against 73, with 52 parting.**
+
+**The residue under the whole score** (parked 3751a, 3751b). It moves no score, so it is not built here:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3801 | the Submarine `1/139` (type 338, group 71), `ATTACKTOORDER` | `x, y`; `off_x, off_y` | 44952, 37848; 408, 216 | the same |
+| 3875 | the same | `x, y`; `off_x, off_y` | 45288, 37992; 744, 360 | 45000, 37608; 456, 744 |
+| 3875 | the same | position; `path:length` | (31843, 31369); 19 | (31968, 31483); 17 |
+| 4131 | the same | position | off by (70, −591) | — |
+| 4003 | the Manchu Infantry `1/28`'s `ammo[0]`, `ammo[1]` | `sz` | 21 | 139 |
+| 4012 | the Manchu Infantry `1/26`'s `ammo[0]` | `sx, sy, sz` | 6072, 11544, 17 | 6084, 11455, 184 |
+
+**`1/139`**: between run1431's stride block 3801 (agreeing) and run1431b's first block 3875 the group's attack
+order is re-issued with a new point and formation offset on both sides, and the two choose different ones; no
+draw is spent on the choice. **The rounds**: every parting round is one of who=1's three Manchu Infantry,
+`1/26`, `1/27` and `1/28` (TI 118, `RON_DEBUG_UNIT` `TY` 68), loosed from the figure's own square in ours. The
+art has only `MANCHUINFANTRY-DEFAULT-AGE0` for the line, so `Sim::unit_gpiece` walks to style 0; `sim::launch`
+holds no row for its piece. It is the launch-point family of §374 on another piece.
+
+**Not established**: which formation slot the original gives `1/139` on the re-issued order and why ours
+differs (the instrument is a window over 3801..3875); the Manchu Infantry piece's bay rows (a packet that loads
+it, as §374.1's run1441).
 
 ## 376. Reserved for the next item on the AI track
 
