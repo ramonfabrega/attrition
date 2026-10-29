@@ -264,10 +264,85 @@ fn turkish_information_pair_run1446b_s_word_frame_is_widened_whole() {
     // (44184, 44424) in both): theirs' `Unit::come_out` refuses it, ours'
     // does not. On 2551 group 70's attack order plans the sub's path, ours
     // 1 node against 22 (`docs/AI.md` §378; the next item's hypothesis).
+    // Item 3780, 940 → 83: the sub comes out east in both, and the window
+    // parts on the standing families alone.
     pin_eq!(w.firsts.len(), 83, "run1446b baseline");
     // Every round, both directions: 56 against 56, none parting.
     pin_eq!(w.rounds_read, (56, 56), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1452: the word 3952's window, blocks 3895..4202 at run1446b's detail
+/// — six blocks before the stride's last block 3901 and 250 past the
+/// word's own block 3953 (item 3780). run1446 prints units only every
+/// hundred frames, no `AMMO` and no `LEADERS`, `BUILDS` or `CITIES` record
+/// past the start.
+pub(crate) const RUN1452: &str =
+    "gamelog-run1452-eastindies-turkish-information-window-3895-4202.txt";
+
+/// The window: block 3895 through 4202.
+pub(crate) const WIDENING_TURKISH_INFORMATION_FRAME_3952: (i64, i64) = (3895, 4202);
+
+/// **The word 3952's window**: run1452 walked from run1445's start with
+/// the recorder on and every round compared (item 3780).
+pub(crate) fn turkish_information_frame_3952_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[TURKISH_INFORMATION.start],
+        true,
+        TURKISH_INFORMATION.long,
+        "run1452",
+        &[(RUN1452, WIDENING_TURKISH_INFORMATION_FRAME_3952.0)],
+        WIDENING_TURKISH_INFORMATION_FRAME_3952,
+        1,
+        &[3953],
+        true,
+    )
+}
+
+#[test]
+fn turkish_information_pair_run1452_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = turkish_information_frame_3952_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 307, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3780, the first walk: **623** keys. On the window's first block
+    // 3895, beside the standing families, group 70's Attack Sub `1/98`
+    // (type 339, sea) is already on another formation slot: its
+    // `ATTACKTOORDER`'s `off_x/off_y` ours (408, 600) theirs (744, 264), so
+    // `orders_x/y` ours (1944, 5976) theirs (1512, 5640) — the stride
+    // agreed on 3801 and parted on 3901, so the regroup is in 3802..3895,
+    // where nothing dumped. On the word 3952 `orders.len` ours 0 theirs 1:
+    // ours' sub has arrived and idles, theirs' still guards its move
+    // (`docs/AI.md` §378.1). The Tornado `1/89`'s `g.z[0]` aboard its
+    // carrier and `1/132`'s `mirror` stand from 3895.
+    pin_eq!(w.firsts.len(), 623, "run1452 baseline");
+    // Every round, both directions: 360 against 360, parting from 4030
+    // (`1/63`'s launch point), past the word.
+    pin_eq!(w.rounds_read, (360, 360), "the rounds read");
+    pin_eq!(w.rounds.len(), 144, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3772): run1446's closing block 5037,
