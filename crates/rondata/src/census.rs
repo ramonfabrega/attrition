@@ -622,7 +622,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3751: 257 -> 258, the Chinese Modern pair whole on its first try at
 /// 4130 — `Manchu Infantry[MANCHUINFANTRY]` (118), land, the refill's
 /// never-seen line (§375), read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 258;
+/// Item 3752: 258 -> 261, the British Modern pair whole on its first try at
+/// 3793 — `Lancaster Bomber[LANCASTERBOMBER]` (307), air, the refill's
+/// never-seen line (§376), and two generic lines the pair alone fields:
+/// `Tank[MEDIUMTANK]` (244), land, and `Fighter` (289), air, read by
+/// `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 261;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
