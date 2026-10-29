@@ -983,6 +983,9 @@ impl Sim {
                     }
                     v = x;
                     num = batch_size(f.control_cost, remaining, self.ai[w].effective_pop, pop_cap);
+                    if std::env::var_os("RON_PROBE_3784").is_some() && who == 2 && (1200..=1360).contains(&self.frame) {
+                        eprintln!("PROBE3784 f{} t{} city{} d{} cap{} now{} q{} rem{} cc{} eff{} popcap{} num{} v{}", self.frame, t, c, d, cap, units_now, queued_now, remaining, f.control_cost, self.ai[w].effective_pop, pop_cap, num, v);
+                    }
                 }
 
                 // 10. The tail.
