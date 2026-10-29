@@ -33243,3 +33243,65 @@ SHA-256 `94bb96c07959700eb22f546a155dc3dc01c16efbce107e115efa88079d06c6e5`.
 item 3760's rows: 79 keys, rounds read 420 in ours and 424 in theirs, 106 parting, the Jet Fighter `1/57`'s round of
 4225 the first launch point to part and building `0/2006`'s `damage_frac` the first hit point (4242). After: 76 keys,
 (420, 420), 21 parting.
+
+## run1428 — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: the `DUMP_ALL` start (2026-10-28, item 3750, `att-3750`)
+
+`docs/AI.md` §374. run1404's line with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1428 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, the pool's pick. Launched 20:16:27, exited 20:16:51 (24.6 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 0, map style 14, five files restored.
+  `GAME INFO` reads back `DIFFICULTY 5` and `STARTING_TECHNOLOGY 6` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1428 greatlakes-aztec-modern-start`. `df -g ~` read 154 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1428-greatlakes-aztec-modern-start.txt`, 151,144,822 bytes,
+SHA-256 `cfce1bace62478baec66f709e739e243417aefa4d4246f0f4e8a355f24962574`.
+
+Archive `rontrace-run1428.log`, 8,814,176 bytes,
+SHA-256 `68e3bfe5a42b20c4960df15d207fccba214176a3e993df0f470b9cb1e56508b8`.
+
+**What it holds**: the start of `aztec_modern_pair::AZTEC_MODERN`, and the walk's initial state.
+
+## run1429 — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: the draw stream to the game's end (2026-10-28, item 3750, `att-3750`)
+
+`docs/AI.md` §374. run1405's line with `--ai-tribe 0` and run1428's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1, after run1428. Launched 20:17:17, exited 20:17:52 (34.6 s launch to exit). `success`. **The game
+  ended itself on 3389** (closing block 3390, `ended_early`). `GAME INFO` reads back as run1428's. `rngcmp.py`
+  against run1428: 37 frames identical. Filed with `filerun.py run1429 greatlakes-aztec-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1429-greatlakes-aztec-modern-trace.txt`, 20,643,139 bytes,
+SHA-256 `2d5e0e95ef230cc2f882fded52573d0478a9cee7dc7f4121400aa47ca486c145`.
+
+Archive `rontrace-run1429.log`, 72,213,056 bytes,
+SHA-256 `87c9e17a0a849c017133377f01dc8ecc50b954e40dbed1cea03cf5a7ffbed35c`.
+
+**What it holds**: the long of `aztec_modern_pair::AZTEC_MODERN`, first try 3313 of 3389, and the closing state's
+floor (`aztec_modern_pair_run1429_s_closing_state`).
+
+## run1429b — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: the word 3313's window, blocks 3295..3390 (2026-10-28, item 3750, `att-3750`)
+
+`docs/AI.md` §374. **What the disk could not answer**: every record and every round on the word's blocks.
+run1429's stride prints units every hundred frames (3201, 3301), no `AMMO` and no leader, building or city record
+past the start, and theirs' two extra draws on 3313 are a round's. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1429b --map 14 --end-frame 3389 --allow-early-end --timeout 3600 --log-window 3295 3390 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`: six
+blocks before the stride's block 3301, to the game's own end.
+- Pool lane 1. Launched 20:19:55, exited 20:20:52 (57.4 s launch to exit). `success`: 3390 frames. `rngcmp.py`
+  against run1429: 3390 of 3390 identical. Filed with `filerun.py run1429b
+  greatlakes-aztec-modern-window-3295-3389`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1429b-greatlakes-aztec-modern-window-3295-3389.txt`, 191,797,555 bytes,
+SHA-256 `65004943f7d58d9ce8d55cca72e7831fdfc4000309f6a423e8ab5bf8dd4c75cb`.
+
+Archive `rontrace-run1429b.log`, 72,032,800 bytes,
+SHA-256 `591134b162d9c395774a5a06beb2429533b164e1b6b0dcfac58a70531c0dc1df`.
+
+**What it holds**: the word's widening (`aztec_modern_pair_run1429b_s_word_frame_is_widened_whole`).

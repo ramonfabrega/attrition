@@ -37037,12 +37037,75 @@ reaches a draw before the game's end.
 **Not established**: whether piece 874 is a bay piece or a turret, and so whether its row belongs in `BAYS` or in
 `pivot`. The instrument is run1411b's `AMMO` on `1/31`'s rounds.
 
-## 374. Reserved for the next item on the AI track
+## 374. The Aztecs at a held Modern age, Great Lakes: first try 3313 of 3389 (item 3750)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3750, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4). §370's lobby with the nation moved:
+`MAP_STYLE 14`, human Nubians (4) against the **Aztecs (0)** at Difficulty 5, seed 12345, `STARTING_RESOURCES
+7`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`, read back on both `GAME INFO`s (`Pair::assert_lobby`).
+Captures: run1428 (a `DUMP_ALL` start) and run1429 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride
+of 100), which ended itself on 3389. The walk is seeded from run1428's initial state (3506a).
+`diff::aztec_modern_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 0, 5)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery's one Aztec game is `EastIndiesAztecTier1`, `(18, 0, 1)`. The Aztec lobbies already pinned are
+`aztec_word`'s `(7, 0, 2)`, `aztec_alltech_pair`'s `(7, 0, 3)` and `aztec_medieval_pair`'s `(7, 0, 5)` (Great
+Sahara) and `aztec_ancient_pair`'s `(18, 0, 5)` (East Indies). `aztec_modern_pair_is_no_other_lobby` asserts
+all of it.
+
+**First try: 3313 of 3389**, by the count and the sequence. On 3313 ours spends **2 draws against theirs' 4**,
+parting at index 2: theirs' **`Ammo::do_damage+0xc59`** and **`+0xc7e`** (`< Ammo::inc_time+0x6e9`), a round
+exploding (`report.py rontrace-run1429.log draws 3313`). The two `Guy::inc_time+0x271` anims before them agree.
+
+**Theirs acted.** The round is who=1's **Jaguar Infantry `1/24`** (TI 110, `JAGMUSKETEERS`, land, uid 45), loosed
+on 3309 at who=0's `0/7`. Theirs launches it from **(5625, 30777, 592)** with `total_time` 5; ours from the
+figure's own square **(5640, 30840, 474)** with 6. On 3313 theirs sets `flags&8` and the round is gone; ours holds
+it a frame on.
+
+**The piece.** The Aztecs read `<UNIT_CONTINENT>2 American`, but the art has no American entry for either line,
+so `Sim::unit_gpiece`'s walk falls to style 0 (`artdata.rs`'s `PieceName::piece`):
+- the Jaguar Infantry plays **piece 60** (110 − 0x32), `JAGINFANTRY-DEFAULT-AGE0`, `jaguar_inf.bh3`, skeleton
+  `Machinegun`, its `RELEASEEVENT`s `InvisibleAmmo` at 833 of `CHAR_ATTACK1`, 999 of `2`, `InvisibleAmmo
+  Withpuff` at 866 of `3`, and three `NoDamage Tracer`s; no `<RESTRICTION>`;
+- the Sherman (TI 246, `Tank[SHERMAN]`) plays **piece 196**, `SHERMAN-DEFAULT-AGE0`, `mediumTank.bh3`, three
+  `Tankshell` releases (333 of `CHAR_ATTACK1`, 1465 of `2`, 133 of `3`); no `<RESTRICTION>`.
+
+Neither has a `launch::BAYS` or `GUNS` row, and neither is a pivot piece, so every round of both leaves from the
+guy's square in ours. That is the launch-point family of §370.2 and §371.1 (piece 52, the default Infantry, is
+the nearest row: the same skeleton, other release times). **The fix is the next item's**: the pieces' `AttachPos`
+rows, off a packet that loads them.
+
+**The value diff**, run1429b:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3296 | `1/22`'s round (Jaguar Infantry) | `sx, sy, sz`; `v1z` | 6024, 30792, 426; 53018749 | 5891, 30618, 607; 16818750 |
+| 3301 | the same | `total_time`; `ex, ey` | 6; 4078, 28693 | 5; 4094, 28710 |
+| 3302 | the Citizen `0/7` (TI 50) | `hits:damage`; `hits_left` | 77; 8 | 82; 3 |
+| 3309 | `1/24`'s rounds 0 and 1 | `sx, sy, sz`; `total_time` | 5640, 30840, 474; 6 | 5625, 30777, 592; 5 |
+| 3309 | the Sherman `1/40`'s round 4 | `sx, sy, sz`; `total_time` | 4344, 31848, 580; 4 | 4155, 31681, 744; 3 |
+| 3313 | `1/24`'s round 0 | present; round 1 `flags&8` | ours alone; 0 | gone; 8 |
+| 3313 | the draw stream, index 2 | site | — | `Ammo::do_damage+0xc59`, `+0xc7e` |
+
+**The windows.**
+- run1429's stride, 101..3201 (32 blocks, **93 keys**): the standing families alone (`form`, `build:extra`, both
+  leaders' `SITE[i].reg`, who=1's groups and pools).
+- run1429b, blocks 3295..3390 at the detail with `BUILDS`, `CITIES`, `LEADERS=9` and `AMMO=5` (95 blocks, **895
+  keys**; **rounds 86 against 104, 157 rows parting**), walked from run1428 with every round compared. The rounds
+  part from the window's first block, on every Jaguar Infantry and Sherman that fires; the first unit row is
+  3302's `0/7` damage. who=1's leader `SITE[i]` parts on 3376 and its `MAKE` on 3382, downstream.
+- **The closing state** (run1429's block 3390) is a floor: 117 units, counts `[33, 0, 0, 0, 6, 0, 5]`, nothing
+  torn, unlinked or extra.
+
+**Not established**: why `1/22`'s round of 3296, also a frame apart (`total_time` 6 against 5), spends no
+`do_damage` draw on either side where `1/24`'s does on 3313 — the `+0xc59` arm's predicate is unread. And why ours
+reads 86 rounds to theirs' 104 (3750a).
+
+**The rubric.** `--dumps` on run1428, run1429 and run1429b: **`Jaguar Infantry` (110) is fielded** (seen 2,
+moved 2, attacked 2), and so are the generic Modern lines Flamethrower 131, Armored Scout Car 218, Tank[SHERMAN]
+246 (attacked 1), Howitzer 271, Anti-Aircraft Battery 282, Fighter 290 and Bomber 304 (boarded), and the Nuclear
+Missile 315. None is lockstep: unit types seen stay **256 of 302**, lockstep bytes **77.4 %**.
 
 ## 375. Reserved for the next item on the AI track
 

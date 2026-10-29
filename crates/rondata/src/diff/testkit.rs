@@ -7915,6 +7915,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3748: the pair whole, its first parting walks to the game's
     // end over the same eight corners.
     ("bantu_modern_pair_first_parting", 8),
+    // Item 3750: the Aztec Modern pair's first walk, run1429 from run1428's
+    // start to the word 3313.
+    ("aztec_modern_pair_first_parting", 1),
+    // Item 3750: run1429b's window walks from run1428's start to the
+    // closing block 3390, past the word 3313.
+    (
+        "aztec_modern_pair_run1429b_s_word_frame_is_widened_whole",
+        2,
+    ),
+    // Item 3750: the closing walk, run1429 from run1428's start to the
+    // closing block 3390, past the word 3313.
+    ("aztec_modern_pair_run1429_s_closing_state", 2),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -11092,6 +11104,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3746,
         Some(crate::diff::bantu_modern_pair::WIDENING_BANTU_MODERN_FRAME_4304),
     ),
+    // **The Aztecs at a held Modern age** (item 3750): Great Lakes at
+    // Toughest — first try 3313 of 3389, a round of who=1's Jaguar
+    // Infantry `1/24` exploding a frame early in theirs, launched from
+    // piece 60's bay where ours has no row; widened on run1429b over
+    // 3295..3390, the rounds compared.
+    (
+        "AZTEC_MODERN_PAIR_WORD",
+        crate::diff::aztec_modern_pair::AZTEC_MODERN_PAIR_WORD,
+        Some("aztec_modern_pair_run1429b_s_word_frame_is_widened_whole"),
+        3750,
+        Some(crate::diff::aztec_modern_pair::WIDENING_AZTEC_MODERN_FRAME_3313),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13649,6 +13673,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_330,
         endpoint: Some("maya_information_pair_run1411_s_closing_state"),
         window: Some("maya_information_closing_window"),
+    },
+    // The Aztecs at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Toughest (item 3750): first
+    // try 3313 of 3389, a Jaguar Infantry round exploding in theirs a
+    // frame early — pieces 60 and 196 have no launch bays; widened on
+    // run1429b over 3295..3390.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesAztecModern",
+        named: "Great Lakes (Aztecs, Modern)",
+        word: crate::diff::aztec_modern_pair::AZTEC_MODERN_PAIR_WORD,
+        length: 3_389,
+        endpoint: Some("aztec_modern_pair_run1429_s_closing_state"),
+        window: Some("aztec_modern_frame_3313_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

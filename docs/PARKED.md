@@ -12345,13 +12345,16 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   same bay and explode on 4304, so the frame names no draw. Grep this crate's writer of a round's target on the
   target's death before reading `Ammo::inc_time`.
 
-## Parked by the next landing, slot VW — reserved
+## Parked by item 3750, 2026-10-28 — the Aztec Modern pair's first try
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3750a. Ours reads 86 rounds on run1429b's window where theirs reads 104.** The Jaguar Infantry's piece 60
+  releases `InvisibleAmmo` and `NoDamage Tracer` rounds off one attack; the counts may be the tracers, or rounds
+  held a frame longer in one side. Past the word 3313 and on a window already parting; it names no score until
+  pieces 60 and 196 take their bays. Read the window's `ammo[i]` rows by `type` before reading `Ammo::release`.
+- **3750b. `1/22`'s round of 3296 lands a frame apart and spends no draw.** It flies 6 frames in ours against 5
+  and wounds the Citizen `0/7` on 3302 (`hits:damage` 77 against 82), yet neither side spends
+  `Ammo::do_damage+0xc59` there, where `1/24`'s round does on 3313. The arm's predicate is unread. It closes with
+  the bays, or names itself once they stand.
 
 ## Parked by the next landing, slot VX — reserved
 
