@@ -281,6 +281,8 @@ mod third_pair;
 #[cfg(test)]
 mod turkish_enlightenment_pair;
 #[cfg(test)]
+mod turkish_information_pair;
+#[cfg(test)]
 mod turkish_word;
 mod unit;
 

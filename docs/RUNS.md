@@ -33571,3 +33571,70 @@ SHA-256 `fe31bb438dff3490c06950452a508edf4ed8be43d2204075884a66dd3e43329d`.
   (21720, 18264)) and 948 (`2/29`, (21624, 18168)).
 - The packet: `step4.py --entry 0060d180 --this 156e346c` (`2/31`) enters `work` once: the review's
   `find_new_target`, then `fight+0xd94`'s, then `add_move_order` to the post.
+## run1445 — the Turks at a held Information age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-29, item 3772, `att-3772`)
+
+`docs/AI.md` §378. run1443's line with the nation and the age moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1445 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 8 --profile
+STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1, the pool's pick. Its first launch stalled and was relaunched after 300.3 s (`relaunches`: one,
+  `stall`); the relaunch launched 01:48:01 and exited 01:48:24 (23.3 s launch to exit, 335.8 s in all). `success`:
+  37 frames, 3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 8, map style 18, five files
+  restored; `page_faults` 0. `GAME INFO` reads back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 7`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1445 eastindies-turkish-information-start`. `df -g ~` read 155
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1445-eastindies-turkish-information-start.txt`, 153,803,390 bytes,
+SHA-256 `44357628310cd64bbd59186d1ff174f37e3d51748755ef4521cb209521daa68f`.
+
+Archive `rontrace-run1445.log`, 10,045,376 bytes,
+SHA-256 `7e8a42af2ab8ebee2c305040f6fc3aec7b043e46c3d517e13dbde5ffe71ec428`.
+
+**What it holds**: the start of `turkish_information_pair::TURKISH_INFORMATION`, and the walk's initial state.
+
+## run1446 — the Turks at a held Information age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-29, item 3772, `att-3772`)
+
+`docs/AI.md` §378. run1444's line with `--ai-tribe 8` and run1445's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 8 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1445. Launched 01:43:00, exited 01:43:31 (30.6 s launch to exit). `success`;
+  `page_faults` 0, `relaunches: []`. **The game ended itself on 5036** (closing block 5037, `ended_early`). `GAME
+  INFO` reads back as run1445's. `rngcmp.py` against run1445: 37 frames identical. Filed with `filerun.py run1446
+  eastindies-turkish-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1446-eastindies-turkish-information-trace.txt`, 33,722,089 bytes,
+SHA-256 `ca5ca519ef9e264111d1c2ab71a9f8b6522571ca9f82d0d4a0b45ee167dc3350`.
+
+Archive `rontrace-run1446.log`, 84,586,048 bytes,
+SHA-256 `aa5b87b44508e501ba321d37d75e1095f5d4e3750e2426a5ba9610276d4ff610`.
+
+**What it holds**: the pair's first try, **2551 of 5036** by the count and the sequence
+(`turkish_information_pair_first_parting`); its stride walked back from the word, 101..2401, 24 blocks and 101
+keys (`turkish_information_pair_the_long_s_stride_walks_back_from_the_word`); the closing block 5037 as a floor,
+156 units, counts `[144, 8, 7, 0, 106, 2, 32]` (`turkish_information_pair_run1446_s_closing_state`).
+
+## run1446b — the Turks at a held Information age, East Indies, at difficulty 4: the word 2551's window, blocks 2495..2801 (2026-10-29, item 3772, `att-3772`)
+
+`docs/AI.md` §378. **What the disk could not answer**: every record and every round on the word's frame. run1446's
+stride prints units every hundred frames (2501, then 2601), with no `AMMO` and no leader, building or city record
+past the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1446b --map 18 --end-frame 2801
+--timeout 3600 --log-window 2495 2801 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 8 --cover cover=0 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 01:50:32, exited 01:51:42 (69.9 s launch to exit). `success`; `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1446: 2802 frames identical. Filed with `filerun.py run1446b
+  eastindies-turkish-information-window-2495-2801`. `df -g ~` read 154 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1446b-eastindies-turkish-information-window-2495-2801.txt`, 631,275,329 bytes,
+SHA-256 `f4f4f9900eaebfa785002a5e1e5b52855a89afccf54082b4ab4c6aef203f0668`.
+
+Archive `rontrace-run1446b.log`, 44,897,248 bytes,
+SHA-256 `61af369c90215524151fa29c456872a8037b28aabe11aab83fa3b34e17f253f3`.
+
+**What it holds**: the word's widening (`turkish_information_pair_run1446b_s_word_frame_is_widened_whole`): 306
+blocks, 940 keys, rounds read 56 against 56, none parting; the Attack Sub `1/78` born at dock `1/2020` on 2550,
+south in ours, east in theirs.

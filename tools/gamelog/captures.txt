@@ -11096,3 +11096,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1444  run1431's line with --ai-tribe 6 and run1443's lobby   (the draw stream; ended itself on 5234)
 #   run1444b --map 18 --end-frame 5234 --allow-early-end --timeout 3600 --log-window 4979 5235 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 6 --cover cover=0, run1443's lobby   (the closing window)
 # Checks: `rngcmp.py` run1443 vs run1444 -> 37 identical; run1444 vs run1444b -> 5235 identical.
+# ==== item 3772: the Turks at a held Information age, East Indies, at difficulty 4 (`docs/AI.md` §378; `docs/RUNS.md` run1445, run1446, run1446b) ====
+#   run1445  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 8 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1446  run1444's line with --ai-tribe 8 and run1445's lobby   (the draw stream; ended itself on 5036)
+#   run1446b --map 18 --end-frame 2801 --timeout 3600 --log-window 2495 2801 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0, run1445's lobby   (the word 2551's window)
+# Checks: `rngcmp.py` run1445 vs run1446 -> 37 identical; run1446 vs run1446b -> 2802 identical.
