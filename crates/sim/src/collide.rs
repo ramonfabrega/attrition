@@ -2665,16 +2665,25 @@ impl Sim {
     /// invisible to it — the cell arm gates on `who < 8` and the whole-array
     /// arm loops the eight players — as it is to the pairwise pair.
     ///
-    /// The original picks between a disc of 768-unit blocks around the spot
-    /// and a walk of every player's object array, on whether the disc holds
-    /// fewer cells than the game has units; this takes the second, which
-    /// answers the same because the predicate's reach — a block plus a
-    /// block, under 400 units — never leaves the disc.
+    /// **Which units are asked is the disc's, not the predicate's**
+    /// (`00659890`, the arm `-1 < r_coll && circle_radius[k] <=
+    /// total_units`, `k = (r_coll + 0x2ff) / 0x300`): the original walks the
+    /// chains of the `circle_radius[k]` 768-unit cells around the spot's
+    /// own cell, and only when the game has fewer units than that does it
+    /// walk every player's object array instead. ~~This took the second
+    /// always, "because the predicate's reach never leaves the disc"~~: ring
+    /// 0 is the spot's **own cell** alone, so a block-0 type's query
+    /// (`r_coll` 0) never sees a unit across a cell line, however near.
+    /// The Turks' Attack Sub `1/98` on East Indies' 3833 was re-placed by
+    /// `Group::action_move_near`'s different-region arm round its leader,
+    /// the Advanced Battleship `1/49` at (1747, 5674): the original took
+    /// (1512, 5640), 237 from the battleship but one cell west of it, and
+    /// this crate refused it (item 3782, `docs/AI.md` §378.2).
     ///
     /// `exempt` is `FILTER_NOT_ME`'s `not_o`, which the `(-1, -1)` form
     /// has none of and a squad placement (`docs/ARMY.md` §4.3) does.
     pub fn find_unit_with_radius(&self, r_coll: i32, at: Pos, exempt: Option<usize>) -> bool {
-        (0..self.units.len()).any(|o| {
+        let hit = |o: usize| {
             let u = &self.units[o];
             Some(o) != exempt
                 && u.owner < 8
@@ -2682,6 +2691,27 @@ impl Sim {
                 && u.on_map
                 && crate::world::vector_dist(at.x - u.pos.x, at.y - u.pos.y)
                     <= self.profile(Obj::Unit(o)).big_radius + r_coll
+        };
+        let circle = crate::ai_place::circle();
+        let ring = ((r_coll + 0x2ff) / 0x300) as usize;
+        if r_coll < 0 || ring >= circle.radius.len() || self.total_units() < circle.radius[ring] {
+            return (0..self.units.len()).any(hit);
+        }
+        let c0 = at.cell();
+        let width = self.world.width() as usize;
+        (0..circle.radius[ring]).any(|i| {
+            let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+            if !self.world.contains(c) {
+                return false;
+            }
+            let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+            while let Some(x) = next {
+                next = self.units[x].down;
+                if hit(x) {
+                    return true;
+                }
+            }
+            false
         })
     }
 
