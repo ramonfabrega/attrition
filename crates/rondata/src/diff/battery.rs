@@ -548,6 +548,14 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 0, 5)`, East Indies; the battery's one Aztec game is the
     // held-out `EastIndiesAztecTier1`, `(18, 0, 1)`.
     (14, 0, 5),
+    // The Chinese at a held Modern age, East Indies at Hard (item 3751,
+    // `diff::chinese_modern_pair`), minted under rule (3) — not the
+    // Gunpowder pair's `(18, 14, 5)`, another difficulty, nor the
+    // Industrial pair's `(7, 14, 3)` or the Medieval pair's `(7, 14, 5)`,
+    // Great Sahara, or the Enlightenment pair's `(14, 14, 5)`, Great Lakes;
+    // the battery's one Chinese game is the held-out
+    // `GreatLakesChineseTier1`, `(14, 14, 1)`.
+    (18, 14, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
