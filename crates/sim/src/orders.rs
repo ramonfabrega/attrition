@@ -2347,6 +2347,9 @@ impl Sim {
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
+        if std::env::var_os("RON_PROBE_3784").is_some() && self.units[u].owner == 2 && self.units[u].index == 20 {
+            eprintln!("PROBE3784 f{} kill {:?}\n{}", self.frame, order.index(), std::backtrace::Backtrace::force_capture());
+        }
         // Before the teardown: a dying **move** carries the mirror its
         // formation was laid out with, and the group's leader hands it back
         // (`docs/GROUPS.md` §6.3). This is the write that makes a group's
