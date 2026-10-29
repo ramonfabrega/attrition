@@ -31,12 +31,12 @@ pub(crate) const ROMAN_MODERN: Pair = Pair {
         "gamelog-run1444-eastindies-roman-modern-trace.txt",
         "rontrace-run1444.log",
     ),
-    // The game ended itself on 4130 (closing block 4131).
-    length: 4130,
-    // Item 3751, first try: whole — count 4130, sequence 4130 of 4130; no
+    // The game ended itself on 5234 (closing block 5235).
+    length: 5234,
+    // Item 3771, first try: whole — count 5234, sequence 5234 of 5234; no
     // draw parts to the game's last frame (`docs/AI.md` §377).
-    count: 4130,
-    sequence: 4130,
+    count: 5234,
+    sequence: 5234,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -177,14 +177,74 @@ fn roman_modern_pair_the_long_s_stride_is_widened() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3751: 207 keys over 41 blocks — the standing families (`form`
-    // on 69 units, `build:extra` on 64 buildings, which the stride does not
-    // print, who=1's groups' `held` and pools) and, from 3901, the
-    // Submarine `1/139` (type 338, group 71) on its `ATTACKTOORDER`: the
-    // order's point (45288, 37992) against theirs' (45000, 37608), its
-    // formation offset (744, 360) against (456, 744), and the path with it.
-    // No draw parts to the game's end (parked 3751a).
-    pin_eq!(w.firsts.len(), 207, "the stride's baseline");
+    // Item 3771: 186 keys over 52 blocks, every one a standing family —
+    // `form` on 75 units, `build:extra` on 61 buildings (the stride does
+    // not print them), who=1's groups' `held` (25, groups 64..88) and their
+    // pools (25). No position, order or path key parts; no draw parts to
+    // the game's end.
+    pin_eq!(w.firsts.len(), 186, "the stride's baseline");
+}
+
+/// run1444b: the pair's closing window, blocks 4979..5235 at the long's
+/// detail with `BUILDS`, `CITIES`, `LEADERS=9` and `AMMO=5` — 256 blocks to
+/// the closing block 5235 (item 3771). The pair is whole on its first try;
+/// run1444's stride prints units only every hundred frames, no `AMMO` and
+/// no `LEADERS`, `BUILDS` or `CITIES` record past the start.
+pub(crate) const RUN1444B: &str =
+    "gamelog-run1444b-eastindies-roman-modern-closing-window-4979-5235.txt";
+
+/// The window: block 4979 through the closing block 5235.
+pub(crate) const WIDENING_ROMAN_MODERN_CLOSING: (i64, i64) = (4979, 5235);
+
+/// **The pair's last blocks**: run1444b walked from run1443's start with
+/// the recorder on and every round compared (item 3771).
+pub(crate) fn roman_modern_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[ROMAN_MODERN.start],
+        true,
+        ROMAN_MODERN.long,
+        "run1444b",
+        &[(RUN1444B, WIDENING_ROMAN_MODERN_CLOSING.0)],
+        WIDENING_ROMAN_MODERN_CLOSING,
+        1,
+        &[5235],
+        true,
+    )
+}
+
+#[test]
+fn roman_modern_pair_run1444b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_modern_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3771: PENDING.
+    pin_eq!(w.firsts.len(), 0, "run1444b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3771): run1444's closing block 5235,
@@ -230,11 +290,9 @@ fn roman_modern_pair_run1444_s_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 5235, "the closing block");
-    // Item 3751, whole on its first try: 180 units compared, counts
-    // [1, 0, 0, 0, 0, 0, 0] — the Submarine `1/139` off by (70, -591), its
-    // re-chosen formation offset (parked 3751a); nothing torn, unlinked
-    // or extra. A floor, not a score.
-    pin_eq!(e.compared, 180, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3771, whole on its first try: 235 units compared, counts all
+    // zero — nothing off, torn, unlinked or extra. A floor, not a score.
+    pin_eq!(e.compared, 235, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
