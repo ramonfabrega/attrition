@@ -14680,6 +14680,113 @@ spends a third `Guy::set_anim+0x97a < Unit::do_idle+0x7d` at 4, where ours goes 
 blocks 958 and 959; the score by run1413's stride. The term's arithmetic rests on the decompile and the one
 frame it moves (30,000 against 37,700 leaves the divisor unpinned between `num_players` 2 and 3).
 
+## 149.10 The Dragoon walks home, and a dead crew holds its number once per figure — 1001 → 1912 (item 3784)
+
+**The booking.** Frame 1001: ours 230 draws against 242, parting at index 4. Theirs spends a third
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` where ours goes on to `PathFinder::calc_road_cost+0x46`. The block's
+first rows are who=2's Dragoon `2/20` (TI 189). No mechanism was booked. Two builds moved the word; no capture was
+taken (run 1456 unused).
+
+### 149.10.1 1001 → 1706: the Dragoon walks home to its post
+
+**The direction, off the disk.**
+- run1451 (905..960) and run1413's block 1001 have theirs' `2/20` standing at its post (14808, 16968). On 1001
+  theirs reads `angle` −1605566464, `idle` 0 and `cavarch_o` −2.
+- Ours (`RON_DEBUG_UNIT=2/20@955-1001`): both sides fire on 951 at `1/18` from the post, and ours' `RON_DEBUG_AMMO`
+  agrees with theirs' AMMO. On 964 ours re-tests range at 1779, past 9 tiles, and closes to (14856, 16920), where
+  it stands from 968. On 997, with `1/18` dead (983), it drops the attack and stays.
+- Theirs' 1001 angle is the heading of the step (−48, +48), from (14856, 16920) back to the post. So theirs chased
+  as ours did, then walked home. The third `Unit::do_idle+0x7d` on 1001 is its arrival.
+
+**Who drops it.** A probe (`65d3bdfe8`, reverted whole as `a21bb3b8b`) put a backtrace on `kill_order`. Ours ends the
+attack in `do_attack_fight`'s invalid-target branch. That branch was inlined as `kill_current_order` +
+`find_melee_target_added`, so it skipped `find_new_target`'s defensive-post arm (`keep_def_post`, §149.7).
+
+**The original.** `Unit::fight@005fd4d0`'s `LAB_005fdb9e`, with `param_5 == 0`, calls `find_new_target(this, NULL,
+0)` whole, its post arm (`bVar3`) included (the decompile's lines 202–213).
+
+**The build** (`crates/sim/src/orders.rs`, `do_attack_fight`): the branch reads the post (`def_post`, on a
+`Defensive` stance) before the kill, and applies `keep_def_post` after the find. `find_melee_target_added` is kept,
+and the branch still calls no `repath` where `find_new_target` does (parked 3784a).
+
+**The value diff on 1001.** `2/20` walks home 998–1001:
+
+| record | field | before | after | theirs |
+|---|---|---|---|---|
+| `2/20` | `pos` | (14856, 16920) | (14808, 16968) | (14808, 16968) |
+| `2/20` | `angle` | — | −1605566464 | −1605566464 |
+| `2/20` | `idle` | 2 | 0 | 0 |
+
+The old window 901..1251 reads **99** keys (660 before), rounds read (36, 36), none parting. Block 1001 keeps only
+two `build:extra` rows.
+
+**And the French lobby's defensive point.** run982b's word window and run982d's last blocks had carried `1/43`'s
+`attack[0].def_x/def_y` since item 3347, ours (6936, 30792) against theirs (8712, 31272). Both now agree on 14598 and
+16740: 30 → 28 keys and 29 → 27 (`french_word::run982b_s_word_frame_is_widened_whole`,
+`run982d_s_last_blocks_are_widened_whole`). The post-arm mutant puts both rows back.
+
+### 149.10.2 1706 → 1912: a dead crew's number is held once per figure
+
+**The parting.** Walked back over 1201..1706, the window parts first on 1601. Theirs' squad of three Arquebusiers
+(TI 98) is `2/34`–`2/36`, uid 57–59, one chain in group 130. Ours put the captain in slot **23** (`2/23 extra`) and
+the members on `2/34`/`2/35`. Both sides birth the squad on **1568**: run1413's trace has three `Guy::init_real <
+Objects::init_unit` there, and ours' `RON_DEBUG_UNIT`/`RON_DEBUG_BUILDS` show `2/2011` finishing on 1568. A probe on
+`create_units` (`49e2717c0`, reverted whole as `d8153ddb5`) ruled out the AI's batch.
+
+**The slot.** `2/23` is who=2's Bombard, dead on 863. Both sides print its four `DEATH_OBJS` records (`gpiece` 7257,
+19929, 32601, 45273) through block 1501, and neither prints them on 1601. Theirs' life bounds, taken with `1/23`'s
+(dead 806, gone between 1401 and 1501), are [639, 695]; ours' `death_life` is 30 + 627 = 657 (probe `ab0bbd591`,
+reverted as `b9fbfb207`). So the cull agrees. Theirs still holds 23 on 1568, but frees `2/17` and `2/21` for the
+1533 and 1548 births.
+
+**The original.** `DeathObj::inc_time@008d5240`'s first statement is `hold_frames += 1` on its object, **once per
+record**, and `Objects::kill_guy` makes one record per guy. `Objects::process_all@0065dce0` takes one off a dead
+object a frame (lines 38–39, 87–88). A four-figure crew nets +3 a frame while all four records live. Ours kept one
+`Death` per unit and bumped once, netting 0, and freed 23 about thirty frames after the cull.
+
+**The build** (`crates/sim/src/combat.rs`, `crates/sim/src/fight.rs`): `combat::Figures` holds each guy's record
+life (`i64::MAX` where the install does not describe the piece); `Sim::death_figures` and `figure_life` fill it, and
+`death_life` is the max of `figure_life`. `hold_frames_tick` bumps by `figures.live(frame − first_frame)`.
+
+**The value diff on 1601.** The `2/23 extra` row and the `2/34`/`2/35` position rows are gone: the squad is
+`2/34`..`2/36` at (7512, 34296), (7512, 34440) and (7656, 34392) both sides. Blocks 1201..1801 carry only the
+standing families.
+
+### 149.10.3 The score, the tests, the mutations
+
+**The score: 1001 → 1912** (sequence; count 1913). **Every other `first_parting` holds** (113).
+
+**The next word, frame 1912.** 44 draws a side; the count parts on 1913 and the sequence at index 30. Theirs spends
+three `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`, a three-figure birth, where ours goes on to
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. The widening on 1901..2162 (three blocks) reads **1126** keys, rounds
+read (0, 0), none parting. Block 1901 carries the standing families alone; 2001 fans out (the human's `0/3`, who=1's
+`1/11`, and `1/15` with `guys.len` 1 against 3 and hits 50 against 109 — likely a birth numbered apart again). No
+mechanism is named.
+
+**Tests.**
+- New: `gunpowder_melee::gunpowder_melee_s_dragoon_walks_home_when_its_target_dies` (`2/20` at (14856, 16920) on 997,
+  on its post with theirs' angle on 1001); `gunpowder_melee::gunpowder_melee_s_arquebusiers_squad_skips_the_held_bombard_number`
+  (the 1568 squad is 34, 35, 36 and 23 stays empty); `fight::tests::a_crew_s_number_takes_one_bump_per_figure_s_record`
+  (four records of lives 3, 5, 8, 8 net +3, +2, +1, then −1 after the cull).
+- Re-pinned: `GUNPOWDER_MELEE` (1913, 1912); the widening at 1901..2162; `french_word`'s run982b (28) and run982d
+  (27) windows.
+
+**Mutations** (`tools/mutate.py --edit`):
+- `keep_def_post` dropped from the invalid-target branch: on `gunpowder_melee` **held**, exit 101 (the parting, the
+  widening, the Dragoon and the squad fail).
+- One bump a death (`bumps = 1`): on `gunpowder_melee` **held**, exit 101 (the parting, the widening and the squad);
+  on the sim test **held**, exit 101.
+
+**What is not established.**
+- The inlined branch calls no `repath`, and finds through `find_melee_target_added` where `find_new_target` uses
+  `_headed` (3784a). Unexamined: no mutation has tried either against the floors.
+- Each record's own life is `figure_life` of its own piece. The four records' ends were read only as a bracket
+  (gone by 1601), never frame by frame.
+
+**Coverage.** The walk home and the squad's numbers are diff-backed by run1413's blocks 1001 and 1601 and its
+stride; the probes' readings by run1451 and run1413's trace. The once-per-record bump rests on the decompile and the
+one numbering it moves.
+
 ## 150. The second melee — a held Classical age on Great Sahara, every seat a computer (item 3774, run1449–run1450b)
 
 The shape is §155; the first melee is §149. **The one lever changed is the age**: Classical

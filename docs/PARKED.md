@@ -12667,13 +12667,13 @@ words and edits nothing here; a refill lands when two remain.
   `report.py draws` names `Build::finished < Unit::set_type` and run1451's block 959 names `1/28`. Carrying the
   unit on `reinit_guy`'s mark would have named it. A tool row; no score.
 
-## Parked by the next landing, slot WW — reserved
+## Parked by item 3784, 2026-10-29 — the Dragoon walks home, and a dead crew holds its number once per figure
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3784a. The invalid-target branch's two spellings of `find_new_target`** (`docs/GOLDEN.md` §149.10.1):
+  `do_attack_fight`'s inlined branch (`crates/sim/src/orders.rs`) now keeps the post arm, but still calls no
+  `repath` where `Sim::find_new_target` does, and finds through `find_melee_target_added` where `find_new_target`
+  uses `find_melee_target_headed`. `Unit::fight`'s `LAB_005fdb9e` calls the whole function, so one of the two is
+  a spelling of the other or a divergence. Unexamined against the floors; it names no score.
 
 ## Parked by item 3785, 2026-10-29 — the second melee's bows and slings
 
