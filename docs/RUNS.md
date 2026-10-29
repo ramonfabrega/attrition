@@ -33306,6 +33306,27 @@ SHA-256 `591134b162d9c395774a5a06beb2429533b164e1b6b0dcfac58a70531c0dc1df`.
 
 **What it holds**: the word's widening (`aztec_modern_pair_run1429b_s_word_frame_is_widened_whole`).
 
+## run1440 — the first melee, a held Gunpowder age on Great Sahara: a packet at logger frame 809 and the window 801..846 (2026-10-28, item 3767, `att-3767`)
+
+`docs/GOLDEN.md` §149.5. **What the disk could not answer**: theirs' squad target between run1413's stride blocks
+(801 and 901 print `0/16`'s round, not the archers' `whom`), and the original's own `compare_target` values on the
+captain's re-search of 809. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1440 --map 7 --end-frame 847
+--timeout 3600 --log-window 801 846 --ffwd-minute 3 --cmd-file tools/gamelog/golden/melee-gunpowder.cmd --detail
+end:MISC,UNITS=3,GUYS=4,AMMO=5 --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --tracer-def RON_STATE_FRAME=809 --tracer-def
+'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 22:05:05, exited 22:05:26 (20.3 s launch to exit). `success`: 848 frames,
+  `page_faults` 0. `rngcmp.py` against run1413: 848 of 848 identical. Not filed: the packet and the window's gamelog
+  stay in the run's directory.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1440/map-7/frame-snapshot.bin`, 860,819,308 bytes,
+SHA-256 `4f59c2d4dc76049c6e0f00bd2e44dadfc7a4b024c29b1f08269c4a26f78be34d`.
+
+**What it holds**:
+- The window: `0/15` and `0/16` read `whom 2 ox 18` from block 810, and `0/14` from 811.
+- The packet: `step4.py --entry 64e5c0 --this 156332d4` (`0/14`, by `unitaddr.py`), args `(o, 2, 1, 0)`, returns
+  100,000 for `2/23`, 278,027 for `2/18` and 194,000 for `2/21`.
 ## run1441 — the Aztecs at a held Modern age, Great Lakes, at difficulty 5: a packet at logger frame 3294, piece 60 (2026-10-28, item 3766, `att-3766`)
 
 `docs/AI.md` §374.1. **What the disk could not answer**: the `AttachPos` rows of the Jaguar Infantry's piece 60.

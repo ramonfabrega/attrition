@@ -12530,13 +12530,15 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   the original's own pivot sweep (`the_original_s_release_agrees_on_every_cell_for_piece_196`), not on a dumped
   round.
 
-## Parked by the next landing, slot WJ — reserved
+## Parked by item 3767, 2026-10-28 — the captain's search keeps an `int`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3767a. The Camel Raider `0/17`'s launch bays** (TI 193): ours launches its round from the figure's own square,
+  (17400, 15672, 477), where theirs' block 801 reads (17282, 15746, 742). The shape of a piece with no `launch::BAYS`
+  row. A hypothesis for the melee's next word (frame 863, `2/23` dies a frame late, `docs/GOLDEN.md` §149.5), not
+  read; the same round is parked 3759a. It names the melee's headline frame once the commander books 863.
+- **3767b. `compare_target`'s compression constant, 99,996 (`0x1869c`), is unheld.** Mutating it back to 100,000
+  fails nothing: no walk scores a target above 100,000 that the four-unit difference parts. It names no score; a
+  lobby whose search compares two targets over 100,000 would hold it.
 
 ## Parked by the next landing, slot WK — reserved
 

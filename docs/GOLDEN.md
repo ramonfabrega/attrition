@@ -14299,6 +14299,75 @@ walk holds step 6.
 760, run1413b's coverage on 620, 760 and 764, the 801 block, chapters 43 and 46, and the mutation. Step 6 and the
 `00e3a424` reading rest on the export and the leader table's stride.
 
+## 149.5 The captain's search keeps an `int` — 839 → 863 (item 3767, run1440)
+
+**The booking.** Frame 839, 17 draws a side, parting at index 4. Ours: the human's Apedemak Archers `0/15` and `0/16`
+(TI 176, piece 126) each spend `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` (the attack runs out), then
+`Guy::set_anim+0xf2f < Guy::inc_time+0x271` (the queued swing). Theirs: the two `+0x1ed`, no queued swing, and
+`Ammo::do_damage+0xc59`/`+0xc7e` at 7–8, the puncture pair of a round that hit nothing. On 840 theirs pays two
+`0xf2f < Guy::move+0x166`: its archers asked for the swing while still turning, where ours' were settled.
+
+**The direction, off the disk.**
+- Theirs' block 901 holds a `0/16` round in slot 6, flags 1, t61 on 900: it punctured on 839. Its line, (16583,
+  15763, 645) to (15490, 17081, 545), passes through the Elite Pikemen `2/18` (TI 135) at (15624, 16920) on 823.
+  Ours' `0/16` shot at the Bombard `2/23`. **The two squads hold different targets.**
+- run1413b's coverage first enters `SpellType::cast_pack` on 839: `2/23` finishing its pack. Both sides pack it on
+  839, after the archers' step, so the pack is not the cause.
+- A probe of ours' scores: on 809 `1/23` dies, the captain `0/14` re-searches, and `0/15`/`0/16` take its target
+  through the attack step's captain mirror. Ours scores `2/23` at **7,027,388**, `2/18` at 278,027 and `2/21` at
+  194,000. The caster arm's `× 20` (a pack is `CAST_SPELL`) lands on a hurt, hard-hitting target.
+
+**run1440** (`docs/RUNS.md`) took what the disk could not answer: theirs' target between strides, and the original's
+own `compare_target`. Its window reads `0/15` and `0/16` at `whom 2 ox 18` from block 810, and `0/14` from 811. Its
+packet, at logger frame 809, runs `step4.py --entry 64e5c0 --this <0/14>` with `(o, 2, 1, 0)`:
+
+| target | ours (base) | theirs (packet) |
+|---|---|---|
+| `2/23` Bombard | 7,027,388 | **100,000** |
+| `2/18` Elite Pikemen | 278,027 | 278,027 |
+| `2/21` | 194,000 | 194,000 |
+
+**The fix** (`crates/sim/src/fight.rs`). `Object::compare_target@0064e5c0` keeps its value in an `int`: `imul` and
+`idiv` throughout. For `2/23` the product passes 2³¹ and wraps negative, and the tail's `v < 0 → 9,999,999` gives
+`(9,999,999 + 99) / 100` compressed to 100,000. The crate carried `i64` and saw the true product.
+`compare_target` and `building_class_weight`'s closure now run in `i32` with wrapping `*` and `+`. The compression's
+constant is `0x1869c` (99,996), read off the listing (`0064f298 lea -0x1869c(%esi)`); the crate had 100,000
+(`docs/COMBAT.md` §12.3).
+
+**The score: 839 → 863**, the count and the sequence together. On 863 ours spends 13 draws against 14 and parts at
+index 5: theirs spends `Unit::close+0xcb6`, `2/23`'s death, a frame before ours. **Every other `first_parting`
+holds.**
+
+**The value diff.** `gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 801..1113, four blocks, **669**
+keys, rounds read (27, 30), 22 parting. Block 801 carries the standing families alone. On 901 the archers' `mirror`
+rows are gone, and the word's own row leads:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `2/23` | `death:first_frame` | 864 | 863 |
+| `2/23` | `death:cur_anim` | 17 | 18 |
+| `2/18` | `death:cur_anim` | 18 | 17 |
+
+then `2/22`'s attack and `1/0`'s and `2/5`'s moves.
+
+**The next word**: frame 863, `2/23` dies a frame late. A hypothesis, not read: the Camel Raider `0/17` (TI 193)
+launches from its figure's own square in ours, (17400, 15672, 477), where theirs' block 801 reads (17282, 15746,
+742) — the shape of a piece with no `launch::BAYS` row (parked 3767a). The booking is the commander's.
+
+**Tests.** `gunpowder_melee_s_captain_scores_the_bombard_in_an_int` walks to 809, checks the packet's three values on
+`0/14`, and that all three archers take `2/18`. `GUNPOWDER_MELEE` is pinned at (863, 863), and the widening at
+801..1113.
+
+**Mutation** (`tools/mutate.py`): the base's `fight.rs`, **held** — the parting, the widening and the new test fail.
+The 99,996 constant back to 100,000: **nothing fails**; no walk holds it (parked 3767b).
+
+**What is not established.**
+- The 99,996 constant rests on the listing alone.
+- Theirs' `0/16` target was read off a round's line, and confirmed by run1440's window, not by a draw.
+
+**Coverage.** The three scores, the squad's target and the score are diff-backed (run1440's packet and window, the
+mutation). The `int` reading of every other arm rests on the listing's `imul`/`idiv`.
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
