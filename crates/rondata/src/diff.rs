@@ -235,6 +235,8 @@ mod roman_gunpowder_pair;
 #[cfg(test)]
 mod roman_medieval_pair;
 #[cfg(test)]
+mod roman_modern_pair;
+#[cfg(test)]
 mod roman_word;
 #[cfg(test)]
 mod russian_gunpowder_pair;

@@ -419,6 +419,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the British Modern pair's walks: it compares no field itself (item 3752)",
     ),
     (
+        "diff/roman_modern_pair.rs",
+        "the Roman Modern pair's walks: it compares no field itself (item 3771)",
+    ),
+    (
         "diff/aztec_modern_pair.rs",
         "the Aztec Modern pair's walks: it compares no field itself (item 3750)",
     ),
