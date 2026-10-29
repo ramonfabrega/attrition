@@ -37608,12 +37608,55 @@ bytes stay at **77.4 %**, because the pair is `cover=0` and has no twin (DECISIO
 - The list arm with `r_coll < 0`, where the original keeps any unit (`param_5 < 0`) and this crate's predicate does
   not. No caller here passes a negative radius.
 
-## 379. Reserved for the next item on the AI track
+## 379. The French at a held Information age, Great Sahara: whole on the first try at 3191 (item 3773)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3773, 2026-10-29, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4, 102 §3). This is §302's lobby with the
+nation and the age moved: `MAP_STYLE 7`, human Nubians (4) against the **French (10)** at Difficulty 3, seed
+12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`. Both `GAME INFO`s read the 7s and
+the 3 back, and `Pair::assert_lobby` asserts them. The captures are run1447 (a `DUMP_ALL` start) and run1448 (the
+draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1448 ended itself on 3191 (closing block
+3192). `rngcmp.py` finds run1447 and run1448 identical on all 37 frames. The walk is seeded from run1447's initial
+state (3506a). `diff::french_information_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(7, 10, 3)`, is minted** under entry 72's rule (3): `python3 tools/refill.py 7 10 3` read
+`(7, 10, 3) free` on this tree before the lobby was minted, and reads it `scored` after. The French hold this map
+at 4 (`french_word`) and 5 (`french_classical_pair`), Great Lakes at 4 (`french_medieval_pair`) and 5, and East
+Indies at 4 (`french_enlightenment_pair`) and 5 (the third pair); the battery fields no French.
+`french_information_pair_is_no_other_lobby` asserts all of it.
+
+**The score: whole on the first try** — count 3191, sequence 3191, of 3191 (`french_information_pair_first_parting`).
+No draw parts. So the closing state is scored:
+- **The closing block** (run1448's 3192, walked from run1447): 127 units compared, every count zero, nothing torn,
+  unlinked or extra (`french_information_pair_run1448_s_closing_state`).
+- **The stride, the whole game** (run1448, 101..3101): 31 blocks, 87 keys, the standing families alone —
+  `build:extra` (47), `form` (27), who=1's groups 64..68' `held` and pools, and `mirror` on `1/87`, `1/106`,
+  `1/123` (ours 0, theirs 1).
+- **The closing window** (run1448b, 2935..3192, `BUILDS`, `CITIES`, `LEADERS=9`, `AMMO=5`; `rngcmp.py` against
+  run1448: 3192 frames identical): 257 blocks, 55 keys, the standing families alone — `form`, the groups' `held`
+  and pools, who=0's `SITE[0..9].reg` and `aggression[1]`, the three `mirror`s, and two guards' `dest_angle`, the
+  TOW `1/71` (type 141) and the Abrams `1/83` (type 254). **Rounds read 56 against 56, none parting**, so no
+  launch-point row is owed.
+
+**The cast**, read by `rubric.py --tables 3 --dumps` on the three takes (the herds aside):
+- **the booked line is not fielded**: `Jet Fighter[MIRAGE]` (296), the French Information fighter, appears in no
+  record. The French field no fighter at all here; their one air line is the Strategic Bomber (305). It stays on
+  the never list (parked 3773a);
+- **the generic Information land lines**: Elite Special Forces 77, Assault Infantry 104, Flamethrower 131,
+  `Anti-Tank Missile[TOW]` 141, Armored Cavalry 220, `Main Battle Tank[ABRAM]` 254, `Rocket Artillery[MLRS]` 273,
+  `Anti-Aircraft Missile[AVENGER]` 284, Nuclear ICBM 316; with the Citizen, General, Spy, Caravan, Merchant,
+  Supply Wagon and three leaders. Every one was already on the ledger.
+
+**The rubric**: `rubric.py --tables 3` on this tree reads unit types seen **263 of 302**, unmoved;
+`census::RUBRIC_UNIT_TYPES_SEEN` stays at 263. `--tables 4` reads lockstep bytes **77.4 %**, unmoved: the pair is
+`cover=0`.
+
+**Not established**:
+- Why the French build no Airbase fighter at a held Information age on this lobby. The game ends on 3191, early
+  for a late-age pair; the French script's air posture at Moderate is not read.
+- The standing families (`form`, the groups' `held` and pools, `SITE[..].reg`, `mirror`, `dest_angle`) are the
+  same families every closed pair carries; no draw reads them to 3191.
 
 ## 380. Reserved for the next item on the AI track
 

@@ -113,6 +113,8 @@ mod french_classical_pair;
 #[cfg(test)]
 mod french_enlightenment_pair;
 #[cfg(test)]
+mod french_information_pair;
+#[cfg(test)]
 mod french_medieval_pair;
 #[cfg(test)]
 mod french_word;
