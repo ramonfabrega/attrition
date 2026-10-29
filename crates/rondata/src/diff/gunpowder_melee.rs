@@ -285,8 +285,19 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // 2160 ours spends 42 draws against 41 and parts at index 0: ours
     // spends `Leader::use_market+0x1ed` ahead of the `Leader::make_stuff
     // +0x221` both spend.
-    count: 2160,
-    sequence: 2160,
+    //
+    // Item 3788: **2160 → 2600, whole**, two builds. who=2 (the Inca)
+    // sells on 2160 because its wealth reads 27 against theirs' 342; the
+    // stockpile parts on run1461b's 860, where theirs' who=2 takes +16
+    // food and +11 timber, and on 864 (+25 timber, +25 metal, the Bombard
+    // `2/23`'s death): `take_damage`'s Inca refund, `INCA_REFUND` 25 % of
+    // the dead unit's price back to its own leader. With it built the
+    // buckets part on 1464 (+100 wealth): who=1's Despot `1/28` dies on
+    // 1463, and a hero victim pays its killer `GENERAL_PLUNDER` 100. Both
+    // built, who=1's and who=2's buckets agree on every frame of run1461b
+    // and run1461 (`docs/GOLDEN.md` §149.12).
+    count: 2600,
+    sequence: 2600,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -323,8 +334,9 @@ fn gunpowder_melee_first_parting() {
 /// 701..1009, on 759; 3762's 701..1010, on 760; 3763's 801..1089, on 839;
 /// 3767's 801..1113, on 863; 3770's 901..1197, on 947; 3779's 901..1204,
 /// on 954; 3781's 901..1208, on 958; 3783's 901..1251, on 1001; 3784's
-/// 1901..2162, on 1912.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (2101, 2410);
+/// 1901..2162, on 1912; 3786's 2101..2410, on 2160. Item 3788 closes the
+/// game: the window is 2101 through the closing block 2601.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (2101, 2601);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -338,7 +350,7 @@ pub(crate) fn gunpowder_melee_word_window() -> Option<harness::tests::Widened> {
             &[(MELEE_LONG.0, WIDENING_GUNPOWDER_MELEE.0)],
             WIDENING_GUNPOWDER_MELEE,
             1,
-            &[],
+            &[2601],
             true,
         )
     })
@@ -491,8 +503,20 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // and pools); 2201 is the first to part a unit — the human's `0/5`,
     // who=1's `1/0`, `1/5` and `1/6` on their move orders — and 2301 and
     // 2401 fan out.
-    pin_eq!(w.blocks, 4, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 532, "run1413's word window");
+    //
+    // Item 3788, the game whole (window 2101..2601, six blocks with the
+    // closing block): **160** keys, rounds read (0, 0), none parting. The
+    // old window 2101..2410 reads 131 keys (532 before): block 2201's move
+    // orders on `0/5`, `1/0`, `1/5` and `1/6` are gone. 2101 carries the
+    // standing families alone (`form`, `build:extra`); 2201 adds the groups'
+    // `held` and who=2's Supply Wagon `2/24` (TI 63) at `myhits` 90 against
+    // 108 — theirs' rises on run1461's logger frame 2135 with nothing else
+    // on the frame, and who=1's `1/24` stays 90 in both (parked 3788a); the
+    // closing block 2601 has the human's citizens `0/1`..`0/7` holding a
+    // one-step order in ours where theirs' are idle with none, and `0/3`
+    // at (38136, 36600) against (38119, 36586) (parked 3788b).
+    pin_eq!(w.blocks, 6, "every stride block in the window");
+    pin_eq!(w.firsts.len(), 160, "run1413's word window");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -1195,4 +1219,125 @@ fn gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move() {
         ),
         "the swing is the ground order's"
     );
+}
+
+/// run1461b: the leaders' window 595..1700 at `end:MISC,LEADERS=2` — every
+/// leader's `bucket` on every frame from the staging (item 3788). The stride
+/// blocks print no `LEADERDATA`, and who=2's stockpile had parted by 1700.
+pub(crate) const RUN1461B: &str =
+    "gamelog-run1461b-greatsahara-gunpowder-melee-leaders-window-595-1700.txt";
+
+/// run1461: the same records with `UNITS=3,BUILDS=7,CITIES=5`, 1700..2161.
+pub(crate) const RUN1461: &str =
+    "gamelog-run1461-greatsahara-gunpowder-melee-leaders-window-1700-2161.txt";
+
+/// run1461b's window: block 595 through 1700.
+pub(crate) const WIDENING_GUNPOWDER_MELEE_LEADERS: (i64, i64) = (595, 1700);
+
+/// run1461b over [`WIDENING_GUNPOWDER_MELEE_LEADERS`], walked from run1412's
+/// start with the script staged.
+pub(crate) fn gunpowder_melee_leaders_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1461b",
+            &[(RUN1461B, WIDENING_GUNPOWDER_MELEE_LEADERS.0)],
+            WIDENING_GUNPOWDER_MELEE_LEADERS,
+            1,
+            &[],
+            false,
+        )
+    })
+}
+
+/// **An Inca unit refunds its price, and a hero pays its killer** (item
+/// 3788, `docs/GOLDEN.md` §149.12): run1461b's every leader record, both
+/// directions, frame by frame. Without the refund who=2's buckets part on
+/// 860 (+16 food, +11 timber) and 864 (+25 timber, +25 metal); without the
+/// hero's plunder on 1464 (+100 wealth).
+#[test]
+fn gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund() {
+    let _pins = Pins::hold();
+    let Some(w) = gunpowder_melee_leaders_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    let buckets: Vec<_> = w
+        .firsts
+        .iter()
+        .filter(|((_, _, what), _)| what.contains("bucket"))
+        .map(|((who, o, what), (f, r))| format!("{f} {who}/{o} {what}: {r}"))
+        .collect();
+    pin_eq!(
+        buckets,
+        Vec::<String>::new(),
+        "the leaders' buckets that part"
+    );
+    // Item 3788: **54** keys over 1105 blocks, every one a standing family
+    // — `build:extra` on every building (the dump prints no building
+    // record) and who=1's groups 64..70's pools (no `GROUPS` either); no
+    // leader row parts.
+    pin_eq!(w.blocks, 1105, "every captured block");
+    pin_eq!(w.firsts.len(), 54, "run1461b baseline");
+}
+
+/// **The melee's closing state** (item 3788): run1413's closing block, the
+/// whole map's units, walked from run1412's start with the script staged.
+#[test]
+fn gunpowder_melee_run1413_s_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(MELEE_LONG.0), dump(MELEE_START), trace(MELEE_LONG.1))
+    else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let Some(e) = crate::diff::setup::with_staged_script(melee_script(), || {
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(path);
+        let start_text = crate::capture::read(start);
+        let log = Log::parse(&text);
+        let start_log = Log::parse(&start_text);
+        let mut init = log.initial().unwrap();
+        let sibling = start_log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sibling]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let fin = log
+            .final_state()
+            .or_else(|| log.frame_states().pop())
+            .expect("closing whole-map state");
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        eprintln!(
+            "Gunpowder melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+            e.frame,
+            e.compared,
+            e.counts(),
+            e.torn,
+            e.off,
+            e.unlinked,
+            e.extra
+        );
+        Some(e)
+    }) else {
+        return;
+    };
+    pin_eq!(e.frame, 2601, "the closing block");
+    // Item 3788, the game whole: 145 units compared, every count zero, no
+    // extra (`docs/GOLDEN.md` §149.12).
+    pin_eq!(e.compared, 145, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

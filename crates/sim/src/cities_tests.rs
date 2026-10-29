@@ -1927,6 +1927,119 @@ fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
     );
 }
 
+/// **An Inca unit refunds a quarter of its price** (item 3788,
+/// `docs/GOLDEN.md` §149.12): `Object::take_damage@00652020`'s
+/// `LAB_00653354` arm calls `Unit::plunder(v, v.index, v.who, 0, 0)` for a
+/// captain killed by a non-ally whose leader holds tribe bonus 2, and the
+/// refund adds `INCA_REFUND`% of the type's price in each available good.
+/// run1461b's who=2 took +25 timber and +25 metal for its Bombard.
+#[test]
+fn an_inca_unit_killed_by_an_enemy_refunds_a_quarter_of_its_price() {
+    let mut sim = world_sim();
+    let _ = install_types(&mut sim);
+    let foot = sim.add_unit_type(crate::UnitType {
+        hits: 40,
+        type_index: 0x32,
+        price: crate::cost::Price {
+            base: [64, 47, 0, 0, 100, 0],
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let victim = sim.init_unit(0, foot, tile_pos(40, 40));
+    let killer = sim.init_unit(1, foot, tile_pos(41, 40));
+    let mate = sim.init_unit(0, foot, tile_pos(40, 41));
+    sim.holdings[0].available = [true, true, true, true, true, false];
+    sim.ledgers[0].bucket = [500, 500, 500, 0, 44, 0];
+    let start = sim.ledgers[0].bucket;
+    sim.inca_refund(victim, Obj::Unit(killer));
+    assert_eq!(sim.ledgers[0].bucket, start, "not the Inca, no refund");
+    sim.holdings[0].inca = true;
+    sim.inca_refund(victim, Obj::Unit(mate));
+    assert_eq!(sim.ledgers[0].bucket, start, "its own side's kill");
+    let price = sim.price_of(0, foot);
+    let rng = sim.rng;
+    sim.inca_refund(victim, Obj::Unit(killer));
+    assert_eq!(sim.tuning.inca_refund, 25);
+    let want: Vec<i32> = (0..6)
+        .map(|g| start[g] + if g == 5 { 0 } else { price[g] * 25 / 100 })
+        .collect();
+    assert_eq!(
+        sim.ledgers[0].bucket.to_vec(),
+        want,
+        "a quarter, oil unavailable"
+    );
+    assert_ne!(sim.ledgers[0].bucket, start, "the price is not empty");
+    assert_eq!(sim.rng, rng, "and no draw");
+}
+
+/// **A hero's killer takes `GENERAL_PLUNDER` in wealth** (item 3788):
+/// `take_damage`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)` arm calls
+/// `plunder(v, k, who, 0, 0)`, the base constant with no draw. run1461b's
+/// who=2 took 100 wealth for who=1's Despot `1/28` on 1463.
+#[test]
+fn a_hero_s_killer_takes_general_plunder_in_wealth() {
+    let mut sim = world_sim();
+    let _ = install_types(&mut sim);
+    let hero = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        type_index: 0x160,
+        price: crate::cost::Price {
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        cols: crate::ai_load::UnitCols {
+            unit_flags2: crate::ai_load::uflags2::GENERAL,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let wagon = sim.add_unit_type(crate::UnitType {
+        hits: 90,
+        type_index: 0x3f,
+        price: crate::cost::Price {
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        cols: crate::ai_load::UnitCols {
+            unit_flags2: crate::ai_load::uflags2::SUPPLY_OR_HERO,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let foot = sim.add_unit_type(crate::UnitType {
+        hits: 40,
+        type_index: 0x32,
+        price: crate::cost::Price {
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let victim = sim.init_unit(0, hero, tile_pos(40, 40));
+    let carrier = sim.init_unit(0, wagon, tile_pos(40, 42));
+    let killer = sim.init_unit(1, foot, tile_pos(41, 40));
+    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
+    let rng = sim.rng;
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.tuning.general_plunder, 100);
+    assert_eq!(
+        sim.ledgers[1].bucket,
+        [500, 500, 600, 0, 44, 0],
+        "100 wealth"
+    );
+    sim.unit_plunder(carrier, killer);
+    assert_eq!(sim.tuning.caravan_plunder, 50);
+    assert_eq!(
+        sim.ledgers[1].bucket,
+        [500, 500, 650, 0, 44, 0],
+        "a wagon's 50"
+    );
+    assert_eq!(sim.rng, rng, "and no draw");
+}
+
 /// **The Aztec slay arm** (item 3657, `docs/AI.md` §338):
 /// `Object::take_damage@00652020`'s kill arm calls `plunder(v, k, who, 1,
 /// 0)` for an Aztec killer whose trainer is by equality a Barracks,
