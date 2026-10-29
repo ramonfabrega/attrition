@@ -1651,8 +1651,10 @@ packet returns 168 for the Trireme `1/6` where the arm-less value is 66,888,
 `docs/GOLDEN.md` §80); `v /= (T.full + 1)` (not carried: `full` is 0 on every
 unit this crate widens). A city at zero
 hits `99,999`; negative `9,999,999`; **out of range and not raiding `/5`, on
-this function's own range test** (below); `v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 100,000) /
-5`, floor 15; a detected hidden unit 1; an air target for a non-ANTI_AIR
+this function's own range test** (below); `v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 99,996) /
+5` (`0x1869c`, off the listing at `0064f298`), floor 15; **every step in a 32-bit `int`** (`imul`/`idiv`): a product
+past 2³¹ wraps negative and takes the `9,999,999` arm (item 3767, run1440's packet: the pack-casting Bombard `2/23`
+scores 100,000, `docs/GOLDEN.md` §149.5); a detected hidden unit 1; an air target for a non-ANTI_AIR
 attacker 2.
 
 **The `/5` is the function's own range test, and `in_range` is only its
