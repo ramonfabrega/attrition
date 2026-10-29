@@ -650,11 +650,6 @@ impl Sim {
                 self.frame, who, self.market_gate(who), commerce, need, self.ledgers[w].bucket,
                 self.ledgers[w].escrow, self.market.price, self.market.flux
             );
-            let names: Vec<String> = self.ai[w].make_list.list.iter().map(|m| {
-                let n = usize::try_from(m.t).ok().and_then(|t| self.tech_tree.types.get(t)).map_or("-".to_string(), |r| r.name.clone());
-                format!("{}({}) n{} v{} c{}", m.t, n, m.num, m.val, m.cat)
-            }).collect();
-            eprintln!("MARKET f{} who={} list {:?}", self.frame, who, names);
         }
         if !self.market_gate(who) {
             return;
