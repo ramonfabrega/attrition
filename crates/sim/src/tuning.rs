@@ -506,6 +506,11 @@ pub struct Tuning {
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
     pub inca_wealth_cap: i32,
+    /// `INCA_REFUND`: the percent of a dead Inca unit's price its leader
+    /// gets back, in every good — `Object::take_damage@00652020`'s
+    /// `LAB_00653354` arm into `Unit::plunder@00605b00`'s refund (item
+    /// 3788, `docs/GOLDEN.md` §149.12).
+    pub inca_refund: i32,
     /// `REPUBLIC_COMMERCE_BONUS`, `…2` and `…3`: the flat addition to every
     /// capped good's commerce cap by the highest `REPUBLIC_n` bonus held —
     /// `calc_resource_caps@006ce900` tests 3, then 2, then 1, and adds one
@@ -996,6 +1001,12 @@ pub struct Tuning {
     /// Whole units of a good The Despot (or Spitamenes) adds to a unit kill
     /// near him: `Unit::plunder@00605b00`'s `thedespot_unit_plunder`.
     pub thedespot_unit_plunder: i32,
+    /// `GENERAL_PLUNDER` and `CARAVAN_PLUNDER`: the wealth a hero's, and a
+    /// caravan's or supply wagon's, killer takes — `Unit::plunder@00605b00`'s
+    /// base for `take_damage`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)`
+    /// victims (item 3788, `docs/GOLDEN.md` §149.12).
+    pub general_plunder: i32,
+    pub caravan_plunder: i32,
     /// Whether a Russian victim receives the plunder of its own building.
     pub russian_plunder_steal: i32,
     /// Percent off a German mine's plunder value.
@@ -1496,6 +1507,7 @@ impl Tuning {
         americans_marine_entrench: 5,
         french_woodies: 1,
         inca_wealth_cap: 33,
+        inca_refund: 25,
         republic_commerce_bonus: [50, 50, 50],
         pyramids_commerce: 50,
         colossus_commerce: 50,
@@ -1695,6 +1707,8 @@ impl Tuning {
         aztec_slay_cap: 60,
         thedespot_plunder: 100,
         thedespot_unit_plunder: 15,
+        general_plunder: 100,
+        caravan_plunder: 50,
         russian_plunder_steal: 1,
         german_mine_cost: 0,
         tikal_temple_cost: 0,
@@ -2048,6 +2062,7 @@ impl Tuning {
                 Slot::Value(T.americans_marine_entrench),
             ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
+            ("INCA_REFUND", Slot::Value(T.inca_refund)),
             (
                 "REPUBLIC_COMMERCE_BONUS",
                 Slot::Value(T.republic_commerce_bonus[0]),
@@ -2520,6 +2535,8 @@ impl Tuning {
                 "THEDESPOT_UNIT_PLUNDER",
                 Slot::Value(T.thedespot_unit_plunder),
             ),
+            ("GENERAL_PLUNDER", Slot::Value(T.general_plunder)),
+            ("CARAVAN_PLUNDER", Slot::Value(T.caravan_plunder)),
             (
                 "RUSSIAN_PLUNDER_STEAL",
                 Slot::Value(T.russian_plunder_steal),

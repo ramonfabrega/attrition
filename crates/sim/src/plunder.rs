@@ -26,10 +26,12 @@
 //! **What the crate carries.** [`SimPlunder`] is the crate's one caller,
 //! `Object::take_damage`'s kill of a squad's last figure: the Extended
 //! Edition's arm for a victim that is no General, caravan or supply wagon,
-//! with the killer's leader fixed by the caller. The constants the other
-//! arms read (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`, `AZTEC_SLAY_*`,
-//! `INCA_REFUND`) and the console's messages are not carried, so it
-//! answers them as zero and as "not the console player".
+//! with the killer's leader fixed by the caller, and **the Inca refund**
+//! (item 3788), the unit's own index and owner, priced by its own type.
+//! A General's, caravan's or supply wagon's kill is `(k, who, 0, 0)`,
+//! paying `GENERAL_PLUNDER` or `CARAVAN_PLUNDER` (item 3788). The
+//! console's messages are not carried, so it answers "not the console
+//! player".
 
 use crate::Sim;
 use crate::single::Single;
@@ -391,10 +393,10 @@ impl PlunderView for SimPlunder<'_> {
         self.sim.tuning.thedespot_unit_plunder
     }
     fn general_plunder(&mut self) -> i32 {
-        0
+        self.sim.tuning.general_plunder
     }
     fn caravan_plunder(&mut self) -> i32 {
-        0
+        self.sim.tuning.caravan_plunder
     }
     fn slay_bonus_of_killer(&mut self) -> i32 {
         self.sim.tuning.aztec_slay_bonus
@@ -406,7 +408,7 @@ impl PlunderView for SimPlunder<'_> {
         self.sim.tuning.aztec_plunder
     }
     fn inca_refund(&mut self) -> i32 {
-        0
+        self.sim.tuning.inca_refund
     }
     fn hero_count(&mut self, _who: i32, _ty: i32) -> i32 {
         // `find_hero` counts them itself.
@@ -454,17 +456,26 @@ impl PlunderView for SimPlunder<'_> {
         0
     }
     fn unittype_record(&mut self, _index: i32) {}
-    fn price(&mut self, _ty: (), _good: i32, _who: i32) -> i32 {
-        0
+    fn price(&mut self, _ty: (), good: i32, who: i32) -> i32 {
+        // `TypeData::get_cost(good, who, −1, −1, 1, 1, −1)` on the unit's
+        // own type: the refund's one caller (item 3788). The `is(0x42)`
+        // re-type is answered "no" above, so the type is the unit's.
+        self.sim.units[self.v].ty.map_or(0, |t| {
+            self.sim.price_of(who as crate::Player, t)[good as usize]
+        })
     }
     fn unit_is_hero(&mut self, _who: i32, _index: i32) -> bool {
-        false
+        self.sim.is_hero_unit(self.v)
     }
     fn unit_is_supply(&mut self, _who: i32, _index: i32) -> bool {
-        false
+        self.sim.is_supply_unit(self.v)
     }
     fn unit_is_caravan(&mut self, _who: i32, _index: i32) -> bool {
-        false
+        self.sim.units[self.v].ty.is_some_and(|t| {
+            self.sim.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        })
     }
     fn patch_version(&mut self) -> i32 {
         // The Extended Edition's.
