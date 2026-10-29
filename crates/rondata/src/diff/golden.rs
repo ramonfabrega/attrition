@@ -6510,16 +6510,15 @@ fn chapter_forty_six_s_word_frame_is_widened_whole() {
 ///   `1/7`'s on 1401), the first block's census (parked 1183) and
 ///   `filled_gather_slots`, and chapter forty-three's rows under their
 ///   own frames — the pushed squad's `order:group.id` on 1302, the
-///   barge's `path_recursion` on 1357, the treaty and raid stamps of X's
-///   staging, the Chariot's turret on 1479, and X's `DEATH` record on
-///   1487. `all_gathering`'s prune on 1049 agrees: `1/2`'s
+///   barge's `path_recursion` on 1357, the raid stamps of X's staging,
+///   the Chariot's turret on 1479, and X's `DEATH` record on 1487. The
+///   treaty stamp on 1404 agrees since item 3763: X's strike meets
+///   (`Unit::set_attacking`). `all_gathering`'s prune on 1049 agrees: `1/2`'s
 ///   `order:gather.wait` −1 and `1/2001`'s `gather_down` 2 on block 1050.
 /// - **From 1902, nothing.** Item 1278 pinned 305 rows here and 6 pool
 ///   rows on slot 3 (ours stacked three moves on `0/7`, two on `0/8` and
 ///   one on `0/9`); all agree.
 const WANT_CH46: &[&str] = &[
-    "1404 0/-1 leader:treaties[1]",
-    "1404 1/-1 leader:treaties[0]",
     "1487 1/7 death:extra",
     "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
@@ -6694,15 +6693,14 @@ fn chapter_forty_three_s_word_frame_is_widened_whole() {
 /// is a standing family — the birth `form` (parked 1169), the first
 /// block's census (parked 1183) and `filled_gather_slots`, the pushed
 /// squad's `order:group.id` on 1302, the barge's `path_recursion` on
-/// 1357, the treaty and raid stamps of the who=1 Citizen's staging, the
-/// Chariot's turret on 1479 — and the Citizen's `DEATH` record on 1488,
+/// 1357, the raid stamps of the who=1 Citizen's staging (its treaty stamp
+/// agrees since item 3763, the strike's meet), the Chariot's turret on
+/// 1479 — and the Citizen's `DEATH` record on 1488,
 /// which the capture does not print at its end detail. Item 1248 took the
 /// dead Citizen off its gather list the frame it died (`gather_down` 2 on
 /// 1488) and with it every row from 1553; and the 1900 line's refusal
 /// (the DLL's refusal 3) every row from 1902.
 const WANT_CH43: &[&str] = &[
-    "1404 0/-1 leader:treaties[1]",
-    "1404 1/-1 leader:treaties[0]",
     "1488 1/6 death:extra",
     "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
