@@ -37514,12 +37514,99 @@ Two standing rows sit beside it from 3895 (the stride has the first from 3101):
 - the Tornado `1/89`'s `g.z[0]` aboard its carrier, ours 0 and theirs 1;
 - `1/132`'s `mirror`.
 
-**The next item's hypothesis** (a supposition): the regroup between 3802 and 3895 seats group 70's members in a
+~~**The next item's hypothesis** (a supposition): the regroup between 3802 and 3895 seats group 70's members in a
 different order, or onto a different slot table. Nothing dumped that span. Its first act is a window over it,
-because group 70 was re-ordered somewhere in 3802..3894.
+because group 70 was re-ordered somewhere in 3802..3894.~~ The order and the table agreed. The slot the different-region
+arm re-places is the one that parted, because `find_unit_with_radius` asked the whole map where the original asks the
+disc's cells (§378.2).
 
 **Not established**: whether any other `come_out` caller hands `FILTER_ALL` to a block-0 type with a unit standing
 on its ring. Only this sub and run1446b's `1/75` (nothing on its square) are on file.
+
+## 378.2 Whole at 5036: `find_unit_with_radius` asks the disc's cells (item 3782)
+
+*Item 3782, 2026-10-29, Opus 5.5.*
+
+**The frame.** The booking was 3952 (ours 35 draws against 34, index 30, `Unit::do_idle+0x7d` against
+`Unit::do_guard+0x7f4`) on group 70's Attack Sub `1/98` (`TypeIndex` 339, `ATTACKSUB`, sea, uid 144), whose
+`ATTACKTOORDER` had already parted by 3895. The stride agrees on 3801. Both sides' dumps hold the group only through
+its members' orders, since no `GROUPDATA` is printed. On 3801 `1/98` and the Missile Cruiser `1/105` (type 330) share
+one slot, `off` (216, 312) with the order point (1752, 5688).
+
+**The direction** (`RON_DEBUG_UNIT` on the long walk, every tick from 3801). On tick 3833 ours re-points three of
+army 2's fifteen ships: `1/78` (dest kept), `1/98` → (1944, 5976) and `1/105` → (2328, 6024). In theirs the
+dumps carry `1/105` at (2328, 6024), which agrees, and `1/98` at (1512, 5640). A probe (`RON_PROBE_3782`, one
+commit, reverted whole) backtraced the writer: `armies_process_all` → `do_forming_steps` →
+`group_action_siege_attack_to`. The siege arm finds no sub-group (`sub []`), so it calls `group_action_move_to` on
+the whole army toward (1747, 5674), and every member gets a fresh slot. The formation and its offsets agree on
+every member. `1/98`'s slot (3805, 3846) and `1/105`'s (4263, 2932) fall in `tregion_alt` 2 against slot 0's 0,
+so §6.6 step 4's different-region arm (GROUPS §37) re-places each with `find_nearby_spot` round slot 0's point.
+Both sides took that arm. They differ only in where the sub's search lands.
+
+**The ring, candidate by candidate** (the probe, `Seeker::Type(289)`): `min` 0, `max` 576 (the sub's `big_radius`
+is 0, so the default `0x240`), step 72, bias `0x55555555`, warship. Every candidate is plain ocean (`0x0020`), so
+each one is decided by the collision half. Theirs takes ring 216, bearing 7, (1512, 5640). Ours refused it and went
+on to ring 360, bearing 1, (1944, 5976).
+
+**The original** (`UnitType::find_nearby_spot@0061de70`, the call at `Group::action_move_near@00704990`'s
+different-region arm: `FILTER_NOT_ME`, `not_o`/`not_who` −1):
+- `bVar17` stays false, so it takes the general path.
+- `local_8` is the type's `+0x240`, which is 0 for the sub; the `0x180` default is `FILTER_ALL`'s only.
+- The ordered twin is skipped because `not_who < 0`.
+
+So the query is `ObjectsData::find_unit_with_radius@00659890` at `r_coll` 0. That function has two arms:
+- **The disc arm** (`r_coll ≥ 0` and `circle_radius[k] ≤ total_units`, with `k = (r_coll + 0x2ff) / 0x300`) walks
+  only the world chains of the `circle_radius[k]` 768-unit cells round the spot's cell. At `r_coll` 0, `k` is 0, and
+  ring 0 is **the spot's own cell**.
+- **The list arm** walks every player's array.
+
+This crate always took the list arm. Its own doc called the two equivalent "because the predicate's reach never leaves
+the disc", but the reach is measured from the unit, and the disc from the spot's cell. (1512, 5640) is cell (1, 7).
+The army's leader, the Advanced Battleship `1/49` (`big_radius` reaching 237), stands at (1747, 5674) in cell (2, 7).
+Theirs never asks about it; ours did, and refused.
+
+**Built.**
+- `Sim::find_unit_with_radius` (`collide.rs`) walks the disc's cells through `chain_heads` when `r_coll ≥ 0` and the
+  game holds at least `circle_radius[k]` units, else the list as before. It is `nearest_of_own_type`'s walk (`air.rs`).
+- The test is `collide::tests::a_block_zero_query_asks_only_the_spot_s_own_cell`. Through `tools/mutate.py`, forcing
+  the list arm (`if true {`) fails it (`ring 0 is the spot's own cell`) and sends
+  `turkish_information_pair_first_parting` back to 3952. Both exit 101.
+- The emulator sweep `objects_data_find_unit_with_radius` (the list arm only) still agrees on every row.
+- **The Chinese Modern pair, already whole, loses its residue**: parked 3751a was the same re-place, the Submarine
+  `1/139` (type 338). Its closing counts go `[1, 0, …]` → all zero, its stride 207 → 177 keys and its closing window
+  run1431b 164 → 125. All three are re-pinned downward.
+
+**The word: 3952 → whole, 5036 of 5036**, by the count and the sequence. The value diff on the parted frame:
+
+| block | record | field | before (ours) | now (ours) | theirs |
+|---|---|---|---|---|---|
+| 3833 (tick) | `1/98` | `ATTACKTOORDER` dest | (1944, 5976) | (1512, 5640) | (1512, 5640) (dump 3895) |
+| 3895 | `1/98` | `order:move.off_x/off_y` | (408, 600) | agrees | (744, 264) |
+| 3952 | `1/98` | `orders.len` | 0 | 1 | 1 |
+| 5037 | closing | counts | `[39, 9, 2, 0, 8, 0, 5]` | `[0, 0, 0, 0, 0, 0, 0]` | — |
+
+The closing block compares 164 units with nothing torn, unlinked or extra
+(`turkish_information_pair_run1446_s_closing_state`).
+
+**The windows**:
+- **run1454** is new: the closing window, 4781..5037, at run1452's detail, 5037 frames identical to run1446. It has
+  256 blocks and **85** keys, the standing families alone: `form`, who=1's groups' `held` and pools, who=0's
+  `SITE[0..9].reg` and `aggression[1]`, the Tornado `1/89`'s `g.z[0]` (3780a), and `mirror` on `1/132`, `1/139`
+  and `1/145`.
+- **run1452** has 623 → 93 keys, the same families.
+- **The stride** has 165 → 149.
+- **The rounds** read 360 against 360 in both detail windows, and 174 part in each: every one is an Advanced
+  Battleship's launch point (`sx`/`sy`/`sz`, `v1z`, `ex`/`ey`), which no draw reads (parked 3782a).
+
+**The rubric.** `rubric.py --tables 3,4,5` after the last `ccc update`: unit types **263 of 302**, up from 262.
+`Jet Fighter[TORNADODES]` (298) enters the ledger and `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned. The lockstep
+bytes stay at **77.4 %**, because the pair is `cover=0` and has no twin (DECISIONS 93 §2).
+
+**Not established**:
+- Which other callers of `find_unit_with_radius` cross a cell line on file. Other than this word, every lobby's
+  `first_parting` stayed as pinned, which the gate reads.
+- The list arm with `r_coll < 0`, where the original keeps any unit (`param_5 < 0`) and this crate's predicate does
+  not. No caller here passes a negative radius.
 
 ## 379. Reserved for the next item on the AI track
 

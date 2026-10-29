@@ -33661,3 +33661,27 @@ SHA-256 `86f67b09bc184cf6f2e5687ecdc27e62d2964e81009050d5eb7b9f28a7ec2deb`.
 **What it holds**: the word's widening (`turkish_information_pair_run1452_s_word_frame_is_widened_whole`): 307
 blocks, 623 keys, rounds read 360 against 360, 144 parting from 4030; group 70's Attack Sub `1/98` on another
 formation slot from 3895, idle in ours on 3952 where theirs still walks.
+
+## run1454 — the Turks at a held Information age, East Indies, at difficulty 4: the closing window, blocks 4781..5037 (2026-10-29, item 3782, `att-3782`)
+
+`docs/AI.md` §378.2. **What the disk could not answer**: every record and every round on the pair's last blocks,
+which the word (now whole, 5036) is widened on. run1446's stride prints units every hundred frames, with no `AMMO`
+and no leader, building or city record past the start; run1452 ends on 4202. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1454 --map 18 --end-frame 5036 --allow-early-end --timeout 3600
+--log-window 4781 5037 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover
+cover=0 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 04:13:33, exited 04:14:21 (48.3 s launch to exit). `success`, through the closing block
+  5037; `page_faults` 0, `relaunches: []`. `rngcmp.py` against run1446: 5037 frames identical. Filed with
+  `filerun.py run1454 eastindies-turkish-information-closing-window-4781-5037`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1454-eastindies-turkish-information-closing-window-4781-5037.txt`, 565,566,280 bytes,
+SHA-256 `222ff75db059803a2d9cf8887c298d59bb0b49e51fc6683bb4ba2357a1c27c8b`.
+
+Archive `rontrace-run1454.log`, 84,357,184 bytes,
+SHA-256 `1888fd0122cbdbafd51f8ea4bd5c8f0636a444bc4bbe507ca5e61f3f6e7de7bd`.
+
+**What it holds**: the pair's closing widening (`turkish_information_pair_run1454_s_closing_frame_is_widened_whole`):
+256 blocks, 85 keys, all standing families; rounds read 360 against 360, 174 parting from 4830, every one an Advanced
+Battleship's launch point (parked 3782a).
