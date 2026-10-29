@@ -24,12 +24,21 @@ a decision the two sides are already making apart.
 The name is matched as the dump writes it, as a field access or a method
 (`.pop_cap`, `.pop_cap(`), outside the crate's tests. A field this crate
 carries under another name is not found: it is a list to read, not a proof.
+
+Loop 3768: beside each field, where the decompile export (`RON_DECOMP`) is
+on the machine and `tools/pdb_layout.py` knows the key's record, its PDB
+struct and offset and the spellings to grep the decompile by —
+`field_0xNN`, `+ 0xNN)`, and the slot's absolute address where a global
+table holds the record (a leader's). Item 3763 found `leader:treaties`'
+one writer only by its address. With no export the lines are unchanged.
 """
 import argparse
 import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+import pdb_layout
 
 ROOT = Path(__file__).resolve().parent.parent
 SIM = ROOT / 'crates/sim/src'
@@ -118,13 +127,18 @@ def report(rows, block=None, every=False, show=4):
             who, o, what, values = units[0]
             more = f' and {len(units) - 1} more' if len(units) > 1 else ''
             out.append(f'  {field}: {len(found[field])} readers in sim — '
-                       f'`{who}/{o} {what}` {values}{more}')
+                       f'`{who}/{o} {what}` {values}{more}'
+                       + pdb_layout.annotation(what, who, field))
             for path, n in found[field][:show]:
                 out.append(f'      {path}:{n}')
             if len(found[field]) > show:
                 out.append(f'      … {len(found[field]) - show} more')
         if quiet:
-            out.append(f'  nothing in sim reads, by that name: {", ".join(quiet)}')
+            named = []
+            for f in quiet:
+                at = pdb_layout.layout(keys[f][0][2], f)
+                named.append(f + (f' @+0x{at[1]:x}' if at else ''))
+            out.append(f'  nothing in sim reads, by that name: {", ".join(named)}')
     return out, read
 
 

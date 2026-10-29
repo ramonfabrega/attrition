@@ -556,6 +556,15 @@ class RunnerTest(unittest.TestCase):
         lane_log=(self.root/'wine-ron-2'/'.lane.log')
         self.assertFalse(lane_log.exists(),'no prefix directory here: the lane log is best effort')
 
+    def test_a_clean_take_s_receipt_says_it_relaunched_nothing(self):
+        # Loop 3754: `relaunches` arrived by setdefault on a relaunch only,
+        # so absent read as zero; now absent means a receipt from before
+        # Loop 3741, never a clean take.
+        output,receipt,killed,_=self.run_takes([('exit',0)])
+        self.assertEqual(receipt['relaunches'],[])
+        self.assertEqual(receipt['page_faults'],{'lane':2,'count':0})
+        self.assertEqual(killed,[])
+
     def test_a_third_page_fault_gives_up_and_the_receipt_counts_the_lanes_faults(self):
         (self.root/'wine-ron-2').mkdir()
         output,receipt,killed,exc=self.run_takes([('fault',None),('fault',None),('fault',None)])

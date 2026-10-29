@@ -606,6 +606,9 @@ def capture(args, output, style, run=None):
     # rebuilds.
     report['page_faults'] = {'lane': HELD.get('lane') or int(os.environ.get('RON_CAPTURE_LANE') or 1),
                              'count': 0}
+    # Loop 3754: on every take, so an absent field is a receipt from before
+    # Loop 3741 and never a clean take.
+    report['relaunches'] = []
     recording = getattr(args, 'recording', None)
     playback = recording is not None
     gamelog = capture_log(output, playback)

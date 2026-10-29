@@ -54,6 +54,15 @@ And the lines that are not exits — the wait goes on past each:
                                              an --arm-after-push lane's push sent with
                                              its done line (stdout; Loop 3749): the
                                              row stopping is its LANDED
+       GATING <lane> <state> — <command> (<n> min); held, read again at its exit
+                                             a row out of `working` with a gate running
+                                             under its session (stderr; Loop 3753):
+                                             never an ENDED while the gate lives
+       HELD <lane> <old>..<new> — …          an --arm-after-push lane's push held for
+                                             its done line when the wait exits on
+                                             anything else (stdout, before the exit
+                                             line; Loop 3765): the next
+                                             --arm-after-push wait on it arms it
 
 A push while the row still works is printed as `PUSHED <lane> <branch>
 <old>..<new>` and watched on (the twenty-fifth pass): the twenty-fifth
@@ -150,6 +159,29 @@ push; a done line makes the push a landing (said as `PUSHED … — its
 done line`, never armed, and LANDED when the row stops), and the row
 stopping with none is the draft, armed as before.
 
+And a lane gate is not an end (Loop 3753, the sixty-second pass):
+lane-3747 committed its journal, started its lane gate backgrounded and
+ended its turn; the row read `done` with the gate alive and nothing on
+origin, and two arms printed `ENDED lane-3747 done` 69 s after the
+commit and 60 s after WAITING, the wait on lane-3748 lost with it (3759
+the same, 63 s after its journal commit). So a row that would be ENDED
+with a `release_gate.py`, a `cargo test` or a `check.sh test` among its
+session's descendants is GATING, said once on stderr, and read again
+when the gate has gone or the branch pushed.
+
+And a held push outlives its wait (Loop 3765, the sixty-second pass):
+lane-3763's draft push was held for its done line while the row worked,
+and the next poll's `DEEP lane-3731` exited with nothing said of it; the
+row went idle with no clear armed, and the re-armed wait started on the
+moved ref and could not see the push. So any exit says `HELD` first, and
+every --arm-after-push wait records the ref the lane started on beside
+--deep-state (`lanewait-arm.json`); the next --arm-after-push wait on a
+lane whose ref has moved past that base, its session unchanged, seeds
+the push as held and settles it at its start — armed when the row is
+idle with no done line since the base was recorded, a landing with one,
+held while the row works. A push no wait recorded a base for is never
+armed at start.
+
 And the first line is the waiter's own (Loop 3716, the sixtieth pass):
 fourteen of the sixtieth tranche's thirty-four logs and nine of the
 sixty-first's sixteen were empty, a waiter replaced, a quiet one and a
@@ -182,7 +214,7 @@ def ends_on_clear(tail):
 
 
 def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, sessions=None,
-          cleared=None, drafts=None, armed=None):
+          cleared=None, drafts=None, armed=None, gating=None, gating_notes=None):
     """The first event among the lanes, as (exit code, line), or None.
 
     `watch` maps a lane to {'branch', 'tip', 'still'} and is updated in
@@ -209,8 +241,16 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
     `armed`, when given, is asked of a lane just before it would land
     (`armed_clear`, Loop 3458): True makes the landing a draft under an
     armed clear, recorded and watched past.
+
+    `gating` maps a lane to `(minutes, command)` of a gate running under
+    its session (`gate_under`, Loop 3753): a row that would be ENDED with
+    one is held instead, `GATING <lane> <state> — …` going in
+    `gating_notes` once per gate, and the row must stay out STILL polls
+    past the gate's exit before it is ENDED — the exit's notice is what
+    re-invokes the session.
     """
     sessions = sessions or {}
+    gating = gating or {}
     cleared = cleared or set()
     moved_session = {}
     for lane, seen in watch.items():
@@ -251,6 +291,8 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
             return 0, f"LANDED {moved}"
     for lane, seen in watch.items():
         state = states.get(lane)
+        if lane not in gating:
+            seen.pop('gating', None)
         if state == WORKING:
             seen['still'] = 0
             continue
@@ -264,6 +306,17 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
                         drafts.append(f"DRAFT {line} — pushed under an armed clear; watching on")
                     continue
                 return 0, f"LANDED {seen['pushed']}"
+            gate = gating.get(lane)
+            if gate:
+                if not seen.get('gating'):
+                    seen['gating'] = True
+                    age = f"{int(gate[0])} min" if gate[0] is not None else 'age unknown'
+                    if gating_notes is not None:
+                        gating_notes.append(f"GATING {lane} {state or 'gone'} — {gate[1]} ({age}); "
+                                            "held, read again at its exit")
+                seen['still'] = 0
+                continue
+            seen.pop('gating', None)
             detail = (details or {}).get(lane)
             tail = f" — {detail}" if detail else ''
             return 3, f"ENDED {lane} {state or 'gone'}{tail}"
@@ -494,6 +547,108 @@ def children_of(pids):
         if ppid in found:
             found[ppid].append((etime_minutes(parts[2]), parts[3]))
     return found
+
+
+def process_table():
+    """Every process as `{pid: (ppid, minutes alive, command line)}`, from one `ps`."""
+    out = subprocess.run(['ps', '-axo', 'pid=,ppid=,etime=,command='], capture_output=True, text=True,
+                         check=False).stdout
+    table = {}
+    for line in out.splitlines():
+        parts = line.split(None, 3)
+        if len(parts) < 4:
+            continue
+        try:
+            table[int(parts[0])] = (int(parts[1]), etime_minutes(parts[2]), parts[3])
+        except ValueError:
+            continue
+    return table
+
+
+# A gate a lane runs in the background and ends its turn on (Loop 3753).
+# The process itself, by its program and first argument: a shell whose
+# command text only names one (a `grep`, an `ls`) is not a gate.
+GATE = re.compile(r'^\S*[Pp]ython[\d.]*(\s+-\S+)*\s+\S*release_gate\.py\b'
+                  r'|^\S*cargo(\s+\+\S+)?\s+test\b'
+                  r'|^\S*(zsh|bash|sh)\s+\S*check\.sh\s+test\b')
+
+
+def gate_under(pid, table):
+    """The shallowest descendant of `pid` in a `process_table` whose
+    command line is a gate — a `release_gate.py`, a `cargo test`, a
+    `check.sh test` run as its own process — as `(minutes, command)`, or
+    None. A background task runs as a shell under the session and the
+    gate under the shell, so the shell's text is never matched; a
+    descendant of the lane's session is the lane's own."""
+    if pid is None:
+        return None
+    kids = {}
+    for child, (ppid, _, _) in table.items():
+        kids.setdefault(ppid, []).append(child)
+    level, seen = sorted(kids.get(pid, [])), {pid}
+    while level:
+        for child in level:
+            _, minutes, command = table[child]
+            if GATE.search(command):
+                return minutes, command
+        seen.update(level)
+        level = sorted(c for parent in level for c in kids.get(parent, []) if c not in seen)
+    return None
+
+
+def held_lines(watch):
+    """A `HELD` line for each --arm-after-push lane whose push is held for
+    its done line (Loop 3765): said before any exit, so the commander's
+    turn knows a draft went unarmed."""
+    return [f"HELD {lane} {seen['held'][0]}..{seen['tip'][:8] if seen['tip'] else 'none'} — held for its done "
+            f"line, not armed; the next --arm-after-push {lane} wait arms it"
+            for lane, seen in watch.items() if seen.get('held')]
+
+
+def load_bases(path):
+    """`{lane: {'base', 'at', 'session'}}` from the arm state file, `{}`
+    when there is none or it does not parse."""
+    if not path or not os.path.exists(path):
+        return {}
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        return {str(k): v for k, v in data.items() if isinstance(v, dict)}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+def save_bases(path, bases):
+    if not path:
+        return
+    os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+    with open(path, 'w') as f:
+        json.dump(bases, f)
+
+
+def seed_held(watch, pending, bases, now):
+    """The base each --arm-after-push lane's wait recorded (Loop 3765),
+    read at a wait's start and updated in place. A pending lane whose ref
+    has moved past the base an earlier wait recorded, its session
+    unchanged, has pushed since that wait began: the push is seeded as
+    held from the base, for `arm_pushes` to arm or to call a landing.
+    A pending lane with no base, or a session that moved (its clear
+    fired), records the ref it starts on; a watched lane without the flag
+    forgets its base. Returns the seeded lanes."""
+    seeded = []
+    for lane, seen in watch.items():
+        if lane not in pending:
+            bases.pop(lane, None)
+            continue
+        rec = bases.get(lane)
+        if rec and rec.get('session') and seen.get('session') and rec['session'] != seen['session']:
+            rec = None
+        if rec is None:
+            bases[lane] = {'base': seen['tip'], 'at': now, 'session': seen.get('session')}
+        elif rec.get('base') != seen['tip']:
+            seen['held'] = ((rec.get('base') or '')[:8] or 'none', rec.get('at'))
+            seeded.append(lane)
+    return seeded
 
 
 def idle_since(stamp, now):
@@ -832,7 +987,12 @@ def main(argv=None):
     parser.add_argument('--then', default=THEN, metavar='TEMPLATE',
                         help="the --arm-after-push clear's prompt; {lane} and {item} (the lane's number) "
                              "are substituted; default %(default)r")
+    parser.add_argument('--arm-state', default=None, metavar='FILE',
+                        help="where each --arm-after-push lane's base persists between waits (Loop 3765); "
+                             "default lanewait-arm.json beside --deep-state, nowhere without one")
     args = parser.parse_args(argv)
+    arm_state = args.arm_state if args.arm_state is not None else (
+        os.path.join(os.path.dirname(args.deep_state), 'lanewait-arm.json') if args.deep_state else None)
     strays = [lane for lane in args.arm_after_push if lane not in args.lanes]
     if strays:
         print(f"lanewait: --arm-after-push names a lane not watched: {', '.join(strays)}", file=sys.stderr)
@@ -864,7 +1024,35 @@ def main(argv=None):
     named = '; '.join(f"{lane} {seen['branch']} {seen['tip'][:8] if seen['tip'] else 'none'}"
                       for lane, seen in watch.items())
     arming = f" arm-after-push {' '.join(args.arm_after_push)}" if args.arm_after_push else ''
+    arm_pending = set(args.arm_after_push)
+    bases = load_bases(arm_state)
+    seeded = seed_held(watch, arm_pending, bases, time.time())
+    save_bases(arm_state, bases)
     print(f"WAITING {named} — {begun} pid {os.getpid()}{arming}", flush=True)
+
+    def settle(states, tips, sessions, since):
+        arm_drafts, arm_lines = arm_pushes(
+            watch, tips, sessions, arm_pending, args.then, arm=arm_clear, already_armed=armed_clear,
+            states=states, since=since, landed=lambda lane, at: done_line_of(lane, at, where, sessions))
+        for draft in arm_drafts:
+            print(draft, file=sys.stderr, flush=True)
+        for line in arm_lines:
+            print(line, flush=True)
+        gone = [lane for lane in bases if lane in watch and lane not in arm_pending]
+        for lane in gone:
+            bases.pop(lane)
+        if gone:
+            save_bases(arm_state, bases)
+
+    def finish(found):
+        for line in held_lines(watch):
+            print(line, flush=True)
+        print(found[1], flush=True)
+        return found[0]
+
+    if seeded:
+        settle({lane: rows[lane][0] for lane in watch}, {lane: seen['tip'] for lane, seen in watch.items()},
+               {lane: seen.get('session') for lane, seen in watch.items()}, None)
 
     started = time.monotonic()
     polled_at = time.time()
@@ -872,7 +1060,6 @@ def main(argv=None):
     reported = set()
     stalled_reported = set()
     uncleared_reported = set()
-    arm_pending = set(args.arm_after_push)
     while True:
         time.sleep(args.interval)
         polls += 1
@@ -881,8 +1068,7 @@ def main(argv=None):
             found = deep(contexts(list(watch)), args.deep * 1000, reported, answered, args.deep_step * 1000)
             if found:
                 save_answered(args.deep_state, answered)
-                print(found[1], flush=True)
-                return found[0]
+                return finish(found)
         rows = roster()
         if rows is None:
             continue
@@ -890,8 +1076,7 @@ def main(argv=None):
             found = uncleared(tails_of(list(watch), where, getattr(roster, 'sessions', {})),
                               time.time(), args.uncleared_after, uncleared_reported)
             if found:
-                print(found[1], flush=True)
-                return found[0]
+                return finish(found)
         states = {lane: (rows[lane][0] if lane in rows else None) for lane in watch}
         details = {lane: (rows[lane][4] if lane in rows else None) for lane in watch}
         if args.stalled_after:
@@ -906,34 +1091,30 @@ def main(argv=None):
             found = stalled(list(watch), states, idle, children, args.stalled_after, stalled_reported,
                             args.stalled_child_after)
             if found:
-                print(found[1], flush=True)
-                return found[0]
+                return finish(found)
         since, polled_at = polled_at, time.time()
         tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
         sessions = {lane: getattr(roster, 'sessions', {}).get(lane) for lane in watch}
         if arm_pending:
-            arm_drafts, arm_lines = arm_pushes(
-                watch, tips, sessions, arm_pending, args.then, states=states, since=since,
-                landed=lambda lane, at: done_line_of(lane, at, where, sessions))
-            for draft in arm_drafts:
-                print(draft, file=sys.stderr, flush=True)
-            for line in arm_lines:
-                print(line, flush=True)
+            settle(states, tips, sessions, since)
+        rests = getattr(roster, 'rests', {})
+        out = [lane for lane in watch if states.get(lane) != WORKING and (rests.get(lane) or (None,))[0]]
+        table = process_table() if out else {}
+        gating = {lane: gate for lane in out if (gate := gate_under(rests[lane][0], table))}
         # The transcript is read only for a lane whose ref moved: the tell
         # is asked of a push, never of every poll.
         pushed = [lane for lane, seen in watch.items() if tips.get(lane) and tips[lane] != seen['tip']]
         tails = tails_of(pushed, where, sessions) if pushed else {}
         cleared = {lane for lane, tail in tails.items() if ends_on_clear(tail)}
-        notes, drafts = [], []
+        notes, drafts, gate_notes = [], [], []
         found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes,
-                      details, sessions, cleared, drafts, armed_clear)
+                      details, sessions, cleared, drafts, armed_clear, gating, gate_notes)
         for note in notes:
             print(note, flush=True)
-        for draft in drafts:
+        for draft in drafts + gate_notes:
             print(draft, file=sys.stderr, flush=True)
         if found:
-            print(found[1], flush=True)
-            return found[0]
+            return finish(found)
 
 
 if __name__ == '__main__':

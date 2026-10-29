@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-10-28, tools/suite_timings.py (tree 0f0d926c).
+# Every rondata release test timed alone, 2026-10-29, tools/suite_timings.py (tree 1ab68f79).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 4,284 s over 1768 tests; --stale-only merged. Top 10 = 501 s, top 30 = 824, top 100 = 1355; 662 tests under 1 s.
+# Sum 4,316 s over 1811 tests; --stale-only merged. Top 10 = 501 s, top 30 = 824, top 100 = 1355; 692 tests under 1 s.
 # By module: golden 907 s / 281 tests, harness 471 s / 92 tests, second 246 s / 35 tests, coverage 221 s / 4 tests, third_pair 166 s / 48 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
@@ -827,6 +827,7 @@
 1.78	diff::german_sahara_word::run1000b_german_sahara_closing_state
 1.78	diff::persian_medieval_pair::persian_medieval_pair_first_parting
 1.78	diff::indian_enlightenment_pair::indian_enlightenment_pair_first_parting
+1.77	diff::american_information_pair::american_information_pair_run1439_s_gap_is_widened_whole
 1.77	diff::audit::great_lakes_long_word_corrections_change_nothing
 1.77	diff::japanese_ancient_pair::japanese_ancient_pair_run1252_s_closing_state
 1.77	diff::mongol_gunpowder_pair::mongol_gunpowder_pair_run1292c_walks_back_from_4499
@@ -895,6 +896,7 @@
 1.66	diff::german_modern_pair::german_modern_pair_run1397_s_closing_state
 1.65	diff::audit::japanese_enlightenment_pair_corrections_change_nothing
 1.65	diff::third_pair::run612_s_word_frame_is_widened_whole
+1.64	diff::chinese_modern_pair::chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole
 1.64	diff::german_modern_pair::german_modern_pair_first_parting
 1.64	diff::city::tests::run40_s_census_prices_the_ai_s_second_city_at_sixty
 1.64	diff::golden::chapter_ninety_nine_s_window_is_widened_whole
@@ -920,6 +922,7 @@
 1.61	diff::golden::chapter_one_s_two_squads_are_seated_where_the_dump_says
 1.61	diff::maya_word::run973c_s_gap_is_widened_whole
 1.61	diff::turkish_word::turkish_word_first_parting
+1.60	diff::american_information_pair::american_information_pair_run1434b_s_word_frame_is_widened_whole
 1.60	diff::audit::french_classical_pair_corrections_change_nothing
 1.60	diff::indian_sahara_word::indian_sahara_word_first_parting
 1.60	diff::golden::chapter_one_s_hit_is_answered_by_the_victim_s_captain
@@ -1007,11 +1010,14 @@
 1.32	diff::french_enlightenment_pair::french_enlightenment_pair_the_long_s_stride_walks_back_from_4505
 1.31	diff::audit::japanese_medieval_pair_corrections_change_nothing
 1.31	diff::british_industrial_pair::british_industrial_pair_run1336_s_closing_state
+1.31	diff::british_modern_pair::british_modern_pair_run1433b_s_closing_frame_is_widened_whole
+1.30	diff::chinese_modern_pair::chinese_modern_pair_first_parting
 1.30	diff::harness::tests::run82_s_leader_record_is_the_original_s_wealth
 1.30	diff::harness::tests::run85_s_window_is_the_east_indies_word_frame
 1.30	diff::russian_medieval_pair::russian_medieval_pair_run1258_s_closing_state
 1.30	diff::russian_medieval_pair::russian_medieval_pair_first_parting
 1.30	diff::inca_classical_pair::inca_classical_pair_the_long_s_stride_walks_back_from_4501
+1.30	diff::chinese_modern_pair::chinese_modern_pair_run1431_s_closing_state
 1.29	diff::german_industrial_pair::german_industrial_pair_run1351b_s_damage_window_is_widened_whole
 1.29	diff::persian_medieval_pair::persian_medieval_pair_the_long_s_stride_walks_back_from_4038
 1.28	diff::egyptian_information_pair::egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole
@@ -1031,6 +1037,7 @@
 1.25	diff::audit::aztec_medieval_pair_corrections_change_nothing
 1.23	diff::greek_gunpowder_pair::greek_gunpowder_pair_run1285_s_closing_state
 1.23	diff::ammo::tests::run100_and_run109_agree_on_where_the_bow_hand_is_off_the_ground
+1.22	diff::maya_information_pair::maya_information_pair_run1411b_s_closing_frame_is_widened_whole
 1.22	diff::audit::roman_gunpowder_pair_corrections_change_nothing
 1.22	diff::spanish_industrial_pair::spanish_industrial_pair_first_parting
 1.22	diff::chinese_medieval_pair::run1202_chinese_medieval_pair_closing_state
@@ -1054,6 +1061,7 @@
 1.19	diff::japanese_word::run960b_japanese_closing_state
 1.19	diff::american_modern_pair::american_modern_pair_first_parting
 1.19	diff::russian_modern_pair::russian_modern_pair_run1162e_s_wealth_is_widened_whole
+1.18	diff::egyptian_modern_pair::egyptian_modern_pair_run1426_s_word_frame_is_widened_whole
 1.18	diff::aztec_medieval_pair::aztec_medieval_pair_first_parting
 1.18	diff::lakota_gunpowder_pair::lakota_gunpowder_pair_run1289_s_closing_state
 1.17	diff::golden::chapter_one_hundred_holds_to_the_golden_word
@@ -1067,6 +1075,7 @@
 1.14	diff::korean_ancient_pair::korean_ancient_pair_the_long_s_stride_walks_back_from_4350
 1.14	diff::american_modern_pair::american_modern_pair_run1151c_s_word_frame_is_widened_whole
 1.14	diff::audit::egyptian_gunpowder_pair_corrections_change_nothing
+1.14	diff::chinese_modern_pair::chinese_modern_pair_the_long_s_stride_is_widened
 1.13	diff::japanese_ancient_pair::japanese_ancient_pair_the_long_s_stride_walks_back_from_4934
 1.12	diff::inca_industrial_pair::inca_industrial_pair_first_parting
 1.12	diff::unit::tests::run67_s_window_is_every_figure_s_whole_record
@@ -1077,8 +1086,10 @@
 1.11	diff::korean_medieval_pair::korean_medieval_pair_first_parting
 1.11	diff::chinese_industrial_pair::chinese_industrial_pair_run1175_s_word_frame_is_widened_whole
 1.11	diff::audit::greek_gunpowder_pair_corrections_change_nothing
+1.11	diff::american_information_pair::american_information_pair_run1409_s_closing_state
 1.10	diff::egyptian_information_pair::egyptian_information_pair_run1399_s_closing_state
 1.10	diff::audit::chinese_enlightenment_pair_corrections_change_nothing
+1.10	diff::american_information_pair::american_information_pair_first_parting
 1.09	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_first_parting
 1.09	diff::egyptian_gunpowder_pair::egyptian_gunpowder_pair_run1254_s_closing_state
 1.09	diff::army::tests::run29_s_halted_group_kept_its_members_formation_bytes
@@ -1095,6 +1106,8 @@
 1.06	diff::mongol_gunpowder_pair::mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole
 1.06	diff::iroquois_word::run897b_iroquois_closing_state
 1.06	diff::japanese_modern_pair::japanese_modern_pair_run1403_s_closing_state
+1.05	diff::american_information_pair::american_information_pair_run1437b_s_word_frame_is_widened_whole
+1.05	diff::american_information_pair::american_information_pair_run1409b_s_word_frame_is_widened_whole
 1.05	diff::japanese_modern_pair::japanese_modern_pair_first_parting
 1.05	diff::inca_enlightenment_pair::inca_enlightenment_pair_run1310_s_closing_state
 1.05	diff::american_modern_pair::american_modern_pair_the_long_s_stride_walks_back_from_4488
@@ -1108,8 +1121,11 @@
 1.03	diff::korean_medieval_pair::korean_medieval_pair_the_long_s_stride_walks_back_from_3401
 1.02	diff::chinese_industrial_pair::chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole
 1.00	diff::russian_gunpowder_pair::russian_gunpowder_pair_the_long_s_stride_walks_back_from_3711
+0.99	diff::british_modern_pair::british_modern_pair_run1433_s_closing_state
 0.99	diff::greek_word::run961c_s_gap_is_widened_whole
+0.99	diff::aztec_modern_pair::aztec_modern_pair_run1429b_s_word_frame_is_widened_whole
 0.98	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208c_walks_the_wound_back
+0.97	diff::american_information_pair::american_information_pair_the_long_s_stride_walks_back_from_the_word
 0.97	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole
 0.97	diff::world::tests::run20_s_pasture_grows_nothing_and_its_five_animals_draw_six
 0.96	diff::audit::inca_enlightenment_pair_corrections_change_nothing
@@ -1117,6 +1133,7 @@
 0.96	diff::sahara_coverage::run683_s_road_searches_hold_node_for_node
 0.96	diff::golden::the_ground_order_s_life_is_the_dump_s
 0.96	diff::golden::chapter_eighty_seven_s_window_is_widened_whole
+0.96	diff::british_modern_pair::british_modern_pair_first_parting
 0.95	diff::persian_classical_pair::persian_classical_pair_captures_say_their_lobby
 0.95	diff::golden::chapter_ninety_six_s_window_is_widened_whole
 0.95	diff::golden::chapter_eighty_nine_s_window_is_widened_whole
@@ -1127,8 +1144,11 @@
 0.93	diff::iroquois_word::the_despot_s_ambush_holds_its_craft
 0.93	diff::third_pair::run602_s_word_frame_is_widened_whole
 0.93	diff::golden::chapter_one_hundred_and_two_holds_to_the_golden_word
+0.92	diff::aztec_modern_pair::aztec_modern_pair_run1429_s_closing_state
 0.92	diff::audit::turkish_enlightenment_pair_corrections_change_nothing
 0.92	diff::setup::tests::run18b_and_run19_s_make_list_windows_replay_slot_for_slot
+0.91	diff::maya_information_pair::maya_information_pair_first_parting
+0.91	diff::aztec_modern_pair::aztec_modern_pair_first_parting
 0.90	diff::british_industrial_pair::british_industrial_pair_run1336b_s_word_frame_is_widened_whole
 0.90	diff::golden::chapter_one_hundred_and_three_holds_to_the_golden_word
 0.90	diff::golden::chapter_one_hundred_and_four_holds_to_the_golden_word
@@ -1137,6 +1157,7 @@
 0.89	diff::turkish_enlightenment_pair::run1159_turkish_enlightenment_pair_closing_state
 0.89	diff::american_enlightenment_pair::american_enlightenment_pair_the_long_s_stride_walks_back_from_3215
 0.89	diff::audit::japanese_gunpowder_pair_corrections_change_nothing
+0.88	diff::maya_information_pair::maya_information_pair_run1411_s_closing_state
 0.88	diff::spanish_gunpowder_pair::spanish_gunpowder_pair_run1301_s_gap_is_widened_whole
 0.88	diff::iroquois_word::iroquois_word_first_parting
 0.88	diff::city::tests::run64_s_frame_6167_prices_are_the_originals
@@ -1152,6 +1173,7 @@
 0.86	diff::coverage_pair::run656_s_word_frame_is_widened_whole
 0.86	diff::golden::chapter_seventy_nine_s_word_frame_is_widened_whole
 0.86	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_first_parting
+0.86	diff::british_modern_pair::british_modern_pair_the_long_s_stride_is_widened
 0.85	diff::russian_medieval_pair::russian_medieval_pair_s_guard_search_values_the_market_as_a_trainer
 0.85	diff::russian_modern_pair::russian_modern_pair_run1162d_s_census_is_widened_whole
 0.85	diff::army::tests::run29_s_engagement_seeds_its_attack_from_the_first_member_of_the_group_s_list
@@ -1177,6 +1199,7 @@
 0.81	diff::egyptian_modern_pair::egyptian_modern_pair_the_long_s_stride_walks_back_from_the_word
 0.81	diff::third_pair::run609_s_closing_frame_is_widened_whole
 0.81	diff::mongol_gunpowder_pair::mongol_gunpowder_pair_run1292_s_gap_is_widened_whole
+0.79	diff::maya_information_pair::maya_information_pair_the_long_s_stride_is_widened
 0.78	diff::roman_medieval_pair::roman_medieval_pair_first_parting
 0.78	diff::world::tests::run32_s_scheduled_replans_cost_the_original_s_nodes
 0.78	diff::bantu_word::run978d_s_escrow_window_is_widened_whole
@@ -1190,9 +1213,11 @@
 0.77	diff::coverage_pair::run660_s_word_frame_is_widened_whole
 0.77	diff::third_pair::run598_french_great_lakes_closing_state
 0.77	diff::spanish_industrial_pair::spanish_industrial_pair_the_long_s_stride_walks_back_from_3229
+0.76	diff::aztec_modern_pair::aztec_modern_pair_the_long_s_stride_walks_back_from_the_word
 0.76	diff::roman_gunpowder_pair::roman_gunpowder_pair_the_long_s_stride_walks_back_from_2926
 0.76	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole
 0.76	diff::chinese_medieval_pair::chinese_medieval_pair_run1220_s_volley_is_widened_whole
+0.76	diff::american_information_pair::american_information_pair_an_american_aircraft_costs_a_fifth_less
 0.75	diff::persian_medieval_pair::persian_medieval_pair_run1189_lands_the_explorer_on_its_attack
 0.75	diff::golden::chapter_ninety_one_s_window_is_widened_whole
 0.75	blind::tests::the_issuer_guard_reads_through_the_coverage_jmp
@@ -1241,17 +1266,22 @@
 0.58	diff::setup::tests::the_install_s_gaia_lengths_match_the_dump_s
 0.58	diff::build::tests::run22_s_first_dock_registers_in_the_sea_and_grants_the_level
 0.57	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771
+0.57	diff::gunpowder_melee::gunpowder_melee_first_parting
+0.55	diff::gunpowder_melee::gunpowder_melee_s_strike_meets_before_the_census
+0.55	diff::gunpowder_melee::gunpowder_melee_s_captain_scores_the_bombard_in_an_int
 0.54	diff::korean_classical_pair::korean_classical_pair_captures_say_their_lobby
 0.53	diff::british_industrial_pair::british_industrial_pair_run1336c_s_leaders_stride_is_widened_whole
 0.53	diff::golden::chapter_eighty_five_s_window_is_widened_whole
 0.53	diff::golden::chapter_eighty_staging_reaches_the_stealth_arm
 0.53	diff::iroquois_word::run918_s_word_frame_is_widened_whole
+0.53	diff::gunpowder_melee::gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move
 0.52	diff::iroquois_word::run921_s_word_frame_is_widened_whole
 0.52	diff::golden::chapter_eighty_eight_holds_to_the_golden_word
 0.52	diff::world::tests::run9_s_world_dump_puts_the_ai_s_farm_on_the_original_s_tile
 0.51	diff::british_industrial_pair::british_industrial_pair_the_long_s_stride_walks_back_from_2382
 0.51	diff::iroquois_word::run918b_s_gap_is_widened_whole
 0.51	diff::iroquois_word::run930_s_squad_is_widened_whole
+0.50	diff::gunpowder_melee::gunpowder_melee_staging_walk
 0.50	diff::american_enlightenment_pair::american_enlightenment_pair_captures_say_their_lobby
 0.50	diff::japanese_industrial_pair::japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier
 0.50	diff::golden::chapter_seventy_nine_holds_to_the_golden_word
@@ -1278,6 +1308,7 @@
 0.45	diff::egyptian_classical_pair::egyptian_classical_pair_captures_say_their_lobby
 0.45	diff::mongol_gunpowder_pair::mongol_gunpowder_pair_captures_say_their_lobby
 0.45	diff::british_industrial_pair::british_industrial_pair_a_british_aa_gun_costs_a_quarter_less
+0.45	diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole
 0.44	diff::bantu_ancient_pair::bantu_ancient_pair_captures_say_their_lobby
 0.44	diff::golden::chapter_ninety_seven_holds_to_the_golden_word
 0.44	diff::harness::tests::great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none
@@ -1299,6 +1330,7 @@
 0.42	diff::sahara_toughest::tests::run666_s_decoy_rounds_strike_nothing
 0.42	diff::coverage_pair::coverage_pair_start_owns_every_age
 0.42	diff::persian_gunpowder_pair::persian_gunpowder_pair_captures_say_their_lobby
+0.42	diff::gunpowder_melee::gunpowder_melee_s_farms_stand_in_the_dump_s_order
 0.41	diff::iroquois_ancient_pair::iroquois_ancient_pair_captures_say_their_lobby
 0.41	diff::golden::chapter_three_s_falsifiers_are_the_dump_s
 0.41	diff::russian_modern_pair::russian_modern_pair_captures_say_their_lobby
@@ -1322,6 +1354,7 @@
 0.36	load::tests::run17_s_hits_are_the_formula_s
 0.36	diff::iroquois_word::run897_s_word_frame_is_widened_whole
 0.36	diff::french_enlightenment_pair::french_enlightenment_pair_captures_say_their_lobby
+0.35	diff::chinese_modern_pair::chinese_modern_pair_captures_say_their_lobby
 0.35	diff::mongol_enlightenment_pair::mongol_enlightenment_pair_captures_say_their_lobby
 0.35	diff::lakota_medieval_pair::lakota_medieval_pair_captures_say_their_lobby
 0.34	diff::bantu_modern_pair::bantu_modern_pair_captures_say_their_lobby
@@ -1360,6 +1393,7 @@
 0.28	load::tests::every_building_type_takes_its_graphic_s_blocking_template
 0.28	load::tests::the_tree_files_ages_epochs_and_governments
 0.28	diff::japanese_modern_pair::japanese_modern_pair_captures_say_their_lobby
+0.27	diff::american_information_pair::american_information_pair_captures_say_their_lobby
 0.27	diff::egyptian_information_pair::egyptian_information_pair_captures_say_their_lobby
 0.27	diff::british_industrial_pair::british_industrial_pair_captures_say_their_lobby
 0.27	diff::aztec_medieval_pair::aztec_medieval_pair_captures_say_their_lobby
@@ -1371,6 +1405,7 @@
 0.27	diff::chinese_industrial_pair::chinese_industrial_pair_captures_say_their_lobby
 0.27	diff::inca_enlightenment_pair::inca_enlightenment_pair_captures_say_their_lobby
 0.27	diff::inca_industrial_pair::inca_industrial_pair_captures_say_their_lobby
+0.27	diff::british_modern_pair::british_modern_pair_captures_say_their_lobby
 0.26	load::tests::a_hero_masked_wonder_is_nobody_s_to
 0.26	load::tests::the_nation_free_upgrade_blocks_name_the_units_they_hand_out
 0.26	load::tests::the_radar_air_defense_winds_up_on_its_unit_s_packet
@@ -1388,9 +1423,11 @@
 0.25	diff::golden::chapter_four_s_two_captures_are_one_game
 0.25	diff::sahara_coverage::sahara_coverage_captures_say_their_lobby
 0.25	diff::american_modern_pair::american_modern_pair_captures_say_their_lobby
+0.25	diff::maya_information_pair::maya_information_pair_captures_say_their_lobby
 0.24	diff::spanish_industrial_pair::spanish_industrial_pair_captures_say_their_lobby
 0.24	diff::setup::tests::the_producers_are_not_reached_until_the_ai_script_ends
 0.24	capture::archive::tests::byte_roundtrip_seeks_and_chunk_boundaries
+0.24	diff::aztec_modern_pair::aztec_modern_pair_captures_say_their_lobby
 0.23	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_captures_say_their_lobby
 0.23	diff::harness::tests::run84_says_great_lakes_6994_belongs_to_the_second_squad
 0.23	diff::army::tests::run29_s_move_orders_match_the_field_table_row_for_row
@@ -1571,6 +1608,12 @@
 0.01	diff::spanish_modern_pair::spanish_modern_pair_is_no_other_lobby
 0.01	diff::russian_information_pair::russian_information_pair_is_no_other_lobby
 0.01	diff::german_modern_pair::german_modern_pair_is_no_other_lobby
+0.01	diff::floors::tests::the_handoff_s_melee_is_the_pinned_word
+0.00	diff::maya_information_pair::maya_information_pair_is_no_other_lobby
+0.00	diff::american_information_pair::american_information_pair_is_no_other_lobby
+0.00	diff::chinese_modern_pair::chinese_modern_pair_is_no_other_lobby
+0.00	diff::british_modern_pair::british_modern_pair_is_no_other_lobby
+0.00	diff::aztec_modern_pair::aztec_modern_pair_is_no_other_lobby
 0.00	diff::french_medieval_pair::french_medieval_pair_is_no_other_lobby
 0.00	diff::persian_gunpowder_pair::persian_gunpowder_pair_is_no_other_lobby
 0.00	diff::british_medieval_pair::british_medieval_pair_is_no_other_lobby

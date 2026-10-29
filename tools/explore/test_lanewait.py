@@ -774,5 +774,224 @@ class ALandingPushIsNotADraft(unittest.TestCase):
                                   "arming its clear"])
 
 
+GATE = 'python3 tools/release_gate.py /Users/x/game --lane --tests melee'
+
+
+class ALaneGateIsNotAnEnd(unittest.TestCase):
+    """Loop 3753 (the sixty-second pass): lane-3747 committed its journal
+    at 11:14:31, started its lane gate backgrounded and ended its turn;
+    the row read `done` with the gate alive and nothing on origin, and
+    two arms of `lanewait.py lane-3747 lane-3748` printed `ENDED lane-3747
+    done — …` 69 s after that commit and 60 s after WAITING — the wait on
+    lane-3748 lost with it. 3759 the same (ENDED 63 s after its journal
+    commit; its gate's quote landed 23 minutes later). A row out of
+    `working` whose session has a gate running under it is GATING: said
+    once on stderr, held, and read again when the gate has gone."""
+
+    def test_a_row_out_of_working_with_its_gate_running_is_gating_once(self):
+        watch, notes = watching(a=None), []
+        states, tips, details = {'a': 'done'}, {'a': None}, {'a': '3747 Egyptian bay rows landed'}
+        for minutes in (1, 2, 3, 4):
+            self.assertIsNone(lanewait.event(watch, states, tips, minutes, 100, details=details,
+                                             gating={'a': (3.4, GATE)}, gating_notes=notes))
+        self.assertEqual(notes, [f'GATING a done — {GATE} (3 min); held, read again at its exit'])
+        # The gate exits: its notice re-invokes the session, so the row
+        # must stay out STILL polls past it before it is ENDED.
+        self.assertIsNone(lanewait.event(watch, states, tips, 5, 100, details=details, gating={},
+                                         gating_notes=notes))
+        self.assertEqual(lanewait.event(watch, states, tips, 6, 100, details=details, gating={},
+                                        gating_notes=notes),
+                         (3, 'ENDED a done — 3747 Egyptian bay rows landed'))
+        self.assertEqual(len(notes), 1)
+
+    def test_a_push_while_gating_still_lands(self):
+        watch = watching(a=None)
+        lanewait.event(watch, {'a': 'done'}, {'a': None}, 1, 100, gating={'a': (1.0, GATE)}, gating_notes=[])
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 2, 100,
+                                        gating={'a': (2.0, GATE)}, gating_notes=[]),
+                         (0, 'LANDED a worktree-a none..22222222'))
+
+    def test_a_second_gate_is_said_again(self):
+        watch, notes = watching(a=None), []
+        for gating in ({'a': (1.0, GATE)}, {'a': (1.0, GATE)}, {}, {'a': (0.5, 'cargo test --release -p sim')},
+                       {'a': (1.0, 'cargo test --release -p sim')}):
+            lanewait.event(watch, {'a': 'idle'}, {'a': None}, 1, 100, gating=gating, gating_notes=notes)
+        self.assertEqual([n.split(' — ')[0] for n in notes], ['GATING a idle', 'GATING a idle'])
+
+    def test_the_gate_is_any_descendant_of_the_lane_s_session(self):
+        table = {100: (1, 60.0, 'claude --model opus'),
+                 200: (100, 3.0, "/bin/zsh -c source ~/.zshrc && eval '" + GATE + "'"),
+                 201: (200, 3.0, GATE),
+                 202: (100, 50.0, 'bun run lazy-tools'),
+                 300: (1, 9.0, 'claude --model opus'),
+                 301: (300, 9.0, 'cargo test --release -p sim'),
+                 400: (1, 2.0, 'claude --model opus'),
+                 401: (400, 2.0, "/bin/zsh -c eval 'ls tools/explore/test_release_gate.py; grep -n cargo test x'"),
+                 500: (1, 2.0, 'claude'),
+                 501: (500, 7.0, '/opt/homebrew/Cellar/python@3.13/3.13.1/Frameworks/Python.framework/Versions/3.13/'
+                                 'Resources/Python.app/Contents/MacOS/Python tools/release_gate.py /x --lane'),
+                 600: (1, 2.0, 'claude'),
+                 601: (600, 1.0, '/Users/x/.rustup/toolchains/1.86-aarch64-apple-darwin/bin/cargo test --release'),
+                 602: (600, 1.0, 'zsh tools/check.sh test -p sim')}
+        # The gate is its own process, never a shell whose text names it.
+        self.assertEqual(lanewait.gate_under(100, table), (3.0, GATE))
+        self.assertEqual(lanewait.gate_under(300, table), (9.0, 'cargo test --release -p sim'))
+        self.assertIsNone(lanewait.gate_under(400, table))
+        self.assertEqual(lanewait.gate_under(500, table)[0], 7.0)
+        self.assertEqual(lanewait.gate_under(600, table)[0], 1.0)
+        self.assertIsNone(lanewait.gate_under(999, table))
+        self.assertIsNone(lanewait.gate_under(None, table))
+
+
+class AHeldPushOutlivesItsWait(unittest.TestCase):
+    """Loop 3765 (the sixty-second pass): lane-3763 pushed its DEEP
+    answer's draft (a4ee8056) under `lanewait.py lane-3763 lane-3731
+    --arm-after-push lane-3763`; `arm_pushes` held it while the row
+    worked, and the next poll's `DEEP lane-3731 300k` exited 5 with
+    nothing said of 3763 — no ARMED, no DRAFT — and the row went idle
+    with no clear armed. The re-armed wait starts with the ref already
+    moved and never saw the push. So any exit says `HELD` first, and the
+    next --arm-after-push wait on the lane arms the push the last one
+    held (the base each wait records, beside --deep-state)."""
+
+    class Stop(Exception):
+        pass
+
+    def run_main(self, argv, tmp, polls, armed=False, done=None, arms=None):
+        """`main` over a scripted roster: `polls[i]` is what poll i sees
+        (poll 0 is the start), as {'tips', 'states', 'ctx', 'ps'}; the
+        last entry stands for every later poll. Returns (exit, out, err)."""
+        import contextlib
+        import io
+        from unittest import mock
+        at = [0]
+
+        def now():
+            return polls[min(at[0], len(polls) - 1)]
+
+        def fake_roster():
+            fake_roster.trees = {'lane-1': '/t/att-1', 'lane-2': '/t/att-2'}
+            fake_roster.rests = {'lane-1': (100, 'idle', None), 'lane-2': (200, 'idle', None)}
+            fake_roster.sessions = {'lane-1': 's1', 'lane-2': 's2'}
+            states = now().get('states', {})
+            return {lane: (states.get(lane, 'working'), f'/t/att-{lane[-1]}', f'worktree-att-{lane[-1]}', '1',
+                           None) for lane in ('lane-1', 'lane-2')}
+
+        def fake_sleep(seconds):
+            at[0] += 1
+            if at[0] >= len(polls) + 3:
+                raise self.Stop()
+
+        def fake_arm(lane, prompt):
+            (arms if arms is not None else []).append((lane, prompt))
+            return True, 'armed'
+
+        out, err = io.StringIO(), io.StringIO()
+        code = None
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+                mock.patch.object(lanewait, 'roster', fake_roster), \
+                mock.patch.object(lanewait, 'origin_tip',
+                                  lambda cwd, branch: now().get('tips', {}).get(cwd[-5:].replace('att', 'lane'))), \
+                mock.patch.object(lanewait, 'contexts', lambda lanes: now().get('ctx', {})), \
+                mock.patch.object(lanewait, 'process_table', lambda: now().get('ps', {})), \
+                mock.patch.object(lanewait, 'tails_of', lambda lanes, where, sessions: {}), \
+                mock.patch.object(lanewait, 'armed_clear', lambda lane, run=None: armed), \
+                mock.patch.object(lanewait, 'arm_clear', fake_arm), \
+                mock.patch.object(lanewait, 'done_line_of', lambda lane, since, where, sessions: done), \
+                mock.patch.object(lanewait.time, 'sleep', fake_sleep):
+            try:
+                code = lanewait.main(argv + ['--deep-every', '1', '--stalled-after', '0', '--uncleared-after',
+                                             '0', '--quiet-after', '1000', '--interval', '1',
+                                             '--deep-state', str(Path(tmp) / 'lanewait-deep.json')])
+            except self.Stop:
+                pass
+        return code, out.getvalue(), err.getvalue()
+
+    PUSH_THEN_DEEP = [{'tips': {}},
+                      {'tips': {'lane-1': '2' * 40}},
+                      {'tips': {'lane-1': '2' * 40}, 'ctx': {'lane-2': 310_000}}]
+
+    def test_an_exit_with_a_push_held_says_held_first(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp,
+                                           self.PUSH_THEN_DEEP)
+        lines = out.splitlines()
+        self.assertEqual(code, 5, out + err)
+        self.assertEqual(lines[1:], ['HELD lane-1 none..22222222 — held for its done line, not armed; '
+                                     'the next --arm-after-push lane-1 wait arms it',
+                                     'DEEP lane-2 310k'])
+
+    def test_the_next_arm_after_push_wait_arms_the_held_push_at_its_start(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, self.PUSH_THEN_DEEP)
+            arms = []
+            idle = [{'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}}]
+            code, out, err = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, idle,
+                                           arms=arms)
+            lines = out.splitlines()
+            self.assertEqual(lines[:2], [lines[0], 'ARMED lane-1 — armed'], out)
+            self.assertTrue(lines[0].startswith('WAITING lane-1 worktree-att-1 22222222; '), out)
+            self.assertIn("DRAFT lane-1 worktree-att-1 none..22222222 — the DEEP answer's push; arming its clear",
+                          err)
+            self.assertEqual(arms, [('lane-1', 'continue item 1 from the journal')])
+            # Armed once: a third wait on the lane arms nothing.
+            arms.clear()
+            _, out, _ = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, idle, arms=arms)
+            self.assertEqual(arms, [])
+            self.assertNotIn('ARMED', out)
+
+    def test_a_held_push_whose_done_line_followed_is_a_landing_not_an_arm(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, self.PUSH_THEN_DEEP)
+            arms = []
+            idle = [{'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}}]
+            code, out, _ = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, idle,
+                                         done='3763 landed and pushed', arms=arms)
+        self.assertEqual(arms, [])
+        self.assertIn("PUSHED lane-1 worktree-att-1 none..22222222 — its done line, '3763 landed and pushed'; "
+                      "a landing, not armed", out)
+        self.assertEqual((code, out.splitlines()[-1]), (0, 'LANDED lane-1 worktree-att-1 none..22222222'))
+
+    def test_a_clear_already_armed_is_not_armed_again_at_start(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, self.PUSH_THEN_DEEP)
+            arms = []
+            idle = [{'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}}]
+            _, out, _ = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, idle, armed=True,
+                                      arms=arms)
+        self.assertEqual(arms, [])
+        self.assertIn('ARMED lane-1 — a clear was already armed; not armed again', out)
+
+    def test_a_push_no_wait_held_is_never_armed_at_start(self):
+        # The ref moved before any --arm-after-push wait recorded a base —
+        # a mid-work push, or a lane whose DEEP answer it has not yet read.
+        with tempfile.TemporaryDirectory() as tmp:
+            arms = []
+            idle = [{'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}}]
+            _, out, _ = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, idle, arms=arms)
+        self.assertEqual(arms, [])
+        self.assertNotIn('ARMED', out)
+
+    def test_a_wait_without_the_flag_forgets_the_base(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, self.PUSH_THEN_DEEP)
+            self.run_main(['lane-1', 'lane-2'], tmp, [{'tips': {'lane-1': '2' * 40}, 'ctx': {'lane-2': 360_000}}])
+            arms = []
+            idle = [{'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}}]
+            _, out, _ = self.run_main(['lane-1', 'lane-2', '--arm-after-push', 'lane-1'], tmp, idle, arms=arms)
+        self.assertEqual(arms, [])
+
+    def test_a_row_gating_is_said_on_stderr_and_the_wait_goes_on(self):
+        ps = {100: (1, 60.0, 'claude'), 101: (100, 4.0, GATE)}
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = self.run_main(['lane-1', 'lane-2'], tmp, [
+                {'tips': {}}, {'states': {'lane-1': 'done'}, 'ps': ps}, {'states': {'lane-1': 'done'}, 'ps': ps},
+                {'states': {'lane-1': 'done'}, 'ps': ps}, {'states': {'lane-1': 'done'}, 'ps': ps},
+                {'states': {'lane-1': 'done'}, 'ctx': {'lane-2': 320_000}, 'ps': ps}])
+        self.assertEqual(code, 5, out + err)
+        self.assertEqual(out.splitlines()[1:], ['DEEP lane-2 320k'])
+        self.assertEqual(err.splitlines(), [f'GATING lane-1 done — {GATE} (4 min); held, read again at its exit'])
+
+
 if __name__ == '__main__':
     unittest.main()

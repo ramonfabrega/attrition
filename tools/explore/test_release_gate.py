@@ -547,6 +547,35 @@ class GateTests(unittest.TestCase):
             self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
             self.assertIn('Gate steps: 6 of 6 ran', said)
 
+    def test_a_wholly_green_lane_gate_prints_its_verdict_before_its_minutes(self):
+        # Loop 3761: 3758's lane gate ran six of six with nothing red and
+        # printed no `Lane verdict:`, and docs_guard asks every journal to
+        # quote one.
+        green=RELEASE_LOG.replace(' ... FAILED', ' ... ok').replace(
+            'test result: FAILED. 303 passed; 2 failed', 'test result: ok. 305 passed; 0 failed')
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append((command, kwargs['env']))
+                if '--release' in command:
+                    release_ran(kwargs, log=green)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
+            lines=[str(c.args[0]) for c in printed.call_args_list if c.args]
+            self.assertEqual(len(calls), 6)
+            verdicts=[l for l in lines if l.startswith('Lane verdict:')]
+            self.assertEqual(verdicts, ['Lane verdict: green, nothing red'])
+            minutes=next(i for i, l in enumerate(lines) if l.startswith('Gate minutes:'))
+            self.assertLess(lines.index(verdicts[0]), minutes)
+            # A forgiven red prints its own verdict and never a green one.
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report2', run=run, lane=True, tests=WORD, git=UNMOVED)
+            said=[str(c.args[0]) for c in printed.call_args_list if c.args]
+            self.assertEqual(len([l for l in said if l.startswith('Lane verdict:')]), 1)
+            self.assertNotIn('Lane verdict: green, nothing red', said)
+
     def test_a_lane_gate_red_on_the_worker_s_own_test_stops_and_names_it(self):
         own=RELEASE_LOG.replace(
             'test diff::floors::the_gate_has_a_bounded_test_width ... ok',

@@ -244,7 +244,13 @@ next push and prints `ARMED` or `ARM-REFUSED` (Loop 3526: `ccc clear`
 refuses a lane with uncommitted work, so an arm in the answer's own
 turn failed twice and the commander's line had already said "armed");
 a lane's own arm is refused (DECISIONS 61) and five sessions over 300 k
-took none (parked 1637, 1638). **And a `STALLED
+took none (parked 1637, 1638); **a `HELD <lane> <range>` line before
+any exit is a draft push still unarmed** — the re-armed wait with
+`--arm-after-push` arms it at start when the row is idle and unarmed
+(Loop 3765: two held drafts died with a wait that exited on the other
+lane); **and a `GATING <lane>` note is a row that left `working` with
+its lane gate still running, held and not an exit** (Loop 3753: 3747's
+`ENDED` within a minute of `WAITING`, twice). **And a `STALLED
 <lane> <min>` exit is answered in its turn**: one line to the lane —
 the gate or capture it waited on has exited; read its log and land —
 because a lost exit notice leaves a row `working` at `tempo=idle` with
@@ -325,7 +331,15 @@ sixty-second**: the rise was the capture class, 3.2 → 9.8 a session on
 five packets and run1419's two stalls, not the gate's, and a third
 lane contends for both; the lane returns when a two-lane tranche reads
 waiting under 40.2 and the gate class under 26.1 — the figure it was
-taken at — or on Ramon's word); a
+taken at — or on Ramon's word; **the sixty-second read 42.3 waiting and
+26.8 gate a session on two lanes** (DECISIONS 102 §1; the drain's handoff
+had read 40.6 and 25.3 off an index that missed the last session's gate
+wait), both over, **so two lanes for the sixty-third** — and where the
+sixty-first's rise was the capture class, this one's is not: the capture
+class fell 9.8 → 4.5 and the gate class held, because thirteen residue
+items gated at 19.5–23.1 release minutes against the seven stand-ups'
+7.8–9.3, the sim crate's own suite under `sim_crate_left`, which no lane
+rule moves and Loop 3777 measures); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
@@ -340,7 +354,9 @@ due — **its `For the pass` counts are the tables'**: `tools/gates.py <tmp>
 --since <the last pass's gate log>`'s last two lines and `tools/tranche.py
 --base <base>`'s last, pasted, never a count from memory (Loop 3564: one
 drain said "no red booking gate" over two, the next "one `DEEP`" over
-three) — **or sooner, on the user's word, as a pit stop** (Loop 3439, entry
+three), **after `lore index`** (the sixty-second's drain read 40.6
+waiting and 25.3 gate off an index that missed the last session's gate
+wait; the pass read 42.3 and 26.8, DECISIONS 102 §1) — **or sooner, on the user's word, as a pit stop** (Loop 3439, entry
 88: the forty-ninth drained at sixteen): **a capture that is running is
 never stopped halfway** — a reprioritisation stops *future* captures
 only, because a game cut short spends its run number and its lane for

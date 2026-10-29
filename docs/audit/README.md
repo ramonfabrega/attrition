@@ -1406,6 +1406,22 @@ tranche's own journals.
   added a tuple slot and the merged pattern was one short, a compile red
   no lane gate saw.
 
+## The brief checklist, from the sixty-second pass
+
+Two rows from item 3763's "for the Loop" (Loop 3768), both in the frame's
+before-reading section:
+
+- **The `cover=1` twin's per-frame coverage on the word's frame names
+  which arm theirs took, before any packet is taken** (3763, 3768):
+  `report.py coverage` on run1413b placed the original in
+  `Unit::set_attacking`'s treaties write on 839 before a reading was
+  booked.
+- **A field's writers are grepped by raw address beside the name** (3763):
+  the one writer of `leader:treaties` the item needed was found only as
+  `0x00e3a424`, never by the field's name; `standing.py` prints each
+  field's offset, its grep spellings and the slot's address off the
+  export (`tools/pdb_layout.py`).
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",
@@ -2215,3 +2231,25 @@ the sixty-first tranche (`docs/audit/2026-10-28-fable-pass-61.md`):
   `wineserver -k` between tries, and the receipt tallies `page_faults`
   per pool lane — a lane's prefix is rebuilt with `prefix.sh` when one
   lane carries them.
+
+## The sixty-second pass's rows, 2026-10-29
+
+Five rows of the commander's chain and the lanes' tools, each from the
+sixty-second tranche (`docs/audit/2026-10-29-fable-pass-62.md`):
+
+- **A row that left `working` with its lane gate still running is
+  `GATING`, not `ENDED`** (Loop 3753): the waiter reads the lane
+  session's live children for a `release_gate.py` or `cargo test` and
+  holds; 3747's wait exited twice within a minute of starting.
+- **A held draft push is said before any exit, and armed at the next
+  start** (Loop 3765): `HELD <lane> <range>`, and a wait re-armed with
+  `--arm-after-push` on an idle, unarmed lane arms at start; two drafts
+  of one tranche died unarmed with a wait that exited on the other lane.
+- **A wholly green lane gate prints `Lane verdict: green, nothing red`**
+  (Loop 3761): the journal-quote guard always has a line to quote.
+- **Every receipt carries `relaunches: []`** (Loop 3754): an absent field
+  is a receipt from before the relaunch budget, never a clean take.
+- **A refill's triple is read on `tools/refill.py` before its booking**
+  (Loop 3769): `SCORED_LOBBIES`, every `Pair` and `Lobby` literal and the
+  held-out battery, with each occupant named; 3752's `(14, 11, 5)` was
+  booked free by a rule and already stood as the second pair's lobby.

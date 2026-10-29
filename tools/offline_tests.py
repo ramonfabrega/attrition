@@ -36,6 +36,7 @@ SUITES = (
     'test_census',
     'test_queueledger',
     'test_release_gate',
+    'test_refill',  # the sixty-second pass, Loop 3769
     'test_census_marks',  # the forty-seventh pass, Loop 3405
     'test_census_cites',  # the forty-eighth pass, Loop 3415
     'test_samegame',  # the forty-ninth pass, Loop 3435

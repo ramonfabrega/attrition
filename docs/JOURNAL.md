@@ -21662,3 +21662,31 @@ Modern words first, the Information lobbies, the melee, map generation,
 the sweeps' driver, and three one-line Modern refills (the Aztecs,
 Chinese and British). **DECISIONS 101.**
 `docs/audit/2026-10-28-fable-pass-61.md`.
+
+**2026-10-29 — the sixty-second Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the sixty-second tranche measured — twenty
+landings on two Opus lanes from `5d6c49ee4` in 13 h 07; seven late-age
+words closed (the Americans and Maya at Information, the Bantu, Egyptians,
+Aztecs, Chinese and British at Modern, three whole on their first try) so
+every late-age word is whole; the first melee stood up and moved 182 → 863
+of 2,600 in six items; map generation read (`docs/MAPGEN.md`) and the
+sweeps made one driver; 158.68 USD for the workers, 7.93 a landing,
+waiting 42.3 a landing against 44.6, the gate class 26.8 against 26.9 and
+the capture class 4.5 against 9.8; the drain's handoff had read 40.6 and
+25.3 off a stale index, so a drain indexes first now; unit types 250 → 261
+of 302, lockstep bytes 77.4 for the eleventh tranche, the territory
+unmoved. The third lane stays out by the rule's letter, and the figure
+that holds it out is named: a residue lane's gate runs twice a stand-up's
+on the sim crate's own suite (Loop 3777 filed). Built under the pass by
+three Opus 5.5 subagents, red first: the waiter's `GATING` hold and `HELD`
+line with the arm at start (3753, 3765), the green lane verdict (3761),
+`relaunches: []` on every receipt (3754), `tools/refill.py` (3769) and
+`standing.py`'s address column over `tools/pdb_layout.py` (3768); the
+`acos` in the map maker ruled a function of the executable, ported under
+entry 19 when the chain reaches it (3764). The backlog 13 → 7. The
+sixty-third is launched on two Opus lanes at medium: the melee word, the
+last three refills (the Romans at Modern, the Turks and French at
+Information), a second melee at Classical, the fifteen closed words into
+the correction audit, and map generation's first port step with a
+`Mapgen:` line of its own. **DECISIONS 102.**
+`docs/audit/2026-10-29-fable-pass-62.md`.

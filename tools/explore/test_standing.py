@@ -6,9 +6,11 @@ field has a live reader" to be named, in prose; who=1's `pop_cap`, `pop`,
 `escrow`, wealth and `trade_val` each stood on a widening's first block,
 read as noise, until each was a word. The fixtures are those shapes.
 """
+import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -73,6 +75,15 @@ const UNREAD: &[(&str, &str)] = &[
 
 
 class Standing(unittest.TestCase):
+    def setUp(self):
+        # Never the machine's export: a test that wants one writes its own.
+        import pdb_layout
+        absent = patch.dict(os.environ, {'RON_DECOMP': '/nonexistent/decomp'})
+        absent.start()
+        self.addCleanup(absent.stop)
+        pdb_layout.clear()
+        self.addCleanup(pdb_layout.clear)
+
     def test_the_unread_keys_are_listed_by_record(self):
         # Loop 3547: a building's `mylos` is pinned unread, so the Turks'
         # tower printed 19 against ours' 15 on every block of two widenings
@@ -159,6 +170,76 @@ class Standing(unittest.TestCase):
         self.assertEqual([(f, who, o, what) for f, who, o, what, _ in rows],
                          [(17171, 1, -1, 'leader:leader_flags'), (17171, 1, 67, 'order:move.pause'),
                           (17244, 1, 67, 'order:move.pause')])
+
+    # Loop 3768: item 3763 found the one writer of `leader:treaties` it
+    # needed (`Unit::set_attacking`'s, `0x00e3a424`) only by grepping the
+    # address, never the field's name. A synthetic export, never the real one.
+    TYPES = """struct /rise.pdb/Leaders  // size 0x4554c
+  +0x0     Leader[10]                               list
+
+struct /rise.pdb/LeaderData  // size 0x6ee4
+  +0x0     int                                      leader_flags
+  +0x94    int[8]                                   treaties
+
+struct /rise.pdb/MoveOrder  // size 0x5c
+  +0x10    int                                      dest
+"""
+    CONTACT = ['  first 620 1/-1 leader:treaties[2]: ours 1 theirs 3',
+               '  first 620 0/-1 leader:treaties[1]: ours 1 theirs 3',
+               '  first 620 1/35 order:move.dest: ours 0 theirs 1',
+               '  first 620 1/35 g.cur_time[0]: ours 3 theirs 9']
+
+    def contact(self, decomp):
+        import pdb_layout
+        saved = standing.readers
+        standing.readers = lambda field: [] if field == 'cur_time' else [('crates/sim/src/x.rs', 1)]
+        try:
+            with patch.dict(os.environ, {'RON_DECOMP': str(decomp)}):
+                pdb_layout.clear()
+                return '\n'.join(standing.report(standing.firsts(self.CONTACT))[0])
+        finally:
+            standing.readers = saved
+
+    def test_the_export_s_offset_is_read_by_struct_and_field(self):
+        import pdb_layout
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / 'types.txt').write_text(self.TYPES)
+            with patch.dict(os.environ, {'RON_DECOMP': tmp}):
+                pdb_layout.clear()
+                self.assertEqual(pdb_layout.offsets('LeaderData', 'treaties'), 0x94)
+                self.assertEqual(pdb_layout.offsets('MoveOrder', 'dest'), 0x10)
+                self.assertIsNone(pdb_layout.offsets('LeaderData', 'dest'))
+                self.assertEqual(pdb_layout.record_structs('order:move.dest'), ('MoveOrder',))
+                self.assertEqual(pdb_layout.record_structs('leader:treaties[2]'), ('LeaderData',))
+                self.assertEqual(pdb_layout.record_structs('group'), ())
+            with patch.dict(os.environ, {'RON_DECOMP': str(Path(tmp) / 'absent')}):
+                pdb_layout.clear()
+                self.assertIsNone(pdb_layout.offsets('LeaderData', 'treaties'))
+
+    def test_a_standing_field_prints_its_offset_its_grep_spellings_and_its_slot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / 'types.txt').write_text(self.TYPES)
+            text = self.contact(tmp)
+        line = next(l for l in text.split('\n') if l.startswith('  treaties:'))
+        # who=1: 0x00e3a390 + 1 * 0x6eec + 0x94; leader 0's is 3763's 0x00e3a424.
+        self.assertIn('LeaderData @+0x94', line)
+        self.assertIn('`field_0x94`', line)
+        self.assertIn('`+ 0x94)`', line)
+        self.assertIn('`0x00e41310`', line)
+        import pdb_layout
+        self.assertEqual(pdb_layout.slot_address('leader:treaties[1]', 0, 0x94), 0x00e3a424)
+        dest = next(l for l in text.split('\n') if l.startswith('  dest:'))
+        self.assertIn('MoveOrder @+0x10', dest)
+        self.assertNotIn('`0x00', dest, 'no global covers an order')
+        quiet = next(l for l in text.split('\n') if 'nothing in sim reads' in l)
+        self.assertNotIn('@+', quiet, 'GuyData is not in this export')
+
+    def test_with_no_export_the_lines_are_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            text = self.contact(Path(tmp) / 'absent')
+        self.assertNotIn('@+0x', text)
+        line = next(l for l in text.split('\n') if l.startswith('  treaties:'))
+        self.assertTrue(line.endswith('ours 1 theirs 3 and 1 more'), line)
 
 
 if __name__ == '__main__':

@@ -605,6 +605,11 @@ def unmatched_filters(log, tests):
 CARGO_TESTS_FAILED = 101
 
 
+# Loop 3761: a lane gate wholly green printed no verdict, and docs_guard
+# asks every journal to quote one.
+LANE_GREEN = 'Lane verdict: green, nothing red'
+
+
 def lane_verdict(failed_tests):
     """(forgiven, line): whether every red test is one of the commander's
     lines, and the sentence the gate prints either way."""
@@ -848,11 +853,12 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
               + kept_line(paperwork) + sim_clause, flush=True)
     reached = []
     seconds = []
+    verdicts = []
     load_at_start = host_load()
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
                    require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests,
-                   seconds=seconds)
+                   seconds=seconds, verdicts=verdicts)
         if lane:
             # Loop 3341: the base is read after the steps, so the line is
             # the freshest a lane can have before its done line.
@@ -864,6 +870,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                 raise ValueError(f"the base moved under this branch and both sides touched "
                                  f"{', '.join(blocking)}: take `ccc update <your ref>` and gate again "
                                  "before your done line (Loop 3341)")
+            if not verdicts:
+                print(LANE_GREEN, flush=True)
     finally:
         print(minutes_line([step_name(c) for c in commands], seconds), flush=True)
         print(steps_line(commands, reached), flush=True)
@@ -967,7 +975,7 @@ def steps_line(commands, reached):
 
 
 def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached,
-               lane=False, word=(), seconds=None):
+               lane=False, word=(), seconds=None, verdicts=None):
     for command in commands:
         began = time.monotonic()
         child_env = env.copy()
@@ -1013,6 +1021,8 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
         if held is not None:
             forgiven, line = lane_verdict(tests['failed_tests'])
             print(line, flush=True)
+            if verdicts is not None:
+                verdicts.append(line)
             if not forgiven:
                 raise held
         if is_release:
