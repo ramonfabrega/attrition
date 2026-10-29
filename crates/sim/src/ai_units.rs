@@ -789,6 +789,9 @@ impl Sim {
                             pv = -pv;
                         }
                         pv = pv.clamp(-256, 256);
+                        if std::env::var("RON_PROBE_LH").is_ok() && t == 209 {
+                            eprintln!("PROBE_LH0 f{} who{} pop{} city_num{} dmod{} base_pre_bias{} roll{} pv{} prod{} d{}", self.frame, who, self.ai[w].census.pop, city_num, dmod, base, roll, pv, self.unit_prod_value(who, t), d);
+                        }
                         base = wm(base, pv + 256) / 256;
                     }
                 }
