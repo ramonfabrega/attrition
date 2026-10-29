@@ -863,11 +863,6 @@ impl Sim {
                 tier = 1;
             }
         }
-        if market_probe(self.frame) {
-            let sells: Vec<i32> = (0..RESOURCES).map(|g| self.calc_market_prices(who, g).1).collect();
-            let buys: Vec<i32> = (0..RESOURCES).map(|g| self.calc_market_prices(who, g).0).collect();
-            eprintln!("MARKET f{} who={} SPEC tier={} bucket={:?} escrow={:?} sell={:?} buy={:?}", self.frame, who, tier, self.ledgers[w].bucket, self.ledgers[w].escrow, sells, buys);
-        }
         let wealth = Resource::Wealth as usize;
         let knowledge = Resource::Knowledge as usize;
         // The sell pass. `2000 / (1 << tier)` in the original, which is the
