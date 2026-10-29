@@ -2504,6 +2504,45 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
+    if std::env::var("RON_PROBE_TOWN").is_ok() {
+        let sim = &built.sim;
+        for b in sim.buildings.iter().filter(|b| b.alive && b.city.is_none()) {
+            let Some(ty) = b.ty else { continue };
+            let corner = sim.tile_corner(ty, b.pos);
+            let fp: Vec<String> = sim
+                .footprint(ty, corner)
+                .iter()
+                .map(|t| format!("({},{}):{:x}", t.x, t.y, sim.world.tile_mask(*t) & 0x100))
+                .collect();
+            let t = b.pos.tile();
+            let cs: Vec<String> = sim
+                .cities
+                .iter()
+                .filter(|c| c.alive && c.owner == b.owner)
+                .map(|c| {
+                    let cp = c.pos.tile();
+                    format!(
+                        "c@({},{}) d{} r{}",
+                        cp.x,
+                        cp.y,
+                        sim::world::vector_dist(cp.x - t.x, cp.y - t.y),
+                        sim.city_radius(c.owner, sim.buildings[c.building].ty)
+                    )
+                })
+                .collect();
+            eprintln!(
+                "  f{frame} TOWN {}/{} tile ({},{}) owner {:?} fp [{}] cities [{}] get_town {:?}",
+                b.owner,
+                b.index,
+                t.x,
+                t.y,
+                sim.world.owner_at(b.pos),
+                fp.join(" "),
+                cs.join(" "),
+                sim.get_town(b.owner, ty, b.pos)
+            );
+        }
+    }
     for (at, b) in built
         .sim
         .buildings
