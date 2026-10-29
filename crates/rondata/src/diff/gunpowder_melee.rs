@@ -339,15 +339,17 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     pin_eq!(w.rounds.len(), 23, "the rounds that part");
 }
 
-/// **A `REVEAL_MAP` census meets the enemy it sees** (item 3763,
-/// `docs/GOLDEN.md` §149.4). `plan_strategy`'s step 6 runs under
-/// `reveal_map`: who=2's census on 750 sees the British squads, sets the
-/// met bit both ways, and step 15's war loop gives the region word the
-/// difficulty-0 `& 4`. On 760 army `2/0` releases (`num_standard` 6
-/// against `pop_cap / 8`) into `DEFENDING`, not `MARCHING`, and spends no
-/// `Army::find_target` — theirs' 760, draw for draw.
+/// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
+/// `Unit::set_attacking@005ff5b0` ORs the met bit into both leaders'
+/// `treaties`; run1413b enters it first on 620 and never enters
+/// `Leader::meet`. `plan_strategy`'s `REVEAL_MAP` step 6 walks buildings
+/// and walls only, and on 750 who=2 has seen none of the British ones, so
+/// the strike is what meets. Step 15's war loop then gives the region word
+/// the difficulty-0 `& 4`, and on 760 army `2/0` releases into
+/// `DEFENDING`, not `MARCHING`, and spends no `Army::find_target` —
+/// theirs' 760, draw for draw.
 #[test]
-fn gunpowder_melee_s_census_meets_under_reveal_map() {
+fn gunpowder_melee_s_strike_meets_before_the_census() {
     let Some(inst) = install() else {
         return;
     };
@@ -373,17 +375,36 @@ fn gunpowder_melee_s_census_meets_under_reveal_map() {
     });
     built.sim.trace_phases = true;
     assert_ne!(built.sim.lobby.reveal_map, 0, "the lobby is REVEAL_MAP 1");
-    while built.sim.frame < 750 {
+    // The frame each pair's met bit lands on: the tick that processes it.
+    let mut first = [[None::<i64>; 3]; 3];
+    while built.sim.frame < 751 {
+        let f = built.sim.frame;
         built.tick();
+        for (a, row) in first.iter_mut().enumerate() {
+            for (b, at) in row.iter_mut().enumerate() {
+                if a != b && at.is_none() && built.sim.has_met(a as u8, b) {
+                    *at = Some(f);
+                }
+            }
+        }
     }
-    assert!(
-        !built.sim.has_met(2, 1),
-        "who=2 has not met who=1 before 750"
+    assert_eq!(
+        first[1][2],
+        Some(620),
+        "the British and the Inca meet on 620's strike"
     );
-    built.tick();
+    assert_eq!(first[2][1], Some(620), "both ways");
+    assert_eq!(
+        (first[0][1], first[0][2]),
+        (Some(659), Some(661)),
+        "the staged Nubians meet each computer as it strikes them"
+    );
     assert!(
-        built.sim.has_met(2, 1) && built.sim.has_met(1, 2),
-        "750's census meets both ways"
+        !(0..built.sim.buildings.len()).any(|b| {
+            let bd = &built.sim.buildings[b];
+            bd.owner != 2 && bd.alive && built.sim.build_is_seen(b, 2)
+        }),
+        "who=2's 750 census sees no other seat's building: step 6 meets nobody"
     );
     const WORD: i64 = 760;
     while built.sim.frame < WORD {
