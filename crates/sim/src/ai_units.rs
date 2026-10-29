@@ -789,9 +789,6 @@ impl Sim {
                             pv = -pv;
                         }
                         pv = pv.clamp(-256, 256);
-                        if std::env::var("RON_PROBE_LH").is_ok() && t == 209 {
-                            eprintln!("PROBE_LH0 f{} who{} pop{} city_num{} dmod{} base_pre_bias{} roll{} pv{} prod{} d{}", self.frame, who, self.ai[w].census.pop, city_num, dmod, base, roll, pv, self.unit_prod_value(who, t), d);
-                        }
                         base = wm(base, pv + 256) / 256;
                     }
                 }
@@ -984,9 +981,6 @@ impl Sim {
                     if per_city && army_here < 0 && !city_attacked && f.land {
                         x = wm(x, 3) / 4;
                     }
-                    if std::env::var("RON_PROBE_LH").is_ok() && t == 209 {
-                        eprintln!("PROBE_LH f{} who{} c{} base{} wv{} age{} combat{} target{} reg_over{} siege{} non_siege{} cap_d{} per_city{} army_here{} attacked{} x{} land_army{} mil{} pop{} city_num{} regwars{} regneut{} active{} wars{} strat{} regatt{}", self.frame, who, c, base, wv, f.age, cn.combat, army_target, reg_over, siege, non_siege, siege_cap_d, per_city, army_here, city_attacked, x, land_army, mil_level, self.ai[w].census.pop, city_num, Census::reg(&cn.reg_wars, r), Census::reg(&cn.reg_neutrals, r), cn.active_wars, cn.wars, Census::reg(&cn.strategy, r), Census::reg(&cn.reg_attacked, r));
-                    }
                     v = x;
                     num = batch_size(f.control_cost, remaining, self.ai[w].effective_pop, pop_cap);
                 }
@@ -1038,9 +1032,6 @@ impl Sim {
                     continue;
                 }
                 let mut out = offer_value(fac, want, val, divisor);
-                if std::env::var("RON_PROBE_LH").is_ok() && t == 209 {
-                    eprintln!("PROBE_LH2 f{} who{} c{} v{} val{} fac{} want{} divisor{} out{} num{} remaining{} cap{} units_now{} queued_now{} city_num{} escrow{}", self.frame, who, c, v, val, fac, want, divisor, out, num, remaining, cap, units_now, queued_now, city_num, escrow);
-                }
                 if self.ai[w].wonder_mod != 0 {
                     out /= 2;
                 }
@@ -2382,10 +2373,6 @@ impl Sim {
             }
             for k in 0..self.unit_types.len() {
                 let n = self.muster[j].by_type[k];
-                if std::env::var("RON_PROBE_LH").is_ok() && t == 209 && n != 0 && (1379..=1380).contains(&self.frame) {
-                    let kp = &self.unit_types[k].combat;
-                    eprintln!("PROBE_UPV f{} who{} j{} k{} n{} role{} dom{:?} tdom{:?} pct_tk{} pct_kt{} tmask{:#x} kmask{:#x} trange{} krange{} trec{}", self.frame, who, j, k, n, kp.combat_role, kp.domain, self.unit_types[f.rec].combat.domain, self.table.pct(f.rec, k), self.table.pct(k, f.rec), self.unit_types[f.rec].combat.obj_masks, kp.obj_masks, self.unit_types[f.rec].combat.max_range, kp.max_range, f.rec);
-                }
                 if n == 0 {
                     continue;
                 }
