@@ -3603,6 +3603,17 @@ impl Sim {
     /// before [`Self::relink_squad`], which is `close`'s relink after it.
     /// run867's who=1 kept three shot-down Jet Fighters in `num_units`
     /// (7 against 4), and its next Fighter's ramp ran twelve frames long.
+    ///
+    /// **A government hero is counted off with no population** (item 3794,
+    /// `docs/GOLDEN.md` §151.1): the gate's `control_cost == 0` arm
+    /// (`0060f350`..`0060f3d9`) goes on to `0060f3db` when the unit
+    /// `is(0x134)` or `UnitData::is_gov_hero@0046ce70` answers — the type's
+    /// `+0x2b4 & 0x4000000`, `OBJ_MASK`'s hero digit, [`Sim::type_is_hero`].
+    /// The Despot is `POP 0`: the first melee's who=1 kept its `1/28` in
+    /// `num_units[302]` from its death on 1463 to the close.
+    ///
+    /// SEAM: the `is(0x134)` half of that arm is not read here, and answers
+    /// no.
     pub(crate) fn close_count(&mut self, i: usize) {
         self.gov_hero_closed(i);
         // `Unit::close@0060ee50:157-170`, ahead of the count and ungated by
@@ -3619,7 +3630,7 @@ impl Sim {
             return;
         }
         let Some(ty) = u.ty else { return };
-        if self.unit_types[ty].price.pop == 0 {
+        if self.unit_types[ty].price.pop == 0 && !self.type_is_hero(ty) {
             return;
         }
         // Gaia's animals carry population in some rows and hold no muster

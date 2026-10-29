@@ -15349,7 +15349,7 @@ the human's is the shape of the data, not a function read.
   595..2161**, so who=2's stock agrees on every frame from the staging to 2161. The draw floor stands at 2,600 of
   2,600, and the closing units are unchanged.
   - **The closing dump parts on one row**: who=1's `num_units[302]` (`TypeIndex` 352), ours 1, theirs 0, on 2601.
-    It is parked as 3791a.
+    It is parked as 3791a. ~~Open~~: closed by §151.1, the dead Despot's decrement.
   - The rest is the standing family the pairs pin (`leader.rs`'s `PARTS_ON_RUN115`, parked 2385), counted by seat
     (12, 10, 9): `SITE[i].reg` and `aggression[j]`, on frames 1 and 37 on every seat, and on who=0 (with who=1's
     `SITE[0].reg`) at the close.
@@ -15369,6 +15369,43 @@ read it (3791a). Run 1464 was not taken: the row names no draw floor.
 **Tests.** `gunpowder_melee::gunpowder_melee_s_leaders_are_compared_on_every_seat`,
 `classical_melee::classical_melee_s_leaders_are_compared_on_every_seat`,
 `oracle::a_leader_compare_walks_the_lobby_s_seats_never_a_literal`.
+
+## 151.1 A dead government hero comes off `num_units` — the first melee's close whole (item 3794)
+
+**The booking** (3791a): who=1's `num_units[302]` (`TypeIndex` 352, The Despot), ours 1 against theirs 0, on the
+closing dump 2601. A count, not a unit: the closing units agree.
+
+**The direction, by reading, no capture.** Ours made the record: it holds a count theirs dropped. Three writers of
+`num_units` touch who=1's hero, and each was read on both sides:
+- **959, the government change** (`Unit::set_type@00612fa0`, 354 → 352). The `−1`/`+1` pair is gated on
+  `control_cost != 0 || is(0x134) || is_gov_hero` (`set_type:39-63`, `:250-274`). Ours' `count_leader` passes that
+  gate for this unit, so both sides move 354 → 352.
+- **1913, the rebirth** (`Build::process`'s `get_gov_hero` train, §149.11). It is the same gate on the `+1` side.
+  Ours' `init_unit` counts the head, so both sides add the 354.
+- **1463, the death** (`Unit::close@0060ee50:205-238`). The `control_cost == 0` arm goes on to `0060f3db`, the
+  `track_unit_type(·, −1)`, when the unit `is(0x134)` or when `UnitData::is_gov_hero@0046ce70` answers. That
+  predicate is the type's `+0x2b4 & 0x4000000`, `OBJ_MASK`'s hero digit `1`. **Ours' `close_count` returned on
+  `pop == 0` outright.** The Despot is `POP 0` with `OBJ_MASK` `MCP1` (`unitrules.xml`), so ours never took the
+  `1/28` off.
+
+Only one writer differs, so run 1466 was not taken. The booking's 1460..1466 window would have shown theirs' fall
+on 1463. No dump on disk prints `num_units` between 37 and the close, and the reading left a single candidate.
+
+**Built.** `Sim::type_is_hero` reads `UnitData::is_gov_hero` off the type's tree trait `hero`, the `OBJ_MASK`
+digit `1` the loader folds. `close_count` and `counts_in_muster` admit a `POP 0` unit that answers it. The
+`is(0x134)` half of the arm stays a `SEAM` and answers no. `control` does not move, since the hero's population is
+0. `active` comes off with the count, as `0060f3db`'s `+0x93c −1` does.
+
+**The verdict.** The close is whole: `gunpowder_melee_s_leaders_are_compared_on_every_seat`'s remaining rows are
+the standing family alone, and the tolerance is gone. The draw word stands at 2,600 of 2,600. Mutation (`tools/
+mutate.py`, `!self.type_is_hero(ty)` → `!false` on `cfa564086`): held, exit 101, the test naming `who=1
+num_units[302] 2601: ours 1 theirs 0`.
+
+**What is not established.** `is(0x134)`'s arm is unread. `init_unit`'s head `+1` carries no population gate,
+while `set_type`'s does, so a `POP 0` non-hero unit born through it would be counted in ours alone (3794a). No
+word reaches either.
+
+**Tests.** `gunpowder_melee::gunpowder_melee_s_leaders_are_compared_on_every_seat`.
 
 ## 152. Reserved for the next item on the rules track
 

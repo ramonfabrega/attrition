@@ -1240,7 +1240,8 @@ pub(crate) const RUN1461: &str =
 /// hid from 860 to 2160 behind a loop over two) compares every key
 /// [`crate::diff::leader::rows`] carries and the dump prints. Without the
 /// refund who=2's buckets part on logger frame 860 (+16 food, +11 timber);
-/// without the hero's plunder on 1464 (+100 wealth).
+/// without the hero's plunder on 1464 (+100 wealth); without the dead
+/// Despot's `num_units` decrement (item 3794), who=1's `[302]` at 2601.
 #[test]
 fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
     let _pins = Pins::hold();
@@ -1270,14 +1271,13 @@ fn gunpowder_melee_s_leaders_are_compared_on_every_seat() {
     // Item 3791: the standing family on frames 1 and 37 on every seat,
     // and on who=0 (and who=1's `SITE[0].reg`) at the close.
     pin_eq!(w.standing(), vec![12, 10, 9], "standing keys, by seat");
-    // Item 3791: the close's one other row (`docs/GOLDEN.md` §151, parked
-    // 3791a). Ours' who=1 counts one `TypeIndex` 352 from 959, through
-    // the Despot `1/28`'s death on 1463, to the close; theirs' closes on
-    // 0, and no dump between run1412's 37 and the close prints
-    // `num_units`.
+    // Item 3794 (`docs/GOLDEN.md` §151.1): none. Item 3791 left who=1's
+    // `num_units[302]` (`TypeIndex` 352) at 2601, ours 1 against theirs 0
+    // (parked 3791a): `Unit::close`'s count admits a `POP 0` unit that
+    // `is_gov_hero`, so the Despot `1/28` comes off on 1463.
     pin_eq!(
         w.rest(),
-        vec!["who=1 num_units[302] 2601: ours 1 theirs 0 (1, to 2601)".to_string()],
+        Vec::<String>::new(),
         "the keys that part, by seat"
     );
 }

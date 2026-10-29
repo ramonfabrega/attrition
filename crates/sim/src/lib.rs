@@ -6143,11 +6143,28 @@ impl Sim {
     /// and the fleet `1/83`, and its `num_units` has `[268]` 1 and no
     /// `[270]`.
     ///
-    /// SEAM: the `pop == 0` arm's `is(0x134)` and the governor-hero test are not
-    /// read here, and answer no; `+0x68 & 1` has no state here.
+    /// The governor-hero test is [`Sim::type_is_hero`] (item 3794).
+    ///
+    /// SEAM: the `pop == 0` arm's `is(0x134)` is not read here, and answers
+    /// no; `+0x68 & 1` has no state here.
     pub(crate) fn counts_in_muster(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        unit.captain && unit.ty.is_some_and(|t| self.unit_types[t].price.pop != 0)
+        unit.captain
+            && unit
+                .ty
+                .is_some_and(|t| self.unit_types[t].price.pop != 0 || self.type_is_hero(t))
+    }
+
+    /// **`UnitData::is_gov_hero@0046ce70`** on a unit of type `ty`: the
+    /// type's `unit_flags & 0x4000000` (`+0x2b4`), the hero digit `1` of its
+    /// `OBJ_MASK` — the six government patriots and a scenario's heroes
+    /// (`docs/GOLDEN.md` §149.11, §151.1).
+    pub(crate) fn type_is_hero(&self, ty: usize) -> bool {
+        self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.kind.unit())
+            .is_some_and(|x| x.hero)
     }
 
     /// `Leader::track_unit_type`, and the two lines every one of its call
