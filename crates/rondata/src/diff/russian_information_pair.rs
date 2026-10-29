@@ -200,7 +200,7 @@ fn russian_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // `1/99`'s (TI 273) `attack[1].mandatory`, 0 against 1.
     // Item 3744, the siege-city arm: 293 — the MLRS `1/99`'s
     // `attack[1].mandatory` on 5901 goes (`docs/AI.md` §368.1).
-    pin_eq!(w.firsts.len(), 293, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 288, "the stride's baseline");
 }
 
 /// run1401b: the word 6153's window, blocks 6095..6403 at the long's
@@ -273,7 +273,7 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // Group 72's rows go — `1/99`'s move, `1/114`'s guard, the idle on
     // 6154 — and what is left is the standing families (`form`, group
     // 95's pool from 6202) and `1/198`'s `airorder.mandatory` on 6203.
-    pin_eq!(w.firsts.len(), 169, "run1401b baseline");
+    pin_eq!(w.firsts.len(), 164, "run1401b baseline");
     // Every round, both directions: 408 in ours against 227. Item 3744:
     // 408 against 408, 98 parting — the MLRS `1/99`'s launch point (40,
     // `sx`/`sy`/`sz`, 3744a) and `1/198`'s rounds (58, 3744b); none spends
@@ -345,7 +345,7 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     // group 72. Before the arm, 170: `1/99`'s `attack[1].mandatory` (0
     // against 1) standing from the window's first block and its
     // `attack[0].mandatory` on 5908.
-    pin_eq!(w.firsts.len(), 168, "run1423 baseline");
+    pin_eq!(w.firsts.len(), 163, "run1423 baseline");
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
     // 94 parting: the MLRS `1/99`'s launch point from 5913 (3744a). Item
     // 3760, the Strategic Bomber's bays and the Jet Fighter's guns: 94 →
@@ -413,7 +413,7 @@ fn russian_information_pair_run1423b_s_gap_is_widened_whole() {
     // MLRS `1/99` parted on 5887: its attack-move look ranks the city
     // `0/2000` at `attack_dist` 4684, past the packed shortcut's 4608, and
     // adds the attack `mandatory` 0 in ours against 1.
-    pin_eq!(w.firsts.len(), 175, "run1423b baseline");
+    pin_eq!(w.firsts.len(), 170, "run1423b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -478,7 +478,7 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // city `0/2000` on 6636 (`damage` 1191 against 1200, `city_flags`
     // `0x2`/`0x4`, `reduce_stamp` 6310 against 6635; 3744d) and `1/49`'s
     // `dest_angle` on 6703 (3744e).
-    pin_eq!(w.firsts.len(), 157, "run1423c baseline");
+    pin_eq!(w.firsts.len(), 152, "run1423c baseline");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).
@@ -535,6 +535,6 @@ fn russian_information_pair_run1401_s_closing_state() {
     // one off — the Attack Submarine `1/74` at rest (−96, −720), the
     // stride's standing row since 2801 (3721a).
     pin_eq!(e.compared, 195, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

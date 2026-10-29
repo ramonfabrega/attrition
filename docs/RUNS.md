@@ -33638,3 +33638,26 @@ SHA-256 `61af369c90215524151fa29c456872a8037b28aabe11aab83fa3b34e17f253f3`.
 **What it holds**: the word's widening (`turkish_information_pair_run1446b_s_word_frame_is_widened_whole`): 306
 blocks, 940 keys, rounds read 56 against 56, none parting; the Attack Sub `1/78` born at dock `1/2020` on 2550,
 south in ours, east in theirs.
+
+## run1452 — the Turks at a held Information age, East Indies, at difficulty 4: the word 3952's window, blocks 3895..4202 (2026-10-29, item 3780, `att-3780`)
+
+`docs/AI.md` §378.1. **What the disk could not answer**: every record and every round on the word 3952's frame.
+run1446's stride prints units every hundred frames (3901, then 4001), with no `AMMO` and no leader, building or
+city record past the start. run1446b ends on 2801. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1452 --map 18 --end-frame 4202 --timeout 3600 --log-window 3895 4202 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0 --profile
+STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 02:44:26, exited 02:45:32 (66.2 s launch to exit). `success`; `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1446: 4203 frames identical. Filed with `filerun.py run1452
+  eastindies-turkish-information-window-3895-4202`. `df -g ~` read 153 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1452-eastindies-turkish-information-window-3895-4202.txt`, 672,066,665 bytes,
+SHA-256 `f92dec7996d17682719f374b0fedc120816fecb234c34ba7f97edaeb3b4cbb3c`.
+
+Archive `rontrace-run1452.log`, 63,961,536 bytes,
+SHA-256 `86f67b09bc184cf6f2e5687ecdc27e62d2964e81009050d5eb7b9f28a7ec2deb`.
+
+**What it holds**: the word's widening (`turkish_information_pair_run1452_s_word_frame_is_widened_whole`): 307
+blocks, 623 keys, rounds read 360 against 360, 144 parting from 4030; group 70's Attack Sub `1/98` on another
+formation slot from 3895, idle in ours on 3952 where theirs still walks.
