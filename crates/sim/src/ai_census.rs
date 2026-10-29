@@ -447,7 +447,7 @@ impl Sim {
                     && self.target_seen_by(who, Obj::Building(b))
             });
             if seen {
-                self.treaty_on(who, o, 1);
+                self.meet(who, o);
             }
         }
     }
