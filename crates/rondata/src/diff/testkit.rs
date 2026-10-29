@@ -13845,15 +13845,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // 610 (`tools/gamelog/golden/melee-gunpowder.cmd`). First try 182 of
     // 2600, before the script's first line; run1413's word window over
     // 101..432, the rounds compared. Moved to 684 (3757) and to 759 (3759,
-    // the Apedemak Archers' launch bays), its window 701..1009.
+    // the Apedemak Archers' launch bays), its window 701..1009. Whole
+    // (item 3788, the Inca refund and the hero's plunder, §149.12): the
+    // closing state run1413's block 2601, the window 2101..2601.
     AiWord {
         line: "Melee",
         map: "GreatSaharaGunpowderMelee",
         named: "Great Sahara (the melee, Gunpowder)",
         word: crate::diff::gunpowder_melee::GUNPOWDER_MELEE_WORD,
         length: 2_600,
-        endpoint: None,
-        window: Some("gunpowder_melee_word_window"),
+        endpoint: Some("gunpowder_melee_run1413_s_closing_state"),
+        window: Some("gunpowder_melee_closing_window"),
     },
     // **The second melee** (item 3774, `docs/GOLDEN.md` §150, §155): Great
     // Sahara with three seats at a held Classical age, the Greeks and the

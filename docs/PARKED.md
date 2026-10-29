@@ -12724,6 +12724,12 @@ upgrade's type is the check.
   and the oracle cache keeps `leaders: [_; 2]` (`oracle.rs`, `codec.rs`). who=2 has gone unread in every three-seat
   lobby: a refund gap from run1461b's 860 hid until a draw on 2160. Widening it moves other lanes' pins and the cache
   format, so it is the commander's to rule on. No single score is named.
+- **3788d. `tools/rubric.py`'s lockstep source cannot see a whole melee.** It reads `Lobby` and `Pair` literals only
+  (`STRUCT`), and `GUNPOWDER_MELEE` is a `Melee { length, count, sequence }`. So the first melee, whole at 2600 of
+  2600, is not a lockstep game, and its trace run1413b is not among table 4's 269. `--tables 3,4,5` on `66e26aaeb`
+  reads 77.4 % (2247 of 3611 functions), the same as the base. The rubric is the steering pass's instrument, so this
+  names no score of the queue's. The killer: teach `STRUCT` the `Melee` literal and see whether table 4 counts
+  run1413b and the Gunpowder `unit` cell (3733c) moves.
 
 ## Parked by the next landing, slot XB — reserved
 

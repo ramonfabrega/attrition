@@ -340,7 +340,7 @@ pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (2101, 2601);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
-pub(crate) fn gunpowder_melee_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn gunpowder_melee_closing_window() -> Option<harness::tests::Widened> {
     crate::diff::setup::with_staged_script(melee_script(), || {
         harness::tests::widen_on_siblings_with_rounds(
             &[MELEE_START],
@@ -359,7 +359,7 @@ pub(crate) fn gunpowder_melee_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = gunpowder_melee_word_window() else {
+    let Some(w) = gunpowder_melee_closing_window() else {
         return;
     };
     if std::env::var("RON_FIRSTS").is_ok() {
