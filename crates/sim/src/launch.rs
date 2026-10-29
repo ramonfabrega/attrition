@@ -2800,6 +2800,68 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 107,
         },
     ),
+    // **Piece 60, the Jaguar Infantry in the default art style** (type 110,
+    // `JAGINFANTRY-DEFAULT-AGE0`, `jaguar_inf.bh3`; item 3766, `docs/AI.md`
+    // §374.1): run1441's packet (`RON_STATE_FRAME=3294` on the Aztec Modern
+    // Great Lakes seed) loads its six `AttachPos` rows (node 0; frame 12 of
+    // `CHAR_ATTACK1`, 14 twice and 24 of `CHAR_ATTACK2`, 12 and 17 of
+    // `CHAR_ATTACK3`), `RData +0x88` 1.0, and `fit_bay.py` fits each sweep
+    // (49, 819, 348, 94 and 540 lattice points, 361 of 361 headings; the
+    // centroid is kept). The three `Inf Attack1`/`Inf Attack2` keys fit
+    // piece 52's rows to the unit; the two `JaguarInf Attack3` keys are its
+    // own. Without them who=1's `1/24` loosed its round of 3309 from its own
+    // square (5640, 30840, 474) against the original's (5625, 30777, 592),
+    // flew 6 frames against 5 and exploded a frame late on 3313.
+    (
+        60,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        60,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        60,
+        crate::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        60,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 17_840,
+            fwd: 218_651,
+            dz: 181,
+        },
+    ),
+    (
+        60,
+        crate::anim::ATTACK3,
+        17,
+        Bay {
+            right: 22_846,
+            fwd: 225_519,
+            dz: 170,
+        },
+    ),
     // **Piece 52, the Infantry in the default art style** (type 102,
     // `INFANTRY-DEFAULT-AGE0`, `inf.bh3`: base 52 at style 0, the
     // Egyptians' `UNIT_CONTINENT`; item 3747, `docs/AI.md` §371.1): no

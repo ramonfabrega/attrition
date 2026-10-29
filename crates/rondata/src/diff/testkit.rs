@@ -7916,8 +7916,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // end over the same eight corners.
     ("bantu_modern_pair_first_parting", 8),
     // Item 3750: the Aztec Modern pair's first walk, run1429 from run1428's
-    // start to the word 3313.
-    ("aztec_modern_pair_first_parting", 1),
+    // start to the word 3313. Item 3766: the pair whole, its first
+    // parting walks to the game's end over the window's two corners.
+    ("aztec_modern_pair_first_parting", 2),
     // Item 3750: run1429b's window walks from run1428's start to the
     // closing block 3390, past the word 3313.
     (
@@ -11108,7 +11109,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Toughest — first try 3313 of 3389, a round of who=1's Jaguar
     // Infantry `1/24` exploding a frame early in theirs, launched from
     // piece 60's bay where ours has no row; widened on run1429b over
-    // 3295..3390, the rounds compared.
+    // 3295..3390, the rounds compared. Item 3766: whole at 3389 on piece
+    // 60's bays and piece 196's pivot rows.
     (
         "AZTEC_MODERN_PAIR_WORD",
         crate::diff::aztec_modern_pair::AZTEC_MODERN_PAIR_WORD,
@@ -13678,7 +13680,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 6), Great Lakes at Toughest (item 3750): first
     // try 3313 of 3389, a Jaguar Infantry round exploding in theirs a
     // frame early — pieces 60 and 196 have no launch bays; widened on
-    // run1429b over 3295..3390.
+    // run1429b over 3295..3390. Item 3766: whole at 3389, the closing
+    // state scored, on piece 60's bays and piece 196's pivot rows.
     AiWord {
         line: "Late ages",
         map: "GreatLakesAztecModern",

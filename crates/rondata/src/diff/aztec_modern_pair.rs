@@ -34,9 +34,13 @@ pub(crate) const AZTEC_MODERN: Pair = Pair {
     length: 3389,
     // Item 3750, first try: count 3313, sequence 3313 of 3389 — on 3313
     // ours 2 draws against theirs' 4, index 2 theirs'
-    // `Ammo::do_damage+0xc59` (`docs/AI.md` §374).
-    count: 3313,
-    sequence: 3313,
+    // `Ammo::do_damage+0xc59` (`docs/AI.md` §374). Item 3766: **whole,
+    // 3389 of 3389** — piece 60's five bays (the Jaguar Infantry, run1441's
+    // packet) and piece 196's pivot rows (the Sherman, run1164's packet);
+    // `1/24`'s round of 3309 leaves (5625, 30777, 592) on both sides and
+    // explodes on 3313 on both (`docs/AI.md` §374.1).
+    count: 3389,
+    sequence: 3389,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -253,10 +257,17 @@ fn aztec_modern_pair_run1429b_s_word_frame_is_widened_whole() {
     // (5625, 30777, 592), 6 frames against 5: theirs sets `flags&8` and
     // explodes it on 3313, `Ammo::do_damage+0xc59`/`+0xc7e`, and ours
     // holds it a frame on (`docs/AI.md` §374).
-    pin_eq!(w.firsts.len(), 895, "run1429b baseline");
-    // Every round, both directions: ours 86 against theirs' 104.
-    pin_eq!(w.rounds_read, (86, 104), "the rounds read");
-    pin_eq!(w.rounds.len(), 157, "the rounds that part");
+    // Item 3766, with pieces 60's and 196's rows: **53** keys, the
+    // standing families alone (`form`, both leaders' `SITE[i].reg`, who=0's
+    // `aggression[1]`, who=1's groups and pools, five `mirror`s); `0/7`'s
+    // 3302 damage and the city's and building's rows agree.
+    pin_eq!(w.firsts.len(), 53, "run1429b baseline");
+    // Every round, both directions: 86 against 86 (item 3750: 86 against
+    // 104). The six rows left are `1/34`'s and `1/35`'s three rounds on
+    // 3313 whose target, the Citizen `0/7` dead that frame, ours drops
+    // (`ox`, `whom` −1 against 7, 0; 3766a).
+    pin_eq!(w.rounds_read, (86, 86), "the rounds read");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3750): run1429's closing block 3390,
@@ -307,6 +318,7 @@ fn aztec_modern_pair_run1429_s_closing_state() {
     // extra; who=1's Jaguar Infantry and Shermans still loosing from their
     // own squares. A floor, not a score.
     pin_eq!(e.compared, 117, "units compared");
-    pin_eq!(e.counts(), [33, 0, 0, 0, 6, 0, 5], "the closing counts");
+    // Item 3766, the pair whole: counts all zero, no closing field.
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
