@@ -1452,10 +1452,12 @@ pub(crate) fn debug_gap(
     for h in s.hits.iter().rev().take_while(|h| h.frame + 1 >= frame) {
         if h.frame + 1 == frame {
             eprintln!(
-                "  gap f{frame} hit {} -> {} dmg {} killed {}",
+                "  gap f{frame} hit {} -> {} dmg {} dealt {:?} splash {} killed {}",
                 name(h.attacker),
                 name(h.target),
                 h.damage,
+                h.dealt,
+                h.splash,
                 h.killed
             );
         }
@@ -2623,7 +2625,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} #{} decoy {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
+        "  f{frame} {who}/{o} #{} decoy {} hp {}/{} frac {} dframe {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
          danger {} targeted {} stance {}/{:?} coll {}@{} avoid {:?} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
@@ -2636,6 +2638,12 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         // The dump's `unit_masks & 1` (item 3385: a General's decoy
         // Light Horse took friendly fire).
         u8::from(u.decoy),
+        // The blow ledger (item 3789): what the dump's `damage`,
+        // `damage_frac` and `damage_frame` print, for a death on a frame.
+        u.health,
+        u.max_health,
+        u.damage_frac,
+        u.combat.damage_frame,
         u.ty,
         // The type's name beside `TY` (parked 1846): `TY` is this crate's
         // record number and `TI` the dump's `TypeIndex`; 272 read as a
