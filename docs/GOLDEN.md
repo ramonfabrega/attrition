@@ -14189,8 +14189,9 @@ theirs goes straight to who=1's `1/25`'s `Guy::set_anim+0x97a < Unit::do_move+0x
 **Ours acted.** `RON_DEBUG_ARMIES=758-761` shows who=2's army `2/0` (leader `2/20`, `2/23` in its list) going from
 status 17 to 18 in ours on 760. It targets its own city `2/2000` at (6240, 30048) and moves its muster from (7, 32)
 to (1, 36). Theirs' goal for `2/23` on 801, (5736, 24792), lies in cell (7, 32), the old muster. Ours' goal,
-(1320, 28152), lies in (1, 36), the new one. So 801's goal parting is the army's re-target. Why ours' army
-re-targets on 760 and theirs' does not is the next item's.
+(1320, 28152), lies in (1, 36), the new one. So 801's goal parting is the army's re-target. ~~Why ours' army
+re-targets on 760 and theirs' does not is the next item's.~~ Both release; theirs defends, because its census
+has met the enemy (§149.4).
 
 **Tests.**
 - `gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move` walks to 759. It checks `2/23`'s three draws
@@ -14284,7 +14285,8 @@ new test fail.
 - The `ALLY_LOS` arm (3763b), and the ally bits that `census_ally_mask` sets outside the gate (3763c).
 - The order of the scan (units before buildings) and vslot `0xc`'s predicate are read, not diffed. The arm answers
   a boolean, so neither moves a draw here.
-- Theirs' meeting frame is bracketed, not pinned: after 550's census, by 750's.
+- Theirs' meeting frame is not pinned. Ours meets on 750's census, and theirs' 760 agrees with that, but no record
+  prints `treaties` between the start take and the close.
 
 **Coverage.** The release, the `DEFENDING` arm and the score are diff-backed: run1413's trace on 760, run1413b's
 coverage on 760 and 764, the 801 block, and the mutation. Step 6's gate and its inline writes rest on the export
