@@ -512,6 +512,8 @@ mod cliffs_set_edge_flags;
 mod coll_block_get;
 #[path = "coll_check_collide_here.rs"]
 mod coll_check_collide_here;
+#[path = "command_package_process_sell.rs"]
+mod command_package_process_sell;
 #[path = "constants_walk_data.rs"]
 mod constants_walk_data;
 #[path = "cosx.rs"]
