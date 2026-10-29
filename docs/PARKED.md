@@ -12603,13 +12603,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WR — reserved
+## Parked by item 3779, 2026-10-29 — the Inti Macemen walk home to their posts
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3779a. `find_def_pos` reads every order, the original two** (`docs/GOLDEN.md` §149.7): `Sim::def_post` walks
+  the whole list for a defensive attack or a `POST` move, where `UnitData::find_def_pos@00608560` reads the action
+  (`get_action`) and then the head (`orderlist +0x14`) alone. A unit with a defensive attack under some other
+  action, or a `POST` move under the head, tells them apart; no capture on file holds one, so it names no score.
+- **3779b. `has_stance_type`'s refusal in `find_new_target`** (§149.7): the original asks the type's vslot
+  `+0x134` before it reads `+0xb1` (`005ff6a0`–`005ff70d`); this crate reads its stance alone, as
+  `add_attack_order` does. A `DEFENSIVE` unit whose type has no stance type would part; none is fielded.
 
 ## Parked by the next landing, slot WS — reserved
 

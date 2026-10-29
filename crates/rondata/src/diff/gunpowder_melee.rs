@@ -223,8 +223,20 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // round of 859 leaves (17282, 15746, 742), not the figure's square
     // (17400, 15672, 477), flies 5 frames against 6 and strikes `2/23` on
     // 863 as theirs does (§149.6).
-    count: 947,
-    sequence: 947,
+    //
+    // Item 3779: **947 → 954**, both together. who=2's Inti Macemen
+    // `2/29`, `2/30` and `2/31` (TI 92), a `DEFENSIVE` squad on `1/22`
+    // since 913, keep their posts: `find_new_target`'s post arm writes the
+    // post into the attack it re-finds or walks home to it, and `fight`'s
+    // own leash (`005fe18c`) re-searches from `reach × 0xc0` off the post
+    // and walks home on the same target — run1451's packet runs `2/31` on
+    // 945 through both, and its window has the three `MOVEORDER`s to the
+    // posts with `flags 8` on 946, 947 and 948 (§149.7). On 954 ours
+    // spends 11 draws against 12 and parts at index 4: theirs spends
+    // `Unit::close+0xcb6`, the British Elite Knight `1/22`'s death, a
+    // frame before ours.
+    count: 954,
+    sequence: 954,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -254,13 +266,14 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767
-/// and 3770): run1413's stride blocks 901..1101 — the word's frame 947
-/// writes no block (the stride prints every hundred), so the window is the
-/// stride block before it through 250 frames past it. 3733's was 101..432,
-/// on 182; 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's
-/// 701..1010, on 760; 3763's 801..1089, on 839; 3767's 801..1113, on 863.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1197);
+/// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767,
+/// 3770 and 3779): run1413's stride blocks 901..1201 — the word's frame
+/// 954 writes no block (the stride prints every hundred), so the window is
+/// the stride block before it through 250 frames past it. 3733's was
+/// 101..432, on 182; 3757's 601..934, on 684; 3759's 701..1009, on 759;
+/// 3762's 701..1010, on 760; 3763's 801..1089, on 839; 3767's 801..1113, on
+/// 863; 3770's 901..1197, on 947.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1204);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -303,7 +316,7 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
@@ -370,9 +383,20 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // On 1001 the human's citizens `0/3` and `0/5` stand apart, `0/17`'s
     // `damage_frame` reads 1000 against 991, `1/16`'s order 10 against 1,
     // and `1/18` dies on 987 against 983; 1101 fans out.
-    pin_eq!(w.firsts.len(), 537, "run1413's word window");
-    pin_eq!(w.rounds_read, (17, 17), "the rounds read");
-    pin_eq!(w.rounds.len(), 14, "the rounds that part");
+    //
+    // Item 3779, on the word moved to 954 (window 901..1204, four blocks):
+    // **645** keys, rounds read (36, 38), 84 parting — block 1201 joins.
+    // Block 901 still carries the standing families alone. **On 1001 the
+    // three Inti Macemen's rows are gone** (11, 12 and 10 before): `2/29`
+    // stands on its post (21624, 18168), `2/30` on (21720, 18264) and
+    // `2/31` on (21624, 18360) both sides, tolerance 0, where ours had them
+    // idle at (21312, 19171), (20394, 19290) and (20150, 19350). The word's
+    // own row leads: `1/22`'s `death:first_frame` 955 against 954
+    // (`cur_anim` 18 against 17); then who=2's `2/19`, `2/20`, `2/22` and
+    // the human's citizens; 1101 and 1201 fan out.
+    pin_eq!(w.firsts.len(), 645, "run1413's word window");
+    pin_eq!(w.rounds_read, (36, 38), "the rounds read");
+    pin_eq!(w.rounds.len(), 84, "the rounds that part");
 }
 
 /// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
@@ -601,6 +625,82 @@ fn gunpowder_melee_s_camel_raider_looses_from_its_pivot() {
         unit(&built.sim, 2, 23).is_none(),
         "2/23 dies on 863, as run1413's block 901"
     );
+}
+
+/// **The Inti Macemen walk home to their posts** (item 3779, `docs/GOLDEN.md`
+/// §149.7). who=2's Inti Macemen `2/29`, `2/30` and `2/31` (TI 92, land,
+/// `DEFENSIVE`) take a defensive attack on the British Elite Knight `1/22`
+/// on 913, each with its post — where it stood — in the attack. Strayed
+/// past `max(respond range, max range) × 0xc0` from it, each re-searches
+/// and goes home: `find_new_target`'s post arm keeps the post in the attack
+/// it re-finds, and `fight`'s own leash (`005fe18c`) walks the unit home
+/// when the re-find is the same target. run1451's window has the three
+/// `MOVEORDER`s to the posts, `flags 8`, on blocks 946 (`2/31`), 947
+/// (`2/30`) and 948 (`2/29`); run1413's block 1001 has all three on them.
+/// Without the arms, `2/29` stood idle where it was and `2/30`'s post moved
+/// with it.
+#[test]
+fn gunpowder_melee_s_inti_macemen_walk_home_to_their_posts() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let unit = |sim: &sim::Sim, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == 2 && u.index as usize == o)
+            .expect("the Maceman stands")
+    };
+    let home = |sim: &sim::Sim, o: usize| {
+        let u = unit(sim, o);
+        match sim.units[u].orders.front() {
+            Some(sim::orders::Order {
+                flags,
+                body: sim::orders::Body::Move(m),
+            }) if flags & sim::orders::flag::POST != 0 => Some((m.dest.x, m.dest.y)),
+            _ => None,
+        }
+    };
+    const POSTS: [(usize, (i32, i32), i64); 3] = [
+        (31, (21624, 18360), 946),
+        (30, (21720, 18264), 947),
+        (29, (21624, 18168), 948),
+    ];
+    while built.sim.frame < 945 {
+        built.tick();
+    }
+    for (o, _, _) in POSTS {
+        assert_eq!(home(&built.sim, o), None, "2/{o} still on its attack, 945");
+    }
+    for (o, post, block) in POSTS {
+        while built.sim.frame < block {
+            built.tick();
+        }
+        assert_eq!(
+            home(&built.sim, o),
+            Some(post),
+            "2/{o} walks home on block {block}, as run1451's window"
+        );
+    }
 }
 
 /// **The Bombard's ground swing waits on its crew's turn** (item 3762,

@@ -14434,6 +14434,84 @@ the melee test fail. The node back at (0, −3.32): **nothing fails** on the wal
 **Coverage.** The rows, the scale and the node are diff-backed by run1440's packet (the 361-degree and 4 × 92,416-cell
 sweeps) and window (two rounds); the score and the value table by run1413.
 
+## 149.7 The Inti Macemen walk home to their posts — 947 → 954 (item 3779, run1451)
+
+**The booking.** Frame 947: ours 21 draws against theirs' 18, parting at index 7. Ours spends `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` on who=2's Inti Macemen `2/29` (TI 92, land), then `< Unit::move_step+0x823` on `2/30` (TI 92)
+and a third `9/7` `Guy::set_anim+0x104b`; theirs goes to `8/7`'s `< Guy::inc_time+0x271`. No mechanism was booked.
+
+**The direction, off the disk.** The streams agree draw for draw through 946, so both sides spent 912's `Unit::fight
++0x9b0` and gave the squad `2/29` → `2/30` → `2/31` (captain `2/29`, every one `DEFENSIVE`) a defensive attack on the
+British Elite Knight `1/22` (TI 229, land) on 913, each with its post — where it stood — in the attack: (21624,
+18168), (21720, 18264) and (21624, 18360). Block 901 agrees on all three, idle with no orders. run1413's block 1001
+puts **all three on their posts in theirs, tolerance 0**, where ours had `2/29` idle at (21312, 19171), `2/30` at
+(20394, 19290) and `2/31` at (20150, 19350). `RON_DEBUG_UNIT` puts the difference on 947 in ours: strayed past the
+leash, `2/29`'s `find_new_target` found nothing and it stood (the idle roll), and `2/30`'s re-found `1/22` with its
+post moved to where it stood (the step roll).
+
+**run1451: what the disk could not answer** — when, and through what, theirs' Macemen turned home between stride
+blocks, and whether the original re-enters `work` on it (see the loop below). A packet at logger frame 945 and a
+`UNITS=3` window 905..960; 962 of 962 frames identical to run1413 (`rngcmp.py`).
+- **The window**: `2/31` holds a `MOVEORDER` to (21624, 18360) with `unitorder.flags=8` on block 946, `2/30` to
+  (21720, 18264) on 947, `2/29` to (21624, 18168) on 948 — `flags 9` once pathed. The dump's `up`/`down` are
+  `ObjectData +0x2a/+0x2c`, not the squad chain (`UnitData +0x8e/+0x90`).
+- **The packet**: the chain is `2/29` → `2/30` → `2/31` in theirs too, every `+0x68` without `0x2000000`.
+  `step4.py --entry 0060d180 --this 156e346c` (`2/31`, by `unitaddr.py`) with hooks: `work` → `check_target_path` →
+  `find_new_target` #1 (the review's leash) → `find_melee_target` (the squad head re-adds `1/22`); the dispatch's
+  `do_attack` → `fight` → **`find_new_target` #2 from `fight+0xd94`** → `find_melee_target` → `add_move_order` to
+  cell (450, 382), the post. `work` is entered once.
+
+**The two arms** (`crates/sim/src/orders.rs`).
+1. **`Unit::find_new_target@005ff6a0`'s `bVar3`**, a `SEAM` until now: a `DEFENSIVE` unit whose
+   `UnitData::find_def_pos@00608560` answers (a defensive attack's `+0x14/+0x18`, or a move flagged `& 8`) reads
+   the post before its order goes. A find whose order is an `ATTACK` takes it (`+0x1d = 1`, the post); a unit left
+   with no order walks home — `MOVE_TO` at the post's `0x30` cell centre, `QUEUE_NEW`, the action bit clear, the
+   angle `find_angle(post − pos)` (`5ff840`–`5ff85e`), `flags |= 8` (`Sim::keep_def_post`).
+2. **`Unit::fight@005fd4d0`'s own leash** (`005fe18c`–`005fe264`, its tail to `005fe502`): where `find_attack_pos`
+   answers, a `DEFENSIVE` unit whose attack is not mandatory (`esi`, `fight`'s third argument, reloaded at
+   `5fe0fc`) and carries a post does not chase from `max(vslot +0x130, unit_defensive_respond_range) × 0xc0` or
+   more off it: `find_new_target(NULL, 0)`, and then nothing more without an `ATTACK` in front or while recharging;
+   the same target again kills the attack and walks home as arm 1 does; another target takes the frozen mark
+   (`Sim::fight_post_leash`).
+
+**Why both.** Arm 1 alone loops: the review's leash re-adds the captain's target with the post kept, `fight` chases,
+`chase_reentry` re-enters `work` on the same frame, and the review fires again — `2/31` on 945 recursed until the
+stack gave out. Arm 2 is what ends it in the original, as the packet's second `find_new_target` shows.
+
+**The score: 947 → 954**, the count and the sequence together. On 954 ours spends 11 draws against 12 and parts at
+index 4: theirs spends `Unit::close+0xcb6` — `1/22`'s death, 954 in theirs against 955 in ours (run1413's block
+1001, `death:first_frame`). **Every other `first_parting` holds** (112).
+
+**The value diff.** `gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 901..1204, four blocks, **645**
+keys, rounds read (36, 38), 84 parting. Block 901 carries the standing families alone; on 1001 the three Macemen's
+rows are gone:
+
+| record | field | before (3770) | after | theirs |
+|---|---|---|---|---|
+| `2/29` | `pos` | (21312, 19171) | (21624, 18168) | (21624, 18168) |
+| `2/29` | `tolerance` / `idle` | 384 / 5 | 0 / 3 | 0 / 3 |
+| `2/30` | `pos` | (20394, 19290) | (21720, 18264) | (21720, 18264) |
+| `2/31` | `pos` | (20150, 19350) | (21624, 18360) | (21624, 18360) |
+
+`1/22`'s death leads 1001 now (`death:first_frame` 955 against 954, `cur_anim` 18 against 17), then who=2's
+`2/19`, `2/20` and `2/22` and the human's citizens; 1101 and 1201 fan out.
+
+**Tests.** `gunpowder_melee_s_inti_macemen_walk_home_to_their_posts` (no walk home on 945; each Maceman's `POST`
+move to its post on its run1451 block). `GUNPOWDER_MELEE` (954, 954); the widening at 901..1204.
+
+**Mutation** (`tools/mutate.py`, on `gunpowder_melee::`): `fight`'s leash off — **held**, the walk recurses until
+its stack overflows (the loop above); `find_new_target`'s arm off — **held**, the parting, the widening and the
+walk-home test fail.
+
+**What is not established.**
+- `has_stance_type`'s refusal (`find_new_target`'s vslot `+0x104` arm) is read as this crate's stance alone.
+- `find_def_pos` here walks every order, where the original reads the action and then the head; no capture on file
+  tells the two apart.
+- `2/31`'s hooks are on run1451's packet only; the other two Macemen's arms are read off the window's blocks.
+
+**Coverage.** Both arms are diff-backed by run1451 (the packet's call sequence on `2/31`, the window's three walks)
+and run1413's block 1001; the score and the value table by run1413.
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

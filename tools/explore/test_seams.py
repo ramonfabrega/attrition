@@ -345,8 +345,10 @@ class TheLiveTree(unittest.TestCase):
     # built `do_cast`'s Monarch step (`Sim::near_monarch`), and its
     # `SEAMS:` block no longer names it as missing. 15 → 14: item 3615
     # built `compare_target`'s empty-city gate (`64f171`), whose SEAM in
-    # the armed weight named `num_inside` as not carried.
-    DOORS = 14
+    # the armed weight named `num_inside` as not carried. 14 → 13: item
+    # 3779 built `find_new_target`'s defensive-post arm (`bVar3`), whose
+    # SEAM named `find_def_pos` as unread.
+    DOORS = 13
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
