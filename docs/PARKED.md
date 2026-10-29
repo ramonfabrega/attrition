@@ -12554,13 +12554,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WL — reserved
+## Parked by item 3771, 2026-10-29 — the Roman Modern pair, whole at 5234
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3771a) **who=1's food and timber buckets part under the whole Roman Modern pair** (`docs/AI.md` §377): on
+run1444b's first block 4979, who=1's `bucket[0:food]` reads 11012 against 11014, `bucket[1:timber]` 13760 against
+13759 and `leftover[0:food]` 5400 against 2200; on 5234, 10054 against 10056 and 3200 against 0. run1444 prints
+no leader record past the start, so the frame they part on is not on disk; a `LEADERS=9` window earlier in the
+game names it. No draw parts and the closing state compares clean, so it names no score.
 
 ## Parked by the next landing, slot WM — reserved
 
