@@ -2624,7 +2624,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         .collect();
     eprintln!(
         "  f{frame} {who}/{o} #{} decoy {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
-         danger {} targeted {} stance {}/{:?} coll {}@{} avoid {:?} tgt {:?} reach {:?} path {:?} orders {:?} {}",
+         danger {} targeted {} stance {}/{:?} coll {}@{} avoid {:?} tgt {:?} reach {:?} path {:?} orders {:?} {} PROBE hp {}/{} frac {} rc {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
         built
@@ -2731,7 +2731,11 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         }),
         u.path,
         u.orders,
-        clocks.join(" ")
+        clocks.join(" "),
+        u.health,
+        u.max_health,
+        u.damage_frac,
+        u.combat.recharging
     );
     // A caster's craft (`mana_burn`) and its cast clock (`spell_time`),
     // the dump's own two fields (item 1302: a General's decoy cast).
