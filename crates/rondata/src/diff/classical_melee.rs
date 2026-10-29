@@ -231,6 +231,65 @@ fn classical_melee_s_kushite_archers_loose_from_the_bow() {
     );
 }
 
+/// **The Royal Balamob Slingers loose from the sling** (item 3785,
+/// `docs/GOLDEN.md` §150.1): the human's `0/19` (TI 89, piece 39) throws
+/// at the Greek Catapult `1/26` (TI 265) on 713 at `CHAR_ATTACK1`'s frame
+/// 18, and the stone leaves piece 39's bay, (16772, 15529) at 699, as
+/// run1457's window prints it on 715, in 4 frames. Without the row it left
+/// the figure's square, and the Catapult's strike of 718 — theirs' second
+/// `Unit::fight+0x9b0`, the word 3774 booked — did not come.
+#[test]
+fn classical_melee_s_royal_balamob_slingers_loose_from_the_sling() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let unit = |sim: &sim::Sim, who: u8, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index as usize == o)
+    };
+    while built.sim.frame < 713 {
+        built.tick();
+    }
+    let sling = sim::combat::Obj::Unit(unit(&built.sim, 0, 19).expect("0/19 on 713"));
+    let cat = sim::combat::Obj::Unit(unit(&built.sim, 1, 26).expect("1/26 on 713"));
+    let find = |sim: &sim::Sim| {
+        sim.projectiles
+            .iter()
+            .find(|r| r.shooter == sling && r.target == Some(cat))
+            .copied()
+    };
+    while find(&built.sim).is_none() && built.sim.frame < 715 {
+        built.tick();
+    }
+    let stone = find(&built.sim).expect("0/19's stone at 1/26 on 713");
+    assert_eq!(
+        ((stone.launch.x, stone.launch.y), stone.sz, stone.total_time),
+        ((16772, 15529), 699, 4),
+        "piece 39's bay, and four frames"
+    );
+}
+
 /// The word's window on run1450's stride: the block before the word to
 /// the block after it.
 pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (601, 968);
