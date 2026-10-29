@@ -12756,13 +12756,21 @@ bit, and when, is unread. The falsifier is the same block as 3789a with an asker
   frame between 1220 and 1278 would read who=2's `epoch[Civic]` and the Stable's `city`. It names no score while the
   word stands at 1382.
 
-## Parked by the next landing, slot XD — reserved
+## Parked by item 3791, 2026-10-29 — every seat's leader is compared
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3791a. The first melee's closing dump: who=1's `num_units[302]`, ours 1 against theirs 0** (`docs/GOLDEN.md`
+  §151). Record 302 is `TypeIndex` 352.
+  - Ours' who=1 count moves 354 → 352 on 959, keeps 352 through the Despot `1/28`'s death on 1463, and adds a 354
+    on 1913 (the Monarch, §149.11).
+  - Theirs' closing dump holds one who=1 unit of figure type 354 and none of 352.
+  - It is the close's only row outside the standing family, and the closing units agree, so this is a count, not a
+    unit.
+  - No dump between run1412's 37 and the close prints `num_units` (run1461's `LEADERS=2` does not). The frame
+    theirs' count fell is not on disk.
+  - **Hypothesis, not built**: `Sim::counts_in_muster`'s `SEAM` reads that "the governor-hero test" answers no.
+  - **Killer**: a capture over 1460..1466 at a `LEADERS` level that prints `num_units`. A fall on 1463 names the
+    death's decrement; no fall before the close kills the death as the frame.
+  - It names no draw floor. The first melee's word stands at 2,600 of 2,600.
 
 ## Parked by the next landing, slot XE — reserved
 
