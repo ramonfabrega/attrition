@@ -7928,6 +7928,19 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3750: the closing walk, run1429 from run1428's start to the
     // closing block 3390, past the word 3313.
     ("aztec_modern_pair_run1429_s_closing_state", 2),
+    // Item 3752: the British Modern pair's first walk, run1433 from
+    // run1432's start.
+    ("british_modern_pair_first_parting", 11),
+    // Item 3752: the stride's walk and the closing walk, run1433 from
+    // run1432's start to the closing block 3794 — the same corners.
+    ("british_modern_pair_the_long_s_stride_is_widened", 11),
+    ("british_modern_pair_run1433_s_closing_state", 11),
+    // Item 3752: run1433b's window walks from run1432's start to the
+    // closing block 3794 — the same corners.
+    (
+        "british_modern_pair_run1433b_s_closing_frame_is_widened_whole",
+        11,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -11129,6 +11142,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3751,
         Some(crate::diff::chinese_modern_pair::WIDENING_CHINESE_MODERN_CLOSING),
     ),
+    // **The British at a held Modern age** (item 3752): Great Lakes at
+    // Toughest — whole on its first try, 3793 of 3793, the closing state
+    // compared; widened on run1433b over 3538..3794 (the closing block),
+    // the rounds compared.
+    (
+        "BRITISH_MODERN_PAIR_WORD",
+        crate::diff::british_modern_pair::BRITISH_MODERN_PAIR_WORD,
+        Some("british_modern_pair_run1433b_s_closing_frame_is_widened_whole"),
+        3752,
+        Some(crate::diff::british_modern_pair::WIDENING_BRITISH_MODERN_CLOSING),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13714,6 +13738,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_130,
         endpoint: Some("chinese_modern_pair_run1431_s_closing_state"),
         window: Some("chinese_modern_closing_window"),
+    },
+    // The British at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), Great Lakes at Toughest (item 3752): whole on
+    // its first try, 3793 of 3793; the closing window run1433b over
+    // 3538..3794, the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesBritishModern",
+        named: "Great Lakes (British, Modern)",
+        word: crate::diff::british_modern_pair::BRITISH_MODERN_PAIR_WORD,
+        length: 3_793,
+        endpoint: Some("british_modern_pair_run1433_s_closing_state"),
+        window: Some("british_modern_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

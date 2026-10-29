@@ -54,6 +54,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (14, 11, 0),
     (18, 11, 0),
     (7, 11, 0),
+    // Also the British at a held Modern age, Great Lakes at Toughest
+    // (item 3752, `diff::british_modern_pair`): entered here, not minted,
+    // as the Enlightenment pair shares the second pair's `(18, 11, 5)`;
+    // no held-age British pair holds it, and the battery fields no
+    // British.
     (14, 11, 5),
     (18, 11, 5),
     (7, 11, 5),

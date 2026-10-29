@@ -71,6 +71,8 @@ mod british_enlightenment_pair;
 mod british_industrial_pair;
 #[cfg(test)]
 mod british_medieval_pair;
+#[cfg(test)]
+mod british_modern_pair;
 mod build;
 #[cfg(test)]
 mod chinese_enlightenment_pair;

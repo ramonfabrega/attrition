@@ -37252,12 +37252,75 @@ holds no row for its piece. It is the launch-point family of §374 on another pi
 differs (the instrument is a window over 3801..3875); the Manchu Infantry piece's bay rows (a packet that loads
 it, as §374.1's run1441).
 
-## 376. Reserved for the next item on the AI track
+## 376. The British at a held Modern age, Great Lakes: whole on its first try, 3793 of 3793 (item 3752)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3752, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4). This is §371's lobby with the nation
+moved and the difficulty raised: `MAP_STYLE 14`, human Nubians (4) against the **British (11)** at Difficulty 5,
+seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. Both `GAME INFO`s read the 6s
+and the 5 back, and `Pair::assert_lobby` asserts them. The captures are run1432 (a `DUMP_ALL` start) and run1433
+(the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1433 ended itself on 3793. The walk is
+seeded from run1432's initial state (3506a). `diff::british_modern_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(14, 11, 5)`, is not minted: it is already in `battery::SCORED_LOBBIES`** as the second pair's
+Great Lakes lobby, an unheld age. No held-age British pair holds it: the Medieval pair is `(14, 11, 4)`, the
+Classical `(18, 11, 4)`, the Enlightenment `(18, 11, 5)` and the Industrial `(7, 11, 4)`. No battery game is
+British. This follows item 3512's precedent, where the Enlightenment pair shares the second pair's `(18, 11, 5)`.
+`british_modern_pair_is_no_other_lobby` asserts all of it.
+
+**The cast**, read by `rubric.py --tables 3 --dumps` on the three takes:
+- **the booked line**: `Lancaster Bomber` (307), the British bomber, fielded;
+- **the generic Modern lines the British do not replace**: Infantry (102), Flamethrower (131), Bazooka (139),
+  `Tank[MEDIUMTANK]` (244), Howitzer (271), the Anti-Aircraft Battery (282), Nuclear Missile (315);
+- **the generic Modern air**: `Fighter` (289) and Helicopter (310);
+- Special Forces (75) besides.
+
+`Lancaster Bomber` 307, `Tank[MEDIUMTANK]` 244 and `Fighter` 289 are new to the lockstep ledger: on each, the
+lockstep count equals this pair's start and long alone. `census::RUBRIC_UNIT_TYPES_SEEN` moves 258 → 261. The
+lockstep bytes stay at 77.4 % (`cover=0`).
+
+**The score: whole on the first try, 3793 of 3793**, the count and the sequence together. No draw parts to the
+game's last frame. The closing block 3794 compares 146 units with counts `[0, 0, 3, 0, 0, 0, 1]`, none off, torn
+or unlinked (`british_modern_pair_run1433_s_closing_state`). Three units are extra in ours, and one city's
+`assimilation_timer` reads apart (below).
+
+**The windows:**
+- **The stride** (run1433, 101..3701): 37 blocks and **105 keys**. They are the standing families (`build:extra`
+  on 57 buildings, `form` on 27 units, who=1's groups' `held` and pools) and `mirror` 0 against 1 on five of
+  who=1's aircraft from 3201: the Lancasters `1/100`, `1/108`, `1/112` and the Helicopters `1/111`, `1/128`.
+- **The closing window** (run1433b, 3538..3794, at the long's detail with `BUILDS`, `CITIES`, `LEADERS=9` and
+  `AMMO=5`, walked from run1432 with every round compared): 256 blocks and **61 keys**. Block 3538 carries the
+  leaders' `SITE[n].reg` (1 against 0), who=0's `aggression[1]` (0 against 1), `form`, the groups, the pools and
+  the aircraft's `mirror`. **Rounds read 243 against 243, with 75 parting.**
+
+**The residue under the whole score** (parked 3752a, 3752b). It moves no score, so it is not built here:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3760 | the Lancaster `1/100`'s `ammo[0]` | `sx, sy, sz` | 3710, 30659, 2160 | 3698, 30814, 2130 |
+| 3760 | the same | `accuracy`; `v1z` | 0; −6385656 | 300; −4620950 |
+| 3777 | the Lancaster `1/108`'s `ammo[0]` | `sx, sy, sz` | 3637, 30681, 2160 | 3549, 30585, 2130 |
+| 3776 | the Citizen `0/4` | `damage_frac` | 3 | 10 |
+| 3790 | the building `0/2000` | `damage_frac` | 8 | 15 |
+| 3794 | who=1's `1/136`, `1/137`, `1/138` | existence | extra | absent |
+| 3794 | the city `1/2050` | `assimilation_timer` | 3793 | 3790 |
+
+**The bombs.** Every parting round is a Lancaster's (TI 307, `LANCASTERBOMBER`): `1/100` on 62 rows and `1/108`
+on 13. Each leaves from the guy's own point in ours: `1/100` stands at (3710, 30659) on 3760, and its bomb
+leaves there. Theirs leave up to (88, 155) away and 30 lower. It is 3760's launch-bay family (§372.4,
+the Strategic Bomber's piece 255) on the Lancaster's piece. `unit_graphics.xml` holds only
+`LANCASTERBOMBER-DEFAULT-AGE0`, entry 851. The air pieces 245 and 255 are entries 845 and 855, so by the same
+offset the piece is 251, an inference I did not read off a packet. `sim::launch` has no row for 251. The first five
+bombs' `accuracy` also reads 0 against 300 or 252, a field the bays do not explain. The two `damage_frac` rows
+are where the bombs land.
+
+**The extras.** `1/136`..`1/138` exist on no frame of the traced walk through 3793 (`RON_DEBUG_UNIT`), nor in
+theirs on run1433b's last blocks. Ours makes them on the closing step alone. The city row is 3760d's
+`assimilation_timer` family on another city.
+
+**Not established**: the Lancaster piece's number and its bay rows (a packet that loads it, as §372.4's
+run1437); what writes `accuracy` 0 in ours; and what ours builds on the closing step that theirs does not.
 
 ## 377. Reserved for the next item on the AI track
 

@@ -33394,3 +33394,70 @@ SHA-256 `96da5bc52a883abea2869b87d6ac6d21df014a5c2eb3c83e80568a031dd1de86`.
 
 **What it holds**: the pair's closing widening (`chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole`):
 256 blocks, 164 keys, rounds read 71 against 73 with 52 parting — every one a Manchu Infantry's.
+
+## run1432 — the British at a held Modern age, Great Lakes, at difficulty 5: the `DUMP_ALL` start (2026-10-28, item 3752, `att-3752`)
+
+`docs/AI.md` §376. run1406's line with the nation moved and the difficulty raised, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1432 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1, the pool's pick. Launched 22:44:07, exited 22:45:33 (85.6 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 11, map style 14, five files restored;
+  `page_faults` 0, no `relaunches`. `GAME INFO` reads back `DIFFICULTY 5` and `STARTING_TECHNOLOGY 6`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1432 greatlakes-british-modern-start`. `df -g ~` was not
+  read before it (145 GiB free before run1433b).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1432-greatlakes-british-modern-start.txt`, 151,134,862 bytes,
+SHA-256 `0bcbe0d0abe754d90a4fa57196f5b581a0c14bce09828733e73d2bb4eac63623`.
+
+Archive `rontrace-run1432.log`, 8,797,120 bytes,
+SHA-256 `52b986402afc886178a2885745fc934b532a45c6cd9b628e982c5037bac6bb29`.
+
+**What it holds**: the start of `british_modern_pair::BRITISH_MODERN`, and the walk's initial state.
+
+## run1433 — the British at a held Modern age, Great Lakes, at difficulty 5: the draw stream to the game's end (2026-10-28, item 3752, `att-3752`)
+
+`docs/AI.md` §376. run1407's line with `--ai-tribe 11` and run1432's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 11 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1432. Launched 22:44:13, exited 22:45:37 (83.8 s launch to exit). `success`; `page_faults`
+  0, no `relaunches`. **The game ended itself on 3793** (closing block 3794, `ended_early`). `GAME INFO` reads back
+  as run1432's. `rngcmp.py` against run1432: 37 frames identical. Filed with `filerun.py run1433
+  greatlakes-british-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1433-greatlakes-british-modern-trace.txt`, 22,090,161 bytes,
+SHA-256 `28fae8ad823af64e7a553ea42732c82411c1aa20ada31f0d3b96d086db0174e4`.
+
+Archive `rontrace-run1433.log`, 66,876,256 bytes,
+SHA-256 `130342e4c3ea042142e54c991f8ff21a226dbcc5716c47fa2481c5204edb6b6d`.
+
+**What it holds**: the pair's first try, **whole: 3793 of 3793** by the count and the sequence
+(`british_modern_pair_first_parting`); its stride, 101..3701, 37 blocks and 105 keys
+(`british_modern_pair_the_long_s_stride_is_widened`); the closing block 3794 as a floor, 146 units, counts
+`[0, 0, 3, 0, 0, 0, 1]` (`british_modern_pair_run1433_s_closing_state`).
+
+## run1433b — the British at a held Modern age, Great Lakes, at difficulty 5: the closing window, blocks 3538..3794 (2026-10-28, item 3752, `att-3752`)
+
+`docs/AI.md` §376. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1433's stride prints units every hundred frames, with no `AMMO` and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1433b --map 14 --end-frame 3793
+--allow-early-end --timeout 3600 --log-window 3538 3794 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 11 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 22:53:18, exited 22:54:18 (61.0 s launch to exit). `success`, through the closing block
+  3794; `page_faults` 0, no `relaunches`. `rngcmp.py` against run1433: 3794 frames identical. Filed with
+  `filerun.py run1433b greatlakes-british-modern-closing-window-3538-3794`. `df -g ~` read 145 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1433b-greatlakes-british-modern-closing-window-3538-3794.txt`, 530,693,745 bytes,
+SHA-256 `eb06bd7bfa719ed7b0cb3d84e33a3e8c15964f7221137c62326addbfa5741993`.
+
+Archive `rontrace-run1433b.log`, 67,111,424 bytes,
+SHA-256 `ebba4d42017d0dabafc57129322e27147948c9cc7249fe25bba9c12933a1c702`.
+
+**What it holds**: the pair's closing widening (`british_modern_pair_run1433b_s_closing_frame_is_widened_whole`):
+256 blocks, 61 keys, rounds read 243 against 243 with 75 parting — every one a Lancaster Bomber's.

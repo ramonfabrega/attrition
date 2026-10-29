@@ -12376,13 +12376,21 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   21 against 139. `sim::launch` holds no row for the piece. It is the launch-point family (3726a, 3750, 3766) on
   another piece; the rows come off a packet that loads it.
 
-## Parked by the next landing, slot VY — reserved
+## Parked by item 3752, 2026-10-28 — the British Modern pair's residue under a whole score
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3752a. The Lancaster Bombers' bombs leave from the guy's own point in ours**, with no score parting: the
+  pair is whole at 3793 of 3793 (`docs/AI.md` §376). On run1433b's window (3538..3794) 75 rounds part, 243 a
+  side, every one of who=1's Lancasters `1/100` (62 rows) or `1/108` (13), TI 307, `LANCASTERBOMBER`. `1/100`'s
+  `ammo[0]` on 3760: `sx, sy, sz` 3710, 30659, 2160, the guy's own point, against 3698, 30814, 2130; `v1z`
+  −6385656 against −4620950. The first five bombs' `accuracy` also reads 0 against 300 or 252. The piece is 251
+  by the offset the air pieces 245 and 255 share (`unit_graphics.xml` entry 851, the only Lancaster entry), an
+  inference, and `sim::launch` holds no row for it. It is 3760's piece-255 family, and the rows come off a packet
+  that loads the piece. The `accuracy` writer is read separately.
+- **3752b. Three who=1 units are born in ours on the closing step alone**: at the closing block 3794 `1/136`,
+  `1/137` and `1/138` are extra in ours, and the traced walk holds none of them on any frame through 3793. Theirs'
+  run1433b holds none of them on 3780..3794. The city `1/2050`'s `assimilation_timer` reads 3793 against 3790,
+  3760d's family. Both are a floor's counts, never a score (`british_modern_pair_run1433_s_closing_state`). The
+  instrument is `compare_shutdown`'s last step with the births printed.
 
 ## Parked by item 3731, 2026-10-28 — the obj sweeps become one driver and a row table
 
