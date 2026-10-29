@@ -12443,7 +12443,7 @@ words and edits nothing here; a refill lands when two remain.
   The killer was the label table in `crates/sim/src/anim.rs`; the frame was right and the mechanism was not
   (DECISIONS 42).
 
-## Parked by item 3763, 2026-10-28 — a `REVEAL_MAP` census meets the enemy it sees
+## Parked by item 3763, 2026-10-28 — a strike is first contact
 
 - **3763a. The booking's "the army re-targets its own city and moves its muster" was the march, not the decision** —
   killed, unbuilt. Both sides release army `2/0` on 760 through `release_mustering`'s `pop_cap / 8 <= num_standard`
@@ -12453,11 +12453,14 @@ words and edits nothing here; a refill lands when two remain.
   coverage report's per-frame first entries, read before any packet (`docs/GOLDEN.md` §149.4).
 - **3763b. Step 6's `has_preq(ALLY_LOS)` half is not read** (`Sim::census_meet`'s `SEAM`). The meeting runs under
   `reveal_map` alone, and preq `0x2b0`'s holder is not looked up.
-  - It names no score: with the arm under `reveal_map` alone, 108 of 109 `first_parting`s hold, and the melee moves.
+  - It names no score: no walk holds step 6 at all (item 3763's mutation; a strike meets first).
   - What would answer it: a lobby at `REVEAL_MAP 0` whose computer holds the `ALLY_LOS` tech, and a war loop whose
     `& 4` decides a release.
 - **3763c. `census_ally_mask` ors in every ally both ways outside the gate**, where `plan_strategy:209`–`215` does it
   only under `ALLY_LOS || reveal_map`. It names no score: no lobby on file allies two computers at `REVEAL_MAP 0`.
+- **3763d. `Object::do_damage`'s `treaties |= 2`, both ways, is not modelled.** The 2601 block reads `treaties` 3
+  on every pair. It names no score: nothing in the crate reads bit 2, and no leader block lies between the start
+  and the close to part on it.
 
 ## Parked by the next landing, slot WI — reserved
 

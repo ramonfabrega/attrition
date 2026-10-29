@@ -196,10 +196,10 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // on 760 (`num_standard` 6 against `pop_cap / 8`); theirs takes
     // `DEFENDING` (run1413b's coverage enters `Army::do_defending` there)
     // because its region word carries `& 4`, the war loop's difficulty-0
-    // bit, and the loop runs only for a leader already met. This lobby is
-    // `REVEAL_MAP 1`, so `plan_strategy`'s step 6 meets on 750's census,
-    // inline — no trace enters `Leader::meet` — and ours skipped the step
-    // and never met (`Sim::census_meet`, §149.4). On 839 ours spends 17
+    // bit, and the loop runs only for a leader already met. Theirs meets
+    // on 620's first strike (`Unit::set_attacking` writes `treaties` both
+    // ways; no trace enters `Leader::meet`), and ours' strike did not
+    // (`Sim::set_attacking`, §149.4). On 839 ours spends 17
     // draws a side and parts at index 4 on the human's `0/15`
     // (`Guy::set_anim+0xf2f < Guy::inc_time+0x271` against theirs'
     // `+0x97a < +0x1ed`); theirs spends `Ammo::do_damage+0xc59`/`+0xc7e`

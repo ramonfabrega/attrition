@@ -158,10 +158,8 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    `ScenarioData::ally_mask[who]` in a scenario/CtW game.
 6. **Meeting** (only with `ALLY_LOS` or `reveal_map`): for every other
    computer leader, `ally_mask |= bit` if allied both ways; and if not yet
-   met (`treaties[i] & 1 == 0`), scan their units then buildings for one
-   `is_seen(who)` (vslot `+0x48`) — the first hit sets `treaties` bit 1 on
-   both sides and `LeaderOut::say_meet` for the console player. Built:
-   `Sim::census_meet`, GOLDEN §149.4.
+   met, its first building or wall that is `is_seen(who)` meets both
+   ways, inline. `Sim::census_meet`; GOLDEN §149.4.
 7. `invaders[who] = 0` on every active leader (the count of *my* units in
    *their* land; refilled in step 10).
 8. **Zero the per-region arrays**: `reg_active, reg_combat, reg_attack`
