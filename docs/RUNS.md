@@ -33549,6 +33549,28 @@ SHA-256 `d1d5470f8d5fa731840cfdad59dec568f8bc45391e53443d0fc99c2406e65826`.
 **What it holds**: the pair's closing widening (`roman_modern_pair_run1444b_s_closing_frame_is_widened_whole`):
 256 blocks, 127 keys, rounds read 63 against 63, none parting.
 
+## run1451 — the first melee, a held Gunpowder age on Great Sahara: a packet at logger frame 945 and the window 905..960 (2026-10-29, item 3779, `att-3779`)
+
+`docs/GOLDEN.md` §149.7. **What the disk could not answer**: when, and through which call, theirs' Inti Macemen
+`2/29`, `2/30` and `2/31` turned home between run1413's stride blocks 901 and 1001, and whether the original
+re-enters `Unit::work` on the turn. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1451 --map 7
+--end-frame 961 --timeout 3600 --log-window 905 960 --ffwd-minute 3 --cmd-file tools/gamelog/golden/melee-gunpowder.cmd
+--detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --tracer-def RON_STATE_FRAME=945 --tracer-def
+'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 02:21:23, exited 02:21:43 (20.7 s launch to exit). `success`: 962 frames,
+  `page_faults` 0. `rngcmp.py` against run1413: 962 of 962 identical. Not filed: the packet and the window's gamelog
+  stay in the run's directory.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1451/map-7/frame-snapshot.bin`, 863,240,016 bytes,
+SHA-256 `fe31bb438dff3490c06950452a508edf4ed8be43d2204075884a66dd3e43329d`.
+
+**What it holds**:
+- The window: `MOVEORDER`s to the three posts with `flags 8` on blocks 946 (`2/31`, (21624, 18360)), 947 (`2/30`,
+  (21720, 18264)) and 948 (`2/29`, (21624, 18168)).
+- The packet: `step4.py --entry 0060d180 --this 156e346c` (`2/31`) enters `work` once: the review's
+  `find_new_target`, then `fight+0xd94`'s, then `add_move_order` to the post.
 ## run1445 — the Turks at a held Information age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-29, item 3772, `att-3772`)
 
 `docs/AI.md` §378. run1443's line with the nation and the age moved, through `viadriver.sh tools/explore/golden_capture.sh
