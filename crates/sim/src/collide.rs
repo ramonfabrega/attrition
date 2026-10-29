@@ -3377,6 +3377,44 @@ mod tests {
         (sim, x, y)
     }
 
+    /// **`find_unit_with_radius` asks the disc's cells, not the map**
+    /// (`ObjectsData::find_unit_with_radius@00659890`, item 3782,
+    /// `docs/AI.md` §378.2): at `r_coll` 0 the disc is ring 0, the spot's
+    /// own 768-unit cell, so a unit whose `big_radius` reaches the spot
+    /// from the next cell is not asked. Ring 1 (`r_coll` 0x180) takes the
+    /// neighbours in. The Turks' Attack Sub `1/98` on East Indies' 3833
+    /// was offered (1512, 5640), 237 west of its leader `1/49` at (1747,
+    /// 5674) and one cell over, and the original took it.
+    #[test]
+    fn a_block_zero_query_asks_only_the_spot_s_own_cell() {
+        let (mut sim, lead, other) = pair(Pos::new(1747, 5674), Pos::new(9000, 9000));
+        let wide = sim.add_unit_type(UnitType {
+            combat: crate::combat::Profile {
+                block_radius: 48,
+                big_radius: 300,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        sim.units[lead].ty = Some(wide);
+        let _ = other;
+        let west = Pos::new(1512, 5640);
+        assert_ne!(west.cell(), sim.units[lead].pos.cell(), "the spot is a cell west");
+        assert!(
+            !sim.find_unit_with_radius(0, west, None),
+            "ring 0 is the spot's own cell: the leader one cell east is not asked"
+        );
+        assert!(
+            sim.find_unit_with_radius(0x180, west, None),
+            "ring 1 takes the neighbouring cells, and the leader is within 300"
+        );
+        assert!(
+            sim.find_unit_with_radius(0, Pos::new(1600, 5640), None),
+            "in the leader's own cell, 150 away, it is asked and refuses"
+        );
+    }
+
     #[test]
     fn a_reused_figure_clears_its_old_body_with_the_new_radius() {
         for radius in [48, 144] {
