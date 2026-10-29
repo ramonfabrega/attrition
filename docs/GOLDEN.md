@@ -14257,7 +14257,8 @@ British and Inca now meet on 620, and the Nubians meet each computer on 659 and 
 `& 4`, and army `2/0` releases on 760 into `DEFENDING`. `Sim::census_meet` (step 6, buildings and walls,
 `crates/sim/src/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
 same 839, but it met chapters 43 and 46 on 1400, where theirs did not.
-**Every `first_parting` holds**, and chapters 43 and 46 lose their 1404 `leader:treaties` rows.
+**Every `first_parting` holds**, and chapters 8, 43, 46 and 62 lose their `leader:treaties` rows (ours read 2, `do_damage`'s bit, where theirs read
+3).
 
 **The score: 760 → 839** (the sequence; the count reads 840).
 
@@ -14283,7 +14284,7 @@ commander's.
   659, 661), and that who=2's 750 census sees no other seat's building. Then it checks that 760 draws no
   `find_target`, that 760's whole sequence matches run1413's trace, and that army `2/0` is not marching.
 - `gunpowder_melee_first_parting` is pinned at (840, 839), with the widening's window at 801..1089, and
-  `WANT_CH43`/`WANT_CH46` drop the treaty rows.
+  chapters 8, 43, 46 and 62 drop the treaty rows.
 
 **Mutation** (`tools/mutate.py`): without the `treaty_on` in `set_attacking`, **held**. Five tests fail: the melee's
 parting, its widening and its new test, and chapters 43 and 46. Without the `census_meet` call, nothing fails: no
@@ -14293,7 +14294,6 @@ walk holds step 6.
 - Step 6 is unheld (no lobby on file meets through it). Its `ALLY_LOS` arm is 3763b, and the ally bits are 3763c.
 - That theirs' 620 `set_attacking` is the British–Inca strike is inferred from the frame, not read. Theirs' meeting
   frame is not pinned, because no record prints `treaties` between the start take and the close.
-- `Object::do_damage`'s `treaties |= 2` on both sides is not modelled. Nothing in the crate reads bit 2.
 
 **Coverage.** The release, the `DEFENDING` arm, the meeting's frame and the score are diff-backed: run1413's trace on
 760, run1413b's coverage on 620, 760 and 764, the 801 block, chapters 43 and 46, and the mutation. Step 6 and the

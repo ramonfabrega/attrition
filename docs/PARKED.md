@@ -12458,9 +12458,6 @@ words and edits nothing here; a refill lands when two remain.
     `& 4` decides a release.
 - **3763c. `census_ally_mask` ors in every ally both ways outside the gate**, where `plan_strategy:209`–`215` does it
   only under `ALLY_LOS || reveal_map`. It names no score: no lobby on file allies two computers at `REVEAL_MAP 0`.
-- **3763d. `Object::do_damage`'s `treaties |= 2`, both ways, is not modelled.** The 2601 block reads `treaties` 3
-  on every pair. It names no score: nothing in the crate reads bit 2, and no leader block lies between the start
-  and the close to part on it.
 
 ## Parked by the next landing, slot WI — reserved
 

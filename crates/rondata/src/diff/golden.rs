@@ -5055,9 +5055,8 @@ fn chapter_sixty_two_s_word_frame_is_widened_whole() {
 }
 
 // **What parts through the word** on run818, whole since item 2117
-// (`docs/GOLDEN.md` §75, §77): the standing `form` rows (605); both leaders'
-// `treaties[·]` on 757, the first blow, 2 here and 3 there (chapter eight's
-// standing family, `docs/GOLDEN.md` §12); `1/8`'s first wound on 841, 13 here
+// (`docs/GOLDEN.md` §75, §77): the standing `form` rows (605) — both leaders'
+// `treaties[·]` on 757 agree since item 3763, the strike's meet; `1/8`'s first wound on 841, 13 here
 // and 9 there (`hits_left` 107 against 111; parked 2068); and `1/14` on
 // 901–903, the third squad's last man: its walk to the Scout has the
 // original's order point and slot (46056, `off` 744/72) and a path whose
@@ -5082,8 +5081,6 @@ const WANT_CH62: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "757 0/-1 leader:treaties[1]",
-    "757 1/-1 leader:treaties[0]",
 ];
 
 // Empty: no slot of the pool parts through the word.
