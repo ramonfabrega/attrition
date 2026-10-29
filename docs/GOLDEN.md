@@ -15235,11 +15235,73 @@ and `1/14`.
 new test fail. Held. Every lobby's `first_parting` holds (116).
 
 **The next word, frame 1382**: ours 20 draws against theirs' 21, parting at index 2: ours
-`Leader::produce_building+0x1805` where theirs spends `Leader::make_stuff+0x63d`.
+`Leader::produce_building+0x1805` where theirs spends `Leader::make_stuff+0x63d` (closed, §150.5).
 
 **What is not established**: the age's catch-up (`LAB_00651454`, `ages_queued`) stays 3783a; `is_team`'s
 team-style-7 arm is a `SEAM` (3790a); the frame theirs gains City State is inferred from the replans and the queue
 frames, never printed.
+
+## 150.5 A unit offer weighs the matchup table, not the combat table — 1382 → 2600, whole (item 3793)
+
+**The booking.** Frame 1382: ours 20 draws against theirs' 21, parting at index 2. Both spend two
+`Leader::make_stuff+0x221`. Ours then spends two `Leader::produce_building+0x1805` and five `+0x63d`; theirs spends
+four `+0x63d`. The leader is who=1, the Greeks (`RON_DEBUG_MAKE=1382`: `who=1 head t=52`, the Scholar, paid).
+
+**The direction: ours acted.** Ours' slot 1 is the Temple (TI 437, escrow 1, `val` 391,136). `make_this` places it as
+`1/2018` in Athens: the jitter, then one expiry draw. Theirs never places a Temple: no seat holds a TI 437 on
+run1450's closing block 2601, and the citizen `1/12`, ours' builder, stands idle on 1401 in theirs.
+
+**What the disk could not say**, so two runs: run1450's stride blocks print no `LEADERDATA` from 701 to 2601.
+- **run1465** (window 1376..1383, `LEADERS=2`; 1385 frames rngcmp-identical to run1450). Theirs' who=1 stock on block
+  1382 is ours exactly: 183, 137, 75, 152, 350, escrow 0. `TypeData::can_pay_cost@00667570` weighs price against
+  stock and nothing else, so wood 137 against the Temple's 80 does not refuse it.
+- **run1465b** (window 1380..1385, `LEADERS=9`, which prints the make list). Theirs' who=1 list on block 1382:
+  Scholar, **Light Horse (TI 209) `val` 4,584,896**, num 3, escrow 1; then the Temple at 391,136; then Citizen,
+  Scholar, Citizen, Light Horse, Siege Factory, Literacy. Ours holds the Light Horse at **130,624**, below the Temple.
+  Block 1383's stock is 29, 55, 35: two Light Horse and a Citizen bought, wood left at 55 < 80. Literacy is ours'
+  tree id 614 and theirs' TypeIndex 615 (`load.rs`: a tech is `543 + i` ↔ `0x220 + i`), the same tech.
+
+**Walked back** (a probe on `create_units`, reverted whole). The Light Horse is valued on 1380. Ours' chain:
+- `base` 1000 × the unit bias (`roll` 37,867, `% 3 = 1`) × 1/256 gives 1,140; the escrow arm ×100 gives 114,000.
+- war ×2 ×2, age, ladder ×6 ×2 gives `x` 6,156,000; the tail ×3 ×10 gives 184,680,000.
+- `fac` 256 × that wraps, and /256 gives 130,624.
+
+Inverting theirs' 4,584,896 through the same wrapping chain admits one plausible `base`, 199,600. That is 1,000 ×
+(255 + 256)/256 ×100: theirs' bias is 255 where ours is 36, so on difficulty 0 `unit_prod_value(209) × 3/2` is −255,
+i.e. **−170 in theirs and −24 in ours**.
+
+**The mechanism.** `Leader::unit_prod_value@006cc580` sums `(rv[t][k] − rv[k][t]) × min(n, 10)` over the counted
+enemy's combat types, the human's `num_units` (`LeaderData +0x5762`). Run1465b prints who=0's counts on 1380: TI 50
+×13, 69, 89, 154 and 158, one each; ours' muster agrees. `rv` is **`UnitTypeData::relative_value` (`+0x314`,
+short[352])**, which `UnitType::fill_relative_values@0061be50` fills once at load (from `Types::init`). Each counter
+weight starts at 256, is scaled by the two types' `obj_masks`, `max_range` and six lineages, then capped at 768 and
+stored −256. Ours read the combat table's `return_modifier` in its place. The Light Horse (LIGHT_CAV, MELEE, MOUNTED,
+no range):
+
+| against | `rv[LH][k]` | `rv[k][LH]` | term |
+|---|---|---|---|
+| Barbarians (154), PIKE, HEAVY_INF | 0 | 320 (×3/2 ×3/2) | −320 |
+| Bushi (158), the same masks | 0 | 320 | −320 |
+| Royal Balamob Slingers (89), LIGHT_INF | 128 (×3/2) | 0 | +128 |
+
+−512 / 3 = −170, theirs' number. The listing settles the one arm the decompiler's nesting leaves open: the anti-air
+halving (`0061c26d`–`0061c289`) jumps to the clamp, so the AA gun's third is taken only on the other paths
+(`0061c28b`).
+
+**The build.** `crates/sim/src/relative_value.rs` (`Facts`, `relative_value`), filled at load in
+`crates/rondata/src/load.rs` as `UnitType::rel`. `unit_prod_value` reads it and stops at the gaia types, as the
+original's `0x32..0x192` does.
+
+**The score: 1382 → 2600, whole**, count and sequence. Every other lobby's `first_parting` holds (115 passed).
+`classical_melee_run1450_s_word_window_is_widened_whole`, window 1301..2601 with the closing block: **150** keys
+(686 before), rounds read (6, 6), **none parting**. Block 1301 carries the standing families alone; later blocks add
+only those families as units are born; the closing block adds the idle human's citizens `0/1`..`0/7`, ordered in
+ours and idle in theirs (parked 3793a). `classical_melee_run1450_s_closing_state`: 95 units, every count zero, no
+extra, one tear (`0/6`). **By mutation** (`tools/mutate.py`, the `return_modifier` term restored): `first_parting`,
+the widening and the closing state fail. Held.
+
+**What is not established**: every arm of the table but the land ones the Light Horse reads rests on a reading
+(parked 3793c); whether `Unit::process_attrition` and `Leader::action_declare` read the same table (3793b).
 
 ## 151. Reserved for the next item on the rules track
 
