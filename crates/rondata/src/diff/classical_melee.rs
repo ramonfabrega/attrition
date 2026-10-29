@@ -560,3 +560,37 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
     pin_eq!(w.rounds_read, (5, 2), "the rounds read");
     pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }
+
+/// **Every seat's leader on the start dump's frames** (item 3791,
+/// `docs/GOLDEN.md` §151): run1449's frames 1 and 37 print all three
+/// seats' `LEADERDATA` whole. run1450's only other leader records are its
+/// closing dump at 2601, past the word, so they are not compared while the
+/// game parts.
+#[test]
+fn classical_melee_s_leaders_are_compared_on_every_seat() {
+    let _pins = Pins::hold();
+    let Some(w) = crate::diff::gunpowder_melee::seat_walk(
+        melee_script,
+        MELEE_START,
+        MELEE_LONG,
+        &[MELEE_START],
+        false,
+    ) else {
+        return;
+    };
+    w.report("run1449");
+    pin_eq!(w.players, 3, "the seats the lobby seats");
+    pin_eq!(
+        w.records.clone(),
+        vec![2, 2, 2],
+        "leader records compared, by seat"
+    );
+    // Item 3791: the standing family (`SITE[i].reg`, `aggression[j]`) on
+    // both frames and every seat, and nothing else.
+    pin_eq!(w.standing(), vec![12, 9, 9], "standing keys, by seat");
+    pin_eq!(
+        w.rest(),
+        Vec::<String>::new(),
+        "the keys that part, by seat"
+    );
+}
