@@ -241,9 +241,17 @@ fn roman_modern_pair_run1444b_s_closing_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3771: PENDING.
-    pin_eq!(w.firsts.len(), 0, "run1444b baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    // Item 3771, the pair whole on its first try: **127** keys, every one
+    // first on block 4979, the window's first — `form` on 58 units, who=1's
+    // groups' `held` and pools (23 each), who=0's `SITE[0..9].reg` (65
+    // against 0) and `aggression[1]` (0 against 1), the standing families;
+    // and who=1's `bucket[0:food]` 11012 against 11014, `bucket[1:timber]`
+    // 13760 against 13759 and `leftover[0:food]` 5400 against 2200, parted
+    // before any leader record the pair prints (parked 3771a). No draw
+    // parts to 5234.
+    pin_eq!(w.firsts.len(), 127, "run1444b baseline");
+    pin_eq!(w.rounds_read, (63, 63), "the rounds read");
+    // Every round, both directions: 63 against 63, none parting.
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
