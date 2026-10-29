@@ -5260,14 +5260,6 @@ impl Sim {
     /// here.
     pub(crate) fn unit_set_type(&mut self, u: usize, rec: usize) {
         let Some(old) = self.units[u].ty else { return };
-        if std::env::var("RON_PROBE_3783").is_ok() {
-            eprintln!(
-                "PROBE3783 set_type {}/{} {old} -> {rec}\n{}",
-                self.units[u].owner,
-                self.units[u].index,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         if old == rec {
             return;
         }
