@@ -1653,7 +1653,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // the human's `0/17` loosed every round from its own square (17400,
     // 15672) at 477, where run1440's window prints (17282, 15746, 742) and
     // (17274, 15736, 758) — `CHAR_ATTACK3` and `CHAR_ATTACK2` at the dump's
-    // own turret step 4 — and its round of 858 struck the Inca Bombard `2/23`
+    // own turret step 4 — and its round of 859 struck the Inca Bombard `2/23`
     // on 864, a frame after the original's.
     (
         143,

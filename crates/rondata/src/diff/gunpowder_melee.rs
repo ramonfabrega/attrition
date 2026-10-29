@@ -216,8 +216,15 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // spends 13 draws against 14 and parts at index 5: theirs spends
     // `Unit::close+0xcb6`, `2/23`'s death, a frame before ours
     // (`docs/GOLDEN.md` §149.5).
-    count: 863,
-    sequence: 863,
+    //
+    // Item 3770: **863 → 947**, both together. The human's Camel Raider
+    // `0/17` (TI 193, piece 143) is a pivot piece and looses through
+    // `pivot::RELEASES`' four piece-143 rows, off run1440's packet: its
+    // round of 859 leaves (17282, 15746, 742), not the figure's square
+    // (17400, 15672, 477), flies 5 frames against 6 and strikes `2/23` on
+    // 863 as theirs does (§149.6).
+    count: 947,
+    sequence: 947,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -247,13 +254,13 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763 and
-/// 3767): run1413's stride blocks 801..1101 — the word's frame 863 writes no
-/// block (the stride prints every hundred), so the window is the stride
-/// block before it through 250 frames past it. 3733's was 101..432, on
-/// 182; 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's
-/// 701..1010, on 760; 3763's 801..1089, on 839.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (801, 1113);
+/// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767
+/// and 3770): run1413's stride blocks 901..1101 — the word's frame 947
+/// writes no block (the stride prints every hundred), so the window is the
+/// stride block before it through 250 frames past it. 3733's was 101..432,
+/// on 182; 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's
+/// 701..1010, on 760; 3763's 801..1089, on 839; 3767's 801..1113, on 863.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1197);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -296,7 +303,7 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
@@ -355,9 +362,17 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // `death:first_frame` 864 against 863 (`death:cur_anim` 17 against
     // 18), then `2/18`'s death roll (865 both, `cur_anim` 18 against 17),
     // `2/22`'s attack and `1/0`'s and `2/5`'s moves. 1001 and 1101 fan out.
-    pin_eq!(w.firsts.len(), 669, "run1413's word window");
-    pin_eq!(w.rounds_read, (27, 30), "the rounds read");
-    pin_eq!(w.rounds.len(), 22, "the rounds that part");
+    //
+    // Item 3770, on the word moved to 947 (window 901..1197, three blocks):
+    // **537** keys, rounds read (17, 17), 14 parting. **Block 901 carries
+    // the standing families alone** — `2/23`'s `death:first_frame` reads
+    // 863 both sides, the Camel Raider's round of 859 landing as theirs.
+    // On 1001 the human's citizens `0/3` and `0/5` stand apart, `0/17`'s
+    // `damage_frame` reads 1000 against 991, `1/16`'s order 10 against 1,
+    // and `1/18` dies on 987 against 983; 1101 fans out.
+    pin_eq!(w.firsts.len(), 537, "run1413's word window");
+    pin_eq!(w.rounds_read, (17, 17), "the rounds read");
+    pin_eq!(w.rounds.len(), 14, "the rounds that part");
 }
 
 /// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
@@ -515,6 +530,77 @@ fn gunpowder_melee_s_captain_scores_the_bombard_in_an_int() {
             "0/{o} takes 2/18 on 809, as run1440's block 810"
         );
     }
+}
+
+/// **The Camel Raider looses from its pivot** (item 3770, `docs/GOLDEN.md`
+/// §149.6). The human's Camel Raider `0/17` (TI 193, piece 143) is a pivot
+/// piece: its round leaves through `get_position`'s pivot branch, the pivot
+/// node at the figure's facing plus the release node at the facing and the
+/// turret. Its round of 859 at the Inca Bombard `2/23` leaves (17282,
+/// 15746) at 742 — `CHAR_ATTACK3` at turret step 4, the point run1440's
+/// window prints for the round of 799 — flies 5 frames, and `2/23` dies on
+/// 863 as theirs does (run1413's block 901, `death:first_frame` 863). From
+/// its own square (17400, 15672) at 477 the round flew 6 and `2/23` died
+/// on 864.
+#[test]
+fn gunpowder_melee_s_camel_raider_looses_from_its_pivot() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let unit = |sim: &sim::Sim, who: u8, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index as usize == o)
+    };
+    while built.sim.frame < 859 {
+        built.tick();
+    }
+    let raider = sim::combat::Obj::Unit(unit(&built.sim, 0, 17).expect("0/17 on 859"));
+    let bombard = sim::combat::Obj::Unit(unit(&built.sim, 2, 23).expect("2/23 on 859"));
+    let find = |sim: &sim::Sim| {
+        sim.projectiles
+            .iter()
+            .find(|p| p.shooter == raider && p.target == Some(bombard))
+            .copied()
+    };
+    while find(&built.sim).is_none() && built.sim.frame < 862 {
+        built.tick();
+    }
+    let round = find(&built.sim).expect("0/17's round at 2/23 by 861");
+    assert_eq!(
+        ((round.launch.x, round.launch.y), round.sz, round.total_time),
+        ((17282, 15746), 742, 5),
+        "the pivot's point, and five frames"
+    );
+    while built.sim.frame < 863 {
+        built.tick();
+    }
+    assert!(unit(&built.sim, 2, 23).is_some(), "2/23 stands into 863");
+    built.tick();
+    assert!(
+        unit(&built.sim, 2, 23).is_none(),
+        "2/23 dies on 863, as run1413's block 901"
+    );
 }
 
 /// **The Bombard's ground swing waits on its crew's turn** (item 3762,
