@@ -9338,6 +9338,43 @@ fn the_greeks_halve_an_age_or_an_epoch_and_nothing_else() {
     );
 }
 
+/// **A plain tech another seat holds is researched faster, read live**
+/// (item 3783, `docs/GOLDEN.md` §149.9): `train_time@006508c0`'s
+/// `LAB_006513c0` takes a final, a building tech or a government that `n`
+/// leaders hold (`TypeData::count_discovered`) to `t × (num_players − n +
+/// 1) / (num_players + 1)`. An age is past the term. The first melee's
+/// who=1 Despotism finishes on 958, the frame after who=2's, where ours ran
+/// on to 982.
+#[test]
+fn a_plain_tech_another_seat_holds_is_researched_faster() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let senate_t = tree.add(tech::TypeDef::building("Senate"));
+    let classical = tree.add(tech::TypeDef::age("Classical Age", 1));
+    let despotism = tree.add(tech::TypeDef::gov("Despotism", 0, 1).at(senate_t));
+    for t in [classical, despotism] {
+        tree.types[t].job_time = 400;
+    }
+    sim.set_tech_tree(tree);
+    let n = sim.players.len() as i32;
+    assert!(n >= 2, "two seats at least");
+    let plain = [classical, despotism].map(|t| sim.tech_time(0, t));
+    sim.tech[1].tech[despotism] = true;
+    sim.tech[1].tech[classical] = true;
+    assert_eq!(sim.tech_time(0, despotism), plain[1] * n / (n + 1));
+    assert_eq!(
+        sim.tech_time(0, classical),
+        plain[0],
+        "an age is past the term"
+    );
+    sim.tech[0].tech[despotism] = true;
+    assert_eq!(
+        sim.tech_time(1, despotism),
+        plain[1] * (n - 1) / (n + 1),
+        "two holders, the researcher's own bit among them"
+    );
+}
+
 /// **A decoy counts for neither side of the capture tally** (item 3318,
 /// `docs/AI.md` §264): `check_capture@006276a0`'s object loop skips a unit
 /// whose `unit_masks & 1` is set. Two hoplites against the base of 2 do not
