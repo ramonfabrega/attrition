@@ -3776,6 +3776,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-29 — the sixty-third tranche's
 
+3788's "for the Loop" (3788c, the widening reads leaders 0 and 1 only; 3788d, `rubric.py` cannot count a whole melee) is booked in the queue as 3791 and 3792, not as Loop items: each names a score — every three-seat lobby's floors, and the `Rubric:` bytes.
+
 (3778) **A live-tree test that pins a booked triple as free turns the minting lane's first gate red** (3771's "for the Loop") — `tools/explore/test_refill.py` asserted `(18, 6, 4)` absent from the occupied set on the live tree, so 3771's mint of exactly that triple failed its own first gate; the lane moved the free case to `(18, 2, 4)` and pinned `(18, 6, 4)` as the Roman Modern pair's. The trap re-arms whenever a later booking names the new free case. Candidate: the live-tree test derives a free triple from the occupied set (or asserts only the tool's agreement with `SCORED_LOBBIES` and the pair literals), never a literal a booking could name; the next two refills' triples, `(18, 8, 4)` and `(7, 10, 3)`, are not pinned there.
 
 ## Loop, filed 2026-10-29 — the sixty-second pass's
