@@ -9690,9 +9690,13 @@ mod tests {
             after, before,
             "the fleeing target's chase kept its stale spot"
         );
+        // A target running straight away answers `flanking(e) == 1`, so
+        // `find_attack_pos` leads it (`Sim::chase_lead`, item 3789,
+        // `docs/GOLDEN.md` §150.3): the new spot is ahead of the target,
+        // taken outright and not tested for range against its seat.
         assert!(
-            s.is_in_range_at(Obj::Unit(me), after, Obj::Unit(foe)),
-            "the new spot reaches the target"
+            after.x < at.x && !s.is_in_range_at(Obj::Unit(me), after, Obj::Unit(foe)),
+            "the new spot leads the fleeing target: {after:?} against {at:?}"
         );
         for (heading, frame, why) in [
             (None, on, "a standing target"),

@@ -138,8 +138,18 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // its three `init_real` draws. On 865 ours spends 12 draws against 13,
     // parting at index 3: theirs' `Unit::close+0xcb6`, a death, where ours
     // spends `Farms::inc_time+0x1ae`.
-    count: 865,
-    sequence: 865,
+    //
+    // **865 → 1284, item 3789** (§150.3): a player's ranged unit chasing
+    // a unit on a move leads it — `find_attack_pos`'s flanking branch —
+    // so the human's Royal Balamob Slingers `0/20` walk at (20424, 12216)
+    // on 860, ahead of the running Light Horse `1/16`, where ours walked
+    // at (17112, 14760); faced along that walk, `0/20` dies to `2/24`'s
+    // arrow on 865, its share 31 of 95 passed by the flank's blow. On 1284
+    // ours spends 15 draws against 1002, parting at index 5: theirs'
+    // `PathFinder::calc_road_cost+0x46` where ours spends `Guy::set_anim
+    // +0x97a < Guy::inc_time+0x271`.
+    count: 1284,
+    sequence: 1284,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -352,9 +362,71 @@ fn classical_melee_s_dead_catapult_crew_clears_its_disc() {
     );
 }
 
+/// **The human's slingers lead a running horseman** (item 3789,
+/// `docs/GOLDEN.md` §150.3). The Royal Balamob Slingers `0/20` (TI 89,
+/// land, who 0) chase the Greek Light Horse `1/16` (TI 209) on 860, which
+/// is running from them under its own move. `Unit::find_attack_pos`'s
+/// flanking branch sweeps round a point ahead of the horseman and takes
+/// the spot outright: run1462's block 861 has `0/20`'s `MOVEORDER` at
+/// (20424, 12216) and its path's last leg at (17352, 15288), and `0/20`
+/// at (16652, 15416). Facing along that walk it dies to `2/24`'s arrow on
+/// 865, as run1450's block 901 dates it; aimed at the horseman's own seat
+/// it walked to (17112, 14760) and died on 867.
+#[test]
+fn classical_melee_s_slingers_lead_the_running_light_horse() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let unit = |sim: &sim::Sim, who: u8, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index as usize == o)
+    };
+    while built.sim.frame <= 860 {
+        built.tick();
+    }
+    let s = unit(&built.sim, 0, 20).expect("0/20 on 861");
+    let u = &built.sim.units[s];
+    let dest = u.orders.front().and_then(|o| match o.body {
+        sim::orders::Body::Move(m) => Some((m.dest.x, m.dest.y)),
+        _ => None,
+    });
+    assert_eq!(
+        (dest, (u.pos.x, u.pos.y)),
+        (Some((20424, 12216)), (16652, 15416)),
+        "0/20 leads 1/16, as run1462's block 861"
+    );
+    while built.sim.frame <= 864 {
+        built.tick();
+    }
+    assert!(unit(&built.sim, 0, 20).is_some(), "0/20 stands through 864");
+    built.tick();
+    assert!(unit(&built.sim, 0, 20).is_none(), "0/20 dies on 865");
+}
+
 /// The word's window on run1450's stride: the block before the word to
-/// the block after it.
-pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (601, 968);
+/// 250 frames past it (item 3789 moved it from 601..968 with the word).
+pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1201, 1534);
 
 /// The word's window, widened whole on run1450's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -407,7 +479,7 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 151, "run1450's word window");
-    pin_eq!(w.rounds_read, (14, 14), "the rounds read");
-    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+    pin_eq!(w.firsts.len(), 544, "run1450's word window");
+    pin_eq!(w.rounds_read, (2, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }

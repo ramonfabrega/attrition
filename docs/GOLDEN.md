@@ -15052,6 +15052,63 @@ a death, where ours spends `Farms::inc_time+0x1ae`. The death is `0/20`'s: ours 
 **What is not established**: why `0/20` dies two frames late in ours (its last blow's timing is the first question);
 `kill_guy`'s own gates beyond `blocks_while_dead` (parked 3787b); `set_type`'s other callers on a same type (3787c).
 
+## 150.3 A player's ranged chaser leads a running target — 865 → 1284 (item 3789)
+
+**The booking.** Frame 865: theirs 13 draws against ours' 12, parting at index 3. Theirs spends `Unit::close+0xcb6 <
+Object::die < Unit::die`: the human's Royal Balamob Slingers `0/20` (TI 89, land, who 0, a squad of three, `myhits` 95,
+share 31) die on 865 in theirs and on 867 in ours.
+
+**Off the disk.** Ours' blow ledger (`RON_DEBUG_GAP`, its `hit` line now carrying `dealt`): every arrow on `0/20` deals
+4 + 5/16; six of them by 746 leave `damage` 25 + 14/16, which block 801 agrees on. `2/24`'s on 865 leaves it at 30 + 3/16,
+below 31, and `2/25`'s on 867 kills it. run1450 strides 801 and 901, so what theirs did between was not on disk.
+
+**run1462** (`docs/RUNS.md`). Theirs' arrows match ours in launch, landing and `total_time`, and `0/20`'s `damage` holds
+at 25 + 14/16 through block 865, yet 865's single 4 + 5/16 blow kills it: in theirs the blow is bigger, a flank on a
+target facing elsewhere. The state first parts on **860**: theirs pushes a `MOVEORDER` at (20424, 12216) and runs an A*
+whose path ends (17352, 15288), where ours walked toward (17112, 14760), the Light Horse `1/16`'s own side.
+`take_damage@00652020`'s share (95 / `UBER_SIZE`, the remainder for a lone captain) is ours, and not the cause.
+
+**The build** (`crates/sim/src/attack_pos.rs`, `Sim::chase_lead`, asked by `chase_spot`): `Unit::find_attack_pos@00601280`'s
+flanking branch, `6027d4`–`602abc`, read off the listing (COMBAT §32.4's struck bullet). Its gates: a unit target; the
+asker's `unit_masks & 0x40000` clear (a player's unit); the asker's type's domain (`+0x218`) air or the target's; the
+target's current order a move (vslot `+0x14`); the asker's type a range (`+0x1fc`). With `bearing = find_angle(target −
+asker)` and `e = target.heading − bearing + 0x80000000`:
+
+- `flanking(e) == 1` (`6028fa`): the sweep's centre is `project(target, target.heading, ((vector_dist / my_speed) ×
+  its_speed × 3) / 2)`, each speed vslot `+0x17c` at its own point; when `is_valid`, `local_40` takes the sweep's spot
+  outright. The sweep's bearing (`-0x20`) is set before the block and does not change.
+- `e < 0x2aaaaaaa`, or `flanking(e) == 0`: an asker that outranges the target (vslot `+0x130`), or carries `unit_masks2 &
+  0x20000`, and stands within `(range + 4) × 0xc0` of it returns its own position.
+- `flanking(e) == 2`: nothing; the sweep runs round the target's seat.
+
+So `flanking`'s 1/2 answer **is** read (COMBAT §36.3's "read by nothing" is corrected, and `combat::flanking`'s doc).
+
+**By mutation** (`tools/mutate.py`, `chase_lead` answering `Lead::None`): the word is 865 again, `0/20` dies on 867, and
+`classical_melee_s_slingers_lead_the_running_light_horse` fails. Held.
+
+**The score: 865 → 1284**, count and sequence. Ours' `0/20` walks theirs' positions on 861–865 and theirs' path point
+for point. Every lobby's `first_parting` holds (116).
+
+**The value diff.** The old window 601..968 is whole: 151 → 90 keys (the standing families alone), 6 → 0 rounds
+parting. The window moves to **1201..1534** (`WIDENING_CLASSICAL_MELEE`): 544 keys, rounds read (2, 0), 2 parting.
+Block 1201 holds the standing families alone; on **1301** the state parts:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `1/16`, Light Horse (who 1) | `pos` / move `dest_x` | (21132, 4582) / 21240 | (21192, 4432) / 21528 |
+| `1/31` | `pos` | (21192, 4432) | (21132, 4582) |
+| `1/20` | heading, `recharging` | —, 18 | —, 19 |
+| `1/4`, `2/5`, `2/15` | position and heading | parted | |
+
+`hits_left` parts on 1401 (`0/24`, `0/25`, `0/26`, `1/31`).
+
+**The next word, frame 1284**: ours 15 draws against theirs' 1002, parting at index 5. Theirs spends
+`PathFinder::calc_road_cost+0x46` where ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`. `1/16`'s and `1/31`'s
+swapped destinations on 1301 are the first thing to read.
+
+**What is not established**: the stand arm (`Lead::Stand`) is built and on no run (parked 3789a); `unit_masks2 &
+0x20000`, the marines' trench bit, is a `SEAM` (3789b); why theirs spends a thousand draws on 1284.
+
 ## 151. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
