@@ -180,26 +180,6 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
         // sites, as the second pair's long walk prints them (item 1206).
         crate::diff::harness::debug_watch(&built, at + 1);
-        // PROBE 3787: `RON_DEBUG_COLLMAP=<lo>-<hi>:<x0>-<x1>,<y0>-<y1>`.
-        if let Ok(v) = std::env::var("RON_DEBUG_COLLMAP")
-            && let Some((fw, cw)) = v.split_once(':')
-            && let Some((lo, hi)) = fw.split_once('-')
-            && let Some((xs, ys)) = cw.split_once(',')
-            && let Some((x0, x1)) = xs.split_once('-')
-            && let Some((y0, y1)) = ys.split_once('-')
-        {
-            let n = |s: &str| s.trim().parse::<i32>().unwrap_or(0);
-            let f = at + 1;
-            if (i64::from(n(lo))..=i64::from(n(hi))).contains(&f) {
-                eprintln!("  collmap f{f}");
-                for y in n(y0)..=n(y1) {
-                    let row: String = (n(x0)..=n(x1))
-                        .map(|x| if built.sim.coll.get(x, y) { '#' } else { '-' })
-                        .collect();
-                    eprintln!("  collmap {y:4} {row}");
-                }
-            }
-        }
         if crate::diff::harness::site_window().is_some_and(|(lo, hi)| (lo..=hi).contains(&at)) {
             for (label, who) in crate::diff::harness::attributed_sites(&built) {
                 eprintln!("  f{at} {who}: {label}");
