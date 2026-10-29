@@ -2544,10 +2544,10 @@ fn widen_civilians_walk(
                     .or_insert((n, format!("{bad3} cells, first {first3}")));
             }
         }
-        for who in 0..2usize {
+        for who in 0..players {
             let fresh_leader;
             let t = if let Some(value) = &cached {
-                let Some(t) = &value.leaders[who] else {
+                let Some(t) = value.leaders.get(who).and_then(Option::as_ref) else {
                     continue;
                 };
                 t
@@ -3709,7 +3709,7 @@ fn widen_chapter_three(
         rows += widen_turrets(&s.built, &frame, players, n, &mut blk);
         let raw = s.ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
-        for who in 0..2usize {
+        for who in 0..players {
             let Some(block) = flog.leader_block(n, who as i64) else {
                 continue;
             };

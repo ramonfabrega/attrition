@@ -22,9 +22,12 @@ use std::collections::BTreeMap;
 pub(super) struct Oracle {
     pub(super) frame: Frame,
     pub(super) groups: Vec<GroupDump>,
-    pub(super) leaders: [Option<BTreeMap<String, i64>>; 2],
+    /// One slot per seat the frame's `LEADERDATA` blocks name, `0..=max
+    /// who` (item 3791: a fixed two held a three-seat lobby's who=2 out of
+    /// every widening).
+    pub(super) leaders: Vec<Option<BTreeMap<String, i64>>>,
     pub(super) civilian: Option<super::golden::observations::Civilian>,
-    pub(super) regions: [Option<BTreeMap<String, i64>>; 2],
+    pub(super) regions: Vec<Option<BTreeMap<String, i64>>>,
 }
 #[cfg(test)]
 impl Oracle {
@@ -39,18 +42,23 @@ impl Oracle {
         let frame = IndexedCapture::frame_from_log(&log, n).unwrap();
         let block = log.frames().into_iter().find(|(k, _)| *k == n).unwrap().1;
         let groups = crate::gamelog::groups(block);
-        let leaders = std::array::from_fn(|who| {
-            log.leader_block(n, who as i64)
-                .map(|b| super::leader::theirs(&b))
-        });
-        let regions = std::array::from_fn(|who| {
-            include_regions
-                .then(|| {
-                    log.leader_block(n, who as i64)
-                        .map(|b| super::leader::region_theirs(&b))
-                })
-                .flatten()
-        });
+        let seats = log.leader_seats(n);
+        let leaders = (0..seats)
+            .map(|who| {
+                log.leader_block(n, who as i64)
+                    .map(|b| super::leader::theirs(&b))
+            })
+            .collect();
+        let regions = (0..seats)
+            .map(|who| {
+                include_regions
+                    .then(|| {
+                        log.leader_block(n, who as i64)
+                            .map(|b| super::leader::region_theirs(&b))
+                    })
+                    .flatten()
+            })
+            .collect();
         Self {
             frame,
             groups,
@@ -586,8 +594,8 @@ fn entry_rejects_corruption_staleness_and_wrong_frame_identity() {
     let value = Oracle {
         frame: Frame::default(),
         groups: vec![],
-        leaders: [None, None],
-        regions: [None, None],
+        leaders: vec![None, None, None],
+        regions: vec![None, None, None],
         civilian: None,
     };
     let bytes = pack("source version frame-position=0", &value).unwrap();
@@ -702,7 +710,7 @@ fn region_mode_has_distinct_identity_and_preserves_base_observations() {
     assert_eq!(original.frame, expanded.frame);
     assert_eq!(original.groups, expanded.groups);
     assert_eq!(original.leaders, expanded.leaders);
-    assert_eq!(original.regions, [None, None]);
+    assert_eq!(original.regions, vec![None]);
     assert_eq!(
         expanded.regions[0],
         Some(BTreeMap::from([

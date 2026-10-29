@@ -1651,6 +1651,21 @@ impl<'a> Log<'a> {
         let b = b.kid("FULL DUMP").unwrap_or(b);
         b.kids("LEADERDATA").find(|l| l.int("who") == Some(who))
     }
+
+    /// How many seats a frame's `LEADERDATA` blocks span: one past the
+    /// highest `who` printed, 0 for a frame that prints none. The lobby's
+    /// own count, read off the dump (item 3791).
+    pub fn leader_seats(&'a self, frame: i64) -> usize {
+        let Some((_, b)) = self.frames().into_iter().find(|(n, _)| *n == frame) else {
+            return 0;
+        };
+        let b = b.kid("FULL DUMP").unwrap_or(b);
+        b.kids("LEADERDATA")
+            .filter_map(|l| l.int("who"))
+            .map(|w| w as usize + 1)
+            .max()
+            .unwrap_or(0)
+    }
 }
 
 /// A position in the engine's internal units, as the log writes it.
