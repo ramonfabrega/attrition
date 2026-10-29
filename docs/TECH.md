@@ -1157,9 +1157,10 @@ stamp removed.
 
 - ~~**The `set_type` arm.**~~ Reached on Great Sahara at Toughest's 11882
   (item 1416, `docs/AI.md` §108): the Senator becomes The President.
-- **The respawn.** `Unit::close@0060ee50` sets `gov_hero_frame = frame +
-  15 × GOV_HERO_RESPAWN` when a patriot dies. `Build::process@0061edf0`
-  trains one at a Senate on the frame before that.
+- ~~**The respawn.**~~ Built by item 3786 (`docs/GOLDEN.md` §149.11):
+  `Unit::close@0060ee50` sets `gov_hero_frame = frame + 15 ×
+  GOV_HERO_RESPAWN` when a hero dies, and `Build::process@0061edf0` trains
+  one at a Senate on the frame before that — run1413's who=1, 1463 → 1912.
 - **`Build::activate`'s Senate head** (`docs/CITIES.md` §15). Nothing here
   trains a patriot from a newly built Senate.
 - **The Despot's exit.** On 14983 the original's `1/79` is still inside the

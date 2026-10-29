@@ -616,6 +616,59 @@ impl Sim {
         self.muster[w].control -= self.unit_types[rec].price.pop;
     }
 
+    /// **`Unit::close@0060ee50:98`..`106`: a hero's death stamps its
+    /// leader's respawn** (item 3786, `docs/GOLDEN.md` §149.11). Under the
+    /// slot's `flags & 1` and `who < 8`, and ungated by the squad, a unit
+    /// whose `is_gov_hero` (vslot `+0xc8`, `UnitData::is_gov_hero` in every
+    /// unit vtable: the type's `OBJ_MASK` `0x4000000`, [`UnitTraits::hero`])
+    /// answers writes `gov_hero_frame = GOV_HERO_RESPAWN × 15 + frame`;
+    /// [`Sim::gov_hero_respawn`] is the train it schedules.
+    ///
+    /// [`UnitTraits::hero`]: crate::tech::UnitTraits::hero
+    pub(crate) fn gov_hero_closed(&mut self, u: usize) {
+        let who = self.units[u].owner as usize;
+        if who >= 8 || who >= self.tech.len() {
+            return;
+        }
+        let hero = self
+            .unit_tree(u)
+            .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.hero));
+        if hero {
+            self.tech[who].gov_hero_frame =
+                i64::from(self.tuning.gov_hero_respawn) * 15 + self.frame;
+        }
+    }
+
+    /// **`Build::process@0061edf0:332`..`343`, the government hero's
+    /// respawn** (item 3786, `docs/GOLDEN.md` §149.11), between the
+    /// Kremlin's spy and the Persian caravan: when the owner's
+    /// `gov_hero_frame` is `frame + 1`, a Senate (`0x1b6`) trains
+    /// `LeaderData::get_gov_hero`'s type with no queue and no population
+    /// test. run1413's who=1 loses its Despot `1/28` on 1463, and its
+    /// Senate `1/2007` trains The Monarch `1/15` on 1912 — three
+    /// `Guy::init_real` — with `gov_hero_frame` 1912 at the closing block
+    /// (`Unit::init`'s own stamp, [`Sim::init_unit`]).
+    ///
+    /// SEAM: the arm after it, a city centre (`flags & 0x20`) of a leader
+    /// with no Senate (`+0x558e` plus `get_buildings(SENATE)` under 1)
+    /// training the hero itself (parked 3786a).
+    pub(crate) fn gov_hero_respawn(&mut self, b: usize, frame: i64) {
+        let who = self.buildings[b].owner as usize;
+        if who >= self.tech.len() || self.tech[who].gov_hero_frame != frame + 1 {
+            return;
+        }
+        if !self.building_is(b, crate::build::Ident::Senate) {
+            return;
+        }
+        let Some(hero) = self.tech_tree.get_gov_hero(&self.setup, &self.tech[who]) else {
+            return;
+        };
+        let Some(rec) = self.unit_record(hero) else {
+            return;
+        };
+        self.build_train(b, rec);
+    }
+
     /// `Unit::close@0060ee50:80`..: a tagged spy that dies, its owner
     /// holding a standing Kremlin (`LeaderData::has_wonder`, an activated
     /// building of the type), makes the next one due (`docs/AI.md` §188).

@@ -173,6 +173,10 @@ pub struct Tuning {
     /// (`Build::process@0061edf0:306`); the file's `30 (0 = disable; ...)`
     /// loads as 30.
     pub kremlin_spy: i32,
+    /// `GOV_HERO_RESPAWN`: a dead government hero's respawn delay, in
+    /// fifteen-frame steps (`Unit::close@0060ee50:105`); the file's `30
+    /// seconds` loads as 30.
+    pub gov_hero_respawn: i32,
     /// Base of a general's aura radius, in tiles.
     pub general_radius: i32,
     /// `GENERAL_RALLY_ARMOR`: the armour `UnitData::armor@00610160` adds,
@@ -1382,6 +1386,7 @@ impl Tuning {
         terra_cotta_free: 30,
         terra_cotta_delay: 7,
         kremlin_spy: 30,
+        gov_hero_respawn: 30,
         general_radius: 6,
         general_rally_armor: 2,
         parmenio_radius_adjust: 384,
@@ -1889,6 +1894,7 @@ impl Tuning {
             ("TERRA_COTTA_FREE", Slot::Value(T.terra_cotta_free)),
             ("TERRA_COTTA_DELAY", Slot::Value(T.terra_cotta_delay)),
             ("KREMLIN_SPY", Slot::Value(T.kremlin_spy)),
+            ("GOV_HERO_RESPAWN", Slot::Value(T.gov_hero_respawn)),
             ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
             ("GENERAL_RALLY_ARMOR", Slot::Value(T.general_rally_armor)),
             (
