@@ -12566,13 +12566,10 @@ run1444b's first block 4979, who=1's `bucket[0:food]` reads 11012 against 11014,
 no leader record past the start, so the frame they part on is not on disk; a `LEADERS=9` window earlier in the
 game names it. No draw parts and the closing state compares clean, so it names no score.
 
-## Parked by the next landing, slot WM — reserved
+## Parked by item 3772, 2026-10-29 — the Turkish Information pair, first try 2551 of 5036
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting, the Attack Sub `1/78`'s exit from dock `1/2020` on 2550 onto the idle
+Advanced Battleship `1/51`'s square (`docs/AI.md` §378), is the pair's word 2551 and books. It does not park.
 
 ## Parked by the next landing, slot WN — reserved
 
