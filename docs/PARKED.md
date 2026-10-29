@@ -12126,13 +12126,33 @@ Its chain runs through 3669a's American aircraft discount. 3669a named no score;
   all stems. Great Sahara has no sea, so a ship can reach none of the boarding rows. Which predicate keeps
   `think_supply` and `think_hero` from a staged wagon and hero is a reading for a chapter that stages them.
 
-## Parked by the next landing, slot VI — reserved
+## Parked by item 3734, 2026-10-28 — map generation's port chain
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The port chain `docs/MAPGEN.md` §15 names, in order. Each step is falsified at its own checkpoint by §3: the
+seed delta, then an Adler-32 over the port's packed cells against the trace's `World` part 5 (part 2 for the
+starts, part 6 for the tiles). Seven distinct generator runs are traced (§2), and fourteen more styles have
+one start dump each.
+
+- **3734a. The land/sea mask against every grid** (§5, checkpoint `map.cpp` 7807). Great Sahara's 4 draws
+  and its all-land mask come first, because they are closed by the reading. Then Great Lakes' lakes
+  (5,568 draws) and East Indies' islands (49,611 and 55,533). The packer and the Adler-32 come first of all:
+  a `rondata` reader of the sixteen `World` lines beside `gamelog::Checksum`'s seed. That reader is also
+  the pinned test of §3's identity (337 of 337, a probe today).
+- **3734b. The zero-draw passes** (§6, 7854): `Regions::find_all`'s labels, `fix_diag_land`,
+  `make_coastlines`, `fill_fertile`. The region labels already have a consumer (`docs/AI.md` §13).
+- **3734c. `TerrainGroups::place_all`, `nubify_forest`, `change_*_base`, `fix_transitions`** (§7,
+  7859..7870; 1,016 + 3 + 1,824 draws on GL). The player count enters here, which is the Great Sahara
+  2p/3p split.
+- **3734d. Resources** (§8, 7927). These create `Goods`, `Items` and herds, so they are checked by the
+  `Goods`/`Items` lines as well as parts 5 and 6.
+- **3734e. Values** (§9, 7945). One draw per non-water cell, column-major; exact on Great Sahara today.
+- **3734f. `Terrain::init` without heights**, then **3734g. the heights in `sim::single`**, with half-land at
+  −30.0f and the cliff threshold pinned (§10, §11; `Terrain.cpp` 720..894). The DUMP_ALL height grid is
+  the value oracle beside the checksum.
+- **3734h. Rivers** (5076; 173 draws on GL alone).
+- **3734i. The `acos` in `Cliffs::verify_defensive_position@008a8680`** (§11) is the one transcendental no
+  decision covers. It is unreached on every corpus map. It names a DECISIONS entry for the day a cliff
+  tileset is in scope, and no score today.
 
 ## Parked by item 3735, 2026-10-27 — the French Medieval pair closes: a turn animation loops
 
