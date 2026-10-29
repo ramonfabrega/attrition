@@ -3400,7 +3400,11 @@ mod tests {
         sim.units[lead].ty = Some(wide);
         let _ = other;
         let west = Pos::new(1512, 5640);
-        assert_ne!(west.cell(), sim.units[lead].pos.cell(), "the spot is a cell west");
+        assert_ne!(
+            west.cell(),
+            sim.units[lead].pos.cell(),
+            "the spot is a cell west"
+        );
         assert!(
             !sim.find_unit_with_radius(0, west, None),
             "ring 0 is the spot's own cell: the leader one cell east is not asked"
