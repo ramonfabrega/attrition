@@ -3640,7 +3640,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::maya_information_pair::maya_information_stride_window(),
         || super::maya_information_pair::maya_information_closing_window(),
         || super::gunpowder_melee::gunpowder_melee_closing_window(),
-        || super::classical_melee::classical_melee_word_window(),
+        || super::classical_melee::classical_melee_closing_window(),
         || super::russian_information_pair::russian_information_stride_window(),
         || super::russian_information_pair::russian_information_frame_6153_window(),
         || super::russian_information_pair::russian_information_gap_5795_window(),
