@@ -2284,6 +2284,9 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // where the idle human fields three, holds the three `AttachPos` rows,
     // `RData +0x88` 1.0, and `fit_bay.py` fits each sweep at all 361
     // headings (46, 223 and 428 lattice points; the centroid is kept).
+    // Without them `0/19`'s stone of 713 at the Greek Catapult `1/26` left
+    // the figure's square, and the Catapult's strike of 718 did not come:
+    // the second melee's word stood at 718 rather than 784.
     (
         39,
         crate::anim::ATTACK1,

@@ -119,13 +119,16 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // Unit::do_move+0x11cf` (`docs/GOLDEN.md` §150).
     //
     // **718 → 784 (sequence) and 786 (count), item 3785** (§150.1): the
-    // human's Kushite Archers (piece 124) loose from `launch::BAYS`' rows
-    // and the Camel Archer (piece 141) from `pivot::RELEASES`', off
-    // run1457's packet, so `0/14`'s round of 673 flies 14 frames, strikes
-    // the Greek Phalanx `1/19` on 687 as theirs, and block 701 agrees but
-    // for the standing group holds. On 784 ours spends 47 draws against 47,
-    // parting at index 30: ours `Guy::set_anim+0x97a < Unit::move_step
-    // +0x823` where theirs spends `Guy::set_anim+0xf2f < Guy::move+0x166`.
+    // human's Royal Balamob Slingers (piece 39) throw from `launch::BAYS`'
+    // rows off run1457's packet, so `0/19`'s stone of 713 leaves (16772,
+    // 15529) at 699 and the Greek Catapult `1/26`'s strike of 718 — theirs'
+    // second `Unit::fight+0x9b0` — comes in ours too. Pieces 124 (the
+    // Kushite Archers' bays) and 141 (the Camel Archer's pivot rows), from
+    // the same packet, close block 701's `1/19` blow and `0/17` round and
+    // leave the draws as they were. On 784 ours spends 47 draws against 47,
+    // parting at index 30: ours the Barbarians `0/21`'s `Guy::set_anim
+    // +0x97a < Unit::move_step+0x823` where theirs spends `0/25`'s
+    // `Guy::set_anim+0xf2f < Guy::move+0x166`.
     count: 786,
     sequence: 784,
 };
