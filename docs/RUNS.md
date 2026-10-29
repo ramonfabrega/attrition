@@ -33877,3 +33877,34 @@ no record before 1700 prints a leader. It is run1461's staging with `--log-windo
 timber, +25 metal) after the Bombard `2/23`'s death on 863, which is the Inca refund. Next, +100 wealth on 1464 after
 who=1's Despot `1/28` dies on 1463, which is `GENERAL_PLUNDER`. `gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund`
 compares both windows.
+## run1459 — the second melee: a packet at logger frame 780 and the window 770..801 (2026-10-29, item 3787, `att-3787`)
+
+`docs/GOLDEN.md` §150.2. **What the disk could not answer**: run1450 strides 701 and 801 and run1457's window ends at
+720, so what theirs' Barbarians `0/21` did between 720 and 801, and whether it took the step ours refused on 784, was
+not on disk; no packet on file holds the occupancy mask past 700. run1457's line with `--end-frame 802 --log-window
+770 801` and `--tracer-def RON_STATE_FRAME=780`.
+- Pool lane 1, seed 12345. Launched 08:03:31, exited 08:03:49 (18.0 s launch to exit). `success`: 803 frames,
+  `page_faults` 0, `relaunches: []`. Not filed: the packet and the window's gamelog stay in the run's directory.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1459/map-7/frame-snapshot.bin`, 841,817,308 bytes,
+SHA-256 `fd1994398a5932e564cdf9a208c0f268aec65d2039b8958e5e0ddb8fedbce8d0`.
+
+**What it holds**: theirs' `0/21` takes the step to (16565, 15085) on 785 and collides first on 788; the mask
+(`WData +0x18` `CollBlock`, bits at `+0xc`) has holes in `0/22`'s disc (rows 314–315, x 342–344) and `0/24`'s (row
+311, x 343–345) at 780, one radius-2 disc around (343, 313).
+
+## run1460 — the second melee: a packet at logger frame 760 and the window 720..780, deaths printed (2026-10-29, item 3787, `att-3787`)
+
+`docs/GOLDEN.md` §150.2. **What the disk could not answer**: run1459 says the holes are there at 780, not when they
+were punched or by whom. run1459's line with `--end-frame 781 --log-window 720 780`, `DEATHS=1` added to `end:`, and
+`--tracer-def RON_STATE_FRAME=760`. `df -g ~` read 139 GiB free before it.
+- Pool lane 1, seed 12345. Launched 08:12:37, exited 08:12:57 (20.0 s launch to exit). `success`: 782 frames,
+  `page_faults` 0, `relaunches: []`. Not filed.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1460/map-7/frame-snapshot.bin`, 826,019,092 bytes,
+SHA-256 `6384b78d57fe723d264355365f66aaa6e76d5b2bef7b1a9297d96b6aa6b8f8d6`.
+
+**What it holds**: the holes at 760 already, with every unit position ours prints agreeing on 720–779; the Catapult
+`1/26` deployed from 719, its crew guy 2 at (16509, 15030), cell (343, 313) — the disc's centre — dead on 747.

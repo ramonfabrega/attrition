@@ -3794,6 +3794,23 @@ impl Sim {
         if self.crashes(i) {
             return;
         }
+        // **Every figure's own disc is cleared, the crew's too** (item
+        // 3787, `docs/GOLDEN.md` §150.2). `Unit::close`'s two loops — the
+        // squad's `0 .. guy_mark` and the crew's `squad_size .. guy_num` —
+        // call `Objects::kill_guy@00659410` on each figure, and its last
+        // arm clears `radius[coll_size]` around **that figure's** cell
+        // unless the type's vslot `+0x120` (`blocks_while_dead`) answers.
+        // `remove_from_world` below takes guy 0's again; a crew figure
+        // standing a cell off its engine punches its own disc out of any
+        // neighbour's block, and nothing puts it back but the neighbour's
+        // sixty-fourth-frame repaint.
+        if !self.units[i].ty.is_some_and(|t| {
+            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+        }) {
+            for k in 0..self.units[i].guys.len() {
+                self.coll_kill_guy(i, k);
+            }
+        }
         let figures = self.death_figures(i, cur_anim);
         let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
