@@ -65,7 +65,10 @@ pub fn relative_value(a: &Facts, b: &Facts) -> i32 {
     // Cavalry against what it rides down.
     if has(m, mask::HEAVY_CAV)
         && a.melee
-        && has(n, mask::MUSKET_INF | mask::FOOT_ARCHER | mask::LIGHT_INF | mask::WAR_MACHINE)
+        && has(
+            n,
+            mask::MUSKET_INF | mask::FOOT_ARCHER | mask::LIGHT_INF | mask::WAR_MACHINE,
+        )
     {
         w = 0x180;
     }
@@ -120,8 +123,7 @@ pub fn relative_value(a: &Facts, b: &Facts) -> i32 {
     if a_melee_mask && has(n, mask::ARMORED) && !has(m, mask::ARCHERY | mask::GUN) {
         w >>= 3;
     }
-    if m & (mask::MELEE | mask::LIGHT_INF | mask::ARCHERY) == mask::ARCHERY
-        && has(n, mask::ARMORED)
+    if m & (mask::MELEE | mask::LIGHT_INF | mask::ARCHERY) == mask::ARCHERY && has(n, mask::ARMORED)
     {
         w /= 2;
     }
@@ -207,13 +209,21 @@ mod tests {
         };
         assert_eq!(relative_value(&horse, &barbarians), 0);
         assert_eq!(relative_value(&barbarians, &horse), 320, "×3/2 ×3/2");
-        assert_eq!(relative_value(&horse, &slingers), 128, "light cavalry rides down light foot");
+        assert_eq!(
+            relative_value(&horse, &slingers),
+            128,
+            "light cavalry rides down light foot"
+        );
         assert_eq!(relative_value(&slingers, &horse), 0);
         let sum: i32 = [barbarians, bushi, slingers]
             .iter()
             .map(|k| relative_value(&horse, k) - relative_value(k, &horse))
             .sum();
-        assert_eq!(sum / 3, -170, "theirs' unit_prod_value, inverted from the offer");
+        assert_eq!(
+            sum / 3,
+            -170,
+            "theirs' unit_prod_value, inverted from the offer"
+        );
     }
 
     #[test]
