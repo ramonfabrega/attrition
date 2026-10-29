@@ -11118,6 +11118,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3750,
         Some(crate::diff::aztec_modern_pair::WIDENING_AZTEC_MODERN_FRAME_3313),
     ),
+    // **The Chinese at a held Modern age** (item 3751): East Indies at
+    // Hard — whole on its first try, 4130 of 4130, the closing state
+    // compared; widened on run1431b over 3875..4131 (the closing block),
+    // the rounds compared.
+    (
+        "CHINESE_MODERN_PAIR_WORD",
+        crate::diff::chinese_modern_pair::CHINESE_MODERN_PAIR_WORD,
+        Some("chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole"),
+        3751,
+        Some(crate::diff::chinese_modern_pair::WIDENING_CHINESE_MODERN_CLOSING),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13690,6 +13701,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_389,
         endpoint: Some("aztec_modern_pair_run1429_s_closing_state"),
         window: Some("aztec_modern_frame_3313_window"),
+    },
+    // The Chinese at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), East Indies at Hard (item 3751): whole on its
+    // first try, 4130 of 4130; the closing window run1431b over
+    // 3875..4131, the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesChineseModern",
+        named: "East Indies (Chinese, Modern)",
+        word: crate::diff::chinese_modern_pair::CHINESE_MODERN_PAIR_WORD,
+        length: 4_130,
+        endpoint: Some("chinese_modern_pair_run1431_s_closing_state"),
+        window: Some("chinese_modern_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

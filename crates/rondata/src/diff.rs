@@ -80,6 +80,8 @@ mod chinese_gunpowder_pair;
 mod chinese_industrial_pair;
 #[cfg(test)]
 mod chinese_medieval_pair;
+#[cfg(test)]
+mod chinese_modern_pair;
 mod city;
 mod corrections;
 #[cfg(test)]
