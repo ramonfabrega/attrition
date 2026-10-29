@@ -8429,7 +8429,7 @@ reading, not a measurement.
   Whether the Spanish Scout opens a box before 22700 is a grep of run896b's trace for `explore_goody`'s draws; no
   word waits on it.
 - (3318e) **`research_rares`' SEAMs** (`crates/sim/src/lib.rs`): RESEARCH_FASTER, Angkor, Conquer the World, the
-  handicap, `tech_cost`, the catch-up and the held-elsewhere arms are not modelled; and `fix_tech_flags` clearing
+  handicap, `tech_cost`, the catch-up arms are not modelled (~~the held-elsewhere arm~~: built by item 3783, `docs/GOLDEN.md` §149.9); and `fix_tech_flags` clearing
   `leader_flags 0x1000` on `lose_tech` is never reached by any capture. Each returns when a word's frame reaches it.
 - (3318f) **3318's "for the Loop"** (the journal's line, filed by the lane): `zsh tools/check.sh test …` exited 0 on a
   `rondata` compile error after the merge, so the budget wrapper's exit is not cargo's; a worker reads the `test
@@ -12636,13 +12636,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WV — reserved
+## Parked by item 3783, 2026-10-29 — the second Despot is researched at the held-elsewhere rate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3783a. The age and epoch catch-up terms** (`docs/GOLDEN.md` §149.9): `train_time@006508c0`'s `LAB_00651454`
+  (an age, against every leader's `ages + ages_queued`) and `LAB_00651510` (an epoch, against `ages + epochs`),
+  `t × (2·num_nations − k + 2) / (2·num_nations + 2)` with `k` counting a leader ahead once as a teammate and twice
+  otherwise. They are the held-elsewhere term's siblings and stay `research_rares`' SEAM. 3783's predicate
+  mutation (the term widened to ages and epochs) failed none of the 114 `first_parting`s: no floor on file
+  researches an age or an epoch another seat leads in where the term would land. It names no score.
+- **3783b. `num_players` read as the seat count** (§149.9): `Sim::held_elsewhere` takes `players.len()` for
+  `Game +0x69c`, which run1412's start dump prints as 3 with `num_nations` 3. Whether a defeated seat leaves
+  `num_players` is not read, and `count_discovered` counts a defeated seat's bit (`leader_flags & 1`). No capture
+  holds a defeat during a plain-tech job.
+- **3783c. Ours' draw sites name no unit for `Guy::init_real`** (§149.9): `RON_DEBUG_SITES` prints `-` for the
+  three re-type draws, so 3781's booking put theirs' 958 draws on `2/28`, the unit ours re-made on 957, where
+  `report.py draws` names `Build::finished < Unit::set_type` and run1451's block 959 names `1/28`. Carrying the
+  unit on `reinit_guy`'s mark would have named it. A tool row; no score.
 
 ## Parked by the next landing, slot WW — reserved
 

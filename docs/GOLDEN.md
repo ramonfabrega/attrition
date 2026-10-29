@@ -14596,6 +14596,90 @@ home: the Arquebusiers `2/14`..`2/16`, the Macemen `2/29`..`2/31`, `2/22` and `2
 **Coverage.** The rows are diff-backed by run1451's packet (the sweeps) and its window (four rounds). The death
 frame and the value table are diff-backed by run1413's block 1001.
 
+## 149.9 The second Despot is researched at the held-elsewhere rate — 958 → 1001 (item 3783)
+
+**The booking.** Frame 958: ours 14 draws against theirs' 18, parting at index 5. Theirs spends three
+`Guy::init_real+0x52` at 5–7 and a `Guy::set_anim+0x97a < Guy::inc_time+0x271` at 10. 3781 put the three on who=2's
+government hero `2/28` turning Monarch (TI 354) → Despot (TI 352). No mechanism was booked.
+
+**The direction, off the disk** (no capture taken; run 1455 unused):
+- **Whose figures.** `report.py draws 957-958` on run1413's trace names the chain:
+  `Guy::init_real+0x52 < Unit::set_type+0x40c/+0x4a1 < Build::finished+0x47a`, three on **957** and three on
+  **958**, each frame after a `SoundGlobal::play < Leader::gain_tech`. Ours spends the 957 three
+  (`RON_DEBUG_SITES` prints them with no unit) and not the 958 three.
+- **The 957 re-type is `2/28`'s on both sides.** run1451's block 958 prints it as The Despot with its crew at
+  0/0, `gpiece` 13678 and 26350, and ours' `unit_set_type` (a probe, committed and reverted whole) is 2/28's,
+  through `senate_gov_hero`'s re-type arm, on 957. Its block 959 agrees with ours figure for figure.
+- **The 958 re-type is who=1's Monarch `1/28`** (TI 354 → 352): run1451's block 959 has its crew at 0/0, `gpiece`
+  12974 and 25646. Ours re-types `1/28` on **982**.
+- **The research.** `RON_DEBUG_BUILDS` puts Despotism (tech 622, 40,000 at 100 a frame) in who=2's Senate `2/2007`
+  on 557 and in who=1's `1/2007` on 582. `RON_DEBUG_MAKE` has every research buy of the two 25 frames apart
+  (157/182, 357/382, 552/577, 557/582): `cadence::phase`'s `who × 25`, which the agreeing draw stream holds. So
+  who=1 is at 37,700 on 958 in both, and theirs finishes there.
+
+**The term** (`ObjectData::train_time@006508c0`, `LAB_006513c0`, the decompile's lines 414–419). A tech type that
+is neither an age (`LAB_00651454`) nor an epoch (`LAB_00651510`) — a final, a
+building tech, a government — asks its vslot `+0x74`, `TypeData::count_discovered@00663f80`. That walks the eight
+leader slots and counts each in use (`leader_flags & 1`) whose tech bit holds the type. With `n` of them:
+
+```text
+t = t × (num_players − n + 1)        // LAB_006513c0
+t = t / (num_players + 1)            // LAB_006513e8, the Greeks' divide, reached past the Greeks' test
+```
+
+`num_players` is `Game +0x69c`: run1412's start dump prints 3 (`num_nations` 3). On 958 who=2 holds Despotism,
+so who=1's target is `3 × 40000 / 4` = 30,000, and 37,700 finishes. The block is read live, as the Relics
+term is (§264 of `docs/AI.md`). run1413b's coverage enters `count_discovered` first on **557**, the frame who=2's
+job starts, which is a job of the type the slot is asked for. The term stands ahead of `RESEARCH_FASTER`, Relics
+and the science speedup, and the Greeks' arm never meets it (that one is the age and epoch branches').
+
+**The build.** `Sim::held_elsewhere` (`crates/sim/src/lib.rs`), first in `tech_time`'s tail:
+`Adjust::Ratio(players − n + 1, players + 1)` on a `tech::Kind::is_plain_tech` type, `n` the seats whose `tech` bit
+holds it, `players` the seat count.
+
+**The score: 958 → 1001**, the count and the sequence together. **Every other `first_parting` holds** (114).
+
+**The value diff.** On 958 `1/28` re-types in both. run1451's block 959 beside ours, before and after:
+
+| record | field | before | after | theirs |
+|---|---|---|---|---|
+| `1/28` | `type` | 354 | 352 | 352 |
+| `1/28` guy 0 | `cur_anim`, `cur_time/end_time`, `gpiece` | 0, 1/30, 304 | 1, 0/60, 302 | 1, 0/60, 302 |
+| `1/28` guy 1 | `x, y`, `cur_time/end_time`, `gpiece` | (17838, 13260), 1/30, 12976 | (17856, 13275), 0/0, 12974 | (17856, 13275), 0/0, 12974 |
+| `1/28` guy 2 | `x, y`, `cur_time/end_time`, `gpiece` | (18026, 13410), 1/30, 25648 | (18008, 13395), 0/0, 25646 | (18008, 13395), 0/0, 25646 |
+
+The widening runs on window 901..1251, the same four blocks: **660** keys (685 before), rounds read (36, 30), 82
+parting. Block 901 carries the standing families alone. **Block 1001 reads 16 rows against 176**: who=2's Dragoon
+`2/20` (TI 189), `pos` (14856, 16920) against (14808, 16968), `idle` 2 against 0, `cavarch_who` 0 against −1 and
+`cavarch_o` −1 against −2, its heading; `2/19`'s `attack[1].def_x`/`def_y` (16200, 16104) against (16152, 16536); and
+two `build:extra` rows.
+
+**The next word, frame 1001.** Ours spends 230 draws against 242, parting at index 4. Indices 0–3 agree; theirs
+spends a third `Guy::set_anim+0x97a < Unit::do_idle+0x7d` at 4, where ours goes on to
+`PathFinder::calc_road_cost+0x46`. No mechanism is named.
+
+**Tests.**
+- New: `gunpowder_melee::gunpowder_melee_s_second_despot_is_researched_at_the_held_elsewhere_rate` (`2/28` The
+  Despot and `1/28` The Monarch into 958, `1/28` The Despot after it with run1451's block-959 figures), and
+  `cities_tests::a_plain_tech_another_seat_holds_is_researched_faster` (one holder, two holders, an age past it).
+- Re-pinned: `GUNPOWDER_MELEE` (1001, 1001); the widening at 901..1251.
+
+**Mutations** (`tools/mutate.py --edit`):
+- The term dropped from `tech_time`'s tail: on `gunpowder_melee::` **held**, exit 101 (the parting, the widening
+  and the new test fail).
+- The predicate widened to every tech (`is_tech`): on the sim test **held**, exit 101. On `first_parting`, 114
+  green, exit 0: no floor researches an age or an epoch that another seat holds (parked 3783a).
+
+**What is not established.**
+- The age and epoch catch-up terms beside it (`LAB_00651454`, `LAB_00651510`) are not carried (3783a).
+- `num_players` is read as the seat count. A defeated seat is not read (3783b).
+- The vslot `+0x74` is named by the export's vtable for `TechTypeData`. No other type's slot was read: the call
+  site indexes `techtypes`, so only a tech reaches it.
+
+**Coverage.** The re-types, their frames and the value table are diff-backed by run1413's trace and run1451's
+blocks 958 and 959; the score by run1413's stride. The term's arithmetic rests on the decompile and the one
+frame it moves (30,000 against 37,700 leaves the divisor unpinned between `num_players` 2 and 3).
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
