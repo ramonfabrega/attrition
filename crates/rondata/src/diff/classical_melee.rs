@@ -148,8 +148,19 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // ours spends 15 draws against 1002, parting at index 5: theirs'
     // `PathFinder::calc_road_cost+0x46` where ours spends `Guy::set_anim
     // +0x97a < Guy::inc_time+0x271`.
-    count: 1284,
-    sequence: 1284,
+    //
+    // **1284 → 1382, item 3790** (§150.4): an epoch's research takes
+    // `train_time`'s catch-up term — who=1 holds eight epochs from 1004
+    // against who=2's four, so who=2's Military epoch finishes on 1018 and
+    // its Civic epoch on 1226, not 1087 and 1362 (`Sim::epoch_catch_up`).
+    // The Civic sweep pulls the Stable `2/2012`, placed on 757 one tile
+    // past Thebes' mask, into the city, and its activation on 1279 flags
+    // the city's roads: theirs' 986-draw `calc_road_cost` replan on its
+    // slot 1284. On 1382 ours spends 20 draws against 21, parting at
+    // index 2: ours `Leader::produce_building+0x1805` where theirs spends
+    // `Leader::make_stuff+0x63d`.
+    count: 1382,
+    sequence: 1382,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -425,8 +436,9 @@ fn classical_melee_s_slingers_lead_the_running_light_horse() {
 }
 
 /// The word's window on run1450's stride: the block before the word to
-/// 250 frames past it (item 3789 moved it from 601..968 with the word).
-pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1201, 1534);
+/// 250 frames past it (item 3789 moved it from 601..968 with the word,
+/// item 3790 from 1201..1534).
+pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1301, 1632);
 
 /// The word's window, widened whole on run1450's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -479,7 +491,7 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 544, "run1450's word window");
-    pin_eq!(w.rounds_read, (2, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 2, "the rounds that part");
+    pin_eq!(w.firsts.len(), 686, "run1450's word window");
+    pin_eq!(w.rounds_read, (5, 2), "the rounds read");
+    pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }
