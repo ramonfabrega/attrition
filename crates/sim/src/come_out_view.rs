@@ -506,41 +506,6 @@ impl ComeOutView for SimComeOut<'_> {
     fn find(&mut self, f: Find) -> Found {
         let at = Pos::new(f.x, f.y);
         let angle = Angle(f.angle);
-        // PROBE 3780: RON_PROBE_COMEOUT prints the ring and the cast.
-        let probe = std::env::var_os("RON_PROBE_COMEOUT").is_some();
-        if probe {
-            let me = &self.sim.units[self.unit];
-            eprintln!(
-                "PROBE come_out {}/{} ty {:?} find {:?} coll_size {} block {} big {}",
-                me.owner,
-                me.index,
-                me.ty,
-                f,
-                self.sim.coll_size(self.unit),
-                self.sim.profile(Obj::Unit(self.unit)).block_radius,
-                self.sim.profile(Obj::Unit(self.unit)).big_radius
-            );
-            for (o, u) in self.sim.units.iter().enumerate() {
-                if (u.pos.x - at.x).abs() < 2500 && (u.pos.y - at.y).abs() < 2500 && o != self.unit {
-                    eprintln!(
-                        "PROBE   near {}/{} ty {:?} at ({},{}) orders_at ({},{}) alive {} on_map {} coll {} idle {} down {:?}",
-                        u.owner,
-                        u.index,
-                        u.ty,
-                        u.pos.x,
-                        u.pos.y,
-                        u.orders_pos.x,
-                        u.orders_pos.y,
-                        u.alive(),
-                        u.on_map,
-                        self.sim.coll_size(o),
-                        self.sim.is_idle(o),
-                        u.down
-                    );
-                }
-            }
-            crate::orders::PROBE_SPOT.store(true, std::sync::atomic::Ordering::Relaxed);
-        }
         // **`FILTER_ALL`'s general test is a seam** (`docs/CITIES.md` §11,
         // `docs/ORDERS.md` §10): both of its sweeps run collision-off, and
         // `FILTER_NOT_ME`'s second sweep is the collision-off flag.
@@ -551,10 +516,6 @@ impl ComeOutView for SimComeOut<'_> {
             self.sim
                 .find_nearby_spot(self.unit, at, f.min, f.max, 0, angle, None)
         };
-        crate::orders::PROBE_SPOT.store(false, std::sync::atomic::Ordering::Relaxed);
-        if probe {
-            eprintln!("PROBE   answer {spot:?}");
-        }
         if f.gather {
             // Kept for the routing, which is handed the gather block's spot.
             self.gather = spot.map(|s| (s, angle));

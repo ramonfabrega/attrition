@@ -1705,9 +1705,6 @@ pub const SITE_FOLLOW_STAND: &str = "Guy::set_anim+0x97a < Unit::do_follow+0x32a
 /// answers 3 on the same pair (`docs/ORDERS.md` §10).
 pub const WARSHIP_REFUSES: u16 = tile::BAD_PATH | 0x400;
 
-/// PROBE 3780: set by `SimComeOut::find` under `RON_PROBE_COMEOUT`.
-pub static PROBE_SPOT: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-
 const BEARINGS: [i32; 31] = [
     0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 9, -9, 10, -10, 11, -11, 12, -12,
     13, -13, 14, -14, 15, -15,
@@ -1924,17 +1921,6 @@ pub fn spot_ring(
                 cand.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
                 cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
             );
-            if PROBE_SPOT.load(std::sync::atomic::Ordering::Relaxed) {
-                let m = view.tile_mask(c.tile());
-                let (fc, fo) = match who {
-                    Seeker::Unit(u) => (view.find_collision(u, c), view.find_ordered_collision(u, c)),
-                    _ => (false, false),
-                };
-                eprintln!(
-                    "PROBE   r {r} k {k} cand ({},{}) mask {m:#06x} warship {warship} coll {fc} ordered {fo}",
-                    c.x, c.y
-                );
-            }
             if !view.tile_in_bounds(c.tile()) {
                 continue;
             }
