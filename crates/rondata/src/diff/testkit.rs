@@ -13859,6 +13859,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // Egyptians granted 100,000 a good and twelve of the age's types a
     // side from 610 (`tools/gamelog/golden/melee-classical.cmd`). First try
     // 718 of 2600; run1450's word window over 601..968, the rounds compared.
+    // Moved to 784 (3785, the Kushite Archers' bays and the Camel Archer's
+    // pivot rows), the same window.
     AiWord {
         line: "Melee",
         map: "GreatSaharaClassicalMelee",

@@ -117,8 +117,17 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // draws against 14: index 0 agrees, and at index 1 theirs spends
     // `Unit::fight+0x9b0` where ours spends `Guy::set_anim+0x97a <
     // Unit::do_move+0x11cf` (`docs/GOLDEN.md` §150).
-    count: 718,
-    sequence: 718,
+    //
+    // **718 → 784 (sequence) and 786 (count), item 3785** (§150.1): the
+    // human's Kushite Archers (piece 124) loose from `launch::BAYS`' rows
+    // and the Camel Archer (piece 141) from `pivot::RELEASES`', off
+    // run1457's packet, so `0/14`'s round of 673 flies 14 frames, strikes
+    // the Greek Phalanx `1/19` on 687 as theirs, and block 701 agrees but
+    // for the standing group holds. On 784 ours spends 47 draws against 47,
+    // parting at index 30: ours `Guy::set_anim+0x97a < Unit::move_step
+    // +0x823` where theirs spends `Guy::set_anim+0xf2f < Guy::move+0x166`.
+    count: 786,
+    sequence: 784,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -147,6 +156,79 @@ fn classical_melee_first_parting() {
     pin_eq!(w.last, m.length, "the game's last frame");
     pin_eq!(w.count, m.count, "the draw count's first parting");
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
+}
+
+/// **The Kushite Archers loose from the bow** (item 3785, `docs/GOLDEN.md`
+/// §150.1). The human's Kushite Archers `0/14` (TI 174, piece 124) fire on
+/// the Greek Phalanx `1/19` on 673 at `CHAR_ATTACK1`'s frame 15: the round
+/// leaves piece 124's bay, (15167, 15587) at 690 — run1457's window prints
+/// it there on 675 — and flies 14 frames, so `1/19` takes its first blow on
+/// 687, `damage_frame` 687 and 16 + 10/16, as run1457's frame 688 prints.
+/// From its own square (15096, 15672) at 574 the round flew 15 and the
+/// blow landed on 688.
+#[test]
+fn classical_melee_s_kushite_archers_loose_from_the_bow() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let unit = |sim: &sim::Sim, who: u8, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index as usize == o)
+    };
+    while built.sim.frame < 673 {
+        built.tick();
+    }
+    let bow = sim::combat::Obj::Unit(unit(&built.sim, 0, 14).expect("0/14 on 673"));
+    let p = unit(&built.sim, 1, 19).expect("1/19 on 673");
+    let find = |sim: &sim::Sim| {
+        sim.projectiles
+            .iter()
+            .find(|r| r.shooter == bow && r.target == Some(sim::combat::Obj::Unit(p)))
+            .copied()
+    };
+    while find(&built.sim).is_none() && built.sim.frame < 675 {
+        built.tick();
+    }
+    let round = find(&built.sim).expect("0/14's round at 1/19 on 673");
+    assert_eq!(
+        ((round.launch.x, round.launch.y), round.sz, round.total_time),
+        ((15167, 15587), 690, 14),
+        "piece 124's bay, and fourteen frames"
+    );
+    while built.sim.frame <= 687 {
+        built.tick();
+    }
+    let phalanx = &built.sim.units[p];
+    assert_eq!(
+        (
+            phalanx.combat.damage_frame,
+            phalanx.health,
+            phalanx.damage_frac
+        ),
+        (687, 129, 10),
+        "1/19 struck on 687, as run1457's frame 688"
+    );
 }
 
 /// The word's window on run1450's stride: the block before the word to
@@ -204,7 +286,7 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 988, "run1450's word window");
-    pin_eq!(w.rounds_read, (14, 17), "the rounds read");
-    pin_eq!(w.rounds.len(), 22, "the rounds that part");
+    pin_eq!(w.firsts.len(), 513, "run1450's word window");
+    pin_eq!(w.rounds_read, (14, 13), "the rounds read");
+    pin_eq!(w.rounds.len(), 15, "the rounds that part");
 }
