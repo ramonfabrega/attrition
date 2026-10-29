@@ -191,8 +191,21 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // 122: index 40 is ours' `Army::find_target+0x7df`, who=2's army
     // `2/0` going status 17 → 18 on its own city `2/2000`, its muster
     // (7, 32) → (1, 36) — where ours' `2/23` walks by 801.
-    count: 760,
-    sequence: 760,
+    //
+    // Item 3763: **760 → 839** (sequence; count 840). Both armies release
+    // on 760 (`num_standard` 6 against `pop_cap / 8`); theirs takes
+    // `DEFENDING` (run1413b's coverage enters `Army::do_defending` there)
+    // because its region word carries `& 4`, the war loop's difficulty-0
+    // bit, and the loop runs only for a leader already met. This lobby is
+    // `REVEAL_MAP 1`, so `plan_strategy`'s step 6 meets on 750's census,
+    // inline — no trace enters `Leader::meet` — and ours skipped the step
+    // and never met (`Sim::census_meet`, §149.4). On 839 ours spends 17
+    // draws a side and parts at index 4 on the human's `0/15`
+    // (`Guy::set_anim+0xf2f < Guy::inc_time+0x271` against theirs'
+    // `+0x97a < +0x1ed`); theirs spends `Ammo::do_damage+0xc59`/`+0xc7e`
+    // at 7–8, which ours does not.
+    count: 840,
+    sequence: 839,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -222,12 +235,13 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733, moved by 3757, 3759 and 3762):
-/// run1413's stride blocks 701..1001 — the word's frame 760 writes no
+/// **The word's window** (item 3733, moved by 3757, 3759, 3762 and 3763):
+/// run1413's stride blocks 801..1001 — the word's frame 839 writes no
 /// block (the stride prints every hundred), so the window is the stride
 /// block before it through 250 frames past it. 3733's was 101..432, on
-/// 182; 3757's 601..934, on 684; 3759's 701..1009, on 759.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (701, 1010);
+/// 182; 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's
+/// 701..1010, on 760.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (801, 1089);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -270,7 +284,7 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
@@ -311,9 +325,84 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // nothing a stride block prints, and 801's `2/23` rows stand as 3759
     // left them: the goal (1320, 28152) against (5736, 24792) is the muster
     // ours' army `2/0` moves on 760.
-    pin_eq!(w.firsts.len(), 758, "run1413's word window");
-    pin_eq!(w.rounds_read, (29, 30), "the rounds read");
-    pin_eq!(w.rounds.len(), 31, "the rounds that part");
+    //
+    // Item 3763, on the word moved to 839 (window 801..1089): **427** keys,
+    // rounds read (23, 26), 23 parting. **Block 801 carries the standing
+    // families alone** — `2/23`'s goal (1320, 28152) against (5736, 24792)
+    // is gone with the march: both armies hold their musters. On 901 the
+    // word's unit parts first — the human's `0/15` reads `mirror` 0 in ours
+    // against 1 — and the fight around it: `2/23` dies on 864 against 863
+    // (`death:cur_anim` 17 against 18), `0/14`'s `mirror` 1 against 0, and
+    // the two computers' squads' hits.
+    pin_eq!(w.firsts.len(), 427, "run1413's word window");
+    pin_eq!(w.rounds_read, (23, 26), "the rounds read");
+    pin_eq!(w.rounds.len(), 23, "the rounds that part");
+}
+
+/// **A `REVEAL_MAP` census meets the enemy it sees** (item 3763,
+/// `docs/GOLDEN.md` §149.4). `plan_strategy`'s step 6 runs under
+/// `reveal_map`: who=2's census on 750 sees the British squads, sets the
+/// met bit both ways, and step 15's war loop gives the region word the
+/// difficulty-0 `& 4`. On 760 army `2/0` releases (`num_standard` 6
+/// against `pop_cap / 8`) into `DEFENDING`, not `MARCHING`, and spends no
+/// `Army::find_target` — theirs' 760, draw for draw.
+#[test]
+fn gunpowder_melee_s_census_meets_under_reveal_map() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    built.sim.trace_phases = true;
+    assert_ne!(built.sim.lobby.reveal_map, 0, "the lobby is REVEAL_MAP 1");
+    while built.sim.frame < 750 {
+        built.tick();
+    }
+    assert!(
+        !built.sim.has_met(2, 1),
+        "who=2 has not met who=1 before 750"
+    );
+    built.tick();
+    assert!(
+        built.sim.has_met(2, 1) && built.sim.has_met(1, 2),
+        "750's census meets both ways"
+    );
+    const WORD: i64 = 760;
+    while built.sim.frame < WORD {
+        built.tick();
+    }
+    built.tick();
+    let (f, ours) = built.frame_sites.last().expect("760's draws");
+    assert_eq!(*f, WORD);
+    assert!(
+        !ours.iter().any(|l| l == sim::army::SITE_FIND_TARGET_SCORE),
+        "army 2/0 does not march on 760"
+    );
+    assert_eq!(*ours, tr.labels(WORD), "760's whole draw sequence");
+    let a = &built.sim.armies[2].list[0];
+    assert_eq!(
+        a.status & sim::army::status::MARCHING,
+        0,
+        "army 2/0 is released, not marching"
+    );
 }
 
 /// **The Bombard's ground swing waits on its crew's turn** (item 3762,

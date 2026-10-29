@@ -75,7 +75,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | --- | --- | --- |
 /// | `village_num` | 0 | `LeaderData::village_num` has no counterpart here. |
 /// | `GoodData::ever_seen` | unwritten | step 9 sets the leader's bit on every rare it counts; only `GoodData::is_seen` reads it, and nothing here asks a good whether it is seen. |
-/// | `is_seen` / step 6 | skipped whole | step 6 is the `ALLY_LOS`/`reveal_map` path, and no capture sets either; **the live path to the met bit is the fog** — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2), and [`Sim::has_met`] reads the bit it sets. |
+/// | step 6's `ALLY_LOS` arm | never held | the meeting runs under `reveal_map` alone ([`Sim::census_meet`], item 3763); the `has_preq(ALLY_LOS)` half of its gate is not read. Outside the gate the live path to the met bit is the fog — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2). |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
 /// | `unit_masks & 0x80000` | merchants only | a packed fisherman is idle (`idle_fishermen`, item 1666); every merchant still counts in `reg_unpack_merch`. |
@@ -321,6 +321,7 @@ impl Sim {
         census_zero_scalars(&mut self.ai[w].census);
         self.census_territory(who);
         self.census_ally_mask(who);
+        self.census_meet(who);
         self.census_clear_invaders(who);
         self.census_zero_regions(who);
         self.census_rares(who);
@@ -408,6 +409,47 @@ impl Sim {
         let cs = &mut self.ai[w].census;
         cs.filled_gather_slots = [0; RESOURCES];
         cs.ally_mask = mask;
+    }
+
+    /// **Step 6, the meeting** (`plan_strategy@006b9620:205`–`265`, item
+    /// 3763, `docs/GOLDEN.md` §149.4): under `has_preq(ALLY_LOS) ||
+    /// reveal_map != 0`, every other active leader (`leader_flags & 2`) not
+    /// yet met (`treaties[i] & 1 == 0`) has its units, then its buildings,
+    /// asked `is_seen(who, 0)` (vslot `+0x48`), and the first that answers
+    /// sets the met bit on both sides — inline, not through
+    /// `Leader::meet`, which is why no trace enters that function on this
+    /// path. The war loop of step 15 reads the bit: a lobby at
+    /// `REVEAL_MAP 1` meets its enemies on the census after their squads
+    /// come into sight, and a difficulty-0 computer's region word takes
+    /// `& 4`, which sends its released army to `DEFENDING` (`do_mustering`).
+    /// run1413b's coverage enters `Army::do_defending` on 760 and never
+    /// `Leader::meet`.
+    ///
+    /// SEAM: the `ALLY_LOS` preq (`0x2b0`) is not read; the arm runs under
+    /// `reveal_map` alone.
+    fn census_meet(&mut self, who: Player) {
+        if self.lobby.reveal_map == 0 {
+            return;
+        }
+        let w = who as usize;
+        for i in 0..self.players.len().min(8) {
+            if i == w || self.defeated[i] || self.has_met(who, i) {
+                continue;
+            }
+            let o = i as Player;
+            let seen = (0..self.units.len()).any(|u| {
+                self.units[u].owner == o
+                    && self.units[u].alive()
+                    && self.target_seen_by(who, Obj::Unit(u))
+            }) || (0..self.buildings.len()).any(|b| {
+                self.buildings[b].owner == o
+                    && self.buildings[b].alive
+                    && self.target_seen_by(who, Obj::Building(b))
+            });
+            if seen {
+                self.treaty_on(who, o, 1);
+            }
+        }
     }
 
     /// Step 7. `invaders[who]` is cleared on **every** active leader,
