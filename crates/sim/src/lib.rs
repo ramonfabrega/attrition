@@ -3958,8 +3958,7 @@ impl Sim {
     /// SEAM: the block's other steps — `has_preq(RESEARCH_FASTER)`'s three
     /// quarters, Angkor Wat's `ANGKOR_RESEARCH` (0% shipped), Conquer the
     /// World's cards, the handicap, the lobby's `tech_cost`, and the
-    /// head's catch-up terms — are not carried; the held-elsewhere term is
-    /// [`Sim::held_elsewhere`].
+    /// head's catch-up terms — are not carried.
     pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
         if self.has_rare(who, economy::RELICS) {
             vec![production::Adjust::Scale(
