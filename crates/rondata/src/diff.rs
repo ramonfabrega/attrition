@@ -87,6 +87,8 @@ mod chinese_modern_pair;
 mod city;
 mod corrections;
 #[cfg(test)]
+mod classical_melee;
+#[cfg(test)]
 mod coverage_pair;
 #[cfg(test)]
 mod dutch_medieval_pair;
