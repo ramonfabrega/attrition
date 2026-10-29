@@ -12621,13 +12621,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WT — reserved
+## Parked by item 3781, 2026-10-29 — the Arquebusiers loose from the gun
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3781a. `RON_DEBUG_UNIT` prints no wound** (`docs/GOLDEN.md` §149.8): the line carries position, orders,
+  stance and the figures' clocks, but not `health`, `damage_frac` or `combat.recharging`. A death a frame apart
+  asks first whether the blows agreed. 3781 answered that with a probe commit (`c91d8d8bb`, reverted whole as
+  `3b2b5b765`), whose four fields read `1/22` at damage 134+2/16 on both sides. The dump prints all three
+  (`damage`, `damage_frac`, `recharging`), so the probe's two edits could stay on the line. It names no score: a
+  tool row.
 
 ## Parked by the next landing, slot WU — reserved
 
