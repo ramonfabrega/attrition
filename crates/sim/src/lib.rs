@@ -3867,7 +3867,8 @@ impl Sim {
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-        let mut tail = self.greek_research(who, t);
+        let mut tail = self.held_elsewhere(t);
+        tail.extend(self.greek_research(who, t));
         tail.extend(self.research_rares(who));
         tail.extend(production::science_speedup(
             &self.tuning,
@@ -3875,6 +3876,41 @@ impl Sim {
             self.tech_tree.types[t].age,
         ));
         production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
+    }
+
+    /// **The held-elsewhere term** of `ObjectData::train_time@006508c0`'s
+    /// research block (`LAB_006513c0`, the decompile's lines 414–419): a
+    /// tech that is neither an age nor an epoch — a final, a building tech
+    /// or a government ([`tech::Kind::is_plain_tech`]) — asks its type's
+    /// vslot `+0x74`, `TypeData::count_discovered@00663f80`, how many leader
+    /// slots in use (`leader_flags & 1`, a defeated seat too) hold its bit,
+    /// and with `n` of them takes `t × (num_players − n + 1)` and divides by
+    /// `num_players + 1` at `LAB_006513e8`, the Greeks' divide, which the
+    /// term reaches past the Greeks' test: the two are never on one tech.
+    /// Like the rest of the block it is read live, so the frame another
+    /// leader gains the tech shortens a job already running.
+    ///
+    /// The first melee's Despotism (item 3783, `docs/GOLDEN.md` §149.9):
+    /// who=2's Senate finishes it on 957, and who=1's, at 37,700 of 40,000
+    /// on 958, is then at 30,000 of `num_players` 3 — `3 × 40000 / 4` — and
+    /// finishes on 958 as theirs does, re-making The Monarch `1/28` as The
+    /// Despot; run1413b's coverage enters `count_discovered` first on 557,
+    /// the frame who=2's job starts.
+    pub(crate) fn held_elsewhere(&self, t: tech::TypeId) -> Vec<production::Adjust> {
+        if !self.tech_tree.kind(t).is_plain_tech() {
+            return Vec::new();
+        }
+        let held = self
+            .tech
+            .iter()
+            .take(self.players.len().min(8))
+            .filter(|p| p.tech[t])
+            .count() as i32;
+        if held == 0 {
+            return Vec::new();
+        }
+        let players = self.players.len() as i32;
+        vec![production::Adjust::Ratio(players - held + 1, players + 1)]
     }
 
     /// **The Greeks' arm** of `ObjectData::train_time@006508c0`'s research
@@ -3922,7 +3958,7 @@ impl Sim {
     /// SEAM: the block's other steps — `has_preq(RESEARCH_FASTER)`'s three
     /// quarters, Angkor Wat's `ANGKOR_RESEARCH` (0% shipped), Conquer the
     /// World's cards, the handicap, the lobby's `tech_cost`, and the
-    /// head's catch-up and held-elsewhere terms — are not carried.
+    /// head's catch-up terms — are not carried.
     pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
         if self.has_rare(who, economy::RELICS) {
             vec![production::Adjust::Scale(
