@@ -541,6 +541,13 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // nor `maya_ancient_pair`'s `(18, 1, 5)`, other maps: no Maya lobby held
     // Great Lakes, and the battery fields no Maya.
     (14, 1, 5),
+    // The Aztecs at a held Modern age, Great Lakes at Toughest (item 3750,
+    // `diff::aztec_modern_pair`), minted under rule (3) — not the Aztec
+    // word's `(7, 0, 2)`, the AllTech pair's `(7, 0, 3)` or the Medieval
+    // pair's `(7, 0, 5)`, Great Sahara, nor the Ancient-start pair's
+    // `(18, 0, 5)`, East Indies; the battery's one Aztec game is the
+    // held-out `EastIndiesAztecTier1`, `(18, 0, 1)`.
+    (14, 0, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

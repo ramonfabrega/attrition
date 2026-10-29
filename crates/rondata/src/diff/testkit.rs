@@ -7915,6 +7915,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3748: the pair whole, its first parting walks to the game's
     // end over the same eight corners.
     ("bantu_modern_pair_first_parting", 8),
+    // Item 3750: the Aztec Modern pair's first walk, run1429 from run1428's
+    // start to the word 3313.
+    ("aztec_modern_pair_first_parting", 1),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
