@@ -14114,7 +14114,8 @@ twice. The booking is the commander's.
 - Anims 11 and 13 are checked against run1413's 801 poses. Those were printed seven frames after each round's launch,
   and the figure's facing may have moved in between. The six rounds each find exactly one key, but no walk reaches
   those keys through 759.
-- The Camel Raider `0/17` (TI 193) looses from its own square in ours. The landing and the time agree (parked 3759a).
+- ~~The Camel Raider `0/17` (TI 193) looses from its own square in ours. The landing and the time agree (parked 3759a).~~
+  It looses from its pivot: §149.6.
 
 **Coverage.** The rows are diff-backed (run1438's rounds, the walk and the mutation). The packet's `AttachPos`
 rows are read by `get_position.py` under unicorn, as items 3705 and 3613 read theirs.
@@ -14350,7 +14351,7 @@ rows are gone, and the word's own row leads:
 
 then `2/22`'s attack and `1/0`'s and `2/5`'s moves.
 
-**The next word**: frame 863, `2/23` dies a frame late. A hypothesis, not read: the Camel Raider `0/17` (TI 193)
+**The next word**: frame 863, `2/23` dies a frame late (answered: §149.6). A hypothesis, not read: the Camel Raider `0/17` (TI 193)
 launches from its figure's own square in ours, (17400, 15672, 477), where theirs' block 801 reads (17282, 15746,
 742) — the shape of a piece with no `launch::BAYS` row (parked 3767a). The booking is the commander's.
 
@@ -14367,6 +14368,70 @@ The 99,996 constant back to 100,000: **nothing fails**; no walk holds it (parked
 
 **Coverage.** The three scores, the squad's target and the score are diff-backed (run1440's packet and window, the
 mutation). The `int` reading of every other arm rests on the listing's `imul`/`idiv`.
+
+## 149.6 The Camel Raider looses from its pivot — 863 → 947 (item 3770)
+
+**The booking.** Frame 863: ours 13 draws against theirs' 14, parting at index 5, where theirs spends
+`Unit::close+0xcb6` — who=2's Bombard `2/23` (TI 267, land) dies — and ours spends it on 864. 3767's lead, a
+hypothesis: the human's Camel Raider `0/17` (TI 193, land) looses from its figure's own square in ours.
+
+**The direction, off the disk.** Indices 0–4 agree on 863 (`1/15`'s fight, `1/18`'s swing, `2/16`'s round), so
+the death is the only act apart. `RON_DEBUG_AMMO` over 801–863 on the parting's walk: ours' `0/17` looses a round at
+`2/23` that first flies on 859, from (17400, 15672) at `z` 477, landing (15467, 16956) after **6** frames — 864.
+run1440's window (801–846) prints `0/17`'s two earlier rounds at `2/23` from (17282, 15746, 742) and (17274, 15736,
+758), each against ours' (17400, 15672, 477), with the landing and the clock (4 frames) alike on both sides. Its
+`GUY` record names the piece: `gpiece` 143, `cur_anim` 12, **`turret_angles[0]` 73138176** — a pivot piece, the
+crate's `pivot.rs` SEAM ("every other pivot piece that releases (the camel archers …)").
+
+**The rows, off run1440's packet** (logger frame 809; no capture booked — the disk answered). `get_position.py …
+entries 143` reads nine rows, `RData +0x88` 0.9: the pivot node `(4, 0, 0)` at (0.00002, −3.322791, 49.24), and for
+each `<RELEASEEVENT>` (node 0; frame 12 of `CHAR_ATTACKWALK` and `CHAR_ATTACK1`, 13 of `CHAR_ATTACK2`, 18 of
+`CHAR_ATTACK3`) the pivot node's and the release node's. The heights name the arm: `4.32 · (P_z + E_z)` is 281 for
+`CHAR_ATTACK2` and 265 for `CHAR_ATTACK3`, the two dumped rounds' `sz − z` exactly; and at the dump's own turret
+step (4, the top byte of 73138176) each round's `(sx, sy)` is reproduced by its row and by no other step.
+
+**The fix** (`crates/sim/src/pivot.rs`). `RELEASES` gains piece 143's four rows, `RDATA_SCALE` its 0.9, `NODES`
+its pivot node. That node is not a whole hundredth: `Node` carried hundredths, and −3.32 misses the original's
+`sweep 143 4 0 0` on 8 of 361 degrees (25°, 65°, 115°, …), so **`Node` now carries millionths** — the form
+`Release` already keeps — every existing row × 10⁴, and `offset_at` runs in `i128` (the Battleship's 117.49 passes
+`i64`). The release sweeps (`pivot 143 0 <anim> <time> 1`, 361 × 256 cells a row) agree on every cell but six,
+which are the rows' `float_lands`.
+
+**The score: 863 → 947**, the count and the sequence together. Ours' round now leaves (17282, 15746) at 742, flies
+**5** frames and `2/23` dies on 863. On 947 ours spends 21 draws against 18 and parts at index 7: ours spends
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` for who=2's Inti Macemen `2/29` (TI 92, land), then `< Unit::move_step
++0x823` for `2/30` (TI 92) and a third `Guy::set_anim+0x104b`; theirs goes straight to `8/7`'s `< Guy::inc_time
++0x271`. **Every other `first_parting` holds.**
+
+**The value diff.** `gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 901..1197, three blocks,
+**537** keys, rounds read (17, 17), 14 parting. **Block 901 carries the standing families alone**: the word's row is
+gone.
+
+| record | field | before (3767) | after | theirs |
+|---|---|---|---|---|
+| `2/23` | `death:first_frame` | 864 | 863 | 863 |
+| `2/23` | `death:cur_anim` | 17 | 18 | 18 |
+| `0/17`'s round of 859 | launch `(sx, sy, sz)` | (17400, 15672, 477) | (17282, 15746, 742) | — (no block) |
+| `0/17`'s round of 859 | `total_time` | 6 | 5 | — |
+
+On 1001: the human's citizens `0/3` and `0/5` stand apart, `0/17`'s `damage_frame` 1000 against 991, `1/16`'s order
+kind 10 against 1, and `1/18` dies on 987 against 983. 1101 fans out.
+
+**Tests.** `pivot::tests::the_camel_raider_s_rounds_leave_from_its_pivot` (run1440's two rounds at step 4 and no
+other); `the_original_s_release_agrees_on_every_cell_for_piece_143` (`RON_RELEASE_TABLE_143`, the sweeps outside
+git under `~/ron-data/lab-experiments/2026-10-29-item-3770/`); `gunpowder_melee_s_camel_raider_looses_from_its_pivot`
+(the round of 859's point, height and five frames, and `2/23` dead on 863). `GUNPOWDER_MELEE` (947, 947); the
+widening at 901..1197.
+
+**Mutation** (`tools/mutate.py`): see the journal (`docs/journal/2026-10-29-item-3770.md`).
+
+**What is not established.**
+- The turret step of ours' round of 859 is ours' own `set_all_pivots`; no block prints the original's between 846
+  and 901. The landing frame and `2/23`'s death agree, so it agrees within what moves the flight.
+- The round of 674 run1438 prints (17279, 15748, 758) is `CHAR_ATTACK2`'s height; its turret step is unread.
+
+**Coverage.** The rows, the scale and the node are diff-backed by run1440's packet (the 361-degree and 4 × 92,416-cell
+sweeps) and window (two rounds); the score and the value table by run1413.
 
 ## 150. Reserved for the next item on the rules track
 

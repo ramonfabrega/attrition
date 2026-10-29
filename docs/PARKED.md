@@ -12465,12 +12465,13 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
 
 ## Parked by item 3759, 2026-10-28 — the melee's first fight, the Apedemak Archers' bays
 
-- **3759a. The Camel Raider looses from the figure's square in ours** (`docs/GOLDEN.md` §149.2). run1438 prints
+- ~~**3759a. The Camel Raider looses from the figure's square in ours** (`docs/GOLDEN.md` §149.2). run1438 prints
   the human's Camel Raider `0/17` (TI 193) loosing its round of 674 at who=2's Bombard `2/23` from (17279, 15748,
   758). Ours looses it from (17400, 15672, 477), the figure's own square: no `launch.rs` or `pivot.rs` row holds
   the piece. The landing (16038, 16810) and the flight (4 frames) agree on both sides, so nothing parts on it
   through 759.
-  - It names no score until one of its rounds' times or landings parts.
+  - It names no score until one of its rounds' times or landings parts.~~ **Answered by item 3770** (`docs/GOLDEN.md`
+  §149.6): piece 143 is a pivot piece; `pivot::RELEASES` holds its four rows.
   - What would answer it: run1438's packet (`~/ron-golden/run1438/map-7/frame-snapshot.bin`, logger frame 684)
     loads the type. `get_position.py … entries <its piece>` reads its rows, and `fit_bay.py` fits them, as 3759
     did for piece 126. A rider's launch is probably a pivot piece, so `pivot` comes before `sweep`.
@@ -12538,21 +12539,20 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
 
 ## Parked by item 3767, 2026-10-28 — the captain's search keeps an `int`
 
-- **3767a. The Camel Raider `0/17`'s launch bays** (TI 193): ours launches its round from the figure's own square,
+- ~~**3767a. The Camel Raider `0/17`'s launch bays** (TI 193): ours launches its round from the figure's own square,
   (17400, 15672, 477), where theirs' block 801 reads (17282, 15746, 742). The shape of a piece with no `launch::BAYS`
   row. A hypothesis for the melee's next word (frame 863, `2/23` dies a frame late, `docs/GOLDEN.md` §149.5), not
-  read; the same round is parked 3759a. It names the melee's headline frame once the commander books 863.
+  read; the same round is parked 3759a. It names the melee's headline frame once the commander books 863.~~ **Answered by item
+  3770** (`docs/GOLDEN.md` §149.6): not bays — a pivot piece, `pivot::RELEASES`' piece-143 rows; 863 → 947.
 - **3767b. `compare_target`'s compression constant, 99,996 (`0x1869c`), is unheld.** Mutating it back to 100,000
   fails nothing: no walk scores a target above 100,000 that the four-unit difference parts. It names no score; a
   lobby whose search compares two targets over 100,000 would hold it.
 
-## Parked by the next landing, slot WK — reserved
+## Parked by item 3770, 2026-10-29 — the Camel Raider looses from its pivot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3770a. The turret step of the Camel Raider's round of 674** (`docs/GOLDEN.md` §149.6): run1438 prints it from
+  (17279, 15748, 758), `CHAR_ATTACK2`'s height over piece 143's rows; the step that puts it there is unread (its
+  window's `GUY` record prints `turret_angles[0]`). The landing and the clock agree, so it names no score.
 
 ## Parked by the next landing, slot WL — reserved
 
