@@ -3222,16 +3222,8 @@ impl Sim {
     /// head move carrying the post flag, else the unit's own quarter-tile
     /// centre.
     fn find_def_pos(&self, u: usize) -> Pos {
-        for o in &self.units[u].orders {
-            match o.body {
-                Body::Attack(a) if a.defensive => {
-                    if let Some(p) = a.def {
-                        return p;
-                    }
-                }
-                Body::Move(m) if o.has(flag::POST) => return m.dest,
-                _ => {}
-            }
+        if let Some(p) = self.def_post(u) {
+            return p;
         }
         let p = self.units[u].pos;
         Pos::new(
@@ -9326,6 +9318,7 @@ impl Sim {
         let here = self.units[u].pos;
         let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT)
         {
+            Some(_) if self.fight_post_leash(u, target, state.mandatory) => return false,
             Some(p) => p,
             None if self.attack_pos_refused(u, target) => {
                 self.chase_refused(u, target);
@@ -9336,6 +9329,83 @@ impl Sim {
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
         self.chase_reentry(u, here, dest, frame);
         false
+    }
+
+    /// **`fight`'s own defensive leash** (`Unit::fight@005fd4d0`,
+    /// `005fe18c`–`005fe264` and its tail to `005fe502`; `fight:1104`–
+    /// `1172`; item 3779, `docs/GOLDEN.md` §149.7). When `find_attack_pos`
+    /// answers, a `DEFENSIVE` unit whose attack is not mandatory (`esi`,
+    /// `fight`'s third argument) and carries a post (`+0x1d`, both of
+    /// `+0x14/+0x18` non-negative) does not chase from `reach × 0xc0` or
+    /// more from the post — `reach` the larger of the type's vslot `+0x130`
+    /// and `unit_defensive_respond_range`, as `check_target_path`'s leash
+    /// reads them. It runs `find_new_target(NULL, 0)` instead, and then:
+    ///
+    /// - no `ATTACK` in front, or the unit recharging: nothing more;
+    /// - the same target again: the attack is killed and, with nothing
+    ///   left, the unit walks to the post — `add_move_order(post, 1, 0,
+    ///   QUEUE_NEW)`, `flags |= 8`;
+    /// - another target: the frozen mark (`LAB_005fe502`).
+    ///
+    /// `true` when the leash took the frame. run1451's packet runs the
+    /// Inti Macemen `2/31` on 945: the review's `find_new_target` re-adds
+    /// its captain's `1/22` with the post kept, then `fight+0xd94`'s
+    /// second call re-adds it again and the walk home goes in (block 946,
+    /// `MOVEORDER` to (21624, 18360), `flags 8`).
+    fn fight_post_leash(&mut self, u: usize, target: Obj, mandatory: bool) -> bool {
+        if mandatory || self.units[u].combat.stance != combat::Stance::Defensive {
+            return false;
+        }
+        let Some(Order {
+            body:
+                Body::Attack(AttackOrder {
+                    defensive: true,
+                    def: Some(post),
+                    ..
+                }),
+            ..
+        }) = self.current_order(u).copied()
+        else {
+            return false;
+        };
+        if post.x < 0 || post.y < 0 {
+            return false;
+        }
+        let r = self.max_range_of(Obj::Unit(u));
+        let mut reach = self.tuning.unit_defensive_respond_range.wrapping_mul(0xc0);
+        if reach < r.wrapping_mul(0xc0) {
+            reach = r.wrapping_mul(0xc0);
+        }
+        let p = self.units[u].pos;
+        if vector_dist((p.x - post.x).wrapping_abs(), (p.y - post.y).wrapping_abs()) < reach {
+            return false;
+        }
+        self.find_new_target(u, false);
+        if self.order_type(u) != index::ATTACK || self.units[u].combat.recharging != 0 {
+            return true;
+        }
+        if self.units[u].combat.target == Some(target) {
+            let walk = match self.current_order(u).map(|o| o.body) {
+                Some(Body::Attack(AttackOrder {
+                    defensive: true,
+                    def: Some(p),
+                    ..
+                })) if p.x >= 0 && p.y >= 0 => Some(p),
+                _ => None,
+            };
+            self.kill_current_order(u);
+            if let Some(p) = walk
+                && self.units[u].orders.is_empty()
+            {
+                self.add_move_order(u, p, MoveKind::MoveTo, QueuePos::New, false);
+                if let Some(o) = self.units[u].orders.front_mut() {
+                    o.flags |= flag::POST;
+                }
+            }
+            return true;
+        }
+        self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+        true
     }
 
     /// **The chase that `find_attack_pos` refused** — `Unit::fight@
@@ -9640,12 +9710,15 @@ impl Sim {
     /// walk and the old attack where it stands, and takes whatever it can
     /// strike from there. run171's `1/6` on 658: `0/7`.
     ///
-    /// SEAM: the defensive-post arm (`bVar3`, a `DEFENSIVE` unit whose
-    /// type has stances and whose `find_def_pos` answers), which writes
-    /// the post into the found attack or walks back to it; and the group
-    /// order's `kill_group_order`, which this crate has no group attack
-    /// order for. Neither is reached by `1/6`, `stance 0` and not grouped
-    /// in its order.
+    /// **The defensive-post arm** (`bVar3`, [`Self::keep_def_post`], item
+    /// 3779): a `DEFENSIVE` unit whose `find_def_pos` answers keeps its
+    /// post in the attack it finds, or walks back to it.
+    ///
+    /// SEAM: `has_stance_type`'s refusal (vslot `+0x104`, a type with no
+    /// stance type never reads `DEFENSIVE`) is this crate's stance alone;
+    /// and the group order's `kill_group_order`, which this crate has no
+    /// group attack order for. `1/6` reaches neither, `stance 0` and not
+    /// grouped in its order.
     /// **`fight`'s re-search predicate, which the chase's retarget copies**
     /// (`do_move@005f7b30:262`–`271`, `uVar17`; `fight@005fd4d0:394`–`400`):
     /// a unit without `unit_masks2 & 4` takes a candidate whose role is
@@ -9669,6 +9742,13 @@ impl Sim {
     }
 
     pub(crate) fn find_new_target(&mut self, u: usize, stand: bool) -> Option<Obj> {
+        // `bVar3` (`005ff6a0`–`005ff70d`): a `DEFENSIVE` unit whose
+        // `find_def_pos` answers, read before the order goes.
+        let post = if self.units[u].combat.stance == combat::Stance::Defensive {
+            self.def_post(u)
+        } else {
+            None
+        };
         self.repath(u);
         self.kill_current_order(u);
         let stance = self.units[u].combat.stance;
@@ -9677,7 +9757,58 @@ impl Sim {
         }
         let found = self.find_melee_target_headed(u);
         self.units[u].combat.stance = stance;
+        if let Some(p) = post {
+            self.keep_def_post(u, found.is_some(), p);
+        }
         found
+    }
+
+    /// **`find_new_target`'s defensive-post arm** (`005ff7b0`–`005ff95e`,
+    /// item 3779, `docs/GOLDEN.md` §149.7): a find whose order is an
+    /// `ATTACK` takes the post into the attack (`+0x1d = 1`, `+0x14/+0x18`),
+    /// so the leash still measures from where the unit stood; a unit left
+    /// with no order walks back to the post — `MOVE_TO` at the post's
+    /// `0x30` cell centre, `QUEUE_NEW`, the action bit clear, the angle
+    /// `find_angle(post − pos)` (`5ff840`–`5ff85e`), flagged `POST`
+    /// (`flags |= 8`). run1413's Inti Macemen `2/29` and `2/30` stand on
+    /// their posts (21624, 18168) and (21720, 18264) on block 1001.
+    fn keep_def_post(&mut self, u: usize, found: bool, post: Pos) {
+        let ty = self.order_type(u);
+        if found && ty == index::ATTACK {
+            if let Some(Order {
+                body: Body::Attack(a),
+                ..
+            }) = self.units[u].orders.front_mut()
+            {
+                a.defensive = true;
+                a.def = Some(post);
+            }
+            return;
+        }
+        if ty == index::NONE {
+            self.add_move_order(u, post, MoveKind::MoveTo, QueuePos::New, false);
+            if let Some(o) = self.units[u].orders.front_mut() {
+                o.flags |= flag::POST;
+            }
+        }
+    }
+
+    /// `UnitData::find_def_pos@00608560`'s two answering arms: a DEFENSIVE
+    /// attack's post (`+0x1d`, `+0x14/+0x18`), else a move carrying the
+    /// post flag (`flags & 8`); `None` where the original returns 0.
+    fn def_post(&self, u: usize) -> Option<Pos> {
+        for o in &self.units[u].orders {
+            match o.body {
+                Body::Attack(a) if a.defensive => {
+                    if let Some(p) = a.def {
+                        return Some(p);
+                    }
+                }
+                Body::Move(m) if o.has(flag::POST) => return Some(m.dest),
+                _ => {}
+            }
+        }
+        None
     }
 
     /// **`find_melee_target(−1, NULL, 0, 1, 0)` whole, the squad head
