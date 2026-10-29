@@ -1231,63 +1231,95 @@ pub(crate) const RUN1461B: &str =
 pub(crate) const RUN1461: &str =
     "gamelog-run1461-greatsahara-gunpowder-melee-leaders-window-1700-2161.txt";
 
-/// run1461b's window: block 595 through 1700.
-pub(crate) const WIDENING_GUNPOWDER_MELEE_LEADERS: (i64, i64) = (595, 1700);
-
-/// run1461b over [`WIDENING_GUNPOWDER_MELEE_LEADERS`], walked from run1412's
-/// start with the script staged.
-pub(crate) fn gunpowder_melee_leaders_window() -> Option<harness::tests::Widened> {
-    crate::diff::setup::with_staged_script(melee_script(), || {
-        harness::tests::widen_on_siblings_with_rounds(
-            &[MELEE_START],
-            true,
-            MELEE_LONG,
-            "run1461b",
-            &[(RUN1461B, WIDENING_GUNPOWDER_MELEE_LEADERS.0)],
-            WIDENING_GUNPOWDER_MELEE_LEADERS,
-            1,
-            &[],
-            false,
-        )
-    })
-}
-
 /// **An Inca unit refunds its price, and a hero pays its killer** (item
-/// 3788, `docs/GOLDEN.md` §149.12): run1461b's every leader record, both
-/// directions, frame by frame. Without the refund who=2's buckets part on
-/// 860 (+16 food, +11 timber) and 864 (+25 timber, +25 metal); without the
-/// hero's plunder on 1464 (+100 wealth).
+/// 3788, `docs/GOLDEN.md` §149.12): run1461b's and run1461's every frame,
+/// both computers' stockpiles, walked from run1412's start with the script
+/// staged. The widening's leader rows read seats 0 and 1 only
+/// (`harness.rs`, `for who in 0..2`, and the oracle's two-leader cache), so
+/// who=2 — the Inca — is read here. Without the refund who=2's buckets
+/// part on logger frame 860 (+16 food, +11 timber) and 864 (+25 timber,
+/// +25 metal); without the hero's plunder on 1464 (+100 wealth).
 #[test]
 fn gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund() {
     let _pins = Pins::hold();
-    let Some(w) = gunpowder_melee_leaders_window() else {
+    let Some(inst) = install() else {
         return;
     };
-    if std::env::var("RON_FIRSTS").is_ok() {
-        let mut rows: Vec<_> = w.firsts.iter().collect();
-        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
-        for ((who, o, what), (f, r)) in rows {
-            eprintln!("  first {f} {who}/{o} {what}: {r}");
+    let (Some(long), Some(start), Some(tr), Some(early), Some(late)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        trace(MELEE_LONG.1),
+        dump(RUN1461B),
+        dump(RUN1461),
+    ) else {
+        eprintln!("skipping: no {RUN1461B} (set RON_GAMELOG_DIR)");
+        return;
+    };
+    let rows = crate::diff::setup::with_staged_script(melee_script(), || {
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(long);
+        let start_text = crate::capture::read(start);
+        let log = Log::parse(&text);
+        let start_log = Log::parse(&start_text);
+        let mut init = log.initial().unwrap();
+        let sibling = start_log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sibling]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Each window's buckets, by logger frame and seat.
+        let mut theirs = std::collections::BTreeMap::new();
+        for path in [early, late] {
+            let t = crate::capture::read(path);
+            let l = Log::parse(&t);
+            for (n, b) in l.frames() {
+                for l in b.kids("LEADERDATA") {
+                    let Some(who) = l.int("who").filter(|w| (1..=2).contains(w)) else {
+                        continue;
+                    };
+                    let m = crate::diff::leader::theirs(&l);
+                    let bucket: Vec<i64> = (0..6)
+                        .map(|g| m.get(&format!("bucket[{g}]")).copied().unwrap_or(-1))
+                        .collect();
+                    theirs.insert((n, who), bucket);
+                }
+            }
         }
-        eprintln!("  missing {:?}", w.missing);
-    }
-    let buckets: Vec<_> = w
-        .firsts
-        .iter()
-        .filter(|((_, _, what), _)| what.contains("bucket"))
-        .map(|((who, o, what), (f, r))| format!("{f} {who}/{o} {what}: {r}"))
-        .collect();
+        let last = theirs.keys().map(|(n, _)| *n).max().unwrap_or(0);
+        let mut compared = 0usize;
+        let mut parted = Vec::new();
+        while built.sim.frame < last {
+            built.tick();
+            // Logger frame n prints the state ours holds after frame n − 1.
+            let n = built.sim.frame;
+            for who in 1..=2usize {
+                let Some(want) = theirs.get(&(n, who as i64)) else {
+                    continue;
+                };
+                let m: std::collections::BTreeMap<String, i64> =
+                    crate::diff::leader::rows(&loaded, &built, who)
+                        .into_iter()
+                        .collect();
+                let got: Vec<i64> = (0..6)
+                    .map(|g| m.get(&format!("bucket[{g}]")).copied().unwrap_or(-1))
+                    .collect();
+                compared += 1;
+                if &got != want && parted.len() < 4 {
+                    parted.push(format!("{n} who={who}: ours {got:?} theirs {want:?}"));
+                }
+            }
+        }
+        (theirs.len(), compared, parted)
+    });
+    let (printed, compared, parted) = rows;
+    eprintln!("run1461b+run1461 leaders: {printed} printed, {compared} compared, {parted:?}");
     pin_eq!(
-        buckets,
+        parted,
         Vec::<String>::new(),
-        "the leaders' buckets that part"
+        "the computers' buckets that part"
     );
-    // Item 3788: **54** keys over 1105 blocks, every one a standing family
-    // — `build:extra` on every building (the dump prints no building
-    // record) and who=1's groups 64..70's pools (no `GROUPS` either); no
-    // leader row parts.
-    pin_eq!(w.blocks, 1105, "every captured block");
-    pin_eq!(w.firsts.len(), 54, "run1461b baseline");
+    pin_eq!(compared, printed, "every printed leader compared");
+    // Item 3788: 1566 frames (595..2161) × who=1 and who=2.
+    pin_eq!(printed, 3132, "the leader records printed");
 }
 
 /// **The melee's closing state** (item 3788): run1413's closing block, the
