@@ -11074,3 +11074,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3759: the melee word 684 → 759, the Apedemak Archers' launch bays (`docs/GOLDEN.md` §149.2; `docs/RUNS.md` run1438) ====
 #   run1438  --map 7 --end-frame 686 --timeout 3600 --log-window 670 686 --ffwd-minute 3 --cmd-file tools/gamelog/golden/melee-gunpowder.cmd --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --cover cover=0 --tracer-def RON_STATE_FRAME=684 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1412's profiles   (the packet: piece 126)
 # Checks: `rngcmp.py` run1413 vs run1438 -> 687 identical.
+# ==== item 3750: the Aztecs at a held Modern age, Great Lakes, at difficulty 5 (`docs/AI.md` §374; `docs/RUNS.md` run1428, run1429, run1429b) ====
+#   run1428  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1429  run1405's line with --ai-tribe 0 and run1428's lobby   (the draw stream; ended itself on 3389)
+#   run1429b --map 14 --end-frame 3389 --allow-early-end --timeout 3600 --log-window 3295 3390 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (the word 3313's window, to the game's end)
+# Checks: `rngcmp.py` run1428 vs run1429 -> 37 identical; run1429 vs run1429b -> 3390 identical.
