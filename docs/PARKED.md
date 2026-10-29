@@ -12375,7 +12375,7 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
 
 ## Parked by item 3751, 2026-10-28 — the Chinese Modern pair's residue under a whole score
 
-- **3751a. The Submarine `1/139`'s re-issued attack order takes a different formation slot**, with no score
+- ~~**3751a. The Submarine `1/139`'s re-issued attack order takes a different formation slot**~~ — answered by item 3782 (`docs/AI.md` §378.2): its block-0 re-place asked `find_unit_with_radius` over the whole map, where the original asks the disc's cells, and the pair's closing counts now read zero. The row as it stood: with no score
   parting: the pair is whole at 4130 of 4130 (`docs/AI.md` §375). `1/139` (type 338, `SUB`, group 71) is on an
   `ATTACKTOORDER` that agrees on run1431's stride block 3801 (point 44952, 37848, offset 408, 216). By run1431b's
   first block 3875 the order is re-issued on both sides: ours at (45288, 37992), offset (744, 360), path 19 nodes;

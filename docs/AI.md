@@ -37572,6 +37572,9 @@ Theirs never asks about it; ours did, and refused.
   the list arm (`if true {`) fails it (`ring 0 is the spot's own cell`) and sends
   `turkish_information_pair_first_parting` back to 3952. Both exit 101.
 - The emulator sweep `objects_data_find_unit_with_radius` (the list arm only) still agrees on every row.
+- **The Chinese Modern pair, already whole, loses its residue**: parked 3751a was the same re-place, the Submarine
+  `1/139` (type 338). Its closing counts go `[1, 0, …]` → all zero, its stride 207 → 177 keys and its closing window
+  run1431b 164 → 125. All three are re-pinned downward.
 
 **The word: 3952 → whole, 5036 of 5036**, by the count and the sequence. The value diff on the parted frame:
 
