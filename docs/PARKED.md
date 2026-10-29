@@ -12628,13 +12628,14 @@ words and edits nothing here; a refill lands when two remain.
   (`damage`, `damage_frac`, `recharging`), so the probe's two edits could stay on the line. It names no score: a
   tool row.
 
-## Parked by the next landing, slot WU — reserved
+## Parked by item 3782, 2026-10-29 — the Turkish Information pair whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3782a. The Advanced Battleship's launch point** (`docs/AI.md` §378.2): every round that parts on the whole Turkish
+  pair is a battleship's (`1/49`, `1/50`, `1/51`, `1/63`, `1/67`, `1/68`, type 350): `ammo.sx`/`sy`/`sz`, `v1z` and
+  `ex`/`ey`. On run1452's 4030 `1/63`'s round reads `sx` 840 against 1040, `sy` 7512 against 7570, `sz` 0 against 173.
+  That is 174 rows in run1452's window (3895..4202) and 174 from 4830 in run1454's (4781..5037), 360 rounds read a side,
+  and no draw parts to 5036. It is a ship's muzzle offset and height, which no draw reads, so it names no score
+  until a word's frame does.
 
 ## Parked by the next landing, slot WV — reserved
 
