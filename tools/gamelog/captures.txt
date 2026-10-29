@@ -11120,3 +11120,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3785: the second melee's word 718, a packet and a per-frame window (`docs/GOLDEN.md` §150.1; `docs/RUNS.md` run1457) ====
 #   run1457  --map 7 --end-frame 721 --timeout 3600 --log-window 660 720 --ffwd-minute 3 --cover cover=0 --cmd-file tools/gamelog/golden/melee-classical.cmd --detail end:MISC,UNITS=3,GUYS=4,AMMO=5, run1449's profiles and seats, --tracer-def RON_STATE_FRAME=700 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (the packet; not filed)
 # Checks: `rngcmp.py` run1450 vs run1457 -> 722 identical.
+# ==== item 3787: the second melee's word 784, two packets (`docs/GOLDEN.md` §150.2; `docs/RUNS.md` run1459, run1460) ====
+#   run1459  run1457's line with --end-frame 802 --log-window 770 801 --tracer-def RON_STATE_FRAME=780   (the packet; not filed)
+#   run1460  run1457's line with --end-frame 781 --log-window 720 780, DEATHS=1 in end:, --tracer-def RON_STATE_FRAME=760   (the packet; not filed)

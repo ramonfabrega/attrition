@@ -284,6 +284,17 @@ ghost that `1/109`'s probe on tick 16238 read as its hit cell (606, 809)
 and found `1/119` soft. `Sim::coll_move` takes the form since item 1418; test
 `a_move_inside_one_world_cell_sets_its_disc_by_the_old_tile_s_region`.
 
+**A death clears every figure's disc, the crew's too** (item 3787,
+`docs/GOLDEN.md` §150.2). `Unit::close@0060ee50`'s death arm runs
+`Objects::kill_guy@00659410` over the squad (`0 .. guy_mark`) and the crew
+(`squad_size .. guy_num`), and its last arm clears `radius[coll_size]`
+around each figure's own cell unless the type's vslot `+0x120`
+(`blocks_while_dead`) answers — the clear `set_type`'s crew loop takes
+(`Sim::coll_kill_guy`). A crew figure standing a cell off its engine
+punches its own disc out of any neighbour's block until that neighbour's
+sixty-fourth-frame repaint: the second melee's Catapult `1/26`, dead on
+747, holes two Barbarians' discs that run1459's and run1460's packets print.
+
 **Not established**: the original's "no block allocated" return (a cell no
 unit has marked yet) — this crate's flat grid has no allocation to ask, so
 the form is taken as if the block existed.

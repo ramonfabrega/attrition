@@ -12696,13 +12696,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WZ — reserved
+## Parked by item 3787, 2026-10-29 — the second melee's word 784 → 865
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3787a) **The booked direction was a symptom.** 3785 read the 784 parting as `0/21`'s target choice (26 against 16).
+The target was a consequence: ours' `0/21` was refused a step on 784 by a disc theirs had already holed, the dead
+Catapult `1/26`'s crew's (`Objects::kill_guy` per figure, GOLDEN §150.2). Two packets (run1459, run1460) dated it.
+No score is named: DECISIONS 42's shape again, with the frame right.
+
+(3787b) **`kill_guy`'s gates are read, not run.** The death clear's `blocks_while_dead` test reads the unit flag
+`BLOCKS_WHILE_DEAD` for the type's vslot `+0x120`, and the crash-kind and air gates are `close_unit`'s own early return
+and `coll_paint`'s. A type that answers `+0x120` true in a game a capture holds, or a crew dying on a coastal cell
+(where `kill_guy`'s plain region and `coll_paint`'s differ), is the falsifier.
+
+(3787c) **`set_type`'s other callers now convert in place on a same type.** The cast's `convert_keeping_fraction` and
+`eject.rs`'s `builder_goes_home` reached the removed guard too. Every lobby's `first_parting` holds (115 of 115 others),
+so no trace on file reaches either with the same type. A capture where a citizen-builder goes home already at its
+upgrade's type is the check.
 
 ## Parked by the next landing, slot XA — reserved
 

@@ -1571,7 +1571,9 @@ impl Sim {
     /// not `kill_guy`'s plain cell region; the two differ on a coastal cell.
     /// One figure of the crew loop: `Objects::kill_guy`'s clear around
     /// figure `i`'s own cell, called for each figure from the squad to the
-    /// old total (`unit_set_type_view`).
+    /// old total (`unit_set_type_view`) — and for every figure of a unit
+    /// that dies, by `close_unit` (`Unit::close`'s two loops, item 3787,
+    /// `docs/COLLISION.md` §2).
     pub(crate) fn coll_kill_guy(&mut self, u: usize, i: usize) {
         let body = self.units[u].movement.body.pos;
         let at = self.units[u].guys[i].follow.map_or(body, |f| f.body.pos);
