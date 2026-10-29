@@ -9341,8 +9341,9 @@ fn the_greeks_halve_an_age_or_an_epoch_and_nothing_else() {
 /// **A plain tech another seat holds is researched faster, read live**
 /// (item 3783, `docs/GOLDEN.md` §149.9): `train_time@006508c0`'s
 /// `LAB_006513c0` takes a final, a building tech or a government that `n`
-/// leaders hold (`TypeData::count_discovered`) to `t × (num_players − n +
-/// 1) / (num_players + 1)`. An age is past the term. The first melee's
+/// leaders hold (`TypeData::count_discovered`) to
+/// `t × (num_players − n + 1) / (num_players + 1)`. An age is past the
+/// term. The first melee's
 /// who=1 Despotism finishes on 958, the frame after who=2's, where ours ran
 /// on to 982.
 #[test]
