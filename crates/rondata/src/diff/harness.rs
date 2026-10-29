@@ -2506,6 +2506,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     }
     if std::env::var("RON_PROBE_TOWN").is_ok() {
         let sim = &built.sim;
+        eprintln!("  f{frame} TECHCAT 2 {:?} 1 {:?}", sim.ai[2].tech_cat_frame, sim.ai[1].tech_cat_frame);
         for b in sim.buildings.iter().filter(|b| b.alive && b.city.is_none()) {
             let Some(ty) = b.ty else { continue };
             let corner = sim.tile_corner(ty, b.pos);
