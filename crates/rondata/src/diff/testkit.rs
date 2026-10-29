@@ -11080,7 +11080,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The second melee** (item 3774): Great Sahara, three seats, a held
     // Classical age — first try 718 of 2600, widened on run1450's stride
     // over 601..968, the rounds compared. Item 3785: 784, the same window
-    // (block 701 the standing families alone, 801 after the word).
+    // (block 701 the standing families alone, 801 after the word). Item
+    // 3789: 1284, the window moved to 1201..1534.
     (
         "CLASSICAL_MELEE_WORD",
         crate::diff::classical_melee::CLASSICAL_MELEE_WORD,

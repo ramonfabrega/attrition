@@ -426,15 +426,9 @@ impl crate::Sim {
     /// at bearings `0`, `+1` and `−1` sixteenths from this angle
     /// (`docs/COMBAT.md` §32.2).
     ///
-    /// **SEAM — the flanking branch** (`602870`-`602a9c`, `local_40`).
-    /// When the target carries a **move** order the original first asks
-    /// whether its back is turned: within 60° of running away it may
-    /// return the asker's own position outright, and otherwise
-    /// `flanking()` projects a point ahead of the target and sweeps from
-    /// *there*. Neither is modelled; a moving target takes the centre a
-    /// standing one would. Chapter two's target stands still, so the
-    /// branch is unexercised by everything on disk, and
-    /// `docs/COMBAT.md` §32.4 names the capture that would reach it.
+    /// **The flanking branch** (`602870`-`602a9c`, `local_40`) is
+    /// [`Sim::chase_lead`]'s: a moving target is led, or the asker stands
+    /// (item 3789, `docs/GOLDEN.md` §150.3).
     fn chase_spot(
         &mut self,
         u: usize,
@@ -1201,7 +1195,7 @@ mod tests {
     /// `(2472, 7944)` are block 622's `x_internal`/`y_internal`, and the
     /// answer is that block's `MOVEORDER x`/`y`. The target carries no
     /// order at all there (`STACK<TYPE> length 0`), which is what keeps
-    /// the call off §32.4's unmodelled flanking branch.
+    /// the call off the flanking branch (`Sim::chase_lead`).
     ///
     /// The whole chain is pinned by one point: `stand` is 1008, the band
     /// is `[912, 1104]` by `0x60`, the bearing is `find_angle(from −

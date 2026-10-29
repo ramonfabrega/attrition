@@ -683,8 +683,8 @@ pub const fn in_range(
 /// stands, from the **bias** its two callers hand it:
 /// `e = target.angle − reference + 0x80000000`, unsigned.
 ///
-/// Zero is "not flanking at all", and it is the only answer the callers
-/// look at. Both of them (`do_move@005f7fbe` and
+/// Zero is "not flanking at all", and it is the only answer two of its
+/// callers look at. Both of them (`do_move@005f7fbe` and
 /// `check_target_path@005e2493`) test the window's negative half inline —
 /// `e < 0x2aaaaaaa` jumps straight past the call — so the predicate a
 /// caller means is `0x2aaaaaaa <= e && flanking(e) != 0`, which is
@@ -692,10 +692,11 @@ pub const fn in_range(
 /// `reference`: `do_move` uses the **attacker's own heading**,
 /// `check_target_path` the **bearing from the attacker to the target**.
 ///
-/// The 1/2 split is `e − 0x60000000 > 0x40000000` and nothing in the
-/// executable reads it; it is kept because the function is three
-/// instructions and a `bool` would be a guess about what the engine meant
-/// (`docs/COMBAT.md` §36.3).
+/// The 1/2 split is `e − 0x60000000 > 0x40000000`, and the third caller
+/// reads it: `Unit::find_attack_pos@00601280` leads a running target only
+/// on `flanking(e) == 1` (`6028fa`), where `e`'s reference is again the
+/// bearing to the target (`Sim::chase_lead`, `docs/GOLDEN.md`
+/// §150.3; COMBAT §36.3 once said nothing read it).
 pub const fn flanking(e: u32) -> i32 {
     if e > 0xd555_5555 {
         return 0;
