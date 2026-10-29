@@ -1015,3 +1015,38 @@ fn the_schema_key_moves_on_the_parser_and_the_codec_only() {
     assert!(keyed(include_str!("oracle.rs")).contains("fn pack("));
     assert!(!keyed(include_str!("oracle.rs")).contains("fn the_schema_key_moves"));
 }
+
+/// **A leader compare walks the seats the lobby seats, never a literal**
+/// (item 3791): `for who in 0..2usize` in the widenings and a two-slot
+/// oracle cache held a three-seat lobby's who=2 out of every leader
+/// compare, and its Inca refund hid from 860 to a draw on 2160 (item 3788).
+/// The sources that walk a capture's `LEADERDATA` may not bound a seat
+/// loop, or a leader cache, by a number.
+#[test]
+fn a_leader_compare_walks_the_lobby_s_seats_never_a_literal() {
+    let sources: &[(&str, &str)] = &[
+        ("harness.rs", include_str!("harness.rs")),
+        ("golden.rs", include_str!("golden.rs")),
+        ("oracle.rs", include_str!("oracle.rs")),
+        ("oracle/codec.rs", include_str!("oracle/codec.rs")),
+        ("gunpowder_melee.rs", include_str!("gunpowder_melee.rs")),
+        ("classical_melee.rs", include_str!("classical_melee.rs")),
+    ];
+    // Spelt in pieces, so this test's own text is not a match.
+    let seat = |range: &str| format!("for who in {range}");
+    let mut needles: Vec<String> = ["0..2", "0..=1", "1..=2", "0..3", "1..3"]
+        .iter()
+        .map(|r| seat(r))
+        .collect();
+    needles.push(format!("i64>>; {}]", 2));
+    let mut hits = Vec::new();
+    for (name, text) in sources {
+        for (i, line) in text.lines().enumerate() {
+            let code = line.trim_start();
+            if !code.starts_with("//") && needles.iter().any(|n| code.contains(n.as_str())) {
+                hits.push(format!("{name}:{}: {}", i + 1, line.trim()));
+            }
+        }
+    }
+    assert_eq!(hits, Vec::<String>::new(), "a seat bound by a literal");
+}
