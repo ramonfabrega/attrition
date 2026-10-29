@@ -38,17 +38,6 @@ pub const SITE_MARKET_SELL: &str = "Leader::use_market+0x1ed";
 /// prerequisites and asks `has_tech` of each, and `BUY_SELL` has the one.
 const BUY_SELL_COMMERCE_LEVEL: i32 = 2;
 
-/// PROBE (item 3788): `RON_DEBUG_MARKET=<lo>-<hi>`.
-fn market_probe(frame: i64) -> bool {
-    std::env::var("RON_DEBUG_MARKET")
-        .ok()
-        .and_then(|v| {
-            let (a, b) = v.split_once('-')?;
-            Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
-        })
-        .is_some_and(|(a, b)| (a..=b).contains(&frame))
-}
-
 /// Which good a gather building gathers — `make_stuff`'s switch on the build
 /// type's own `TypeIndex` (`0x1a1` food, `0x1a2` wood, `0x1a3` metal, `0x1a4`
 /// knowledge, `0x1a5`/`0x1a6` oil). An exact type test, not a lineage one, so
@@ -644,13 +633,6 @@ impl Sim {
                 *n += c;
             }
         }
-        if market_probe(self.frame) {
-            eprintln!(
-                "MARKET f{} who={} gate={} commerce={} need={:?} bucket={:?} escrow={:?} price={:?} flux={:?}",
-                self.frame, who, self.market_gate(who), commerce, need, self.ledgers[w].bucket,
-                self.ledgers[w].escrow, self.market.price, self.market.flux
-            );
-        }
         if !self.market_gate(who) {
             return;
         }
@@ -770,9 +752,6 @@ impl Sim {
         if self.ledgers[w].bucket[g] < 100 {
             return false;
         }
-        if market_probe(self.frame) {
-            eprintln!("MARKET f{} who={} SELL g{} for {}", self.frame, who, g, sell);
-        }
         self.ledgers[w].bucket[g] -= 100;
         self.ledgers[w].escrow[g] = (self.ledgers[w].escrow[g] - 100).max(0);
         self.ledgers[w].bucket[Resource::Wealth as usize] += sell;
@@ -791,9 +770,6 @@ impl Sim {
         let (buy, _) = self.calc_market_prices(who, g);
         if self.ledgers[w].bucket[wealth] < buy {
             return false;
-        }
-        if market_probe(self.frame) {
-            eprintln!("MARKET f{} who={} BUY g{} for {}", self.frame, who, g, buy);
         }
         self.ledgers[w].bucket[wealth] -= buy;
         self.ledgers[w].escrow[wealth] = (self.ledgers[w].escrow[wealth] - 100).max(0);
