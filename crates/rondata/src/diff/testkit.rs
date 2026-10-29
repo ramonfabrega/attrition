@@ -11168,13 +11168,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Hard — first try 2551 of 5036; widened on run1446b over 2495..2801,
     // the rounds compared. Item 3780 moved it to 3952 (`come_out`'s
     // `FILTER_ALL` sweep, `docs/AI.md` §378.1) and widened it on run1452
-    // over 3895..4202, the rounds compared.
+    // over 3895..4202, the rounds compared. Item 3782 closed it whole
+    // (`find_unit_with_radius` walks the disc's cells, `docs/AI.md` §378.2)
+    // and widened it on run1454 over 4781..5037 (the closing block), the
+    // rounds compared.
     (
         "TURKISH_INFORMATION_PAIR_WORD",
         crate::diff::turkish_information_pair::TURKISH_INFORMATION_PAIR_WORD,
-        Some("turkish_information_pair_run1452_s_word_frame_is_widened_whole"),
-        3780,
-        Some(crate::diff::turkish_information_pair::WIDENING_TURKISH_INFORMATION_FRAME_3952),
+        Some("turkish_information_pair_run1454_s_closing_frame_is_widened_whole"),
+        3782,
+        Some(crate::diff::turkish_information_pair::WIDENING_TURKISH_INFORMATION_CLOSING),
     ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
@@ -13792,7 +13795,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 7), East Indies at Hard (item 3772): first try
     // 2551 of 5036; the word's window run1446b over 2495..2801, the rounds
     // compared. Moved to 3952 (item 3780), its window run1452 over
-    // 3895..4202.
+    // 3895..4202. Whole (item 3782), its window run1454 over 4781..5037.
     AiWord {
         line: "Late ages",
         map: "EastIndiesTurkishInformation",
@@ -13800,7 +13803,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::turkish_information_pair::TURKISH_INFORMATION_PAIR_WORD,
         length: 5_036,
         endpoint: Some("turkish_information_pair_run1446_s_closing_state"),
-        window: Some("turkish_information_frame_3952_window"),
+        window: Some("turkish_information_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers
