@@ -204,8 +204,20 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // (`Guy::set_anim+0xf2f < Guy::inc_time+0x271` against theirs'
     // `+0x97a < +0x1ed`); theirs spends `Ammo::do_damage+0xc59`/`+0xc7e`
     // at 7–8, which ours does not.
-    count: 840,
-    sequence: 839,
+    //
+    // Item 3767: **839 → 863**, both together. On 809 the archers' captain
+    // `0/14` re-searches when `1/23` dies, and `Object::compare_target`
+    // scores the pack-casting Bombard `2/23` past `i32`: the original's
+    // `int` wraps negative and clamps to 9,999,999, so the tail reads
+    // 100,000 (run1440's packet runs it: 100,000 for `2/23`, 278,027 for
+    // the Elite Pikemen `2/18`, 194,000 for `2/21`), where ours carried
+    // `i64` and read 7,027,388 — the squad took `2/23` where theirs took
+    // `2/18` (run1440's window: `whom 2 ox 18` from block 810). On 863 ours
+    // spends 13 draws against 14 and parts at index 5: theirs spends
+    // `Unit::close+0xcb6`, `2/23`'s death, a frame before ours
+    // (`docs/GOLDEN.md` §149.5).
+    count: 863,
+    sequence: 863,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -235,13 +247,13 @@ fn gunpowder_melee_first_parting() {
     pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
 }
 
-/// **The word's window** (item 3733, moved by 3757, 3759, 3762 and 3763):
-/// run1413's stride blocks 801..1001 — the word's frame 839 writes no
+/// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763 and
+/// 3767): run1413's stride blocks 801..1101 — the word's frame 863 writes no
 /// block (the stride prints every hundred), so the window is the stride
 /// block before it through 250 frames past it. 3733's was 101..432, on
 /// 182; 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's
-/// 701..1010, on 760.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (801, 1089);
+/// 701..1010, on 760; 3763's 801..1089, on 839.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (801, 1113);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -284,7 +296,7 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
@@ -334,9 +346,18 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // against 1 — and the fight around it: `2/23` dies on 864 against 863
     // (`death:cur_anim` 17 against 18), `0/14`'s `mirror` 1 against 0, and
     // the two computers' squads' hits.
-    pin_eq!(w.firsts.len(), 427, "run1413's word window");
-    pin_eq!(w.rounds_read, (23, 26), "the rounds read");
-    pin_eq!(w.rounds.len(), 23, "the rounds that part");
+    //
+    // Item 3767, on the word moved to 863 (window 801..1113, four blocks):
+    // **669** keys, rounds read (27, 30), 22 parting. Block 801 carries the
+    // standing families alone, as before. **On 901 the archers' `mirror`
+    // rows are gone** — `0/14`, `0/15` and `0/16` take `2/18` on 809 as
+    // theirs does — and the word's own row leads: `2/23`'s
+    // `death:first_frame` 864 against 863 (`death:cur_anim` 17 against
+    // 18), then `2/18`'s death roll (865 both, `cur_anim` 18 against 17),
+    // `2/22`'s attack and `1/0`'s and `2/5`'s moves. 1001 and 1101 fan out.
+    pin_eq!(w.firsts.len(), 669, "run1413's word window");
+    pin_eq!(w.rounds_read, (27, 30), "the rounds read");
+    pin_eq!(w.rounds.len(), 22, "the rounds that part");
 }
 
 /// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
@@ -424,6 +445,76 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
         0,
         "army 2/0 is released, not marching"
     );
+}
+
+/// **The captain's search wraps as the original's `int` does** (item 3767,
+/// `docs/GOLDEN.md` §149.5). On 809 the archers' captain `0/14` (TI 176)
+/// re-searches when `1/23` dies. `Object::compare_target@0064e5c0` holds
+/// its value in a 32-bit `int`: for the pack-casting Bombard `2/23` the
+/// threat term and the caster arm's `× 20` carry it past 2³¹, it wraps
+/// negative, the tail clamps it to 9,999,999 and returns 100,000. run1440's
+/// packet (logger frame 809) runs the original on this very searcher:
+/// **100,000** for `2/23`, **278,027** for the Elite Pikemen `2/18`,
+/// **194,000** for the Elite Light Cavalry `2/21`. So the squad takes
+/// `2/18`, as run1440's window prints from block 810 (`whom 2 ox 18`).
+#[test]
+fn gunpowder_melee_s_captain_scores_the_bombard_in_an_int() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    while built.sim.frame < 809 {
+        built.tick();
+    }
+    let unit = |sim: &sim::Sim, who: u8, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index as usize == o)
+            .unwrap_or_else(|| panic!("{who}/{o} on 809"))
+    };
+    let at = |u| sim::combat::Obj::Unit(u);
+    let captain = at(unit(&built.sim, 0, 14));
+    let pikemen = at(unit(&built.sim, 2, 18));
+    for (o, want, what) in [
+        (23, 100_000, "2/23: the int wraps and clamps"),
+        (18, 278_027, "2/18, as run1440's packet"),
+        (21, 194_000, "2/21, as run1440's packet"),
+    ] {
+        let t = at(unit(&built.sim, 2, o));
+        assert_eq!(
+            built.sim.compare_target(captain, t, true, false),
+            want,
+            "{what}"
+        );
+    }
+    built.tick();
+    let squad: Vec<usize> = (14..=16).map(|o| unit(&built.sim, 0, o)).collect();
+    for (o, u) in (14..=16).zip(squad) {
+        assert_eq!(
+            built.sim.units[u].combat.target,
+            Some(pikemen),
+            "0/{o} takes 2/18 on 809, as run1440's block 810"
+        );
+    }
 }
 
 /// **The Bombard's ground swing waits on its crew's turn** (item 3762,
@@ -541,17 +632,33 @@ fn probe_3767() {
         for l in tr.labels(at) {
             eprintln!("  P{at} thrs {l}");
         }
-        if std::env::var("RON_PROBE_NEAR").is_ok() && (at == 808 || at == 809 || at == 823 || at == 824) {
-            for u in built.sim.units.iter().filter(|x| x.alive() && x.owner != 0 && x.owner < 8) {
+        if std::env::var("RON_PROBE_NEAR").is_ok()
+            && (at == 808 || at == 809 || at == 823 || at == 824)
+        {
+            for u in built
+                .sim
+                .units
+                .iter()
+                .filter(|x| x.alive() && x.owner != 0 && x.owner < 8)
+            {
                 let (dx, dy) = (u.pos.x - 16680, u.pos.y - 15816);
                 eprintln!(
                     "  P{at} near {}/{} ty {:?} at ({}, {}) d2 {}",
-                    u.owner, u.index, u.ty, u.pos.x, u.pos.y,
+                    u.owner,
+                    u.index,
+                    u.ty,
+                    u.pos.x,
+                    u.pos.y,
                     i64::from(dx) * i64::from(dx) + i64::from(dy) * i64::from(dy)
                 );
             }
         }
-        for u in built.sim.units.iter().filter(|x| x.alive() && x.owner == 0 && (14..=16).contains(&x.index)) {
+        for u in built
+            .sim
+            .units
+            .iter()
+            .filter(|x| x.alive() && x.owner == 0 && (14..=16).contains(&x.index))
+        {
             let g = &u.guys[0];
             eprintln!(
                 "  P{at} squad 0/{} captain {} o_down {:?} collide_frame {} stance {:?} tgt {:?}",

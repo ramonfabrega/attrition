@@ -4996,7 +4996,9 @@ impl Sim {
                             };
                             eprintln!(
                                 "  SCORE f{} 0/{} cand {ow}/{ix} dist {dist} targeted {targeted} value {value} in_range {in_range} score {score} best {:?}",
-                                self.frame, self.units[ai_].index, best.map(|b| b.0)
+                                self.frame,
+                                self.units[ai_].index,
+                                best.map(|b| b.0)
                             );
                         }
                         // `local_44` counts a unit candidate here, above the
@@ -5119,13 +5121,13 @@ impl Sim {
         b: usize,
         raiding: bool,
         ai: bool,
-    ) -> Option<impl Fn(i64) -> i64> {
-        let ai_mul: i64 = if ai { 10 } else { 1 };
+    ) -> Option<impl Fn(i32) -> i32> {
+        let ai_mul: i32 = if ai { 10 } else { 1 };
         let human = self
             .nation
             .get(self.owner_of(attacker) as usize)
             .is_some_and(|n| n.human);
-        let mut class: i64 = 1;
+        let mut class: i32 = 1;
         if !raiding && !human {
             let bd = &self.buildings[b];
             let ty = bd.ty;
@@ -5161,7 +5163,7 @@ impl Sim {
                 class = 2;
             }
         }
-        Some(move |v: i64| v * ai_mul * class)
+        Some(move |v: i32| v.wrapping_mul(ai_mul).wrapping_mul(class))
     }
 
     /// Whether the search's `flags` let a candidate through
@@ -5218,7 +5220,7 @@ impl Sim {
         let tp = self.profile(target);
         let is_build = matches!(target, Obj::Building(_));
         let aa = is_build && tp.has(mask::ANTI_AIR);
-        let mut v: i64 = 4 * i64::from(tp.cost);
+        let mut v: i32 = tp.cost.wrapping_mul(4);
         // **A wonder's worth is a twenty-fifth** (`0064e783`–`0064e799`, the
         // target's vslot `+0x2c`, `BuildData::is_wonder`): `cost × 4 / 25`,
         // signed, ahead of every multiplier below.
@@ -5297,9 +5299,9 @@ impl Sim {
             if is_build && raiding && self.active(target) {
                 v /= 20;
             } else {
-                v = v * i64::from(t_attack) * 100 / i64::from(left);
+                v = v.wrapping_mul(t_attack).wrapping_mul(100) / left;
                 if is_build {
-                    v *= 10;
+                    v = v.wrapping_mul(10);
                 }
             }
         }
@@ -5315,7 +5317,7 @@ impl Sim {
                 bd.garrison_attack,
             );
             if arrows < 2 {
-                v *= 2;
+                v = v.wrapping_mul(2);
             } else {
                 v /= 2;
             }
@@ -5324,13 +5326,13 @@ impl Sim {
             && let Obj::Unit(u) = target
         {
             if self.units[u].damage_frac != 0 || self.units[u].health < self.hits_of(target) {
-                v = v * 3 / 2;
+                v = v.wrapping_mul(3) / 2;
             }
             if self.units[u].movement.dest.is_some() {
                 v /= 4;
             }
             if tp.is(role::SUPPLY) {
-                v *= 5000;
+                v = v.wrapping_mul(5000);
             }
         }
         let dmg = {
@@ -5371,9 +5373,9 @@ impl Sim {
             if dmg == 0 {
                 return 0;
             }
-            v /= i64::from(dmg);
+            v /= dmg;
         } else {
-            v *= i64::from(dmg);
+            v = v.wrapping_mul(dmg);
         }
         if is_build {
             // **Armed buildings, a computer's weight** (`0064f124`–`0064f1ed`,
@@ -5405,18 +5407,18 @@ impl Sim {
                     .is_some_and(|n| n.human);
                 if !human && !empty_city {
                     if ap.has(mask::SIEGE) {
-                        v += 1_000_000;
+                        v = v.wrapping_add(1_000_000);
                     } else {
-                        v *= 5;
+                        v = v.wrapping_mul(5);
                     }
                 }
                 if ap.has(mask::SIEGE) {
-                    v += 100_000;
+                    v = v.wrapping_add(100_000);
                 }
             }
         } else {
             if tp.combat_role {
-                v *= 20;
+                v = v.wrapping_mul(20);
             }
             // **A caster is weighed by what it is doing** (`0064ec6f`–`0064ed7b`,
             // `docs/COMBAT.md` §12.3, item 3142): a unit target whose type is
@@ -5433,14 +5435,14 @@ impl Sim {
                 let action = self.action_of(u).map(|i| &self.units[u].orders[i]);
                 match action.map(|o| (o.index(), o.body)) {
                     Some((crate::orders::index::CAST_SPELL, crate::orders::Body::Cast(c))) => {
-                        v *= 20;
+                        v = v.wrapping_mul(20);
                         if c.target == Some(attacker) {
-                            v += 10_000_000;
+                            v = v.wrapping_add(10_000_000);
                         }
                     }
                     _ => {
                         if self.unit_line_is(u, 0x3a) {
-                            v += 6_000_000;
+                            v = v.wrapping_add(6_000_000);
                         }
                     }
                 }
@@ -5488,32 +5490,32 @@ impl Sim {
                         v /= 10;
                     }
                 } else if moving_fire(attacker) && line(target, FIRESHIP) {
-                    v += 1_000_000;
+                    v = v.wrapping_add(1_000_000);
                 } else if flags_of(target) & uflags::TRANSPORT != 0 {
-                    v += 900_000;
+                    v = v.wrapping_add(900_000);
                 } else if line(target, crate::fish::FISHERMEN) {
-                    v += 100_000;
+                    v = v.wrapping_add(100_000);
                 } else if tp.combat_role {
-                    v += 10_000;
+                    v = v.wrapping_add(10_000);
                 }
             } else if raiding {
                 if peasant || tp.is(role::CARAVAN) {
-                    v += if ai_raider { 900_000 } else { 9_000_000 };
+                    v = v.wrapping_add(if ai_raider { 900_000 } else { 9_000_000 });
                 } else if ai_raider && tp.combat_role {
-                    v += 10_000;
+                    v = v.wrapping_add(10_000);
                 } else {
                     v /= 10;
                 }
             } else if tp.combat_role {
-                v += 1_000_000;
+                v = v.wrapping_add(1_000_000);
             } else if tp.is(role::SUPPLY) {
-                v += if matches!(attacker, Obj::Building(_)) {
+                v = v.wrapping_add(if matches!(attacker, Obj::Building(_)) {
                     4_000_000
                 } else {
                     100_000
-                };
+                });
             } else {
-                v += 100_000;
+                v = v.wrapping_add(100_000);
             }
             if matches!(ap.domain, Domain::Land)
                 && ap.has(mask::SIEGE)
@@ -5543,14 +5545,14 @@ impl Sim {
                         self.unit_types[t].cols.unit_flags & uflags::TRANSPORT != 0
                     })
                 {
-                    v *= 40;
+                    v = v.wrapping_mul(40);
                 }
             }
             // **The target's `full + 1`** (`0064f107`–`0064f11b`, item
             // 3385): every unit target's score, Bark or not, is divided
             // by its [`crate::Unit::full`] plus one, `idiv` toward zero.
             if let Obj::Unit(u) = target {
-                v /= i64::from(self.units[u].full) + 1;
+                v /= i32::from(self.units[u].full) + 1;
             }
         }
         if v < 0 {
@@ -5566,9 +5568,9 @@ impl Sim {
         if in_range && !raiding && !self.is_in_range(attacker, target) {
             v /= 5;
         }
-        v = (v + 99) / 100;
+        v = v.wrapping_add(99) / 100;
         if v > 100_000 {
-            v = 100_000 + (v - 100_000) / 5;
+            v = 100_000 + (v - 99_996) / 5;
         }
         if v < 15 {
             v = 15;
@@ -5576,7 +5578,7 @@ impl Sim {
         if matches!(tp.domain, Domain::Air) && !ap.has(mask::ANTI_AIR) {
             v = 2;
         }
-        v.min(i64::from(i32::MAX)) as i32
+        v
     }
 
     fn hits_of(&self, o: Obj) -> i32 {
