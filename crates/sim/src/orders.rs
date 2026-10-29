@@ -1712,6 +1712,8 @@ const BEARINGS: [i32; 31] = [
 
 /// Which of `find_nearby_spot`'s two collision halves a call site asks for
 /// (`docs/ORDERS.md` §10).
+pub static PROBE_RING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Coll {
     /// `FILTER_NOT_ME` / `FILTER_CAN_COLLIDE` with a real `(o, who)` and no
@@ -1924,6 +1926,9 @@ pub fn spot_ring(
                 cand.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
                 cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
             );
+            if PROBE_RING.load(std::sync::atomic::Ordering::Relaxed) {
+                eprintln!("PROBE3782 ring r {} k {} cand ({}, {}) c ({}, {}) mask {:#06x} max {} step {} block {} big {} warship {}", r, k, cand.x, cand.y, c.x, c.y, view.tile_mask(c.tile()), max, step, p.block_radius, p.big_radius, warship);
+            }
             if !view.tile_in_bounds(c.tile()) {
                 continue;
             }
@@ -2009,6 +2014,9 @@ pub fn spot_ring(
                     }
                     (false, Seeker::Type(_)) => view.find_unit_with_radius(p.block_radius, c, None),
                 };
+            if PROBE_RING.load(std::sync::atomic::Ordering::Relaxed) {
+                eprintln!("PROBE3782 ring   reached collision: hit {}", hit);
+            }
             if hit {
                 continue;
             }
@@ -2562,6 +2570,22 @@ impl Sim {
         group: Option<GroupMove>,
         orig: Option<Pos>,
     ) {
+        if std::env::var_os("RON_PROBE_3782").is_some()
+            && (3830..=3836).contains(&self.frame)
+            && self.units[u].owner == 1
+            && matches!(self.units[u].index, 78 | 98 | 105)
+        {
+            eprintln!(
+                "PROBE3782 f{} 1/{} to ({}, {}) {:?} group {:?}\n{}",
+                self.frame,
+                self.units[u].index,
+                to.x,
+                to.y,
+                kind,
+                group,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let mode = i32::from(match kind {
             MoveKind::MoveTo => index::MOVE_TO,
             MoveKind::AttackTo => index::ATTACK_TO,

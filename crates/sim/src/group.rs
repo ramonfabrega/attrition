@@ -2857,6 +2857,30 @@ impl Sim {
             // at (45683, 37689) (item 3711, `docs/AI.md` §363.1).
             let mut slot = self.restrict_pos(slots.to[i]);
             slots.to[i] = slot;
+            let probe = std::env::var_os("RON_PROBE_3782").is_some()
+                && (3830..=3836).contains(&self.frame)
+                && g.who == 1;
+            if probe {
+                eprintln!(
+                    "PROBE3782 move_to f{} list {:?} i {} 1/{} to ({}, {}) angle {} form {} width {} reverse {} flipped {} off {:?} slot ({}, {}) tregion_alt {:?} s0 {:?}",
+                    self.frame,
+                    g.list.iter().map(|&m| self.units[m].index).collect::<Vec<_>>(),
+                    i,
+                    self.units[u].index,
+                    to.x,
+                    to.y,
+                    angle.0,
+                    form,
+                    width,
+                    reverse,
+                    slots.flipped,
+                    slots.off.get(i),
+                    slot.x,
+                    slot.y,
+                    self.world.tregion_alt(slot.tile()),
+                    self.world.tregion_alt(self.restrict_pos(slots.to[0]).tile()),
+                );
+            }
             // §6.6 step 4's **different-region** arm (`705a2a`..`705c9b`):
             // a member past the first whose slot's `get_tregion` — the
             // coastal-water `region2` arm, [`crate::world::World::tregion_alt`]
@@ -2886,12 +2910,17 @@ impl Sim {
                 if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
                     // The type's sweep with `not_o`/`not_who` −1: nothing
                     // is exempt, the member itself included.
+                    if probe {
+                        eprintln!("PROBE3782 region arm 1/{} type {:?} s0 ({}, {})", self.units[u].index, self.region_spot_type(u, s0), s0.x, s0.y);
+                        crate::orders::PROBE_RING.store(self.units[u].index == 98, std::sync::atomic::Ordering::Relaxed);
+                    }
                     slot = self
                         .region_spot_type(u, s0)
                         .and_then(|t| {
                             self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555))
                         })
                         .unwrap_or(s0);
+                    crate::orders::PROBE_RING.store(false, std::sync::atomic::Ordering::Relaxed);
                     // Written back into the table (`param_9 + 0x514`,
                     // `+0x714`), which §6.7's translation reads next.
                     slots.to[i] = slot;
@@ -2910,6 +2939,9 @@ impl Sim {
             // `compute_form` subtracts the same product back off the
             // leader's heading. And its `facing` is the mirror this layout
             // used, which is what the order hands back when it dies.
+            if probe {
+                eprintln!("PROBE3782 move_to final 1/{} slot ({}, {})", self.units[u].index, slot.x, slot.y);
+            }
             let order_angle = Angle(angle.0.wrapping_add(i32::from(slots.angles[i]) << 24));
             // **The order loop's own keep** (`705e5d`–`705ed8`, item 3336):
             // under `QUEUE_NEW` a packer still packing keeps its cast at
@@ -3117,6 +3149,21 @@ impl Sim {
         // The anchor: the sub-group member with the smallest total
         // Manhattan distance to the whole group, in 1024-unit steps.
         let anchor = self.siege_anchor(g, &sub);
+        if std::env::var_os("RON_PROBE_3782").is_some()
+            && (3830..=3836).contains(&self.frame)
+            && g.who == 1
+        {
+            eprintln!(
+                "PROBE3782 siege f{} g {:?} sub {:?} anchor {:?} to ({}, {}) angle {}",
+                self.frame,
+                g.list.iter().map(|&m| self.units[m].index).collect::<Vec<_>>(),
+                sub.list.iter().map(|&m| self.units[m].index).collect::<Vec<_>>(),
+                anchor.map(|a| self.units[a].index),
+                to.x,
+                to.y,
+                angle.0
+            );
+        }
         let Some(anchor) = anchor else {
             self.group_action_move_to(g, to, QueuePos::New, true, angle, MoveKind::AttackTo, true);
             return;
