@@ -14720,6 +14720,11 @@ and the branch still calls no `repath` where `find_new_target` does (parked 3784
 The old window 901..1251 reads **99** keys (660 before), rounds read (36, 36), none parting. Block 1001 keeps only
 two `build:extra` rows.
 
+**And the French lobby's defensive point.** run982b's word window and run982d's last blocks had carried `1/43`'s
+`attack[0].def_x/def_y` since item 3347, ours (6936, 30792) against theirs (8712, 31272). Both now agree on 14598 and
+16740: 30 → 28 keys and 29 → 27 (`french_word::run982b_s_word_frame_is_widened_whole`,
+`run982d_s_last_blocks_are_widened_whole`). The post-arm mutant puts both rows back.
+
 ### 149.10.2 1706 → 1912: a dead crew's number is held once per figure
 
 **The parting.** Walked back over 1201..1706, the window parts first on 1601. Theirs' squad of three Arquebusiers
@@ -14763,7 +14768,8 @@ mechanism is named.
   on its post with theirs' angle on 1001); `gunpowder_melee::gunpowder_melee_s_arquebusiers_squad_skips_the_held_bombard_number`
   (the 1568 squad is 34, 35, 36 and 23 stays empty); `fight::tests::a_crew_s_number_takes_one_bump_per_figure_s_record`
   (four records of lives 3, 5, 8, 8 net +3, +2, +1, then −1 after the cull).
-- Re-pinned: `GUNPOWDER_MELEE` (1913, 1912); the widening at 1901..2162.
+- Re-pinned: `GUNPOWDER_MELEE` (1913, 1912); the widening at 1901..2162; `french_word`'s run982b (28) and run982d
+  (27) windows.
 
 **Mutations** (`tools/mutate.py --edit`):
 - `keep_def_post` dropped from the invalid-target branch: on `gunpowder_melee` **held**, exit 101 (the parting, the
