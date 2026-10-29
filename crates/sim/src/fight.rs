@@ -3791,6 +3791,9 @@ impl Sim {
             } else {
                 Self::BODY_FADE_END
             };
+            if std::env::var_os("RON_PROBE_3784").is_some() {
+                eprintln!("PROBE3784 death f{} {}/{} gpiece {} anim {} frames {} fade {} skel {} sea {}", self.frame, self.units[i].owner, self.units[i].index, gpiece, anim, frames, fade, self.art.piece_skeletons.contains(&gpiece), sea);
+            }
             life = life.max(Some(frames + fade));
         }
         life
