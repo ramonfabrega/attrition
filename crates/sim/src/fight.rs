@@ -4985,6 +4985,20 @@ impl Sim {
                         if halve {
                             score /= 2;
                         }
+                        if std::env::var_os("RON_PROBE_SCORE").is_some()
+                            && let Obj::Unit(ai_) = attacker
+                            && self.units[ai_].owner == 0
+                            && (14..=16).contains(&self.units[ai_].index)
+                        {
+                            let (ow, ix) = match o {
+                                Obj::Unit(u) => (self.units[u].owner, self.units[u].index as i64),
+                                Obj::Building(b) => (self.buildings[b].owner, -(b as i64)),
+                            };
+                            eprintln!(
+                                "  SCORE f{} 0/{} cand {ow}/{ix} dist {dist} targeted {targeted} value {value} in_range {in_range} score {score} best {:?}",
+                                self.frame, self.units[ai_].index, best.map(|b| b.0)
+                            );
+                        }
                         // `local_44` counts a unit candidate here, above the
                         // bearing's skip (`0064979a`), and the ten-unit stop
                         // below is reached only by one that was scored.
