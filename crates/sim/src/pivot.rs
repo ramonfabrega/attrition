@@ -15,7 +15,7 @@
 //! `float`: `Quat<float>::set` reads a 360-entry half-degree table built
 //! from `cosf`/`sinf` at first use, and `Matrix<float>::fill` and the
 //! product are single precision. This module is the same function in
-//! integers: the node's model point in hundredths, the scale as the
+//! integers: the node's model point in millionths, the scale as the
 //! rational 48/10, and a whole-degree sine pinned at 2³⁰
 //! (`docs/DECISIONS.md` entry 16's third shape).
 //!
@@ -34,7 +34,9 @@
 
 use crate::movement::{Angle, angle_to_degrees};
 
-/// A node's model-space point, in **hundredths** of a model unit, as the
+/// A node's model-space point, in **millionths** of a model unit (the
+/// float's value, rounded, as [`Release`] carries it; item 3770 widened it
+/// from hundredths for piece 143's `−3.322791`), as the
 /// piece's `AttachPos` holds it for `(node, anim 0, time 0)`. The height
 /// is not carried: the bearing reads x and y only.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -167,46 +169,313 @@ pub struct Node {
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
 const NODES: &[(i32, i32, Node)] = &[
-    (145, 4, Node { px: 0, py: 2464 }),
-    (296, 4, Node { px: 0, py: -2945 }),
-    (297, 4, Node { px: 0, py: -5037 }),
-    (297, 5, Node { px: 0, py: 586 }),
-    (491, 4, Node { px: 0, py: -148 }),
-    (137, 4, Node { px: -6, py: -148 }),
-    (149, 4, Node { px: 0, py: -148 }),
-    (150, 4, Node { px: 0, py: -338 }),
-    (194, 4, Node { px: 0, py: -96 }),
-    (1545, 4, Node { px: -6, py: -148 }),
-    (1546, 4, Node { px: -6, py: -148 }),
-    (1898, 4, Node { px: -6, py: -148 }),
-    (841, 4, Node { px: -6, py: -148 }),
-    (156, 4, Node { px: -6, py: -148 }),
-    (157, 4, Node { px: 8, py: -148 }),
-    (153, 4, Node { px: 0, py: -338 }),
-    (139, 4, Node { px: 0, py: -148 }),
-    (168, 4, Node { px: 0, py: 179 }),
-    (170, 4, Node { px: -448, py: 1420 }),
-    (166, 4, Node { px: 0, py: 1114 }),
-    (279, 4, Node { px: 0, py: -9165 }),
-    (279, 5, Node { px: 0, py: -6548 }),
-    (279, 6, Node { px: 0, py: 10528 }),
-    (298, 4, Node { px: 0, py: -8488 }),
-    (298, 5, Node { px: 0, py: 10036 }),
-    (278, 4, Node { px: 0, py: -5697 }),
-    (278, 5, Node { px: 0, py: -3695 }),
-    (278, 6, Node { px: 0, py: 10774 }),
-    (189, 4, Node { px: 0, py: -396 }),
-    (190, 4, Node { px: -8, py: -1153 }),
-    (299, 4, Node { px: 0, py: -9534 }),
-    (299, 5, Node { px: 0, py: -4966 }),
-    (299, 6, Node { px: 0, py: 11749 }),
-    (208, 4, Node { px: 0, py: 313 }),
-    (196, 4, Node { px: 0, py: -97 }),
-    (169, 4, Node { px: 0, py: -7 }),
-    (200, 4, Node { px: 0, py: 558 }),
+    (
+        145,
+        4,
+        Node {
+            px: 0,
+            py: 24_640_000,
+        },
+    ),
+    (
+        296,
+        4,
+        Node {
+            px: 0,
+            py: -29_450_000,
+        },
+    ),
+    (
+        297,
+        4,
+        Node {
+            px: 0,
+            py: -50_370_000,
+        },
+    ),
+    (
+        297,
+        5,
+        Node {
+            px: 0,
+            py: 5_860_000,
+        },
+    ),
+    (
+        491,
+        4,
+        Node {
+            px: 0,
+            py: -1_480_000,
+        },
+    ),
+    (
+        137,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        149,
+        4,
+        Node {
+            px: 0,
+            py: -1_480_000,
+        },
+    ),
+    (
+        150,
+        4,
+        Node {
+            px: 0,
+            py: -3_380_000,
+        },
+    ),
+    (
+        194,
+        4,
+        Node {
+            px: 0,
+            py: -960_000,
+        },
+    ),
+    (
+        1545,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        1546,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        1898,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        841,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        156,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        157,
+        4,
+        Node {
+            px: 80_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        153,
+        4,
+        Node {
+            px: 0,
+            py: -3_380_000,
+        },
+    ),
+    (
+        139,
+        4,
+        Node {
+            px: 0,
+            py: -1_480_000,
+        },
+    ),
+    (
+        168,
+        4,
+        Node {
+            px: 0,
+            py: 1_790_000,
+        },
+    ),
+    (
+        170,
+        4,
+        Node {
+            px: -4_480_000,
+            py: 14_200_000,
+        },
+    ),
+    (
+        166,
+        4,
+        Node {
+            px: 0,
+            py: 11_140_000,
+        },
+    ),
+    (
+        279,
+        4,
+        Node {
+            px: 0,
+            py: -91_650_000,
+        },
+    ),
+    (
+        279,
+        5,
+        Node {
+            px: 0,
+            py: -65_480_000,
+        },
+    ),
+    (
+        279,
+        6,
+        Node {
+            px: 0,
+            py: 105_280_000,
+        },
+    ),
+    (
+        298,
+        4,
+        Node {
+            px: 0,
+            py: -84_880_000,
+        },
+    ),
+    (
+        298,
+        5,
+        Node {
+            px: 0,
+            py: 100_360_000,
+        },
+    ),
+    (
+        278,
+        4,
+        Node {
+            px: 0,
+            py: -56_970_000,
+        },
+    ),
+    (
+        278,
+        5,
+        Node {
+            px: 0,
+            py: -36_950_000,
+        },
+    ),
+    (
+        278,
+        6,
+        Node {
+            px: 0,
+            py: 107_740_000,
+        },
+    ),
+    (
+        189,
+        4,
+        Node {
+            px: 0,
+            py: -3_960_000,
+        },
+    ),
+    (
+        190,
+        4,
+        Node {
+            px: -80_000,
+            py: -11_530_000,
+        },
+    ),
+    (
+        299,
+        4,
+        Node {
+            px: 0,
+            py: -95_340_000,
+        },
+    ),
+    (
+        299,
+        5,
+        Node {
+            px: 0,
+            py: -49_660_000,
+        },
+    ),
+    (
+        299,
+        6,
+        Node {
+            px: 0,
+            py: 117_490_000,
+        },
+    ),
+    (
+        208,
+        4,
+        Node {
+            px: 0,
+            py: 3_130_000,
+        },
+    ),
+    (
+        196,
+        4,
+        Node {
+            px: 0,
+            py: -970_000,
+        },
+    ),
+    (169, 4, Node { px: 0, py: -70_000 }),
+    (
+        200,
+        4,
+        Node {
+            px: 0,
+            py: 5_580_000,
+        },
+    ),
     (207, 4, Node { px: 0, py: 0 }),
-    (199, 4, Node { px: -569, py: -919 }),
+    (
+        199,
+        4,
+        Node {
+            px: -5_690_000,
+            py: -9_190_000,
+        },
+    ),
     (204, 4, Node { px: 0, py: 0 }),
+    (
+        143,
+        4,
+        Node {
+            px: 20,
+            py: -3_322_791,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -236,6 +505,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (207, (3, 4)),
     (199, (4, 5)),
     (204, (3, 4)),
+    (143, (9, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -287,11 +557,6 @@ const fn sin_deg(d: i32) -> i64 {
 /// `cos(d°)` at 2³⁰.
 const fn cos_deg(d: i32) -> i64 {
     sin_deg(d + 90)
-}
-
-/// `n / d` toward zero, as `cvttss2si` truncates.
-const fn trunc_div(n: i64, d: i64) -> i32 {
-    (n / d) as i32
 }
 
 /// **A piece whose `AttachPos` rows are another's, bit for bit**: `(piece,
@@ -404,13 +669,18 @@ pub fn offset_at(piece: i32, node_index: i32, d: i32) -> (i32, i32) {
     let Some(n) = node(piece, node_index) else {
         return (0, 0);
     };
-    let (px, py) = (n.px, n.py);
-    let (c, s) = (cos_deg(d), sin_deg(d));
+    // Toward zero, as `cvttss2si` truncates; in `i128`: a millionth's product with the 2³⁰ sine and the scale
+    // passes `i64` on the Battleship's 117.49.
+    let (px, py) = (i128::from(n.px), i128::from(n.py));
+    let (c, s) = (i128::from(cos_deg(d)), i128::from(sin_deg(d)));
     let (num, den) = scale(piece);
-    let den = den * 100 * ONE;
+    let (num, den) = (
+        i128::from(num),
+        i128::from(den) * 1_000_000 * i128::from(ONE),
+    );
     (
-        trunc_div(num * (px * c + py * s), den),
-        trunc_div(num * (px * s - py * c), den),
+        (num * (px * c + py * s) / den) as i32,
+        (num * (px * s - py * c) / den) as i32,
     )
 }
 
@@ -455,6 +725,18 @@ const FLOAT_LANDS_170_A12_T4: &[(i32, i32, i32, i32)] =
 const FLOAT_LANDS_170_A12_T19: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_170_A13_T4: &[(i32, i32, i32, i32)] = &[(281, 319, 87, -72)];
 const FLOAT_LANDS_170_A13_T19: &[(i32, i32, i32, i32)] = &[];
+/// Piece 143's [`Release::float_lands`], one list per anim (item 3770,
+/// run1440's packet).
+const FLOAT_LANDS_143_A10: &[(i32, i32, i32, i32)] = &[
+    (212, 52, 140, 27),
+    (302, 52, -27, 140),
+    (343, 280, 136, 57),
+    (130, 353, -88, -127),
+    (310, 353, 88, 127),
+];
+const FLOAT_LANDS_143_A11: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_143_A12: &[(i32, i32, i32, i32)] = &[(204, 69, 114, 28)];
+const FLOAT_LANDS_143_A13: &[(i32, i32, i32, i32)] = &[];
 /// Piece 204's [`Release::float_lands`], one list per `(anim, time)` row
 /// (item 3758, run1437's packet).
 const FLOAT_LANDS_204_A11_T11: &[(i32, i32, i32, i32)] = &[];
@@ -1359,6 +1641,66 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, -1_480_000, 31_049_999],
             at: [-4_867_605, -28_791_185, 12_283_539],
             float_lands: &[],
+        },
+    ),
+    // **The Camel Raider, piece 143** (unit type 193, `CAMELRAIDER`, the
+    // Nubian camel archer; item 3770, `docs/GOLDEN.md` §149.6): run1440's
+    // packet (logger frame 809 of the first melee's lobby) holds the piece's
+    // nine entries — the `(4, 0, 0)` [`NODES`] reads, `RData +0x88` 0.9, and
+    // for each of its four `<RELEASEEVENT>`s (node 0; frame 12 of
+    // `CHAR_ATTACKWALK` and `CHAR_ATTACK1`, 13 of `CHAR_ATTACK2`, 18 of
+    // `CHAR_ATTACK3`) the pivot node's and the release node's. Without them
+    // the human's `0/17` loosed every round from its own square (17400,
+    // 15672) at 477, where run1440's window prints (17282, 15746, 742) and
+    // (17274, 15736, 758) — `CHAR_ATTACK3` and `CHAR_ATTACK2` at the dump's
+    // own turret step 4 — and its round of 859 struck the Inca Bombard `2/23`
+    // on 864, a frame after the original's.
+    (
+        143,
+        crate::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 143,
+            node: 0,
+            pivot: [1_680, -4_242_180, 47_731_030],
+            at: [-12_995_936, -28_961_021, 7_432_457],
+            float_lands: FLOAT_LANDS_143_A10,
+        },
+    ),
+    (
+        143,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 143,
+            node: 0,
+            pivot: [6_233, -3_512_383, 49_157_646],
+            at: [-7_473_044, -25_987_869, 3_148_621],
+            float_lands: FLOAT_LANDS_143_A11,
+        },
+    ),
+    (
+        143,
+        crate::anim::ATTACK2,
+        13,
+        Release {
+            piece: 143,
+            node: 0,
+            pivot: [2_467_945, -4_790_035, 48_574_203],
+            at: [-10_437_510, -27_476_112, 16_682_030],
+            float_lands: FLOAT_LANDS_143_A12,
+        },
+    ),
+    (
+        143,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 143,
+            node: 0,
+            pivot: [20, -3_322_791, 49_239_670],
+            at: [-4_862_028, -28_742_996, 12_248_196],
+            float_lands: FLOAT_LANDS_143_A13,
         },
     ),
     // **The Tank** (item 3244): run938b's packet (logger frame 630, ch100's
@@ -3703,7 +4045,13 @@ mod tests {
                 .any(|a| [4, 19].into_iter().any(|t| fits(a, t, shot)));
             assert!(any, "({x}, {y}) at {facing}: no key");
         }
-        assert_eq!(node(170, 4), Some(Node { px: -448, py: 1420 }));
+        assert_eq!(
+            node(170, 4),
+            Some(Node {
+                px: -4_480_000,
+                py: 14_200_000
+            })
+        );
     }
 
     /// **The `MARK4`'s round leaves from its turret's muzzle** (item 3683,
@@ -3718,7 +4066,13 @@ mod tests {
         for (a, t) in [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 1)] {
             assert!(release(190, a, t).is_some(), "anim {a}");
         }
-        assert_eq!(node(190, 4), Some(Node { px: -8, py: -1153 }));
+        assert_eq!(
+            node(190, 4),
+            Some(Node {
+                px: -80_000,
+                py: -11_530_000
+            })
+        );
         let r = release(190, ATTACK1, 4).unwrap();
         let f = Angle(-1_081_802_752);
         let fits: Vec<i32> = (-128..128)
@@ -3914,6 +4268,91 @@ mod tests {
             }
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The Camel Raider's rounds leave from its pivot** (item 3770,
+    /// `docs/GOLDEN.md` §149.6): the two `0/17` rounds run1440's window
+    /// prints from their first frame, 801 and 825, beside the figure's `GUY`
+    /// pose — (17400, 15672), `angle` −1618280448, `z` 477, `turret_angles[0]`
+    /// 73138176 — are `CHAR_ATTACK3`'s and `CHAR_ATTACK2`'s at the dump's own
+    /// turret step 4 and no other. Made to fail with piece 143's rows out:
+    /// both leave the figure's own square.
+    #[test]
+    fn the_camel_raider_s_rounds_leave_from_its_pivot() {
+        use crate::anim::{ATTACK2, ATTACK3};
+        let (x, y, z, f) = (17400, 15672, 477, -1_618_280_448);
+        for (a, t, sx, sy, sz) in [
+            (ATTACK3, 18, 17282, 15746, 742),
+            (ATTACK2, 13, 17274, 15736, 758),
+        ] {
+            let r = release(143, a, t).expect("every Camel Raider release row");
+            let fits: Vec<i32> = (-128..128)
+                .filter(|i| {
+                    let (dx, dy, _) = release_offset(&r, Angle(f), i << 24);
+                    (x + dx, y + dy) == (sx, sy)
+                })
+                .collect();
+            assert_eq!(fits, [73_138_176 >> 24], "anim {a}");
+            assert_eq!(
+                z + release_offset(&r, Angle(f), 73_138_176).2,
+                sz,
+                "anim {a} height"
+            );
+        }
+    }
+
+    /// **Piece 143, the Camel Raider: the original's release on every
+    /// cell** (item 3770): `tools/recomp/get_position.py … pivot 143 0
+    /// <anim> <time> 1` on run1440's packet, 361 facings × 256 turret steps
+    /// for each of the four rows, agrees with [`release_offset_at`] on every
+    /// cell, its [`Release::float_lands`] included; and its pivot node's
+    /// `sweep 143 4 0 0` with [`offset_at`] on every degree. The tables stay
+    /// outside git (`RON_RELEASE_TABLE_143`, the directory holding them).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_143() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_143") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_143 (item 3770's oracle, run1440)");
+            return;
+        };
+        let read = |name: &str, cols: usize| -> Vec<Vec<i32>> {
+            let path = format!("{dir}/{name}");
+            std::fs::read_to_string(&path)
+                .unwrap_or_else(|_| panic!("{path}"))
+                .lines()
+                .map(|line| {
+                    line.split_whitespace()
+                        .take(cols)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect()
+                })
+                .collect()
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 12),
+            (crate::anim::ATTACK1, 12),
+            (crate::anim::ATTACK2, 13),
+            (crate::anim::ATTACK3, 18),
+        ] {
+            let r = release(143, slot, time).expect("the row");
+            for f in read(&format!("pivot-143-a{slot}-t{time}.txt"), 6) {
+                let (x, y, z) = release_offset_at(&r, f[0], f[2]);
+                if (x, y, z) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "{slot} ({}, {}, {}, {}) z {z}",
+                        f[0], f[2], f[3], f[4]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        for f in read("sweep-143-4-0-0.txt", 5) {
+            if offset_at(143, 4, f[0]) != (f[2], f[3]) {
+                off.push(format!("node {} ({}, {})", f[0], f[2], f[3]));
+            }
+        }
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
@@ -5067,7 +5506,13 @@ mod tests {
             let (x, y, _) = release_offset(&r, Angle(facing), turret);
             assert_eq!((fx + x, fy + y), (sx, sy), "slot {slot} from ({fx}, {fy})");
         }
-        assert_eq!(node(1546, 4), Some(Node { px: -6, py: -148 }));
+        assert_eq!(
+            node(1546, 4),
+            Some(Node {
+                px: -60_000,
+                py: -1_480_000
+            })
+        );
     }
 
     /// **run1011b's Inca Horse Archer `1/72`** (item 3385, `docs/AI.md`
@@ -5083,7 +5528,13 @@ mod tests {
         let r = release(841, crate::anim::ATTACKWALK, 18).expect("the Inca Horse Archer's row");
         let (x, y, z) = release_offset(&r, Angle(-1_717_370_880), 1_182_990_336);
         assert_eq!((7629 + x, 31482 + y, 652 + z), (7563, 31441, 893));
-        assert_eq!(node(841, 4), Some(Node { px: -6, py: -148 }));
+        assert_eq!(
+            node(841, 4),
+            Some(Node {
+                px: -60_000,
+                py: -1_480_000
+            })
+        );
     }
 
     /// **run1007b's Heavy Horse Archer `1/64`** (item 3383, `docs/AI.md`
@@ -5099,7 +5550,13 @@ mod tests {
         let r = release(1898, crate::anim::ATTACK1, 18).expect("the Heavy Horse Archer's row");
         let (x, y, z) = release_offset(&r, Angle(-1_104_936_960), 262_209_536);
         assert_eq!((8760 + x, 30264 + y, 641 + z), (8675, 30245, 866));
-        assert_eq!(node(1898, 4), Some(Node { px: -6, py: -148 }));
+        assert_eq!(
+            node(1898, 4),
+            Some(Node {
+                px: -60_000,
+                py: -1_480_000
+            })
+        );
     }
 
     /// **run943b's Horse Archers `1/51`** (item 3255, `docs/AI.md` §257):
@@ -5121,7 +5578,13 @@ mod tests {
             let (x, y, _) = release_offset(&r, facing, turret);
             assert_eq!((fx + x, fy + y), (sx, sy), "slot {slot}");
         }
-        assert_eq!(node(1545, 4), Some(Node { px: -6, py: -148 }));
+        assert_eq!(
+            node(1545, 4),
+            Some(Node {
+                px: -60_000,
+                py: -1_480_000
+            })
+        );
     }
 
     /// **The original's pivot branch on every cell, for piece 156** (item
@@ -5257,8 +5720,20 @@ mod tests {
             release(297, crate::anim::ATTACK2, 3).map(|r| release_offset_at(&r, d, 0).2),
             Some(130)
         );
-        assert_eq!(node(297, 4), Some(Node { px: 0, py: -5037 }));
-        assert_eq!(node(297, 5), Some(Node { px: 0, py: 586 }));
+        assert_eq!(
+            node(297, 4),
+            Some(Node {
+                px: 0,
+                py: -50_370_000
+            })
+        );
+        assert_eq!(
+            node(297, 5),
+            Some(Node {
+                px: 0,
+                py: 5_860_000
+            })
+        );
     }
 
     /// **run1305's Musket Horse `1/54`** (item 3645, `docs/AI.md` §336):
@@ -5278,7 +5753,13 @@ mod tests {
             })
             .collect();
         assert!(!fits.is_empty(), "no turret step reproduces 1/54's round");
-        assert_eq!(node(157, 4), Some(Node { px: 8, py: -148 }));
+        assert_eq!(
+            node(157, 4),
+            Some(Node {
+                px: 80_000,
+                py: -1_480_000
+            })
+        );
     }
 
     /// **run1235's Eagle Feather Horse `1/32`** (item 3588, `docs/AI.md`
@@ -5293,7 +5774,13 @@ mod tests {
         assert_eq!(release_rotation(Angle(56_098_816)), 184);
         let (x, y, z) = release_offset_at(&r, 184, 316);
         assert_eq!((5544 + x, 10152 + y, 34 + z), (5484, 10096, 263));
-        assert_eq!(node(156, 4), Some(Node { px: -6, py: -148 }));
+        assert_eq!(
+            node(156, 4),
+            Some(Node {
+                px: -60_000,
+                py: -1_480_000
+            })
+        );
     }
 
     /// **The original's pivot branch on every cell, for piece 153** (item
@@ -5376,7 +5863,13 @@ mod tests {
                 "({x}, {y}) at {facing} (degree {d}): ({sx}, {sy}, {dz})"
             );
         }
-        assert_eq!(node(153, 4), Some(Node { px: 0, py: -338 }));
+        assert_eq!(
+            node(153, 4),
+            Some(Node {
+                px: 0,
+                py: -3_380_000
+            })
+        );
     }
 
     /// **The Golden Horde's dumped rounds read piece 153's rows** (item
@@ -5429,7 +5922,13 @@ mod tests {
             }
         }
         assert!(off.is_empty(), "{off:#?}");
-        assert_eq!(node(154, 4), Some(Node { px: 0, py: -338 }));
+        assert_eq!(
+            node(154, 4),
+            Some(Node {
+                px: 0,
+                py: -3_380_000
+            })
+        );
     }
 
     /// The table is the sine: a quarter turn, the thirty and the axes.
