@@ -33923,3 +33923,35 @@ read 136 GiB free before it.
 ours in launch, landing and `total_time`; `0/20`'s `damage` holds at 25 + 14/16 through block 865. On block 861 its
 `MOVEORDER` is at (20424, 12216), with path (20424, 12216) … (17352, 15288), and the trace's calls show the A* on 860:
 `find_attack_pos`'s flanking lead on the running Light Horse `1/16`.
+
+## run1465 — the second melee: the leaders' window 1376..1383 (2026-10-29, item 3793, `att-3793`)
+
+`docs/GOLDEN.md` §150.5. **What the disk could not answer**: run1450's stride blocks print no `LEADERDATA` from 701
+to 2601, so who=1's stock and make list on 1382 were on no record. run1457's line with `--end-frame 1384
+--log-window 1376 1383`, detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2`, no tracer defs.
+- Pool lane 1, seed 12345 (observed 12345). Launched 11:47:33, exited 11:47:52 (19.3 s launch to exit). `success`:
+  1385 frames, `page_faults` 0, `relaunches: []`. `rngcmp.py` against run1450: 1385 of 1385 identical. Filed with
+  `filerun.py` as `gamelog-run1465-greatsahara-classical-melee-leaders-window-1376-1383.txt`. `df -g ~` read 134 GiB
+  free before it. Minutes waited on another lane: none.
+- `LEADERS=2` prints the stock but not the make list, and the window's last printed block is 1382 (the state before
+  frame 1382's purchases), hence run1465b.
+
+Archive `gamelog-run1465-greatsahara-classical-melee-leaders-window-1376-1383.txt`, 2,262,818 bytes,
+SHA-256 `4c00fb1c19a5c7f21262e94d2842b22ee8377dd8a5235f3b1c1dd917853813d2`.
+Archive `rontrace-run1465.log`, 24,448,608 bytes,
+SHA-256 `aa63b33b96cc96055c3e2f61e35a73f7a733e33bdc578cf341b6f327269f5bc1`.
+
+## run1465b — the second melee: the make lists' window 1380..1385 (2026-10-29, item 3793, `att-3793`)
+
+run1465's line with `--end-frame 1386 --log-window 1380 1385` and `LEADERS=9`. Pool lane 1, seed 12345. Launched
+11:49:32, exited 11:49:50 (18.4 s launch to exit). `success`: 1387 frames, `page_faults` 0, `relaunches: []`.
+`rngcmp.py` against run1450: 1387 of 1387 identical. Filed as
+`gamelog-run1465b-greatsahara-classical-melee-makelist-window-1380-1385.txt`. Minutes waited on another lane: none.
+- **What it holds**: who=1's make list on blocks 1380–1384 (block 1382: Scholar, Light Horse `val` 4,584,896, Temple
+  391,136, …) and stock (block 1383: 29, 55, 35); every leader's `num_units` (who=0 on 1380: TI 50 ×13, 69, 89, 154,
+  158).
+
+Archive `gamelog-run1465b-greatsahara-classical-melee-makelist-window-1380-1385.txt`, 10,621,088 bytes,
+SHA-256 `e9b4f696ee744fbbd05e450fd1d9b63cb8dd54a6b78baa7371ab0c0c3de650e2`.
+Archive `rontrace-run1465b.log`, 24,457,792 bytes,
+SHA-256 `e2e964cc4a7573e7239cd391e58427dcf68de41f938cf824983f9fd261431912`.

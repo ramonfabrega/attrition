@@ -159,6 +159,7 @@ pub mod production;
 pub mod rally;
 pub mod rares;
 pub mod redo_patrol_view;
+pub mod relative_value;
 pub mod remove_inside_view;
 pub mod repair_view;
 pub mod roads;
@@ -998,6 +999,9 @@ pub struct UnitType {
     /// `352..`). The animals are unit types with a `WHERE` of Large City, and
     /// several of the original's loops stop before them.
     pub gaia: bool,
+    /// What [`relative_value::relative_value`] reads of the type, fixed at
+    /// load as `UnitType::fill_relative_values@0061be50`'s table is.
+    pub rel: relative_value::Facts,
 }
 
 /// What a player has built, as the price and the population cap see it.
