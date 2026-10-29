@@ -159,8 +159,19 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // slot 1284. On 1382 ours spends 20 draws against 21, parting at
     // index 2: ours `Leader::produce_building+0x1805` where theirs spends
     // `Leader::make_stuff+0x63d`.
-    count: 1382,
-    sequence: 1382,
+    //
+    // **1382 → 2600, whole, item 3793** (§150.5): `unit_prod_value` reads
+    // `UnitTypeData::relative_value`, the matchup table
+    // `UnitType::fill_relative_values` fills at load, not the combat
+    // table. who=1's Light Horse (TI 209) against the human's Barbarians,
+    // Bushi and Royal Balamob Slingers reads −170 in theirs, so its
+    // escrowed offer of 1380 is 4,584,896 and ranks above the Temple
+    // (391,136): on 1382 theirs buys two Light Horse and a Citizen with
+    // the wood, and the Temple — ours' `produce_building` — waits. Ours
+    // read −24 and offered 130,624. run1465b's `LEADERS=9` window
+    // prints both lists.
+    count: 2600,
+    sequence: 2600,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -502,8 +513,9 @@ fn classical_melee_s_egyptians_catch_up_to_city_state() {
 
 /// The word's window on run1450's stride: the block before the word to
 /// 250 frames past it (item 3789 moved it from 601..968 with the word,
-/// item 3790 from 1201..1534).
-pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1301, 1632);
+/// item 3790 from 1201..1534). Item 3793 closes the game: the window is
+/// 1301 through the closing block 2601.
+pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1301, 2601);
 
 /// The word's window, widened whole on run1450's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -517,7 +529,7 @@ pub(crate) fn classical_melee_word_window() -> Option<harness::tests::Widened> {
             &[(MELEE_LONG.0, WIDENING_CLASSICAL_MELEE.0)],
             WIDENING_CLASSICAL_MELEE,
             1,
-            &[],
+            &[2601],
             true,
         )
     })
@@ -550,13 +562,79 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    // Item 3793, the game whole (window 1301..2601, thirteen stride blocks
+    // and the closing block): **150** keys, rounds read (6, 6), none
+    // parting (686 keys and 5 rounds parting on 1301..1632 before). Block
+    // 1301 carries the standing families alone (`build:extra` 42, `form`
+    // 40, the groups' `held` and pools); later blocks add only those
+    // families as each unit is born (a birth's `g.angle`, a new group's
+    // `held`, a new building's `build:extra`); the closing block 2601 adds
+    // the idle human's citizens `0/1`..`0/7`, which hold an order in ours
+    // and stand idle in theirs (parked 3793a). The closing state is
+    // `classical_melee_run1450_s_closing_state`.
+    pin_eq!(w.blocks, 14, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 686, "run1450's word window");
-    pin_eq!(w.rounds_read, (5, 2), "the rounds read");
-    pin_eq!(w.rounds.len(), 5, "the rounds that part");
+    pin_eq!(w.firsts.len(), 150, "run1450's word window");
+    pin_eq!(w.rounds_read, (6, 6), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The second melee's closing state** (item 3793, `docs/GOLDEN.md`
+/// §150.5): run1450's closing block, the whole map's units, walked from
+/// run1449's start with the script staged.
+#[test]
+fn classical_melee_run1450_s_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(MELEE_LONG.0), dump(MELEE_START), trace(MELEE_LONG.1))
+    else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let Some(e) = crate::diff::setup::with_staged_script(melee_script(), || {
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(path);
+        let start_text = crate::capture::read(start);
+        let log = Log::parse(&text);
+        let start_log = Log::parse(&start_text);
+        let mut init = log.initial().unwrap();
+        let sibling = start_log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sibling]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let fin = log
+            .final_state()
+            .or_else(|| log.frame_states().pop())
+            .expect("closing whole-map state");
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        eprintln!(
+            "Classical melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+            e.frame,
+            e.compared,
+            e.counts(),
+            e.torn,
+            e.off,
+            e.unlinked,
+            e.extra
+        );
+        Some(e)
+    }) else {
+        return;
+    };
+    pin_eq!(e.frame, 2601, "the closing block");
+    // Item 3793, the game whole: 95 units compared, every count zero, no
+    // extra. One unit is torn: the idle human's Citizen `0/6` stands at
+    // (35472, 33327) in ours against (35450, 33316), holding two orders
+    // where theirs' stands idle (parked 3793a).
+    pin_eq!(e.compared, 95, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.torn.clone(), vec![(0, 6)], "the closing tears");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

@@ -2349,6 +2349,14 @@ impl Sim {
     /// leaders field than they are against it, weighted by their counts and
     /// capped at ten of each type. Zero for anything that is not a
     /// non-siege military type.
+    ///
+    /// **"Better" is `UnitTypeData::relative_value`**
+    /// ([`crate::relative_value`]), the matchup table the loader fills from
+    /// the two types' masks — not the combat table's `return_modifier`,
+    /// which this read until item 3793 (`docs/GOLDEN.md` §150.5): the
+    /// second melee's Light Horse read −24 against the Nubians where the
+    /// original reads −170. The walk stops before the gaia types, as the
+    /// original's `0x32..0x192` does.
     fn unit_prod_value(&self, who: Player, t: TypeId) -> i32 {
         let Some(f) = self.unit_facts(t) else {
             return 0;
@@ -2372,6 +2380,9 @@ impl Sim {
                 continue;
             }
             for k in 0..self.unit_types.len() {
+                if self.unit_types[k].gaia {
+                    break;
+                }
                 let n = self.muster[j].by_type[k];
                 if n == 0 {
                     continue;
@@ -2394,8 +2405,10 @@ impl Sim {
                     continue;
                 }
                 let weight = n.min(10);
+                let (mine, theirs) = (&self.unit_types[f.rec].rel, &self.unit_types[k].rel);
                 sum = sum.wrapping_add(wm(
-                    self.table.pct(f.rec, k) - self.table.pct(k, f.rec),
+                    crate::relative_value::relative_value(mine, theirs)
+                        - crate::relative_value::relative_value(theirs, mine),
                     weight,
                 ));
                 total += weight;
