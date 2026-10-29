@@ -11091,3 +11091,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1433  run1407's line with --ai-tribe 11 and run1432's lobby   (the draw stream; ended itself on 3793)
 #   run1433b --map 14 --end-frame 3793 --allow-early-end --timeout 3600 --log-window 3538 3794 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1432's lobby   (the closing window)
 # Checks: `rngcmp.py` run1432 vs run1433 -> 37 identical; run1433 vs run1433b -> 3794 identical.
+# ==== item 3771: the Romans at a held Modern age, East Indies, at difficulty 4 (`docs/AI.md` §377; `docs/RUNS.md` run1443, run1444, run1444b) ====
+#   run1443  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1444  run1431's line with --ai-tribe 6 and run1443's lobby   (the draw stream; ended itself on 5234)
+#   run1444b --map 18 --end-frame 5234 --allow-early-end --timeout 3600 --log-window 4979 5235 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 6 --cover cover=0, run1443's lobby   (the closing window)
+# Checks: `rngcmp.py` run1443 vs run1444 -> 37 identical; run1444 vs run1444b -> 5235 identical.

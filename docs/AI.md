@@ -37322,12 +37322,63 @@ theirs on run1433b's last blocks. Ours makes them on the closing step alone. The
 **Not established**: the Lancaster piece's number and its bay rows (a packet that loads it, as §372.4's
 run1437); what writes `accuracy` 0 in ours; and what ours builds on the closing step that theirs does not.
 
-## 377. Reserved for the next item on the AI track
+## 377. The Romans at a held Modern age, East Indies: whole on its first try, 5234 of 5234 (item 3771)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3771, 2026-10-29, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4, 102 §3). This is §375's lobby with the
+nation moved: `MAP_STYLE 18`, human Nubians (4) against the **Romans (6)** at Difficulty 4, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. Both `GAME INFO`s read the 6s and the 4
+back, and `Pair::assert_lobby` asserts them. The captures are run1443 (a `DUMP_ALL` start) and run1444 (the draw
+stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1444 ended itself on 5234. The walk is seeded
+from run1443's initial state (3506a). `diff::roman_modern_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(18, 6, 4)`, is minted** under entry 72's rule (3): `python3 tools/refill.py 18 6 4` reads
+`(18, 6, 4) free` on this tree. The Romans hold East Indies at 2 (`roman_word`) and 5 (`roman_medieval_pair`),
+Great Lakes at 5 (`roman_gunpowder_pair`) and Great Sahara at 5 (`roman_classical_pair`); the battery's one
+Roman game is the held-out `GreatLakesRomanTier2`, `(14, 6, 2)`. `roman_modern_pair_is_no_other_lobby` asserts
+all of it.
+
+**The cast**, read by `rubric.py --tables 3 --dumps` on the three takes (29 types):
+- **the booked line**: `Heavy Machine Gun[HVYMACHINEGUNGERMAN]` (126), fielded, ×4256 records;
+- **the generic Modern land lines, in the art the Romans field them in**: `Infantry[INFANTRYGER]` (103),
+  Flamethrower (131), `Bazooka[BAZOOKAGERMAN]` (140), `Armored Scout Car[ARMOREDCAR2]` (219), `Tank[PANZER]`
+  (250), `Howitzer[HUMMEL]` (272), `Anti-Aircraft Battery[FLAKGUNGERMAN]` (283), Nuclear Missile (315);
+- **the air**: `Fighter[ME109]` (292) and Bomber (304);
+- **the sea**: Cruiser (329), Submarine (338), Battleship (349), besides the Transport Freighter (322);
+- Special Forces (75) besides.
+
+`Heavy Machine Gun` 126 is the one type new to the lockstep ledger (`--tables 3` reads 262 of 302, one more than
+the base's 261, and 126 is the Romans' line on the sixty-second pass's never list).
+`census::RUBRIC_UNIT_TYPES_SEEN` moves 261 → 262. The lockstep bytes stay at 77.4 % (`cover=0`).
+
+**The score: whole on the first try, 5234 of 5234**, the count and the sequence together. No draw parts to the
+game's last frame. The closing block 5235 compares **235 units, every count zero**: none off, torn, unlinked or
+extra (`roman_modern_pair_run1444_s_closing_state`).
+
+**The windows:**
+- **The stride** (run1444, 101..5201): 52 blocks and **186 keys**, every one a standing family: `form` on 75
+  units, `build:extra` on 61 buildings, who=1's groups' `held` (groups 64..88) and their pools, 25 each. No
+  position, order or path key parts.
+- **The closing window** (run1444b, 4979..5235, at the long's detail with `BUILDS`, `CITIES`, `LEADERS=9` and
+  `AMMO=5`, walked from run1443 with every round compared): 256 blocks and **127 keys**, all first on block 4979:
+  `form` on 58 units, the groups' `held` and pools (23 each), who=0's `SITE[0..9].reg` (65 against 0) and
+  `aggression[1]` (0 against 1), and three of who=1's leader fields (below). **Rounds read 63 against 63, none
+  parting** — the first Modern pair since §372 whose rounds all agree, with no launch-point row owed.
+
+**The residue under the whole score** (parked 3771a). It moves no score, so it is not built here:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4979 | who=1's leader | `bucket[0:food]` | 11012 | 11014 |
+| 4979 | the same | `bucket[1:timber]` | 13760 | 13759 |
+| 4979 | the same | `leftover[0:food]` | 5400 | 2200 |
+| 5234 | the same | `bucket[0:food]`; `leftover[0:food]` | 10054; 3200 | 10056; 0 |
+
+The run prints no leader record between the start and block 4979, so where the buckets first part is not on
+disk.
+
+**Not established**: where who=1's food and timber buckets part (a `LEADERS=9` window earlier in the game).
 
 ## 378. Reserved for the next item on the AI track
 
