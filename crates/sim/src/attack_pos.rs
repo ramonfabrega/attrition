@@ -31,10 +31,22 @@ fn melee_far(max_range: i32) -> i32 {
 /// Quarter-tiles to a tile — the `>> 2` `find_open_slots` applies before
 /// asking `invalid_loc` (`600f47`, `600f5e`).
 const UCELLS_PER_UTILE: i32 = 4;
-use crate::combat::Obj;
+use crate::attrition::Domain;
+use crate::combat::{self, Obj};
 use crate::movement::{Angle, cos_component, sin_component};
 use crate::orders::{Order, snapped};
 use crate::world::{Pos, tile, vector_dist};
+
+/// What [`Sim::chase_lead`] makes of a moving unit target.
+enum Lead {
+    /// Not led: the sweep runs round the target's own position.
+    None,
+    /// The asker outranges a target coming at it: it stays where it is.
+    Stand(Pos),
+    /// The target is running: the sweep runs round this point ahead of it,
+    /// and its spot is taken whether or not it is in range.
+    Ahead(Pos),
+}
 
 /// The initial budget, `[ebp-0x20]` at `601e20` — a hundred iterations
 /// before a call gives up on its own.
@@ -414,15 +426,9 @@ impl crate::Sim {
     /// at bearings `0`, `+1` and `−1` sixteenths from this angle
     /// (`docs/COMBAT.md` §32.2).
     ///
-    /// **SEAM — the flanking branch** (`602870`-`602a9c`, `local_40`).
-    /// When the target carries a **move** order the original first asks
-    /// whether its back is turned: within 60° of running away it may
-    /// return the asker's own position outright, and otherwise
-    /// `flanking()` projects a point ahead of the target and sweeps from
-    /// *there*. Neither is modelled; a moving target takes the centre a
-    /// standing one would. Chapter two's target stands still, so the
-    /// branch is unexercised by everything on disk, and
-    /// `docs/COMBAT.md` §32.4 names the capture that would reach it.
+    /// **The flanking branch** (`602870`-`602a9c`, `local_40`) is
+    /// [`Sim::chase_lead`]'s: a moving target is led, or the asker stands
+    /// (item 3789, `docs/GOLDEN.md` §150.3).
     fn chase_spot(
         &mut self,
         u: usize,
@@ -440,8 +446,98 @@ impl crate::Sim {
             (spot, 0, 0)
         };
         let angle = crate::movement::find_angle(from.x - t.x, from.y - t.y);
-        let p = self.find_nearby_spot(u, t, min, max, step, angle, None)?;
-        (far || self.is_in_range_at(me, p, target)).then_some(p)
+        let centre = match self.chase_lead(u, target) {
+            Lead::Stand(here) => return Some(here),
+            Lead::Ahead(c) => Some(c),
+            Lead::None => None,
+        };
+        let p = self.find_nearby_spot(u, centre.unwrap_or(t), min, max, step, angle, None)?;
+        (far || centre.is_some() || self.is_in_range_at(me, p, target)).then_some(p)
+    }
+
+    /// **The flanking branch of `Unit::find_attack_pos@00601280`**
+    /// (`6027d4`–`602abc`, item 3789, `docs/GOLDEN.md` §150.3): a moving
+    /// unit target, asked by a player's ranged unit, is led.
+    ///
+    /// The bearing is `find_angle(target − asker)` from the asker's own
+    /// position (`60281d`). The branch is entered only when the asker's
+    /// `unit_masks & 0x40000` is clear ([`Sim::unit_ai_bit`]), its type's
+    /// domain (`+0x218`) is air or the target's, the target's current
+    /// order is a move (`update_order`, vslot `+0x14`), and the asker's
+    /// type has a range (`+0x1fc`). Then, with `e = target.heading −
+    /// bearing + 0x80000000`:
+    ///
+    /// - `flanking(e) == 1` (`6028fa`): the centre of the sweep is
+    ///   `project(target, target.heading, ((dist / my_speed) × its_speed
+    ///   × 3) / 2)` — `dist` the `vector_dist` between them, each speed the
+    ///   vslot `+0x17c` at its own point with 0 — and, when
+    ///   `WorldData::is_valid` takes it, the sweep's spot is taken outright
+    ///   (`local_40`, `6029f7`); an invalid point leaves the target's.
+    /// - `e < 0x2aaaaaaa` or `flanking(e) == 0` (`602a1a`): the target is
+    ///   coming. An asker that outranges it (vslot `+0x130`) — or whose
+    ///   `unit_masks2 & 0x20000` is set — and stands inside `(range + 4) ×
+    ///   0xc0` of it **stays where it is** (`602a85`, `return 1`).
+    /// - `flanking(e) == 2`: nothing; the sweep runs round the target.
+    ///
+    /// run1462's window: the human's Royal Balamob Slingers `0/20` chase
+    /// the Greek Light Horse `1/16` on 860 and walk toward (20424, 12216),
+    /// four cells past it, where this crate walked at (17112, 14760).
+    fn chase_lead(&self, u: usize, target: Obj) -> Lead {
+        let Obj::Unit(tu) = target else {
+            return Lead::None;
+        };
+        let me = Obj::Unit(u);
+        let p = self.profile(me);
+        let tp = self.profile(target);
+        if self.unit_ai_bit(self.units[u].owner)
+            || !(matches!(p.domain, Domain::Air) || p.domain == tp.domain)
+            || !self.is_moving(tu)
+            || p.max_range == 0
+        {
+            return Lead::None;
+        }
+        let (a, t) = (self.units[u].pos, self.units[tu].pos);
+        let bearing = crate::movement::find_angle(t.x - a.x, t.y - a.y);
+        let heading = self.units[tu].movement.heading;
+        let e = (heading.0 as u32)
+            .wrapping_sub(bearing.0 as u32)
+            .wrapping_add(0x8000_0000);
+        let flank = if e < 0x2aaa_aaaa {
+            0
+        } else {
+            combat::flanking(e)
+        };
+        match flank {
+            1 => {
+                let mine = self.get_speed_at(u, a, 0);
+                let theirs = self.get_speed_at(tu, t, 0);
+                if mine == 0 {
+                    // `idivl` by zero faults in the original; a unit with
+                    // a range and no speed does not chase.
+                    return Lead::None;
+                }
+                let d = vector_dist(t.x - a.x, t.y - a.y) / mine * theirs * 3 / 2;
+                let c = crate::army::step_along(t, heading, d);
+                if self.in_world(c) {
+                    Lead::Ahead(c)
+                } else {
+                    Lead::None
+                }
+            }
+            0 => {
+                // SEAM: `unit_masks2 & 0x20000`, the marines' trench bit,
+                // also stays; no chaser here carries it.
+                let range = self.max_range_of(me);
+                if range > self.max_range_of(target)
+                    && vector_dist(t.x - a.x, t.y - a.y) < (range + 4) * 0xc0
+                {
+                    Lead::Stand(a)
+                } else {
+                    Lead::None
+                }
+            }
+            _ => Lead::None,
+        }
     }
 
     /// `UnitData::is_moving@00610af0` — the **head** order's virtual
@@ -1099,7 +1195,7 @@ mod tests {
     /// `(2472, 7944)` are block 622's `x_internal`/`y_internal`, and the
     /// answer is that block's `MOVEORDER x`/`y`. The target carries no
     /// order at all there (`STACK<TYPE> length 0`), which is what keeps
-    /// the call off §32.4's unmodelled flanking branch.
+    /// the call off the flanking branch (`Sim::chase_lead`).
     ///
     /// The whole chain is pinned by one point: `stand` is 1008, the band
     /// is `[912, 1104]` by `0x60`, the bearing is `find_angle(from −

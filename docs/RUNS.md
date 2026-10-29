@@ -33908,3 +33908,18 @@ SHA-256 `6384b78d57fe723d264355365f66aaa6e76d5b2bef7b1a9297d96b6aa6b8f8d6`.
 
 **What it holds**: the holes at 760 already, with every unit position ours prints agreeing on 720–779; the Catapult
 `1/26` deployed from 719, its crew guy 2 at (16509, 15030), cell (343, 313) — the disc's centre — dead on 747.
+
+## run1462 — the second melee: the window 845..866, deaths printed (2026-10-29, item 3789, `att-3789`)
+
+`docs/GOLDEN.md` §150.3. **What the disk could not answer**: run1450 strides 801 and 901, and run1459's window ends at
+801, so theirs' `0/20`'s blows, rounds and walk between 801 and its death on 865 were not on disk. run1457's line with
+`--end-frame 867 --log-window 845 866`, `DEATHS=1` added to `end:`, no packet (`GUY` prints `avg_speed`). `df -g ~`
+read 136 GiB free before it.
+- Pool lane 1, seed 12345. Launched 09:33:54, exited 09:34:12 (18.1 s launch to exit). `success`: 868 frames,
+  `page_faults` 0, `relaunches: []`. Not filed: the window's gamelog and trace stay in `~/ron-golden/run1462/map-7/`.
+- Minutes waited on another lane: none.
+
+**What it holds**: the three Egyptian arrows at `0/20` (`2/25`, `2/24` and `2/23`, launched 855, 856 and 858) match
+ours in launch, landing and `total_time`; `0/20`'s `damage` holds at 25 + 14/16 through block 865. On block 861 its
+`MOVEORDER` is at (20424, 12216), with path (20424, 12216) … (17352, 15288), and the trace's calls show the A* on 860:
+`find_attack_pos`'s flanking lead on the running Light Horse `1/16`.

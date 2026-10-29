@@ -4760,7 +4760,7 @@ pinned map so a regression in them cannot hide behind the engagement.
 
 ### 32.4 What this has not established
 
-- **The flanking branch is read and not built** (`602870`-`602a9c`). When
+- ~~**The flanking branch is read and not built** (`602870`-`602a9c`). When
   the target carries a **move** order the original first asks whether its
   back is turned: within 60° of running away (`(target.heading − bearing)
   + 0x80000000 <u 0x2aaaaaaa`) it may return the asker's own position
@@ -4770,7 +4770,13 @@ pinned map so a regression in them cannot hide behind the engagement.
   moving target takes the centre a standing one would. Chapter two's
   target stands still (`STACK<TYPE> length 0` on `1/8` at 622), so nothing
   on disk reaches the branch. *A capture would settle it:* `UNITS=3` over
-  a chase of a **fleeing** unit, and the chaser's `MOVEORDER x/y`.
+  a chase of a **fleeing** unit, and the chaser's `MOVEORDER x/y`.~~
+  **Built** by item 3789 (`Sim::chase_lead`), and its lead arm settled by
+  run1462's `MOVEORDER` at (20424, 12216) on frame 860: see
+  `docs/GOLDEN.md` §150.3 for the gates as the listing has them (the
+  stand arm is `e < 0x2aaaaaaa` **or** `flanking == 0`, and the lead arm
+  `flanking == 1` alone). The stand arm is built and on no run (parked
+  3789a).
 - **The mandatory fallback is not modelled** (`601604`-`601700` and the
   function's tail): when the current order's `mandatory` byte is set and
   the target is further than `max(0x600, (max_range + 4) × 0xc0)`, the
@@ -4811,8 +4817,9 @@ walk's `+0x2c`/`+0x2e` link at `0064937f`, and `00601280`'s split at
 `601604` with the radius and acceptance line numbers above.
 
 **Reading-only, and owed a blind second reading**: every bullet of §32.4.
-No run on disk executes the flanking branch, the mandatory fallback, the
-mandatory-target halving or the bearing weights.
+No run on disk executes the mandatory fallback, the mandatory-target
+halving or the bearing weights; the flanking branch's lead arm is
+diff-backed since run1462 (`docs/GOLDEN.md` §150.3), its stand arm is not.
 
 ## 33. The tie is broken by a decaying counter and an inverted weight (item 466, 2026-09-21)
 
@@ -5613,7 +5620,8 @@ flags date to the same block.
 3. `Unit::repath` — pop the transit legs — and return 1.
 
 `flanking@0092cfe0` is three instructions and is in
-[`combat::flanking`]; its 1/2 answer is read by nothing.
+[`combat::flanking`]; ~~its 1/2 answer is read by nothing~~ — its `== 1`
+is read by `find_attack_pos`'s lead (`6028fa`, `docs/GOLDEN.md` §150.3).
 
 ### 36.4 What is not established
 

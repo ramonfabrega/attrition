@@ -12731,13 +12731,18 @@ upgrade's type is the check.
   names no score of the queue's. The killer: teach `STRUCT` the `Melee` literal and see whether table 4 counts
   run1413b and the Gunpowder `unit` cell (3733c) moves.
 
-## Parked by the next landing, slot XB — reserved
+## Parked by item 3789, 2026-10-29 — the second melee's word 865 → 1284
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3789a) **`find_attack_pos`'s stand arm is built and on no run.** `Sim::chase_lead`'s `Lead::Stand` — a player's ranged
+asker that outranges a moving target coming at it (`e < 0x2aaaaaaa` or `flanking(e) == 0`) and stands within `(range + 4)
+× 0xc0` keeps its own position (`602a85`) — is read off the listing beside the lead arm run1462 confirmed (GOLDEN
+§150.3). Every capture's chasers are checked by `first_parting` only (116 hold). The falsifier: a block where a player's
+archer or slinger, closer than its range plus four cells to an outranged enemy walking toward it, is given a `MOVEORDER`
+other than its own seat.
+
+(3789b) **`unit_masks2 & 0x20000`, the marines' trench bit, is a `SEAM`.** The stand arm's second disjunct
+lets an asker that does not outrange the target stand too. No chaser in any lobby carries it; which unit types set the
+bit, and when, is unread. The falsifier is the same block as 3789a with an asker that has the bit and a shorter range.
 
 ## Parked by the next landing, slot XC — reserved
 
