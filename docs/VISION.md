@@ -513,7 +513,8 @@ live writer of a field four of this map's dumps print.
 
 **`LeaderData::treaties` (`+0x94`), `int[8]`, bit 0 — the met bit.**
 `Leader::treaty_on@006e1190` ors a mask into **both** leaders' slot for
-the other and is the only writer; `Leader::meet@006e1250` is its only
+the other ~~and is the only writer~~ (`Unit::set_attacking` and step 6
+write it inline, `docs/GOLDEN.md` §149.4); `Leader::meet@006e1250` is its only
 caller and passes 1; and `meet` has exactly two callers in the whole
 executable:
 
@@ -1061,8 +1062,8 @@ stubbed term.
 
 ```
 set_attacking(this, who):                    # who = the victim's player
-    attacked_table[this->who][who] |= 1      # 00e3a424, per-pair
-    leaders[who].field_0x94[leaders[this->who].team] |= 1
+    treaties[this->who][who] |= 1            # 00e3a424 = leaders + 0x94:
+    treaties[who][this->who] |= 1            # the met bit (item 3763)
     this->flags |= 0x80                      # SubObjectData::flags
     if (visible & (1 << who)) == 0:
         if !WorldData::is_seen(pos / 0x180, who):

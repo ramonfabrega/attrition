@@ -3786,6 +3786,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 (3765) **A held push dies with the wait: an `--arm-after-push` lane's draft push, held for its done line while the row works (Loop 3749), is never armed when the wait exits on another lane first** (the sixty-second tranche's commander) — lane-3763 pushed its `DEEP` answer's draft (`a4ee8056`) under `lanewait.py lane-3763 lane-3731 --arm-after-push lane-3763`; `arm_pushes` held it, the row still `working`, and the next poll's `DEEP lane-3731 300k` exited 5 with nothing printed for 3763 — no `ARMED`, no `DRAFT` — and the row went idle with no clear armed (`ccc clear --status`: not armed). The commander armed it by hand. The re-armed wait starts with the ref already moved, so it cannot see the push again. Candidate: an exit with a held push in `seen['held']` prints `HELD <lane> <range>` before its own line, and a wait started with `--arm-after-push` on a lane whose origin ref is already past its base and whose row is idle with no clear armed arms it at start.
 
+(3768) **A `cover=1` twin answers which arm the original took on a frame, and a field's writer may be spelled only as its raw address** (3763's "for the Loop") — run1413b's per-frame coverage (`report.py coverage`) named theirs' branch on the word's frame before any packet was taken, and the one writer of `leader:treaties` the item needed (`Unit::set_attacking`'s, `0x00e3a424`) was found only by grepping the address, never the field's name. Candidate: the brief frame's before-reading section names both — a twin's per-frame coverage on the word's frame before a packet, and `grep` on a field's raw address beside its name — and `seams.py` or `standing.py` prints the address beside each field it names.
+
 ## Loop, filed 2026-10-28 — the sixty-first pass's
 
 **3749** (a lane that lands in the very push its `DEEP` answer asked for is read as a draft, and a clear is armed on a finished lane: 3744, the commander's finding, unfiled until the pass) — **filed and built** by the sixty-first pass, the same subagent's, red first, its text kept in `docs/audit/2026-10-28-fable-pass-61.md` ("Rulings"): the signal is the lane's own done line, its `SendMessage` to the commander read off its newest transcript — commit subjects, `Lane verdict:` and the row going idle were measured unreliable; a push while an `--arm-after-push` row works is held, a done line since the last poll prints `PUSHED … a landing, not armed` and lands, and a row that stops without one is the draft, armed on the idle row. Two of 25 `DEEP`-answer pushes on disk were landings (3591, 3744), 3655 a probable third. Five tests; 53 green. The sixty-second's `DEEP` answers measure it.
@@ -12484,13 +12486,21 @@ words and edits nothing here; a refill lands when two remain.
   The killer was the label table in `crates/sim/src/anim.rs`; the frame was right and the mechanism was not
   (DECISIONS 42).
 
-## Parked by the next landing, slot WH — reserved
+## Parked by item 3763, 2026-10-28 — a strike is first contact
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3763a. The booking's "the army re-targets its own city and moves its muster" was the march, not the decision** —
+  killed, unbuilt. Both sides release army `2/0` on 760 through `release_mustering`'s `pop_cap / 8 <= num_standard`
+  (50 / 8 = 6, six standard, `o_up` agreeing on every member). Theirs takes `DEFENDING`: run1413b's coverage enters
+  `Army::do_defending`, `find_besieged_city` and `Group::action_guard` on 760, and `Army::find_target` first on 764,
+  on who=1's army. Neither the target score nor the muster placement was the mechanism. The killer was the
+  coverage report's per-frame first entries, read before any packet (`docs/GOLDEN.md` §149.4).
+- **3763b. Step 6's `has_preq(ALLY_LOS)` half is not read** (`Sim::census_meet`'s `SEAM`). The meeting runs under
+  `reveal_map` alone, and preq `0x2b0`'s holder is not looked up.
+  - It names no score: no walk holds step 6 at all (item 3763's mutation; a strike meets first).
+  - What would answer it: a lobby at `REVEAL_MAP 0` whose computer holds the `ALLY_LOS` tech, and a war loop whose
+    `& 4` decides a release.
+- **3763c. `census_ally_mask` ors in every ally both ways outside the gate**, where `plan_strategy:209`–`215` does it
+  only under `ALLY_LOS || reveal_map`. It names no score: no lobby on file allies two computers at `REVEAL_MAP 0`.
 
 ## Parked by item 3766, 2026-10-28 — the Jaguar Infantry's and the Sherman's rows: the Aztec Modern word whole
 
