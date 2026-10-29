@@ -11077,6 +11077,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3733,
         Some(crate::diff::gunpowder_melee::WIDENING_GUNPOWDER_MELEE),
     ),
+    // **The second melee** (item 3774): Great Sahara, three seats, a held
+    // Classical age — first try 718 of 2600, widened on run1450's stride
+    // over 601..968, the rounds compared.
+    (
+        "CLASSICAL_MELEE_WORD",
+        crate::diff::classical_melee::CLASSICAL_MELEE_WORD,
+        Some("classical_melee_run1450_s_word_window_is_widened_whole"),
+        3774,
+        Some(crate::diff::classical_melee::WIDENING_CLASSICAL_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -13843,6 +13853,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 2_600,
         endpoint: None,
         window: Some("gunpowder_melee_word_window"),
+    },
+    // **The second melee** (item 3774, `docs/GOLDEN.md` §150, §155): Great
+    // Sahara with three seats at a held Classical age, the Greeks and the
+    // Egyptians granted 100,000 a good and twelve of the age's types a
+    // side from 610 (`tools/gamelog/golden/melee-classical.cmd`). First try
+    // 718 of 2600; run1450's word window over 601..968, the rounds compared.
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaClassicalMelee",
+        named: "Great Sahara (the melee, Classical)",
+        word: crate::diff::classical_melee::CLASSICAL_MELEE_WORD,
+        length: 2_600,
+        endpoint: None,
+        window: Some("classical_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

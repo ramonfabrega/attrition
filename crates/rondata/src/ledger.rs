@@ -383,6 +383,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the French Medieval pair's walks: it compares no field itself (item 3717)",
     ),
     (
+        "diff/classical_melee.rs",
+        "the second melee's walks: it compares no field itself (item 3774)",
+    ),
+    (
         "diff/gunpowder_melee.rs",
         "the first melee's walks: it compares no field itself (item 3733)",
     ),

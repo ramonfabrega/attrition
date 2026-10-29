@@ -2386,7 +2386,8 @@ mod tests {
         ("chapter97.cmd", &[]),
         ("chapter98.cmd", &[]),
         ("chapter99.cmd", &[]),
-        // Item 3733: `resource` and `add` only (GOLDEN §149).
+        // Items 3733 and 3774: `resource` and `add` only (GOLDEN §149, §150).
+        ("melee-classical.cmd", &[]),
         ("melee-gunpowder.cmd", &[]),
     ];
 
