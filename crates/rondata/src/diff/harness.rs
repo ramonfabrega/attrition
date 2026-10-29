@@ -2542,11 +2542,12 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             )
         };
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{}/{} help{} gl{} q[{}]{head}",
+            "  f{frame} B {}/{} ty{ty} ({},{}) city{} act{} regen{} jc{}/{} hits{} dmg{}/{} help{} gl{} q[{}]{head}",
             b.owner,
             b.index,
             b.pos.x,
             b.pos.y,
+            b.city.map_or(-1, |c| c as i64),
             u8::from(b.active),
             u8::from(b.regen_roads),
             b.job_counter,
