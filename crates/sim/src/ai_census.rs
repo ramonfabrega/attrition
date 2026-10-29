@@ -1149,9 +1149,6 @@ impl Sim {
                 continue;
             }
 
-            if std::env::var("RON_PROBE_3763").is_ok() {
-                eprintln!("  PROBE f{} census_strategy {who} r {r} mine {mine} met {:?}", self.frame, (0..players).map(|i| self.met(who, i)).collect::<Vec<_>>());
-            }
             let my_attack = self.ai[w].census.attack;
             let home = self.ai[w].census.home_reg;
             for i in 0..players {
@@ -1159,9 +1156,6 @@ impl Sim {
                     continue;
                 }
                 let theirs = self.reg_city_buildings(i as Player, r as u16);
-                if std::env::var("RON_PROBE_3763").is_ok() {
-                    eprintln!("  PROBE f{} census_strategy {who} r {r} i {i} theirs {theirs} mine {mine} war {} {}", self.frame, self.diplo_war(w, i), self.diplo_war(i, w));
-                }
                 if theirs == 0 {
                     continue;
                 }
