@@ -14860,6 +14860,82 @@ reads **532** keys over four blocks, rounds read (0, 0). Block 2101 carries the 
 is backed by the closing block's `gov_hero_frame` 1912 and by the 1463 death agreeing. The predicate and the
 Senate's `frame + 1` rest on the decompile and the one birth they move.
 
+## 149.12 The Inca refund and the hero's plunder — 2160 → 2600, the first melee whole (item 3788, run1461, run1461b)
+
+**The booking.** Frame 2160: ours 42 draws against 41, parting at index 0, where ours spends
+`Leader::use_market+0x1ed` ahead of the `make_stuff < production_ai < plan_strategy` draw both sides spend.
+
+**The direction, off the disk and two captures.**
+- The draws on 2160 (`RON_DEBUG_SITES=2160-2160`): ours spends who=2's `use_market` sell draw, with wealth 27
+  short; theirs spends none. run1413's trace enters that draw once all game, on 2557.
+- A probe (`RON_DEBUG_MARKET`, reverted whole) puts ours' `market_speculation` on 2151 at tier 1, where theirs'
+  `do_sell` on 2151 needs tier 2 (a good under 100). So the stockpile had parted before 2151. The stride blocks
+  print no `LEADERDATA`, so no record on disk said where.
+- **run1461** (window 1700..2161, `LEADERS=2` beside `UNITS`, `BUILDS` and `CITIES`): on 1700, who=2's bucket reads
+  theirs `[834, 936, 1256, 1143, 1256, 0]` against ours' `[834, 899, 1120, 1143, 1227, 0]`; who=1 agrees.
+- **run1461b** (window 595..1700, `end:MISC,LEADERS=2`): who=2's stock first parts on **logger frame 860**, where
+  theirs takes +16 food and +11 timber, then +25 timber and +25 metal on 864, after the Bombard `2/23`'s death on
+  863. who=2 is the **Inca** (tribe 2), and `Sim::unit_plunder` carried "the Inca refund … not carried" as a `SEAM`.
+
+**The original.**
+- `take_damage@00652020`'s `LAB_00653354`, lines 618–623, sits under the kill arm's outer gate: the victim is a
+  captain, `curr_uber_size == 1`, no decoy, and a killer exists. It is **not** under the plunder block's splash
+  test or its unit-killer test. When the killer is not an ally, `INCA_REFUND` is nonzero, and the victim's leader
+  is Inca, it calls `plunder(v, v, v.who, 0, 0)`: the refund arm, which pays a quarter of the victim's price.
+- The price is `get_cost(g, who, −1, −1, 1, 1, −1)`. Its fifth and sixth arguments steer only spells.
+- The same function's `is(GENERAL 0x36)`, `is(CARA 0x3b)` and `is(SUPPLYWAGON 0x3f)` arm (`LAB_0065332c`) calls
+  `plunder(v, k, who, 0, 0)` with no Despot search. It pays `GENERAL_PLUNDER` 100 for a hero (`+0x2b8 & 0x20`)
+  or `CARAVAN_PLUNDER` 50, in wealth, with no draw. With the refund built, the buckets part next on 1464 (+100
+  wealth): who=1's Despot `1/28` dies on 1463.
+
+**The build.**
+- `Sim::inca_refund` (`crates/sim/src/fight.rs`) is called from `take_damage_typed`'s death arm and runs
+  `plunder_steps(v, v, v.who, 0, 0)`.
+- `Sim::unit_plunder` runs the steps for the General, caravan and supply-wagon victims instead of returning
+  before them. `SimPlunder` answers `general_plunder`, `caravan_plunder`, `unit_is_hero`, `unit_is_supply` and
+  `unit_is_caravan`.
+- `SimPlunder::price` is now `price_of(who, ty)[g]`.
+- `Tuning` carries `inca_refund` 25, `general_plunder` 100 and `caravan_plunder` 50, each with its table row.
+  `docs/NATIONS.md`'s `INCA_REFUND` row reads "modelled".
+
+**The value diff.** who=2's bucket, before the build against theirs:
+
+| frame | field | before | after | theirs |
+|---|---|---|---|---|
+| 860 | `bucket[0:food]` | 1949 | 1965 | 1965 |
+| 860 | `bucket[1:timber]` | 1785 | 1796 | 1796 |
+| 1464 | `bucket[2:wealth]` | 1139 | 1239 | 1239 |
+
+After the build, who=1's and who=2's buckets agree on all 1566 frames of the two windows (3132 records).
+
+**The score: 2160 → 2600, the first melee whole.** `GUNPOWDER_MELEE` reads (2600, 2600). The closing state is
+run1413's block 2601: 145 units, every count zero, nothing extra. `WIDENING_GUNPOWDER_MELEE` is (2101, 2601): six
+blocks with the closing block `&[2601]`, 160 keys, rounds (0, 0). The old window 2101..2410 reads 131 keys (532
+before).
+
+**Tests.**
+- `cities_tests::an_inca_unit_killed_by_an_enemy_refunds_a_quarter_of_its_price`.
+- `cities_tests::a_hero_s_killer_takes_general_plunder_in_wealth`.
+- `gunpowder_melee::gunpowder_melee_run1413_s_closing_state`.
+- `gunpowder_melee::gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund`: walks the game and compares who=1's
+  and who=2's six buckets against both windows. It refuses a key that neither side prints.
+- **Mutations** (`tools/mutate.py`):
+  - With no refund call, the run fails `first_parting`, `closing_state` and the stride widening (exit 101). The
+    leader test also fails on 860 who=2 (food 1949 against 1965).
+  - With no hero arm, the same three fail (exit 101). The leader test fails on 1464 who=2 (wealth 1139 against
+    1239).
+
+**What is not established.**
+- The harness's leader loop compares who 0 and 1 only (`for who in 0..2usize`; the oracle cache keeps
+  `leaders: [_; 2]`). A third seat's leader goes unread in every three-seat lobby, which is how a refund gap from
+  860 hid until a draw on 2160 (parked 3788c).
+- The caravan and supply-wagon payments are built from the same arm. No dumped kill of either is diffed.
+- The Aztec slay bonus and the pre-EE plunder arm are still not built (`docs/AI.md` §259).
+
+**Coverage.** The refund is backed by run1461b's who=2 buckets on 860 and 864. The hero plunder is backed by 1464,
+and the whole game by the draw stream to 2600 and run1413's closing block. The refund's ally and leader predicates,
+and the caravan's 50, rest on the decompile.
+
 ## 150. The second melee — a held Classical age on Great Sahara, every seat a computer (item 3774, run1449–run1450b)
 
 The shape is §155; the first melee is §149. **The one lever changed is the age**: Classical

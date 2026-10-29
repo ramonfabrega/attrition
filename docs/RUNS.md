@@ -33845,3 +33845,35 @@ SHA-256 `db4ba416c6eb5fa29eb2f8cdf41eb66c035566b5d7a85a6aaf43360ffb803f00`.
   15529, 699).
 - The packet: `get_position.py … entries` 124 (four rows, three attack, `RData` 1.0), 141 (nine, 0.9) and 39 (three,
   1.0). The sweeps are under `~/ron-data/lab-experiments/2026-10-29-item-3785/`.
+
+## run1461 — the first melee, a held Gunpowder age on Great Sahara: the leaders' window 1700..2161 (2026-10-29, item 3788, `att-3788`)
+
+`docs/GOLDEN.md` §149.12. **What the disk could not answer**: run1413's stride blocks print no `LEADERDATA`, so where
+who=2's stockpile parted before the `use_market` draw of 2160 was not on any record. The capture uses §149's cheat
+lines (`melee` `add` twins, who 1 on row 76, who 2 on row 86), the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=3`,
+`ENDING_TECHNOLOGY=3` and `STARTING_RESOURCES=7`, `--log-window 1700 2161`, detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2`, and `cover=0`.
+- Pool lane 1, seed 12345 (observed 12345). Launched 09:01:11, exited 09:01:41 (30.0 s launch to exit). `success`:
+  2163 frames, `page_faults` 0, `relaunches: []`. Seats: who 0 the human (tribe 4), who 1 tribe 11, who 2 tribe 2.
+  DLL `5ac3ddfc…`. Filed with `filerun.py` as `gamelog-run1461-greatsahara-gunpowder-melee-leaders-window-1700-2161.txt`,
+  with its trace.
+- Minutes waited on another lane: none.
+
+**What it holds**: on 1700, who=2's bucket reads `[834, 936, 1256, 1143, 1256, 0]` against ours' (then) `[834, 899,
+1120, 1143, 1227, 0]`, and who=1 agrees. who=2's Supply Wagon `2/24` reads `myhits` 108 from logger frame 2135
+(parked 3788a).
+
+## run1461b — the first melee, a held Gunpowder age on Great Sahara: the leaders' window 595..1700 (2026-10-29, item 3788, `att-3788`)
+
+`docs/GOLDEN.md` §149.12. **What the disk could not answer**: run1461 showed who=2's stock already parted on 1700, and
+no record before 1700 prints a leader. It is run1461's staging with `--log-window 595 1700` and detail
+`end:MISC,LEADERS=2`.
+- Pool lane 1, seed 12345 (observed 12345). Launched 09:03:53, exited 09:04:15 (22.3 s launch to exit). `success`:
+  1702 frames, `page_faults` 0, `relaunches: []`. DLL `b6763afe…`. Filed with `filerun.py` as
+  `gamelog-run1461b-greatsahara-gunpowder-melee-leaders-window-595-1700.txt`, with its trace.
+- Minutes waited on another lane: none.
+
+**What it holds**: who=2's stock first parts on logger frame 860 (+16 food, +11 timber in theirs), then on 864 (+25
+timber, +25 metal) after the Bombard `2/23`'s death on 863, which is the Inca refund. Next, +100 wealth on 1464 after
+who=1's Despot `1/28` dies on 1463, which is `GENERAL_PLUNDER`. `gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund`
+compares both windows.

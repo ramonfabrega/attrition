@@ -11395,7 +11395,7 @@ killer `(ages + 1) × AZTEC_SLAY_BONUS` (the "slay count" at bucket `+0xdc` is `
 in `Sim::unit_plunder`, and so is the steps' own Despot search, which `SimPlunder::find_hero` answered inverted. The
 word moves 2556 → 2569 (`docs/AI.md` §338). One row parks, and it names no score:
 
-- **3657a. The General, caravan and supply-wagon victims' `plunder(v, k, who, 0, 0)`** (`take_damage@00652020`'s
+- ~~**3657a. The General, caravan and supply-wagon victims' `plunder(v, k, who, 0, 0)`**~~ — answered by item 3788 (`docs/GOLDEN.md` §149.12): `Sim::unit_plunder` now runs the steps, and who=1's Despot `1/28`'s death on 1463 pays who=2 `GENERAL_PLUNDER` 100 on 1464 in both. The row as it stood: (`take_damage@00652020`'s
   `is(0x36)`/`is(0x3b)`/`is(0x3f)` arm, a `SEAM` in `Sim::unit_plunder`). Ours returns before the plunder, so
   neither `GENERAL_PLUNDER`/`CARAVAN_PLUNDER` nor the four draws are spent, and the view's `general_plunder` and
   `caravan_plunder` answer 0. No word on file kills one of these. The killer: a kill of a General, caravan or supply
@@ -12703,13 +12703,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XA — reserved
+## Parked by item 3788, 2026-10-29 — the Inca refund and the hero's plunder: the first melee whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3788a. who=2's Supply Wagon `2/24` (TI 63) reads `myhits` 108 in theirs against ours' 90** (`docs/GOLDEN.md`
+  §149.12), from run1461's logger frame 2135, with nothing else parting on that frame. who=1's `1/24` stays 90 in
+  both. The game is whole to 2600, so it names no score; the widening's pin carries it.
+- **3788b. On the closing block 2601, the human's citizens `0/1`..`0/7` are idle with no order in theirs**, and ours
+  hold one order each. `0/3` reads (38136, 36600) against (38119, 36586). It is a closing-state row the count does not
+  gate on, so it names no score.
+- **3788c. The widening never compares a third seat's leader.** `harness.rs`'s leader loop is `for who in 0..2usize`,
+  and the oracle cache keeps `leaders: [_; 2]` (`oracle.rs`, `codec.rs`). who=2 has gone unread in every three-seat
+  lobby: a refund gap from run1461b's 860 hid until a draw on 2160. Widening it moves other lanes' pins and the cache
+  format, so it is the commander's to rule on. No single score is named.
 
 ## Parked by the next landing, slot XB — reserved
 
