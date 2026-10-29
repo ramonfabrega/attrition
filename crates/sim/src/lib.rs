@@ -5290,13 +5290,19 @@ impl Sim {
     /// converted guy's `guy_flags & 8` is the new piece's
     /// ([`crate::anim::Guy::flag_piece`]).
     ///
+    /// **No same-type guard** (item 3787, `docs/GOLDEN.md` §150.2): the
+    /// original's `set_type` re-initialises the guys whatever the old type
+    /// was, so a Senate's second government `set_type`s a standing Despot
+    /// to The Despot and spends its three `init_real` draws — who=1's `1/30`
+    /// on the second melee's frame 828. A caller that must not convert in
+    /// place tests for itself, as `gain_tech`'s upgrade walk does.
+    ///
     /// SEAM: the `is(0x165, 1)` CEO bit and its `update_ceo_position`, the
     /// `is(0x77, 0)` flag, and the two vslots `+0x15c` and `+0x160` the
     /// tail calls before `update_armor`/`update_speed` — none has state
     /// here.
     pub(crate) fn unit_set_type(&mut self, u: usize, rec: usize) {
-        let Some(old) = self.units[u].ty else { return };
-        if old == rec {
+        if self.units[u].ty.is_none() {
             return;
         }
         // The steps are `unit_set_type_view::set_type_steps`, the walk the

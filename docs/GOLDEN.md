@@ -14996,8 +14996,61 @@ writes no block. The state parts next on block 801. The parted unit is the Barba
 ours spends one index later, for `0/25`. **The direction**: ours walks `0/21` where theirs does not. On 801
 theirs' `0/21` stands and swings at `1/16`, and ours' walks toward the Catapult `1/26`.
 
-**What is not established**: why `0/21` walks in ours between 718 and 784 (its target choice, 26 against 16, is the
-first question); the Camel Archer's `CHAR_ATTACKWALK` row against a printed round (none in run1457's window).
+**What is not established**: ~~why `0/21` walks in ours between 718 and 784~~ (it is refused a step a dead crew had
+cleared, §150.2); the Camel Archer's `CHAR_ATTACKWALK` row against a printed round (none in run1457's window).
+
+## 150.2 A dead crew clears its own disc, and `set_type` has no same-type guard — 784 → 865 (item 3787)
+
+**The booking.** Frame 784: 47 draws a side, parting at index 30. Ours spends the Barbarians `0/21`'s
+`Guy::set_anim+0x97a < Unit::move_step+0x823`. Block 801 had `0/21` walking toward the Catapult `1/26` in ours where
+theirs stands and swings at the Light Horse `1/16`.
+
+**The direction, off the disk.** `RON_SWEEP=784:0/21`: the step to (16565, 15085), cell (345, 314), hits (344, 315),
+hard, on `0/22`. That is `anim::SITE_BLOCKED`, the blocked stand. Theirs spends nothing for `0/21` at index 30, so ours
+acted where theirs did not. run1450 strides 701 and 801, so the disk could not say what theirs did in between.
+
+**run1459 and run1460** (`docs/RUNS.md`). Theirs' `0/21` walks ours' line exactly through 784. It **takes** the step on
+785 and collides first on 788. Theirs' occupancy mask at 780 has holes: rows 314–315 at x 342–344 in `0/22`'s disc,
+and row 311 at x 343–345 in `0/24`'s. They form one radius-2 disc around (343, 313), cleared after `0/22`'s repaint of
+746. Ours had both discs whole. run1460 has the holes already at 760, with every position ours prints agreeing on
+720–779, so no walk punched them. Theirs' Catapult `1/26` (TI 265, `CREW_SIZE` 2, `BLOCK_RADIUS` 2) has its crew
+guy 2 at (16509, 15030), cell (343, 313), and dies on 747.
+
+**The first build** (`crates/sim/src/fight.rs` `close_unit`). `Unit::close@0060ee50`'s death arm runs
+`Objects::kill_guy@00659410` over the squad and the crew. Its last arm clears `radius[coll_size]` around each figure's
+own cell unless the type blocks while dead. Ours cleared guy 0's disc alone. With the loop, ours' mask over cells
+336–352 × 308–322 matches both packets cell for cell. The word moved to **828**. Ours spends 11 draws against 15 there.
+Theirs spends `Guy::init_real+0x52 < Unit::set_type+0x40c < Build::finished+0x47a` once and `+0x4a1` twice.
+
+**The second build** (`Sim::unit_set_type`). On 828 who=1's Senate `1/2007` finishes its second government (tech 622).
+`Build::finished`'s other arm then `set_type`s the nearest standing patriot to `get_gov_hero`'s type. That patriot is
+The Despot `1/30`, three figures, and the target type is The Despot again: run1450 prints `1/30` as type 352 on both
+801 and 901. `Unit::set_type@00612fa0` has no same-type test, so its two guy loops re-initialise all three figures, one
+draw each. Ours returned early on `old == rec`, a guard item `63cb85639` added. Without it the word moves to **865**.
+
+**Which build moved the word, by mutation** (`tools/mutate.py`). With the guard put back, the word is 828 again. With
+the death loop out, it is 784/786, and `classical_melee_s_dead_catapult_crew_clears_its_disc` names all nine hole cells
+set. The guard's removal also fails `a_set_type_to_its_own_type_reinitialises_its_guys`. Every other lobby's
+`first_parting` holds (115).
+
+**The score: 784 → 865**, count and sequence together.
+
+**The value diff.** `classical_melee_run1450_s_word_window_is_widened_whole`, window 601..968: **151** keys (513
+before), rounds read (14, 14), 6 parting (15). Block 801 is the standing families alone (`build:extra`,
+`group:130.held`). The state parts next on block 901:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `0/20`, Royal Balamob Slingers (who 0) | `death:first_frame` | 867 | 865 |
+| `0/14`, Kushite Archers | `death:cur_anim` | 17 | 18 |
+| `0/18` | `pos` / `order:kind` / `g.ox[0]` | (16872, 15480) / 10 / 24 | (17339, 14876) / 1 / 16 |
+| `0/19` | `pos` / `order:kind` / `g.ox[0]` | (16824, 15576) / 10 / 24 | (17635, 15004) / 1 / 16 |
+
+**The next word, frame 865.** Ours spends 12 draws against 13, parting at index 3. Theirs spends `Unit::close+0xcb6`,
+a death, where ours spends `Farms::inc_time+0x1ae`. The death is `0/20`'s: ours kills it two frames late, on 867.
+
+**What is not established**: why `0/20` dies two frames late in ours (its last blow's timing is the first question);
+`kill_guy`'s own gates beyond `blocks_while_dead` (parked 3787b); `set_type`'s other callers on a same type (3787c).
 
 ## 151. Reserved for the next item on the rules track
 
