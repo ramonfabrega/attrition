@@ -3659,6 +3659,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::british_modern_pair::british_modern_closing_window(),
         || super::roman_modern_pair::roman_modern_stride_window(),
         || super::roman_modern_pair::roman_modern_closing_window(),
+        || super::turkish_information_pair::turkish_information_stride_window(),
+        || super::turkish_information_pair::turkish_information_frame_2551_window(),
         || super::bantu_modern_pair::bantu_modern_late_stride_window(),
         || super::bantu_modern_pair::bantu_modern_frame_4304_window(),
         || super::egyptian_modern_pair::egyptian_modern_stride_window(),

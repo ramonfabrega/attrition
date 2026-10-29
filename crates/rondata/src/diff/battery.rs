@@ -568,6 +568,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the Classical pair's `(7, 6, 5)`, Great Sahara; the battery's one
     // Roman game is the held-out `GreatLakesRomanTier2`, `(14, 6, 2)`.
     (18, 6, 4),
+    // The Turks at a held Information age, East Indies at Hard (item 3772,
+    // `diff::turkish_information_pair`), minted under rule (3) — not the AI
+    // word's `(14, 8, 4)`, Great Lakes, nor the Enlightenment pair's
+    // `(7, 8, 3)`, Great Sahara; the battery's one Turkish game is the
+    // held-out `GreatSaharaTurkishTier3`, `(7, 8, 3)`.
+    (18, 8, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

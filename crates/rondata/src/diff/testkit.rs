@@ -11164,6 +11164,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3771,
         Some(crate::diff::roman_modern_pair::WIDENING_ROMAN_MODERN_CLOSING),
     ),
+    // **The Turks at a held Information age** (item 3772): East Indies at
+    // Hard — first try 2551 of 5036; widened on run1446b over 2495..2801,
+    // the rounds compared.
+    (
+        "TURKISH_INFORMATION_PAIR_WORD",
+        crate::diff::turkish_information_pair::TURKISH_INFORMATION_PAIR_WORD,
+        Some("turkish_information_pair_run1446b_s_word_frame_is_widened_whole"),
+        3772,
+        Some(crate::diff::turkish_information_pair::WIDENING_TURKISH_INFORMATION_FRAME_2551),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13775,6 +13785,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_234,
         endpoint: Some("roman_modern_pair_run1444_s_closing_state"),
         window: Some("roman_modern_closing_window"),
+    },
+    // The Turks at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), East Indies at Hard (item 3772): first try
+    // 2551 of 5036; the word's window run1446b over 2495..2801, the rounds
+    // compared.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesTurkishInformation",
+        named: "East Indies (Turkish, Information)",
+        word: crate::diff::turkish_information_pair::TURKISH_INFORMATION_PAIR_WORD,
+        length: 5_036,
+        endpoint: Some("turkish_information_pair_run1446_s_closing_state"),
+        window: Some("turkish_information_frame_2551_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers
