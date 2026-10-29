@@ -37450,8 +37450,76 @@ From 2553 the group's other members part (`1/67`'s path, `1/0`'s move).
 the walk, so the suspect is the view's occupancy input, `SimComeOut`'s `find`), or does not see this one. It is
 a supposition. A probe of the ring's `find` calls at 2550, both sides, settles it.
 
-**Not established**: why ours' ring accepts the battleship's square, and whether `1/51` is the first idle
-Information-age battleship any pair has put beside a dock's exit.
+**Not established**: ~~why ours' ring accepts the battleship's square~~ (answered by §378.1: the Attack Sub's
+`block_radius` is 0, so the ring is `FILTER_ALL`'s, and the view ran that arm collision-off), and whether `1/51`
+is the first idle Information-age battleship any pair has put beside a dock's exit.
+
+## 378.1 The word 2551 → 3952: `come_out`'s `FILTER_ALL` sweep asks the general test (item 3780)
+
+**The direction, read before any reading.** A probe on ours (`RON_PROBE_COMEOUT`, one commit, reverted whole) printed
+every candidate of the ring `come_out` asks for `1/78` on 2550. The ask is the dock's ring, `min` 672, `max` 1920,
+bearing south, and **`filter` 0, `FILTER_ALL`**: the Attack Sub's type has `block_radius` 0 and `big_radius` 0,
+so `Unit::come_out@00617c10` takes its `block_radius == 0` arm (`618436`). Within 2,500 of the dock stand only the
+Advanced Battleship `1/51` (idle, at (44184, 44424), `coll_size` 7) and a gaia object `9/20`. The warship clause
+(`0x2400`) refuses every candidate of rings 672 and 828. The first clean one is ring 984's bearing 0, (44184,
+44376), and ours took it, because `SimComeOut::find` sent every `FILTER_ALL` sweep through `Coll::None`. That was
+the stated seam on `Coll::None` (`orders.rs`): "`come_out`'s `block_radius == 0` arm, which no capture's trained
+type reaches". So **ours made no collision test, and theirs made one and refused**. The hypothesis was close:
+ours did not see an idle sea unit, but because no unit was asked about at all.
+
+**The original** (`UnitType::find_nearby_spot@0061de70`, `61e334`–`61e363`; `come_out`'s first `FILTER_ALL`
+call passes `(this->index, owner)` and `nocoll` 0, and its second passes `nocoll` 1). With `nocoll` 0:
+- `bVar17` is set only under `FILTER_NOT_ME`/`FILTER_CAN_COLLIDE`, so `FILTER_ALL` takes the general path;
+- that path is `find_unit_with_radius` at `local_8`, which is `0x180` when the type's `+0x240` is 0 and the
+  filter is `FILTER_ALL`;
+- then `find_unit_ordered_with_radius`, since `not_who >= 0`.
+
+This is the crate's `Coll::All`, already built for `come_out`'s re-seat at a building point (item 955). The
+second sweep (`a12`, `nocoll` 1) stays collision-off.
+
+**Built**: `come_out_view::SimComeOut::find` asks `Coll::None` for `a12 != 0`, `Coll::All` for `FILTER_ALL`, and
+`Coll::Pairwise` otherwise. The test is `cities_tests::a_type_with_no_block_comes_out_past_a_unit_on_the_ring`:
+a Militia with its block zeroed comes out of a city twice, and the second one is refused the first one's spot.
+Through `tools/mutate.py`, sending `FILTER_ALL` back to `Coll::None` fails that test (`the held spot is refused`,
+both at (6264, 7224)).
+
+**The word moves 2551 → 3952** (ours 35 draws against 34, index 30: ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`). `1/78` comes out east in both, and
+run1446b's window falls 940 → 83 keys, all standing families (`form`, `build:extra`, who=0's `SITE[..].reg`,
+the groups' `held` and pools). The closing state's counts fall `[144, 8, 7, 0, 106, 2, 32]` → `[39, 9, 2, 0, 8, 0,
+5]`, and its extras 7 → 2. Every lobby's `first_parting` (114) stays green.
+
+**The new word's widening** is run1452 (blocks 3895..4202, at run1446b's detail; `rngcmp.py` against run1446:
+4203 frames identical), walked from run1445 with every round compared. The disk could not answer it: run1446's
+stride prints units only at 3901 and 4001. Result: 307 blocks, **623 keys**, rounds read 360 against 360, 144
+parting, all from 4030 (`1/63`'s launch point), past the word. The stride walked back to 3901 reads 165 keys
+over 39 blocks.
+
+**The value diff**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3801 (stride) | `1/98` | every field | agree | agree |
+| 3895 | `1/98` | `order:move.off_x/off_y` | (408, 600) | (744, 264) |
+| 3895 | `1/98` | `orders_x/y`, `path[0].to` | (1944, 5976) | (1512, 5640) |
+| 3900 | `1/98` | `order:move.dest`; `path:length` | 0; 2 | 1; 3 |
+| 3952 | `1/98` | `orders.len` | 0 | 1 |
+| 3953 | `1/98` | `idle` | 1 | 0 |
+
+`1/98` is group 70's Attack Sub (type 339, sea, uid 144). Between 3801 and 3895 its group's `ATTACKTOORDER` puts
+it on another formation slot. On 3952 ours' sub has reached its point and idles, while theirs' is still walking
+under the order. That is the draw at index 30, `do_idle` against `do_guard`.
+
+Two standing rows sit beside it from 3895 (the stride has the first from 3101):
+- the Tornado `1/89`'s `g.z[0]` aboard its carrier, ours 0 and theirs 1;
+- `1/132`'s `mirror`.
+
+**The next item's hypothesis** (a supposition): the regroup between 3802 and 3895 seats group 70's members in a
+different order, or onto a different slot table. Nothing dumped that span. Its first act is a window over it,
+because group 70 was re-ordered somewhere in 3802..3894.
+
+**Not established**: whether any other `come_out` caller hands `FILTER_ALL` to a block-0 type with a unit standing
+on its ring. Only this sub and run1446b's `1/75` (nothing on its square) are on file.
 
 ## 379. Reserved for the next item on the AI track
 

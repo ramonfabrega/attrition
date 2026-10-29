@@ -11101,3 +11101,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1446  run1444's line with --ai-tribe 8 and run1445's lobby   (the draw stream; ended itself on 5036)
 #   run1446b --map 18 --end-frame 2801 --timeout 3600 --log-window 2495 2801 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0, run1445's lobby   (the word 2551's window)
 # Checks: `rngcmp.py` run1445 vs run1446 -> 37 identical; run1446 vs run1446b -> 2802 identical.
+# ==== item 3780: the Turks' Information word moved to 3952 (`docs/AI.md` §378.1; `docs/RUNS.md` run1452) ====
+#   run1452  --map 18 --end-frame 4202 --timeout 3600 --log-window 3895 4202 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0, run1445's lobby   (the word 3952's window)
+# Checks: `rngcmp.py` run1446 vs run1452 -> 4203 identical.

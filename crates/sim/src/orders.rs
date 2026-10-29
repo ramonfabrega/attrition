@@ -1725,16 +1725,19 @@ pub enum Coll {
     Pairwise,
     /// Accept any passable candidate. The original's `nocoll != 0`, and —
     /// as a stated seam — its `FILTER_ALL` general path where a call site
-    /// here has not yet asked for [`Coll::All`] (`come_out`'s
-    /// `block_radius == 0` arm, which no capture's trained type reaches).
+    /// here has not yet asked for [`Coll::All`]. ~~`come_out`'s
+    /// `block_radius == 0` arm, which no capture's trained type reaches~~:
+    /// run1446's Attack Sub reached it, and it asks [`Coll::All`] since
+    /// item 3780 (`docs/AI.md` §378.1).
     None,
     /// `FILTER_ALL` with the unit's own `(o, who)`: the **general** path
     /// (`61e37e` and `61e39c`, `docs/COLLISION.md` §5.2.1) —
     /// `find_unit_with_radius` over every player's units at `big_radius +
     /// r_coll`, `r_coll` the type's `block_radius` (`0x180` when that is
     /// 0), then its ordered twin, since `not_who >= 0`. `come_out`'s
-    /// re-seat at a building point is the call site (`619360`,
-    /// `docs/PRODUCTION.md` "The gather point").
+    /// re-seat at a building point is a call site (`619360`,
+    /// `docs/PRODUCTION.md` "The gather point"), and so is its ring's
+    /// first sweep for a `block_radius == 0` type (`618436`, item 3780).
     ///
     /// **The seeker counts** (item 955, run338): `FILTER_ALL` skips
     /// `Search::valid_filter` (`659a1a`), the only reader of `(not_o,

@@ -195,7 +195,7 @@ fn spanish_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // not print) and who=1's groups with their pools — and, from block
     // 3201, the Submarine `1/109`'s (TI 338) `pos`, heading and move: its
     // birth on 3119 lands 480 north of theirs' (run1395c).
-    pin_eq!(w.firsts.len(), 163, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 156, "the stride's baseline");
 }
 
 /// run1395b: the word 3770's window, blocks 3677..4021 at the long's
@@ -280,7 +280,7 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     // muzzles and wound it on 3928 and 4017 in ours too. What stands is
     // block 3677's 101 rows, who=1's new units' `form`, groups 76 and 84,
     // and the Submarine `1/109` from its birth (3718a).
-    pin_eq!(w.firsts.len(), 126, "run1395b baseline");
+    pin_eq!(w.firsts.len(), 113, "run1395b baseline");
     // Every round, both directions: 654 in ours against 680, the first
     // parting the Battleship `1/45`'s on 3693. Item 3736: (654, 656), 28
     // parting — the Tanks `1/25` and `1/35` (TI 250, `PANZER`, a pivot
@@ -358,7 +358,7 @@ fn spanish_modern_pair_run1415_s_word_frame_is_widened_whole() {
     // 4015's 108 standing rows, who=1's groups 67 and 70 (4027, 4028), and
     // the Submarine `1/109`'s path, heading and tolerance (4030..4070,
     // 3718a). Nothing parts on the word's old frame.
-    pin_eq!(w.firsts.len(), 117, "run1415 baseline");
+    pin_eq!(w.firsts.len(), 109, "run1415 baseline");
     pin_eq!(w.rounds_read, (394, 394), "the rounds read");
     // Every round, both directions: 394 in ours against 400, 99 parting.
     // The Tanks `1/25` and `1/35` (TI 250, `PANZER`, `<RESTRICTION
@@ -424,7 +424,7 @@ fn spanish_modern_pair_run1395c_walks_the_state_back() {
     // `1/2016` (35904, 43776), is placed on 3119 at (36696, 44760) in ours
     // against (36696, 45240) in theirs; its move and path follow (3120,
     // 3130). It spends no draw, so the stream holds to 3770.
-    pin_eq!(w.firsts.len(), 108, "run1395c baseline");
+    pin_eq!(w.firsts.len(), 97, "run1395c baseline");
     // Every round, both directions: 21 against 21, none parting.
     pin_eq!(w.rounds_read, (21, 21), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -486,6 +486,6 @@ fn spanish_modern_pair_run1395_s_closing_state() {
     // `1/109`, (−13, −43) from theirs, the Dock birth of 3119 (3718a) —
     // and nothing else; `Closing fields: none`.
     pin_eq!(e.compared, 153, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
