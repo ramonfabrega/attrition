@@ -12688,13 +12688,12 @@ is named: the record is DECISIONS 42's shape once more, and the frame was right.
 with the row (one `float_lands`), but no capture has the unit firing on the move. A capture where it moves while
 engaged is the falsifier.
 
-## Parked by the next landing, slot WY — reserved
+## Parked by item 3786, 2026-10-29 — a dead government hero is reborn at its Senate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3786a. The respawn's city-centre arm** (`docs/GOLDEN.md` §149.11): `Build::process@0061edf0`'s arm after the
+  Senate's, lines 344–360, trains the hero at a city centre (`flags & 0x20`) when the leader has no Senate (`+0x558e`
+  plus `LeaderData::get_buildings(SENATE)` under 1). `Sim::gov_hero_respawn` carries it as a `SEAM`. The disk is not
+  yet scanned for a hero killed under a leader with no Senate, and no word's frame names it, so it names no score.
 
 ## Parked by item 3787, 2026-10-29 — the second melee's word 784 → 865
 
@@ -12733,6 +12732,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot XC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot XD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot XD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot XE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot XE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot XF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot XF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot XG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot XG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot XH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot XH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot XI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot XI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

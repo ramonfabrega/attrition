@@ -3555,6 +3555,7 @@ impl Sim {
     /// run867's who=1 kept three shot-down Jet Fighters in `num_units`
     /// (7 against 4), and its next Fighter's ramp ran twelve frames long.
     pub(crate) fn close_count(&mut self, i: usize) {
+        self.gov_hero_closed(i);
         // `Unit::close@0060ee50:157-170`, ahead of the count and ungated by
         // the squad: an American Barracks unit that is not a scout raises
         // its leader's `0x2000000` (item 3384, `docs/AI.md` §292).

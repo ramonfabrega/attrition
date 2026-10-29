@@ -6946,6 +6946,7 @@ impl Sim {
             self.gather_region_building(b);
             if live {
                 self.kremlin_spy(b, frame);
+                self.gov_hero_respawn(b, frame);
                 self.persian_market_caravan(b, frame);
                 self.terra_cotta_army(b);
                 self.log_building_step(b, "tail");
