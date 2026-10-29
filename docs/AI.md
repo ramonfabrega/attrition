@@ -23271,8 +23271,9 @@ block 10853: `1/25` (TI 83 → 84, Javelineers upgraded to Peltasts on 10852 on 
 against theirs 2 and `g.end_time[0]` 96 against 36. Then `0/2000`'s `build:damage` (41 against 44) and `city:raid_stamp`
 (10863 against 10869) part on 10870. Both are parked under item 3279's heading.
 
-**Not established.** The General, caravan and supply-wagon victims (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec slay
-bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`), the Inca refund and the pre-EE arm are not built. Nor is the victim redirect
+**Not established.** ~~The General, caravan and supply-wagon victims (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`)~~ and
+~~the Inca refund~~ — built by item 3788 (`docs/GOLDEN.md` §149.12). The Aztec slay
+bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`) and the pre-EE arm are not built. Nor is the victim redirect
 for a type with `+0x2b4 & 0x10`, or the kill counters around the call (`+0x810`, `+0xa58`, the score `+0x29d8`). The
 victim classes are taken from `unit_flags2` (GENERAL, CARAVAN, SUPPLY_OR_HERO), not from `is`'s lineage. One kill is
 diffed: run943's 10852.

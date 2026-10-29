@@ -3138,6 +3138,7 @@ impl Sim {
                     if !splash && let Obj::Unit(k) = _by {
                         self.unit_plunder(i, k);
                     }
+                    self.inca_refund(i, _by);
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
@@ -3232,9 +3233,12 @@ impl Sim {
     /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
     /// (the original's whole function, swept against it in item 3356).
     ///
-    /// SEAM: the General, caravan and supply-wagon victims
-    /// (their own plunder constants), the Inca refund, and the victim
-    /// redirect of a type with `+0x2b4 & 0x10` are not carried.
+    /// A General, caravan or supply-wagon victim (`uflags2::GENERAL`,
+    /// `CARAVAN`, `SUPPLY_OR_HERO`) plunders by its own constant, `p3` and
+    /// `p4` both 0 (item 3788). The Inca refund is [`Sim::inca_refund`].
+    ///
+    /// SEAM: the victim redirect of a type with `+0x2b4 & 0x10` is not
+    /// carried.
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
@@ -3270,7 +3274,18 @@ impl Sim {
         let kind = self.units[v]
             .ty
             .map_or(0, |t| self.unit_types[t].cols.unit_flags2);
+        // `take_damage@00652020`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)`
+        // arm (`LAB_0065332c`): `plunder(v, k, who, 0, 0)` — no Despot search,
+        // the base constant in wealth (item 3788; run1461b's who=2 takes
+        // `GENERAL_PLUNDER` 100 for who=1's Despot `1/28` on 1463).
         if kind & (uflags2::GENERAL | uflags2::CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
+            crate::plunder::plunder_steps(
+                &mut crate::plunder::SimPlunder { sim: self, v },
+                k as i32,
+                i32::from(who),
+                0,
+                0,
+            );
             return;
         }
         if amount == 0
@@ -3286,6 +3301,40 @@ impl Sim {
             i32::from(who),
             0,
             1,
+        );
+    }
+
+    /// **The Inca refund** (item 3788, `docs/GOLDEN.md` §149.12):
+    /// `Object::take_damage@00652020`'s `LAB_00653354` arm, reached by the
+    /// kill arm's own gate — the victim `v` its squad's captain, the last
+    /// figure (`curr_uber_size == 1`), no decoy, a killer — and run after
+    /// the plunder block whether that block ran or not, so a building's
+    /// kill and a splash kill refund too. When the victim's leader is not
+    /// allied with the killer's (`is_ally` answers itself, so an own kill
+    /// pays nothing), `INCA_REFUND` is non-zero and the victim's leader
+    /// holds tribe bonus 2, it calls `Unit::plunder(v, v.index, v.who, 0,
+    /// 0)`: `INCA_REFUND`% of the unit's price in each available good,
+    /// added to the bucket uncapped. run1461b's who=2 (the Inca) takes
+    /// `+16` food and `+11` timber on logger frame 860 and `+25` timber
+    /// and `+25` metal on 864, the Bombard `2/23`'s death.
+    pub(crate) fn inca_refund(&mut self, v: usize, by: Obj) {
+        let victim = &self.units[v];
+        if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
+            return;
+        }
+        let vw = victim.owner;
+        if self.tuning.inca_refund == 0
+            || self.is_ally(vw, self.owner_of(by))
+            || !self.holdings[vw as usize].inca
+        {
+            return;
+        }
+        crate::plunder::plunder_steps(
+            &mut crate::plunder::SimPlunder { sim: self, v },
+            v as i32,
+            i32::from(vw),
+            0,
+            0,
         );
     }
 

@@ -157,7 +157,7 @@ left out; a constant with no reader in the export is dead there too.
 | `MAYA_BUILDING_SPEED` | 20 | Wall::update_construct_time | modelled at build.rs | `maya_building_speed` |
 | `INCA_WEALTH_CAP` | 33 | Leader::calc_resource_caps | modelled at economy.rs | `inca_wealth_cap` |
 | `INCA_WEALTH_PER_MINER` | 10 | BuildTypeData::calc_gather, Leader::calc_gather | modelled at holdings.rs | `inca_wealth_per_miner` |
-| `INCA_REFUND` | 25 | Object::take_damage, Unit::plunder | not carried | `inca_refund` |
+| `INCA_REFUND` | 25 | Object::take_damage, Unit::plunder | modelled at fight.rs | `inca_refund` |
 | `BANTU_CITY_LIMIT` | 1 | Leader::found_cities, LeaderData::get_city_limit | modelled at place.rs | `bantu_city_limit` |
 | `BANTU_POP_CAP` | 100 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_pop_cap` |
 | `BANTU_FINAL_POP_CAP` | 25 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_final_pop_cap` |
