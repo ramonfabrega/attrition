@@ -446,19 +446,6 @@ impl Sim {
                     && self.buildings[b].alive
                     && self.target_seen_by(who, Obj::Building(b))
             });
-            if seen && std::env::var("RON_PROBE_3763").is_ok() {
-                for u in 0..self.units.len() {
-                    if self.units[u].owner == o && self.units[u].alive() && self.target_seen_by(who, Obj::Unit(u)) {
-                        let x = &self.units[u];
-                        eprintln!("  PROBE f{} meet {who}->{o} unit {}/{} ti {} pos {:?} world_sees {} visible {:#x} human {}", self.frame, x.owner, x.index, x.type_index, x.pos, self.world_sees(x.pos, who), self.visible_of(Obj::Unit(u)), self.nation[w].human);
-                    }
-                }
-                for b in 0..self.buildings.len() {
-                    if self.buildings[b].owner == o && self.buildings[b].alive && self.target_seen_by(who, Obj::Building(b)) {
-                        eprintln!("  PROBE f{} meet {who}->{o} build {}/{}", self.frame, self.buildings[b].owner, self.buildings[b].index);
-                    }
-                }
-            }
             if seen {
                 self.meet(who, o);
             }
