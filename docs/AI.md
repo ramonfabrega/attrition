@@ -37195,12 +37195,62 @@ Infantry` (110) entering, with `census::RUBRIC_UNIT_TYPES_SEEN` re-pinned. Locks
 alike drops its dead target a frame early (3766a). `1/22`'s 3296 round still spends no `+0xc59` where `1/24`'s does.
 Both sides now agree there, so the arm's predicate is still unread and names no score (3750b, struck).
 
-## 375. Reserved for the next item on the AI track
+## 375. The Chinese at a held Modern age, East Indies: whole on its first try, 4130 of 4130 (item 3751)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3751, 2026-10-28, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4). This is §365's lobby with the nation
+moved: `MAP_STYLE 18`, human Nubians (4) against the **Chinese (14)** at Difficulty 4, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. Both `GAME INFO`s read the 6s back, and
+`Pair::assert_lobby` asserts them. The captures are run1430 (a `DUMP_ALL` start) and run1431 (the draw stream,
+`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1431 ended itself on 4130. The walk is seeded from
+run1430's initial state (3506a). `diff::chinese_modern_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(18, 14, 4)`, is minted** in `battery::SCORED_LOBBIES`. The Chinese held Great Sahara at 3
+(`chinese_industrial_pair`) and 5 (`chinese_medieval_pair`), East Indies at 5 (`chinese_gunpowder_pair`) and Great
+Lakes at 5 (`chinese_enlightenment_pair`); the battery's one Chinese game is the held-out
+`GreatLakesChineseTier1`, `(14, 14, 1)`. `chinese_modern_pair_is_no_other_lobby` asserts all of it.
+
+**The cast.** The Chinese field the `Manchu Infantry` (118), their own line, and the generic Modern lines they do
+not replace: Flamethrower (131), Bazooka (139), the Armored Scout Car (218), the `T34` Tank (248), Howitzer (271),
+the Anti-Aircraft Battery (282), one Nuclear Missile (315), and at sea the Transport Freighter (322), Cruiser
+(329), Submarine (338) and Battleship (349), read by `rubric.py --tables 3 --dumps` on the three takes. No air
+line is fielded. The Manchu Infantry was on the pass's never-fielded list; it enters the lockstep ledger here,
+and `census::RUBRIC_UNIT_TYPES_SEEN` moves from 257 to 258. The lockstep bytes stay at 77.4 % (`cover=0`).
+
+**The score: whole on the first try, 4130 of 4130**, the count and the sequence together. No draw parts to the
+game's last frame. The closing block 4131 compares 180 units with counts `[1, 0, 0, 0, 0, 0, 0]`, none torn, extra
+or unlinked (`chinese_modern_pair_run1431_s_closing_state`): one unit's position is off, below.
+
+**The windows:**
+- **The stride** (run1431, 101..4101): 41 blocks and **207 keys** — the standing families (`form` on 69 units,
+  `build:extra` on 64 buildings, who=1's groups' `held` and pools) and, from 3901, the Submarine `1/139`.
+- **The closing window** (run1431b, 3875..4131, at the long's detail with `BUILDS`, `CITIES`, `LEADERS=9` and
+  `AMMO=5`, walked from run1430 with every round compared): 256 blocks and **164 keys**. Block 3875 carries who=0's
+  `aggression[1]` (0 against 1), `form`, the groups and pools, and `1/139` already parted. **Rounds read 71
+  against 73, with 52 parting.**
+
+**The residue under the whole score** (parked 3751a, 3751b). It moves no score, so it is not built here:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3801 | the Submarine `1/139` (type 338, group 71), `ATTACKTOORDER` | `x, y`; `off_x, off_y` | 44952, 37848; 408, 216 | the same |
+| 3875 | the same | `x, y`; `off_x, off_y` | 45288, 37992; 744, 360 | 45000, 37608; 456, 744 |
+| 3875 | the same | position; `path:length` | (31843, 31369); 19 | (31968, 31483); 17 |
+| 4131 | the same | position | off by (70, −591) | — |
+| 4003 | the Manchu Infantry `1/28`'s `ammo[0]`, `ammo[1]` | `sz` | 21 | 139 |
+| 4012 | the Manchu Infantry `1/26`'s `ammo[0]` | `sx, sy, sz` | 6072, 11544, 17 | 6084, 11455, 184 |
+
+**`1/139`**: between run1431's stride block 3801 (agreeing) and run1431b's first block 3875 the group's attack
+order is re-issued with a new point and formation offset on both sides, and the two choose different ones; no
+draw is spent on the choice. **The rounds**: every parting round is one of who=1's three Manchu Infantry,
+`1/26`, `1/27` and `1/28` (TI 118, `RON_DEBUG_UNIT` `TY` 68), loosed from the figure's own square in ours. The
+art has only `MANCHUINFANTRY-DEFAULT-AGE0` for the line, so `Sim::unit_gpiece` walks to style 0; `sim::launch`
+holds no row for its piece. It is the launch-point family of §374 on another piece.
+
+**Not established**: which formation slot the original gives `1/139` on the re-issued order and why ours
+differs (the instrument is a window over 3801..3875); the Manchu Infantry piece's bay rows (a packet that loads
+it, as §374.1's run1441).
 
 ## 376. Reserved for the next item on the AI track
 

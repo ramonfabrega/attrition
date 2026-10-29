@@ -12361,13 +12361,20 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   the bays.~~ **Answered by item 3766** (`docs/AI.md` §374.1): it leaves from piece 60's `CHAR_ATTACK3` frame-12
   bay on both sides, flies 5 frames and wounds `0/7` alike; the predicate stays unread and names no score.
 
-## Parked by the next landing, slot VX — reserved
+## Parked by item 3751, 2026-10-28 — the Chinese Modern pair's residue under a whole score
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3751a. The Submarine `1/139`'s re-issued attack order takes a different formation slot**, with no score
+  parting: the pair is whole at 4130 of 4130 (`docs/AI.md` §375). `1/139` (type 338, `SUB`, group 71) is on an
+  `ATTACKTOORDER` that agrees on run1431's stride block 3801 (point 44952, 37848, offset 408, 216). By run1431b's
+  first block 3875 the order is re-issued on both sides: ours at (45288, 37992), offset (744, 360), path 19 nodes;
+  theirs at (45000, 37608), offset (456, 744), 17 nodes. It is the one unit off at the closing block 4131, by
+  (70, −591). No draw reads the choice. The instrument is a window over 3801..3875 with `GUYS` and `ARMIES`.
+- **3751b. The Manchu Infantry's rounds leave from the figure's own square in ours**, with no score parting. On
+  run1431b's window (3875..4131) 52 of the rounds part, 71 in ours against 73, every one of who=1's `1/26`,
+  `1/27` or `1/28` (TI 118, `TY` 68, `MANCHUINFANTRY-DEFAULT-AGE0`, the only entry the art has for the line).
+  `1/26`'s `ammo[0]` on 4012: `sx, sy, sz` 6072, 11544, 17 against 6084, 11455, 184; `1/28`'s pair on 4003: `sz`
+  21 against 139. `sim::launch` holds no row for the piece. It is the launch-point family (3726a, 3750, 3766) on
+  another piece; the rows come off a packet that loads it.
 
 ## Parked by the next landing, slot VY — reserved
 
