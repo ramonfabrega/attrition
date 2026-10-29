@@ -129,8 +129,17 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // parting at index 30: ours the Barbarians `0/21`'s `Guy::set_anim
     // +0x97a < Unit::move_step+0x823` where theirs spends `0/25`'s
     // `Guy::set_anim+0xf2f < Guy::move+0x166`.
-    count: 786,
-    sequence: 784,
+    //
+    // **784 → 865, item 3787** (§150.2), two builds: a death clears every
+    // figure's disc, the crew's too (`Objects::kill_guy`'s last arm), so
+    // the dead Catapult `1/26`'s crew punches its holes and `0/21` steps on
+    // 785 — the word went to 828; and `set_type` keeps no same-type guard,
+    // so who=1's second government re-types The Despot `1/30` on 828 with
+    // its three `init_real` draws. On 865 ours spends 12 draws against 13,
+    // parting at index 3: theirs' `Unit::close+0xcb6`, a death, where ours
+    // spends `Farms::inc_time+0x1ae`.
+    count: 865,
+    sequence: 865,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -293,6 +302,56 @@ fn classical_melee_s_royal_balamob_slingers_loose_from_the_sling() {
     );
 }
 
+/// **A dead Catapult's crew clears its own disc** (item 3787,
+/// `docs/GOLDEN.md` §150.2). The Greek Catapult `1/26` dies on 747 with its
+/// crew figure at (16509, 15030), cell (343, 313); `Objects::kill_guy`
+/// clears a radius-2 disc around that figure's own cell, punching holes in
+/// the Barbarians `0/22`'s disc (rows 314–315, x 342–344) and `0/24`'s
+/// (row 311, x 343–345), which run1459's packet at 780 and run1460's at
+/// 760 print. With the holes the Barbarians `0/21` takes its step on 785,
+/// as theirs does; without them it stood blocked on 784.
+#[test]
+fn classical_melee_s_dead_catapult_crew_clears_its_disc() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    while built.sim.frame < 780 {
+        built.tick();
+    }
+    let holes: Vec<(i32, i32)> = (342..=344)
+        .flat_map(|x| [(x, 314), (x, 315)])
+        .chain((343..=345).map(|x| (x, 311)))
+        .collect();
+    let set: Vec<_> = holes
+        .iter()
+        .filter(|&&(x, y)| built.sim.coll.get(x, y))
+        .collect();
+    assert!(
+        set.is_empty(),
+        "the packets' holes at 780, set in ours: {set:?}"
+    );
+}
+
 /// The word's window on run1450's stride: the block before the word to
 /// the block after it.
 pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (601, 968);
@@ -348,7 +407,7 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 513, "run1450's word window");
-    pin_eq!(w.rounds_read, (14, 13), "the rounds read");
-    pin_eq!(w.rounds.len(), 15, "the rounds that part");
+    pin_eq!(w.firsts.len(), 151, "run1450's word window");
+    pin_eq!(w.rounds_read, (14, 14), "the rounds read");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }

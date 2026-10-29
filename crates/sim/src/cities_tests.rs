@@ -7861,6 +7861,23 @@ fn a_decoy_s_type_change_is_no_count_of_its_leader_s() {
     );
 }
 
+/// **A type change to its own type re-initialises the guys** (item 3787,
+/// `docs/GOLDEN.md` §150.2): `Unit::set_type@00612fa0` has no same-type
+/// guard, so each figure's `Guy::init_real` spends its draw. The second
+/// melee's who=1 finishes a second government on 828 and its Senate
+/// `set_type`s the standing Despot `1/30` to The Despot: three draws.
+///
+/// Made to fail with the guard put back.
+#[test]
+fn a_set_type_to_its_own_type_reinitialises_its_guys() {
+    let (mut sim, [_, _, _, foot], _) = untargeted_sim();
+    let d = sim.init_unit(0, foot, tile_pos(30, 30));
+    let before = sim.rng.seed;
+    sim.unit_set_type(d, foot);
+    assert_eq!(sim.units[d].ty, Some(foot));
+    assert_ne!(sim.rng.seed, before, "init_real's draw");
+}
+
 /// **A paid cast that dies before its craft hands the craft back; one
 /// that ran its course does not, and the cast clock restarts under any
 /// other order** (item 1302; run346's `1/98`: the army's `ATTACK_TO`
