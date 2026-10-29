@@ -616,7 +616,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Assault Marines[ASSAULTMARINES]` (122), land, the line item 3725 found
 /// fielded and new to the ledger; piece 255's bays closed the word
 /// (§372.4), read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 256;
+/// Item 3766: 256 -> 257, the Aztec Modern pair whole at 3389 — `Jaguar
+/// Infantry[JAGINFANTRY]` (110), land, the refill's never-seen line (§374);
+/// piece 60's bays closed the word (§374.1), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 257;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
