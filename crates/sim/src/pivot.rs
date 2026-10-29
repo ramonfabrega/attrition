@@ -476,6 +476,14 @@ const NODES: &[(i32, i32, Node)] = &[
             py: -3_322_791,
         },
     ),
+    (
+        141,
+        4,
+        Node {
+            px: 908_200,
+            py: -122_588,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -506,6 +514,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (199, (4, 5)),
     (204, (3, 4)),
     (143, (9, 10)),
+    (141, (9, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -737,6 +746,13 @@ const FLOAT_LANDS_143_A10: &[(i32, i32, i32, i32)] = &[
 const FLOAT_LANDS_143_A11: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_143_A12: &[(i32, i32, i32, i32)] = &[(204, 69, 114, 28)];
 const FLOAT_LANDS_143_A13: &[(i32, i32, i32, i32)] = &[];
+/// Piece 141's [`Release::float_lands`], one list per anim (item 3785,
+/// run1457's packet).
+const FLOAT_LANDS_141_A10: &[(i32, i32, i32, i32)] = &[(173, 125, 45, 21)];
+const FLOAT_LANDS_141_A11: &[(i32, i32, i32, i32)] =
+    &[(89, 277, -5, 52), (179, 277, -52, -5), (359, 277, 52, 5)];
+const FLOAT_LANDS_141_A12: &[(i32, i32, i32, i32)] = &[(142, 121, 35, 3), (232, 121, -3, 35)];
+const FLOAT_LANDS_141_A13: &[(i32, i32, i32, i32)] = &[(219, 30, 44, -9)];
 /// Piece 204's [`Release::float_lands`], one list per `(anim, time)` row
 /// (item 3758, run1437's packet).
 const FLOAT_LANDS_204_A11_T11: &[(i32, i32, i32, i32)] = &[];
@@ -1134,8 +1150,8 @@ const FLOAT_LANDS_297_N1: &[(i32, i32, i32, i32)] = &[];
 /// 14677 and (13, −66) on run982d's 16764, are one entry at two turrets,
 /// and no facing-only node fits both (`docs/AI.md` §280).
 ///
-/// SEAM: every other pivot piece that releases (the camel archers, the
-/// Mameluke's line, the machine-gun ships). A packet
+/// SEAM: every other pivot piece that releases (the camel archers but
+/// pieces 141 and 143, the Mameluke's line, the machine-gun ships). A packet
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
@@ -1701,6 +1717,64 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [20, -3_322_791, 49_239_670],
             at: [-4_862_028, -28_742_996, 12_248_196],
             float_lands: FLOAT_LANDS_143_A13,
+        },
+    ),
+    // **The Camel Archer, piece 141** (unit type 191, `CAMELRANGE2`, the
+    // Nubians' Classical camel archer; item 3785, `docs/GOLDEN.md` §150.1):
+    // run1457's packet (logger frame 700 of the second melee's lobby) holds
+    // the piece's nine entries — the `(4, 0, 0)` [`NODES`] reads, `RData
+    // +0x88` 0.9, and for each of its four `<RELEASEEVENT>`s (node 0; frame
+    // 13 of `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2`, 10 of
+    // `CHAR_ATTACK3`) the pivot node's and the release node's. Without them
+    // the human's `0/17` loosed its round of 699 at the Egyptian `2/22` from
+    // its own square (15864, 15672) at 566, where run1450's block 701 prints
+    // (15828, 15703, 835).
+    (
+        141,
+        crate::anim::ATTACKWALK,
+        13,
+        Release {
+            piece: 141,
+            node: 0,
+            pivot: [903_646, -1_816_183, 48_539_608],
+            at: [-268_843, -13_453_966, 11_554_844],
+            float_lands: FLOAT_LANDS_141_A10,
+        },
+    ),
+    (
+        141,
+        crate::anim::ATTACK1,
+        13,
+        Release {
+            piece: 141,
+            node: 0,
+            pivot: [908_200, -122_588, 48_459_412],
+            at: [-48_422, -11_193_214, 14_021_603],
+            float_lands: FLOAT_LANDS_141_A11,
+        },
+    ),
+    (
+        141,
+        crate::anim::ATTACK2,
+        13,
+        Release {
+            piece: 141,
+            node: 0,
+            pivot: [2_867_742, -1_472_081, 47_870_110],
+            at: [-1_691_635, -11_148_353, 13_973_820],
+            float_lands: FLOAT_LANDS_141_A12,
+        },
+    ),
+    (
+        141,
+        crate::anim::ATTACK3,
+        10,
+        Release {
+            piece: 141,
+            node: 0,
+            pivot: [908_200, -122_588, 48_459_412],
+            at: [-2_347_111, -10_713_058, 14_215_946],
+            float_lands: FLOAT_LANDS_141_A13,
         },
     ),
     // **The Tank** (item 3244): run938b's packet (logger frame 630, ch100's
@@ -4302,6 +4376,40 @@ mod tests {
         }
     }
 
+    /// **The Camel Archer's rounds leave from its pivot** (item 3785,
+    /// `docs/GOLDEN.md` §150.1): the two `0/17` rounds run1457's window
+    /// prints from their first frame, 675 and 700, beside the figure's `GUY`
+    /// pose on the frame before — (15864, 15672), `angle` −1613430784, `z`
+    /// 566 — are `CHAR_ATTACK2`'s at the dump's own turret step 1 (step 0
+    /// lands on the same point) and `CHAR_ATTACK1`'s at step 7 and no
+    /// other. The second is the round run1450's block 701 prints at (15828,
+    /// 15703, 835). Made to fail with piece 141's rows out: both leave the
+    /// figure's own square.
+    #[test]
+    fn the_camel_archer_s_rounds_leave_from_its_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2};
+        let (x, y, z, f) = (15864, 15672, 566, -1_613_430_784);
+        for (a, t, turret, sx, sy, sz) in [
+            (ATTACK2, 13, 22_085_632, 15830, 15714, 833),
+            (ATTACK1, 13, 128_581_632, 15828, 15703, 835),
+        ] {
+            let r = release(141, a, t).expect("every Camel Archer release row");
+            let fits: Vec<i32> = (-128..128)
+                .filter(|i| {
+                    let (dx, dy, _) = release_offset(&r, Angle(f), i << 24);
+                    (x + dx, y + dy) == (sx, sy)
+                })
+                .collect();
+            assert!(fits.contains(&(turret >> 24)), "anim {a}: {fits:?}");
+            assert!(fits.len() <= 2, "anim {a}: {fits:?}");
+            assert_eq!(
+                z + release_offset(&r, Angle(f), turret).2,
+                sz,
+                "anim {a} height"
+            );
+        }
+    }
+
     /// **Piece 143, the Camel Raider: the original's release on every
     /// cell** (item 3770): `tools/recomp/get_position.py … pivot 143 0
     /// <anim> <time> 1` on run1440's packet, 361 facings × 256 turret steps
@@ -4350,6 +4458,61 @@ mod tests {
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         for f in read("sweep-143-4-0-0.txt", 5) {
             if offset_at(143, 4, f[0]) != (f[2], f[3]) {
+                off.push(format!("node {} ({}, {})", f[0], f[2], f[3]));
+            }
+        }
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **Piece 141, the Camel Archer: the original's release on every
+    /// cell** (item 3785): `tools/recomp/get_position.py … pivot 141 0
+    /// <anim> <time> 1` on run1457's packet, 361 facings × 256 turret steps
+    /// for each of the four rows, agrees with [`release_offset_at`] on every
+    /// cell, its [`Release::float_lands`] included; and its pivot node's
+    /// `sweep 141 4 0 0` with [`offset_at`] on every degree. The tables stay
+    /// outside git (`RON_RELEASE_TABLE_141`,
+    /// `~/ron-data/lab-experiments/2026-10-29-item-3785/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_141() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_141") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_141 (item 3785's oracle, run1457)");
+            return;
+        };
+        let read = |name: &str, cols: usize| -> Vec<Vec<i32>> {
+            let path = format!("{dir}/{name}");
+            std::fs::read_to_string(&path)
+                .unwrap_or_else(|_| panic!("{path}"))
+                .lines()
+                .map(|line| {
+                    line.split_whitespace()
+                        .take(cols)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect()
+                })
+                .collect()
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 13),
+            (crate::anim::ATTACK1, 13),
+            (crate::anim::ATTACK2, 13),
+            (crate::anim::ATTACK3, 10),
+        ] {
+            let r = release(141, slot, time).expect("the row");
+            for f in read(&format!("pivot-141-a{slot}-t{time}.txt"), 6) {
+                let (x, y, z) = release_offset_at(&r, f[0], f[2]);
+                if (x, y, z) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "{slot} ({}, {}, {}, {}) z {z}",
+                        f[0], f[2], f[3], f[4]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        for f in read("sweep-141-4-0-0.txt", 5) {
+            if offset_at(141, 4, f[0]) != (f[2], f[3]) {
                 off.push(format!("node {} ({}, {})", f[0], f[2], f[3]));
             }
         }
