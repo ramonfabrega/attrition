@@ -3868,6 +3868,7 @@ impl Sim {
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
         let mut tail = self.held_elsewhere(t);
+        tail.extend(self.epoch_catch_up(who, t));
         tail.extend(self.greek_research(who, t));
         tail.extend(self.research_rares(who));
         tail.extend(production::science_speedup(
@@ -3913,6 +3914,46 @@ impl Sim {
         vec![production::Adjust::Ratio(players - held + 1, players + 1)]
     }
 
+    /// **The epoch's catch-up term** of `ObjectData::train_time@006508c0`'s
+    /// research block (`LAB_00651510`, the decompile's lines 381–408): an
+    /// epoch (`0x227..0x242`) counts, over the eight leader slots in use
+    /// (`leader_flags & 1`), the leaders whose `ages + epochs` exceed this
+    /// leader's by more than three — 1 for an ally (`LeaderData::is_team`,
+    /// which in play is `is_ally`), 2 for anyone else — and with `n` of
+    /// them takes `t × (2N − n + 2) / (2N + 2)`, `N` the game's
+    /// `num_nations`. It runs ahead of the Greeks' divide, the
+    /// held-elsewhere term's place: the two are never on one tech. Read
+    /// live, like the rest of the block, so the frame another leader gains
+    /// its fourth epoch ahead shortens a job already running.
+    ///
+    /// The second melee (item 3790, `docs/GOLDEN.md` §150.4): who=1 holds
+    /// eight epochs from 1004 against who=2's four, so who=2's Military
+    /// epoch runs at 6/8 and its Civic epoch, City State, lands before the
+    /// Stable `2/2012` finishes — the Civic sweep pulls the Stable into
+    /// Thebes, and its activation on 1279 flags the city's roads.
+    ///
+    /// SEAM: `is_team`'s team-style-7 arm (a seat on team 8 is nobody's
+    /// team) is not carried; the alliance test answers for it.
+    pub(crate) fn epoch_catch_up(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+        if !matches!(self.tech_tree.kind(t), tech::Kind::Epoch { .. }) {
+            return Vec::new();
+        }
+        let me = &self.tech[who as usize];
+        let mine = me.ages + me.epochs;
+        let n: i32 = (0..self.players.len().min(8))
+            .filter(|&p| {
+                let o = &self.tech[p];
+                mine + 3 < o.ages + o.epochs
+            })
+            .map(|p| if self.is_ally(p as Player, who) { 1 } else { 2 })
+            .sum();
+        if n == 0 {
+            return Vec::new();
+        }
+        let nations = 2 * self.players.len() as i32;
+        vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
+    }
+
     /// **The Greeks' arm** of `ObjectData::train_time@006508c0`'s research
     /// block (`LAB_006515d7`, `:453`–`458`): for a leader with
     /// `has_tribe_bonus(5)`, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`. The
@@ -3926,8 +3967,8 @@ impl Sim {
     /// its second city five times there; without the arm ours is still
     /// researching it (item 3326, `docs/AI.md` §266).
     ///
-    /// SEAM: the two catch-up terms ahead of it — `ages_queued` on an age,
-    /// `ages + epochs` on an epoch — are not carried.
+    /// SEAM: the age's catch-up term ahead of it (`ages_queued`) is not
+    /// carried; the epoch's is built (item 3790).
     pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
         let age_or_epoch = matches!(
             self.tech_tree.kind(t),
@@ -3958,7 +3999,8 @@ impl Sim {
     /// SEAM: the block's other steps — `has_preq(RESEARCH_FASTER)`'s three
     /// quarters, Angkor Wat's `ANGKOR_RESEARCH` (0% shipped), Conquer the
     /// World's cards, the handicap, the lobby's `tech_cost`, and the
-    /// head's catch-up terms — are not carried.
+    /// head's age catch-up term — are not carried (the epoch's is built,
+    /// item 3790).
     pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
         if self.has_rare(who, economy::RELICS) {
             vec![production::Adjust::Scale(

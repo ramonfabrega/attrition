@@ -8431,7 +8431,7 @@ reading, not a measurement.
   Whether the Spanish Scout opens a box before 22700 is a grep of run896b's trace for `explore_goody`'s draws; no
   word waits on it.
 - (3318e) **`research_rares`' SEAMs** (`crates/sim/src/lib.rs`): RESEARCH_FASTER, Angkor, Conquer the World, the
-  handicap, `tech_cost`, the catch-up arms are not modelled (~~the held-elsewhere arm~~: built by item 3783, `docs/GOLDEN.md` §149.9); and `fix_tech_flags` clearing
+  handicap, `tech_cost`, the catch-up arms are not modelled (~~the held-elsewhere arm~~: built by item 3783, `docs/GOLDEN.md` §149.9; ~~the epoch's catch-up~~: built by item 3790, §150.4); and `fix_tech_flags` clearing
   `leader_flags 0x1000` on `lose_tech` is never reached by any capture. Each returns when a word's frame reaches it.
 - (3318f) **3318's "for the Loop"** (the journal's line, filed by the lane): `zsh tools/check.sh test …` exited 0 on a
   `rondata` compile error after the merge, so the budget wrapper's exit is not cargo's; a worker reads the `test
@@ -12657,7 +12657,7 @@ words and edits nothing here; a refill lands when two remain.
 - **3783a. The age and epoch catch-up terms** (`docs/GOLDEN.md` §149.9): `train_time@006508c0`'s `LAB_00651454`
   (an age, against every leader's `ages + ages_queued`) and `LAB_00651510` (an epoch, against `ages + epochs`),
   `t × (2·num_nations − k + 2) / (2·num_nations + 2)` with `k` counting a leader ahead once as a teammate and twice
-  otherwise. They are the held-elsewhere term's siblings and stay `research_rares`' SEAM. 3783's predicate
+  otherwise. ~~The epoch's~~ is built by item 3790 (`Sim::epoch_catch_up`, `docs/GOLDEN.md` §150.4); the age's stays. They are the held-elsewhere term's siblings and stay `research_rares`' SEAM. 3783's predicate
   mutation (the term widened to ages and epochs) failed none of the 114 `first_parting`s: no floor on file
   researches an age or an epoch another seat leads in where the term would land. It names no score.
 - **3783b. `num_players` read as the seat count** (§149.9): `Sim::held_elsewhere` takes `players.len()` for
@@ -12746,13 +12746,15 @@ other than its own seat.
 lets an asker that does not outrange the target stand too. No chaser in any lobby carries it; which unit types set the
 bit, and when, is unread. The falsifier is the same block as 3789a with an asker that has the bit and a shorter range.
 
-## Parked by the next landing, slot XC — reserved
+## Parked by item 3790, 2026-10-29 — an epoch's research takes the catch-up term
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3790a. `LeaderData::is_team`'s team-style-7 arm** (`Sim::epoch_catch_up`'s `SEAM`, `docs/GOLDEN.md` §150.4): in
+  play `is_team(_, _, 0)` is `is_ally`, except under `team_style 7`, where a seat on team 8 is nobody's team. No
+  lobby on file sets team style 7; the falsifier is a team-style-7 game where an epoch is researched behind an ally.
+- **3790b. The frame theirs gains City State**: inferred, never printed. run1450 strides 100 and prints no leader
+  record; the replans of 1284–1291 and the closing block's queue frames (1157, 1182) are what pin it. A packet at a
+  frame between 1220 and 1278 would read who=2's `epoch[Civic]` and the Stable's `city`. It names no score while the
+  word stands at 1382.
 
 ## Parked by the next landing, slot XD — reserved
 

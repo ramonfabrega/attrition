@@ -148,8 +148,19 @@ pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     // ours spends 15 draws against 1002, parting at index 5: theirs'
     // `PathFinder::calc_road_cost+0x46` where ours spends `Guy::set_anim
     // +0x97a < Guy::inc_time+0x271`.
-    count: 1284,
-    sequence: 1284,
+    //
+    // **1284 → 1382, item 3790** (§150.4): an epoch's research takes
+    // `train_time`'s catch-up term — who=1 holds eight epochs from 1004
+    // against who=2's four, so who=2's Military epoch finishes on 1018 and
+    // its Civic epoch by 1228, not 1087 and 1362 (`Sim::epoch_catch_up`).
+    // The Civic sweep pulls the Stable `2/2012`, placed on 757 one tile
+    // past Thebes' mask, into the city, and its activation on 1279 flags
+    // the city's roads: theirs' 986-draw `calc_road_cost` replan on its
+    // slot 1284. On 1382 ours spends 20 draws against 21, parting at
+    // index 2: ours `Leader::produce_building+0x1805` where theirs spends
+    // `Leader::make_stuff+0x63d`.
+    count: 1382,
+    sequence: 1382,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -424,9 +435,75 @@ fn classical_melee_s_slingers_lead_the_running_light_horse() {
     assert!(unit(&built.sim, 0, 20).is_none(), "0/20 dies on 865");
 }
 
+/// **The Egyptians catch up to City State** (item 3790, `docs/GOLDEN.md`
+/// §150.4): an epoch's research takes `train_time`'s catch-up term
+/// (`Sim::epoch_catch_up`). who=1 holds eight epochs from 1004 against
+/// who=2's four, so who=2's Civic epoch lands by 1228 rather than 1362;
+/// its sweep pulls the Stable `2/2012` — placed on 757 one tile past
+/// Thebes' mask — into the city, and the Stable's activation on 1279
+/// flags the city's roads, so it replans on its slot 1284 as run1450's
+/// trace does (986 `calc_road_cost` draws). Each leader's next queue
+/// frame is theirs' closing `LEADERDATA`'s: who=2's Military 1157, who=1's
+/// Civic 1182 (ours queued them on 957 and 982 without the term).
+#[test]
+fn classical_melee_s_egyptians_catch_up_to_city_state() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let stable = |sim: &sim::Sim| {
+        sim.buildings
+            .iter()
+            .position(|b| b.alive && b.owner == 2 && b.index == 2012)
+    };
+    let mut joined = None;
+    while built.sim.frame <= 1279 {
+        built.tick();
+        if joined.is_none()
+            && stable(&built.sim).is_some_and(|b| built.sim.buildings[b].city.is_some())
+        {
+            joined = Some(built.sim.frame);
+        }
+    }
+    assert_eq!(joined, Some(1228), "2/2012 joins Thebes with City State");
+    let b = stable(&built.sim).expect("2/2012 on 1279");
+    assert!(
+        built.sim.buildings[b].active && built.sim.buildings[b].regen_roads,
+        "2/2012's activation flags the city's roads"
+    );
+    assert_eq!(
+        (
+            built.sim.ai[2].tech_cat_frame[0],
+            built.sim.ai[1].tech_cat_frame[1]
+        ),
+        (1157, 1182),
+        "theirs' closing LEADERDATA's queue frames"
+    );
+}
+
 /// The word's window on run1450's stride: the block before the word to
-/// 250 frames past it (item 3789 moved it from 601..968 with the word).
-pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1201, 1534);
+/// 250 frames past it (item 3789 moved it from 601..968 with the word,
+/// item 3790 from 1201..1534).
+pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (1301, 1632);
 
 /// The word's window, widened whole on run1450's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -479,7 +556,7 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 544, "run1450's word window");
-    pin_eq!(w.rounds_read, (2, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 2, "the rounds that part");
+    pin_eq!(w.firsts.len(), 686, "run1450's word window");
+    pin_eq!(w.rounds_read, (5, 2), "the rounds read");
+    pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }

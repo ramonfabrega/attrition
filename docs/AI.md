@@ -23546,8 +23546,8 @@ and a `tools/mutate.py` mutation that the walk or the test caught. Every other l
 
 **Not established.** Salt on a research job is unpriced: no capture prices one. Relics on a *unit* research job is
 built under the assumption that `train_time`'s research block is one block for both (parked 3318c). `research_rares`'
-SEAMs — RESEARCH_FASTER, Angkor, Conquer the World, the handicap, `tech_cost`, the catch-up terms —
-are not carried (3318e); ~~the held-elsewhere term~~ is built (`Sim::held_elsewhere`, `docs/GOLDEN.md` §149.9). `fix_tech_flags` clearing `0x1000` on `lose_tech` is never reached. Whether the Spanish Scout
+SEAMs — RESEARCH_FASTER, Angkor, Conquer the World, the handicap, `tech_cost`, the age's catch-up term —
+are not carried (3318e); ~~the epoch's catch-up term~~ is built (`Sim::epoch_catch_up`, `docs/GOLDEN.md` §150.4); ~~the held-elsewhere term~~ is built (`Sim::held_elsewhere`, `docs/GOLDEN.md` §149.9). `fix_tech_flags` clearing `0x1000` on `lose_tech` is never reached. Whether the Spanish Scout
 opens a box, and so runs `explore_goody`'s Spanish payout pair, is unread (3318d).
 
 ## 265. The Romans' closing state: a closed decoy's last round (2026-10-19, item 3322)
