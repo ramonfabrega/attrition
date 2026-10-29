@@ -2382,6 +2382,10 @@ impl Sim {
             }
             for k in 0..self.unit_types.len() {
                 let n = self.muster[j].by_type[k];
+                if std::env::var("RON_PROBE_LH").is_ok() && t == 209 && n != 0 && (1379..=1380).contains(&self.frame) {
+                    let kp = &self.unit_types[k].combat;
+                    eprintln!("PROBE_UPV f{} who{} j{} k{} n{} role{} dom{:?} tdom{:?} pct_tk{} pct_kt{}", self.frame, who, j, k, n, kp.combat_role, kp.domain, self.unit_types[f.rec].combat.domain, self.table.pct(f.rec, k), self.table.pct(k, f.rec));
+                }
                 if n == 0 {
                     continue;
                 }
