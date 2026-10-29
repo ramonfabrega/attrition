@@ -112,9 +112,13 @@ pub(crate) use super::gunpowder_melee::Melee;
 
 pub(crate) const CLASSICAL_MELEE: Melee = Melee {
     length: 2600,
-    // Item 3774, first try: FIRST_TRY.
-    count: 0,
-    sequence: 0,
+    // Item 3774, first try: **718 of 2600**, the count and the sequence
+    // together, fifty frames past the script's last line (668). Ours 13
+    // draws against 14: index 0 agrees, and at index 1 theirs spends
+    // `Unit::fight+0x9b0` where ours spends `Guy::set_anim+0x97a <
+    // Unit::do_move+0x11cf` (`docs/GOLDEN.md` §150).
+    count: 718,
+    sequence: 718,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -147,7 +151,7 @@ fn classical_melee_first_parting() {
 
 /// The word's window on run1450's stride: the block before the word to
 /// the block after it.
-pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (0, 0);
+pub(crate) const WIDENING_CLASSICAL_MELEE: (i64, i64) = (601, 968);
 
 /// The word's window, widened whole on run1450's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -194,13 +198,13 @@ fn classical_melee_run1450_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 0, "every stride block in the window");
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1450's word window");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    pin_eq!(w.firsts.len(), 988, "run1450's word window");
+    pin_eq!(w.rounds_read, (14, 17), "the rounds read");
+    pin_eq!(w.rounds.len(), 22, "the rounds that part");
 }

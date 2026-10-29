@@ -12579,13 +12579,26 @@ Advanced Battleship `1/51`'s square (`docs/AI.md` §378), is the pair's word 255
   `add` line can field the Mirage under `TRIBE_MASK` (the French), or a longer French Information lobby can
   (`docs/AI.md` §379).
 
-## Parked by the next landing, slot WO — reserved
+## Parked by item 3774, 2026-10-29 — the second melee, a held Classical age on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3774a) **`add` does not test `TRIBE_MASK`, so §155's falsifier (d) has one arm.** `ConsoleWin::run_cmd@007d6a70`'s
+`add` case takes `parse_type@007e4050`'s index (mode 3) and calls `UnitType::find_nearby_spot` and
+`Objects::init_unit` with the console's or the line's `who`; `parse_type` walks the type names (with and without
+spaces) and reads no leader. run1450's `cmdsran.py` agrees: the Nubian human's Royal Balamob Slingers, Barbarians,
+Bushi and Chevalier — four lines its nation does not own — each returned 1 and stood up. GOLDEN §155's (d) names "the
+nation's `TRIBE_MASK`"; only the name arm can fire. A wording fix to §155, no score.
+
+(3774b) **The twin moves neither the matrix nor the bytes while the game parts, and enters none of Classical's
+gap.** run1450b enters 50 of the `unit` stem's 106 open functions, all 50 already entered by run1215, so **0 of the
+51** Classical's column lacks (the Gunpowder twin run1413b reaches 2 of them). `rubric.py`'s `lockstep_files` reads
+whole games alone (3733b's shape): the column stays at one trace until the melee runs whole, and a whole run would
+still enter nothing of the 51 on this evidence. What the 51 are, and which lobby reaches them, is the matrix's next
+question, not this word's.
+
+(3774c) **`--ai-tribe`'s read-back refuses a third seat.** `verify_game` asks for exactly two PLAYER records, so a
+`--profile PLAYERS=2` take cannot name slot 1's nation with it; `--seat-tribe SLOT=TRIBE` (this item) writes any
+computer slot's `XPACK_LAST_TRIBE<slot>` and reads each back by `who`. Folding `--ai-tribe` into it is tooling, no
+score.
 
 ## Parked by the next landing, slot WP — reserved
 

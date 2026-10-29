@@ -33753,3 +33753,70 @@ SHA-256 `398546422dc1044eb6930c6cb5bf1445a1844ff438ab81531bbd6271063e5258`.
 
 **What it holds**: the pair's closing widening (`french_information_pair_run1448b_s_closing_frame_is_widened_whole`):
 257 blocks, 55 keys, all standing families; rounds read 56 against 56, none parting.
+
+## run1449 — the second melee, a held Classical age on Great Sahara: the `DUMP_ALL` start (2026-10-29, item 3774, `att-3774`)
+
+`docs/GOLDEN.md` §150. **What the disk could not answer**: no capture on disk holds this lobby — three seats at a
+held Classical age, the Greeks and the Egyptians as the two computers. The line, through `zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1449`: `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile
+STARTING_RESOURCES=7 --seat-tribe 1=5 --seat-tribe 2=7`. `--seat-tribe` is new with this item: it writes the
+profile's `XPACK_LAST_TRIBE<slot>` and reads the receipt's PLAYER records back.
+- Pool lane 1. Launched 06:22:07, exited 06:22:45 (37.8 s launch to exit). `success`, 37 frames, `page_faults` 0, no
+  `relaunches`. The receipt's seats: who 0 (flags 7, tribe 4, Napata), who 1 (flags 1, tribe 5, Athens), who 2
+  (flags 1, tribe 7, Thebes); seed 12345. The capitals stand where run1412's did. DLL `dd448379…`. Filed with
+  `filerun.py run1449 greatsahara-classical-melee-start`. `df -g ~` read 144 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1449-greatsahara-classical-melee-start.txt`, 153,294,508 bytes,
+SHA-256 `e965150baa6270f9c36c75470f7beac1ac368a618b29fbad55c24c69d77d31a5`.
+
+Archive `rontrace-run1449.log`, 8,454,944 bytes,
+SHA-256 `d348b43db829284b33c3abf5c59e0c34448fcebedb60755229d5adf1fc56af7e`.
+
+**What it holds**: the second melee's initial state, which `classical_melee_staging_walk` and
+`classical_melee_first_parting` start from. Every leader reads `diplos` 0 to both others and 2 to itself.
+
+## run1450 — the second melee, a held Classical age on Great Sahara: the staged script to 2600 (2026-10-29, item 3774, `att-3774`)
+
+`docs/GOLDEN.md` §150. **What the disk could not answer**: no capture on disk holds a computer-versus-computer fight at
+Classical, or any of the age's nine never-seen lines in the field. run1449's lobby with `--end-frame 2600 --timeout
+3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file
+tools/gamelog/golden/melee-classical.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1. Launched 06:26:48, exited 06:27:16 (28.4 s launch to exit). `success`, 2601 frames. **One
+  `relaunches` row**: a Wine page fault at 6.3 s (`wine-fault-1.log`, exit 41), relaunched and recovered;
+  `page_faults` 1. `rngcmp.py` against run1449: 37 identical. `cmdsran.py`: 34 parsed and 34 ran, every one
+  returning 1. DLL `c695aa4b…`. Filed with `filerun.py run1450 greatsahara-classical-melee-trace`. `df -g ~` read 143
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1450-greatsahara-classical-melee-trace.txt`, 17,919,374 bytes,
+SHA-256 `50b0ce4a7c39acf2669dc80ec14437d55496e1d3547731779506e087b70ced98`.
+
+Archive `rontrace-run1450.log`, 35,988,992 bytes,
+SHA-256 `ec0a0729ec56e1419ee79de12b2e793eca9e0778bdf5e9d3284f94dfdf8a68b6`.
+
+**What it holds**: the second melee's first try, **718 of 2600** (`classical_melee_first_parting`). Its stride
+601..968 is the word's widening (`classical_melee_run1450_s_word_window_is_widened_whole`): 4 blocks, 988 keys, the
+rounds read (14, 17), 22 parting. It also holds falsifiers (b) to (d).
+
+## run1450b — the second melee, a held Classical age on Great Sahara: the `cover=1` twin (2026-10-29, item 3774, `att-3774`)
+
+`docs/GOLDEN.md` §150. **What the disk could not answer**: Classical's column holds one coverage trace (run1215).
+run1450's line with `--cover cover=1`.
+- Pool lane 1. Launched 06:27:42, exited 06:28:35 (52.8 s launch to exit). `success`, 2601 frames, 6,772 `HIT`,
+  `page_faults` 0, no `relaunches`. `rngcmp.py` against run1450: 2601 identical. `samegame.py`: 26 blocks in common
+  (1..2501), 0 differing. DLL `126d9ef5…`. Filed with `filerun.py run1450b greatsahara-classical-melee-cover1`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1450b-greatsahara-classical-melee-cover1.txt`, 17,919,373 bytes,
+SHA-256 `c602a1e5c9fe7761cb64a4a68ba21a9ae8d0336d29488e1cf45f66f8eb4850d4`.
+
+Archive `rontrace-run1450b.log`, 36,140,928 bytes,
+SHA-256 `d339e3b1c7b7d85004dc20c4a01a46d9130d94986a435a789033b793d2a03556`.
+
+**What it holds**: the second melee's coverage, pinned in `blind::TRACES`. It enters 50 of the `unit` stem's 106 open
+functions and **none of the 51 Classical's column lacks** (run1215 entered the other 55); the matrix does not move
+while the game parts (parked 3774b).
