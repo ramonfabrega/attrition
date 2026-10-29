@@ -37380,12 +37380,78 @@ disk.
 
 **Not established**: where who=1's food and timber buckets part (a `LEADERS=9` window earlier in the game).
 
-## 378. Reserved for the next item on the AI track
+## 378. The Turks at a held Information age, East Indies: first try 2551 of 5036 (item 3772)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3772, 2026-10-29, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4, 102 §3). This is §368's lobby with the
+nation moved: `MAP_STYLE 18`, human Nubians (4) against the **Turks (8)** at Difficulty 4, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`. Both `GAME INFO`s read the 7s and the 4
+back, and `Pair::assert_lobby` asserts them. The captures are run1445 (a `DUMP_ALL` start) and run1446 (the draw
+stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1446 ended itself on 5036. The walk is seeded
+from run1445's initial state (3506a). `diff::turkish_information_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(18, 8, 4)`, is minted** under entry 72's rule (3): `python3 tools/refill.py 18 8 4` reads
+`(18, 8, 4) free` on this tree. The Turks hold Great Lakes at 4 (`turkish_word`) and Great Sahara at 3
+(`turkish_enlightenment_pair`); the battery's one Turkish game is the held-out `GreatSaharaTurkishTier3`,
+`(7, 8, 3)`. `turkish_information_pair_is_no_other_lobby` asserts all of it.
+
+**The cast**, read by `rubric.py --tables 3 --dumps` on the three takes (25 types, the herds aside):
+- **the booked line**: `Jet Fighter[TORNADODES]` (298), the Turks' Information fighter, fielded, ×734 records;
+- **the generic Information land lines**: Assault Infantry (104), Flamethrower (131), `Anti-Tank Missile[TOW]`
+  (141), Armored Cavalry (220), `Main Battle Tank[ABRAM]` (254), `Rocket Artillery[MLRS]` (273),
+  `Anti-Aircraft Missile[AVENGER]` (284), Elite Special Forces (77) and the Nuclear ICBM (316);
+- **the air** besides the Tornado: Attack Helicopter (311);
+- **the sea**: Missile Cruiser (330), Attack Submarine (339), **Advanced Battleship (350)**, ×4256, and the
+  Transport Freighter (322).
+
+**The rubric is unmoved.** `rubric.py --tables 3` on this tree reads **262 of 302**, the base's count. 298 stays
+on the never list because the pair parts at 2551 and the ledger counts lockstep games only.
+`census::RUBRIC_UNIT_TYPES_SEEN` stays at 262. The lockstep bytes stay at 77.4 % (`cover=0`).
+
+**The score: first try 2551 of 5036**, by the count and the sequence together. On 2551 ours spends 33 draws
+against theirs' 32. They part at index 2: ours `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. The closing block 5037 compares 156 units, counts `[144, 8, 7, 0, 106, 2, 32]`. Nothing
+is torn; eight of who=1's units are unlinked and seven are extra. It is a floor, not a score
+(`turkish_information_pair_run1446_s_closing_state`).
+
+**The windows:**
+- **The stride, walked back from the word** (run1446, 101..2401): 24 blocks and **101 keys**, every one a
+  standing family: `build:extra` on 48 buildings, `form` on 29 units, and who=1's groups 64..75 with their pools,
+  12 each. No unit row parts.
+- **The word's window** (run1446b, 2495..2801, at the long's detail with `BUILDS`, `CITIES`, `LEADERS=9` and
+  `AMMO=5`, walked from run1445 with every round compared): 306 blocks and **940 keys**. Before 2550 only the
+  standing families part: `form` on 29 units, the groups' `held` and pools (12 each), who=0's `SITE[..].reg` (18)
+  and `aggression[1]`. No leader bucket parts. **Rounds read 56 against 56, none parting**: no launch-point row is
+  owed on this cast.
+
+**The first parting, by value** (run1446b; `unitat.py`, `births.py`). The first unit to part is the **Attack Sub
+`1/78`** (type 339, `ATTACKSUB`, sea, uid 121). It is born on block 2550 at who=1's dock `1/2020`, which stands
+at (44160, 43392):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2550 | `1/78` | `pos`, `g.x/y[0]`, `orders_x/y` | (44184, 44376) | (45144, 43416) |
+| 2551 | `1/78` | `path:length` | 1 | 22 |
+| 2551 | `1/78` | `order:move.angle`, `dest_angle` | −447479808 | −505217024 |
+| 2552 | `1/78` | `heading`, `mirror`, `orders.len` | 1431655765, 0, 0 | 350224384, 1, 1 |
+
+Ours puts it one ring step south of the dock, (+24, +984); theirs puts it one step east, (+984, +24). On 2549
+the only object within 2,000 of that square is the **Advanced Battleship `1/51`** (type 350,
+`ADVANCEDBATTLESHIP`, group 70, idle 18), at (44184, 44424) on both sides, 48 from ours' square. The other
+dock, `1/2016` at (35904, 43776), had put the Attack Sub `1/75` south on 2511, (+24, +984), and both sides agree
+there. **The direction**: theirs' `Unit::come_out@00617c10` refuses the south square, which `1/51` holds, and
+takes the next step of the ring. Ours' does not refuse it. On 2551 group 70's attack order (`ATTACKTOORDER`, to
+(34056, 31128)) plans the sub's path: ours 1 node, because it starts inside the battleship's square; theirs 22.
+From 2553 the group's other members part (`1/67`'s path, `1/0`'s move).
+
+**The hypothesis for the next item** (the frame is 2550, where the birth parts; the word is 2551): ours'
+`find_nearby_spot` under `come_out` does not see an idle sea unit in the ring (the sweep `unit_come_out` holds
+the walk, so the suspect is the view's occupancy input, `SimComeOut`'s `find`), or does not see this one. It is
+a supposition. A probe of the ring's `find` calls at 2550, both sides, settles it.
+
+**Not established**: why ours' ring accepts the battleship's square, and whether `1/51` is the first idle
+Information-age battleship any pair has put beside a dock's exit.
 
 ## 379. Reserved for the next item on the AI track
 
