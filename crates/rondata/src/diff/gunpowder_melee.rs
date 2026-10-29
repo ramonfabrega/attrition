@@ -1231,6 +1231,10 @@ pub(crate) const RUN1461B: &str =
 pub(crate) const RUN1461: &str =
     "gamelog-run1461-greatsahara-gunpowder-melee-leaders-window-1700-2161.txt";
 
+/// The six goods as [`crate::diff::leader::rows`] and the dump spell a
+/// bucket: `bucket[2:wealth]`.
+const GOODS: [&str; 6] = ["food", "timber", "wealth", "knowledge", "metal", "oil"];
+
 /// **An Inca unit refunds its price, and a hero pays its killer** (item
 /// 3788, `docs/GOLDEN.md` §149.12): run1461b's and run1461's every frame,
 /// both computers' stockpiles, walked from run1412's start with the script
@@ -1277,13 +1281,19 @@ fn gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund() {
                         continue;
                     };
                     let m = crate::diff::leader::theirs(&l);
-                    let bucket: Vec<i64> = (0..6)
-                        .map(|g| m.get(&format!("bucket[{g}]")).copied().unwrap_or(-1))
+                    let bucket: Vec<Option<i64>> = (0..6)
+                        .map(|g| m.get(&format!("bucket[{g}:{}]", GOODS[g])).copied())
                         .collect();
                     theirs.insert((n, who), bucket);
                 }
             }
         }
+        // A key that reads on neither side compares nothing (the first
+        // spelling of this test read `bucket[2]` and passed every mutant).
+        assert!(
+            theirs.values().all(|b| b.iter().all(Option::is_some)),
+            "every printed bucket read"
+        );
         let last = theirs.keys().map(|(n, _)| *n).max().unwrap_or(0);
         let mut compared = 0usize;
         let mut parted = Vec::new();
@@ -1299,9 +1309,10 @@ fn gunpowder_melee_run1461b_s_leaders_hold_the_inca_refund() {
                     crate::diff::leader::rows(&loaded, &built, who)
                         .into_iter()
                         .collect();
-                let got: Vec<i64> = (0..6)
-                    .map(|g| m.get(&format!("bucket[{g}]")).copied().unwrap_or(-1))
+                let got: Vec<Option<i64>> = (0..6)
+                    .map(|g| m.get(&format!("bucket[{g}:{}]", GOODS[g])).copied())
                     .collect();
+                assert!(got.iter().all(Option::is_some), "ours' buckets read");
                 compared += 1;
                 if &got != want && parted.len() < 4 {
                     parted.push(format!("{n} who={who}: ours {got:?} theirs {want:?}"));
