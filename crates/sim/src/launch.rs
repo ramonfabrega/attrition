@@ -485,6 +485,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 153,
         },
     ),
+    // **Piece 124, `KUSHITEARCHERS`** (unit type 174, the Nubians' Kushite
+    // Archers; item 3785, `docs/GOLDEN.md` §150.1): run1457's
+    // `RON_STATE_FRAME=700` packet on the second melee's lobby holds its
+    // three attack `AttachPos` rows (node 0, anims 11, 12 and 13, all at
+    // frame 15), `RData +0x88` 1.0, and `fit_bay.py` fits each sweep to
+    // piece 126's three rows exactly (386, 495 and 3512 lattice points, the
+    // same centroids): the two archers share the model. Without them the
+    // human's `0/14` loosed its round of 673 at the Greek Phalanx `1/19`
+    // from its own square (15096, 15672, 574) against the original's
+    // (15167, 15587, 690), flew 15 frames against 14, and `1/19` was struck
+    // on 688 a frame late.
+    (
+        124,
+        11,
+        15,
+        Bay {
+            right: 102_456,
+            fwd: 44_072,
+            dz: 116,
+        },
+    ),
+    (
+        124,
+        12,
+        15,
+        Bay {
+            right: 23_036,
+            fwd: 63_394,
+            dz: 101,
+        },
+    ),
+    (
+        124,
+        13,
+        15,
+        Bay {
+            right: 38_786,
+            fwd: 60_881,
+            dz: 153,
+        },
+    ),
     // **Piece 752, `ARQUEBUSIERS`** (`TY` 48, the Arquebusiers, `TI`
     // 98; item 3781, `docs/GOLDEN.md` §149.8): run1451's
     // `RON_STATE_FRAME=945` packet on the first melee's lobby holds its
@@ -2234,6 +2275,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: 36_186,
             fwd: 144_839,
             dz: 173,
+        },
+    ),
+    // **Piece 39, the Royal Balamob Slingers** (type 89, the Maya's
+    // Classical slinger; item 3785, `docs/GOLDEN.md` §150.1): piece 38's
+    // keys — `CHAR_ATTACK1` at 18, `2` at 19, `3` at 21 — on its own model.
+    // run1457's `RON_STATE_FRAME=700` packet on the second melee's lobby,
+    // where the idle human fields three, holds the three `AttachPos` rows,
+    // `RData +0x88` 1.0, and `fit_bay.py` fits each sweep at all 361
+    // headings (46, 223 and 428 lattice points; the centroid is kept).
+    // Without them `0/19`'s stone of 713 at the Greek Catapult `1/26` left
+    // the figure's square, and the Catapult's strike of 718 did not come:
+    // the second melee's word stood at 718 rather than 784.
+    (
+        39,
+        crate::anim::ATTACK1,
+        18,
+        Bay {
+            right: 37_765,
+            fwd: 138_192,
+            dz: 172,
+        },
+    ),
+    (
+        39,
+        crate::anim::ATTACK2,
+        19,
+        Bay {
+            right: 37_229,
+            fwd: 135_427,
+            dz: 161,
+        },
+    ),
+    (
+        39,
+        crate::anim::ATTACK3,
+        21,
+        Bay {
+            right: 32_848,
+            fwd: 144_969,
+            dz: 148,
         },
     ),
     // **Piece 1440, the Slingers in the `NA` art style** (`32 + 4 ×
@@ -4614,6 +4695,67 @@ mod tests {
                 .filter(|&anim| {
                     let at = launch_point(Pos::new(x, y), Angle(facing), 126, anim, 15, 0);
                     (at.x, at.y) == (sx, sy) && release_dz(126, anim, 15, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
+    /// **The Kushite Archers loose from piece 124's bays** (item 3785,
+    /// `docs/GOLDEN.md` §150.1): who=0's six rounds run1457 prints from
+    /// their first frame over 660..720, each beside its figure's `GUY` pose
+    /// on the frame before, reproduced at the dump's `sx, sy` and `sz − z`
+    /// by exactly one of the piece's three attack keys — `0/14`'s of 674
+    /// among them, which flies 14 frames from there and strikes the Phalanx
+    /// `1/19` on 687. Made to fail with the rows out of `BAYS`: each round
+    /// leaves the figure's own square.
+    #[test]
+    fn run1457_s_kushite_archers_leave_from_piece_124_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 6] = [
+            (15096, 15672, -311_230_464, 15167, 15587, 116), // 675 0/14
+            (15240, 15672, -375_980_032, 15240, 15600, 153), // 675 0/15
+            (15144, 15816, -301_793_280, 15153, 15745, 153), // 675 0/16
+            (15096, 15672, -54_198_272, 15193, 15618, 116),  // 705 0/14
+            (15240, 15672, -107_347_968, 15333, 15611, 116), // 705 0/15
+            (15144, 15816, -66_125_824, 15160, 15751, 101),  // 705 0/16
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<i8> = [11, 12, 13]
+                .into_iter()
+                .filter(|&anim| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 124, anim, 15, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(124, anim, 15, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
+    /// **The Royal Balamob Slingers loose from piece 39's bays** (item
+    /// 3785, `docs/GOLDEN.md` §150.1): who=0's six stones run1457 prints
+    /// from their first frame over 660..720, beside each figure's `GUY`
+    /// pose on the frame before, reproduced at the dump's `sx, sy` and `sz
+    /// − z` by exactly one of the piece's three attack keys. Made to fail
+    /// with the rows out of `BAYS`: each stone leaves the figure's own
+    /// square.
+    #[test]
+    fn run1457_s_royal_balamob_slingers_leave_from_piece_39_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 6] = [
+            (16776, 15672, -197_001_216, 16772, 15529, 172), // 682 0/19
+            (16680, 15816, -96_468_992, 16698, 15674, 172),  // 682 0/20
+            (16632, 15672, -74_973_184, 16652, 15534, 161),  // 683 0/18
+            (16776, 15672, -185_794_560, 16772, 15529, 172), // 715 0/19
+            (16632, 15672, -26_476_544, 16662, 15535, 161),  // 717 0/18
+            (16680, 15816, -49_086_464, 16702, 15670, 148),  // 718 0/20
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<(i8, u32)> = [(11, 18), (12, 19), (13, 21)]
+                .into_iter()
+                .filter(|&(anim, t)| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 39, anim, t, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(39, anim, t, 0) == Some(dz)
                 })
                 .collect();
             assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
