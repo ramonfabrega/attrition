@@ -138,3 +138,175 @@ fn aztec_modern_pair_is_no_other_lobby() {
         assert_ne!(l, triple, "{name} is this lobby");
     }
 }
+
+/// **The long's stride, walked back from the word** (item 3750, from
+/// 3313): run1429's stride blocks before the word's window, 101 through
+/// 3201.
+pub(crate) const WIDENING_AZTEC_MODERN_STRIDE: (i64, i64) = (101, 3201);
+
+pub(crate) fn aztec_modern_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AZTEC_MODERN.start],
+        true,
+        AZTEC_MODERN.long,
+        "run1429 stride",
+        &[(AZTEC_MODERN.long.0, WIDENING_AZTEC_MODERN_STRIDE.0)],
+        WIDENING_AZTEC_MODERN_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn aztec_modern_pair_the_long_s_stride_walks_back_from_the_word() {
+    let _pins = Pins::hold();
+    let Some(w) = aztec_modern_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 32, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3750: 93 keys over 32 blocks, the standing families alone —
+    // `form`, the buildings' `build:extra` (which the stride does not
+    // print), both leaders' `SITE[i].reg`, and who=1's groups and pools.
+    pin_eq!(w.firsts.len(), 93, "the stride's baseline");
+}
+
+/// run1429b: the word 3313's window, blocks 3295..3389 at the long's
+/// detail with `BUILDS`, `CITIES`, `LEADERS=9` and `AMMO=5`, to the
+/// game's own end — six blocks before the stride's block 3301 (item
+/// 3750). run1429 prints units only every hundred frames, no `AMMO` and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start.
+pub(crate) const RUN1429B: &str = "gamelog-run1429b-greatlakes-aztec-modern-window-3295-3389.txt";
+
+/// The window: block 3295 through the closing block 3390.
+pub(crate) const WIDENING_AZTEC_MODERN_FRAME_3313: (i64, i64) = (3295, 3390);
+
+/// **The word 3313's window**: run1429b walked from run1428's start with
+/// the recorder on and every round compared (item 3750).
+pub(crate) fn aztec_modern_frame_3313_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AZTEC_MODERN.start],
+        true,
+        AZTEC_MODERN.long,
+        "run1429b",
+        &[(RUN1429B, WIDENING_AZTEC_MODERN_FRAME_3313.0)],
+        WIDENING_AZTEC_MODERN_FRAME_3313,
+        1,
+        &[3314],
+        true,
+    )
+}
+
+#[test]
+fn aztec_modern_pair_run1429b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = aztec_modern_frame_3313_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 95, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3750, the first walk: **895** keys. Block 3295 carries the
+    // standing families (`form`, both leaders' `SITE[i].reg`, who=0's
+    // `aggression[1]`, who=1's groups 64..69 and their pools, `1/98` and
+    // `1/99` `mirror`); the first unit row is 3302's `0/7` (`hits:damage`
+    // ours 77 theirs 82, `hits_left` 8 against 3), the round `1/22` loosed
+    // on 3296 landing a frame apart. **The rounds part from the window's
+    // first block**: who=1's Jaguar Infantry (TI 110, piece 60,
+    // `JAGINFANTRY-DEFAULT-AGE0`) and Shermans (TI 246, piece 196,
+    // `SHERMAN-DEFAULT-AGE0`) loose every round from their own square in
+    // ours — `1/22`'s of 3296 from (6024, 30792, 426) against theirs'
+    // (5891, 30618, 607), `total_time` 6 against 5. The word 3313 is
+    // `1/24`'s round of 3309, from (5640, 30840, 474) against theirs'
+    // (5625, 30777, 592), 6 frames against 5: theirs sets `flags&8` and
+    // explodes it on 3313, `Ammo::do_damage+0xc59`/`+0xc7e`, and ours
+    // holds it a frame on (`docs/AI.md` §374).
+    pin_eq!(w.firsts.len(), 895, "run1429b baseline");
+    // Every round, both directions: ours 86 against theirs' 104.
+    pin_eq!(w.rounds_read, (86, 104), "the rounds read");
+    pin_eq!(w.rounds.len(), 157, "the rounds that part");
+}
+
+/// **The pair's closing state** (item 3750): run1429's closing block 3390,
+/// the whole map's units, walked from run1428's start.
+#[test]
+fn aztec_modern_pair_run1429_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &AZTEC_MODERN;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Aztec Modern pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 3390, "the closing block");
+    // Item 3750, first try: 76 frames past the word 3313 — 117 units
+    // compared, counts [33, 0, 0, 0, 6, 0, 5], nothing torn, unlinked or
+    // extra; who=1's Jaguar Infantry and Shermans still loosing from their
+    // own squares. A floor, not a score.
+    pin_eq!(e.compared, 117, "units compared");
+    pin_eq!(e.counts(), [33, 0, 0, 0, 6, 0, 5], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
+}

@@ -3651,6 +3651,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::bantu_modern_pair::bantu_modern_stride_window(),
         || super::bantu_modern_pair::bantu_modern_gap_3295_window(),
         || super::bantu_modern_pair::bantu_modern_frame_3410_window(),
+        || super::aztec_modern_pair::aztec_modern_stride_window(),
+        || super::aztec_modern_pair::aztec_modern_frame_3313_window(),
         || super::bantu_modern_pair::bantu_modern_late_stride_window(),
         || super::bantu_modern_pair::bantu_modern_frame_4304_window(),
         || super::egyptian_modern_pair::egyptian_modern_stride_window(),
