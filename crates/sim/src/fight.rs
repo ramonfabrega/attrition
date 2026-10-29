@@ -3899,7 +3899,9 @@ impl Sim {
             // `DeathObj::inc_time`'s first statement is on each guy's
             // record, and `process_all` takes one off a frame — so a dead
             // Bombard's four records hold its number long past their cull.
-            let bumps = self.deaths[k].figures.live(self.frame - self.deaths[k].first_frame);
+            let bumps = self.deaths[k]
+                .figures
+                .live(self.frame - self.deaths[k].first_frame);
             // The object in the slot, dead or not: `unit_by_o` finds only
             // the living, and this bump is on the dead (§59).
             if let Some(u) = self
@@ -11070,6 +11072,45 @@ mod tests {
             Some(0),
             "a number nothing holds is reused"
         );
+    }
+
+    /// **A crew's number takes one bump per figure's record** (item 3784,
+    /// `docs/GOLDEN.md` §149.10). `Objects::kill_guy` makes one `DeathObj`
+    /// per guy and `DeathObj::inc_time@008d5240` bumps the number's
+    /// `hold_frames` on each, while `Objects::process_all` takes one off a
+    /// frame: a four-figure crew nets +3 while all four live, and the hold
+    /// climbs less as each record ends. run1413's Bombard `2/23` held its
+    /// number through 1568 this way, where one bump a frame freed it.
+    #[test]
+    fn a_crew_s_number_takes_one_bump_per_figure_s_record() {
+        let (mut sim, ty) = at_war();
+        let a = put(&mut sim, 1, ty, Pos::new(0x1000, 0x1000));
+        put(&mut sim, 1, ty, Pos::new(0x1400, 0x1000));
+        sim.units[a].health = 0;
+        sim.hold_dead_slot(a);
+        let mut figures = combat::Figures::one(None);
+        figures.n = 4;
+        figures.life[..4].copy_from_slice(&[3, 5, 8, 8]);
+        sim.deaths.push(combat::Death {
+            who: 1,
+            o: 0,
+            first_frame: sim.frame,
+            cur_anim: 17,
+            life: Some(8),
+            figures,
+        });
+        let mut nets = Vec::new();
+        for _ in 0..10 {
+            let held = sim.units[a].hold_frames;
+            sim.tick();
+            nets.push(sim.units[a].hold_frames - held);
+        }
+        assert_eq!(
+            nets,
+            [3, 3, 3, 2, 2, 1, 1, 1, -1, -1],
+            "four records, then three, then two; then none and the take alone"
+        );
+        assert!(sim.deaths.is_empty(), "culled with its last record");
     }
 
     /// **A rolled shot comes down on the first step its arc is not above

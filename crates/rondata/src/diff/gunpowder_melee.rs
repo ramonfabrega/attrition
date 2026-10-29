@@ -915,6 +915,126 @@ fn gunpowder_melee_s_inti_macemen_walk_home_to_their_posts() {
     }
 }
 
+/// **The Dragoon walks home when its target dies** (item 3784,
+/// `docs/GOLDEN.md` §149.10). who=2's Dragoon `2/20` (TI 189, land,
+/// `DEFENSIVE`) fires on `1/18` from its post (14808, 16968), closes to
+/// (14856, 16920) on 964, and loses its target on 997 (`1/18` dead on
+/// 983). `Unit::fight`'s invalid-target branch (`LAB_005fdb9e`) is
+/// `find_new_target` whole, and its post arm walks the unit home: run1413's
+/// block 1001 has it on the post, `angle` −1605566464 — the heading of
+/// the step (−48, +48). Ours dropped the attack and stood where it was.
+#[test]
+fn gunpowder_melee_s_dragoon_walks_home_when_its_target_dies() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let dragoon = |sim: &sim::Sim| {
+        let u = sim
+            .units
+            .iter()
+            .find(|u| u.alive() && u.owner == 2 && u.index == 20)
+            .expect("the Dragoon stands");
+        ((u.pos.x, u.pos.y), u.movement.heading.0)
+    };
+    while built.sim.frame < 997 {
+        built.tick();
+    }
+    assert_eq!(dragoon(&built.sim).0, (14856, 16920), "closed on 1/18, 997");
+    while built.sim.frame < 1001 {
+        built.tick();
+    }
+    assert_eq!(
+        dragoon(&built.sim),
+        ((14808, 16968), -1605566464),
+        "home on its post, run1413's block 1001"
+    );
+}
+
+/// **A dead crew holds its number past the cull** (item 3784,
+/// `docs/GOLDEN.md` §149.10). who=2's Bombard `2/23` dies on 863 with four
+/// `DeathObj` records, each bumping the number's `hold_frames` a frame
+/// while `process_all` takes one off. Its records end by 1601, but the
+/// hold they built keeps 23 taken on 1568, when who=2's Arquebusiers
+/// squad (TI 98) is born: run1413 numbers it `2/34`..`2/36`. One bump a
+/// frame freed 23 about thirty frames after the cull, and the captain took
+/// it.
+#[test]
+fn gunpowder_melee_s_arquebusiers_squad_skips_the_held_bombard_number() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let squad = |sim: &sim::Sim| {
+        let mut o: Vec<i16> = sim
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.owner == 2 && u.type_index == 98)
+            .map(|u| u.index)
+            .collect();
+        o.sort_unstable();
+        o
+    };
+    while built.sim.frame < 1567 {
+        built.tick();
+    }
+    let before = squad(&built.sim);
+    while built.sim.frame < 1569 {
+        built.tick();
+    }
+    let born: Vec<i16> = squad(&built.sim)
+        .into_iter()
+        .filter(|o| !before.contains(o))
+        .collect();
+    assert_eq!(born, [34, 35, 36], "run1413's squad of 1568");
+    assert!(
+        !built
+            .sim
+            .units
+            .iter()
+            .any(|u| u.alive() && u.owner == 2 && u.index == 23),
+        "23 still held by the Bombard's records"
+    );
+}
+
 /// **The Bombard's ground swing waits on its crew's turn** (item 3762,
 /// `docs/GOLDEN.md` §149.3). On 759 who=2's Bombard `2/23` (TI 267, land)
 /// re-searches (`Unit::fight+0x9b0`) and fires on the Camel Raider `0/17`
