@@ -3235,9 +3235,10 @@ impl Sim {
     ///
     /// A General, caravan or supply-wagon victim (`uflags2::GENERAL`,
     /// `CARAVAN`, `SUPPLY_OR_HERO`) plunders by its own constant, `p3` and
-    /// `p4` both 0 (item 3788). SEAM: the victim redirect of a type with
-    /// `+0x2b4 & 0x10` is not carried. The Inca refund is
-    /// [`Sim::inca_refund`].
+    /// `p4` both 0 (item 3788). The Inca refund is [`Sim::inca_refund`].
+    ///
+    /// SEAM: the victim redirect of a type with `+0x2b4 & 0x10` is not
+    /// carried.
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
