@@ -276,8 +276,17 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // draws a side and parts at index 30: theirs spends three
     // `Guy::init_real+0x52 < Objects::init_unit`, a three-figure birth,
     // where ours goes on to `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-    count: 1913,
-    sequence: 1912,
+    //
+    // Item 3786: **1912 → 2160**, both together. The birth is who=1's
+    // government hero: its Despot `1/28` (TI 352) dies on 1463 in both, and
+    // `Unit::close` stamps `gov_hero_frame` 1463 + 30 × 15 = 1913, so the
+    // Senate `1/2007`'s `Build::process` trains The Monarch (TI 354) into
+    // slot 15 on 1912 (`Sim::gov_hero_respawn`, §149.11, no capture). On
+    // 2160 ours spends 42 draws against 41 and parts at index 0: ours
+    // spends `Leader::use_market+0x1ed` ahead of the `Leader::make_stuff
+    // +0x221` both spend.
+    count: 2160,
+    sequence: 2160,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -308,13 +317,14 @@ fn gunpowder_melee_first_parting() {
 }
 
 /// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767,
-/// 3770, 3779, 3781, 3783 and 3784): run1413's stride blocks 1901..2101 —
-/// the block before the word's frame 1912 through 250 frames past it.
-/// 3733's was 101..432, on 182; 3757's 601..934, on 684; 3759's 701..1009,
-/// on 759; 3762's 701..1010, on 760; 3763's 801..1089, on 839; 3767's
-/// 801..1113, on 863; 3770's 901..1197, on 947; 3779's 901..1204, on 954;
-/// 3781's 901..1208, on 958; 3783's 901..1251, on 1001.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (1901, 2162);
+/// 3770, 3779, 3781, 3783, 3784 and 3786): run1413's stride blocks
+/// 2101..2401 — the block before the word's frame 2160 through 250 frames
+/// past it. 3733's was 101..432, on 182; 3757's 601..934, on 684; 3759's
+/// 701..1009, on 759; 3762's 701..1010, on 760; 3763's 801..1089, on 839;
+/// 3767's 801..1113, on 863; 3770's 901..1197, on 947; 3779's 901..1204,
+/// on 954; 3781's 901..1208, on 958; 3783's 901..1251, on 1001; 3784's
+/// 1901..2162, on 1912.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (2101, 2410);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -469,8 +479,20 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // captain in slot 23 (`2/23 extra`) and `2/34`/`2/35` on the members'
     // squares. Block 1901 carries the standing families alone; 2001 and
     // 2101 fan out (the human's `0/3`, who=1's `1/11` and `1/15`).
-    pin_eq!(w.blocks, 3, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 1126, "run1413's word window");
+    //
+    // Item 3786, on the word moved to 2160 (window 2101..2410, four
+    // blocks): **532** keys, rounds read (0, 0), none parting. The old
+    // window 1901..2162 reads **121** keys (1126 before): **on 2001 `1/15`
+    // is The Monarch** (TI 354, uid 81, three figures, 109 hits at (26245,
+    // 7585)) both sides, where ours had a Citizen (`guys.len` 1, 50 hits);
+    // 2001 keeps nine `build:extra` rows and who=2's group 133 `held`, and
+    // the human's `0/3` and who=1's `1/11` agree. Block 2101 carries the
+    // standing families alone (`form`, `build:extra`, the groups' `held`
+    // and pools); 2201 is the first to part a unit — the human's `0/5`,
+    // who=1's `1/0`, `1/5` and `1/6` on their move orders — and 2301 and
+    // 2401 fan out.
+    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(w.firsts.len(), 532, "run1413's word window");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -1032,6 +1054,73 @@ fn gunpowder_melee_s_arquebusiers_squad_skips_the_held_bombard_number() {
             .iter()
             .any(|u| u.alive() && u.owner == 2 && u.index == 23),
         "23 still held by the Bombard's records"
+    );
+}
+
+/// **who=1's dead Despot is reborn at its Senate as The Monarch** (item
+/// 3786, `docs/GOLDEN.md` §149.11). `1/28` (TI 352) dies on 1463, and
+/// `Unit::close` stamps `gov_hero_frame = GOV_HERO_RESPAWN × 15 + frame`,
+/// 1913; `Build::process` trains `get_gov_hero`'s type at the Senate
+/// `1/2007` on the frame the stamp is one ahead of, 1912 — run1413's three
+/// `Guy::init_real < Unit::init < Objects::init_unit` there, and its block
+/// 2001's `1/15`, uid 81, TI 354, three figures, where ours had held the
+/// slot for a Citizen. Its closing block reads who=1's `gov_hero_frame`
+/// 1912, `Unit::init`'s own stamp.
+#[test]
+fn gunpowder_melee_s_dead_despot_is_reborn_at_its_senate() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let hero = |sim: &sim::Sim, o: i16| {
+        sim.units
+            .iter()
+            .find(|u| u.alive() && u.owner == 1 && u.index == o)
+            .map(|u| u.type_index)
+    };
+    while built.sim.frame < 1463 {
+        built.tick();
+    }
+    assert_eq!(hero(&built.sim, 28), Some(352), "the Despot stands to 1463");
+    while built.sim.frame < 1465 {
+        built.tick();
+    }
+    assert_eq!(hero(&built.sim, 28), None, "and is gone after it");
+    assert_eq!(built.sim.tech[1].gov_hero_frame, 1913, "1463 + 30 × 15");
+    while built.sim.frame < 1912 {
+        built.tick();
+    }
+    assert_eq!(hero(&built.sim, 15), None, "nobody in 15 before 1912");
+    while built.sim.frame < 1913 {
+        built.tick();
+    }
+    assert_eq!(
+        hero(&built.sim, 15),
+        Some(354),
+        "The Monarch, run1413's 1/15"
+    );
+    assert_eq!(
+        built.sim.tech[1].gov_hero_frame, 1912,
+        "run1413's closing block"
     );
 }
 

@@ -6297,6 +6297,72 @@ fn a_senate_activating_with_no_patriot_left_trains_one() {
     assert_eq!(despots(&sim), 1, "the second Senate trains the patriot");
 }
 
+/// **A dead government hero is reborn at its Senate** (item 3786,
+/// `docs/GOLDEN.md` §149.11): `Unit::close@0060ee50:105` stamps
+/// `gov_hero_frame = GOV_HERO_RESPAWN × 15 + frame` on the hero's death,
+/// and `Build::process@0061edf0:332` trains `get_gov_hero`'s type at a
+/// Senate on the frame the stamp is one ahead of — not before.
+#[test]
+fn a_dead_government_hero_is_reborn_at_its_senate_on_the_stamped_frame() {
+    use crate::tech::{Preq, TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let senate_t = tree.add(TypeDef::building("Senate"));
+    let despotism = tree.add(TypeDef::gov("Despotism", 0, 0).at(senate_t));
+    let patriot = Traits {
+        patriot: true,
+        hero: true,
+        ..Traits::default()
+    };
+    let despot_t = tree.add(TypeDef::unit("The Despot", patriot).needs(0, despotism));
+    tree.roles.gov_bonuses = vec![([Preq::Of(despotism), Preq::None, Preq::None], despotism)];
+    sim.set_tech_tree(tree);
+    sim.build_types[t.senate].tree = Some(senate_t);
+    let despot = sim.add_unit_type(UnitType {
+        tree: Some(despot_t),
+        hits: 109,
+        ..UnitType::default()
+    });
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let senate = sim.init_build(0, t.senate, tile_pos(36, 32), false);
+    finish(&mut sim, senate);
+    for _ in 0..5 {
+        sim.tick();
+    }
+    let despots = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| sim.units[u].alive() && sim.units[u].ty == Some(despot))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(sim.queue_tech(senate, despotism), Ok(0));
+    let mut frames = 0;
+    while !sim.tech[0].tech[despotism] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 600);
+    }
+    let born = despots(&sim);
+    assert_eq!(born.len(), 1, "the Senate trains the Despot");
+    let death = sim.frame;
+    sim.units[born[0]].health = 0;
+    sim.die_by_attrition(born[0], death);
+    assert!(despots(&sim).is_empty(), "the Despot is gone");
+    let due = i64::from(sim.tuning.gov_hero_respawn) * 15 + death;
+    assert_eq!(due, death + 450, "GOV_HERO_RESPAWN's 30 seconds");
+    assert_eq!(
+        sim.tech[0].gov_hero_frame, due,
+        "the death stamps the respawn"
+    );
+    while sim.frame + 1 < due {
+        sim.tick();
+        assert!(despots(&sim).is_empty(), "nobody before the frame");
+    }
+    sim.tick();
+    assert_eq!(despots(&sim).len(), 1, "the Senate trains the Despot again");
+    assert_eq!(sim.tech[0].gov_hero_frame, due - 1, "and stamps its birth");
+}
+
 #[test]
 fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     use crate::tech::{Preq, TechTree, TypeDef, UnitTraits as Traits};
