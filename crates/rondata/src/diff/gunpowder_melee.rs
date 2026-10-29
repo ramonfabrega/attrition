@@ -248,8 +248,21 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // to The Despot (TI 352), and a fourth `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271` at 10; ours turns it on the same frame and
     // spends none of them.
-    count: 958,
-    sequence: 958,
+    //
+    // Item 3783: **958 → 1001**, both together. The three draws were not
+    // `2/28`'s: who=2's Senate turns it on 957 in both, and theirs' 958
+    // `Build::finished < Unit::set_type` is **who=1's** Monarch `1/28`
+    // (run1451's block 959: its crew at 0/0, TI 352). Ours' who=1 bought
+    // Despotism 25 frames after who=2, as theirs, and finished on 982: the
+    // research block's held-elsewhere term (`train_time`'s
+    // `LAB_006513c0`, `TypeData::count_discovered`) takes a plain tech
+    // another seat holds to `(num_players − n + 1) / (num_players + 1)`,
+    // so on 958 who=1's 37,700 meets a target of 30,000 (§149.9). On 1001
+    // ours spends 230 draws against 242 and parts at index 4: theirs
+    // spends a third `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where
+    // ours goes on to `PathFinder::calc_road_cost+0x46`.
+    count: 1001,
+    sequence: 1001,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -280,13 +293,13 @@ fn gunpowder_melee_first_parting() {
 }
 
 /// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767,
-/// 3770, 3779 and 3781): run1413's stride blocks 901..1201 — the word's
-/// frame 958 writes no block (the stride prints every hundred), so the
-/// window is the stride block before it through 250 frames past it. 3733's
-/// was 101..432, on 182; 3757's 601..934, on 684; 3759's 701..1009, on 759;
-/// 3762's 701..1010, on 760; 3763's 801..1089, on 839; 3767's 801..1113, on
-/// 863; 3770's 901..1197, on 947; 3779's 901..1204, on 954.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1208);
+/// 3770, 3779, 3781 and 3783): run1413's stride blocks 901..1201 — the
+/// word's frame 1001 is a stride block's own, so the window is the block
+/// before it through 250 frames past it. 3733's was 101..432, on 182;
+/// 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's 701..1010, on
+/// 760; 3763's 801..1089, on 839; 3767's 801..1113, on 863; 3770's
+/// 901..1197, on 947; 3779's 901..1204, on 954; 3781's 901..1208, on 958.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1251);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -418,9 +431,21 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // `2/19` — hold moves in ours where theirs stands or walks home, and
     // every one agrees frame for frame with run1451's window through 958,
     // the word: the fan-out is the stream past it.
-    pin_eq!(w.firsts.len(), 685, "run1413's word window");
-    pin_eq!(w.rounds_read, (36, 43), "the rounds read");
-    pin_eq!(w.rounds.len(), 113, "the rounds that part");
+    //
+    // Item 3783, on the word moved to 1001 (window 901..1251, the same four
+    // blocks): **660** keys, rounds read (36, 30), 82 parting. Block 901
+    // still carries the standing families alone. **1001 reads 16 rows
+    // against 176**: who=1's Despot `1/28` is re-made on 958, as run1451's
+    // block 959 prints it — TI 352, `cur_anim` 1, `gpiece` 302/12974/25646,
+    // the crew at (17856, 13275) and (18008, 13395), clocks 0/60, 0/0, 0/0,
+    // where ours had The Monarch at 1/30 and `gpiece` 304/12976/25648 —
+    // and the stream from 958 is theirs. What parts on 1001 is who=2's
+    // Dragoon `2/20`: `pos` (14856, 16920) against (14808,
+    // 16968), `idle` 2 against 0, `cavarch_who` 0 against −1; `2/19`'s
+    // attack `def_x`/`def_y`; and the two `build:extra` rows.
+    pin_eq!(w.firsts.len(), 660, "run1413's word window");
+    pin_eq!(w.rounds_read, (36, 30), "the rounds read");
+    pin_eq!(w.rounds.len(), 82, "the rounds that part");
 }
 
 /// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
@@ -718,6 +743,72 @@ fn gunpowder_melee_s_arquebusiers_loose_from_the_gun() {
     assert!(
         unit(&built.sim, 1, 22).is_none(),
         "1/22 dies on 954, as run1413's block 1001"
+    );
+}
+
+/// **The second Despot is researched at the held-elsewhere rate** (item
+/// 3783, `docs/GOLDEN.md` §149.9). Both Senates buy Despotism 25 frames
+/// apart, the cadence's own phase, at 100 a frame of 40,000. who=2's
+/// finishes on 957 and re-makes The Monarch `2/28`; who=1's, at 37,700 on
+/// 958, then reads `train_time`'s `LAB_006513c0` — one seat of three holds
+/// it, `3 × 40000 / 4` — and finishes there, re-making `1/28` as The
+/// Despot with three `Guy::init_real` draws: run1451's block 959 has its
+/// crew at 0/0 and `gpiece` 12974 and 25646. Without the term ours ran on
+/// to 982.
+#[test]
+fn gunpowder_melee_s_second_despot_is_researched_at_the_held_elsewhere_rate() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let ti = |sim: &sim::Sim, who: u8| {
+        sim.units
+            .iter()
+            .find(|u| u.alive() && u.owner == who && u.index == 28)
+            .map(|u| u.type_index)
+    };
+    while built.sim.frame < 958 {
+        built.tick();
+    }
+    assert_eq!(
+        (ti(&built.sim, 2), ti(&built.sim, 1)),
+        (Some(352), Some(354)),
+        "2/28 is The Despot from 957, 1/28 still The Monarch"
+    );
+    built.tick();
+    assert_eq!(ti(&built.sim, 1), Some(352), "1/28 is The Despot on 958");
+    let u = built
+        .sim
+        .units
+        .iter()
+        .find(|u| u.alive() && u.owner == 1 && u.index == 28)
+        .unwrap();
+    assert_eq!(
+        u.guys
+            .iter()
+            .map(|g| (g.gpiece, g.cur_time, g.end_time))
+            .collect::<Vec<_>>(),
+        [(302, 0, 60), (12974, 0, 0), (25646, 0, 0)],
+        "run1451's block 959, figure for figure"
     );
 }
 
