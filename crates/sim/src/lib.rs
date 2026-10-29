@@ -6158,7 +6158,9 @@ impl Sim {
     pub(crate) fn type_is_hero(&self, ty: usize) -> bool {
         self.unit_types[ty]
             .tree
-            .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.hero))
+            .and_then(|t| self.tech_tree.types.get(t))
+            .and_then(|d| d.kind.unit())
+            .is_some_and(|x| x.hero)
     }
 
     /// `Leader::track_unit_type`, and the two lines every one of its call
