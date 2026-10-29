@@ -439,6 +439,16 @@ impl Sim {
                 continue;
             }
             let o = i as Player;
+            if std::env::var("RON_PROBE_MEET").is_ok() && (700..=770).contains(&self.frame) {
+                for b in 0..self.buildings.len() {
+                    let bd = &self.buildings[b];
+                    if bd.owner == o {
+                        eprintln!("PROBE f{} who{} o{} b{} alive{} started{} ever{:#x} vis{:#x} mask{:#x} pos({},{}) seen{}",
+                            self.frame, who, o, b, bd.alive, bd.started, bd.ever_seen, bd.visible,
+                            self.seen_ally_mask(who), bd.pos.x, bd.pos.y, self.target_seen_by(who, Obj::Building(b)));
+                    }
+                }
+            }
             let seen = (0..self.buildings.len()).any(|b| {
                 self.buildings[b].owner == o
                     && self.buildings[b].alive
