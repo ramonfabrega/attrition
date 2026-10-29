@@ -219,9 +219,13 @@ fn run982b_s_word_frame_is_widened_whole() {
     // 31272)), and group and pool 66 on 14612 and 68 on 14631.
     // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // Item 3784: 30 -> 28, `fight`'s invalid-target branch keeps
+    // `find_new_target`'s post arm (`docs/GOLDEN.md` §149.10.1): `1/43`'s
+    // `attack[0].def_x/def_y` on 14598 agree at (8712, 31272), where ours
+    // held (6936, 30792).
     pin_eq!(
         w.firsts.len(),
-        30,
+        28,
         "run982b with the decoy's own-cell sight"
     );
 }
@@ -356,5 +360,7 @@ fn run982d_s_last_blocks_are_widened_whole() {
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
     // Item 3595: 30 -> 29, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 16740 agrees.
-    pin_eq!(w.firsts.len(), 29, "run982d, the last blocks");
+    // Item 3784: 29 -> 27, `1/43`'s defensive point on 16740 agrees at
+    // (8712, 31272) through the invalid-target branch's post arm (§149.10.1).
+    pin_eq!(w.firsts.len(), 27, "run982d, the last blocks");
 }

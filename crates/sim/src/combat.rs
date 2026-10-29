@@ -566,6 +566,46 @@ pub struct Death {
     /// (`docs/GOLDEN.md` §127). `None` where the install does not describe
     /// the piece — the record is then never culled, as before.
     pub life: Option<i64>,
+    /// **One record per figure** (item 3784, `docs/GOLDEN.md` §149.10):
+    /// `Objects::kill_guy` makes a `DeathObj` for each guy, each on its own
+    /// piece and its own life; the unit's number is culled with the last,
+    /// which is [`Self::life`], but every record's `inc_time` bumps the
+    /// number's `hold_frames` while it lives.
+    pub figures: Figures,
+}
+
+/// The lives of a dead unit's `DeathObj` records, one per guy, in frames;
+/// `i64::MAX` for a record whose piece the install does not describe.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Figures {
+    pub n: u8,
+    pub life: [i64; Figures::MAX],
+}
+
+impl Figures {
+    /// More guys than any shipped crew has; a unit past it keeps the first.
+    pub const MAX: usize = 8;
+
+    /// A unit of one record.
+    pub const fn one(life: Option<i64>) -> Self {
+        let mut f = Self {
+            n: 1,
+            life: [0; Self::MAX],
+        };
+        f.life[0] = match life {
+            Some(l) => l,
+            None => i64::MAX,
+        };
+        f
+    }
+
+    /// The records still in the list at `age` frames past the death: each
+    /// is zeroed on the call its counter reaches its life, so it bumps on
+    /// every frame before.
+    pub fn live(&self, age: i64) -> i32 {
+        let n = usize::from(self.n).min(Self::MAX);
+        self.life[..n].iter().filter(|&&l| age < l).count() as i32
+    }
 }
 
 /// One delivery of damage, for tests and logs.
