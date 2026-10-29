@@ -1470,7 +1470,7 @@ impl Sim {
     /// SEAM: a building's `visible` byte is never set here (§9.1), and
     /// infiltration, the two leader arms and the `flags & 0x20` arm under
     /// the semaphore are not carried. Each can only *refuse* further here.
-    pub(crate) fn build_is_seen(&self, b: usize, who: crate::Player) -> bool {
+    pub fn build_is_seen(&self, b: usize, who: crate::Player) -> bool {
         let bd = &self.buildings[b];
         if bd.owner == who {
             return true;
@@ -1565,10 +1565,15 @@ impl Sim {
     ///   [`Sim::update_local_seen_unit`]); if it can, the bit goes in and
     ///   nothing is lit, because there is nothing to reveal.
     ///
-    /// SEAM: the two leader tables the function's first two lines write —
-    /// the per-pair "has attacked" record at `00e3a424` and the victim's
-    /// own counter-array — are not modelled; nothing here reads either.
+    /// Before either, its first two lines **meet**: `00e3a424` is
+    /// `leaders.list` (`00e3a390`) `+ 0x94`, `treaties`, and the two writes
+    /// are `treaties[owner][who] |= 1` and `treaties[who][owner] |= 1` — a
+    /// strike is first contact, both ways, with no `Leader::meet` and no
+    /// message (item 3763; run1413b enters this on 620 and `Leader::meet`
+    /// never). A victim outside the table (gaia) is the original's write
+    /// past `treaties[8]`, which [`Sim::treaty_on`] drops.
     pub(crate) fn set_attacking(&mut self, i: usize, who: crate::Player) {
+        self.treaty_on(self.units[i].owner, who, 1);
         let pos = self.units[i].pos;
         let (mut flags, mut visible) = (0u8, self.units[i].visible);
         let reveal = attacking_bits(&mut flags, &mut visible, who, || self.world_sees(pos, who));

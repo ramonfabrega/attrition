@@ -14189,8 +14189,9 @@ theirs goes straight to who=1's `1/25`'s `Guy::set_anim+0x97a < Unit::do_move+0x
 **Ours acted.** `RON_DEBUG_ARMIES=758-761` shows who=2's army `2/0` (leader `2/20`, `2/23` in its list) going from
 status 17 to 18 in ours on 760. It targets its own city `2/2000` at (6240, 30048) and moves its muster from (7, 32)
 to (1, 36). Theirs' goal for `2/23` on 801, (5736, 24792), lies in cell (7, 32), the old muster. Ours' goal,
-(1320, 28152), lies in (1, 36), the new one. So 801's goal parting is the army's re-target. Why ours' army
-re-targets on 760 and theirs' does not is the next item's.
+(1320, 28152), lies in (1, 36), the new one. So 801's goal parting is the army's re-target. ~~Why ours' army
+re-targets on 760 and theirs' does not is the next item's.~~ Both release; theirs defends, because its first
+strike met the enemy (§149.4).
 
 **Tests.**
 - `gunpowder_melee_s_bombard_crew_pays_its_ground_swing_in_guy_move` walks to 759. It checks `2/23`'s three draws
@@ -14212,6 +14213,91 @@ re-targets on 760 and theirs' does not is the next item's.
 **Coverage.** The arm and its snap are diff-backed (run1413's trace on 759, run1254's on 4428 through the
 Egyptian floor, both mutations). The writes of `Guy::set_angle`, `Guy::do_turn` and `Guy::set_new_location` rest
 on the export.
+
+## 149.4 A strike is first contact — 760 → 839 (item 3763)
+
+**The booking.** Frame 760, ours 123 draws against 122, index 40: ours spends `Army::find_target+0x7df`, and theirs
+goes straight to who=1's `1/25`'s `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. `RON_DEBUG_ARMIES` shows who=2's army
+`2/0` (leader `2/20`) going from status 17 (`MUSTERING | FORMING`) to 18 (`MARCHING | FORMING`), with a target of its
+own city `2/2000`. **The direction: ours acted, and so did theirs.** The army's decision is a release, and both
+sides release.
+
+**The walk.**
+- **Both sides tick the army on 760.** `Army::process@006f93d0` gates on `(frame + (id + who × 2) × 2) % 256`, as
+  the crate does. Army `2/0` ticks on frames ≡ 248 and `1/0` on frames ≡ 252. Theirs spends `Army::find_target` first
+  on 764, the British army, and next on 1016.
+- **Ours releases through `p / 8 <= n`.** A probe in `do_mustering` read `pop_cap` 50, `num_standard` 6,
+  `effective_pop` 27, difficulty 0, and `rush` −1 on the Inca personality. That arm is the only one that opens:
+  50 / 8 = 6 ≤ 6. The `num_standard` count agrees with theirs. run1413's 801 block prints `o_up` −1 on the same ten
+  who=2 captains, and `SubObjectData::is_spellcaster@006623e0` reads `unit_flags2 & 2` at `+0x2b8` (listing). That
+  is the crate's `CASTER` bit, so the Bombard, the General and the Monarch are subtracted on both sides. The
+  original's `release_mustering@006f87c0` has every arm the crate has, plus `leader_flags & 8`
+  (`LEADER_COOP_SOLO`), which is never set here.
+- **Theirs releases into `DEFENDING`.** run1413b's coverage (`report.py … coverage 600-1020`) enters
+  `Army::do_defending`, `Army::find_besieged_city`, `Army::center_of_gravity`, `Group::action_guard` and
+  `Group::action_siege_attack_to` for the first time on 760. `Army::do_mustering@006f4260`'s released arm sets
+  `0x20` when the region word `LeaderData +0xa68[reg] & 4` is set and the difficulty is below 3.
+- **Ours' region word reads 1**, the thin bit alone. Step 15's war loop (`plan_strategy@006b9620:1555`–`1590`) adds
+  `& 4` at difficulty below 2, for each enemy with cities in the region. It is gated on `treaties[i] & 1`, the met
+  bit, which ours' census read as false for every seat on 750.
+- **Theirs meets on the first strike.** run1413b never enters `Leader::meet`, so neither the fog's
+  `check_ever_seen` nor `process_attrition` meets. Two other writers set the met bit. One is step 6
+  (`plan_strategy:205`–`265`, under `ALLY_LOS || reveal_map`, and this lobby is `REVEAL_MAP 1`). It walks kinds 1 and
+  2 from `obj_base` (buildings and walls: `dump_units` walks kind 0, `dump_walls` kind 2) and asks
+  `BuildData::is_seen(who, 0)`. The other is **`Unit::set_attacking@005ff5b0`**, whose first two lines OR bit 1 into
+  `00e3a424`. That address is `leaders.list` (`00e3a390`) + `0x94`, `treaties`, written both ways. The crate's seam
+  called it a "has attacked" record. run1413b enters `set_attacking` first on **620**.
+- **Step 6 cannot be theirs' meeting.** run1412's frames 0, 1 and 37 print every building's `ever_seen` as its owner's
+  bit alone. Who=2's leader flags read `0xa800013` (no `0x800`), there is no Fouché, and the `flags & 0x20` arm wants
+  both leaders human. An `ever_seen` bit that arrived later would have passed `check_ever_seen`'s `Leader::meet`. A
+  probe of ours' 750 census agrees: no British or Nubian building answers `build_is_seen(b, 2)`.
+
+**The fix** (`crates/sim/src/fight.rs`): `Sim::set_attacking` calls `treaty_on(owner, who, 1)` first. Ours'
+British and Inca now meet on 620, and the Nubians meet each computer on 659 and 661. Step 15 gives the region word
+`& 4`, and army `2/0` releases on 760 into `DEFENDING`. `Sim::census_meet` (step 6, buildings and walls,
+`crates/sim/src/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
+same 839, but it met chapters 43 and 46 on 1400, where theirs did not.
+**Every `first_parting` holds**, and chapters 8, 43, 46 and 62 lose their `leader:treaties` rows (ours read 2, `do_damage`'s bit, where theirs read
+3).
+
+**The score: 760 → 839** (the sequence; the count reads 840).
+
+**The value diff.** `gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 801..1089, **427** keys, rounds
+read (23, 26), 23 parting. **Block 801 now carries the standing families alone.** `2/23`'s move goal, (1320, 28152)
+against (5736, 24792), and `path:length`, 24 against 13, are gone with the march. Block 901 parts first on the word's
+unit and the fight around it:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `0/15` | `mirror` | 0 | 1 |
+| `0/14` | `mirror` | 1 | 0 |
+| `2/23` | `death:first_frame` | 864 | 863 |
+| `2/23` | `death:cur_anim` | 17 | 18 |
+
+**The next word**: frame 839, 17 draws a side, parting at index 4, on the human's `0/15`. Ours spends
+`Guy::set_anim+0xf2f < Guy::inc_time+0x271` where theirs spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`. Theirs
+also spends `Ammo::do_damage+0xc59` and `+0xc7e` at indices 7–8, which ours does not draw. The booking is the
+commander's.
+
+**Tests.**
+- `gunpowder_melee_s_strike_meets_before_the_census` walks to 760. It pins each pair's meeting frame (620 both ways,
+  659, 661), and that who=2's 750 census sees no other seat's building. Then it checks that 760 draws no
+  `find_target`, that 760's whole sequence matches run1413's trace, and that army `2/0` is not marching.
+- `gunpowder_melee_first_parting` is pinned at (840, 839), with the widening's window at 801..1089, and
+  chapters 8, 43, 46 and 62 drop the treaty rows.
+
+**Mutation** (`tools/mutate.py`): without the `treaty_on` in `set_attacking`, **held**. Five tests fail: the melee's
+parting, its widening and its new test, and chapters 43 and 46. Without the `census_meet` call, nothing fails: no
+walk holds step 6.
+
+**What is not established.**
+- Step 6 is unheld (no lobby on file meets through it). Its `ALLY_LOS` arm is 3763b, and the ally bits are 3763c.
+- That theirs' 620 `set_attacking` is the British–Inca strike is inferred from the frame, not read. Theirs' meeting
+  frame is not pinned, because no record prints `treaties` between the start take and the close.
+
+**Coverage.** The release, the `DEFENDING` arm, the meeting's frame and the score are diff-backed: run1413's trace on
+760, run1413b's coverage on 620, 760 and 764, the 801 block, chapters 43 and 46, and the mutation. Step 6 and the
+`00e3a424` reading rest on the export and the leader table's stride.
 
 ## 150. Reserved for the next item on the rules track
 

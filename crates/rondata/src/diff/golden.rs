@@ -5055,9 +5055,8 @@ fn chapter_sixty_two_s_word_frame_is_widened_whole() {
 }
 
 // **What parts through the word** on run818, whole since item 2117
-// (`docs/GOLDEN.md` §75, §77): the standing `form` rows (605); both leaders'
-// `treaties[·]` on 757, the first blow, 2 here and 3 there (chapter eight's
-// standing family, `docs/GOLDEN.md` §12); `1/8`'s first wound on 841, 13 here
+// (`docs/GOLDEN.md` §75, §77): the standing `form` rows (605) — both leaders'
+// `treaties[·]` on 757 agree since item 3763, the strike's meet; `1/8`'s first wound on 841, 13 here
 // and 9 there (`hits_left` 107 against 111; parked 2068); and `1/14` on
 // 901–903, the third squad's last man: its walk to the Scout has the
 // original's order point and slot (46056, `off` 744/72) and a path whose
@@ -5082,8 +5081,6 @@ const WANT_CH62: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "757 0/-1 leader:treaties[1]",
-    "757 1/-1 leader:treaties[0]",
 ];
 
 // Empty: no slot of the pool parts through the word.
@@ -6510,16 +6507,15 @@ fn chapter_forty_six_s_word_frame_is_widened_whole() {
 ///   `1/7`'s on 1401), the first block's census (parked 1183) and
 ///   `filled_gather_slots`, and chapter forty-three's rows under their
 ///   own frames — the pushed squad's `order:group.id` on 1302, the
-///   barge's `path_recursion` on 1357, the treaty and raid stamps of X's
-///   staging, the Chariot's turret on 1479, and X's `DEATH` record on
-///   1487. `all_gathering`'s prune on 1049 agrees: `1/2`'s
+///   barge's `path_recursion` on 1357, the raid stamps of X's staging,
+///   the Chariot's turret on 1479, and X's `DEATH` record on 1487. The
+///   treaty stamp on 1404 agrees since item 3763: X's strike meets
+///   (`Unit::set_attacking`). `all_gathering`'s prune on 1049 agrees: `1/2`'s
 ///   `order:gather.wait` −1 and `1/2001`'s `gather_down` 2 on block 1050.
 /// - **From 1902, nothing.** Item 1278 pinned 305 rows here and 6 pool
 ///   rows on slot 3 (ours stacked three moves on `0/7`, two on `0/8` and
 ///   one on `0/9`); all agree.
 const WANT_CH46: &[&str] = &[
-    "1404 0/-1 leader:treaties[1]",
-    "1404 1/-1 leader:treaties[0]",
     "1487 1/7 death:extra",
     "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
@@ -6694,15 +6690,14 @@ fn chapter_forty_three_s_word_frame_is_widened_whole() {
 /// is a standing family — the birth `form` (parked 1169), the first
 /// block's census (parked 1183) and `filled_gather_slots`, the pushed
 /// squad's `order:group.id` on 1302, the barge's `path_recursion` on
-/// 1357, the treaty and raid stamps of the who=1 Citizen's staging, the
-/// Chariot's turret on 1479 — and the Citizen's `DEATH` record on 1488,
+/// 1357, the raid stamps of the who=1 Citizen's staging (its treaty stamp
+/// agrees since item 3763, the strike's meet), the Chariot's turret on
+/// 1479 — and the Citizen's `DEATH` record on 1488,
 /// which the capture does not print at its end detail. Item 1248 took the
 /// dead Citizen off its gather list the frame it died (`gather_down` 2 on
 /// 1488) and with it every row from 1553; and the 1900 line's refusal
 /// (the DLL's refusal 3) every row from 1902.
 const WANT_CH43: &[&str] = &[
-    "1404 0/-1 leader:treaties[1]",
-    "1404 1/-1 leader:treaties[0]",
     "1488 1/6 death:extra",
     "605 0/-1 leader:aggression[1]",
     "605 0/0 form",
