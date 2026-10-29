@@ -12683,13 +12683,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WY — reserved
+## Parked by item 3786, 2026-10-29 — a dead government hero is reborn at its Senate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3786a. The respawn's city-centre arm** (`docs/GOLDEN.md` §149.11): `Build::process@0061edf0`'s arm after the
+  Senate's, lines 344–360, trains the hero at a city centre (`flags & 0x20`) when the leader has no Senate (`+0x558e`
+  plus `LeaderData::get_buildings(SENATE)` under 1). `Sim::gov_hero_respawn` carries it as a `SEAM`. The disk is not
+  yet scanned for a hero killed under a leader with no Senate, and no word's frame names it, so it names no score.
 
 ## Parked by the next landing, slot WZ — reserved
 

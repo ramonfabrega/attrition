@@ -651,7 +651,7 @@ impl Sim {
     ///
     /// SEAM: the arm after it, a city centre (`flags & 0x20`) of a leader
     /// with no Senate (`+0x558e` plus `get_buildings(SENATE)` under 1)
-    /// training the hero itself; no capture on file reaches it.
+    /// training the hero itself (parked 3786a).
     pub(crate) fn gov_hero_respawn(&mut self, b: usize, frame: i64) {
         let who = self.buildings[b].owner as usize;
         if who >= self.tech.len() || self.tech[who].gov_hero_frame != frame + 1 {

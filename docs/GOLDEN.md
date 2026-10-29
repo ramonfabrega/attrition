@@ -14787,6 +14787,79 @@ mechanism is named.
 stride; the probes' readings by run1451 and run1413's trace. The once-per-record bump rests on the decompile and the
 one numbering it moves.
 
+## 149.11 A dead government hero is reborn at its Senate — 1912 → 2160 (item 3786)
+
+**The booking.** Frame 1912: 44 draws a side, the sequence parting at index 30, the count on 1913. Theirs spends
+three `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` where ours goes on to `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. No capture was taken (run 1458 unused).
+
+**The direction, off the disk.**
+- The draws on 1912, both sides (`RON_DEBUG_SITES=1912-1912`): indices 0–29 agree. Theirs then spends the three
+  `init_real` draws, four `inc_time` swings and two `Guy::set_anim+0x104b`; ours spends three swings and six
+  `+0x104b`. Both end on the same five `Farms::inc_time+0x1ae`.
+- No queue holds the unit. `RON_DEBUG_BUILDS=1900-1913`: no build entry of any seat completes on 1911–1913.
+- The unit is run1413's `1/15` on block 2001 (`unitat.py`): uid 81, **TI 354, The Monarch**, three figures, 109
+  hits at (26245, 7585), group 70, on an `ATTACKTOORDER`. Ours had a Citizen there (`guys.len` 1, 50 hits).
+- who=1's Despot `1/28` (TI 352, uid 44) stands in theirs through block 1401 and is gone on 1501. Ours' own
+  `RON_DEBUG_UNIT=1/28` puts it alive on 1463 and absent from 1464, and run1413's trace spends a `Unit::close` draw
+  on 1463. The death agrees.
+- run1413's closing block 2601 prints who=1's `gov_hero_frame` **1912**. The stride blocks print no `LEADERDATA`.
+
+**The original.**
+- `Unit::close@0060ee50`, lines 98–106: under the slot's `flags & 1` and `who < 8`, ungated by the squad, a unit
+  whose `is_gov_hero` answers writes `gov_hero_frame = GOV_HERO_RESPAWN × 15 + frame`. Every unit vtable keeps
+  `UnitData::is_gov_hero` at `+0xc8`, which reads the type's `+0x2b4 & 0x4000000`, `OBJ_MASK`'s hero digit
+  (`UnitTraits::hero`). The shipped `GOV_HERO_RESPAWN` reads `30 seconds`, which loads as 30, as `KREMLIN_SPY` and
+  `TERRA_COTTA_FREE` do.
+- `Build::process@0061edf0`, lines 332–343, between the Kremlin's spy and the Persian caravan: when the owner's
+  `gov_hero_frame == frame + 1`, a Senate (`0x1b6`) calls `train(get_gov_hero)`. There is no queue and no
+  population test.
+- So 1463 + 450 = **1913**, and the Senate trains on 1912. `Unit::init`'s own stamp (line 467) then writes 1912,
+  which is the closing block's value.
+- The arm after it trains at a city centre (`flags & 0x20`) when the leader has no Senate (`+0x558e` plus
+  `get_buildings(SENATE)` under 1). It is not built (parked 3786a): who=1 holds the Senate `1/2007`.
+
+**The build.**
+- `Sim::gov_hero_closed` (`crates/sim/src/nations.rs`) is the stamp. `close_count`, the head of this crate's
+  `Unit::close`, calls it on every death path.
+- `Sim::gov_hero_respawn` is the train. It runs in the building pass's live tail, after `kremlin_spy`.
+- `Tuning::gov_hero_respawn` holds the constant; the tuning table checks it against the file.
+
+**The value diff on 2001.**
+
+| record | field | before | after | theirs |
+|---|---|---|---|---|
+| `1/15` | `type` | 50 (Citizen) | 354 | 354 |
+| `1/15` | `guys.len` | 1 | 3 | 3 |
+| `1/15` | `hits` | 50 | 109 | 109 |
+
+The old window 1901..2162 reads **121** keys (1126 before), none of them a unit's. 2001 keeps nine `build:extra` rows
+and who=2's group 133 `held`. The human's `0/3` and who=1's `1/11` agree.
+
+**The score: 1912 → 2160**, the count and the sequence together.
+
+**The next word, frame 2160.** Ours spends 42 draws against 41, parting at index 0. Ours spends
+`Leader::use_market+0x1ed` ahead of the `Leader::make_stuff+0x221 < Leader::production_ai+0x236 <
+Leader::plan_strategy+0x47` that both spend. The draw is a leader's, and no unit marks it. The widening on 2101..2410
+reads **532** keys over four blocks, rounds read (0, 0). Block 2101 carries the standing families alone (`form`,
+`build:extra`, the groups' `held` and pools). 2201 is the first block to part a unit: the human's `0/5`, and who=1's
+`1/0`, `1/5` and `1/6` on their move orders. No mechanism is named.
+
+**Tests.**
+- `gunpowder_melee::gunpowder_melee_s_dead_despot_is_reborn_at_its_senate`: `1/28` stands to 1463 and is gone after
+  it; who=1's stamp reads 1913; slot 15 is empty before 1912 and holds TI 354 after; the stamp then reads 1912.
+- `cities_tests::a_dead_government_hero_is_reborn_at_its_senate_on_the_stamped_frame`: the death stamps frame + 450,
+  nothing is born before the frame, and the Senate trains on it.
+- Re-pinned: `GUNPOWDER_MELEE` (2160, 2160); the widening at 2101..2410 (532 keys).
+
+**What is not established.**
+- The city-centre arm (parked 3786a).
+- `is_gov_hero` is the hero bit, so a scenario hero's death would stamp the respawn too. No word reaches one.
+
+**Coverage.** The birth is diff-backed by run1413's draw stream on 1912 and its block 2001. The stamp's arithmetic
+is backed by the closing block's `gov_hero_frame` 1912 and by the 1463 death agreeing. The predicate and the
+Senate's `frame + 1` rest on the decompile and the one birth they move.
+
 ## 150. The second melee — a held Classical age on Great Sahara, every seat a computer (item 3774, run1449–run1450b)
 
 The shape is §155; the first melee is §149. **The one lever changed is the age**: Classical
