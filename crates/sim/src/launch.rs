@@ -485,6 +485,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 153,
         },
     ),
+    // **Piece 752, `ARQUEBUSIERS`** (`TY` 48, the Arquebusiers, `TI`
+    // 98; item 3781, `docs/GOLDEN.md` §149.8): run1451's
+    // `RON_STATE_FRAME=945` packet on the first melee's lobby holds its
+    // three attack `AttachPos` rows (node 0; frame 6 of `CHAR_ATTACK1`, 25
+    // of `CHAR_ATTACK2`, 23 of `CHAR_ATTACK3`), `RData +0x88` 1.0, and
+    // `fit_bay.py` fits each sweep (492, 207 and 63 lattice points; the
+    // centroid is kept, 361 of 361 headings each). Without them who=2's
+    // `2/16` loosed its round of 953 at the British Elite Knight `1/22`
+    // from its own square (15576, 16776, 628) against the original's
+    // (15694, 16697, 779), flew 3 frames against 2, and `1/22` died on 955
+    // against 954.
+    (
+        752,
+        crate::anim::ATTACK1,
+        6,
+        Bay {
+            right: 34_662,
+            fwd: 150_565,
+            dz: 181,
+        },
+    ),
+    (
+        752,
+        crate::anim::ATTACK2,
+        25,
+        Bay {
+            right: 30_200,
+            fwd: 139_796,
+            dz: 151,
+        },
+    ),
+    (
+        752,
+        crate::anim::ATTACK3,
+        23,
+        Bay {
+            right: 14_565,
+            fwd: 132_355,
+            dz: 164,
+        },
+    ),
     // **Piece 50, `RIFLEMAN`** (unit type 100, the Riflemen; item 3705,
     // `docs/AI.md` §357.2): run1382's `RON_STATE_FRAME=3228` packet on the
     // Spanish Industrial Great Lakes seed holds its three attack
@@ -4573,6 +4614,35 @@ mod tests {
                 .filter(|&anim| {
                     let at = launch_point(Pos::new(x, y), Angle(facing), 126, anim, 15, 0);
                     (at.x, at.y) == (sx, sy) && release_dz(126, anim, 15, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
+    /// **The Arquebusiers loose from piece 752's bays** (item 3781,
+    /// `docs/GOLDEN.md` §149.8): who=2's four rounds run1451 prints from
+    /// their first frame over 905..960, each beside its figure's `GUY` pose
+    /// on the frame before, reproduced at the dump's `sx, sy` and `sz − z`
+    /// by exactly one of the piece's three attack keys — `2/16`'s of 953
+    /// among them, which flies 2 frames from there and kills `1/22` on 954.
+    /// Made to fail with the rows out of `BAYS`: each round leaves the
+    /// figure's own square.
+    #[test]
+    fn run1451_s_arquebusiers_leave_from_piece_752_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 4] = [
+            (15576, 16776, 208_994_304, 15628, 16654, 164), // 908 2/16
+            (15096, 17208, 369_426_432, 15193, 17104, 151), // 911 2/15
+            (15096, 17208, 541_917_184, 15226, 17127, 181), // 936 2/15
+            (15576, 16776, 523_567_104, 15694, 16697, 151), // 954 2/16
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<(i8, u32)> = [(11, 6), (12, 25), (13, 23)]
+                .into_iter()
+                .filter(|&(anim, t)| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 752, anim, t, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(752, anim, t, 0) == Some(dz)
                 })
                 .collect();
             assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");

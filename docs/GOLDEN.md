@@ -14512,6 +14512,90 @@ walk-home test fail.
 **Coverage.** Both arms are diff-backed by run1451 (the packet's call sequence on `2/31`, the window's three walks)
 and run1413's block 1001; the score and the value table by run1413.
 
+## 149.8 The Arquebusiers loose from the gun — 954 → 958 (item 3781)
+
+**The booking.** Frame 954: ours 11 draws against theirs' 12, parting at index 4. Theirs spends `Unit::close+0xcb6`,
+the British Elite Knight `1/22`'s death (TI 229, land), after the gaia animals' draws (`9/4`, `9/5`, `9/12`) and before the
+`Farms::inc_time` run. That is a pass after the units, not a unit's own process. Ours closes `1/22` on 955. No
+mechanism was booked.
+
+**The direction, off the disk** (run1451's per-frame window 905..960, filed by 3779; no capture taken):
+- **Who struck `1/22`, blow by blow.** Its dumped `damage`/`damage_frac` (`myhits` 135) step 98+4/16
+  (905) → 103+14 (910) → 109+8 (915) → 118+8 (932) → 124+2 (940) → **134+2 on 954**, and it is gone on 955.
+  `damage_o` still names `2/14` from 939: the blow of 954 is who=2's Elite Knight `2/22` (TI 229), whose
+  `recharging` goes 0 → 30 on 954, a melee swing that does not write the field. `1/22` swung at `2/22` on 953
+  (`2/22`'s damage 46 → 56).
+- **Ours agrees with every one of those values.** `RON_DEBUG_UNIT` with health added to the line (a probe,
+  committed and reverted whole) reads `1/22` at `hp 1/135 frac 2` after `2/22`'s 954 blow: damage 134+2/16, to the
+  sixteenth. Positions, facings and orders of `1/22`, `2/22` and `2/19` agree on every frame 944..955.
+- **So the death is not the blow.** `1/22`'s record of 954 prints the blow and the unit still alive, and the close
+  comes later in the frame. The dump prints after the units' pass and before the rounds' pass.
+- **The round.** who=2's Arquebusiers `2/16` (TI 98, `TY` 48, piece 752) call `Ammo::init` on 953 in both streams.
+  Theirs' round prints on 954 at `cur_time 1, total_time 2`, so it lands in 954's round pass: the close at index 4.
+  Ours' flies `total_time` 3 and lands on 955.
+- **Why three.** Both sides land at (16244, 15860, 612). Theirs leaves (15694, 16697, 779), the figure (15576,
+  16776, 628) plus a bay; ours leaves the figure's own square, because `launch.rs` has no piece-752 row. Theirs'
+  `total_time` is the plan distance over `dx`: 1001.6 / 500.8 = 2. Its round of 907 (`CHAR_ATTACK3`) is 1167.4 /
+  389.1 = 3. Ours' 1133.7 from the square is 3.
+
+**The rows** (`crates/sim/src/launch.rs`, `BAYS`). run1451's `RON_STATE_FRAME=945` packet loads piece 752.
+`get_position.py … entries 752` reads three attack `AttachPos` rows, all node 0: frame 6 of `CHAR_ATTACK1`, 25 of
+`CHAR_ATTACK2` and 23 of `CHAR_ATTACK3`, with `RData +0x88` 1.0. `fit_bay.py` fits each sweep over 361 of 361
+headings, and the centroids are kept:
+
+| anim | frame | lattice points | right | fwd | dz |
+|---|---|---|---|---|---|
+| 11 | 6 | 492 | 34,662 | 150,565 | 181 |
+| 12 | 25 | 207 | 30,200 | 139,796 | 151 |
+| 13 | 23 | 63 | 14,565 | 132,355 | 164 |
+
+The sweeps are under `~/ron-data/lab-experiments/2026-10-29-item-3781/`. who=2's four rounds in run1451's window
+(`2/16` on 908 and 954, `2/15` on 911 and 936) are each reproduced by exactly one key, at the dump's `sx, sy` and
+`sz − z`. who=1's Arquebusiers are another piece (48), already measured: ours launches `1/16`'s round of 935 and
+`1/15`'s of 945 at theirs' points.
+
+**The score: 954 → 958**, the count and the sequence together. `2/16`'s round of 953 leaves the bay, flies 2
+frames, and kills `1/22` on 954. **Every other `first_parting` holds** (113).
+
+**The value diff.** The word's frame 958 writes no block. `gunpowder_melee_run1413_s_word_window_is_widened_whole`
+runs on window 901..1208, the same four blocks: **685** keys, rounds read (36, 43), 113 parting. Block 901 carries
+the standing families alone. On 1001 `1/22`'s death rows are gone:
+
+| record | field | before (3779) | after | theirs |
+|---|---|---|---|---|
+| `1/22` | `death:first_frame` | 955 | 954 | 954 |
+| `1/22` | `death:cur_anim` | 18 | 17 | 17 |
+
+1001 reads 176 rows against 81. The units that had held `1/22` now hold moves in ours, where theirs stands or walks
+home: the Arquebusiers `2/14`..`2/16`, the Macemen `2/29`..`2/31`, `2/22` and `2/19`. Against run1451's window,
+`2/29`, `2/22` and `2/14` agree frame for frame through 958, the word: the fan-out is the stream past it.
+
+**The next word, frame 958.** Ours spends 14 draws against 18, parting at index 5.
+- Theirs spends three `Guy::init_real+0x52` at 5–7, then `Guy::set_anim+0x97a < Guy::inc_time+0x271` at 10,
+  which ours also lacks.
+- On 958 who=2's government hero `2/28` turns from The Monarch (TI 354) to The Despot (TI 352) on both sides.
+- Ours re-makes its three figures as theirs does. Theirs' `GUY` records and ours agree field for field: the
+  points (17632, 19711), (17765, 19685) and (17659, 19847), clocks 0/30, 0/0 and 0/0, and `gpiece` 1006, 13678
+  and 26350. But ours spends none of the draws.
+- No mechanism is named.
+
+**Tests.**
+- New: `gunpowder_melee_s_arquebusiers_loose_from_the_gun` (the round's point, its height and 2 frames; `1/22`
+  standing into 954 and dead after it), and `launch::tests::run1451_s_arquebusiers_leave_from_piece_752_s_bays`.
+- Re-pinned: `GUNPOWDER_MELEE` (958, 958); the widening at 901..1208.
+
+**Mutation** (`tools/mutate.py --patch`, piece 752's three rows renamed): on `gunpowder_melee::` **held**, exit 101
+(the parting, the widening and the new test fail); on the launch test **held**, exit 101.
+
+**What is not established.**
+- The three rows are the sweep regions' centroids. Each region (63–492 lattice points) reproduces all 361
+  headings, so any member is exact at a whole degree. Four rounds are on file to choose among them.
+- The order "units, the dump's print, then the rounds" is read off one frame (954), from `1/22`'s record and
+  `2/16`'s round. No packet has hooked it.
+
+**Coverage.** The rows are diff-backed by run1451's packet (the sweeps) and its window (four rounds). The death
+frame and the value table are diff-backed by run1413's block 1001.
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

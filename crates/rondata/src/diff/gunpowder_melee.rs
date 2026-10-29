@@ -235,8 +235,21 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // spends 11 draws against 12 and parts at index 4: theirs spends
     // `Unit::close+0xcb6`, the British Elite Knight `1/22`'s death, a
     // frame before ours.
-    count: 954,
-    sequence: 954,
+    //
+    // Item 3781: **954 → 958**, both together. who=2's Arquebusiers (TI
+    // 98, piece 752) loose from the gun, not the figure's square —
+    // `launch::BAYS`' three piece-752 rows, off run1451's packet — so
+    // `2/16`'s round of 953 at `1/22` leaves (15694, 16697, 779), flies 2
+    // frames against 3 and lands in 954's round pass, after the Elite
+    // Knight `2/22`'s blow of 954 has left `1/22` 7/8 of a point (§149.8).
+    // On 958 ours spends 14 draws against 18 and parts at index 5: theirs
+    // spends three `Guy::init_real+0x52` at 5–7, the figures of who=2's
+    // government hero `2/28` re-made as it turns from The Monarch (TI 354)
+    // to The Despot (TI 352), and a fourth `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271` at 10; ours turns it on the same frame and
+    // spends none of them.
+    count: 958,
+    sequence: 958,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -267,13 +280,13 @@ fn gunpowder_melee_first_parting() {
 }
 
 /// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767,
-/// 3770 and 3779): run1413's stride blocks 901..1201 — the word's frame
-/// 954 writes no block (the stride prints every hundred), so the window is
-/// the stride block before it through 250 frames past it. 3733's was
-/// 101..432, on 182; 3757's 601..934, on 684; 3759's 701..1009, on 759;
+/// 3770, 3779 and 3781): run1413's stride blocks 901..1201 — the word's
+/// frame 958 writes no block (the stride prints every hundred), so the
+/// window is the stride block before it through 250 frames past it. 3733's
+/// was 101..432, on 182; 3757's 601..934, on 684; 3759's 701..1009, on 759;
 /// 3762's 701..1010, on 760; 3763's 801..1089, on 839; 3767's 801..1113, on
-/// 863; 3770's 901..1197, on 947.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1204);
+/// 863; 3770's 901..1197, on 947; 3779's 901..1204, on 954.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1208);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -394,9 +407,20 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // own row leads: `1/22`'s `death:first_frame` 955 against 954
     // (`cur_anim` 18 against 17); then who=2's `2/19`, `2/20`, `2/22` and
     // the human's citizens; 1101 and 1201 fan out.
-    pin_eq!(w.firsts.len(), 645, "run1413's word window");
-    pin_eq!(w.rounds_read, (36, 38), "the rounds read");
-    pin_eq!(w.rounds.len(), 84, "the rounds that part");
+    //
+    // Item 3781, on the word moved to 958 (window 901..1208, the same four
+    // blocks): **685** keys, rounds read (36, 43), 113 parting. Block 901
+    // still carries the standing families alone. **On 1001 `1/22`'s death
+    // rows are gone** — `2/16`'s round of 953 leaves piece 752's bay and
+    // lands on 954, so `death:first_frame` reads 954 both sides. The block
+    // reads 176 rows against 81: the units that had held `1/22` — the
+    // Arquebusiers `2/14`..`2/16`, the Macemen `2/29`..`2/31`, `2/22` and
+    // `2/19` — hold moves in ours where theirs stands or walks home, and
+    // every one agrees frame for frame with run1451's window through 958,
+    // the word: the fan-out is the stream past it.
+    pin_eq!(w.firsts.len(), 685, "run1413's word window");
+    pin_eq!(w.rounds_read, (36, 43), "the rounds read");
+    pin_eq!(w.rounds.len(), 113, "the rounds that part");
 }
 
 /// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
@@ -624,6 +648,76 @@ fn gunpowder_melee_s_camel_raider_looses_from_its_pivot() {
     assert!(
         unit(&built.sim, 2, 23).is_none(),
         "2/23 dies on 863, as run1413's block 901"
+    );
+}
+
+/// **The Arquebusiers loose from the gun** (item 3781, `docs/GOLDEN.md`
+/// §149.8). who=2's Arquebusiers `2/16` (TI 98, piece 752) fire on the
+/// British Elite Knight `1/22` on 953 at `CHAR_ATTACK2`'s frame 25: the
+/// round leaves piece 752's bay, (15694, 16697) at 779 — run1451's window
+/// prints it there on 954 — and flies 2 frames. `2/22`'s blow of 954 leaves
+/// `1/22` at damage 134 and 2/16 of its 135 on both sides, and the round,
+/// stepped after the units, kills it on 954 as theirs does (`Unit::close
+/// +0xcb6` at index 4). From its own square (15576, 16776) at 628 the round
+/// flew 3 and `1/22` died on 955.
+#[test]
+fn gunpowder_melee_s_arquebusiers_loose_from_the_gun() {
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(MELEE_LONG.0),
+        dump(MELEE_START),
+        crate::diff::testkit::trace(MELEE_LONG.1),
+    ) else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    crate::diff::setup::borrow_pasture(&mut init, &tr);
+    let mut built = crate::diff::setup::with_staged_script(melee_script(), || {
+        build_sim(&loaded, &init, Tuning::RON)
+    });
+    let unit = |sim: &sim::Sim, who: u8, o: usize| {
+        sim.units
+            .iter()
+            .position(|u| u.alive() && u.owner == who && u.index as usize == o)
+    };
+    while built.sim.frame < 953 {
+        built.tick();
+    }
+    let gun = sim::combat::Obj::Unit(unit(&built.sim, 2, 16).expect("2/16 on 953"));
+    let knight = sim::combat::Obj::Unit(unit(&built.sim, 1, 22).expect("1/22 on 953"));
+    let find = |sim: &sim::Sim| {
+        sim.projectiles
+            .iter()
+            .find(|p| p.shooter == gun && p.target == Some(knight))
+            .copied()
+    };
+    while find(&built.sim).is_none() && built.sim.frame < 954 {
+        built.tick();
+    }
+    let round = find(&built.sim).expect("2/16's round at 1/22 on 953");
+    assert_eq!(
+        ((round.launch.x, round.launch.y), round.sz, round.total_time),
+        ((15694, 16697), 779, 2),
+        "piece 752's bay, and two frames"
+    );
+    while built.sim.frame < 954 {
+        built.tick();
+    }
+    assert!(unit(&built.sim, 1, 22).is_some(), "1/22 stands into 954");
+    built.tick();
+    assert!(
+        unit(&built.sim, 1, 22).is_none(),
+        "1/22 dies on 954, as run1413's block 1001"
     );
 }
 
