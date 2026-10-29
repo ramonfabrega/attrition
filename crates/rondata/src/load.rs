@@ -665,6 +665,11 @@ pub fn load_tables(
     /// domain (`docs/PRODUCTION.md`, "The tail").
     const BOWMEN: usize = 0xaa - 0x32;
     const ANTIAIRCRAFTGUN: usize = 0x119 - 0x32;
+    /// The lineages `UnitType::fill_relative_values@0061be50` tests
+    /// (`sim::relative_value`).
+    const BOMBARDSHIP: usize = 0x15a - 0x32;
+    const FIRERAFT: usize = 0x14e - 0x32;
+    const CAMEL: usize = 0xd5 - 0x32;
 
     let mut cols: Vec<ai_load::UnitCols> = Vec::with_capacity(unit_cols.len());
     for (i, c) in unit_cols.iter().enumerate() {
@@ -1466,6 +1471,17 @@ pub fn load_tables(
             cols: cols[i],
             mana: int(r, "MANA").unwrap_or(0),
             gaia: i >= GAIA,
+            rel: sim::relative_value::Facts {
+                masks: combat.obj_masks,
+                melee: combat.max_range == 0,
+                combat_role: cols[i].is(ai_load::role::MILITARY),
+                machinegun: unit_is(i, MACHINEGUN),
+                trireme: unit_is(i, TRIREME),
+                bomb_vessel: unit_is(i, BOMBARDSHIP),
+                fire_raft: unit_is(i, FIRERAFT),
+                camel: unit_is(i, CAMEL),
+                aa_gun: unit_is(i, ANTIAIRCRAFTGUN),
+            },
         });
     }
 

@@ -13864,15 +13864,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // side from 610 (`tools/gamelog/golden/melee-classical.cmd`). First try
     // 718 of 2600; run1450's word window over 601..968, the rounds compared.
     // Moved to 784 (3785, the Royal Balamob Slingers' bays, piece 39), the
-    // same window.
+    // same window. Whole (item 3793, a unit offer weighs the matchup
+    // table, §150.5): the closing state run1450's block 2601, the window
+    // 1301..2601.
     AiWord {
         line: "Melee",
         map: "GreatSaharaClassicalMelee",
         named: "Great Sahara (the melee, Classical)",
         word: crate::diff::classical_melee::CLASSICAL_MELEE_WORD,
         length: 2_600,
-        endpoint: None,
-        window: Some("classical_melee_word_window"),
+        endpoint: Some("classical_melee_run1450_s_closing_state"),
+        window: Some("classical_melee_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

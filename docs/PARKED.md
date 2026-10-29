@@ -12780,13 +12780,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XF — reserved
+## Parked by item 3793, 2026-10-29 — the matchup table
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3793a) **The second melee's closing block: the idle human's citizens hold an order in ours.** On run1450's block 2601
+the Nubian citizens `0/1`..`0/7` read `idle 1` and no orders in theirs. In ours each holds one order (`0/6` holds two
+and stands at (35472, 33327) against (35450, 33316), the closing state's one tear). No draw parts through 2600. The
+game is whole and no score names the block, so it parks; the closing-state pin
+(`classical_melee_run1450_s_closing_state`, torn `[(0, 6)]`) and the widening's 2601 rows hold it until a lobby's word
+reaches a human citizen's order.
+
+(3793b) **Two more readers of a `+0x2b0` per-type table**: `Unit::process_attrition@005e11a0` and
+`Leader::action_declare@006dab50` both match the offset pattern `get_relative_value`'s readers share. It is not read
+whether either indexes `UnitTypeData::relative_value` (`+0x2b0 + 2·TypeIndex`) or another struct's `+0x2b0`. If it is
+the matchup table, `sim::relative_value` is their input too and neither consumer is modelled from it.
+
+(3793c) **The matchup table's arms no capture reaches.** `relative_value`'s naval (Trireme, Bomb Vessel, Fire Raft),
+machine-gun, elephant and camel, armour-piercing and air arms are reading alone, with the listing settling one branch
+(the anti-air halving skips the AA gun's third, `0061c26d`–`0061c2ab`). The second melee's Light Horse against its
+three Nubian types is the one value a run backs (−170, run1465b). A sweep under `tools/emu/callfn.py` over
+`fill_relative_values@0061be50` on chosen masks would check every arm at once; it needs `GameAccess::unittypes`
+synthesized, an hour by `docs/EMULATOR.md`'s costs.
 
 ## Parked by the next landing, slot XG — reserved
 
