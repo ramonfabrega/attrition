@@ -38,8 +38,13 @@ pub(crate) const TURKISH_INFORMATION: Pair = Pair {
     // (type 339, sea), born on 2550 at dock `1/2020`, came out south in ours
     // onto the idle Advanced Battleship `1/51` (type 350) and east in
     // theirs (`docs/AI.md` §378).
-    count: 2551,
-    sequence: 2551,
+    // Item 3780, 2551 → 3952: `come_out`'s ring asks `FILTER_ALL`'s general
+    // test for a `block_radius == 0` type, so the sub comes out east in both
+    // (`docs/AI.md` §378.1). 3952: ours 35 draws against 34, index 30 — ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a
+    // < Unit::do_guard+0x7f4`.
+    count: 3952,
+    sequence: 3952,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -140,8 +145,9 @@ fn turkish_information_pair_is_no_other_lobby() {
 
 /// **The long's stride, walked back from the word** (item 3772, from
 /// 2551): only run1446's stride blocks are on disk before the word's
-/// window, 101 through 2401.
-pub(crate) const WIDENING_TURKISH_INFORMATION_STRIDE: (i64, i64) = (101, 2401);
+/// window, 101 through 2401 — and, since item 3780 moved the word to
+/// 3952, through 3901, the last stride block before it.
+pub(crate) const WIDENING_TURKISH_INFORMATION_STRIDE: (i64, i64) = (101, 3901);
 
 pub(crate) fn turkish_information_stride_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
@@ -166,7 +172,7 @@ fn turkish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     let Some(w) = turkish_information_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 24, "every stride block in the window");
+    pin_eq!(w.blocks, 39, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -183,7 +189,12 @@ fn turkish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // the buildings' `build:extra` (48, which the stride does not print),
     // `form` on 29 units, and who=1's groups 64..75 with their pools (12
     // each). No unit row parts.
-    pin_eq!(w.firsts.len(), 101, "the stride's baseline");
+    // Item 3780, 101 → 165 over 39 blocks, walked to 3901: the first unit
+    // rows are the Tornado `1/89`'s `g.z[0]` aboard its carrier on 3101
+    // (ours 0, theirs 1), and on 3901 group 70's Attack Sub `1/98`, whose
+    // `ATTACKTOORDER` stands at (1944, 5976) in ours and (1512, 5640) in
+    // theirs (`docs/AI.md` §378.1).
+    pin_eq!(w.firsts.len(), 165, "the stride's baseline");
 }
 
 /// run1446b: the word 2551's window, blocks 2495..2801 at the long's
@@ -253,7 +264,7 @@ fn turkish_information_pair_run1446b_s_word_frame_is_widened_whole() {
     // (44184, 44424) in both): theirs' `Unit::come_out` refuses it, ours'
     // does not. On 2551 group 70's attack order plans the sub's path, ours
     // 1 node against 22 (`docs/AI.md` §378; the next item's hypothesis).
-    pin_eq!(w.firsts.len(), 940, "run1446b baseline");
+    pin_eq!(w.firsts.len(), 83, "run1446b baseline");
     // Every round, both directions: 56 against 56, none parting.
     pin_eq!(w.rounds_read, (56, 56), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -306,19 +317,11 @@ fn turkish_information_pair_run1446_s_closing_state() {
     // parted — 156 units compared, counts [144, 8, 7, 0, 106, 2, 32],
     // nothing torn, eight of who=1's unlinked, seven of who=1's extra. A
     // floor, not a score.
-    pin_eq!(e.compared, 156, "units compared");
-    pin_eq!(e.counts(), [144, 8, 7, 0, 106, 2, 32], "the closing counts");
+    pin_eq!(e.compared, 155, "units compared");
+    pin_eq!(e.counts(), [39, 9, 2, 0, 8, 0, 5], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        vec![
-            (1, 120),
-            (1, 123),
-            (1, 119),
-            (1, 35),
-            (1, 146),
-            (1, 76),
-            (1, 121)
-        ],
+        vec![(1, 146), (1, 35)],
         "the closing extras"
     );
 }

@@ -8194,6 +8194,33 @@ fn a_unit_comes_out_with_the_speeds_it_went_in_with() {
     );
 }
 
+/// **A type with no block comes out past a unit standing on the ring**
+/// (item 3780, `docs/AI.md` §378.1): `come_out`'s `block_radius == 0` arm
+/// asks `FILTER_ALL` with the unit's own `(o, who)`, and
+/// `find_nearby_spot@0061de70` then takes the general test —
+/// `find_unit_with_radius` at `0x180` (`61e334`) — so the spot another
+/// player's unit stands on is refused, as run1446's Attack Sub `1/78` was
+/// refused the Advanced Battleship `1/51`'s square on 2550.
+///
+/// Made to fail with the first sweep collision-off (both come out on the
+/// same spot).
+#[test]
+fn a_type_with_no_block_comes_out_past_a_unit_on_the_ring() {
+    let (mut sim, t, _, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    sim.unit_types[militia].combat.block_radius = 0;
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    assert_eq!(sim.profile(Obj::Unit(m)).block_radius, 0);
+    sim.go_inside(m, b);
+    assert!(sim.come_out(m));
+    let first = sim.units[m].pos;
+    let n = sim.init_unit(0, militia, tile_pos(40, 40));
+    sim.go_inside(n, b);
+    // `m` stands idle on the first spot; `n` asks the same ring.
+    assert!(sim.come_out(n));
+    assert_ne!(sim.units[n].pos, first, "the held spot is refused");
+}
+
 /// **A builder that takes the gather of the site it finished drops its
 /// group pointer** (item 1167, `docs/GOLDEN.md` §49; `Unit::do_build`'s
 /// `LAB_005eed5f`, `+0x80 = −1` at `005eed9c`, and `Unit::build_done`'s

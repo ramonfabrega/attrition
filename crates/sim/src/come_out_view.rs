@@ -506,16 +506,25 @@ impl ComeOutView for SimComeOut<'_> {
     fn find(&mut self, f: Find) -> Found {
         let at = Pos::new(f.x, f.y);
         let angle = Angle(f.angle);
-        // **`FILTER_ALL`'s general test is a seam** (`docs/CITIES.md` §11,
-        // `docs/ORDERS.md` §10): both of its sweeps run collision-off, and
-        // `FILTER_NOT_ME`'s second sweep is the collision-off flag.
-        let spot = if f.filter == FILTER_ALL || f.a12 != 0 {
-            self.sim
-                .find_nearby_spot_coll(self.unit, at, f.min, f.max, 0, angle, None, Coll::None)
+        // The second sweep of either arm is the collision-off flag (`a12`,
+        // `nocoll`). **`FILTER_ALL`'s first sweep is the general test**
+        // (`find_nearby_spot@0061de70`, `61e334`–`61e363`): its `(not_o,
+        // not_who)` are the unit's own, so `bVar17` stays clear and the
+        // spot is refused by `find_unit_with_radius` at `0x180` and its
+        // ordered twin — [`Coll::All`]. A `block_radius == 0` type reaches
+        // it: run1446's Attack Sub `1/78` on 2550, which this view sent
+        // collision-off onto the idle Advanced Battleship `1/51`'s square
+        // (item 3780, `docs/AI.md` §378.1).
+        let coll = if f.a12 != 0 {
+            Coll::None
+        } else if f.filter == FILTER_ALL {
+            Coll::All
         } else {
-            self.sim
-                .find_nearby_spot(self.unit, at, f.min, f.max, 0, angle, None)
+            Coll::Pairwise
         };
+        let spot = self
+            .sim
+            .find_nearby_spot_coll(self.unit, at, f.min, f.max, 0, angle, None, coll);
         if f.gather {
             // Kept for the routing, which is handed the gather block's spot.
             self.gather = spot.map(|s| (s, angle));
