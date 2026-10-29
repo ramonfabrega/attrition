@@ -655,6 +655,10 @@ impl Sim {
                 format!("{}({}) n{} v{} c{}", m.t, n, m.num, m.val, m.cat)
             }).collect();
             eprintln!("MARKET f{} who={} list {:?}", self.frame, who, names);
+            for b in self.buildings.iter().filter(|b| b.alive && b.owner == who) {
+                let id = b.orig_ty.map_or("-".to_string(), |t| format!("{:?}", self.build_types[t].ident));
+                eprintln!("MARKET f{} who={} bld {} {} constr{} chits{} active{} started{}", self.frame, who, b.index, id, b.constr_time, b.construct_hits, b.active, b.started);
+            }
         }
         if !self.market_gate(who) {
             return;
