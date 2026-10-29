@@ -5262,7 +5262,8 @@ impl Sim {
         let Some(old) = self.units[u].ty else { return };
         if std::env::var("RON_PROBE_3783").is_ok() {
             eprintln!(
-                "PROBE3783 set_type {}/{} {old} -> {rec}\n{}",
+                "PROBE3783 f{} set_type {}/{} {old} -> {rec}\n{}",
+                self.frame,
                 self.units[u].owner,
                 self.units[u].index,
                 std::backtrace::Backtrace::force_capture()
