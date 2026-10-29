@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Build::find_target@00622c80`, run by `tools/emu/sweep_build_find_target.py` under unicorn
-/// (tools/emu): 144 random bytes of object, 0 argument(s), vtable slot +0x130 (0 args) stubbed; callee 0x00648da0 (5 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); stub 0 answers 0..40 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 writes a value in 0..255 through its argument 1, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Build::find_target@00622c80`, run by `tools/emu/sweep_obj.py` on its row `build_find_target` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 144 random bytes of object, 0 argument(s), vtable slot +0x130 (0 args) stubbed; callee 0x00648da0 (5 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); stub 0 answers 0..40 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 writes a value in 0..255 through its argument 1, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_find_target.py") else {
+    let Some(rows) = super::emu_obj("build_find_target") else {
         return;
     };
     let mut n = 0;

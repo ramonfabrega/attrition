@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GoodTypeData::snap_center@0066fcb0`, run by `tools/emu/sweep_good_type_data_snap_center.py` under unicorn
-/// (tools/emu): 576 random bytes of object, 4 argument(s), argument 2 names 4 random bytes; argument 3 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GoodTypeData::snap_center@0066fcb0`, run by `tools/emu/sweep_obj.py` on its row `good_type_data_snap_center` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 576 random bytes of object, 4 argument(s), argument 2 names 4 random bytes; argument 3 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_good_type_data_snap_center.py") else {
+    let Some(rows) = super::emu_obj("good_type_data_snap_center") else {
         return;
     };
     let mut n = 0;

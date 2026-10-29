@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `TerrainVis::invalidate_fog_wcoord@008b1e60`, run by `tools/emu/sweep_terrain_vis_invalidate_fog_wcoord.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 16 random bytes; the global cell 0x00c06218 points at 27328 random bytes; argument 0 names 16 random bytes; argument 1 names 16 random bytes; the word at `c1+0x6ab0` points at 16 random bytes less `0` (placed); the word at `p2+0` points at 116 random bytes less `0` (placed); the word at `p2+4` points at 116 random bytes less `0` (placed); the word at `p2+8` points at 116 random bytes less `0` (placed); the word at `p2+0xc` points at 116 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `TerrainVis::invalidate_fog_wcoord@008b1e60`, run by `tools/emu/sweep_obj.py` on its row `terrain_vis_invalidate_fog_wcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 16 random bytes; the global cell 0x00c06218 points at 27328 random bytes; argument 0 names 16 random bytes; argument 1 names 16 random bytes; the word at `c1+0x6ab0` points at 16 random bytes less `0` (placed); the word at `p2+0` points at 116 random bytes less `0` (placed); the word at `p2+4` points at 116 random bytes less `0` (placed); the word at `p2+8` points at 116 random bytes less `0` (placed); the word at `p2+0xc` points at 116 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_terrain_vis_invalidate_fog_wcoord.py") else {
+    let Some(rows) = super::emu_obj("terrain_vis_invalidate_fog_wcoord") else {
         return;
     };
     let mut n = 0;

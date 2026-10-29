@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Signposts::head@00897b50`, run by `tools/emu/sweep_signposts_head.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), 84 random bytes at 0x00eb1a64; callee 0x00a1eeb0 (1 args) stubbed; the word at `c0+0x20` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `c0+0x38` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `c0+0x50` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Signposts::head@00897b50`, run by `tools/emu/sweep_obj.py` on its row `signposts_head` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), 84 random bytes at 0x00eb1a64; callee 0x00a1eeb0 (1 args) stubbed; the word at `c0+0x20` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `c0+0x38` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `c0+0x50` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_signposts_head.py") else {
+    let Some(rows) = super::emu_obj("signposts_head") else {
         return;
     };
     let mut n = 0;

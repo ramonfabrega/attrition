@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Army::count@006f9120`, run by `tools/emu/sweep_army_count.py` under unicorn
-/// (tools/emu): 160 random bytes of object, 2 argument(s), callee 0x00711720 (3 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Army::count@006f9120`, run by `tools/emu/sweep_obj.py` on its row `army_count` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 160 random bytes of object, 2 argument(s), callee 0x00711720 (3 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_army_count.py") else {
+    let Some(rows) = super::emu_obj("army_count") else {
         return;
     };
     let mut n = 0;

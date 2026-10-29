@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Balance::lookup_absolute_name@00582910`, run by `tools/emu/sweep_balance_lookup_absolute_name.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 0; argument 0 names 16 random bytes; callee 0x005829b0 (4 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Balance::lookup_absolute_name@00582910`, run by `tools/emu/sweep_obj.py` on its row `balance_lookup_absolute_name` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 0; argument 0 names 16 random bytes; callee 0x005829b0 (4 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_balance_lookup_absolute_name.py") else {
+    let Some(rows) = super::emu_obj("balance_lookup_absolute_name") else {
         return;
     };
     let mut n = 0;

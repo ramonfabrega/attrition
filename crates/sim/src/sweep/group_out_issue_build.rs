@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GroupOut::issue_build@00708c60`, run by `tools/emu/sweep_group_out_issue_build.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 6 argument(s), the global cell 0x00c061e8 points at 2304 random bytes; callee 0x00941c30 (7 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GroupOut::issue_build@00708c60`, run by `tools/emu/sweep_obj.py` on its row `group_out_issue_build` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 6 argument(s), the global cell 0x00c061e8 points at 2304 random bytes; callee 0x00941c30 (7 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_out_issue_build.py") else {
+    let Some(rows) = super::emu_obj("group_out_issue_build") else {
         return;
     };
     let mut n = 0;

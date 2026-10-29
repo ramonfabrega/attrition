@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Fractal::get_height@006aa870`, run by `tools/emu/sweep_fractal_get_height.py` under unicorn
-/// (tools/emu): 120 random bytes of object, 2 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x10` points at 140 random bytes less `0` (placed); the word at `p0+0x10` points at 64 random bytes less `0` (placed); the word at `p0+0x2c` points at 64 random bytes less `0` (placed); the word at `p0+0x48` points at 64 random bytes less `0` (placed); the word at `p0+0x64` points at 64 random bytes less `0` (placed); the word at `p0+0x80` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
+/// `Fractal::get_height@006aa870`, run by `tools/emu/sweep_obj.py` on its row `fractal_get_height` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 120 random bytes of object, 2 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x10` points at 140 random bytes less `0` (placed); the word at `p0+0x10` points at 64 random bytes less `0` (placed); the word at `p0+0x2c` points at 64 random bytes less `0` (placed); the word at `p0+0x48` points at 64 random bytes less `0` (placed); the word at `p0+0x64` points at 64 random bytes less `0` (placed); the word at `p0+0x80` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_fractal_get_height.py") else {
+    let Some(rows) = super::emu_obj("fractal_get_height") else {
         return;
     };
     let mut n = 0;

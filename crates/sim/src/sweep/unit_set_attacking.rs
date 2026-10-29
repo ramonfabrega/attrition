@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::set_attacking@005ff5b0`, run by `tools/emu/sweep_unit_set_attacking.py` under unicorn
-/// (tools/emu): 72 random bytes of object, 1 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; vtable slot +0x164 (0 args) stubbed; callee 0x006b55c0 (3 args) stubbed; stub 1 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::set_attacking@005ff5b0`, run by `tools/emu/sweep_obj.py` on its row `unit_set_attacking` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 72 random bytes of object, 1 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; vtable slot +0x164 (0 args) stubbed; callee 0x006b55c0 (3 args) stubbed; stub 1 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_set_attacking.py") else {
+    let Some(rows) = super::emu_obj("unit_set_attacking") else {
         return;
     };
     let mut n = 0;

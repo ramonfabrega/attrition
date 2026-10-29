@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `SpellType::cast_research_project@00670990`, run by `tools/emu/sweep_spell_type_cast_research_project.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), 4 random bytes at 0x00cb195c; the word at `0xe41248+0x6eec*a[1]` points at 16 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `SpellType::cast_research_project@00670990`, run by `tools/emu/sweep_obj.py` on its row `spell_type_cast_research_project` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), 4 random bytes at 0x00cb195c; the word at `0xe41248+0x6eec*a[1]` points at 16 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_spell_type_cast_research_project.py") else {
+    let Some(rows) = super::emu_obj("spell_type_cast_research_project") else {
         return;
     };
     let mut n = 0;

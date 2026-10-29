@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `SpellType::unpay_cast_costs@00676ff0`, run by `tools/emu/sweep_spell_type_unpay_cast_costs.py` under unicorn
-/// (tools/emu): 472 random bytes of object, 2 argument(s), vtable slot +0xd8 (3 args) stubbed; the word at `0xc0aec0+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 4 random bytes less `0x96` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `SpellType::unpay_cast_costs@00676ff0`, run by `tools/emu/sweep_obj.py` on its row `spell_type_unpay_cast_costs` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 472 random bytes of object, 2 argument(s), vtable slot +0xd8 (3 args) stubbed; the word at `0xc0aec0+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 4 random bytes less `0x96` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_spell_type_unpay_cast_costs.py") else {
+    let Some(rows) = super::emu_obj("spell_type_unpay_cast_costs") else {
         return;
     };
     let mut n = 0;

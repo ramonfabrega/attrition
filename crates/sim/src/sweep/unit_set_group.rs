@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::set_group@00605220`, run by `tools/emu/sweep_unit_set_group.py` under unicorn
-/// (tools/emu): 152 random bytes of object, 2 argument(s), the word at `0xc0618c` points at 80 random bytes less `0` (placed); the word at `p0+0x4c` points at 24 random bytes less `0` (placed); the word at `p1+0` points at 152 random bytes less `0` (placed); the word at `p1+4` points at 152 random bytes less `0` (placed); the word at `p1+8` points at 152 random bytes less `0` (placed); the word at `p1+12` points at 152 random bytes less `0` (placed); the word at `p1+16` points at 152 random bytes less `0` (placed); the word at `p1+20` points at 152 random bytes less `0` (placed); figures p2..p7 link at +0x8e (2 bytes) below their own index or to -1, -32768; figures p2..p7 link at +0x90 (2 bytes) above their own index or to -1; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::set_group@00605220`, run by `tools/emu/sweep_obj.py` on its row `unit_set_group` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 152 random bytes of object, 2 argument(s), the word at `0xc0618c` points at 80 random bytes less `0` (placed); the word at `p0+0x4c` points at 24 random bytes less `0` (placed); the word at `p1+0` points at 152 random bytes less `0` (placed); the word at `p1+4` points at 152 random bytes less `0` (placed); the word at `p1+8` points at 152 random bytes less `0` (placed); the word at `p1+12` points at 152 random bytes less `0` (placed); the word at `p1+16` points at 152 random bytes less `0` (placed); the word at `p1+20` points at 152 random bytes less `0` (placed); figures p2..p7 link at +0x8e (2 bytes) below their own index or to -1, -32768; figures p2..p7 link at +0x90 (2 bytes) above their own index or to -1; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_set_group.py") else {
+    let Some(rows) = super::emu_obj("unit_set_group") else {
         return;
     };
     let mut n = 0;

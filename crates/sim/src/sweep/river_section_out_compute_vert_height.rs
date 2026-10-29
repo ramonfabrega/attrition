@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `RiverSectionOut::compute_vert_height@0088b6a0`, run by `tools/emu/sweep_river_section_out_compute_vert_height.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 1 argument(s), 8 random bytes at 0x00c11cc8; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `RiverSectionOut::compute_vert_height@0088b6a0`, run by `tools/emu/sweep_obj.py` on its row `river_section_out_compute_vert_height` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 1 argument(s), 8 random bytes at 0x00c11cc8; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_river_section_out_compute_vert_height.py") else {
+    let Some(rows) = super::emu_obj("river_section_out_compute_vert_height") else {
         return;
     };
     let mut n = 0;

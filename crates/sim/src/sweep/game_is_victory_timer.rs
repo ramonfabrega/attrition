@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::is_victory_timer@00594950`, run by `tools/emu/sweep_game_is_victory_timer.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), the global cell 0x00c061ec points at 64 random bytes; 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x4, +0x444:0x4, +0x44c:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::is_victory_timer@00594950`, run by `tools/emu/sweep_obj.py` on its row `game_is_victory_timer` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), the global cell 0x00c061ec points at 64 random bytes; 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x4, +0x444:0x4, +0x44c:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_is_victory_timer.py") else {
+    let Some(rows) = super::emu_obj("game_is_victory_timer") else {
         return;
     };
     let mut n = 0;

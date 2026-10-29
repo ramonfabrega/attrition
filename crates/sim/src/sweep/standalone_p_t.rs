@@ -3,7 +3,7 @@
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
-use support::{emu_rows, row, tail_row};
+use support::{emu_obj, emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
 #[path = "path_finder_add_to_openlist.rs"]
@@ -66,10 +66,6 @@ mod path_finder_valid_tcoord;
 mod path_finder_valid_ucoord;
 #[path = "path_finder_walk_data.rs"]
 mod path_finder_walk_data;
-#[path = "patrol_order_get_patrol_order.rs"]
-mod patrol_order_get_patrol_order;
-#[path = "patrol_order_walk_data.rs"]
-mod patrol_order_walk_data;
 #[path = "player_end_game.rs"]
 mod player_end_game;
 #[path = "player_is_active.rs"]
@@ -110,10 +106,6 @@ mod regions_fix_all_borders;
 mod regions_get_num_sea;
 #[path = "regions_walk_data.rs"]
 mod regions_walk_data;
-#[path = "repair_order_get_type.rs"]
-mod repair_order_get_type;
-#[path = "repair_order_get_type_vtordisp.rs"]
-mod repair_order_get_type_vtordisp;
 #[path = "resource_divvy_pool_add_early.rs"]
 mod resource_divvy_pool_add_early;
 #[path = "resource_divvy_pool_add_good.rs"]
@@ -206,8 +198,6 @@ mod signposts_next;
 mod sort_b;
 #[path = "sort_c.rs"]
 mod sort_c;
-#[path = "special_anim_order_walk_data.rs"]
-mod special_anim_order_walk_data;
 #[path = "special_data_get_radius.rs"]
 mod special_data_get_radius;
 #[path = "special_walk_data.rs"]
@@ -274,16 +264,6 @@ mod spell_type_walk_rules_data;
 mod storm_get_name;
 #[path = "storm_on_field_change.rs"]
 mod storm_on_field_change;
-#[path = "strafe_order_get_air_order.rs"]
-mod strafe_order_get_air_order;
-#[path = "strafe_order_get_attack_order.rs"]
-mod strafe_order_get_attack_order;
-#[path = "strafe_order_get_strafe_order_vtordisp.rs"]
-mod strafe_order_get_strafe_order_vtordisp;
-#[path = "strafe_order_walk_data.rs"]
-mod strafe_order_walk_data;
-#[path = "strafe_order_walk_data_vtordisp.rs"]
-mod strafe_order_walk_data_vtordisp;
 #[path = "strip_builder_check_last_connect.rs"]
 mod strip_builder_check_last_connect;
 #[path = "strip_builder_remove_end.rs"]
@@ -324,20 +304,8 @@ mod supply_deplete;
 mod supply_walk_data;
 #[path = "surf_get_name.rs"]
 mod surf_get_name;
-#[path = "surf_wave_section_load_old_bh3.rs"]
-mod surf_wave_section_load_old_bh3;
-#[path = "syllable_parse.rs"]
-mod syllable_parse;
 #[path = "sync_point_on_player_deleted.rs"]
 mod sync_point_on_player_deleted;
-#[path = "target_order_get_target.rs"]
-mod target_order_get_target;
-#[path = "target_order_get_target_order.rs"]
-mod target_order_get_target_order;
-#[path = "target_order_target_exists.rs"]
-mod target_order_target_exists;
-#[path = "target_order_walk_data.rs"]
-mod target_order_walk_data;
 #[path = "tcoord_data_walk_data.rs"]
 mod tcoord_data_walk_data;
 #[path = "tcoord_less.rs"]
@@ -410,28 +378,8 @@ mod terrain_vis_set_extra_source_pool;
 mod terrain_vis_wcoord_was_cached;
 #[path = "terrain_walk_coord_data.rs"]
 mod terrain_walk_coord_data;
-#[path = "think_order_get_type.rs"]
-mod think_order_get_type;
-#[path = "time_sync_add_ping.rs"]
-mod time_sync_add_ping;
-#[path = "time_sync_analyze_response.rs"]
-mod time_sync_analyze_response;
-#[path = "time_sync_get_best_ping_time.rs"]
-mod time_sync_get_best_ping_time;
-#[path = "time_sync_on_player_deleted.rs"]
-mod time_sync_on_player_deleted;
-#[path = "time_sync_test_accept_ping.rs"]
-mod time_sync_test_accept_ping;
-#[path = "time_sync_update.rs"]
-mod time_sync_update;
-#[path = "trade_order_walk_data.rs"]
-mod trade_order_walk_data;
-#[path = "trade_order_walk_data_vtordisp.rs"]
-mod trade_order_walk_data_vtordisp;
 #[path = "tribe_get_name.rs"]
 mod tribe_get_name;
-#[path = "tribe_parse.rs"]
-mod tribe_parse;
 #[path = "tribe_set_pseudonym.rs"]
 mod tribe_set_pseudonym;
 #[path = "tribe_walk_data.rs"]
@@ -442,40 +390,6 @@ mod tribe_walk_rules_data;
 mod tribes_find;
 #[path = "tribes_walk_data.rs"]
 mod tribes_walk_data;
-#[path = "turn_control_check_new_frame_playback.rs"]
-mod turn_control_check_new_frame_playback;
-#[path = "turn_control_check_new_frame_solo.rs"]
-mod turn_control_check_new_frame_solo;
-#[path = "turn_control_compute_next_turn_solo.rs"]
-mod turn_control_compute_next_turn_solo;
-#[path = "turn_control_end_cannon_time.rs"]
-mod turn_control_end_cannon_time;
-#[path = "turn_control_get_delta_percent.rs"]
-mod turn_control_get_delta_percent;
-#[path = "turn_control_get_frame_timing.rs"]
-mod turn_control_get_frame_timing;
-#[path = "turn_control_get_lag_time.rs"]
-mod turn_control_get_lag_time;
-#[path = "turn_control_is_cannon_time.rs"]
-mod turn_control_is_cannon_time;
-#[path = "turn_control_issue_speed_down.rs"]
-mod turn_control_issue_speed_down;
-#[path = "turn_control_issue_speed_set.rs"]
-mod turn_control_issue_speed_set;
-#[path = "turn_control_issue_speed_up.rs"]
-mod turn_control_issue_speed_up;
-#[path = "turn_control_issue_toggle_pause.rs"]
-mod turn_control_issue_toggle_pause;
-#[path = "turn_control_set_new_target_time.rs"]
-mod turn_control_set_new_target_time;
-#[path = "turn_control_set_pause.rs"]
-mod turn_control_set_pause;
-#[path = "turn_control_speed_down.rs"]
-mod turn_control_speed_down;
-#[path = "turn_control_speed_up.rs"]
-mod turn_control_speed_up;
-#[path = "turn_control_walk_data.rs"]
-mod turn_control_walk_data;
 #[path = "type_backup.rs"]
 mod type_backup;
 #[path = "type_bonus.rs"]
@@ -488,8 +402,6 @@ mod type_data_avail;
 mod type_data_can_pay_cost;
 #[path = "type_data_count_discovered.rs"]
 mod type_data_count_discovered;
-#[path = "type_data_get_abbrev_parsed.rs"]
-mod type_data_get_abbrev_parsed;
 #[path = "type_data_get_kill_value.rs"]
 mod type_data_get_kill_value;
 #[path = "type_data_get_limiting_resource.rs"]

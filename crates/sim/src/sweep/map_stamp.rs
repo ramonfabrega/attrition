@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::stamp@0069cf80`, run by `tools/emu/sweep_map_stamp.py` under unicorn
-/// (tools/emu): 1024 random bytes of object, 3 argument(s), callee 0x0069d5a0 (3 args) stubbed; stub 0 answered from [0, 1, 5] (90%); stub 0 answers 5 values in call order, the last from [0, 1, 5], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Map::stamp@0069cf80`, run by `tools/emu/sweep_obj.py` on its row `map_stamp` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 1024 random bytes of object, 3 argument(s), callee 0x0069d5a0 (3 args) stubbed; stub 0 answered from [0, 1, 5] (90%); stub 0 answers 5 values in call order, the last from [0, 1, 5], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_stamp.py") else {
+    let Some(rows) = super::emu_obj("map_stamp") else {
         return;
     };
     let mut n = 0;

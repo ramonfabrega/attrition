@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::get_down@004613d0`, run by `tools/emu/sweep_world_data_get_down.py` under unicorn
-/// (tools/emu): 320 random bytes of object, 4 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; argument 2 names 4 random bytes; argument 3 names 4 random bytes; the word at `m+0x134` points at 28 random bytes less `(i32(m,0)*i32(p[1],0)+i32(p[0],0))*0x1c` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::get_down@004613d0`, run by `tools/emu/sweep_obj.py` on its row `world_data_get_down` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 320 random bytes of object, 4 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; argument 2 names 4 random bytes; argument 3 names 4 random bytes; the word at `m+0x134` points at 28 random bytes less `(i32(m,0)*i32(p[1],0)+i32(p[0],0))*0x1c` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_get_down.py") else {
+    let Some(rows) = super::emu_obj("world_data_get_down") else {
         return;
     };
     let mut n = 0;

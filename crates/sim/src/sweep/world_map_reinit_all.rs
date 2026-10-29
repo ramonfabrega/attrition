@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldMap::reinit_all@008d2b60`, run by `tools/emu/sweep_world_map_reinit_all.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), 4 random bytes at 0x00e399ac; vtable slot +0x420 (0 args) stubbed; vtable slot +0x18 (1 args) stubbed; callee 0x008d2cd0 (0 args) stubbed; callee 0x008d28d0 (0 args) stubbed; the word at `c0+0` points at 16 random bytes less `0` (placed, null a third of the rows); the stubbed vtable laid at `p0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldMap::reinit_all@008d2b60`, run by `tools/emu/sweep_obj.py` on its row `world_map_reinit_all` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), 4 random bytes at 0x00e399ac; vtable slot +0x420 (0 args) stubbed; vtable slot +0x18 (1 args) stubbed; callee 0x008d2cd0 (0 args) stubbed; callee 0x008d28d0 (0 args) stubbed; the word at `c0+0` points at 16 random bytes less `0` (placed, null a third of the rows); the stubbed vtable laid at `p0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_map_reinit_all.py") else {
+    let Some(rows) = super::emu_obj("world_map_reinit_all") else {
         return;
     };
     let mut n = 0;

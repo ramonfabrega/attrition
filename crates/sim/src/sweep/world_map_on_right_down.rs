@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldMap::on_right_down@008c7000`, run by `tools/emu/sweep_world_map_on_right_down.py` under unicorn
-/// (tools/emu): 4920 random bytes of object, 2 argument(s), 8 random bytes at 0x00e334f0; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldMap::on_right_down@008c7000`, run by `tools/emu/sweep_obj.py` on its row `world_map_on_right_down` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 4920 random bytes of object, 2 argument(s), 8 random bytes at 0x00e334f0; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_map_on_right_down.py") else {
+    let Some(rows) = super::emu_obj("world_map_on_right_down") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::get_patch_version@00595260`, run by `tools/emu/sweep_game_get_patch_version.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), 4 random bytes at 0x00e7fe4c; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::get_patch_version@00595260`, run by `tools/emu/sweep_obj.py` on its row `game_get_patch_version` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), 4 random bytes at 0x00e7fe4c; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_get_patch_version.py") else {
+    let Some(rows) = super::emu_obj("game_get_patch_version") else {
         return;
     };
     let mut n = 0;

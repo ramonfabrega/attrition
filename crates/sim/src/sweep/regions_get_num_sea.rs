@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Regions::get_num_sea@0067eed0`, run by `tools/emu/sweep_regions_get_num_sea.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c061b8 points at 64 random bytes; the word at `c0+0x10` points at 17408 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 200 rows (an arm few rows reach).
+/// `Regions::get_num_sea@0067eed0`, run by `tools/emu/sweep_obj.py` on its row `regions_get_num_sea` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c061b8 points at 64 random bytes; the word at `c0+0x10` points at 17408 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_regions_get_num_sea.py") else {
+    let Some(rows) = super::emu_obj("regions_get_num_sea") else {
         return;
     };
     let mut n = 0;

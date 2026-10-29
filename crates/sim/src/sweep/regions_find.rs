@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Regions::find@00680180`, run by `tools/emu/sweep_regions_find.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 3 argument(s), `p` windows in order: p0..p4 the place(s), in flag order; callee 0x00538810 (0 args) stubbed; callee 0x00a1d660 (1 args) stubbed; callee 0x00a2e550 (6 args) stubbed; callee 0x00a1cf40 (0 args) stubbed; the word at `0xc06188` points at 320 random bytes less `0` (placed); the word at `0xcae5fc` points at 4112 random bytes less `-0x10` (placed); the word at `m+0x10` points at 544 random bytes less `0` (placed); the word at `m+0x30` points at 1280 random bytes less `0` (placed); the word at `p0+0x134` points at 2800 random bytes less `0` (placed); stub 2 answered from [0] (90%); stub 2 answers 0..0 every row; the stack 1024 bytes under the call is zeroed before each row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
+/// `Regions::find@00680180`, run by `tools/emu/sweep_obj.py` on its row `regions_find` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 3 argument(s), `p` windows in order: p0..p4 the place(s), in flag order; callee 0x00538810 (0 args) stubbed; callee 0x00a1d660 (1 args) stubbed; callee 0x00a2e550 (6 args) stubbed; callee 0x00a1cf40 (0 args) stubbed; the word at `0xc06188` points at 320 random bytes less `0` (placed); the word at `0xcae5fc` points at 4112 random bytes less `-0x10` (placed); the word at `m+0x10` points at 544 random bytes less `0` (placed); the word at `m+0x30` points at 1280 random bytes less `0` (placed); the word at `p0+0x134` points at 2800 random bytes less `0` (placed); stub 2 answered from [0] (90%); stub 2 answers 0..0 every row; the stack 1024 bytes under the call is zeroed before each row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_regions_find.py") else {
+    let Some(rows) = super::emu_obj("regions_find") else {
         return;
     };
     let mut n = 0;

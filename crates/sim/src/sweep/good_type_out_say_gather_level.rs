@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GoodTypeOut::say_gather_level@006700d0`, run by `tools/emu/sweep_good_type_out_say_gather_level.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 5 argument(s), the global cell 0x00c06378 points at 32 random bytes; 4 random bytes at 0x00c8cd00; argument 0 names 16 random bytes; callee 0x00a1d440 (1 args) stubbed; callee 0x00a1d180 (1 args) stubbed; callee 0x00670130 (5 args) stubbed; the word at `c0+0x10` points at 32 random bytes less `0x17c0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GoodTypeOut::say_gather_level@006700d0`, run by `tools/emu/sweep_obj.py` on its row `good_type_out_say_gather_level` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 5 argument(s), the global cell 0x00c06378 points at 32 random bytes; 4 random bytes at 0x00c8cd00; argument 0 names 16 random bytes; callee 0x00a1d440 (1 args) stubbed; callee 0x00a1d180 (1 args) stubbed; callee 0x00670130 (5 args) stubbed; the word at `c0+0x10` points at 32 random bytes less `0x17c0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_good_type_out_say_gather_level.py") else {
+    let Some(rows) = super::emu_obj("good_type_out_say_gather_level") else {
         return;
     };
     let mut n = 0;

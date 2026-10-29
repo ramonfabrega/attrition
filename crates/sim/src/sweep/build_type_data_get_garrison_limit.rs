@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::get_garrison_limit@00633f50`, run by `tools/emu/sweep_build_type_data_get_garrison_limit.py` under unicorn
-/// (tools/emu): 720 random bytes of object, 1 argument(s), the global cell 0x00c061e4 points at 3048 random bytes; vtable slot +0x60 (2 args) stubbed; vtable slot +0xfc (0 args) stubbed; callee 0x006db810 (1 args) stubbed; slot +0xfc laid as 0x00472ba0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 2 answers 6 values in call order, printed after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::get_garrison_limit@00633f50`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_get_garrison_limit` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 720 random bytes of object, 1 argument(s), the global cell 0x00c061e4 points at 3048 random bytes; vtable slot +0x60 (2 args) stubbed; vtable slot +0xfc (0 args) stubbed; callee 0x006db810 (1 args) stubbed; slot +0xfc laid as 0x00472ba0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 2 answers 6 values in call order, printed after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_get_garrison_limit.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_get_garrison_limit") else {
         return;
     };
     let mut n = 0;

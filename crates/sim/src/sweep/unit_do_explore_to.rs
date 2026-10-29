@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::do_explore_to@005f24a0`, run by `tools/emu/sweep_unit_do_explore_to.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 1 argument(s), `p` windows in order: p0..p2 the place(s), in flag order; vtable slot +0xe8 (0 args) stubbed; callee 0x005f7b30 (1 args) stubbed; callee 0x005f2540 (0 args) stubbed; the word at `0xc061ec` points at 1536 random bytes less `0` (placed); the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p1+4` points at 16 random bytes less `0` (placed); slot +0xe8 laid as 0x0046ceb0 or its stub, a flag after the answers; stub 0 answered from [0, 1, 1] (90%); argument 0 copies `p2+0x8` (45%); stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::do_explore_to@005f24a0`, run by `tools/emu/sweep_obj.py` on its row `unit_do_explore_to` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 1 argument(s), `p` windows in order: p0..p2 the place(s), in flag order; vtable slot +0xe8 (0 args) stubbed; callee 0x005f7b30 (1 args) stubbed; callee 0x005f2540 (0 args) stubbed; the word at `0xc061ec` points at 1536 random bytes less `0` (placed); the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p1+4` points at 16 random bytes less `0` (placed); slot +0xe8 laid as 0x0046ceb0 or its stub, a flag after the answers; stub 0 answered from [0, 1, 1] (90%); argument 0 copies `p2+0x8` (45%); stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_do_explore_to.py") else {
+    let Some(rows) = super::emu_obj("unit_do_explore_to") else {
         return;
     };
     let mut n = 0;

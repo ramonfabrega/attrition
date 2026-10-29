@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `sort@0092d5c0`, run by `tools/emu/sweep_sort_c.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s); argument 0 names 64 random bytes; argument 1 names 64 random bytes; `__cdecl`: the caller pops the arguments; `ecx` an integer in 0..16, not the object, the row's last; `edx` the address of window `m`; `ecx` and `edx` held to their draw every row, no wild word; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
+/// `sort@0092d5c0`, run by `tools/emu/sweep_obj.py` on its row `sort_c` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s); argument 0 names 64 random bytes; argument 1 names 64 random bytes; `__cdecl`: the caller pops the arguments; `ecx` an integer in 0..16, not the object, the row's last; `edx` the address of window `m`; `ecx` and `edx` held to their draw every row, no wild word; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_sort_c.py") else {
+    let Some(rows) = super::emu_obj("sort_c") else {
         return;
     };
     let mut n = 0;

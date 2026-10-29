@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `World::set_was_seen@006b41d0`, run by `tools/emu/sweep_world_set_was_seen.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 368 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0x134` points at 4 random bytes less `((i32(p[1],0)>>1)*i32(c[0],0)+(i32(p[0],0)>>1))*0x1c+0x14` (placed); the word at `c0+0x160` points at 4 random bytes less `i32(c[0],0xc)*i32(p[1],0)+i32(p[0],0)` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `World::set_was_seen@006b41d0`, run by `tools/emu/sweep_obj.py` on its row `world_set_was_seen` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 368 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0x134` points at 4 random bytes less `((i32(p[1],0)>>1)*i32(c[0],0)+(i32(p[0],0)>>1))*0x1c+0x14` (placed); the word at `c0+0x160` points at 4 random bytes less `i32(c[0],0xc)*i32(p[1],0)+i32(p[0],0)` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_set_was_seen.py") else {
+    let Some(rows) = super::emu_obj("world_set_was_seen") else {
         return;
     };
     let mut n = 0;

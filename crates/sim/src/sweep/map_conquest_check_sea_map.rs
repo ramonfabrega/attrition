@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `MapConquest::check_sea_map@0068d1a0`, run by `tools/emu/sweep_map_conquest_check_sea_map.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 0 argument(s), `p` windows in order: p0..p2 the place(s), in flag order; the global cell 0x00c06188 points at 1024 random bytes; callee 0x0067eed0 (0 args) stubbed; the word at `c0+0x90` points at 32 random bytes less `0` (placed); the word at `c0+0xac` points at 32 random bytes less `0` (placed); the word at `c0+0x134` points at 512 random bytes less `0` (placed); stub 0 answered from [0, 1, 1, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
+/// `MapConquest::check_sea_map@0068d1a0`, run by `tools/emu/sweep_obj.py` on its row `map_conquest_check_sea_map` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 0 argument(s), `p` windows in order: p0..p2 the place(s), in flag order; the global cell 0x00c06188 points at 1024 random bytes; callee 0x0067eed0 (0 args) stubbed; the word at `c0+0x90` points at 32 random bytes less `0` (placed); the word at `c0+0xac` points at 32 random bytes less `0` (placed); the word at `c0+0x134` points at 512 random bytes less `0` (placed); stub 0 answered from [0, 1, 1, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_conquest_check_sea_map.py") else {
+    let Some(rows) = super::emu_obj("map_conquest_check_sea_map") else {
         return;
     };
     let mut n = 0;

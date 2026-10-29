@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Borders::is_border_hidden@00882300`, run by `tools/emu/sweep_borders_is_border_hidden.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), the global cell 0x00c06210 points at 672 random bytes; callee 0x006e1370 (1 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 8 rows 0x6eec apart at `0xc061e0`, slices +0x8:0x4, +0x74:0x20 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Borders::is_border_hidden@00882300`, run by `tools/emu/sweep_obj.py` on its row `borders_is_border_hidden` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), the global cell 0x00c06210 points at 672 random bytes; callee 0x006e1370 (1 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 8 rows 0x6eec apart at `0xc061e0`, slices +0x8:0x4, +0x74:0x20 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_borders_is_border_hidden.py") else {
+    let Some(rows) = super::emu_obj("borders_is_border_hidden") else {
         return;
     };
     let mut n = 0;

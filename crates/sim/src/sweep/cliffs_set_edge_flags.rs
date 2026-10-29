@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Cliffs::set_edge_flags@008a85e0`, run by `tools/emu/sweep_cliffs_set_edge_flags.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 0 argument(s), the global cell 0x00c06188 points at 320 random bytes; callee 0x006b4e50 (5 args) stubbed; the word at `m+0x50` points at 12 random bytes less `0` (placed); the word at `p0+0` points at 64 random bytes less `0` (placed); the word at `p0+4` points at 64 random bytes less `0` (placed); the word at `p0+8` points at 64 random bytes less `0` (placed); the word at `p1+0x2c` points at 48 random bytes less `0` (placed); the word at `p2+0x2c` points at 48 random bytes less `0` (placed); the word at `p3+0x2c` points at 48 random bytes less `0` (placed); the word at `c0+0x138` points at 32 random bytes less `0` (placed); stub 0 answered from [0, 1, 1] (90%); stub 0 answers 9 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Cliffs::set_edge_flags@008a85e0`, run by `tools/emu/sweep_obj.py` on its row `cliffs_set_edge_flags` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 0 argument(s), the global cell 0x00c06188 points at 320 random bytes; callee 0x006b4e50 (5 args) stubbed; the word at `m+0x50` points at 12 random bytes less `0` (placed); the word at `p0+0` points at 64 random bytes less `0` (placed); the word at `p0+4` points at 64 random bytes less `0` (placed); the word at `p0+8` points at 64 random bytes less `0` (placed); the word at `p1+0x2c` points at 48 random bytes less `0` (placed); the word at `p2+0x2c` points at 48 random bytes less `0` (placed); the word at `p3+0x2c` points at 48 random bytes less `0` (placed); the word at `c0+0x138` points at 32 random bytes less `0` (placed); stub 0 answered from [0, 1, 1] (90%); stub 0 answers 9 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_cliffs_set_edge_flags.py") else {
+    let Some(rows) = super::emu_obj("cliffs_set_edge_flags") else {
         return;
     };
     let mut n = 0;

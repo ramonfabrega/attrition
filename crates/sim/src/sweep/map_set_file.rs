@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::set_file@006a06a0`, run by `tools/emu/sweep_map_set_file.py` under unicorn
-/// (tools/emu): 288 random bytes of object, 1 argument(s), the global cell 0x00c06378 points at 32 random bytes; callee 0x00a1eeb0 (1 args) stubbed; callee 0x00a1d440 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Map::set_file@006a06a0`, run by `tools/emu/sweep_obj.py` on its row `map_set_file` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 288 random bytes of object, 1 argument(s), the global cell 0x00c06378 points at 32 random bytes; callee 0x00a1eeb0 (1 args) stubbed; callee 0x00a1d440 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_set_file.py") else {
+    let Some(rows) = super::emu_obj("map_set_file") else {
         return;
     };
     let mut n = 0;

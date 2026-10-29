@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildQueueData::get_next_helicopter@00630bb0`, run by `tools/emu/sweep_build_queue_data_get_next_helicopter.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00e85ddc points at 16 random bytes; vtable slot +0x60 (2 args) stubbed; the word at `m+4` points at 104 random bytes less `0` (placed); the word at `c0+0` points at 16 random bytes less `0` (placed); the word at `c0+4` points at 16 random bytes less `0` (placed); the word at `c0+8` points at 16 random bytes less `0` (placed); the word at `c0+0xc` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 0, 0, 5] (90%); the stubbed vtable laid at `p1+0`; stub 0 answers 4 values in call order, the last from [5], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildQueueData::get_next_helicopter@00630bb0`, run by `tools/emu/sweep_obj.py` on its row `build_queue_data_get_next_helicopter` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00e85ddc points at 16 random bytes; vtable slot +0x60 (2 args) stubbed; the word at `m+4` points at 104 random bytes less `0` (placed); the word at `c0+0` points at 16 random bytes less `0` (placed); the word at `c0+4` points at 16 random bytes less `0` (placed); the word at `c0+8` points at 16 random bytes less `0` (placed); the word at `c0+0xc` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 0, 0, 5] (90%); the stubbed vtable laid at `p1+0`; stub 0 answers 4 values in call order, the last from [5], printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_queue_data_get_next_helicopter.py") else {
+    let Some(rows) = super::emu_obj("build_queue_data_get_next_helicopter") else {
         return;
     };
     let mut n = 0;

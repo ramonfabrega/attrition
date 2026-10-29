@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::has_gather_access@006b4e50`, run by `tools/emu/sweep_world_data_has_gather_access.py` under unicorn
-/// (tools/emu): 320 random bytes of object, 5 argument(s), 16 random bytes at 0x00add214; 16 random bytes at 0x00add254; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006edb50 (1 args) stubbed; the word at `0xc061d0` points at 64 random bytes less `0` (placed); the word at `m+0x134` points at 256 random bytes less `0` (placed); the word at `m+0x138` points at 512 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::has_gather_access@006b4e50`, run by `tools/emu/sweep_obj.py` on its row `world_data_has_gather_access` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 320 random bytes of object, 5 argument(s), 16 random bytes at 0x00add214; 16 random bytes at 0x00add254; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006edb50 (1 args) stubbed; the word at `0xc061d0` points at 64 random bytes less `0` (placed); the word at `m+0x134` points at 256 random bytes less `0` (placed); the word at `m+0x138` points at 512 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_has_gather_access.py") else {
+    let Some(rows) = super::emu_obj("world_data_has_gather_access") else {
         return;
     };
     let mut n = 0;

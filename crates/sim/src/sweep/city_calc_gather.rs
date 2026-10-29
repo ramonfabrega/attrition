@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `City::calc_gather@00737c60`, run by `tools/emu/sweep_city_calc_gather.py` under unicorn
-/// (tools/emu): 1024 random bytes of object, 2 argument(s), the global cell 0x00c061e4 points at 1024 random bytes; the global cell 0x00c096f4 points at 64 random bytes; callee 0x00736890 (0 args) stubbed; callee 0x00736820 (0 args) stubbed; callee 0x0066fcf0 (0 args) stubbed; callee 0x00739390 (3 args) stubbed; callee 0x007367a0 (0 args) stubbed; callee 0x006d5530 (5 args) stubbed; stub 2 answered from [-1, -2, 0, 425, 423, 7] (90%); stub 3 answered from [0, 1, 2] (90%); stub 2 answers 2 values in call order, printed after the answers; stub 3 answers 2 values in call order, printed after the answers; stub 0 answers 0..5 every row; stub 1 answers 0..5 every row; stub 4 answers 0..5 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `City::calc_gather@00737c60`, run by `tools/emu/sweep_obj.py` on its row `city_calc_gather` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 1024 random bytes of object, 2 argument(s), the global cell 0x00c061e4 points at 1024 random bytes; the global cell 0x00c096f4 points at 64 random bytes; callee 0x00736890 (0 args) stubbed; callee 0x00736820 (0 args) stubbed; callee 0x0066fcf0 (0 args) stubbed; callee 0x00739390 (3 args) stubbed; callee 0x007367a0 (0 args) stubbed; callee 0x006d5530 (5 args) stubbed; stub 2 answered from [-1, -2, 0, 425, 423, 7] (90%); stub 3 answered from [0, 1, 2] (90%); stub 2 answers 2 values in call order, printed after the answers; stub 3 answers 2 values in call order, printed after the answers; stub 0 answers 0..5 every row; stub 1 answers 0..5 every row; stub 4 answers 0..5 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_city_calc_gather.py") else {
+    let Some(rows) = super::emu_obj("city_calc_gather") else {
         return;
     };
     let mut n = 0;

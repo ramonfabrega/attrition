@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::is_game_ready@00583af0`, run by `tools/emu/sweep_game_is_game_ready.py` under unicorn
-/// (tools/emu): 2096 random bytes of object, 0 argument(s), the global cell 0x00c06210 points at 676 random bytes; the global cell 0x00c061ec points at 1264 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::is_game_ready@00583af0`, run by `tools/emu/sweep_obj.py` on its row `game_is_game_ready` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2096 random bytes of object, 0 argument(s), the global cell 0x00c06210 points at 676 random bytes; the global cell 0x00c061ec points at 1264 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_is_game_ready.py") else {
+    let Some(rows) = super::emu_obj("game_is_game_ready") else {
         return;
     };
     let mut n = 0;

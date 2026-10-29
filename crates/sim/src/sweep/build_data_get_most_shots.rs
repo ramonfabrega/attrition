@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::get_most_shots@0062e300`, run by `tools/emu/sweep_build_data_get_most_shots.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), vtable slot +0x1c0 (0 args) stubbed; vtable slot +0x1bc (0 args) stubbed; the word at `m+0x18` points at 4 random bytes less `0x2c4` (placed); slot +0x1bc laid as 0x0062e2f0 or its stub, a flag after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::get_most_shots@0062e300`, run by `tools/emu/sweep_obj.py` on its row `build_data_get_most_shots` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), vtable slot +0x1c0 (0 args) stubbed; vtable slot +0x1bc (0 args) stubbed; the word at `m+0x18` points at 4 random bytes less `0x2c4` (placed); slot +0x1bc laid as 0x0062e2f0 or its stub, a flag after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_get_most_shots.py") else {
+    let Some(rows) = super::emu_obj("build_data_get_most_shots") else {
         return;
     };
     let mut n = 0;

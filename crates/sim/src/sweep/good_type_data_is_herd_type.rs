@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GoodTypeData::is_herd_type@004761e0`, run by `tools/emu/sweep_good_type_data_is_herd_type.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 0 argument(s), vtable slot +0x60 (2 args) stubbed; stub 0 answered from [0, 0, 0, 0, 0, 0, 1] (90%); stub 0 answers 7 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GoodTypeData::is_herd_type@004761e0`, run by `tools/emu/sweep_obj.py` on its row `good_type_data_is_herd_type` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 0 argument(s), vtable slot +0x60 (2 args) stubbed; stub 0 answered from [0, 0, 0, 0, 0, 0, 1] (90%); stub 0 answers 7 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_good_type_data_is_herd_type.py") else {
+    let Some(rows) = super::emu_obj("good_type_data_is_herd_type") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::do_think_order@005e5bf0`, run by `tools/emu/sweep_unit_do_think_order.py` under unicorn
-/// (tools/emu): 224 random bytes of object, 1 argument(s), callee 0x005e2cb0 (1 args) stubbed; vtable slot +0x10 (0 args) stubbed; callee 0x005f5760 (1 args) stubbed; the word at `m+0xdc` points at 8 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 8 random bytes less `0` (placed); the word at `m+0x18` points at 8 random bytes less `0` (placed); stub 1 answered from [0, 0, 3, 1, -1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::do_think_order@005e5bf0`, run by `tools/emu/sweep_obj.py` on its row `unit_do_think_order` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 224 random bytes of object, 1 argument(s), callee 0x005e2cb0 (1 args) stubbed; vtable slot +0x10 (0 args) stubbed; callee 0x005f5760 (1 args) stubbed; the word at `m+0xdc` points at 8 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 8 random bytes less `0` (placed); the word at `m+0x18` points at 8 random bytes less `0` (placed); stub 1 answered from [0, 0, 3, 1, -1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_do_think_order.py") else {
+    let Some(rows) = super::emu_obj("unit_do_think_order") else {
         return;
     };
     let mut n = 0;

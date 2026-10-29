@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitTypeData::can_entrench@0061d470`, run by `tools/emu/sweep_unit_type_data_can_entrench.py` under unicorn
-/// (tools/emu): 716 random bytes of object, 0 argument(s), vtable slot +0xf0 (1 args) stubbed; slot +0xf0 laid as 0x00470860 or its stub, a flag after the answers; stub 0 answered from [0, 1, 32, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitTypeData::can_entrench@0061d470`, run by `tools/emu/sweep_obj.py` on its row `unit_type_data_can_entrench` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 716 random bytes of object, 0 argument(s), vtable slot +0xf0 (1 args) stubbed; slot +0xf0 laid as 0x00470860 or its stub, a flag after the answers; stub 0 answered from [0, 1, 32, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_type_data_can_entrench.py") else {
+    let Some(rows) = super::emu_obj("unit_type_data_can_entrench") else {
         return;
     };
     let mut n = 0;

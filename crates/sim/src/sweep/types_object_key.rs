@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Types::object_key@00668ae0`, run by `tools/emu/sweep_types_object_key.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), `p` windows in order: p0 argument 0; 4 random bytes at 0x00ee10a8; argument 0 names 16 random bytes; callee 0x006694a0 (2 args) stubbed; callee 0x00669330 (2 args) stubbed; stub 0 answered from [-3, 5, 7] (90%); stub 1 answered from [-3, 9, 11] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Types::object_key@00668ae0`, run by `tools/emu/sweep_obj.py` on its row `types_object_key` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), `p` windows in order: p0 argument 0; 4 random bytes at 0x00ee10a8; argument 0 names 16 random bytes; callee 0x006694a0 (2 args) stubbed; callee 0x00669330 (2 args) stubbed; stub 0 answered from [-3, 5, 7] (90%); stub 1 answered from [-3, 9, 11] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_types_object_key.py") else {
+    let Some(rows) = super::emu_obj("types_object_key") else {
         return;
     };
     let mut n = 0;

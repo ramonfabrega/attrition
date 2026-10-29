@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::is_attacking@0060a5b0`, run by `tools/emu/sweep_unit_data_is_attacking.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 0 argument(s), vtable slot +0x18 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 32 random bytes less `0` (placed, null a third of the rows); the stubbed vtable laid at `p2+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::is_attacking@0060a5b0`, run by `tools/emu/sweep_obj.py` on its row `unit_data_is_attacking` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 0 argument(s), vtable slot +0x18 (0 args) stubbed; the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 32 random bytes less `0` (placed, null a third of the rows); the stubbed vtable laid at `p2+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_is_attacking.py") else {
+    let Some(rows) = super::emu_obj("unit_data_is_attacking") else {
         return;
     };
     let mut n = 0;

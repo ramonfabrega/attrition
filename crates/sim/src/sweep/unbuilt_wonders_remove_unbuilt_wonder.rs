@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnbuiltWonders::remove_unbuilt_wonder@0073c220`, run by `tools/emu/sweep_unbuilt_wonders_remove_unbuilt_wonder.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), 224 random bytes at 0x00e39c04; the word at `c0+0xc+a[1]*0x1c` points at 36 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnbuiltWonders::remove_unbuilt_wonder@0073c220`, run by `tools/emu/sweep_obj.py` on its row `unbuilt_wonders_remove_unbuilt_wonder` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), 224 random bytes at 0x00e39c04; the word at `c0+0xc+a[1]*0x1c` points at 36 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unbuilt_wonders_remove_unbuilt_wonder.py") else {
+    let Some(rows) = super::emu_obj("unbuilt_wonders_remove_unbuilt_wonder") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GroupData::get_angle@0070c560`, run by `tools/emu/sweep_group_data_get_angle.py` under unicorn
-/// (tools/emu): 2256 random bytes of object, 0 argument(s), callee 0x0070ccb0 (1 args) stubbed; the word at `0xc0aec0+u8(m,0x4a)*0x1c` points at 4 random bytes less `(s[0] if u8(m,0x49)==0 else i16(m,0x8cc))*4` (placed); the word at `p0+0` points at 4 random bytes less `0x50` (placed); stub 0 answered from [0, 1, 2, 5, -1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 writes a value in 0..7 through its argument 0, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GroupData::get_angle@0070c560`, run by `tools/emu/sweep_obj.py` on its row `group_data_get_angle` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2256 random bytes of object, 0 argument(s), callee 0x0070ccb0 (1 args) stubbed; the word at `0xc0aec0+u8(m,0x4a)*0x1c` points at 4 random bytes less `(s[0] if u8(m,0x49)==0 else i16(m,0x8cc))*4` (placed); the word at `p0+0` points at 4 random bytes less `0x50` (placed); stub 0 answered from [0, 1, 2, 5, -1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 writes a value in 0..7 through its argument 0, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_data_get_angle.py") else {
+    let Some(rows) = super::emu_obj("group_data_get_angle") else {
         return;
     };
     let mut n = 0;

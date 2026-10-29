@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ResourceDivvyPool::add_late@0068a7d0`, run by `tools/emu/sweep_resource_divvy_pool_add_late.py` under unicorn
-/// (tools/emu): 72 random bytes of object, 1 argument(s), vtable slot +0x0 (1 args) stubbed; the word at `m+0x44` points at 4 random bytes less `i32(m,0x38)*4` (placed); the stubbed vtable laid at `m+0x34`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ResourceDivvyPool::add_late@0068a7d0`, run by `tools/emu/sweep_obj.py` on its row `resource_divvy_pool_add_late` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 72 random bytes of object, 1 argument(s), vtable slot +0x0 (1 args) stubbed; the word at `m+0x44` points at 4 random bytes less `i32(m,0x38)*4` (placed); the stubbed vtable laid at `m+0x34`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_resource_divvy_pool_add_late.py") else {
+    let Some(rows) = super::emu_obj("resource_divvy_pool_add_late") else {
         return;
     };
     let mut n = 0;

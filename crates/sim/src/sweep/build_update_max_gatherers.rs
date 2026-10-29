@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Build::update_max_gatherers@00623310`, run by `tools/emu/sweep_build_update_max_gatherers.py` under unicorn
-/// (tools/emu): 144 random bytes of object, 0 argument(s), callee 0x00643440 (2 args) stubbed; callee 0x0063c430 (4 args) stubbed; the word at `m+0x18` points at 16 random bytes less `0` (placed); stub 1 answered from [0, 1, 2, 3, 255, 256, 4660] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 writes a value in -5..300 through its argument 0, printed after the answers (`o` in a place); stub 0 writes a value in -5..300 through its argument 1, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Build::update_max_gatherers@00623310`, run by `tools/emu/sweep_obj.py` on its row `build_update_max_gatherers` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 144 random bytes of object, 0 argument(s), callee 0x00643440 (2 args) stubbed; callee 0x0063c430 (4 args) stubbed; the word at `m+0x18` points at 16 random bytes less `0` (placed); stub 1 answered from [0, 1, 2, 3, 255, 256, 4660] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 writes a value in -5..300 through its argument 0, printed after the answers (`o` in a place); stub 0 writes a value in -5..300 through its argument 1, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_update_max_gatherers.py") else {
+    let Some(rows) = super::emu_obj("build_update_max_gatherers") else {
         return;
     };
     let mut n = 0;

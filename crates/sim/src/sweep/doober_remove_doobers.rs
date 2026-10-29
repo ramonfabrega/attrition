@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Doober::remove_doobers@00846250`, run by `tools/emu/sweep_doober_remove_doobers.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 3 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; 48 random bytes at 0x00eafde0; 4 random bytes at 0x00eaff80; the word at `c0+0xc` points at 64 random bytes less `0` (placed); the word at `c0+0x28` points at 128 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
+/// `Doober::remove_doobers@00846250`, run by `tools/emu/sweep_obj.py` on its row `doober_remove_doobers` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 3 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; 48 random bytes at 0x00eafde0; 4 random bytes at 0x00eaff80; the word at `c0+0xc` points at 64 random bytes less `0` (placed); the word at `c0+0x28` points at 128 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_doober_remove_doobers.py") else {
+    let Some(rows) = super::emu_obj("doober_remove_doobers") else {
         return;
     };
     let mut n = 0;

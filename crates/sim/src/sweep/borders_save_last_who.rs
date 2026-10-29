@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Borders::save_last_who@008835e0`, run by `tools/emu/sweep_borders_save_last_who.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 4 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the global cell 0x00c0621c points at 1024 random bytes; the global cell 0x00c061d0 points at 1024 random bytes; callee 0x00882300 (1 args) stubbed; callee 0x004a0cb0 (1 args) stubbed; the word at `c0+0x10` points at 12 random bytes less `0` (placed); the word at `p0+0` points at 128 random bytes less `0` (placed); the word at `p0+4` points at 128 random bytes less `0` (placed); the word at `p0+8` points at 128 random bytes less `0` (placed); the word at `c0+0x2c` points at 512 random bytes less `0` (placed); the word at `c1+0x134` points at 1824 random bytes less `0` (placed); stub 0 answered from [0, 1, 1] (90%); stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 prints the 2 bytes its argument 0 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
+/// `Borders::save_last_who@008835e0`, run by `tools/emu/sweep_obj.py` on its row `borders_save_last_who` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 4 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the global cell 0x00c0621c points at 1024 random bytes; the global cell 0x00c061d0 points at 1024 random bytes; callee 0x00882300 (1 args) stubbed; callee 0x004a0cb0 (1 args) stubbed; the word at `c0+0x10` points at 12 random bytes less `0` (placed); the word at `p0+0` points at 128 random bytes less `0` (placed); the word at `p0+4` points at 128 random bytes less `0` (placed); the word at `p0+8` points at 128 random bytes less `0` (placed); the word at `c0+0x2c` points at 512 random bytes less `0` (placed); the word at `c1+0x134` points at 1824 random bytes less `0` (placed); stub 0 answered from [0, 1, 1] (90%); stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 prints the 2 bytes its argument 0 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_borders_save_last_who.py") else {
+    let Some(rows) = super::emu_obj("borders_save_last_who") else {
         return;
     };
     let mut n = 0;

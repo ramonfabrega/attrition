@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ResourceDivvyPool::add_water@0068a790`, run by `tools/emu/sweep_resource_divvy_pool_add_water.py` under unicorn
-/// (tools/emu): 112 random bytes of object, 2 argument(s), vtable slot +0x0 (1 args) stubbed; the word at `m+0x6c` points at 32 random bytes less `i32(m,0x60)*4` (placed); the stubbed vtable laid at `m+0x5c`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ResourceDivvyPool::add_water@0068a790`, run by `tools/emu/sweep_obj.py` on its row `resource_divvy_pool_add_water` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 112 random bytes of object, 2 argument(s), vtable slot +0x0 (1 args) stubbed; the word at `m+0x6c` points at 32 random bytes less `i32(m,0x60)*4` (placed); the stubbed vtable laid at `m+0x5c`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_resource_divvy_pool_add_water.py") else {
+    let Some(rows) = super::emu_obj("resource_divvy_pool_add_water") else {
         return;
     };
     let mut n = 0;

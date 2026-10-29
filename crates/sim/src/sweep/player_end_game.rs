@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Player::end_game@006ee110`, run by `tools/emu/sweep_player_end_game.py` under unicorn
-/// (tools/emu): 128 random bytes of object, 0 argument(s), the global cell 0x00c06210 points at 768 random bytes; the global cell 0x00c061ec points at 2304 random bytes; the global cell 0x00c0620c points at 768 random bytes; the global cell 0x00c06200 points at 64 random bytes; the global cell 0x00c06204 points at 64 random bytes; callee 0x00844b80 (0 args) stubbed; callee 0x0072c040 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Player::end_game@006ee110`, run by `tools/emu/sweep_obj.py` on its row `player_end_game` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 128 random bytes of object, 0 argument(s), the global cell 0x00c06210 points at 768 random bytes; the global cell 0x00c061ec points at 2304 random bytes; the global cell 0x00c0620c points at 768 random bytes; the global cell 0x00c06200 points at 64 random bytes; the global cell 0x00c06204 points at 64 random bytes; callee 0x00844b80 (0 args) stubbed; callee 0x0072c040 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_player_end_game.py") else {
+    let Some(rows) = super::emu_obj("player_end_game") else {
         return;
     };
     let mut n = 0;

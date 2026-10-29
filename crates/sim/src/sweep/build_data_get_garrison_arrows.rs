@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::get_garrison_arrows@0062e3d0`, run by `tools/emu/sweep_build_data_get_garrison_arrows.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), vtable slot +0x120 (0 args) stubbed; vtable slot +0x1c0 (0 args) stubbed; callee 0x0064dda0 (2 args) stubbed; vtable slot +0x1bc (0 args) stubbed; the word at `m+0x18` points at 720 random bytes less `0` (placed); slot +0x1bc laid as 0x0062e2f0 or its stub, a flag after the answers; stub 0 answers -20..80 every row; stub 1 answers 0..2 every row; stub 2 answers -5..20 every row; stub 3 answers -3..10 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::get_garrison_arrows@0062e3d0`, run by `tools/emu/sweep_obj.py` on its row `build_data_get_garrison_arrows` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), vtable slot +0x120 (0 args) stubbed; vtable slot +0x1c0 (0 args) stubbed; callee 0x0064dda0 (2 args) stubbed; vtable slot +0x1bc (0 args) stubbed; the word at `m+0x18` points at 720 random bytes less `0` (placed); slot +0x1bc laid as 0x0062e2f0 or its stub, a flag after the answers; stub 0 answers -20..80 every row; stub 1 answers 0..2 every row; stub 2 answers -5..20 every row; stub 3 answers -3..10 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_get_garrison_arrows.py") else {
+    let Some(rows) = super::emu_obj("build_data_get_garrison_arrows") else {
         return;
     };
     let mut n = 0;

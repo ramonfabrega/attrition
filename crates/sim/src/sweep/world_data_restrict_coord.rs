@@ -16,13 +16,13 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::restrict@006b53a0`, run by `tools/emu/sweep_world_data_restrict_coord.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 2 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::restrict@006b53a0`, run by `tools/emu/sweep_obj.py` on its row `world_data_restrict_coord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 2 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 /// The world's cell size times `0x300` (`world::UNITS_PER_CELL`, wrapping as the original's `lea`/`shl`) clamps
 /// each Coord; `army.rs`'s `restrict` is the port.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_restrict_coord.py") else {
+    let Some(rows) = super::emu_obj("world_data_restrict_coord") else {
         return;
     };
     let mut n = 0;

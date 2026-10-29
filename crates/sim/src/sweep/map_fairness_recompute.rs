@@ -53,11 +53,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `MapFairness::recompute@0068a100`, run by `tools/emu/sweep_map_fairness_recompute.py` under unicorn
-/// (tools/emu): 120 random bytes of object, 0 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `MapFairness::recompute@0068a100`, run by `tools/emu/sweep_obj.py` on its row `map_fairness_recompute` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 120 random bytes of object, 0 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_fairness_recompute.py") else {
+    let Some(rows) = super::emu_obj("map_fairness_recompute") else {
         return;
     };
     let mut n = 0;

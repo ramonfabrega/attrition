@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Ammo::hit_target@00678f90`, run by `tools/emu/sweep_ammo_hit_target.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 0 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the global cell 0x00c0618c points at 64 random bytes; the global cell 0x00c0aec0 points at 16 random bytes; vtable slot +0xbc (0 args) stubbed; vtable slot +0x18 (0 args) stubbed; vtable slot +0xb0 (0 args) stubbed; the word at `c0+0x14` points at 64 random bytes less `0` (placed); the word at `c1+0` points at 64 random bytes less `0` (placed); the word at `p0+0` points at 64 random bytes less `0` (placed); the word at `p1+0x18` points at 784 random bytes less `0` (placed); stub 2's answer points at 64 random bytes less `0` (placed); the word at `p4+0x18` points at 576 random bytes less `0` (placed); stub 0 answered from [1, 1, 1, 0] (90%); stub 1 answered from [0, 0, 1] (90%); the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1000 rows (an arm few rows reach).
+/// `Ammo::hit_target@00678f90`, run by `tools/emu/sweep_obj.py` on its row `ammo_hit_target` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 0 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the global cell 0x00c0618c points at 64 random bytes; the global cell 0x00c0aec0 points at 16 random bytes; vtable slot +0xbc (0 args) stubbed; vtable slot +0x18 (0 args) stubbed; vtable slot +0xb0 (0 args) stubbed; the word at `c0+0x14` points at 64 random bytes less `0` (placed); the word at `c1+0` points at 64 random bytes less `0` (placed); the word at `p0+0` points at 64 random bytes less `0` (placed); the word at `p1+0x18` points at 784 random bytes less `0` (placed); stub 2's answer points at 64 random bytes less `0` (placed); the word at `p4+0x18` points at 576 random bytes less `0` (placed); stub 0 answered from [1, 1, 1, 0] (90%); stub 1 answered from [0, 0, 1] (90%); the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_ammo_hit_target.py") else {
+    let Some(rows) = super::emu_obj("ammo_hit_target") else {
         return;
     };
     let mut n = 0;

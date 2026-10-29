@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectsData::find_good_at@00659130`, run by `tools/emu/sweep_objects_data_find_good_at_tcoord.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 4 argument(s), the global cell 0x00c061d0 points at 316 random bytes; callee 0x0065bec0 (5 args) stubbed; the word at `c0+0x138` points at 2 random bytes less `(i32(c[0],0x18)*a[1]+a[0])*2` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectsData::find_good_at@00659130`, run by `tools/emu/sweep_obj.py` on its row `objects_data_find_good_at_tcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 4 argument(s), the global cell 0x00c061d0 points at 316 random bytes; callee 0x0065bec0 (5 args) stubbed; the word at `c0+0x138` points at 2 random bytes less `(i32(c[0],0x18)*a[1]+a[0])*2` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_objects_data_find_good_at_tcoord.py") else {
+    let Some(rows) = super::emu_obj("objects_data_find_good_at_tcoord") else {
         return;
     };
     let mut n = 0;

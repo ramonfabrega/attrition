@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Region::coast_here@00681020`, run by `tools/emu/sweep_region_coast_here.py` under unicorn
-/// (tools/emu): 20 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 312 random bytes; callee 0x00680f90 (1 args) stubbed; callee 0x006b52e0 (2 args) stubbed; the word at `c0+0x134` points at 4 random bytes less `(i32(c[0],0)*a[2]+a[1])*0x1c+4` (placed); stub 0 answered from [0, 1, 1, 1] (90%); stub 1 answered from [1, 65, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Region::coast_here@00681020`, run by `tools/emu/sweep_obj.py` on its row `region_coast_here` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 20 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 312 random bytes; callee 0x00680f90 (1 args) stubbed; callee 0x006b52e0 (2 args) stubbed; the word at `c0+0x134` points at 4 random bytes less `(i32(c[0],0)*a[2]+a[1])*0x1c+4` (placed); stub 0 answered from [0, 1, 1, 1] (90%); stub 1 answered from [1, 65, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_region_coast_here.py") else {
+    let Some(rows) = super::emu_obj("region_coast_here") else {
         return;
     };
     let mut n = 0;

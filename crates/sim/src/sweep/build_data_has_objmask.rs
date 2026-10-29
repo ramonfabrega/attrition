@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::has_objmask@0062e210`, run by `tools/emu/sweep_build_data_has_objmask.py` under unicorn
-/// (tools/emu): 128 random bytes of object, 1 argument(s), the global cell 0x00e85ddc points at 2304 random bytes; vtable slot +0xf0 (1 args) stubbed; vtable slot +0xc (0 args) stubbed; vtable slot +0x14 (0 args) stubbed; callee 0x006db810 (1 args) stubbed; the word at `m+0x18` points at 64 random bytes less `0` (placed); the word at `c0+0x888` points at 32 random bytes less `0` (placed); slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 1 answered from [0, 1, 1] (90%); stub 2 answered from [0, 1, 1] (90%); stub 3 answered from [0, 1, 1] (90%); the stubbed vtable laid at `p4+0`; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 4 rows 0x6eec apart at `0xc061e0`, slices +0x6c5c:0x1 (`p` windows after the pointed buffers, before the places); the stubbed vtable laid at `p5+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::has_objmask@0062e210`, run by `tools/emu/sweep_obj.py` on its row `build_data_has_objmask` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 128 random bytes of object, 1 argument(s), the global cell 0x00e85ddc points at 2304 random bytes; vtable slot +0xf0 (1 args) stubbed; vtable slot +0xc (0 args) stubbed; vtable slot +0x14 (0 args) stubbed; callee 0x006db810 (1 args) stubbed; the word at `m+0x18` points at 64 random bytes less `0` (placed); the word at `c0+0x888` points at 32 random bytes less `0` (placed); slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 1 answered from [0, 1, 1] (90%); stub 2 answered from [0, 1, 1] (90%); stub 3 answered from [0, 1, 1] (90%); the stubbed vtable laid at `p4+0`; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 4 rows 0x6eec apart at `0xc061e0`, slices +0x6c5c:0x1 (`p` windows after the pointed buffers, before the places); the stubbed vtable laid at `p5+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_has_objmask.py") else {
+    let Some(rows) = super::emu_obj("build_data_has_objmask") else {
         return;
     };
     let mut n = 0;

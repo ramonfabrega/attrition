@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::blocked_town@00636d80`, run by `tools/emu/sweep_build_type_data_blocked_town.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 4 argument(s), callee 0x00636a50 (5 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::blocked_town@00636d80`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_blocked_town` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 4 argument(s), callee 0x00636a50 (5 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_blocked_town.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_blocked_town") else {
         return;
     };
     let mut n = 0;

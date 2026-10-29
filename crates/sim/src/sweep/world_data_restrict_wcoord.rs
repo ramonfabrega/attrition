@@ -16,13 +16,13 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::restrict@006b50a0`, run by `tools/emu/sweep_world_data_restrict_wcoord.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 8 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::restrict@006b50a0`, run by `tools/emu/sweep_obj.py` on its row `world_data_restrict_wcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 8 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 /// The world's cell size (`+0`, `+4`) clamps each WCoord into `0..size`; `army.rs`'s `restrict` is the port's
 /// clamp, at coordinate scale.
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_restrict_wcoord.py") else {
+    let Some(rows) = super::emu_obj("world_data_restrict_wcoord") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `World::set_edge_flags@006b0240`, run by `tools/emu/sweep_world_set_edge_flags.py` under unicorn
-/// (tools/emu): 512 random bytes of object, 0 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; callee 0x0089c1a0 (0 args) stubbed; callee 0x008a85e0 (0 args) stubbed; callee 0x006b4e50 (5 args) stubbed; the word at `m+0x134` points at 1024 random bytes less `0` (placed); the word at `m+0x138` points at 1024 random bytes less `0` (placed); stub 2 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 2 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); the global cell 0x00c06188 holds `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `World::set_edge_flags@006b0240`, run by `tools/emu/sweep_obj.py` on its row `world_set_edge_flags` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 512 random bytes of object, 0 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; callee 0x0089c1a0 (0 args) stubbed; callee 0x008a85e0 (0 args) stubbed; callee 0x006b4e50 (5 args) stubbed; the word at `m+0x134` points at 1024 random bytes less `0` (placed); the word at `m+0x138` points at 1024 random bytes less `0` (placed); stub 2 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 2 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 2 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); the global cell 0x00c06188 holds `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_set_edge_flags.py") else {
+    let Some(rows) = super::emu_obj("world_set_edge_flags") else {
         return;
     };
     let mut n = 0;

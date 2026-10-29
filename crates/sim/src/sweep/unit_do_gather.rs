@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::do_gather@005fce20`, run by `tools/emu/sweep_unit_do_gather.py` under unicorn
-/// (tools/emu): 152 random bytes of object, 7 argument(s), callee 0x00609180 (10 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::do_gather@005fce20`, run by `tools/emu/sweep_obj.py` on its row `unit_do_gather` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 152 random bytes of object, 7 argument(s), callee 0x00609180 (10 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_do_gather.py") else {
+    let Some(rows) = super::emu_obj("unit_do_gather") else {
         return;
     };
     let mut n = 0;

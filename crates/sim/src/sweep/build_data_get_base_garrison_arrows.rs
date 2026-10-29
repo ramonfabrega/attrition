@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::get_base_garrison_arrows@0062e340`, run by `tools/emu/sweep_build_data_get_base_garrison_arrows.py` under unicorn
-/// (tools/emu): 128 random bytes of object, 0 argument(s), the global cell 0x00c061d4 points at 256 random bytes; the global cell 0x00c061e4 points at 1424 random bytes; 4 random bytes at 0x00c061e0; callee 0x006e1370 (1 args) stubbed; vtable slot +0x4c (0 args) stubbed; the word at `m+0x18` points at 4 random bytes less `0x2cc` (placed); the word at `c0+0x10+u8(m,9)*0x1c` points at 4 random bytes less `i16(m,0x72)*4` (placed); the word at `p1+0` points at 96 random bytes less `0` (placed); slot +0x4c laid as 0x00472350 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::get_base_garrison_arrows@0062e340`, run by `tools/emu/sweep_obj.py` on its row `build_data_get_base_garrison_arrows` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 128 random bytes of object, 0 argument(s), the global cell 0x00c061d4 points at 256 random bytes; the global cell 0x00c061e4 points at 1424 random bytes; 4 random bytes at 0x00c061e0; callee 0x006e1370 (1 args) stubbed; vtable slot +0x4c (0 args) stubbed; the word at `m+0x18` points at 4 random bytes less `0x2cc` (placed); the word at `c0+0x10+u8(m,9)*0x1c` points at 4 random bytes less `i16(m,0x72)*4` (placed); the word at `p1+0` points at 96 random bytes less `0` (placed); slot +0x4c laid as 0x00472350 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_get_base_garrison_arrows.py") else {
+    let Some(rows) = super::emu_obj("build_data_get_base_garrison_arrows") else {
         return;
     };
     let mut n = 0;

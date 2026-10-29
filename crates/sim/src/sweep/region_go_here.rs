@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Region::go_here@006810f0`, run by `tools/emu/sweep_region_go_here.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x4, +0x8:0x4, +0x74:0x20, +0xa68:0x10, +0xfde:0x10, +0x125e:0x10 (`p` windows after the pointed buffers, before the places); 8 rows 0x6eec apart at `0xc061e0`, slices +0x74:0x20 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Region::go_here@006810f0`, run by `tools/emu/sweep_obj.py` on its row `region_go_here` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x4, +0x8:0x4, +0x74:0x20, +0xa68:0x10, +0xfde:0x10, +0x125e:0x10 (`p` windows after the pointed buffers, before the places); 8 rows 0x6eec apart at `0xc061e0`, slices +0x74:0x20 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_region_go_here.py") else {
+    let Some(rows) = super::emu_obj("region_go_here") else {
         return;
     };
     let mut n = 0;

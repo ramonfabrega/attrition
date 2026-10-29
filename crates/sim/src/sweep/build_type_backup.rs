@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildType::backup@00631ff0`, run by `tools/emu/sweep_build_type_backup.py` under unicorn
-/// (tools/emu): 736 random bytes of object, 1 argument(s), argument 0 names 816 random bytes (null a third of the rows); callee 0x0065fac0 (1 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildType::backup@00631ff0`, run by `tools/emu/sweep_obj.py` on its row `build_type_backup` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 736 random bytes of object, 1 argument(s), argument 0 names 816 random bytes (null a third of the rows); callee 0x0065fac0 (1 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_backup.py") else {
+    let Some(rows) = super::emu_obj("build_type_backup") else {
         return;
     };
     let mut n = 0;

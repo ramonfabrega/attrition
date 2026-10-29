@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::get_town@00639b90`, run by `tools/emu/sweep_build_type_data_get_town.py` under unicorn
-/// (tools/emu): 708 random bytes of object, 3 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the global cell 0x00c061d0 points at 320 random bytes; the global cell 0x00c061d4 points at 256 random bytes; callee 0x00658190 (3 args) stubbed; callee 0x0065b870 (5 args) stubbed; the word at `c1+0x138` points at 288 random bytes less `0` (placed); the word at `c2+0x10+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p1+0` points at 16 random bytes less `0` (placed); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 16 random bytes less `0` (placed); the word at `p1+12` points at 16 random bytes less `0` (placed); stub 0 answers -1..3 every row; stub 1 answers -1..3 every row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::get_town@00639b90`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_get_town` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 708 random bytes of object, 3 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the global cell 0x00c061d0 points at 320 random bytes; the global cell 0x00c061d4 points at 256 random bytes; callee 0x00658190 (3 args) stubbed; callee 0x0065b870 (5 args) stubbed; the word at `c1+0x138` points at 288 random bytes less `0` (placed); the word at `c2+0x10+a[2]*0x1c` points at 16 random bytes less `0` (placed); the word at `p1+0` points at 16 random bytes less `0` (placed); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 16 random bytes less `0` (placed); the word at `p1+12` points at 16 random bytes less `0` (placed); stub 0 answers -1..3 every row; stub 1 answers -1..3 every row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_get_town.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_get_town") else {
         return;
     };
     let mut n = 0;

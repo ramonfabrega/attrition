@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::update_ceo_position@005f96b0`, run by `tools/emu/sweep_unit_update_ceo_position.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 4 argument(s), `p` windows in order: p0..p7 sparse table 0 (8 rows × 1 slice(s), row-major); the global cell 0x00c06188 points at 32 random bytes; 4 random bytes at 0x00c0618c; callee 0x0065b870 (5 args) stubbed; stub 0 answered from [-1, 0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// `Unit::update_ceo_position@005f96b0`, run by `tools/emu/sweep_obj.py` on its row `unit_update_ceo_position` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 4 argument(s), `p` windows in order: p0..p7 sparse table 0 (8 rows × 1 slice(s), row-major); the global cell 0x00c06188 points at 32 random bytes; 4 random bytes at 0x00c0618c; callee 0x0065b870 (5 args) stubbed; stub 0 answered from [-1, 0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_update_ceo_position.py") else {
+    let Some(rows) = super::emu_obj("unit_update_ceo_position") else {
         return;
     };
     let mut n = 0;

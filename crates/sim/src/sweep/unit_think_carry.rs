@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::think_carry@005f2ee0`, run by `tools/emu/sweep_unit_think_carry.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), `p` windows in order: none; callee 0x0064dda0 (2 args) stubbed; callee 0x005f37c0 (1 args) stubbed; callee 0x005f3260 (0 args) stubbed; callee 0x005f2f30 (0 args) stubbed; stub 0 answered from [0, 0, 0, 0, 1] (90%); stub 0 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
+/// `Unit::think_carry@005f2ee0`, run by `tools/emu/sweep_obj.py` on its row `unit_think_carry` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), `p` windows in order: none; callee 0x0064dda0 (2 args) stubbed; callee 0x005f37c0 (1 args) stubbed; callee 0x005f3260 (0 args) stubbed; callee 0x005f2f30 (0 args) stubbed; stub 0 answered from [0, 0, 0, 0, 1] (90%); stub 0 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_think_carry.py") else {
+    let Some(rows) = super::emu_obj("unit_think_carry") else {
         return;
     };
     let mut n = 0;

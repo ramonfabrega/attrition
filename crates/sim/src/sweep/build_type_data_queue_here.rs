@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::queue_here@00639d10`, run by `tools/emu/sweep_build_type_data_queue_here.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 2 argument(s), vtable slot +0x60 (2 args) stubbed; vtable slot +0xc (0 args) stubbed; vtable slot +0x14 (0 args) stubbed; the word at `0xe85ddc` points at 2800 random bytes less `0` (placed); the word at `p0+0` points at 80 random bytes less `0` (placed); the word at `p0+4` points at 80 random bytes less `0` (placed); the word at `p0+8` points at 80 random bytes less `0` (placed); the word at `p0+12` points at 80 random bytes less `0` (placed); slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 0 answered from [0, 1] (90%); stub 0 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p1+0` as well as at `this`; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::queue_here@00639d10`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_queue_here` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 2 argument(s), vtable slot +0x60 (2 args) stubbed; vtable slot +0xc (0 args) stubbed; vtable slot +0x14 (0 args) stubbed; the word at `0xe85ddc` points at 2800 random bytes less `0` (placed); the word at `p0+0` points at 80 random bytes less `0` (placed); the word at `p0+4` points at 80 random bytes less `0` (placed); the word at `p0+8` points at 80 random bytes less `0` (placed); the word at `p0+12` points at 80 random bytes less `0` (placed); slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 0 answered from [0, 1] (90%); stub 0 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p1+0` as well as at `this`; the stubbed vtable laid at `p2+0` as well as at `this`; the stubbed vtable laid at `p3+0` as well as at `this`; the stubbed vtable laid at `p4+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_queue_here.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_queue_here") else {
         return;
     };
     let mut n = 0;

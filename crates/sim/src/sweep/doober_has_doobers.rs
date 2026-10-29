@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Doober::has_doobers@008466d0`, run by `tools/emu/sweep_doober_has_doobers.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), 4 random bytes at 0x00eafdfc; the word at `0xeafe08` points at 64 random bytes less `0` (placed); the word at `0xcae5fc` points at 16 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Doober::has_doobers@008466d0`, run by `tools/emu/sweep_obj.py` on its row `doober_has_doobers` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), 4 random bytes at 0x00eafdfc; the word at `0xeafe08` points at 64 random bytes less `0` (placed); the word at `0xcae5fc` points at 16 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_doober_has_doobers.py") else {
+    let Some(rows) = super::emu_obj("doober_has_doobers") else {
         return;
     };
     let mut n = 0;

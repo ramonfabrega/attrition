@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::invert_land@0069d880`, run by `tools/emu/sweep_map_invert_land.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 1024 random bytes; callee 0x00680060 (0 args) stubbed; the word at `c0+0x134` points at 2048 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 300 rows (an arm few rows reach).
+/// `Map::invert_land@0069d880`, run by `tools/emu/sweep_obj.py` on its row `map_invert_land` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 1024 random bytes; callee 0x00680060 (0 args) stubbed; the word at `c0+0x134` points at 2048 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 300 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_invert_land.py") else {
+    let Some(rows) = super::emu_obj("map_invert_land") else {
         return;
     };
     let mut n = 0;

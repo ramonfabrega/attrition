@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::get_time_limit@00593f80`, run by `tools/emu/sweep_game_get_time_limit.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), the global cell 0x00c061ec points at 2096 random bytes; the global cell 0x00e80338 points at 768 random bytes; 4 random bytes at 0x00cc21b4; 4 random bytes at 0x00c8cd00; callee 0x00a1eeb0 (1 args) stubbed; callee 0x00a1cc30 (1 args) stubbed; callee 0x00a1d440 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `ecx` an integer in [0, 4096], not the object, the row's last; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::get_time_limit@00593f80`, run by `tools/emu/sweep_obj.py` on its row `game_get_time_limit` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), the global cell 0x00c061ec points at 2096 random bytes; the global cell 0x00e80338 points at 768 random bytes; 4 random bytes at 0x00cc21b4; 4 random bytes at 0x00c8cd00; callee 0x00a1eeb0 (1 args) stubbed; callee 0x00a1cc30 (1 args) stubbed; callee 0x00a1d440 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `ecx` an integer in [0, 4096], not the object, the row's last; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_get_time_limit.py") else {
+    let Some(rows) = super::emu_obj("game_get_time_limit") else {
         return;
     };
     let mut n = 0;

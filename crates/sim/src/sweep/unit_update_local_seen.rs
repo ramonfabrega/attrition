@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::update_local_seen@0060e410`, run by `tools/emu/sweep_unit_update_local_seen.py` under unicorn
-/// (tools/emu): 72 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00cae5fc points at 512 random bytes; the global cell 0x00c06188 points at 32 random bytes; 16 random bytes at 0x00cbe330 (each word in 0..24); 32 random bytes at 0x00cb7e90 (each byte in -4..4); 32 random bytes at 0x00cbb0e0 (each byte in -4..4); callee 0x006b4bb0 (4 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); the stack 256 bytes under the call is zeroed before each row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
+/// `Unit::update_local_seen@0060e410`, run by `tools/emu/sweep_obj.py` on its row `unit_update_local_seen` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 72 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00cae5fc points at 512 random bytes; the global cell 0x00c06188 points at 32 random bytes; 16 random bytes at 0x00cbe330 (each word in 0..24); 32 random bytes at 0x00cb7e90 (each byte in -4..4); 32 random bytes at 0x00cbb0e0 (each byte in -4..4); callee 0x006b4bb0 (4 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); the stack 256 bytes under the call is zeroed before each row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_update_local_seen.py") else {
+    let Some(rows) = super::emu_obj("unit_update_local_seen") else {
         return;
     };
     let mut n = 0;

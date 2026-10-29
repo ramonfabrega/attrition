@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Animal::process@005d72c0`, run by `tools/emu/sweep_animal_process.py` under unicorn
-/// (tools/emu): 1024 random bytes of object, 0 argument(s), vtable slot +0x188 (0 args) stubbed; callee 0x005e0230 (0 args) stubbed; the word at `m+0x18` points at 784 random bytes less `0` (placed); the word at `m+0xf4` points at 32 random bytes less `0` (placed); the word at `p1+0` points at 4 random bytes less `0` (placed); the word at `p1+4` points at 4 random bytes less `0` (placed); the word at `p1+8` points at 4 random bytes less `0` (placed); the word at `p1+12` points at 4 random bytes less `0` (placed); the word at `p1+16` points at 4 random bytes less `0` (placed); the word at `p1+20` points at 4 random bytes less `0` (placed); the word at `p1+24` points at 4 random bytes less `0` (placed); the word at `p1+28` points at 4 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Animal::process@005d72c0`, run by `tools/emu/sweep_obj.py` on its row `animal_process` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 1024 random bytes of object, 0 argument(s), vtable slot +0x188 (0 args) stubbed; callee 0x005e0230 (0 args) stubbed; the word at `m+0x18` points at 784 random bytes less `0` (placed); the word at `m+0xf4` points at 32 random bytes less `0` (placed); the word at `p1+0` points at 4 random bytes less `0` (placed); the word at `p1+4` points at 4 random bytes less `0` (placed); the word at `p1+8` points at 4 random bytes less `0` (placed); the word at `p1+12` points at 4 random bytes less `0` (placed); the word at `p1+16` points at 4 random bytes less `0` (placed); the word at `p1+20` points at 4 random bytes less `0` (placed); the word at `p1+24` points at 4 random bytes less `0` (placed); the word at `p1+28` points at 4 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_animal_process.py") else {
+    let Some(rows) = super::emu_obj("animal_process") else {
         return;
     };
     let mut n = 0;

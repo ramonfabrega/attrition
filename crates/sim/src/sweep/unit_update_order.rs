@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::update_order@006179d0`, run by `tools/emu/sweep_unit_update_order.py` under unicorn
-/// (tools/emu): 224 random bytes of object, 0 argument(s), the word at `m+0xdc` points at 8 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 16 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::update_order@006179d0`, run by `tools/emu/sweep_obj.py` on its row `unit_update_order` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 224 random bytes of object, 0 argument(s), the word at `m+0xdc` points at 8 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 16 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_update_order.py") else {
+    let Some(rows) = super::emu_obj("unit_update_order") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GameInfo::get_map_size_name@005d46f0`, run by `tools/emu/sweep_game_info_get_map_size_name.py` under unicorn
-/// (tools/emu): 20 random bytes of object, 0 argument(s), `p` windows in order: none; 4 random bytes at 0x00c8cd00; 1 random bytes at 0x00cc2311; callee 0x00a1eeb0 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `edx` an integer in -2..9, after `ecx` on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GameInfo::get_map_size_name@005d46f0`, run by `tools/emu/sweep_obj.py` on its row `game_info_get_map_size_name` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 20 random bytes of object, 0 argument(s), `p` windows in order: none; 4 random bytes at 0x00c8cd00; 1 random bytes at 0x00cc2311; callee 0x00a1eeb0 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `edx` an integer in -2..9, after `ecx` on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_info_get_map_size_name.py") else {
+    let Some(rows) = super::emu_obj("game_info_get_map_size_name") else {
         return;
     };
     let mut n = 0;

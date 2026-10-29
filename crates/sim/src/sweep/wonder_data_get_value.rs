@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WonderData::get_value@0073c7a0`, run by `tools/emu/sweep_wonder_data_get_value.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), vtable slot +0x14c (0 args) stubbed; vtable slot +0x118 (0 args) stubbed; the word at `0xc0ab84+i8(m,0xd)*0x1c` points at 4 random bytes less `i16(m,2)*4` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p1+0x18` points at 4 random bytes less `0` (placed); slot +0x14c laid as 0x0046cf20 or its stub, a flag after the answers; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WonderData::get_value@0073c7a0`, run by `tools/emu/sweep_obj.py` on its row `wonder_data_get_value` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), vtable slot +0x14c (0 args) stubbed; vtable slot +0x118 (0 args) stubbed; the word at `0xc0ab84+i8(m,0xd)*0x1c` points at 4 random bytes less `i16(m,2)*4` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p1+0x18` points at 4 random bytes less `0` (placed); slot +0x14c laid as 0x0046cf20 or its stub, a flag after the answers; the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p2+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wonder_data_get_value.py") else {
+    let Some(rows) = super::emu_obj("wonder_data_get_value") else {
         return;
     };
     let mut n = 0;

@@ -61,6 +61,21 @@ lists the receipts as a table; `--verify` re-hashes each receipt's inputs
 as they are on disk now, rebuilds the key text (the same literal is pinned
 by both sides' tests), and exits 1 naming each stale entry and why.
 
+**An `obj with windows` sweep is a row, not a script** (item 3731). The
+1,109 such scripts were one template body under a block of constants; the
+body is now `tools/emu/sweep_obj.py`, each sweep's constants (those that
+differ from its defaults, its seed and row count) one line of
+`tools/emu/sweep_obj.tsv`, and a test runs `emu_obj("<snake>")`, which
+hands the driver the row itself — so the key's argument list is the row,
+and an edited row is a miss for that sweep alone. A script was converted
+only where the driver printed its rows byte for byte: 1,076 of 1,109; the
+31 that part (older templates drew in another order) stay scripts. The
+driver's name keeps the `sweep_` prefix so it is no shared module and no
+other script's key moved. `tools/sweep_gen.py obj` writes the row; the
+plain `obj` (no window) and every other shape still write a script.
+`emu_receipts.py --prune` deletes what `--verify` calls stale, a driver
+run whose row the table no longer holds among them.
+
 A miss runs `uv run --locked --project tools/emu python <script>` (item
 3354): one `tools/emu/.venv` a worktree, made by `uv` on the first run
 from `tools/emu/pyproject.toml` and its `uv.lock`. A bare `uv run

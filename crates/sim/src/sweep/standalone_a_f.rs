@@ -3,7 +3,7 @@
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
-use support::{emu_rows, row, tail_row};
+use support::{emu_obj, emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
 #[path = "activate_view.rs"]
@@ -12,30 +12,10 @@ mod activate_view;
 mod add_type_bucket;
 #[path = "add_type_bucket2.rs"]
 mod add_type_bucket2;
-#[path = "air_attack_ground_order_get_air_attack_ground_order.rs"]
-mod air_attack_ground_order_get_air_attack_ground_order;
-#[path = "air_attack_ground_order_get_air_order_vtordisp.rs"]
-mod air_attack_ground_order_get_air_order_vtordisp;
 #[path = "air_attack_ground_order_vector_deleting_destructor_vtordisp.rs"]
 mod air_attack_ground_order_vector_deleting_destructor_vtordisp;
-#[path = "air_attack_ground_order_walk_data.rs"]
-mod air_attack_ground_order_walk_data;
-#[path = "air_attack_ground_order_walk_data_vtordisp.rs"]
-mod air_attack_ground_order_walk_data_vtordisp;
-#[path = "air_order_get_air_order.rs"]
-mod air_order_get_air_order;
-#[path = "air_order_walk_data.rs"]
-mod air_order_walk_data;
 #[path = "air_patrol_order_vector_deleting_destructor_vtordisp.rs"]
 mod air_patrol_order_vector_deleting_destructor_vtordisp;
-#[path = "air_patrol_order_walk_data.rs"]
-mod air_patrol_order_walk_data;
-#[path = "air_patrol_order_walk_data_vtordisp.rs"]
-mod air_patrol_order_walk_data_vtordisp;
-#[path = "airattackgroundorder_get_air_order.rs"]
-mod airattackgroundorder_get_air_order;
-#[path = "airpatrolorder_get_air_patrol_order.rs"]
-mod airpatrolorder_get_air_patrol_order;
 #[path = "ammo_check_hit.rs"]
 mod ammo_check_hit;
 #[path = "ammo_data_walk_data.rs"]
@@ -118,24 +98,6 @@ mod army_remove_group;
 mod army_send_here;
 #[path = "army_walk_data.rs"]
 mod army_walk_data;
-#[path = "attack_ground_order_get_type.rs"]
-mod attack_ground_order_get_type;
-#[path = "attack_ground_order_get_type_vtordisp.rs"]
-mod attack_ground_order_get_type_vtordisp;
-#[path = "attack_ground_order_walk_data.rs"]
-mod attack_ground_order_walk_data;
-#[path = "attack_ground_order_walk_data_vtordisp.rs"]
-mod attack_ground_order_walk_data_vtordisp;
-#[path = "attack_order_get_type.rs"]
-mod attack_order_get_type;
-#[path = "attack_order_get_type_vtordisp.rs"]
-mod attack_order_get_type_vtordisp;
-#[path = "attack_order_walk_data.rs"]
-mod attack_order_walk_data;
-#[path = "attack_to_order_walk_data.rs"]
-mod attack_to_order_walk_data;
-#[path = "attacktoorder_get_attack_to_order.rs"]
-mod attacktoorder_get_attack_to_order;
 #[path = "balance_compute_modifier.rs"]
 mod balance_compute_modifier;
 #[path = "balance_lookup_absolute_name.rs"]
@@ -274,10 +236,6 @@ mod build_finished;
 mod build_finished_628490;
 #[path = "build_new_library.rs"]
 mod build_new_library;
-#[path = "build_order_get_type.rs"]
-mod build_order_get_type;
-#[path = "build_order_get_type_vtordisp.rs"]
-mod build_order_get_type_vtordisp;
 #[path = "build_plunder.rs"]
 mod build_plunder;
 #[path = "build_process_city.rs"]
@@ -454,10 +412,6 @@ mod caravan_verify_road;
 mod caravan_walk_data;
 #[path = "caravans_new_danger.rs"]
 mod caravans_new_danger;
-#[path = "cast_order_walk_data.rs"]
-mod cast_order_walk_data;
-#[path = "cast_order_walk_data_vtordisp.rs"]
-mod cast_order_walk_data_vtordisp;
 #[path = "caster_process_spells.rs"]
 mod caster_process_spells;
 #[path = "caster_walk_data.rs"]
@@ -548,8 +502,6 @@ mod cliff_mining_data_walk_data;
 mod cliff_render;
 #[path = "cliff_walk_data.rs"]
 mod cliff_walk_data;
-#[path = "cliffs_get_parse_name.rs"]
-mod cliffs_get_parse_name;
 #[path = "cliffs_out_get_mining_data.rs"]
 mod cliffs_out_get_mining_data;
 #[path = "cliffs_out_get_mining_size.rs"]
@@ -560,278 +512,8 @@ mod cliffs_set_edge_flags;
 mod coll_block_get;
 #[path = "coll_check_collide_here.rs"]
 mod coll_check_collide_here;
-#[path = "command_manager_check_accept_issue.rs"]
-mod command_manager_check_accept_issue;
-#[path = "command_manager_issue_accept.rs"]
-mod command_manager_issue_accept;
-#[path = "command_manager_issue_alarm.rs"]
-mod command_manager_issue_alarm;
-#[path = "command_manager_issue_attack.rs"]
-mod command_manager_issue_attack;
-#[path = "command_manager_issue_attack_ground.rs"]
-mod command_manager_issue_attack_ground;
-#[path = "command_manager_issue_build.rs"]
-mod command_manager_issue_build;
-#[path = "command_manager_issue_buildmask.rs"]
-mod command_manager_issue_buildmask;
-#[path = "command_manager_issue_buy.rs"]
-mod command_manager_issue_buy;
-#[path = "command_manager_issue_camera.rs"]
-mod command_manager_issue_camera;
-#[path = "command_manager_issue_cannon_time.rs"]
-mod command_manager_issue_cannon_time;
-#[path = "command_manager_issue_chat_set.rs"]
-mod command_manager_issue_chat_set;
-#[path = "command_manager_issue_cheat_ai_toggle.rs"]
-mod command_manager_issue_cheat_ai_toggle;
-#[path = "command_manager_issue_cheat_increase_buckets.rs"]
-mod command_manager_issue_cheat_increase_buckets;
-#[path = "command_manager_issue_cheat_view_all.rs"]
-mod command_manager_issue_cheat_view_all;
-#[path = "command_manager_issue_cheat_zero_buckets.rs"]
-mod command_manager_issue_cheat_zero_buckets;
-#[path = "command_manager_issue_city_gather.rs"]
-mod command_manager_issue_city_gather;
-#[path = "command_manager_issue_clear_all.rs"]
-mod command_manager_issue_clear_all;
-#[path = "command_manager_issue_clear_tributes.rs"]
-mod command_manager_issue_clear_tributes;
-#[path = "command_manager_issue_come_out.rs"]
-mod command_manager_issue_come_out;
-#[path = "command_manager_issue_console_cmd.rs"]
-mod command_manager_issue_console_cmd;
-#[path = "command_manager_issue_declare.rs"]
-mod command_manager_issue_declare;
-#[path = "command_manager_issue_disband.rs"]
-mod command_manager_issue_disband;
-#[path = "command_manager_issue_eject_all.rs"]
-mod command_manager_issue_eject_all;
-#[path = "command_manager_issue_flight.rs"]
-mod command_manager_issue_flight;
-#[path = "command_manager_issue_follow.rs"]
-mod command_manager_issue_follow;
-#[path = "command_manager_issue_form.rs"]
-mod command_manager_issue_form;
-#[path = "command_manager_issue_garrison.rs"]
-mod command_manager_issue_garrison;
-#[path = "command_manager_issue_gather.rs"]
-mod command_manager_issue_gather;
-#[path = "command_manager_issue_gather_point.rs"]
-mod command_manager_issue_gather_point;
-#[path = "command_manager_issue_guard.rs"]
-mod command_manager_issue_guard;
-#[path = "command_manager_issue_halt.rs"]
-mod command_manager_issue_halt;
-#[path = "command_manager_issue_hotkey.rs"]
-mod command_manager_issue_hotkey;
-#[path = "command_manager_issue_launch_patrol.rs"]
-mod command_manager_issue_launch_patrol;
-#[path = "command_manager_issue_leader_option.rs"]
-mod command_manager_issue_leader_option;
-#[path = "command_manager_issue_move_to.rs"]
-mod command_manager_issue_move_to;
-#[path = "command_manager_issue_mp_log.rs"]
-mod command_manager_issue_mp_log;
-#[path = "command_manager_issue_patrol.rs"]
-mod command_manager_issue_patrol;
-#[path = "command_manager_issue_pause.rs"]
-mod command_manager_issue_pause;
-#[path = "command_manager_issue_ping.rs"]
-mod command_manager_issue_ping;
-#[path = "command_manager_issue_player_speed.rs"]
-mod command_manager_issue_player_speed;
-#[path = "command_manager_issue_queue_up.rs"]
-mod command_manager_issue_queue_up;
-#[path = "command_manager_issue_recall.rs"]
-mod command_manager_issue_recall;
-#[path = "command_manager_issue_reject.rs"]
-mod command_manager_issue_reject;
-#[path = "command_manager_issue_rename_city.rs"]
-mod command_manager_issue_rename_city;
-#[path = "command_manager_issue_resign.rs"]
-mod command_manager_issue_resign;
-#[path = "command_manager_issue_scramble.rs"]
-mod command_manager_issue_scramble;
-#[path = "command_manager_issue_sell.rs"]
-mod command_manager_issue_sell;
-#[path = "command_manager_issue_set_transport.rs"]
-mod command_manager_issue_set_transport;
-#[path = "command_manager_issue_siege_attack.rs"]
-mod command_manager_issue_siege_attack;
-#[path = "command_manager_issue_speed_down.rs"]
-mod command_manager_issue_speed_down;
-#[path = "command_manager_issue_speed_set.rs"]
-mod command_manager_issue_speed_set;
-#[path = "command_manager_issue_speed_up.rs"]
-mod command_manager_issue_speed_up;
-#[path = "command_manager_issue_spell.rs"]
-mod command_manager_issue_spell;
-#[path = "command_manager_issue_spline.rs"]
-mod command_manager_issue_spline;
-#[path = "command_manager_issue_stop_spell.rs"]
-mod command_manager_issue_stop_spell;
-#[path = "command_manager_issue_swarm_around.rs"]
-mod command_manager_issue_swarm_around;
-#[path = "command_manager_issue_trade.rs"]
-mod command_manager_issue_trade;
-#[path = "command_manager_issue_treaty.rs"]
-mod command_manager_issue_treaty;
-#[path = "command_manager_issue_tribute.rs"]
-mod command_manager_issue_tribute;
-#[path = "command_manager_issue_unitmask.rs"]
-mod command_manager_issue_unitmask;
-#[path = "command_manager_issue_unqueue_unit.rs"]
-mod command_manager_issue_unqueue_unit;
-#[path = "command_manager_issue_unqueue_wall.rs"]
-mod command_manager_issue_unqueue_wall;
-#[path = "command_manager_start.rs"]
-mod command_manager_start;
-#[path = "command_package_add_command.rs"]
-mod command_package_add_command;
-#[path = "command_package_begin_process.rs"]
-mod command_package_begin_process;
-#[path = "command_package_process.rs"]
-mod command_package_process;
-#[path = "command_package_process_accept.rs"]
-mod command_package_process_accept;
-#[path = "command_package_process_alarm.rs"]
-mod command_package_process_alarm;
-#[path = "command_package_process_attack.rs"]
-mod command_package_process_attack;
-#[path = "command_package_process_attack_ground.rs"]
-mod command_package_process_attack_ground;
-#[path = "command_package_process_begin.rs"]
-mod command_package_process_begin;
-#[path = "command_package_process_board_ship.rs"]
-mod command_package_process_board_ship;
-#[path = "command_package_process_build.rs"]
-mod command_package_process_build;
-#[path = "command_package_process_buildmask.rs"]
-mod command_package_process_buildmask;
-#[path = "command_package_process_buy.rs"]
-mod command_package_process_buy;
-#[path = "command_package_process_cannon_time.rs"]
-mod command_package_process_cannon_time;
-#[path = "command_package_process_chat_set.rs"]
-mod command_package_process_chat_set;
-#[path = "command_package_process_cheat_ai_speed_increase.rs"]
-mod command_package_process_cheat_ai_speed_increase;
-#[path = "command_package_process_cheat_ai_speed_normal.rs"]
-mod command_package_process_cheat_ai_speed_normal;
-#[path = "command_package_process_cheat_ai_toggle.rs"]
-mod command_package_process_cheat_ai_toggle;
-#[path = "command_package_process_cheat_give_techs.rs"]
-mod command_package_process_cheat_give_techs;
-#[path = "command_package_process_cheat_increase_buckets.rs"]
-mod command_package_process_cheat_increase_buckets;
-#[path = "command_package_process_cheat_init_unit.rs"]
-mod command_package_process_cheat_init_unit;
-#[path = "command_package_process_cheat_view_all.rs"]
-mod command_package_process_cheat_view_all;
-#[path = "command_package_process_cheat_zero_buckets.rs"]
-mod command_package_process_cheat_zero_buckets;
-#[path = "command_package_process_cheat_zero_techs.rs"]
-mod command_package_process_cheat_zero_techs;
-#[path = "command_package_process_check_random.rs"]
-mod command_package_process_check_random;
-#[path = "command_package_process_city_gather.rs"]
-mod command_package_process_city_gather;
-#[path = "command_package_process_clear_all.rs"]
-mod command_package_process_clear_all;
-#[path = "command_package_process_clear_tributes.rs"]
-mod command_package_process_clear_tributes;
-#[path = "command_package_process_come_out.rs"]
-mod command_package_process_come_out;
-#[path = "command_package_process_console_cmd.rs"]
-mod command_package_process_console_cmd;
-#[path = "command_package_process_declare.rs"]
-mod command_package_process_declare;
-#[path = "command_package_process_default_arm.rs"]
-mod command_package_process_default_arm;
-#[path = "command_package_process_demand_tribute.rs"]
-mod command_package_process_demand_tribute;
-#[path = "command_package_process_disband.rs"]
-mod command_package_process_disband;
-#[path = "command_package_process_eject_all.rs"]
-mod command_package_process_eject_all;
-#[path = "command_package_process_flight.rs"]
-mod command_package_process_flight;
-#[path = "command_package_process_form.rs"]
-mod command_package_process_form;
-#[path = "command_package_process_garrison.rs"]
-mod command_package_process_garrison;
-#[path = "command_package_process_gather.rs"]
-mod command_package_process_gather;
-#[path = "command_package_process_gather_point.rs"]
-mod command_package_process_gather_point;
-#[path = "command_package_process_halt.rs"]
-mod command_package_process_halt;
-#[path = "command_package_process_hotkey.rs"]
-mod command_package_process_hotkey;
-#[path = "command_package_process_launch_patrol.rs"]
-mod command_package_process_launch_patrol;
-#[path = "command_package_process_marwan.rs"]
-mod command_package_process_marwan;
-#[path = "command_package_process_move_near.rs"]
-mod command_package_process_move_near;
-#[path = "command_package_process_mp_log.rs"]
-mod command_package_process_mp_log;
-#[path = "command_package_process_patrol.rs"]
-mod command_package_process_patrol;
-#[path = "command_package_process_pause.rs"]
-mod command_package_process_pause;
-#[path = "command_package_process_ping.rs"]
-mod command_package_process_ping;
-#[path = "command_package_process_propose_attack.rs"]
-mod command_package_process_propose_attack;
-#[path = "command_package_process_queue_up.rs"]
-mod command_package_process_queue_up;
-#[path = "command_package_process_quit.rs"]
-mod command_package_process_quit;
-#[path = "command_package_process_recall.rs"]
-mod command_package_process_recall;
-#[path = "command_package_process_reject.rs"]
-mod command_package_process_reject;
-#[path = "command_package_process_rename_city.rs"]
-mod command_package_process_rename_city;
-#[path = "command_package_process_repair.rs"]
-mod command_package_process_repair;
-#[path = "command_package_process_resign.rs"]
-mod command_package_process_resign;
-#[path = "command_package_process_scramble.rs"]
-mod command_package_process_scramble;
 #[path = "command_package_process_sell.rs"]
 mod command_package_process_sell;
-#[path = "command_package_process_set_transport.rs"]
-mod command_package_process_set_transport;
-#[path = "command_package_process_siege_attack.rs"]
-mod command_package_process_siege_attack;
-#[path = "command_package_process_speed_down.rs"]
-mod command_package_process_speed_down;
-#[path = "command_package_process_speed_set.rs"]
-mod command_package_process_speed_set;
-#[path = "command_package_process_speed_up.rs"]
-mod command_package_process_speed_up;
-#[path = "command_package_process_stop_spell.rs"]
-mod command_package_process_stop_spell;
-#[path = "command_package_process_swarm_around.rs"]
-mod command_package_process_swarm_around;
-#[path = "command_package_process_trade.rs"]
-mod command_package_process_trade;
-#[path = "command_package_process_transport.rs"]
-mod command_package_process_transport;
-#[path = "command_package_process_treaty.rs"]
-mod command_package_process_treaty;
-#[path = "command_package_process_tribute.rs"]
-mod command_package_process_tribute;
-#[path = "command_package_process_turn_data.rs"]
-mod command_package_process_turn_data;
-#[path = "command_package_process_ungraceful_player_drop.rs"]
-mod command_package_process_ungraceful_player_drop;
-#[path = "command_package_process_unitmask.rs"]
-mod command_package_process_unitmask;
-#[path = "command_package_walk_data.rs"]
-mod command_package_walk_data;
 #[path = "constants_walk_data.rs"]
 mod constants_walk_data;
 #[path = "cosx.rs"]
@@ -884,24 +566,6 @@ mod find_angle;
 mod flanking;
 #[path = "fog_master_get_name.rs"]
 mod fog_master_get_name;
-#[path = "follow_order_get_follow_order.rs"]
-mod follow_order_get_follow_order;
-#[path = "follow_order_get_follow_order_vtordisp.rs"]
-mod follow_order_get_follow_order_vtordisp;
-#[path = "follow_order_get_type.rs"]
-mod follow_order_get_type;
-#[path = "follow_order_get_type_vtordisp.rs"]
-mod follow_order_get_type_vtordisp;
-#[path = "follow_order_walk_data.rs"]
-mod follow_order_walk_data;
-#[path = "follow_order_walk_data_vtordisp.rs"]
-mod follow_order_walk_data_vtordisp;
-#[path = "form_order_get_form_order.rs"]
-mod form_order_get_form_order;
-#[path = "form_order_walk_data.rs"]
-mod form_order_walk_data;
-#[path = "form_order_walk_data_vtordisp.rs"]
-mod form_order_walk_data_vtordisp;
 #[path = "fort_walk_data.rs"]
 mod fort_walk_data;
 #[path = "forts_find_fort.rs"]

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Type::sum_rules_cost@006680e0`, run by `tools/emu/sweep_type_sum_rules_cost.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 0 argument(s), the global cell 0x00c061f0 points at 1024 random bytes; vtable slot +0xc (0 args) stubbed; vtable slot +0x14 (0 args) stubbed; vtable slot +0x48 (0 args) stubbed; vtable slot +0x28 (0 args) stubbed; slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; slot +0x14 laid as 0x004707c0 or its stub, a flag after the answers; slot +0x48 laid as 0x00470590 or its stub, a flag after the answers; slot +0x28 laid as 0x004706c0 or its stub, a flag after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Type::sum_rules_cost@006680e0`, run by `tools/emu/sweep_obj.py` on its row `type_sum_rules_cost` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 0 argument(s), the global cell 0x00c061f0 points at 1024 random bytes; vtable slot +0xc (0 args) stubbed; vtable slot +0x14 (0 args) stubbed; vtable slot +0x48 (0 args) stubbed; vtable slot +0x28 (0 args) stubbed; slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; slot +0x14 laid as 0x004707c0 or its stub, a flag after the answers; slot +0x48 laid as 0x00470590 or its stub, a flag after the answers; slot +0x28 laid as 0x004706c0 or its stub, a flag after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_type_sum_rules_cost.py") else {
+    let Some(rows) = super::emu_obj("type_sum_rules_cost") else {
         return;
     };
     let mut n = 0;

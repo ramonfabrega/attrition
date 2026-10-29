@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::point@0069d5a0`, run by `tools/emu/sweep_map_point.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 3 argument(s), `p` windows in order: p0..p2 the place(s), in flag order; the global cell 0x00c06188 points at 1024 random bytes; the global cell 0x00c061b8 points at 1024 random bytes; callee 0x00a3ab00 (10 args) stubbed; callee 0x00a1cf40 (0 args) stubbed; callee 0x0069d000 (3 args) stubbed; vtable slot +0x0 (1 args) stubbed; the word at `c0+0x134` points at 2048 random bytes less `0` (placed); the word at `c1+0x10` points at 8704 random bytes less `0` (placed); the word at `p1+0x7c+0x88*a[0]` points at 64 random bytes less `0` (placed); stub 2 answered from [0, 1, 1, 1, 1, 1] (90%); the stubbed vtable laid at `p1+0x6c` as well as at `this`; the stubbed vtable laid at `p1+0xf4` as well as at `this`; the stubbed vtable laid at `p1+0x17c` as well as at `this`; the stubbed vtable laid at `p1+0x314` as well as at `this`; the stubbed vtable laid at `p1+0x10e4` as well as at `this`; the stubbed vtable laid at `p1+0x15ac` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 4000 rows (an arm few rows reach).
+/// `Map::point@0069d5a0`, run by `tools/emu/sweep_obj.py` on its row `map_point` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 3 argument(s), `p` windows in order: p0..p2 the place(s), in flag order; the global cell 0x00c06188 points at 1024 random bytes; the global cell 0x00c061b8 points at 1024 random bytes; callee 0x00a3ab00 (10 args) stubbed; callee 0x00a1cf40 (0 args) stubbed; callee 0x0069d000 (3 args) stubbed; vtable slot +0x0 (1 args) stubbed; the word at `c0+0x134` points at 2048 random bytes less `0` (placed); the word at `c1+0x10` points at 8704 random bytes less `0` (placed); the word at `p1+0x7c+0x88*a[0]` points at 64 random bytes less `0` (placed); stub 2 answered from [0, 1, 1, 1, 1, 1] (90%); the stubbed vtable laid at `p1+0x6c` as well as at `this`; the stubbed vtable laid at `p1+0xf4` as well as at `this`; the stubbed vtable laid at `p1+0x17c` as well as at `this`; the stubbed vtable laid at `p1+0x314` as well as at `this`; the stubbed vtable laid at `p1+0x10e4` as well as at `this`; the stubbed vtable laid at `p1+0x15ac` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 4000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_point.py") else {
+    let Some(rows) = super::emu_obj("map_point") else {
         return;
     };
     let mut n = 0;

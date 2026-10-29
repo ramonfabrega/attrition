@@ -490,8 +490,8 @@ def sweep_backed(src, by_name, emu_dir=None):
                 continue
             cited = named(chunk, by_name)
             if emu_dir is not None:
-                for m in SCRIPT.finditer(chunk):
-                    cited -= hooked_by_script(os.path.join(emu_dir, m.group(1)))
+                for script in scripts_in(chunk):
+                    cited -= hooked_by_script(os.path.join(emu_dir, script))
             out |= cited
     return out
 
@@ -500,16 +500,46 @@ def sweep_backed(src, by_name, emu_dir=None):
 # thirty-second pass shadowed it with this regex, so `--pin --never` died on
 # `HOOKS.items()` for a tranche (the thirty-third pass).
 HOOKED_SCRIPT = re.compile(r"Harness\(\s*[^,()]*,\s*\{(.*?)\}", re.S)
-SCRIPT = re.compile(r"tools/emu/(sweep_[a-z0-9_]+\.py)")
+# A sweep's script by its path, or an `obj` sweep's row of `sweep_obj.tsv` by
+# the `emu_obj("<snake>")` that runs it (item 3731) — `scripts_in` names both
+# as `sweep_<snake>.py`, and `hooked_by_script` reads the row when no script
+# of that name is on disk. The driver itself is no sweep's script.
+SCRIPT = re.compile(r"tools/emu/(sweep_(?!obj\.py)[a-z0-9_]+\.py)|emu_obj\(\s*\"([a-z0-9_]+)\"\s*\)")
 STUBS_LIST = re.compile(r"^STUBS = \[(.*)\]$", re.M)
+OBJ_TABLE = "sweep_obj.tsv"
+
+
+def scripts_in(chunk):
+    """The sweep scripts a test chunk names, each as `sweep_<snake>.py`."""
+    return [m.group(1) or f"sweep_{m.group(2)}.py" for m in SCRIPT.finditer(chunk)]
+
+
+def obj_row(script):
+    """The row of `sweep_obj.tsv` beside `script` for its snake, as a dict,
+    or None (item 3731)."""
+    import ast
+    table = os.path.join(os.path.dirname(script), OBJ_TABLE)
+    snake = os.path.basename(script)[len("sweep_"):-len(".py")]
+    if not os.path.isfile(table):
+        return None
+    with open(table) as f:
+        for line in f:
+            name, literal, *_ = line.rstrip("\n").split("\t") + [""]
+            if name == snake:
+                return ast.literal_eval(literal)
+    return None
 
 
 def hooked_by_script(script):
     """The addresses a sweep script hands `Harness(exe, {ADDR: …})` as hooked
-    callees, or lists as `('call', ADDR, N)` rows of its `STUBS`; empty when
-    the script is not on disk."""
+    callees, or lists as `('call', ADDR, N)` rows of its `STUBS` — the
+    script's, or its `sweep_obj.tsv` row's when the script is not on disk;
+    empty when neither is."""
     if not os.path.isfile(script):
-        return set()
+        row = obj_row(script)
+        if row is None:
+            return set()
+        return {a for k, a, _ in row.get("STUBS", ()) if k == "call"} - {row.get("ENTRY")}
     with open(script, errors="replace") as f:
         body = f.read()
     hm = HOOKED_SCRIPT.search(body)
@@ -549,20 +579,13 @@ def hooked_in_sweeps(src, emu_dir, by_name=None):
             cited = {int(m.group(1), 16) for m in CITE.finditer(chunk)}
             if by_name is not None:
                 cited |= named(chunk, by_name)
-            for m in SCRIPT.finditer(chunk):
-                hooked = hooked_by_script(os.path.join(emu_dir, m.group(1)))
-                # A recursive function's own entry is hooked on its second
-                # visit (`Harness.skip_once`, item 3386): the sweep runs it,
-                # it does not answer for another.
-                sp = os.path.join(emu_dir, m.group(1))
-                em = None
-                if os.path.isfile(sp):
-                    with open(sp, errors="replace") as sf:
-                        em = re.search(r"^ENTRY\s*=\s*0x([0-9a-f]+)", sf.read(), re.M)
-                if em:
-                    hooked.discard(int(em.group(1), 16))
+            for script in scripts_in(chunk):
+                # `hooked_by_script` leaves out the function's own entry: a
+                # recursive function is hooked on its second visit
+                # (`Harness.skip_once`, item 3386), and the sweep runs it.
+                hooked = hooked_by_script(os.path.join(emu_dir, script))
                 for addr in sorted(hooked & cited):
-                    out.append((os.path.relpath(p, src), m.group(1), addr))
+                    out.append((os.path.relpath(p, src), script, addr))
     return out
 
 

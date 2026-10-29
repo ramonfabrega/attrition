@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `project@0092cf40`, run by `tools/emu/sweep_project_c.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 4 argument(s), argument 2 names 4 random bytes; argument 3 names 4 random bytes; callee 0x00a46a00 (0 args) stubbed; `__cdecl`: the caller pops the arguments; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `ecx` an integer in -2147483648..2147483647, not the object, the row's last; `edx` an integer in [0, 0, 1, -1, 4660, -4660, 2147483647, -2147483648, 1073741824], after `ecx` on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `project@0092cf40`, run by `tools/emu/sweep_obj.py` on its row `project_c` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 4 argument(s), argument 2 names 4 random bytes; argument 3 names 4 random bytes; callee 0x00a46a00 (0 args) stubbed; `__cdecl`: the caller pops the arguments; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `ecx` an integer in -2147483648..2147483647, not the object, the row's last; `edx` an integer in [0, 0, 1, -1, 4660, -4660, 2147483647, -2147483648, 1073741824], after `ecx` on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_project_c.py") else {
+    let Some(rows) = super::emu_obj("project_c") else {
         return;
     };
     let mut n = 0;

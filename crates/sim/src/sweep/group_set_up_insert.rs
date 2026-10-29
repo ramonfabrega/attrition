@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Group::set_up_insert@0070e520`, run by `tools/emu/sweep_group_set_up_insert.py` under unicorn
-/// (tools/emu): 80 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0, p1..p8 the place(s), in flag order; argument 0 names 32 random bytes; callee 0x0070ccb0 (1 args) stubbed; callee 0x0072f900 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; the word at `0xc0aec0` points at 4 random bytes less `0` (placed); the word at `p1+0` points at 256 random bytes less `0` (placed); the word at `p2+0xdc` points at 32 random bytes less `0` (placed); the word at `p3+0` points at 32 random bytes less `0` (placed); the word at `p4+0` points at 32 random bytes less `0` (placed); the word at `p3+8` points at 32 random bytes less `0` (placed); the word at `p4+8` points at 32 random bytes less `0` (placed); the word at `p5+8` points at 32 random bytes less `0` (placed); stub 0 answered from [-1, 0, 0, 0] (90%); the word at `p5+0` laid as the address of `p3` every row; stub 0 answers -1..0 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 300 rows (an arm few rows reach).
+/// `Group::set_up_insert@0070e520`, run by `tools/emu/sweep_obj.py` on its row `group_set_up_insert` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 80 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0, p1..p8 the place(s), in flag order; argument 0 names 32 random bytes; callee 0x0070ccb0 (1 args) stubbed; callee 0x0072f900 (0 args) stubbed; callee 0x0046d5a0 (1 args) stubbed; the word at `0xc0aec0` points at 4 random bytes less `0` (placed); the word at `p1+0` points at 256 random bytes less `0` (placed); the word at `p2+0xdc` points at 32 random bytes less `0` (placed); the word at `p3+0` points at 32 random bytes less `0` (placed); the word at `p4+0` points at 32 random bytes less `0` (placed); the word at `p3+8` points at 32 random bytes less `0` (placed); the word at `p4+8` points at 32 random bytes less `0` (placed); the word at `p5+8` points at 32 random bytes less `0` (placed); stub 0 answered from [-1, 0, 0, 0] (90%); the word at `p5+0` laid as the address of `p3` every row; stub 0 answers -1..0 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 300 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_set_up_insert.py") else {
+    let Some(rows) = super::emu_obj("group_set_up_insert") else {
         return;
     };
     let mut n = 0;

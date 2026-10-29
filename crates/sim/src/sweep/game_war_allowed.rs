@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::war_allowed@00594670`, run by `tools/emu/sweep_game_war_allowed.py` under unicorn
-/// (tools/emu): 1364 random bytes of object, 0 argument(s), the global cell 0x00c061ec points at 52 random bytes; the global cell 0x00e80088 points at 1144 random bytes; callee 0x005946d0 (0 args) stubbed; stub 0 answered from [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::war_allowed@00594670`, run by `tools/emu/sweep_obj.py` on its row `game_war_allowed` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 1364 random bytes of object, 0 argument(s), the global cell 0x00c061ec points at 52 random bytes; the global cell 0x00e80088 points at 1144 random bytes; callee 0x005946d0 (0 args) stubbed; stub 0 answered from [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_war_allowed.py") else {
+    let Some(rows) = super::emu_obj("game_war_allowed") else {
         return;
     };
     let mut n = 0;

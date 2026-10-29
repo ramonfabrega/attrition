@@ -39,6 +39,27 @@ pub(crate) const DEFAULT_CACHE_CAP: usize = 16 * 1024 * 1024;
 /// `None` (said on stderr) where the install or `uv` is absent. Cached, and
 /// verified under `RON_VERIFY_EMU`: see `emu_rows_with`.
 pub(crate) fn emu_rows(script: &str) -> Option<String> {
+    emu_rows_args(script, &[])
+}
+
+/// The rows `tools/emu/sweep_obj.py` prints for `snake`'s row of
+/// `tools/emu/sweep_obj.tsv` (item 3731; `<snake>\t<literal>[\t<kept line>]`):
+/// the `obj with windows` sweeps' one driver, handed the row's literal so the cache's key, which holds the
+/// arguments, follows the row and nothing else's. A name with no row panics:
+/// a test whose row is gone tests nothing.
+pub(crate) fn emu_obj(snake: &str) -> Option<String> {
+    let table = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/emu/sweep_obj.tsv");
+    let text = std::fs::read_to_string(table).expect("tools/emu/sweep_obj.tsv");
+    let literal = text
+        .lines()
+        .find_map(|l| l.strip_prefix(snake)?.strip_prefix('\t'))
+        .map(|rest| rest.split('\t').next().unwrap_or(rest))
+        .unwrap_or_else(|| panic!("no row `{snake}` in tools/emu/sweep_obj.tsv"));
+    emu_rows_args("sweep_obj.py", &[snake.to_string(), literal.to_string()])
+}
+
+/// `emu_rows` with the arguments after the executable.
+fn emu_rows_args(script: &str, args: &[String]) -> Option<String> {
     let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
     let Some(install) = crate::testenv::install_root() else {
         eprintln!("skipping: set RON_INSTALL (the sweep runs the install's executable)");
@@ -50,7 +71,7 @@ pub(crate) fn emu_rows(script: &str) -> Option<String> {
     let setup = EmuSetup {
         emu_dir: &emu_dir,
         exe: &exe,
-        args: &[],
+        args,
         cache: cache_dir(get, Path::new(root)),
         verify: get("RON_VERIFY_EMU").is_some_and(|v| !v.is_empty() && v != "0"),
         probe: true,

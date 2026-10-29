@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `SpellType::pay_cast_costs@00676c40`, run by `tools/emu/sweep_spell_type_pay_cast_costs.py` under unicorn
-/// (tools/emu): 472 random bytes of object, 2 argument(s), the global cell 0x00c061ec points at 2096 random bytes; the global cell 0x00c0618c points at 224 random bytes; vtable slot +0x84 (4 args) stubbed; vtable slot +0xd4 (5 args) stubbed; vtable slot +0x18 (0 args) stubbed; the word at `c1+0x14+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 4 random bytes less `0` (placed); the word at `0xc0aec0+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p2+0` points at 4 random bytes less `0x96` (placed); stub 0 answered from [0, 10, 1, 5] (90%); stub 2 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p1+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `SpellType::pay_cast_costs@00676c40`, run by `tools/emu/sweep_obj.py` on its row `spell_type_pay_cast_costs` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 472 random bytes of object, 2 argument(s), the global cell 0x00c061ec points at 2096 random bytes; the global cell 0x00c0618c points at 224 random bytes; vtable slot +0x84 (4 args) stubbed; vtable slot +0xd4 (5 args) stubbed; vtable slot +0x18 (0 args) stubbed; the word at `c1+0x14+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 4 random bytes less `0` (placed); the word at `0xc0aec0+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p2+0` points at 4 random bytes less `0x96` (placed); stub 0 answered from [0, 10, 1, 5] (90%); stub 2 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p1+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_spell_type_pay_cast_costs.py") else {
+    let Some(rows) = super::emu_obj("spell_type_pay_cast_costs") else {
         return;
     };
     let mut n = 0;

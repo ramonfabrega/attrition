@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WallData::valid_buildmask@0063e2a0`, run by `tools/emu/sweep_wall_data_valid_buildmask.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), vtable slot +0x20 (0 args) stubbed; vtable slot +0x3c (0 args) stubbed; callee 0x0062d4d0 (0 args) stubbed; callee 0x00646c40 (1 args) stubbed; the word at `0xc0ab84` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 1 answers the address of 16 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `m+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WallData::valid_buildmask@0063e2a0`, run by `tools/emu/sweep_obj.py` on its row `wall_data_valid_buildmask` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), vtable slot +0x20 (0 args) stubbed; vtable slot +0x3c (0 args) stubbed; callee 0x0062d4d0 (0 args) stubbed; callee 0x00646c40 (1 args) stubbed; the word at `0xc0ab84` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 1 answers the address of 16 random bytes, a `p` window after the places; the stubbed vtable laid at `p1+0`; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `m+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wall_data_valid_buildmask.py") else {
+    let Some(rows) = super::emu_obj("wall_data_valid_buildmask") else {
         return;
     };
     let mut n = 0;

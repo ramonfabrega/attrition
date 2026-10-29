@@ -4,7 +4,9 @@
 //! `Name@00xxxxxx`, which is what `tools/census.py --layers` counts as
 //! backed, and runs `tools/emu/sweep_<module>.py` — a script on
 //! `tools/emu/callfn.py`'s machine that prints one row per input,
-//! `<args…> -> <result>` — asserting every row against the port. An input
+//! `<args…> -> <result>` — asserting every row against the port; an `obj
+//! with windows` sweep is instead its row of `tools/emu/sweep_obj.tsv`, run
+//! by the one driver `tools/emu/sweep_obj.py` (`emu_obj`, item 3731). An input
 //! where the two part is a finding: the test names it and the item parks
 //! it with its frame.
 //!
@@ -12,7 +14,7 @@
 //! as `path::tests::the_emulated_original_agrees_on_every_row` does.
 
 mod support;
-pub(crate) use support::{emu_rows, row, tail_row, uv_command};
+pub(crate) use support::{emu_obj, emu_rows, row, tail_row, uv_command};
 
 mod ammo_do_damage;
 mod build_start;

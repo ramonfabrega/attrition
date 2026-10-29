@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `PathFinder::kill_tree@00687ba0`, run by `tools/emu/sweep_path_finder_kill_tree_bt.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 1 argument(s), 16 random bytes at 0x00c8da70; argument 0 names 32 random bytes; callee 0x0047a820 (1 args) stubbed; the word at `p0+0` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p1+0` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p1+4` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p2+0` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p2+4` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `c0+0` points at 64 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `PathFinder::kill_tree@00687ba0`, run by `tools/emu/sweep_obj.py` on its row `path_finder_kill_tree_bt` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 1 argument(s), 16 random bytes at 0x00c8da70; argument 0 names 32 random bytes; callee 0x0047a820 (1 args) stubbed; the word at `p0+0` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p0+4` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p1+0` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p1+4` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p2+0` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `p2+4` points at 32 random bytes less `0` (placed, null a third of the rows); the word at `c0+0` points at 64 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_path_finder_kill_tree_bt.py") else {
+    let Some(rows) = super::emu_obj("path_finder_kill_tree_bt") else {
         return;
     };
     let mut n = 0;

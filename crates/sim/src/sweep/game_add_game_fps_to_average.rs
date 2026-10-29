@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::add_game_fps_to_average@0058dae0`, run by `tools/emu/sweep_game_add_game_fps_to_average.py` under unicorn
-/// (tools/emu): 2344 random bytes of object, 1 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::add_game_fps_to_average@0058dae0`, run by `tools/emu/sweep_obj.py` on its row `game_add_game_fps_to_average` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2344 random bytes of object, 1 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_add_game_fps_to_average.py") else {
+    let Some(rows) = super::emu_obj("game_add_game_fps_to_average") else {
         return;
     };
     let mut n = 0;

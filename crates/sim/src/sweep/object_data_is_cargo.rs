@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectData::is_cargo@00653600`, run by `tools/emu/sweep_object_data_is_cargo.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), vtable slot +0xbc (0 args) stubbed; vtable slot +0xc (0 args) stubbed; vtable slot +0x12c (0 args) stubbed; the word at `m+0x18` points at 544 random bytes less `0` (placed); slot +0x12c laid as 0x00661d80 or its stub, a flag after the answers; slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1, 5, -1] (90%); the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectData::is_cargo@00653600`, run by `tools/emu/sweep_obj.py` on its row `object_data_is_cargo` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), vtable slot +0xbc (0 args) stubbed; vtable slot +0xc (0 args) stubbed; vtable slot +0x12c (0 args) stubbed; the word at `m+0x18` points at 544 random bytes less `0` (placed); slot +0x12c laid as 0x00661d80 or its stub, a flag after the answers; slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1, 5, -1] (90%); the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_object_data_is_cargo.py") else {
+    let Some(rows) = super::emu_obj("object_data_is_cargo") else {
         return;
     };
     let mut n = 0;

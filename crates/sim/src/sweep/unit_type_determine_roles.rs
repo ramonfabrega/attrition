@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitType::determine_roles@0061c320`, run by `tools/emu/sweep_unit_type_determine_roles.py` under unicorn
-/// (tools/emu): 728 random bytes of object, 0 argument(s), vtable slot +0x60 (2 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitType::determine_roles@0061c320`, run by `tools/emu/sweep_obj.py` on its row `unit_type_determine_roles` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 728 random bytes of object, 0 argument(s), vtable slot +0x60 (2 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_type_determine_roles.py") else {
+    let Some(rows) = super::emu_obj("unit_type_determine_roles") else {
         return;
     };
     let mut n = 0;

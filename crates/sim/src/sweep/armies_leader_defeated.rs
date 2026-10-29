@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Armies::leader_defeated@006f2f90`, run by `tools/emu/sweep_armies_leader_defeated.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), 224 random bytes at 0x00c09700; callee 0x006f9180 (0 args) stubbed; the word at `c0+0x10+a[0]*0x1c` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 4 random bytes less `0` (placed); the word at `p0+4` points at 4 random bytes less `0` (placed); the word at `p0+8` points at 4 random bytes less `0` (placed); the word at `p0+0xc` points at 4 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Armies::leader_defeated@006f2f90`, run by `tools/emu/sweep_obj.py` on its row `armies_leader_defeated` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), 224 random bytes at 0x00c09700; callee 0x006f9180 (0 args) stubbed; the word at `c0+0x10+a[0]*0x1c` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 4 random bytes less `0` (placed); the word at `p0+4` points at 4 random bytes less `0` (placed); the word at `p0+8` points at 4 random bytes less `0` (placed); the word at `p0+0xc` points at 4 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_armies_leader_defeated.py") else {
+    let Some(rows) = super::emu_obj("armies_leader_defeated") else {
         return;
     };
     let mut n = 0;

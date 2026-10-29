@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::calc_bonus@00692f10`, run by `tools/emu/sweep_map_calc_bonus.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 320 random bytes; the global cell 0x00c061b8 points at 32 random bytes; the word at `c0+0x134` points at 28 random bytes less `(i32(c[0],0)*a[1]+a[0])*0x1c` (placed); the word at `c1+0x10` points at 8 random bytes less `i16(p[0],4)*0x88` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Map::calc_bonus@00692f10`, run by `tools/emu/sweep_obj.py` on its row `map_calc_bonus` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 320 random bytes; the global cell 0x00c061b8 points at 32 random bytes; the word at `c0+0x134` points at 28 random bytes less `(i32(c[0],0)*a[1]+a[0])*0x1c` (placed); the word at `c1+0x10` points at 8 random bytes less `i16(p[0],4)*0x88` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_calc_bonus.py") else {
+    let Some(rows) = super::emu_obj("map_calc_bonus") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WallData::covers_tile@006439b0`, run by `tools/emu/sweep_wall_data_covers_tile.py` under unicorn
-/// (tools/emu): 28 random bytes of object, 2 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the word at `m+0x18` points at 8 random bytes less `0x234` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WallData::covers_tile@006439b0`, run by `tools/emu/sweep_obj.py` on its row `wall_data_covers_tile` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 28 random bytes of object, 2 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the word at `m+0x18` points at 8 random bytes less `0x234` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wall_data_covers_tile.py") else {
+    let Some(rows) = super::emu_obj("wall_data_covers_tile") else {
         return;
     };
     let mut n = 0;

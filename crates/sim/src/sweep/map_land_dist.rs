@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::land_dist@0069d970`, run by `tools/emu/sweep_map_land_dist.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 3 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 1024 random bytes; 260 random bytes at 0x00cbe330; 1024 random bytes at 0x00cb7e90; 1024 random bytes at 0x00cbb0e0; the word at `c0+0x134` points at 4096 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
+/// `Map::land_dist@0069d970`, run by `tools/emu/sweep_obj.py` on its row `map_land_dist` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 3 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 1024 random bytes; 260 random bytes at 0x00cbe330; 1024 random bytes at 0x00cb7e90; 1024 random bytes at 0x00cbb0e0; the word at `c0+0x134` points at 4096 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_land_dist.py") else {
+    let Some(rows) = super::emu_obj("map_land_dist") else {
         return;
     };
     let mut n = 0;

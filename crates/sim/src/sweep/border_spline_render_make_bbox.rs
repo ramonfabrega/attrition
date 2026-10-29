@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BorderSplineRender::make_bbox@008826f0`, run by `tools/emu/sweep_border_spline_render_make_bbox.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the word at `m+0x30` points at 96 random bytes less `0` (placed); xmm 1 an integer in 1..16, loaded as that over four (after the other numbers on the row); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
+/// `BorderSplineRender::make_bbox@008826f0`, run by `tools/emu/sweep_obj.py` on its row `border_spline_render_make_bbox` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the word at `m+0x30` points at 96 random bytes less `0` (placed); xmm 1 an integer in 1..16, loaded as that over four (after the other numbers on the row); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_border_spline_render_make_bbox.py") else {
+    let Some(rows) = super::emu_obj("border_spline_render_make_bbox") else {
         return;
     };
     let mut n = 0;

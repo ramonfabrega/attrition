@@ -3,7 +3,7 @@
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
-use support::{emu_rows, row, tail_row};
+use support::{emu_obj, emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
 #[path = "unbuilt_cities_add_unbuilt_city.rs"]
@@ -318,10 +318,6 @@ mod unit_modify_group_order;
 mod unit_must_walk;
 #[path = "unit_on_duty.rs"]
 mod unit_on_duty;
-#[path = "unit_order_is_move_attack.rs"]
-mod unit_order_is_move_attack;
-#[path = "unit_order_walk_data.rs"]
-mod unit_order_walk_data;
 #[path = "unit_out_issue_come_out.rs"]
 mod unit_out_issue_come_out;
 #[path = "unit_out_issue_unqueue.rs"]

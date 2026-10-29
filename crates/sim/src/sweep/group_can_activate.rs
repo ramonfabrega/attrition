@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Group::can_activate@00708290`, run by `tools/emu/sweep_group_can_activate.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 2 argument(s), `p` windows in order: none; the global cell 0x00c06210 points at 768 random bytes; the global cell 0x00c061ec points at 2096 random bytes; 4 random bytes at 0x00ee10ec; vtable slot +0x0 (0 args) stubbed; vtable slot +0x4 (0 args) stubbed; callee 0x006ebd30 (2 args) stubbed; callee 0x00711720 (3 args) stubbed; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 3 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 500 rows (an arm few rows reach).
+/// `Group::can_activate@00708290`, run by `tools/emu/sweep_obj.py` on its row `group_can_activate` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 2 argument(s), `p` windows in order: none; the global cell 0x00c06210 points at 768 random bytes; the global cell 0x00c061ec points at 2096 random bytes; 4 random bytes at 0x00ee10ec; vtable slot +0x0 (0 args) stubbed; vtable slot +0x4 (0 args) stubbed; callee 0x006ebd30 (2 args) stubbed; callee 0x00711720 (3 args) stubbed; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 3 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_can_activate.py") else {
+    let Some(rows) = super::emu_obj("group_can_activate") else {
         return;
     };
     let mut n = 0;

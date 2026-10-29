@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `MiscAccess::world_to_screen@00583810`, run by `tools/emu/sweep_world_to_screen_a.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 5 argument(s), the global cell 0x00c06210 points at 320 random bytes; argument 3 names 8 random bytes; callee 0x00583840 (5 args) stubbed; stub 0 answered from [0, 1, -1, 320, 240] (90%); `__cdecl`: the caller pops the arguments; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `edx` the address of window `p0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `MiscAccess::world_to_screen@00583810`, run by `tools/emu/sweep_obj.py` on its row `world_to_screen_a` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 5 argument(s), the global cell 0x00c06210 points at 320 random bytes; argument 3 names 8 random bytes; callee 0x00583840 (5 args) stubbed; stub 0 answered from [0, 1, -1, 320, 240] (90%); `__cdecl`: the caller pops the arguments; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `edx` the address of window `p0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_to_screen_a.py") else {
+    let Some(rows) = super::emu_obj("world_to_screen_a") else {
         return;
     };
     let mut n = 0;

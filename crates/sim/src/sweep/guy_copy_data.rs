@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Guy::copy_data@005d84b0`, run by `tools/emu/sweep_guy_copy_data.py` under unicorn
-/// (tools/emu): 192 random bytes of object, 1 argument(s), argument 0 names 188 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Guy::copy_data@005d84b0`, run by `tools/emu/sweep_obj.py` on its row `guy_copy_data` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 192 random bytes of object, 1 argument(s), argument 0 names 188 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_guy_copy_data.py") else {
+    let Some(rows) = super::emu_obj("guy_copy_data") else {
         return;
     };
     let mut n = 0;

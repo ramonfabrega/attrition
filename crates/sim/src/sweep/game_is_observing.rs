@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::is_observing@00594490`, run by `tools/emu/sweep_game_is_observing.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), the global cell 0x00e335c8 points at 64 random bytes; vtable slot +0x10 (0 args) stubbed; the word at `c0+0x28` points at 32 random bytes less `0` (placed, null a third of the rows); stub 0 answered from [0, 1] (90%); the stubbed vtable laid at `p0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::is_observing@00594490`, run by `tools/emu/sweep_obj.py` on its row `game_is_observing` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), the global cell 0x00e335c8 points at 64 random bytes; vtable slot +0x10 (0 args) stubbed; the word at `c0+0x28` points at 32 random bytes less `0` (placed, null a third of the rows); stub 0 answered from [0, 1] (90%); the stubbed vtable laid at `p0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_is_observing.py") else {
+    let Some(rows) = super::emu_obj("game_is_observing") else {
         return;
     };
     let mut n = 0;

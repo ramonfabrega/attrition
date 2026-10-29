@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `MiscAccess::coord_vis@00583a60`, run by `tools/emu/sweep_misc_access_coord_vis_3.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 3 argument(s), callee 0x00583840 (0 args) stubbed; stub 0 answered from [0, 1, -1, 256, 305419776, 2147483392] (90%); `__cdecl`: the caller pops the arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `MiscAccess::coord_vis@00583a60`, run by `tools/emu/sweep_obj.py` on its row `misc_access_coord_vis_3` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 3 argument(s), callee 0x00583840 (0 args) stubbed; stub 0 answered from [0, 1, -1, 256, 305419776, 2147483392] (90%); `__cdecl`: the caller pops the arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_misc_access_coord_vis_3.py") else {
+    let Some(rows) = super::emu_obj("misc_access_coord_vis_3") else {
         return;
     };
     let mut n = 0;

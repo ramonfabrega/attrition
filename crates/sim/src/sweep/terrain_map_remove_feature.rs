@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `TerrainMap::remove_feature@009b39e0`, run by `tools/emu/sweep_terrain_map_remove_feature.py` under unicorn
-/// (tools/emu): 2512 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 4 random bytes; callee 0x009b37a0 (2 args) stubbed; callee 0x009b3590 (2 args) stubbed; callee 0x009b3340 (2 args) stubbed; the word at `m+0x9c8` points at 16 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `TerrainMap::remove_feature@009b39e0`, run by `tools/emu/sweep_obj.py` on its row `terrain_map_remove_feature` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2512 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 4 random bytes; callee 0x009b37a0 (2 args) stubbed; callee 0x009b3590 (2 args) stubbed; callee 0x009b3340 (2 args) stubbed; the word at `m+0x9c8` points at 16 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_terrain_map_remove_feature.py") else {
+    let Some(rows) = super::emu_obj("terrain_map_remove_feature") else {
         return;
     };
     let mut n = 0;

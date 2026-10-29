@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::count_mountains_adjacent@00639180`, run by `tools/emu/sweep_build_type_data_count_mountains_adjacent.py` under unicorn
-/// (tools/emu): 572 random bytes of object, 3 argument(s), the global cell 0x00c061d0 points at 316 random bytes; the word at `c0+0x138` points at 288 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::count_mountains_adjacent@00639180`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_count_mountains_adjacent` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 572 random bytes of object, 3 argument(s), the global cell 0x00c061d0 points at 316 random bytes; the word at `c0+0x138` points at 288 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_count_mountains_adjacent.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_count_mountains_adjacent") else {
         return;
     };
     let mut n = 0;

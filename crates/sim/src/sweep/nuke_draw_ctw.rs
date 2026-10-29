@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Nuke::draw_ctw@0092b9f0`, run by `tools/emu/sweep_nuke_draw_ctw.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 3 argument(s), 4 random bytes at 0x00c0a8a0; callee 0x00926410 (2 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Nuke::draw_ctw@0092b9f0`, run by `tools/emu/sweep_obj.py` on its row `nuke_draw_ctw` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 3 argument(s), 4 random bytes at 0x00c0a8a0; callee 0x00926410 (2 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_nuke_draw_ctw.py") else {
+    let Some(rows) = super::emu_obj("nuke_draw_ctw") else {
         return;
     };
     let mut n = 0;

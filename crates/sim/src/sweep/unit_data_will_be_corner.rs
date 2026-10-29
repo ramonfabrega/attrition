@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::will_be_corner@00609fa0`, run by `tools/emu/sweep_unit_data_will_be_corner.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 4 argument(s), the word at `0xc0aec0+u8(m,9)*0x1c` points at 4 random bytes less `i16(m,0xa)*4` (placed); the word at `p0+0` points at 4 random bytes less `0x18` (placed); the word at `p1+0` points at 4 random bytes less `0x248` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::will_be_corner@00609fa0`, run by `tools/emu/sweep_obj.py` on its row `unit_data_will_be_corner` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 4 argument(s), the word at `0xc0aec0+u8(m,9)*0x1c` points at 4 random bytes less `i16(m,0xa)*4` (placed); the word at `p0+0` points at 4 random bytes less `0x18` (placed); the word at `p1+0` points at 4 random bytes less `0x248` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_will_be_corner.py") else {
+    let Some(rows) = super::emu_obj("unit_data_will_be_corner") else {
         return;
     };
     let mut n = 0;

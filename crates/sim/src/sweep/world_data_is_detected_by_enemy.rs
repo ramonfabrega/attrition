@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::is_detected_by_enemy@006b50f0`, run by `tools/emu/sweep_world_data_is_detected_by_enemy.py` under unicorn
-/// (tools/emu): 368 random bytes of object, 3 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `m+0x164` points at 4 random bytes less `i32(m,0xc)*i32(p[1],0)+i32(p[0],0)` (placed); the word at `0xc061e0` points at 4 random bytes less `a[2]*0x6eec+0x6929` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::is_detected_by_enemy@006b50f0`, run by `tools/emu/sweep_obj.py` on its row `world_data_is_detected_by_enemy` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 368 random bytes of object, 3 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `m+0x164` points at 4 random bytes less `i32(m,0xc)*i32(p[1],0)+i32(p[0],0)` (placed); the word at `0xc061e0` points at 4 random bytes less `a[2]*0x6eec+0x6929` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_is_detected_by_enemy.py") else {
+    let Some(rows) = super::emu_obj("world_data_is_detected_by_enemy") else {
         return;
     };
     let mut n = 0;

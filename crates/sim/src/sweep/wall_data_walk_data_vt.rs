@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WallData::walk_data@00642510`, run by `tools/emu/sweep_wall_data_walk_data_vt.py` under unicorn
-/// (tools/emu): an empty body: 128 random bytes of object and 1 argument(s), every byte held after the return and `esp` checked (parked 1889).
+/// `WallData::walk_data@00642510`, run by `tools/emu/sweep_obj.py` on its row `wall_data_walk_data_vt` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): an empty body: 128 random bytes of object and 1 argument(s), every byte held after the return and `esp` checked (parked 1889).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wall_data_walk_data_vt.py") else {
+    let Some(rows) = super::emu_obj("wall_data_walk_data_vt") else {
         return;
     };
     let mut n = 0;

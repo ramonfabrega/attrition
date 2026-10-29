@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Guy::set_pivot_angle@005d8fc0`, run by `tools/emu/sweep_guy_set_pivot_angle.py` under unicorn
-/// (tools/emu): 160 random bytes of object, 2 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Guy::set_pivot_angle@005d8fc0`, run by `tools/emu/sweep_obj.py` on its row `guy_set_pivot_angle` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 160 random bytes of object, 2 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_guy_set_pivot_angle.py") else {
+    let Some(rows) = super::emu_obj("guy_set_pivot_angle") else {
         return;
     };
     let mut n = 0;

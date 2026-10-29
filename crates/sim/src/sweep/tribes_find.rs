@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Tribes::find@006ef2d0`, run by `tools/emu/sweep_tribes_find.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0, p1 the place; argument 0 names 24 random bytes; the import cell 0x00ac5640 holds a stub (2 args); the word at `m+0x14` points at 36480 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
+/// `Tribes::find@006ef2d0`, run by `tools/emu/sweep_obj.py` on its row `tribes_find` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0, p1 the place; argument 0 names 24 random bytes; the import cell 0x00ac5640 holds a stub (2 args); the word at `m+0x14` points at 36480 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_tribes_find.py") else {
+    let Some(rows) = super::emu_obj("tribes_find") else {
         return;
     };
     let mut n = 0;
