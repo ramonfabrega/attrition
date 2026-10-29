@@ -43,8 +43,14 @@ pub(crate) const TURKISH_INFORMATION: Pair = Pair {
     // (`docs/AI.md` §378.1). 3952: ours 35 draws against 34, index 30 — ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a
     // < Unit::do_guard+0x7f4`.
-    count: 3952,
-    sequence: 3952,
+    // Item 3782, 3952 → whole — count 5036, sequence 5036 of 5036: on 3833
+    // army 2's re-issued `ATTACKTOORDER` re-placed the Attack Sub `1/98` by
+    // `Group::action_move_near`'s different-region arm round slot 0, and
+    // `find_unit_with_radius` at the sub's block 0 asks only the spot's own
+    // 768-unit cell — (1512, 5640) in both, where ours had refused it for
+    // the leader `1/49` one cell east (`docs/AI.md` §378.2).
+    count: 5036,
+    sequence: 5036,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -194,7 +200,10 @@ fn turkish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // (ours 0, theirs 1), and on 3901 group 70's Attack Sub `1/98`, whose
     // `ATTACKTOORDER` stands at (1944, 5976) in ours and (1512, 5640) in
     // theirs (`docs/AI.md` §378.1).
-    pin_eq!(w.firsts.len(), 165, "the stride's baseline");
+    // Item 3782, 165 → 149: the sub's re-seat agrees, so its rows on 3901
+    // go; the rest are the standing families and the Tornado's `g.z[0]`
+    // (`docs/AI.md` §378.2).
+    pin_eq!(w.firsts.len(), 149, "the stride's baseline");
 }
 
 /// run1446b: the word 2551's window, blocks 2495..2801 at the long's
@@ -338,11 +347,88 @@ fn turkish_information_pair_run1452_s_word_frame_is_widened_whole() {
     // ours' sub has arrived and idles, theirs' still guards its move
     // (`docs/AI.md` §378.1). The Tornado `1/89`'s `g.z[0]` aboard its
     // carrier and `1/132`'s `mirror` stand from 3895.
-    pin_eq!(w.firsts.len(), 623, "run1452 baseline");
+    // Item 3782, 623 → 93: the pair is whole, and what stands is the
+    // standing families alone — `form` (35), who=1's groups' `held` and
+    // pools (20 each), `SITE[..].reg` (15), two `mirror`s and the Tornado
+    // `1/89`'s `g.z[0]` (`docs/AI.md` §378.2).
+    pin_eq!(w.firsts.len(), 93, "run1452 baseline");
     // Every round, both directions: 360 against 360, parting from 4030
-    // (`1/63`'s launch point), past the word.
+    // (`1/63`'s launch point), past the word. Item 3782, 144 → 174: every
+    // parting row is an Advanced Battleship's launch point — `1/49`,
+    // `1/50`, `1/63`, `1/67` and `1/68`'s `sx`/`sy`/`sz`, `v1z`, `ex`/`ey`
+    // — no draw reads them, and the fleet that now agrees fires more
+    // rounds from them (parked 3782a).
     pin_eq!(w.rounds_read, (360, 360), "the rounds read");
-    pin_eq!(w.rounds.len(), 144, "the rounds that part");
+    pin_eq!(w.rounds.len(), 174, "the rounds that part");
+}
+
+/// run1454: the pair's last blocks, 4781..5037 at run1452's detail, through
+/// the closing block (item 3782). The pair is whole, so its word is the
+/// game's last frame; run1446 prints units only every hundred frames, with
+/// no leader, building, city or round record past the start.
+pub(crate) const RUN1454: &str =
+    "gamelog-run1454-eastindies-turkish-information-closing-window-4781-5037.txt";
+
+/// The window: block 4781 through the closing block 5037.
+pub(crate) const WIDENING_TURKISH_INFORMATION_CLOSING: (i64, i64) = (4781, 5037);
+
+/// **The pair's last blocks**: run1454 walked from run1445's start with the
+/// recorder on and every round compared (item 3782).
+pub(crate) fn turkish_information_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[TURKISH_INFORMATION.start],
+        true,
+        TURKISH_INFORMATION.long,
+        "run1454",
+        &[(RUN1454, WIDENING_TURKISH_INFORMATION_CLOSING.0)],
+        WIDENING_TURKISH_INFORMATION_CLOSING,
+        1,
+        &[5037],
+        true,
+    )
+}
+
+#[test]
+fn turkish_information_pair_run1454_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = turkish_information_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3782, the pair whole: **85** keys, the standing families alone —
+    // `form` (30), who=1's groups' `held` and pools (20 each), who=0's
+    // `SITE[0..9].reg` (65 against 0) and `aggression[1]` (0 against 1), the
+    // Tornado `1/89`'s `g.z[0]` aboard its carrier, and `mirror` on `1/132`,
+    // `1/139` and `1/145`. No draw parts to 5036.
+    pin_eq!(w.firsts.len(), 85, "run1454 baseline");
+    pin_eq!(w.rounds_read, (360, 360), "the rounds read");
+    // Every round, both directions: 360 against 360; the 174 that part, from
+    // 4830, are the Advanced Battleships' launch points — `sx`/`sy`/`sz`,
+    // `v1z`, `ex`/`ey` on `1/49`, `1/50`, `1/51`, `1/63` and `1/67`
+    // (parked 3782a).
+    pin_eq!(w.rounds.len(), 174, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3772): run1446's closing block 5037,
@@ -392,11 +478,9 @@ fn turkish_information_pair_run1446_s_closing_state() {
     // parted — 156 units compared, counts [144, 8, 7, 0, 106, 2, 32],
     // nothing torn, eight of who=1's unlinked, seven of who=1's extra. A
     // floor, not a score.
-    pin_eq!(e.compared, 155, "units compared");
-    pin_eq!(e.counts(), [39, 9, 2, 0, 8, 0, 5], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(1, 146), (1, 35)],
-        "the closing extras"
-    );
+    // Item 3782, whole: 164 units compared, every count zero, nothing torn,
+    // unlinked or extra (`docs/AI.md` §378.2).
+    pin_eq!(e.compared, 164, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

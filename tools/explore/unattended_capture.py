@@ -196,6 +196,28 @@ def set_ai_tribe(profile, tribe):
     path.write_bytes(text.encode('utf-8'))
 
 
+def set_seat_tribes(profile, pairs):
+    """Select computer seats' nations, `SLOT=TRIBE` each (item 3774): the
+    profile's `XPACK_LAST_TRIBE<SLOT>`, which holds 24 (random) for every
+    computer slot the lane's template seats, under the staged profile
+    backup. `--ai-tribe` is slot 1's alone and refuses a third seat; a
+    melee's `--profile PLAYERS=2` seats who 1 and who 2."""
+    if not pairs:
+        return
+    path = profile / 'PlayerProfile' / 'Player.dat'
+    text = path.read_bytes().decode('utf-8')
+    for slot, tribe in pairs:
+        if not 1 <= slot <= 7 or not 0 <= tribe < 24:
+            raise ValueError('--seat-tribe takes a computer slot 1..7 and an explicit nation 0..23')
+        if re.findall(rf'<LAST_SLOT{slot} value="(-?\d+)"/>', text) != ['1']:
+            raise ValueError(f'expected exactly one computer in player slot {slot}')
+        text, n = re.subn(rf'<XPACK_LAST_TRIBE{slot} value="-?\d+"/>',
+                          f'<XPACK_LAST_TRIBE{slot} value="{tribe}"/>', text)
+        if n != 1:
+            raise ValueError(f'expected one player-{slot} tribe field, found {n}')
+    path.write_bytes(text.encode('utf-8'))
+
+
 def initial_players(path):
     """Read the header's PLAYER scalars; stop before the potentially huge game dump."""
     players, current, depth = [], None, None
@@ -469,7 +491,7 @@ def lane_prefix():
         return None
 
 
-def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None,
+def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None, seat_tribes=(),
                 allow_early_end=False):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
@@ -523,6 +545,10 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
                 or by_who[0].get('tribe') != 4 or by_who[1].get('tribe') != ai_tribe
                 or not by_who[0].get('flags', 0) & 4 or by_who[1].get('flags', 0) & 4):
             raise ValueError(f'player read-back mismatch: {players}')
+    if seat_tribes:
+        by_who = {p.get('who'): p for p in players}
+        if any(by_who.get(slot, {}).get('tribe') != tribe for slot, tribe in seat_tribes):
+            raise ValueError(f'seat tribe read-back mismatch: {players} for {list(seat_tribes)}')
     return {'map_style': style, 'closing_frame': closing_frame, 'ended_early': closing_frame != end + 1,
             'seed_observed': sorted(seeds),
             'groupdata_blocks': groupdata, 'groupdata_frames': sorted(group_frames), 'players': players}
@@ -664,6 +690,8 @@ def capture(args, output, style, run=None):
         set_lobby(args.profile, report['lobby'])
         report['ai_tribe_requested'] = getattr(args, 'ai_tribe', None)
         set_ai_tribe(args.profile, report['ai_tribe_requested'])
+        report['seat_tribes_requested'] = getattr(args, 'seat_tribes', None) or []
+        set_seat_tribes(args.profile, report['seat_tribes_requested'])
         report['bindkey'] = getattr(args, 'bindkeys', None) or []
         bind_keys(args.profile, args.install, report['bindkey'])
         rise = args.profile / 'rise.ini'
@@ -838,6 +866,7 @@ def capture(args, output, style, run=None):
                                   args.recording_seed if playback else args.seed,
                                   detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
                                   ai_tribe=report['ai_tribe_requested'],
+                                  seat_tribes=report['seat_tribes_requested'],
                                   log_window=None if getattr(args, 'stride', None) else getattr(args, 'log_window', None),
                                   allow_early_end=early))
         if playback and sha(recording) != report['recording']['sha256']:
@@ -1163,6 +1192,10 @@ def parser():
                     help='full initial dump and WORLD=6, bounded to log window 0 2')
     ap.add_argument('--ai-tribe', type=int, choices=range(24),
                     help='explicit nation for computer slot 1; receipt requires human Nubians in slot 0')
+    ap.add_argument('--seat-tribe', action='append', dest='seat_tribes', metavar='SLOT=TRIBE',
+                    type=lambda v: tuple(int(x) for x in v.split('=')),
+                    help='explicit nation for computer slot SLOT (1..7), repeatable; read back from '
+                         'the receipt\'s PLAYER records (item 3774)')
     ap.add_argument('--profile', action='append', dest='lobby', metavar='KEY=N',
                     help="a lobby field in the profile's <SOLO>/<MULTI> blocks, repeatable "
                          "(the queue lane's `profile:` key; e.g. DIFFICULTY=5)")
@@ -1188,8 +1221,8 @@ def main():
     if args.recording is not None:
         args.recording = args.recording.resolve(strict=True)
         args.recording_seed, recording_map = recording_identity(args.recording)
-        if args.maps or args.lobby or args.ai_tribe is not None or args.cmd_file or args.cmd_without:
-            ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe, --cmd-file and --cmd-without')
+        if args.maps or args.lobby or args.ai_tribe is not None or args.seat_tribes or args.cmd_file or args.cmd_without:
+            ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe, --seat-tribe, --cmd-file and --cmd-without')
         args.maps = [recording_map]
     args.maps=tuple(args.maps or (14,18))
     settle_timeout(args)

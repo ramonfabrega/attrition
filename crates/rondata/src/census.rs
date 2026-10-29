@@ -630,7 +630,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3771: 261 -> 262, the Roman Modern pair whole on its first try at
 /// 5234 — `Heavy Machine Gun[HVYMACHINEGUNGERMAN]` (126), land, the
 /// refill's never-seen line (§377), read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 262;
+/// Item 3782: 262 -> 263, the Turkish Information pair whole at 5036 —
+/// `Jet Fighter[TORNADODES]` (298), air, the line item 3772 booked and
+/// found fielded while the pair parted (§378); `find_unit_with_radius`'s
+/// disc closed the word (§378.2), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 263;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

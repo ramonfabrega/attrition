@@ -12375,7 +12375,7 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
 
 ## Parked by item 3751, 2026-10-28 — the Chinese Modern pair's residue under a whole score
 
-- **3751a. The Submarine `1/139`'s re-issued attack order takes a different formation slot**, with no score
+- ~~**3751a. The Submarine `1/139`'s re-issued attack order takes a different formation slot**~~ — answered by item 3782 (`docs/AI.md` §378.2): its block-0 re-place asked `find_unit_with_radius` over the whole map, where the original asks the disc's cells, and the pair's closing counts now read zero. The row as it stood: with no score
   parting: the pair is whole at 4130 of 4130 (`docs/AI.md` §375). `1/139` (type 338, `SUB`, group 71) is on an
   `ATTACKTOORDER` that agrees on run1431's stride block 3801 (point 44952, 37848, offset 408, 216). By run1431b's
   first block 3875 the order is re-issued on both sides: ours at (45288, 37992), offset (744, 360), path 19 nodes;
@@ -12571,21 +12571,34 @@ game names it. No draw parts and the closing state compares clean, so it names n
 Nothing parks. The pair's first parting, the Attack Sub `1/78`'s exit from dock `1/2020` on 2550 onto the idle
 Advanced Battleship `1/51`'s square (`docs/AI.md` §378), is the pair's word 2551 and books. It does not park.
 
-## Parked by the next landing, slot WN — reserved
+## Parked by item 3773, 2026-10-29 — the French at Information, whole at 3191, field no Mirage
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3773a. `Jet Fighter[MIRAGE]` (296) is still never seen.** The French at a held Information age on Great Sahara
+  at difficulty 3 (`french_information_pair`, whole at 3191) field no fighter at all: the Strategic Bomber (305)
+  is their one air line, and the game ends on 3191. It names no score while no lockstep game fields it: a melee's
+  `add` line can field the Mirage under `TRIBE_MASK` (the French), or a longer French Information lobby can
+  (`docs/AI.md` §379).
 
-## Parked by the next landing, slot WO — reserved
+## Parked by item 3774, 2026-10-29 — the second melee, a held Classical age on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3774a) **`add` does not test `TRIBE_MASK`, so §155's falsifier (d) has one arm.** `ConsoleWin::run_cmd@007d6a70`'s
+`add` case takes `parse_type@007e4050`'s index (mode 3) and calls `UnitType::find_nearby_spot` and
+`Objects::init_unit` with the console's or the line's `who`; `parse_type` walks the type names (with and without
+spaces) and reads no leader. run1450's `cmdsran.py` agrees: the Nubian human's Royal Balamob Slingers, Barbarians,
+Bushi and Chevalier — four lines its nation does not own — each returned 1 and stood up. GOLDEN §155's (d) names "the
+nation's `TRIBE_MASK`"; only the name arm can fire. A wording fix to §155, no score.
+
+(3774b) **The twin moves neither the matrix nor the bytes while the game parts, and enters none of Classical's
+gap.** run1450b enters 50 of the `unit` stem's 106 open functions, all 50 already entered by run1215, so **0 of the
+51** Classical's column lacks (the Gunpowder twin run1413b reaches 2 of them). `rubric.py`'s `lockstep_files` reads
+whole games alone (3733b's shape): the column stays at one trace until the melee runs whole, and a whole run would
+still enter nothing of the 51 on this evidence. What the 51 are, and which lobby reaches them, is the matrix's next
+question, not this word's.
+
+(3774c) **`--ai-tribe`'s read-back refuses a third seat.** `verify_game` asks for exactly two PLAYER records, so a
+`--profile PLAYERS=2` take cannot name slot 1's nation with it; `--seat-tribe SLOT=TRIBE` (this item) writes any
+computer slot's `XPACK_LAST_TRIBE<slot>` and reads each back by `who`. Folding `--ai-tribe` into it is tooling, no
+score.
 
 ## Parked by the next landing, slot WP — reserved
 
@@ -12628,13 +12641,14 @@ words and edits nothing here; a refill lands when two remain.
   (`damage`, `damage_frac`, `recharging`), so the probe's two edits could stay on the line. It names no score: a
   tool row.
 
-## Parked by the next landing, slot WU — reserved
+## Parked by item 3782, 2026-10-29 — the Turkish Information pair whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3782a. The Advanced Battleship's launch point** (`docs/AI.md` §378.2): every round that parts on the whole Turkish
+  pair is a battleship's (`1/49`, `1/50`, `1/51`, `1/63`, `1/67`, `1/68`, type 350): `ammo.sx`/`sy`/`sz`, `v1z` and
+  `ex`/`ey`. On run1452's 4030 `1/63`'s round reads `sx` 840 against 1040, `sy` 7512 against 7570, `sz` 0 against 173.
+  That is 174 rows in run1452's window (3895..4202) and 174 from 4830 in run1454's (4781..5037), 360 rounds read a side,
+  and no draw parts to 5036. It is a ship's muzzle offset and height, which no draw reads, so it names no score
+  until a word's frame does.
 
 ## Parked by item 3783, 2026-10-29 — the second Despot is researched at the held-elsewhere rate
 

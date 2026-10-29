@@ -529,6 +529,11 @@ pub const TRACES: &[&str] = &[
     // run1413's game on every frame (rngcmp 2601 identical, 0 differing) —
     // the first coverage trace of a game that holds Gunpowder.
     "rontrace-run1413b.log",
+    // Item 3774: the second melee (Great Sahara, three seats, a held
+    // Classical age, `tools/gamelog/golden/melee-classical.cmd`) at
+    // `cover=1` on the click-free pool, to 2600 (`docs/RUNS.md` run1450b):
+    // run1450's game on every frame (rngcmp 2601 identical, 0 differing).
+    "rontrace-run1450b.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked

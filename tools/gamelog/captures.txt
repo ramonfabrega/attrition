@@ -11104,3 +11104,16 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3780: the Turks' Information word moved to 3952 (`docs/AI.md` §378.1; `docs/RUNS.md` run1452) ====
 #   run1452  --map 18 --end-frame 4202 --timeout 3600 --log-window 3895 4202 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0, run1445's lobby   (the word 3952's window)
 # Checks: `rngcmp.py` run1446 vs run1452 -> 4203 identical.
+# ==== item 3782: the Turks' Information pair whole at 5036 (`docs/AI.md` §378.2; `docs/RUNS.md` run1454) ====
+#   run1454  --map 18 --end-frame 5036 --allow-early-end --timeout 3600 --log-window 4781 5037 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0, run1445's lobby   (the closing window)
+# Checks: `rngcmp.py` run1446 vs run1454 -> 5037 identical.
+# ==== item 3773: the French at a held Information age, Great Sahara, at difficulty 3 (`docs/AI.md` §379; `docs/RUNS.md` run1447, run1448, run1448b) ====
+#   run1447  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1448  run1446's line with --map 7, --ai-tribe 10 and run1447's lobby   (the draw stream; ended itself on 3191)
+#   run1448b --map 7 --end-frame 3191 --allow-early-end --timeout 3600 --log-window 2935 3192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1447's lobby   (the closing window)
+# Checks: `rngcmp.py` run1447 vs run1448 -> 37 identical; run1448 vs run1448b -> 3192 identical.
+# ==== item 3774: the second melee, a held Classical age on Great Sahara (`docs/GOLDEN.md` §150; `docs/RUNS.md` run1449, run1450, run1450b) ====
+#   run1449  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --seat-tribe 1=5 --seat-tribe 2=7   (start)
+#   run1450  --map 7 --end-frame 2600 --timeout 3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file tools/gamelog/golden/melee-classical.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1, run1449's profiles and seats   (the staged melee)
+#   run1450b run1450's line with --cover cover=1   (the coverage twin)
+# Checks: `rngcmp.py` run1449 vs run1450 -> 37 identical; run1450 vs run1450b -> 2601 identical; `samegame.py` run1450 vs run1450b -> 26 common, 0 differing.

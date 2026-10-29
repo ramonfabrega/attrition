@@ -85,6 +85,8 @@ mod chinese_medieval_pair;
 #[cfg(test)]
 mod chinese_modern_pair;
 mod city;
+#[cfg(test)]
+mod classical_melee;
 mod corrections;
 #[cfg(test)]
 mod coverage_pair;
@@ -112,6 +114,8 @@ mod floors;
 mod french_classical_pair;
 #[cfg(test)]
 mod french_enlightenment_pair;
+#[cfg(test)]
+mod french_information_pair;
 #[cfg(test)]
 mod french_medieval_pair;
 #[cfg(test)]

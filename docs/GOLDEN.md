@@ -14787,12 +14787,81 @@ mechanism is named.
 stride; the probes' readings by run1451 and run1413's trace. The once-per-record bump rests on the decompile and the
 one numbering it moves.
 
-## 150. Reserved for the next item on the rules track
+## 150. The second melee — a held Classical age on Great Sahara, every seat a computer (item 3774, run1449–run1450b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The shape is §155; the first melee is §149. **The one lever changed is the age**: Classical
+(`STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`), the matrix's next cell — Classical's column held one coverage trace
+(run1215), `unit` 51 never entered there, `groups` 78, `map` 58 (`rubric.py --tables 5` on base `c2f69b88`). The
+nations are the second lever the shape allows to follow it: §155's (d) asks the `add` lines to take the age's
+never-seen lines on seats that own them, and the lobby's random computers do not.
+
+1. **Premise**: the Greeks (who 1, Athens) and the Egyptians (who 2, Thebes), granted 100,000 a good on 600 and 602,
+   field twelve Classical types a side from 610, two frames apart, between the two territories, and fight under their
+   own target selection; the idle human Nubians (who 0, Napata), at war with both, field six more between them.
+2. **Cheat lines**, `tools/gamelog/golden/melee-classical.cmd` (32 lines): the two `resource` lines; then twelve `add`
+   twins on §149's placement (who 1 on tile row 76, who 2 on row 86, x 66..110) — the Companion and the Chariot, Horse
+   Archer and Light Camel, Light Horse and Cataphract, then Phalanx, Javelineers, Archers, Catapult, Scout, General,
+   Spy, The Despot and Militia on both; then six on who 0 on row 81, x 78..98: Kushite Archers and Camel Archer (its
+   own), Royal Balamob Slingers, Barbarians, Bushi and Chevalier. Those are the nine never-seen Classical lines
+   (`--tables 3`: Militia and eight unique lines of seven nations); three seats can own at most four of the seven
+   nations' lines, so the Maya's, Germans', Japanese and French ones stand on the idle human, who does not think.
+   No `tech` line (§149: `tech all` lifts the held age), no `!ai off`, no `select`.
+3. **The lobby's seats**: `unattended_capture.py --seat-tribe 1=5 --seat-tribe 2=7`, new here (the profile's
+   `XPACK_LAST_TRIBE1`/`2`, which the lane's template holds at 24, random; `--ai-tribe` refuses a third seat, parked
+   3774c). run1449's receipt reads tribes 4, 5 and 7, and the three capitals stand on run1412's cells.
+4. **Records**: run1449 the `DUMP_ALL` start; run1450 the staged game at `cover=0`, §155's `end:` set on a stride of
+   100; run1450b its `cover=1` twin (rngcmp 2601 identical, samegame 26 blocks 0 differing).
+
+**The staging, walked first** (`classical_melee_staging_walk`, to 700): 32 lines ran, 50 units, 0 carried and not
+acted on; e.g. `1/14` Companion at (13128, 14568) for (12768, 14688), `2/14` Chariot at (12792, 16632) for (12768,
+16608), `0/18` Royal Balamob Slingers at (16632, 15672) for (16608, 15648).
+
+**The falsifiers.**
+- (a) **Not fired.** run1449's start block: every leader reads `diplos` 0 to both others and 2 to itself.
+- (b) **Not fired.** On block 701 the Greek Phalanx `1/19` holds an `ATTACKORDER` on who 2's `o` 17, and the
+  Barbarians `0/21` one on who 1's `o` 26 (in range); the Egyptian General `2/28` an `ATTACKTOORDER`.
+- (c) **Not fired.** The closing block 2601 reads who 1's buckets 34, 88, 110, 219, 163 and who 2's 14, 54, 8, 173,
+  199, of 120,000 each; the idle human keeps its 20,000.
+- (d) **Not fired, and half of it cannot fire.** All 32 lines returned 1 (`cmdsran.py`: 34 parsed, 34 ran). `add`
+  does not test the nation: `ConsoleWin::run_cmd@007d6a70`'s case takes `parse_type@007e4050`'s index, which walks the
+  names alone, and calls `UnitType::find_nearby_spot` and `Objects::init_unit` — the four lines who 0 does not own
+  stood up (parked 3774a).
+
+**The score: first try 718 of 2600**, the count and the sequence together (`classical_melee_first_parting`), fifty
+frames past the script's last line. Ours spends 13 draws against theirs' 14:
+
+| index | ours | theirs |
+|---|---|---|
+| 0 | `Unit::fight+0x9b0` (`0/21`) | `Unit::fight+0x9b0` (seed `144c892b`) |
+| 1 | `Guy::set_anim+0x97a < Unit::do_move+0x11cf` (`2/28`) | `Unit::fight+0x9b0` (seed `282c0c8e`) |
+| 2.. | `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` (`0/21`), `Unit::close+0xcb6`, nine `Farms::inc_time+0x1ae` | the same, one index later |
+
+**The direction: theirs acted, ours did not** — one strike more in theirs, ahead of the General's walk. `0/21` is the
+Barbarians (`TI` 154, land, who 0); `2/28` the General (`TI` 54, land). Which unit strikes second in theirs is the
+next item's first question.
+
+**The value diff** (`classical_melee_run1450_s_word_window_is_widened_whole`, run1450's stride 601..968, rounds
+compared: 4 blocks, 988 keys, rounds read (14, 17), 22 parting). Block 601's 71 rows are the standing families §149
+carried (`form` 40, `build:extra` 28, `group:*.held` and `pool:65`). The state first parts on **block 701**, two
+records:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `1/19`, Phalanx (`TI` 133, land, who 1) | `damage_frame` | 688 | 687 |
+| | `hits_left` | 115 | 108 |
+| | `hits:damage` / `damage_frac` | 30 / 15 | 37 / 4 |
+| `0/17 ammo[4]`, the Camel Archer's round at `2/22` | `sx`, `sy`, `sz` | 15864, 15672, 566 | 15828, 15703, 835 |
+| | `v1z` (millionths) / `angle` | 47420536 / −1488191488 | 8991965 / −1483341824 |
+
+The Phalanx was struck a frame earlier and harder in theirs; the Camel Archer (`TI` 191, piece 141) looses from its
+own square in ours where theirs looses 269 higher and off the square — **the first melee's launch-bay shape** (3759, 3781):
+`launch::BAYS` has no row for piece 141. That is the parting's piece named, not its fix, which is the next item's.
+
+**What the twin enters**: 50 of the `unit` stem's 106 open functions, all already entered by run1215 — **0 of the
+51** the Classical column lacks (parked 3774b). The matrix and the lockstep bytes do not move while the game parts.
+
+**What is not established**: which unit strikes second on 718 in theirs; whether `1/19`'s earlier blow is the Camel
+Archer's round or another's; the Camel Archer's bay rows (a packet's `AttachPos`, as 3759's).
 
 ## 151. Reserved for the next item on the rules track
 

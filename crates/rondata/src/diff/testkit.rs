@@ -11077,6 +11077,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3733,
         Some(crate::diff::gunpowder_melee::WIDENING_GUNPOWDER_MELEE),
     ),
+    // **The second melee** (item 3774): Great Sahara, three seats, a held
+    // Classical age — first try 718 of 2600, widened on run1450's stride
+    // over 601..968, the rounds compared.
+    (
+        "CLASSICAL_MELEE_WORD",
+        crate::diff::classical_melee::CLASSICAL_MELEE_WORD,
+        Some("classical_melee_run1450_s_word_window_is_widened_whole"),
+        3774,
+        Some(crate::diff::classical_melee::WIDENING_CLASSICAL_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -11168,13 +11178,26 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Hard — first try 2551 of 5036; widened on run1446b over 2495..2801,
     // the rounds compared. Item 3780 moved it to 3952 (`come_out`'s
     // `FILTER_ALL` sweep, `docs/AI.md` §378.1) and widened it on run1452
-    // over 3895..4202, the rounds compared.
+    // over 3895..4202, the rounds compared. Item 3782 closed it whole
+    // (`find_unit_with_radius` walks the disc's cells, `docs/AI.md` §378.2)
+    // and widened it on run1454 over 4781..5037 (the closing block), the
+    // rounds compared.
     (
         "TURKISH_INFORMATION_PAIR_WORD",
         crate::diff::turkish_information_pair::TURKISH_INFORMATION_PAIR_WORD,
-        Some("turkish_information_pair_run1452_s_word_frame_is_widened_whole"),
-        3780,
-        Some(crate::diff::turkish_information_pair::WIDENING_TURKISH_INFORMATION_FRAME_3952),
+        Some("turkish_information_pair_run1454_s_closing_frame_is_widened_whole"),
+        3782,
+        Some(crate::diff::turkish_information_pair::WIDENING_TURKISH_INFORMATION_CLOSING),
+    ),
+    // **The French at a held Information age** (item 3773): Great Sahara at
+    // Moderate — whole on the first try at 3191; widened on run1448b over
+    // 2935..3192 (the closing block), the rounds compared.
+    (
+        "FRENCH_INFORMATION_PAIR_WORD",
+        crate::diff::french_information_pair::FRENCH_INFORMATION_PAIR_WORD,
+        Some("french_information_pair_run1448b_s_closing_frame_is_widened_whole"),
+        3773,
+        Some(crate::diff::french_information_pair::WIDENING_FRENCH_INFORMATION_CLOSING),
     ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
@@ -13792,7 +13815,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 7), East Indies at Hard (item 3772): first try
     // 2551 of 5036; the word's window run1446b over 2495..2801, the rounds
     // compared. Moved to 3952 (item 3780), its window run1452 over
-    // 3895..4202.
+    // 3895..4202. Whole (item 3782), its window run1454 over 4781..5037.
     AiWord {
         line: "Late ages",
         map: "EastIndiesTurkishInformation",
@@ -13800,7 +13823,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::turkish_information_pair::TURKISH_INFORMATION_PAIR_WORD,
         length: 5_036,
         endpoint: Some("turkish_information_pair_run1446_s_closing_state"),
-        window: Some("turkish_information_frame_3952_window"),
+        window: Some("turkish_information_closing_window"),
+    },
+    // The French at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), Great Sahara at Moderate (item 3773): whole on
+    // the first try at 3191; the closing window run1448b over 2935..3192,
+    // the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaFrenchInformation",
+        named: "Great Sahara (French, Information)",
+        word: crate::diff::french_information_pair::FRENCH_INFORMATION_PAIR_WORD,
+        length: 3_191,
+        endpoint: Some("french_information_pair_run1448_s_closing_state"),
+        window: Some("french_information_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers
@@ -13817,6 +13853,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 2_600,
         endpoint: None,
         window: Some("gunpowder_melee_word_window"),
+    },
+    // **The second melee** (item 3774, `docs/GOLDEN.md` §150, §155): Great
+    // Sahara with three seats at a held Classical age, the Greeks and the
+    // Egyptians granted 100,000 a good and twelve of the age's types a
+    // side from 610 (`tools/gamelog/golden/melee-classical.cmd`). First try
+    // 718 of 2600; run1450's word window over 601..968, the rounds compared.
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaClassicalMelee",
+        named: "Great Sahara (the melee, Classical)",
+        word: crate::diff::classical_melee::CLASSICAL_MELEE_WORD,
+        length: 2_600,
+        endpoint: None,
+        window: Some("classical_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

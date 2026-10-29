@@ -183,6 +183,19 @@ class RunnerTest(unittest.TestCase):
         log.write_text('MAP_STYLE 18\n')
         with self.assertRaises(ValueError):runner.verify_game(log,18,36)
 
+    def test_seat_tribes_set_each_computer_slot_and_refuse_a_human_one(self):
+        profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
+        path=profile/'PlayerProfile'/'Player.dat'
+        original=(b'<LAST_SLOT0 value="0"/><LAST_SLOT1 value="1"/><LAST_SLOT2 value="1"/>'
+                  b'<XPACK_LAST_TRIBE0 value="4"/><XPACK_LAST_TRIBE1 value="24"/><XPACK_LAST_TRIBE2 value="24"/>')
+        path.write_bytes(original)
+        runner.set_seat_tribes(profile,[(1,5),(2,7)])
+        self.assertEqual(path.read_bytes(),original.replace(b'TRIBE1 value="24"',b'TRIBE1 value="5"')
+                         .replace(b'TRIBE2 value="24"',b'TRIBE2 value="7"'))
+        for bad in ([(0,5)],[(3,5)],[(1,24)]):
+            path.write_bytes(original)
+            with self.assertRaises(ValueError):runner.set_seat_tribes(profile,bad)
+
     def test_ai_nation_edit_requires_one_computer_slot_and_changes_only_its_tribe(self):
         profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
         path=profile/'PlayerProfile'/'Player.dat'

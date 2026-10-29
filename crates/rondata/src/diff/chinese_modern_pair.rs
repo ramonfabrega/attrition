@@ -184,7 +184,10 @@ fn chinese_modern_pair_the_long_s_stride_is_widened() {
     // order's point (45288, 37992) against theirs' (45000, 37608), its
     // formation offset (744, 360) against (456, 744), and the path with it.
     // No draw parts to the game's end (parked 3751a).
-    pin_eq!(w.firsts.len(), 207, "the stride's baseline");
+    // Item 3782, 207 → 177: the Submarine's re-chosen slot agrees —
+    // `find_unit_with_radius` asks the disc's cells, so its block-0 re-place
+    // no longer sees a unit across a cell line (`docs/AI.md` §378.2).
+    pin_eq!(w.firsts.len(), 177, "the stride's baseline");
 }
 
 /// run1431b: the pair's closing window, blocks 3875..4131 at the long's
@@ -251,7 +254,9 @@ fn chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole() {
     // offset (744, 360) against (456, 744), its path 19 nodes against 17
     // (run1431's 3801 agrees, offset (408, 216) both sides; parked 3751a).
     // No draw parts to 4130.
-    pin_eq!(w.firsts.len(), 164, "run1431b baseline");
+    // Item 3782, 164 → 125: `1/139`'s rows go — its block-0 re-place asks
+    // the disc's cells (`docs/AI.md` §378.2).
+    pin_eq!(w.firsts.len(), 125, "run1431b baseline");
     pin_eq!(w.rounds_read, (71, 73), "the rounds read");
     // Every round, both directions: 71 in ours against 73, 52 parting —
     // all three who=1's Manchu Infantry (TI 118, TY 68,
@@ -309,7 +314,9 @@ fn chinese_modern_pair_run1431_s_closing_state() {
     // [1, 0, 0, 0, 0, 0, 0] — the Submarine `1/139` off by (70, -591), its
     // re-chosen formation offset (parked 3751a); nothing torn, unlinked
     // or extra. A floor, not a score.
+    // Item 3782: every count zero — the Submarine's offset agrees once
+    // `find_unit_with_radius` asks the disc's cells (`docs/AI.md` §378.2).
     pin_eq!(e.compared, 180, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
