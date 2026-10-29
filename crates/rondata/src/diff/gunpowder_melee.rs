@@ -1383,6 +1383,10 @@ pub(crate) fn seat_walk(
     })
 }
 
+/// One `(who, key)`'s first parting `(frame, ours, theirs)`, the last
+/// frame it parts on, and how many records it parts on.
+pub(crate) type Parting = ((i64, i64, i64), i64, usize);
+
 /// A walk's leader compare, kept by seat: the records each seat compared,
 /// and each `(who, key)`'s first parting (item 3791).
 pub(crate) struct SeatWalk {
@@ -1391,7 +1395,7 @@ pub(crate) struct SeatWalk {
     pub rows: usize,
     /// `(who, key)` → its first parting `(frame, ours, theirs)`, the last
     /// frame it parts on, and how many records it parts on.
-    pub firsts: BTreeMap<(usize, String), ((i64, i64, i64), i64, usize)>,
+    pub firsts: BTreeMap<(usize, String), Parting>,
     pub unprinted: std::collections::BTreeSet<String>,
 }
 
