@@ -14213,6 +14213,83 @@ re-targets on 760 and theirs' does not is the next item's.
 Egyptian floor, both mutations). The writes of `Guy::set_angle`, `Guy::do_turn` and `Guy::set_new_location` rest
 on the export.
 
+## 149.4 A `REVEAL_MAP` census meets the enemy it sees — 760 → 839 (item 3763)
+
+**The booking.** Frame 760, ours 123 draws against 122, index 40: ours spends `Army::find_target+0x7df`, and theirs
+goes straight to who=1's `1/25`'s `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. `RON_DEBUG_ARMIES` shows who=2's army
+`2/0` (leader `2/20`) going from status 17 (`MUSTERING | FORMING`) to 18 (`MARCHING | FORMING`), with a target of its
+own city `2/2000`. **The direction: ours acted, and so did theirs.** The army's decision is a release, and both
+sides release.
+
+**The walk.**
+- **Both sides tick the army on 760.** `Army::process@006f93d0` gates on `(frame + (id + who × 2) × 2) % 256`, as
+  the crate does. Army `2/0` ticks on frames ≡ 248 and `1/0` on frames ≡ 252. Theirs spends `Army::find_target` first
+  on 764, the British army, and next on 1016.
+- **Ours releases through `p / 8 <= n`.** A probe in `do_mustering` read `pop_cap` 50, `num_standard` 6,
+  `effective_pop` 27, difficulty 0, and `rush` −1 on the Inca personality. That arm is the only one that opens:
+  50 / 8 = 6 ≤ 6. The `num_standard` count agrees with theirs. run1413's 801 block prints `o_up` −1 on the same ten
+  who=2 captains, and `SubObjectData::is_spellcaster@006623e0` reads `unit_flags2 & 2` at `+0x2b8` (listing). That
+  is the crate's `CASTER` bit, so the Bombard, the General and the Monarch are subtracted on both sides. The
+  original's `release_mustering@006f87c0` has every arm the crate has, plus `leader_flags & 8`
+  (`LEADER_COOP_SOLO`), which is never set here.
+- **Theirs releases into `DEFENDING`.** run1413b's coverage (`report.py … coverage 600-1020`) enters
+  `Army::do_defending`, `Army::find_besieged_city`, `Army::center_of_gravity`, `Group::action_guard` and
+  `Group::action_siege_attack_to` for the first time on 760. `Army::do_mustering@006f4260`'s released arm sets
+  `0x20` when the region word `LeaderData +0xa68[reg] & 4` is set and the difficulty is below 3.
+- **Ours' region word reads 1**, the thin bit alone. Step 15's war loop (`plan_strategy@006b9620:1555`–`1590`) adds
+  `& 4` at difficulty below 2, for each enemy with cities in the region. It is gated on `treaties[i] & 1`, the met
+  bit, which ours' census read as false for every seat on 750.
+- **Theirs meets inside `plan_strategy`.** run1413b never enters `Leader::meet`. Step 6 (`:205`–`265`) runs under
+  `has_preq(ALLY_LOS) || reveal_map != 0`, and this lobby is `REVEAL_MAP 1` (`GAME INFO`). For every other active
+  leader not yet met, it asks that leader's units, then its buildings, `is_seen(who, 0)` (vslot `+0x48`). The first
+  that answers sets `treaties` bit 1 on both sides inline. The crate had the step as a seam ("no capture sets
+  either"). The only met path it modelled was the fog's `check_ever_seen`, and that needs a building in sight,
+  which a fight in the open between the capitals never gives.
+
+**The fix** (`crates/sim/src/ai_census.rs`): `Sim::census_meet`, step 6, between the ally mask and the invaders.
+Under `reveal_map != 0`, every other undefeated seat not yet met is met when one of its live units or buildings
+answers `target_seen_by(who, …)`, the crate's `ObjectData::is_seen(who, 0)`. The `ALLY_LOS` half of the gate is a
+`SEAM` (parked 3763b). Who=2's census on 750 now meets who=1 both ways, its region word takes `& 4`, and army `2/0`
+releases on 760 without a march or a `find_target`. **108 of 109 lobbies' `first_parting`s hold at their floors.**
+
+**The score: 760 → 839** (the sequence; the count reads 840).
+
+**The value diff.** `gunpowder_melee_run1413_s_word_window_is_widened_whole`, window 801..1089, **427** keys, rounds
+read (23, 26), 23 parting. **Block 801 now carries the standing families alone.** `2/23`'s move goal, (1320, 28152)
+against (5736, 24792), and `path:length`, 24 against 13, are gone with the march. Block 901 parts first on the word's
+unit and the fight around it:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `0/15` | `mirror` | 0 | 1 |
+| `0/14` | `mirror` | 1 | 0 |
+| `2/23` | `death:first_frame` | 864 | 863 |
+| `2/23` | `death:cur_anim` | 17 | 18 |
+
+**The next word**: frame 839, 17 draws a side, parting at index 4, on the human's `0/15`. Ours spends
+`Guy::set_anim+0xf2f < Guy::inc_time+0x271` where theirs spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`. Theirs
+also spends `Ammo::do_damage+0xc59` and `+0xc7e` at indices 7–8, which ours does not draw. The booking is the
+commander's.
+
+**Tests.**
+- `gunpowder_melee_s_census_meets_under_reveal_map` walks to 760. It checks the meeting on 750's census both ways,
+  that 760 draws no `find_target`, that 760's whole sequence matches run1413's trace, and that army `2/0` is not
+  marching.
+- `gunpowder_melee_first_parting` is re-pinned to (840, 839), and the widening's window to 801..1089.
+
+**Mutation** (`tools/mutate.py`): without the `census_meet` call, **held**. `…_first_parting`, the widening and the
+new test fail.
+
+**What is not established.**
+- The `ALLY_LOS` arm (3763b), and the ally bits that `census_ally_mask` sets outside the gate (3763c).
+- The order of the scan (units before buildings) and vslot `0xc`'s predicate are read, not diffed. The arm answers
+  a boolean, so neither moves a draw here.
+- Theirs' meeting frame is bracketed, not pinned: after 550's census, by 750's.
+
+**Coverage.** The release, the `DEFENDING` arm and the score are diff-backed: run1413's trace on 760, run1413b's
+coverage on 760 and 764, the 801 block, and the mutation. Step 6's gate and its inline writes rest on the export
+(`plan_strategy`), and `is_spellcaster`'s field on the listing.
+
 ## 150. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

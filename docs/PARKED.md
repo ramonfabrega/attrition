@@ -12443,13 +12443,21 @@ words and edits nothing here; a refill lands when two remain.
   The killer was the label table in `crates/sim/src/anim.rs`; the frame was right and the mechanism was not
   (DECISIONS 42).
 
-## Parked by the next landing, slot WH — reserved
+## Parked by item 3763, 2026-10-28 — a `REVEAL_MAP` census meets the enemy it sees
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3763a. The booking's "the army re-targets its own city and moves its muster" was the march, not the decision** —
+  killed, unbuilt. Both sides release army `2/0` on 760 through `release_mustering`'s `pop_cap / 8 <= num_standard`
+  (50 / 8 = 6, six standard, `o_up` agreeing on every member). Theirs takes `DEFENDING`: run1413b's coverage enters
+  `Army::do_defending`, `find_besieged_city` and `Group::action_guard` on 760, and `Army::find_target` first on 764,
+  on who=1's army. Neither the target score nor the muster placement was the mechanism. The killer was the
+  coverage report's per-frame first entries, read before any packet (`docs/GOLDEN.md` §149.4).
+- **3763b. Step 6's `has_preq(ALLY_LOS)` half is not read** (`Sim::census_meet`'s `SEAM`). The meeting runs under
+  `reveal_map` alone, and preq `0x2b0`'s holder is not looked up.
+  - It names no score: with the arm under `reveal_map` alone, 108 of 109 `first_parting`s hold, and the melee moves.
+  - What would answer it: a lobby at `REVEAL_MAP 0` whose computer holds the `ALLY_LOS` tech, and a war loop whose
+    `& 4` decides a release.
+- **3763c. `census_ally_mask` ors in every ally both ways outside the gate**, where `plan_strategy:209`–`215` does it
+  only under `ALLY_LOS || reveal_map`. It names no score: no lobby on file allies two computers at `REVEAL_MAP 0`.
 
 ## Parked by the next landing, slot WI — reserved
 

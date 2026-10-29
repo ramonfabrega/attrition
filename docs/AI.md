@@ -160,8 +160,10 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    computer leader, `ally_mask |= bit` if allied both ways; and if not yet
    met (`treaties[i] & 1 == 0`), scan their units then buildings for one
    `is_seen(who)` (vslot `+0x48`) — the first hit sets `treaties` bit 1 on
-   both sides and `LeaderOut::say_meet` for the console player. Diplomacy's
-   edge; noted, not this mechanic.
+   both sides and `LeaderOut::say_meet` for the console player. ~~Diplomacy's
+   edge; noted, not this mechanic.~~ Built by item 3763 under `reveal_map`
+   (`Sim::census_meet`, `docs/GOLDEN.md` §149.4): step 15's war loop reads
+   the bit it sets.
 7. `invaders[who] = 0` on every active leader (the count of *my* units in
    *their* land; refilled in step 10).
 8. **Zero the per-region arrays**: `reg_active, reg_combat, reg_attack`
