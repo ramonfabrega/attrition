@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `MountainsData::mnt_loc_x@0089cf90`, run by `tools/emu/sweep_mountains_data_mnt_loc_x.py` under unicorn
-/// (tools/emu): 512 random bytes of object, 2 argument(s), `p` windows in order: p0 argument 0, p1 the place; 2 random bytes at 0x00ee1244; argument 0 names 4 random bytes; the word at `m+0x78` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
+/// `MountainsData::mnt_loc_x@0089cf90`, run by `tools/emu/sweep_obj.py` on its row `mountains_data_mnt_loc_x` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 512 random bytes of object, 2 argument(s), `p` windows in order: p0 argument 0, p1 the place; 2 random bytes at 0x00ee1244; argument 0 names 4 random bytes; the word at `m+0x78` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_mountains_data_mnt_loc_x.py") else {
+    let Some(rows) = super::emu_obj("mountains_data_mnt_loc_x") else {
         return;
     };
     let mut n = 0;

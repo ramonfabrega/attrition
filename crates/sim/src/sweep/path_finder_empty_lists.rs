@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `PathFinder::empty_lists@00689c70`, run by `tools/emu/sweep_path_finder_empty_lists.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 2 argument(s), argument 0 names 16 random bytes (null a third of the rows); argument 1 names 16 random bytes (null a third of the rows); callee 0x00687c10 (1 args) stubbed; callee 0x00687ba0 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `PathFinder::empty_lists@00689c70`, run by `tools/emu/sweep_obj.py` on its row `path_finder_empty_lists` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 2 argument(s), argument 0 names 16 random bytes (null a third of the rows); argument 1 names 16 random bytes (null a third of the rows); callee 0x00687c10 (1 args) stubbed; callee 0x00687ba0 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_path_finder_empty_lists.py") else {
+    let Some(rows) = super::emu_obj("path_finder_empty_lists") else {
         return;
     };
     let mut n = 0;

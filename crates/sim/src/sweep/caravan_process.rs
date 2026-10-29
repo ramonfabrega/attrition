@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Caravan::process@0073e000`, run by `tools/emu/sweep_caravan_process.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 0 argument(s), `p` windows in order: none; callee 0x0073db10 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Caravan::process@0073e000`, run by `tools/emu/sweep_obj.py` on its row `caravan_process` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 0 argument(s), `p` windows in order: none; callee 0x0073db10 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_caravan_process.py") else {
+    let Some(rows) = super::emu_obj("caravan_process") else {
         return;
     };
     let mut n = 0;

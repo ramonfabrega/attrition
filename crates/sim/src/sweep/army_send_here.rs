@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Army::send_here@006f98a0`, run by `tools/emu/sweep_army_send_here.py` under unicorn
-/// (tools/emu): 160 random bytes of object, 3 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 16 random bytes; the global cell 0x00e85f20 points at 8192 random bytes; callee 0x0092d130 (0 args) stubbed; callee 0x0070fba0 (10 args) stubbed; callee 0x00a46a00 (0 args) stubbed; the word at `0xcae5fc` points at 64 random bytes less `0` (placed); stub 2 answers 8 values in call order, printed after the answers; stub 0 answers -2147483648..2147483647 every row; stub 2 answers -500..500 every row; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
+/// `Army::send_here@006f98a0`, run by `tools/emu/sweep_obj.py` on its row `army_send_here` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 160 random bytes of object, 3 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 16 random bytes; the global cell 0x00e85f20 points at 8192 random bytes; callee 0x0092d130 (0 args) stubbed; callee 0x0070fba0 (10 args) stubbed; callee 0x00a46a00 (0 args) stubbed; the word at `0xcae5fc` points at 64 random bytes less `0` (placed); stub 2 answers 8 values in call order, printed after the answers; stub 0 answers -2147483648..2147483647 every row; stub 2 answers -500..500 every row; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_army_send_here.py") else {
+    let Some(rows) = super::emu_obj("army_send_here") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::clock_init@00588530`, run by `tools/emu/sweep_game_clock_init.py` under unicorn
-/// (tools/emu): 2128 random bytes of object, 0 argument(s), the global cell 0x00c061c0 points at 4 random bytes; the import cell 0x00ac5460 holds a stub (0 args); stub 0 answered from [0, 1, 1000, 50000, 100000, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::clock_init@00588530`, run by `tools/emu/sweep_obj.py` on its row `game_clock_init` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2128 random bytes of object, 0 argument(s), the global cell 0x00c061c0 points at 4 random bytes; the import cell 0x00ac5460 holds a stub (0 args); stub 0 answered from [0, 1, 1000, 50000, 100000, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_clock_init.py") else {
+    let Some(rows) = super::emu_obj("game_clock_init") else {
         return;
     };
     let mut n = 0;

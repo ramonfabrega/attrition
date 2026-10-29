@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::find_nearby_spot@00617010`, run by `tools/emu/sweep_unit_find_nearby_spot.py` under unicorn
-/// (tools/emu): 48 random bytes of object, 14 argument(s), callee 0x0061de70 (16 args) stubbed; the word at `m+0x18` points at 32 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::find_nearby_spot@00617010`, run by `tools/emu/sweep_obj.py` on its row `unit_find_nearby_spot` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 48 random bytes of object, 14 argument(s), callee 0x0061de70 (16 args) stubbed; the word at `m+0x18` points at 32 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_find_nearby_spot.py") else {
+    let Some(rows) = super::emu_obj("unit_find_nearby_spot") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `PathFinder::valid_ucoord@00687c80`, run by `tools/emu/sweep_path_finder_valid_ucoord.py` under unicorn
-/// (tools/emu): 152 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 32 random bytes; the global cell 0x00cae5fc points at 128 random bytes; callee 0x00479b90 (1 args) stubbed; callee 0x00607c30 (8 args) stubbed; callee 0x00617060 (7 args) stubbed; callee 0x00479ef0 (2 args) stubbed; the word at `m+0x50` points at 16 random bytes less `0` (placed); the word at `m+0x54` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `PathFinder::valid_ucoord@00687c80`, run by `tools/emu/sweep_obj.py` on its row `path_finder_valid_ucoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 152 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 32 random bytes; the global cell 0x00cae5fc points at 128 random bytes; callee 0x00479b90 (1 args) stubbed; callee 0x00607c30 (8 args) stubbed; callee 0x00617060 (7 args) stubbed; callee 0x00479ef0 (2 args) stubbed; the word at `m+0x50` points at 16 random bytes less `0` (placed); the word at `m+0x54` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_path_finder_valid_ucoord.py") else {
+    let Some(rows) = super::emu_obj("path_finder_valid_ucoord") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GroupData::play_sound@0070d060`, run by `tools/emu/sweep_group_data_play_sound.py` under unicorn
-/// (tools/emu): 2508 random bytes of object, 2 argument(s), callee 0x0070ccb0 (1 args) stubbed; callee 0x00662600 (2 args) stubbed; the word at `0xc0ab84+m[0x4a]*0x1c` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p0+4` points at 32 random bytes less `0` (placed); the word at `p0+8` points at 32 random bytes less `0` (placed); the word at `p0+12` points at 32 random bytes less `0` (placed); stub 0 answers -1..3 every row; stub 1 answers 0..9 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GroupData::play_sound@0070d060`, run by `tools/emu/sweep_obj.py` on its row `group_data_play_sound` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2508 random bytes of object, 2 argument(s), callee 0x0070ccb0 (1 args) stubbed; callee 0x00662600 (2 args) stubbed; the word at `0xc0ab84+m[0x4a]*0x1c` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p0+4` points at 32 random bytes less `0` (placed); the word at `p0+8` points at 32 random bytes less `0` (placed); the word at `p0+12` points at 32 random bytes less `0` (placed); stub 0 answers -1..3 every row; stub 1 answers 0..9 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_data_play_sound.py") else {
+    let Some(rows) = super::emu_obj("group_data_play_sound") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Setup::build_leader@005abc70`, run by `tools/emu/sweep_setup_build_leader.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 3 argument(s), callee 0x006e3930 (3 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 8 rows 0x6eec apart at `@0xe3a390`, slices +0xc:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Setup::build_leader@005abc70`, run by `tools/emu/sweep_obj.py` on its row `setup_build_leader` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 3 argument(s), callee 0x006e3930 (3 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 8 rows 0x6eec apart at `@0xe3a390`, slices +0xc:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_setup_build_leader.py") else {
+    let Some(rows) = super::emu_obj("setup_build_leader") else {
         return;
     };
     let mut n = 0;

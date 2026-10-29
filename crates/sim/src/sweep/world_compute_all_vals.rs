@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `World::compute_all_vals@006b3790`, run by `tools/emu/sweep_world_compute_all_vals.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 1024 random bytes; callee 0x00838ce0 (0 args) stubbed; callee 0x006b0350 (3 args) stubbed; the word at `c0+0x134` points at 512 random bytes less `0` (placed); stub 1 answered from [-3, 0, 5, 255, 256, 400] (90%); stub 1 answers 9 values in call order, printed after the answers; stub 1 writes a value in 0..255 through its argument 2, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
+/// `World::compute_all_vals@006b3790`, run by `tools/emu/sweep_obj.py` on its row `world_compute_all_vals` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 1024 random bytes; callee 0x00838ce0 (0 args) stubbed; callee 0x006b0350 (3 args) stubbed; the word at `c0+0x134` points at 512 random bytes less `0` (placed); stub 1 answered from [-3, 0, 5, 255, 256, 400] (90%); stub 1 answers 9 values in call order, printed after the answers; stub 1 writes a value in 0..255 through its argument 2, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_compute_all_vals.py") else {
+    let Some(rows) = super::emu_obj("world_compute_all_vals") else {
         return;
     };
     let mut n = 0;

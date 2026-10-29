@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `AmmoOut::set_shooter_vis@00679200`, run by `tools/emu/sweep_ammo_out_set_shooter_vis.py` under unicorn
-/// (tools/emu): 128 random bytes of object, 2 argument(s), the global cell 0x00c06210 points at 768 random bytes; vtable slot +0x48 (2 args) stubbed; the word at `0xc0ab84+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `AmmoOut::set_shooter_vis@00679200`, run by `tools/emu/sweep_obj.py` on its row `ammo_out_set_shooter_vis` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 128 random bytes of object, 2 argument(s), the global cell 0x00c06210 points at 768 random bytes; vtable slot +0x48 (2 args) stubbed; the word at `0xc0ab84+a[1]*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); the stubbed vtable laid at `p1+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_ammo_out_set_shooter_vis.py") else {
+    let Some(rows) = super::emu_obj("ammo_out_set_shooter_vis") else {
         return;
     };
     let mut n = 0;

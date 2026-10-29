@@ -240,11 +240,11 @@ fn make_port(a: &[i32], m: &mut [u8], c: &mut [Vec<u8>], p: &[Vec<u8>], o: &mut 
 }
 // end hand
 
-/// `Map::make@0068bc90`, run by `tools/emu/sweep_map_make.py` under unicorn
-/// (tools/emu): an empty body: 384 random bytes of object and 3 argument(s), every byte held after the return and `esp` checked (parked 1889). 600 rows (an arm few rows reach).
+/// `Map::make@0068bc90`, run by `tools/emu/sweep_obj.py` on its row `map_make` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): an empty body: 384 random bytes of object and 3 argument(s), every byte held after the return and `esp` checked (parked 1889). 600 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_make.py") else {
+    let Some(rows) = super::emu_obj("map_make") else {
         return;
     };
     let mut n = 0;

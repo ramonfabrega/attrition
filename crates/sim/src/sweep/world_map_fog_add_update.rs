@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldMapFog::add_update@008d2760`, run by `tools/emu/sweep_world_map_fog_add_update.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), 4 random bytes at 0x00e8a794; 48 random bytes at 0x00e8a85c; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x00433ab0 (1 args) stubbed; the word at `c1+0x10` points at 64 random bytes less `0` (placed); the word at `c1+0x2c` points at 64 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldMapFog::add_update@008d2760`, run by `tools/emu/sweep_obj.py` on its row `world_map_fog_add_update` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), 4 random bytes at 0x00e8a794; 48 random bytes at 0x00e8a85c; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x00433ab0 (1 args) stubbed; the word at `c1+0x10` points at 64 random bytes less `0` (placed); the word at `c1+0x2c` points at 64 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_map_fog_add_update.py") else {
+    let Some(rows) = super::emu_obj("world_map_fog_add_update") else {
         return;
     };
     let mut n = 0;

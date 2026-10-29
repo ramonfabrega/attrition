@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Group::equals_group@00708000`, run by `tools/emu/sweep_group_equals_group.py` under unicorn
-/// (tools/emu): 2272 random bytes of object, 1 argument(s), argument 0 names 2272 random bytes; vtable slot +0x4 (0 args) stubbed; callee 0x00711540 (0 args) run, not hooked; callee 0x007081f0 (0 args) stubbed; callee 0x0070ccb0 (1 args) stubbed; the word at `0xc0ab84+m[0x4a]*0x1c` points at 16 random bytes less `0` (placed); the word at `p1+0` points at 16 random bytes less `0` (placed); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 16 random bytes less `0` (placed); the word at `p1+12` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 3 answers -5..-1 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Group::equals_group@00708000`, run by `tools/emu/sweep_obj.py` on its row `group_equals_group` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2272 random bytes of object, 1 argument(s), argument 0 names 2272 random bytes; vtable slot +0x4 (0 args) stubbed; callee 0x00711540 (0 args) run, not hooked; callee 0x007081f0 (0 args) stubbed; callee 0x0070ccb0 (1 args) stubbed; the word at `0xc0ab84+m[0x4a]*0x1c` points at 16 random bytes less `0` (placed); the word at `p1+0` points at 16 random bytes less `0` (placed); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p1+8` points at 16 random bytes less `0` (placed); the word at `p1+12` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 3 answers -5..-1 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_equals_group.py") else {
+    let Some(rows) = super::emu_obj("group_equals_group") else {
         return;
     };
     let mut n = 0;

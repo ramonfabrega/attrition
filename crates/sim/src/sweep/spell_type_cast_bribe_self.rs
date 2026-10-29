@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `SpellType::cast_bribe@00672d00`, run by `tools/emu/sweep_spell_type_cast_bribe_self.py` under unicorn
-/// (tools/emu): 472 random bytes of object, 4 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; vtable slot +0xd8 (3 args) stubbed; the word at `0xc0aec0+0x1c*a[1]` points at 16 random bytes less `0` (placed); the word at `p0+4*a[0]` points at 160 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// `SpellType::cast_bribe@00672d00`, run by `tools/emu/sweep_obj.py` on its row `spell_type_cast_bribe_self` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 472 random bytes of object, 4 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; vtable slot +0xd8 (3 args) stubbed; the word at `0xc0aec0+0x1c*a[1]` points at 16 random bytes less `0` (placed); the word at `p0+4*a[0]` points at 160 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_spell_type_cast_bribe_self.py") else {
+    let Some(rows) = super::emu_obj("spell_type_cast_bribe_self") else {
         return;
     };
     let mut n = 0;

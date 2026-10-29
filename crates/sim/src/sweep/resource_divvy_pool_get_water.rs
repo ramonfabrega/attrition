@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ResourceDivvyPool::get_water@0068a4a0`, run by `tools/emu/sweep_resource_divvy_pool_get_water.py` under unicorn
-/// (tools/emu): 120 random bytes of object, 0 argument(s), callee 0x00a39d70 (2 args) stubbed; the word at `m+0x58` points at 64 random bytes less `0` (placed); the word at `m+0x6c` points at 256 random bytes less `0` (placed); stub 0 answers 12 values in call order, printed after the answers; stub 0 answers 0..65535 every row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ResourceDivvyPool::get_water@0068a4a0`, run by `tools/emu/sweep_obj.py` on its row `resource_divvy_pool_get_water` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 120 random bytes of object, 0 argument(s), callee 0x00a39d70 (2 args) stubbed; the word at `m+0x58` points at 64 random bytes less `0` (placed); the word at `m+0x6c` points at 256 random bytes less `0` (placed); stub 0 answers 12 values in call order, printed after the answers; stub 0 answers 0..65535 every row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_resource_divvy_pool_get_water.py") else {
+    let Some(rows) = super::emu_obj("resource_divvy_pool_get_water") else {
         return;
     };
     let mut n = 0;

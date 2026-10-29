@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectData::in_a_ship@006440c0`, run by `tools/emu/sweep_object_data_in_a_ship.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 0 argument(s), callee 0x00651a80 (1 args) stubbed; vtable slot +0x18 (0 args) stubbed; the word at `0xc0ab84+o[0]*0x1c` points at 4 random bytes less `max(0,s[0])*4` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p1+0x18` points at 544 random bytes less `0` (placed); stub 1 answered from [0, 1] (90%); the stubbed vtable laid at `p1+0`; stub 0 answers -2..6 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 writes a value in 0..7 through its argument 0, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectData::in_a_ship@006440c0`, run by `tools/emu/sweep_obj.py` on its row `object_data_in_a_ship` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 0 argument(s), callee 0x00651a80 (1 args) stubbed; vtable slot +0x18 (0 args) stubbed; the word at `0xc0ab84+o[0]*0x1c` points at 4 random bytes less `max(0,s[0])*4` (placed); the word at `p0+0` points at 32 random bytes less `0` (placed); the word at `p1+0x18` points at 544 random bytes less `0` (placed); stub 1 answered from [0, 1] (90%); the stubbed vtable laid at `p1+0`; stub 0 answers -2..6 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 writes a value in 0..7 through its argument 0, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_object_data_in_a_ship.py") else {
+    let Some(rows) = super::emu_obj("object_data_in_a_ship") else {
         return;
     };
     let mut n = 0;

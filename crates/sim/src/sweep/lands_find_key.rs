@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Lands::find_key@0067e610`, run by `tools/emu/sweep_lands_find_key.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00e3a380 points at 2808 random bytes; the global cell 0x00c06378 points at 32 random bytes; argument 0 names 16 random bytes; callee 0x00a1ba80 (2 args) stubbed; the word at `c1+0x10` points at 16 random bytes less `0x167ec` (placed); stub 0 answered from [0, 0, 0, 0, 0, 0, 0, 0, 1] (90%); stub 0 answers 10 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Lands::find_key@0067e610`, run by `tools/emu/sweep_obj.py` on its row `lands_find_key` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00e3a380 points at 2808 random bytes; the global cell 0x00c06378 points at 32 random bytes; argument 0 names 16 random bytes; callee 0x00a1ba80 (2 args) stubbed; the word at `c1+0x10` points at 16 random bytes less `0x167ec` (placed); stub 0 answered from [0, 0, 0, 0, 0, 0, 0, 0, 1] (90%); stub 0 answers 10 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_lands_find_key.py") else {
+    let Some(rows) = super::emu_obj("lands_find_key") else {
         return;
     };
     let mut n = 0;

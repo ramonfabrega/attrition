@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Roads::scan_and_kill_straggled_tcoord@0088e050`, run by `tools/emu/sweep_roads_scan_and_kill_straggled_tcoord.py` under unicorn
-/// (tools/emu): 1792 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s); the global cell 0x00c06218 points at 16 random bytes; the global cell 0x00c06188 points at 16 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x00866a70 (5 args) stubbed; callee 0x006b43b0 (5 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
+/// `Roads::scan_and_kill_straggled_tcoord@0088e050`, run by `tools/emu/sweep_obj.py` on its row `roads_scan_and_kill_straggled_tcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 1792 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 pointed argument(s); the global cell 0x00c06218 points at 16 random bytes; the global cell 0x00c06188 points at 16 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x00866a70 (5 args) stubbed; callee 0x006b43b0 (5 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_roads_scan_and_kill_straggled_tcoord.py") else {
+    let Some(rows) = super::emu_obj("roads_scan_and_kill_straggled_tcoord") else {
         return;
     };
     let mut n = 0;

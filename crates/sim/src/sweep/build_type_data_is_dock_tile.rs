@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::is_dock_tile@00636700`, run by `tools/emu/sweep_build_type_data_is_dock_tile.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 3 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; the global cell 0x00c061d0 points at 320 random bytes; the word at `c0+0x134` points at 256 random bytes less `0` (placed); the word at `c0+0x138` points at 288 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// `BuildTypeData::is_dock_tile@00636700`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_is_dock_tile` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 3 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; the global cell 0x00c061d0 points at 320 random bytes; the word at `c0+0x134` points at 256 random bytes less `0` (placed); the word at `c0+0x138` points at 288 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_is_dock_tile.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_is_dock_tile") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Groups::copy_group@006fa690`, run by `tools/emu/sweep_groups_copy_group.py` under unicorn
-/// (tools/emu): 2560 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c061ec points at 1536 random bytes; callee 0x0055e0ac (3 args) stubbed; the word at `m+0x30` points at 2560 random bytes less `0` (placed); stub 0 is `__cdecl`: the caller pops its arguments; stub 0 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`); `edx` the address of window `p0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// `Groups::copy_group@006fa690`, run by `tools/emu/sweep_obj.py` on its row `groups_copy_group` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2560 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c061ec points at 1536 random bytes; callee 0x0055e0ac (3 args) stubbed; the word at `m+0x30` points at 2560 random bytes less `0` (placed); stub 0 is `__cdecl`: the caller pops its arguments; stub 0 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`); `edx` the address of window `p0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_groups_copy_group.py") else {
+    let Some(rows) = super::emu_obj("groups_copy_group") else {
         return;
     };
     let mut n = 0;

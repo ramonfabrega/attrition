@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::is_unassimilated@0062d470`, run by `tools/emu/sweep_build_data_is_unassimilated.py` under unicorn
-/// (tools/emu): 128 random bytes of object, 0 argument(s), the word at `0xc061d4` points at 4 random bytes less `0x10+u8(m,9)*0x1c` (placed); the word at `p0+0` points at 4 random bytes less `i16(m,0x72)*4` (placed); the word at `p1+0` points at 96 random bytes less `0` (placed); the word at `m+0x18` points at 4 random bytes less `0x2c0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::is_unassimilated@0062d470`, run by `tools/emu/sweep_obj.py` on its row `build_data_is_unassimilated` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 128 random bytes of object, 0 argument(s), the word at `0xc061d4` points at 4 random bytes less `0x10+u8(m,9)*0x1c` (placed); the word at `p0+0` points at 4 random bytes less `i16(m,0x72)*4` (placed); the word at `p1+0` points at 96 random bytes less `0` (placed); the word at `m+0x18` points at 4 random bytes less `0x2c0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_is_unassimilated.py") else {
+    let Some(rows) = super::emu_obj("build_data_is_unassimilated") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectTypeData::is_slow@00661ae0`, run by `tools/emu/sweep_object_type_data_is_slow.py` under unicorn
-/// (tools/emu): 608 random bytes of object, 2 argument(s), vtable slot +0xc (0 args) stubbed; vtable slot +0xf4 (2 args) stubbed; the word at `0xc0a274` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 4 random bytes less `0x2b4` (placed); the word at `0xc0aaf4` points at 4 random bytes less `i32(m,0x3c)*4` (placed); the word at `p2+0` points at 8 random bytes less `0` (placed); slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1, 2] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p3+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectTypeData::is_slow@00661ae0`, run by `tools/emu/sweep_obj.py` on its row `object_type_data_is_slow` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 608 random bytes of object, 2 argument(s), vtable slot +0xc (0 args) stubbed; vtable slot +0xf4 (2 args) stubbed; the word at `0xc0a274` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 4 random bytes less `0x2b4` (placed); the word at `0xc0aaf4` points at 4 random bytes less `i32(m,0x3c)*4` (placed); the word at `p2+0` points at 8 random bytes less `0` (placed); slot +0xc laid as 0x004707e0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1, 2] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p3+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_object_type_data_is_slow.py") else {
+    let Some(rows) = super::emu_obj("object_type_data_is_slow") else {
         return;
     };
     let mut n = 0;

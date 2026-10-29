@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::do_attack_to_pause@005f22a0`, run by `tools/emu/sweep_unit_do_attack_to_pause.py` under unicorn
-/// (tools/emu): 144 random bytes of object, 1 argument(s), argument 0 names 8 random bytes; vtable slot +0x40 (0 args) stubbed; callee 0x0070f8f0 (3 args) stubbed; callee 0x00710e40 (3 args) stubbed; the word at `0xe85f20` points at 16 random bytes less `0x9d4*i16(m,0x80)` (placed); stub 1 answered from [0, 1, 1] (90%); stub 2 answered from [0, 1, 1] (90%); stub 0 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p0+0`; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::do_attack_to_pause@005f22a0`, run by `tools/emu/sweep_obj.py` on its row `unit_do_attack_to_pause` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 144 random bytes of object, 1 argument(s), argument 0 names 8 random bytes; vtable slot +0x40 (0 args) stubbed; callee 0x0070f8f0 (3 args) stubbed; callee 0x00710e40 (3 args) stubbed; the word at `0xe85f20` points at 16 random bytes less `0x9d4*i16(m,0x80)` (placed); stub 1 answered from [0, 1, 1] (90%); stub 2 answered from [0, 1, 1] (90%); stub 0 answers the address of 32 random bytes, a `p` window after the places; the stubbed vtable laid at `p0+0`; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_do_attack_to_pause.py") else {
+    let Some(rows) = super::emu_obj("unit_do_attack_to_pause") else {
         return;
     };
     let mut n = 0;

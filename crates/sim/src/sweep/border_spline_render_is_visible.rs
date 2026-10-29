@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BorderSplineRender::is_visible@008826c0`, run by `tools/emu/sweep_border_spline_render_is_visible.py` under unicorn
-/// (tools/emu): 48 random bytes of object, 0 argument(s), callee 0x008642e0 (2 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BorderSplineRender::is_visible@008826c0`, run by `tools/emu/sweep_obj.py` on its row `border_spline_render_is_visible` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 48 random bytes of object, 0 argument(s), callee 0x008642e0 (2 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_border_spline_render_is_visible.py") else {
+    let Some(rows) = super::emu_obj("border_spline_render_is_visible") else {
         return;
     };
     let mut n = 0;

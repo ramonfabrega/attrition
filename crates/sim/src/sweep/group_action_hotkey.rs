@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Group::action_hotkey@006fa7a0`, run by `tools/emu/sweep_group_action_hotkey.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 1 argument(s), the global cell 0x00c0afe0 points at 10496 random bytes; callee 0x00715120 (0 args) stubbed; callee 0x007152f0 (1 args) stubbed; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Group::action_hotkey@006fa7a0`, run by `tools/emu/sweep_obj.py` on its row `group_action_hotkey` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 1 argument(s), the global cell 0x00c0afe0 points at 10496 random bytes; callee 0x00715120 (0 args) stubbed; callee 0x007152f0 (1 args) stubbed; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_action_hotkey.py") else {
+    let Some(rows) = super::emu_obj("group_action_hotkey") else {
         return;
     };
     let mut n = 0;

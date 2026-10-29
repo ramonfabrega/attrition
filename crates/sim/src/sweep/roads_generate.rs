@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Roads::generate@00894350`, run by `tools/emu/sweep_roads_generate.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06238 points at 1520 random bytes; callee 0x00849c40 (0 args) stubbed; callee 0x0088f4b0 (1 args) stubbed; callee 0x004a3a50 (0 args) stubbed; the word at `c0+0x5d0` points at 1280 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
+/// `Roads::generate@00894350`, run by `tools/emu/sweep_obj.py` on its row `roads_generate` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06238 points at 1520 random bytes; callee 0x00849c40 (0 args) stubbed; callee 0x0088f4b0 (1 args) stubbed; callee 0x004a3a50 (0 args) stubbed; the word at `c0+0x5d0` points at 1280 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_roads_generate.py") else {
+    let Some(rows) = super::emu_obj("roads_generate") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `RoadsOut::set_neighbor@00890c30`, run by `tools/emu/sweep_roads_out_set_neighbor.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 5 argument(s), callee 0x008744d0 (5 args) stubbed; stub 0's answer points at 8 random bytes less `0` (placed, null a third of the rows); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `RoadsOut::set_neighbor@00890c30`, run by `tools/emu/sweep_obj.py` on its row `roads_out_set_neighbor` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 5 argument(s), callee 0x008744d0 (5 args) stubbed; stub 0's answer points at 8 random bytes less `0` (placed, null a third of the rows); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_roads_out_set_neighbor.py") else {
+    let Some(rows) = super::emu_obj("roads_out_set_neighbor") else {
         return;
     };
     let mut n = 0;

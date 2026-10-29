@@ -3,7 +3,7 @@
 #[path = "support.rs"]
 mod support;
 #[allow(unused_imports)]
-use support::{emu_rows, row, tail_row};
+use support::{emu_obj, emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
 #[path = "game_access_const_find_data_z.rs"]
@@ -70,8 +70,6 @@ mod game_get_time_limit;
 mod game_info_default_setting;
 #[path = "game_info_get_map_size_name.rs"]
 mod game_info_get_map_size_name;
-#[path = "game_info_load_from_playback.rs"]
-mod game_info_load_from_playback;
 #[path = "game_is_cooperative.rs"]
 mod game_is_cooperative;
 #[path = "game_is_deathmatch.rs"]
@@ -124,26 +122,8 @@ mod game_walk_rules_data;
 mod game_war_allowed;
 #[path = "game_wonder_timer.rs"]
 mod game_wonder_timer;
-#[path = "garrison_order_walk_data.rs"]
-mod garrison_order_walk_data;
-#[path = "garrison_order_walk_data_vtordisp.rs"]
-mod garrison_order_walk_data_vtordisp;
-#[path = "garrisonorder_get_garrison_order.rs"]
-mod garrisonorder_get_garrison_order;
-#[path = "gather_order_get_type.rs"]
-mod gather_order_get_type;
-#[path = "gather_order_get_type_vtordisp.rs"]
-mod gather_order_get_type_vtordisp;
-#[path = "gather_order_walk_data.rs"]
-mod gather_order_walk_data;
-#[path = "gather_order_walk_data_vtordisp.rs"]
-mod gather_order_walk_data_vtordisp;
 #[path = "gather_point_is_inside.rs"]
 mod gather_point_is_inside;
-#[path = "gather_point_list_get_new_data.rs"]
-mod gather_point_list_get_new_data;
-#[path = "gather_point_walk_data.rs"]
-mod gather_point_walk_data;
 #[path = "get_float_z.rs"]
 mod get_float_z;
 #[path = "get_type_count.rs"]
@@ -240,16 +220,6 @@ mod group_action_trade;
 mod group_action_trade_head;
 #[path = "group_attack_order_vector_deleting_destructor_vtordisp.rs"]
 mod group_attack_order_vector_deleting_destructor_vtordisp;
-#[path = "group_attack_order_walk_data.rs"]
-mod group_attack_order_walk_data;
-#[path = "group_attack_order_walk_data_vtordisp.rs"]
-mod group_attack_order_walk_data_vtordisp;
-#[path = "group_attack_to_order_get_group_attack_to_order.rs"]
-mod group_attack_to_order_get_group_attack_to_order;
-#[path = "group_attack_to_order_walk_data.rs"]
-mod group_attack_to_order_walk_data;
-#[path = "group_attack_to_order_walk_data_vtordisp.rs"]
-mod group_attack_to_order_walk_data_vtordisp;
 #[path = "group_can_activate.rs"]
 mod group_can_activate;
 #[path = "group_compute_speed.rs"]
@@ -338,20 +308,8 @@ mod group_kill_group_order;
 mod group_kill_next_order;
 #[path = "group_leader_report_speed.rs"]
 mod group_leader_report_speed;
-#[path = "group_move_order_get_group_move_order_vtordisp.rs"]
-mod group_move_order_get_group_move_order_vtordisp;
-#[path = "group_move_order_is_fleeing_vtordisp.rs"]
-mod group_move_order_is_fleeing_vtordisp;
-#[path = "group_move_order_is_pathed_vtordisp.rs"]
-mod group_move_order_is_pathed_vtordisp;
-#[path = "group_move_order_walk_data.rs"]
-mod group_move_order_walk_data;
-#[path = "group_move_order_walk_data_vtordisp.rs"]
-mod group_move_order_walk_data_vtordisp;
 #[path = "group_normalize.rs"]
 mod group_normalize;
-#[path = "group_order_walk_data.rs"]
-mod group_order_walk_data;
 #[path = "group_out_issue_alarm.rs"]
 mod group_out_issue_alarm;
 #[path = "group_out_issue_attack.rs"]
@@ -400,10 +358,6 @@ mod group_out_issue_trade;
 mod group_out_issue_unitmask;
 #[path = "group_patrol_order_vector_deleting_destructor_vtordisp.rs"]
 mod group_patrol_order_vector_deleting_destructor_vtordisp;
-#[path = "group_patrol_order_walk_data.rs"]
-mod group_patrol_order_walk_data;
-#[path = "group_patrol_order_walk_data_vtordisp.rs"]
-mod group_patrol_order_walk_data_vtordisp;
 #[path = "group_redo_patrol_order.rs"]
 mod group_redo_patrol_order;
 #[path = "group_report_speed.rs"]
@@ -418,10 +372,6 @@ mod group_toggle;
 mod group_update_positions;
 #[path = "group_walk_data.rs"]
 mod group_walk_data;
-#[path = "groupmoveorder_is_fleeing.rs"]
-mod groupmoveorder_is_fleeing;
-#[path = "groupmoveorder_is_pathed.rs"]
-mod groupmoveorder_is_pathed;
 #[path = "groups_copy_group.rs"]
 mod groups_copy_group;
 #[path = "groups_data_find_group_const.rs"]
@@ -432,14 +382,6 @@ mod groups_process_body;
 mod groups_process_driver;
 #[path = "groups_walk_data.rs"]
 mod groups_walk_data;
-#[path = "guard_order_get_guard_order.rs"]
-mod guard_order_get_guard_order;
-#[path = "guard_order_get_guard_order_vtordisp.rs"]
-mod guard_order_get_guard_order_vtordisp;
-#[path = "guard_order_walk_data.rs"]
-mod guard_order_walk_data;
-#[path = "guard_order_walk_data_vtordisp.rs"]
-mod guard_order_walk_data_vtordisp;
 #[path = "guy_copy_data.rs"]
 mod guy_copy_data;
 #[path = "guy_data_get_render_angle.rs"]
@@ -500,10 +442,6 @@ mod hero_data_get_radius;
 mod hero_walk_data;
 #[path = "heroes_data_find_hero.rs"]
 mod heroes_data_find_hero;
-#[path = "is_air.rs"]
-mod is_air;
-#[path = "is_move.rs"]
-mod is_move;
 #[path = "item_data_get_gpiece.rs"]
 mod item_data_get_gpiece;
 #[path = "item_data_is_seen.rs"]
@@ -558,8 +496,6 @@ mod map_point;
 mod map_scale_by_area;
 #[path = "map_scale_by_axis.rs"]
 mod map_scale_by_axis;
-#[path = "map_script_run_map_script.rs"]
-mod map_script_run_map_script;
 #[path = "map_set_file.rs"]
 mod map_set_file;
 #[path = "map_stamp.rs"]
@@ -590,18 +526,6 @@ mod mountains_out_mnt_types;
 mod mountains_tileset_texture_load;
 #[path = "mountains_walk_data.rs"]
 mod mountains_walk_data;
-#[path = "move_order_get_move_order_vtordisp.rs"]
-mod move_order_get_move_order_vtordisp;
-#[path = "move_order_is_fleeing_vtordisp.rs"]
-mod move_order_is_fleeing_vtordisp;
-#[path = "move_order_is_pathed.rs"]
-mod move_order_is_pathed;
-#[path = "move_order_is_pathed_vtordisp.rs"]
-mod move_order_is_pathed_vtordisp;
-#[path = "move_order_walk_data_vtordisp.rs"]
-mod move_order_walk_data_vtordisp;
-#[path = "moveorder_is_fleeing.rs"]
-mod moveorder_is_fleeing;
 #[path = "nuke_been_damaged_before.rs"]
 mod nuke_been_damaged_before;
 #[path = "nuke_draw_ctw.rs"]
@@ -834,7 +758,3 @@ mod objects_remove_item;
 mod ocean_vars_get_name;
 #[path = "oil_well_walk_data.rs"]
 mod oil_well_walk_data;
-#[path = "order_list_get_data_type.rs"]
-mod order_list_get_data_type;
-#[path = "order_list_get_new_data.rs"]
-mod order_list_get_new_data;

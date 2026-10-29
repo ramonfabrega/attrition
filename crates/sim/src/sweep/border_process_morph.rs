@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Border::process_morph@0087fd00`, run by `tools/emu/sweep_border_process_morph.py` under unicorn
-/// (tools/emu): 208 random bytes of object, 0 argument(s), callee 0x00880e50 (0 args) stubbed; callee 0x004a12a0 (0 args) stubbed; the word at `m+0x4c` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 80 random bytes less `0` (placed); the word at `p0+4` points at 80 random bytes less `0` (placed); the word at `p0+8` points at 80 random bytes less `0` (placed); the word at `p0+12` points at 80 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 answers 4 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Border::process_morph@0087fd00`, run by `tools/emu/sweep_obj.py` on its row `border_process_morph` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 208 random bytes of object, 0 argument(s), callee 0x00880e50 (0 args) stubbed; callee 0x004a12a0 (0 args) stubbed; the word at `m+0x4c` points at 16 random bytes less `0` (placed); the word at `p0+0` points at 80 random bytes less `0` (placed); the word at `p0+4` points at 80 random bytes less `0` (placed); the word at `p0+8` points at 80 random bytes less `0` (placed); the word at `p0+12` points at 80 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 answers 4 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_border_process_morph.py") else {
+    let Some(rows) = super::emu_obj("border_process_morph") else {
         return;
     };
     let mut n = 0;

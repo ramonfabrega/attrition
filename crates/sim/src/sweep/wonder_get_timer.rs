@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Wonder::get_timer@0073c660`, run by `tools/emu/sweep_wonder_get_timer.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), the global cell 0x00c061f0 points at 3344 random bytes; the global cell 0x00c06188 points at 4 random bytes; the global cell 0x00e7fca8 points at 328 random bytes; the global cell 0x00c0618c points at 224 random bytes; the word at `c3+0x14+i8(m,0xd)*0x1c` points at 4 random bytes less `i16(m,2)*4` (placed); the word at `p0+0` points at 4 random bytes less `0x18` (placed); the word at `p1+0` points at 4 random bytes less `4` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Wonder::get_timer@0073c660`, run by `tools/emu/sweep_obj.py` on its row `wonder_get_timer` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), the global cell 0x00c061f0 points at 3344 random bytes; the global cell 0x00c06188 points at 4 random bytes; the global cell 0x00e7fca8 points at 328 random bytes; the global cell 0x00c0618c points at 224 random bytes; the word at `c3+0x14+i8(m,0xd)*0x1c` points at 4 random bytes less `i16(m,2)*4` (placed); the word at `p0+0` points at 4 random bytes less `0x18` (placed); the word at `p1+0` points at 4 random bytes less `4` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wonder_get_timer.py") else {
+    let Some(rows) = super::emu_obj("wonder_get_timer") else {
         return;
     };
     let mut n = 0;

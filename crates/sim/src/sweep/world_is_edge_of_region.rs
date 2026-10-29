@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `World::is_edge_of_region@006b3180`, run by `tools/emu/sweep_world_is_edge_of_region.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 4 argument(s), 32 random bytes at 0x00adc404; 32 random bytes at 0x00adcaf4; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `0xc06188` points at 320 random bytes less `0` (placed); the word at `p2+0x134` points at 448 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `World::is_edge_of_region@006b3180`, run by `tools/emu/sweep_obj.py` on its row `world_is_edge_of_region` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 4 argument(s), 32 random bytes at 0x00adc404; 32 random bytes at 0x00adcaf4; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `0xc06188` points at 320 random bytes less `0` (placed); the word at `p2+0x134` points at 448 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_is_edge_of_region.py") else {
+    let Some(rows) = super::emu_obj("world_is_edge_of_region") else {
         return;
     };
     let mut n = 0;

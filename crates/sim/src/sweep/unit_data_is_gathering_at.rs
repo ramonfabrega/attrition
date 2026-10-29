@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::is_gathering_at@00608880`, run by `tools/emu/sweep_unit_data_is_gathering_at.py` under unicorn
-/// (tools/emu): 144 random bytes of object, 3 argument(s), vtable slot +0xbc (0 args) stubbed; callee 0x00651a80 (1 args) stubbed; callee 0x00608450 (0 args) stubbed; vtable slot +0x10 (0 args) stubbed; vtable slot +0xe4 (0 args) stubbed; stub 2's answer points at 48 random bytes less `0` (placed, null a third of the rows); stub 4's answer points at 40 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*m[9]` points at 16 random bytes less `0` (placed); the word at `m+0x18` points at 8 random bytes less `0` (placed); slot +0xbc laid as 0x0046ce30 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1, -1] (90%); stub 3 answered from [7, 7, 3] (90%); stub 0 answers 2 values in call order, printed after the answers; the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::is_gathering_at@00608880`, run by `tools/emu/sweep_obj.py` on its row `unit_data_is_gathering_at` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 144 random bytes of object, 3 argument(s), vtable slot +0xbc (0 args) stubbed; callee 0x00651a80 (1 args) stubbed; callee 0x00608450 (0 args) stubbed; vtable slot +0x10 (0 args) stubbed; vtable slot +0xe4 (0 args) stubbed; stub 2's answer points at 48 random bytes less `0` (placed, null a third of the rows); stub 4's answer points at 40 random bytes less `0` (placed); the word at `0xc0aec0+0x1c*m[9]` points at 16 random bytes less `0` (placed); the word at `m+0x18` points at 8 random bytes less `0` (placed); slot +0xbc laid as 0x0046ce30 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1, -1] (90%); stub 3 answered from [7, 7, 3] (90%); stub 0 answers 2 values in call order, printed after the answers; the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_is_gathering_at.py") else {
+    let Some(rows) = super::emu_obj("unit_data_is_gathering_at") else {
         return;
     };
     let mut n = 0;

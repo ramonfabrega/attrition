@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `add_type_bucket@00669160`, run by `tools/emu/sweep_add_type_bucket.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), 3944 random bytes at 0x00ed89ce; 8 random bytes at 0x00ed88c8; `ecx` an integer in 0..492, not the object, the row's last; `edx` an integer in 0..7, after `ecx` on the row; `ecx` and `edx` held to their draw every row, no wild word; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `add_type_bucket@00669160`, run by `tools/emu/sweep_obj.py` on its row `add_type_bucket` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), 3944 random bytes at 0x00ed89ce; 8 random bytes at 0x00ed88c8; `ecx` an integer in 0..492, not the object, the row's last; `edx` an integer in 0..7, after `ecx` on the row; `ecx` and `edx` held to their draw every row, no wild word; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_add_type_bucket.py") else {
+    let Some(rows) = super::emu_obj("add_type_bucket") else {
         return;
     };
     let mut n = 0;

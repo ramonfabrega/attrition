@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `get_float_z@008942d0`, run by `tools/emu/sweep_get_float_z.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 0 argument(s), the global cell 0x00c06218 points at 16 random bytes; callee 0x00866560 (4 args) stubbed; stub 0 answers the address of 8 random bytes, a `p` window after the places; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; xmm 0 an integer in -4000..4000, loaded as that over four (after the other numbers on the row); xmm 1 an integer in -4000..4000, loaded as that over four (after the other numbers on the row); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `get_float_z@008942d0`, run by `tools/emu/sweep_obj.py` on its row `get_float_z` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 0 argument(s), the global cell 0x00c06218 points at 16 random bytes; callee 0x00866560 (4 args) stubbed; stub 0 answers the address of 8 random bytes, a `p` window after the places; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; xmm 0 an integer in -4000..4000, loaded as that over four (after the other numbers on the row); xmm 1 an integer in -4000..4000, loaded as that over four (after the other numbers on the row); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_get_float_z.py") else {
+    let Some(rows) = super::emu_obj("get_float_z") else {
         return;
     };
     let mut n = 0;

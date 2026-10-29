@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Type::set_name@00663ae0`, run by `tools/emu/sweep_type_set_name.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 1 argument(s), argument 0 names 32 random bytes; callee 0x00a1eeb0 (1 args) stubbed; vtable slot +0xb0 (2 args) stubbed; callee 0x00a1cf40 (0 args) stubbed; stub 1 answers the address of 32 random bytes, a `p` window after the places; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Type::set_name@00663ae0`, run by `tools/emu/sweep_obj.py` on its row `type_set_name` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 1 argument(s), argument 0 names 32 random bytes; callee 0x00a1eeb0 (1 args) stubbed; vtable slot +0xb0 (2 args) stubbed; callee 0x00a1cf40 (0 args) stubbed; stub 1 answers the address of 32 random bytes, a `p` window after the places; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_type_set_name.py") else {
+    let Some(rows) = super::emu_obj("type_set_name") else {
         return;
     };
     let mut n = 0;

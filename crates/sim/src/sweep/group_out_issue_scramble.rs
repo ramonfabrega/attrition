@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GroupOut::issue_scramble@00708a70`, run by `tools/emu/sweep_group_out_issue_scramble.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), the global cell 0x00c061e8 points at 2304 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x0094bb60 (1 args) stubbed; callee 0x0094bae0 (2 args) stubbed; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 prints the 1 bytes its argument 0 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GroupOut::issue_scramble@00708a70`, run by `tools/emu/sweep_obj.py` on its row `group_out_issue_scramble` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), the global cell 0x00c061e8 points at 2304 random bytes; callee 0x00940a70 (0 args) stubbed; callee 0x0094bb60 (1 args) stubbed; callee 0x0094bae0 (2 args) stubbed; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 prints the 1 bytes its argument 0 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_out_issue_scramble.py") else {
+    let Some(rows) = super::emu_obj("group_out_issue_scramble") else {
         return;
     };
     let mut n = 0;

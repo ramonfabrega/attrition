@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::do_form_change@005e8670`, run by `tools/emu/sweep_unit_do_form_change.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 1 argument(s), argument 0 names 32 random bytes; vtable slot +0x90 (0 args) stubbed; callee 0x00605400 (3 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; vtable slot +0x188 (0 args) stubbed; stub 0 answers the address of 96 random bytes, a `p` window after the places; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Unit::do_form_change@005e8670`, run by `tools/emu/sweep_obj.py` on its row `unit_do_form_change` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 1 argument(s), argument 0 names 32 random bytes; vtable slot +0x90 (0 args) stubbed; callee 0x00605400 (3 args) stubbed; callee 0x005e2cb0 (1 args) stubbed; vtable slot +0x188 (0 args) stubbed; stub 0 answers the address of 96 random bytes, a `p` window after the places; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_do_form_change.py") else {
+    let Some(rows) = super::emu_obj("unit_do_form_change") else {
         return;
     };
     let mut n = 0;

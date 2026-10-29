@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `CliffsOut::get_mining_size@008a6da0`, run by `tools/emu/sweep_cliffs_out_get_mining_size.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 4 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `0xc06218` points at 4 random bytes less `0x6ab0` (placed); the word at `p2+0` points at 4 random bytes less `(i32(p[1],0)*i32(c[0],0)+i32(p[0],0))*4` (placed); the word at `p3+0` points at 4 random bytes less `0x6a` (placed); the word at `0xe88ee4` points at 4 random bytes less `i16(p[4],0)*4` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `CliffsOut::get_mining_size@008a6da0`, run by `tools/emu/sweep_obj.py` on its row `cliffs_out_get_mining_size` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 4 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `0xc06218` points at 4 random bytes less `0x6ab0` (placed); the word at `p2+0` points at 4 random bytes less `(i32(p[1],0)*i32(c[0],0)+i32(p[0],0))*4` (placed); the word at `p3+0` points at 4 random bytes less `0x6a` (placed); the word at `0xe88ee4` points at 4 random bytes less `i16(p[4],0)*4` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_cliffs_out_get_mining_size.py") else {
+    let Some(rows) = super::emu_obj("cliffs_out_get_mining_size") else {
         return;
     };
     let mut n = 0;

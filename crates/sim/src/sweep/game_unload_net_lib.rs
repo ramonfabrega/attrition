@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Game::unload_net_lib@005877d0`, run by `tools/emu/sweep_game_unload_net_lib.py` under unicorn
-/// (tools/emu): 3072 random bytes of object, 0 argument(s), 4 random bytes at 0x00e335b8; vtable slot +0x8 (0 args) stubbed; vtable slot +0x100 (0 args) stubbed; the import cell 0x00ac50c4 holds a stub (1 args); the word at `0xe335c8` points at 32 random bytes less `0` (placed, null a third of the rows); the stubbed vtable laid at `p0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Game::unload_net_lib@005877d0`, run by `tools/emu/sweep_obj.py` on its row `game_unload_net_lib` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 3072 random bytes of object, 0 argument(s), 4 random bytes at 0x00e335b8; vtable slot +0x8 (0 args) stubbed; vtable slot +0x100 (0 args) stubbed; the import cell 0x00ac50c4 holds a stub (1 args); the word at `0xe335c8` points at 32 random bytes less `0` (placed, null a third of the rows); the stubbed vtable laid at `p0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_game_unload_net_lib.py") else {
+    let Some(rows) = super::emu_obj("game_unload_net_lib") else {
         return;
     };
     let mut n = 0;

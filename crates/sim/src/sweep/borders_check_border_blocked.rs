@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Borders::check_border_blocked@00882370`, run by `tools/emu/sweep_borders_check_border_blocked.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 6 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2 the place; the global cell 0x00c0621c points at 1024 random bytes; argument 4 names 4 random bytes; argument 5 names 4 random bytes; the word at `c0+0x2c` points at 1024 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Borders::check_border_blocked@00882370`, run by `tools/emu/sweep_obj.py` on its row `borders_check_border_blocked` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 6 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2 the place; the global cell 0x00c0621c points at 1024 random bytes; argument 4 names 4 random bytes; argument 5 names 4 random bytes; the word at `c0+0x2c` points at 1024 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_borders_check_border_blocked.py") else {
+    let Some(rows) = super::emu_obj("borders_check_border_blocked") else {
         return;
     };
     let mut n = 0;

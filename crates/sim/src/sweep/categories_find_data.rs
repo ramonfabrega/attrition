@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Categories::find_data@006f1e30`, run by `tools/emu/sweep_categories_find_data.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 2 argument(s), 4 random bytes at 0x00ee10e3; the word at `m+0x10` points at 360 random bytes less `0x3c` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Categories::find_data@006f1e30`, run by `tools/emu/sweep_obj.py` on its row `categories_find_data` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 2 argument(s), 4 random bytes at 0x00ee10e3; the word at `m+0x10` points at 360 random bytes less `0x3c` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_categories_find_data.py") else {
+    let Some(rows) = super::emu_obj("categories_find_data") else {
         return;
     };
     let mut n = 0;

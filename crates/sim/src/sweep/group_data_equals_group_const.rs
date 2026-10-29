@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GroupData::equals_group_const@0070cdf0`, run by `tools/emu/sweep_group_data_equals_group_const.py` under unicorn
-/// (tools/emu): 2268 random bytes of object, 1 argument(s), argument 0 names 2268 random bytes; callee 0x0070d000 (0 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GroupData::equals_group_const@0070cdf0`, run by `tools/emu/sweep_obj.py` on its row `group_data_equals_group_const` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2268 random bytes of object, 1 argument(s), argument 0 names 2268 random bytes; callee 0x0070d000 (0 args) stubbed; stub 0 answered from [0, 1] (90%); stub 0 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_data_equals_group_const.py") else {
+    let Some(rows) = super::emu_obj("group_data_equals_group_const") else {
         return;
     };
     let mut n = 0;

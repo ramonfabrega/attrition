@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Group::action_attack@00712490`, run by `tools/emu/sweep_group_action_attack_head.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 5 argument(s), `p` windows in order: p0 the place; 4 random bytes at 0x00cc02f8 (each word in 0..1); 4 random bytes at 0x00ed6574 (each word in 0..3); 4 random bytes at 0x00ed6590 (each word in 0..3); 4 random bytes at 0x00ed65ac (each word in 0..3); vtable slot +0x10 (4 args) stubbed; vtable slot +0x14 (0 args) stubbed; callee 0x0070c450 (0 args) stubbed; the word at `0xed6580+0x1c*m[0x4a]` points at 32 random bytes less `0` (placed); stub 2 answered from [1, 1, 1, 0] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the call ends where stub 1 is first entered (the function is swept to that callee); the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// `Group::action_attack@00712490`, run by `tools/emu/sweep_obj.py` on its row `group_action_attack_head` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 5 argument(s), `p` windows in order: p0 the place; 4 random bytes at 0x00cc02f8 (each word in 0..1); 4 random bytes at 0x00ed6574 (each word in 0..3); 4 random bytes at 0x00ed6590 (each word in 0..3); 4 random bytes at 0x00ed65ac (each word in 0..3); vtable slot +0x10 (4 args) stubbed; vtable slot +0x14 (0 args) stubbed; callee 0x0070c450 (0 args) stubbed; the word at `0xed6580+0x1c*m[0x4a]` points at 32 random bytes less `0` (placed); stub 2 answered from [1, 1, 1, 0] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); the call ends where stub 1 is first entered (the function is swept to that callee); the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_action_attack_head.py") else {
+    let Some(rows) = super::emu_obj("group_action_attack_head") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::work@0060d180`, run by `tools/emu/sweep_unit_work.py` under unicorn
-/// (tools/emu): 272 random bytes of object, 0 argument(s), `p` windows in order: p0..p3 the place(s), in flag order; the global cell 0x00c061ec points at 1536 random bytes; vtable slot +0x10 (0 args) stubbed; vtable slot +0xd0 (0 args) stubbed; the word at `m+0x18` points at 704 random bytes less `0` (placed); the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p2+8` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 answered from [0, 1, 3, 10, 10, 5, 9] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the call ends where stub 1 is first entered (the function is swept to that callee); the stubbed vtable laid at `p3+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// `Unit::work@0060d180`, run by `tools/emu/sweep_obj.py` on its row `unit_work` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 272 random bytes of object, 0 argument(s), `p` windows in order: p0..p3 the place(s), in flag order; the global cell 0x00c061ec points at 1536 random bytes; vtable slot +0x10 (0 args) stubbed; vtable slot +0xd0 (0 args) stubbed; the word at `m+0x18` points at 704 random bytes less `0` (placed); the word at `m+0xdc` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `p1+4` points at 16 random bytes less `0` (placed); the word at `p2+8` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 answered from [0, 1, 3, 10, 10, 5, 9] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the call ends where stub 1 is first entered (the function is swept to that callee); the stubbed vtable laid at `p3+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_work.py") else {
+    let Some(rows) = super::emu_obj("unit_work") else {
         return;
     };
     let mut n = 0;

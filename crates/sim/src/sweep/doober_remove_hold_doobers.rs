@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Doober::remove_hold_doobers@00846cd0`, run by `tools/emu/sweep_doober_remove_hold_doobers.py` under unicorn
-/// (tools/emu): 512 random bytes of object, 1 argument(s), `p` windows in order: p0 the place; 4 random bytes at 0x00ee121c; the word at `m+0x110` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
+/// `Doober::remove_hold_doobers@00846cd0`, run by `tools/emu/sweep_obj.py` on its row `doober_remove_hold_doobers` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 512 random bytes of object, 1 argument(s), `p` windows in order: p0 the place; 4 random bytes at 0x00ee121c; the word at `m+0x110` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 800 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_doober_remove_hold_doobers.py") else {
+    let Some(rows) = super::emu_obj("doober_remove_hold_doobers") else {
         return;
     };
     let mut n = 0;

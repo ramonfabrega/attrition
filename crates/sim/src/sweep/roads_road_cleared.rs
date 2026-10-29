@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Roads::road_cleared@008955d0`, run by `tools/emu/sweep_roads_road_cleared.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 32 random bytes; the global cell 0x00c06238 points at 256 random bytes; callee 0x004a3af0 (1 args) stubbed; callee 0x0088f4b0 (1 args) stubbed; the word at `c1+0xf0` points at 64 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Roads::road_cleared@008955d0`, run by `tools/emu/sweep_obj.py` on its row `roads_road_cleared` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 3 argument(s), the global cell 0x00c06188 points at 32 random bytes; the global cell 0x00c06238 points at 256 random bytes; callee 0x004a3af0 (1 args) stubbed; callee 0x0088f4b0 (1 args) stubbed; the word at `c1+0xf0` points at 64 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_roads_road_cleared.py") else {
+    let Some(rows) = super::emu_obj("roads_road_cleared") else {
         return;
     };
     let mut n = 0;

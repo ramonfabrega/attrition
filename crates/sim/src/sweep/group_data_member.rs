@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `GroupData::member@0070f8f0`, run by `tools/emu/sweep_group_data_member.py` under unicorn
-/// (tools/emu): 2304 random bytes of object, 3 argument(s), the word at `0xc0ab84+u8(m,0x4a)*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 12 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `GroupData::member@0070f8f0`, run by `tools/emu/sweep_obj.py` on its row `group_data_member` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 2304 random bytes of object, 3 argument(s), the word at `0xc0ab84+u8(m,0x4a)*0x1c` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 12 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_group_data_member.py") else {
+    let Some(rows) = super::emu_obj("group_data_member") else {
         return;
     };
     let mut n = 0;

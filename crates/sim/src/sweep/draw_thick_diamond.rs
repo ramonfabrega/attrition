@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `draw_thick_diamond@008c51a0`, run by `tools/emu/sweep_draw_thick_diamond.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 6 argument(s), callee 0x008c6180 (6 args) stubbed; `__cdecl`: the caller pops the arguments; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `draw_thick_diamond@008c51a0`, run by `tools/emu/sweep_obj.py` on its row `draw_thick_diamond` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 6 argument(s), callee 0x008c6180 (6 args) stubbed; `__cdecl`: the caller pops the arguments; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 0 is `__cdecl`: the caller pops its arguments; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_draw_thick_diamond.py") else {
+    let Some(rows) = super::emu_obj("draw_thick_diamond") else {
         return;
     };
     let mut n = 0;

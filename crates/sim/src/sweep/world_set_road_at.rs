@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `World::set_road_at@006b43b0`, run by `tools/emu/sweep_world_set_road_at.py` under unicorn
-/// (tools/emu): 316 random bytes of object, 5 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x008955d0 (3 args) stubbed; callee 0x008954d0 (4 args) stubbed; the word at `m+0x138` points at 128 random bytes less `0` (placed); the word at `m+0x134` points at 112 random bytes less `0` (placed); the global cell 0x00c06188 holds `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `World::set_road_at@006b43b0`, run by `tools/emu/sweep_obj.py` on its row `world_set_road_at` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 316 random bytes of object, 5 argument(s), argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x008955d0 (3 args) stubbed; callee 0x008954d0 (4 args) stubbed; the word at `m+0x138` points at 128 random bytes less `0` (placed); the word at `m+0x134` points at 112 random bytes less `0` (placed); the global cell 0x00c06188 holds `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_set_road_at.py") else {
+    let Some(rows) = super::emu_obj("world_set_road_at") else {
         return;
     };
     let mut n = 0;

@@ -155,6 +155,16 @@ class PinnedTraces(unittest.TestCase):
             self.assertEqual(census.sweep_backed(str(src), by_name, str(emu)), {0x401000, 0x402000})
             # Without the scripts' directory nothing is subtracted (the old count).
             self.assertEqual(census.sweep_backed(str(src), by_name), {0x401000, 0x402000, 0x512340})
+            # Item 3731: an `obj` sweep is a row of `sweep_obj.tsv` run by `emu_obj`; its
+            # stubs are the row's, and the driver itself is no sweep's script.
+            Path(emu, 'sweep_m_s.py').unlink()
+            Path(emu, 'sweep_obj.tsv').write_text("m_s\t{'ENTRY': 4198400, 'STUBS': [('call', 5317440, 3)]}\t[]\n")
+            Path(src, 'm.rs').write_text(
+                '/// `M::s@00401000`, run by `tools/emu/sweep_obj.py` on its row `m_s`.\n'
+                '#[test]\nfn z() { let _ = super::emu_obj("m_s"); /* `Objects::at` (stub 0) answers a[4] */ }\n')
+            self.assertEqual(census.scripts_in(Path(src, 'm.rs').read_text()), ['sweep_m_s.py'])
+            self.assertEqual(census.hooked_by_script(str(Path(emu, 'sweep_m_s.py'))), {0x512340})
+            self.assertEqual(census.sweep_backed(str(src), by_name, str(emu)), {0x401000})
 
     def test_the_trampoline_table_is_not_shadowed_by_the_sweep_regex(self):
         # The thirty-second pass named its `Harness(exe, {…})` regex `HOOKS`,

@@ -16,9 +16,12 @@ Listing prints one row per receipt. `--verify` re-hashes every input the
 receipt names as it is on disk now — the executable at its recorded path
 (or `--exe`), the script and the modules under `--emu-dir` — re-derives the
 module set, and checks the header's key against its own hashes; a stale
-entry is named with its reason and the exit is 1. Nothing is deleted: a
-stale entry is never read again (its key no longer matches), and the cache
-is `target/`'s to clear.
+entry is named with its reason and the exit is 1. A run of the `obj`
+driver, `sweep_obj.py <snake> <row>` (item 3731), is also stale when its row
+is no longer the one `sweep_obj.tsv` holds for that name, or the table holds
+none. `--prune` deletes every entry `--verify` names stale and says how many
+bytes went: a stale entry is never read again (its key no longer matches),
+so pruning loses nothing a test can ask for.
 """
 import argparse
 import hashlib
@@ -147,6 +150,11 @@ def check(entry, emu_dir, exe=None):
         return reasons
     if sha256_file(emu_dir / script) != script_sha:
         reasons.append(f'script changed: {script}')
+    if script == 'sweep_obj.py':
+        args = entry['args']
+        rows = obj_rows(emu_dir)
+        if len(args) != 2 or rows.get(args[0]) != args[1]:
+            reasons.append(f"row changed or gone: {args[0] if args else '?'}")
     recorded = dict(entry['modules'])
     now = shared_modules(emu_dir, script)
     for name in sorted(set(recorded) - set(now)):
@@ -157,6 +165,20 @@ def check(entry, emu_dir, exe=None):
         elif sha256_file(emu_dir / name) != recorded[name]:
             reasons.append(f'module changed: {name}')
     return reasons
+
+
+def obj_rows(emu_dir, _memo={}):
+    """`sweep_obj.tsv`'s `{snake: literal}` (item 3731), read once a directory."""
+    table = Path(emu_dir) / 'sweep_obj.tsv'
+    if table not in _memo:
+        rows = {}
+        if table.is_file():
+            for line in table.read_text().splitlines():
+                parts = line.split('\t')
+                if len(parts) >= 2:
+                    rows[parts[0]] = parts[1]
+        _memo[table] = rows
+    return _memo[table]
 
 
 def default_cache():
@@ -172,6 +194,8 @@ def main(argv=None):
     ap.add_argument('--emu-dir', type=Path, default=ROOT / 'tools/emu')
     ap.add_argument('--exe', type=Path, default=None,
                     help="the executable to verify against (default: each receipt's own path)")
+    ap.add_argument('--prune', action='store_true',
+                    help='delete every entry --verify names stale (item 3731)')
     ap.add_argument('--verify', action='store_true',
                     help="re-hash every receipt's inputs; exit 1 naming each stale entry")
     a = ap.parse_args(argv)
@@ -193,15 +217,21 @@ def main(argv=None):
         print(f"{e.get('key', '?')[:12]:<12}  {e.get('rows', '?'):>6}  {e.get('date', '?'):<20}  "
               f"{e.get('executable', ('?',))[0][:12]:<12}  {len(e['modules']):>4}  "
               f"{e.get('script', ('', '?'))[1]}")
-    if not a.verify:
+    if not (a.verify or a.prune):
         return 0
-    stale = 0
+    stale = gone = 0
     for f, e in entries:
         reasons = ['no header'] if e is None else check(e, a.emu_dir, a.exe)
         if reasons:
             stale += 1
             print(f'STALE {f.name}: ' + '; '.join(reasons))
+            if a.prune:
+                gone += f.stat().st_size
+                f.unlink()
     print(f'{len(entries) - stale} of {len(entries)} receipts match the inputs on disk')
+    if a.prune:
+        print(f'pruned {stale} stale entries, {gone} bytes')
+        return 0
     return 1 if stale else 0
 
 

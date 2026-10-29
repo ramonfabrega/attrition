@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Groups::process@006fa210`, run by `tools/emu/sweep_groups_process_driver.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), `p` windows in order: p0..p7 sparse table 0 (8 rows × 1 slice(s), row-major), p8..p1031 sparse table 1 (512 rows × 2 slice(s), row-major); 4 random bytes at 0x00e85f50 (each word in 0..63); callee 0x007081f0 (0 args) stubbed; callee 0x0070ccb0 (1 args) stubbed; callee 0x0060aae0 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x1 (`p` windows after the pointed buffers, before the places); 512 rows 0x9d4 apart at `0xe85f20`, slices +0xc:0x4, +0x3c:0x8 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 500 rows (an arm few rows reach).
+/// `Groups::process@006fa210`, run by `tools/emu/sweep_obj.py` on its row `groups_process_driver` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), `p` windows in order: p0..p7 sparse table 0 (8 rows × 1 slice(s), row-major), p8..p1031 sparse table 1 (512 rows × 2 slice(s), row-major); 4 random bytes at 0x00e85f50 (each word in 0..63); callee 0x007081f0 (0 args) stubbed; callee 0x0070ccb0 (1 args) stubbed; callee 0x0060aae0 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 8 rows 0x6eec apart at `@0xe3a390`, slices +0x0:0x1 (`p` windows after the pointed buffers, before the places); 512 rows 0x9d4 apart at `0xe85f20`, slices +0xc:0x4, +0x3c:0x8 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 500 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_groups_process_driver.py") else {
+    let Some(rows) = super::emu_obj("groups_process_driver") else {
         return;
     };
     let mut n = 0;

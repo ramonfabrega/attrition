@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `SubObjectData::play_sound@006625c0`, run by `tools/emu/sweep_sub_object_data_play_sound.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), callee 0x006624f0 (4 args) stubbed; the word at `0xc0ab84+0x1c*0` points at 12 random bytes less `0` (placed); the word at `p0+0` points at 24 random bytes less `0` (placed); the word at `p0+4` points at 24 random bytes less `0` (placed); the word at `p0+8` points at 24 random bytes less `0` (placed); the word at `0xc0ab84+0x1c*1` points at 12 random bytes less `0` (placed); the word at `p4+0` points at 24 random bytes less `0` (placed); the word at `p4+4` points at 24 random bytes less `0` (placed); the word at `p4+8` points at 24 random bytes less `0` (placed); the word at `0xc0ab84+0x1c*2` points at 12 random bytes less `0` (placed); the word at `p8+0` points at 24 random bytes less `0` (placed); the word at `p8+4` points at 24 random bytes less `0` (placed); the word at `p8+8` points at 24 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `SubObjectData::play_sound@006625c0`, run by `tools/emu/sweep_obj.py` on its row `sub_object_data_play_sound` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), callee 0x006624f0 (4 args) stubbed; the word at `0xc0ab84+0x1c*0` points at 12 random bytes less `0` (placed); the word at `p0+0` points at 24 random bytes less `0` (placed); the word at `p0+4` points at 24 random bytes less `0` (placed); the word at `p0+8` points at 24 random bytes less `0` (placed); the word at `0xc0ab84+0x1c*1` points at 12 random bytes less `0` (placed); the word at `p4+0` points at 24 random bytes less `0` (placed); the word at `p4+4` points at 24 random bytes less `0` (placed); the word at `p4+8` points at 24 random bytes less `0` (placed); the word at `0xc0ab84+0x1c*2` points at 12 random bytes less `0` (placed); the word at `p8+0` points at 24 random bytes less `0` (placed); the word at `p8+4` points at 24 random bytes less `0` (placed); the word at `p8+8` points at 24 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_sub_object_data_play_sound.py") else {
+    let Some(rows) = super::emu_obj("sub_object_data_play_sound") else {
         return;
     };
     let mut n = 0;

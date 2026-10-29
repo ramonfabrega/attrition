@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::was_seen@006b53f0`, run by `tools/emu/sweep_world_data_was_seen.py` under unicorn
-/// (tools/emu): 368 random bytes of object, 3 argument(s), the global cell 0x00c061e8 points at 64 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006edb50 (1 args) stubbed; the word at `m+0x134` points at 448 random bytes less `0` (placed); the word at `m+0x160` points at 64 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 8 rows 0x6eec apart at `0xc061e0`, slices +0x0:0x4, +0x125e:0x10, +0x12de:0x10, +0x59e4:0x4, +0x6929:0x1 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::was_seen@006b53f0`, run by `tools/emu/sweep_obj.py` on its row `world_data_was_seen` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 368 random bytes of object, 3 argument(s), the global cell 0x00c061e8 points at 64 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006edb50 (1 args) stubbed; the word at `m+0x134` points at 448 random bytes less `0` (placed); the word at `m+0x160` points at 64 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); 8 rows 0x6eec apart at `0xc061e0`, slices +0x0:0x4, +0x125e:0x10, +0x12de:0x10, +0x59e4:0x4, +0x6929:0x1 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_was_seen.py") else {
+    let Some(rows) = super::emu_obj("world_data_was_seen") else {
         return;
     };
     let mut n = 0;

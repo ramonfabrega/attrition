@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `CityData::ready_to_upgrade@00736480`, run by `tools/emu/sweep_city_data_ready_to_upgrade.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 0 argument(s), callee 0x006e33a0 (2 args) stubbed; callee 0x007383c0 (1 args) stubbed; the word at `0xc0ab84+i8(m,0x5e)*0x1c` points at 4 random bytes less `i16(m,8)*4` (placed); the word at `p0+0` points at 28 random bytes less `0` (placed); the word at `p1+0x18` points at 8 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `CityData::ready_to_upgrade@00736480`, run by `tools/emu/sweep_obj.py` on its row `city_data_ready_to_upgrade` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 0 argument(s), callee 0x006e33a0 (2 args) stubbed; callee 0x007383c0 (1 args) stubbed; the word at `0xc0ab84+i8(m,0x5e)*0x1c` points at 4 random bytes less `i16(m,8)*4` (placed); the word at `p0+0` points at 28 random bytes less `0` (placed); the word at `p1+0x18` points at 8 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_city_data_ready_to_upgrade.py") else {
+    let Some(rows) = super::emu_obj("city_data_ready_to_upgrade") else {
         return;
     };
     let mut n = 0;

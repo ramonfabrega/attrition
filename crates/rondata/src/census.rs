@@ -264,13 +264,15 @@
 /// forty-eighth tranche's first sweep, five of five (`Unit::check_meet_ship`, `SpellType::cast_bribe`,
 /// `SpellType::cast_sabotage`, `SpellType::cast_pilfer`, `Unit::do_group_attack`); item 3411: 1691 -> 1696, the
 /// census's last five sweep rows, five of five (`Group::action_repair`, `Unit::think_carry_military`,
-/// `Unit::think_carry_idle`, `AnimalData::is_seen`, `Unit::do_await_board`).
+/// `Unit::think_carry_idle`, `AnimalData::is_seen`, `Unit::do_await_board`); item 3731: 1696 -> 1445, the
+/// 255 layout-only sweeps of the five `census.REPLACED_BY_DESIGN` groups deleted (port-backed unmoved at 568; the
+/// territory's `replaced` unmoved at 318, four `vtordisp` destructor sweeps kept for it, parked 3731a).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1696;
+pub const SIMULATION_BACKED: usize = 1445;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a

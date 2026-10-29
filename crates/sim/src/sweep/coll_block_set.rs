@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `CollBlock::set@00682070`, run by `tools/emu/sweep_coll_block_set.py` under unicorn
-/// (tools/emu): 44 random bytes of object, 3 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `CollBlock::set@00682070`, run by `tools/emu/sweep_obj.py` on its row `coll_block_set` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 44 random bytes of object, 3 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_coll_block_set.py") else {
+    let Some(rows) = super::emu_obj("coll_block_set") else {
         return;
     };
     let mut n = 0;

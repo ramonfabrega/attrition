@@ -5,7 +5,7 @@
 //! and the callees it makes, which [`SimDecoy`] answers from the crate's
 //! [`Sim`] and `sweep/spell_type_cast_create_decoy.rs` from the emulated
 //! original's windows. The steps run the sweep's 1500 rows against
-//! `tools/emu/sweep_spell_type_cast_create_decoy.py`.
+//! `tools/emu/sweep_obj.tsv`'s row `spell_type_cast_create_decoy`.
 //!
 //! ```text
 //! limit = (get_general_upgrade + 2) × 5

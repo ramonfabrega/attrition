@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::check_land_adjacent@00638ed0`, run by `tools/emu/sweep_build_type_data_check_land_adjacent.py` under unicorn
-/// (tools/emu): 576 random bytes of object, 3 argument(s), the global cell 0x00c061d0 points at 320 random bytes; callee 0x006e1370 (1 args) stubbed; the word at `c0+0x134` points at 256 random bytes less `0` (placed); the word at `c0+0x138` points at 288 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); 8 rows 0x6eec apart at `0xc061e0`, slices +0x8:0x8c (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::check_land_adjacent@00638ed0`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_check_land_adjacent` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 576 random bytes of object, 3 argument(s), the global cell 0x00c061d0 points at 320 random bytes; callee 0x006e1370 (1 args) stubbed; the word at `c0+0x134` points at 256 random bytes less `0` (placed); the word at `c0+0x138` points at 288 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); 8 rows 0x6eec apart at `0xc061e0`, slices +0x8:0x8c (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_check_land_adjacent.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_check_land_adjacent") else {
         return;
     };
     let mut n = 0;

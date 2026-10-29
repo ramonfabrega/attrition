@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::get_stance_type@006396c0`, run by `tools/emu/sweep_build_type_data_get_stance_type.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), callee 0x00639de0 (0 args) stubbed; vtable slot +0x64 (0 args) stubbed; vtable slot +0xfc (0 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::get_stance_type@006396c0`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_get_stance_type` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), callee 0x00639de0 (0 args) stubbed; vtable slot +0x64 (0 args) stubbed; vtable slot +0xfc (0 args) stubbed; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_get_stance_type.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_get_stance_type") else {
         return;
     };
     let mut n = 0;

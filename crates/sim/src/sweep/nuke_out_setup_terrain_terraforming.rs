@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `NukeOut::setup_terrain_terraforming@00925c90`, run by `tools/emu/sweep_nuke_out_setup_terrain_terraforming.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), callee 0x00869ca0 (2 args) stubbed; callee 0x00850b60 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 leaves `ecx` as a callee would, a value from [4096, 8192, 12288], after the other numbers on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `NukeOut::setup_terrain_terraforming@00925c90`, run by `tools/emu/sweep_obj.py` on its row `nuke_out_setup_terrain_terraforming` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), callee 0x00869ca0 (2 args) stubbed; callee 0x00850b60 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 0 leaves `ecx` as a callee would, a value from [4096, 8192, 12288], after the other numbers on the row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_nuke_out_setup_terrain_terraforming.py") else {
+    let Some(rows) = super::emu_obj("nuke_out_setup_terrain_terraforming") else {
         return;
     };
     let mut n = 0;

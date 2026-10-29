@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectsData::make_tree_mask@00658880`, run by `tools/emu/sweep_objects_data_make_tree_mask.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 2, p1 the place; the global cell 0x00c061d0 points at 1024 random bytes; argument 2 names 4 random bytes; the word at `c0+0x134` points at 4096 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// `ObjectsData::make_tree_mask@00658880`, run by `tools/emu/sweep_obj.py` on its row `objects_data_make_tree_mask` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 2, p1 the place; the global cell 0x00c061d0 points at 1024 random bytes; argument 2 names 4 random bytes; the word at `c0+0x134` points at 4096 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_objects_data_make_tree_mask.py") else {
+    let Some(rows) = super::emu_obj("objects_data_make_tree_mask") else {
         return;
     };
     let mut n = 0;

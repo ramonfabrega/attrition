@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::is_now_seen@0062e130`, run by `tools/emu/sweep_build_data_is_now_seen.py` under unicorn
-/// (tools/emu): 72 random bytes of object, 1 argument(s), vtable slot +0xdc (1 args) stubbed; callee 0x00642ca0 (1 args) stubbed; slot +0xdc laid as 0x00653750 or its stub, a flag after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::is_now_seen@0062e130`, run by `tools/emu/sweep_obj.py` on its row `build_data_is_now_seen` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 72 random bytes of object, 1 argument(s), vtable slot +0xdc (1 args) stubbed; callee 0x00642ca0 (1 args) stubbed; slot +0xdc laid as 0x00653750 or its stub, a flag after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_is_now_seen.py") else {
+    let Some(rows) = super::emu_obj("build_data_is_now_seen") else {
         return;
     };
     let mut n = 0;

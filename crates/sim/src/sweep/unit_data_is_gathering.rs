@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::is_gathering@006089b0`, run by `tools/emu/sweep_unit_data_is_gathering.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), 128 random bytes at 0x00c0aec0; callee 0x00608450 (0 args) stubbed; vtable slot +0x10 (0 args) stubbed; vtable slot +0xe4 (0 args) stubbed; the word at `m+0x18` points at 8 random bytes less `0` (placed); the word at `c0+i8(m,9)*0x1c` points at 4 random bytes less `i16(m,0xa)*4` (placed); stub 1 answered from [7, 7, 7, 7, 0, 12] (90%); stub 2 answers the address of 16 random bytes, a `p` window after the places; stub 0 answers a window of its own to each call, in call order (8 bytes, ...); the stubbed vtable laid at `p2+0`; the stubbed vtable laid at `p3+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::is_gathering@006089b0`, run by `tools/emu/sweep_obj.py` on its row `unit_data_is_gathering` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), 128 random bytes at 0x00c0aec0; callee 0x00608450 (0 args) stubbed; vtable slot +0x10 (0 args) stubbed; vtable slot +0xe4 (0 args) stubbed; the word at `m+0x18` points at 8 random bytes less `0` (placed); the word at `c0+i8(m,9)*0x1c` points at 4 random bytes less `i16(m,0xa)*4` (placed); stub 1 answered from [7, 7, 7, 7, 0, 12] (90%); stub 2 answers the address of 16 random bytes, a `p` window after the places; stub 0 answers a window of its own to each call, in call order (8 bytes, ...); the stubbed vtable laid at `p2+0`; the stubbed vtable laid at `p3+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_is_gathering.py") else {
+    let Some(rows) = super::emu_obj("unit_data_is_gathering") else {
         return;
     };
     let mut n = 0;

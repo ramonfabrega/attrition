@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectsData::find_goody_at@0065b7c0`, run by `tools/emu/sweep_objects_data_find_goody_at.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 3 argument(s), callee 0x0065c040 (1 args) stubbed; the word at `0xcae5fc` points at 64 random bytes less `0` (placed); the word at `0xc061d0` points at 320 random bytes less `0` (placed); the word at `p1+0x134` points at 448 random bytes less `0` (placed); stub 0 answered from [0, 1, 5, -7] (90%); stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectsData::find_goody_at@0065b7c0`, run by `tools/emu/sweep_obj.py` on its row `objects_data_find_goody_at` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 3 argument(s), callee 0x0065c040 (1 args) stubbed; the word at `0xcae5fc` points at 64 random bytes less `0` (placed); the word at `0xc061d0` points at 320 random bytes less `0` (placed); the word at `p1+0x134` points at 448 random bytes less `0` (placed); stub 0 answered from [0, 1, 5, -7] (90%); stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_objects_data_find_goody_at.py") else {
+    let Some(rows) = super::emu_obj("objects_data_find_goody_at") else {
         return;
     };
     let mut n = 0;

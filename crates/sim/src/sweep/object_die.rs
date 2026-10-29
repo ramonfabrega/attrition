@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Object::die@00647080`, run by `tools/emu/sweep_object_die.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 3 argument(s), `p` windows in order: p0..p7 the place(s), in flag order; the global cell 0x00c0618c points at 320 random bytes; 4 random bytes at 0x00c0a888; vtable slot +0x150 (3 args) stubbed; the word at `c0+0x12c` points at 24 random bytes less `0` (placed); the word at `p0+0` points at 72 random bytes less `0` (placed); the word at `p0+4` points at 72 random bytes less `0` (placed); the word at `p0+8` points at 72 random bytes less `0` (placed); the word at `p0+12` points at 72 random bytes less `0` (placed); the word at `p0+16` points at 72 random bytes less `0` (placed); the word at `p0+20` points at 72 random bytes less `0` (placed); the word at `m+0x18` points at 528 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// `Object::die@00647080`, run by `tools/emu/sweep_obj.py` on its row `object_die` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 3 argument(s), `p` windows in order: p0..p7 the place(s), in flag order; the global cell 0x00c0618c points at 320 random bytes; 4 random bytes at 0x00c0a888; vtable slot +0x150 (3 args) stubbed; the word at `c0+0x12c` points at 24 random bytes less `0` (placed); the word at `p0+0` points at 72 random bytes less `0` (placed); the word at `p0+4` points at 72 random bytes less `0` (placed); the word at `p0+8` points at 72 random bytes less `0` (placed); the word at `p0+12` points at 72 random bytes less `0` (placed); the word at `p0+16` points at 72 random bytes less `0` (placed); the word at `p0+20` points at 72 random bytes less `0` (placed); the word at `m+0x18` points at 528 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_object_die.py") else {
+    let Some(rows) = super::emu_obj("object_die") else {
         return;
     };
     let mut n = 0;

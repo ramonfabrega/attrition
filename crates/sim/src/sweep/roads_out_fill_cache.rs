@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `RoadsOut::fill_cache@00893b30`, run by `tools/emu/sweep_roads_out_fill_cache.py` under unicorn
-/// (tools/emu): 336 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 320 random bytes; the word at `c0+0x138` points at 128 random bytes less `0` (placed); 9 rows 0x4 apart at `@0xadc400`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); 9 rows 0x4 apart at `@0xadcaf0`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `RoadsOut::fill_cache@00893b30`, run by `tools/emu/sweep_obj.py` on its row `roads_out_fill_cache` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 336 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 320 random bytes; the word at `c0+0x138` points at 128 random bytes less `0` (placed); 9 rows 0x4 apart at `@0xadc400`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); 9 rows 0x4 apart at `@0xadcaf0`, slices +0x0:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_roads_out_fill_cache.py") else {
+    let Some(rows) = super::emu_obj("roads_out_fill_cache") else {
         return;
     };
     let mut n = 0;

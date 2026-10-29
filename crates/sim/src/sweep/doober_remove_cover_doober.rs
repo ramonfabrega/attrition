@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Doober::remove_cover_doober@00846a30`, run by `tools/emu/sweep_doober_remove_cover_doober.py` under unicorn
-/// (tools/emu): 512 random bytes of object, 5 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x148` points at 64 random bytes less `0` (placed); the word at `m+0x164` points at 128 random bytes less `0` (placed); the word at `m+0x180` points at 64 random bytes less `0` (placed); the word at `m+0x19c` points at 64 random bytes less `0` (placed); the word at `m+0x1b8` points at 64 random bytes less `0` (placed); the word at `m+0x1d4` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
+/// `Doober::remove_cover_doober@00846a30`, run by `tools/emu/sweep_obj.py` on its row `doober_remove_cover_doober` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 512 random bytes of object, 5 argument(s), `p` windows in order: p0..p5 the place(s), in flag order; the word at `m+0x148` points at 64 random bytes less `0` (placed); the word at `m+0x164` points at 128 random bytes less `0` (placed); the word at `m+0x180` points at 64 random bytes less `0` (placed); the word at `m+0x19c` points at 64 random bytes less `0` (placed); the word at `m+0x1b8` points at 64 random bytes less `0` (placed); the word at `m+0x1d4` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 3000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_doober_remove_cover_doober.py") else {
+    let Some(rows) = super::emu_obj("doober_remove_cover_doober") else {
         return;
     };
     let mut n = 0;

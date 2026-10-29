@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Terrain::object_placed@00850c40`, run by `tools/emu/sweep_terrain_object_placed.py` under unicorn
-/// (tools/emu): 21504 random bytes of object, 5 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; the global cell 0x00c06188 points at 320 random bytes; the global cell 0x00c061d0 points at 4 random bytes; the global cell 0x00c06218 points at 27328 random bytes; the global cell 0x00e885f0 points at 576 random bytes; callee 0x0084fa50 (4 args) stubbed; callee 0x008b13d0 (1 args) stubbed; the word at `c0+0x134` points at 1024 random bytes less `0` (placed); the word at `c2+0x6ab0` points at 176 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Terrain::object_placed@00850c40`, run by `tools/emu/sweep_obj.py` on its row `terrain_object_placed` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 21504 random bytes of object, 5 argument(s), `p` windows in order: p0..p1 the place(s), in flag order; the global cell 0x00c06188 points at 320 random bytes; the global cell 0x00c061d0 points at 4 random bytes; the global cell 0x00c06218 points at 27328 random bytes; the global cell 0x00e885f0 points at 576 random bytes; callee 0x0084fa50 (4 args) stubbed; callee 0x008b13d0 (1 args) stubbed; the word at `c0+0x134` points at 1024 random bytes less `0` (placed); the word at `c2+0x6ab0` points at 176 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_terrain_object_placed.py") else {
+    let Some(rows) = super::emu_obj("terrain_object_placed") else {
         return;
     };
     let mut n = 0;

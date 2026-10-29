@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Signposts::add@00897e20`, run by `tools/emu/sweep_signposts_add.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 0; argument 0 names 24 random bytes; callee 0x00a1d590 (1 args) stubbed; callee 0x004a4390 (5 args) stubbed; callee 0x0047bb10 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stack 256 bytes under the call is zeroed before each row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Signposts::add@00897e20`, run by `tools/emu/sweep_obj.py` on its row `signposts_add` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 0; argument 0 names 24 random bytes; callee 0x00a1d590 (1 args) stubbed; callee 0x004a4390 (5 args) stubbed; callee 0x0047bb10 (1 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stack 256 bytes under the call is zeroed before each row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_signposts_add.py") else {
+    let Some(rows) = super::emu_obj("signposts_add") else {
         return;
     };
     let mut n = 0;

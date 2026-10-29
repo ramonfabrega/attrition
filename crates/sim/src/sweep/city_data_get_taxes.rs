@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `CityData::get_taxes@00737b50`, run by `tools/emu/sweep_city_data_get_taxes.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 0 argument(s), the global cell 0x00c061e4 points at 1208 random bytes; 4 random bytes at 0x00c061e0; callee 0x00738190 (0 args) stubbed; callee 0x00739390 (3 args) stubbed; callee 0x006ebc10 (1 args) stubbed; stub 0 answered from [0, 1, 2, 5, 30] (90%); stub 1 answered from [0, 1, 2] (90%); stub 2 answered from [0, 1] (90%); stub 1 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `CityData::get_taxes@00737b50`, run by `tools/emu/sweep_obj.py` on its row `city_data_get_taxes` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 0 argument(s), the global cell 0x00c061e4 points at 1208 random bytes; 4 random bytes at 0x00c061e0; callee 0x00738190 (0 args) stubbed; callee 0x00739390 (3 args) stubbed; callee 0x006ebc10 (1 args) stubbed; stub 0 answered from [0, 1, 2, 5, 30] (90%); stub 1 answered from [0, 1, 2] (90%); stub 2 answered from [0, 1] (90%); stub 1 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_city_data_get_taxes.py") else {
+    let Some(rows) = super::emu_obj("city_data_get_taxes") else {
         return;
     };
     let mut n = 0;

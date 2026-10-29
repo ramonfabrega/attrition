@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `SubObjectData::is_spellcaster@006623e0`, run by `tools/emu/sweep_sub_object_data_is_spellcaster.py` under unicorn
-/// (tools/emu): 28 random bytes of object, 0 argument(s), vtable slot +0x8 (0 args) stubbed; vtable slot +0xc (0 args) stubbed; callee 0x00639840 (1 args) stubbed; the word at `m+0x18` points at 4 random bytes less `0x2b8` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `SubObjectData::is_spellcaster@006623e0`, run by `tools/emu/sweep_obj.py` on its row `sub_object_data_is_spellcaster` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 28 random bytes of object, 0 argument(s), vtable slot +0x8 (0 args) stubbed; vtable slot +0xc (0 args) stubbed; callee 0x00639840 (1 args) stubbed; the word at `m+0x18` points at 4 random bytes less `0x2b8` (placed); stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_sub_object_data_is_spellcaster.py") else {
+    let Some(rows) = super::emu_obj("sub_object_data_is_spellcaster") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Guy::turn_angles@005d98c0`, run by `tools/emu/sweep_guy_turn_angles.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 4 argument(s), argument 1 names 4 random bytes; callee 0x005de340 (1 args) stubbed; stub 0 answered from [0, 1, 16777216, 35791392, 67108864, 268435456, 1073741824, 2147483647, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Guy::turn_angles@005d98c0`, run by `tools/emu/sweep_obj.py` on its row `guy_turn_angles` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 4 argument(s), argument 1 names 4 random bytes; callee 0x005de340 (1 args) stubbed; stub 0 answered from [0, 1, 16777216, 35791392, 67108864, 268435456, 1073741824, 2147483647, -1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_guy_turn_angles.py") else {
+    let Some(rows) = super::emu_obj("guy_turn_angles") else {
         return;
     };
     let mut n = 0;

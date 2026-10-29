@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectTypeData::upgrade_level@00661090`, run by `tools/emu/sweep_object_type_data_upgrade_level.py` under unicorn
-/// (tools/emu): 656 random bytes of object, 0 argument(s), vtable slot +0x60 (2 args) stubbed; vtable slot +0xf4 (2 args) stubbed; the word at `0xc0aaf4` points at 24 random bytes less `0` (placed); the word at `p0+0` points at 64 random bytes less `0` (placed); the word at `p0+4` points at 64 random bytes less `0` (placed); the word at `p0+8` points at 64 random bytes less `0` (placed); the word at `p0+12` points at 64 random bytes less `0` (placed); the word at `p0+16` points at 64 random bytes less `0` (placed); the word at `p0+20` points at 64 random bytes less `0` (placed); the word at `m+0x28c` points at 8 random bytes less `0` (placed); slot +0x60 laid as 0x0065f7d0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 0 answers 8 values in call order, printed after the answers; stub 1 answers 8 values in call order, printed after the answers; figures p1..p6 link at +0x3c (4 bytes) below their own index or to -1, -2147483648; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectTypeData::upgrade_level@00661090`, run by `tools/emu/sweep_obj.py` on its row `object_type_data_upgrade_level` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 656 random bytes of object, 0 argument(s), vtable slot +0x60 (2 args) stubbed; vtable slot +0xf4 (2 args) stubbed; the word at `0xc0aaf4` points at 24 random bytes less `0` (placed); the word at `p0+0` points at 64 random bytes less `0` (placed); the word at `p0+4` points at 64 random bytes less `0` (placed); the word at `p0+8` points at 64 random bytes less `0` (placed); the word at `p0+12` points at 64 random bytes less `0` (placed); the word at `p0+16` points at 64 random bytes less `0` (placed); the word at `p0+20` points at 64 random bytes less `0` (placed); the word at `m+0x28c` points at 8 random bytes less `0` (placed); slot +0x60 laid as 0x0065f7d0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 0 answers 8 values in call order, printed after the answers; stub 1 answers 8 values in call order, printed after the answers; figures p1..p6 link at +0x3c (4 bytes) below their own index or to -1, -2147483648; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_object_type_data_upgrade_level.py") else {
+    let Some(rows) = super::emu_obj("object_type_data_upgrade_level") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::los@006100c0`, run by `tools/emu/sweep_unit_data_los.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 0 argument(s), vtable slot +0x10c (0 args) stubbed; callee 0x00646b00 (2 args) stubbed; the word at `0xc061e0` points at 64 random bytes less `0x59c0` (placed); the word at `0xc061e4` points at 336 random bytes less `0xb60` (placed); the word at `m+0x18` points at 720 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); the stubbed vtable laid at `p2+0`; stub 1 answers -1..1 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::los@006100c0`, run by `tools/emu/sweep_obj.py` on its row `unit_data_los` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 0 argument(s), vtable slot +0x10c (0 args) stubbed; callee 0x00646b00 (2 args) stubbed; the word at `0xc061e0` points at 64 random bytes less `0x59c0` (placed); the word at `0xc061e4` points at 336 random bytes less `0xb60` (placed); the word at `m+0x18` points at 720 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); the stubbed vtable laid at `p2+0`; stub 1 answers -1..1 every row; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_los.py") else {
+    let Some(rows) = super::emu_obj("unit_data_los") else {
         return;
     };
     let mut n = 0;

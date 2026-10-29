@@ -12367,13 +12367,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot VZ — reserved
+## Parked by item 3731, 2026-10-28 — the obj sweeps become one driver and a row table
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot VZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3731a. Four `vtordisp` destructors count as replaced only while a sweep backs them.**
+  `GroupPatrolOrder`, `AirPatrolOrder`, `GroupAttackOrder` and `AirAttackGroundOrder`'s
+  `vector_deleting_destructor``vtordisp` (0x482c0a, 0x483aaa, 0x48509a, 0x48758d). `territory_kind` tests
+  `backed` before `is_dead_weight`, so a backed one is `layout` and the mark makes it `replaced`. Unbacked it
+  is `dead`. Deleting their four sweeps moved the territory 318 → 314 replaced and 1160 → 1164 dead, with open
+  unmoved. The sweeps stay, and the count stays 318. Whether dead weight in a replaced group is replaced or dead
+  is the pass's call. Either way it is a re-pin of `RUBRIC_TERRITORY_REPLACED`.
+- **3731b. 31 `obj with windows` scripts the driver does not reproduce stay scripts.** Their template drew
+  before the driver's did, so a byte parts on row 1. In most it is a stub's answer or an argument; in one an
+  `ALIAS` row has four members where the driver reads five; one faults (`unit_update_action`). They are
+  `army_member`, `build_queue_data_get_next_non_caravan`, `build_type_data_tile_corner`, `city_data_get_radius`, `game_popwin_timer`, `group_data_num_valid`, `guy_data_is_corner`, `herds_find_herd`, `map_scale_by_area`, `map_scale_by_axis`, `nuke_been_damaged_before`, `object_must_walk`, `strip_builder_check_last_connect`, `sub_object_must_walk`, `type_data_is_object_type`, `type_data_is_plain_tech_type`, `unbuilt_city_get_x`, `unbuilt_city_get_y`, `unbuilt_fort_get_x`, `unbuilt_fort_get_y`, `unit_find_melee_pos`, `unit_get_goody_box`, `unit_must_walk`, `unit_set_rally`, `unit_type_data_type_graft`, `unit_update_action`, `world_data_get_land_wcoord`, `world_data_has_mountain_tcoords`, `world_data_is_building_wcoord`, `world_data_is_city_at`, `world_set_cliff_at`.
+  Each moves into the table by `sweep_gen.py --regen <snake>`. That redraws its rows, so its port is held
+  against the new draw first.
+- **3731c. The other shapes stay scripts** (499 of them, 30,939 lines): 355 hand-written, 54 `const`/`field`/
+  `range`/`cell`/`vcall`/`outptr`/`fwd`, 41 `mix`, 22 plain `obj`, 15 `walk` and 12 `vcall --base`. Only the
+  `mix` template (4,000 lines) is large enough that a second driver would pay for itself.
 
 ## Parked by item 3755, 2026-10-28 — the American aircraft arm
 

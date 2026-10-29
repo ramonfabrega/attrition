@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Unit::bank_aircraft@005e9520`, run by `tools/emu/sweep_unit_bank_aircraft.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 1; the global cell 0x00c061ec points at 1376 random bytes; the global cell 0x00c061f0 points at 16 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; 16 random bytes at 0x00e90000; 16 random bytes at 0x00e90100; 16 random bytes at 0x00e90200; 32 random bytes at 0x00e90300; 720 random bytes at 0x00e91000; 8 random bytes at 0x00e92000; 128 random bytes at 0x00e92100; argument 1 names 4 random bytes; vtable slot +0x30 (0 args) stubbed; vtable slot +0xfc (0 args) stubbed; callee 0x008544a0 (4 args) stubbed; stub 0 answered from [0, 1, 1] (90%); stub 1 answers 15270656..15270656 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 writes a value in -300..300 through its argument 0, printed after the answers (`o` in a place); the stubbed vtable laid at `c5+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 4000 rows (an arm few rows reach).
+/// `Unit::bank_aircraft@005e9520`, run by `tools/emu/sweep_obj.py` on its row `unit_bank_aircraft` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 3 argument(s), `p` windows in order: p0 argument 1; the global cell 0x00c061ec points at 1376 random bytes; the global cell 0x00c061f0 points at 16 random bytes; the global cell 0x00cae5fc points at 2048 random bytes; 16 random bytes at 0x00e90000; 16 random bytes at 0x00e90100; 16 random bytes at 0x00e90200; 32 random bytes at 0x00e90300; 720 random bytes at 0x00e91000; 8 random bytes at 0x00e92000; 128 random bytes at 0x00e92100; argument 1 names 4 random bytes; vtable slot +0x30 (0 args) stubbed; vtable slot +0xfc (0 args) stubbed; callee 0x008544a0 (4 args) stubbed; stub 0 answered from [0, 1, 1] (90%); stub 1 answers 15270656..15270656 every row; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 writes a value in -300..300 through its argument 0, printed after the answers (`o` in a place); the stubbed vtable laid at `c5+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 4000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_bank_aircraft.py") else {
+    let Some(rows) = super::emu_obj("unit_bank_aircraft") else {
         return;
     };
     let mut n = 0;

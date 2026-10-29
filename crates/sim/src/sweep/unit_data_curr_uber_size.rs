@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::curr_uber_size@0060a760`, run by `tools/emu/sweep_unit_data_curr_uber_size.py` under unicorn
-/// (tools/emu): 148 random bytes of object, 1 argument(s), the word at `0xc0aec0+2*0x1c` points at 32 random bytes less `0` (placed); the word at `p0+0` points at 148 random bytes less `0` (placed); the word at `p0+4` points at 148 random bytes less `0` (placed); the word at `p0+8` points at 148 random bytes less `0` (placed); the word at `p0+12` points at 148 random bytes less `0` (placed); the word at `p0+16` points at 148 random bytes less `0` (placed); the word at `p0+20` points at 148 random bytes less `0` (placed); the word at `p0+24` points at 148 random bytes less `0` (placed); the word at `p0+28` points at 148 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::curr_uber_size@0060a760`, run by `tools/emu/sweep_obj.py` on its row `unit_data_curr_uber_size` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 148 random bytes of object, 1 argument(s), the word at `0xc0aec0+2*0x1c` points at 32 random bytes less `0` (placed); the word at `p0+0` points at 148 random bytes less `0` (placed); the word at `p0+4` points at 148 random bytes less `0` (placed); the word at `p0+8` points at 148 random bytes less `0` (placed); the word at `p0+12` points at 148 random bytes less `0` (placed); the word at `p0+16` points at 148 random bytes less `0` (placed); the word at `p0+20` points at 148 random bytes less `0` (placed); the word at `p0+24` points at 148 random bytes less `0` (placed); the word at `p0+28` points at 148 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_curr_uber_size.py") else {
+    let Some(rows) = super::emu_obj("unit_data_curr_uber_size") else {
         return;
     };
     let mut n = 0;

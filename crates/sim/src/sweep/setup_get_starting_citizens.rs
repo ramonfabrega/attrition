@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Setup::get_starting_citizens@005aaf50`, run by `tools/emu/sweep_setup_get_starting_citizens.py` under unicorn
-/// (tools/emu): 4 random bytes of object, 2 argument(s), argument 0 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Setup::get_starting_citizens@005aaf50`, run by `tools/emu/sweep_obj.py` on its row `setup_get_starting_citizens` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 4 random bytes of object, 2 argument(s), argument 0 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_setup_get_starting_citizens.py") else {
+    let Some(rows) = super::emu_obj("setup_get_starting_citizens") else {
         return;
     };
     let mut n = 0;

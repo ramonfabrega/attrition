@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Wall::mask_city@0063e310`, run by `tools/emu/sweep_wall_mask_city.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 4 argument(s), the global cell 0x00c06188 points at 316 random bytes; 64 random bytes at 0x00cae600; 24 random bytes at 0x00cab3b0; 24 random bytes at 0x00cae710; the word at `c0+0x138` points at 288 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Wall::mask_city@0063e310`, run by `tools/emu/sweep_obj.py` on its row `wall_mask_city` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 4 argument(s), the global cell 0x00c06188 points at 316 random bytes; 64 random bytes at 0x00cae600; 24 random bytes at 0x00cab3b0; 24 random bytes at 0x00cae710; the word at `c0+0x138` points at 288 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wall_mask_city.py") else {
+    let Some(rows) = super::emu_obj("wall_mask_city") else {
         return;
     };
     let mut n = 0;

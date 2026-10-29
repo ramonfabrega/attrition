@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Wall::kill_competing_buildings@0063d3a0`, run by `tools/emu/sweep_wall_kill_competing_buildings.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 32 random bytes; callee 0x00643440 (2 args) stubbed; callee 0x0063d440 (2 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 0 writes a value in -2..5 through its argument 0, printed after the answers (`o` in a place); stub 0 writes a value in -2..5 through its argument 1, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// `Wall::kill_competing_buildings@0063d3a0`, run by `tools/emu/sweep_obj.py` on its row `wall_kill_competing_buildings` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 0 argument(s), `p` windows in order: p0 the place; the global cell 0x00c06188 points at 32 random bytes; callee 0x00643440 (2 args) stubbed; callee 0x0063d440 (2 args) stubbed; the word at `m+0x18` points at 576 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); stub 0 writes a value in -2..5 through its argument 0, printed after the answers (`o` in a place); stub 0 writes a value in -2..5 through its argument 1, printed after the answers (`o` in a place); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_wall_kill_competing_buildings.py") else {
+    let Some(rows) = super::emu_obj("wall_kill_competing_buildings") else {
         return;
     };
     let mut n = 0;

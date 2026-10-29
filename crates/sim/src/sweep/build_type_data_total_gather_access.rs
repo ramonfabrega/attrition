@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildTypeData::total_gather_access@00636500`, run by `tools/emu/sweep_build_type_data_total_gather_access.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 4 argument(s), argument 0 names 20 random bytes; callee 0x006b4e50 (5 args) stubbed; the word at `p0+0x10` points at 80 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildTypeData::total_gather_access@00636500`, run by `tools/emu/sweep_obj.py` on its row `build_type_data_total_gather_access` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 4 argument(s), argument 0 names 20 random bytes; callee 0x006b4e50 (5 args) stubbed; the word at `p0+0x10` points at 80 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_type_data_total_gather_access.py") else {
+    let Some(rows) = super::emu_obj("build_type_data_total_gather_access") else {
         return;
     };
     let mut n = 0;

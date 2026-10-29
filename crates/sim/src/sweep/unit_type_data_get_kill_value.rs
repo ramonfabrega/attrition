@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitTypeData::get_kill_value@0061d3d0`, run by `tools/emu/sweep_unit_type_data_get_kill_value.py` under unicorn
-/// (tools/emu): 632 random bytes of object, 1 argument(s), vtable slot +0x7c (1 args) stubbed; the word at `0xc061e0` points at 808 random bytes less `(a[0]*0x3776+i32(m,4))*2+0x56fe` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitTypeData::get_kill_value@0061d3d0`, run by `tools/emu/sweep_obj.py` on its row `unit_type_data_get_kill_value` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 632 random bytes of object, 1 argument(s), vtable slot +0x7c (1 args) stubbed; the word at `0xc061e0` points at 808 random bytes less `(a[0]*0x3776+i32(m,4))*2+0x56fe` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_type_data_get_kill_value.py") else {
+    let Some(rows) = super::emu_obj("unit_type_data_get_kill_value") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `LinkVert::append@008821e0`, run by `tools/emu/sweep_link_vert_append.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0; 4 random bytes at 0x00ee1232; argument 0 names 8 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
+/// `LinkVert::append@008821e0`, run by `tools/emu/sweep_obj.py` on its row `link_vert_append` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0; 4 random bytes at 0x00ee1232; argument 0 names 8 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_link_vert_append.py") else {
+    let Some(rows) = super::emu_obj("link_vert_append") else {
         return;
     };
     let mut n = 0;

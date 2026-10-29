@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `PathFinder::building_danger@00685900`, run by `tools/emu/sweep_path_finder_building_danger.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 4 argument(s), the global cell 0x00c06188 points at 320 random bytes; the word at `c0+0x138` points at 4 random bytes less `(i32(c[0],0x18)*a[1]+a[0])*2` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `PathFinder::building_danger@00685900`, run by `tools/emu/sweep_obj.py` on its row `path_finder_building_danger` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 4 argument(s), the global cell 0x00c06188 points at 320 random bytes; the word at `c0+0x138` points at 4 random bytes less `(i32(c[0],0x18)*a[1]+a[0])*2` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_path_finder_building_danger.py") else {
+    let Some(rows) = super::emu_obj("path_finder_building_danger") else {
         return;
     };
     let mut n = 0;

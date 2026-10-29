@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Search::valid_filter@0067dbb0`, run by `tools/emu/sweep_valid_filter_case24.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 4 argument(s), the word at `0xc0ab84` points at 4 random bytes less `0` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); `ecx` an integer in 0..1, not the object, the row's last; `ecx` and `edx` held to their draw every row, no wild word; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Search::valid_filter@0067dbb0`, run by `tools/emu/sweep_obj.py` on its row `valid_filter_case24` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 4 argument(s), the word at `0xc0ab84` points at 4 random bytes less `0` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); `ecx` an integer in 0..1, not the object, the row's last; `ecx` and `edx` held to their draw every row, no wild word; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_valid_filter_case24.py") else {
+    let Some(rows) = super::emu_obj("valid_filter_case24") else {
         return;
     };
     let mut n = 0;

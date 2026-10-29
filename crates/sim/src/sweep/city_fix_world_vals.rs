@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `City::fix_world_vals@00735aa0`, run by `tools/emu/sweep_city_fix_world_vals.py` under unicorn
-/// (tools/emu): 96 random bytes of object, 0 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the global cell 0x00c06188 points at 320 random bytes; 224 random bytes at 0x00c0ab84; 260 random bytes at 0x00cbe330; 32 random bytes at 0x00cb7e90; 32 random bytes at 0x00cbb0e0; callee 0x006db790 (1 args) stubbed; the word at `c2+0` points at 4 random bytes less `0` (placed); the word at `p0+0` points at 28 random bytes less `0` (placed); the word at `p1+0x18` points at 8 random bytes less `0` (placed); the word at `c1+0x134` points at 1008 random bytes less `0` (placed); stub 0 answers -6..80 every row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `City::fix_world_vals@00735aa0`, run by `tools/emu/sweep_obj.py` on its row `city_fix_world_vals` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 96 random bytes of object, 0 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the global cell 0x00c06188 points at 320 random bytes; 224 random bytes at 0x00c0ab84; 260 random bytes at 0x00cbe330; 32 random bytes at 0x00cb7e90; 32 random bytes at 0x00cbb0e0; callee 0x006db790 (1 args) stubbed; the word at `c2+0` points at 4 random bytes less `0` (placed); the word at `p0+0` points at 28 random bytes less `0` (placed); the word at `p1+0x18` points at 8 random bytes less `0` (placed); the word at `c1+0x134` points at 1008 random bytes less `0` (placed); stub 0 answers -6..80 every row; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_city_fix_world_vals.py") else {
+    let Some(rows) = super::emu_obj("city_fix_world_vals") else {
         return;
     };
     let mut n = 0;

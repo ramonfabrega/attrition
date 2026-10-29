@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnbuiltCities::add_unbuilt_city@0073b7c0`, run by `tools/emu/sweep_unbuilt_cities_add_unbuilt_city.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 2 argument(s), 112 random bytes at 0x00e39a40; vtable slot +0x0 (1 args) stubbed; the word at `c0+0x10` points at 64 random bytes less `0` (placed); the word at `c0+0x2c` points at 64 random bytes less `0` (placed); the word at `c0+0x48` points at 64 random bytes less `0` (placed); the word at `c0+0x64` points at 64 random bytes less `0` (placed); the stubbed vtable laid at `c0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `c0+0x1c` as well as at `this`; the stubbed vtable laid at `c0+0x38` as well as at `this`; the stubbed vtable laid at `c0+0x54` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnbuiltCities::add_unbuilt_city@0073b7c0`, run by `tools/emu/sweep_obj.py` on its row `unbuilt_cities_add_unbuilt_city` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 2 argument(s), 112 random bytes at 0x00e39a40; vtable slot +0x0 (1 args) stubbed; the word at `c0+0x10` points at 64 random bytes less `0` (placed); the word at `c0+0x2c` points at 64 random bytes less `0` (placed); the word at `c0+0x48` points at 64 random bytes less `0` (placed); the word at `c0+0x64` points at 64 random bytes less `0` (placed); the stubbed vtable laid at `c0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the stubbed vtable laid at `c0+0x1c` as well as at `this`; the stubbed vtable laid at `c0+0x38` as well as at `this`; the stubbed vtable laid at `c0+0x54` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unbuilt_cities_add_unbuilt_city.py") else {
+    let Some(rows) = super::emu_obj("unbuilt_cities_add_unbuilt_city") else {
         return;
     };
     let mut n = 0;

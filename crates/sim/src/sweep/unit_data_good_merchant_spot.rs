@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::good_merchant_spot@006068a0`, run by `tools/emu/sweep_unit_data_good_merchant_spot.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 2 argument(s), callee 0x0046f760 (2 args) stubbed; callee 0x00609180 (10 args) stubbed; the word at `0xc061d0` points at 320 random bytes less `0` (placed); the word at `p0+0x138` points at 512 random bytes less `0` (placed); stub 1 answered from [0, 1, 1] (90%); stub 0 answered from [1, 1, 1, 1, 1, 0] (90%); stub 0 answered from [0, 1, 1, 1] (90%); stub 0 answers 3 values in call order, printed after the answers; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::good_merchant_spot@006068a0`, run by `tools/emu/sweep_obj.py` on its row `unit_data_good_merchant_spot` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 2 argument(s), callee 0x0046f760 (2 args) stubbed; callee 0x00609180 (10 args) stubbed; the word at `0xc061d0` points at 320 random bytes less `0` (placed); the word at `p0+0x138` points at 512 random bytes less `0` (placed); stub 1 answered from [0, 1, 1] (90%); stub 0 answered from [1, 1, 1, 1, 1, 0] (90%); stub 0 answered from [0, 1, 1, 1] (90%); stub 0 answers 3 values in call order, printed after the answers; stub 0 prints the 4 bytes its argument 0 points at, hex, after the record (`/` a call); stub 0 prints the 4 bytes its argument 1 points at, hex, after the record (`/` a call); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_good_merchant_spot.py") else {
+    let Some(rows) = super::emu_obj("unit_data_good_merchant_spot") else {
         return;
     };
     let mut n = 0;

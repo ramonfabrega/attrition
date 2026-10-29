@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::get_attrition@00608fd0`, run by `tools/emu/sweep_unit_data_get_attrition.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), `p` windows in order: p0..p3 the place(s), in flag order; the global cell 0x00c061e0 points at 85444 random bytes; the global cell 0x00c061e4 points at 3392 random bytes; vtable slot +0x10c (0 args) stubbed; vtable slot +0x60 (2 args) stubbed; vtable slot +0xb8 (2 args) stubbed; callee 0x006db810 (1 args) stubbed; callee 0x0046fa40 (0 args) stubbed; the word at `m+0x18` points at 560 random bytes less `0` (placed); the word at `c0+0x6eb8` points at 224 random bytes less `0` (placed); the word at `c0+0xdda4` points at 224 random bytes less `0` (placed); the word at `c0+0x14c90` points at 224 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 1] (90%); the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
+/// `UnitData::get_attrition@00608fd0`, run by `tools/emu/sweep_obj.py` on its row `unit_data_get_attrition` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), `p` windows in order: p0..p3 the place(s), in flag order; the global cell 0x00c061e0 points at 85444 random bytes; the global cell 0x00c061e4 points at 3392 random bytes; vtable slot +0x10c (0 args) stubbed; vtable slot +0x60 (2 args) stubbed; vtable slot +0xb8 (2 args) stubbed; callee 0x006db810 (1 args) stubbed; callee 0x0046fa40 (0 args) stubbed; the word at `m+0x18` points at 560 random bytes less `0` (placed); the word at `c0+0x6eb8` points at 224 random bytes less `0` (placed); the word at `c0+0xdda4` points at 224 random bytes less `0` (placed); the word at `c0+0x14c90` points at 224 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [0, 1] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 1] (90%); the stubbed vtable laid at `p0+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 600 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_get_attrition.py") else {
+    let Some(rows) = super::emu_obj("unit_data_get_attrition") else {
         return;
     };
     let mut n = 0;

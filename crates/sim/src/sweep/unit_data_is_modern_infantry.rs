@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::is_modern_infantry@00607b40`, run by `tools/emu/sweep_unit_data_is_modern_infantry.py` under unicorn
-/// (tools/emu): 28 random bytes of object, 0 argument(s), callee 0x006e1370 (1 args) stubbed; vtable slot +0xec (0 args) stubbed; vtable slot +0xe8 (0 args) stubbed; the word at `m+0x18` points at 696 random bytes less `0` (placed); slot +0xec laid as 0x00661ac0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 3, 5, 6, 7, 9, -1] (90%); stub 2 answered from [0, 3, 5, 6, 7, 9, -1] (90%); the stubbed vtable laid at `p0+0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::is_modern_infantry@00607b40`, run by `tools/emu/sweep_obj.py` on its row `unit_data_is_modern_infantry` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 28 random bytes of object, 0 argument(s), callee 0x006e1370 (1 args) stubbed; vtable slot +0xec (0 args) stubbed; vtable slot +0xe8 (0 args) stubbed; the word at `m+0x18` points at 696 random bytes less `0` (placed); slot +0xec laid as 0x00661ac0 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 3, 5, 6, 7, 9, -1] (90%); stub 2 answered from [0, 3, 5, 6, 7, 9, -1] (90%); the stubbed vtable laid at `p0+0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_is_modern_infantry.py") else {
+    let Some(rows) = super::emu_obj("unit_data_is_modern_infantry") else {
         return;
     };
     let mut n = 0;

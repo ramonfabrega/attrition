@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BordersOut::no_border@008831d0`, run by `tools/emu/sweep_borders_out_no_border.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 312 random bytes; the word at `c0+0x134` points at 1792 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BordersOut::no_border@008831d0`, run by `tools/emu/sweep_obj.py` on its row `borders_out_no_border` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 312 random bytes; the word at `c0+0x134` points at 1792 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_borders_out_no_border.py") else {
+    let Some(rows) = super::emu_obj("borders_out_no_border") else {
         return;
     };
     let mut n = 0;

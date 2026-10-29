@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Type::backup@00667ee0`, run by `tools/emu/sweep_type_backup.py` under unicorn
-/// (tools/emu): 256 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0, p1..p2 the place(s), in flag order, p3 stub 0's answer window; argument 0 names 768 random bytes; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; the word at `m+0x74` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `m+0xb0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 answers the address of 512 random bytes, a `p` window after the places; stub 1 is `__cdecl`: the caller pops its arguments; stub 1 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Type::backup@00667ee0`, run by `tools/emu/sweep_obj.py` on its row `type_backup` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 256 random bytes of object, 1 argument(s), `p` windows in order: p0 argument 0, p1..p2 the place(s), in flag order, p3 stub 0's answer window; argument 0 names 768 random bytes; callee 0x00a1f0a0 (0 args) stubbed; callee 0x0055e0ac (3 args) stubbed; the word at `m+0x74` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `m+0xb0` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 answers the address of 512 random bytes, a `p` window after the places; stub 1 is `__cdecl`: the caller pops its arguments; stub 1 copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_type_backup.py") else {
+    let Some(rows) = super::emu_obj("type_backup") else {
         return;
     };
     let mut n = 0;

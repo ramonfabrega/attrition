@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Terrain::has_south_forest@00850060`, run by `tools/emu/sweep_terrain_has_south_forest.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 316 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0x134` points at 1024 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Terrain::has_south_forest@00850060`, run by `tools/emu/sweep_obj.py` on its row `terrain_has_south_forest` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 316 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; the word at `c0+0x134` points at 1024 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_terrain_has_south_forest.py") else {
+    let Some(rows) = super::emu_obj("terrain_has_south_forest") else {
         return;
     };
     let mut n = 0;

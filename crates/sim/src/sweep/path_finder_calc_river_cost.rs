@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `PathFinder::calc_river_cost@00687930`, run by `tools/emu/sweep_path_finder_calc_river_cost.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 3 argument(s), callee 0x00a39d70 (2 args) stubbed; stub 0 answered from [0, 1, 9, 10, 19, 20, 21, 12345, 65535, -1, -21] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `PathFinder::calc_river_cost@00687930`, run by `tools/emu/sweep_obj.py` on its row `path_finder_calc_river_cost` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 3 argument(s), callee 0x00a39d70 (2 args) stubbed; stub 0 answered from [0, 1, 9, 10, 19, 20, 21, 12345, 65535, -1, -21] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_path_finder_calc_river_cost.py") else {
+    let Some(rows) = super::emu_obj("path_finder_calc_river_cost") else {
         return;
     };
     let mut n = 0;

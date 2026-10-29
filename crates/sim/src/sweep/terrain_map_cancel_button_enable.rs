@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `TerrainMap::cancel_button_enable@009b5ee0`, run by `tools/emu/sweep_terrain_map_cancel_button_enable.py` under unicorn
-/// (tools/emu): 3104 random bytes of object, 1 argument(s), callee 0x00a54110 (1 args) stubbed; the word at `m+0xc14` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `TerrainMap::cancel_button_enable@009b5ee0`, run by `tools/emu/sweep_obj.py` on its row `terrain_map_cancel_button_enable` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 3104 random bytes of object, 1 argument(s), callee 0x00a54110 (1 args) stubbed; the word at `m+0xc14` points at 16 random bytes less `0` (placed, null a third of the rows); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_terrain_map_cancel_button_enable.py") else {
+    let Some(rows) = super::emu_obj("terrain_map_cancel_button_enable") else {
         return;
     };
     let mut n = 0;

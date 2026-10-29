@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldData::check_building_wcoord@006b26e0`, run by `tools/emu/sweep_world_data_check_building_wcoord.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 8 argument(s), the global cell 0x00c06188 points at 320 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006b27f0 (5 args) stubbed; the word at `c0+0x134` points at 28 random bytes less `(i32(c[0],0)*i32(p[1],0)+i32(p[0],0))*0x1c` (placed); stub 0 answered from [0, 0, 1, 1, 2, 2, 3, 3, 4, 5, -1] (90%); stub 0 answers 49 values in call order, printed after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldData::check_building_wcoord@006b26e0`, run by `tools/emu/sweep_obj.py` on its row `world_data_check_building_wcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 8 argument(s), the global cell 0x00c06188 points at 320 random bytes; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006b27f0 (5 args) stubbed; the word at `c0+0x134` points at 28 random bytes less `(i32(c[0],0)*i32(p[1],0)+i32(p[0],0))*0x1c` (placed); stub 0 answered from [0, 0, 1, 1, 2, 2, 3, 3, 4, 5, -1] (90%); stub 0 answers 49 values in call order, printed after the answers; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_data_check_building_wcoord.py") else {
+    let Some(rows) = super::emu_obj("world_data_check_building_wcoord") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Army::remove_group@006f8b50`, run by `tools/emu/sweep_army_remove_group.py` under unicorn
-/// (tools/emu): 160 random bytes of object, 1 argument(s), callee 0x006f9b50 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 4 rows 0x9d4 apart at `0xe85f20`, slices +0x4:0x4, +0x8:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Army::remove_group@006f8b50`, run by `tools/emu/sweep_obj.py` on its row `army_remove_group` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 160 random bytes of object, 1 argument(s), callee 0x006f9b50 (0 args) stubbed; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 4 rows 0x9d4 apart at `0xe85f20`, slices +0x4:0x4, +0x8:0x4 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_army_remove_group.py") else {
+    let Some(rows) = super::emu_obj("army_remove_group") else {
         return;
     };
     let mut n = 0;

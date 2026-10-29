@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `CityData::enhancer_level@007389d0`, run by `tools/emu/sweep_city_data_enhancer_level.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 1 argument(s), callee 0x0066fcf0 (0 args) stubbed; callee 0x00739390 (3 args) stubbed; callee 0x00736890 (0 args) stubbed; callee 0x00736820 (0 args) stubbed; callee 0x007367a0 (0 args) stubbed; the word at `0xc096f4` points at 32 random bytes less `0` (placed); the word at `0xc061e4` points at 768 random bytes less `0` (placed); stub 1 answered from [0, 1] (90%); stub 0 answers -1..2 every row; stub 2 answers 0..3 every row; stub 3 answers 0..3 every row; stub 4 answers 0..3 every row; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `CityData::enhancer_level@007389d0`, run by `tools/emu/sweep_obj.py` on its row `city_data_enhancer_level` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 1 argument(s), callee 0x0066fcf0 (0 args) stubbed; callee 0x00739390 (3 args) stubbed; callee 0x00736890 (0 args) stubbed; callee 0x00736820 (0 args) stubbed; callee 0x007367a0 (0 args) stubbed; the word at `0xc096f4` points at 32 random bytes less `0` (placed); the word at `0xc061e4` points at 768 random bytes less `0` (placed); stub 1 answered from [0, 1] (90%); stub 0 answers -1..2 every row; stub 2 answers 0..3 every row; stub 3 answers 0..3 every row; stub 4 answers 0..3 every row; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_city_data_enhancer_level.py") else {
+    let Some(rows) = super::emu_obj("city_data_enhancer_level") else {
         return;
     };
     let mut n = 0;

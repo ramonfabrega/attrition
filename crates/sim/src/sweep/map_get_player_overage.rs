@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Map::get_player_overage@0068b280`, run by `tools/emu/sweep_map_get_player_overage.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), the global cell 0x00c061ec points at 64 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Map::get_player_overage@0068b280`, run by `tools/emu/sweep_obj.py` on its row `map_get_player_overage` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), the global cell 0x00c061ec points at 64 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_get_player_overage.py") else {
+    let Some(rows) = super::emu_obj("map_get_player_overage") else {
         return;
     };
     let mut n = 0;

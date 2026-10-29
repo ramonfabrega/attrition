@@ -40,12 +40,13 @@ def lay_out(root):
     return emu, exe
 
 
-def write_entry(cache, emu, exe, script='sweep_a.py', rows='1 -> 2\n3 -> 4\n'):
+def write_entry(cache, emu, exe, script='sweep_a.py', rows='1 -> 2\n3 -> 4\n', args=()):
     """A cache file as `support.rs`'s `store` writes it."""
-    key, exe_sha, script_sha, modules = emu_receipts.key_for(emu, exe, script)
+    key, exe_sha, script_sha, modules = emu_receipts.key_for(emu, exe, script, args)
     head = ['# emu-cache v1', f'# key {key}', f'# executable {exe_sha} {exe}',
             f'# script {script_sha} {script}']
     head += [f'# module {sha} {name}' for name, sha in modules]
+    head += [f'# arg {a}' for a in args]
     head += ['# date 2026-10-19T00:00:00Z', '# uv 0.11.16', '# python 3.14.7 (uv run --no-project)',
              f'# rows {sum(1 for r in rows.splitlines() if r.strip())}', '# end']
     cache.mkdir(parents=True, exist_ok=True)
@@ -127,6 +128,27 @@ class Receipts(unittest.TestCase):
         code, out = run(self.args('--verify'))
         self.assertEqual(code, 1)
         self.assertIn('key', out)
+
+    def test_a_driver_run_is_stale_when_its_row_moves_and_prune_deletes_it(self):
+        # Item 3731: `sweep_obj.py <snake> <row>`'s entry is keyed on the row it
+        # was handed; a row edited in `sweep_obj.tsv`, or gone, leaves it unread.
+        (self.emu / 'sweep_obj.py').write_text('print(1)\n')
+        table = self.emu / 'sweep_obj.tsv'
+        table.write_text("x_y\t{'ENTRY': 1}\t[\"obj\"]\nz\t{'ENTRY': 2}\n")
+        emu_receipts.obj_rows.__defaults__[0].clear()
+        kept = write_entry(self.cache, self.emu, self.exe, 'sweep_obj.py', args=('x_y', "{'ENTRY': 1}"))
+        moved = write_entry(self.cache, self.emu, self.exe, 'sweep_obj.py', args=('z', "{'ENTRY': 3}"))
+        fresh = write_entry(self.cache, self.emu, self.exe)
+        code, out = run(self.args('--verify'))
+        self.assertEqual(code, 1, out)
+        self.assertIn(f'STALE {moved.name}: row changed or gone: z', out)
+        self.assertNotIn(kept.name, out)
+        code, out = run(self.args('--prune'))
+        self.assertEqual(code, 0, out)
+        self.assertIn('pruned 1 stale entries', out)
+        self.assertEqual((kept.exists(), moved.exists(), fresh.exists()), (True, False, True))
+        code, out = run(self.args('--verify'))
+        self.assertEqual(code, 0, out)
 
     def test_an_empty_cache_is_said(self):
         code, out = run(self.args('--verify'))

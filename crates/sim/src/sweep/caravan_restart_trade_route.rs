@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Caravan::restart_trade_route@0073d070`, run by `tools/emu/sweep_caravan_restart_trade_route.py` under unicorn
-/// (tools/emu): 64 random bytes of object, 0 argument(s), callee 0x0073de80 (0 args) stubbed; callee 0x005e29b0 (0 args) stubbed; callee 0x0073db10 (0 args) stubbed; the word at `0xc0aec0+i8(m,0xd)*0x1c` points at 4 random bytes less `max(i16(m,0xa),0)*4` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Caravan::restart_trade_route@0073d070`, run by `tools/emu/sweep_obj.py` on its row `caravan_restart_trade_route` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 0 argument(s), callee 0x0073de80 (0 args) stubbed; callee 0x005e29b0 (0 args) stubbed; callee 0x0073db10 (0 args) stubbed; the word at `0xc0aec0+i8(m,0xd)*0x1c` points at 4 random bytes less `max(i16(m,0xa),0)*4` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_caravan_restart_trade_route.py") else {
+    let Some(rows) = super::emu_obj("caravan_restart_trade_route") else {
         return;
     };
     let mut n = 0;

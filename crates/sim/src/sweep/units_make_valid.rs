@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Units::make_valid@0061a960`, run by `tools/emu/sweep_units_make_valid.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), 32 random bytes at 0x00c0aecc; vtable slot +0x0 (1 args) stubbed; the stubbed vtable laid at `c0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Units::make_valid@0061a960`, run by `tools/emu/sweep_obj.py` on its row `units_make_valid` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), 32 random bytes at 0x00c0aecc; vtable slot +0x0 (1 args) stubbed; the stubbed vtable laid at `c0+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_units_make_valid.py") else {
+    let Some(rows) = super::emu_obj("units_make_valid") else {
         return;
     };
     let mut n = 0;

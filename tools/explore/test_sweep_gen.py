@@ -5,6 +5,7 @@ any other way is refused."""
 import contextlib
 import inspect
 import io
+import re
 import sys
 import tempfile
 import unittest
@@ -14,6 +15,20 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools'))
 sys.path.insert(0, str(ROOT / 'tools/emu'))
 import sweep_gen  # noqa: E402
+
+
+def obj_text(tmp, snake):
+    """An `obj` sweep's row of the table under `tmp` (item 3731) as a script
+    once read: the literal, then `# sweep_gen: ` and the kept line — or the
+    script on disk, where the line drew a plain `obj` (no window), which
+    stays a script; None when there is neither."""
+    table = Path(tmp) / 'sweep_obj.tsv'
+    for line in (table.read_text().splitlines() if table.exists() else ()):
+        name, literal, *kept = line.split('\t')
+        if name == snake:
+            return literal + ('\n# sweep_gen: ' + kept[0] if kept else '')
+    script = Path(tmp) / f'sweep_{snake}.py'
+    return script.read_text() if script.exists() else None
 
 
 class Shapes(unittest.TestCase):
@@ -140,7 +155,7 @@ class Shapes(unittest.TestCase):
         sp, script, tp, test, mod = sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1,
                                                            ptrargs=['0:4'], module='foo_bar_wcoord')
         self.assertEqual((sp.name, tp.name, mod), ('sweep_foo_bar_wcoord.py', 'foo_bar_wcoord.rs', 'mod foo_bar_wcoord;'))
-        self.assertIn('emu_rows("sweep_foo_bar_wcoord.py")', test)
+        self.assertIn('emu_obj("foo_bar_wcoord")', test)
         with self.assertRaises(ValueError):
             sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], own=1, places=['q0+4:0:4'])
         with self.assertRaises(ValueError):
@@ -1229,14 +1244,15 @@ class Shapes(unittest.TestCase):
         for kw in ({}, {'stubs': ['0x402000:1']}):
             _, script, _, test, _ = sweep_gen.generate_obj(
                 'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, rows=600, port='0', **kw)
-            self.assertIn('for i in range(600):', script)
-            self.assertNotIn('range(220)', script)
+            # The windowed body draws `ROWS` (item 3731: one driver), the row says how many.
+            self.assertIn('ROWS = 600\n' if kw else 'for i in range(600):', script)
+            self.assertNotIn('ROWS = 220' if kw else 'range(220)', script)
             self.assertIn('600 rows', test)
             # The test asks for every row drawn, not the default's 200 (2314's num_inside).
             self.assertIn('assert!(n >= 600,', test)
             _, script2, _, test2, _ = sweep_gen.generate_obj(
                 'Foo::bar@00401000', item=2314, win=0x20, bias=[], own=1, port='0', **kw)
-            self.assertIn('for i in range(220):', script2)
+            self.assertIn('ROWS = 220\n' if kw else 'for i in range(220):', script2)
             self.assertNotIn('600 rows', test2)
             self.assertIn('assert!(n >= 200,', test2)
         with self.assertRaises(ValueError):
@@ -1830,9 +1846,9 @@ class Shapes(unittest.TestCase):
                 self.assertEqual(sweep_gen.main(line + ['--regen']), 2)
                 self.assertEqual(sweep_gen.main(line + ['--write-mod']), 0)
                 self.assertEqual(mod.read_text().count('mod x_y;'), 1)
-                self.assertNotIn('ARGRANGE', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertNotIn('ARGRANGE', obj_text(tmp, 'x_y'))
                 self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen']), 0)
-                self.assertIn('ARGRANGE = [(0, 0, 2)]', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertIn("'ARGRANGE': [(0, 0, 2)]", obj_text(tmp, 'x_y'))
                 self.assertEqual(sweep_gen.main(line + ['--regen', '--write-mod']), 2)
                 self.assertEqual(mod.read_text().count('mod x_y;'), 1)
             finally:
@@ -1873,12 +1889,12 @@ class Shapes(unittest.TestCase):
                 port.write_text('{\n    let v = a[0];\n    v + 1\n}\n')
                 self.assertEqual(sweep_gen.main(line + ['--argrange', '0:0:2', '--regen', '--port-file', str(port)]), 0)
                 self.assertIn('let v = a[0];', tp.read_text())
-                self.assertIn('v + 1', (Path(tmp) / 'sweep_x_y.py').read_text().split('# sweep_gen: ')[1],
+                self.assertIn('v + 1', obj_text(tmp, 'x_y').split('# sweep_gen: ')[1],
                               'the kept line records the port text, not the file')
                 flags = Path(tmp) / 'x_y.args'
                 flags.write_text('# the flags, one a line\n--argrange\n0:0:3\n--regen\n')
                 self.assertEqual(sweep_gen.main(line + [f'@{flags}']), 0)
-                self.assertIn('ARGRANGE = [(0, 0, 3)]', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertIn("'ARGRANGE': [(0, 0, 3)]", obj_text(tmp, 'x_y'))
                 self.assertIn('let v = a[0];', tp.read_text(), 'the keep found the block this time')
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
@@ -2028,7 +2044,7 @@ fn x_port(a: &[i32]) -> i64 {
                 tp.write_text(text)
                 self.assertEqual(sweep_gen.main(line + ['--rows', '300', '--regen']), 0)
                 out = tp.read_text()
-                self.assertIn('range(300)', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertIn('range(300)', obj_text(tmp, 'x_y'), 'a plain obj is still a script')
                 self.assertIn(one + loop + second, out, 'at its anchor, the two blocks in their order')
                 self.assertIn(head, out)
                 self.assertIn(tail + '    assert!(n >= 300', out)
@@ -2111,12 +2127,12 @@ fn x_port(a: &[i32]) -> i64 {
                 fenced = '            // hand: port\n            a[0] as i64\n            // end hand\n'
                 text = tp.read_text().replace('            0\n        };\n', fenced + '        };\n')
                 tp.write_text(text)
-                script = sp.read_text()
+                script = obj_text(tmp, 'x_y')
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out):
                     self.assertEqual(sweep_gen.main(['--regen', 'x_y', '--dry-run']), 0)
                 self.assertEqual(tp.read_text(), text, '--dry-run writes nothing')
-                self.assertEqual(sp.read_text(), script)
+                self.assertEqual(obj_text(tmp, 'x_y'), script)
                 printed = out.getvalue()
                 self.assertIn(text.rstrip('\n'), printed, 'the test a regen would write: the fence carried, no port after it')
                 self.assertNotIn('--dry-run', sweep_gen.kept_line(sp))
@@ -2140,14 +2156,14 @@ fn x_port(a: &[i32]) -> i64 {
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x20',
                                                  '--name', 'x_y_b']), 0)
-                drawn = (Path(tmp) / 'sweep_x_y.py').read_text()
+                drawn = obj_text(tmp, 'x_y')
                 err = io.StringIO()
                 with contextlib.redirect_stderr(err):
                     self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x40',
                                                      '--regen', '--fresh']), 2)
                 self.assertIn('X::y@00401000', err.getvalue())
                 self.assertIn('--name', err.getvalue())
-                self.assertEqual((Path(tmp) / 'sweep_x_y.py').read_text(), drawn)
+                self.assertEqual(obj_text(tmp, 'x_y'), drawn)
                 # Named, the overload's own sweep redraws.
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x40',
                                                  '--name', 'x_y_b', '--regen', '--fresh']), 0)
@@ -2261,13 +2277,22 @@ fn x_port(a: &[i32]) -> i64 {
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--argrange', '0:0:2',
                         '--own', '1', '--port', 'let v = 1;\n0']
                 self.assertEqual(sweep_gen.main(line + ['--write-mod']), 0)
-                sp = Path(tmp) / 'sweep_x_y.py'
-                drawn = sp.read_text()
+                # An `obj` sweep is a row of the table (item 3731); its path still names it.
+                sp, table = Path(tmp) / 'sweep_x_y.py', Path(tmp) / 'sweep_obj.tsv'
+                self.assertFalse(sp.exists())
+                drawn = obj_text(tmp, 'x_y')
                 self.assertEqual(sweep_gen.kept_line(sp), line)
-                sp.write_text('# a lane hand-edited this\n' + drawn.splitlines()[-1] + '\n')
+                row = table.read_text()
+                table.write_text(row.replace(row.split('\t')[1], "{'ENTRY': 0}"))
                 (Path(tmp) / 'x_y.rs').write_text('')
                 self.assertEqual(sweep_gen.main(['--regen', str(sp)]), 0)
-                self.assertEqual(sp.read_text(), drawn)
+                self.assertEqual(obj_text(tmp, 'x_y'), drawn)
+                # A script drawn before item 3731 is moved into the table by its regen.
+                sp.write_text('# a lane hand-edited this\n# sweep_gen: ' + drawn.split('# sweep_gen: ')[1] + '\n')
+                table.write_text('')
+                self.assertEqual(sweep_gen.main(['--regen', str(sp)]), 0)
+                self.assertFalse(sp.exists())
+                self.assertEqual(obj_text(tmp, 'x_y'), drawn)
                 self.assertIn('let v = 1;', (Path(tmp) / 'x_y.rs').read_text())
                 self.assertEqual((Path(tmp) / 'mod.rs').read_text().count('mod x_y;'), 1)
                 # The snake name finds the script too.
@@ -2276,6 +2301,7 @@ fn x_port(a: &[i32]) -> i64 {
                 self.assertEqual(sweep_gen.main(line + ['--bias', '0:1', '--regen']), 0)
                 self.assertEqual(sweep_gen.kept_line(sp), line + ['--bias', '0:1'])
                 # A script with no line kept is refused by name.
+                table.write_text('')
                 sp.write_text('print(1)\n')
                 self.assertEqual(sweep_gen.main(['--regen', str(sp)]), 2)
             finally:
@@ -2714,6 +2740,25 @@ fn x_port(a: &[i32]) -> i64 {
 
 
 class FamilyRegistrations(unittest.TestCase):
+    def test_the_obj_table_and_its_driver_agree(self):
+        # Item 3731: an `obj with windows` sweep is a row of `sweep_obj.tsv`
+        # run by `sweep_obj.py`'s one body. The generator's head and the
+        # driver name the same constants, every row is a literal of those
+        # names alone, its test runs it by name, and no row is also a script.
+        import ast
+        head = sweep_gen.OBJ_WIN_SCRIPT.split("ENTRY = ", 1)[1]
+        names = {'ENTRY'} | set(re.findall(r'^([A-Z][A-Z0-9_]*) = ', head, re.M))
+        driver = set(re.findall(r'^([A-Z][A-Z0-9_]*) = ', sweep_gen.OBJ_DRIVER.read_text(), re.M))
+        self.assertEqual(names, driver - {'TABLE'}, 'the generator head and the driver name one set')
+        table = sweep_gen.obj_table()
+        self.assertTrue(table)
+        for snake, (literal, kept) in table.items():
+            row = ast.literal_eval(literal)
+            self.assertLessEqual(set(row), names, snake)
+            self.assertIn('ENTRY', row, snake)
+            self.assertFalse((ROOT / f'tools/emu/sweep_{snake}.py').exists(), f'{snake}: a row and a script')
+            self.assertIn(f'emu_obj("{snake}")', (ROOT / f'crates/sim/src/sweep/{snake}.rs').read_text(), snake)
+
     def test_new_independent_sweeps_route_to_stable_partitions(self):
         from unittest.mock import patch
         with tempfile.TemporaryDirectory() as tmp:
@@ -2833,7 +2878,7 @@ class FamilyRegistrations(unittest.TestCase):
                 # main hands `ret='eax'`; a void answers nothing whatever it is handed.
                 self.assertIn('an empty body', out.getvalue())
                 self.assertIn('let _ = (got, want_eax);', out.getvalue())
-                self.assertIn('CELLS = [(12607952, 128)]', out.getvalue())
+                self.assertIn("'CELLS': [(12607952, 128)]", out.getvalue(), 'the row a void writes')
                 sp, script, tp, test, mod = sweep_gen.generate_void(
                     'Foo::bar@00401000', item=2887, own=1, cells=['0xc061d0:0x80'],
                     stubs=['0x00401234:1'], places=['m+0x10:0:0x20'], place_null=['0'])

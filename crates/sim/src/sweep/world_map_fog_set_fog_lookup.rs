@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `WorldMapFog::set_fog_lookup@008d1300`, run by `tools/emu/sweep_world_map_fog_set_fog_lookup.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 3 argument(s), the global cell 0x00e8a894 points at 64 random bytes; 8 random bytes at 0x00e8a79c; argument 0 names 4 random bytes; argument 1 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `WorldMapFog::set_fog_lookup@008d1300`, run by `tools/emu/sweep_obj.py` on its row `world_map_fog_set_fog_lookup` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 3 argument(s), the global cell 0x00e8a894 points at 64 random bytes; 8 random bytes at 0x00e8a79c; argument 0 names 4 random bytes; argument 1 names 4 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_world_map_fog_set_fog_lookup.py") else {
+    let Some(rows) = super::emu_obj("world_map_fog_set_fog_lookup") else {
         return;
     };
     let mut n = 0;

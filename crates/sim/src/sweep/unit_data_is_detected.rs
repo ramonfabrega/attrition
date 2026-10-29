@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `UnitData::is_detected@0060a630`, run by `tools/emu/sweep_unit_data_is_detected.py` under unicorn
-/// (tools/emu): 24 random bytes of object, 1 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the global cell 0x00c061d0 points at 360 random bytes; the word at `c1+0x164` points at 1 random bytes less `((i32(m,0x14)^0x63637)>>7)//3*i32(c[1],0xc)+((i32(m,0x10)^0x63637)>>7)//3` (placed); the word at `0xc061e0` points at 1 random bytes less `a[0]*0x6eec+0x6929` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `UnitData::is_detected@0060a630`, run by `tools/emu/sweep_obj.py` on its row `unit_data_is_detected` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 24 random bytes of object, 1 argument(s), the global cell 0x00cae5fc points at 1024 random bytes; the global cell 0x00c061d0 points at 360 random bytes; the word at `c1+0x164` points at 1 random bytes less `((i32(m,0x14)^0x63637)>>7)//3*i32(c[1],0xc)+((i32(m,0x10)^0x63637)>>7)//3` (placed); the word at `0xc061e0` points at 1 random bytes less `a[0]*0x6eec+0x6929` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_unit_data_is_detected.py") else {
+    let Some(rows) = super::emu_obj("unit_data_is_detected") else {
         return;
     };
     let mut n = 0;

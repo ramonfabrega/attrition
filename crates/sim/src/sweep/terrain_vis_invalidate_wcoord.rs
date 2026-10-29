@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `TerrainVis::invalidate_wcoord@008b2e80`, run by `tools/emu/sweep_terrain_vis_invalidate_wcoord.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 16 random bytes; the global cell 0x00c06218 points at 27328 random bytes; argument 0 names 16 random bytes; argument 1 names 16 random bytes; callee 0x008b13d0 (1 args) stubbed; the word at `c1+0x6ab0` points at 256 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `TerrainVis::invalidate_wcoord@008b2e80`, run by `tools/emu/sweep_obj.py` on its row `terrain_vis_invalidate_wcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 2 argument(s), the global cell 0x00c061d0 points at 16 random bytes; the global cell 0x00c06218 points at 27328 random bytes; argument 0 names 16 random bytes; argument 1 names 16 random bytes; callee 0x008b13d0 (1 args) stubbed; the word at `c1+0x6ab0` points at 256 random bytes less `0` (placed); stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_terrain_vis_invalidate_wcoord.py") else {
+    let Some(rows) = super::emu_obj("terrain_vis_invalidate_wcoord") else {
         return;
     };
     let mut n = 0;

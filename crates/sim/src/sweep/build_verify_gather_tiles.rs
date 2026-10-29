@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Build::verify_gather_tiles@00623570`, run by `tools/emu/sweep_build_verify_gather_tiles.py` under unicorn
-/// (tools/emu): 176 random bytes of object, 0 argument(s), 640 random bytes at 0x00e3a390; 640 random bytes at 0x00e4127c; callee 0x0046d4f0 (2 args) stubbed; the word at `0xc06188` points at 512 random bytes less `0` (placed); the word at `p0+0x134` points at 256 random bytes less `0` (placed); the word at `p0+0x138` points at 256 random bytes less `0` (placed); the word at `0xc061e0` points at 90112 random bytes less `0` (placed); the word at `m+0xa8` points at 64 random bytes less `0` (placed); stub 0 lowers `m+0x9c` (4 bytes) by one each call; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Build::verify_gather_tiles@00623570`, run by `tools/emu/sweep_obj.py` on its row `build_verify_gather_tiles` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 176 random bytes of object, 0 argument(s), 640 random bytes at 0x00e3a390; 640 random bytes at 0x00e4127c; callee 0x0046d4f0 (2 args) stubbed; the word at `0xc06188` points at 512 random bytes less `0` (placed); the word at `p0+0x134` points at 256 random bytes less `0` (placed); the word at `p0+0x138` points at 256 random bytes less `0` (placed); the word at `0xc061e0` points at 90112 random bytes less `0` (placed); the word at `m+0xa8` points at 64 random bytes less `0` (placed); stub 0 lowers `m+0x9c` (4 bytes) by one each call; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_verify_gather_tiles.py") else {
+    let Some(rows) = super::emu_obj("build_verify_gather_tiles") else {
         return;
     };
     let mut n = 0;

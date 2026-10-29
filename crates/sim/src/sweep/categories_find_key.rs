@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Categories::find_key@006f20e0`, run by `tools/emu/sweep_categories_find_key.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), `p` windows in order: p0 the place; 4 random bytes at 0x00ee10e0; callee 0x00a1f140 (1 args) stubbed; the word at `m+0x10` points at 768 random bytes less `0` (placed); stub 0 answered from [0, 0, 0, 1] (90%); stub 0 answers 6 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
+/// `Categories::find_key@006f20e0`, run by `tools/emu/sweep_obj.py` on its row `categories_find_key` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), `p` windows in order: p0 the place; 4 random bytes at 0x00ee10e0; callee 0x00a1f140 (1 args) stubbed; the word at `m+0x10` points at 768 random bytes less `0` (placed); stub 0 answered from [0, 0, 0, 1] (90%); stub 0 answers 6 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 400 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_categories_find_key.py") else {
+    let Some(rows) = super::emu_obj("categories_find_key") else {
         return;
     };
     let mut n = 0;

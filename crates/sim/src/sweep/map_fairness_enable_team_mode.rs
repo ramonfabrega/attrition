@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `MapFairness::enable_team_mode@0068a370`, run by `tools/emu/sweep_map_fairness_enable_team_mode.py` under unicorn
-/// (tools/emu): 120 random bytes of object, 1 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `MapFairness::enable_team_mode@0068a370`, run by `tools/emu/sweep_obj.py` on its row `map_fairness_enable_team_mode` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 120 random bytes of object, 1 argument(s), no windows; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_map_fairness_enable_team_mode.py") else {
+    let Some(rows) = super::emu_obj("map_fairness_enable_team_mode") else {
         return;
     };
     let mut n = 0;

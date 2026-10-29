@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `BuildData::can_queue@0062da00`, run by `tools/emu/sweep_build_data_can_queue.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 1 argument(s), 4 random bytes at 0x00cab3a4; vtable slot +0x84 (4 args) stubbed; callee 0x0062da50 (1 args) stubbed; the word at `0xe85ddc` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); the stubbed vtable laid at `p1+0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `BuildData::can_queue@0062da00`, run by `tools/emu/sweep_obj.py` on its row `build_data_can_queue` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 1 argument(s), 4 random bytes at 0x00cab3a4; vtable slot +0x84 (4 args) stubbed; callee 0x0062da50 (1 args) stubbed; the word at `0xe85ddc` points at 4 random bytes less `a[0]*4` (placed); the word at `p0+0` points at 16 random bytes less `0` (placed); stub 0 answered from [0, 1] (90%); the stubbed vtable laid at `p1+0`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_data_can_queue.py") else {
+    let Some(rows) = super::emu_obj("build_data_can_queue") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `City::set_name@00735be0`, run by `tools/emu/sweep_city_set_name.py` under unicorn
-/// (tools/emu): 192 random bytes of object, 2 argument(s), callee 0x00a1eeb0 (1 args) stubbed; callee 0x00a1b6b0 (0 args) stubbed; the word at `m+0x90` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `m+0xa4` points at 16 random bytes less `0` (placed, null a third of the rows); stub 1 answers 2 values in call order, printed after the answers; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `City::set_name@00735be0`, run by `tools/emu/sweep_obj.py` on its row `city_set_name` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 192 random bytes of object, 2 argument(s), callee 0x00a1eeb0 (1 args) stubbed; callee 0x00a1b6b0 (0 args) stubbed; the word at `m+0x90` points at 16 random bytes less `0` (placed, null a third of the rows); the word at `m+0xa4` points at 16 random bytes less `0` (placed, null a third of the rows); stub 1 answers 2 values in call order, printed after the answers; stub 0 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx`, `edx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_city_set_name.py") else {
+    let Some(rows) = super::emu_obj("city_set_name") else {
         return;
     };
     let mut n = 0;

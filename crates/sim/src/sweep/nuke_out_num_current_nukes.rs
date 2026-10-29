@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `NukeOut::num_current_nukes@0092b9a0`, run by `tools/emu/sweep_nuke_out_num_current_nukes.py` under unicorn
-/// (tools/emu): 8 random bytes of object, 0 argument(s), the global cell 0x00c061e8 points at 1364 random bytes; 152 random bytes at 0x00c0a7fc; the word at `c1+0xc` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `NukeOut::num_current_nukes@0092b9a0`, run by `tools/emu/sweep_obj.py` on its row `nuke_out_num_current_nukes` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 8 random bytes of object, 0 argument(s), the global cell 0x00c061e8 points at 1364 random bytes; 152 random bytes at 0x00c0a7fc; the word at `c1+0xc` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_nuke_out_num_current_nukes.py") else {
+    let Some(rows) = super::emu_obj("nuke_out_num_current_nukes") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `ObjectTypeData::is@0065f7d0`, run by `tools/emu/sweep_object_type_data_is.py` under unicorn
-/// (tools/emu): 684 random bytes of object, 2 argument(s), vtable slot +0xf4 (2 args) stubbed; the word at `m+0x2a8` points at 64 random bytes less `0` (placed); the word at `m+0x28c` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `ObjectTypeData::is@0065f7d0`, run by `tools/emu/sweep_obj.py` on its row `object_type_data_is` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 684 random bytes of object, 2 argument(s), vtable slot +0xf4 (2 args) stubbed; the word at `m+0x2a8` points at 64 random bytes less `0` (placed); the word at `m+0x28c` points at 64 random bytes less `0` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_object_type_data_is.py") else {
+    let Some(rows) = super::emu_obj("object_type_data_is") else {
         return;
     };
     let mut n = 0;

@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `FarmsOut::get_name@004352b0`, run by `tools/emu/sweep_farms_out_get_name.py` under unicorn
-/// (tools/emu): 32 random bytes of object, 1 argument(s), argument 0 names 20 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `FarmsOut::get_name@004352b0`, run by `tools/emu/sweep_obj.py` on its row `farms_out_get_name` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 32 random bytes of object, 1 argument(s), argument 0 names 20 random bytes; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_farms_out_get_name.py") else {
+    let Some(rows) = super::emu_obj("farms_out_get_name") else {
         return;
     };
     let mut n = 0;

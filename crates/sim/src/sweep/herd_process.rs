@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Herd::process@00741760`, run by `tools/emu/sweep_herd_process.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 0 argument(s), the global cell 0x00c06184 points at 16 random bytes; the global cell 0x00c06188 points at 320 random bytes; callee 0x00a39d70 (2 args) stubbed; the word at `c1+0x134` points at 1024 random bytes less `0` (placed); stub 0 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
+/// `Herd::process@00741760`, run by `tools/emu/sweep_obj.py` on its row `herd_process` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 16 random bytes of object, 0 argument(s), the global cell 0x00c06184 points at 16 random bytes; the global cell 0x00c06188 points at 320 random bytes; callee 0x00a39d70 (2 args) stubbed; the word at `c1+0x134` points at 1024 random bytes less `0` (placed); stub 0 answers 2 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 1200 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_herd_process.py") else {
+    let Some(rows) = super::emu_obj("herd_process") else {
         return;
     };
     let mut n = 0;

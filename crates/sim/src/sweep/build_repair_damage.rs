@@ -16,11 +16,11 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-/// `Build::repair_damage@00628130`, run by `tools/emu/sweep_build_repair_damage.py` under unicorn
-/// (tools/emu): 60 random bytes of object, 3 argument(s), vtable slot +0x11c (1 args) stubbed; stub 0 answered from [-3, 0, 1, 5, 10, 20] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+/// `Build::repair_damage@00628130`, run by `tools/emu/sweep_obj.py` on its row `build_repair_damage` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 60 random bytes of object, 3 argument(s), vtable slot +0x11c (1 args) stubbed; stub 0 answered from [-3, 0, 1, 5, 10, 20] (90%); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
-    let Some(rows) = super::emu_rows("sweep_build_repair_damage.py") else {
+    let Some(rows) = super::emu_obj("build_repair_damage") else {
         return;
     };
     let mut n = 0;
