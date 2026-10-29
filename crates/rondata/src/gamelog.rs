@@ -1651,6 +1651,50 @@ impl<'a> Log<'a> {
         let b = b.kid("FULL DUMP").unwrap_or(b);
         b.kids("LEADERDATA").find(|l| l.int("who") == Some(who))
     }
+
+    /// One past the highest `who` a frame's `LEADERDATA` blocks print, 0
+    /// for a frame that prints none (item 3791). The engine prints its
+    /// reserved leaders 8 and 9 beside the seats, so this bounds the slots
+    /// a reader keeps; the seats a comparison walks are the lobby's.
+    /// One seat's `LEADERDATA` in the game's closing dump — the records
+    /// after the last `BEGIN FRAME`, outside it, which
+    /// [`Self::leader_block`] does not reach (item 3791).
+    pub fn closing_leader_block(&'a self, who: i64) -> Option<Block<'a>> {
+        let game = self.game()?;
+        let last = game
+            .children()
+            .enumerate()
+            .filter(|(_, c)| c.name().starts_with("FRAME "))
+            .last()?
+            .0;
+        // A start dump nests it under `FULL DUMP` (run1449's 37); a
+        // long's close prints it bare (run1413's 2601).
+        game.children()
+            .tail(last + 1)
+            .flat_map(|c| {
+                if c.name() == "FULL DUMP" {
+                    c.kids("LEADERDATA").collect::<Vec<_>>()
+                } else {
+                    vec![c]
+                        .into_iter()
+                        .filter(|c| c.name() == "LEADERDATA")
+                        .collect()
+                }
+            })
+            .find(|l| l.int("who") == Some(who))
+    }
+
+    pub fn leader_seats(&'a self, frame: i64) -> usize {
+        let Some((_, b)) = self.frames().into_iter().find(|(n, _)| *n == frame) else {
+            return 0;
+        };
+        let b = b.kid("FULL DUMP").unwrap_or(b);
+        b.kids("LEADERDATA")
+            .filter_map(|l| l.int("who"))
+            .map(|w| w as usize + 1)
+            .max()
+            .unwrap_or(0)
+    }
 }
 
 /// A position in the engine's internal units, as the log writes it.

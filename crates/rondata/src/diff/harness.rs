@@ -4864,10 +4864,10 @@ pub(crate) mod tests {
                 stages[2] += t.elapsed();
             }
             let stage = profiling.then(std::time::Instant::now);
-            for who in 0..2usize {
+            for who in 0..players {
                 let fresh_leader;
                 let t = if let Some(value) = &cached {
-                    let Some(t) = &value.leaders[who] else {
+                    let Some(t) = value.leaders.get(who).and_then(Option::as_ref) else {
                         continue;
                     };
                     t
@@ -7320,10 +7320,10 @@ pub(crate) mod tests {
                     );
                 }
             }
-            for who in 0..2usize {
+            for who in 0..players {
                 let fresh_leader;
                 let t = if let Some(value) = &cached {
-                    let Some(t) = &value.leaders[who] else {
+                    let Some(t) = value.leaders.get(who).and_then(Option::as_ref) else {
                         continue;
                     };
                     t
@@ -7363,7 +7363,7 @@ pub(crate) mod tests {
                 for (k, v) in &mine {
                     let region = cached
                         .as_ref()
-                        .and_then(|value| value.regions[who].as_ref());
+                        .and_then(|value| value.regions.get(who).and_then(Option::as_ref));
                     let Some(&y) = region.and_then(|rows| rows.get(k)).or_else(|| t.get(k)) else {
                         missing.insert(k.clone());
                         continue;
