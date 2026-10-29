@@ -4168,15 +4168,11 @@ pub(super) fn chapter_eight_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let mut want: Vec<String> = [
-        // Item 3385: `0/7`'s `damage_frac`, `hits:damage`,
-        // `hits:damage_frac` and `hits_left` agree (the General's rally armour, `Sim::rally_armor`).
-        // Item 3763: the 660 `leader:treaties` pair agrees (a strike meets, `Sim::set_attacking`).
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
-    want.sort();
+    // Item 3385: `0/7`'s `damage_frac`, `hits:damage`, `hits:damage_frac`
+    // and `hits_left` agree (the General's rally armour, `Sim::rally_armor`).
+    // Item 3763: the 660 `leader:treaties` pair agrees (a strike meets,
+    // `Sim::set_attacking`). Nothing parts under the word.
+    let want: Vec<String> = Vec::new();
     pin_eq!(got, want, "ch8: what parts under the word moved");
 }
 
