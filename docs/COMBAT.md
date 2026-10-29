@@ -9486,7 +9486,8 @@ bears. The packet gives the rest:
 ### 54.3 The integer form, and where it can differ
 
 `sim::pivot` is the same function in integers: the node's point in
-hundredths, `guy_scale` as 48/10, and a whole-degree sine pinned at 2³⁰
+millionths (hundredths until item 3770: the Camel Raider's −3.322791 is no
+whole hundredth, `docs/GOLDEN.md` §149.6), `guy_scale` as 48/10, and a whole-degree sine pinned at 2³⁰
 (`docs/DECISIONS.md` entry 16's third shape). Both sides truncate, so
 they can differ only where the exact product lies within the float's
 error of an integer. For the Chariot's node the float strays at most
