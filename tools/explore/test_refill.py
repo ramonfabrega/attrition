@@ -132,8 +132,16 @@ class LiveTree(unittest.TestCase):
     def test_18_6_2_is_scored(self):
         self.assertTrue(any(o.kind == 'scored' for o in self.occ[(18, 6, 2)]))
 
-    def test_18_6_4_is_free(self):
-        self.assertNotIn((18, 6, 4), self.occ)
+    def test_18_6_4_is_scored_and_roman_modern(self):
+        # Free at item 3771's base; the Roman Modern pair minted it.
+        occ = self.occ[(18, 6, 4)]
+        self.assertTrue(any(o.kind == 'scored' for o in occ))
+        self.assertTrue(any(o.kind == 'pair' and o.where.startswith('roman_modern_pair.rs')
+                            for o in occ))
+
+    def test_18_2_4_is_free(self):
+        # Free at item 3771's landing; a lobby minting it moves this test with it.
+        self.assertNotIn((18, 2, 4), self.occ)
 
     def test_every_pair_module_spells_its_lobby(self):
         self.assertEqual(refill.unparsed(ROOT), [])

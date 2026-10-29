@@ -11153,6 +11153,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3752,
         Some(crate::diff::british_modern_pair::WIDENING_BRITISH_MODERN_CLOSING),
     ),
+    // **The Romans at a held Modern age** (item 3771): East Indies at
+    // Hard — whole on its first try, 5234 of 5234, the closing state
+    // compared; widened on run1444b over 4979..5235 (the closing block),
+    // the rounds compared.
+    (
+        "ROMAN_MODERN_PAIR_WORD",
+        crate::diff::roman_modern_pair::ROMAN_MODERN_PAIR_WORD,
+        Some("roman_modern_pair_run1444b_s_closing_frame_is_widened_whole"),
+        3771,
+        Some(crate::diff::roman_modern_pair::WIDENING_ROMAN_MODERN_CLOSING),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13751,6 +13762,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_793,
         endpoint: Some("british_modern_pair_run1433_s_closing_state"),
         window: Some("british_modern_closing_window"),
+    },
+    // The Romans at a held Modern age (`STARTING_TECHNOLOGY` 6,
+    // `ENDING_TECHNOLOGY` 6), East Indies at Hard (item 3771): whole on its
+    // first try, 5234 of 5234; the closing window run1444b over
+    // 4979..5235, the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesRomanModern",
+        named: "East Indies (Roman, Modern)",
+        word: crate::diff::roman_modern_pair::ROMAN_MODERN_PAIR_WORD,
+        length: 5_234,
+        endpoint: Some("roman_modern_pair_run1444_s_closing_state"),
+        window: Some("roman_modern_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

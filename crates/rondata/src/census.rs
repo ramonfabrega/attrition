@@ -627,7 +627,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// never-seen line (§376), and two generic lines the pair alone fields:
 /// `Tank[MEDIUMTANK]` (244), land, and `Fighter` (289), air, read by
 /// `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 261;
+/// Item 3771: 261 -> 262, the Roman Modern pair whole on its first try at
+/// 5234 — `Heavy Machine Gun[HVYMACHINEGUNGERMAN]` (126), land, the
+/// refill's never-seen line (§377), read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 262;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

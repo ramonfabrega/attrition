@@ -561,6 +561,13 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the battery's one Chinese game is the held-out
     // `GreatLakesChineseTier1`, `(14, 14, 1)`.
     (18, 14, 4),
+    // The Romans at a held Modern age, East Indies at Hard (item 3771,
+    // `diff::roman_modern_pair`), minted under rule (3) — not the AI
+    // word's `(18, 6, 2)` or the Medieval pair's `(18, 6, 5)`, other
+    // difficulties, nor the Gunpowder pair's `(14, 6, 5)`, Great Lakes, or
+    // the Classical pair's `(7, 6, 5)`, Great Sahara; the battery's one
+    // Roman game is the held-out `GreatLakesRomanTier2`, `(14, 6, 2)`.
+    (18, 6, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

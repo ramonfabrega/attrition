@@ -33482,3 +33482,69 @@ SHA-256 `ebba4d42017d0dabafc57129322e27147948c9cc7249fe25bba9c12933a1c702`.
 
 **What it holds**: the pair's closing widening (`british_modern_pair_run1433b_s_closing_frame_is_widened_whole`):
 256 blocks, 61 keys, rounds read 243 against 243 with 75 parting — every one a Lancaster Bomber's.
+
+## run1443 — the Romans at a held Modern age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-29, item 3771, `att-3771`)
+
+`docs/AI.md` §377. run1430's line with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1443 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 6 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1, the pool's pick. Launched 01:12:58, exited 01:13:24 (26.9 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 6, map style 18, five files restored;
+  `page_faults` 0, `relaunches: []`. `GAME INFO` reads back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 6`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1443 eastindies-roman-modern-start`. `df -g ~` read 166 GiB
+  free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1443-eastindies-roman-modern-start.txt`, 153,812,049 bytes,
+SHA-256 `67f8d21ee0cfe305fe824b7e2eaa003eca90284280c36cea3131319014d9868e`.
+
+Archive `rontrace-run1443.log`, 10,011,616 bytes,
+SHA-256 `aeed0d298823dc45ad4c58b968532c797aa2992beb8982add0d4a694f75cd65e`.
+
+**What it holds**: the start of `roman_modern_pair::ROMAN_MODERN`, and the walk's initial state.
+
+## run1444 — the Romans at a held Modern age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-29, item 3771, `att-3771`)
+
+`docs/AI.md` §377. run1431's line with `--ai-tribe 6` and run1443's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 6 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1443. Launched 01:12:58, exited 01:13:39 (41.0 s launch to exit). `success`;
+  `page_faults` 0, `relaunches: []`. **The game ended itself on 5234** (closing block 5235, `ended_early`). `GAME
+  INFO` reads back as run1443's. `rngcmp.py` against run1443: 37 frames identical. Filed with `filerun.py run1444
+  eastindies-roman-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1444-eastindies-roman-modern-trace.txt`, 37,832,531 bytes,
+SHA-256 `49c875f56ba103efd07fe14b4e781be1ce9d82ca6b49631516c36b31f10358ce`.
+
+Archive `rontrace-run1444.log`, 146,821,696 bytes,
+SHA-256 `b8ee27de8c7e02fb5a1d2e02dd158df93ffc1b011873031c899552d27d5f0b82`.
+
+**What it holds**: the pair's first try, **whole: 5234 of 5234** by the count and the sequence
+(`roman_modern_pair_first_parting`); its stride, 101..5201, 52 blocks and 186 keys
+(`roman_modern_pair_the_long_s_stride_is_widened`); the closing block 5235 as a floor, 235 units, every count zero
+(`roman_modern_pair_run1444_s_closing_state`).
+
+## run1444b — the Romans at a held Modern age, East Indies, at difficulty 4: the closing window, blocks 4979..5235 (2026-10-29, item 3771, `att-3771`)
+
+`docs/AI.md` §377. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1444's stride prints units every hundred frames, with no `AMMO` and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1444b --map 18 --end-frame 5234
+--allow-early-end --timeout 3600 --log-window 4979 5235 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 6 --cover cover=0 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 01:16:44, exited 01:17:32 (48.0 s launch to exit). `success`, through the closing block
+  5235; `page_faults` 0, `relaunches: []`. `rngcmp.py` against run1444: 5235 frames identical. Filed with
+  `filerun.py run1444b eastindies-roman-modern-closing-window-4979-5235`. `df -g ~` read 164 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1444b-eastindies-roman-modern-closing-window-4979-5235.txt`, 611,029,506 bytes,
+SHA-256 `6340754019be09ae48c94e3c70ad17b3829df4690a33978bcec51c55b74cdf2b`.
+
+Archive `rontrace-run1444b.log`, 146,387,328 bytes,
+SHA-256 `d1d5470f8d5fa731840cfdad59dec568f8bc45391e53443d0fc99c2406e65826`.
+
+**What it holds**: the pair's closing widening (`roman_modern_pair_run1444b_s_closing_frame_is_widened_whole`):
+256 blocks, 127 keys, rounds read 63 against 63, none parting.
