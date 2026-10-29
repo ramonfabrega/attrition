@@ -12771,6 +12771,8 @@ bit, and when, is unread. The falsifier is the same block as 3789a with an asker
   - **Killer**: a capture over 1460..1466 at a `LEADERS` level that prints `num_units`. A fall on 1463 names the
     death's decrement; no fall before the close kills the death as the frame.
   - It names no draw floor. The first melee's word stands at 2,600 of 2,600.
+  - ~~Open~~: closed by item 3794 (`docs/GOLDEN.md` §151.1). `Unit::close`'s count admits a `POP 0` unit that
+    `is_gov_hero`; the dead Despot comes off on 1463.
 
 ## Parked by the next landing, slot XE — reserved
 
@@ -12788,13 +12790,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XG — reserved
+## Parked by item 3794, 2026-10-29 — a dead government hero comes off `num_units`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3794a. `init_unit`'s head `+1` carries no population gate** (`docs/GOLDEN.md` §151.1).
+  - `Sim::init_unit` counts every head into `num_units`.
+  - The original's `+1` is `Unit::set_type@00612fa0:250-274`'s, gated on `control_cost != 0 || is(0x134) ||
+    is_gov_hero`. `close_count` and `counts_in_muster` now read the hero arm.
+  - So a `POP 0` unit that is neither is counted in ours alone, and stays counted after its death.
+  - The `is(0x134)` arm is a `SEAM` in both. `0x134` is the Fighter Bomber's lineage (`lib.rs`'s ramp, item 2939's
+    note).
+  - **Killer**: a closing dump whose `num_units` holds a `POP 0` non-hero type that ours counts and theirs does
+    not.
+  - It names no score. Every closing count on file agrees.
 
 ## Parked by the next landing, slot XH — reserved
 
