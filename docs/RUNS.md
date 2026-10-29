@@ -33685,3 +33685,71 @@ SHA-256 `1888fd0122cbdbafd51f8ea4bd5c8f0636a444bc4bbe507ca5e61f3f6e7de7bd`.
 **What it holds**: the pair's closing widening (`turkish_information_pair_run1454_s_closing_frame_is_widened_whole`):
 256 blocks, 85 keys, all standing families; rounds read 360 against 360, 174 parting from 4830, every one an Advanced
 Battleship's launch point (parked 3782a).
+
+## run1447 — the French at a held Information age, Great Sahara, at difficulty 3: the `DUMP_ALL` start (2026-10-29, item 3773, `att-3773`)
+
+`docs/AI.md` §379. run1445's line with the map, nation and difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1447 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`.
+- Pool lane 1, the pool's pick. Launched 05:35:23, exited 05:35:49 (26.6 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 10, map style 7, five files restored;
+  `page_faults` 0, `relaunches: []`. `GAME INFO` reads back `DIFFICULTY 3` and `STARTING_TECHNOLOGY 7`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1447 greatsahara-french-information-start`. `df -g ~` read 148
+  GiB free before it. (A first launch a minute earlier refused at argument parsing — the profiles passed as one
+  word — and staged nothing.)
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1447-greatsahara-french-information-start.txt`, 149,917,024 bytes,
+SHA-256 `83440436bc19d636371728f41a0b622d61af983e0633855f26fd04d0af157fad`.
+
+Archive `rontrace-run1447.log`, 8,591,424 bytes,
+SHA-256 `aa80e5cc1aaef9d76846a6d1889d26217efca1bc16a715ad607880e21580877f`.
+
+**What it holds**: the start of `french_information_pair::FRENCH_INFORMATION`, and the walk's initial state.
+
+## run1448 — the French at a held Information age, Great Sahara, at difficulty 3: the draw stream to the game's end (2026-10-29, item 3773, `att-3773`)
+
+`docs/AI.md` §379. run1446's line with `--map 7`, `--ai-tribe 10` and run1447's lobby: `--map 7 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 10 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=3 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1447. Launched 05:35:23, exited 05:35:49 (26.1 s launch to exit). `success`;
+  `page_faults` 0, `relaunches: []`. **The game ended itself on 3191** (closing block 3192, `ended_early`). `GAME
+  INFO` reads back as run1447's. `rngcmp.py` against run1447: 37 frames identical. Filed with `filerun.py run1448
+  greatsahara-french-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1448-greatsahara-french-information-trace.txt`, 17,775,263 bytes,
+SHA-256 `f325f028a336040665eae0c46ecff961e3cf59d46724ae45c4d149cce34c931b`.
+
+Archive `rontrace-run1448.log`, 58,474,848 bytes,
+SHA-256 `62ef69c25ee21dfe1984fdbdd8e22db35c8e56548570bfaf44671cecdd3ba10c`.
+
+**What it holds**: the pair's first try, **whole at 3191** by the count and the sequence
+(`french_information_pair_first_parting`); its stride over the whole game, 101..3101, 31 blocks and 87 keys
+(`french_information_pair_the_long_s_stride_walks_back_from_the_word`); the closing block 3192, 127 units, every
+count zero (`french_information_pair_run1448_s_closing_state`).
+
+## run1448b — the French at a held Information age, Great Sahara, at difficulty 3: the closing window, blocks 2935..3192 (2026-10-29, item 3773, `att-3773`)
+
+`docs/AI.md` §379. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1448's stride prints units every hundred frames (3001, then 3101), with no `AMMO` and no leader, building or city
+record past the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1448b --map 7 --end-frame 3191
+--allow-early-end --timeout 3600 --log-window 2935 3192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 10 --cover cover=0 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 05:39:18, exited 05:40:00 (42.3 s launch to exit). `success`; `page_faults` 0,
+  `relaunches: []`, last frame 3191. `rngcmp.py` against run1448: 3192 frames identical. Filed with `filerun.py
+  run1448b greatsahara-french-information-closing-window-2935-3192`. `df -g ~` read 147 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1448b-greatsahara-french-information-closing-window-2935-3192.txt`, 503,705,197 bytes,
+SHA-256 `7559eb573d34f6d8987c89e958a2ecfe34bd7fc1bbab62627c89ea4821d267d9`.
+
+Archive `rontrace-run1448b.log`, 58,332,160 bytes,
+SHA-256 `398546422dc1044eb6930c6cb5bf1445a1844ff438ab81531bbd6271063e5258`.
+
+**What it holds**: the pair's closing widening (`french_information_pair_run1448b_s_closing_frame_is_widened_whole`):
+257 blocks, 55 keys, all standing families; rounds read 56 against 56, none parting.

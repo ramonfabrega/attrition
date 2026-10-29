@@ -12571,13 +12571,13 @@ game names it. No draw parts and the closing state compares clean, so it names n
 Nothing parks. The pair's first parting, the Attack Sub `1/78`'s exit from dock `1/2020` on 2550 onto the idle
 Advanced Battleship `1/51`'s square (`docs/AI.md` §378), is the pair's word 2551 and books. It does not park.
 
-## Parked by the next landing, slot WN — reserved
+## Parked by item 3773, 2026-10-29 — the French at Information, whole at 3191, field no Mirage
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3773a. `Jet Fighter[MIRAGE]` (296) is still never seen.** The French at a held Information age on Great Sahara
+  at difficulty 3 (`french_information_pair`, whole at 3191) field no fighter at all: the Strategic Bomber (305)
+  is their one air line, and the game ends on 3191. It names no score while no lockstep game fields it: a melee's
+  `add` line can field the Mirage under `TRIBE_MASK` (the French), or a longer French Information lobby can
+  (`docs/AI.md` §379).
 
 ## Parked by the next landing, slot WO — reserved
 

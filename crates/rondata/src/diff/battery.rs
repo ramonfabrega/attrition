@@ -574,6 +574,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(7, 8, 3)`, Great Sahara; the battery's one Turkish game is the
     // held-out `GreatSaharaTurkishTier3`, `(7, 8, 3)`.
     (18, 8, 4),
+    // The French at a held Information age, Great Sahara at Moderate (item
+    // 3773, `diff::french_information_pair`), minted under rule (3) — not
+    // the AI word's `(7, 10, 4)` nor the Classical pair's `(7, 10, 5)`, this
+    // map at other difficulties; no battery game fields the French.
+    (7, 10, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

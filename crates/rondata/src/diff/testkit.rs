@@ -11179,6 +11179,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3782,
         Some(crate::diff::turkish_information_pair::WIDENING_TURKISH_INFORMATION_CLOSING),
     ),
+    // **The French at a held Information age** (item 3773): Great Sahara at
+    // Moderate — whole on the first try at 3191; widened on run1448b over
+    // 2935..3192 (the closing block), the rounds compared.
+    (
+        "FRENCH_INFORMATION_PAIR_WORD",
+        crate::diff::french_information_pair::FRENCH_INFORMATION_PAIR_WORD,
+        Some("french_information_pair_run1448b_s_closing_frame_is_widened_whole"),
+        3773,
+        Some(crate::diff::french_information_pair::WIDENING_FRENCH_INFORMATION_CLOSING),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13804,6 +13814,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_036,
         endpoint: Some("turkish_information_pair_run1446_s_closing_state"),
         window: Some("turkish_information_closing_window"),
+    },
+    // The French at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), Great Sahara at Moderate (item 3773): whole on
+    // the first try at 3191; the closing window run1448b over 2935..3192,
+    // the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaFrenchInformation",
+        named: "Great Sahara (French, Information)",
+        word: crate::diff::french_information_pair::FRENCH_INFORMATION_PAIR_WORD,
+        length: 3_191,
+        endpoint: Some("french_information_pair_run1448_s_closing_state"),
+        window: Some("french_information_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

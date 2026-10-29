@@ -11107,3 +11107,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3782: the Turks' Information pair whole at 5036 (`docs/AI.md` §378.2; `docs/RUNS.md` run1454) ====
 #   run1454  --map 18 --end-frame 5036 --allow-early-end --timeout 3600 --log-window 4781 5037 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 8 --cover cover=0, run1445's lobby   (the closing window)
 # Checks: `rngcmp.py` run1446 vs run1454 -> 5037 identical.
+# ==== item 3773: the French at a held Information age, Great Sahara, at difficulty 3 (`docs/AI.md` §379; `docs/RUNS.md` run1447, run1448, run1448b) ====
+#   run1447  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1448  run1446's line with --map 7, --ai-tribe 10 and run1447's lobby   (the draw stream; ended itself on 3191)
+#   run1448b --map 7 --end-frame 3191 --allow-early-end --timeout 3600 --log-window 2935 3192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1447's lobby   (the closing window)
+# Checks: `rngcmp.py` run1447 vs run1448 -> 37 identical; run1448 vs run1448b -> 3192 identical.
