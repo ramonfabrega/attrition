@@ -261,8 +261,23 @@ pub(crate) const GUNPOWDER_MELEE: Melee = Melee {
     // ours spends 230 draws against 242 and parts at index 4: theirs
     // spends a third `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where
     // ours goes on to `PathFinder::calc_road_cost+0x46`.
-    count: 1001,
-    sequence: 1001,
+    //
+    // Item 3784: **1001 → 1912** (sequence; count 1913), two builds. The
+    // Dragoon `2/20` (TI 189), a `DEFENSIVE` attack on `1/18` with its post
+    // (14808, 16968), drops the attack on 997 when its target is gone:
+    // `fight`'s invalid-target branch (`LAB_005fdb9e`) is `find_new_target`
+    // whole, whose post arm walks it home — 998..1001, theirs' angle
+    // −1605566464 — and the idle on 1001 is theirs' third `do_idle` roll.
+    // Then 1706 (ours 152 against 153): who=2's trained Arquebusiers squad
+    // of 1568 took slot 23, the Bombard dead since 863, where theirs
+    // numbers it `2/34`..`2/36` — `DeathObj::inc_time` bumps the number's
+    // `hold_frames` once per figure's record, so a four-figure crew holds
+    // its number long past the cull (§149.10). On 1912 ours spends 44
+    // draws a side and parts at index 30: theirs spends three
+    // `Guy::init_real+0x52 < Objects::init_unit`, a three-figure birth,
+    // where ours goes on to `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    count: 1913,
+    sequence: 1912,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -293,13 +308,13 @@ fn gunpowder_melee_first_parting() {
 }
 
 /// **The word's window** (item 3733, moved by 3757, 3759, 3762, 3763, 3767,
-/// 3770, 3779, 3781 and 3783): run1413's stride blocks 901..1201 — the
-/// word's frame 1001 is a stride block's own, so the window is the block
-/// before it through 250 frames past it. 3733's was 101..432, on 182;
-/// 3757's 601..934, on 684; 3759's 701..1009, on 759; 3762's 701..1010, on
-/// 760; 3763's 801..1089, on 839; 3767's 801..1113, on 863; 3770's
-/// 901..1197, on 947; 3779's 901..1204, on 954; 3781's 901..1208, on 958.
-pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (901, 1251);
+/// 3770, 3779, 3781, 3783 and 3784): run1413's stride blocks 1901..2101 —
+/// the block before the word's frame 1912 through 250 frames past it.
+/// 3733's was 101..432, on 182; 3757's 601..934, on 684; 3759's 701..1009,
+/// on 759; 3762's 701..1010, on 760; 3763's 801..1089, on 839; 3767's
+/// 801..1113, on 863; 3770's 901..1197, on 947; 3779's 901..1204, on 954;
+/// 3781's 901..1208, on 958; 3783's 901..1251, on 1001.
+pub(crate) const WIDENING_GUNPOWDER_MELEE: (i64, i64) = (1901, 2162);
 
 /// run1413's blocks over [`WIDENING_GUNPOWDER_MELEE`], walked from
 /// run1412's start with the script staged and every round compared.
@@ -342,7 +357,6 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
@@ -443,9 +457,22 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // Dragoon `2/20`: `pos` (14856, 16920) against (14808,
     // 16968), `idle` 2 against 0, `cavarch_who` 0 against −1; `2/19`'s
     // attack `def_x`/`def_y`; and the two `build:extra` rows.
-    pin_eq!(w.firsts.len(), 660, "run1413's word window");
-    pin_eq!(w.rounds_read, (36, 30), "the rounds read");
-    pin_eq!(w.rounds.len(), 82, "the rounds that part");
+    //
+    // Item 3784, on the word moved to 1912 (window 1901..2162, three
+    // blocks): **1126** keys, rounds read (0, 0), none parting. Walked back
+    // from 1912 over 901..2162: 901..1801 carry the standing families
+    // alone. **On 1001 `2/20` stands on its post** (14808, 16968) both
+    // sides, where ours stood at (14856, 16920) with `idle` 2 against 0;
+    // the old window 901..1251 reads 99 keys, rounds (36, 36), none
+    // parting. **On 1601 who=2's squad is `2/34`..`2/36`** both sides, at
+    // (7512, 34296), (7512, 34440) and (7656, 34392), where ours had its
+    // captain in slot 23 (`2/23 extra`) and `2/34`/`2/35` on the members'
+    // squares. Block 1901 carries the standing families alone; 2001 and
+    // 2101 fan out (the human's `0/3`, who=1's `1/11` and `1/15`).
+    pin_eq!(w.blocks, 3, "every stride block in the window");
+    pin_eq!(w.firsts.len(), 1126, "run1413's word window");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **A strike is first contact** (item 3763, `docs/GOLDEN.md` §149.4).
