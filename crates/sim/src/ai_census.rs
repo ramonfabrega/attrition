@@ -414,8 +414,10 @@ impl Sim {
     /// **Step 6, the meeting** (`plan_strategy@006b9620:205`–`265`, item
     /// 3763, `docs/GOLDEN.md` §149.4): under `has_preq(ALLY_LOS) ||
     /// reveal_map != 0`, every other active leader (`leader_flags & 2`) not
-    /// yet met (`treaties[i] & 1 == 0`) has its units, then its buildings,
-    /// asked `is_seen(who, 0)` (vslot `+0x48`), and the first that answers
+    /// yet met (`treaties[i] & 1 == 0`) has its **buildings** asked
+    /// `is_seen(who, 0)` (`BuildData::is_seen`, vslot `+0x48` of the data
+    /// `+0xb0` hands back) — the two object lists from `obj_base[1]` (2000)
+    /// and `obj_base[2]`, never the units' `obj_base[0]` — and the first that answers
     /// sets the met bit on both sides — inline, not through
     /// `Leader::meet`, which is why no trace enters that function on this
     /// path. The war loop of step 15 reads the bit: a lobby at
@@ -437,11 +439,7 @@ impl Sim {
                 continue;
             }
             let o = i as Player;
-            let seen = (0..self.units.len()).any(|u| {
-                self.units[u].owner == o
-                    && self.units[u].alive()
-                    && self.target_seen_by(who, Obj::Unit(u))
-            }) || (0..self.buildings.len()).any(|b| {
+            let seen = (0..self.buildings.len()).any(|b| {
                 self.buildings[b].owner == o
                     && self.buildings[b].alive
                     && self.target_seen_by(who, Obj::Building(b))
