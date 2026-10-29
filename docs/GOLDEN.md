@@ -14423,7 +14423,8 @@ git under `~/ron-data/lab-experiments/2026-10-29-item-3770/`); `gunpowder_melee_
 (the round of 859's point, height and five frames, and `2/23` dead on 863). `GUNPOWDER_MELEE` (947, 947); the
 widening at 901..1197.
 
-**Mutation** (`tools/mutate.py`): see the journal (`docs/journal/2026-10-29-item-3770.md`).
+**Mutation** (`tools/mutate.py`): the `CHAR_ATTACK3` row's key 18 → 19, **held** — the parting, the widening and
+the melee test fail. The node back at (0, −3.32): **nothing fails** on the walk; the table test holds it, outside git.
 
 **What is not established.**
 - The turret step of ours' round of 859 is ours' own `set_all_pivots`; no block prints the original's between 846
