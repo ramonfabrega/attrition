@@ -4,6 +4,7 @@ thing a lane did that a commander acts on.
 
     python3 tools/lanewait.py <lane> [<lane> ...] [--quiet-after MIN] [--interval S]
                               [--arm-after-push <lane> ...] [--then TEMPLATE]
+                              [--stalled-after MIN] [--held-arm-after MIN]
 
 Run it backgrounded after a spawn and end the turn; its exit re-invokes the
 session. A lane is named as `ccc list` names it. The exits:
@@ -17,14 +18,17 @@ session. A lane is named as `ccc list` names it. The exits:
                                              the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
     5  DEEP <lane> <ctx>k                    a lane's next turn would carry --deep k
-    6  STALLED <lane> <minutes>              a working row idle --stalled-after minutes
-                                            with nothing running, or behind a child older
-                                            than --stalled-child-after (named)
-                                             with no child process but its servers:
-                                             a gate's or a capture's exit notice was
-                                             lost (parked 1871, 178 minutes); one line
-                                             to the lane says what to read
                                              tokens or more (lore's `ctx`), once a lane
+    6  STALLED <lane> <minutes>              a working row idle --stalled-after minutes
+                                             with no child process but its servers, or
+                                             behind a child older than
+                                             --stalled-child-after (named): a gate's or
+                                             a capture's exit notice was lost (parked
+                                             1871, 178 minutes); one line to the lane
+                                             says what to read. Never a lane whose held
+                                             draft the waiter armed on the stall, while
+                                             the session it armed under stands (Loop
+                                             3795, 3796): that stall's answer is the arm
     7  UNCLEARED <lane> <minutes>            the lane's newest transcript ends on a
                                              `/clear` with no turn after it for
                                              --uncleared-after minutes: the armed
@@ -50,6 +54,14 @@ And the lines that are not exits — the wait goes on past each:
        ARM-REFUSED <lane>: <ccc's first line>  ccc refused that arm, or is missing,
                                              failed or timed out (stdout); the lane
                                              stopping is then an ENDED to arm by hand
+       DRAFT <lane> <branch> <old>..<new> — held draft on a stalled row; arming its clear
+                                             an --arm-after-push lane's held push on a
+                                             row that reads `working`, idle
+                                             --held-arm-after minutes with nothing but
+                                             its servers under it (stderr; Loop 3795):
+                                             armed in place of a STALLED exit, its
+                                             ARMED or ARM-REFUSED following on stdout,
+                                             and the wait goes on
        PUSHED <lane> … — its done line, '…'; a landing, not armed
                                              an --arm-after-push lane's push sent with
                                              its done line (stdout; Loop 3749): the
@@ -181,6 +193,28 @@ the push as held and settles it at its start — armed when the row is
 idle with no done line since the base was recorded, a landing with one,
 held while the row works. A push no wait recorded a base for is never
 armed at start.
+
+And a held draft on a stalled row is armed (Loop 3795, the sixty-third
+pass): lane-3788 answered its `DEEP 339k`, pushed its draft (73765697)
+and ended its turn, but its row read `working` throughout — the lane's
+own word, at `tempo=idle` — so `arm_pushes` held the push: lanewait-28
+exited `HELD lane-3788 none..73765697` on the other lane's DEEP,
+lanewait-29 seeded it held, held it again, and exited `STALLED
+lane-3788 30`, and the commander armed the clear by hand; 3793's draft
+the same tranche was armed by hand at its push rather than wait. The
+held arm waited for the row to stop, and a row that reads `working`
+never does. So an --arm-after-push lane whose push is held, on a row
+idle --held-arm-after minutes (10; at 0, --stalled-after's) with no
+child but its servers, is armed as if it had stopped — `DRAFT … — held
+draft on a stalled row; arming its clear`, then `ARMED` or
+`ARM-REFUSED` — and the wait goes on. A done line still makes it a
+landing, a clear already armed is not armed again, and a gate or a
+capture under the session, of any age, is a wait. And the stall is
+not named while the session the arm went in under stands, so the
+commander's nudge never reaches it (Loop 3796: a hand-armed clear
+fired, and the nudge the STALLED asked for reached the fresh session,
+which idled on it); a refused arm leaves the stall to the commander,
+and it exits STALLED as before.
 
 And the first line is the waiter's own (Loop 3716, the sixtieth pass):
 fourteen of the sixtieth tranche's thirty-four logs and nine of the
@@ -605,6 +639,31 @@ def held_lines(watch):
             for lane, seen in watch.items() if seen.get('held')]
 
 
+def held_ripe(watch, pending, states, idle_minutes, children, after):
+    """The --arm-after-push lanes whose push is held on a row that reads
+    `working`, idle `after` minutes or more with no child process but its
+    servers — `stalled`'s test, at the held arm's own threshold (Loop
+    3795): lane-3788's row read `working` at `tempo=idle` with its draft
+    pushed, so `arm_pushes` held the push until `STALLED` exited, and the
+    commander armed the clear by hand. A child of any age is a wait here,
+    as it is to `stalled` with --stalled-child-after off: a gate or a
+    capture still running is the lane's, and its exit is the next turn."""
+    if not after:
+        return set()
+    ripe = set()
+    for lane in sorted(pending):
+        seen = watch.get(lane)
+        if not seen or not seen.get('held') or states.get(lane) != WORKING:
+            continue
+        idle = idle_minutes.get(lane)
+        if idle is None or idle < after:
+            continue
+        if any(not is_server(c[1] if isinstance(c, tuple) else c) for c in children.get(lane, [])):
+            continue
+        ripe.add(lane)
+    return ripe
+
+
 def load_bases(path):
     """`{lane: {'base', 'at', 'session'}}` from the arm state file, `{}`
     when there is none or it does not parse."""
@@ -876,7 +935,7 @@ def done_line_of(lane, since, where, sessions):
 
 
 def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_armed=armed_clear,
-               states=None, landed=None, since=None):
+               states=None, landed=None, since=None, stalled=()):
     """Arm each pending lane's clear on its first push (Loop 3526), as
     `(drafts, lines)`: the DRAFT lines for stderr and the ARMED /
     ARM-REFUSED lines for stdout. Called before `event` on every poll.
@@ -897,7 +956,12 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
     `event` as a push noted while working, so the row stopping lands it.
     With none, a push while the row works is held — its ref recorded, its
     range and poll kept in `seen['held']`, nothing said — and the row
-    stopping with still no done line is the draft, armed as before."""
+    stopping with still no done line is the draft, armed as before.
+
+    `stalled` names the lanes whose held push sits on a row that reads
+    `working` but is idle with nothing running (`held_ripe`, Loop 3795):
+    the push is armed as if the row had stopped, its DRAFT saying why.
+    """
     drafts, lines = [], []
     for lane in sorted(pending):
         seen = watch.get(lane)
@@ -929,12 +993,13 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
                 seen['pushed'] = moved
                 lines.append(f"PUSHED {moved} — its done line, {said!r}; a landing, not armed")
                 continue
-        if states is not None and states.get(lane) == WORKING:
+        if states is not None and states.get(lane) == WORKING and not (held and lane in stalled):
             seen['held'] = (old, pushed_at)
             continue
         pending.discard(lane)
         seen.pop('held', None)
-        drafts.append(f"DRAFT {moved} — the DEEP answer's push; arming its clear")
+        why = 'held draft on a stalled row' if held and lane in stalled else "the DEEP answer's push"
+        drafts.append(f"DRAFT {moved} — {why}; arming its clear")
         if already_armed(lane):
             lines.append(f"ARMED {lane} — a clear was already armed; not armed again")
             continue
@@ -972,6 +1037,10 @@ def main(argv=None):
                         help='read lore agents every this many polls')
     parser.add_argument('--stalled-after', type=float, default=30, metavar='MIN',
                         help='exit STALLED once per working lane idle this long with nothing running; 0 off')
+    parser.add_argument('--held-arm-after', type=float, default=10, metavar='MIN',
+                        help='arm an --arm-after-push lane\'s held draft once its working row has idled this '
+                             'long with nothing running, instead of a STALLED exit (Loop 3795); 0 takes '
+                             '--stalled-after\'s threshold')
     parser.add_argument('--stalled-child-after', type=float, default=90, metavar='MIN',
                         help='a stalled lane whose every child has run this long is named with the child '
                              '(Loop 2820: a subagent\'s four-hour background test read as a wait); 0 off')
@@ -1030,10 +1099,11 @@ def main(argv=None):
     save_bases(arm_state, bases)
     print(f"WAITING {named} — {begun} pid {os.getpid()}{arming}", flush=True)
 
-    def settle(states, tips, sessions, since):
+    def settle(states, tips, sessions, since, stalled=()):
         arm_drafts, arm_lines = arm_pushes(
             watch, tips, sessions, arm_pending, args.then, arm=arm_clear, already_armed=armed_clear,
-            states=states, since=since, landed=lambda lane, at: done_line_of(lane, at, where, sessions))
+            states=states, since=since, landed=lambda lane, at: done_line_of(lane, at, where, sessions),
+            stalled=stalled)
         for draft in arm_drafts:
             print(draft, file=sys.stderr, flush=True)
         for line in arm_lines:
@@ -1043,6 +1113,7 @@ def main(argv=None):
             bases.pop(lane)
         if gone:
             save_bases(arm_state, bases)
+        return {lane for lane in stalled for line in arm_lines if line.startswith(f"ARMED {lane} ")}
 
     def finish(found):
         for line in held_lines(watch):
@@ -1060,6 +1131,10 @@ def main(argv=None):
     reported = set()
     stalled_reported = set()
     uncleared_reported = set()
+    held_after = args.held_arm_after or args.stalled_after
+    # Lanes whose held draft the waiter armed on a stall, by the session it
+    # armed under: never STALLED while that session stands (Loop 3796).
+    held_armed = {}
     while True:
         time.sleep(args.interval)
         polls += 1
@@ -1079,7 +1154,13 @@ def main(argv=None):
                 return finish(found)
         states = {lane: (rows[lane][0] if lane in rows else None) for lane in watch}
         details = {lane: (rows[lane][4] if lane in rows else None) for lane in watch}
-        if args.stalled_after:
+        since, polled_at = polled_at, time.time()
+        tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
+        sessions = {lane: getattr(roster, 'sessions', {}).get(lane) for lane in watch}
+        if arm_pending:
+            settle(states, tips, sessions, since)
+        holding = held_after and any(watch[lane].get('held') for lane in arm_pending)
+        if args.stalled_after or holding:
             from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
             rests = getattr(roster, 'rests', {})
@@ -1088,15 +1169,18 @@ def main(argv=None):
             pids = {lane: rests[lane][0] for lane in watch if lane in rests and rests[lane][0]}
             kids = children_of(list(pids.values()))
             children = {lane: kids.get(pid, []) for lane, pid in pids.items()}
-            found = stalled(list(watch), states, idle, children, args.stalled_after, stalled_reported,
-                            args.stalled_child_after)
-            if found:
-                return finish(found)
-        since, polled_at = polled_at, time.time()
-        tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
-        sessions = {lane: getattr(roster, 'sessions', {}).get(lane) for lane in watch}
-        if arm_pending:
-            settle(states, tips, sessions, since)
+            ripe = held_ripe(watch, arm_pending, states, idle, children, held_after) if holding else set()
+            if ripe:
+                for lane in settle(states, tips, sessions, since, stalled=ripe):
+                    held_armed[lane] = sessions.get(lane)
+            if args.stalled_after:
+                live = [lane for lane in watch
+                        if lane not in held_armed or (sessions.get(lane) and held_armed[lane]
+                                                      and sessions[lane] != held_armed[lane])]
+                found = stalled(live, states, idle, children, args.stalled_after, stalled_reported,
+                                args.stalled_child_after)
+                if found:
+                    return finish(found)
         rests = getattr(roster, 'rests', {})
         out = [lane for lane in watch if states.get(lane) != WORKING and (rests.get(lane) or (None,))[0]]
         table = process_table() if out else {}

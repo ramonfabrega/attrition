@@ -2253,3 +2253,21 @@ sixty-second tranche (`docs/audit/2026-10-29-fable-pass-62.md`):
   (Loop 3769): `SCORED_LOBBIES`, every `Pair` and `Lobby` literal and the
   held-out battery, with each occupant named; 3752's `(14, 11, 5)` was
   booked free by a rule and already stood as the second pair's lobby.
+
+Three rows of the commander's chain and the lanes' tools, each from the
+sixty-third tranche (`docs/audit/2026-10-29-fable-pass-63.md`):
+
+- **A held draft on a stalled row is armed by the waiter, and no message
+  goes to a lane beside an armed clear** (Loop 3795, 3796): `held_ripe()`
+  at `--held-arm-after` 10 minutes arms the clear and the wait goes on;
+  3788's draft sat through two `HELD` exits and a `STALLED` with the row
+  reading `working`, and the hand-arm's nudge then reached the fresh
+  session, which idled on it.
+- **A live-tree test never pins a literal triple as free** (Loop 3778):
+  `test_refill.py` derives its free case from the occupied set; 3771's
+  mint of `(18, 6, 4)` failed its own first gate on the old pin.
+- **An over-cap emulator result is cached compressed, never re-run**
+  (Loop 3777): 273 sweeps past the 16 MiB cap were 98 % of the sim
+  crate's lane-gate minutes; gzip above the cap took the five binaries
+  683.5 → 41.8 s warm for 13 GiB of disk, and `tools/emu/` joins the sim
+  build inputs.

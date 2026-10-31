@@ -7,6 +7,7 @@ Rust unit tests' own (`lay_out`), so the pinned key is the same literal on
 both sides: a drift in either key text fails one of the two.
 """
 import contextlib
+import gzip
 import io
 import sys
 import tempfile
@@ -40,8 +41,11 @@ def lay_out(root):
     return emu, exe
 
 
-def write_entry(cache, emu, exe, script='sweep_a.py', rows='1 -> 2\n3 -> 4\n', args=()):
-    """A cache file as `support.rs`'s `store` writes it."""
+def write_entry(cache, emu, exe, script='sweep_a.py', rows='1 -> 2\n3 -> 4\n', args=(),
+                compressed=False):
+    """A cache file as `support.rs`'s `store` writes it: `<key>.rows`, or
+    the same text gzip-compressed as `<key>.rows.gz` for a result over the
+    cap (Loop 3777)."""
     key, exe_sha, script_sha, modules = emu_receipts.key_for(emu, exe, script, args)
     head = ['# emu-cache v1', f'# key {key}', f'# executable {exe_sha} {exe}',
             f'# script {script_sha} {script}']
@@ -50,8 +54,14 @@ def write_entry(cache, emu, exe, script='sweep_a.py', rows='1 -> 2\n3 -> 4\n', a
     head += ['# date 2026-10-19T00:00:00Z', '# uv 0.11.16', '# python 3.14.7 (uv run --no-project)',
              f'# rows {sum(1 for r in rows.splitlines() if r.strip())}', '# end']
     cache.mkdir(parents=True, exist_ok=True)
+    text = '\n'.join(head) + '\n' + rows
+    if compressed:
+        path = cache / f'{key}.rows.gz'
+        with gzip.open(path, 'wt') as f:
+            f.write(text)
+        return path
     path = cache / f'{key}.rows'
-    path.write_text('\n'.join(head) + '\n' + rows)
+    path.write_text(text)
     return path
 
 
@@ -149,6 +159,35 @@ class Receipts(unittest.TestCase):
         self.assertEqual((kept.exists(), moved.exists(), fresh.exists()), (True, False, True))
         code, out = run(self.args('--verify'))
         self.assertEqual(code, 0, out)
+
+    def test_a_compressed_entry_lists_verifies_and_prunes(self):
+        # Loop 3777: a result over the cap is stored as `<key>.rows.gz`, the
+        # same receipt inside; it lists, verifies and prunes like a plain one.
+        packed = write_entry(self.cache, self.emu, self.exe, compressed=True)
+        plain = write_entry(self.cache, self.emu, self.exe, args=('7',))
+        code, out = run(self.args())
+        self.assertEqual(code, 0, out)
+        self.assertIn(packed.name[:12], out)
+        self.assertNotIn('not a receipt', out)
+        self.assertEqual(out.count('sweep_a.py'), 2, out)
+        code, out = run(self.args('--verify'))
+        self.assertEqual(code, 0, out)
+        self.assertIn('2 of 2 receipts match', out)
+        (self.emu / 'hooks.py').write_text('class Harness: x = 1\n')
+        code, out = run(self.args('--verify'))
+        self.assertEqual(code, 1, out)
+        self.assertIn(f'STALE {packed.name}: module changed: hooks.py', out)
+        code, out = run(self.args('--prune'))
+        self.assertIn('pruned 2 stale entries', out)
+        self.assertEqual((packed.exists(), plain.exists()), (False, False))
+
+    def test_a_corrupt_compressed_entry_is_named_not_raised(self):
+        packed = write_entry(self.cache, self.emu, self.exe, compressed=True)
+        packed.write_bytes(b'not a gzip stream')
+        code, out = run(self.args('--verify'))
+        self.assertEqual(code, 1, out)
+        self.assertIn(f'{packed.name}: not a receipt', out)
+        self.assertIn(f'STALE {packed.name}: no header', out)
 
     def test_an_empty_cache_is_said(self):
         code, out = run(self.args('--verify'))

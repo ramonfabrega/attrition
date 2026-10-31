@@ -108,9 +108,10 @@ is append-only and amended in place, as it always was.
 - 99 standing — The sixtieth tranche: two Opus lanes, twenty landings in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next, the launch waits on Ramon
 - 100 standing — The sixtieth pass's sequel: the territory map, five layers replaced by design, the audit at zero on seventy replays, the melee booked, map generation in scope, Astra retired
 - 101 extended by 102 — The sixty-first tranche: two Opus lanes with the lever, twenty landings in 12 h 41, eight words close and seven late-age pairs stand, unit types 250 of 302, waiting 44.6 on the capture class, the third lane stays out, the sixty-second booked on the Modern words, the melee and map generation
-- 102 standing — The sixty-second tranche: two Opus lanes, twenty landings in 13 h 07, seven late-age words close and every late-age word is whole, the first melee moves 182 → 863, map generation read, the sweeps one driver, unit types 261 of 302, waiting 42.3 and the gate 26.8 so two lanes stay and the residue lane gate is the figure, the `acos` ruled, the sixty-third booked on the melee track, three refills, the audit and map generation's first step
-- 92 amended by 93 — The fifty-third tranche is scored on two Opus lanes at twenty landings in 9 h 57 on the late ages, nine pairs stand up and eight run whole, every whole pair's `cover=1` twin lands and lockstep bytes move 77.0 → 77.4 with the twins spent, the rubric reads unit types 162 of 302, a third lane is added by the rule, the fifty-fourth tranche is booked on the Persian word and eight early-age pairs, and eleven Loop items become tools, rules, closes or Ramon's
-- 90 amended in place — The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
+- 102 extended by 103 — The sixty-second tranche: two Opus lanes, twenty landings in 13 h 07, seven late-age words close so every late-age word is whole, the first melee moves 182 → 863, map generation read, unit types 261 of 302, waiting 42.3 and the gate 26.8 so two lanes stay, the sixty-third booked on the melee track
+- 103 standing — The sixty-third tranche: two Opus lanes, twenty landings in 13 h 07, both melees whole and every word on the queue whole, unit types 263 of 302, waiting 42.0 and the gate 26.2 so two lanes stay, the sim crate's eleven gate minutes measured as over-cap sweeps and cached away, the third melee at Information the headline's next word, the sixty-fourth booked on it, the rubric's melee count, the audit and map generation
+- 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty landings in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
+- 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
 - 88 amended by 90 — The forty-ninth tranche is scored on two Opus lanes at sixteen `cover=1` landings drained early on a pit stop, the blind list falls 300 → 240 open, the click layer moves to the pool and the queue lane keeps only what no `@` line sends, two residue rows are ratified, the oracle cache key reads the parser and codec only, and sixteen Loop items become tools, rows, closes or Ramon's
 - 87 standing — The forty-eighth tranche is scored on five readings and two sweeps at the loop's cheapest and shortest landing, forty-five residue rows are ratified and the blind list falls 345 → 300, the forty-ninth tranche is booked as `cover=1` captures on the queue lane under a fifth brief kind, the queue carries a pinned `Blind:` line, and eleven Loop items become tools, rows, closes or Ramon's
@@ -9656,3 +9657,186 @@ s; red gates against zero; items past 300 k against five; the lane rows at
 the drain against zero; the receipts' `relaunches` over the tranche's
 captures; the waiter logs' `WAITING`, `GATING` and `HELD` lines against
 the exits; the backlog against 7; the disk against 148 GiB.
+
+## 103. The sixty-third tranche is scored on two Opus lanes at twenty landings in 13 h 07, both melees run whole at 2,600 so every word on the queue is whole, the last three refills stand up whole, the rubric reads unit types 263 of 302, waiting reads 42.0 and the gate 26.2 so two lanes stay and no lane gate ran twice, the melee shape's ceiling is measured and the headline moves to a third melee at Information, four Loop items become tools or clauses, and the sixty-fourth is booked on the rubric's melee count, the third melee, the correction audit and map generation's first two steps
+
+*2026-10-29, the sixty-third pass (the `steer` session, Fable), reached by
+the commander's `ccc clear steer --then` at the drain (`323d5f20a`), the
+eleventh handoff running with no person and no message between the rows.
+The record is `docs/audit/2026-10-29-fable-pass-63.md`; this entry carries
+the decisions. Extends entry 102; amends entry 100 §3's "next cell".*
+
+**What was measured.** Twenty landings on two Opus 5.5 lanes at `--effort
+medium`, every lane session's model read off its transcript (25 of 25
+`claude-opus-5-5`), in **13 h 07** from the base (`11831bb50`, 00:59 −05:00
+on 10-29) to the drain (`323d5f20a`, 14:06) — 13 h 07 the tranche before.
+**Both melees whole**: the first 863 → 947 → 954 → 958 → 1001 → 1912 →
+2160 → 2600 (3770, 3779, 3781, 3783, 3784, 3786, 3788 — a pivot piece's
+release, the Inti Macemen's walk home, piece 752's bays, `train_time`'s
+held-elsewhere term, the Dragoon's walk home with a crew's per-figure
+hold and a hero reborn at its Senate, the Inca's refund and
+`GENERAL_PLUNDER`'s arm), then every seat compared (3791: who=2's stock
+had never been read) and the close whole (3794: `Unit::close` lets a
+POP 0 government hero through); the second stood up at 718 (3774) and
+closed 784 → 865 → 1284 → 1382 → 2600 (3785, 3787, 3789, 3790, 3793:
+`unit_prod_value` reads `relative_value`, not `return_modifier`). **The
+three refills stood whole**: the Romans at Modern first try at 5,234
+(3771), the Turks at Information 2551 → 3952 → 5036 (3772, 3780, 3782),
+the French at Information first try at 3,191 (3773). **Every word on the
+queue is whole.** **The rubric, lockstep (269 dumps): ages held 8 of 8,
+unit types seen 261 → 263 of 302 (39 never), lockstep bytes 77.4 unmoved
+for the twelfth tranche** — both melees' twins are pinned and unread,
+because `rubric.py`'s lockstep source reads `Lobby` and `Pair` literals
+only (3788d, booked 3792). 2,284 sim lines on fifteen files outside
+`sweep/` (`pivot.rs` +790, `relative_value.rs` +258 new, `launch.rs`
++212, `fight.rs` +197, `orders.rs` +191); the whole tree 76 files +9,888
+−375. **The price: 173.13 USD list for the workers over 25 sessions,
+8.66 a landing** (158.68 / 7.93); the commander 20.92 (20.06); **194.05 in
+all** (178.74). **Waiting 42.0 minutes a landing, 33.6 a session** (42.3 /
+36.8): **the gate 26.2** (26.8), **the capture 2.4** (4.5), other 3.1.
+Nineteen gate logs for twenty bookings (3788 and 3794 under a
+neighbour's): seven whole at 44.2–53.5 release minutes, twelve scoped and
+widened at 16.3–19.1, **no red**, 588.0 minutes of gate (486.0);
+**admission 2,255.9 s summed, longest 49.4** (1,680.5 / 173.7), 773.8 of
+it under `gate-book3784`; no gate end past the sixteen cores. **Seven
+items crossed 300 k** (3779, 3782, 3784, 3787, 3788, 3789, 3793; five
+before), five of them melee words. The lanes' own gates: **the four
+stand-ups 8.3–9.8 release minutes, the fifteen residue items 20.4–23.5**
+(7.8–9.3 / 19.5–23.1); **no lane gated past its first** (six) — fourteen
+`Base moved:` lines, every one a row list or the commander's paperwork,
+every one landed on the verdict. 23 captures over 20 items, 1.1 a
+landing (28, 1.4); the pool peaked at two lanes and waited nowhere, median
+63.7 frames a wall second; `relaunches: []` and `page_faults` 0 on every
+receipt. 38 waiter logs, every one opening `WAITING`; `GATING` fired once
+and held (3779); of seven `DEEP` answers five drafts were armed by the
+waiter and fired, 3788's was printed `HELD` twice and exited `STALLED 30`
+unarmed with the row reading `working` (Loop 3795), and the commander's
+nudge then reached the fresh session, which idled ten minutes on it (Loop
+3796); 3793's was armed by hand at its push. No `no verdict (error)`; no
+kill rule; no merge backed out; every lane row reaped; no `FABLE:` row.
+Twenty journals carry a "for the Loop" line, two a finding (3771's → Loop
+3778; 3788's → items 3791 and 3792). The drain's `For the pass` read
+173.13 / 8.66 / 42.0 / 26.2 after `lore index`, and the pass read the
+same — entry 102 §1's rule held.
+
+**What it means.**
+
+1. **Two lanes for the sixty-fourth, and the figure is now the residue
+   items' own gates alone.** Entry 101 §1's return reads waiting under
+   40.2 and the gate under 26.1 on a two-lane tranche; the sixty-third
+   read 42.0 and 26.2, both over by a hair. What moved: the capture class
+   halved again (4.5 → 2.4) and no lane gate ran twice — the lever
+   (entry 99 §2) and the cut (entries 96, 97) have taken every re-gate
+   out, so the gate class 26.2 is the residue items' single gates at
+   20.4–23.5 release minutes against the stand-ups' 8.3–9.8, the sim
+   crate's five test binaries under `sim_crate_left`. **Loop 3777, measured this pass**: of those binaries'
+   2,496 test-seconds, 2,486 are 273 emulator sweeps whose rows exceed
+   the cache's 16 MiB cap — the forty-fifth pass's disk trade — and so
+   re-run `uv` and unicorn on every gate; the soak is 0.13 s and the Rust
+   comparison about a second a sweep. **The pass built the cache, not a
+   cut**: an over-cap result is stored gzip-compressed (`flate2`, already
+   in the lock), and the five binaries ran 683.5 → 41.8 s warm, the cache
+   3.0 → 16.2 GiB on 41.9 GB of rows at 3.05x. The pass's first whole gate
+   then died at 137 on `sweep_u_z`: the whole gate verifies every sweep
+   against unicorn, so a giant's cached copy and its fresh run stood in
+   memory together, and a warm cache lets the giants arrive at once
+   under the sweep targets' 4 GiB budget; verify now streams the cached
+   entry, a bound (`RON_EMU_BIG_ROWS`, default 2) holds how many over-cap
+   results are live, and the sweep targets' reservation is the lib's
+   6,144 MiB. Every lane and scoped gate loses about ten sim minutes from the sixty-fourth's
+   first, which is more than the whole gap between the residue items'
+   gates and the stand-ups'. The return clause stands as 101 wrote it and
+   is read at the sixty-fourth's drain; Ramon may return the lane sooner
+   on his word.
+2. **The melee shape has a ceiling, and the headline's next word is
+   chosen inside it: the third melee at Information.** Entry 100 §3 said
+   each later melee takes the matrix's next cell. The matrix on this tree
+   reads, over a never floor of 39 `unit` / 76 `groups` / 43 `map` / 41
+   `world`, Classical `unit` 51, Medieval 49, Enlightenment and
+   Industrial 46, Information 44, Modern 43 — every age cell within
+   thirteen open functions of the floor — and both melees' `cover=1`
+   twins enter **0 of the 616** open functions no trace has ever entered
+   (3733c: `do_board`, `do_garrison`, `do_group_attack`, `do_flee_to`,
+   `think_hero`, `think_supply` and the rest stay out with a General, a
+   Monarch and a wagon staged; 3774b: 0 of Classical's 51). So the
+   emptiest-cell rule has stopped discriminating: a Medieval melee would
+   repeat the Classical fight with two Nubian lines new. What a melee
+   still moves is the unit-type count and the families a fight at its
+   age reaches, and the age whose fight no lockstep game has held is
+   Information — air, anti-air and missiles — whose `add` lines can
+   field thirteen of the 39 never-seen lines (seven Information air
+   lines, the Spanish `Elite Special Forces`, five Modern lines). That is
+   3797, GOLDEN §152, with its own falsifier: an air line `add`ed with no
+   airbase that never flies. **Amends entry 100 §3**: the next melee's
+   cell is the age whose fight and `add` lines reach what no game has
+   held, the matrix's count beside it, never the count alone. The sea
+   lines (`Fluyt`, `Aircraft Carrier`) and the boarding rows (`do_board`,
+   `do_garrison`) need a second lever — the map — which GOLDEN §155's
+   "one lever: the age" does not allow; the pass after this one amends
+   §155 if 3797 runs whole, and not before.
+3. **Map generation's chain is booked two steps deep.** 3776 (the reader
+   and Great Sahara's mask, entry 102 §5) and now 3798 (MAPGEN §6's
+   zero-draw passes, checked on part 5 at 7835, 7843, 7846 and 7854),
+   the second taken only once the first has landed, since each step is
+   falsified on the previous step's cells. The `Mapgen:` line reads the
+   phases, and a two-lane tranche whose melee word closes early has
+   somewhere to go that is not a residue row.
+4. **Four Loop items become tools or clauses; the backlog 10 → 6.**
+   Built, each by an Opus 5.5 subagent under this pass and red first:
+   3795 (`lanewait.py` arms a held draft on a stalled row, `held_ripe()`,
+   `--held-arm-after` 10) and 3778 (`test_refill.py` derives its free
+   triple). Ruled: 3796 — `docs/LOOP.md`'s stall clause says a `STALLED`
+   on a lane with a held draft is the arm and no message is sent to a
+   lane beside an armed clear; 3795's build leaves an armed lane out of
+   `stalled()` while its session stands. Measured and built: 3777 — §1; `tools/emu/` joins `SIM_BUILD_INPUTS`,
+   since the sweep table and the emulator's modules decide the sweeps'
+   rows and a lane editing them alone left every sweep to the booking
+   gate. Filed: 3799, the digest-only cache — store the original's rows'
+   hash and re-run the emulator only on a disagreement, a cache of
+   kilobytes against today's 16 GiB; taken when the cache's size or its
+   rewrite shows up in a measurement. The six standing rows stay Ramon's
+   with this tranche's numbers.
+
+**Against entry 102's estimate**: the first melee's word passes 1,300 —
+exceeded (whole); the three refills stand up and two run whole first try
+— met; the second melee stands up past 610 — exceeded (whole); the
+audit's fifteen pin at zero — unstarted; the checksum reader pins 337 of
+337 — unstarted; unit types 261 → 264 — **missed** by one (263); lockstep
+bytes move iff the first melee closes — **missed** (the rubric counts no
+melee, 3792); every stand-up's lane gate under ten — met (8.3–9.8); the
+lane gates past the first under six — met (none); the gate class under 26
+— **missed** (26.2); waiting under 40 and a landing under 7.50 — **missed**
+(42.0; 8.66); the capture class under 6 — met (2.4); admission under
+1,500 s — **missed** (2,255.9); `DEEP` under four — **missed** (seven); no
+red booking gate — met; a gate log for every booking — met (two
+co-bookings); the drain indexes, writes from the tables and arms the
+clear with every lane reaped — met; `GATING` and `HELD` where due and no
+unarmed draft — **half** (both printed; 3788's draft sat unarmed, Loop
+3795); every green lane gate quotes its verdict — met; no receipt without
+`relaunches: []` — met. Eleven of twenty, one half, two unstarted.
+
+**The estimate, written down to be wrong on record**, on five items and
+two Opus lanes: 3792 lands first and the `Rubric:` bytes move off 77.4;
+the third melee stands up and its first word is past 610, and at least
+ten of its thirteen lines stand so unit types read 273 or more; the audit's
+fifteen pin at zero on the first run; the checksum reader pins 337 of 337
+and Great Sahara's mask agrees at 7807, and the zero-draw passes agree at
+7854; the melee's residue items are under ten; every stand-up's lane gate
+under nine release minutes and every residue item's under thirteen; no
+lane gate past the first; the gate class under 18; waiting under 34 and a
+landing under 8.00 USD; the capture class
+under 4; admission under 2,000 s; `DEEP` under five; no red booking gate;
+a gate log for every booking; the drain indexes, writes from the tables
+and arms the clear with every lane reaped; no draft unarmed and no message
+beside an armed clear.
+
+**The measure for the next pass**: unit types against 263, lockstep bytes
+against 77.4, the territory's open against 1305, ages 8 of 8, the third
+melee's word against its first parting; each landing's USD and waiting
+against 8.66 / 42.0 and the capture class against 2.4; the gates past the
+first against zero; the gate class against 26.2 and the residue lane gates
+against 20.4–23.5; the stand-ups' release minutes against 8.3–9.8; the
+admission against 2,255.9 s; red gates against zero; items past 300 k
+against seven; the lane rows at the drain against zero; the waiter logs'
+`HELD`, `STALLED` and `ARMED` lines against the exits; the backlog against
+6; the disk against 148 GiB.

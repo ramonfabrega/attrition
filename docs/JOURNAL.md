@@ -21690,3 +21690,31 @@ Information), a second melee at Classical, the fifteen closed words into
 the correction audit, and map generation's first port step with a
 `Mapgen:` line of its own. **DECISIONS 102.**
 `docs/audit/2026-10-29-fable-pass-62.md`.
+
+**2026-10-29 — the sixty-third Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the sixty-third tranche measured — twenty
+landings on two Opus lanes from `11831bb50` in 13 h 07; both melees run
+whole at 2,600 (the first 863 → 2600 in seven items, its close in two; the
+second 718 → 2600 in five) and the last three refills stand whole (the
+Romans at Modern, the Turks and French at Information), so every word on
+the queue is whole; 173.13 USD for the workers, 8.66 a landing, waiting
+42.0 a landing against 42.3, the gate class 26.2 against 26.8 and the
+capture class 2.4 against 4.5; no lane gate ran twice against six, so the
+third lane stays out by a hair and the figure is the residue items' own
+gates; unit types 261 → 263 of 302, lockstep bytes 77.4 for the twelfth
+tranche (the rubric counts no melee; 3792 first), the territory unmoved.
+The melee shape's ceiling measured: both twins enter 0 of the 616 open
+functions no trace has entered, so the matrix's age cells sit within
+thirteen of their floor and the third melee is booked where its fight and
+`add` lines reach what no game has held — Information, thirteen never-seen
+lines, air combat (3797; DECISIONS 103 §2 amends 100 §3). Built under the
+pass by three Opus 5.5 subagents, red first: the waiter arms a held draft
+on a stalled row (3795) and a stall nudge beside an armed clear is ruled
+out (3796), the refill test derives its free triple (3778), and the sim crate's
+eleven gate minutes are measured as 273 emulator sweeps re-run past the
+cache cap and taken out by a compressed cache (3777: the five binaries
+683.5 → 41.8 s warm, the cache 3.0 → 16.2 GiB; Loop 3799 filed, the
+digest-only cache). The backlog 10 → 7. The sixty-fourth is launched on two Opus lanes at medium:
+the rubric's melee count, the third melee, the correction audit, and map
+generation's first two steps. **DECISIONS 103.**
+`docs/audit/2026-10-29-fable-pass-63.md`.

@@ -3,9 +3,10 @@
 //! executable, the script, the `tools/emu/` modules it can import — and the
 //! argument list, so a hit skips `uv` and a changed byte anywhere is a
 //! miss. Each cache file carries its receipt (`docs/EMULATOR.md` §1.1;
-//! `tools/emu_receipts.py` lists and verifies them).
+//! `tools/emu_receipts.py` lists and verifies them). A result over the cap
+//! is stored gzip-compressed, `<key>.rows.gz`, the same text inside.
 
-use std::io;
+use std::io::{self, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
@@ -24,15 +25,99 @@ pub(crate) struct EmuSetup<'a> {
     /// Ask `uv` its version and its Python's for the receipt (off in the
     /// unit tests, whose runner is not `uv`).
     pub(crate) probe: bool,
-    /// The most bytes of rows a result may have and still be stored
-    /// (`RON_EMU_CACHE_MAX_BYTES`; [`DEFAULT_CACHE_CAP`]): the forty-fifth
-    /// pass found 136 of 1,523 entries holding 20.3 of the cache's 21.7 GiB
-    /// after one gate, the largest 1.3 GB of rows. A result over the cap is
-    /// returned and never written; the script runs each time, as before.
+    /// The most bytes of rows a result may have and still be stored plain
+    /// (`RON_EMU_CACHE_MAX_BYTES`; [`DEFAULT_CACHE_CAP`]); a result over it
+    /// is stored gzip-compressed as `<key>.rows.gz`, and either is a hit
+    /// under any cap. The forty-fifth pass found 136 of 1,523 entries
+    /// holding 20.3 of the cache's 21.7 GiB raw after one gate, the largest
+    /// 1.3 GB of rows, and stopped storing them: the script ran each time.
+    /// Loop 3777 measured the price — 273 over-cap sweeps re-ran `uv` and
+    /// unicorn on every gate, 2,486 of the sim crate's 2,496 test-seconds
+    /// at four threads (98 % of its lane-gate minutes) — and the rows are
+    /// hex text that gzip packs about five to one.
     pub(crate) cap: usize,
+    /// How many over-cap results may be live at once (`RON_EMU_BIG_ROWS`;
+    /// [`DEFAULT_BIG_ROWS`]; 0 is no bound), counted on `big`.
+    pub(crate) big_rows: usize,
+    /// The count `big_rows` bounds: [`BIG_ROWS`], process-wide.
+    pub(crate) big: &'static BigRows,
 }
 
-/// 16 MiB: keeps 1,387 of 1,523 entries at 1.35 GiB (measured 2026-10-19).
+/// Two over-cap results live at once. The sixty-third pass's whole gate
+/// (eight threads, the cache warm) was killed on `sweep_u_z` (137): with
+/// every giant a `.rows.gz` hit, `unit_detect_boat_collision`'s 1.7 GB of
+/// rows and the 1.1–1.4 GB entries were all held in the same seconds, where
+/// unicorn's 40–130 s runs had staggered them. The bound is a count, not
+/// bytes: the place is taken before the rows exist.
+pub(crate) const DEFAULT_BIG_ROWS: usize = 2;
+
+/// A count of the over-cap results live in the process, and the threads
+/// waiting for a place.
+///
+/// Measured on `sweep_u_z` alone as the isolated gate runs it (eight
+/// threads, `MallocLargeCache=0`, peaks sampled every 2 s; Loop 3777's
+/// build). Warm and not verifying: bound 2 ran 30 s at a 1.8–2.1 GB peak,
+/// with no bound it was killed at 4,159 MiB. Under `RON_VERIFY_EMU` (every
+/// whole gate), a re-run takes its place when it ends: 174 s at 3.9 GB,
+/// where taking the place before it starts serialized the giants' unicorn
+/// minutes, 577 s at 1.9 GB — the pass chose the first, and widened the
+/// sweep targets' reservation to match (`tools/isolated_tests.py`).
+pub(crate) struct BigRows {
+    held: std::sync::Mutex<usize>,
+    freed: std::sync::Condvar,
+}
+
+impl BigRows {
+    pub(crate) const fn new() -> Self {
+        BigRows {
+            held: std::sync::Mutex::new(0),
+            freed: std::sync::Condvar::new(),
+        }
+    }
+
+    /// Takes one of `limit` places (0: no bound) for the rest of this
+    /// thread's life, waiting for one if all are held. The place is the
+    /// thread's, not the call's: a sweep holds its rows for its whole test
+    /// body, and libtest runs each test on a thread of its own, so the place
+    /// goes back when the test is done — after its rows are dropped — and a
+    /// thread that holds one asks again without waiting (a test that reads
+    /// two giants holds one place, as a thread reused for another test
+    /// would). The callers keep `Option<String>`, the 1,400 sweeps
+    /// unchanged.
+    fn hold(&'static self, limit: usize) {
+        if limit == 0 || PLACE.with(|p| p.borrow().is_some()) {
+            return;
+        }
+        let mut held = self.held.lock().unwrap_or_else(|p| p.into_inner());
+        while *held >= limit {
+            held = self.freed.wait(held).unwrap_or_else(|p| p.into_inner());
+        }
+        *held += 1;
+        drop(held);
+        PLACE.with(|p| *p.borrow_mut() = Some(Place(self)));
+    }
+}
+
+/// A held place, given back when its thread ends.
+struct Place(&'static BigRows);
+
+impl Drop for Place {
+    fn drop(&mut self) {
+        let mut held = self.0.held.lock().unwrap_or_else(|p| p.into_inner());
+        *held = held.saturating_sub(1);
+        self.0.freed.notify_all();
+    }
+}
+
+thread_local! {
+    static PLACE: std::cell::RefCell<Option<Place>> = const { std::cell::RefCell::new(None) };
+}
+
+/// The process's one count of live over-cap results.
+pub(crate) static BIG_ROWS: BigRows = BigRows::new();
+
+/// 16 MiB: keeps 1,387 of 1,523 entries plain at 1.35 GiB (measured
+/// 2026-10-19); the rest are stored compressed.
 pub(crate) const DEFAULT_CACHE_CAP: usize = 16 * 1024 * 1024;
 
 /// The rows `tools/emu/<script>` prints for the install's executable, or
@@ -78,6 +163,10 @@ fn emu_rows_args(script: &str, args: &[String]) -> Option<String> {
         cap: get("RON_EMU_CACHE_MAX_BYTES")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_CACHE_CAP),
+        big_rows: get("RON_EMU_BIG_ROWS")
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(DEFAULT_BIG_ROWS),
+        big: &BIG_ROWS,
     };
     emu_rows_with(script, &setup, run_uv)
 }
@@ -135,9 +224,13 @@ pub(crate) fn cache_dir(get: impl Fn(&str) -> Option<String>, root: &Path) -> Op
 const MAGIC: &str = "emu-cache v1";
 
 /// `emu_rows` with its runner injected (`run(script, exe, args)`). With a
-/// cache: a hit returns the cached rows and skips the runner (unless
-/// `verify`, which runs it and panics on the first line the two part); a
-/// miss runs and writes `<key>.rows`, its receipt header then the rows.
+/// cache: a hit — `<key>.rows`, or `<key>.rows.gz` — returns the cached
+/// rows and skips the runner (unless `verify`, which runs it and panics on
+/// the first line the two part); a miss runs and writes `<key>.rows`, its
+/// receipt header then the rows, or the same text gzip-compressed as
+/// `<key>.rows.gz` when the rows are over `setup.cap`. An entry that cannot
+/// be read whole (a cut or corrupt gzip stream, another key's header) is a
+/// miss, and the run's result replaces it.
 pub(crate) fn emu_rows_with(
     script: &str,
     setup: &EmuSetup,
@@ -161,65 +254,213 @@ pub(crate) fn emu_rows_with(
             return fresh();
         }
     };
-    let file = cache.join(format!("{key}.rows"));
-    if let Ok(text) = std::fs::read_to_string(&file)
-        && let Some(cached) = strip_header(&text, &key)
-    {
-        if !setup.verify {
-            return Some(cached.to_string());
+    let plain = cache.join(format!("{key}.rows"));
+    let packed = cache.join(format!("{key}.rows.gz"));
+    // A fresh run's size is known only when it ends, so a fresh giant takes
+    // its place then: holding one for every run would serialize a cold
+    // gate's 1,400 sweeps, and the emulator's own minutes stagger the
+    // giants. Then it is stored, compressed when over the cap.
+    let keep = |rows: String| {
+        let over = rows.len() > setup.cap;
+        if over {
+            setup.big.hold(setup.big_rows);
         }
+        let file = if over { &packed } else { &plain };
+        match store(
+            cache,
+            file,
+            &key,
+            &receipt,
+            &rows,
+            setup.probe.then_some(setup.emu_dir),
+            over,
+        ) {
+            Ok(size) if over => eprintln!(
+                "emu cache: {script}'s rows ({} bytes) are over the cap ({}); stored compressed \
+                 ({size} bytes)",
+                rows.len(),
+                setup.cap
+            ),
+            Ok(_) => {}
+            Err(e) => eprintln!("emu cache: cannot write {} ({e})", file.display()),
+        }
+        rows
+    };
+    let unreadable = |file: &Path, e: io::Error| {
+        if e.kind() != io::ErrorKind::NotFound {
+            eprintln!("emu cache: {} is unreadable ({e}); a miss", file.display());
+        }
+    };
+    if setup.verify {
+        // The whole gate. The cached copy is streamed against the fresh
+        // rows, never held whole beside them (two copies of every giant
+        // killed the sixty-third pass's whole gate on `sweep_u_z` at 4,110
+        // MiB). A re-run takes its place when it ends, as a miss does, not
+        // before it starts: see [`BigRows`].
+        let Some(file) = [&plain, &packed].into_iter().find(|f| f.is_file()) else {
+            return Some(keep(fresh()?));
+        };
         let now = fresh()?;
-        if let Some((n, was, is)) = first_difference(cached, &now) {
-            panic!(
+        match same_as(file, &key, &now) {
+            Ok(Some(None)) => {
+                if now.len() > setup.cap {
+                    setup.big.hold(setup.big_rows);
+                }
+                return Some(now);
+            }
+            Ok(Some(Some((n, was, is)))) => panic!(
                 "RON_VERIFY_EMU: {script}'s cached rows ({}) part from a fresh run at line {n}: \
                  cached `{was}`, fresh `{is}`",
                 file.display()
-            );
+            ),
+            Ok(None) => {}
+            Err(e) => unreadable(file, e),
         }
-        return Some(now);
+        return Some(keep(now));
     }
-    let rows = fresh()?;
-    if rows.len() > setup.cap {
-        eprintln!(
-            "emu cache: {script}'s rows ({} bytes) are over the cap ({}); not stored",
-            rows.len(),
-            setup.cap
-        );
-        return Some(rows);
+    // An entry over the cap takes a place before its rows are read: a plain
+    // one written under a larger cap by its length, a compressed one by its
+    // trailer's.
+    let hold = |size: u64| {
+        if usize::try_from(size).map_or(true, |n| n > setup.cap) {
+            setup.big.hold(setup.big_rows);
+        }
+    };
+    let hit = std::fs::metadata(&plain)
+        .ok()
+        .and_then(|m| {
+            hold(m.len());
+            std::fs::read_to_string(&plain).ok()
+        })
+        .or_else(|| {
+            read_gz(&packed, hold)
+                .map_err(|e| unreadable(&packed, e))
+                .ok()
+        })
+        .and_then(|text| rows_of(text, &key));
+    if let Some(cached) = hit {
+        return Some(cached);
     }
-    if let Err(e) = store(
-        cache,
-        &file,
-        &key,
-        &receipt,
-        &rows,
-        setup.probe.then_some(setup.emu_dir),
-    ) {
-        eprintln!("emu cache: cannot write {} ({e})", file.display());
-    }
-    Some(rows)
+    Some(keep(fresh()?))
 }
 
-/// The first line two texts part on: its number (from 1) and each side's
-/// line, `<end>` past a side's last.
-fn first_difference(a: &str, b: &str) -> Option<(usize, String, String)> {
-    let (mut x, mut y) = (a.split('\n'), b.split('\n'));
+/// Whether a cache file of `key` holds exactly `now`, read as a stream:
+/// `None` when it is not `key`'s file, else the first line the two part on
+/// — its number from 1 and each side's line, `<end>` past a side's last —
+/// or `None` when none does. An error — a gzip stream cut short or
+/// corrupt, not UTF-8 — is the reader's.
+fn same_as(
+    file: &Path,
+    key: &str,
+    now: &str,
+) -> io::Result<Option<Option<(usize, String, String)>>> {
+    let f = std::fs::File::open(file)?;
+    let mut r: Box<dyn io::BufRead> = if file.extension().is_some_and(|e| e == "gz") {
+        Box::new(io::BufReader::new(flate2::read::GzDecoder::new(f)))
+    } else {
+        Box::new(io::BufReader::new(f))
+    };
+    let mut line = String::new();
+    let mut next = |line: &mut String| -> io::Result<bool> {
+        line.clear();
+        let got = r.read_line(line)?;
+        let ended = line.ends_with('\n');
+        if ended {
+            line.pop();
+        }
+        Ok(got > 0 && ended)
+    };
+    // The header, as `strip_header` reads it.
+    if !next(&mut line)? || line != format!("# {MAGIC}") {
+        return Ok(None);
+    }
+    let mut keyed = false;
+    loop {
+        if !next(&mut line)? || !line.starts_with('#') {
+            return Ok(None);
+        }
+        if line == "# end" {
+            break;
+        }
+        if let Some(k) = line.strip_prefix("# key ") {
+            if k != key {
+                return Ok(None);
+            }
+            keyed = true;
+        }
+    }
+    if !keyed {
+        return Ok(None);
+    }
+    // The rows, piece by piece as `str::split('\n')` cuts them: a piece the
+    // reader ends without a newline is the last, and an empty one follows a
+    // final newline.
+    let mut fresh = now.split('\n');
     let mut n = 0;
+    let mut done = false;
     loop {
         n += 1;
-        match (x.next(), y.next()) {
-            (None, None) => return None,
+        let was = if done {
+            None
+        } else {
+            done = !next(&mut line)?;
+            Some(line.as_str())
+        };
+        let is = fresh.next();
+        match (was, is) {
+            (None, None) => return Ok(Some(None)),
             (p, q) if p == q => {}
             (p, q) => {
                 let side = |l: Option<&str>| l.unwrap_or("<end>").to_string();
-                return Some((n, side(p), side(q)));
+                return Ok(Some(Some((n, side(p), side(q)))));
             }
         }
     }
 }
 
+/// A cache file's rows, its header removed in place (no second copy of a
+/// result that can be a gigabyte and more); `None` when the text is not a
+/// cache file of `key`.
+fn rows_of(mut text: String, key: &str) -> Option<String> {
+    let header = text.len() - strip_header(&text, key)?.len();
+    text.drain(..header);
+    Some(text)
+}
+
+/// The whole text of a gzip-compressed cache file, streamed into one
+/// `String` sized from the stream's trailer (its length mod 2^32, a hint
+/// held to 64 times the compressed size), so the peak is the text once. An
+/// error — not gzip, cut short, a CRC or length that does not match, not
+/// UTF-8 — is the reader's, and a miss to the caller. `before` is handed
+/// the trailer's length before a byte is decompressed.
+fn read_gz(path: &Path, before: impl FnOnce(u64)) -> io::Result<String> {
+    let mut f = std::fs::File::open(path)?;
+    let len = f.metadata()?.len();
+    let size = gz_size(&mut f)?;
+    before(size);
+    let hint = size.min(len.saturating_mul(64));
+    let mut text = String::with_capacity(usize::try_from(hint).unwrap_or(0));
+    flate2::read::GzDecoder::new(f).read_to_string(&mut text)?;
+    Ok(text)
+}
+
+/// A gzip file's trailer length — its text's size mod 2^32, every entry
+/// here being under 4 GiB — or 0 for a file too short to have one; the
+/// file is left at its start.
+fn gz_size(f: &mut std::fs::File) -> io::Result<u64> {
+    if f.metadata()?.len() < 18 {
+        return Ok(0);
+    }
+    let mut isize = [0; 4];
+    f.seek(io::SeekFrom::End(-4))?;
+    f.read_exact(&mut isize)?;
+    f.rewind()?;
+    Ok(u64::from(u32::from_le_bytes(isize)))
+}
+
 /// Writes `file` through a temporary sibling and a rename, so a reader
-/// never sees half of it.
+/// never sees half of it — the header and the rows, gzip-compressed when
+/// `compress` — and returns the bytes written.
 fn store(
     cache: &Path,
     file: &Path,
@@ -227,7 +468,8 @@ fn store(
     receipt: &[String],
     rows: &str,
     probe: Option<&Path>,
-) -> io::Result<()> {
+    compress: bool,
+) -> io::Result<u64> {
     std::fs::create_dir_all(cache)?;
     let mut head = format!("# {MAGIC}\n# key {key}\n");
     let mut line = |l: &str| {
@@ -247,8 +489,23 @@ fn store(
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_nanos());
     let tmp = cache.join(format!(".{key}.{}.{nanos}.tmp", std::process::id()));
-    std::fs::write(&tmp, format!("{head}{rows}"))?;
-    std::fs::rename(&tmp, file)
+    let written = if compress {
+        let gz = || -> io::Result<()> {
+            let out = io::BufWriter::new(std::fs::File::create(&tmp)?);
+            let mut gz = flate2::write::GzEncoder::new(out, flate2::Compression::default());
+            gz.write_all(head.as_bytes())?;
+            gz.write_all(rows.as_bytes())?;
+            gz.finish()?.flush()
+        };
+        gz()
+    } else {
+        std::fs::write(&tmp, format!("{head}{rows}"))
+    };
+    if let Err(e) = written.and_then(|()| std::fs::rename(&tmp, file)) {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(e);
+    }
+    Ok(std::fs::metadata(file)?.len())
 }
 
 /// `uv --version` and the Python of `emu_dir`'s project, the one
@@ -623,6 +880,26 @@ mod tests {
             verify: false,
             probe: false,
             cap: DEFAULT_CACHE_CAP,
+            big_rows: super::DEFAULT_BIG_ROWS,
+            // Each test its own count, so one test's giants never wait on
+            // another's.
+            big: Box::leak(Box::new(super::BigRows::new())),
+        }
+    }
+
+    impl<'a> EmuSetup<'a> {
+        fn clone_for_test(&self) -> EmuSetup<'a> {
+            EmuSetup {
+                emu_dir: self.emu_dir,
+                exe: self.exe,
+                args: self.args,
+                cache: self.cache.clone(),
+                verify: self.verify,
+                probe: self.probe,
+                cap: self.cap,
+                big_rows: self.big_rows,
+                big: self.big,
+            }
         }
     }
 
@@ -813,8 +1090,20 @@ mod tests {
         assert_eq!(calls.get(), 2, "a changed input runs again");
     }
 
+    /// The text of a gzip file, or the error that stops its reading.
+    fn gunzip(path: &Path) -> io::Result<String> {
+        use std::io::Read;
+        let mut text = String::new();
+        flate2::read::GzDecoder::new(std::fs::File::open(path)?).read_to_string(&mut text)?;
+        Ok(text)
+    }
+
+    /// Loop 3777: 273 sweeps' rows were over the cap and re-ran `uv` and
+    /// unicorn on every gate, 98 % of the crate's lane-gate minutes. A
+    /// result over the cap is stored gzip-compressed as `<key>.rows.gz`,
+    /// the same header and rows inside, and read back on the next call.
     #[test]
-    fn a_result_over_the_cap_is_returned_and_not_stored() {
+    fn a_result_over_the_cap_is_stored_compressed_and_read_back() {
         let s = Scratch::new("cap");
         let (emu, exe) = lay_out(&s.0);
         let cache = s.0.join("cache");
@@ -830,19 +1119,253 @@ mod tests {
             rows, "1 2 -> 3\n4 5 -> 9\n",
             "the rows come back whatever the cap"
         );
-        let (k, _) = cache_key("sweep_a.py", &set).expect("key");
-        assert!(
-            !cache.join(format!("{k}.rows")).exists(),
-            "over the cap: not stored"
-        );
-        emu_rows_with("sweep_a.py", &set, run).expect("rows");
-        assert_eq!(calls.get(), 2, "uncached, it runs each time");
+        let (k, receipt) = cache_key("sweep_a.py", &set).expect("key");
+        let plain = cache.join(format!("{k}.rows"));
+        let packed = cache.join(format!("{k}.rows.gz"));
+        assert!(!plain.exists(), "over the cap: no plain entry");
+        let text = gunzip(&packed).expect("over the cap: stored compressed");
+        assert!(text.starts_with("# emu-cache v1\n"), "{text}");
+        for line in &receipt {
+            assert!(text.contains(&format!("# {line}\n")), "{line}: {text}");
+        }
+        assert!(text.contains("# rows 2\n"), "{text}");
+        assert_eq!(strip_header(&text, &k), Some(rows.as_str()));
+
+        let again = emu_rows_with("sweep_a.py", &set, run).expect("rows");
+        assert_eq!(again, rows, "a compressed hit returns the rows verbatim");
+        assert_eq!(calls.get(), 1, "a compressed hit skips the runner");
+
+        // The cap names where an entry is compressed, not whether it is
+        // read: a compressed entry is a hit under any cap.
         set.cap = DEFAULT_CACHE_CAP;
-        emu_rows_with("sweep_a.py", &set, run).expect("rows");
-        assert!(
-            cache.join(format!("{k}.rows")).exists(),
-            "under the cap: stored"
+        assert_eq!(
+            emu_rows_with("sweep_a.py", &set, run).as_deref(),
+            Some(rows.as_str())
         );
+        assert_eq!(calls.get(), 1, "read under the default cap too");
+        assert!(!plain.exists(), "a hit writes nothing");
+
+        // And `RON_VERIFY_EMU` holds a compressed hit to a fresh run.
+        set.verify = true;
+        emu_rows_with("sweep_a.py", &set, run).expect("rows");
+        assert_eq!(calls.get(), 2, "verify runs the script on a compressed hit");
+        let caught = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            emu_rows_with("sweep_a.py", &set, |_: &Path, _: &Path, _: &[String]| {
+                ok("1 2 -> 3\n4 5 -> 8\n")
+            })
+        }));
+        let err = caught.expect_err("a mismatch with a compressed hit panics");
+        let msg = err.downcast_ref::<String>().cloned().unwrap_or_default();
+        assert!(msg.contains("line 2") && msg.contains("rows.gz"), "{msg}");
+    }
+
+    /// The pass's whole gate (eight threads, warm cache) was killed on
+    /// `sweep_u_z` (137): with every giant a hit, they all held their rows
+    /// in the same seconds. With the bound at one, a second thread asking
+    /// for an over-cap hit waits until the first thread — its test — is
+    /// done; and a thread that holds the place may ask again.
+    #[test]
+    fn over_cap_results_wait_for_a_place_and_hold_it_for_the_test() {
+        use std::sync::atomic::AtomicUsize;
+        let s = Scratch::new("big");
+        let (emu, exe) = lay_out(&s.0);
+        let cache = s.0.join("cache");
+        let mut set = setup(&emu, &exe, &[], Some(cache));
+        set.cap = 8;
+        set.big_rows = 1;
+        // Written on a thread of its own: the place it takes goes back
+        // when that thread ends.
+        std::thread::scope(|scope| {
+            scope.spawn(|| {
+                emu_rows_with("sweep_a.py", &set, |_: &Path, _: &Path, _: &[String]| {
+                    ok("1 2 -> 3\n4 5 -> 9\n")
+                })
+                .expect("rows");
+            });
+        });
+        let no_run = |_: &Path, _: &Path, _: &[String]| -> io::Result<Output> {
+            panic!("a hit runs nothing")
+        };
+        let (live, peak, done) = (
+            AtomicUsize::new(0),
+            AtomicUsize::new(0),
+            AtomicUsize::new(0),
+        );
+        std::thread::scope(|scope| {
+            for _ in 0..2 {
+                scope.spawn(|| {
+                    let rows = emu_rows_with("sweep_a.py", &set, no_run).expect("a hit");
+                    let now = live.fetch_add(1, Ordering::SeqCst) + 1;
+                    peak.fetch_max(now, Ordering::SeqCst);
+                    std::thread::sleep(std::time::Duration::from_millis(150));
+                    // The place is the thread's: a second ask does not wait.
+                    let again = emu_rows_with("sweep_a.py", &set, no_run).expect("a hit");
+                    assert_eq!(again, rows);
+                    live.fetch_sub(1, Ordering::SeqCst);
+                    done.fetch_add(1, Ordering::SeqCst);
+                });
+            }
+        });
+        assert_eq!(done.load(Ordering::SeqCst), 2, "both threads finished");
+        assert_eq!(
+            peak.load(Ordering::SeqCst),
+            1,
+            "with the bound at one, one over-cap result is live at a time"
+        );
+    }
+
+    /// The whole gate verifies (`RON_VERIFY_EMU`), and there a giant hit
+    /// held two copies — the cached rows and the fresh run's — where the
+    /// uncached path held one; the gate was killed at 4,110 MiB on
+    /// `sweep_u_z`. Verify streams the cached entry against the fresh rows,
+    /// and a cached entry cut short is a miss that is rewritten, not a
+    /// panic. A re-run does not wait for a place before it starts (the
+    /// sixty-third pass's choice): every whole gate verifies, and taking the
+    /// place first serialized the giants' unicorn minutes — `sweep_u_z` 174
+    /// → 577 s at eight threads — for a sampled peak of 1.9 GB against 3.9.
+    #[test]
+    fn verify_does_not_wait_for_a_place_before_a_giant_run_and_streams_the_cached_copy() {
+        use std::sync::mpsc;
+        let s = Scratch::new("verify-big");
+        let (emu, exe) = lay_out(&s.0);
+        let cache = s.0.join("cache");
+        let mut set = setup(&emu, &exe, &[], Some(cache.clone()));
+        set.cap = 8;
+        set.big_rows = 1;
+        let rows = "1 2 -> 3\n4 5 -> 9\n";
+        let make = |_: &Path, _: &Path, _: &[String]| ok(rows);
+        std::thread::scope(|scope| {
+            scope.spawn(|| emu_rows_with("sweep_a.py", &set, make).expect("rows"));
+        });
+        let mut check = set.clone_for_test();
+        check.verify = true;
+        let (ran, seen) = mpsc::channel();
+        let waited = std::thread::scope(|scope| {
+            let (hold, held) = mpsc::channel();
+            let set = &set;
+            let holder = scope.spawn(move || {
+                // A test holding the one place for its whole body.
+                emu_rows_with("sweep_a.py", set, make).expect("a hit");
+                hold.send(()).expect("send");
+                seen.recv_timeout(std::time::Duration::from_secs(1))
+                    .is_err()
+            });
+            held.recv().expect("the place is held");
+            let check = &check;
+            scope.spawn(move || {
+                let rows =
+                    emu_rows_with("sweep_a.py", check, |_: &Path, _: &Path, _: &[String]| {
+                        let _ = ran.send(());
+                        ok("1 2 -> 3\n4 5 -> 9\n")
+                    });
+                assert_eq!(rows.as_deref(), Some("1 2 -> 3\n4 5 -> 9\n"));
+            });
+            holder.join().expect("the holder")
+        });
+        assert!(
+            !waited,
+            "verify does not wait for a place before re-running a known giant"
+        );
+
+        // A cached copy cut short is a miss under verify: no panic, and the
+        // entry is rewritten whole.
+        let (k, _) = cache_key("sweep_a.py", &set).expect("key");
+        let packed = cache.join(format!("{k}.rows.gz"));
+        let good = std::fs::read(&packed).expect("a compressed entry");
+        std::fs::write(&packed, &good[..good.len() - 6]).expect("write");
+        let again = std::thread::scope(|scope| {
+            scope
+                .spawn(|| emu_rows_with("sweep_a.py", &check, make))
+                .join()
+                .expect("no panic")
+        });
+        assert_eq!(again.as_deref(), Some(rows));
+        let text = gunzip(&packed).expect("rewritten whole");
+        assert_eq!(strip_header(&text, &k), Some(rows));
+    }
+
+    /// Under the cap nothing changed: the file is today's, byte for byte —
+    /// the header, the receipt, the date, the row count, `# end`, the
+    /// rows — so no entry already in the cache is invalidated.
+    #[test]
+    fn a_result_under_the_cap_is_the_plain_format_byte_for_byte() {
+        let s = Scratch::new("plain");
+        let (emu, exe) = lay_out(&s.0);
+        let cache = s.0.join("cache");
+        let rows = "1 2 -> 3\n\n4 5 -> 9\n";
+        let set = setup(&emu, &exe, &[], Some(cache.clone()));
+        emu_rows_with("sweep_a.py", &set, |_: &Path, _: &Path, _: &[String]| {
+            ok(rows)
+        })
+        .expect("rows");
+        let (k, receipt) = cache_key("sweep_a.py", &set).expect("key");
+        let bytes = std::fs::read(cache.join(format!("{k}.rows"))).expect("a plain entry");
+        let text = String::from_utf8(bytes).expect("utf-8");
+        let date = text
+            .lines()
+            .find_map(|l| l.strip_prefix("# date "))
+            .expect("a date line");
+        let mut want = format!("# emu-cache v1\n# key {k}\n");
+        for line in &receipt {
+            want.push_str(&format!("# {line}\n"));
+        }
+        want.push_str(&format!("# date {date}\n# rows 2\n# end\n{rows}"));
+        assert_eq!(text, want, "the plain format, byte for byte");
+        assert!(
+            !cache.join(format!("{k}.rows.gz")).exists(),
+            "under the cap: nothing compressed"
+        );
+    }
+
+    /// A compressed entry that is not gzip, is cut short (its CRC and
+    /// length never reached), or holds another key's file is a miss: the
+    /// script runs, and its result replaces the entry.
+    #[test]
+    fn a_corrupt_compressed_entry_is_a_miss_not_a_panic() {
+        let s = Scratch::new("corrupt");
+        let (emu, exe) = lay_out(&s.0);
+        let cache = s.0.join("cache");
+        let calls = Cell::new(0);
+        let run = |_: &Path, _: &Path, _: &[String]| {
+            calls.set(calls.get() + 1);
+            ok("1 2 -> 3\n4 5 -> 9\n")
+        };
+        let mut set = setup(&emu, &exe, &[], Some(cache.clone()));
+        set.cap = 8;
+        emu_rows_with("sweep_a.py", &set, run).expect("rows");
+        let (k, _) = cache_key("sweep_a.py", &set).expect("key");
+        let packed = cache.join(format!("{k}.rows.gz"));
+        let good = std::fs::read(&packed).expect("a compressed entry");
+        let other = {
+            let text = gunzip(&packed).expect("gzip");
+            let mut gz = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+            std::io::Write::write_all(&mut gz, text.replace(&k, &"0".repeat(64)).as_bytes())
+                .expect("gzip");
+            gz.finish().expect("gzip")
+        };
+        let cases: [(&str, Vec<u8>); 4] = [
+            ("not gzip", b"not a gzip stream at all".to_vec()),
+            ("cut short", good[..good.len() - 6].to_vec()),
+            ("a flipped byte", {
+                let mut b = good.clone();
+                let mid = b.len() / 2;
+                b[mid] ^= 0x55;
+                b
+            }),
+            ("another key's file", other),
+        ];
+        for (n, (what, bytes)) in cases.into_iter().enumerate() {
+            std::fs::write(&packed, bytes).expect("write");
+            let rows = emu_rows_with("sweep_a.py", &set, run);
+            assert_eq!(rows.as_deref(), Some("1 2 -> 3\n4 5 -> 9\n"), "{what}");
+            assert_eq!(calls.get(), n + 2, "{what}: a miss runs the script");
+            let text = gunzip(&packed).unwrap_or_else(|e| panic!("{what}: rewritten whole ({e})"));
+            assert_eq!(
+                strip_header(&text, &k),
+                Some("1 2 -> 3\n4 5 -> 9\n"),
+                "{what}"
+            );
+        }
     }
 
     #[test]

@@ -255,7 +255,17 @@ its lane gate still running, held and not an exit** (Loop 3753: 3747's
 the gate or capture it waited on has exited; read its log and land —
 because a lost exit notice leaves a row `working` at `tempo=idle` with
 nothing running, where no other exit can fire, and one sat 178 minutes
-(parked 1871, DECISIONS 67). **And an `UNCLEARED <lane> <min>` exit is
+(parked 1871, DECISIONS 67) — **unless the lane holds a draft push,
+when the stall is the arm**: the waiter arms the clear itself, prints
+`ARMED`, keeps watching, and nothing is sent (Loop 3795: 3788's held
+draft sat through two `HELD` exits and a `STALLED` with the row reading
+`working`, and was armed by hand). **A message is never sent to a lane
+beside an armed clear**: the clear fires on the row's idle and the
+message lands in the fresh session as its second turn, which obeys it —
+3788's fresh session was told "end your turn" and did, until a
+correction ten minutes later (Loop 3796). A nudge and an arm are two
+answers to one stall; the arm is the one that does not need the lane
+to read anything. **And an `UNCLEARED <lane> <min>` exit is
 answered in its turn**: one message to the lane carrying the clear's
 `--then` prompt — twice in one tranche a cross-session clear fired and
 its prompt never ran, and the new session sat on its `/clear` twenty
@@ -339,7 +349,16 @@ sixty-first's rise was the capture class, this one's is not: the capture
 class fell 9.8 → 4.5 and the gate class held, because thirteen residue
 items gated at 19.5–23.1 release minutes against the seven stand-ups'
 7.8–9.3, the sim crate's own suite under `sim_crate_left`, which no lane
-rule moves and Loop 3777 measures); a
+rule moves and Loop 3777 measures); **the sixty-third read 42.0 waiting
+and 26.2 gate a session on two lanes** (DECISIONS 103 §1), both over by a
+hair, **so two lanes for the sixty-fourth** — with no lane gate run twice
+(six the tranche before) and the capture class at 2.4, the class is the
+residue items' single gates, 20.4–23.5 release minutes against the
+stand-ups' 8.3–9.8 — **and Loop 3777 measured those minutes as 273
+emulator sweeps re-run past the cache cap on every gate, and the pass
+built the compressed cache** (DECISIONS 103 §1): the five binaries 683.5
+→ 41.8 s warm, so the sixty-fourth's gates run without them and its
+drain reads the rule); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

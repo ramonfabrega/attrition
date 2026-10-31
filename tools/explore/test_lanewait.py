@@ -857,10 +857,15 @@ class AHeldPushOutlivesItsWait(unittest.TestCase):
     class Stop(Exception):
         pass
 
-    def run_main(self, argv, tmp, polls, armed=False, done=None, arms=None):
+    def run_main(self, argv, tmp, polls, armed=False, done=None, arms=None, rests=None, kids=None, tail=(),
+                 refuse=None):
         """`main` over a scripted roster: `polls[i]` is what poll i sees
         (poll 0 is the start), as {'tips', 'states', 'ctx', 'ps'}; the
-        last entry stands for every later poll. Returns (exit, out, err)."""
+        last entry stands for every later poll. `rests` stands for the
+        roster's `(pid, tempo, updatedAt)` by lane, `kids` for `children_of`
+        by pid, `refuse` for ccc's first line on a refused arm, and `tail`
+        is argv read last (it outranks the defaults here). Returns (exit,
+        out, err)."""
         import contextlib
         import io
         from unittest import mock
@@ -871,7 +876,7 @@ class AHeldPushOutlivesItsWait(unittest.TestCase):
 
         def fake_roster():
             fake_roster.trees = {'lane-1': '/t/att-1', 'lane-2': '/t/att-2'}
-            fake_roster.rests = {'lane-1': (100, 'idle', None), 'lane-2': (200, 'idle', None)}
+            fake_roster.rests = rests or {'lane-1': (100, 'idle', None), 'lane-2': (200, 'idle', None)}
             fake_roster.sessions = {'lane-1': 's1', 'lane-2': 's2'}
             states = now().get('states', {})
             return {lane: (states.get(lane, 'working'), f'/t/att-{lane[-1]}', f'worktree-att-{lane[-1]}', '1',
@@ -884,7 +889,7 @@ class AHeldPushOutlivesItsWait(unittest.TestCase):
 
         def fake_arm(lane, prompt):
             (arms if arms is not None else []).append((lane, prompt))
-            return True, 'armed'
+            return (False, refuse) if refuse else (True, 'armed')
 
         out, err = io.StringIO(), io.StringIO()
         code = None
@@ -898,11 +903,13 @@ class AHeldPushOutlivesItsWait(unittest.TestCase):
                 mock.patch.object(lanewait, 'armed_clear', lambda lane, run=None: armed), \
                 mock.patch.object(lanewait, 'arm_clear', fake_arm), \
                 mock.patch.object(lanewait, 'done_line_of', lambda lane, since, where, sessions: done), \
+                mock.patch.object(lanewait, 'children_of', lambda pids: {pid: (kids or {}).get(pid, [])
+                                                                         for pid in pids}), \
                 mock.patch.object(lanewait.time, 'sleep', fake_sleep):
             try:
                 code = lanewait.main(argv + ['--deep-every', '1', '--stalled-after', '0', '--uncleared-after',
                                              '0', '--quiet-after', '1000', '--interval', '1',
-                                             '--deep-state', str(Path(tmp) / 'lanewait-deep.json')])
+                                             '--deep-state', str(Path(tmp) / 'lanewait-deep.json')] + list(tail))
             except self.Stop:
                 pass
         return code, out.getvalue(), err.getvalue()
@@ -991,6 +998,119 @@ class AHeldPushOutlivesItsWait(unittest.TestCase):
         self.assertEqual(code, 5, out + err)
         self.assertEqual(out.splitlines()[1:], ['DEEP lane-2 320k'])
         self.assertEqual(err.splitlines(), [f'GATING lane-1 done — {GATE} (4 min); held, read again at its exit'])
+
+
+def idle_for(minutes):
+    """A roster `updatedAt` (ccc's ISO instant, `Z`) `minutes` ago."""
+    from datetime import datetime, timedelta, timezone
+    return (datetime.now(timezone.utc) - timedelta(minutes=minutes)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+
+
+class AHeldDraftOnAStalledRowIsArmed(unittest.TestCase):
+    """Loop 3795 (the sixty-third pass): lane-3788 answered its `DEEP
+    339k`, pushed its draft (73765697) and ended its turn, but its row read
+    `working` throughout — its own word, at `tempo=idle`. lanewait-28
+    exited `HELD lane-3788 none..73765697` on the other lane's DEEP,
+    lanewait-29 seeded the push held, held it again because the row read
+    `working`, and exited `STALLED lane-3788 30`; `ccc clear --status` read
+    no clear armed the whole time, and the commander armed it by hand. Its
+    sequel, Loop 3796: the stall nudge then reached the fresh session. A
+    held draft on a row idle with nothing running is the draft the arm
+    waits for: the stall is the arm, never an exit."""
+
+    Stop = AHeldPushOutlivesItsWait.Stop
+    run_main = AHeldPushOutlivesItsWait.run_main
+    PUSH = [{'tips': {}}, {'tips': {'lane-1': '2' * 40}}]
+    ARGS = ['lane-1', 'lane-2', '--arm-after-push', 'lane-1']
+    PROMPT = [('lane-1', 'continue item 1 from the journal')]
+    DRAFT = "DRAFT lane-1 worktree-att-1 none..22222222 — held draft on a stalled row; arming its clear"
+
+    def rests(self, minutes):
+        return {'lane-1': (100, 'idle', idle_for(minutes)), 'lane-2': (200, 'idle', None)}
+
+    def test_a_held_draft_on_a_stalled_row_is_armed_once_and_the_wait_goes_on(self):
+        # The 3788 shape: the row reads `working`, idle 45 minutes past a
+        # 30-minute --stalled-after, nothing under it but its servers.
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = self.run_main(self.ARGS, tmp, self.PUSH, arms=arms, rests=self.rests(45),
+                                           kids={100: [(90.0, 'bun /x/lazy/server.ts')]},
+                                           tail=['--stalled-after', '30'])
+        self.assertIsNone(code, out + err)
+        self.assertEqual(arms, self.PROMPT)
+        self.assertEqual(out.splitlines()[1:], ['ARMED lane-1 — armed'], out)
+        self.assertEqual(err.splitlines(), [self.DRAFT], err)
+
+    def test_the_held_arm_waits_its_own_threshold_and_falls_back_to_stalled_after_at_0(self):
+        # Ten minutes by default: idle 12 arms, idle 7 does not.
+        for minutes, extra, want in ((12, [], self.PROMPT), (7, [], []),
+                                     (25, ['--held-arm-after', '0'], []),
+                                     (31, ['--held-arm-after', '0'], self.PROMPT)):
+            arms = []
+            with tempfile.TemporaryDirectory() as tmp:
+                code, out, _ = self.run_main(self.ARGS, tmp, self.PUSH, arms=arms, rests=self.rests(minutes),
+                                             tail=['--stalled-after', '30'] + extra)
+            self.assertEqual((code, arms), (None, want), f'{minutes} {extra}: {out}')
+        # Its own: armed with --stalled-after off.
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, _ = self.run_main(self.ARGS, tmp, self.PUSH, arms=arms, rests=self.rests(12),
+                                         tail=['--stalled-after', '0'])
+        self.assertEqual((code, arms), (None, self.PROMPT), out)
+
+    def test_a_held_draft_with_a_gate_or_a_capture_running_is_not_armed(self):
+        for child in ('python3 tools/release_gate.py /x/game --lane', 'zsh tools/gamelog/capture_pair.sh 3'):
+            arms = []
+            with tempfile.TemporaryDirectory() as tmp:
+                code, out, err = self.run_main(self.ARGS, tmp, self.PUSH, arms=arms, rests=self.rests(45),
+                                               kids={100: [(90.0, 'bun /x/lazy/server.ts'), (20.0, child)]},
+                                               tail=['--stalled-after', '30'])
+            self.assertEqual((code, arms), (None, []), out + err)
+            self.assertNotIn('ARMED', out)
+            self.assertNotIn('DRAFT', err)
+
+    def test_a_held_draft_whose_clear_is_already_armed_is_not_armed_again(self):
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = self.run_main(self.ARGS, tmp, self.PUSH, armed=True, arms=arms, rests=self.rests(45),
+                                           tail=['--stalled-after', '30'])
+        self.assertEqual((code, arms), (None, []), out + err)
+        self.assertEqual(out.splitlines()[1:], ['ARMED lane-1 — a clear was already armed; not armed again'])
+        self.assertEqual(err.splitlines(), [self.DRAFT])
+
+    def test_a_held_draft_whose_done_line_followed_lands_and_is_not_armed(self):
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, _ = self.run_main(self.ARGS, tmp, self.PUSH, done='3788 landed and pushed', arms=arms,
+                                         rests=self.rests(45), tail=['--stalled-after', '30'])
+        self.assertEqual(arms, [])
+        self.assertIn("PUSHED lane-1 worktree-att-1 none..22222222 — its done line, '3788 landed and pushed'; "
+                      "a landing, not armed", out)
+
+    def test_a_refused_held_arm_leaves_the_stall_to_the_commander(self):
+        # ccc refused: said, the lane leaves the arm, and the old exit fires
+        # on the next poll — the row needs a hand, and nothing armed.
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, _ = self.run_main(self.ARGS, tmp, self.PUSH, arms=arms, rests=self.rests(45),
+                                         refuse='Error: uncommitted changes', tail=['--stalled-after', '30'])
+        self.assertEqual(arms, self.PROMPT)
+        self.assertEqual(out.splitlines()[1:], ['ARM-REFUSED lane-1: Error: uncommitted changes',
+                                                'STALLED lane-1 45'], out)
+        self.assertEqual(code, 6)
+
+    def test_a_stalled_row_with_no_held_draft_still_exits_stalled(self):
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            # No --arm-after-push: the old exit, as before.
+            code, out, _ = self.run_main(['lane-1', 'lane-2'], tmp, self.PUSH, arms=arms, rests=self.rests(45),
+                                         tail=['--stalled-after', '30'])
+            self.assertEqual((code, out.splitlines()[-1]), (6, 'STALLED lane-1 45'), out)
+            # --arm-after-push, but nothing pushed: nothing held, the old exit.
+            code, out, _ = self.run_main(self.ARGS, tmp, [{'tips': {}}], arms=arms, rests=self.rests(45),
+                                         tail=['--stalled-after', '30'])
+            self.assertEqual((code, out.splitlines()[-1]), (6, 'STALLED lane-1 45'), out)
+        self.assertEqual(arms, [])
 
 
 if __name__ == '__main__':

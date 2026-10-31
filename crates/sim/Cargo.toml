@@ -12,6 +12,13 @@ version = "0.1.0"
 # quantity the original computes is an integer with a defined truncation. `fixed`
 # will be earned when something genuinely needs one. See docs/DECISIONS.md 13.
 
+[dev-dependencies]
+# The sweeps' emulator cache (`src/sweep/support.rs`, test-only) stores a
+# result over its cap gzip-compressed rather than not at all (Loop 3777: 273
+# over-cap sweeps were 98 % of the crate's lane-gate minutes). The version
+# rondata already locks; the default backend is the pure-Rust miniz_oxide.
+flate2 = "=1.1.9"
+
 # Cargo will not combine `workspace = true` with a crate's own lint table,
 # so the workspace's one rule is restated here beside the sim's own two.
 [lints.rust]

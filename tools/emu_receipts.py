@@ -6,7 +6,10 @@
 `crates/sim/src/sweep/support.rs`'s `emu_rows` caches each run of a
 `tools/emu/sweep_*.py` script as `<key>.rows` under
 `~/Library/Caches/attrition/emu-cache/` (or `$RON_EMU_CACHE_DIR`; `target/emu-cache/` with no `HOME`): a `#` header carrying the receipt, then the rows
-verbatim. The key is the SHA-256 of a text naming the executable's hash,
+verbatim — or, for a result whose rows are over the cache's cap
+(`RON_EMU_CACHE_MAX_BYTES`, 16 MiB), the same text gzip-compressed as
+`<key>.rows.gz` (Loop 3777); both kinds are listed, verified and pruned
+alike. The key is the SHA-256 of a text naming the executable's hash,
 the script's hash, each shared module's name and hash (every `tools/emu/*.py`
 that is not a `sweep_*.py`, plus the `sweep_*.py` the script imports,
 transitively) and the arguments — no path. This tool rebuilds that text
@@ -24,6 +27,7 @@ bytes went: a stale entry is never read again (its key no longer matches),
 so pruning loses nothing a test can ask for.
 """
 import argparse
+import gzip
 import hashlib
 import os
 import sys
@@ -104,29 +108,53 @@ def key_for(emu_dir, exe, script, args=()):
     return key_of(exe_sha, script_sha, modules, args), exe_sha, script_sha, modules
 
 
+def entry_files(cache):
+    """Every cache file under `cache`, plain or compressed, by name."""
+    if not cache.is_dir():
+        return []
+    return sorted([*cache.glob('*.rows'), *cache.glob('*.rows.gz')])
+
+
+def file_key(path):
+    """The key a cache file's name holds: `<key>.rows` or `<key>.rows.gz`."""
+    name = Path(path).name
+    return name.removesuffix('.gz').removesuffix('.rows')
+
+
 def parse(path):
-    """A cache file's receipt as a dict, or None when it has no header."""
-    entry = {'file': Path(path), 'modules': [], 'args': []}
-    with open(path, errors='replace') as f:
-        if f.readline().rstrip('\n') != f'# {MAGIC}':
+    """A cache file's receipt as a dict, or None when it has no header (or,
+    compressed, its header cannot be read). Only the header is read: a
+    compressed entry is streamed, never decompressed whole."""
+    path = Path(path)
+    opener = gzip.open if path.name.endswith('.gz') else open
+    try:
+        with opener(path, 'rt', errors='replace') as f:
+            return parse_header(path, f)
+    except (OSError, EOFError, gzip.BadGzipFile):
+        return None
+
+
+def parse_header(path, f):
+    entry = {'file': path, 'modules': [], 'args': []}
+    if f.readline().rstrip('\n') != f'# {MAGIC}':
+        return None
+    for line in f:
+        line = line.rstrip('\n')
+        if not line.startswith('# '):
             return None
-        for line in f:
-            line = line.rstrip('\n')
-            if not line.startswith('# '):
-                return None
-            if line == '# end':
-                return entry
-            field, _, rest = line[2:].partition(' ')
-            if field in ('executable', 'script', 'module'):
-                sha, _, name = rest.partition(' ')
-                if field == 'module':
-                    entry['modules'].append((name, sha))
-                else:
-                    entry[field] = (sha, name)
-            elif field == 'arg':
-                entry['args'].append(rest)
+        if line == '# end':
+            return entry
+        field, _, rest = line[2:].partition(' ')
+        if field in ('executable', 'script', 'module'):
+            sha, _, name = rest.partition(' ')
+            if field == 'module':
+                entry['modules'].append((name, sha))
             else:
-                entry[field] = rest
+                entry[field] = (sha, name)
+        elif field == 'arg':
+            entry['args'].append(rest)
+        else:
+            entry[field] = rest
     return None
 
 
@@ -138,7 +166,7 @@ def check(entry, emu_dir, exe=None):
     exe_sha, exe_path = entry.get('executable', ('', ''))
     script_sha, script = entry.get('script', ('', ''))
     own = key_of(exe_sha, script_sha, entry['modules'], entry['args'])
-    if entry.get('key') != own or entry['file'].stem != own:
+    if entry.get('key') != own or file_key(entry['file']) != own:
         reasons.append(f"the header's key is not its own hashes' ({own[:12]})")
     exe = Path(exe or exe_path)
     if not exe.is_file():
@@ -200,7 +228,7 @@ def main(argv=None):
                     help="re-hash every receipt's inputs; exit 1 naming each stale entry")
     a = ap.parse_args(argv)
     cache = a.cache or default_cache()
-    files = sorted(cache.glob('*.rows')) if cache.is_dir() else []
+    files = entry_files(cache)
     entries = []
     for f in files:
         e = parse(f)
@@ -216,7 +244,7 @@ def main(argv=None):
             continue
         print(f"{e.get('key', '?')[:12]:<12}  {e.get('rows', '?'):>6}  {e.get('date', '?'):<20}  "
               f"{e.get('executable', ('?',))[0][:12]:<12}  {len(e['modules']):>4}  "
-              f"{e.get('script', ('', '?'))[1]}")
+              f"{e.get('script', ('', '?'))[1]}{' (gz)' if f.name.endswith('.gz') else ''}")
     if not (a.verify or a.prune):
         return 0
     stale = gone = 0

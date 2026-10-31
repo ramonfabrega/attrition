@@ -869,6 +869,22 @@ class GateTests(unittest.TestCase):
             self.assertNotIn('--exclude', command, path)
             self.assertEqual(policy['lane']['sim_crate'], 'run', path)
 
+    def test_a_branch_that_touches_only_the_emulator_keeps_the_sim_crate(self):
+        # Loop 3777 (the sixty-third pass): the sweeps' rows are decided by
+        # `tools/emu/` — the scripts, the shared modules, `sweep_obj.tsv` —
+        # as much as by the crate, and the emu cache keys on them, so a
+        # lane that edits only an emulator module or a table row moves
+        # those binaries' verdicts. It keeps the sim crate.
+        for path in ('tools/emu/x.py', 'tools/emu/sweep_obj.tsv'):
+            command, policy = self.release_command(touched=[path], lane=True, tests=WORD)
+            self.assertNotIn('--exclude', command, path)
+            self.assertEqual(policy['lane']['sim_crate'], 'run', path)
+            command, policy = self.release_command(touched=[path], lane=True, tests=WORD, isolated=True)
+            self.assertNotIn('--exclude-package', command, path)
+        # Another tool is not an input: the cut stands.
+        command, policy = self.release_command(touched=['tools/emu_receipts.py'], lane=True, tests=WORD)
+        self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
+
     def test_a_branch_that_can_move_the_diff_pins_widens_the_lane_gate(self):
         # Loop 2415 (the thirty-fifth pass; DECISIONS 71 amended): both kill
         # rules of the thirty-fifth tranche tripped by one route — 2384's

@@ -421,8 +421,13 @@ def row_only_edits(base, run=subprocess.run):
 # the workspace, so a data-crate edit cannot move them; what can besides a
 # path under the crate is the workspace manifest, the lock, the toolchain
 # pin and cargo's config, and those keep the crate.
+# And `tools/emu/` (Loop 3777, the sixty-third pass): the emulator scripts,
+# their shared modules and `sweep_obj.tsv` decide the sweeps' rows, and the
+# emu cache keys on them, so a lane that edits only those moves the four
+# sweep binaries' verdicts as surely as a crate edit; it keeps the crate.
 SIM_CRATE = 'crates/sim/'
-SIM_BUILD_INPUTS = (SIM_CRATE, 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo/')
+SIM_BUILD_INPUTS = (SIM_CRATE, 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo/',
+                    'tools/emu/')
 
 
 def sim_crate_left(touched, *, lane, whole):

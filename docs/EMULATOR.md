@@ -45,16 +45,22 @@ No path enters the key: moving the install or the checkout keeps every
 entry, and a changed byte in any input is a miss.
 
 The cache is `~/Library/Caches/attrition/emu-cache/<key>.rows`, shared by
-every worktree since the key holds no path (`RON_EMU_CACHE_DIR` moves it; `RON_EMU_CACHE=off` bypasses it; a result over `RON_EMU_CACHE_MAX_BYTES`, 16 MiB by default, is returned and never stored — 136 of 1,523 entries held 20 of 22 GiB after one gate). A file is the receipt as `#` lines —
+every worktree since the key holds no path (`RON_EMU_CACHE_DIR` moves it; `RON_EMU_CACHE=off` bypasses it; a result over `RON_EMU_CACHE_MAX_BYTES`, 16 MiB by default, is stored gzip-compressed as `<key>.rows.gz`, the same text inside — 136 of 1,523 entries held 20 of 22 GiB raw after one gate, and storing none of them left 273 sweeps re-running `uv` and unicorn on every gate, 98 % of the sim crate's lane-gate minutes (Loop 3777); the rows are hex text and pack about five to one). A file is the receipt as `#` lines —
 the key, the executable's path and hash, the script's and each module's
 name and hash, the date, `uv --version`, the Python `tools/emu`'s project runs,
 the row count, `# end` — then the rows verbatim; the header is stripped
 before the rows are returned, so no test sees it. A hit skips `uv`; a
-miss runs and writes through a temporary file and a rename. With no
+miss runs and writes through a temporary file and a rename; an entry
+that cannot be read whole (a cut or corrupt gzip stream) is a miss. At
+most `RON_EMU_BIG_ROWS` (2) over-cap results are live in a test binary at
+once — the place is a thread's, given back when its test ends — because
+warm hits all landed in the same seconds and the sixty-third pass's whole
+gate was killed on `sweep_u_z` at 4,110 MiB of a 4,096 limit. With no
 install or no `uv` the test skips and says so, as before.
 
 `RON_VERIFY_EMU=1` runs the script on a hit as well and panics with the
-first line the cached and fresh rows part on. The whole gate sets it
+first line the cached and fresh rows part on; the cached copy is streamed
+against the fresh rows, never held beside them. The whole gate sets it
 beside `RON_VERIFY_ORACLE` (`tools/release_gate.py`), so every hit is
 proven against a fresh run on that schedule. `tools/emu_receipts.py`
 lists the receipts as a table; `--verify` re-hashes each receipt's inputs

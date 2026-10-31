@@ -202,7 +202,13 @@ def isolated(binary, output, directory, slots=8, skips=()):
 
 def target_budget(target, test_threads):
     if target['kind'] == ['test'] and target['name'] in ('sweep_a_f', 'sweep_g_o', 'sweep_p_t', 'sweep_u_z'):
-        return min(test_threads, 8), 4096
+        # Loop 3777 (the sixty-third pass): the emu cache now keeps the
+        # over-cap rows compressed, and every whole gate verifies them; at
+        # eight threads under verify with two giants bound `sweep_u_z` read
+        # 3,859 MiB sampled, 6 % under the old 4,096 (and the build before
+        # the bound was stopped at 4,110). The lib's 6,144: the four targets
+        # run one at a time, so the reservation is held by one at a time.
+        return min(test_threads, 8), 6144
     if target['kind'] == ['lib'] and target['name'] == 'fixed':
         return min(test_threads, 8), 512
     if target['kind'] == ['lib'] and target['name'] == 'sim':

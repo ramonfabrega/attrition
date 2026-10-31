@@ -208,8 +208,12 @@ class Manifest(unittest.TestCase):
         self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 8), (8, 6144))
         self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'fixed'}, 8), (8, 512))
         self.assertEqual(runner.target_budget({'kind': ['test'], 'name': 'new'}, 4), (8, 32768))
+        # Loop 3777: the emu cache keeps over-cap rows compressed, and under
+        # verify at eight threads `sweep_u_z` read 3,859 MiB sampled, 6 %
+        # under 4,096; the four sweep targets reserve the lib's 6,144.
         for family in ('a_f', 'g_o', 'p_t', 'u_z'):
-            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 4), (4, 4096))
+            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 4), (4, 6144))
+            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 8), (8, 6144))
 
     def test_discovery_is_strict(self):
         for text in ['a: test\na: test\n', 'unexpected\n', 'bench: benchmark\n']:
