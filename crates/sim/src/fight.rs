@@ -1268,12 +1268,32 @@ impl Sim {
             // refuses the Fighter, while the Fighter, an `ANTI_AIR` aircraft,
             // may take the Bomber.
             //
-            // SEAM: a **helicopter** target (`unit_flags & 0x20`) takes
-            // `006474ee`'s arm instead, which refuses four classes of searcher
-            // (two by vtable, the missile, and `is(0x130)`); this crate keeps
-            // it as "ranged and not a missile". And `0064756b`'s
-            // `is(0x132)` arm, which refuses a non-air searcher that cannot
-            // carry aircraft, is not built. No capture reaches either.
+            // **A helicopter target** (`unit_flags & 0x20`) takes
+            // `006474ee`'s arm in place of the ladder (item 3800,
+            // `docs/GOLDEN.md` §152.1): a unit searcher whose type is siege
+            // (vslot `+0x10c`, `ObjectTypeData::is_siege`) or a tank
+            // (`+0x110`, `UnitTypeData::is_tank`), or a missile
+            // (`+0x1e4 & 0x8000000`, refused below), or of the Bomber line
+            // (`is(0x130)`, vslot `+0xb8`) is refused. run1468's Stealth
+            // Bomber `1/17` (TypeIndex 306) is never handed the Attack
+            // Helicopter `2/15` on 622, so it spends no `fight` roll on
+            // 623; this crate's searcher took it and rolled.
+            //
+            // SEAM: a building searcher's arm (`+0xb8` the base `is`, so
+            // the type's vslot `+0x60`) keeps "ranged and not a missile";
+            // and `0064756b`'s `is(0x132)` arm, which refuses a non-air
+            // searcher that cannot carry aircraft, is not built. No capture
+            // reaches either.
+            if let (Obj::Unit(a), Obj::Unit(t)) = (attacker, target)
+                && self.is_helicopter(t)
+                && (self.is_siege_unit(a)
+                    || self.units[a].ty.is_some_and(|ty| {
+                        self.unit_types[ty].cols.flag(crate::ai_load::uflags::TANK)
+                    })
+                    || self.is_bomber(a))
+            {
+                return false;
+            }
             if matches!(target, Obj::Unit(t) if self.is_plane(t)) {
                 let high = !tp.has(mask::MISSILE);
                 let anti_air = ap.has(mask::ANTI_AIR);
@@ -7534,6 +7554,42 @@ mod tests {
     /// group 71 on 4859, where the Fire Ship `1/86` is never handed the
     /// Citizen `0/12` its Frigate and Bombard Ships are. Made to fail on
     /// purpose with the arm dropped.
+    /// **A Bomber-line searcher refuses a helicopter** (item 3800,
+    /// `ObjectData::valid_target_const@006472c0`, `006474ee`'s arm): a
+    /// helicopter target (`unit_flags & 0x20`) is refused to a searcher
+    /// of the Bomber line (`is(0x130)`) or a tank (`unit_flags &
+    /// 0x80000`), and taken by any other air unit with a range — run1468's
+    /// Stealth Bomber `1/17` is never handed the Attack Helicopter `2/15`
+    /// on 622, where the Jet Fighter `1/14` is (`docs/GOLDEN.md` §152.1).
+    /// Made to fail on purpose with the arm dropped.
+    #[test]
+    fn a_bomber_never_takes_a_helicopter() {
+        let (mut sim, land) = at_war();
+        let air_type = |sim: &mut Sim, tree: Option<crate::tech::TypeId>, flags: u32| {
+            let mut t = sim.unit_types[land].clone();
+            t.combat.domain = Domain::Air;
+            t.cols.unit_flags = flags;
+            let ty = sim.add_unit_type(t);
+            // The lineage after the add: the fixture keeps no tech table.
+            sim.unit_types[ty].tree = tree;
+            ty
+        };
+        let bomber = air_type(&mut sim, Some(crate::air::BOMBER), 0);
+        let fighter = air_type(&mut sim, None, 0);
+        let heli = air_type(&mut sim, None, crate::ai_load::uflags::HELICOPTER);
+        let mut tank = sim.unit_types[land].clone();
+        tank.cols.unit_flags = crate::ai_load::uflags::TANK;
+        let tank = sim.add_unit_type(tank);
+        let at = |x| Pos::new(0x1000 + x, 0x1000);
+        let b = put(&mut sim, 1, bomber, at(0));
+        let f = put(&mut sim, 1, fighter, at(0x20));
+        let k = put(&mut sim, 1, tank, at(0x40));
+        let target = Obj::Unit(put(&mut sim, 0, heli, at(0x100)));
+        assert!(!sim.valid_target_const(Obj::Unit(b), target), "the bomber");
+        assert!(!sim.valid_target_const(Obj::Unit(k), target), "the tank");
+        assert!(sim.valid_target_const(Obj::Unit(f), target), "the fighter");
+    }
+
     #[test]
     fn a_fire_ship_or_a_submarine_takes_only_a_ship() {
         let (mut sim, land) = at_war();

@@ -11099,7 +11099,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The third melee** (item 3797): Great Sahara, three seats, a held
     // Information age — first try 623 of 2600, widened on run1468's
-    // stride over 601..873, the rounds compared.
+    // stride over 601..873, the rounds compared; item 3800 moved it to
+    // 628 (the Bomber line refused a helicopter target), 601..878.
     (
         "INFORMATION_MELEE_WORD",
         crate::diff::information_melee::INFORMATION_MELEE_WORD,
@@ -13899,7 +13900,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // the Russians granted 100,000 a good and thirteen of the age's types
     // a side from 610, the air, anti-air and missile lines among them
     // (`tools/gamelog/golden/melee-information.cmd`). First try 623
-    // of 2600; run1468's word window over 601..873, the rounds compared.
+    // of 2600, 628 since item 3800; run1468's word window over 601..878,
+    // the rounds compared.
     AiWord {
         line: "Melee",
         map: "GreatSaharaInformationMelee",

@@ -142,8 +142,18 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // `Farms::inc_time+0x1ae`. Theirs' `1/14` stands on its spawn through
     // block 701, `idle 1`, its attack `in_range 0` `new_ord 1`, so the
     // strike ours adds is the Jet Fighter's (`docs/GOLDEN.md` §152).
-    count: 623,
-    sequence: 623,
+    //
+    // Item 3800: **623 → 628**. The extra roll was the Stealth Bomber's:
+    // `1/17`, `add`ed on 622, took the Attack Helicopter `2/15` on its
+    // first idle and rolled `fight`'s re-search on 623, where the
+    // original's `valid_target_const` refuses a Bomber-line searcher a
+    // helicopter target (`006474ee`, §152.1). On 628 ours spends 14
+    // against 15: index 2 is both sides' `Unit::fight+0x9b0` (ours the
+    // Attack Helicopter `1/15`, TI 311), and at index 3 theirs spends a
+    // second `fight` roll where ours spends `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d` (`2/18`'s birth idle) — theirs acted.
+    count: 628,
+    sequence: 628,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -176,8 +186,9 @@ fn information_melee_first_parting() {
 }
 
 /// The word's window on run1468's stride: the block before the word to
-/// 250 frames past it.
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 873);
+/// 250 frames past it (item 3800: the word 628, so 601..878 — the same
+/// three blocks as 3797's 601..873).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 878);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -233,15 +244,23 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // against 287; the Russian Attack Helicopter `2/15` (TI 311)
     // `damage_frame` 664 against 698; the Advanced Fighter `2/16` (TI
     // 301) last struck by who 1 in ours and by who 0 in theirs.
+    //
+    // Item 3800 (window 601..878, the same three blocks): **536 → 385**
+    // keys, rounds read (19, 20) → (19, 17), 49 → 43 parting. Block 601
+    // is standing-only still. On 701 the Stealth Bomber `1/17` holds no
+    // order in ours (`orders.len` 0, at (16344, 14808)) where theirs'
+    // attacks the Partisan `0/17` in range at (15960, 15384),
+    // `recharging` 13 against 0 — the helicopter it took before is the
+    // route ours no longer has, and its ground target is the next word's.
     pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 536, "run1468's word window");
-    pin_eq!(w.rounds_read, (19, 20), "the rounds read");
-    pin_eq!(w.rounds.len(), 49, "the rounds that part");
+    pin_eq!(w.firsts.len(), 385, "run1468's word window");
+    pin_eq!(w.rounds_read, (19, 17), "the rounds read");
+    pin_eq!(w.rounds.len(), 43, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

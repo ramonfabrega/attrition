@@ -12862,13 +12862,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XJ — reserved
+## Parked by item 3800, 2026-11-03 — a Bomber-line searcher refuses a helicopter target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3800a. A building searcher's helicopter arm** (`ObjectData::valid_target_const@006472c0`, `006474ee`): where
+  the searcher's vslot `+0xb8` is the base `is`, the arm answers `!type.vslot_60()` in place of `!is(0x130)`.
+  Item 3800 built the unit searcher's refusals alone (`docs/GOLDEN.md` §152.1); no capture holds a building
+  that asks about a helicopter. Names no score.
+- **3800b. The `cover=1` twin cannot attribute a draw** (`report.py coverage` lists first entries per
+  function, so a frame whose functions all ran before is empty): the word's frame 623 printed three
+  `AmmoOut::draw` lines and nothing of the arm. A per-frame entry count, not a first, would have named the
+  bomber before a probe. Names no score; a tool.
 
 ## Parked by the next landing, slot XK — reserved
 

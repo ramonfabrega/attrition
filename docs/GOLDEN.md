@@ -15561,6 +15561,49 @@ cannot name them and no seat trains them by 2600.
 Bomber flies (f); the minimum length `add` passes is read off one call site, and the walk's interleaving of units
 and buildings at a length is the decompile's, with no capture that tells it from units-first.
 
+## 152.1 A Bomber-line searcher refuses a helicopter target — 623 → 628 (item 3800)
+
+**The booking.** Frame 623: ours 10 draws against theirs' 9; index 0 both sides' `Unit::fight+0x9b0`, and at index
+1 ours spends a second where theirs spends `Farms::inc_time+0x1ae`. 3797's hypothesis: the extra strike is the Jet
+Fighter `1/14`'s.
+
+**The direction, from the disk** (no capture; run 1469 not taken). `RON_DEBUG_SITES=615-628` attributes ours' two:
+the Jet Fighter `1/14` (TI 295, air) and the Stealth Bomber `1/17` (TI 306, air), the second a captain's re-search
+roll on the bomber's first frame with an attack, `add`ed on 622 and set on the Attack Helicopter `2/15` (TI 311) by
+its birth idle. Theirs' trace agrees with ours to 622 and spends the arm's rolls on odd frames — 617 one, 619 two,
+621 three, 623 one, 625 two — the cycle ours' `1/14` and `1/16` run (an attack added, rolled, killed and re-found
+every other frame). The `cover=1` twin's coverage logs first entries alone, so it does not say whose. A payoff probe
+(one env guard, reverted whole) skipped one unit's arm on 623: either unit gives 625, where ours rolls four (`1/14`,
+`1/17`, `2/15`, `2/17`) against theirs' two — and `2/17` is the Russian Stealth Bomber, born 624. With every TI 306
+unit's arm skipped the word went to 628. **Ours acted, and the extra is the bomber's**: 3797's reading was wrong.
+
+**The arm.** `ObjectData::valid_target_const@006472c0`, the air domain's helicopter test (`006474ee`, the decompile's
+lines 92–110): a target whose type's `unit_flags` carries `0x20` refuses a searcher whose type answers vslot `+0x10c`
+(`ObjectTypeData::is_siege`) or `+0x110` (`UnitTypeData::is_tank`), or whose `+0x1e4` carries `0x8000000` (the
+missile), and otherwise returns `!is(0x130, 0)` — the Bomber line refuses it. This crate kept that arm as "ranged and
+not a missile", so its Stealth Bomber took the helicopter, rolled `fight`'s re-search on 623, and on 701 stood at
+(16344, 15720) against (15960, 15384). Built in `Sim::valid_target_const` for a unit searcher (`crates/sim/src/fight.rs`,
+`a_bomber_never_takes_a_helicopter`); a building searcher's arm (vslot `+0x60` through the base `is`) is not.
+
+**The value diff** (`information_melee_run1468_s_word_window_is_widened_whole`, 601..878, the same three blocks):
+536 → 385 keys, rounds read (19, 20) → (19, 17), 49 → 43 parting. Block 601 stays standing-only. On 701:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `1/17`, Stealth Bomber (`TI` 306) | `orders.len` / target | 0 / none | 1 / `0/17` (Partisan, `TI` 68), in range |
+| | `pos` | (16344, 14808) | (15960, 15384) |
+| | `recharging` / `damage_frame` | 0 / 684 | 13 / 682 |
+| `2/17`, Stealth Bomber (`TI` 306) | `hits_left` / `damage_frame` | 380 / 0 | 337 / 670 |
+
+**The word: 628**, ours 14 draws against theirs' 15. Index 2 is both sides' `Unit::fight+0x9b0` (ours the Attack
+Helicopter `1/15`, `TI` 311); at index 3 theirs spends a second `fight` roll where ours spends `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` (the Jet Fighter Bomber `2/18`'s birth idle). **Theirs acted.** Ours' two Stealth Bombers hold
+no target from birth to 628, and theirs' `1/17` holds the Partisan `0/17` in range by 701: a bomber's first ground
+target is the hypothesis, not the booking.
+
+**What is not established**: the building searcher's helicopter arm; which unit theirs spends on 628; how the
+original's bomber reaches its ground target (an idle search's radius, or `find_new_bomber_target`'s).
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
