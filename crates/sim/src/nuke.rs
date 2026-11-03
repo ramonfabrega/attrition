@@ -400,6 +400,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         };
         // Through the round's own landing (`Sim::land`'s nuke arm): the
         // round's last frame lays the blast, and strikes nothing where it
@@ -558,6 +559,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         });
         s.process_projectiles(3200);
         // Tile (120, 180) is fog cell (60, 90).

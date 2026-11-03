@@ -1817,6 +1817,7 @@ impl Sim {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         });
     }
 
@@ -4129,6 +4130,7 @@ impl Sim {
             punctures: false,
             spent: false,
             crash: Some(crate::combat::Crash { bank, rolling }),
+            spline: None,
         });
     }
 

@@ -2481,6 +2481,7 @@ impl Sim {
                 punctures,
                 spent: false,
                 crash: None,
+                spline: None,
             });
             return;
         }
@@ -2554,15 +2555,36 @@ impl Sim {
         };
         // Flight time — never zero.
         let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
+        let mut spline = None;
+        let figure = match shooter {
+            Obj::Unit(u) if missile && p.domain != Domain::Land => {
+                Some(self.units[u].movement.facing)
+            }
+            _ => None,
+        };
         let total_time = if missile {
             // **A missile flies a spline** (item 1625, `docs/AI.md`
             // §174): `Ammo::init`'s `local_30` arm, whose time is the
             // spline's point count. A sea or air shooter's middle control
             // point is five speeds along its angle; a land shooter's is
             // [`combat::missile_flight_time`]'s SEAM.
-            let lead = (p.domain != Domain::Land)
-                .then(|| (angle, i32::try_from(d * 5).unwrap_or(i32::MAX)));
-            combat::missile_flight_time(launch, sz, landing, ez, lead, d)
+            //
+            // **The lead is along the shooter's figure** (item 3802,
+            // `Ammo::init@0067bbf0:704`–`:706`): an air or sea unit's round
+            // takes `+0x2c` from `guys[0]->angle` (`GuyData +0x18`), not the
+            // bearing to the target, and the middle point is rotated by it.
+            // run1469's parked Jet Fighter `2/14` faces 120° and fires on
+            // `1/14` to its south; its round swings 285 east in four frames.
+            let lead = (p.domain != Domain::Land).then(|| {
+                (
+                    figure.unwrap_or(angle),
+                    i32::try_from(d * 5).unwrap_or(i32::MAX),
+                )
+            });
+            // The spline is kept (item 3802): `Ammo::inc_time` steps it.
+            let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
+            spline = Some(path);
+            i32::try_from(path.len()).expect("at most 16")
         } else if p.siege {
             combat::siege_flight_time(
                 self.max_range_of(shooter),
@@ -2617,7 +2639,7 @@ impl Sim {
             cur_time: 0,
             total_time,
             accuracy: acc,
-            angle,
+            angle: figure.unwrap_or(angle),
             splash_area: p.splash_area,
             num_guys: 1,
             // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the
@@ -2638,6 +2660,7 @@ impl Sim {
             punctures,
             spent: false,
             crash: None,
+            spline,
         });
     }
 
@@ -5883,6 +5906,7 @@ impl Sim {
                 punctures: false,
                 spent: false,
                 crash: None,
+                spline: None,
             });
         }
         // `do_attack`'s tail after `fire_ammo` (`622b5b`..`622bd0`): the
@@ -5977,7 +6001,9 @@ impl Sim {
                 i = self.projectiles.partition_point(|q| q.slot <= p.slot);
                 continue;
             }
-            if p.cur_time < p.total_time {
+            // **A guided round** (item 3802): `inc_time`'s spline arm, which
+            // either closes it on this frame or holds it, re-planned or not.
+            if p.cur_time < p.total_time && !(p.spline.is_some() && self.guided_closes(i)) {
                 i += 1;
                 continue;
             }
@@ -6049,6 +6075,90 @@ impl Sim {
             }
             i = self.projectiles.partition_point(|q| q.slot <= p.slot);
         }
+    }
+
+    /// **`Ammo::inc_time@0067d380`'s spline arm** (`67d3e6`–`67d57a`,
+    /// `67d72b`–`67d8ca`; item 3802, `docs/GOLDEN.md` §152.2), on a frame
+    /// short of `total_time`, for a round with a spline. It answers whether
+    /// the round closes now.
+    ///
+    /// - With no target, or one no longer active, or no point past this
+    ///   one (`len ≤ cur + 1`), it holds: the round flies on to
+    ///   `total_time` and lands on its end point.
+    /// - Point `cur`, truncated, is measured against the target's point:
+    ///   `vector_dist(|dx|, |dy|)` under the target type's `target_size`
+    ///   (`UnitTypeData +0x300`; `0xc0` for a building), and `|dz| < 0xc0`
+    ///   against the target figure's height. Inside both, the end point
+    ///   becomes that point and `total_time` `cur − 1`, and the arm jumps
+    ///   back to the loop's head (`67d57a` → `67d392`): `cur_time` and a
+    ///   dead shooter's `hold_frames` are bumped a second time, and the
+    ///   round lands there.
+    /// - Otherwise, on every fourth frame of a spline (`cur ≠ 0`, `cur & 3
+    ///   == 0`) and a unit target, it **re-plans**: a new spline from the
+    ///   point (its integers), through `P + 2·(point[cur+1] − P)`, to the
+    ///   target's point now, at `200 × unit_move_speed`; the end point is
+    ///   the target's, `total_time` the new point count and `cur_time` 0.
+    ///
+    /// run1469: the Russian Jet Fighter `2/14`'s round on `1/14` re-plans
+    /// on 620 (nine points) and 624 (six), and closes on 628 at `cur` 4,
+    /// (12848, 14983) against the target's (12792, 14712), a frame before
+    /// the arc ours flew would have landed.
+    ///
+    /// SEAM: a ground unit's figure height (`guys[0] +0x14`) is read as its
+    /// object's, which this crate carries; an aircraft's is its airframe's.
+    fn guided_closes(&mut self, i: usize) -> bool {
+        let p = self.projectiles[i];
+        let Some(path) = p.spline else {
+            return false;
+        };
+        let Some(t) = p.target.filter(|&t| self.active(t)) else {
+            return false;
+        };
+        let cur = usize::try_from(p.cur_time).unwrap_or(0);
+        if path.len() <= cur + 1 {
+            return false;
+        }
+        let pt = path.point(cur).map(Single::to_i32);
+        let at = self.pos_of(t);
+        let tz = match t {
+            Obj::Unit(u) if self.units[u].kind.domain == Domain::Air => self.units[u].airframe.z,
+            _ => self.world.object_z(at.tile()),
+        };
+        let radius = match t {
+            Obj::Unit(_) => self.profile(t).target_size,
+            Obj::Building(_) => 0xc0,
+        };
+        if vector_dist((pt[0] - at.x).abs(), (pt[1] - at.y).abs()) < radius
+            && (pt[2] - tz).abs() < 0xc0
+        {
+            let q = &mut self.projectiles[i];
+            q.landing = Pos::new(pt[0], pt[1]);
+            q.ez = pt[2];
+            q.total_time = q.cur_time - 1;
+            q.cur_time += 1;
+            if let Obj::Unit(s) = p.shooter
+                && !self.active(p.shooter)
+            {
+                self.units[s].hold_frames += 1;
+            }
+            return true;
+        }
+        if cur != 0 && cur % 4 == 0 && matches!(t, Obj::Unit(_)) {
+            let from = pt.map(Single::from_i32);
+            let ahead = path.point(cur + 1);
+            let two = Single::from_bits(0x4000_0000);
+            let dir = [0, 1, 2].map(|c| ahead[c].subss(from[c]).mulss(two).addss(from[c]));
+            let end = [at.x, at.y, tz].map(Single::from_i32);
+            let speed = Single::from_i32(200 * combat::UNIT_MOVE_SPEED);
+            let next = combat::Spline::from_dir(from, dir, end, speed);
+            let q = &mut self.projectiles[i];
+            q.landing = at;
+            q.ez = tz;
+            q.spline = Some(next);
+            q.total_time = i32::try_from(next.len()).expect("at most 16");
+            q.cur_time = 0;
+        }
+        false
     }
 
     /// **`Ammo::inc_time@0067d380`'s crash arm** (`+0x50 == 1`,
@@ -7083,6 +7193,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         }
     }
 
@@ -10661,6 +10772,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         };
         assert_eq!(sim.check_hit(&ammo), None);
         // The same arrow does find a player's unit standing there.
@@ -10722,6 +10834,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         };
         assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
         // The same round aimed at the Barracks, beside it.
@@ -10805,6 +10918,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         };
         assert!(
             !sim.active(Obj::Building(b)),
@@ -10885,6 +10999,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         };
         let mut tree = sim.tech_tree.clone();
         let shield = tree.types.len();
@@ -11044,6 +11159,7 @@ mod tests {
             punctures: false,
             spent: false,
             crash: None,
+            spline: None,
         }
     }
 

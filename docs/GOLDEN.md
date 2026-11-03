@@ -15601,8 +15601,79 @@ Unit::do_idle+0x7d` (the Jet Fighter Bomber `2/18`'s birth idle). **Theirs acted
 no target from birth to 628, and theirs' `1/17` holds the Partisan `0/17` in range by 701: a bomber's first ground
 target is the hypothesis, not the booking.
 
-**What is not established**: the building searcher's helicopter arm; which unit theirs spends on 628; how the
+**What is not established**: the building searcher's helicopter arm; ~~which unit theirs spends on 628~~ (the Jet
+Fighter `1/14`'s, §152.2); how the
 original's bomber reaches its ground target (an idle search's radius, or `find_new_bomber_target`'s).
+
+## 152.2 A guided round re-plans every fourth frame and closes inside its target — 628 → 640 (item 3802, run1469, run1469b)
+
+**The booking.** Frame 628: ours 14 draws against theirs' 15. Index 2 is both sides' `Unit::fight+0x9b0`; at index 3
+theirs spends a second `fight` roll. 3800's hypothesis was a bomber's first ground target.
+
+**The direction, from the disk and two packets.** The trace proxies `set_new_location`, which `fight`'s entry calls
+with the unit's own cell centre before the roll (`LAB_005fd648`), so each roll names its unit. **Theirs' extra roll
+on 628 is the Jet Fighter `1/14`'s** (`TI` 295, air), not a bomber's: the Partisans theirs' bombers hold on 701 are
+`add`ed on 672. Ours' `1/14` runs a two-frame cycle against the Attack Helicopter `2/15`: it rolls, finds no attack
+point on its forest tile, re-adds `2/15`, and the attack is killed as unchanged. run1469 (a packet at logger frame
+627) runs `Unit::work` on `1/14` under `step4.py` and ends as ours does. On run1469b (628) theirs' `1/14` starts the
+tick **holding an attack on the Russian Jet Fighter `2/14`**. The re-search swaps it to `2/15`, a different target,
+so the attack survives and the roll is spent. `2/14`'s round on `1/14` is on block 627 and gone on 628; the hit's
+retaliation (`Unit::target_opportunity`) takes the shooter. Ours' same round landed a frame later.
+
+**The arm.** `Ammo::inc_time@0067d380`'s spline arm (`+0x68 ≠ 0`, `67d3e6`–`67d57a`, `67d72b`–`67d8ca`) runs on
+every frame short of `total_time` for a round `Ammo::init` gave a spline:
+
+- with no target, an inactive one, or `len ≤ cur + 1`, it returns;
+- point `cur`, truncated, is measured against the target's point: `vector_dist(|dx|, |dy|) < target_size`
+  (`UnitTypeData +0x300`; `0xc0` for a non-unit) and `|dz| < 0xc0` against the figure's z (`guys[0] +0x14`). Inside
+  both, the end point becomes that point, `total_time` becomes `cur − 1`, and control jumps to the loop's head
+  (`67d57a` → `67d392`). There `cur_time` and a dead shooter's `hold_frames` are bumped again, and the round lands;
+- otherwise, when `cur ≠ 0` and `cur & 3 == 0` and the target is a unit, it **re-plans**. `calc_from_dir` lays a new
+  spline from the point's integers, through `P + 2·(point[cur+1] − P)`, to the target's `(x, y, z)` now, at
+  `(float)(200 × unit_move_speed)`. The end point becomes the target's, `total_time` the new point count, and
+  `cur_time` 0.
+
+The spline is a degree-2 clamped B-spline (knots `0 0 0 1 1 1`). `set_min_seg_length@009125e0` divides the control
+polygon's length (`Σ sqrt((dx² + dy²) + dz²)`, each root correctly rounded) by the speed, truncated to a `u16`.
+`calc_spline@00912f00` caps that at 12 and raises it to 2. `generate_bspline@00911820` accumulates `t += δ` in
+single precision and lays a point while `1 > t`, Cox–de Boor with `calc_bspline_basis@009116e0`'s positive-only
+guards. It adds the last control point when `1 − (t − δ) > 0.001`. Ours flew every missile as one arc of the
+spline's point count.
+
+**And the lead is the figure's** (`Ammo::init@0067bbf0:704`–`:706`). An air or sea unit's round takes `+0x2c` from
+`guys[0]->angle`, and the launch's middle control point is rotated by it. Ours took the bearing to the target, so
+`2/14`'s first re-plan started from the wrong point: the word went to 624, ours re-planning to six points where
+theirs re-planned to nine. `2/14` is parked facing 120°, and its round swings 285 east in four frames.
+
+**Built**: `combat::Spline::from_dir` (every operation a `Single`, `guided_round_splines_are_run1469s`: block 620's
+nine points and block 624's six, chained through the re-plan, to the dump's six decimals),
+`combat::missile_spline` (the launch), `Projectile::spline`, and `Sim::guided_closes` in `process_projectiles`. The
+lead takes `movement.facing` for an air or sea unit shooter.
+
+**The value diff** (run1469's per-frame window, `AMMO=5`, blocks 620..640; ours' `f(N−1)` against theirs' block
+`N`). The word's round, `2/14` launched from (12775, 16410), **agrees on every field on every block**:
+
+| block | `cur_time` / `total_time` | end point | |
+|---|---|---|---|
+| 620 | 0 / 9 | (12792, 14712, 0) | re-planned from (13060, 16384, −31) |
+| 624 | 0 / 6 | (12792, 14712, 0) | re-planned from (13020, 15871, −22) |
+| 627 → 628 | 3 / 6 → gone | | closes on point 4, (12848, 14983), 271 from the target |
+
+What still parts is at the launches. `2/14`'s second round, from (12591, 16728), carries `ez` 529 against 0 until
+its first re-plan (`aim_z` reads the ground under an air target; the original reads `0` there). `2/16`'s two rounds
+leave from (14328, 16632) against theirs' (14328, 16658) and (14350, 16618), and `2/15`'s from (13560, 16056)
+against (13488, 16015) — release-node offsets — so `2/15`'s re-plan on 630 counts 6 against 5. The stride widening
+(`information_melee_run1468_s_word_window_is_widened_whole`, 601..890) goes 385 → 449 keys, rounds read
+(19, 17) → (19, 15), 43 → 51 parting. Block 601 stays standing-only; 701 is 61 frames past the word.
+
+**The word: 640**, ours 45 draws against theirs' 47. At index 37 theirs spends `Ammo::do_damage+0xc59` where ours
+spends `Farms::inc_time+0x1ae`: a round lands in theirs. The `2/15` round, whose count parts on 630, is the
+hypothesis, not the booking.
+
+**What is not established**: the launch's middle point is the integer `sin_component` pair, and the pitch rotation
+is not carried (`missile_spline`'s SEAM; `2/14` is parked, pitch 0). A ground unit's figure z is read as its
+object's. An air target's initial `ez`. A building target's arm, whose radius is `0xc0` and which never re-plans,
+is built but no capture reaches it.
 
 ## 153. Reserved for the next item on the rules track
 

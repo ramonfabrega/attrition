@@ -152,8 +152,18 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // Attack Helicopter `1/15`, TI 311), and at index 3 theirs spends a
     // second `fight` roll where ours spends `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d` (`2/18`'s birth idle) — theirs acted.
-    count: 628,
-    sequence: 628,
+    //
+    // Item 3802: **628 → 640**. Theirs' extra roll was the Jet Fighter
+    // `1/14`'s, which held an attack on the Russian Jet Fighter `2/14`
+    // because `2/14`'s guided round struck it a frame sooner than ours:
+    // `Ammo::inc_time`'s spline arm re-plans a missile every fourth frame
+    // and closes it on the first point inside the target's `target_size`
+    // (§152.2), where ours flew one arc. run1469's window (620..640)
+    // agrees on that round's every field. On 640 ours spends 45 against
+    // 47: at index 37 theirs spends `Ammo::do_damage+0xc59` where ours
+    // spends `Farms::inc_time+0x1ae` — a round lands in theirs.
+    count: 640,
+    sequence: 640,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -186,9 +196,9 @@ fn information_melee_first_parting() {
 }
 
 /// The word's window on run1468's stride: the block before the word to
-/// 250 frames past it (item 3800: the word 628, so 601..878 — the same
-/// three blocks as 3797's 601..873).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 878);
+/// 250 frames past it (item 3802: the word 640, so 601..890 — the same
+/// three blocks as 3797's 601..873 and 3800's 601..878).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 890);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -252,15 +262,25 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // attacks the Partisan `0/17` in range at (15960, 15384),
     // `recharging` 13 against 0 — the helicopter it took before is the
     // route ours no longer has, and its ground target is the next word's.
+    //
+    // Item 3802 (window 601..890, the same three blocks): **385 → 449**
+    // keys, rounds read (19, 17) → (19, 15), 43 → 51 parting — a game
+    // that holds to 640 now and parts 61 frames before block 701. Block
+    // 601 is standing-only still (84 keys). On 701 (128 keys) `1/17`
+    // holds no order as before, the Jet Fighter `1/14` holds none against
+    // theirs' one (`idle` 0 against 1, `damage_frame` 667 against 668), and
+    // the helicopters' figures fly 30 low (`1/15` `g.z` 690 against 720,
+    // `2/15` 360 against 390). The word's own value diff is run1469's
+    // per-frame window, not these stride blocks (GOLDEN §152.2).
     pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 385, "run1468's word window");
-    pin_eq!(w.rounds_read, (19, 17), "the rounds read");
-    pin_eq!(w.rounds.len(), 43, "the rounds that part");
+    pin_eq!(w.firsts.len(), 449, "run1468's word window");
+    pin_eq!(w.rounds_read, (19, 15), "the rounds read");
+    pin_eq!(w.rounds.len(), 51, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
