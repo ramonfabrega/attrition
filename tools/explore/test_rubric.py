@@ -245,6 +245,59 @@ pub const TRACES: &[&str] = &[
 """
 
 
+MELEE_STRUCT = """
+pub(crate) const MELEE_START: &str = "gamelog-run{s}-greatsahara-{age}-melee-start.txt";
+pub(crate) const MELEE_LONG: (&str, &str) = (
+    "gamelog-run{l}-greatsahara-{age}-melee-trace.txt",
+    "rontrace-run{l}.log",
+);
+pub(crate) struct Melee {{
+    pub length: i64,
+    pub count: i64,
+    pub sequence: i64,
+}}
+pub(crate) const {name}: Melee = Melee {{
+    length: 2600,
+    // Item 3733: a comment with a }} brace and a run999 in it.
+    count: {c},
+    sequence: {q},
+}};
+pub(crate) const {name}_WORD: i64 = if {name}.count < {name}.sequence {{
+    {name}.count
+}} else {{
+    {name}.sequence
+}};
+"""
+WHOLE_MELEE = MELEE_STRUCT.format(s=1412, l=1413, age="gunpowder", name="WHOLE_MELEE", c="2_600", q=2600)
+OPEN_MELEE = MELEE_STRUCT.format(s=1449, l=1450, age="classical", name="OPEN_MELEE", c=760, q=759)
+MELEE_TESTKIT = """
+pub(crate) const AI_WORDS: &[AiWord] = &[
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaGunpowderMelee",
+        word: crate::diff::whole_melee::WHOLE_MELEE_WORD,
+        length: 2600,
+        endpoint: None,
+    },
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaClassicalMelee",
+        word: crate::diff::open_melee::OPEN_MELEE_WORD,
+        length: 2600,
+        endpoint: None,
+    },
+];
+"""
+MELEE_BLIND = """
+pub const TRACES: &[&str] = &[
+    // `cover=1` on the click-free pool, to 2600 (`docs/RUNS.md` run1413b):
+    // run1413's game on every frame (rngcmp 2601 identical, 0 differing).
+    "rontrace-run1413b.log",
+    // run1450's game on every frame.
+    "rontrace-run1450b.log",
+];
+"""
+
 class Lockstep(unittest.TestCase):
     """A dump counts only when its game's word stands at the game's full
     length (Ramon, 2026-10-22): the runs come from the Rust consts."""
@@ -292,6 +345,24 @@ class Lockstep(unittest.TestCase):
         self.assertNotIn('run29', runs)      # no comment
         self.assertNotIn('run981b', runs)    # not whole
         self.assertNotIn('run470', runs)     # not whole
+
+    def test_a_melee_is_a_game_and_whole_only_when_both_partings_reach_its_length(self):
+        """Item 3792: a `Melee { length, count, sequence }` literal is a
+        game, its runs the module's `MELEE_START` and `MELEE_LONG`; its
+        `AI_WORDS` row resolves through it; an open melee is no lockstep
+        game, exactly as an open pair is not."""
+        texts = {'whole_melee.rs': WHOLE_MELEE, 'open_melee.rs': OPEN_MELEE, 'testkit.rs': MELEE_TESTKIT}
+        games, unresolved = rubric.lockstep_games(texts, MELEE_BLIND)
+        by = {g['name']: g for g in games}
+        self.assertEqual(unresolved, [])
+        self.assertEqual((by['WHOLE_MELEE']['runs'], by['WHOLE_MELEE']['word'], by['WHOLE_MELEE']['whole'],
+                          by['WHOLE_MELEE']['line']), (['run1412', 'run1413'], 2600, True, 'Melee'))
+        self.assertEqual((by['OPEN_MELEE']['word'], by['OPEN_MELEE']['whole']), (759, False))
+        self.assertEqual(sum(1 for g in games if 'MELEE' in g['name'] or 'Melee' in g['name']), 2)
+        runs = rubric.lockstep_runs_of(games)
+        self.assertIn('run1413b', runs)       # the whole melee's twin
+        self.assertNotIn('run1450b', runs)    # the open melee's twin
+        self.assertNotIn('run1450', runs)
 
     def test_the_dumps_are_the_whole_games_own_and_a_refused_take_is_not(self):
         import os
