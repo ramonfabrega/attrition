@@ -10,6 +10,7 @@
 
 use crate::gamelog::{CellDump, Log, WorldChecksum, world_cells};
 use sim::mapgen::{Adler32, WCell};
+use sim::terrain_groups::{Group, Inputs, Template, TilesetGroups};
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
@@ -286,6 +287,257 @@ pub fn setup_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
     Ok(Some(out))
 }
 
+/// **`Map::scale_number@006a0320`**: an XML count, its leading integer
+/// scaled by the word after the first space. A negative value is per
+/// nation (`−v · mult`); `SCALE` scales by the map's width and `AREA` by
+/// its area, each against `standard`, `rules.xml`'s Standard map size
+/// (`map_sizes` record 3); any other word (`min`, `mindist`, …) leaves the
+/// value as written. `SCALEWATER` and `SCALELAND` take a float path no
+/// Great Sahara group reaches, and are refused.
+pub fn scale_number(s: &str, mult: i32, xs: i32, size: i32, standard: i32) -> Option<i32> {
+    let mut v = leading_int(s);
+    if v < 0 {
+        v = -(v * mult);
+    }
+    let suffix = s.find(' ').map_or("", |i| s[i..].trim_start_matches(' '));
+    let by = |v: i32, n: i32, b: i32| {
+        if v < 1 {
+            0
+        } else {
+            ((b / 2 + n * v) / b).max(1)
+        }
+    };
+    Some(match suffix.to_ascii_uppercase().as_str() {
+        "AREA" => by(v, size, standard * standard),
+        "SCALE" => by(v, xs, standard),
+        "SCALEWATER" | "SCALELAND" => return None,
+        _ => v,
+    })
+}
+
+/// `String::convert_int`: the leading integer, sign included; 0 when there
+/// is none.
+fn leading_int(s: &str) -> i32 {
+    let t = s.trim_start();
+    let neg = t.starts_with('-');
+    let digits: String = t
+        .trim_start_matches(['-', '+'])
+        .chars()
+        .take_while(char::is_ascii_digit)
+        .collect();
+    let v: i32 = digits.parse().unwrap_or(0);
+    if neg { -v } else { v }
+}
+
+/// `rules.xml`'s `mapsizes` record 3, the size `scale_number` measures
+/// against (`*(map_sizes.list.data + 0x144)`: stride 0x58, value at +0x3c).
+pub fn standard_map_size(root: &Path) -> Option<i32> {
+    let text = std::fs::read_to_string(root.join("Data/rules.xml")).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let sizes = doc
+        .descendants()
+        .find(|n| n.has_tag_name("CATEGORIES") && n.attribute("id") == Some("mapsizes"))?;
+    let rec = sizes
+        .children()
+        .filter(|n| n.has_tag_name("CATEGORY"))
+        .nth(3)?;
+    rec.children()
+        .find(|n| n.has_tag_name("DATA"))?
+        .text()?
+        .trim()
+        .parse()
+        .ok()
+}
+
+/// **`TerrainGroups::init_terrain_data@006a6540`** on the style file's
+/// `TERRAIN_GROUPS` (`docs/MAPGEN.md` §7): one [`Group`] per kept
+/// `GROUPENTRY`, in document order. The style file's list replaces
+/// `default.xml`'s, which is read only when the style has none. `None`
+/// for an entry this reader does not take: a map-size condition, a land-key
+/// type, or a float-scaled count.
+pub fn terrain_groups(
+    root: &Path,
+    style_file: &str,
+    xs: i32,
+    ys: i32,
+    mult: i32,
+) -> Option<Vec<Group>> {
+    let standard = standard_map_size(root)?;
+    let read = |rel: &str| std::fs::read_to_string(root.join(rel)).ok();
+    let style_text = read(&format!("mapstyles/{style_file}"))?;
+    let default_text = read("mapstyles/default.xml")?;
+    let style = roxmltree::Document::parse(&style_text).ok()?;
+    let default = roxmltree::Document::parse(&default_text).ok()?;
+    fn list<'a, 'i>(d: &'a roxmltree::Document<'i>) -> Option<roxmltree::Node<'a, 'i>> {
+        d.root_element()
+            .children()
+            .find(|n| n.has_tag_name("TERRAIN_GROUPS"))
+    }
+    let list = list(&style).or_else(|| list(&default))?;
+    let mut out = Vec::new();
+    for e in list.children().filter(|n| n.has_tag_name("GROUPENTRY")) {
+        let attr = |k: &str| e.attribute(k).unwrap_or("");
+        let num = |k: &str| e.attribute(k).map_or(-1, leading_int);
+        let scaled = |k: &str| scale_number(attr(k), mult, xs, xs * ys, standard);
+        let space = |k: &str| scaled(k).map(|v| v.clamp(0, 0x40));
+        let kind = match attr("type").to_ascii_lowercase().as_str() {
+            "trees" => 4,
+            "mountains" => 5,
+            "rocks" => 6,
+            "oil" | "sea oil" => 7,
+            "cliffs" => 8,
+            _ => return None,
+        };
+        let pattern = match attr("pattern") {
+            "player" => 0,
+            "continent" => 1,
+            "world" => 2,
+            "nonplayer" => 3,
+            "corner" => 4,
+            _ => return None,
+        };
+        let size = |k: &str| if kind == 5 { Some(num(k)) } else { scaled(k) };
+        let (min_oil, max_oil) = if kind == 6 {
+            (num("min_oil"), num("max_oil"))
+        } else {
+            (0, 0)
+        };
+        out.push(Group {
+            kind,
+            chance: num("chance"),
+            grouping: num("grouping"),
+            min_clumps: scaled("min_clumps")?,
+            max_clumps: scaled("max_clumps")?,
+            pattern,
+            min_size: size("min_size")?,
+            max_size: size("max_size")?,
+            start_min: scaled("city_keep_away")?,
+            start_max: scaled("city_stay_near")?.min(0x40),
+            forest_space: space("forest_space")?,
+            mount_space: space("mount_space")?,
+            rock_space: space("rock_space")?,
+            coast_space: space("coast_space")?,
+            cent_min: scaled("cent_keep_away")?,
+            cent_max: scaled("cent_stay_near")?.min(0x40),
+            edge_min: scaled("edge_keep_away")?,
+            edge_max: scaled("edge_stay_near")?.min(0x40),
+            corner_min: scaled("corner_keep_away")?,
+            corner_max: scaled("corner_stay_near")?.min(0x40),
+            min_oil,
+            max_oil,
+        });
+    }
+    Some(out)
+}
+
+/// The tileset's `TERRAINGROUP` numbers `place_all` reads, for the style's
+/// one tileset ([`fertility`]'s), and `num_tiles[0]`, its `BASELAND` count.
+pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
+    let text = std::fs::read_to_string(root.join("Data/tilesets.xml")).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let set = doc.descendants().find(|n| {
+        n.has_tag_name("TILESET")
+            && n.attribute("name")
+                .is_some_and(|v| v.eq_ignore_ascii_case(tileset))
+    })?;
+    let group = set.children().find(|n| n.has_tag_name("TERRAINGROUP"))?;
+    let value = |k: &str| {
+        group
+            .children()
+            .find(|n| n.has_tag_name(k))
+            .and_then(|n| n.attribute("value")?.trim().parse().ok())
+            .unwrap_or(-1)
+    };
+    let base_tiles = set
+        .children()
+        .find(|n| n.has_tag_name("BASELAND"))?
+        .children()
+        .filter(|n| n.has_tag_name("BASE"))
+        .count() as i32;
+    Some(TilesetGroups {
+        bush_clump_prob: value("BUSH_CLUMP_PROB"),
+        mnt_rock_clump_prob: value("MOUNTAIN_ROCK_CLUMP_PROB"),
+        mnt_fringe_tree_prob: value("MOUNTAIN_FRINGE_TREE_PROB"),
+        base_tiles,
+    })
+}
+
+/// A [`crate::mountains`] template as `place_all` lays it: its tiles, the
+/// cells holding them in first-appearance order of the tile scan (`mount_wx`
+/// /`_wy`, `tx >> 2`), and its solid cells.
+pub fn group_template(t: &sim::gather::MountainTemplate) -> Template {
+    let mut cells = Vec::new();
+    for &(tx, ty) in &t.tiles {
+        let c = (tx.div_euclid(4), ty.div_euclid(4));
+        if !cells.contains(&c) {
+            cells.push(c);
+        }
+    }
+    Template {
+        tiles: t.tiles.clone(),
+        cells,
+        solid: t.solid.clone(),
+    }
+}
+
+/// Everything `place_all` reads from the install for `style_file` on an
+/// `xs × ys` map: the groups, the sixteen templates, and the tileset's
+/// numbers.
+pub fn place_all_inputs(
+    root: &Path,
+    style_file: &str,
+    xs: i32,
+    ys: i32,
+    map_style: i32,
+) -> Option<Inputs> {
+    let fert = fertility(root, style_file)?;
+    let templates = crate::mountains::templates(&crate::Install::new(root))
+        .iter()
+        .map(group_template)
+        .collect();
+    Some(Inputs {
+        groups: terrain_groups(root, style_file, xs, ys, 1)?,
+        templates,
+        tileset: tileset_groups(root, &fert.tileset)?,
+        map_style,
+    })
+}
+
+/// The draws of `place_all` in a draw-site trace: from the first
+/// `Mountains::randomize_mountains` draw to the last before the first
+/// `TerrainGroups::nubify_forest` draw (`docs/MAPGEN.md` §2: nothing between
+/// draws). Reads only that far. `None` for a file that is not a trace, or
+/// whose setup path never reaches `nubify_forest`.
+pub fn place_all_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
+    use crate::trace::{IMAGE_BASE, RVA_GAME_RANDOM};
+    use std::io::Read;
+    let mut r = BufReader::with_capacity(1 << 16, std::fs::File::open(path)?);
+    let mut rec = [0u8; 32];
+    if r.read_exact(&mut rec).is_err() || &rec[..4] != b"RONT" {
+        return Ok(None);
+    }
+    let word = |b: &[u8; 32], i: usize| u32::from_le_bytes([b[i], b[i + 1], b[i + 2], b[i + 3]]);
+    let base = word(&rec, 8);
+    let norm = |va: u32| va.wrapping_sub(base).wrapping_add(IMAGE_BASE);
+    let mut out = Vec::new();
+    while r.read_exact(&mut rec).is_ok() {
+        match word(&rec, 0) {
+            2 => return Ok(None),
+            1 | 3 if norm(word(&rec, 8)) == IMAGE_BASE + RVA_GAME_RANDOM => {
+                let site = norm(word(&rec, 4));
+                if (0x006a_93b0..0x006a_9a60).contains(&site) && !out.is_empty() {
+                    return Ok(Some(out));
+                }
+                if !out.is_empty() || (0x0089_ca70..0x0089_cb50).contains(&site) {
+                    out.push((site, word(&rec, 12)));
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(None)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -294,6 +546,7 @@ mod tests {
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
+    use sim::terrain_groups::{Draws, place_all};
     use std::sync::OnceLock;
 
     /// Every kept dump's [`StartGrid`], read once for the tests below: the
@@ -576,6 +829,414 @@ mod tests {
             "{checked} start grids relabelled, under the pinned {}",
             MAPGEN.checksum_of
         );
+    }
+
+    /// **Great Sahara's groups as `init_terrain_data` parses them** for a
+    /// 60×60 map (`docs/MAPGEN.md` §7): every `SCALE` count is `(35 + 60v) /
+    /// 70`, mountain sizes are unscaled, and the patterns are `continent`,
+    /// `player` and `world` — reader A's table, row by row.
+    #[test]
+    fn great_sahara_s_groups_parse_as_read() {
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        assert_eq!(standard_map_size(root), Some(70));
+        let groups = terrain_groups(root, "SAHARA.xml", 60, 60, 1).expect("SAHARA.xml's groups");
+        // kind, clumps, pattern, size, start min/max, forest, mount, rock,
+        // coast, cent min/max, edge max, oil.
+        type Row = (
+            i32,
+            (i32, i32),
+            i32,
+            (i32, i32),
+            (i32, i32),
+            [i32; 4],
+            (i32, i32),
+            i32,
+            (i32, i32),
+        );
+        let rows: [Row; 11] = [
+            (
+                4,
+                (2, 2),
+                1,
+                (14, 21),
+                (8, 0),
+                [3, 0, 1, 1],
+                (0, 4),
+                0,
+                (0, 0),
+            ),
+            (
+                4,
+                (1, 2),
+                0,
+                (3, 4),
+                (2, 4),
+                [1, 2, 1, 1],
+                (0, 0),
+                0,
+                (0, 0),
+            ),
+            (
+                4,
+                (2, 2),
+                0,
+                (5, 7),
+                (8, 14),
+                [2, 1, 1, 1],
+                (0, 0),
+                0,
+                (0, 0),
+            ),
+            (
+                4,
+                (3, 3),
+                2,
+                (5, 7),
+                (15, 0),
+                [3, 1, 1, 1],
+                (10, 0),
+                0,
+                (0, 0),
+            ),
+            (
+                4,
+                (15, 21),
+                2,
+                (1, 2),
+                (15, 0),
+                [3, 1, 1, 1],
+                (10, 0),
+                13,
+                (0, 0),
+            ),
+            (
+                5,
+                (1, 1),
+                0,
+                (2, 2),
+                (6, 7),
+                [0, 4, 0, 1],
+                (0, 0),
+                0,
+                (0, 0),
+            ),
+            (
+                5,
+                (1, 1),
+                0,
+                (2, 2),
+                (10, 16),
+                [0, 4, 0, 1],
+                (0, 0),
+                0,
+                (0, 0),
+            ),
+            (
+                5,
+                (3, 4),
+                1,
+                (2, 2),
+                (6, 0),
+                [3, 4, 1, 1],
+                (0, 0),
+                0,
+                (0, 0),
+            ),
+            (
+                5,
+                (3, 3),
+                1,
+                (3, 3),
+                (10, 0),
+                [3, 4, 1, 1],
+                (0, 9),
+                0,
+                (0, 0),
+            ),
+            (
+                6,
+                (1, 2),
+                0,
+                (3, 3),
+                (3, 7),
+                [1, 1, 10, 1],
+                (0, 0),
+                0,
+                (1, 2),
+            ),
+            (
+                6,
+                (3, 5),
+                0,
+                (3, 5),
+                (8, 24),
+                [1, 1, 10, 1],
+                (0, 0),
+                0,
+                (1, 2),
+            ),
+        ];
+        assert_eq!(groups.len(), rows.len());
+        for (i, (g, r)) in groups.iter().zip(rows).enumerate() {
+            let ours: Row = (
+                g.kind,
+                (g.min_clumps, g.max_clumps),
+                g.pattern,
+                (g.min_size, g.max_size),
+                (g.start_min, g.start_max),
+                [g.forest_space, g.mount_space, g.rock_space, g.coast_space],
+                (g.cent_min, g.cent_max),
+                g.edge_max,
+                (g.min_oil, g.max_oil),
+            );
+            assert_eq!(ours, r, "group {i}");
+            assert_eq!(
+                (g.chance, g.grouping, g.edge_min, g.corner_min, g.corner_max),
+                (100, 0, 0, 0, 0)
+            );
+        }
+        let fert = fertility(root, "SAHARA.xml").expect("one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        assert_eq!(
+            (
+                ts.bush_clump_prob,
+                ts.mnt_rock_clump_prob,
+                ts.mnt_fringe_tree_prob
+            ),
+            (60, 50, 40)
+        );
+        let inputs = place_all_inputs(root, "SAHARA.xml", 60, 60, 7).expect("the inputs");
+        assert_eq!(inputs.templates.len(), 16);
+        assert!(inputs.templates.iter().all(|t| !t.tiles.is_empty()));
+    }
+
+    /// The kept dumps' directory, as [`archive`] reads it.
+    fn gamelog_dir() -> String {
+        std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+        })
+    }
+
+    /// The Great Sahara traces whose `place_all` segment the stream check
+    /// walks: a floor, as [`MAPGEN`]'s file counts are.
+    const PLACE_ALL_TRACES: usize = 280;
+
+    /// One Great Sahara generator run, as the archive's files key it: the
+    /// seed at 7805, the nations and the size, with the world seed.
+    type GsRun = (u32, i32, i32, i32, i32);
+
+    /// Each Great Sahara run's grid and stream as they stand at 7854 — 3798's
+    /// chain, which its own test pins.
+    fn great_sahara_at_7854(run: GsRun, fert: &Fertility) -> (MapGrid, Rng) {
+        let (seed, nations, xs, ys, world) = run;
+        let mut grid = MapGrid::new(xs, ys);
+        let mut rng = Rng::new(seed);
+        great_sahara_make_continents(&mut grid, nations, &mut rng);
+        let mut regions = Regions::default();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        grid.fix_diag_land();
+        grid.make_coastlines();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        let fractal = Fractal::init(xs, ys, fert.clump_factor, 0, world as u32);
+        grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
+        (grid, rng)
+    }
+
+    /// Every kept draw-site trace's `place_all` segment ([`place_all_draws`]),
+    /// read once. `None` without the archive.
+    fn place_all_traces() -> Option<&'static [(String, Vec<SetupDraw>)]> {
+        static ALL: OnceLock<Option<Vec<(String, Vec<SetupDraw>)>>> = OnceLock::new();
+        ALL.get_or_init(|| {
+            let mut names: Vec<String> = std::fs::read_dir(gamelog_dir())
+                .ok()?
+                .filter_map(|e| e.ok()?.file_name().into_string().ok())
+                .filter(|n| n.starts_with("rontrace-") && n.ends_with(".log"))
+                .collect();
+            names.sort();
+            let paths: Vec<(String, String)> = names
+                .into_iter()
+                .filter_map(|n| Some((crate::testenv::dump(&n)?, n)))
+                .collect();
+            let chunk = paths.len().div_ceil(4).max(1);
+            let mut out: Vec<(String, Vec<SetupDraw>)> = std::thread::scope(|s| {
+                let hands: Vec<_> = paths
+                    .chunks(chunk)
+                    .map(|part| {
+                        s.spawn(move || {
+                            part.iter()
+                                .filter_map(|(p, n)| {
+                                    Some((n.clone(), place_all_draws(Path::new(p)).ok()??))
+                                })
+                                .collect::<Vec<_>>()
+                        })
+                    })
+                    .collect();
+                hands
+                    .into_iter()
+                    .flat_map(|h| h.join().expect("a sweep thread"))
+                    .collect()
+            });
+            out.sort_by(|a, b| a.0.cmp(&b.0));
+            Some(out)
+        })
+        .as_deref()
+    }
+
+    /// The first index where two draw streams part, by site or by word, and
+    /// the shorter length when one is a prefix of the other.
+    fn first_parting(ours: &[SetupDraw], theirs: &[SetupDraw]) -> Option<usize> {
+        let n = ours.len().min(theirs.len());
+        (0..n)
+            .find(|&i| ours[i] != theirs[i])
+            .or((ours.len() != theirs.len()).then_some(n))
+    }
+
+    /// **`place_all` on Great Sahara, draw for draw** (`docs/MAPGEN.md` §7,
+    /// §15 step 3): from each generator run's 7854 grid and seed, the port's
+    /// tagged stream against every kept trace whose `place_all` segment
+    /// opens on that seed, site by site — the first parting names its draw
+    /// site and so its sub-pass. The 2- and 3-player runs enter on one
+    /// seed and one grid, so a trace passes when it is one run's stream
+    /// whole; both runs must be met. Then seed and parts 2, 5 and 6 at
+    /// 7859 on every Great Sahara file that carries it.
+    #[test]
+    fn great_sahara_s_place_all_is_the_traced_stream_and_7859() {
+        let (Some(all), Some(traces)) = (archive(), place_all_traces()) else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let mut runs: std::collections::BTreeMap<GsRun, Vec<&StartGrid>> = Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 7) {
+            if let Some(before) = g.at("map.cpp", 7805) {
+                runs.entry((before.2, g.nations, g.xs, g.ys, g.seed))
+                    .or_default()
+                    .push(g);
+            }
+        }
+        let ported: Vec<(GsRun, MapGrid, Draws)> = runs
+            .keys()
+            .map(|&run| {
+                let (mut grid, rng) = great_sahara_at_7854(run, &fert);
+                let inputs =
+                    place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("the inputs");
+                let mut d = Draws::new(rng.seed);
+                place_all(&mut grid, &mut d, &inputs);
+                (run, grid, d)
+            })
+            .collect();
+        // A trace is Great Sahara's when a gamelog of its run names the map:
+        // other styles (Himalayas, the click-free Amazon) enter `place_all`
+        // on the same seed and part at the ladder, by their own groups.
+        let gamelogs: Vec<String> = std::fs::read_dir(gamelog_dir())
+            .map(|r| {
+                r.filter_map(|e| e.ok()?.file_name().into_string().ok())
+                    .collect()
+            })
+            .unwrap_or_default();
+        let sahara = |trace: &str| {
+            let run = trace
+                .trim_start_matches("rontrace-")
+                .trim_end_matches(".log");
+            gamelogs.iter().any(|g| {
+                g.strip_prefix("gamelog-")
+                    .and_then(|g| g.strip_prefix(run))
+                    .is_some_and(|rest| rest.starts_with('-') && rest.contains("greatsahara"))
+            })
+        };
+        let mut met = std::collections::BTreeMap::new();
+        let mut parted = Vec::new();
+        let mut named = 0;
+        for (name, seg) in traces.iter().filter(|(n, _)| sahara(n)) {
+            named += 1;
+            let opens: Vec<_> = ported
+                .iter()
+                .filter(|(_, _, d)| d.log.first().map(|x| x.1) == seg.first().map(|x| x.1))
+                .collect();
+            if opens.is_empty() {
+                parted.push(format!(
+                    "{name}: opens on {:?}, no run's 7854 seed",
+                    seg.first()
+                ));
+                continue;
+            }
+            let partings: Vec<_> = opens
+                .iter()
+                .map(|(run, _, d)| (run, first_parting(&d.log, seg)))
+                .collect();
+            if let Some((run, _)) = partings.iter().find(|(_, p)| p.is_none()) {
+                *met.entry(run.1).or_insert(0) += 1;
+                continue;
+            }
+            let (run, at) = partings
+                .iter()
+                .max_by_key(|(_, p)| *p)
+                .map(|(r, p)| (r, p.expect("parted")))
+                .expect("a candidate");
+            let site = |v: &[SetupDraw]| v.get(at).map(|&(s, w)| format!("{s:#x} word {w:#x}"));
+            parted.push(format!(
+                "{name}: {} nations, draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
+                run.1,
+                opens
+                    .iter()
+                    .find(|(r, _, _)| r == *run)
+                    .map_or(0, |(_, _, d)| d.log.len()),
+                seg.len(),
+                site(&opens.iter().find(|(r, _, _)| r == *run).expect("run").2.log),
+                site(seg)
+            ));
+        }
+        parted.sort();
+        assert!(
+            parted.is_empty(),
+            "{} Great Sahara traces part from the port's place_all (met whole: {met:?}):\n{}",
+            parted.len(),
+            parted
+                .iter()
+                .take(12)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+        assert!(
+            met.len() >= 2 && named >= PLACE_ALL_TRACES,
+            "the place_all stream met {met:?} nation counts on {named} Great Sahara \
+             traces, under the pinned {PLACE_ALL_TRACES}; 2 and 3 are both kept"
+        );
+        let mut files = 0;
+        for (run, grid, d) in &ported {
+            for g in &runs[run] {
+                let Some((_, _, seed, p)) = g.at("map.cpp", 7859) else {
+                    continue;
+                };
+                assert_eq!(
+                    (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part()
+                    ),
+                    (*seed, p[2], p[5], p[6]),
+                    "(seed, parts 2, 5, 6) at 7859 on a {}-nation file, ours against theirs",
+                    run.1
+                );
+                files += 1;
+            }
+        }
+        eprintln!("place_all: traces met whole {met:?}; 7859 on {files} files");
+        assert!(files > 0, "the 7859 check reached no file");
     }
 
     /// The start grids whose half-land reorders `find_all`'s scan: the fuzz
