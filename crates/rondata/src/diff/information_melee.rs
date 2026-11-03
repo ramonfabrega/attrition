@@ -115,7 +115,11 @@ fn information_melee_staging_walk() {
         .iter()
         .find(|u| u.alive() && u.owner == 0 && u.index == 22)
         .expect("0/22 on 700");
-    assert_eq!(esf.ty, Some(77 - 50), "0/22 is the generic Elite Special Forces");
+    assert_eq!(
+        esf.ty,
+        Some(77 - 50),
+        "0/22 is the generic Elite Special Forces"
+    );
     assert_eq!(st.applied.ran, MELEE_STAGED - 2, "every other line ran");
 }
 
@@ -130,17 +134,25 @@ pub(crate) use super::gunpowder_melee::Melee;
 
 pub(crate) const INFORMATION_MELEE: Melee = Melee {
     length: 2600,
-    // Item 3797, first try: FIRST_TRY.
-    count: 0,
-    sequence: 0,
+    // Item 3797, first try: **623 of 2600**, the count and the sequence
+    // together, thirteen frames past the first `add` (610). Ours 10 draws
+    // against 9: index 0 agrees, and at index 1 ours spends a second
+    // `Unit::fight+0x9b0` — the French Stealth Bomber `1/17`'s, behind
+    // the Jet Fighter `1/14`'s (TI 295, air) — where theirs spends
+    // `Farms::inc_time+0x1ae`. Theirs' `1/14` stands on its spawn through
+    // block 701, `idle 1`, its attack `in_range 0` `new_ord 1`, so the
+    // strike ours adds is the Jet Fighter's (`docs/GOLDEN.md` §152).
+    count: 623,
+    sequence: 623,
 };
 
 /// The melee's word: the lower of the two partings.
-pub(crate) const INFORMATION_MELEE_WORD: i64 = if INFORMATION_MELEE.count < INFORMATION_MELEE.sequence {
-    INFORMATION_MELEE.count
-} else {
-    INFORMATION_MELEE.sequence
-};
+pub(crate) const INFORMATION_MELEE_WORD: i64 =
+    if INFORMATION_MELEE.count < INFORMATION_MELEE.sequence {
+        INFORMATION_MELEE.count
+    } else {
+        INFORMATION_MELEE.sequence
+    };
 
 /// **Where the third melee's draw stream first parts** (item 3797): the
 /// harness walks run1467's start with the script staged and compares every
@@ -164,8 +176,8 @@ fn information_melee_first_parting() {
 }
 
 /// The word's window on run1468's stride: the block before the word to
-/// the block after it.
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (0, 0);
+/// 250 frames past it.
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 873);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -212,16 +224,24 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
             }
         }
     }
-    // Item 3797, first try: FIRST_WIDENING.
-    pin_eq!(w.blocks, 0, "every stride block in the window");
+    // Item 3797, first try (window 601..873, blocks 601, 701 and 801):
+    // **536** keys, rounds read (19, 20), 49 parting. Block 601 holds the
+    // standing families alone (`build` 41, `form` 40, the groups' and a
+    // pool's). The state first parts on block 701: the French Stealth
+    // Bomber `1/17` (TI 306, air) at (16344, 15720) in ours against
+    // (15960, 15384), `damage_frame` 644 against 682, `hits_left` 328
+    // against 287; the Russian Attack Helicopter `2/15` (TI 311)
+    // `damage_frame` 664 against 698; the Advanced Fighter `2/16` (TI
+    // 301) last struck by who 1 in ours and by who 0 in theirs.
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1468's word window");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    pin_eq!(w.firsts.len(), 536, "run1468's word window");
+    pin_eq!(w.rounds_read, (19, 20), "the rounds read");
+    pin_eq!(w.rounds.len(), 49, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
@@ -248,8 +268,11 @@ fn information_melee_s_leaders_are_compared_on_every_seat() {
         vec![2, 2, 2],
         "leader records compared, by seat"
     );
-    // Item 3797, first try: FIRST_SEATS.
-    pin_eq!(w.standing(), vec![12, 9, 9], "standing keys, by seat");
+    // Item 3797, first try: the standing family (`SITE[i].reg`,
+    // `aggression[j]`) on both frames and every seat, and nothing else —
+    // 12, 9 and 7 keys (the Russians' 7 against the Egyptians' 9 in
+    // §150's lobby).
+    pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
     pin_eq!(
         w.rest(),
         Vec::<String>::new(),

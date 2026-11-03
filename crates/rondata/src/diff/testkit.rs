@@ -11090,8 +11090,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::classical_melee::WIDENING_CLASSICAL_MELEE),
     ),
     // **The third melee** (item 3797): Great Sahara, three seats, a held
-    // Information age — first try FIRST_TRY of 2600, widened on run1468's
-    // stride, the rounds compared.
+    // Information age — first try 623 of 2600, widened on run1468's
+    // stride over 601..873, the rounds compared.
     (
         "INFORMATION_MELEE_WORD",
         crate::diff::information_melee::INFORMATION_MELEE_WORD,
@@ -13890,8 +13890,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // Sahara with three seats at a held Information age, the French and
     // the Russians granted 100,000 a good and thirteen of the age's types
     // a side from 610, the air, anti-air and missile lines among them
-    // (`tools/gamelog/golden/melee-information.cmd`). First try FIRST_TRY
-    // of 2600; run1468's word window, the rounds compared.
+    // (`tools/gamelog/golden/melee-information.cmd`). First try 623
+    // of 2600; run1468's word window over 601..873, the rounds compared.
     AiWord {
         line: "Melee",
         map: "GreatSaharaInformationMelee",
