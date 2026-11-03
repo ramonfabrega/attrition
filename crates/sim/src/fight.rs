@@ -2566,6 +2566,12 @@ impl Sim {
                 .then(|| (angle, i32::try_from(d * 5).unwrap_or(i32::MAX)));
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
             let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
+            if std::env::var_os("RON_PROBE_3802").is_some()
+                && let Obj::Unit(u) = shooter
+            {
+                let un = &self.units[u];
+                eprintln!("PROBE3802 f{frame} launch {}/{} pos {:?} facing {:?} heading {:?} body {:?} af.z {} af.pitch {:?} launch {launch:?} sz {sz} landing {landing:?} ez {ez} d {d} angle {angle:?} domain {:?}", un.owner, un.index, un.pos, un.movement.facing, un.movement.heading, un.movement.body, un.airframe.z, un.airframe.pitch, p.domain);
+            }
             spline = Some(path);
             i32::try_from(path.len()).expect("at most 16")
         } else if p.siege {
