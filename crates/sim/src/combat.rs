@@ -487,6 +487,12 @@ pub struct Projectile {
     /// down falling, not a shot fired (`docs/COMBAT.md` §81.3, `docs/AI.md`
     /// §228). `None` on every round `Ammo::init` lays.
     pub crash: Option<Crash>,
+    /// A guided round's path (`Ammo +0x68`, item 3802, `docs/GOLDEN.md`
+    /// §152.2): the spline `Ammo::init` lays for a missile with a target,
+    /// which `Ammo::inc_time` steps, closes on and re-plans. `None` on a
+    /// round flown as an arc — and on the V2's and the nuke's, whose
+    /// spline holds no target, so `inc_time`'s spline arm only counts.
+    pub spline: Option<Spline>,
 }
 
 /// **A falling aircraft's round** — the fields `Ammo::init_crash@0067b800`
@@ -1321,22 +1327,188 @@ pub fn missile_flight_time(
     lead: Option<(Angle, i32)>,
     speed: i64,
 ) -> i32 {
-    let (from, ahead) = match lead {
+    i32::try_from(missile_spline(launch, sz, landing, ez, lead, speed).len()).expect("at most 16")
+}
+
+/// **A missile's spline as `Ammo::init` lays it** (item 3802): the launch
+/// `(sx, sy, sz)`, the middle control point, the landing `(ex, ey, ez)`,
+/// at `speed` — [`Spline::from_dir`]. The middle point is `lead`'s, at the
+/// launch's height; `None` takes it half way along the straight line,
+/// which keeps the polygon's length the plain distance.
+///
+/// SEAM: the middle point's rotation is the integer
+/// [`crate::movement::sin_component`] pair, where the original rotates a
+/// float vector by the figure's pitch and then its angle; its fraction,
+/// and any pitch, are not carried. A re-plan (`Ammo::inc_time`) lays its
+/// own middle point from the spline and carries no such seam.
+pub fn missile_spline(
+    launch: Pos,
+    sz: i32,
+    landing: Pos,
+    ez: i32,
+    lead: Option<(Angle, i32)>,
+    speed: i64,
+) -> Spline {
+    let mid = match lead {
         Some((angle, r)) => (
-            Pos::new(
-                launch.x + crate::movement::sin_component(angle, r),
-                launch.y - crate::movement::cos_component(angle, r),
-            ),
-            i64::from(r),
+            launch.x + crate::movement::sin_component(angle, r),
+            launch.y - crate::movement::cos_component(angle, r),
+            sz,
         ),
-        None => (launch, 0),
+        None => (
+            launch.x + (landing.x - launch.x) / 2,
+            launch.y + (landing.y - launch.y) / 2,
+            sz + (ez - sz) / 2,
+        ),
     };
-    let dx = i128::from(landing.x - from.x);
-    let dy = i128::from(landing.y - from.y);
-    let dz = i128::from(ez - sz);
-    let rest = isqrt((dx * dx + dy * dy + dz * dz) as u128) as i64;
-    let resolution = if speed > 0 { (ahead + rest) / speed } else { 0 };
-    (resolution.clamp(2, 12) + 1) as i32
+    let v = |x: i32, y: i32, z: i32| [Single::from_i32(x), Single::from_i32(y), Single::from_i32(z)];
+    let speed = Single::from_i32(i32::try_from(speed).unwrap_or(i32::MAX));
+    Spline::from_dir(
+        v(launch.x, launch.y, sz),
+        v(mid.0, mid.1, mid.2),
+        v(landing.x, landing.y, ez),
+        speed,
+    )
+}
+
+/// The most points a guided round's spline holds: `calc_spline@00912f00`
+/// caps a three-point spline's resolution at `3 × 4.0 = 12`, and
+/// `generate_bspline@00911820` lays the first point, one a step, and the
+/// last control point — fourteen at most.
+pub const SPLINE_MAX: usize = 16;
+
+/// **A guided round's flight path** (item 3802, `docs/GOLDEN.md` §152.2):
+/// the points `Spline::calc_from_dir@00913960` lays for a round whose ammo
+/// carries `missile="1"`, which `Ammo::inc_time@0067d380` steps one a
+/// frame, measures against its target and re-plans every fourth frame.
+/// Each point is three singles, by their bits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Spline {
+    pts: [[Single; 3]; SPLINE_MAX],
+    len: u8,
+}
+
+impl Spline {
+    /// The points laid: `Spline +0xd8`, which `Ammo::init` and the re-plan
+    /// take as `total_time`.
+    pub fn len(&self) -> usize {
+        usize::from(self.len)
+    }
+
+    /// Never: the first control point is always laid.
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    /// Point `i`, `(x, y, z)`.
+    pub fn point(&self, i: usize) -> [Single; 3] {
+        self.pts[i]
+    }
+
+    fn push(&mut self, p: [Single; 3]) {
+        self.pts[usize::from(self.len)] = p;
+        self.len += 1;
+    }
+
+    /// **`Spline::calc_from_dir@00913960` with a zero third vector** — the
+    /// control points `start`, `dir`, `end`, degree 2 — at the speed
+    /// `set_min_seg_length@009125e0` divides the control polygon by, and
+    /// the quadratic B-spline `generate_bspline@00911820` lays over the
+    /// clamped knots `clamp_knots@00910be0` builds, `0 0 0 1 1 1`. Every
+    /// step is the listing's single-precision operation:
+    ///
+    /// - the polygon's length is `Σ sqrt((dx·dx + dy·dy) + dz·dz)`, each
+    ///   root taken in double and rounded back (`9125e0`–`912656`), which
+    ///   is the correctly rounded single root, and the resolution its
+    ///   quotient by `speed`, truncated to a `u16` (`+0x62`);
+    /// - `calc_spline` caps it at `(int)(3 × 4.0)` and raises it to the
+    ///   degree;
+    /// - the parameter starts at `k₀ + δ`, `δ = (k₅ − k₀) / res`, and is
+    ///   *accumulated*, `t += δ`; a point is laid while `k₅ > t`, each the
+    ///   sum over the span's three control points of `P · N(t)`, the basis
+    ///   Cox–de Boor's with `calc_bspline_basis@009116e0`'s guards;
+    /// - and the last control point is laid when `k₅ − (t − δ)`, widened
+    ///   to a double, exceeds 0.001 (`911b15`–`911b2d`).
+    pub fn from_dir(start: [Single; 3], dir: [Single; 3], end: [Single; 3], speed: Single) -> Spline {
+        const DEGREE: usize = 2;
+        let ctl = [start, dir, end];
+        let zero = Single::from_bits(0);
+        let one = Single::from_bits(0x3f80_0000);
+        let mut length = zero;
+        for w in ctl.windows(2) {
+            let d = |c: usize| w[1][c].subss(w[0][c]);
+            let (dx, dy, dz) = (d(0), d(1), d(2));
+            let sq = dx.mulss(dx).addss(dy.mulss(dy)).addss(dz.mulss(dz));
+            length = sq.sqrtss().addss(length);
+        }
+        let mut res = i32::from(length.divss(speed).to_i32() as u16);
+        let cap = Single::from_i32(3).mulss(Single::from_bits(0x4080_0000)).to_i32();
+        if cap != 0 && cap < res {
+            res = cap;
+        }
+        res = res.max(DEGREE as i32);
+        let knots = [zero, zero, zero, one, one, one];
+        let last = knots.len() - 1;
+        let delta = knots[last].subss(knots[0]).divss(Single::from_i32(res));
+        let mut s = Spline { pts: [[zero; 3]; SPLINE_MAX], len: 0 };
+        s.push(ctl[0]);
+        let mut t = knots[0].addss(delta);
+        let mut span = 0;
+        while knots[last].gt(t) {
+            let mut next = span + 1;
+            while next < knots.len() {
+                if !t.gt(knots[next]) && knots[next].gt(knots[next - 1]) {
+                    break;
+                }
+                next += 1;
+                span += 1;
+            }
+            if span > last {
+                break;
+            }
+            let mut p = [zero; 3];
+            for (j, c) in ctl.iter().enumerate().take(span + 1).skip(span.saturating_sub(DEGREE)) {
+                let b = bspline_basis(t, j, DEGREE, &knots);
+                for k in 0..3 {
+                    p[k] = p[k].addss(c[k].mulss(b));
+                }
+            }
+            t = t.addss(delta);
+            s.push(p);
+        }
+        // `0.001` as a double lies between these two singles, so a single
+        // above the lower is one above the double.
+        if knots[last].subss(t.subss(delta)).gt(Single::from_bits(0x3a83_126e)) {
+            s.push(ctl[ctl.len() - 1]);
+        }
+        s
+    }
+}
+
+/// `Spline::calc_bspline_basis@009116e0`: `N(i, p)` at `t`, `1.0` past the
+/// knots, the half-open indicator at degree 0, and each recursive term
+/// taken only when both its numerator and its denominator are positive —
+/// `N(i, p−1) · (t − kᵢ)/(kᵢ₊ₚ − kᵢ)`, then that plus
+/// `N(i+1, p−1) · (kᵢ₊ₚ₊₁ − t)/(kᵢ₊ₚ₊₁ − kᵢ₊₁)`.
+fn bspline_basis(t: Single, i: usize, p: usize, k: &[Single]) -> Single {
+    let zero = Single::from_bits(0);
+    let one = Single::from_bits(0x3f80_0000);
+    if i + p >= k.len() {
+        return one;
+    }
+    if p == 0 {
+        return if !k[i].gt(t) && k[i + 1].gt(t) { one } else { zero };
+    }
+    let mut acc = zero;
+    let (a, b) = (t.subss(k[i]), k[i + p].subss(k[i]));
+    if a.gt(zero) && b.gt(zero) {
+        acc = bspline_basis(t, i, p - 1, k).mulss(a.divss(b));
+    }
+    let (c, d) = (k[i + p + 1].subss(t), k[i + p + 1].subss(k[i + 1]));
+    if c.gt(zero) && d.gt(zero) {
+        acc = acc.addss(bspline_basis(t, i + 1, p - 1, k).mulss(c.divss(d)));
+    }
+    acc
 }
 
 /// **A bomb's flight time** (`docs/ORDERS.md` §35.3): `Ammo::init@0067bbf0`'s
@@ -1541,6 +1713,68 @@ pub const fn garrison_arrows(attack: i32, base_arrows: i32, most_shots: i32, gar
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The guided round's two splines on run1469** (item 3802, GOLDEN
+    /// §152.2): the Russian Jet Fighter `2/14`'s round on `1/14`, launched
+    /// from (12775, 16410). Block 620 prints the spline its re-plan laid
+    /// (control points and nine points); block 624 the next, laid from that
+    /// one's `point[4]` truncated, the direction `P + 2·(point[5] − P)`, and
+    /// the target's point, at `200 × unit_move_speed` — six points, whose
+    /// `point[4]` (12848.98, 14983.03) is inside the Jet Fighter's
+    /// `target_size` and closes it. Every point to the dump's six decimals.
+    #[test]
+    fn guided_round_splines_are_run1469s() {
+        let s = |m: i64| Single::from_millionths(m).0;
+        let v = |x: i64, y: i64, z: i64| [s(x), s(y), s(z)];
+        let speed = Single::from_i32(200 * UNIT_MOVE_SPEED);
+        let first = Spline::from_dir(
+            v(13_060_000_000, 16_384_000_000, -31_000_000),
+            v(13_114_324_219, 16_195_578_125, -28_500_000),
+            v(12_792_000_000, 14_712_000_000, 0),
+            speed,
+        );
+        let printed_620 = [
+            v(13_060_000_000, 16_384_000_000, -31_000_000),
+            v(13_067_695_313, 16_316_658_203, -29_968_750),
+            v(13_063_621_094, 16_208_841_797, -28_125_000),
+            v(13_047_777_344, 16_060_552_734, -25_468_750),
+            v(13_020_162_109, 15_871_789_063, -22_000_000),
+            v(12_980_777_344, 15_642_552_734, -17_718_750),
+            v(12_929_621_094, 15_372_841_797, -12_625_000),
+            v(12_866_695_313, 15_062_658_203, -6_718_750),
+            v(12_792_000_000, 14_712_000_000, 0),
+        ];
+        assert_eq!(first.len(), printed_620.len());
+        for (i, want) in printed_620.iter().enumerate() {
+            assert_eq!(first.point(i), *want, "block 620 point {i}");
+        }
+        let at = first.point(4).map(|c| Single::from_i32(c.to_i32()));
+        let ahead = first.point(5);
+        let two = Single::from_bits(0x4000_0000);
+        let dir = [0, 1, 2].map(|c| ahead[c].subss(at[c]).mulss(two).addss(at[c]));
+        assert_eq!(dir, v(12_941_554_688, 15_414_105_469, -13_437_500));
+        let second = Spline::from_dir(at, dir, v(12_792_000_000, 14_712_000_000, 0), speed);
+        let printed_624 = [
+            v(13_020_000_000, 15_871_000_000, -22_000_000),
+            v(12_985_778_320, 15_678_435_547, -18_380_001),
+            v(12_945_866_211, 15_466_250_977, -14_370_001),
+            v(12_900_266_602, 15_234_450_195, -9_969_999),
+            v(12_848_977_539, 14_983_034_180, -5_179_999),
+            v(12_792_000_000, 14_712_000_000, 0),
+        ];
+        assert_eq!(second.len(), printed_624.len());
+        // A print of six decimals names a single uniquely only above
+        // magnitude ~8: `z` -5.179999 is two singles, and either is it.
+        for (i, want) in printed_624.iter().enumerate() {
+            for c in 0..3 {
+                let (ours, theirs) = (second.point(i)[c], want[c]);
+                assert!(
+                    ours.bits().abs_diff(theirs.bits()) <= u32::from(theirs.to_i32().abs() < 8),
+                    "block 624 point {i}[{c}]: {ours:?} against {theirs:?}"
+                );
+            }
+        }
+    }
 
     /// **A splash walks one spiral cell past its square** (item 3636,
     /// parked 3356c): `Ammo::do_damage`'s walk is `0..=radius[k]`, and the
