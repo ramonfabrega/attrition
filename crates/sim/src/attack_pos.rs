@@ -459,6 +459,17 @@ impl crate::Sim {
                 got.map(|p| self.is_in_range_at(me, p, target)), self.attack_dist(me, target)
             );
         }
+        if std::env::var("RON_PROBE_3802").is_ok() {
+            let Obj::Unit(tu) = target else { unreachable!() };
+            let c = Pos::new(from.x.div_euclid(48) * 48 + 0x18, from.y.div_euclid(48) * 48 + 0x18);
+            eprintln!(
+                "PROBE3802   inrange-terms min_range {} max_range {} big {} {} on_map {} alive {} forest {} cdist {}",
+                self.profile(me).min_range, self.max_range_of(me), self.profile(me).big_radius, self.profile(target).big_radius,
+                self.units[tu].on_map, self.units[tu].alive(),
+                self.world.tile_mask(from.tile()) & crate::world::tile::SURFACE == crate::world::tile::SURFACE_FOREST,
+                self.attack_dist_from(me, c, target)
+            );
+        }
         let p = got?;
         (far || centre.is_some() || self.is_in_range_at(me, p, target)).then_some(p)
     }
