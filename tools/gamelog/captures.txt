@@ -11123,3 +11123,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3787: the second melee's word 784, two packets (`docs/GOLDEN.md` §150.2; `docs/RUNS.md` run1459, run1460) ====
 #   run1459  run1457's line with --end-frame 802 --log-window 770 801 --tracer-def RON_STATE_FRAME=780   (the packet; not filed)
 #   run1460  run1457's line with --end-frame 781 --log-window 720 780, DEATHS=1 in end:, --tracer-def RON_STATE_FRAME=760   (the packet; not filed)
+# ==== item 3797: the third melee, a held Information age on Great Sahara (`docs/GOLDEN.md` §152; `docs/RUNS.md` run1467, run1468, run1468b) ====
+#   run1467  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --seat-tribe 1=10 --seat-tribe 2=13   (start)
+#   run1468  --map 7 --end-frame 2600 --timeout 3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file tools/gamelog/golden/melee-information.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1, run1467's profiles and seats   (the staged melee)
+#   run1468b run1468's line with --cover cover=1   (the coverage twin)
+# Checks: `rngcmp.py` run1467 vs run1468 -> 37 identical; run1468 vs run1468b -> 2601 identical; `samegame.py` run1468 vs run1468b -> 26 common, 0 differing.
