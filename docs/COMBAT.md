@@ -10719,9 +10719,11 @@ names the Bomber at eight tiles.
 
 ### 61.5 What is not established
 
-- **The helicopter arm** (`006474ee`): a helicopter target refuses a
+- ~~**The helicopter arm** (`006474ee`): a helicopter target refuses a
   searcher by two type vtable slots (`+0x10c`, `+0x110`), a missile, and
-  `is(0x130, 0)`. This crate keeps "ranged and not a missile" for it.
+  `is(0x130, 0)`. This crate keeps "ranged and not a missile" for it.~~
+  Built for a unit searcher by item 3800 (`docs/GOLDEN.md` §152.1): the
+  slots are `is_siege` and `is_tank`. A building searcher's arm is not.
 - **`is(0x132, 0)`**: a non-air searcher that cannot carry aircraft is
   refused such a target. The id is 306 by the dump's type numbering
   (Fighter 289 and Bomber 304 are XML rows 239 and 254), which would be
