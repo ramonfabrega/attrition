@@ -9208,8 +9208,22 @@ impl Sim {
                         || self.poor_target(me, target)
                 }
             };
+            if std::env::var("RON_PROBE_3802").is_ok() {
+                let un = &self.units[u];
+                eprintln!(
+                    "PROBE3802 f{} {}/{} research {} tgt {:?} poor {} admits {} frame_reentry {}",
+                    self.frame, un.owner, un.index, research, target,
+                    self.poor_target(me, target),
+                    match target { Obj::Unit(t) => self.captain_research_admits(u, t), _ => true },
+                    flags & flag::FIGHT_REENTRY != 0
+                );
+            }
             if research {
-                match self.find_new_target(u, false) {
+                let got = self.find_new_target(u, false);
+                if std::env::var("RON_PROBE_3802").is_ok() {
+                    eprintln!("PROBE3802   found {:?}", got);
+                }
+                match got {
                     None => return false,
                     Some(f) if f != target => {
                         if self.units[u].combat.recharging == 0
