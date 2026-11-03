@@ -212,9 +212,30 @@ pub struct MapGrid {
     /// `y·xs + x` — the 2×2 footprint [`MapGrid::add_starting_location`]
     /// marks. No part walks it; `place_all`'s predicates read it.
     pub city: Vec<bool>,
+    /// `goods` (`PtrArray<Good>`), up to `Objects+0x154`: each slot's live
+    /// good as `(type, cell x, cell y)`, `None` once killed.
+    /// `Objects::init_good@00653f30` takes the first dead slot, else appends,
+    /// so a good's index — the `down_who` its cell holds — counts the oil
+    /// `World::set_oil_at` made and unmade in `place_all`. No part walks it.
+    pub goods: Vec<Option<(i32, i32, i32)>>,
 }
 
 impl MapGrid {
+    /// **`Objects::init_good@00653f30`**'s slot: the first dead one, else a
+    /// new one. Returns the good's index.
+    pub fn init_good(&mut self, ty: i32, x: i32, y: i32) -> usize {
+        let i = self
+            .goods
+            .iter()
+            .position(Option::is_none)
+            .unwrap_or(self.goods.len());
+        if i == self.goods.len() {
+            self.goods.push(None);
+        }
+        self.goods[i] = Some((ty, x, y));
+        i
+    }
+
     /// A grid of `xs × ys` default cells and empty start arrays growing by
     /// [`START_INCREMENT`].
     pub fn new(xs: i32, ys: i32) -> MapGrid {
@@ -225,6 +246,7 @@ impl MapGrid {
             starts: core::array::from_fn(|_| CoordArray::new(START_INCREMENT)),
             tiles: vec![0; (16 * xs * ys) as usize],
             city: vec![false; (xs * ys) as usize],
+            goods: Vec::new(),
         }
     }
 

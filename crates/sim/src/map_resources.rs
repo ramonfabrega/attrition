@@ -120,11 +120,11 @@ impl Pool<'_> {
     }
 }
 
-/// The goods and goody boxes placed so far, by cell, in creation order —
-/// the `goods` and `items` lists, whose index is the cell's `down_who`.
+/// The goody boxes placed so far, by cell, in creation order — the
+/// `items` list, whose index is the cell's `down_who`. The goods list is
+/// the grid's ([`MapGrid::goods`]), oil from `place_all` included.
 #[derive(Default)]
 struct Placed {
-    goods: Vec<(i32, i32, i32)>,
     items: Vec<(i32, i32)>,
 }
 
@@ -300,9 +300,10 @@ impl Pass<'_> {
                 .iter()
                 .all(|&(u, v)| vector_dist(u - x, v - y) >= spacing)
         } else {
-            self.placed
+            self.g
                 .goods
                 .iter()
+                .flatten()
                 .filter(|&&(t, _, _)| t != OIL && SEA.contains(&t) == sea)
                 .all(|&(_, u, v)| vector_dist(u - x, v - y) >= spacing)
         }
@@ -357,7 +358,7 @@ impl Pass<'_> {
         let fp = self.inp.goods[ty as usize];
         let off = if fp.x_size & 1 != 0 { 0x120 } else { 0x180 };
         let (gx, gy) = (x * 0x300 + off, y * 0x300 + off);
-        let n = self.placed.goods.len() as i16;
+        let n = self.g.init_good(ty, x, y) as i16;
         if ty != OIL {
             let (tx0, ty0) = (gx / 0xc0 - fp.x_size / 2, gy / 0xc0 - fp.y_size / 2);
             for tx in tx0..tx0 + fp.x_size {
@@ -374,7 +375,6 @@ impl Pass<'_> {
             c.down = -2;
             c.down_who = n;
         }
-        self.placed.goods.push((ty, x, y));
     }
 
     /// **`Map::place_player_resource@00691f70`**: per player, per count,

@@ -104,6 +104,8 @@ const CORNER_BOX: [(i32, i32); 4] = [(0, 0), (0, 1), (1, 0), (1, 1)];
 const REGION_TAPS: i32 = 0xB400;
 /// `move_x/move_y[0..81]`: the 9×9 square, for the pure any-tests.
 const SQUARE: i32 = 4;
+/// The `OIL` good type, `set_oil_at`'s object.
+const OIL_GOOD: i32 = 5;
 
 /// One `GROUPENTRY`, as `TerrainGroups::init_terrain_data@006a6540` parses
 /// it (`docs/MAPGEN.md` §7).
@@ -317,12 +319,20 @@ impl Pass<'_> {
         set_blocked_at(self.g, tx, ty, on);
     }
 
-    /// `World::set_oil_at@006b2a10`'s cell write. The OIL goods object it
-    /// also makes is not held: no part walks it.
+    /// **`World::set_oil_at@006b2a10`**: any live oil good on the cell is
+    /// killed (listing 0x6b2a10..0x6b2ab6, both arms), then on the OIL flag
+    /// and a fresh oil good at the cell's centre, off the flag cleared. No
+    /// part walks the good; its slot is what a later good's index counts.
     fn set_oil(&mut self, x: i32, y: i32, on: bool) {
+        for slot in &mut self.g.goods {
+            if *slot == Some((OIL_GOOD, x, y)) {
+                *slot = None;
+            }
+        }
         let i = self.at(x, y);
         if on {
             self.g.cells[i].flags |= flag::OIL;
+            self.g.init_good(OIL_GOOD, x, y);
         } else {
             self.g.cells[i].flags &= 0xf7ff;
         }

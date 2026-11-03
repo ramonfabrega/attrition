@@ -1618,7 +1618,8 @@ mod tests {
                     let theirs = g.cells.as_ref().expect("cells");
                     let mut k = 0;
                     for (i, (a, b)) in grid.cells.iter().zip(theirs).enumerate() {
-                        let pick = |c: &WCell| (c.flags, c.down, c.down_who, c.blocked, c.solid, c.bad);
+                        let pick =
+                            |c: &WCell| (c.flags, c.down, c.down_who, c.blocked, c.solid, c.bad);
                         if pick(a) != pick(b) && k < 40 {
                             k += 1;
                             eprintln!(
