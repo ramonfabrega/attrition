@@ -94,12 +94,29 @@ fn information_melee_staging_walk() {
             n.human, built.sim.players[w].age, built.sim.tech[w].power
         );
     }
-    assert_eq!(
-        st.applied.skipped_total(),
-        0,
-        "every staged line reached the simulation"
-    );
-    assert_eq!(st.applied.ran, MELEE_STAGED, "every line ran");
+    // `mirage` and `hind` name nothing: `add`'s walk reads the `NAME`
+    // column alone, and an earlier generic type holds each line's
+    // (`golden::add_named`; run1468's block 701 has no `1/29` or `2/29`).
+    // `elite_special_forces_spanish` is the generic 77, on twenty
+    // characters (run1468's `0/22`).
+    assert_eq!(st.applied.skipped_total(), 2, "the two probes add refuses");
+    let probes: Vec<_> = st
+        .applied
+        .landed
+        .iter()
+        .filter(|l| l.starts_with("add mirage") || l.starts_with("add hind"))
+        .collect();
+    assert!(probes.is_empty(), "the probes stood up: {probes:?}");
+    // `TypeIndex` 77 is `unitrules.xml`'s record 27 (the table starts at
+    // `0x32`); 78, the Spanish line, would be 28.
+    let esf = built
+        .sim
+        .units
+        .iter()
+        .find(|u| u.alive() && u.owner == 0 && u.index == 22)
+        .expect("0/22 on 700");
+    assert_eq!(esf.ty, Some(77 - 50), "0/22 is the generic Elite Special Forces");
+    assert_eq!(st.applied.ran, MELEE_STAGED - 2, "every other line ran");
 }
 
 /// run1468: the staged game, the draw stream to its end at `cover=0`, the

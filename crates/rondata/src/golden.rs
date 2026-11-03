@@ -1970,7 +1970,8 @@ fn add(
         done.skip(word, "no such leader");
         return;
     }
-    if let Some(ty) = named_unit(loaded, name) {
+    let target = add_named(loaded, name);
+    if let Some(AddTarget::Unit(ty)) = target {
         for _ in 0..num.max(0) {
             let Some(spot) =
                 built
@@ -1998,7 +1999,7 @@ fn add(
         done.ran += 1;
         return;
     }
-    if let Some(ty) = named_build(loaded, name) {
+    if let Some(AddTarget::Build(ty)) = target {
         // One, whatever the count says: `init_build`'s arm breaks.
         //
         // **Placed and finished, not ordered** (item 552). The arm is
@@ -2051,12 +2052,61 @@ fn type_named(names: &[String], name: &str) -> Option<usize> {
     hit(&|n: &str, w: &str| n == w).or_else(|| hit(&|n: &str, w: &str| n.starts_with(w)))
 }
 
-fn named_unit(loaded: &Loaded, name: &str) -> Option<usize> {
-    type_named(&loaded.unit_type_names, name).or_else(|| type_named(&loaded.unit_names, name))
+/// What an `add` token names: a unit record or a building record.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum AddTarget {
+    Unit(usize),
+    Build(usize),
 }
 
-fn named_build(loaded: &Loaded, name: &str) -> Option<usize> {
-    type_named(&loaded.build_type_names, name).or_else(|| type_named(&loaded.build_names, name))
+/// **`add`'s own walk** — `run_cmd`'s call `parse_type(·, ·, 3)`
+/// (`ConsoleWin::run_cmd@007d6a70`, the decompile's line 8368) and `ConsoleWin::parse_type@007e4050`'s
+/// length loop (item 3797, `docs/GOLDEN.md` §152). The compare length
+/// starts at 32 and steps down to the call's minimum, 3 (`iVar2 + -1`); at
+/// each length the unit types are walked from `0x32` in `TypeIndex` order,
+/// then the building types, and each `TypeData::name` (`+0x60`, the `NAME`
+/// column — never `type_name` at `+0xb0`) is asked `String::ignore(typed,
+/// name, len)` and again with the name's spaces purged. So the **longest
+/// prefix** of the token that some name starts with wins, the lowest index
+/// at that length: `elite_special_forces_spanish` is the generic Elite
+/// Special Forces (77) on its first twenty characters, as run1468's `0/22`
+/// reads, and `mirage` and `hind` — `TYPENAME`s whose `NAME`s an earlier
+/// generic type holds — name nothing (no `1/29`, no `2/29` on its block
+/// 701). `ignore` reads as a compare over `min(len, typed)` characters,
+/// which is what lets `hoplite` name `Hoplites` (run101–run105).
+///
+/// SEAM: the `tech` arm's `parse_type(·, "tubs", 2)` still takes
+/// [`type_named`]'s exact-then-prefix rule.
+fn add_named(loaded: &Loaded, name: &str) -> Option<AddTarget> {
+    const LONGEST: usize = 32;
+    const SHORTEST: usize = 3;
+    let typed: Vec<char> = name.replace('_', " ").to_lowercase().chars().collect();
+    let agrees = |n: &str, len: usize| {
+        let k = len.min(typed.len());
+        let hit = |c: &str| {
+            let c: Vec<char> = c.to_lowercase().chars().collect();
+            c.len() >= k && c[..k] == typed[..k]
+        };
+        hit(n) || hit(&n.replace(' ', ""))
+    };
+    (SHORTEST..=LONGEST).rev().find_map(|len| {
+        loaded
+            .unit_names
+            .iter()
+            .position(|n| agrees(n, len))
+            .map(AddTarget::Unit)
+            .or_else(|| {
+                loaded
+                    .build_names
+                    .iter()
+                    .position(|n| agrees(n, len))
+                    .map(AddTarget::Build)
+            })
+    })
+}
+
+fn named_unit(loaded: &Loaded, name: &str) -> Option<usize> {
+    type_named(&loaded.unit_type_names, name).or_else(|| type_named(&loaded.unit_names, name))
 }
 
 #[cfg(test)]
