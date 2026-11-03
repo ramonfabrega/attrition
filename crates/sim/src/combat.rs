@@ -1336,8 +1336,8 @@ pub fn missile_flight_time(
 /// launch's height; `None` takes it half way along the straight line,
 /// which keeps the polygon's length the plain distance.
 ///
-/// SEAM: the middle point's rotation is the integer
-/// [`crate::movement::sin_component`] pair, where the original rotates a
+/// SEAM: the middle point is rotated in integers, on this crate's sine
+/// table, where the original rotates a
 /// float vector by the figure's pitch and then its angle; its fraction,
 /// and any pitch, are not carried. A re-plan (`Ammo::inc_time`) lays its
 /// own middle point from the spline and carries no such seam.
