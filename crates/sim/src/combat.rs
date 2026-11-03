@@ -1794,8 +1794,7 @@ mod tests {
         // A print of six decimals names a single uniquely only above
         // magnitude ~8: `z` -5.179999 is two singles, and either is it.
         for (i, want) in printed_624.iter().enumerate() {
-            for c in 0..3 {
-                let (ours, theirs) = (second.point(i)[c], want[c]);
+            for (c, (&ours, &theirs)) in second.point(i).iter().zip(want).enumerate() {
                 assert!(
                     ours.bits().abs_diff(theirs.bits()) <= u32::from(theirs.to_i32().abs() < 8),
                     "block 624 point {i}[{c}]: {ours:?} against {theirs:?}"
