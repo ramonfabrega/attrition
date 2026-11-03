@@ -15407,12 +15407,28 @@ word reaches either.
 
 **Tests.** `gunpowder_melee::gunpowder_melee_s_leaders_are_compared_on_every_seat`.
 
-## 152. Reserved for the next item on the rules track
+## 152. The third melee — a held Information age on Great Sahara, every seat a computer (item 3797, run1467–run1468b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The shape is §155; the two before are §149 and §150. **The one lever changed is the age**: Information
+(`STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`), chosen by what its fight and `add` lines reach (DECISIONS 103 §2:
+both twins before entered 0 of the 616 never rows). The seats follow it: the French (who 1, tribe 10) and the
+Russians (who 2, tribe 13), whose lines are two of the thirteen never-seen ones (`rubric.py --tables 3` on base
+`ad287b0f`: Mirage 296 the French, HIND 312 the Russians).
+
+**The falsifiers, written before the first take** (§155's (a)–(d), and three of this cell's):
+- (a) the two computers are not at war on frame 0 — run1467's start block, `LEADERDATA`'s `diplos`.
+- (b) a spawned squad never acquires a target — no `ATTACKORDER`/`TARGETORDER` on any staged record by block 901.
+- (c) the granted resources are not spent — the buckets on block 701 read 120,000.
+- (d) a reachable type is refused by `add` — `INFO cmd`'s return on the spawn's frame (`cmdsran.py`).
+- (e) the seats are not the French and the Russians — run1467's receipt, the PLAYER records' tribes.
+- (f) **an air line `add`ed with no airbase never flies** — every staged `Air` record (`TI` 295, 301, 303, 306,
+  308, 309, 311, 313, 314) on the first `end:` block after 700 reads its spawn point and no order; it is killed by
+  any air record that has moved off its spawn point, and the record then says what it flew from.
+- (g) **`parse_type` compares the NAME column alone** (`TypeData::name`, `+0x60`; `007e4050`'s unit walk), so the
+  three lines whose NAME an earlier generic type holds — `mirage` (296, "Jet Fighter"), `hind` (312, "Attack
+  Helicopter"), `elite_special_forces_spanish` (78) — are refused, and `jet_fighter`, `attack_helicopter` and
+  `elite_special_forces` make 295, 311 and 77. Killed by any of the three probes returning 1 or a 296, 312 or 78
+  record standing on block 701.
 
 ## 153. Reserved for the next item on the rules track
 
