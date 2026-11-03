@@ -832,6 +832,12 @@ mod tests {
         let mut g = sketch(&["#.", ".#"]);
         g.fix_diag_land();
         assert_eq!((g.cell(0, 0).land, g.cell(1, 1).land), (2, 0));
+        // The other diagonal: x outer, (0, 1) meets (1, 0) across its
+        // (+1, −1) corner first. The (−1, ±1) corners can never fire — a
+        // partner there is earlier in the scan with the same two flanks.
+        let mut anti = sketch(&[".#", "#."]);
+        anti.fix_diag_land();
+        assert_eq!((anti.cell(0, 1).land, anti.cell(1, 0).land), (2, 0));
         let mut joined = sketch(&["##", ".#"]);
         joined.fix_diag_land();
         assert!(joined.cells.iter().filter(|c| c.land == 0).count() == 3);
@@ -844,6 +850,13 @@ mod tests {
         let mut g = sketch(&["#####", "#####", "##.##", "#####", "#####"]);
         g.make_coastlines();
         assert!(g.cells.iter().all(|c| c.land == 0 && c.flags == 0));
+        // Exactly six dry neighbours fills; five does not.
+        let mut six = sketch(&["######", "###.##", "###...", "......", "......"]);
+        six.fix_lakes();
+        assert_eq!(six.cell(3, 1).land, 0);
+        let mut five = sketch(&["######", "###.##", "##....", "......", "......"]);
+        five.fix_lakes();
+        assert_eq!(five.cell(3, 1).land, 2);
         let mut spit = sketch(&[".....", ".###.", ".....", "....."]);
         spit.make_coastlines();
         // Each of the three cells is COAST; the ends have the middle as their
