@@ -12912,13 +12912,20 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 - **3802c. A ground unit's figure z** (`guys[0] +0x14`): `Sim::guided_closes` reads its object's z for the
   proximity's `|dz| < 0xc0`. Names no score.
 
-## Parked by the next landing, slot XL — reserved
+## Parked by item 3803, 2026-11-03 — `place_all` on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3803a. The branches Great Sahara's groups never take** (`docs/MAPGEN.md` §7, `sim::terrain_groups`): cliffs
+  (type 8, and with them §11's `acos`), oil by water (type 7), patterns 3 and 4, `clear_group`'s first branch
+  (`land_sub = num_tiles[0] − 1`), the negative per-nation counts, and the style-9 skip of `treeify_mountains`.
+  They are ported from the readings and never run. A Great Sahara grid cannot check them. Another style's
+  7859 can, once its mask is ported (3734a).
+- **3803b. The pattern-2/3 weights run on one region only.** On Great Sahara `c == T`, so the single-precision
+  weight is `n` exactly. The `sim::single` path ran (the sprinkling group, n = 20), but no multi-region list has
+  been weighted. A style with water and a world or nonplayer group of more than six clumps tests it.
+- **3803c. The mountain rings are the install's sixteen, written in** (`Rings::stock`). They are large 0..=6,
+  medium 7..=14 and small 15, which `effects_graphics.xml`'s `area` attributes give. `place_all_inputs` reads
+  the templates but not the `area` attributes. A mod with other ranges would part at the first `get_range`.
+  Names no score.
 
 ## Parked by the next landing, slot XM — reserved
 
