@@ -9186,7 +9186,12 @@ impl Sim {
         // `find_new_target`.
         // The arm is `recharging == 0`'s alone (`fight@005fd4d0:368`): a
         // recharging melee-and-ranged unit past the gate skips it.
-        if !state.mandatory
+        // PROBE 3800: skip one unit's captain arm on one frame.
+        let probe_skip = std::env::var("RON_PROBE_3800").ok().is_some_and(|v| {
+            v == format!("{}/{}@{}", self.units[u].owner, self.units[u].index, frame)
+        });
+        if !probe_skip
+            && !state.mandatory
             && state.recharging == 0
             && state.captain == i32::from(self.units[u].index)
         {
