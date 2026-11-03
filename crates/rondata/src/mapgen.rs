@@ -477,6 +477,81 @@ mod tests {
         assert!(files > 0, "the 7854 check reached no file");
     }
 
+    /// **`find_all`'s labels on every start grid** (`docs/MAPGEN.md` §6):
+    /// a start dump's `region` is the last region pair's (7927 → 7937) on
+    /// every cell but the half-land, whose `region` `Terrain::mark_halfwater`
+    /// writes after it. Relabelling the dumped cells with
+    /// [`Regions::find_all`] gives every cell back whole — `region2`
+    /// included — on every start grid but [`HALF_LAND_REORDERS`]'s, where a
+    /// half-land row that was open water at 7937 puts an island ahead of
+    /// another in the scan and swaps land regions 1 and 2. The dump cannot
+    /// say which half-land cells were land at 7937, so those two are named,
+    /// and any other file that parts fails.
+    #[test]
+    fn find_all_relabels_every_start_grid() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let mut checked = 0;
+        let mut parted = Vec::new();
+        let mut styles = std::collections::BTreeMap::new();
+        for (name, g) in all {
+            let Some(cells) = &g.cells else { continue };
+            if g.xs * g.ys != cells.len() as i32 {
+                continue;
+            }
+            let mut grid = MapGrid::new(g.xs, g.ys);
+            grid.cells = cells.clone();
+            let mut regions = Regions::default();
+            regions.clear_all(&mut grid);
+            regions.find_all(&mut grid);
+            checked += 1;
+            *styles.entry(g.style).or_insert(0) += 1;
+            let wrong: Vec<_> = (0..cells.len())
+                .filter(|&i| grid.cells[i] != cells[i])
+                .collect();
+            if let Some(&i) = wrong.first() {
+                let (x, y) = (i as i32 % g.xs, i as i32 / g.xs);
+                parted.push((
+                    name.as_str(),
+                    format!(
+                        "{name} (style {}): {} cells, first ({x}, {y}) ours {:?} theirs {:?}",
+                        g.style,
+                        wrong.len(),
+                        (grid.cells[i].region, grid.cells[i].region2),
+                        (cells[i].region, cells[i].region2)
+                    ),
+                ));
+            }
+        }
+        eprintln!("relabelled {checked} start grids, by style {styles:?}");
+        let unexplained: Vec<_> = parted
+            .iter()
+            .filter(|(n, _)| !HALF_LAND_REORDERS.contains(n))
+            .map(|(_, why)| why.as_str())
+            .collect();
+        assert!(
+            unexplained.is_empty(),
+            "{} of {checked} part:\n{}",
+            unexplained.len(),
+            unexplained.join("\n")
+        );
+        assert!(
+            checked >= MAPGEN.checksum_of,
+            "{checked} start grids relabelled, under the pinned {}",
+            MAPGEN.checksum_of
+        );
+    }
+
+    /// The start grids whose half-land reorders `find_all`'s scan: the fuzz
+    /// lobby's East Indies (seed 424242), 106 cells of land regions 1 and 2
+    /// swapped from (31, 2).
+    const HALF_LAND_REORDERS: [&str; 2] = [
+        "gamelog-fuzz-424242-early.txt",
+        "gamelog-fuzz-424242-heights.txt",
+    ];
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807)
     /// and the zero-draw passes (7835..7854).
     const GREAT_SAHARA_CHECKED: i64 = 2;
