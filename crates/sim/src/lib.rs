@@ -185,6 +185,7 @@ pub mod target_score;
 pub mod tcoord;
 pub mod tech;
 pub mod terrain;
+pub mod terrain_groups;
 pub mod territory;
 pub mod topp;
 pub mod tpath;

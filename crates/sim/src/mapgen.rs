@@ -204,6 +204,14 @@ pub struct MapGrid {
     /// `start_x` (+0x80), `start_y` (+0x9c), `start_city_x` (+0xb8),
     /// `start_city_y` (+0xd4).
     pub starts: [CoordArray; 4],
+    /// `World.tdata` (+0x138): one `TData::mask` per tile, `4·xs × 4·ys`
+    /// row-major — a cell `(x, y)` covers tiles `4x..4x+3 × 4y..4y+3`. Part 6
+    /// walks it.
+    pub tiles: Vec<u16>,
+    /// `World.start_city_locs` (+0xf0): the start-city bit of each cell,
+    /// `y·xs + x` — the 2×2 footprint [`MapGrid::add_starting_location`]
+    /// marks. No part walks it; `place_all`'s predicates read it.
+    pub city: Vec<bool>,
 }
 
 impl MapGrid {
@@ -215,7 +223,34 @@ impl MapGrid {
             ys,
             cells: vec![WCell::default(); (xs * ys) as usize],
             starts: core::array::from_fn(|_| CoordArray::new(START_INCREMENT)),
+            tiles: vec![0; (16 * xs * ys) as usize],
+            city: vec![false; (xs * ys) as usize],
         }
+    }
+
+    /// `tile_xs` (+0x18) and `tile_ys` (+0x1c): four tiles a cell each way.
+    pub fn tile_dims(&self) -> (i32, i32) {
+        (4 * self.xs, 4 * self.ys)
+    }
+
+    /// Part 6: the tile masks (two bytes a tile), then `seen`, `seen2` and
+    /// `seen3`, `fog_size` bytes each. Map generation writes none of the
+    /// three, so they walk as zeros; `fog_size` is `4·xs·ys` (`fog_xs` is
+    /// `2·xs`), which is what makes 7854's part 6 on Great Sahara the
+    /// 158,400 zero bytes it prints (`docs/MAPGEN.md` §3).
+    pub fn tile_part(&self) -> u32 {
+        let mut s = Adler32::default();
+        for m in &self.tiles {
+            s.feed(&m.to_le_bytes());
+        }
+        let zeros = [0u8; 4096];
+        let mut left = 3 * 4 * (self.xs * self.ys) as usize;
+        while left > 0 {
+            let n = left.min(zeros.len());
+            s.feed(&zeros[..n]);
+            left -= n;
+        }
+        s.sum()
     }
 
     pub fn cell(&self, x: i32, y: i32) -> &WCell {
@@ -248,6 +283,8 @@ impl MapGrid {
             a.list.clear();
         }
         self.cells.fill(WCell::WIPED);
+        self.tiles.fill(0);
+        self.city.fill(false);
     }
 
     /// `Regions::clear_all@00680060`'s one write into the cells: every
@@ -275,8 +312,15 @@ impl MapGrid {
     /// `World::add_starting_location@006b2de0`: the start cell once on
     /// each of `start_x`/`start_y`, and the four cells of the city's 2×2
     /// footprint — `(x, x−1, x, x−1)` and `(y, y, y−1, y−1)`. Its other
-    /// write, the start-city bit grid at +0xf8, no part walks.
+    /// write, the start-city bits of the same four cells ([`MapGrid::city`]),
+    /// no part walks.
     pub fn add_starting_location(&mut self, x: i32, y: i32) {
+        for (cx, cy) in [(x, y), (x - 1, y), (x, y - 1), (x - 1, y - 1)] {
+            let i = cy * self.xs + cx;
+            if let Some(b) = usize::try_from(i).ok().and_then(|i| self.city.get_mut(i)) {
+                *b = true;
+            }
+        }
         self.starts[0].push(x);
         self.starts[1].push(y);
         for dx in [0, -1, 0, -1] {
