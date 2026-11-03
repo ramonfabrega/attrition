@@ -4534,6 +4534,34 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: 39,
         },
     ),
+    // **Piece 261, the Attack Helicopter's two rocket pods** (item 3804,
+    // `docs/GOLDEN.md` §152.3): `ATTACKHELICOPTER`'s `CHAR_ATTACK2` fires
+    // a `SmallRocket` on node 0 at 0 ms and on node 1 at 500. run1469's
+    // `2/15` (`TI` 311) at (13560, 16056), angle 0, `z` 330, releases its
+    // node 0 round from (13488, 16015, 371) on 627 and its node 1 round
+    // from (13638, 16029, 371) on 633. **One heading only**: each row is
+    // the centre of the unit square that heading truncates to, so the
+    // vector's turn at any other heading is not measured.
+    (
+        261,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -72_500,
+            fwd: 41_500,
+            dz: 41,
+        },
+    ),
+    (
+        261,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 78_500,
+            fwd: 27_500,
+            dz: 41,
+        },
+    ),
 ];
 
 /// The bay a piece releases from, or `None` when none is measured: a
@@ -4605,6 +4633,25 @@ mod tests {
     /// sz − z)` — is reproduced by one of the piece's rows, and each row of
     /// the two aircraft reproduces at least one. Made to fail with the
     /// rows removed: every one leaves from the figure's own point.
+    /// **The Attack Helicopter's rockets leave from its two pods** (item
+    /// 3804, `docs/GOLDEN.md` §152.3): run1469's `2/15` at (13560, 16056),
+    /// angle 0, releases node 0's round from (13488, 16015) on 627 and
+    /// node 1's from (13638, 16029) on 633, both 41 over its figure. Made
+    /// to fail with the rows removed: both leave from the figure's point.
+    #[test]
+    fn run1469_s_attack_helicopter_rockets_leave_from_its_pods() {
+        let at = Pos::new(13560, 16056);
+        for (node, start, want) in [(0, 0, (13488, 16015)), (1, 6, (13638, 16029))] {
+            let p = launch_point(at, Angle(0), 261, crate::anim::ATTACK2, start, node);
+            assert_eq!((p.x, p.y), want, "node {node}");
+            assert_eq!(
+                release_dz(261, crate::anim::ATTACK2, start, node),
+                Some(41),
+                "node {node}"
+            );
+        }
+    }
+
     #[test]
     fn run1439_s_aircraft_and_tow_rounds_leave_from_their_rows() {
         type Row = (i32, i32, i32, i32, i32, i32, i32);

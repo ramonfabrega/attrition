@@ -2121,13 +2121,15 @@ impl Sim {
                     // the `GUY` record's), and that is the height the
                     // package carries (`Guy::execute_events@005d99c0:29`):
                     // a bomb leaves from the Bomber's altitude, not the
-                    // ground under it (`docs/ORDERS.md` §35.2). SEAM: a
-                    // helicopter's figure `z`, which this crate does not
-                    // fly, keeps the ground's.
+                    // ground under it (`docs/ORDERS.md` §35.2). A
+                    // helicopter's too, now that its figure climbs
+                    // ([`Sim::helicopter_climb`]; item 3804,
+                    // `docs/GOLDEN.md` §152.3): run1469's Attack
+                    // Helicopter `2/15` at `z` 330 releases at 371.
                     let domain = self.unit_domain_of(u);
                     let z = if domain == crate::attrition::Domain::Sea {
                         0
-                    } else if domain == crate::attrition::Domain::Air && !self.is_helicopter(u) {
+                    } else if domain == crate::attrition::Domain::Air {
                         self.units[u].airframe.z
                     } else {
                         self.ground_z(self.units[u].pos)

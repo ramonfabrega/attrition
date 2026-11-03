@@ -162,8 +162,21 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // agrees on that round's every field. On 640 ours spends 45 against
     // 47: at index 37 theirs spends `Ammo::do_damage+0xc59` where ours
     // spends `Farms::inc_time+0x1ae` — a round lands in theirs.
-    count: 640,
-    sequence: 640,
+    //
+    // Item 3804: **640 → 648**. Theirs' round was the Attack Helicopter
+    // `2/15`'s second rocket on `1/15` (both `TI` 311): it re-planned to
+    // five points on 636 where ours re-planned to six, so it landed on 640
+    // and ours flew on. Three launch inputs parted (§152.3): the
+    // helicopters flew 30 low from birth (`Unit::init`'s
+    // `set_new_location(·, 1, 1)` climbs), an air target was aimed at the
+    // ground and not its figure's `z`, and piece 261's rockets left the
+    // figure's point at ground + 100 where theirs leave its pods at figure
+    // + 41. run1469's window agrees on every `2/15` and `2/14` round's
+    // launch, landing and clock, 620..639. On 648 ours spends 44 against
+    // 43: at index 35 ours spends `Unit::close+0xcb6` where theirs spends
+    // `Farms::inc_time+0x1ae` — ours acted.
+    count: 648,
+    sequence: 648,
 };
 
 /// The melee's word: the lower of the two partings.
