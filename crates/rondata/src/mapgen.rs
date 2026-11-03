@@ -1,0 +1,330 @@
+//! **Map generation's reader** (`docs/MAPGEN.md` §3, §15): a start dump's
+//! cells packed into the `WData` bytes `World::walk_data@006b5cf0`'s part 5
+//! walks, so that `sim::mapgen`'s port can be checked against the setup
+//! trace's own Adler-32 at every phase's checkpoint.
+//!
+//! A start dump's `WORLD` block sits past the `CONSTANTS` and type tables,
+//! 15 MB into a file, and the frames after it run to gigabytes; [`start_head`]
+//! reads a file only to the end of that block, and the crate's own
+//! [`Log::parse`] reads what it returns.
+
+use crate::gamelog::{CellDump, Log, WorldChecksum, world_cells};
+use sim::mapgen::{Adler32, WCell};
+use std::io::{self, BufRead, BufReader};
+use std::path::Path;
+
+/// `land_key[]`, the names a cell's level-2 line prints, in index order.
+pub const LAND_KEY: [&str; 4] = ["BASELAND", "SANDY", "OCEAN", "NONE"];
+
+/// One dumped cell as its `WData`, or `None` for a terrain name outside
+/// [`LAND_KEY`]. Every field is stored at the width `types.txt` gives it,
+/// so a dumped value outside that width wraps as the original's store does.
+pub fn wcell(c: &CellDump<'_>) -> Option<WCell> {
+    Some(WCell {
+        flags: c.flags as u16,
+        land: LAND_KEY.iter().position(|k| *k == c.land)? as i8,
+        land_sub: c.land_sub as u8,
+        region: c.region as i16,
+        region2: c.region2 as i16,
+        down: c.down as i16,
+        down_who: c.down_who as i16,
+        val: c.val as u8,
+        goods: c.goods as u8,
+        light: c.light as u8,
+        who: c.who as i8,
+        who2: c.who2 as i8,
+        blocked: c.blocked as u8,
+        bad: c.bad as u8,
+        solid: c.solid as i8,
+        was_seen: c.was_seen as u8,
+    })
+}
+
+/// Part 5 of a dumped grid: every cell's walked bytes, in dump order
+/// (`wdata[0..size]`, row-major), as one Adler-32.
+pub fn cell_part(cells: &[WCell]) -> u32 {
+    let mut s = Adler32::default();
+    for c in cells {
+        s.feed(&c.walked());
+    }
+    s.sum()
+}
+
+/// A file's text up to the end of its first `WORLD` block — the preamble's
+/// setup trace, `GAME INFO`, and the start dump's grid. `None` when the
+/// preamble carries no `World` line (no setup trace at
+/// `check_all_level ≥ 14`), which is most of the archive and is decided in
+/// its first few thousand lines. A file with no `WORLD` before its first
+/// frame is returned to that frame.
+pub fn start_head(path: &Path) -> io::Result<Option<String>> {
+    let mut r = BufReader::with_capacity(1 << 20, std::fs::File::open(path)?);
+    let mut out = String::new();
+    let mut line = Vec::new();
+    let mut in_preamble = true;
+    let mut traced = false;
+    let mut world: Option<usize> = None;
+    loop {
+        line.clear();
+        if r.read_until(b'\n', &mut line)? == 0 {
+            break;
+        }
+        let text = String::from_utf8_lossy(&line);
+        let body = text.trim_start();
+        let indent = text.len() - body.len();
+        let body = body.trim_end();
+        if in_preamble && body.starts_with("BEGIN ") {
+            if !traced {
+                return Ok(None);
+            }
+            in_preamble = false;
+        }
+        if in_preamble && body.starts_with("World ") {
+            traced = true;
+        }
+        if let Some(w) = world {
+            if !body.is_empty() && indent <= w {
+                break;
+            }
+        } else if body == "BEGIN WORLD" {
+            world = Some(indent);
+        } else if body.starts_with("BEGIN FRAME") {
+            break;
+        }
+        out.push_str(&text);
+    }
+    Ok(traced.then_some(out))
+}
+
+/// What one file's head holds for the falsifier: its setup trace, the
+/// start grid, and the lobby the generator read.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct StartGrid {
+    /// `(file, line, seed, parts)` per record — [`WorldChecksum`], owned.
+    pub checksums: Vec<(String, i64, u32, [u32; 16])>,
+    /// The start dump's cells; `None` when the head has no `WORLD` grid.
+    pub cells: Option<Vec<WCell>>,
+    /// Dumped cells whose terrain names no [`LAND_KEY`] entry, which
+    /// [`StartGrid::cells`] leaves out.
+    pub unnamed: usize,
+    pub xs: i32,
+    pub ys: i32,
+    /// `GAMEINFO`'s `MAP_STYLE` (`MapStyleIndex`: Great Sahara 7).
+    pub style: i64,
+    /// The `PLAYER` blocks under `GAMEINFO`: the nation count `Map::make`
+    /// takes as its first argument.
+    pub nations: i32,
+}
+
+impl StartGrid {
+    /// The record at `file`:`line`, the first if the trace prints it twice.
+    pub fn at(&self, file: &str, line: i64) -> Option<&(String, i64, u32, [u32; 16])> {
+        self.checksums
+            .iter()
+            .find(|(f, l, _, _)| f == file && *l == line)
+    }
+}
+
+/// Reads [`start_head`]'s text into a [`StartGrid`].
+pub fn start_grid(head: &str) -> StartGrid {
+    let log = Log::parse(head);
+    let checksums = log
+        .world_checksums()
+        .iter()
+        .map(|c: &WorldChecksum<'_>| (c.file.to_string(), c.line, c.seed, c.parts))
+        .collect();
+    let mut g = StartGrid {
+        checksums,
+        ..StartGrid::default()
+    };
+    let Some(init) = log.initial() else {
+        return g;
+    };
+    let int = |k: &str| {
+        init.game_info
+            .iter()
+            .find(|(f, _)| *f == k)
+            .and_then(|(_, v)| v.trim().parse::<i64>().ok())
+    };
+    g.style = int("MAP_STYLE").unwrap_or(-1);
+    g.nations = init.players.len() as i32;
+    let world_int = |k: &str| {
+        init.world
+            .iter()
+            .find(|(f, _)| *f == k)
+            .and_then(|(_, v)| v.trim().parse::<i32>().ok())
+            .unwrap_or(0)
+    };
+    g.xs = world_int("xs");
+    g.ys = world_int("ys");
+    let dumped = world_cells(&init.world);
+    if !dumped.is_empty() {
+        let cells: Vec<WCell> = dumped.iter().filter_map(wcell).collect();
+        g.unnamed = dumped.len() - cells.len();
+        g.cells = Some(cells);
+    }
+    g
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::diff::MAPGEN;
+    use sim::combat::Rng;
+    use sim::mapgen::{MapGrid, great_sahara_make_continents};
+    use std::sync::OnceLock;
+
+    /// Every kept dump's [`StartGrid`], read once for the tests below: the
+    /// archive's files whose preamble carries the setup trace. `None` on a
+    /// machine without the archive.
+    fn archive() -> Option<&'static [(String, StartGrid)]> {
+        static ALL: OnceLock<Option<Vec<(String, StartGrid)>>> = OnceLock::new();
+        ALL.get_or_init(|| {
+            let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
+                let home = std::env::var("HOME").unwrap_or_default();
+                format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+            });
+            let mut names: Vec<String> = std::fs::read_dir(&dir)
+                .ok()?
+                .filter_map(|e| e.ok()?.file_name().into_string().ok())
+                .filter(|n| n.starts_with("gamelog") && n.ends_with(".txt"))
+                .collect();
+            names.sort();
+            let paths: Vec<(String, String)> = names
+                .into_iter()
+                .filter_map(|n| Some((crate::testenv::dump(&n)?, n)))
+                .collect();
+            let chunk = paths.len().div_ceil(4).max(1);
+            let mut out: Vec<(String, StartGrid)> = std::thread::scope(|s| {
+                let hands: Vec<_> = paths
+                    .chunks(chunk)
+                    .map(|part| {
+                        s.spawn(move || {
+                            part.iter()
+                                .filter_map(|(p, n)| {
+                                    let head = start_head(Path::new(p)).ok()??;
+                                    Some((n.clone(), start_grid(&head)))
+                                })
+                                .collect::<Vec<_>>()
+                        })
+                    })
+                    .collect();
+                hands
+                    .into_iter()
+                    .flat_map(|h| h.join().expect("a sweep thread"))
+                    .collect()
+            });
+            out.sort_by(|a, b| a.0.cmp(&b.0));
+            Some(out)
+        })
+        .as_deref()
+    }
+
+    /// The records from `setup.cpp` 1240 on: the checkpoints after which the
+    /// setup path writes no cell (`docs/MAPGEN.md` §3).
+    fn after_setup(g: &StartGrid) -> &[(String, i64, u32, [u32; 16])] {
+        let from = g
+            .checksums
+            .iter()
+            .position(|(f, l, _, _)| f == "setup.cpp" && *l == 1240)
+            .unwrap_or(g.checksums.len());
+        &g.checksums[from..]
+    }
+
+    /// **§3's identity, pinned** (item 3776): on every kept file whose
+    /// setup trace reaches `setup.cpp` 1240 and whose head holds a start
+    /// grid, the packed grid's Adler-32 is part 5 of every record from 1240
+    /// on. A file that parts is named with its cell count and both sums;
+    /// the file count is a floor at [`MAPGEN`]'s.
+    #[test]
+    fn the_cell_part_is_the_packed_start_dump() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let mut both = 0;
+        let mut parted = Vec::new();
+        for (name, g) in all {
+            let (Some(cells), false) = (&g.cells, after_setup(g).is_empty()) else {
+                continue;
+            };
+            assert_eq!(g.unnamed, 0, "{name}: a cell names no `land_key` terrain");
+            both += 1;
+            let ours = cell_part(cells);
+            if let Some((f, l, _, p)) = after_setup(g).iter().find(|(_, _, _, p)| p[5] != ours) {
+                parted.push(format!(
+                    "{name}: {} cells, ours {ours} against {} at {f} {l}",
+                    cells.len(),
+                    p[5]
+                ));
+            }
+        }
+        assert!(
+            parted.is_empty(),
+            "{} of {both} files part:\n{}",
+            parted.len(),
+            parted.join("\n")
+        );
+        // A floor, not a count: every capture a lane files moves `both`,
+        // and none of them should turn this red (parked 3776b).
+        assert!(
+            both >= MAPGEN.checksum_of && MAPGEN.checksum == MAPGEN.checksum_of,
+            "{both} files carry both, under the pinned {} of {}: a kept dump \
+             went missing, or the pin moved",
+            MAPGEN.checksum,
+            MAPGEN.checksum_of
+        );
+    }
+
+    /// **Great Sahara's mask at `map.cpp` 7807** (`docs/MAPGEN.md` §5, §15
+    /// step 1): from the seed the trace prints at 7805, the port's four draws
+    /// land on 7807's seed, its start ring on part 2 and its grid on part 5,
+    /// on every Great Sahara file that carries both checkpoints. The files
+    /// reduce to the generator runs §2 lists — 2 and 3 nations on one seed.
+    #[test]
+    fn great_sahara_s_mask_is_the_traced_7807() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let mut files = 0;
+        let mut runs = std::collections::BTreeSet::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 7) {
+            let (Some(before), Some(after)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
+                continue;
+            };
+            assert!(g.xs > 0 && g.nations > 0, "{name}: no grid size or nations");
+            let mut grid = MapGrid::new(g.xs, g.ys);
+            let mut rng = Rng::new(before.2);
+            great_sahara_make_continents(&mut grid, g.nations, &mut rng);
+            let ours = (rng.seed, grid.start_part(), grid.cell_part());
+            let theirs = (after.2, after.3[2], after.3[5]);
+            assert_eq!(
+                ours, theirs,
+                "{name}: (seed, part 2, part 5) at 7807, ours against theirs; \
+                 {} nations on {}×{}, starts {:?} {:?}",
+                g.nations, g.xs, g.ys, grid.starts[0].list, grid.starts[1].list
+            );
+            files += 1;
+            runs.insert((before.2, g.nations, g.xs));
+        }
+        eprintln!("7807: {files} Great Sahara files, generator runs {runs:?}");
+        let pinned = MAPGEN
+            .styles
+            .iter()
+            .find(|s| s.map == "GreatSahara")
+            .expect("MAPGEN's GreatSahara row");
+        assert_eq!(
+            pinned.ported, GREAT_SAHARA_CHECKED,
+            "a Great Sahara phase was ported or lost: re-pin `floors::MAPGEN` \
+             and the handoff's `Mapgen:` line"
+        );
+        assert!(
+            files > 0 && runs.len() >= 2,
+            "the 7807 check reached {files} files and {} generator runs",
+            runs.len()
+        );
+    }
+
+    /// The §15 phases this module checks on Great Sahara: the mask (7807).
+    const GREAT_SAHARA_CHECKED: i64 = 1;
+}

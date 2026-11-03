@@ -42,6 +42,38 @@ pub const FLOORS: [MapFloors; 3] = [
     },
 ];
 
+/// One style's map-generation port: the `docs/MAPGEN.md` §15 phases its
+/// checks reach, of the chain's eight.
+pub struct MapgenStyle {
+    pub map: &'static str,
+    pub ported: i64,
+    pub phases: i64,
+}
+
+/// **Map generation's score** (item 3776, `docs/MAPGEN.md` §3, §15): the
+/// kept files on which §3's packed start grid is the setup trace's part 5,
+/// of the files that carry both; and per style, the §15 phases checked at
+/// their own checkpoint. `rondata::mapgen`'s tests assert against these, and
+/// the handoff's `Mapgen:` line states them
+/// (`the_handoff_s_mapgen_is_the_pins`).
+pub struct Mapgen {
+    pub checksum: usize,
+    pub checksum_of: usize,
+    pub styles: &'static [MapgenStyle],
+}
+
+pub const MAPGEN: Mapgen = Mapgen {
+    // 496 of 496 on 2026-11-03: the archive's traced files with a start
+    // grid, 337 when item 3734 counted them on 2026-10-28.
+    checksum: 496,
+    checksum_of: 496,
+    styles: &[MapgenStyle {
+        map: "GreatSahara",
+        ported: 1,
+        phases: 8,
+    }],
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -251,6 +283,92 @@ mod tests {
     #[test]
     fn the_handoff_s_melee_is_the_pinned_word() {
         the_handoff_carries("Melee");
+    }
+
+    /// **The map generator's line is its pins** (item 3776,
+    /// `docs/MAPGEN.md` §15): `Mapgen: checksum <n> of <m> · <map> <k> of
+    /// <p> phases`, one part per [`MAPGEN`] style, in order.
+    #[test]
+    fn the_handoff_s_mapgen_is_the_pins() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Mapgen:"))
+            .unwrap_or_else(|| {
+                panic!(
+                    "docs/QUEUE.md has no `Mapgen:` line in the handoff; write `{}`",
+                    mapgen_line(&MAPGEN)
+                )
+            });
+        if let Err(e) = mapgen_verdict(line, &MAPGEN) {
+            panic!("{e}");
+        }
+    }
+
+    /// The line [`MAPGEN`] says, the middle dot between parts.
+    fn mapgen_line(m: &Mapgen) -> String {
+        let mut parts = vec![format!("checksum {} of {}", m.checksum, m.checksum_of)];
+        for s in m.styles {
+            parts.push(format!("{} {} of {} phases", s.map, s.ported, s.phases));
+        }
+        format!("Mapgen: {}", parts.join(" \u{b7} "))
+    }
+
+    /// A `Mapgen:` line read part by part against the pins; numbers with or
+    /// without their commas.
+    fn mapgen_verdict(line: &str, m: &Mapgen) -> Result<(), String> {
+        let body = line
+            .strip_prefix("Mapgen:")
+            .ok_or_else(|| format!("not a `Mapgen:` line: {line:?}"))?;
+        let num = |t: Option<&&str>| t.and_then(|n| n.replace(',', "").parse::<i64>().ok());
+        let mut said = Vec::new();
+        for part in body.split('\u{b7}') {
+            let t: Vec<&str> = part.split_whitespace().collect();
+            let (Some(a), Some(b)) = (num(t.get(1)), num(t.get(3))) else {
+                return Err(format!("unreadable part {part:?} on the `Mapgen:` line"));
+            };
+            if t.get(2) != Some(&"of") {
+                return Err(format!("part {part:?} on the `Mapgen:` line names no `of`"));
+            }
+            said.push((t[0].to_string(), a, b));
+        }
+        let mut pinned = vec![(
+            "checksum".to_string(),
+            m.checksum as i64,
+            m.checksum_of as i64,
+        )];
+        pinned.extend(
+            m.styles
+                .iter()
+                .map(|s| (s.map.to_string(), s.ported, s.phases)),
+        );
+        if said == pinned {
+            Ok(())
+        } else {
+            Err(format!(
+                "the handoff's `Mapgen:` line is not the pins: the queue's line \
+                 says {said:?}, `MAPGEN` says {pinned:?}"
+            ))
+        }
+    }
+
+    #[test]
+    fn a_mapgen_line_is_read_against_its_pins() {
+        let line = mapgen_line(&MAPGEN);
+        assert_eq!(
+            line,
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 1 of 8 phases"
+        );
+        assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
+        for wrong in [
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 1 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 2 of 8 phases",
+            "Mapgen: checksum 496 of 496",
+            "Mapgen: checksum 496 496 \u{b7} GreatSahara 1 of 8 phases",
+        ] {
+            assert!(mapgen_verdict(wrong, &MAPGEN).is_err(), "{wrong:?} passed");
+        }
     }
 
     /// **The battery word's line is its pinned word** (item 2904,

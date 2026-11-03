@@ -23,15 +23,17 @@ at the level a port needs.
 **Confidence.** The phase order, the checkpoint lines and the draw budget
 per phase are **measured**: they come from the original's own checksum
 trace and are exact. **§3's falsifier is a diff**: the checksum's cell part
-equals an Adler-32 over the dumped cells on 337 of 337 files. Which
+equals an Adler-32 over the dumped cells on 337 of 337 files (496 of 496
+since item 3776 pinned it, §3). Which
 function draws, and how often, is a reading. It is checked as a total
 against the measured budget in two places (§4's 3 draws and §9's 3,600 on
 the all-land maps). Elsewhere it is consistent in kind but not reconciled
 to a number, because the count depends on the grid at that moment. Every
 other claim is reading-only (§13).
 
-**What this is not.** It is not a port and it proposes none; the port
-chain is parked (§15). It does not cover scenario maps (`MapScenario::make`
+**What this is not.** It is not a whole port: its first step, the
+checksum reader and Great Sahara's mask, is built (item 3776, §15), and
+the rest of the chain is parked. It does not cover scenario maps (`MapScenario::make`
 overrides +0x64), Conquer the World's `MapConquest`, or the editor.
 
 ## 1. Entry: who calls it, with what
@@ -128,7 +130,14 @@ fields into the `WData` byte layout, with `land` as its `land_key` index
 (`BASELAND`, `SANDY`, `OCEAN`, `NONE`), and took one Adler-32 over all
 3,600 cells. It equals the trace's part 5 at `setup.cpp` 1240 and at every
 record after it, through `game.cpp` 5024, on **337 of 337** files with
-both. So every phase's cell writes are checkable **at that phase's own
+both. **Pinned since item 3776** as
+`rondata::mapgen::tests::the_cell_part_is_the_packed_start_dump`, on
+**496 of 496** files on 2026-11-03 (the archive has grown; `floors::MAPGEN`
+holds the count as a floor, and any file that parts fails it). The reader is `rondata::mapgen`: `start_head` cuts a
+file just past its start `WORLD` block, `Log::parse` and `world_cells` read
+it, and `sim::mapgen::WCell::walked` packs a cell. The walked range is
+`[cell, cell + 0x15)`, `flags` through `was_seen`, read off `walk_data`'s
+part-5 loop; moving one byte of the packing parts all 496. So every phase's cell writes are checkable **at that phase's own
 checkpoint** to the byte. No intermediate dump is needed: run the port's
 phase, pack its cells, compare the Adler-32. The seed delta checks its
 draws, and part 2 its start positions. A port's whole map maker therefore
@@ -193,6 +202,39 @@ mask is independent of the player count**: only the angular step reads
 it. `World::add_starting_location@006b2de0` writes the start arrays and
 the start-city bits, never a `WData`, so at 7807 only part 2 can differ —
 as measured.
+
+**Diff-backed since item 3776** (`sim::mapgen::great_sahara_make_continents`,
+checked by `rondata::mapgen::tests::great_sahara_s_mask_is_the_traced_7807`):
+from the seed at 7805, the port lands on the seed, part 2 and part 5 at
+7807 on all 105 Great Sahara files that carry both checkpoints, which are
+the two generator runs of §2. What the listing settled that the reading
+left open:
+- The draw order is the angle's high half, its low half, then the centre's
+  x jitter, then its y. The first point is at `angle + step`, not at
+  `angle`. The centre stays in the callee-saved registers across the
+  loop, so the points do not chain. Reordering the angle's two draws parts
+  run1000's part 2.
+- `project@0092d000` folds the angle as `crate::army::step_along` does:
+  `x + sin·r`, `y − cos·r`, with r the ring radius in cells.
+- The wiped cell is `land` 2, `region` 0x40, `down`, `who` and `who2` −1,
+  and every other field 0. `Regions::clear_all@00680060` and
+  `invert_land` then zero `region`, and `invert_land`'s 16-bit store at +2
+  zeroes `land_sub` with `land`. 3,600 copies of that cell are 7807's
+  part 5, 1,267,075,849.
+- `add_starting_location` pushes x and y once each. It pushes the city's
+  footprint as `(x, x−1, x, x−1)` and `(y, y, y−1, y−1)`.
+- Part 2 walks each `SimpleArray<WCoord>` as
+  `SimpleArray<WCoord>::walk_data@0047c660` does. An empty array walks its
+  4-byte `num` alone, which is why 7805 prints 1,048,577. A full one walks
+  `num`, the capacity, the 2-byte increment at +0xc, the flag byte with
+  0x40 cleared, and then the entries. `increase_size@00434630` doubles on
+  a negative increment, starting from 4. **The increment, −1, is measured,
+  not read**: I tried every increment from −1 to 64 and every flag byte.
+  Only −1 with flag byte 0 gives 7807's part 2 on both lobbies. The
+  constructor that sets it was not read.
+- The function also writes `Map::start_dist` (+0x28) as `max(4, xs/16)`.
+  No `World` part walks `Map`, so nothing here checks that write; the port
+  returns the value.
 
 **Great Lakes, `MapGreatLakes::make_continents@00699e40`: the 5,568.**
 - Three opening draws: two for the angle, one for the lake count
@@ -532,7 +574,9 @@ Of the territory's 198 open or layout-only functions under the nine stems
 - the phase order;
 - every checkpoint line;
 - every draw count in §2;
-- §3's Adler-32 identity (337 of 337);
+- §3's Adler-32 identity (337 of 337; 496 of 496 pinned, item 3776);
+- §5's Great Sahara `make_continents`: its seed, part 2 and part 5 at 7807
+  on 105 files (item 3776);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -580,7 +624,9 @@ tileset or a base-mask style is what would.
 
 Parked, not queued (`docs/PARKED.md`, item 3734's heading), in order. Each
 step is checked by §3 at its own checkpoint before the next begins:
-1. the land/sea mask against every grid (§5, 7807);
+1. the land/sea mask against every grid (§5, 7807) — **Great Sahara
+   built** (item 3776, `sim::mapgen`; the `Mapgen:` line's first phase);
+   Great Lakes and East Indies remain;
 2. the zero-draw passes (§6, 7854);
 3. `place_all` (§7, 7859–7870);
 4. resources (§8, 7927);

@@ -206,6 +206,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_late_ages_are_the_pinned_words',
     # The melee's line (item 3733, GOLDEN §149).
     'the_handoff_s_melee_is_the_pinned_word',
+    # The map generator's line (item 3776, MAPGEN §15).
+    'the_handoff_s_mapgen_is_the_pins',
     'the_handoff_s_census_is_the_pinned_share',
     # The census's own pin (Loop 2367, the thirty-fourth pass): two sweep
     # lanes re-pinned `census::SIMULATION_BACKED` in the same landing and

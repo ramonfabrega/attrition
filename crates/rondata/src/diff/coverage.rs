@@ -3119,6 +3119,10 @@ const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
     ("Initial", "the start block, `diff::setup`"),
     ("ConstantDump", "the start block's constants, `diff::setup`"),
     ("Checksum", "the start block's checksums, `diff::setup`"),
+    (
+        "WorldChecksum",
+        "the setup trace's `World` parts, `rondata::mapgen` (item 3776)",
+    ),
     ("CellDump", "the world, `diff::world`"),
     ("RegionDump", "the world, `build_sim`"),
     ("GoodDump", "the world, `build_sim`"),
