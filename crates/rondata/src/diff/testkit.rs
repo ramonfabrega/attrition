@@ -7892,7 +7892,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Loop 3728: the correction audit's replays (`diff::audit`), each pair's
     // long walked from its start to the closing record with the audit on.
     ("bantu_ancient_pair_corrections_change_nothing", 143),
-    ("coverage_pair_corrections_change_nothing", 217),
+    // Item 3804: +1 — a helicopter born on the walk reads the ground for its birth climb.
+    ("coverage_pair_corrections_change_nothing", 218),
     ("dutch_medieval_pair_corrections_change_nothing", 9),
     ("german_alltech_pair_corrections_change_nothing", 1585),
     ("greek_medieval_pair_corrections_change_nothing", 1),
@@ -7901,10 +7902,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("japanese_industrial_pair_corrections_change_nothing", 2),
     ("korean_ancient_pair_corrections_change_nothing", 181),
     ("lakota_medieval_pair_corrections_change_nothing", 2),
-    ("lakota_pair_corrections_change_nothing", 583),
+    // Item 3804: +1 — a helicopter born on the walk reads the ground for its birth climb.
+    ("lakota_pair_corrections_change_nothing", 584),
     ("maya_ancient_pair_corrections_change_nothing", 52),
     ("mongol_gunpowder_pair_corrections_change_nothing", 2),
-    ("mongol_pair_corrections_change_nothing", 205),
+    // Item 3804: +2 — a helicopter born on the walk reads the ground for its birth climb.
+    ("mongol_pair_corrections_change_nothing", 207),
     ("roman_medieval_pair_corrections_change_nothing", 27),
     ("russian_modern_pair_corrections_change_nothing", 131),
     ("spanish_gunpowder_pair_corrections_change_nothing", 28),
