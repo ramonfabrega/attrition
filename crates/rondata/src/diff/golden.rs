@@ -6260,6 +6260,7 @@ const WANT_CH79: &[&str] = &[
 ];
 
 const WANT_CH78: &[&str] = &[
+    // Item 3804: the helicopter's `g.z`/`g.last_z` rows left — its birth climb (`docs/GOLDEN.md` §152.3).
     "600 0/0 form",
     "600 0/1 form",
     "600 0/2 form",
@@ -6272,8 +6273,6 @@ const WANT_CH78: &[&str] = &[
     "600 1/4 form",
     "600 1/5 form",
     // An `add`ed Helicopter stands at height 30 the frame after, 631 in ours.
-    "611 0/6 g.last_z[0]",
-    "611 0/6 g.z[0]",
 ];
 
 /// **Chapter sixty-eight** (item 2357, `docs/GOLDEN.md` §85, run852): a
@@ -7097,11 +7096,11 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// and the Barracks' and the Radar's `damage` and `damage_frac` on 1036
 /// agree.
 const WANT_CH38: &[&str] = &[
+    // Item 3804: the rounds' `ez` rows, and the Stockade's `v1z`, left — an air target is aimed at its figure's `z` (`docs/GOLDEN.md` §152.3).
     "619 1/2007 build:constr_time",
     "743 1/9 g.des_turret0[0]",
     "743 1/9 g.turret0[0]",
     "754 1/9 ammo[0].angle",
-    "754 1/9 ammo[0].ez",
     "754 1/9 ammo[0].sx",
     "754 1/9 ammo[0].sy",
     "754 1/9 ammo[0].sz",
@@ -7109,7 +7108,6 @@ const WANT_CH38: &[&str] = &[
     "756 1/9 ammo[1].angle",
     "756 1/9 ammo[1].ex",
     "756 1/9 ammo[1].ey",
-    "756 1/9 ammo[1].ez",
     "756 1/9 ammo[1].sx",
     "756 1/9 ammo[1].sy",
     "756 1/9 ammo[1].sz",
@@ -7127,27 +7125,17 @@ const WANT_CH38: &[&str] = &[
     "784 1/9 ammo[0]",
     "786 0/7 ammo[0].accuracy",
     "787 0/7 ammo[1].accuracy",
-    "798 1/2007 ammo[6].ez",
-    "798 1/2007 ammo[6].v1z",
     "801 1/9 g.node_flags[0]",
     "806 0/7 ammo[6].accuracy",
-    "808 1/2007 ammo[2].ez",
-    "808 1/2007 ammo[2].v1z",
-    "828 1/2007 ammo[0].ez",
-    "828 1/2007 ammo[0].v1z",
     "832 0/6 ammo[0].accuracy",
     "833 0/6 ammo[1].accuracy",
     "836 0/6 ammo[2].accuracy",
-    "838 1/2007 ammo[4].ez",
-    "838 1/2007 ammo[4].v1z",
     "838 1/9 ammo[3].angle",
-    "838 1/9 ammo[3].ez",
     "838 1/9 ammo[3].sx",
     "838 1/9 ammo[3].sy",
     "838 1/9 ammo[3].sz",
     "838 1/9 ammo[3].v1z",
     "840 1/9 ammo[6].angle",
-    "840 1/9 ammo[6].ez",
     "840 1/9 ammo[6].sx",
     "840 1/9 ammo[6].sy",
     "840 1/9 ammo[6].sz",
@@ -7155,31 +7143,24 @@ const WANT_CH38: &[&str] = &[
     "844 0/6 ammo[3].accuracy",
     "847 0/6 ammo[4].accuracy",
     "858 1/9 ammo[5].angle",
-    "858 1/9 ammo[5].ez",
     "858 1/9 ammo[5].sx",
     "858 1/9 ammo[5].sy",
     "858 1/9 ammo[5].sz",
     "858 1/9 ammo[5].v1z",
-    "888 1/2007 ammo[1].ez",
-    "888 1/2007 ammo[1].v1z",
     "919 0/7 ammo[3].accuracy",
     "922 0/7 ammo[4].accuracy",
     "924 0/7 ammo[2].accuracy",
     "927 0/7 ammo[5].accuracy",
     "930 0/7 ammo[7].accuracy",
     "964 1/9 ammo[4].angle",
-    "964 1/9 ammo[4].ez",
     "964 1/9 ammo[4].sx",
     "964 1/9 ammo[4].sy",
     "964 1/9 ammo[4].sz",
     "964 1/9 ammo[4].v1z",
-    "968 1/2007 ammo[5].ez",
-    "968 1/2007 ammo[5].v1z",
     "969 0/6 ammo[6].accuracy",
     "975 0/6 ammo[5].accuracy",
     "980 0/6 ammo[7].accuracy",
     "989 1/9 ammo[2].angle",
-    "989 1/9 ammo[2].ez",
     "989 1/9 ammo[2].sx",
     "989 1/9 ammo[2].sy",
     "989 1/9 ammo[2].sz",
@@ -7191,6 +7172,7 @@ const WANT_CH38: &[&str] = &[
 /// against −1), and the V2s' seats inside their silos on 2926 and 2931
 /// (+24, +24: parked 646's family, run371's `0/10` again).
 const WANT_CH36: &[&str] = &[
+    // Item 3804: the helicopter's `g.z`/`g.last_z` rows left — its birth climb (`docs/GOLDEN.md` §152.3).
     "1000 0/7 ammo[7].accuracy",
     "1003 0/7 ammo[6].accuracy",
     "1061 0/8 ammo[5].accuracy",
@@ -7210,8 +7192,6 @@ const WANT_CH36: &[&str] = &[
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
     "2446 0/11 mirror",
-    "2659 0/12 g.last_z[0]",
-    "2659 0/12 g.z[0]",
     "2675 0/12 dest_angle",
     "935 0/8 ammo[2].accuracy",
     "936 0/8 ammo[3].accuracy",
@@ -7347,6 +7327,7 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // parting. What stands is the birth seats and the second Helicopter's
 // bearing, parked.
 const WANT_CH35: &[&str] = &[
+    // Item 3804: the helicopter's `g.z`/`g.last_z` rows left — its birth climb (`docs/GOLDEN.md` §152.3).
     "1000 0/7 ammo[7].accuracy",
     "1003 0/7 ammo[6].accuracy",
     "1061 0/8 ammo[5].accuracy",
@@ -7366,8 +7347,6 @@ const WANT_CH35: &[&str] = &[
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
     "2446 0/11 mirror",
-    "2659 0/12 g.last_z[0]",
-    "2659 0/12 g.z[0]",
     "2675 0/12 dest_angle",
     "935 0/8 ammo[2].accuracy",
     "936 0/8 ammo[3].accuracy",

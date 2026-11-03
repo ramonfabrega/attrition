@@ -285,15 +285,23 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // the helicopters' figures fly 30 low (`1/15` `g.z` 690 against 720,
     // `2/15` 360 against 390). The word's own value diff is run1469's
     // per-frame window, not these stride blocks (GOLDEN §152.2).
+    //
+    // Item 3804 (the same window and blocks; the word 648): **449 → 388**
+    // keys, rounds read (19, 15), 51 → 47 parting. Block 601 is
+    // standing-only still (84 keys), 701 holds 113 and 801 191. The
+    // helicopters' `g.z` rows have left 701 (`1/15` and `2/15` no longer
+    // 30 low): their birth climb (§152.3). On 701 `1/15` carries 12 of
+    // damage against 6, `1/14` and `1/17` hold no order against theirs'
+    // one as before. The word's value diff is run1469's window (§152.3).
     pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 449, "run1468's word window");
+    pin_eq!(w.firsts.len(), 388, "run1468's word window");
     pin_eq!(w.rounds_read, (19, 15), "the rounds read");
-    pin_eq!(w.rounds.len(), 51, "the rounds that part");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

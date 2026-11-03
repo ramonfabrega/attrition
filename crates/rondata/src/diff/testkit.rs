@@ -7567,8 +7567,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("run715_s_word_frame_is_widened_whole", 4),
     // And run716 (item 1614): fourteen reads in its window, the replay
     // past the word 3142 — `coverage_pair_first_parting` read none until
-    // item 1625 walked it through the window to 3395 (below).
-    ("run716_s_word_frame_is_widened_whole", 14),
+    // item 1625 walked it through the window to 3395 (below). Item 3804:
+    // fifteen — a helicopter born in the window reads the ground for its
+    // birth climb (`Unit::init`'s `set_new_location(·, 1, 1)`).
+    ("run716_s_word_frame_is_widened_whole", 15),
     // And run721 (item 1625): 149 reads in its window, the replay past
     // the word 3395 (pinned at 148, it fails).
     ("run721_s_word_frame_is_widened_whole", 149),
