@@ -4137,12 +4137,17 @@ impl Sim {
         // [`crate::topp::target_opportunity_head`] over [`crate::topp::SimTopp`]
         // (item 3348, swept). The gate and the group arm run at each level of
         // the walk, and `param_3` is zero from the second level on.
-        let responder = match crate::topp::target_opportunity_head(
+        let head = crate::topp::target_opportunity_head(
             &mut crate::topp::SimTopp { sim: self },
             victim,
             attacker,
             from_group,
-        ) {
+        );
+        if std::env::var("RON_PROBE_3802").is_ok() {
+            eprintln!("PROBE3802 topp f{} victim {}/{} attacker {:?} head {:?}", self.frame,
+                self.units[victim].owner, self.units[victim].index, attacker, head);
+        }
+        let responder = match head {
             crate::topp::Head::Go(u) => u,
             _ => return,
         };
