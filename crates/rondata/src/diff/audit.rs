@@ -260,33 +260,42 @@ macro_rules! audited {
 }
 
 audited! {
-    american_modern_pair_corrections_change_nothing: crate::diff::american_modern_pair::AMERICAN_MODERN => (1, 35, 8), 0, [];
-    russian_modern_pair_corrections_change_nothing: crate::diff::russian_modern_pair::RUSSIAN_MODERN => (1, 131, 104), 0, [];
     american_enlightenment_pair_corrections_change_nothing: crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT => (1, 132, 104), 0, [];
     american_industrial_pair_corrections_change_nothing: crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL => (1, 35, 8), 0, [];
+    american_information_pair_corrections_change_nothing: crate::diff::american_information_pair::AMERICAN_INFORMATION => (1, 67, 40), 0, [];
+    american_modern_pair_corrections_change_nothing: crate::diff::american_modern_pair::AMERICAN_MODERN => (1, 35, 8), 0, [];
     aztec_alltech_pair_corrections_change_nothing: crate::diff::aztec_alltech_pair::AZTEC_ALLTECH => (1, 35, 8), 0, [];
     aztec_ancient_pair_corrections_change_nothing: crate::diff::aztec_ancient_pair::AZTEC_ANCIENT => (1, 132, 104), 0, [];
     aztec_medieval_pair_corrections_change_nothing: crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL => (1, 36, 8), 0, [];
+    aztec_modern_pair_corrections_change_nothing: crate::diff::aztec_modern_pair::AZTEC_MODERN => (1, 67, 40), 0, [];
     bantu_ancient_pair_corrections_change_nothing: crate::diff::bantu_ancient_pair::BANTU_ANCIENT => (1, 132, 104), 0, [];
     bantu_medieval_pair_corrections_change_nothing: crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL => (1, 36, 8), 0, [];
+    bantu_modern_pair_corrections_change_nothing: crate::diff::bantu_modern_pair::BANTU_MODERN => (1, 67, 40), 0, [];
     british_classical_pair_corrections_change_nothing: crate::diff::british_classical_pair::BRITISH_CLASSICAL => (1, 132, 104), 0, [];
     british_enlightenment_pair_corrections_change_nothing: crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT => (1, 132, 104), 0, [];
     british_industrial_pair_corrections_change_nothing: crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL => (1, 35, 8), 0, [];
     british_medieval_pair_corrections_change_nothing: crate::diff::british_medieval_pair::BRITISH_MEDIEVAL => (1, 68, 40), 0, [];
+    british_modern_pair_corrections_change_nothing: crate::diff::british_modern_pair::BRITISH_MODERN => (1, 67, 40), 0, [];
     chinese_enlightenment_pair_corrections_change_nothing: crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT => (1, 68, 40), 0, [];
     chinese_gunpowder_pair_corrections_change_nothing: crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER => (1, 132, 104), 0, [];
     chinese_industrial_pair_corrections_change_nothing: crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL => (1, 35, 8), 0, [];
     chinese_medieval_pair_corrections_change_nothing: crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL => (1, 36, 8), 0, [];
+    chinese_modern_pair_corrections_change_nothing: crate::diff::chinese_modern_pair::CHINESE_MODERN => (1, 131, 104), 0, [];
     coverage_pair_corrections_change_nothing: crate::diff::coverage_pair::COVERAGE => (1, 131, 104), 0, [];
     dutch_medieval_pair_corrections_change_nothing: crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL => (1, 138, 104), 0, [];
     egyptian_classical_pair_corrections_change_nothing: crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL => (1, 132, 104), 0, [];
     egyptian_gunpowder_pair_corrections_change_nothing: crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER => (1, 36, 8), 0, [];
     egyptian_industrial_pair_corrections_change_nothing: crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL => (1, 131, 104), 0, [];
+    egyptian_information_pair_corrections_change_nothing: crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION => (1, 67, 40), 0, [];
+    egyptian_modern_pair_corrections_change_nothing: crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN => (1, 67, 40), 0, [];
     french_classical_pair_corrections_change_nothing: crate::diff::french_classical_pair::FRENCH_CLASSICAL => (1, 36, 8), 0, [];
     french_enlightenment_pair_corrections_change_nothing: crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT => (1, 132, 104), 0, [];
+    french_information_pair_corrections_change_nothing: crate::diff::french_information_pair::FRENCH_INFORMATION => (1, 35, 8), 0, [];
+    french_medieval_pair_corrections_change_nothing: crate::diff::french_medieval_pair::FRENCH_MEDIEVAL => (1, 68, 40), 0, [];
     german_alltech_pair_corrections_change_nothing: crate::diff::german_alltech_pair::GERMAN_ALLTECH => (1, 131, 104), 0, [];
     german_ancient_pair_corrections_change_nothing: crate::diff::german_ancient_pair::GERMAN_ANCIENT => (1, 36, 8), 0, [];
     german_industrial_pair_corrections_change_nothing: crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL => (1, 67, 40), 0, [];
+    german_modern_pair_corrections_change_nothing: crate::diff::german_modern_pair::GERMAN_MODERN => (1, 67, 40), 0, [];
     greek_classical_pair_corrections_change_nothing: crate::diff::greek_classical_pair::GREEK_CLASSICAL => (1, 132, 104), 0, [];
     greek_enlightenment_pair_corrections_change_nothing: crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT => (1, 68, 40), 0, [];
     greek_gunpowder_pair_corrections_change_nothing: crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER => (1, 36, 8), 0, [];
@@ -302,6 +311,7 @@ audited! {
     japanese_gunpowder_pair_corrections_change_nothing: crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER => (1, 36, 8), 0, [];
     japanese_industrial_pair_corrections_change_nothing: crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL => (1, 131, 104), 0, [];
     japanese_medieval_pair_corrections_change_nothing: crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL => (1, 68, 40), 0, [];
+    japanese_modern_pair_corrections_change_nothing: crate::diff::japanese_modern_pair::JAPANESE_MODERN => (1, 67, 40), 0, [];
     korean_ancient_pair_corrections_change_nothing: crate::diff::korean_ancient_pair::KOREAN_ANCIENT => (1, 133, 104), 0, [];
     korean_classical_pair_corrections_change_nothing: crate::diff::korean_classical_pair::KOREAN_CLASSICAL => (1, 37, 8), 0, [];
     korean_medieval_pair_corrections_change_nothing: crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL => (1, 69, 40), 0, [];
@@ -310,9 +320,11 @@ audited! {
     lakota_medieval_pair_corrections_change_nothing: crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL => (1, 129, 104), 0, [];
     lakota_pair_corrections_change_nothing: crate::diff::lakota_pair::LAKOTA => (1, 128, 104), 0, [];
     maya_ancient_pair_corrections_change_nothing: crate::diff::maya_ancient_pair::MAYA_ANCIENT => (1, 132, 104), 0, [];
+    maya_information_pair_corrections_change_nothing: crate::diff::maya_information_pair::MAYA_INFORMATION => (1, 67, 40), 0, [];
     mongol_classical_pair_corrections_change_nothing: crate::diff::mongol_classical_pair::MONGOL_CLASSICAL => (1, 36, 8), 0, [];
     mongol_enlightenment_pair_corrections_change_nothing: crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT => (1, 68, 40), 0, [];
     mongol_gunpowder_pair_corrections_change_nothing: crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER => (1, 132, 104), 0, [];
+    mongol_medieval_pair_corrections_change_nothing: crate::diff::mongol_medieval_pair::MONGOL_MEDIEVAL => (1, 132, 104), 0, [];
     mongol_pair_corrections_change_nothing: crate::diff::mongol_pair::MONGOL => (1, 131, 104), 0, [];
     persian_classical_pair_corrections_change_nothing: crate::diff::persian_classical_pair::PERSIAN_CLASSICAL => (1, 68, 40), 0, [];
     persian_gunpowder_pair_corrections_change_nothing: crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER => (1, 132, 104), 0, [];
@@ -320,12 +332,17 @@ audited! {
     roman_classical_pair_corrections_change_nothing: crate::diff::roman_classical_pair::ROMAN_CLASSICAL => (1, 36, 8), 0, [];
     roman_gunpowder_pair_corrections_change_nothing: crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER => (1, 68, 40), 0, [];
     roman_medieval_pair_corrections_change_nothing: crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL => (1, 132, 104), 0, [];
+    roman_modern_pair_corrections_change_nothing: crate::diff::roman_modern_pair::ROMAN_MODERN => (1, 131, 104), 0, [];
     russian_gunpowder_pair_corrections_change_nothing: crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER => (1, 68, 40), 0, [];
+    russian_information_pair_corrections_change_nothing: crate::diff::russian_information_pair::RUSSIAN_INFORMATION => (1, 131, 104), 0, [];
     russian_medieval_pair_corrections_change_nothing: crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL => (1, 36, 8), 0, [];
+    russian_modern_pair_corrections_change_nothing: crate::diff::russian_modern_pair::RUSSIAN_MODERN => (1, 131, 104), 0, [];
     sahara_coverage_corrections_change_nothing: crate::diff::sahara_coverage::SAHARA_COVERAGE => (1, 35, 8), 0, [];
     sahara_mongol_corrections_change_nothing: crate::diff::sahara_mongol::SAHARA_MONGOL => (1, 35, 8), 0, [];
     spanish_classical_pair_corrections_change_nothing: crate::diff::spanish_classical_pair::SPANISH_CLASSICAL => (1, 36, 8), 0, [];
     spanish_gunpowder_pair_corrections_change_nothing: crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER => (1, 132, 104), 0, [];
     spanish_industrial_pair_corrections_change_nothing: crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL => (1, 67, 40), 0, [];
+    spanish_modern_pair_corrections_change_nothing: crate::diff::spanish_modern_pair::SPANISH_MODERN => (1, 131, 104), 0, [];
     turkish_enlightenment_pair_corrections_change_nothing: crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT => (1, 36, 8), 0, [];
+    turkish_information_pair_corrections_change_nothing: crate::diff::turkish_information_pair::TURKISH_INFORMATION => (1, 131, 104), 0, [];
 }
