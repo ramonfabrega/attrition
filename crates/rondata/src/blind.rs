@@ -534,6 +534,11 @@ pub const TRACES: &[&str] = &[
     // `cover=1` on the click-free pool, to 2600 (`docs/RUNS.md` run1450b):
     // run1450's game on every frame (rngcmp 2601 identical, 0 differing).
     "rontrace-run1450b.log",
+    // Item 3797: the third melee (Great Sahara, three seats, a held
+    // Information age, `tools/gamelog/golden/melee-information.cmd`) at
+    // `cover=1` on the click-free pool, to 2600 (`docs/RUNS.md` run1468b):
+    // run1468's game on every frame (rngcmp 2601 identical, 0 differing).
+    "rontrace-run1468b.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
