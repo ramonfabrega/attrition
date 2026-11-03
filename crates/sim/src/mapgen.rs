@@ -8,8 +8,10 @@
 //! `Map::invert_land`, and the start ring. No float: Great Sahara's mask
 //! reads no `Fractal`.
 
+use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::combat::Rng;
 use crate::movement::{Angle, cos_component, sin_component};
+use crate::world::{CORNER_X, CORNER_Y};
 
 /// The bytes of one `WData` (`types.txt`, size 0x1c) that
 /// `World::walk_data@006b5cf0`'s part 5 walks: `[cell, cell + 0x15)`,
@@ -318,6 +320,403 @@ pub fn great_sahara_make_continents(grid: &mut MapGrid, players: i32, rng: &mut 
     start_dist
 }
 
+/// `WData::flags` bit 0x100, HALFLAND (`crate::world`'s `HALFLAND`): a cell
+/// that carries it is never ocean.
+pub const HALFLAND: u16 = 0x100;
+/// `WData::flags` bit 4, COAST, which `Map::make_coastlines@006947a0` sets
+/// with 0x400 and its thinning clears.
+pub const COAST: u16 = 4;
+
+impl WCell {
+    /// `WorldData::is_ocean@006b4830`: HALFLAND clear and `land` `SANDY`
+    /// (1) or `OCEAN` (2).
+    pub const fn is_ocean(&self) -> bool {
+        self.flags & HALFLAND == 0 && (self.land == 1 || self.land == 2)
+    }
+
+    /// The 16-bit store at +2 the passes make: `land` and `land_sub` together.
+    fn set_land(&mut self, land: i8) {
+        self.land = land;
+        self.land_sub = 0;
+    }
+}
+
+/// The land and sea labels' first bins and their overflow bins
+/// (`Regions::find_all@0067eff0`): land takes the first free record from 1
+/// and clamps to 0x3e, sea counts up from 0x40 and clamps to 0x7d; a region
+/// that lands on a clamp evicts the smallest into the bin after it (0x3f,
+/// 0x7e).
+pub const LAND_BIN: i16 = 0x3e;
+pub const SEA_BIN: i16 = 0x7d;
+
+/// What `Regions` (`GameAccess::regions`, 128 records of 0x88) holds that
+/// the labelling reads back: each record's cell count (+0x14) and the sea
+/// counter. The records' coordinate lists, coastal sets and ranks are not
+/// held — no part walks them, and nothing here reads them.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Regions {
+    pub count: [i32; 128],
+    pub sea: i16,
+}
+
+impl Default for Regions {
+    fn default() -> Self {
+        Regions {
+            count: [0; 128],
+            sea: 0x40,
+        }
+    }
+}
+
+impl Regions {
+    /// **`Regions::clear_all@00680060`**: every record's count to 0, every
+    /// cell's `region` to 0 — `region2` is left — and the sea counter to
+    /// 0x40.
+    pub fn clear_all(&mut self, grid: &mut MapGrid) {
+        *self = Regions::default();
+        grid.clear_regions();
+    }
+
+    /// **`Regions::find_all@0067eff0`** (`docs/MAPGEN.md` §6), its cell
+    /// writes: y outer, x inner, each unlabelled cell either takes the label
+    /// of its first neighbour of the same wetness that has one (in
+    /// `move_x/move_y[1..=8]` order, never 0x7f), or opens a region and
+    /// floods it ([`Regions::find`]). Then the second pass, x outer and y
+    /// inner: a HALFLAND cell whose `region2` is still 0 takes its first
+    /// ocean neighbour's `region`. A `region2` already set is kept, so a
+    /// stale one survives a re-run. `set_coastals`, `sort_regions` and
+    /// `rebuild_coords` follow and only read cells.
+    pub fn find_all(&mut self, grid: &mut MapGrid) {
+        for y in 0..grid.ys {
+            for x in 0..grid.xs {
+                let here = *grid.cell(x, y);
+                if here.region != 0 {
+                    continue;
+                }
+                let wet = here.is_ocean();
+                let adopted = (1..=8).find_map(|d| {
+                    let (nx, ny) = (x + MOVE_X[d], y + MOVE_Y[d]);
+                    let n = grid.get(nx, ny)?;
+                    (n.is_ocean() == wet && n.region != 0 && n.region != 0x7f).then_some(n.region)
+                });
+                if let Some(r) = adopted {
+                    grid.cell_mut(x, y).region = r;
+                    self.count[r as usize] += 1;
+                    continue;
+                }
+                let (lo, bin, id) = if wet {
+                    self.sea += 1;
+                    (0x40, SEA_BIN, self.sea.clamp(0x40, SEA_BIN))
+                } else {
+                    let free = (1..0x40).find(|&k| self.count[k] == 0).unwrap_or(0x40);
+                    (0, LAND_BIN, (free as i16).clamp(0, LAND_BIN))
+                };
+                self.find(grid, x, y, id);
+                if id == bin {
+                    self.evict(grid, lo, bin);
+                }
+            }
+        }
+        for x in 0..grid.xs {
+            for y in 0..grid.ys {
+                let here = *grid.cell(x, y);
+                if here.flags & HALFLAND == 0 || here.region2 != 0 {
+                    continue;
+                }
+                let sea = (1..=8).find_map(|d| {
+                    let n = grid.get(x + MOVE_X[d], y + MOVE_Y[d])?;
+                    n.is_ocean().then_some(n.region)
+                });
+                if let Some(r) = sea {
+                    grid.cell_mut(x, y).region2 = r;
+                }
+            }
+        }
+    }
+
+    /// A region that landed on its clamp `bin`: the smallest record in
+    /// `[lo, bin)` by count, if any is smaller than it, moves into `bin + 1`
+    /// and gives its number to the new region's cells; with none smaller,
+    /// the new region's cells go to `bin + 1`. On land `lo` is 0, whose
+    /// record never counts, so it is the one taken — and its relabel moves
+    /// every still-unlabelled cell into 0x3f, as the original's does.
+    fn evict(&mut self, grid: &mut MapGrid, lo: i16, bin: i16) {
+        let over = bin + 1;
+        let mut best = None;
+        let mut least = self.count[bin as usize];
+        for k in lo..bin {
+            if self.count[k as usize] < least {
+                least = self.count[k as usize];
+                best = Some(k);
+            }
+        }
+        let relabel = |grid: &mut MapGrid, from: i16, to: i16| {
+            for c in &mut grid.cells {
+                if c.region == from {
+                    c.region = to;
+                }
+            }
+        };
+        match best {
+            Some(k) => {
+                self.count[over as usize] += self.count[k as usize];
+                self.count[k as usize] = 0;
+                relabel(grid, k, over);
+                self.count[k as usize] += self.count[bin as usize];
+                self.count[bin as usize] = 0;
+                relabel(grid, bin, k);
+            }
+            None => {
+                self.count[over as usize] += self.count[bin as usize];
+                self.count[bin as usize] = 0;
+                relabel(grid, bin, over);
+            }
+        }
+    }
+
+    /// **`Regions::find@00680180`**: a breadth-first flood from `(x, y)`
+    /// over the eight neighbours, taking every unlabelled cell of the seed's
+    /// wetness; the record's count is the cells dequeued.
+    pub fn find(&mut self, grid: &mut MapGrid, x: i32, y: i32, id: i16) {
+        let wet = grid.cell(x, y).is_ocean();
+        grid.cell_mut(x, y).region = id;
+        self.count[id as usize] = 0;
+        let mut queue = std::collections::VecDeque::from([(x, y)]);
+        while let Some((cx, cy)) = queue.pop_front() {
+            self.count[id as usize] += 1;
+            for d in 1..=8 {
+                let (nx, ny) = (cx + MOVE_X[d], cy + MOVE_Y[d]);
+                let Some(n) = grid.get(nx, ny) else { continue };
+                if n.is_ocean() == wet && n.region == 0 {
+                    grid.cell_mut(nx, ny).region = id;
+                    queue.push_back((nx, ny));
+                }
+            }
+        }
+    }
+}
+
+impl MapGrid {
+    /// The cell at `(x, y)`, or `None` off the grid.
+    pub fn get(&self, x: i32, y: i32) -> Option<&WCell> {
+        (0..self.xs).contains(&x).then_some(())?;
+        (0..self.ys).contains(&y).then_some(())?;
+        Some(self.cell(x, y))
+    }
+
+    pub fn cell_mut(&mut self, x: i32, y: i32) -> &mut WCell {
+        &mut self.cells[(y * self.xs + x) as usize]
+    }
+
+    fn land_at(&self, x: i32, y: i32) -> Option<i8> {
+        self.get(x, y).map(|c| c.land)
+    }
+
+    /// **`Map::fix_diag_land@0069c250`** (`docs/MAPGEN.md` §6): x outer, y
+    /// inner, a `BASELAND` cell that meets another across a corner
+    /// (`CORNER_X/CORNER_Y[1..=4]`) while both cells flanking that corner
+    /// are on the grid and not `BASELAND` becomes water, `land` 2.
+    pub fn fix_diag_land(&mut self) {
+        for x in 0..self.xs {
+            for y in 0..self.ys {
+                if self.cell(x, y).land != 0 {
+                    continue;
+                }
+                for k in 1..=4 {
+                    let (cx, cy) = (x + CORNER_X[k], y + CORNER_Y[k]);
+                    if self.land_at(cx, cy) != Some(0) {
+                        continue;
+                    }
+                    // The two cells either side of the corner: the corner's
+                    // x with this y, and this x with the corner's y.
+                    let (a, b) = (self.land_at(cx, y), self.land_at(x, cy));
+                    if matches!((a, b), (Some(a), Some(b)) if a != 0 && b != 0) {
+                        self.cell_mut(x, y).set_land(2);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// **`Map::fix_lakes@0069c470`**: over the interior, y outer and x inner,
+    /// an ocean cell with more than five of its eight neighbours not ocean
+    /// becomes `BASELAND`; repeated until a sweep changes nothing.
+    pub fn fix_lakes(&mut self) {
+        if self.ys - 1 < 2 {
+            return;
+        }
+        loop {
+            let mut changed = false;
+            for y in 1..self.ys - 1 {
+                for x in 1..self.xs - 1 {
+                    if !self.cell(x, y).is_ocean() {
+                        continue;
+                    }
+                    let dry = (1..=8)
+                        .filter(|&d| !self.cell(x + MOVE_X[d], y + MOVE_Y[d]).is_ocean())
+                        .count();
+                    if dry > 5 {
+                        self.cell_mut(x, y).set_land(0);
+                        changed = true;
+                    }
+                }
+            }
+            if !changed {
+                return;
+            }
+        }
+    }
+
+    /// **`Map::make_coastlines@006947a0`** (`docs/MAPGEN.md` §6):
+    /// [`MapGrid::fix_lakes`]; then, y outer and x inner, a cell that is not
+    /// ocean and not yet COAST, with an ocean neighbour that is not COAST,
+    /// takes COAST|0x400 and loses 0x38; then the thinning, in the same
+    /// order: a COAST cell none of whose neighbours is land without COAST
+    /// becomes water, `land` 2, losing 0x3c|0x100|0x400.
+    pub fn make_coastlines(&mut self) {
+        self.fix_lakes();
+        for y in 0..self.ys {
+            for x in 0..self.xs {
+                let here = *self.cell(x, y);
+                if here.is_ocean() || here.flags & COAST != 0 {
+                    continue;
+                }
+                let shore = (1..=8).any(|d| {
+                    self.get(x + MOVE_X[d], y + MOVE_Y[d])
+                        .is_some_and(|n| n.is_ocean() && n.flags & COAST == 0)
+                });
+                if shore {
+                    let c = self.cell_mut(x, y);
+                    c.flags = (c.flags & 0xffc3) | COAST | 0x400;
+                }
+            }
+        }
+        for y in 0..self.ys {
+            for x in 0..self.xs {
+                if self.cell(x, y).flags & COAST == 0 {
+                    continue;
+                }
+                let inland = (1..=8).any(|d| {
+                    self.get(x + MOVE_X[d], y + MOVE_Y[d])
+                        .is_some_and(|n| !n.is_ocean() && n.flags & COAST == 0)
+                });
+                if !inland {
+                    let c = self.cell_mut(x, y);
+                    c.flags &= 0xfac3;
+                    c.set_land(2);
+                }
+            }
+        }
+    }
+
+    /// **`TerrainGroups::fill_fertile@006a6f90`** (`docs/MAPGEN.md` §6): x
+    /// outer, y inner, every `BASELAND` cell's `land_sub` is the number of
+    /// leading `partitions` at or below its byte of `fractal`.
+    pub fn fill_fertile(&mut self, fractal: &Fractal, partitions: &[u8]) {
+        for x in 0..self.xs {
+            for y in 0..self.ys {
+                if self.cell(x, y).land != 0 {
+                    continue;
+                }
+                let b = fractal.at(x, y);
+                let k = partitions.iter().take_while(|&&p| b >= p).count();
+                self.cell_mut(x, y).land_sub = k as u8;
+            }
+        }
+    }
+}
+
+/// **`Fractal`'s byte grid** as `Fractal::init@006aa2d0` builds it: `xs + 1`
+/// columns of `ys + 1` bytes, `frac[x][y]`. Its doubles (`x_inc`, `y_inc`)
+/// are `Fractal::get_height`'s and are not held; the bytes are integer.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Fractal {
+    pub xs: i32,
+    pub ys: i32,
+    pub frac: Vec<Vec<u8>>,
+}
+
+impl Fractal {
+    /// **`Fractal::init`**: a midpoint displacement on its own `Random`
+    /// seeded with `seed`, from level `smooth` (clamped to 0..=5) down to 0.
+    /// The top level draws each `2^smooth` lattice point as `get(0, 0xff)`.
+    /// Each finer level `i`, x outer and y inner, fills the points with an
+    /// odd coordinate at that spacing: the rounded mean of the two
+    /// (an edge midpoint) or four (a centre, the diagonals) parents, plus
+    /// `get(0, 2^(8−smooth+i) − 1) − 2^(7−smooth+i)`, clamped to a byte.
+    /// Unless `flags & 1`, the column `x = xs` copies column 0 before each
+    /// level and after the last.
+    pub fn init(xs: i32, ys: i32, smooth: i32, flags: i32, seed: u32) -> Fractal {
+        let mut frac = vec![vec![0u8; (ys + 1) as usize]; (xs + 1) as usize];
+        let mut rng = Rng::new(seed);
+        let open = flags & 1;
+        let p = smooth.clamp(0, 5);
+        let wrap = |frac: &mut Vec<Vec<u8>>| {
+            if open == 0 {
+                frac[xs as usize] = frac[0].clone();
+            }
+        };
+        for i in (0..=p).rev() {
+            let mask = (1 << (i + 1)) - 1;
+            wrap(&mut frac);
+            for a in 0..(xs >> i) + open {
+                let gx = a << i;
+                for b in 0..ys >> i {
+                    let gy = b << i;
+                    let at = |frac: &Vec<Vec<u8>>, x: i32, y: i32| {
+                        i32::from(frac[(x << i) as usize][(y << i) as usize])
+                    };
+                    let v = if i == p {
+                        rng.get(0, 0xff)
+                    } else {
+                        let mean = match (gx & mask == 0, gy & mask == 0) {
+                            (true, true) => continue,
+                            (true, false) => (at(&frac, a, b + 1) + at(&frac, a, b - 1) + 1) >> 1,
+                            (false, true) => (at(&frac, a + 1, b) + 1 + at(&frac, a - 1, b)) >> 1,
+                            (false, false) => {
+                                (at(&frac, a - 1, b - 1)
+                                    + at(&frac, a + 1, b + 1)
+                                    + at(&frac, a - 1, b + 1)
+                                    + at(&frac, a + 1, b - 1)
+                                    + 2)
+                                    >> 2
+                            }
+                        };
+                        let r = rng.get(0, (1 << (8 - p + i)) - 1);
+                        (mean + r - (1 << (7 - p + i))).clamp(0, 0xff)
+                    };
+                    frac[gx as usize][gy as usize] = v as u8;
+                }
+            }
+        }
+        wrap(&mut frac);
+        Fractal { xs, ys, frac }
+    }
+
+    pub fn at(&self, x: i32, y: i32) -> u8 {
+        self.frac[x as usize][y as usize]
+    }
+}
+
+/// **The fertility partitions** `TerrainGroups::init_tileset_data@006a61f0`
+/// builds from a tileset's `BASELAND` frequencies (percent, one per base
+/// tile): the running sum of `(int)(f / 100.0f · 255.0f) & 0xff` over all
+/// but the last, each stored as a byte. The single-precision product is
+/// `f·255/100` truncated for every frequency of magnitude under 6,420
+/// (`the_partition_float_is_the_integer_quotient`), and the files write
+/// percentages, so it is computed so.
+pub fn fertile_partitions(freqs: &[i32]) -> Vec<u8> {
+    let mut sum = 0i64;
+    freqs[..freqs.len().saturating_sub(1)]
+        .iter()
+        .map(|&f| {
+            sum += (i64::from(f) * 255 / 100) & 0xff;
+            sum as u8
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -353,6 +752,121 @@ mod tests {
                 ..WCell::WIPED
             }));
         assert_eq!(g.cell_part(), 1_267_075_849);
+    }
+
+    /// A grid from rows of `#` (`BASELAND`) and `.` (`OCEAN`).
+    fn sketch(rows: &[&str]) -> MapGrid {
+        let mut g = MapGrid::new(rows[0].len() as i32, rows.len() as i32);
+        for (y, r) in rows.iter().enumerate() {
+            for (x, ch) in r.bytes().enumerate() {
+                g.cell_mut(x as i32, y as i32).land = if ch == b'#' { 0 } else { 2 };
+            }
+        }
+        g
+    }
+
+    fn regions(g: &MapGrid) -> Vec<Vec<i16>> {
+        (0..g.ys)
+            .map(|y| (0..g.xs).map(|x| g.cell(x, y).region).collect())
+            .collect()
+    }
+
+    /// The partitions' single-precision product is the integer quotient for
+    /// every frequency of magnitude under 6,420, where the first parts
+    /// (§11: SSE, correctly rounded; the files write percentages).
+    #[test]
+    fn the_partition_float_is_the_integer_quotient() {
+        let float = |f: i32| ((f as f32 / 100.0f32) * 255.0f32) as i32;
+        for f in -6_419i32..=6_419 {
+            assert_eq!(float(f), f * 255 / 100, "frequency {f}");
+        }
+        assert_ne!(float(6_420), 6_420 * 255 / 100);
+        assert_eq!(fertile_partitions(&[80, 5, 5, 10]), [204, 216, 228]);
+        assert_eq!(fertile_partitions(&[100]), [] as [u8; 0]);
+    }
+
+    /// Labels: land from 1 by the first free record, sea counting up from
+    /// 0x41, in y-outer scan order; eight-connected, so a diagonal joins.
+    #[test]
+    fn find_all_labels_eight_connected_land_and_sea() {
+        let mut g = sketch(&["##..", "..#.", "....", ".#.#"]);
+        let mut r = Regions::default();
+        r.clear_all(&mut g);
+        r.find_all(&mut g);
+        assert_eq!(
+            regions(&g),
+            [
+                vec![1, 1, 0x41, 0x41],
+                vec![0x41, 0x41, 1, 0x41],
+                vec![0x41, 0x41, 0x41, 0x41],
+                vec![0x41, 2, 0x41, 3],
+            ]
+        );
+        assert_eq!(
+            (r.count[1], r.count[2], r.count[3], r.count[0x41]),
+            (3, 1, 1, 11)
+        );
+        assert_eq!(r.sea, 0x41);
+    }
+
+    /// `region2` is the second pass's, on HALFLAND cells only, and a value
+    /// already there survives.
+    #[test]
+    fn region2_takes_the_first_ocean_neighbour_and_keeps_a_stale_one() {
+        let mut g = sketch(&["#.", "##"]);
+        g.cell_mut(0, 0).flags |= HALFLAND;
+        g.cell_mut(1, 1).flags |= HALFLAND;
+        g.cell_mut(1, 1).region2 = 9;
+        let mut r = Regions::default();
+        r.clear_all(&mut g);
+        r.find_all(&mut g);
+        assert_eq!(g.cell(0, 0).region2, 0x41);
+        assert_eq!(g.cell(1, 1).region2, 9);
+        assert_eq!(g.cell(0, 1).region2, 0);
+    }
+
+    /// Two land cells meeting only across a corner: the first in x-outer
+    /// order whose flanks are both water is broken.
+    #[test]
+    fn fix_diag_land_breaks_a_corner_join() {
+        let mut g = sketch(&["#.", ".#"]);
+        g.fix_diag_land();
+        assert_eq!((g.cell(0, 0).land, g.cell(1, 1).land), (2, 0));
+        // The other diagonal: x outer, (0, 1) meets (1, 0) across its
+        // (+1, −1) corner first. The (−1, ±1) corners can never fire — a
+        // partner there is earlier in the scan with the same two flanks.
+        let mut anti = sketch(&[".#", "#."]);
+        anti.fix_diag_land();
+        assert_eq!((anti.cell(0, 1).land, anti.cell(1, 0).land), (2, 0));
+        let mut joined = sketch(&["##", ".#"]);
+        joined.fix_diag_land();
+        assert!(joined.cells.iter().filter(|c| c.land == 0).count() == 3);
+    }
+
+    /// A one-cell lake is filled; then the coast ring is marked, and a COAST
+    /// cell with no inland neighbour is thinned to water.
+    #[test]
+    fn make_coastlines_fills_lakes_marks_and_thins() {
+        let mut g = sketch(&["#####", "#####", "##.##", "#####", "#####"]);
+        g.make_coastlines();
+        assert!(g.cells.iter().all(|c| c.land == 0 && c.flags == 0));
+        // Exactly six dry neighbours fills; five does not.
+        let mut six = sketch(&["######", "###.##", "###...", "......", "......"]);
+        six.fix_lakes();
+        assert_eq!(six.cell(3, 1).land, 0);
+        let mut five = sketch(&["######", "###.##", "##....", "......", "......"]);
+        five.fix_lakes();
+        assert_eq!(five.cell(3, 1).land, 2);
+        let mut spit = sketch(&[".....", ".###.", ".....", "....."]);
+        spit.make_coastlines();
+        // Each of the three cells is COAST; the ends have the middle as their
+        // land neighbour but the middle is COAST too, so all three go.
+        assert!(spit.cells.iter().all(|c| c.land == 2 && c.flags == 0));
+        let mut block = sketch(&["......", ".####.", ".####.", ".####.", "......"]);
+        block.make_coastlines();
+        assert_eq!(block.cell(1, 1).flags, COAST | 0x400);
+        assert_eq!(block.cell(2, 2).flags, 0);
+        assert_eq!(block.cell(1, 1).land, 0);
     }
 
     /// Four draws, whatever the player count.
