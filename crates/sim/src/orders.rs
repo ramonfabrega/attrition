@@ -9189,6 +9189,7 @@ impl Sim {
         // PROBE 3800: skip one unit's captain arm on one frame.
         let probe_skip = std::env::var("RON_PROBE_3800").ok().is_some_and(|v| {
             v == format!("{}/{}@{}", self.units[u].owner, self.units[u].index, frame)
+                || v.strip_prefix("ty:").and_then(|t| t.parse::<usize>().ok()) == self.units[u].ty
         });
         if !probe_skip
             && !state.mandatory
