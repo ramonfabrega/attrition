@@ -69,7 +69,8 @@ pub const MAPGEN: Mapgen = Mapgen {
     checksum_of: 496,
     styles: &[MapgenStyle {
         map: "GreatSahara",
-        ported: 1,
+        // 1 → 2 by item 3798: the zero-draw passes, 7835..7854.
+        ported: 2,
         phases: 8,
     }],
 };
@@ -358,14 +359,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 1 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 2 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 1 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 2 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 2 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 1 of 8 phases",
             "Mapgen: checksum 496 of 496",
-            "Mapgen: checksum 496 496 \u{b7} GreatSahara 1 of 8 phases",
+            "Mapgen: checksum 496 496 \u{b7} GreatSahara 2 of 8 phases",
         ] {
             assert!(mapgen_verdict(wrong, &MAPGEN).is_err(), "{wrong:?} passed");
         }

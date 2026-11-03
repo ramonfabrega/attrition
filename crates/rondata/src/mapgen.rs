@@ -108,6 +108,10 @@ pub struct StartGrid {
     pub unnamed: usize,
     pub xs: i32,
     pub ys: i32,
+    /// The start dump's `World.seed` (+0x7c), which `Setup::build_game` draws
+    /// before `Map::make` and every `Fractal` of map generation is seeded
+    /// from.
+    pub seed: i32,
     /// `GAMEINFO`'s `MAP_STYLE` (`MapStyleIndex`: Great Sahara 7).
     pub style: i64,
     /// The `PLAYER` blocks under `GAMEINFO`: the nation count `Map::make`
@@ -156,6 +160,7 @@ pub fn start_grid(head: &str) -> StartGrid {
     };
     g.xs = world_int("xs");
     g.ys = world_int("ys");
+    g.seed = world_int("seed");
     let dumped = world_cells(&init.world);
     if !dumped.is_empty() {
         let cells: Vec<WCell> = dumped.iter().filter_map(wcell).collect();
@@ -165,12 +170,96 @@ pub fn start_grid(head: &str) -> StartGrid {
     g
 }
 
+/// What `TerrainGroups::init_tileset_data@006a61f0` reads for
+/// `fill_fertile` (`docs/MAPGEN.md` §6): the tileset's `CLUMP_FACTOR`, the
+/// `Fractal`'s smoothing, and one `BASELAND` frequency per base tile.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Fertility {
+    pub tileset: String,
+    pub clump_factor: i32,
+    pub baseland: Vec<i32>,
+}
+
+/// [`Fertility`] for the style whose file is `mapstyles/<style_file>`, from
+/// the install at `root`; `None` when the style's `TILECHANCE` list is not a
+/// single entry (the tileset is then `init_map_data`'s draw, §4) or a file
+/// is missing. The frequencies are `default.xml`'s `TILESET_DATA` entry for
+/// the tileset, `frequency_0..` on its `baseland` `LANDKEY`, one per `BASE`
+/// under the tileset's `BASELAND` in `Data/tilesets.xml`; the style file's
+/// own entry, if it has one, is read over it as the second call reads it —
+/// a frequency it leaves out becomes −1, `get_attrib_num`'s default.
+pub fn fertility(root: &Path, style_file: &str) -> Option<Fertility> {
+    let read = |rel: &str| std::fs::read_to_string(root.join(rel)).ok();
+    let style_text = read(&format!("mapstyles/{style_file}"))?;
+    let style = roxmltree::Document::parse(&style_text).ok()?;
+    let chances: Vec<_> = style
+        .descendants()
+        .filter(|n| n.has_tag_name("TILECHANCE"))
+        .collect();
+    let [only] = chances[..] else {
+        return None;
+    };
+    let tileset = only.attribute("type")?.to_string();
+    let sets_text = read("Data/tilesets.xml")?;
+    let sets = roxmltree::Document::parse(&sets_text).ok()?;
+    let set = sets.descendants().find(|n| {
+        n.has_tag_name("TILESET")
+            && n.attribute("name")
+                .is_some_and(|v| v.eq_ignore_ascii_case(&tileset))
+    })?;
+    let clump_factor = set
+        .descendants()
+        .find(|n| n.has_tag_name("CLUMP_FACTOR"))
+        .and_then(|n| n.attribute("value")?.trim().parse().ok())
+        .unwrap_or(-1);
+    let tiles = set
+        .descendants()
+        .find(|n| n.has_tag_name("BASELAND"))?
+        .children()
+        .filter(|n| n.has_tag_name("BASE"))
+        .count();
+    let mut baseland = vec![0; tiles];
+    let default_text = read("mapstyles/default.xml")?;
+    let default = roxmltree::Document::parse(&default_text).ok()?;
+    for doc in [&default, &style] {
+        let Some(entry) = doc
+            .descendants()
+            .find(|n| n.has_tag_name("TILESET_DATA"))
+            .and_then(|d| {
+                d.children()
+                    .find(|n| n.tag_name().name().eq_ignore_ascii_case(&tileset))
+            })
+        else {
+            continue;
+        };
+        for key in entry.children().filter(|n| {
+            n.has_tag_name("LANDKEY")
+                && n.attribute("name")
+                    .is_some_and(|v| v.eq_ignore_ascii_case("baseland"))
+        }) {
+            for (i, f) in baseland.iter_mut().enumerate() {
+                *f = key
+                    .attribute(format!("frequency_{i}").as_str())
+                    .and_then(|v| v.trim().parse().ok())
+                    .unwrap_or(-1);
+            }
+        }
+    }
+    Some(Fertility {
+        tileset,
+        clump_factor,
+        baseland,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
-    use sim::mapgen::{MapGrid, great_sahara_make_continents};
+    use sim::mapgen::{
+        Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
+    };
     use std::sync::OnceLock;
 
     /// Every kept dump's [`StartGrid`], read once for the tests below: the
@@ -325,6 +414,70 @@ mod tests {
         );
     }
 
-    /// The §15 phases this module checks on Great Sahara: the mask (7807).
-    const GREAT_SAHARA_CHECKED: i64 = 1;
+    /// **Great Sahara's zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// §6, §15 step 2): from 7807's grid, `Map::make`'s next four
+    /// checkpoints, each against every Great Sahara file that carries them,
+    /// in order, so the first that parts names its pass — 7835 after
+    /// `Regions::clear_all`, `find_all` and `fix_diag_land`; 7843 after
+    /// `make_coastlines`; 7846 after the region pair again; 7854 after
+    /// `fill_fertile` over `Fractal::init` on the world seed and the
+    /// tileset's partitions, read from the install. No draw: the seed must
+    /// hold at 7807's through all four.
+    #[test]
+    fn great_sahara_s_zero_draw_passes_are_the_traced_7835_to_7854() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let fert = fertility(Path::new(&root), "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let partitions = fertile_partitions(&fert.baseland);
+        let mut files = 0;
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 7) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let marks: Vec<_> = [7807, 7835, 7843, 7846, 7854]
+                .iter()
+                .map(|&l| g.at("map.cpp", l))
+                .collect();
+            if marks.iter().any(Option::is_none) {
+                continue;
+            }
+            let mut grid = MapGrid::new(g.xs, g.ys);
+            let mut rng = Rng::new(before.2);
+            great_sahara_make_continents(&mut grid, g.nations, &mut rng);
+            let mut regions = Regions::default();
+            let check = |grid: &MapGrid, line: i64, pass: &str| {
+                let (_, _, seed, p) = g.at("map.cpp", line).expect("checked above");
+                assert_eq!(
+                    (rng.seed, grid.start_part(), grid.cell_part()),
+                    (*seed, p[2], p[5]),
+                    "{name}: (seed, part 2, part 5) at {line}, after {pass}, ours against theirs"
+                );
+            };
+            regions.clear_all(&mut grid);
+            regions.find_all(&mut grid);
+            grid.fix_diag_land();
+            check(&grid, 7835, "the regions and fix_diag_land");
+            grid.make_coastlines();
+            check(&grid, 7843, "make_coastlines");
+            regions.clear_all(&mut grid);
+            regions.find_all(&mut grid);
+            check(&grid, 7846, "the regions again");
+            let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
+            grid.fill_fertile(&fractal, &partitions);
+            check(&grid, 7854, "fill_fertile");
+            files += 1;
+        }
+        eprintln!("7835..7854: {files} Great Sahara files, tileset {fert:?}");
+        assert!(files > 0, "the 7854 check reached no file");
+    }
+
+    /// The §15 phases this module checks on Great Sahara: the mask (7807)
+    /// and the zero-draw passes (7835..7854).
+    const GREAT_SAHARA_CHECKED: i64 = 2;
 }
