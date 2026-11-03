@@ -9,6 +9,7 @@
 //! [`Log::parse`] reads what it returns.
 
 use crate::gamelog::{CellDump, Log, WorldChecksum, world_cells};
+use sim::map_resources::{Footprint, GOODY, Inputs as ResourceInputs, NO_TYPE, Row};
 use sim::mapgen::{Adler32, WCell};
 use sim::terrain_groups::{Group, Inputs, Template, TilesetGroups};
 use std::io::{self, BufRead, BufReader};
@@ -430,6 +431,186 @@ pub fn terrain_groups(
     Some(out)
 }
 
+/// The goods `resourcerules.xml` lists, in record order (the good index):
+/// name, footprint, `RANDOM_RARE_DROP`, and `PREQ0`.
+fn goods_table(root: &Path) -> Option<Vec<(String, Footprint, bool, String)>> {
+    let text = std::fs::read_to_string(root.join("Data/resourcerules.xml")).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let out = doc
+        .descendants()
+        .filter(|n| n.has_tag_name("RESOURCE"))
+        .map(|r| {
+            let text = |k: &str| {
+                r.children()
+                    .find(|n| n.has_tag_name(k))
+                    .and_then(|n| n.text())
+                    .unwrap_or("")
+                    .trim()
+                    .to_string()
+            };
+            let num = |k: &str| text(k).parse::<i32>().unwrap_or(0);
+            (
+                text("NAME"),
+                Footprint {
+                    x_size: num("X_SIZE").max(1),
+                    y_size: num("Y_SIZE").max(1),
+                    block: num("BLOCK") != 0,
+                },
+                num("RANDOM_RARE_DROP") != 0,
+                text("PREQ0"),
+            )
+        })
+        .collect();
+    Some(out)
+}
+
+/// The ages from Gunpowder on: a good whose `PREQ0` names one is a late
+/// good (`ObjectTypeData::get_age` ≥ 3, `ResourceDivvyPool::add_good`).
+const LATE_AGES: [&str; 5] = [
+    "Gunpowder Age",
+    "Enlightenment Age",
+    "Industrial Age",
+    "Modern Age",
+    "Information Age",
+];
+
+/// **What `Map::place_resources@0068f4f0` reads** (`docs/MAPGEN.md` §8): the
+/// `BONUSES`, `FISH ` and `GOODIES` sections — the style file's where it has
+/// the section, even empty, else `default.xml`'s (the style's key `FISH `
+/// keeps its trailing space, which the lookup ignores) — each `BONUS` row
+/// resolved as the ladder reads it; the divvy pool's lists (goods 6..49 with
+/// `RANDOM_RARE_DROP`, the ocean's goods to the water list with Fish ten
+/// times, the rest early or late by `PREQ0`'s age); the footprints; and
+/// `default.xml`'s `LAND_<c>` rare lists. `None` for a row this reader does
+/// not take: a float-scaled count.
+pub fn resource_inputs(
+    root: &Path,
+    style_file: &str,
+    xs: i32,
+    ys: i32,
+    nations: i32,
+) -> Option<ResourceInputs> {
+    let standard = standard_map_size(root)?;
+    let read = |rel: &str| std::fs::read_to_string(root.join(rel)).ok();
+    let style_text = read(&format!("mapstyles/{style_file}"))?;
+    let default_text = read("mapstyles/default.xml")?;
+    let style = roxmltree::Document::parse(&style_text).ok()?;
+    let default = roxmltree::Document::parse(&default_text).ok()?;
+    let goods = goods_table(root)?;
+    let good_key = |name: &str| {
+        goods
+            .iter()
+            .position(|g| g.0.eq_ignore_ascii_case(name))
+            .map(|i| i as i32)
+    };
+    let mut lands: Vec<Vec<i32>> = Vec::new();
+    for land in default.descendants().filter(|n| {
+        n.tag_name()
+            .name()
+            .strip_prefix("LAND_")
+            .is_some_and(|k| k.parse::<usize>().is_ok())
+    }) {
+        let c: usize = land.tag_name().name()[5..].parse().ok()?;
+        if lands.len() <= c {
+            lands.resize(c + 1, Vec::new());
+        }
+        lands[c] = land
+            .descendants()
+            .filter(|n| n.has_tag_name("RARE"))
+            .filter_map(|n| good_key(n.attribute("name")?))
+            .collect();
+    }
+    let ocean = lands.get(2).cloned().unwrap_or_default();
+    let (mut early, mut late, mut water) = (Vec::new(), Vec::new(), Vec::new());
+    for (g, (_, _, drop, preq)) in goods.iter().enumerate().take(0x32).skip(6) {
+        if !drop {
+            continue;
+        }
+        let g = g as i32;
+        if ocean.contains(&g) {
+            water.extend(std::iter::repeat_n(g, if g == 6 { 10 } else { 1 }));
+        } else if LATE_AGES.iter().any(|a| a.eq_ignore_ascii_case(preq)) {
+            late.push(g);
+        } else {
+            early.push(g);
+        }
+    }
+    let section = |style_key: &str, default_key: &str| {
+        let find = |d: &'_ roxmltree::Document<'_>, k: &str| {
+            d.root_element()
+                .children()
+                .find(|n| n.has_tag_name(k.trim_end()))
+                .map(|n| n.range())
+        };
+        find(&style, style_key)
+            .map(|r| (true, r))
+            .or_else(|| find(&default, default_key).map(|r| (false, r)))
+    };
+    let mut sections = Vec::new();
+    let mut pattern = 0;
+    for (sk, dk) in [
+        ("BONUSES", "BONUSES"),
+        ("FISH ", "FISH"),
+        ("GOODIES", "GOODIES"),
+    ] {
+        let mut rows = Vec::new();
+        if let Some((in_style, range)) = section(sk, dk) {
+            let doc = if in_style { &style } else { &default };
+            let node = doc.descendants().find(|n| n.range() == range)?;
+            for e in node.children().filter(|n| n.has_tag_name("BONUS")) {
+                let attr = |k: &str| e.attribute(k).unwrap_or("");
+                let num = |k: &str| e.attribute(k).map_or(-1, leading_int);
+                let scaled = |k: &str| scale_number(attr(k), nations, xs, xs * ys, standard);
+                let ty = attr("type");
+                let (ty, kind) = match good_key(ty) {
+                    Some(g) => (g, 0),
+                    None if ty.eq_ignore_ascii_case("Random") => (NO_TYPE, 1),
+                    None if ty.len() >= 5 && ty[..5].eq_ignore_ascii_case("Goody") => (GOODY, 0),
+                    None if ty.eq_ignore_ascii_case("Early") => (NO_TYPE, 2),
+                    None if ty.eq_ignore_ascii_case("Late") => (NO_TYPE, 3),
+                    None => continue,
+                };
+                pattern = match attr("pattern") {
+                    "player" => 0,
+                    "continent" => 1,
+                    "world" => 2,
+                    "nonplayer" => 3,
+                    "corner" => 4,
+                    _ => pattern,
+                };
+                rows.push(Row {
+                    ty,
+                    kind,
+                    chance: num("chance"),
+                    group: num("group"),
+                    pattern,
+                    saturate: num("saturate").max(0),
+                    numrare: scaled("numrare")?,
+                    player_keep_away: num("player_keep_away"),
+                    player_stay_near: scaled("player_stay_near")?,
+                    spacing: scaled("spacing")?.max(1),
+                    group_spacing: scaled("group_spacing")?.max(1),
+                    center_keep_away: scaled("center_keep_away")?,
+                    center_stay_near: scaled("center_stay_near")?,
+                    edge_keep_away: scaled("edge_keep_away")?,
+                    edge_stay_near: scaled("edge_stay_near")?,
+                    corner_keep_away: scaled("corner_keep_away")?,
+                    corner_stay_near: scaled("corner_stay_near")?,
+                });
+            }
+        }
+        sections.push(rows);
+    }
+    Some(ResourceInputs {
+        sections,
+        early,
+        late,
+        water,
+        goods: goods.iter().map(|g| g.1).collect(),
+        lands,
+    })
+}
+
 /// The tileset's `TERRAINGROUP` numbers `place_all` reads, for the style's
 /// one tileset ([`fertility`]'s), and `num_tiles[0]`, its `BASELAND` count.
 pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
@@ -560,6 +741,7 @@ mod tests {
     use super::*;
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
+    use sim::map_resources::place_resources;
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
@@ -1392,6 +1574,64 @@ mod tests {
             sahara.len()
         );
         eprintln!("group tail: traces met whole {met:?}; 7861, 7865, 7870 on {files:?} files");
+        assert!(
+            files.iter().all(|&n| n > 0),
+            "a checkpoint reached no file: {files:?}"
+        );
+    }
+
+    /// **Resources on Great Sahara** (`docs/MAPGEN.md` §8, §15 step 4, item
+    /// 3805): from each run's 7870 grid (the groups and their tail), nothing
+    /// moves through 7877 and 7880, then `Map::place_resources` — the whole
+    /// stream from `place_all` to `compute_all_vals`, draw for draw against
+    /// every Great Sahara trace, and seed and parts 2, 5 and 6 at 7927 on
+    /// every file that carries it.
+    #[test]
+    fn great_sahara_s_resources_are_the_traced_stream_and_7927() {
+        let (Some(all), Some(traces)) = (archive(), make_traces()) else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        let runs = great_sahara_runs(all);
+        let mut logs = Vec::new();
+        let mut files = [0; 3];
+        let mut placed = Vec::new();
+        for &run in runs.keys() {
+            let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            files[0] += at_checkpoint(&runs, &run, 7877, &grid, &d);
+            files[1] += at_checkpoint(&runs, &run, 7880, &grid, &d);
+            let inputs =
+                resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
+            let n = place_resources(&mut grid, &mut d, &inputs, run.1);
+            placed.push((run.1, n));
+            files[2] += at_checkpoint(&runs, &run, 7927, &grid, &d);
+            logs.push((run, d.log));
+        }
+        let sahara = sahara_traces(traces);
+        let (met, parted) = stream_partings(&sahara, &logs, |s| s);
+        assert!(
+            parted.is_empty(),
+            "{} Great Sahara traces part from the port's resources (met whole: {met:?}):\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            met.len() >= 2 && sahara.len() >= PLACE_ALL_TRACES,
+            "the resources' stream met {met:?} nation counts on {} traces",
+            sahara.len()
+        );
+        eprintln!(
+            "resources: placed {placed:?}; traces met whole {met:?}; 7877, 7880, 7927 on {files:?} files"
+        );
         assert!(
             files.iter().all(|&n| n > 0),
             "a checkpoint reached no file: {files:?}"

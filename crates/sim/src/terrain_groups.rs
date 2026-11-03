@@ -307,84 +307,14 @@ impl Pass<'_> {
         tx >= 0 && ty >= 0 && tx < w && ty < h
     }
 
-    /// The cell that owns a tile.
-    fn owner(&mut self, tx: i32, ty: i32) -> &mut crate::mapgen::WCell {
-        let i = self.at(tx >> 2, ty >> 2);
-        &mut self.g.cells[i]
-    }
-
     /// `WorldData::has_mountain_tcoords@006b3050`: any of the cell's 16
     /// tiles is mountain (`mask & 3 == 2`).
     fn mountain_tiles(&self, x: i32, y: i32) -> bool {
         (0..16).any(|j| self.g.tiles[self.tile_at(4 * x + (j & 3), 4 * y + (j >> 2))] & 3 == 2)
     }
 
-    /// `WorldData::has_blocked_neighbors@006b2990`.
-    fn blocked_neighbours(&self, tx: i32, ty: i32) -> bool {
-        (1..=8).any(|k| {
-            let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
-            self.tile_inb(u, v) && self.g.tiles[self.tile_at(u, v)] & 0x4000 != 0
-        })
-    }
-
-    /// **`World::set_blocked_at@006b4900`**: the tile's 0x4000, its owner's
-    /// `blocked`/`solid`, and the 0x2000 "beside a blocked tile" mark with
-    /// its owner's `bad` count, on the tile and its eight neighbours — in
-    /// call order, which is why the callers block in the original's order.
-    /// `set_road_at(…, 0, 0, 0)` is the ROAD flag's clear: no road exists
-    /// before the first frame.
     fn set_blocked(&mut self, tx: i32, ty: i32, on: bool) {
-        let i = self.tile_at(tx, ty);
-        let m = self.g.tiles[i];
-        if on {
-            if m & 0x4000 == 0 {
-                let c = self.owner(tx, ty);
-                c.blocked = c.blocked.wrapping_add(1);
-                c.solid = c.solid.wrapping_add(1);
-            }
-            let mut m = m | 0x4000;
-            if m & 0x2000 != 0 {
-                let c = self.owner(tx, ty);
-                c.bad = c.bad.wrapping_sub(1);
-            }
-            m &= !0x2000;
-            self.g.tiles[i] = m;
-            self.owner(tx, ty).flags &= !flag::ROAD;
-        } else {
-            if m & 0x4000 != 0 {
-                let c = self.owner(tx, ty);
-                c.blocked = c.blocked.wrapping_sub(1);
-                c.solid = c.solid.wrapping_sub(1);
-            }
-            self.g.tiles[i] = m & 0x3fff;
-        }
-        for k in 1..=8 {
-            let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
-            if !self.tile_inb(u, v) {
-                continue;
-            }
-            let j = self.tile_at(u, v);
-            if on {
-                if self.g.tiles[j] & 0x2000 == 0 {
-                    let c = self.owner(u, v);
-                    c.bad = c.bad.wrapping_add(1);
-                    self.g.tiles[j] |= 0x2000;
-                }
-            } else if !self.blocked_neighbours(u, v) {
-                if self.g.tiles[j] & 0x2000 != 0 {
-                    let c = self.owner(u, v);
-                    c.bad = c.bad.wrapping_sub(1);
-                }
-                self.g.tiles[j] &= !0x2000;
-            }
-        }
-        if !on && self.blocked_neighbours(tx, ty) {
-            if self.g.tiles[i] & 0x2000 == 0 {
-                let c = self.owner(tx, ty);
-                c.bad = c.bad.wrapping_add(1);
-            }
-            self.g.tiles[i] |= 0x2000;
-        }
+        set_blocked_at(self.g, tx, ty, on);
     }
 
     /// `World::set_oil_at@006b2a10`'s cell write. The OIL goods object it
@@ -1656,6 +1586,87 @@ fn treeify_mountains(p: &mut Pass<'_>, prob: i32) {
             }
         }
     }
+}
+
+/// **`World::set_blocked_at@006b4900`**: the tile's 0x4000, its owner's
+/// `blocked`/`solid`, and the 0x2000 "beside a blocked tile" mark with
+/// its owner's `bad` count, on the tile and its eight neighbours — in
+/// call order, which is why the callers block in the original's order.
+/// `set_road_at(…, 0, 0, 0)` is the ROAD flag's clear: no road exists
+/// before the first frame.
+pub(crate) fn set_blocked_at(g: &mut MapGrid, tx: i32, ty: i32, on: bool) {
+    let i = tile_at(g, tx, ty);
+    let m = g.tiles[i];
+    if on {
+        if m & 0x4000 == 0 {
+            let c = owner(g, tx, ty);
+            c.blocked = c.blocked.wrapping_add(1);
+            c.solid = c.solid.wrapping_add(1);
+        }
+        let mut m = m | 0x4000;
+        if m & 0x2000 != 0 {
+            let c = owner(g, tx, ty);
+            c.bad = c.bad.wrapping_sub(1);
+        }
+        m &= !0x2000;
+        g.tiles[i] = m;
+        owner(g, tx, ty).flags &= !flag::ROAD;
+    } else {
+        if m & 0x4000 != 0 {
+            let c = owner(g, tx, ty);
+            c.blocked = c.blocked.wrapping_sub(1);
+            c.solid = c.solid.wrapping_sub(1);
+        }
+        g.tiles[i] = m & 0x3fff;
+    }
+    for k in 1..=8 {
+        let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
+        if !tile_inb(g, u, v) {
+            continue;
+        }
+        let j = tile_at(g, u, v);
+        if on {
+            if g.tiles[j] & 0x2000 == 0 {
+                let c = owner(g, u, v);
+                c.bad = c.bad.wrapping_add(1);
+                g.tiles[j] |= 0x2000;
+            }
+        } else if !blocked_neighbours(g, u, v) {
+            if g.tiles[j] & 0x2000 != 0 {
+                let c = owner(g, u, v);
+                c.bad = c.bad.wrapping_sub(1);
+            }
+            g.tiles[j] &= !0x2000;
+        }
+    }
+    if !on && blocked_neighbours(g, tx, ty) {
+        if g.tiles[i] & 0x2000 == 0 {
+            let c = owner(g, tx, ty);
+            c.bad = c.bad.wrapping_add(1);
+        }
+        g.tiles[i] |= 0x2000;
+    }
+}
+
+fn tile_at(g: &MapGrid, tx: i32, ty: i32) -> usize {
+    (ty * 4 * g.xs + tx) as usize
+}
+
+fn tile_inb(g: &MapGrid, tx: i32, ty: i32) -> bool {
+    let (w, h) = g.tile_dims();
+    tx >= 0 && ty >= 0 && tx < w && ty < h
+}
+
+fn owner(g: &mut MapGrid, tx: i32, ty: i32) -> &mut crate::mapgen::WCell {
+    let i = ((ty >> 2) * g.xs + (tx >> 2)) as usize;
+    &mut g.cells[i]
+}
+
+fn blocked_neighbours(g: &MapGrid, tx: i32, ty: i32) -> bool {
+    (1..=8).any(|k| {
+        let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
+        tile_inb(g, u, v) && g.tiles[tile_at(g, u, v)] & 0x4000 != 0
+    })
 }
 
 /// `orthog_x/orthog_y[1..=4]` read straight from the tables, as the

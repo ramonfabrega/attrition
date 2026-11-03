@@ -140,6 +140,7 @@ pub mod holdings;
 pub mod land_plane_view;
 pub mod launch;
 pub mod location;
+pub mod map_resources;
 pub mod mapgen;
 pub mod market;
 pub mod merchant;
