@@ -40,6 +40,7 @@ pub mod golden;
 pub mod input;
 pub mod ledger;
 pub mod load;
+pub mod mapgen;
 pub mod mountains;
 pub mod pe;
 pub mod recgame;

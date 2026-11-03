@@ -1454,6 +1454,12 @@ impl<'a> Log<'a> {
         checksums_in(self.preamble.iter().copied())
     }
 
+    /// The setup trace's records with their sixteen `World` lines
+    /// ([`WorldChecksum`]), in call order.
+    pub fn world_checksums(&'a self) -> Vec<WorldChecksum<'a>> {
+        world_checksums_in(self.preamble.iter().copied())
+    }
+
     /// The sync stream's word at the **end of each frame**, from a
     /// `DUMP_ALL` dump whose `full_dump` runs at `begin_frame` and
     /// `end_frame` (`docs/SYNC.md` §1): `(engine frame, seed)`. The log's
@@ -2846,6 +2852,73 @@ pub struct Checksum<'a> {
     pub file: &'a str,
     pub line: i64,
     pub seed: u32,
+}
+
+/// One setup-trace record's `World` lines — `World::walk_data@006b5cf0`'s
+/// parts 0..14 and then −1 (all), in the order `say_checksum` prints them
+/// (`docs/MAPGEN.md` §3): `parts[5]` is the cells, `parts[2]` the start
+/// arrays. Each is an Adler-32, printed signed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct WorldChecksum<'a> {
+    pub file: &'a str,
+    pub line: i64,
+    pub seed: u32,
+    pub parts: [u32; 16],
+}
+
+/// The records among a run of fields that carry all sixteen `World` lines
+/// and a seed, in order; a record with any other count is dropped.
+pub fn world_checksums_in<'a>(
+    fields: impl IntoIterator<Item = (&'a str, &'a str)>,
+) -> Vec<WorldChecksum<'a>> {
+    let mut out = Vec::new();
+    let mut cur: Option<(WorldChecksum<'a>, usize)> = None;
+    for (key, value) in fields {
+        match key {
+            "CHECKSUM" => {
+                cur = Some((
+                    WorldChecksum {
+                        file: "",
+                        line: 0,
+                        seed: 0,
+                        parts: [0; 16],
+                    },
+                    0,
+                ));
+            }
+            "FILE" => {
+                if let Some((c, _)) = &mut cur {
+                    c.file = value.trim();
+                }
+            }
+            "LINE" => {
+                if let Some((c, _)) = &mut cur {
+                    c.line = value.trim().parse().unwrap_or(0);
+                }
+            }
+            "World" => {
+                if let Some((c, n)) = &mut cur
+                    && let Ok(v) = value.trim().parse::<i64>()
+                {
+                    if *n < 16 {
+                        c.parts[*n] = v as u32;
+                    }
+                    *n += 1;
+                }
+            }
+            "game_random" => {
+                if let Some((mut c, 16)) = cur.take()
+                    && let Some(s) = value.trim().strip_prefix("seed ")
+                    && let Ok(seed) = s.trim().parse::<i64>()
+                {
+                    c.seed = seed as u32;
+                    out.push(c);
+                }
+            }
+            _ => {}
+        }
+    }
+    out
 }
 
 /// A `%f`-printed number as exact millionths: `369.375000` → `369375000`,
