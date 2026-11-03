@@ -1613,27 +1613,6 @@ mod tests {
                 resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
             let n = place_resources(&mut grid, &mut d, &inputs, run.1);
             placed.push((run.1, n));
-            if std::env::var("RON_PROBE_3805").is_ok() {
-                if let Some(g) = runs[&run].iter().find(|g| g.cells.is_some()) {
-                    let theirs = g.cells.as_ref().expect("cells");
-                    let mut k = 0;
-                    for (i, (a, b)) in grid.cells.iter().zip(theirs).enumerate() {
-                        let pick =
-                            |c: &WCell| (c.flags, c.down, c.down_who, c.blocked, c.solid, c.bad);
-                        if pick(a) != pick(b) && k < 40 {
-                            k += 1;
-                            eprintln!(
-                                "probe {}n cell ({}, {}): ours {:?} theirs {:?}",
-                                run.1,
-                                i as i32 % grid.xs,
-                                i as i32 / grid.xs,
-                                pick(a),
-                                pick(b)
-                            );
-                        }
-                    }
-                }
-            }
             files[2] += at_checkpoint(&runs, &run, 7927, &grid, &d);
             logs.push((run, d.log));
         }
