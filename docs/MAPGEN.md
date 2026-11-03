@@ -31,9 +31,10 @@ the all-land maps). Elsewhere it is consistent in kind but not reconciled
 to a number, because the count depends on the grid at that moment. Every
 other claim is reading-only (§13).
 
-**What this is not.** It is not a whole port: its first step, the
-checksum reader and Great Sahara's mask, is built (item 3776, §15), and
-the rest of the chain is parked. It does not cover scenario maps (`MapScenario::make`
+**What this is not.** It is not a whole port: its first two steps, the
+checksum reader with Great Sahara's mask (item 3776) and the zero-draw
+passes on Great Sahara (item 3798), are built (§15), and the rest of the
+chain is parked. It does not cover scenario maps (`MapScenario::make`
 overrides +0x64), Conquer the World's `MapConquest`, or the editor.
 
 ## 1. Entry: who calls it, with what
@@ -282,29 +283,105 @@ check it, and the fourteen single-dump styles check the final grid only.
 ## 6. The zero-draw passes: regions, diagonals, coasts, fertility
 
 All draw nothing, as measured (7807 → 7854, and 7927 → 7937 for the
-region pair).
+region pair). `Map::make` prints a checkpoint after each group. 7835 comes
+after `Regions::clear_all`, `find_all` and `fix_diag_land`. 7843 comes after
+`make_coastlines`. 7846 comes after the region pair again. 7854 comes after
+`fill_fertile`.
 
-- `Regions::clear_all@00680060` resets the 128 region records and zeroes
-  every cell's `region`. It does **not** zero `region2`.
-- `Regions::find_all@0067eff0` labels 8-connected components. Water, by
-  `WorldData::is_ocean@006b4830` (`!(flags & 0x100) && land ∈ {1, 2}`), gets
-  0x40..0x7d; land gets 1..0x3e; overflow merges into 0x3f and 0x7e.
-  A second pass, x outer and y inner, sets `region2` on HALFLAND cells
-  where it is 0, so a stale `region2` survives a re-run. Then the coastal
-  sets, `sort_regions` (rank only) and `rebuild_coords`, the order `compute_sites` samples (`docs/AI.md` §13).
-- `Map::fix_diag_land@0069c250` (x outer) breaks land cells that touch only
-  diagonally, by setting `land` 2.
-- `Map::make_coastlines@006947a0` starts with `Map::fix_lakes@0069c470`:
-  an ocean cell with more than 5 non-ocean neighbours becomes land,
-  repeated until stable. Then it marks COAST|0x400, and thins: a COAST cell
-  with only ocean or COAST around it goes to `land` 2 and loses
-  0x3c|0x100|0x400. On GS (all land) it moves nothing; part 5 is equal
+- `Regions::clear_all@00680060` resets the 128 region records (each count
+  at +0x14 to 0), zeroes every cell's `region`, and sets `land` 0 and `sea`
+  0x40. It does **not** zero `region2`.
+- `Regions::find_all@0067eff0` labels 8-connected components. Water is
+  judged by `WorldData::is_ocean@006b4830` (`!(flags & 0x100) && land ∈
+  {1, 2}`), so a HALFLAND cell counts as land. It scans y outer, x inner. An
+  unlabelled cell first tries to **adopt**: it takes the label of the first
+  of its `move_x/move_y[1..=8]` neighbours that has the same wetness and a
+  label other than 0 or 0x7f. Otherwise it opens a region:
+  - land takes the first record from 1 whose count is 0, clamped to 0x3e;
+  - sea increments the `sea` counter, so the first sea region is **0x41**,
+    clamped to 0x7d.
+  `Regions::find@00680180` floods the new region breadth-first over the
+  eight neighbours, and the record's count is the cells it dequeues. A
+  region that lands on its clamp (0x3e or 0x7d) evicts. The smallest record
+  in `[lo, clamp)` by count (`lo` 0 on land, 0x40 at sea), if any is
+  smaller, moves into the bin after the clamp (0x3f, 0x7e), and the new
+  region takes its number; with none smaller, the new region goes to the
+  bin. On land `lo` is record 0, which never counts, so it is always the one
+  taken, and its relabel moves every still-unlabelled cell into 0x3f. That
+  is the original's arithmetic, and no corpus grid reaches 62 land regions.
+  A second pass, x outer and y inner, sets `region2` on HALFLAND cells where
+  it is 0, to the first ocean neighbour's `region`, so a stale `region2`
+  survives a re-run. Then the coastal sets, `sort_regions` (rank only) and
+  `rebuild_coords`, the order `compute_sites` samples (`docs/AI.md` §13).
+  None of the three writes a cell.
+- `Map::fix_diag_land@0069c250` scans x outer, y inner. A `BASELAND` cell
+  that meets another `BASELAND` cell across a corner (`CORNER_X/CORNER_Y`,
+  `crate::world`), while both cells flanking that corner are on the grid and
+  not `BASELAND`, becomes water: `land` 2, by the 16-bit store that also
+  zeroes `land_sub`. Only the (+1, ±1) corners can fire. A partner across a
+  (−1, ±1) corner is earlier in the scan, with the same two flanks, so it
+  has already broken.
+- `Map::make_coastlines@006947a0` starts with `Map::fix_lakes@0069c470`.
+  Over the interior, y outer and x inner, an ocean cell with **more than 5**
+  non-ocean neighbours becomes `BASELAND`. The sweep repeats in place until
+  nothing changes. Then, y outer and x inner, a cell that is not ocean and
+  not yet COAST (4), with a neighbour that is ocean and not COAST, takes
+  `(flags & 0xffc3) | 4 | 0x400`. Then the thinning, in the same order: a
+  COAST cell with no neighbour that is land without COAST goes to `land` 2
+  and `flags & 0xfac3`. On GS (all land) it moves nothing; part 5 is equal
   across 7835 → 7843.
-- `TerrainGroups::fill_fertile@006a6f90` sets each land cell's `land_sub`
-  to the number of leading tileset partitions ≤ its fractal byte. The
-  partitions come from `TerrainGroups::init_tileset_data@006a61f0` (§11).
-  The decompile mistypes the fields; the listing puts the count at +0xfc
-  and the data at +0x108.
+- `TerrainGroups::fill_fertile@006a6f90` scans x outer, y inner. It sets
+  each `BASELAND` cell's `land_sub` to the number of leading partitions at
+  or below the cell's byte of the tileset `Fractal`. The `Fractal` and the
+  partitions are built in load, by `TerrainGroups::init_tileset_data@006a61f0`:
+  - **The `Fractal`**, `Fractal::init@006aa2d0` on `xs × ys`. It is
+    smoothed by the tileset's `CLUMP_FACTOR` (clamped to 0..5), flag 0, and
+    seeded with `World.seed`, the `seed` the start dump's `WORLD` block
+    prints (7236 on every Great Sahara file), on the fractal's **own**
+    `Random`, so `game_random` does not move. It is an integer midpoint
+    displacement into `xs + 1` columns of `ys + 1` bytes:
+    - The top level draws each `2^smooth` lattice point `get(0, 0xff)`.
+    - Each finer level `i`, x outer and y inner, fills the points that have
+      an odd coordinate at that spacing. The value is the rounded mean of the
+      two edge parents (`+1 >> 1`) or of the four diagonal parents
+      (`+2 >> 2`), plus `get(0, 2^(8−smooth+i) − 1) − 2^(7−smooth+i)`,
+      clamped to a byte.
+    - Column `xs` copies column 0 before each level and after the last.
+    - Its doubles, `x_inc` and `y_inc`, are `Fractal::get_height`'s only, so
+      the bytes take no float.
+  - **The partitions** are the running sum of `(int)(f/100.0f·255.0f) &
+    0xff` over all but the last of the tileset's `BASELAND` frequencies
+    (`mapstyles/default.xml`'s `TILESET_DATA`, `LANDKEY name="baseland"`,
+    `frequency_0..`; one per `BASE` under the tileset's `BASELAND` in
+    `Data/tilesets.xml`). The style file's own entry is read over it if it
+    has one, and a frequency missing there becomes −1. The product is
+    `f·255/100` truncated for every |f| < 6,420
+    (`the_partition_float_is_the_integer_quotient`; it first parts at
+    ±6,420). GS_Desert's 80/5/5/10 give 204, 216, 228.
+
+**Diff-backed since item 3798** (`sim::mapgen`; checked by
+`rondata::mapgen::tests::great_sahara_s_zero_draw_passes_are_the_traced_7835_to_7854`):
+from the ported 7807 grid, the seed, part 2 and part 5 agree at 7835, 7843,
+7846 and 7854 on all **105 Great Sahara files**, which are §2's two
+generator runs, on the first run. 7835 and 7846 are every cell `region` 1
+(2,334,202,137). 7854 is the fertility map over the `Fractal`
+(969,480,808), which checks every byte's bucket on 3,600 cells. A second
+check covers the labels across styles: **`find_all` re-labels 494 of 496 start grids**
+whole (`find_all_relabels_every_start_grid`: GS 105, GL 185, EI 202, and
+styles 9 and 22). A start dump's `region` is the 7937 pair's, so this checks
+the label order, the sea numbering from 0x41 and the adoption on real
+multi-region maps. The two that part are the fuzz lobby's East Indies,
+named (parked 3798b): a half-land row that was water at 7937 moves an island
+ahead in the scan, and `Terrain::mark_halfwater@0084ece0` writes those
+cells' `region` later.
+
+**What no diff on disk checks** (parked 3798a): `fix_diag_land`,
+`make_coastlines` and `find_all`'s `region2` pass. Great Sahara has no water
+at 7807, so 7835 and 7843 carry none of their writes, and a dropped-corner
+mutant passes the GS check. A start dump's `region2` is a later writer's
+(185 GL files part on two cells when it is zeroed first). Unit tests and
+held mutants stand in. Great Lakes' or East Indies' 7835, 7843 and 7846 are
+what would check them, once those styles' masks exist (§15 step 1).
 
 Falsifier: part 5 at 7835, 7843, 7846 and 7854.
 
@@ -577,6 +654,10 @@ Of the territory's 198 open or layout-only functions under the nine stems
 - §3's Adler-32 identity (337 of 337; 496 of 496 pinned, item 3776);
 - §5's Great Sahara `make_continents`: its seed, part 2 and part 5 at 7807
   on 105 files (item 3776);
+- §6's passes on Great Sahara at 7835, 7843, 7846 and 7854 on 105 files,
+  `fill_fertile`'s `Fractal` and partitions with them, and `find_all`'s
+  labels on 494 of 496 start grids (item 3798); `fix_diag_land`,
+  `make_coastlines` and the `region2` pass are unit-tested only (§6);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -627,7 +708,9 @@ step is checked by §3 at its own checkpoint before the next begins:
 1. the land/sea mask against every grid (§5, 7807) — **Great Sahara
    built** (item 3776, `sim::mapgen`; the `Mapgen:` line's first phase);
    Great Lakes and East Indies remain;
-2. the zero-draw passes (§6, 7854);
+2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
+   `sim::mapgen`; the `Mapgen:` line's second phase); the water passes
+   wait on a mask with water;
 3. `place_all` (§7, 7859–7870);
 4. resources (§8, 7927);
 5. values (§9, 7945);
