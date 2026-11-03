@@ -2557,7 +2557,9 @@ impl Sim {
         let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
         let mut spline = None;
         let figure = match shooter {
-            Obj::Unit(u) if missile && p.domain != Domain::Land => Some(self.units[u].movement.facing),
+            Obj::Unit(u) if missile && p.domain != Domain::Land => {
+                Some(self.units[u].movement.facing)
+            }
             _ => None,
         };
         let total_time = if missile {
@@ -2573,8 +2575,12 @@ impl Sim {
             // bearing to the target, and the middle point is rotated by it.
             // run1469's parked Jet Fighter `2/14` faces 120° and fires on
             // `1/14` to its south; its round swings 285 east in four frames.
-            let lead = (p.domain != Domain::Land)
-                .then(|| (figure.unwrap_or(angle), i32::try_from(d * 5).unwrap_or(i32::MAX)));
+            let lead = (p.domain != Domain::Land).then(|| {
+                (
+                    figure.unwrap_or(angle),
+                    i32::try_from(d * 5).unwrap_or(i32::MAX),
+                )
+            });
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
             let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
             spline = Some(path);

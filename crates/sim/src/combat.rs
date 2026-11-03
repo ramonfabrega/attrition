@@ -1361,7 +1361,13 @@ pub fn missile_spline(
             sz + (ez - sz) / 2,
         ),
     };
-    let v = |x: i32, y: i32, z: i32| [Single::from_i32(x), Single::from_i32(y), Single::from_i32(z)];
+    let v = |x: i32, y: i32, z: i32| {
+        [
+            Single::from_i32(x),
+            Single::from_i32(y),
+            Single::from_i32(z),
+        ]
+    };
     let speed = Single::from_i32(i32::try_from(speed).unwrap_or(i32::MAX));
     Spline::from_dir(
         v(launch.x, launch.y, sz),
@@ -1429,7 +1435,12 @@ impl Spline {
     ///   Cox–de Boor's with `calc_bspline_basis@009116e0`'s guards;
     /// - and the last control point is laid when `k₅ − (t − δ)`, widened
     ///   to a double, exceeds 0.001 (`911b15`–`911b2d`).
-    pub fn from_dir(start: [Single; 3], dir: [Single; 3], end: [Single; 3], speed: Single) -> Spline {
+    pub fn from_dir(
+        start: [Single; 3],
+        dir: [Single; 3],
+        end: [Single; 3],
+        speed: Single,
+    ) -> Spline {
         const DEGREE: usize = 2;
         let ctl = [start, dir, end];
         let zero = Single::from_bits(0);
@@ -1442,7 +1453,9 @@ impl Spline {
             length = sq.sqrtss().addss(length);
         }
         let mut res = i32::from(length.divss(speed).to_i32() as u16);
-        let cap = Single::from_i32(3).mulss(Single::from_bits(0x4080_0000)).to_i32();
+        let cap = Single::from_i32(3)
+            .mulss(Single::from_bits(0x4080_0000))
+            .to_i32();
         if cap != 0 && cap < res {
             res = cap;
         }
@@ -1450,7 +1463,10 @@ impl Spline {
         let knots = [zero, zero, zero, one, one, one];
         let last = knots.len() - 1;
         let delta = knots[last].subss(knots[0]).divss(Single::from_i32(res));
-        let mut s = Spline { pts: [[zero; 3]; SPLINE_MAX], len: 0 };
+        let mut s = Spline {
+            pts: [[zero; 3]; SPLINE_MAX],
+            len: 0,
+        };
         s.push(ctl[0]);
         let mut t = knots[0].addss(delta);
         let mut span = 0;
@@ -1467,7 +1483,12 @@ impl Spline {
                 break;
             }
             let mut p = [zero; 3];
-            for (j, c) in ctl.iter().enumerate().take(span + 1).skip(span.saturating_sub(DEGREE)) {
+            for (j, c) in ctl
+                .iter()
+                .enumerate()
+                .take(span + 1)
+                .skip(span.saturating_sub(DEGREE))
+            {
                 let b = bspline_basis(t, j, DEGREE, &knots);
                 for k in 0..3 {
                     p[k] = p[k].addss(c[k].mulss(b));
@@ -1478,7 +1499,10 @@ impl Spline {
         }
         // `0.001` as a double lies between these two singles, so a single
         // above the lower is one above the double.
-        if knots[last].subss(t.subss(delta)).gt(Single::from_bits(0x3a83_126e)) {
+        if knots[last]
+            .subss(t.subss(delta))
+            .gt(Single::from_bits(0x3a83_126e))
+        {
             s.push(ctl[ctl.len() - 1]);
         }
         s
@@ -1497,7 +1521,11 @@ fn bspline_basis(t: Single, i: usize, p: usize, k: &[Single]) -> Single {
         return one;
     }
     if p == 0 {
-        return if !k[i].gt(t) && k[i + 1].gt(t) { one } else { zero };
+        return if !k[i].gt(t) && k[i + 1].gt(t) {
+            one
+        } else {
+            zero
+        };
     }
     let mut acc = zero;
     let (a, b) = (t.subss(k[i]), k[i + p].subss(k[i]));
