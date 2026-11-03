@@ -179,10 +179,10 @@ impl Rings {
     /// each re-seated at `r % len` when it holds two or more.
     fn randomize(&mut self, d: &mut Draws) {
         let sites = [site::MTN_SMALL, site::MTN_MED, site::MTN_LARGE];
-        for k in 0..3 {
-            let n = self.lists[k].len();
-            self.cursor[k] = if n >= 2 {
-                (d.get(sites[k]) % n as i32) as usize
+        for ((list, cursor), site) in self.lists.iter().zip(&mut self.cursor).zip(sites) {
+            let n = list.len();
+            *cursor = if n >= 2 {
+                (d.get(site) % n as i32) as usize
             } else {
                 0
             };
@@ -443,10 +443,10 @@ impl Pass<'_> {
                 if !self.available(gr, x, y, flag::FOREST) {
                     return false;
                 }
-                if let Some(&(sx, sy)) = self.tiles.first() {
-                    if vector_dist(x - sx, y - sy) > maxd {
-                        return false;
-                    }
+                if let Some(&(sx, sy)) = self.tiles.first()
+                    && vector_dist(x - sx, y - sy) > maxd
+                {
+                    return false;
                 }
                 self.coast_land(x, y);
                 let i = self.at(x, y);
@@ -979,8 +979,9 @@ impl Pass<'_> {
     }
 
     /// **`TerrainGroup::place_region_group@006a2f60`**: a clump of `gr` in
-    /// region `reg`, its start the first cell a 17-bit Galois LFSR (taps
-    /// 0x16800) reaches from a drawn state that passes every test, then
+    /// region `reg`, its start the first cell a 16-bit Galois LFSR (`(s >> 1)
+    /// ^ 0xB400` on an odd state, period 65,535) reaches from a drawn state
+    /// that passes every test, then
     /// grown orthogonally. `range` is the start drop's mountain range.
     fn place_region_group(
         &mut self,
@@ -1629,5 +1630,49 @@ fn treeify_mountains(p: &mut Pass<'_>, prob: i32) {
                 break;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `randomize_mountains` on run1000's two words (`docs/MAPGEN.md` §7):
+    /// the small ring holds one range and draws nothing; 1131 % 8 seats the
+    /// medium ring on range 11 and 13530 % 7 the large on range 0, and
+    /// `get_range` then walks each ring from its head, wrapping.
+    #[test]
+    fn the_rings_seat_on_the_traced_words() {
+        let mut r = Rings::stock();
+        let mut d = Draws::new(0x8c60_9701);
+        r.randomize(&mut d);
+        assert_eq!(
+            d.log,
+            [(site::MTN_MED, 0x8c60_9701), (site::MTN_LARGE, 0x989a_046c)]
+        );
+        assert_eq!((r.get(1), r.get(1)), (15, 15));
+        assert_eq!((r.get(2), r.get(2), r.get(2), r.get(2)), (11, 10, 9, 8));
+        assert_eq!(r.get(2), 7);
+        assert_eq!(r.get(2), 14, "the medium ring wraps to its head");
+        assert_eq!((r.get(3), r.get(3)), (0, 6), "the large ring wraps at once");
+        assert_eq!(r.get(4), 0);
+    }
+
+    /// `place_region_group`'s walk is a maximal 16-bit Galois LFSR — the
+    /// listing's 0x16800 is applied before the shift, so the taps are
+    /// 0xB400: from any nonzero state it visits every state below 2^16 once
+    /// before returning.
+    #[test]
+    fn the_region_walk_visits_every_state() {
+        let (s0, mut s, mut n) = (1u32, 1u32, 0u32);
+        loop {
+            s = if s & 1 != 0 { s ^ 0x16800 } else { s } >> 1;
+            n += 1;
+            if s == s0 {
+                break;
+            }
+            assert!(s != 0 && s < 1 << 16 && n < 1 << 16);
+        }
+        assert_eq!(n, (1 << 16) - 1);
     }
 }

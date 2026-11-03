@@ -413,7 +413,37 @@ forest, 5 mountain, 6 rock with oil, 7 oil by water, 8 cliff.
 - one `r & 3` mirror when a later player's forest copies player 1's shape.
 
 `TerrainGroup::place_region_group@006a2f60` makes one start draw, then
-visits cells in the order of a 17-bit LFSR (taps 0x16800).
+visits cells in the order of a 16-bit Galois LFSR: `(s >> 1) ^ 0xB400` on
+an odd state, period 65,535. The listing XORs 0x16800 before the shift,
+which is why it was first written here as 17-bit
+(`the_region_walk_visits_every_state`).
+
+**The groups** (`TerrainGroups::init_terrain_data@006a6540`). The style
+file's `TERRAIN_GROUPS` replace `default.xml`'s, which is read only when the
+style has none. Patterns map `player` 0, `continent` 1, `world` 2,
+`nonplayer` 3 and `corner` 4; pattern 4 places nothing, because the jump
+table at 0x6a9380 has four entries. Counts go through
+`Map::scale_number@006a0320`. `SCALE` is `max(1, (35 + xs·v) / 70)`, where
+70 is `rules.xml`'s Standard map size (`map_sizes` record 3). `AREA` is the
+same over the area, and any other word leaves the value. Mountain sizes are
+not scaled. `rondata::mapgen::terrain_groups` reads all eleven of Great
+Sahara's groups (`great_sahara_s_groups_parse_as_read`). Two of them,
+"general trees" and "sprinkling of oasis", are pattern 2. The mountain
+templates are `rondata::mountains`' (§4 of its reader), and the cell list
+`place_all` lays is their tiles' cells in first-appearance order.
+
+**Ported on Great Sahara** (item 3803, `sim::terrain_groups`). Every draw
+is tagged with the return address the original's draw-site trace records
+for it. The port's stream is the trace's `place_all` segment, site for site
+and word for word, on **all 280 Great Sahara traces**: 267 at 2 players
+(1,238 draws) and 13 at 3 (1,324). Seed and parts 2, 5 and 6 agree at 7859
+on all 105 files that carry it (`great_sahara_s_place_all_is_the_traced_
+stream_and_7859`). It agreed on the first run. The 7859 grid holds forest,
+mountain, rock and oil on both lobbies; the oil cells' `goods` byte stays 0,
+because the OIL object `World::set_oil_at` makes walks no part. A moved
+LFSR tap, a reordered ring draw, a fringe cell's lost FOREST bit and a
+stray tile-mask bit each turn the check red (`tools/mutate.py`), the last
+two at 7859 only.
 
 **Where the player count enters** — the GS finding from this side. The
 grid entering `place_all` is equal for 2 and 3 players. `place_all` is the
@@ -619,7 +649,7 @@ reachable set.
 | `Map::scale_land_area@0068b1e0` | single, area·nominal/players | correctly rounded | EI island area, GL spacing (only above the nominal player count) | 19 |
 | `Map::scale_number@006a0320` | single, `SCALEWATER`/`SCALELAND` | correctly rounded | no stock map | 19 |
 | `TerrainGroups::init_tileset_data@006a61f0` | `(int)(freq/100f·255f)` | correctly rounded | fertility partitions (§6) | 19 |
-| `place_all`'s pattern-2/3 weights | single | correctly rounded | a draw's modulus and the order | 19 |
+| `place_all`'s pattern-2/3 weights (only when `clumps > 6 && regions < 6`) | single: `cvtdq2ps`, an `addss` sum in list order, `divss` then `mulss`, `cvttss2si` (0x6a7e24..0x6a7f29) | correctly rounded | a draw's modulus and the order | 19: `sim::single`, in the port; on Great Sahara one region, so the weight is `n` exactly |
 | the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`) |
 | `TerrainOut::has_plus_slope@00869790` | `tanf(25°)` | **transcendental**, constant argument | the cliff threshold 89.531075f (`0x42b30fe9`) | **13**: pin it; the double result sits 0.30 ulp from the float, so a faithful libm agrees |
 | `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: no trace reaches it (§7) |
@@ -658,6 +688,10 @@ Of the territory's 198 open or layout-only functions under the nine stems
   `fill_fertile`'s `Fractal` and partitions with them, and `find_all`'s
   labels on 494 of 496 start grids (item 3798); `fix_diag_land`,
   `make_coastlines` and the `region2` pass are unit-tested only (§6);
+- §7's `place_all` on Great Sahara: draw for draw on 280 traces, and seed
+  and parts 2, 5 and 6 at 7859 on 105 files (item 3803). The groups' parse
+  and the templates come with it. Cliffs, patterns 3 and 4, oil by water
+  (type 7) and `clear_group`'s first branch are reading-only;
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -686,7 +720,8 @@ tileset or a base-mask style is what would.
 
 ## 14. What is not established
 
-- The draw formulas reconciled to 5,568, 1,016, 1,824, 231 and 173. Each
+- The draw formulas reconciled to 5,568, 1,016, 1,824, 231 and 173
+  (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7). Each
   needs the grid at its phase, which a port's own phase supplies, checked
   by §3. `GLOG_MAPMAKE` at detail 7–10 would count them in the original.
 - Whether MSXML's `selectSingleNode` honours `FISH ` with its trailing
@@ -711,7 +746,9 @@ step is checked by §3 at its own checkpoint before the next begins:
 2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
    `sim::mapgen`; the `Mapgen:` line's second phase); the water passes
    wait on a mask with water;
-3. `place_all` (§7, 7859–7870);
+3. `place_all` (§7, 7859) — **Great Sahara built** (item 3803,
+   `sim::terrain_groups`; the `Mapgen:` line's third phase); 7861–7870's
+   `nubify_forest`, `change_*_base` and `fix_transitions` come next;
 4. resources (§8, 7927);
 5. values (§9, 7945);
 6. `Terrain::init` without heights;

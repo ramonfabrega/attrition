@@ -1052,7 +1052,8 @@ mod tests {
     /// Every kept draw-site trace's `place_all` segment ([`place_all_draws`]),
     /// read once. `None` without the archive.
     fn place_all_traces() -> Option<&'static [(String, Vec<SetupDraw>)]> {
-        static ALL: OnceLock<Option<Vec<(String, Vec<SetupDraw>)>>> = OnceLock::new();
+        type Segments = Vec<(String, Vec<SetupDraw>)>;
+        static ALL: OnceLock<Option<Segments>> = OnceLock::new();
         ALL.get_or_init(|| {
             let mut names: Vec<String> = std::fs::read_dir(gamelog_dir())
                 .ok()?
@@ -1217,6 +1218,20 @@ mod tests {
         );
         let mut files = 0;
         for (run, grid, d) in &ported {
+            // What the parts below are checking: every kind of write this
+            // phase makes reaches the grid, oil included (the OIL goods
+            // object `set_oil_at` makes walks no part; `goods` stays 0).
+            let count = |bit: u16| grid.cells.iter().filter(|c| c.flags & bit != 0).count();
+            let placed = [0x20, 0x10, 0x8, 0x800].map(count);
+            eprintln!(
+                "{} nations: forest, mountain, rock, oil cells {placed:?}",
+                run.1
+            );
+            assert!(
+                placed.iter().all(|&n| n > 0),
+                "a kind placed nothing: {placed:?}"
+            );
+            assert!(grid.cells.iter().all(|c| c.goods == 0));
             for g in &runs[run] {
                 let Some((_, _, seed, p)) = g.at("map.cpp", 7859) else {
                     continue;
@@ -1247,7 +1262,7 @@ mod tests {
         "gamelog-fuzz-424242-heights.txt",
     ];
 
-    /// The §15 phases this module checks on Great Sahara: the mask (7807)
-    /// and the zero-draw passes (7835..7854).
-    const GREAT_SAHARA_CHECKED: i64 = 2;
+    /// The §15 phases this module checks on Great Sahara: the mask (7807),
+    /// the zero-draw passes (7835..7854) and `place_all` (7859).
+    const GREAT_SAHARA_CHECKED: i64 = 3;
 }
