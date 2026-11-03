@@ -34021,3 +34021,48 @@ SHA-256 `f50070bf3af65d7bdeaf56a455ddea1f184c559552715e9ed15e9842103dd43d`.
 
 **What it holds**: pinned in `blind::TRACES`; it enters one function no pinned trace had and none of the 257 cited
 and never entered (parked 3797c).
+
+## run1469 — the third melee: the word's window 620..640 and a packet at 627 (2026-11-03, item 3802, `att-3802`)
+
+`docs/GOLDEN.md` §152.2. **What the disk could not answer**: run1468's stride of 100 prints no `AMMO` and no
+`UNITDATA` between 601 and 701, so which unit spent theirs' extra `fight` roll on 628, and what it held, was on no
+record. run1468's staging (`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`,
+`ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, seats 1=10 and 2=13), with `--log-window 620 640`, detail
+`end:MISC,UNITS=3,GUYS=4,AMMO=5`, `cover=0`, `--callwin 0 680` and `--tracer-def RON_STATE_FRAME=627` with the
+item-597 plan. One dead take came first: `--end-frame 640`, before the script's last staged line, was refused before
+launch.
+- Pool lane 1. Launched 16:02:53, exited 16:03:19 (25.3 s launch to exit). `success`: 681 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 681 of 681 identical. DLL `9c277690…`. Not filed: the packet and
+  the window's gamelog stay in the run's directory.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1469/map-7/gamelog.txt`, 4,606,604 bytes,
+SHA-256 `e7071c5be8ea676f258b93962e5487158fe932018f030b05577acb5e270b2025`.
+
+Packet `~/ron-golden/run1469/map-7/frame-snapshot.bin`, 903,815,364 bytes,
+SHA-256 `459ed7ce13c9a302beb0841c9ef547b4f2c224daf2ca45e688c454a911c3a459`.
+
+**What it holds**:
+- The window: every round on every block 620..640, with its spline (control points, knots, points). `2/14`'s round
+  on `1/14` re-plans on 620 (nine points) and 624 (six), and is gone on 628. That is §152.2's value diff, and
+  `combat::tests::guided_round_splines_are_run1469s` pins its two splines.
+- The packet: `step4.py --entry 0060d180 --this 160f7084` (`Unit::work` on `1/14`) ends tick 627 with no order, as
+  ours does.
+
+## run1469b — the third melee: run1469's line with the packet at 628 (2026-11-03, item 3802, `att-3802`)
+
+`docs/GOLDEN.md` §152.2. **What the disk could not answer**: run1469's packet is tick 627's, and the extra roll is
+628's. run1469's line with `--tracer-def RON_STATE_FRAME=628`.
+- Pool lane 1. Launched 16:06:11, exited 16:06:36 (25.3 s launch to exit). `success`: 681 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 681 of 681 identical. DLL `12bdd206…`. Not filed, as run1469.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1469b/map-7/gamelog.txt`, 4,606,605 bytes,
+SHA-256 `de8e977c7e354298532fa7516f54666e8fb49f3c272bb2ef1ea3d2652e005587`.
+
+Packet `~/ron-golden/run1469b/map-7/frame-snapshot.bin`, 905,314,708 bytes,
+SHA-256 `bd7fb39e6a6f33af116100cb1c5db6737da68e3a2329d4b3dc656425531476b1`.
+
+**What it holds**: `step4.py --this 158cb304` (`1/14`): at tick 628's start theirs' Jet Fighter holds an attack on
+`2/14` (`fight(o=14, who=2)`), and the re-search swaps it to `2/15`, so the roll is spent. This is the retaliation
+the guided round's earlier close gives.

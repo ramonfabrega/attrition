@@ -12873,13 +12873,18 @@ words and edits nothing here; a refill lands when two remain.
   `AmmoOut::draw` lines and nothing of the arm. A per-frame entry count, not a first, would have named the
   bomber before a probe. Names no score; a tool.
 
-## Parked by the next landing, slot XK — reserved
+## Parked by item 3802, 2026-11-03 — a guided round re-plans every fourth frame and closes inside its target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3802a. A missile launch's middle point, in float** (`Ammo::init@0067bbf0:740`–`:770`): the original rotates
+  `(0, −lead, 0)` by the figure's pitch (`GuyData +0x4c`) and then its angle through the `fast_half_degree_to_*`
+  tables and `Point<float>::rotate`; `combat::missile_spline` takes the integer `sin_component` pair and no pitch.
+  run1469's `2/14` is parked (pitch 0) and its round agrees on every field; a pitched shooter's first re-plan
+  would start from a point a fraction off. Names no score.
+- **3802b. An air target's initial `ez`** (`Sim::aim_z`): `2/14`'s second round on the parked Jet Fighter `1/14`
+  launches with `ez` 529 in ours and 0 in theirs (run1469 blocks 622–624). It closes the first time the
+  re-plan writes the target's z, and the point count agreed. Names no score.
+- **3802c. A ground unit's figure z** (`guys[0] +0x14`): `Sim::guided_closes` reads its object's z for the
+  proximity's `|dz| < 0xc0`. Names no score.
 
 ## Parked by the next landing, slot XL — reserved
 
