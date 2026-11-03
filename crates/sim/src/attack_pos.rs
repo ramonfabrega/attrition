@@ -451,15 +451,7 @@ impl crate::Sim {
             Lead::Ahead(c) => Some(c),
             Lead::None => None,
         };
-        let got = self.find_nearby_spot(u, centre.unwrap_or(t), min, max, step, angle, None);
-        if std::env::var("RON_PROBE_3802").is_ok() {
-            eprintln!(
-                "PROBE3802   chase_spot f{} {}/{} from {:?} t {:?} stand {} spot {} band ({},{},{}) far {} centre {:?} p {:?} inrange {:?} dist {}",
-                self.frame, self.units[u].owner, self.units[u].index, from, t, stand, spot, min, max, step, far, centre, got,
-                got.map(|p| self.is_in_range_at(me, p, target)), self.attack_dist(me, target)
-            );
-        }
-        let p = got?;
+        let p = self.find_nearby_spot(u, centre.unwrap_or(t), min, max, step, angle, None)?;
         (far || centre.is_some() || self.is_in_range_at(me, p, target)).then_some(p)
     }
 
