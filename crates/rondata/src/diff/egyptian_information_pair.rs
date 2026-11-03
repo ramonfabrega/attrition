@@ -429,7 +429,9 @@ fn egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole() {
     // 32088, 603 against 4245, 32066, 733: piece 207's node 1, which ours
     // fires from `WALK`; parked 3743a).
     pin_eq!(w.rounds_read, (109, 110), "the rounds read");
-    pin_eq!(w.rounds.len(), 26, "the rounds that part");
+    // Item 3802: 26 → **24**, a missile leading along its figure's
+    // angle and re-planned every fourth frame (`docs/GOLDEN.md` §152.2).
+    pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3720): run1399's closing block 3798,

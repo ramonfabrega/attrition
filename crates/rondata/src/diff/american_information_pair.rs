@@ -451,7 +451,9 @@ fn american_information_pair_run1437b_s_word_frame_is_widened_whole() {
     // Item 3760: (493, 504) → (493, 493) read, 291 → **30** parting — the
     // strafers' `angle` and the Bombers' `accuracy` (`fight.rs`'s bomb-arm
     // SEAM), every launch point alike.
-    pin_eq!(w.rounds.len(), 30, "the rounds that part");
+    // Item 3802: 30 → **23**, a missile leading along its figure's
+    // angle and re-planned every fourth frame (`docs/GOLDEN.md` §152.2).
+    pin_eq!(w.rounds.len(), 23, "the rounds that part");
 }
 
 /// run1439: the gap 3903..4285 between run1434b's window and run1437b's,
@@ -518,7 +520,9 @@ fn american_information_pair_run1439_s_gap_is_widened_whole() {
     // strafers' rounds: theirs carries the figure's own angle), `accuracy`
     // (the Bombers') and `1/28`'s and `1/33`'s `whom`, `ox` on 3924 and
     // 4123 (ours −1). Before the rows: 424 read in theirs, 106 parting.
-    pin_eq!(w.rounds.len(), 21, "the rounds that part");
+    // Item 3802: 21 → **10**, a missile leading along its figure's
+    // angle and re-planned every fourth frame (`docs/GOLDEN.md` §152.2).
+    pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3725): run1409's closing block 4321,
