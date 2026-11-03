@@ -12166,7 +12166,9 @@ seed delta, then an Adler-32 over the port's packed cells against the trace's `W
 starts, part 6 for the tiles). Seven distinct generator runs are traced (§2), and fourteen more styles have
 one start dump each.
 
-- **3734a. The land/sea mask against every grid** (§5, checkpoint `map.cpp` 7807). Great Sahara's 4 draws
+- **3734a. The land/sea mask against every grid** (§5, checkpoint `map.cpp` 7807). ~~Great Sahara's 4 draws
+  and its all-land mask, and the packer and the Adler-32~~ — built by item 3776 (`sim::mapgen`, `rondata::mapgen`;
+  496 of 496 files and 105 Great Sahara files at 7807); Great Lakes' and East Indies' masks remain. Great Sahara's 4 draws
   and its all-land mask come first, because they are closed by the reading. Then Great Lakes' lakes
   (5,568 draws) and East Indies' islands (49,611 and 55,533). The packer and the Adler-32 come first of all:
   a `rondata` reader of the sixteen `World` lines beside `gamelog::Checksum`'s seed. That reader is also
@@ -12623,13 +12625,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot WQ — reserved
+## Parked by item 3776, 2026-11-03 — map generation's checksum reader and Great Sahara's mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3776a. Two of `MapGreatSahara::make_continents`'s writes no part checks** (`docs/MAPGEN.md` §5). The first is
+  `Map::start_dist` (+0x28), `max(4, xs/16)`: no `World` part walks `Map`, so the port returns the value and
+  nothing compares it. The second is the start arrays' growth increment, −1. It was measured: of the increments
+  −1..=64 and every flag byte, it is the only one that gives 7807's part 2 on both lobbies. The constructor that
+  sets it (`WorldData::WorldData`) was not read. A later phase that reads `start_dist`, or a lobby with five or
+  more nations (whose arrays outgrow 4 and 8), is what tests each. Neither names a score today.
+- **3776b. The reader's count is a floor** (`rondata::mapgen::tests::the_cell_part_is_the_packed_start_dump`). The
+  test sweeps every `gamelog*.txt` under the dump directory, each through `testenv::dump`. Any file that parts
+  fails it. The file count, though, only has to reach `floors::MAPGEN`'s 496 (2026-11-03), so a lane's new
+  traced capture does not turn it red. As a result the `Mapgen:` line's count can fall behind the archive without
+  anything failing. Re-pin it at a pass, or freeze the file list if an exact count is ever wanted.
 
 ## Parked by item 3779, 2026-10-29 — the Inti Macemen walk home to their posts
 

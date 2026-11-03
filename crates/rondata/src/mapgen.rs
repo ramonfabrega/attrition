@@ -233,7 +233,8 @@ mod tests {
     /// **§3's identity, pinned** (item 3776): on every kept file whose
     /// setup trace reaches `setup.cpp` 1240 and whose head holds a start
     /// grid, the packed grid's Adler-32 is part 5 of every record from 1240
-    /// on. A file that parts is named with its cell count and both sums.
+    /// on. A file that parts is named with its cell count and both sums;
+    /// the file count is a floor at [`MAPGEN`]'s.
     #[test]
     fn the_cell_part_is_the_packed_start_dump() {
         let Some(all) = archive() else {
@@ -263,11 +264,14 @@ mod tests {
             parted.len(),
             parted.join("\n")
         );
-        assert_eq!(
-            (both - parted.len(), both),
-            (MAPGEN.checksum, MAPGEN.checksum_of),
-            "the checksum pin moved: re-pin `floors::MAPGEN.checksum` and the \
-             handoff's `Mapgen:` line"
+        // A floor, not a count: every capture a lane files moves `both`,
+        // and none of them should turn this red (parked 3776b).
+        assert!(
+            both >= MAPGEN.checksum_of && MAPGEN.checksum == MAPGEN.checksum_of,
+            "{both} files carry both, under the pinned {} of {}: a kept dump \
+             went missing, or the pin moved",
+            MAPGEN.checksum,
+            MAPGEN.checksum_of
         );
     }
 
