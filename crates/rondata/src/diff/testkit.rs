@@ -7906,6 +7906,14 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("roman_medieval_pair_corrections_change_nothing", 27),
     ("russian_modern_pair_corrections_change_nothing", 131),
     ("spanish_gunpowder_pair_corrections_change_nothing", 28),
+    // Item 3775: the seventeen whole late-age pairs joined the audit; each
+    // count is its own closing walk's.
+    ("aztec_modern_pair_corrections_change_nothing", 2),
+    ("bantu_modern_pair_corrections_change_nothing", 8),
+    ("british_modern_pair_corrections_change_nothing", 11),
+    ("egyptian_information_pair_corrections_change_nothing", 1),
+    ("mongol_medieval_pair_corrections_change_nothing", 7),
+    ("russian_information_pair_corrections_change_nothing", 8),
     // Item 3723: the Bantu Modern pair's closing walk, run1405 from
     // run1404's start to the closing block 4396, past the word 3410.
     ("bantu_modern_pair_run1405_s_closing_state", 8),
