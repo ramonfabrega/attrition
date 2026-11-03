@@ -252,6 +252,40 @@ pub fn fertility(root: &Path, style_file: &str) -> Option<Fertility> {
     })
 }
 
+/// One setup draw of `game_random`, as a draw-site trace records it: the
+/// return address into the drawing function, normalised to
+/// [`crate::trace::IMAGE_BASE`], and the word **before** the step.
+pub type SetupDraw = (u32, u32);
+
+/// Every `game_random` draw of a draw-site trace's **setup path**, in order
+/// — the records before its first `FRAME` (`crate::trace`'s format). A trace
+/// runs to gigabytes and map generation is in its first few megabytes, so
+/// this reads records only until that `FRAME` and never parses the rest.
+/// `None` for a file that is not a trace.
+pub fn setup_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
+    use crate::trace::{IMAGE_BASE, RVA_GAME_RANDOM};
+    use std::io::Read;
+    let mut r = BufReader::with_capacity(1 << 20, std::fs::File::open(path)?);
+    let mut rec = [0u8; 32];
+    if r.read_exact(&mut rec).is_err() || &rec[..4] != b"RONT" {
+        return Ok(None);
+    }
+    let word = |b: &[u8; 32], i: usize| u32::from_le_bytes([b[i], b[i + 1], b[i + 2], b[i + 3]]);
+    let base = word(&rec, 8);
+    let norm = |va: u32| va.wrapping_sub(base).wrapping_add(IMAGE_BASE);
+    let mut out = Vec::new();
+    while r.read_exact(&mut rec).is_ok() {
+        match word(&rec, 0) {
+            2 => break,
+            1 | 3 if norm(word(&rec, 8)) == IMAGE_BASE + RVA_GAME_RANDOM => {
+                out.push((norm(word(&rec, 4)), word(&rec, 12)));
+            }
+            _ => {}
+        }
+    }
+    Ok(Some(out))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
