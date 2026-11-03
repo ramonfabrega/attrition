@@ -1647,6 +1647,7 @@ mod tests {
     ];
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
-    /// the zero-draw passes (7835..7854) and `place_all` (7859).
-    const GREAT_SAHARA_CHECKED: i64 = 3;
+    /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
+    /// 7861..7870) and the resources (7927).
+    const GREAT_SAHARA_CHECKED: i64 = 4;
 }

@@ -70,8 +70,11 @@ pub const MAPGEN: Mapgen = Mapgen {
     styles: &[MapgenStyle {
         map: "GreatSahara",
         // 1 → 2 by item 3798: the zero-draw passes, 7835..7854; 2 → 3 by
-        // item 3803: `place_all`, draw for draw on 280 traces and at 7859.
-        ported: 3,
+        // item 3803: `place_all`, draw for draw on 280 traces and at 7859;
+        // 3 → 4 by item 3805: the groups' tail (7861..7870) and
+        // `place_resources`, draw for draw on 280 traces through the last
+        // draw before `compute_all_vals`, and at 7927 on 105 files.
+        ported: 4,
         phases: 8,
     }],
 };
