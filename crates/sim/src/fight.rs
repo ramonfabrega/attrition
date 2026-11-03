@@ -2556,14 +2556,25 @@ impl Sim {
         // Flight time — never zero.
         let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
         let mut spline = None;
+        let figure = match shooter {
+            Obj::Unit(u) if missile && p.domain != Domain::Land => Some(self.units[u].movement.facing),
+            _ => None,
+        };
         let total_time = if missile {
             // **A missile flies a spline** (item 1625, `docs/AI.md`
             // §174): `Ammo::init`'s `local_30` arm, whose time is the
             // spline's point count. A sea or air shooter's middle control
             // point is five speeds along its angle; a land shooter's is
             // [`combat::missile_flight_time`]'s SEAM.
+            //
+            // **The lead is along the shooter's figure** (item 3802,
+            // `Ammo::init@0067bbf0:704`–`:706`): an air or sea unit's round
+            // takes `+0x2c` from `guys[0]->angle` (`GuyData +0x18`), not the
+            // bearing to the target, and the middle point is rotated by it.
+            // run1469's parked Jet Fighter `2/14` faces 120° and fires on
+            // `1/14` to its south; its round swings 285 east in four frames.
             let lead = (p.domain != Domain::Land)
-                .then(|| (angle, i32::try_from(d * 5).unwrap_or(i32::MAX)));
+                .then(|| (figure.unwrap_or(angle), i32::try_from(d * 5).unwrap_or(i32::MAX)));
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
             let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
             spline = Some(path);
@@ -2622,7 +2633,7 @@ impl Sim {
             cur_time: 0,
             total_time,
             accuracy: acc,
-            angle,
+            angle: figure.unwrap_or(angle),
             splash_area: p.splash_area,
             num_guys: 1,
             // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the
