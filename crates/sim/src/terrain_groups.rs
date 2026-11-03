@@ -90,6 +90,9 @@ const CORNER: [(i32, i32); 4] = [(-1, 1), (1, 1), (1, -1), (-1, -1)];
 const MIRROR: [(i32, i32); 4] = [(-1, -1), (1, -1), (1, 1), (-1, 1)];
 /// `corner_box_x/y`: the four map corners, as multiples of `(xs, ys)`.
 const CORNER_BOX: [(i32, i32); 4] = [(0, 0), (0, 1), (1, 0), (1, 1)];
+/// `place_region_group`'s Galois taps: the listing XORs 0x16800 into an
+/// odd state before the shift, which is `(s >> 1) ^ 0xB400` after it.
+const REGION_TAPS: i32 = 0xB400;
 /// `move_x/move_y[0..81]`: the 9×9 square, for the pure any-tests.
 const SQUARE: i32 = 4;
 
@@ -1031,7 +1034,11 @@ impl Pass<'_> {
                 }
             }
             loop {
-                s = if s & 1 != 0 { s ^ 0x16800 } else { s } >> 1;
+                s = if s & 1 != 0 {
+                    (s >> 1) ^ REGION_TAPS
+                } else {
+                    s >> 1
+                };
                 if s <= n {
                     break;
                 }
@@ -1660,13 +1667,17 @@ mod tests {
 
     /// `place_region_group`'s walk is a maximal 16-bit Galois LFSR — the
     /// listing's 0x16800 is applied before the shift, so the taps are
-    /// 0xB400: from any nonzero state it visits every state below 2^16 once
+    /// [`REGION_TAPS`]: from any nonzero state it visits every state below 2^16 once
     /// before returning.
     #[test]
     fn the_region_walk_visits_every_state() {
-        let (s0, mut s, mut n) = (1u32, 1u32, 0u32);
+        let (s0, mut s, mut n) = (1i32, 1i32, 0i32);
         loop {
-            s = if s & 1 != 0 { s ^ 0x16800 } else { s } >> 1;
+            s = if s & 1 != 0 {
+                (s >> 1) ^ REGION_TAPS
+            } else {
+                s >> 1
+            };
             n += 1;
             if s == s0 {
                 break;
