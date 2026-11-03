@@ -9358,8 +9358,20 @@ impl Sim {
             }
             None => self.pos_of(target),
         };
+        if std::env::var("RON_PROBE_3802").is_ok() {
+            let un = &self.units[u];
+            eprintln!("PROBE3802   chase f{} {}/{} dest {:?} orders {}", self.frame, un.owner, un.index, dest, un.orders.len());
+        }
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
+        if std::env::var("RON_PROBE_3802").is_ok() {
+            let un = &self.units[u];
+            eprintln!("PROBE3802   moved f{} {}/{} orders {:?}", self.frame, un.owner, un.index, un.orders.iter().map(|o| o.body).collect::<Vec<_>>());
+        }
         self.chase_reentry(u, here, dest, frame);
+        if std::env::var("RON_PROBE_3802").is_ok() {
+            let un = &self.units[u];
+            eprintln!("PROBE3802   reentry f{} {}/{} orders {}", self.frame, un.owner, un.index, un.orders.len());
+        }
         false
     }
 
