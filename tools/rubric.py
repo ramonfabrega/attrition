@@ -388,6 +388,11 @@ BLIND_SRC = os.path.join(HERE, "..", "crates", "rondata", "src", "blind.rs")
 
 STRUCT = re.compile(r"(?:const (\w+): (?:Lobby|Pair) = )?\b(?:Lobby|Pair) \{\n(.*?)\n\s*\}", re.S)
 AIWORD = re.compile(r"\bAiWord \{\n(.*?)\n\s*\}", re.S)
+# A melee (item 3792): `const X: Melee = Melee { length, count, sequence }`,
+# its captures the module's own `MELEE_START` and `MELEE_LONG`.
+MELEE = re.compile(r"\bconst (\w+): Melee = Melee \{\n(.*?)\n\};", re.S)
+MELEE_START = re.compile(r'\bconst MELEE_START: &str = "([^"]+)";')
+MELEE_LONG = re.compile(r'\bconst MELEE_LONG: \(&str, &str\) = \(\s*"([^"]+)",\s*"([^"]+)",?\s*\);')
 RUN = re.compile(r"\b(run\d+[a-z]?)\b")
 FILE_RUN = re.compile(r"^(?:gamelog|rontrace)-(run\d+[a-z]?)[-.]")
 
@@ -411,6 +416,24 @@ def struct_fields(body):
         return None
     out = {"name": name.group(1), "long": (long_.group(1), long_.group(2))}
     start = re.search(r'\bstart: "([^"]+)"', body)
+    out["start"] = start.group(1) if start else None
+    for k in ("length", "count", "sequence"):
+        m = re.search(rf"\b{k}: ([\d_]+),", body)
+        if not m:
+            return None
+        out[k] = rust_int(m.group(1))
+    return out
+
+
+def melee_fields(body, module):
+    """A `Melee` literal's fields with its module's captures, or None when
+    the module names no `MELEE_LONG`."""
+    long_ = MELEE_LONG.search(module)
+    if not long_:
+        return None
+    body = strip_comments(body)
+    out = {"long": (long_.group(1), long_.group(2))}
+    start = MELEE_START.search(module)
     out["start"] = start.group(1) if start else None
     for k in ("length", "count", "sequence"):
         m = re.search(rf"\b{k}: ([\d_]+),", body)
@@ -474,9 +497,11 @@ def lockstep_games(texts, blind_text):
     word at its length. Three sources, deduplicated by game:
 
     1. every `Lobby`/`Pair` literal (`battery::BATTERY`, the word modules,
-       the pairs): the word is `min(count, sequence)`, the runs the long
-       capture's and the start's when the start is the same lobby
-       (`lobby_tag`; a battery lobby borrows another's start);
+       the pairs), and every `Melee` literal named by its const with its
+       module's `MELEE_START`/`MELEE_LONG` (item 3792): the word is
+       `min(count, sequence)`, the runs the long capture's and the start's
+       when the start is the same lobby (`lobby_tag`; a battery lobby
+       borrows another's start);
     2. every `AI_WORDS` row whose word is not a struct's: the word const
        resolved, the run from its `endpoint` test's `run<N>_` prefix or
        else the const's comment, `every frame of run<N>'s trace`;
@@ -487,10 +512,12 @@ def lockstep_games(texts, blind_text):
     `run<N>'s game` of a whole game's run join as that game's `twins`."""
     games, unresolved, by_struct = [], [], {}
     for f in sorted(texts):
-        for m in STRUCT.finditer(texts[f]):
-            fl = struct_fields(m.group(2))
+        literals = [(m.group(1), struct_fields(m.group(2))) for m in STRUCT.finditer(texts[f])]
+        literals += [(m.group(1), melee_fields(m.group(2), texts[f])) for m in MELEE.finditer(texts[f])]
+        for const, fl in literals:
             if fl is None:
                 continue
+            fl.setdefault("name", const)
             long_dump, long_trace = fl["long"]
             runs = [file_run(long_dump)]
             files = [long_dump, long_trace]
@@ -500,10 +527,10 @@ def lockstep_games(texts, blind_text):
                 files.append(f"rontrace-{file_run(fl['start'])}.log")
             word = min(fl["count"], fl["sequence"])
             g = dict(name=fl["name"], line="", word=word, length=fl["length"], whole=word >= fl["length"],
-                     runs=runs, files=files, source=f"{f} {m.group(1) or 'literal'}", twins=[])
+                     runs=runs, files=files, source=f"{f} {const or 'literal'}", twins=[])
             games.append(g)
-            if m.group(1):
-                by_struct[(f, m.group(1))] = g
+            if const:
+                by_struct[(f, const)] = g
     names = {g["name"] for g in games}
     kit = texts.get("testkit.rs", "")
     for m in AIWORD.finditer(kit):

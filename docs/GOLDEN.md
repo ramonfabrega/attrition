@@ -14937,6 +14937,51 @@ before).
 and the whole game by the draw stream to 2600 and run1413's closing block. The refund's ally and leader predicates,
 and the caravan's 50, rest on the decompile.
 
+## 149.13 The melee enters the rubric — 77.4 % → 77.5 % (item 3792)
+
+**The booking.** The first melee stood whole at 2,600, but `tools/rubric.py` built its lockstep games from
+`Lobby`/`Pair` literals and `AI_WORDS` rows. `GUNPOWDER_MELEE` is a `Melee { length, count, sequence }`, and its
+`AI_WORDS` row was among `--sources`' unresolved, along with the second melee's. So neither melee was a lockstep
+game, run1413b and run1450b were nobody's twins, and table 4 read 77.4 % on 269 traces (parked 3733b, 3788d).
+
+**The rule.** A `const X: Melee = Melee { … }` is a game named by its const. Its captures are its module's
+`MELEE_START` and `MELEE_LONG`, and the start joins when it is the same lobby (`lobby_tag`, as for a `Lobby`).
+Like a pair's, its word is `min(count, sequence)`, and it is whole only when that word reaches `length`. The
+`AI_WORDS` row resolves through the struct (`by_struct`), so it adds no second game. The twins join by the
+`blind::TRACES` comment ("run1413's game on every frame"). `tools/explore/test_rubric.py`'s
+`test_a_melee_is_a_game_and_whole_only_when_both_partings_reach_its_length` stages a whole and an open melee. On the
+base it fails with both rows unresolved, and with the rule it passes: the open melee (759 of 2600) is no game, and its
+twin does not join.
+
+**The falsifier, written before the run.** With the rule taught, `--tables 3,4,5` names run1413b among table 4's
+traces and the Gunpowder `unit` cell drops from 106 by the 54 parked 3733c measured. It held:
+
+| reading | base `ad287b0f` | with the rule |
+|---|---|---|
+| lockstep traces | 269 | 275 (run1412, run1413, run1413b, run1449, run1450, run1450b) |
+| functions entered | 2,247 of 3,611 | 2,255 |
+| bytes | 8,823,805 (77.45 %) | 8,836,934 (77.57 %) |
+| `unit` at Gunpowder | 106 | 52 |
+| `unit` at Classical | 51 | 51 (3774b: run1450b enters none) |
+| `game` at Classical | 35 | 34 |
+| traces with coverage, Classical / Gunpowder | 1 / 0 | 2 / 1 |
+| emptiest cell | `unit` at Gunpowder, 106 | `groups` at Modern, 78 |
+| unit types seen | 263 of 302 | 275 of 302 |
+| states: moved / attacked / vanished | 228 / 92 / 59 | 237 / 104 / 74 |
+
+The Gunpowder column had no coverage trace, so every stem's open count stood there at its whole `open` (`groups`
+99, `map` 79, `world` 73). With run1413b they drop to 78, 58 and 46, and the column no longer holds the matrix's
+emptiest cell. The twelve unit types new to a lockstep dump are eleven land lines and one gaia animal: `Militia`
+(66), `Royal Balamob Slingers` (89), `Barbarians` (154), `Bushi` (158), `Kushite Archers` (174), `Apedemak
+Archers` (176), `Camel Archer` (191), `Camel Raider` (193), `Chariot` (195), `Companion` (231), `Chevalier`
+(235) and `Herd Bear` (410). `census::RUBRIC_LOCKSTEP_BYTES_TENTHS` is re-pinned 774 → 775 and
+`RUBRIC_UNIT_TYPES_SEEN` 263 → 275.
+
+**What is not established.** The split of the eight newly entered functions between run1413b and run1450b was not
+measured. The cells show the Gunpowder twin entered the `unit` stem's 54 and the Classical twin one `game`
+function. A module holds one `MELEE_LONG`, so a second `Melee` literal in the same module would borrow the first's
+captures (parked under item 3792). Nothing is taken from the original: no capture, packet or sim line.
+
 ## 150. The second melee — a held Classical age on Great Sahara, every seat a computer (item 3774, run1449–run1450b)
 
 The shape is §155; the first melee is §149. **The one lever changed is the age**: Classical

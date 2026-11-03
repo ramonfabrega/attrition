@@ -12143,7 +12143,8 @@ Its chain runs through 3669a's American aircraft discount. 3669a named no score;
   `Cheat::Tech` takes `all` for a prefix of a technology's name. The melee does not stage it, because the
   seven ages are `0x220..0x226` and the line would lift a held age to Information (`docs/GOLDEN.md` §149). It
   names no score: build it when a script stages the line.
-- **3733b. Tables 4 and 5 of `rubric.py` read a coverage trace only when its game is whole.** run1413b is the
+- ~~**3733b. Tables 4 and 5 of `rubric.py` read a coverage trace only when its game is whole.**~~ Closed by item 3792
+  (`docs/GOLDEN.md` §149.13): with the melee whole and read, the Gunpowder `unit` cell is 106 → 52. run1413b is the
   first coverage trace of a game that holds Gunpowder. It enters 54 of the `unit` stem's 106 open functions there,
   but `lockstep_files` reads whole games alone, so the matrix's Gunpowder column and the 77.4 % do not move until
   the melee runs whole to 2600. It is the rule as written, not a fault: it names the melee's word as the lever
@@ -12734,7 +12735,8 @@ upgrade's type is the check.
   and the oracle cache keeps `leaders: [_; 2]` (`oracle.rs`, `codec.rs`). who=2 has gone unread in every three-seat
   lobby: a refund gap from run1461b's 860 hid until a draw on 2160. Widening it moves other lanes' pins and the cache
   format, so it is the commander's to rule on. No single score is named.
-- **3788d. `tools/rubric.py`'s lockstep source cannot see a whole melee.** It reads `Lobby` and `Pair` literals only
+- ~~**3788d. `tools/rubric.py`'s lockstep source cannot see a whole melee.**~~ Closed by item 3792 (`docs/GOLDEN.md`
+  §149.13): a whole `Melee` literal is a lockstep game, and table 4 counts run1413b and run1450b. It reads `Lobby` and `Pair` literals only
   (`STRUCT`), and `GUNPOWDER_MELEE` is a `Melee { length, count, sequence }`. So the first melee, whole at 2600 of
   2600, is not a lockstep game, and its trace run1413b is not among table 4's 269. `--tables 3,4,5` on `66e26aaeb`
   reads 77.4 % (2247 of 3611 functions), the same as the base. The rubric is the steering pass's instrument, so this
@@ -12782,13 +12784,17 @@ bit, and when, is unread. The falsifier is the same block as 3789a with an asker
   - ~~Open~~: closed by item 3794 (`docs/GOLDEN.md` §151.1). `Unit::close`'s count admits a `POP 0` unit that
     `is_gov_hero`; the dead Despot comes off on 1463.
 
-## Parked by the next landing, slot XE — reserved
+## Parked by item 3792, 2026-11-03 — the melee in the rubric
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3792a. A module holds one `MELEE_LONG`, so a second `Melee` literal there borrows the first's captures.**
+  `rubric.melee_fields` reads `MELEE_START` and `MELEE_LONG` off the literal's module, not the literal. Each melee
+  module holds one melee today (`gunpowder_melee.rs`, `classical_melee.rs`), and 3797's third melee is booked as its
+  own. A module that adds a second melee needs the captures on the literal, as a `Lobby` carries `long`. No score
+  names it.
+- **3792b. The eight functions the twins newly enter are not split by twin.** Table 4 is a union. The cells place 54
+  `unit` functions at Gunpowder (run1413b) and one `game` function at Classical (run1450b), but the eight table 4
+  adds are not listed by name. `rubric.py` prints no per-trace list of new functions. Build one when a pass reads the
+  delta by function. No score names it.
 
 ## Parked by item 3793, 2026-10-29 — the matchup table
 
