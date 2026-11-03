@@ -15430,6 +15430,92 @@ Russians (who 2, tribe 13), whose lines are two of the thirteen never-seen ones 
   `elite_special_forces` make 295, 311 and 77. Killed by any of the three probes returning 1 or a 296, 312 or 78
   record standing on block 701.
 
+1. **Premise**: the French (who 1) and the Russians (who 2), granted 100,000 a good on 600 and 602, field thirteen
+   Information types a side from 610, two frames apart, between the two territories, and fight under their own target
+   selection; the idle human Nubians (who 0), at war with both, field seven more between them.
+2. **Cheat lines**, `tools/gamelog/golden/melee-information.cmd` (37 lines): the two `resource` lines; thirteen `add`
+   twins on §149's placement (who 1 on tile row 76, who 2 on row 86, x 66..114) — Jet Fighter, Attack Helicopter,
+   Advanced Fighter, Stealth Bomber, Jet Fighter Bomber, Cruise Missile, Anti-Aircraft Missile, Main Battle Tank,
+   Anti-Tank Missile, Advanced Machine Gun, Elite Special Forces, Rocket Artillery and General; the probes `mirage`
+   (who 1) and `hind` (who 2) at x 62; then seven on who 0 on row 81, x 74..98: Eagle Fighter, Fighter Bomber, V2
+   Rocket, Partisan, MG42, Recoilless Gun and the probe `elite_special_forces_spanish`. No `tech` line, no `!ai off`,
+   no `select`.
+3. **The seats and the lines**: `--seat-tribe 1=10 --seat-tribe 2=13`. Of the thirteen never-seen lines the French own
+   Mirage 296 and the Russians HIND 312; the Bantu Eagle Fighter 303, the Germans' MG42 130, the Maya Recoilless Gun
+   144 and the Spanish Elite Special Forces 78 belong to no seat; the other seven are every nation's (Advanced
+   Fighter 301, Stealth Bomber 306, Jet Fighter Bomber 309, Cruise Missile 314, Fighter Bomber 308, V2 Rocket 313,
+   Partisan 68). `add` reads no leader (parked 3774a), so the seat matters only for the two the name walk cannot
+   reach — and it cannot.
+4. **Records**: run1467 the `DUMP_ALL` start; run1468 the staged game at `cover=0`, §155's `end:` set on a stride of
+   100; run1468b its `cover=1` twin (rngcmp 2601 identical, samegame 26 blocks 0 differing).
+
+**`add`'s own walk** (`golden::add_named`, built here). `run_cmd` names the type through `parse_type(·, ·, 3)`
+(the decompile's line 8368), and `parse_type@007e4050` walks compare lengths from 32 down to that minimum, the unit
+types from `0x32` and then the building types at each length, asking `String::ignore(typed, name, len)` against
+`TypeData::name` (`+0x60`, the `NAME` column) and its space-purged spelling. `type_name` (`+0xb0`) is never read. So
+the longest prefix of the token some name starts with wins, lowest index first. run1468 says so on both arms:
+`elite_special_forces_spanish` stood up the generic 77 (`0/22`, on twenty characters), and `mirage` and `hind` stood
+up nothing (no `1/29` or `2/29`, no 296 or 312 record) — no name starts `mir` or `hin`. This crate's `type_named`
+asked the `TYPENAME` table first and had no length loop, so it stood up 296, 312 and 78 there.
+
+**The staging, walked first** (`information_melee_staging_walk`, to 700): 35 lines ran, 39 units, the two probes
+refused; e.g. `1/14` Jet Fighter at (12792, 14712) for (12768, 14688), `0/22` Elite Special Forces (77) at (18600,
+15864) for (18912, 15648).
+
+**The falsifiers.**
+- (a) **Not fired.** run1467's start block: every leader reads `diplos` 0 to both others and 2 to itself.
+- (b) **Not fired.** Block 701: every staged air record holds an `ATTACKORDER` (`1/14` on `2/15`, `2/14` on `1/14`,
+  `1/17` on who 0's `o` 17, …).
+- (c) **Not fired.** The `resource` lines ran (`cmdsran.py`: 39 parsed, 39 ran, every one returning 1); the closing
+  buckets are §152's next item's to read.
+- (d) **Not fired.** Every reachable line stood up its type.
+- (e) **Not fired.** run1467's receipt: who 0 tribe 4, who 1 tribe 10, who 2 tribe 13.
+- (f) **Fired: an air line `add`ed with no airbase flies from its own spawn point.** On block 701 the Stealth
+  Bombers `1/17` and `2/17` stand at (15960, 15384) and (17304, 16344) from spawns (15096, 14712) and (15096, 16632);
+  the Jet Fighter Bomber `1/18` at (16104, 14952) from (15864, 14712); both Attack Helicopters, the Eagle Fighter
+  `0/14` and the V2 `0/16` have moved too. The Jet Fighters `1/14` and `2/14`, the Advanced Fighter `2/16`, the
+  Jet Fighter Bomber `2/18` and both Cruise Missiles stand on their spawns, each holding an attack. Who moves and who
+  does not is the next items' to read.
+- (g) **Half fired.** `parse_type` reads the `NAME` column alone, as written; but it is a longest-prefix walk, so the
+  Spanish probe is not refused — it names 77.
+
+**The score: first try 623 of 2600**, the count and the sequence together (`information_melee_first_parting`),
+thirteen frames past the first `add`. Ours spends 10 draws against theirs' 9:
+
+| index | ours | theirs |
+|---|---|---|
+| 0 | `Unit::fight+0x9b0` (`1/14`) | `Unit::fight+0x9b0` (seed `700d4306`) |
+| 1 | `Unit::fight+0x9b0` (`1/17`) | `Farms::inc_time+0x1ae` |
+| 2.. | eight `Farms::inc_time+0x1ae` | the same, one index earlier |
+
+**The direction: ours acted** — one strike more. `1/14` is the French Jet Fighter (`TI` 295, air), `1/17` the French
+Stealth Bomber (`TI` 306, air). Theirs' `1/14` stands on its spawn through block 701 with `idle 1` and its attack
+`in_range 0`, `new_ord 1`, so the strike ours adds reads as the Jet Fighter's; which of the two theirs spends is the
+next item's first question, by `RON_DEBUG_UNIT` on both.
+
+**The value diff** (`information_melee_run1468_s_word_window_is_widened_whole`, run1468's stride 601..873, rounds
+compared: 3 blocks, 536 keys, rounds read (19, 20), 49 parting). Block 601's rows are the standing families (`build`
+41, `form` 40, the groups' and a pool's). The state first parts on **block 701**:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `1/17`, Stealth Bomber (`TI` 306, air, who 1) | `pos` | (16344, 15720) | (15960, 15384) |
+| | `damage_frame` / `hits_left` | 644 / 328 | 682 / 287 |
+| `2/15`, Attack Helicopter (`TI` 311, air, who 2) | `damage_frame` / `hits_left` | 664 / 126 | 698 / 124 |
+| `2/16`, Advanced Fighter (`TI` 301, air, who 2) | `damage_who` / `damage_o` | 1 / 16 | 0 / 15 |
+
+`1/14` parts no key on 701: it stands on its spawn in both.
+
+**What the twin enters**: one function no pinned trace had (entered 8443 → 8444), and **0 of the 257** cited and
+never entered (`census.py --pin --never` with and without run1468b). The matrix and the lockstep bytes do not move
+while the game parts; `rubric.py` counts no melee until item 3792, so unit types stand at 263 — the ten lines run1468
+stands up (301, 303, 306, 308, 309, 313, 314, 68, 130, 144) wait on it, and 296, 312 and 78 stay never, since `add`
+cannot name them and no seat trains them by 2600.
+
+**What is not established**: which strike theirs spends on 623; why a Jet Fighter stays on its spawn where a Stealth
+Bomber flies (f); the minimum length `add` passes is read off one call site, and the walk's interleaving of units
+and buildings at a length is the decompile's, with no capture that tells it from units-first.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
