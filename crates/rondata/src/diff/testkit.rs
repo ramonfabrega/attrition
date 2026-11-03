@@ -11097,6 +11097,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3774,
         Some(crate::diff::classical_melee::WIDENING_CLASSICAL_MELEE),
     ),
+    // **The third melee** (item 3797): Great Sahara, three seats, a held
+    // Information age — first try 623 of 2600, widened on run1468's
+    // stride over 601..873, the rounds compared.
+    (
+        "INFORMATION_MELEE_WORD",
+        crate::diff::information_melee::INFORMATION_MELEE_WORD,
+        Some("information_melee_run1468_s_word_window_is_widened_whole"),
+        3797,
+        Some(crate::diff::information_melee::WIDENING_INFORMATION_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -13883,6 +13893,21 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 2_600,
         endpoint: Some("classical_melee_run1450_s_closing_state"),
         window: Some("classical_melee_closing_window"),
+    },
+    // **The third melee** (item 3797, `docs/GOLDEN.md` §152, §155): Great
+    // Sahara with three seats at a held Information age, the French and
+    // the Russians granted 100,000 a good and thirteen of the age's types
+    // a side from 610, the air, anti-air and missile lines among them
+    // (`tools/gamelog/golden/melee-information.cmd`). First try 623
+    // of 2600; run1468's word window over 601..873, the rounds compared.
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaInformationMelee",
+        named: "Great Sahara (the melee, Information)",
+        word: crate::diff::information_melee::INFORMATION_MELEE_WORD,
+        length: 2_600,
+        endpoint: None,
+        window: Some("information_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

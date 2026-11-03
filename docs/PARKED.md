@@ -12830,13 +12830,25 @@ synthesized, an hour by `docs/EMULATOR.md`'s costs.
     not.
   - It names no score. Every closing count on file agrees.
 
-## Parked by the next landing, slot XH — reserved
+## Parked by item 3797, 2026-11-03 — the third melee, a held Information age on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3797a) **Three of the thirteen never-seen lines cannot be staged by `add` at all.** `add`'s walk
+(`golden::add_named`, GOLDEN §152) reads `TypeData::name`, and Mirage 296 ("Jet Fighter"), HIND 312 ("Attack
+Helicopter") and the Spanish Elite Special Forces 78 share their `NAME` with an earlier generic type (295, 311, 77);
+run1468 stood up nothing for `mirage` or `hind` and the generic 77 for `elite_special_forces_spanish`. Each enters a
+lockstep game only when its own nation trains it — a French or Russian computer with an Airbase, a Spanish one with a
+Barracks — which the held melee's 2,600 frames do not reach. A lever for §155 (a seat's own production, or the
+`c<internal>` spelling `docs/INPUT.md` §11 names), not a score this item moves.
+
+(3797b) **`tech`'s name walk is still `type_named`'s exact-then-prefix rule.** `run_cmd`'s `tech` case calls
+`parse_type(·, "tubs", 2)` — the same length loop with a minimum of 2 — and this crate's `tech` arm asks the
+`TYPENAME` table first (`golden.rs`, the `exact(&loaded.unit_type_names)` arm). No script on file stages a `tech`
+token whose `NAME` and `TYPENAME` part or which only a shorter prefix names; a `SEAM` in `add_named`'s comment,
+no score.
+
+(3797c) **The twin enters one new function and none of the never list.** run1468b raises `census.py --pin
+--never`'s entered count 8443 → 8444 and leaves the 257 cited-and-never rows as they stand; the matrix's Information
+cell does not move while the game parts (3733b's shape). Which function it is was not read.
 
 ## Parked by the next landing, slot XI — reserved
 

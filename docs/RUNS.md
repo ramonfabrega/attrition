@@ -33955,3 +33955,69 @@ Archive `gamelog-run1465b-greatsahara-classical-melee-makelist-window-1380-1385.
 SHA-256 `e9b4f696ee744fbbd05e450fd1d9b63cb8dd54a6b78baa7371ab0c0c3de650e2`.
 Archive `rontrace-run1465b.log`, 24,457,792 bytes,
 SHA-256 `e2e964cc4a7573e7239cd391e58427dcf68de41f938cf824983f9fd261431912`.
+
+## run1467 — the third melee, a held Information age on Great Sahara: the `DUMP_ALL` start (2026-11-03, item 3797, `att-3797`)
+
+`docs/GOLDEN.md` §152. **What the disk could not answer**: no capture on disk holds this lobby — three seats at a
+held Information age, the French and the Russians as the two computers. The line, through `zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1467`: `--map 7 --end-frame 36 --timeout
+1200 --dump-all-start --cover cover=0 --profile PLAYERS=2 --profile STARTING_TECHNOLOGY=7 --profile
+ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --seat-tribe 1=10 --seat-tribe 2=13`.
+- Pool lane 1. Launched 13:45:52, exited 13:46:17 (24.4 s launch to exit). `success`, 37 frames. **One `relaunches`
+  row**: a Wine page fault at 4.6 s (`wine-fault-1.log`, exit 41), relaunched and recovered; `page_faults` 1. The
+  receipt's seats: who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13); seed 12345. DLL
+  `ba7fdb47…`. Filed with `filerun.py run1467 greatsahara-information-melee-start`. `df -g ~` read 125 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1467-greatsahara-information-melee-start.txt`, 153,295,825 bytes,
+SHA-256 `3dc087c851d3788879c7ee4272802578a7768281a535c9a4d294347b87c97d5b`.
+
+Archive `rontrace-run1467.log`, 8,535,232 bytes,
+SHA-256 `c3a50f0f8ea911d9bca57bfb53113d2407afbd32a06118262c22862310bba25d`.
+
+**What it holds**: the third melee's initial state, which `information_melee_staging_walk` and
+`information_melee_first_parting` start from. Every leader reads `diplos` 0 to both others and 2 to itself.
+
+## run1468 — the third melee, a held Information age on Great Sahara: the staged script to 2600 (2026-11-03, item 3797, `att-3797`)
+
+`docs/GOLDEN.md` §152. **What the disk could not answer**: no capture on disk holds a computer-versus-computer fight at
+Information, or any of the age's air, anti-air and missile lines in a fight. run1467's lobby with `--end-frame 2600
+--timeout 3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600
+--cmd-file tools/gamelog/golden/melee-information.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1. Launched 13:49:00, exited 13:50:28 (87.8 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1467: 37 identical. `cmdsran.py`: 39 parsed and 39 ran, every one
+  returning 1 (the two probes `mirage` and `hind` among them, though neither stood up a unit). DLL `4b892374…`.
+  Filed with `filerun.py run1468 greatsahara-information-melee-trace`. `df -g ~` read 124 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1468-greatsahara-information-melee-trace.txt`, 19,296,557 bytes,
+SHA-256 `6c4c35acbc0e780416ed9e0baa917ddb29412fdd2ba95d135aec9ead6cf53a55`.
+
+Archive `rontrace-run1468.log`, 50,795,776 bytes,
+SHA-256 `2b95377388604a5c128eef0e2e13d43c5d5a9876ac65c00aa5c52ed21d88791a`.
+
+**What it holds**: the third melee's first try, **623 of 2600** (`information_melee_first_parting`). Its stride
+601..873 is the word's widening (`information_melee_run1468_s_word_window_is_widened_whole`): 3 blocks, 536 keys,
+the rounds read (19, 20), 49 parting. Its block 701 holds falsifiers (b), (d), (f) and (g).
+
+## run1468b — the third melee, a held Information age on Great Sahara: the `cover=1` twin (2026-11-03, item 3797, `att-3797`)
+
+`docs/GOLDEN.md` §152. **What the disk could not answer**: Information's column holds no melee's coverage. run1468's
+line with `--cover cover=1`.
+- Pool lane 1. Launched 13:51:03, exited 13:52:36 (93.2 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1468: 2601 identical. `samegame.py`: 26 blocks in common (1..2501), 0
+  differing. DLL `344a9929…`. Filed with `filerun.py run1468b greatsahara-information-melee-cover`. `df -g ~` read
+  124 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1468b-greatsahara-information-melee-cover.txt`, 19,296,557 bytes,
+SHA-256 `d4be8ac184971228d31e06fea2cf239c9e9d9064e0a6cc7865bfb6e6426a7030`.
+
+Archive `rontrace-run1468b.log`, 51,363,680 bytes,
+SHA-256 `f50070bf3af65d7bdeaf56a455ddea1f184c559552715e9ed15e9842103dd43d`.
+
+**What it holds**: pinned in `blind::TRACES`; it enters one function no pinned trace had and none of the 257 cited
+and never entered (parked 3797c).
