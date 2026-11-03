@@ -5072,6 +5072,21 @@ impl Sim {
             // (The unit's `ty` stays unset here, as it always has; the
             // piece lookup takes the type directly.)
             self.init_guys(u, Some(ty));
+            // **`Unit::init@00612100:549`'s `set_new_location(x, y, 1, 1)`**
+            // (item 3804, `docs/GOLDEN.md` §152.3): its guy half is
+            // `Guy::set_new_location`'s, so a helicopter's figure takes
+            // its first climb at birth ([`Sim::helicopter_climb`], read
+            // here off the type, which the unit does not carry yet).
+            // run1469's Attack Helicopters fly 30 higher than ours did
+            // from their first frame, and their rounds aim at that.
+            if self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::HELICOPTER != 0
+                && self.unit_types[ty].combat.domain == crate::attrition::Domain::Air
+            {
+                let ground = self.ground_z(self.units[u].pos);
+                let af = &mut self.units[u].airframe;
+                af.z += (ground - af.z + 1000).clamp(-30, 30);
+                af.last_z = af.z;
+            }
             // `Unit::init@00612100:467`: a government patriot's birth is
             // stamped on its leader, and that stamp is what keeps a
             // Senate from training a second one.

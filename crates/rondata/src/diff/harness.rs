@@ -2626,7 +2626,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} #{} decoy {} hp {}/{} frac {} dframe {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
+        "  f{frame} {who}/{o} #{} decoy {} hp {}/{} frac {} dframe {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) az {} in {:?} on {} ang {} hdg {} des {} \
          danger {} targeted {} stance {}/{:?} coll {}@{} avoid {:?} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
@@ -2671,6 +2671,9 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
             .and_then(|i| built.sim.group_speed_pair_of(i)),
         u.pos.x,
         u.pos.y,
+        // The airframe's `z` (item 3804): the `GUY` record's `z` for an
+        // aircraft, which the helicopters' rounds aim at.
+        u.airframe.z,
         u.inside_unit
             .map(|b| (built.sim.units[b].owner, built.sim.units[b].index)),
         u.on_map,

@@ -1352,6 +1352,27 @@ mod tests {
         assert_eq!((z.z, z.last_z), (ground + 308, ground + 278));
     }
 
+    /// **A Helicopter is born one climb up** (item 3804,
+    /// `Unit::init@00612100:549`'s `set_new_location(x, y, 1, 1)`, whose
+    /// guy half is the climb; `docs/GOLDEN.md` §152.3): run1469's Attack
+    /// Helicopters fly 30 over theirs' first frame and ours flew at 0. A
+    /// plane is born at 0. Made to fail with the climb dropped.
+    #[test]
+    fn a_helicopter_is_born_one_climb_up() {
+        let (mut s, b, planes) = hangar([0, 0, 0, 0]);
+        let heli = air_type(&mut s, b, HELICOPTER, true, false);
+        let at = Pos::new(8351, 14690);
+        let ground = s.ground_z(at);
+        let want = (ground + 1000).clamp(-30, 30);
+        assert_ne!(want, 0, "the fixture's ground leaves a climb");
+        let h = s.init_unit(0, heli, at);
+        let z = s.units[h].airframe;
+        assert_eq!((z.z, z.last_z), (want, want));
+        let bomber = s.units[planes[0]].ty.unwrap();
+        let p = s.init_unit(0, bomber, at);
+        assert_eq!(s.units[p].airframe.z, 0, "a plane");
+    }
+
     /// **A Missile Silo holds one missile at a time** (item 1019,
     /// `Group::action_queue_up@006fdbb0`'s `can_carry(type)` at a silo,
     /// `ObjectData::has_nuke@00643d40`): of `@queueup 313 2`, one V2 is

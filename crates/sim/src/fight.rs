@@ -2272,14 +2272,24 @@ impl Sim {
     /// object's own `z` (`ObjectData +0xc`, unmasked) — `find_tcoord_z` at
     /// its tile with the fourth argument 1, which is
     /// [`crate::World::object_z`]: an ocean tile or a height under the sea
-    /// reads 0 — plus **75** when the shot rolls, the first figure's ground
-    /// for an air unit, and never below zero (§46.1). A Citizen on a shore
-    /// tile at −22 is aimed at 75, not 53 (item 3593, `docs/AI.md` §315.4).
+    /// reads 0 — plus **75** when the shot rolls, and never below zero
+    /// (§46.1). A Citizen on a shore tile at −22 is aimed at 75, not 53
+    /// (item 3593, `docs/AI.md` §315.4).
+    ///
+    /// **An air unit is aimed at its first figure's altitude**
+    /// (`0x67c949`..: vslot `+0x18` non-zero and the type's domain
+    /// `+0x218 == 2` load `guys[0] +0x14`; item 3804, `docs/GOLDEN.md`
+    /// §152.3), the `GUY` record's `z`, which is
+    /// [`crate::Unit::airframe`]'s — not the ground under it. run1469's
+    /// Attack Helicopter `1/15` at `z` 60 is aimed at 60, and the parked
+    /// Jet Fighter `1/14` at 0, where the ground read 533 and 529.
     fn aim_z(&mut self, target: Obj, rolling: bool) -> i32 {
         let at = self.pos_of(target);
         let mut z = self.world.object_z(at.tile()) + if rolling { 0x4b } else { 0 };
-        if matches!(self.profile(target).domain, Domain::Air) {
-            z = self.ground_z(at);
+        if let Obj::Unit(u) = target
+            && matches!(self.profile(target).domain, Domain::Air)
+        {
+            z = self.units[u].airframe.z;
         }
         z.max(0)
     }
@@ -7699,6 +7709,35 @@ mod tests {
         assert!(!sim.valid_target_const(Obj::Unit(b), target), "the bomber");
         assert!(!sim.valid_target_const(Obj::Unit(k), target), "the tank");
         assert!(sim.valid_target_const(Obj::Unit(f), target), "the fighter");
+    }
+
+    /// **An air target is aimed at its figure's altitude** (item 3804,
+    /// `Ammo::init@0067bbf0`, `0x67c949`..: a unit of domain `+0x218 ==
+    /// 2` loads `guys[0] +0x14`; `docs/GOLDEN.md` §152.3): run1469's
+    /// Attack Helicopter `1/15` at `z` 60 is aimed at 60 and the parked
+    /// Jet Fighter `1/14` at 0, whatever the ground under them; a land
+    /// unit keeps its tile's. Made to fail on purpose with the ground
+    /// read back (60 against the tile's).
+    #[test]
+    fn an_air_target_is_aimed_at_its_figure_s_altitude() {
+        let (mut sim, land) = at_war();
+        let mut t = sim.unit_types[land].clone();
+        t.combat.domain = Domain::Air;
+        t.cols.unit_flags = crate::ai_load::uflags::HELICOPTER;
+        let heli = sim.add_unit_type(t);
+        let at = Pos::new(0x1000, 0x1000);
+        let h = put(&mut sim, 0, heli, at);
+        let ground = sim.ground_z(at);
+        sim.units[h].airframe.z = ground + 60;
+        assert_eq!(sim.aim_z(Obj::Unit(h), false), (ground + 60).max(0));
+        sim.units[h].airframe.z = 0;
+        assert_eq!(sim.aim_z(Obj::Unit(h), false), 0, "a parked plane");
+        let c = put(&mut sim, 0, land, at);
+        assert_eq!(
+            sim.aim_z(Obj::Unit(c), false),
+            sim.world.object_z(at.tile()).max(0),
+            "a land unit"
+        );
     }
 
     #[test]

@@ -12906,9 +12906,10 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   tables and `Point<float>::rotate`; `combat::missile_spline` takes the integer `sin_component` pair and no pitch.
   run1469's `2/14` is parked (pitch 0) and its round agrees on every field; a pitched shooter's first re-plan
   would start from a point a fraction off. Names no score.
-- **3802b. An air target's initial `ez`** (`Sim::aim_z`): `2/14`'s second round on the parked Jet Fighter `1/14`
+- ~~**3802b. An air target's initial `ez`** (`Sim::aim_z`): `2/14`'s second round on the parked Jet Fighter `1/14`
   launches with `ez` 529 in ours and 0 in theirs (run1469 blocks 622–624). It closes the first time the
-  re-plan writes the target's z, and the point count agreed. Names no score.
+  re-plan writes the target's z, and the point count agreed. Names no score.~~ **Answered by item 3804**
+  (`docs/GOLDEN.md` §152.3): an air target is aimed at its first figure's `z`, 0 for the parked jet.
 - **3802c. A ground unit's figure z** (`guys[0] +0x14`): `Sim::guided_closes` reads its object's z for the
   proximity's `|dz| < 0xc0`. Names no score.
 
@@ -12927,13 +12928,19 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   the templates but not the `area` attributes. A mod with other ranges would part at the first `get_range`.
   Names no score.
 
-## Parked by the next landing, slot XM — reserved
+## Parked by item 3804, 2026-11-03 — a helicopter's rockets leave its pods at its own altitude
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3804a. Piece 261's pods at one heading** (`launch::GUNS`, the Attack Helicopter's rows): run1469's `2/15`
+  fires both of its rounds at angle 0, so each row is the centre of the unit square that heading truncates to;
+  the vector's turn at any other heading is not measured. The other three dumps carrying piece 261 print no
+  other heading. Names no score.
+- **3804b. Three more air shooters leave from the wrong point in run1469** (blocks 622–639): the Advanced
+  Fighters `2/16` and `1/16` (`TI` 301, piece 251) at `sz` −49 against ours' 0, and off the figure's point
+  by up to 26; the Jet Fighter-line `2/18` (`TI` 309, piece 259) from (15843, 16406, −70) against ours'
+  (15864, 16632, 0); the Stealth Bomber-line `1/20` (`TI` 284, piece 234) from (17346, 14755, 639) against
+  (17400, 14712, 466). `2/18`'s round re-plans on 636 to 8 points against ours' 9, and `1/20`'s launches at
+  8 against 7. These are the word 648's nearest candidates, as a hypothesis, not a booking: on 648 ours
+  spends `Unit::close+0xcb6` at index 35, a death in ours.
 
 ## Parked by the next landing, slot XN — reserved
 

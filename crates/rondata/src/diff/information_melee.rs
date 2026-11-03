@@ -162,8 +162,22 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // agrees on that round's every field. On 640 ours spends 45 against
     // 47: at index 37 theirs spends `Ammo::do_damage+0xc59` where ours
     // spends `Farms::inc_time+0x1ae` — a round lands in theirs.
-    count: 640,
-    sequence: 640,
+    //
+    // Item 3804: **640 → 648**. Theirs' round was the Attack Helicopter
+    // `2/15`'s second rocket on `1/15` (both `TI` 311): it re-planned to
+    // five points on 636 where ours re-planned to six, so it landed on 640
+    // and ours flew on. Three launch inputs parted (§152.3): the
+    // helicopters flew 30 low from birth (`Unit::init`'s
+    // `set_new_location(·, 1, 1)` climbs), an air target was aimed at the
+    // ground and not its figure's `z`, and piece 261's rockets left the
+    // figure's point at ground + 100 where theirs leave its pods at figure
+    // + 41; the release height is the one that, put back alone, returns
+    // the word to 640. run1469's window agrees on every `2/15` and `2/14` round's
+    // launch, landing and clock, 620..639. On 648 ours spends 44 against
+    // 43: at index 35 ours spends `Unit::close+0xcb6` where theirs spends
+    // `Farms::inc_time+0x1ae` — ours acted.
+    count: 648,
+    sequence: 648,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -272,15 +286,23 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // the helicopters' figures fly 30 low (`1/15` `g.z` 690 against 720,
     // `2/15` 360 against 390). The word's own value diff is run1469's
     // per-frame window, not these stride blocks (GOLDEN §152.2).
+    //
+    // Item 3804 (the same window and blocks; the word 648): **449 → 388**
+    // keys, rounds read (19, 15), 51 → 47 parting. Block 601 is
+    // standing-only still (84 keys), 701 holds 113 and 801 191. The
+    // helicopters' `g.z` rows have left 701 (`1/15` and `2/15` no longer
+    // 30 low): their birth climb (§152.3). On 701 `1/15` carries 12 of
+    // damage against 6, `1/14` and `1/17` hold no order against theirs'
+    // one as before. The word's value diff is run1469's window (§152.3).
     pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 449, "run1468's word window");
+    pin_eq!(w.firsts.len(), 388, "run1468's word window");
     pin_eq!(w.rounds_read, (19, 15), "the rounds read");
-    pin_eq!(w.rounds.len(), 51, "the rounds that part");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
