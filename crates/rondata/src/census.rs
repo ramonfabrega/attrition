@@ -386,7 +386,14 @@ pub const RUBRIC_TERRITORY_OPEN: usize = 1305;
 /// (129 traces), the sea map's age-2 Medieval line. No simulation
 /// function no other lockstep trace enters — 8,823,805 -> 8,823,805,
 /// 2,247 of 3,611 functions, 77.45 % unchanged.
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 774;
+/// Item 3792: 774 -> 775, `rubric.py` reading a whole `Melee` literal as a
+/// lockstep game (269 -> 275 traces): the two melees whole at 2600 and
+/// their `cover=1` twins run1413b and run1450b. Eight simulation functions
+/// no other lockstep trace enters, 13,129 bytes — 8,823,805 -> 8,836,934,
+/// 2,247 -> 2,255 of 3,611 functions, 77.45 % -> 77.57 %; the Gunpowder
+/// `unit` cell 106 -> 52 (the 54 parked 3733c measured), Classical's 51
+/// unchanged (3774b).
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 775;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
@@ -634,7 +641,16 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Jet Fighter[TORNADODES]` (298), air, the line item 3772 booked and
 /// found fielded while the pair parted (§378); `find_unit_with_radius`'s
 /// disc closed the word (§378.2), read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 263;
+/// Item 3792: 263 -> 275, the two melees whole at 2600 read as lockstep
+/// games (`Melee` literals, GOLDEN §149.13): eleven land lines and a gaia
+/// animal no lockstep dump had held — `Militia` (66), `Royal Balamob
+/// Slingers[BAMOBSLINGERSELITE]` (89), `Barbarians[BARBARIAN]` (154),
+/// `Bushi` (158), `Kushite Archers[KUSHARCHERS]` (174), `Apedemak
+/// Archers[APEDEMAK]` (176), `Camel Archer[CAMELARCHER]` (191), `Camel
+/// Raider[CAMELRAIDER]` (193), `Chariot` (195), `Companion` (231),
+/// `Chevalier` (235) and `Herd Bear[HERDBLACKBEAR]` (410), read by
+/// `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 275;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
