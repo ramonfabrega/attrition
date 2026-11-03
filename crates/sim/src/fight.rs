@@ -6103,6 +6103,10 @@ impl Sim {
         }
         let pt = path.point(cur).map(Single::to_i32);
         let at = self.pos_of(t);
+        if std::env::var_os("RON_PROBE_3802").is_some() {
+            let pts: Vec<_> = (0..path.len()).map(|k| path.point(k).map(Single::to_i32)).collect();
+            eprintln!("PROBE3802 cur {cur} pt {pt:?} at {at:?} launch {:?} sz {} land {:?} ez {} angle {:?} pts {pts:?}", p.launch, p.sz, p.landing, p.ez, p.angle);
+        }
         let tz = match t {
             Obj::Unit(u) if self.units[u].kind.domain == Domain::Air => self.units[u].airframe.z,
             _ => self.world.object_z(at.tile()),
