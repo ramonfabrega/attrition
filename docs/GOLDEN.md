@@ -15675,6 +15675,65 @@ is not carried (`missile_spline`'s SEAM; `2/14` is parked, pitch 0). A ground un
 object's. An air target's initial `ez`. A building target's arm, whose radius is `0xc0` and which never re-plans,
 is built but no capture reaches it.
 
+## 152.3 A helicopter's rockets leave its pods at its own altitude — 640 → 648 (item 3804, run1469)
+
+**The booking.** Frame 640: ours 45 draws against theirs' 47. At index 37 theirs spends `Ammo::do_damage+0xc59`
+(and `+0xc7e` at 38) where ours spends `Farms::inc_time+0x1ae`: a round lands in theirs. 3802's hypothesis was
+`2/15`'s round.
+
+**Which round, from the disk.** run1469's window (blocks 620..639, `AMMO=5`) against ours' `RON_DEBUG_AMMO`
+(ours' `f(N−1)` against theirs' block `N`). On 639 theirs' Attack Helicopter `2/15` (`TI` 311, piece 261) holds
+its second rocket on the Attack Helicopter `1/15` (`TI` 311) at `cur_time` 3 of 5; at `cur` 4, `len ≤ cur + 1`,
+the spline arm returns, and the round lands on the next frame: 640. Its first rocket did the same on 635. Ours'
+re-planned to six points on 636, so at `cur` 4 it re-planned again (`cur & 3 == 0`) and flew on. The parting
+is the re-plan's point count, and three inputs fed it:
+
+- **The helicopters flew 30 low from birth.** `Unit::init@00612100:549` ends in `set_new_location(x, y, 1, 1)`,
+  whose guy half is `Guy::set_new_location`'s climb (`z += clamp(ground − z + 1000, −30, 30)`). Ours'
+  `init_unit` never called it. Theirs' `1/15` stands at `z` 30 on 620..626, ours at 0; `2/15` climbs to 330
+  where ours stopped at 300. Every re-plan's target `z` is the figure's: 90 against 60 on 630, 210 against 180
+  on 636.
+- **An air target is aimed at its figure's altitude** (`Ammo::init@0067bbf0`, `0x67c949`..): a unit target
+  whose type's domain `+0x218 == 2` overwrites `ez` with `guys[0] +0x14`. Ours read the ground under it: `ez`
+  533 against theirs' 60 on `2/15`'s first rocket, and 529 against 0 on `2/14`'s second round on the parked
+  Jet Fighter (3802b, answered).
+- **The rockets leave the pods, at the figure's altitude.** `ATTACKHELICOPTER`'s `CHAR_ATTACK2` releases a
+  `SmallRocket` on node 0 at 0 ms and on node 1 at 500. Theirs' `2/15` (13560, 16056), angle 0, `z` 330, fires
+  node 0's from (13488, 16015, 371) and node 1's from (13638, 16029, 371). Ours had no row for piece 261, so it
+  fired from the figure's point, and `guy_release_events` read the ground for a helicopter's height
+  (566 + 100 = 666). That exclusion was a SEAM for a helicopter this crate did not fly; it flies now.
+
+**Which one decided it.** Each was mutated alone on the built tree (`tools/mutate.py`): only the release height
+puts the word back at 640. The birth climb is held by `a_helicopter_is_born_one_climb_up` and four widenings
+(chapters 35, 36 and 78 and the third melee's, whose helicopters' `g.z` rows it removed). The aim is held by
+`an_air_target_is_aimed_at_its_figure_s_altitude` and chapter 38's widening, whose rounds' `ez` rows it
+removed. The pods are held by `run1469_s_attack_helicopter_rockets_leave_from_its_pods`.
+
+**Built**: the birth climb in `Sim::init_unit` (off the type's flags, which the unit does not carry yet);
+`Sim::aim_z`'s air arm reading `airframe.z`; `guy_release_events` taking `airframe.z` for every air figure;
+piece 261's two `launch::GUNS` rows (`right` −72.5 / `fwd` 41.5 and 78.5 / 27.5, `dz` 41).
+
+**The value diff** (run1469, blocks 620..639): every round of `2/14` and `2/15` agrees with theirs on launch,
+landing, `cur_time` and `total_time` on every block:
+
+| round | launch | re-plans | lands |
+|---|---|---|---|
+| `2/15` → `1/15`, the first | (13488, 16015, 371) → (13508, 14783, 60), 13 points | 630: 5 points to `z` 90 | 635 |
+| `2/15` → `1/15`, the second | (13638, 16029, 371) → (13627, 14794, 150), 13 points | 636: 5 points to `z` 210 | 640 |
+| `2/14` → `1/14`, the second | (12591, 16728, −36) → (12792, 14712, 0) | 629: 8; 633: 4 | 635 |
+
+What still parts is the release points of three other air shooters (parked 3804b): the Advanced Fighters
+`2/16` and `1/16` (`TI` 301), the Jet Fighter-line `2/18` (`TI` 309), whose round re-plans on 636 to 8 points
+against ours' 9, and `1/20` (`TI` 284). The stride widening (601..890) goes 449 → 388 keys, 51 → 47 rounds
+parting; block 701 loses both helicopters' `g.z` rows.
+
+**The word: 648**, ours 44 draws against theirs' 43. At index 35 ours spends `Unit::close+0xcb6` where theirs
+spends `Farms::inc_time+0x1ae`: ours acted, a death in ours.
+
+**What is not established**: piece 261's pods turn at any heading but 0 (parked 3804a). The birth climb is read
+for `Unit::init`'s own call; a squad member's seating calls `set_new_location` again, and no helicopter is a
+squad. The disk answered the booking, so run 1470 was not taken.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

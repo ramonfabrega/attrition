@@ -171,7 +171,8 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // `set_new_location(·, 1, 1)` climbs), an air target was aimed at the
     // ground and not its figure's `z`, and piece 261's rockets left the
     // figure's point at ground + 100 where theirs leave its pods at figure
-    // + 41. run1469's window agrees on every `2/15` and `2/14` round's
+    // + 41; the release height is the one that, put back alone, returns
+    // the word to 640. run1469's window agrees on every `2/15` and `2/14` round's
     // launch, landing and clock, 620..639. On 648 ours spends 44 against
     // 43: at index 35 ours spends `Unit::close+0xcb6` where theirs spends
     // `Farms::inc_time+0x1ae` — ours acted.
