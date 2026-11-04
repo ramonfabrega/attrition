@@ -15961,6 +15961,69 @@ rounds read (45, 17), 47 parting.
 (parked 3813a). The Recoilless Gun's muzzle stays parked (3810a), and so does `0/20`'s own place in the
 refusal: ours' `0/20` and its cell are not compared on 724.
 
+## 152.8 A V2's round re-plans: `calc_nuke_spline`'s other arm — 755 → 718, a named regression (item 3814, run1474)
+
+**The booking.** Frame 755: ours 12 draws against theirs' 13. At index 4 theirs spends `Unit::close+0xcb6 <
+Object::die+0x29 < Unit::die+0x19`, behind an `AmmoOut::explode` on the graphic stream, where ours spends
+`Farms::inc_time+0x1ae`. So theirs acted: a unit dies.
+
+**Who dies.** run1468's block 801 lists the death: the Russian Main Battle Tank `2/21` (`TI` 251, land, gpiece 201)
+with `first_frame 755`. Ours' `2/21` takes the same Recoilless Gun `0/21` round on 755 and drops from 64 to 42 hit
+points. run1474's window (729..757) holds theirs' `damage` on `2/21` at 189 on block 729 and 228 on block 755
+(`myhits` 245), which leaves it at 17, so the 22 blow kills it. Ours' damage rose the same 39 over 730–754 but
+started 47 short. That is the standing row the widening has printed on block 701 since 3797 (`hits:damage` ours 85
+against 132).
+
+**Where the 47 went.** Walked back through run1471, the row parts on block 691: theirs 56 → 105, ours 56 → 58. On
+690 theirs lands the Nubian V2 `0/16`'s round of 671 on `2/21`. Both sides launch it from (16043, 15865, 925) at
+(18223, 16238, 631) with `total_time` 120. Theirs' block 672 prints the spline: degree 3, depth 120, twelve control
+points and 121 points, `total_spline_length` 39,282.046875. On block 675, at its fourth point, it **re-plans** as a
+guided round does (§152.2): degree 2, 12 points, ending at the target's point (18216, 16248, 570). It re-plans again
+on 679 (10 points), 683 (8) and 687 (4), and lands on 690. Ours gave the arm `air::MISSILE_FLIGHT` frames and laid
+no points (parked 3806a), so the round flew to 790.
+
+**The arm** (`Spline::calc_nuke_spline@00913ad0`, `param_4 == 0`: a missile-flag shooter that is not the Cruise
+Missile). Twelve control points, in singles:
+
+- the launch, then the launch raised by 250, 750, 2,250 and 6,750;
+- the quarter mark at `(3s + e)·¼` raised by 20,000 over `(3sz + ez)·¼`, the half mark `(s + e)·½` raised by 20,000,
+  and the three-quarter mark `(s + 3e)·¼` raised by 10,000;
+- the landing raised by 6,000, 4,000 and 2,000, then the landing.
+
+The resolution is the fixed 120 (`+0x60 = 0x780003`; no `set_min_seg_length`). The knot weights are 10 apart from
+the first three, which are 100, 30 and 15 (`+0x90`). `Spline::clamp_knots@00910be0` steps each knot past the degree
+by the sum of `degree` weights from its own index, giving `0 0 0 0 145 200 235 265 295 325 355 385 415 415 415 415`.
+Block 672 prints both lists.
+
+**Built**: `combat::Spline::nuke`, laid by `Ammo::init`'s missile-unit branch for every shooter that is not the
+Cruise Missile line, and kept so that `Ammo::inc_time`'s guided arm (`guided_closes`) steps it, closes it and
+re-plans it. Test: `combat::tests::a_v2_s_spline_is_run1471s` checks the twelve control points and all thirty points
+block 672 prints, to the bit, including the basis sums' wobble in `x` and `y`, and checks 121 points and the
+landing. Mutations (`tools/mutate.py`): the arm unbuilt fails `information_melee_first_parting`; the first weight
+10 instead of 100 fails the spline test.
+
+**The value diff**: ours' V2 round re-plans on 675 to 12 points and lands on 690. `2/21` reads 140 hit points on
+691 (`damage` 105, theirs' 105 exactly), and the standing row on 701 is gone.
+
+**Why the word fell: 755 → 718.** On 690 the V2 lands beside the Partisan `0/17`'s round on `2/24` (`TI` 91, land).
+The pool is stepped in slot order. Theirs holds `0/17`'s round in slot 5 and the V2 in 6, so `0/17`'s 43 lands first
+and the V2's splash fringe on `2/24` is overkilled to nothing: `damage 44`, `damage_o 17`. Ours holds the V2 in
+slot 2 and `0/17`'s round in 6, so the splash's 1 lands first and overkill (§6 step 21, ×85/256) cuts the 43 to 14:
+`2/24` reads 15 and `damage_o 16`. It then dies on 721 against theirs' 718. The pools part on 642, when `2/18`'s
+round on `1/18` flies 6 frames against theirs' 5. Over 637–690 the air and anti-air rounds of `2/18`, `1/18`, `1/16`,
+`2/16`, `0/14`, `0/15` and `1/20` leave from their units' squares where theirs leave their figures' muzzles. Their
+flight times differ by a frame or more, and theirs fire two rounds ours never fire, so the lowest free slot differs
+from 642. A probe (`RON_PROBE_3814`, a slot past the pool's end for the V2, reverted whole) lands the V2 last: `2/24`
+reads 44, as theirs does, and the word is 761. So this regression is the pool's slot order and nothing in the arm.
+
+**The word: 718**, ours 14 draws against theirs' 15. At index 6 theirs spends `Unit::close+0xcb6` where ours spends
+`Farms::inc_time+0x1ae`: theirs' `2/24` dies.
+
+**What is not established**: points 30..120 of the V2's spline are not printed on any block (the dump prints thirty).
+Its re-plans to 10, 8 and 4 points are matched on frame and `total_time` (the walk's 690 landing), but not point for
+point. A nuke takes the same arm and goes through `crate::nuke`; it is not checked. `air::missile_round`'s ground
+arm still lays no points (parked 3814a).
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

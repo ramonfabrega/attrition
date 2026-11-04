@@ -34164,3 +34164,28 @@ of ours from its flight on block 718 (`damage 107`, `damage_frame 717`). The Adv
 `CHAR_ATTACK3`, read against the 31 `get_position.py … sweep 77` files of run1472's packet in
 `~/ron-data/lab-experiments/2026-11-03-item-3813/sweeps/`
 (`launch::tests::the_original_s_release_agrees_at_every_heading_for_piece_77`).
+
+## run1474 — the third melee: the word's window 729..757 (2026-11-03, item 3814, `att-3814`)
+
+`docs/GOLDEN.md` §152.8. **What the disk could not answer**: run1473's window ends at 729 and run1468's stride prints
+nothing between 701 and 801. So who died on 755 was on run1468's block 801, but not why ours' `2/21` survived the
+same blow: its `damage` on 730–754 and the rounds landing on it were on no record. run1473's line
+(`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`,
+`STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345, `--ffwd-minute 3`), with `--log-window 729 757`,
+detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`, `--callwin 750 756` and `--end-frame 760`. No packet,
+no probe.
+- Pool lane 1. Launched 23:37:27, exited 23:37:58 (30.7 s launch to exit). `success`: 761 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 761 of 761 identical. Not filed: the window's gamelog and trace
+  stay in the run's directory. `df -g ~` read 97 GiB free before it.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1474/map-7/gamelog.txt`, 9,343,459 bytes,
+SHA-256 `f423b0478ba7d0acaaf5b9000e3a62ea336ced2b7c8facd6a4cec29b2e809f26`.
+
+Trace `~/ron-golden/run1474/map-7/rontrace.log`, 9,518,144 bytes,
+SHA-256 `1f8d1db50182a3f2d34c8a7e2bc4ea7eb59aa4cee5c2d867648ca16ac6c5740b`.
+
+**What it holds**: the Main Battle Tank `2/21`'s `damage` frame by frame: 189 on block 729, then 194, 216, 217, 222,
+227 and 228 on blocks 730, 733, 734, 735, 740 and 743, the same steps ours takes, and `myhits` 245. So on 755 it
+holds 17 hit points and dies (`DEATH_OBJS` `first_frame 755` on block 756), and ours, 47 short since 690, holds 64.
+The 47 is the V2 `0/16`'s round, which re-plans and lands on 690 in run1471's window (§152.8).

@@ -12965,10 +12965,11 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 ## Parked by item 3806, 2026-11-03 — a Cruise Missile flies the ground at 250 up
 
-- **3806a. The other arm of `calc_nuke_spline` at a unit** (`Spline::calc_nuke_spline@00913ad0`, `param_4 == 0`):
+- ~~**3806a. The other arm of `calc_nuke_spline` at a unit** (`Spline::calc_nuke_spline@00913ad0`, `param_4 == 0`):
   a missile-flag shooter that is not the Cruise Missile line (a V2, a nuke) firing on a unit is given
   `air::MISSILE_FLIGHT` frames with no points laid, so its round never re-plans. Theirs' arm lays fixed points
-  above the target and does re-plan. No capture has a V2 fire on a unit. Names no score.
+  above the target and does re-plan. No capture has a V2 fire on a unit. Names no score.~~ Closed by item 3814
+  (`docs/GOLDEN.md` §152.8): run1471's V2 `0/16` on `2/21`; `combat::Spline::nuke` lays the arm, and it re-plans.
 - **3806b. 3804b's hypothesis is killed for 648, and one of its labels is wrong**: the death on 648 was the
   Cruise Missile `2/19`'s round on `1/20` (GOLDEN §152.4). `1/20` (`TI` 284) is the Anti-Aircraft Missile, a land
   vehicle, not a Stealth Bomber-line shooter. The release points 3804b lists still part, and none of them names a
@@ -13048,13 +13049,12 @@ words and edits nothing here; a refill lands when two remain.
   361 headings each. A `CHAR_ATTACK1` or `CHAR_ATTACK2` volley in a window would check them in a game, and so
   would a later frame of `CHAR_ATTACK3`. Names no score.
 
-## Parked by the next landing, slot XW — reserved
+## Parked by item 3814, 2026-11-03 — a V2's round re-plans
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3814a. `air::missile_round`'s ground arm lays no spline** (GOLDEN §152.8): a missile-flag unit's attack on a
+  point (run371's V2 on 2701) still takes `air::MISSILE_FLIGHT` with no points. With no target nothing re-plans
+  or closes, so only the round's position differs, and no compared field reads it. `Spline::nuke` would lay it.
+  Names no score.
 
 ## Parked by the next landing, slot XX — reserved
 
