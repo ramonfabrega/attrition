@@ -10770,13 +10770,24 @@ check that reads queues would book it, with the end-of-game path read first.
 - **3581c. Piece 149's `float_lands` are unswept**, taken as none. Ten dumped rounds fit, but no
   `get_position.py pivot` sweep of its cells has run. **Score**: none until a Nomad round parts by one unit.
 
-## Parked by the next landing, slot QN — reserved
+## Parked by item 3830, 2026-11-04 — Great Lakes' values, and the arms its grid cannot part
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3830a. Nine value arms the Great Lakes corpus runs but cannot part** (`docs/MAPGEN.md` §9,
+  `sim::map_values`). Each mutant turns `great_lakes_s_values_are_the_traced_stream_and_7937_and_7945` green
+  on all 222 traces and 185 files, and each is inert by the grid, as the test prints at 7927 and 7945:
+  - `adjust_for_blocking`'s border water edge (the arm, its `bad` count, its two-tile band): no ocean cell lies on
+    the map's border; the lakes are inland.
+  - `wet`'s `SANDY` (`land` 1): no Great Lakes cell is Sandy.
+  - `get_land`'s coast record 3: every coast cell's `land` is 0, so the mutant counts it as `Land` (Knowledge and
+    Food), and every dry cell's food bit is already set at 7945.
+  - The square's coast exemption: no coast cell is forest, mountain, 0x40 or `land` 4 or 5.
+  - Ocean oil's record 7: it makes only Oil (`TypeIndex` 5), which neither `val` nor `goods` reads, so it is inert
+    on every map; the arm matters only to a reader of `slots[5]`, and `compute_val` has none.
+  - The re-run `Regions::find_all`: every cell is labelled at 7927.
+  - The region-size factors (`size / 128`, `/ 64`, `/ 16`): the one land region holds every dry cell, and open
+    water returns before the factor.
+  East Indies' values are the next map that reaches the edge (its sea runs to the border) and the region-size
+  factors (twelve islands). Names no score until a phase there parts.
 
 ## Parked by item 3591, 2026-10-24 — the Bantu word 5072 → 5322: the Umpakati's bays
 
@@ -12995,7 +13006,9 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 ## Parked by item 3807, 2026-11-03 — values on Great Sahara
 
-- **3807a. The value branches Great Sahara never takes** (`docs/MAPGEN.md` §9; `sim::map_values`):
+- **3807a. The value branches Great Sahara never takes** (`docs/MAPGEN.md` §9; `sim::map_values`; amended by item
+  3830: Great Lakes' values diff-back open water, the water count and both water factors; the edge, the coast
+  record and the region-size factors are 3830a's):
   `adjust_for_blocking`'s water-edge 0x2000 arm, `compute_val`'s water count and its two water factors, the
   region-size factors (every Great Sahara cell is in one 3,600-cell region), the 0x1000 centre tile, and
   `Cliffs::set_edge_flags`. Ported from the listings and never run. A style with water reaches them at 7937 and
