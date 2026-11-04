@@ -13091,13 +13091,17 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   with another size or seed is what would reach them. It names a score only once a later Great Lakes phase
   parts on such a lobby.
 
-## Parked by the next landing, slot XY — reserved
+## Parked by item 3816, 2026-11-04 — a land shooter's missile lead
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3816a. The air shooters' rounds still leave their squares** (GOLDEN §152.9). The Jet Fighter Bomber `2/18`
+  (`TI` 309, air) fires on `1/18` from its square at ground height: ours (15864, 16632, 0), theirs (15843, 16406,
+  −70) and (15657, 16725, −71). Its rounds fly 6 frames against 5, and the pool's next partings follow: slot 7 on
+  block 643 and slot 1 on 649. It also shows as the widening's standing `2/18` `damage_frame` row on block 701,
+  646 against 676. The land Anti-Aircraft Missile `1/20`'s launch parts too: (17400, 14712, 466) against (17346,
+  14755, 639). Its point count happens to agree. Names no score until a word's frame reaches a round of these.
+- **3816b. A land shooter's `r` is pinned only by the given 984** (GOLDEN §152.9). `r` at `dist / 3` fails nothing
+  on the walk, and `combat::tests::a_land_shooter_s_lead_is_run1469s` takes `r` as an input. No dump prints
+  `attack_dist`. A packet's `local_34` at `67c459` would pin the halving to the unit. Names no score.
 
 ## Parked by the next landing, slot XZ — reserved
 

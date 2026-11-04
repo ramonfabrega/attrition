@@ -1312,12 +1312,10 @@ pub fn flight_time(n: i64, d: i64) -> i32 {
 /// `lead` is the middle point's offset: a sea or air shooter's is `5 ×
 /// speed` out, turned by the figure's pitch and angle ([`missile_lead`],
 /// item 3808; run717's `1/49` puts it 1,500 out at the launch's height).
-/// `None` is the building's and land unit's arm (`67c437`–`67c469`),
-/// whose length and pitch are a stack local this crate does not carry.
-///
-/// SEAM: a land shooter's control point is taken on the straight line
-/// (`L` the plain distance). It reaches the count only below twelve
-/// speeds.
+/// A building's and a land unit's lead (`67c437`–`67c469`, item 3816,
+/// `docs/GOLDEN.md` §152.9) is `attack_dist / 2` out at a pitch of 45° on
+/// the ammo's angle. `None` takes the control point on the straight line
+/// (`L` the plain distance), which no shot in `Ammo::init` does now.
 pub fn missile_flight_time(
     launch: Pos,
     sz: i32,

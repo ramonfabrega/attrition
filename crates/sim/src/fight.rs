@@ -11912,10 +11912,14 @@ mod tests {
                 0,
                 missile.landing,
                 missile.ez,
-                None,
+                Some(combat::Lead {
+                    angle: missile.angle,
+                    pitch: Single::from_bits(0x4234_0000),
+                    r: sim.attack_dist(Obj::Unit(me), Obj::Unit(foe)) / 2,
+                }),
                 d
             ),
-            "a land shooter's spline, its control point on the line"
+            "a land shooter's spline, half the distance out at 45° up (item 3816)"
         );
     }
 

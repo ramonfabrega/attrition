@@ -16024,6 +16024,53 @@ Its re-plans to 10, 8 and 4 points are matched on frame and `total_time` (the wa
 point. A nuke takes the same arm and goes through `crate::nuke`; it is not checked. `air::missile_round`'s ground
 arm still lays no points (parked 3814a).
 
+## 152.9 A land shooter's missile leads half the distance out, at 45° up — 718 → 761 (item 3816, run1469–run1470)
+
+**The booking.** Frame 718: ours 14 draws against theirs' 15. At index 6 theirs spends `Unit::close+0xcb6` where
+ours spends `Farms::inc_time+0x1ae`. Theirs' Anti-Tank Missile `2/24` (`TI` 141, land) dies on 718 and ours' on
+721. 3814's hypothesis was that the air and anti-air release points part the pool's slots on 642.
+
+**Where the slots part.** `AMMO` prints each round's pool `index`. Over 620..701 (run1469, run1470, run1471, set
+beside ours' `RON_DEBUG_AMMO`; ours' frame `N` is theirs' block `N + 1`), flight times part from 643. The first
+round to take a different slot is the Cruise Missile `2/19`'s round on `1/20`, on block 646. Theirs puts it in
+slot 6 and ours in slot 2. Theirs' slot 2 still holds the Anti-Aircraft Missile `1/20`'s (`TI` 284, land) round on
+the Jet Fighter Bomber `2/18` (`TI` 309, air), fired on 638. Theirs lays that round eight points from (17346,
+14755, 639). It re-plans at its fourth point on 642 to eight more and on 646 to three. Ours laid seven, re-planned
+to five on 642 and freed the slot on 645. The re-plans are not the difference: theirs' polygons over 200 (1,500.7
+→ 7 and 592 → 2) are `Spline::from_dir`'s. The launch spline is.
+
+**The arm** (`Ammo::init@0067bbf0`, `67c437`–`67c469`). An object type whose `domain` (`ObjectTypeData +0x218`)
+is 0 takes this arm. That is a land unit or a building. It does not take the figure's angle and pitch.
+
+- `r = local_34 / 2`, where `local_34` is the distance the accuracy was read at: `ObjectData::attack_dist` for a
+  unit target, `vector_dist` for a point. The `cltd; sub; sar` divides it toward zero.
+- The pitch is the `45.0` at `0xb69674`.
+- The angle is the ammo's own `+0x2c`.
+
+It then joins the air arm's rotation at `67cbaa` (`combat::missile_lead`, §152.5). Block 639 prints the middle
+control point (16908.123047, 15295.732422, 1334.793091). That is 984 out at the ammo's 218°, which leads at 219°.
+Ours laid the half-way point on the straight line.
+
+**Built**: in `fire_ammo_aim`, every missile round takes a lead. A land-domain shooter's lead is `Lead { angle,
+45.0, dist / 2 }`. The test is `combat::tests::a_land_shooter_s_lead_is_run1469s`: the middle point and block
+639's eight points, to the bit, first try. Mutations (`tools/mutate.py`): the pitch at 0 holds, and the word falls
+back to 718. `r` at `dist / 3` fails nothing, so the halving is not pinned by a walk (parked 3816b).
+
+**The value diff.** Ours' `1/20` round of 638 flies `t/8`, re-plans to 8 on ours' 641 and to 3 on 645. Those are
+theirs' blocks 642 and 646. `2/19`'s round takes slot 6, the V2 `0/16`'s round of 671 slot 6, and `0/17`'s
+round on `2/24` slot 5. On 690 `0/17`'s 43 lands first. `2/24` reads 221 of 265 on ours' 691 (`damage` 44, theirs'
+44), and it is gone after ours' `f718`, as theirs' is.
+
+**The word: 761**, ours 14 draws against theirs' 13. At index 1 ours spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` where theirs spends `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`. So
+ours acted.
+
+**What is not established.** The launch point itself still parts: ours (17400, 14712, 466) from the unit's square
+against theirs' (17346, 14755, 639) from its figure. The point count happens to agree here. The Jet Fighter
+Bomber `2/18`'s rounds still leave its square at ground height where theirs leave its figure at −70, and fly 6
+frames against 5 (parked 3816a). `attack_dist` is read off this crate, and no dump prints it. A building shooter
+reaches the arm through the same `domain` read, and no capture has fired one.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
