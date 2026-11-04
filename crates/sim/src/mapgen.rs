@@ -218,6 +218,12 @@ pub struct MapGrid {
     /// so a good's index — the `down_who` its cell holds — counts the oil
     /// `World::set_oil_at` made and unmade in `place_all`. No part walks it.
     pub goods: Vec<Option<(i32, i32, i32)>>,
+    /// `MountainsData`'s placed ranges (+0x7c, +0x98, +0xd0): each
+    /// `Mountains::add_mountain@0089c2e0` that wrote appends its origin
+    /// cell and template index, and nothing in map generation removes one.
+    /// No part walks it; `World::set_edge_flags`' 0x8000 pass reads it
+    /// (`docs/MAPGEN.md` §9).
+    pub mountains: Vec<(i32, i32, usize)>,
 }
 
 impl MapGrid {
@@ -247,6 +253,7 @@ impl MapGrid {
             tiles: vec![0; (16 * xs * ys) as usize],
             city: vec![false; (xs * ys) as usize],
             goods: Vec::new(),
+            mountains: Vec::new(),
         }
     }
 
