@@ -13034,13 +13034,21 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   water and oil arms, the start-city radius and `find_all`'s relabel at 5118 are unit-tested only. Names no
   score.
 
-## Parked by the next landing, slot XU — reserved
+## Parked by item 3812, 2026-11-03 — heights on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3812a. The height arms that Great Sahara never enters** (`docs/MAPGEN.md` §10, §14;
+  `sim::map_heights`). None of these is built:
+  - the shore blend of `TerrainOut::find_closest_coordinfo@0086a260`;
+  - `TerrainOut::smooth_tcoord@0086c3a0`, whose list order matters;
+  - `TerrainOut::build_coastal_data@0086c540`, with `adjust_aquatic_height`
+    and `relax_aquatic_verts`;
+  - the slope test (`Cliffs::assess_wcoord` → `has_plus_slope`).
+
+  A grid that enters them is refused (`Unported::Coast`, `Unported::Slope`).
+  Great Lakes' and East Indies' water enters the first three; they come after those styles' mask and
+  steps 2–6. `create_doobers`' rock-bit test is part of the predicate, but no Great Sahara oil cell lacks
+  the bit, and the mutant that drops it failed nothing. The ocean arm's clear of the rock bit is not
+  modelled. Names no score.
 
 ## Parked by item 3813, 2026-11-03 — the Advanced Machine Gun's pair leaves from its muzzle
 

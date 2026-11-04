@@ -2125,6 +2125,154 @@ mod tests {
         );
     }
 
+    /// A file's prefix up to its first `FRAME`: the setup trace and the
+    /// start-of-game `DUMP_ALL` dump, closed with the frame header
+    /// `IndexedCapture::read_replay_setup` closes it with.
+    fn start_prefix(path: &Path) -> Option<String> {
+        use std::io::BufRead;
+        let mut r = std::io::BufReader::with_capacity(1 << 20, std::fs::File::open(path).ok()?);
+        let mut out = String::new();
+        let mut line = Vec::new();
+        loop {
+            line.clear();
+            if r.read_until(b'\n', &mut line).ok()? == 0 {
+                break;
+            }
+            let text = String::from_utf8_lossy(&line);
+            if text.trim_start().starts_with("BEGIN FRAME") {
+                break;
+            }
+            out.push_str(&text);
+        }
+        out.push_str(" BEGIN FRAME 0\n");
+        Some(out)
+    }
+
+    /// **The heights on Great Sahara** (`docs/MAPGEN.md` §10, §15 step 7,
+    /// item 3812): from each run's 5118 grid (step 8's), `generate_land` —
+    /// the two fractals on `World.seed` and twice it, `land_height` — and
+    /// `adjust_for_mountains`' displacements; then each file's own start
+    /// roster stood up on that grid through the harness's
+    /// `terraform_for_building` (`diff::setup::start_of_game`). Every
+    /// vertex of every Great Sahara start dump that prints the grid is
+    /// ours, to the print: the one single that prints so, since every
+    /// height there is over 16.
+    #[test]
+    fn great_sahara_s_heights_are_the_start_dump_s_grid() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let install = crate::Install::new(root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let sea = sea_map(root, "SAHARA.xml").expect("SAHARA.xml's SEA_MAP");
+        let thresh = river_thresh(root, "SAHARA.xml").expect("RIVER_THRESHOLD");
+        let rivers = river_list(root, "SAHARA.xml").expect("a RIVERLIST");
+        let meshes = crate::mountains::meshes(&install);
+        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let mut grids: std::collections::BTreeMap<GsRun, Vec<sim::single::Single>> =
+            Default::default();
+        for &run in great_sahara_runs(all).keys() {
+            let (mut grid, mut d) = great_sahara_at_7927(run, &fert, &ts, root);
+            let inputs = place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("inputs");
+            let mut regions = regions_of(&grid);
+            adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let (_, coord, _) = terrain_init_without_heights(&mut grid, sea)
+                .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            let mut regions = regions_of(&grid);
+            make_rivers(
+                &mut grid,
+                &mut regions,
+                thresh,
+                city_radius,
+                rivers,
+                |_, _| {},
+            )
+            .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            let z =
+                sim::map_heights::heights(&grid, &coord, run.4 as u32, &inputs.templates, &meshes)
+                    .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            eprintln!(
+                "{} nations: {} mountains raise the grid",
+                run.1,
+                grid.mountains.len()
+            );
+            grids.insert(run, z);
+        }
+        let loaded = crate::load::load(&install).expect("the install's tables");
+        let (mut files, mut vertices) = (0, 0);
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 7) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let Some(z) = grids.get(&(before.2, g.nations, g.xs, g.ys, g.seed)) else {
+                continue;
+            };
+            let Some(prefix) = crate::testenv::dump(name).and_then(|p| start_prefix(Path::new(&p)))
+            else {
+                continue;
+            };
+            let log = crate::gamelog::Log::parse(&prefix);
+            let Some(init) = log.initial() else {
+                continue;
+            };
+            if init.heights.is_empty() {
+                continue;
+            }
+            crate::diff::PRE_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(z.clone()));
+            drop(crate::diff::build_sim(
+                &loaded,
+                &init,
+                sim::tuning::Tuning::RON,
+            ));
+            let ours = crate::diff::POST_ROSTER_HEIGHTS
+                .with(|h| h.borrow_mut().take())
+                .expect("the roster stood on the generated grid");
+            assert_eq!(ours.len(), init.heights.len(), "{name}: the grid's size");
+            let w = (4 * g.xs + 1) as usize;
+            let bad: Vec<usize> = (0..ours.len())
+                .filter(|&i| !ours[i].prints_as(init.heights[i]))
+                .collect();
+            if let Some(&i) = bad.first() {
+                parted.push(format!(
+                    "{name}: {} of {} vertices part, the first ({}, {}) ours {} against {}",
+                    bad.len(),
+                    ours.len(),
+                    i % w,
+                    i / w,
+                    ours[i].0,
+                    init.heights[i]
+                ));
+            }
+            files += 1;
+            vertices += ours.len();
+        }
+        eprintln!("heights: GS start grids on {files} files, {vertices} vertices");
+        assert!(
+            parted.is_empty(),
+            "{} of {files} files part:\n{}",
+            parted.len(),
+            parted.join("\n")
+        );
+        assert!(
+            files >= MAPGEN_GS_HEIGHT_FILES,
+            "the heights reached {files} Great Sahara start grids"
+        );
+    }
+
+    /// The traced Great Sahara files whose start dump prints the height
+    /// grid: a floor.
+    const MAPGEN_GS_HEIGHT_FILES: usize = 47;
+
     /// The traced files carrying both 7945 and 734, every style: a floor
     /// (511 on 2026-11-03).
     const SEA_MAP_FILES: usize = 511;
@@ -2143,7 +2291,7 @@ mod tests {
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
-    /// `Terrain::init` without heights (734..5012), and the rivers
-    /// (5012..5118).
-    const GREAT_SAHARA_CHECKED: i64 = 7;
+    /// `Terrain::init` without heights (734..5012), the rivers
+    /// (5012..5118), and the heights (the start dump's grid).
+    const GREAT_SAHARA_CHECKED: i64 = 8;
 }
