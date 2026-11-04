@@ -18,9 +18,14 @@
 //!   adding its template's displacement to the vertices of its cells
 //!   ([`adjust_for_mountains`]).
 //!
-//! What a waterless map does not reach is refused by name, never guessed
-//! ([`Unported`]): the shore blend and `build_coastal_data`, and
-//! `Cliffs::assess_wcoord`'s slope test.
+//! On a map with water two more write it between the first two
+//! (item 3835): `generate_land`'s **shore blend** and its
+//! `TerrainOut::smooth_tcoord@0086c3a0` list ([`find_closest_coordinfo`],
+//! [`smooth_tcoord`]), and **`TerrainOut::build_coastal_data@0086c540`**
+//! ([`build_coastal_data`]).
+//!
+//! What no corpus map reaches is refused by name, never guessed
+//! ([`Unported`]): `Cliffs::assess_wcoord`'s slope test.
 
 use std::collections::BTreeMap;
 
@@ -28,7 +33,7 @@ use crate::mapgen::{COAST, Fractal, MapGrid};
 use crate::single::Single;
 use crate::terrain_groups::Template;
 use crate::terrain_groups::flag::{OIL, ROCK};
-use crate::terrain_init::coord;
+use crate::terrain_init::{MOVE, coord};
 
 /// `TerrainOut+0x4b7c`: vertices per cell each way.
 pub const VERTS: i32 = 4;
@@ -66,13 +71,6 @@ pub mod code {
 /// The arms a map can enter that are not built.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Unported {
-    /// The shore: `TerrainOut::find_closest_coordinfo@0086a260` finds a
-    /// `CoordInfo` 0x20 cell in the 7×7 round a vertex's cell, which blends
-    /// the height by the distance and lists the vertex for
-    /// `TerrainOut::smooth_tcoord@0086c3a0`; or an `OCEAN` cell, whose
-    /// vertices `TerrainOut::build_coastal_data@0086c540` relaxes. The
-    /// cells named.
-    Coast(Vec<(i32, i32)>),
     /// `Cliffs::assess_wcoord@008a6a40`'s slope test,
     /// `TerrainOut::has_plus_slope@00869790`: a tile of a cell flagged
     /// 0x40 that is not COAST, `land` 1 or 2, nor a mountain tile. The
@@ -141,45 +139,123 @@ pub fn river_vertex(g: &MapGrid, x: i32, y: i32) -> bool {
         })
 }
 
-/// The cells `find_closest_coordinfo` or `build_coastal_data` would act
-/// on: `CoordInfo` 0x20 (whose 7×7 reaches a vertex) or `OCEAN`.
-fn shore(g: &MapGrid, coord: &[u16]) -> Vec<(i32, i32)> {
-    (0..g.ys)
-        .flat_map(|y| (0..g.xs).map(move |x| (x, y)))
-        .filter(|&(x, y)| coord[(y * g.xs + x) as usize] & (coord::COASTAL | coord::OCEAN) != 0)
-        .collect()
-}
-
 /// **`generate_land`'s heights**: `(4·ys + 1)` rows of `(4·xs + 1)`
-/// singles, row-major, as the start dump prints them.
+/// singles, row-major, as the start dump prints them — each vertex through
+/// `determine_land_height_color` (y outer, x inner), then the vertices its
+/// shore blend listed through [`smooth_tcoord`], in list order: once, and
+/// a second time when either coordinate is odd (0x85fec0..0x85ff1a).
 ///
 /// The `Prefs` value that flattens every height to 0 is taken as unset.
-pub fn generate_land(
-    g: &MapGrid,
-    coord: &[u16],
-    fractals: &(Fractal, Fractal),
-) -> Result<Vec<Single>, Unported> {
-    let shore = shore(g, coord);
-    if !shore.is_empty() {
-        return Err(Unported::Coast(shore));
-    }
+pub fn generate_land(g: &MapGrid, coord: &[u16], fractals: &(Fractal, Fractal)) -> Vec<Single> {
     let (w, h) = (VERTS * g.xs + 1, VERTS * g.ys + 1);
     let mut z = Vec::with_capacity((w * h) as usize);
+    let mut smooth = Vec::new();
     for y in 0..h {
         for x in 0..w {
             z.push(if river_vertex(g, x, y) {
                 Single::ZERO
             } else {
-                vertex_height(vert_codes(g, coord, x, y), fractals, x, y)
+                vertex_height(g, coord, fractals, x, y, &mut smooth)
             });
         }
     }
-    Ok(z)
+    for (x, y) in smooth {
+        smooth_tcoord(g, &mut z, x, y);
+        if (x | y) & 1 != 0 {
+            smooth_tcoord(g, &mut z, x, y);
+        }
+    }
+    z
 }
 
-/// `determine_land_height_color` past its river test, the shore blend
-/// excluded (0x86c233..0x86c37a).
-fn vertex_height(codes: u16, (a, b): &(Fractal, Fractal), x: i32, y: i32) -> Single {
+/// `oo_WCoordSize` (0xee1864, set on first use to `0x3aaaaaab`): one over
+/// a cell's 768 world units.
+const OO_WCOORD: Single = Single(0x3aaa_aaab);
+/// `MinPolySize` (0xb21764): a vertex's 192 world units.
+const POLY: Single = Single(0x4340_0000);
+/// `find_closest_coordinfo`'s starting best (0xb6976c), 1e20.
+const FAR: Single = Single(0x60ad_78ec);
+/// Its answer when no 0x20 cell is in reach (0xb69798).
+const NONE_NEAR: Single = Single(0xbf80_0000);
+/// The shore blend's constants (0x86c2ff..0x86c35a): 4, 0.05, 0.25.
+const FOUR: Single = Single(0x4080_0000);
+const BLEND_RAMP: Single = Single(0x3d4c_cccd);
+const QUARTER: Single = Single(0x3e80_0000);
+/// `radius[]` (0xadd1e0): the end of each ring of `move_x/move_y`.
+const RADIUS: [usize; 4] = [1, 9, 25, 49];
+
+/// **`TerrainOut::find_closest_coordinfo@0086a260(x, y, 4)`**: the
+/// distance, in cells, from vertex `(x, y)` to the nearest vertex of a
+/// `CoordInfo` 0x20 cell, searched ring by ring round the vertex's cell
+/// (`move[0]`, then `[1..9]`, `[9..25]`, `[25..49]`) and stopping two
+/// rings past the first ring that finds one; −1.0 when none is in reach.
+/// Each candidate vertex's squared distance is `(vx·192 − x·192)² + (vy·192
+/// − y·192)²` in singles, kept when strictly smaller; the answer is
+/// `sqrtf` of the best times `oo_WCoordSize`.
+pub fn find_closest_coordinfo(g: &MapGrid, coord: &[u16], x: i32, y: i32) -> Single {
+    let (fx, fy) = (
+        Single::from_i32(x).mulss(POLY),
+        Single::from_i32(y).mulss(POLY),
+    );
+    let (cx, cy) = (x >> 2, y >> 2);
+    let mut best = FAR;
+    let mut found = false;
+    let mut more = 0;
+    let mut start = 0;
+    for &end in &RADIUS {
+        if found && more == 0 {
+            break;
+        }
+        more = if more == 0 { 0 } else { more - 1 };
+        let was = found;
+        for &(dx, dy) in &MOVE[start..end] {
+            let (u, v) = (cx + dx, cy + dy);
+            if u < 0 || v < 0 || u >= g.xs || v >= g.ys {
+                continue;
+            }
+            if coord[(v * g.xs + u) as usize] & coord::COASTAL == 0 {
+                continue;
+            }
+            for j in 0..=VERTS {
+                let ey = Single::from_i32(VERTS * v + j).mulss(POLY).subss(fy);
+                let ey = ey.mulss(ey);
+                for i in 0..=VERTS {
+                    let ex = Single::from_i32(VERTS * u + i).mulss(POLY).subss(fx);
+                    let d = ex.mulss(ex).addss(ey);
+                    if best.gt(d) {
+                        best = d;
+                        found = true;
+                    }
+                }
+            }
+        }
+        if found && !was {
+            more = 2;
+        }
+        start = end;
+    }
+    if found {
+        best.sqrtss().mulss(OO_WCOORD)
+    } else {
+        NONE_NEAR
+    }
+}
+
+/// `determine_land_height_color` past its river test (0x86c233..0x86c38f):
+/// the codes' arms, then the fractals' height, blended toward the shore
+/// when [`find_closest_coordinfo`] answers `d ≥ 0` —
+/// `0.25·(d·h) + ((d·0.05·7.5·192 + land_height)·(4 − d))·0.25` — which
+/// also lists the vertex for smoothing when both its coordinates are under
+/// `4·xs` (the listing compares `y` with `4·xs` too).
+fn vertex_height(
+    g: &MapGrid,
+    coord: &[u16],
+    (a, b): &(Fractal, Fractal),
+    x: i32,
+    y: i32,
+    smooth: &mut Vec<(i32, i32)>,
+) -> Single {
+    let codes = vert_codes(g, coord, x, y);
     if codes & code::OCEAN != 0 {
         return SEA_FLOOR.addss(LAND_HEIGHT).mulss(ONE);
     }
@@ -192,7 +268,406 @@ fn vertex_height(codes: u16, (a, b): &(Fractal, Fractal), x: i32, y: i32) -> Sin
     let h = Single::from_i32(i32::from(a.get_height(x, y)))
         .mulss(A_WEIGHT)
         .addss(LAND_HEIGHT);
-    h.addss(Single::from_i32(i32::from(b.get_height(x, y))).mulss(B_WEIGHT))
+    let h = h.addss(Single::from_i32(i32::from(b.get_height(x, y))).mulss(B_WEIGHT));
+    let d = find_closest_coordinfo(g, coord, x, y);
+    if Single::ZERO.gt(d) {
+        return h;
+    }
+    let rise = d
+        .mulss(BLEND_RAMP)
+        .mulss(A_WEIGHT)
+        .mulss(POLY)
+        .addss(LAND_HEIGHT)
+        .mulss(FOUR.subss(d))
+        .mulss(QUARTER);
+    let r = QUARTER.mulss(d.mulss(h)).addss(rise);
+    let n = VERTS * g.xs;
+    if x < n && y < n {
+        smooth.push((x, y));
+    }
+    r
+}
+
+/// **`TerrainOut::smooth_tcoord@0086c3a0(x, y)`**: the 4×4 vertices from
+/// `(x − 1, y − 1)` copied (those under the tile grid's bounds; the rest
+/// read 0), then each of the 2×2 from `(x, y)` (row outer) whose height is
+/// above 0 takes the mean of the copy's non-zero values in its 3×3, summed
+/// row by row in singles.
+pub fn smooth_tcoord(g: &MapGrid, z: &mut [Single], x: i32, y: i32) {
+    let (tw, th) = g.tile_dims();
+    let stride = VERTS * g.xs + 1;
+    let mut buf = [Single::ZERO; 16];
+    for j in 0..4 {
+        for i in 0..4 {
+            let (u, v) = (x - 1 + i, y - 1 + j);
+            if u >= 0 && v >= 0 && u < tw && v < th {
+                buf[(i + 4 * j) as usize] = z[(v * stride + u) as usize];
+            }
+        }
+    }
+    for r in 0..2 {
+        for c in 0..2 {
+            let mut sum = Single::ZERO;
+            let mut n = 0;
+            for j in 0..3 {
+                for i in 0..3 {
+                    let v = buf[(c + i + 4 * (r + j)) as usize];
+                    if !v.eq_value(Single::ZERO) {
+                        n += 1;
+                        sum = sum.addss(v);
+                    }
+                }
+            }
+            let at = ((y + r) * stride + x + c) as usize;
+            if n != 0 && z[at].gt(Single::ZERO) {
+                z[at] = sum.divss(Single::from_i32(n));
+            }
+        }
+    }
+}
+
+/// One cell's `InitCoastInfo` (size 0x28): what
+/// `build_coastal_data`'s passes leave on it.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct CoastInfo {
+    /// `+0x0`, `is_valid`: a 0x20 cell `mark_valid_coastal_influencers`
+    /// keeps.
+    pub valid: bool,
+    /// `+0x1`, `has_influence`.
+    pub influence: bool,
+    /// `+0x2`, `connected_out`: how many of its neighbours it joined, at
+    /// most 2.
+    pub out: u8,
+    /// `+0x3`, `connected_in`.
+    pub connected_in: bool,
+    /// `+0x4` and `+0x8`, `connected_to` and `connected_to2`.
+    pub to: [(i32, i32); 2],
+    /// `+0xc`, `influence`: tile indices `x + 4·xs·y`, in append order.
+    pub tiles: Vec<i32>,
+}
+
+/// `TerrainOut::mark_coast_vert_influence`'s `texture_fractal` scale
+/// (0xb69474), its clamp's threshold (0xb6963c) and value (0xb69638).
+const TEXTURE_SCALE: Single = Single(0x3e23_d70a);
+const TEXTURE_TOP: Single = Single(0x4178_0000);
+const TEXTURE_CLAMP: Single = Single(0x4170_0000);
+/// `adjust_aquatic_height`'s cap (0xb69744), its 1/9 (0xb6946c), and
+/// `beach_steepness` (0xc0629c), a registered tweak whose default is 1.
+const DEPTH_CAP: Single = Single(0x461c_4000);
+const NINTH: Single = Single(0x3de3_8e39);
+const BEACH_STEEPNESS: Single = Single(0x3f80_0000);
+/// `relax_aquatic_verts`' weight (0xb69480).
+const FIFTH: Single = Single(0x3e4c_cccd);
+
+/// A sub-tile offset `t` in `0..16` of `mark_coast_vert_influence`'s line
+/// ends: the column `t % 4` and the row `t / 4`, C's signed rounding.
+fn sub_tile(t: i32) -> (i32, i32) {
+    (t % 4, t / 4)
+}
+
+/// `texture_fractal`'s answer at a cell, scaled by 0.16 and clamped to 15
+/// from 15.5 up, truncated (`cvttss2si`).
+fn texture_offset(f: &Fractal, x: i32, y: i32) -> i32 {
+    let t = Single::from_i32(i32::from(f.get_height(x, y))).mulss(TEXTURE_SCALE);
+    if t.gt(TEXTURE_TOP) || t.eq_value(TEXTURE_TOP) {
+        TEXTURE_CLAMP.to_i32()
+    } else {
+        t.to_i32()
+    }
+}
+
+/// `LineState::init@00a48000` and `next_element@00a48110`: the tiles from
+/// `(x0, y0)` to `(x1, y1)`, both ends included, a Bresenham walk along
+/// the longer axis (an equal pair steps x).
+pub fn line(x0: i32, y0: i32, x1: i32, y1: i32) -> Vec<(i32, i32)> {
+    let (dx, dy) = (x1 - x0, y1 - y0);
+    let mut out = vec![(x0, y0)];
+    if dx == 0 && dy == 0 {
+        return out;
+    }
+    let (sx, sy) = (dx.signum(), dy.signum());
+    let (mut x, mut y) = (x0, y0);
+    if dy == 0 {
+        while x != x1 {
+            x += sx;
+            out.push((x, y));
+        }
+        return out;
+    }
+    if dx == 0 {
+        while y != y1 {
+            y += sy;
+            out.push((x, y));
+        }
+        return out;
+    }
+    let (ax, ay) = (dx.abs(), dy.abs());
+    if ax < ay {
+        let (addx, addy) = (2 * ax, 2 * (ax - ay));
+        let mut err = 2 * ax - ay;
+        while y != y1 {
+            y += sy;
+            if err < 0 {
+                err += addx;
+            } else {
+                err += addy;
+                x += sx;
+            }
+            out.push((x, y));
+        }
+    } else {
+        let (addx, addy) = (2 * ay, 2 * (ay - ax));
+        let mut err = 2 * ay - ax;
+        while x != x1 {
+            x += sx;
+            if err < 0 {
+                err += addx;
+            } else {
+                err += addy;
+                y += sy;
+            }
+            out.push((x, y));
+        }
+    }
+    out
+}
+
+/// **`TerrainOut::mark_valid_coastal_influencers@00869070`**: a `CoordInfo`
+/// 0x20 cell is valid, and joins the influencer list (y outer, x inner),
+/// unless it is the inner corner of a bend — two orthogonal 0x20
+/// neighbours (N or S with E or W) round a diagonal one flagged 0x4
+/// (`move[1..9]`, off-map read as 0; 0x869243..0x869299).
+pub fn valid_coastal_influencers(
+    g: &MapGrid,
+    coord: &[u16],
+    info: &mut [CoastInfo],
+) -> Vec<(i32, i32)> {
+    let mut list = Vec::new();
+    for y in 0..g.ys {
+        for x in 0..g.xs {
+            if coord[(y * g.xs + x) as usize] & coord::COASTAL == 0 {
+                continue;
+            }
+            let mut n = [0u16; 8];
+            for (k, &(dx, dy)) in MOVE[1..9].iter().enumerate() {
+                let (u, v) = (x + dx, y + dy);
+                if u >= 0 && v >= 0 && u < g.xs && v < g.ys {
+                    n[k] = coord[(v * g.xs + u) as usize];
+                }
+            }
+            // n: NW, N, NE, E, SE, S, SW, W.
+            let c = |k: usize| n[k] & coord::COASTAL != 0;
+            let h = |k: usize| n[k] & coord::HALF != 0;
+            let bend = (c(1) && c(7) && h(0))
+                || (c(1) && c(3) && h(2))
+                || (c(5) && c(7) && h(6))
+                || (c(5) && c(3) && h(4));
+            if !bend {
+                info[(y * g.xs + x) as usize].valid = true;
+                list.push((x, y));
+            }
+        }
+    }
+    list
+}
+
+/// **`TerrainOut::mark_coast_vert_influence@00868ca0`**, the listing's
+/// order: each influencer `c` joins its first two valid neighbours
+/// (`move[1..9]`; a neighbour already pointing at itself, which never
+/// arises, is skipped), and draws a line of tiles to each — from `c`'s
+/// sub-tile at `texture_offset(c)` to the neighbour's at the offset of the
+/// **last** neighbour joined. Every tile of a line is appended to the
+/// current cell's list; the current cell starts as `c` and becomes the
+/// tile's cell, marked `has_influence`, whenever both its coordinates
+/// change. The second line reads its end and its count from that current
+/// cell, not from `c` (0x868e80 reads `[ebx + 2]`, and `ebx` moved).
+pub fn coast_vert_influence(
+    g: &MapGrid,
+    info: &mut [CoastInfo],
+    list: &[(i32, i32)],
+    texture: &Fractal,
+) {
+    let at = |x: i32, y: i32| (y * g.xs + x) as usize;
+    for &(cx, cy) in list {
+        let ci = at(cx, cy);
+        let t0 = texture_offset(texture, cx, cy);
+        let mut t1 = t0;
+        for &(dx, dy) in &MOVE[1..9] {
+            let (u, v) = (cx + dx, cy + dy);
+            if u < 0 || v < 0 || u >= g.xs || v >= g.ys {
+                continue;
+            }
+            let ni = at(u, v);
+            if !info[ni].valid {
+                continue;
+            }
+            let nb = &info[ni];
+            if (nb.out != 0 && nb.to[0] == (u, v)) || (nb.out == 2 && nb.to[1] == (u, v)) {
+                continue;
+            }
+            if info[ci].out == 2 {
+                continue;
+            }
+            info[ni].connected_in = true;
+            info[ci].out += 1;
+            let slot = usize::from(info[ci].out != 1);
+            info[ci].to[slot] = (u, v);
+            t1 = texture_offset(texture, u, v);
+        }
+        let mut cur = ci;
+        for k in 0..2 {
+            let out = info[cur].out;
+            if out == 1 && k == 1 {
+                break;
+            }
+            let (ex, ey) = if out == 0 { (cx, cy) } else { info[cur].to[k] };
+            let (s0, s1) = (sub_tile(t0), sub_tile(t1));
+            let tiles = line(s0.0 + 4 * cx, s0.1 + 4 * cy, s1.0 + 4 * ex, s1.1 + 4 * ey);
+            let mut prev = (-1, -1);
+            for (tx, ty) in tiles {
+                info[cur].tiles.push(tx + 4 * g.xs * ty);
+                let (wx, wy) = (tx >> 2, ty >> 2);
+                if wx != prev.0 && wy != prev.1 {
+                    prev = (wx, wy);
+                    cur = at(wx, wy);
+                    info[cur].influence = true;
+                }
+            }
+        }
+    }
+}
+
+/// **`TerrainOut::adjust_aquatic_height@00868820`** (y outer, x inner): a
+/// cell flagged 0x4 or `OCEAN` (which also gains `CoordInfo` 0x8), `land`
+/// 1 or 3, or `BASELAND` with `has_influence`, whose 5×5 (`move[0..25]`)
+/// holds a cell with `has_influence`, rewrites its 5×5 vertices (row
+/// outer): the nearest tile of those cells' lists by integer squared
+/// distance (strictly smaller; the best index carries over from the
+/// previous vertex, and starts at 0), and the height
+/// `min(|tile centre − vertex| / 768, 10000)² · (1/9) · (−303 + land_height)
+/// + land_height`, times `beach_steepness` when negative. Its cells are
+/// marked for [`relax_aquatic_verts`].
+pub fn adjust_aquatic_height(
+    g: &MapGrid,
+    coord: &mut [u16],
+    info: &[CoastInfo],
+    z: &mut [Single],
+) -> Vec<bool> {
+    let n = VERTS * g.xs;
+    let stride = n + 1;
+    let at = |x: i32, y: i32| (y * g.xs + x) as usize;
+    let mut marked = vec![false; g.cells.len()];
+    for cy in 0..g.ys {
+        for cx in 0..g.xs {
+            let i = at(cx, cy);
+            let c = &g.cells[i];
+            let enter = if c.flags & 0x4 != 0 || c.land == 2 {
+                coord[i] |= 0x8;
+                true
+            } else {
+                c.land != 0 || info[i].influence
+            };
+            if !enter {
+                continue;
+            }
+            let ring: Vec<usize> = MOVE[0..25]
+                .iter()
+                .map(|&(dx, dy)| (cx + dx, cy + dy))
+                .filter(|&(u, v)| u >= 0 && v >= 0 && u < g.xs && v < g.ys)
+                .map(|(u, v)| at(u, v))
+                .collect();
+            if !ring.iter().any(|&j| info[j].influence) {
+                continue;
+            }
+            let mut best_t = 0;
+            for vy in 0..=VERTS {
+                for vx in 0..=VERTS {
+                    let (px, py) = (VERTS * cx + vx, VERTS * cy + vy);
+                    let mut best = i32::MAX;
+                    for &j in &ring {
+                        for &t in &info[j].tiles {
+                            let (ey, ex) = (py - t / n, px - t % n);
+                            let d = ey * ey + ex * ex;
+                            if d < best {
+                                best = d;
+                                best_t = t;
+                            }
+                        }
+                    }
+                    let fx = Single::from_i32(best_t % n).addss(Single::HALF).mulss(POLY);
+                    let fy = Single::from_i32(best_t / n).addss(Single::HALF).mulss(POLY);
+                    let dx = fx.subss(Single::from_i32(px).mulss(POLY));
+                    let dy = fy.subss(Single::from_i32(py).mulss(POLY));
+                    let d = dx.mulss(dx).addss(dy.mulss(dy)).sqrtss().mulss(OO_WCOORD);
+                    let d = if d.gt(DEPTH_CAP) || d.eq_value(DEPTH_CAP) {
+                        DEPTH_CAP
+                    } else {
+                        d
+                    };
+                    let mut h = d
+                        .mulss(d)
+                        .mulss(NINTH)
+                        .mulss(SEA_FLOOR.addss(LAND_HEIGHT))
+                        .addss(LAND_HEIGHT);
+                    if Single::ZERO.gt(h) {
+                        h = h.mulss(BEACH_STEEPNESS);
+                    }
+                    z[(py * stride + px) as usize] = h;
+                    marked[i] = true;
+                }
+            }
+        }
+    }
+    marked
+}
+
+/// **`TerrainOut::relax_aquatic_verts@00868470`**: five passes, each over
+/// the marked cells off the map's edge (y outer, x inner), each of their
+/// 5×5 vertices (row outer) in place: `(below + above + left + right +
+/// itself) · 0.2`, summed in that order.
+pub fn relax_aquatic_verts(g: &MapGrid, marked: &[bool], z: &mut [Single]) {
+    let stride = (VERTS * g.xs + 1) as usize;
+    for _ in 0..5 {
+        for cy in 0..g.ys {
+            for cx in 0..g.xs {
+                if !marked[(cy * g.xs + cx) as usize]
+                    || cx == 0
+                    || cy == 0
+                    || cx == g.xs - 1
+                    || cy == g.ys - 1
+                {
+                    continue;
+                }
+                for vy in 0..=VERTS {
+                    for vx in 0..=VERTS {
+                        let v = ((VERTS * cy + vy) as usize) * stride + (VERTS * cx + vx) as usize;
+                        z[v] = z[v + stride]
+                            .addss(z[v - stride])
+                            .addss(z[v - 1])
+                            .addss(z[v + 1])
+                            .addss(z[v])
+                            .mulss(FIFTH);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// **`TerrainOut::build_coastal_data@0086c540`**'s height half, in its
+/// order: `mark_valid_coastal_influencers`, `mark_coast_vert_influence`
+/// (on `texture_fractal`: `xs + 1` by `ys + 1`, smoothing 0, flags 2,
+/// `World.seed`, built by `refresh_data` beside the height fractals),
+/// [`adjust_aquatic_height`] and [`relax_aquatic_verts`]. It adds
+/// `CoordInfo` 0x8 to the water cells it enters. A map without a 0x20 cell
+/// writes nothing.
+pub fn build_coastal_data(g: &MapGrid, coord: &mut [u16], z: &mut [Single], seed: u32) {
+    let mut info = vec![CoastInfo::default(); g.cells.len()];
+    let list = valid_coastal_influencers(g, coord, &mut info);
+    let texture = Fractal::init(g.xs + 1, g.ys + 1, 0, 2, seed);
+    coast_vert_influence(g, &mut info, &list, &texture);
+    let marked = adjust_aquatic_height(g, coord, &info, z);
+    relax_aquatic_verts(g, &marked, z);
 }
 
 /// One mountain template's displacement, `MountainRange::init@008998b0`'s
@@ -400,13 +875,14 @@ pub fn slope_tiles(g: &MapGrid) -> Vec<(i32, i32)> {
 /// carve only along a river list, which `sim::map_rivers` refuses.
 pub fn heights(
     g: &MapGrid,
-    coord: &[u16],
+    coord: &mut [u16],
     seed: u32,
     templates: &[Template],
     meshes: &[Mesh],
 ) -> Result<Vec<Single>, Unported> {
     let f = fractals(g.xs, g.ys, seed);
-    let mut z = generate_land(g, coord, &f)?;
+    let mut z = generate_land(g, coord, &f);
+    build_coastal_data(g, coord, &mut z, seed);
     create_doobers(g, &mut z);
     adjust_for_mountains(g, &mut z, templates, meshes);
     let slope = slope_tiles(g);
