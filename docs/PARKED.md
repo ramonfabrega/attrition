@@ -13164,8 +13164,9 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 - **3822a. Three water arms the Great Lakes corpus runs but cannot part** (`docs/MAPGEN.md` §7,
   `sim::terrain_groups`). Each one's mutant fails nothing on all 222 traces and 185 files:
-  - The sea-oil disc's reach past ring 3 (`rock_space` 5): no start is decided by rings 4 or 5. A unit test
-    pins the reading.
+  - ~~The sea-oil disc's reach past ring 3 (`rock_space` 5): no start is decided by rings 4 or 5. A unit test
+    pins the reading.~~ **Diffed on East Indies by item 3828** (`docs/MAPGEN.md` §7): its 14 lake-oil clumps in one
+    sea are decided by rings 4 and 5, and the reach mutant parts all 202 files at 7859.
   - `drop_tile`'s COAST → `land` 2 rewrite: every Great Lakes forest and rock group has `coast_space` ≥ 1, so
     `available_rough_tile` refuses a COAST cell before the drop.
   - The type-7 start test's COAST alternative: type 7 walks only water regions, and COAST marks land.
@@ -13236,10 +13237,63 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   and 5 match run1477's three rounds. The other 24 rest on the sweep (`RON_BAY_SWEEPS_80`, 9,747 headings), as
   3813a's do for piece 77. Names no score.
 
-## Parked by the next landing, slot YG — reserved
+## Parked by item 3828, 2026-11-04 — `place_all` on East Indies
+
+- **3828a. Two water arms East Indies runs and cannot part either** (`docs/MAPGEN.md` §7, `sim::terrain_groups`).
+  Each mutant fails nothing on all 418 traces and 202 files, as on Great Lakes (3822a):
+  - `drop_tile`'s COAST → `land` 2 rewrite: every East Indies forest and rock group is `coast_space` 1. The one
+    `coast_space` 0 group is a pattern-0 mountain, and `drop_tile` writes forest and rock only.
+  - The type-7 start test's COAST alternative: type 7 walks the water regions, and the disc's dry core refuses
+    a COAST cell.
+
+  `check_player_forest`'s start-city and dry-or-0x100 tests are corpus-inert too. The fuzz lobby's one patch
+  meets neither. `check_player_forest_patches_three_then_two_then_one` holds both from the listing. What
+  checks the rewrite: a style with a forest or rock group at `coast_space` 0. None is known. Names no score.
+
+## Parked by the next landing, slot YH — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YG renames this heading `## Parked by item N, <date> — <title>`
+names slot YH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YM renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

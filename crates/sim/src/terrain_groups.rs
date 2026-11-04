@@ -1713,8 +1713,8 @@ const ORTHOG_TABLE: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 /// the `change_*_base` passes whose base the tileset names, in forest,
 /// mountain, coast order, then `TerrainGroups::fix_transitions@006a9f70`.
 /// [`nubify_forest`] (7861 → 7865) runs before them, and only inside
-/// `place_all`'s semaphore block; `Map::check_player_forest` between 7859
-/// and 7861 draws nothing and moves no part.
+/// `place_all`'s semaphore block; [`check_player_forest`] between 7859
+/// and 7861 draws nothing.
 pub fn change_bases(grid: &mut MapGrid, d: &mut Draws, ts: &TilesetGroups) {
     change_base(
         grid,
@@ -1741,6 +1741,103 @@ pub fn change_bases(grid: &mut MapGrid, d: &mut Draws, ts: &TilesetGroups) {
         Base::Coast,
     );
     fix_transitions(grid, d);
+}
+
+/// **`Map::check_player_forest@0068e8f0`** (`map.cpp` 7859 → 7861,
+/// `docs/MAPGEN.md` §7): a start whose city disc — `circle_x/y` from
+/// `circle_radius[0]` to `circle_radius[k]`, `k` the city-centre radius in
+/// cells less one — holds fewer than three FOREST cells is given a patch.
+/// For a patch of three, then two, then one, the disc's cells from
+/// `circle_radius[2]` out are tried in table order: a cell that may grow
+/// opens a list, and each on-map orthogonal neighbour (`orthog_x/y[1..=4]`)
+/// that may grow joins it; the moment the list holds exactly the size
+/// wanted — tested after every on-map neighbour, joined or not — every
+/// listed cell becomes forest. The pass draws nothing.
+///
+/// Two quirks of the listing (0x68ed09..0x68ed4a) are kept: a lone cell is
+/// a patch of one only when its first on-map neighbour cannot grow, and
+/// once a patch has landed each smaller size stops at the first cell or
+/// neighbour it tests rather than walking on. The convert copies each
+/// cell's `land` and `land_sub` onto themselves (a COAST cell would take
+/// `land` 2, but none may grow), clears COAST, ROCK, MOUNTAIN and FOREST,
+/// and sets FOREST.
+pub fn check_player_forest(g: &mut MapGrid, city_center_radius: i32) {
+    let t = circle::table();
+    let k = (city_center_radius / 4 - 1).clamp(0, circle::RINGS as i32 - 1) as usize;
+    let (first, outer) = (t.radius[0], t.radius[k]);
+    let (xs, ys) = (g.xs, g.ys);
+    let inb = |x: i32, y: i32| x >= 0 && y >= 0 && x < xs && y < ys;
+    // A cell that may join a patch: no forest or mountain, dry or 0x100,
+    // no rock or 0x40, no start-city bit, not COAST.
+    let grows = |g: &MapGrid, x: i32, y: i32| {
+        let i = (y * xs + x) as usize;
+        let c = &g.cells[i];
+        c.flags & 0x30 == 0
+            && (c.flags & 0x100 != 0 || !matches!(c.land, 1 | 2))
+            && c.flags & 0x48 == 0
+            && !g.city[i]
+            && c.flags & 0x4 == 0
+    };
+    let starts: Vec<(i32, i32)> = g.starts[0]
+        .list
+        .iter()
+        .copied()
+        .zip(g.starts[1].list.iter().copied())
+        .collect();
+    for (x0, y0) in starts {
+        let at = |i: i32| {
+            (
+                x0 + i32::from(t.x[i as usize]),
+                y0 + i32::from(t.y[i as usize]),
+            )
+        };
+        let forest = (first..outer)
+            .map(at)
+            .filter(|&(x, y)| inb(x, y) && g.cells[(y * xs + x) as usize].flags & flag::FOREST != 0)
+            .count();
+        if first < outer && forest >= 3 {
+            continue;
+        }
+        let mut done = false;
+        for want in (1..=3).rev() {
+            'ring: for i in t.radius[2]..outer {
+                let (x, y) = at(i);
+                if !inb(x, y) {
+                    continue;
+                }
+                if !grows(g, x, y) {
+                    if done {
+                        break;
+                    }
+                    continue;
+                }
+                let mut patch = vec![(x, y)];
+                for (dx, dy) in ORTHOG_TABLE {
+                    let (u, v) = (x + dx, y + dy);
+                    if !inb(u, v) {
+                        continue;
+                    }
+                    if grows(g, u, v) {
+                        patch.push((u, v));
+                    }
+                    if patch.len() == want {
+                        for &(px, py) in &patch {
+                            let c = &mut g.cells[(py * xs + px) as usize];
+                            c.flags = (c.flags & 0xffc3) | flag::FOREST;
+                        }
+                        done = true;
+                        break 'ring;
+                    }
+                    if done {
+                        break 'ring;
+                    }
+                }
+                if done {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /// **`TerrainGroups::nubify_forest@006a93b0`**: along each column (then
@@ -2049,6 +2146,99 @@ mod tests {
         assert!(
             !pass(&mut g, &mut d, 5),
             "a dry cell inside circle_radius[2]"
+        );
+    }
+
+    /// `check_player_forest`'s three patch sizes, as the listing reads
+    /// (`docs/MAPGEN.md` §7): on dry, treeless land the first cell from
+    /// `circle_radius[2]` takes its first two growing neighbours, north
+    /// then east; on a lone dry cell (an islet in the disc) only the patch
+    /// of one lands, and on a dry pair the patch of two; a start-city cell
+    /// never grows; a disc already
+    /// holding three forest cells is left alone, two are not enough. The
+    /// East Indies fuzz lobby's 7861 is the diff; this pins the arms it
+    /// does not reach.
+    #[test]
+    fn check_player_forest_patches_three_then_two_then_one() {
+        let t = circle::table();
+        let first = |o: i32| {
+            let i = t.radius[2] as usize;
+            (o + i32::from(t.x[i]), o + i32::from(t.y[i]))
+        };
+        let grid = |land: i8| {
+            let mut g = MapGrid::new(20, 20);
+            for c in &mut g.cells {
+                c.land = land;
+            }
+            g.starts[0].list = vec![10];
+            g.starts[1].list = vec![10];
+            g
+        };
+        let forest = |g: &MapGrid| -> Vec<(i32, i32)> {
+            (0..g.cells.len() as i32)
+                .filter(|&i| g.cells[i as usize].flags & flag::FOREST != 0)
+                .map(|i| (i % 20, i / 20))
+                .collect()
+        };
+        let (x, y) = first(10);
+        let mut g = grid(0);
+        check_player_forest(&mut g, 20);
+        let mut want = vec![(x, y), (x, y - 1), (x + 1, y)];
+        want.sort_by_key(|&(x, y)| (y, x));
+        assert_eq!(
+            forest(&g),
+            want,
+            "the patch of three: the cell, north, east"
+        );
+        let mut g = grid(0);
+        g.city[(y * 20 + x) as usize] = true;
+        check_player_forest(&mut g, 20);
+        assert!(
+            !forest(&g).contains(&(x, y)) && forest(&g).len() == 3,
+            "a start-city cell never grows"
+        );
+        let mut g = grid(2);
+        g.cells[(y * 20 + x) as usize].land = 0;
+        check_player_forest(&mut g, 20);
+        assert_eq!(
+            forest(&g),
+            vec![(x, y)],
+            "a lone dry cell: the patch of one"
+        );
+        let mut g = grid(2);
+        g.cells[(y * 20 + x) as usize].land = 0;
+        g.cells[((y - 1) * 20 + x) as usize].land = 0;
+        check_player_forest(&mut g, 20);
+        assert_eq!(
+            forest(&g),
+            vec![(x, y - 1), (x, y)],
+            "a dry pair: the patch of two"
+        );
+        let near = |k: usize| {
+            let i = t.radius[0] as usize + k;
+            (10 + i32::from(t.x[i]), 10 + i32::from(t.y[i]))
+        };
+        let mut g = grid(0);
+        for k in 0..2 {
+            let (u, v) = near(k);
+            g.cells[(v * 20 + u) as usize].flags |= flag::FOREST;
+        }
+        check_player_forest(&mut g, 20);
+        assert_eq!(
+            forest(&g).len(),
+            5,
+            "two forest cells in the disc are not enough"
+        );
+        let mut g = grid(0);
+        for k in 0..3 {
+            let (u, v) = near(k);
+            g.cells[(v * 20 + u) as usize].flags |= flag::FOREST;
+        }
+        check_player_forest(&mut g, 20);
+        assert_eq!(
+            forest(&g).len(),
+            3,
+            "three forest cells in the disc: no patch"
         );
     }
 

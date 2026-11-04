@@ -619,8 +619,31 @@ on a data path (§11). **No trace enters either**, and none enters
 group.
 
 Then:
-- `Map::check_player_forest@0068e8f0` draws nothing. Its list storage is
-  broken in the decompile.
+- `Map::check_player_forest@0068e8f0` draws nothing, but it can write.
+  The decompile's list storage is broken, so it is read from the listing
+  (0x68e8f0..0x68eeff). A start whose city disc holds fewer than three
+  FOREST cells gets a patch. The disc is `circle_radius[0]` to
+  `circle_radius[k]`, where `k = CITY_CENTER_RADIUS / 4 − 1`, which is 4.
+  The patch is tried at sizes three, then two, then one. At each size the
+  disc's cells are walked from `circle_radius[2]` out. A cell may grow when
+  it is:
+  - not forest or mountain (0x30);
+  - dry (`land` not 1 or 2), unless it carries 0x100;
+  - not rock or 0x40 (0x48);
+  - not a start-city cell;
+  - not COAST.
+
+  A growing cell opens a list, and each on-map orthogonal neighbour that
+  may grow (`orthog_x/y[1..=4]`, N E S W) joins it. After every on-map
+  neighbour, joined or not, a list of exactly the size wanted turns
+  FOREST (flags `& 0xffc3 | 0x20`). Two quirks follow from the listing:
+  - a lone cell is a patch of one only when its first on-map neighbour
+    cannot grow;
+  - once a patch lands, each smaller size stops at the first cell or
+    neighbour it tests.
+
+  Great Sahara and Great Lakes never fire it. East Indies' fuzz lobby does
+  (below).
 - `TerrainGroups::nubify_forest@006a93b0` (the 3) draws `r & 3` per run of
   four straight forest-edge cells. As read, its target sits on the side
   already forest, so it mostly rewrites a FOREST cell's flags to what they
@@ -713,6 +736,68 @@ Three fail nothing, and each is inert on this corpus:
 
 The pattern-2 weight did not run: there are 6 water regions over five
 cells, not fewer (3803b stands).
+
+**Ported on East Indies** (item 3828, the same `sim::terrain_groups` on
+3825's 7854 grid, tileset `jungle`, or `sw_desert` on the fuzz lobby).
+East Indies' eleven groups:
+- a pattern-0 mountain at `coast_space` 0;
+- pattern-3 mountain, forest and rock groups;
+- "lake oil" at 14 clumps, in the one sea over five cells.
+
+There are 12 land regions over five cells (11 on the fuzz lobby). The
+stream is the trace's, site and word, on **all 418 East Indies traces**,
+2,119 draws in `place_all` and 3,395 through the tail. Every one is the
+jungle run's; the fuzz lobby has no trace. Seed, part 2 and part 5 agree
+at 7859, 7861, 7865 and 7870 on **all 202 files**
+(`east_indies_s_place_all_is_the_traced_stream_and_7859`,
+`east_indies_s_group_tail_is_the_traced_stream_and_7861_to_7870`).
+
+`place_all` agreed first try. The tail did not: on the fuzz lobby's two
+files, 7861's part 5 parted with the seed and part 2 agreeing.
+`check_player_forest` was unported. One of that lobby's island starts
+holds fewer than three forest cells, and its 3-cell patch is that part.
+With the pass ported (`sim::terrain_groups::check_player_forest`, now in
+every map's chain), the patch's cells feed `change_forest_base` (310 → 314
+draws), and all three checkpoints agree.
+
+The tail's draws:
+
+| pass | jungle | sw_desert (fuzz) |
+|---|---|---|
+| `nubify_forest` | 0 | 0 |
+| `change_forest_base` | 364 | 314 |
+| `change_mountain_base` | 211 | 192 |
+| `change_coast_base` | 518 | 530 |
+| `nubify_transitions` | 183 | 87 |
+
+COAST cells entering: 566 and 574. The 7859 grid holds 157/107/14/20
+forest, mountain, rock and oil cells (128/100/16/22 on the fuzz lobby).
+
+Mutations (`tools/mutate.py`, scored by the East Indies walks):
+- **Held on the corpus:**
+  - the pass skipped;
+  - its forest threshold at 2;
+  - its sizes walked one, two, three;
+  - its COAST test dropped;
+  - its ring walked from `circle_radius[0]`;
+  - its convert setting COAST;
+  - **the sea-oil disc's reach fixed at ring 3.** That one parts all 202
+    files at 7859: fourteen oil clumps in one sea are decided by rings 4
+    and 5, where Great Lakes' eight in six lakes were not (3822a's first
+    arm, struck).
+- **Held by the unit test** `check_player_forest_patches_three_then_two_then_one`
+  only: the start-city bit and the dry-or-0x100 test.
+- **Fail nothing** (parked 3828a), for 3822a's reasons:
+  - `drop_tile`'s COAST → `land` 2 rewrite: East Indies' forest and rock
+    groups are all `coast_space` 1, and the `coast_space` 0 group is a
+    mountain, which `drop_tile` does not reach;
+  - the type-7 start test's COAST alternative.
+
+The pattern-2/3 weights did not run with more than one region:
+- the lake oil weighs its one sea (`c == T`);
+- every pattern-3 list holds nine or ten islands, so no list is under six.
+
+3803b stands.
 
 Falsifier: seed and parts 5 and 6 at 7859, 7865 and 7870.
 
@@ -1216,6 +1301,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   and parts 2, 5 and 6 at 7859 on 105 files (item 3803). The groups' parse
   and the templates come with it. Cliffs, patterns 3 and 4, oil by water
   (type 7) and `clear_group`'s first branch are reading-only;
+- §7's `place_all` and its tail on East Indies: draw for draw on 418
+  traces, and seed, part 2 and part 5 at 7859, 7861, 7865 and 7870 on 202
+  files (item 3828), with the sea-oil disc's reach and
+  `check_player_forest` each held by a mutant there; the pass's start-city
+  and dry tests are unit-tested only, and `drop_tile`'s COAST rewrite and
+  type 7's COAST alternative stay inert (3828a);
 - §7's tail and §8's `place_resources` on Great Sahara: draw for draw on
   280 traces, and seed and parts 2, 5 and 6 at 7861, 7865, 7870, 7877, 7880
   and 7927 on 105 files (item 3805). Slot reuse, patterns 1 and 3, the
@@ -1325,8 +1416,9 @@ step is checked by §3 at its own checkpoint before the next begins:
    `nubify_forest`, `change_*_base` and `fix_transitions` — **Great Sahara
    built** with step 4 (item 3805); **Great Lakes built**, `place_all`
    and its tail together (item 3822, the sea-oil disc and
-   `change_coast_base`'s first diff; its third phase); East Indies
-   remains;
+   `change_coast_base`'s first diff; its third phase); **East Indies
+   built** (item 3828, the disc's reach and `check_player_forest`'s
+   first diff; its third phase);
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
    `sim::map_resources`; the `Mapgen:` line's fourth phase); **Great Lakes
    built** (item 3826, the same port on its 7870 grid, the water arms'
