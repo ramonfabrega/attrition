@@ -19,7 +19,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 - **The rubric, lockstep** (275 dumps, `rubric.py --tables 2,3,4`): unit types **275 of 302** (263 → 275 on the melee's lines; 27 never: the three militias, seven Nubian lines, nine Classical lines no lobby fielded, the Dutch `Fluyt`, the `Aircraft Carrier`, 296, 312, 78, Boadicea and the gaia animals); ages 8 of 8; **bytes 77.4 → 77.5 %** (2,255 functions; 3792 reads the whole first melee). States (table 3b): seen 275 · moved 237 · attacked 104 · vanished 74 · boarded 136. The third melee's dumps join the 275 when its word is whole.
 - **For the pass** (`tranche.py --base <this commit>`, `gates.py <t65> --since <the pass's gate log>`, read before the drain's gate, after `lore index`): the sixty-fourth read **176.50 USD over 25 sessions, 8.82 a landing, 26.3 minutes waiting a landing**, the gate 15.3 a session, the capture 0.4, eight `DEEP` on seven items, eighteen gate logs for twenty bookings (7 whole at 44.1–49.4 release minutes, 11 scoped at 2.3–13.1, 0 red, 482.8 minutes), admission 1,320.5 s and longest 72.1 with one end past the cores, three lane gates past a lane's first (3804, 3810, 3811), 10 captures (0.5 a landing). **The lane rule, read**: 26.3 against 40.2 and 15.3 against 26.1, both under — **the third lane is back** (DECISIONS 104 §1), read at this drain against 26.3 waiting (a fifth above, 31.6, takes it away) and 15.3 gate.
 - **Three lanes, by the lane rule**: Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` — one on the melee's word, one on each map chain. **Read at the merges**: `GATING`, `HELD`, `STALLED` and `ARMED` as the waiter prints them; a push in the same poll as another lane's exit is armed before the exit prints and a landing is never armed (Loop 3817 built); `brief.py` refuses a `--tests` filter matching no test (3818 built); the refill is spent (no `refill.py` call owed).
-- **Lanes: three live** — `lane-3828` (on 3828), `lane-3829` (on 3829), `lane-3830` (on 3830). Next 3831, run 1479 (3829 takes 1478; 1475 was 3816's, unused; 3828 and 3830 take no run). Pools: AI §380–390 (eleven stubs); GOLDEN §153–154 (two stubs; §152.12 is 3829's); park YG 3828, YH 3829, YI 3830; 3828's brief lands YH–YM.
+- **Lanes: three live** — `lane-3828` (on 3828), `lane-3829` (on 3829), `lane-3830` (on 3830). Next 3831, run 1479 (3829 takes 1478; 1475 was 3816's, unused; 3828 and 3830 take no run). Pools: AI §380–390 (eleven stubs); GOLDEN §153–154 (two stubs; §152.12 is 3829's); park YG 3828, WP 3829, QN 3830 (two of the older free slots, since YH–YM land with 3828's merge).
 - **Fable backlog: 9 Loop items** (3823, 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -61,13 +61,13 @@ run; park YG.
 `Unit::close+0xcb6` where ours spends `Farms::inc_time+0x1ae` — theirs acted: a unit dies or closes in theirs on 860 that does not in ours.
 3827a's hypothesis: the Recoilless Gun's launches are on disk now (piece 94, 3810a), and on run1477 `0/19`'s round flies 4 frames against
 ours' 5. Name the unit and walk it back both directions to the frame its state first differs, the value diff beside it. Run 1478; amend
-§152 as `152.12`; park YH.
+§152 as `152.12`; park WP.
 
 3830. **Map generation's fifth step on Great Lakes: values** (`docs/MAPGEN.md` §9, §15 step 5; DECISIONS 104 §4): from the resources 3826
 checked to 7927, `World::compute_all_vals` and `adjust_for_blocking` (`sim::map_values`, 3807's port on Great Sahara) checked draw for draw
 against every Great Lakes trace that carries their sites (2,920 draws) and on the seed, part 2 and part 5 at 7937 and 7945 on every Great
 Lakes file that carries them, both lobbies; the water cells' values are the arms Great Sahara could not part, each made to fail first; the
-line reads `GreatLakes 5 of 8 phases`; no run; park YI.
+line reads `GreatLakes 5 of 8 phases`; no run; park QN.
 
 ## How to maintain this file
 
