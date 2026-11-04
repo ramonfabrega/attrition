@@ -1143,6 +1143,35 @@ records), and part 4 at 734 on 511 files, first run
 10–13 are their lists' empty walk, a 4-byte zero count, 262,145; a full
 list's entries are not read.
 
+**On Great Lakes the gate opens, and 720 is a height's** (item 3832,
+`great_lakes_s_terrain_init_is_734_to_706_and_its_gate`, no `sim`
+change). All 196 Great Lakes files that carry the span share one pattern,
+the run100 column above: 734 moves part 4, nothing moves from 745 to 706,
+720 moves 5, 6 and 10–12, and 738 moves 5. 185 of them are keyed to a run
+(the other 11, runs 16–19 and 47–52, have no start grid or no 7805).
+- On the 7945 grid: 2,920 `BASELAND` and 680 `OCEAN` cells, no `SANDY`,
+  `NONE` or HALFLAND. The 360 lake-shore cells carry world flags 0x4 and
+  0x400 both. `CoordInfo`: 360 0x4 (each as `NONE`), 406 0x20, 680
+  `OCEAN`, 516 of them shallow, so **876 cells are gated**.
+- Seed and parts 2, 5, 6 and 10–13 at every record from 734 to 706 are the
+  7945 grid's on all 185 files (2,960 records), and part 4 at 734 is
+  `GREATLAKES.xml`'s `SEA_MAP` 1, first run.
+- `_wcoord` on a gated cell compares each sub-tile's four corner heights
+  with −30.0f (`__real_c1f00000`) before any write, and `mark_halfwater`
+  is the setter of 0x100. The port refuses it by name
+  (`Unported::HalfLand`, all 876). So **720 is the first record the port
+  does not reach**: its parts 5, 6 and 10–12 are step 7's, and so is every
+  record after it, since 738's oil, the beach predicate (no part moves at
+  5012 although every coast cell is `BASELAND` beside `OCEAN` at 7945, so
+  `mark_halfwater` has rewritten the shore by then) and the relabel read
+  720's grid.
+- The falsifier that needs no height: every cell the start dump prints
+  `HALFLAND` (243 on each of the 185) is gated. Six mutants of the
+  flags fail it. The 0x4-as-`NONE`, `NONE`'s 0x4 and the 0x400 arms each
+  fail nothing alone, because every gated shore cell carries both bits, and
+  the 5×5 ring fails nothing because no final HALFLAND cell needs it. 3809's
+  unit tests hold all four (3832b).
+
 **`make_rivers` on Great Sahara** (item 3811, `sim::map_rivers`; the
 function's own order, `Map::make_rivers@00692fb0`):
 - 5012; `Map::make_riverbeds@00694530` first clears 0x2000 and 0x2 on every
@@ -1333,7 +1362,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   on Great Sahara, `Terrain::init`'s span with no cell gated: seed and
   parts 2, 5, 6 and 10–13 at every record from 734 to 5012 on 105 files
   (item 3809). The flags' arms on a gated cell, the height-free passes'
-  water arms and the beach predicate are unit-tested only (3809a);
+  water arms and the beach predicate are unit-tested only (3809a). On
+  Great Lakes the gate opens: seed and parts 2, 5, 6 and 10–13 at every
+  record from 734 to 706 on 185 files, and the gate holds every one of the
+  start dump's 243 `HALFLAND` cells on all 185 (item 3832); the 0x4,
+  `NONE`, 0x400 and 5×5 arms are redundant or beyond that pin there and
+  stay unit-tested (3832b); 720 onward is height-decided (3832a);
 - §10's `make_rivers` on Great Sahara: `make_riverbeds`' sources and the
   three clears, with seed and parts 2, 5, 6 and 10–13 at every record from
   5012 to 5118 on 105 files (item 3811). The square's water and oil arms,
@@ -1430,7 +1464,14 @@ step is checked by §3 at its own checkpoint before the next begins:
 6. `Terrain::init` without heights (§10, 734–5012) — **Great Sahara
    built** (item 3809, `sim::terrain_init`; the `Mapgen:` line's sixth
    phase): no cell opens the half-land gate there, so every record to
-   5012 stands still but part 4 at 734;
+   5012 stands still but part 4 at 734. **Great Lakes checked to 706**
+   (item 3832, no `sim` change; its phase count unmoved at five): the gate
+   opens on 876 cells and holds the start dump's 243 HALFLAND cells, and
+   720 is the first record a height decides. So on Great Lakes the rest of
+   step 6 cannot be checked before step 7's heights reach 720. The next
+   Great Lakes step is the heights through 706 with `_wcoord` and
+   `mark_halfwater`, falsified by parts 5, 6 and 10–12 at 720 and the 243
+   cells (3832a);
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894)
    — **Great Sahara built** (item 3812, `sim::map_heights`; the `Mapgen:`
    line's eighth phase). No checksum part moves for them there, so their
