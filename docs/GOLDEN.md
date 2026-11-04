@@ -16315,6 +16315,92 @@ ours acted.
 **What is not established.** The `CHAR_ATTACK1` row matches no dumped round and rests on the sweep alone (parked
 3834a). Theirs' two `AmmoOut::explode` draws on 897 are on the graphics stream and were not attributed.
 
+## 152.14 The bombs that never come down — 1232 → 2600, the third melee whole (item 3836)
+
+**The booking.** Frame 1232: ours 40 game draws against theirs' 38. At index 32 ours spends `Guy::set_anim+0x97a
+< Guy::inc_time+0x271` where theirs spends `Farms::inc_time+0x1ae`. Ours sets three figures' animations from
+`Guy::inc_time`, theirs two, so ours acted.
+
+**The figure.** Ours' three (`RON_DEBUG_SITES=1232-1232`) are the V2 Rocket `0/16` (TI 313), the Anti-Tank
+Missile `1/18` (#110, TI 141) and the Cruise Missile `1/19` (TI 314). `0/16` and `1/19` loop a 3-frame
+animation and set one on every third frame from 1205 to 1232 in ours, with the stream agreeing on each. So
+theirs' two on 1232 are theirs. The extra is `1/18`'s: it stops on 1231 at (24667, 7572) and plays anim 23
+(3 frames), and on 1232 that ends.
+
+**The direction: theirs numbers the unit differently.** Ours births three Anti-Tank Missiles on 1208
+(#110–#112, into `1/18`, `1/20` and `1/21`), and their birth sets agree with theirs' on 1208. Theirs puts the
+same three (uids 52–54) into `1/20`, `1/21` and `1/29` (`births.py`, 1201..1301). Ours' `1/17` is the Citizen
+theirs numbers `1/18` (uid 48, born between 1101 and 1201). So **the slots parted first**, and the order the
+units run in parted with them.
+
+**What holds the slots.** `Objects::find_free` reuses a dead number only when its `hold_frames` (`+0x32`) is 0.
+On theirs' block 1201, death objects hold `1/22` (from 819), `1/23` (1124), `1/24` (1166) and `1/25` (939),
+as in ours. `1/17` is held by no death object: it is held by **four of the Stealth Bomber `1/17`'s rounds**.
+Eight of `2/17`'s hold `2/17` the same way. run1468 prints them on every block from 801 to the closing 2601:
+gpiece 60179, `flags 2`, `traj 1`, `total_time 2147483648` and `v1z 11260867584.000000`. Their `cur_time`
+says when they were launched: 713–723 for `1/17`'s and 728–818 for `2/17`'s. Theirs' `whom`/`ox` are 0/17
+and 0/18. They launch from the parked bombers at `sz` 0, 12 and 17, over ground at `ez` 511, 578 and 595.
+
+**The arithmetic** (`Ammo::init@0067bbf0`, `67d245`–`67d26f`, the listing). The Bomber arm doubles `ez − sz`,
+converts it (`cvtdq2ps`), divides by `GRAV_Z` (`divss [0xcab378]`, −10.4875) and calls `sqrtf@0041e6f0`. That
+widens to double and calls the CRT's `sqrt` (`0xa571b0`). It then truncates (`cvtss2sd`, `cvttsd2si`) into
+`+0x28`. Released under its landing, the quotient is negative and the root is the NaN indefinite. Its
+truncation is `0x80000000`, and `:795`'s zero-to-one does not touch it. `v1z` divides by the time converted
+unsigned (`+ 2^32` on a set sign bit), so 2^31: (566 + 5.24375 × 2^62) / 2^31 rounds to 11260867584.
+`Ammo::inc_time@0067d380` ends a round on `(uint)total_time <= (uint)cur_time`, so the round stays up for 2^31
+frames. Its `traj 1` arm's terrain test never fires under that `v1z`. Its first statement bumps the dead
+shooter's `+0x32` every frame, so the slot is held for good.
+
+Ours rooted the negative quotient to 0 and raised it to 1. Every one of the twelve came down on the frame after
+its release, drew nothing, and left the slot to free 30 frames after the bomber's death (795).
+
+**Built** (`crates/sim/src/combat.rs`, `fight.rs`):
+
+- `combat::fall_time` answers `i32::MIN` for a negative quotient (0 for either zero);
+- the Bomber arm raises only a zero to 1;
+- `arc_v1z` reads the time unsigned;
+- `Projectile::in_flight` (`combat::in_flight_at`) ends a round unsigned, on the crash arm and the
+  ordinary one;
+- the rolling arm's `3 × total_time` is unsigned too.
+
+The comparator reads ours' `total_time` as the dump prints it, unsigned (`rondata::diff::golden`). Test:
+`combat::tests::a_bomb_released_under_its_landing_never_comes_down`, run1468's `(12, 578)` to the bit.
+
+**Mutations** (`tools/mutate.py`):
+
+- the NaN's `i32::MIN` → 0: held, the walk reads 1232 on the same draw;
+- the end test signed: held, 1232;
+- `v1z` signed: failed nothing in the walk, since no ordinary round reads it in flight. The unit test holds it
+  (−11260868000).
+
+**The value diff, walked back.** On the word's frame: ours' `1/18` is #110, born on 1208, and it plays anim 23
+on 1231–1232. Theirs' `1/18` is the Citizen uid 48. Walked back, the state first parts on the bombs'
+landing frames (713–818): theirs' rounds stand on block 801 (`1/17`'s at `cur_time` 78–88), and ours' are
+gone. With them held, ours' twelve stand beside theirs on every block a window reads (1201, 1301, 1401, 2501,
+2601). The old window 1201..1482 reads 116
+keys (370 before) and rounds (36, 36), where (36, 0) had read 12 rounds held by theirs alone.
+
+**The word: 2600 of 2600**, the count and the sequence together (`INFORMATION_MELEE`). The closing window
+2501..2601 (2 blocks, the closing block in) reads 165 keys and rounds (24, 24), every one parting by value.
+2501 holds the standing families (`build` 78, `form` 40, the groups and pools) and `1/15`'s damage 17⅞
+against 14 (parked 3836b, standing since 701..801). 2601 holds the human's citizens `0/1`..`0/7` holding a
+one-step order where theirs' are idle (§149's 3788b shape). The bombs' values are three parks: their launch
+from the square (3829b, 3836d), the target forgotten at the death (3836a) and the recycled slot's `accuracy`.
+The closing dump's leaders (`information_melee_s_leaders_are_compared_on_every_seat`, now with 2601) part on
+three who=0 keys, `active`, `control` and `num_units[263]`, ours 15/15/1 against 14/14/0. The closing state
+(`information_melee_run1468_s_closing_state`) compares 151 units with one count off and one extra, `(0, 16)`:
+theirs' V2 Rocket `0/16` is in no 2601 record (parked 3836c).
+
+**What is not established.**
+
+- The CRT `sqrt`'s (`0xa571b0`) answer for a negative input is read from the dump's `0x80000000`, not
+  stepped under the emulator.
+- The `traj 1` arm's per-frame terrain test is not modelled for an ordinary round: ours waits out
+  `total_time`. Under 2^31 it never fires on either side.
+- What takes theirs' `0/16` before the closing dump (3836c).
+
+Run 1480 was not used: every frame this needed was on disk (run1468's stride blocks, its trace).
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

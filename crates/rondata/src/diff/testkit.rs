@@ -13906,15 +13906,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // a side from 610, the air, anti-air and missile lines among them
     // (`tools/gamelog/golden/melee-information.cmd`). First try 623
     // of 2600, 628 since item 3800; run1468's word window over 601..878,
-    // the rounds compared.
+    // the rounds compared. Whole (item 3836, a bomb released under its
+    // landing never comes down, §152.14): the closing state run1468's
+    // block 2601, the window 2501..2601.
     AiWord {
         line: "Melee",
         map: "GreatSaharaInformationMelee",
         named: "Great Sahara (the melee, Information)",
         word: crate::diff::information_melee::INFORMATION_MELEE_WORD,
         length: 2_600,
-        endpoint: None,
-        window: Some("information_melee_word_window"),
+        endpoint: Some("information_melee_run1468_s_closing_state"),
+        window: Some("information_melee_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
