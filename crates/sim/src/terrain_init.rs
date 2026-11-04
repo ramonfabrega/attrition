@@ -64,7 +64,7 @@ pub mod coord {
 /// centre, its eight neighbours in `ai_place`'s order, then the 5×5 and
 /// 7×7 rings. A reader of `[1..9]` stops at the first match, so that
 /// order is the original's; the wider rings are only ever OR-ed over.
-const MOVE: [(i32, i32); 49] = [
+pub(crate) const MOVE: [(i32, i32); 49] = [
     (0, 0),
     (-1, -1),
     (0, -1),

@@ -141,6 +141,7 @@ pub mod land_plane_view;
 pub mod launch;
 pub mod location;
 pub mod map_resources;
+pub mod map_rivers;
 pub mod map_values;
 pub mod mapgen;
 pub mod market;
