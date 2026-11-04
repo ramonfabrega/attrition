@@ -2760,7 +2760,7 @@ mod tests {
     }
 
     /// The East Indies traces the stream check walks: a floor.
-    const ISLAND_TRACES: usize = 0;
+    const ISLAND_TRACES: usize = 418;
 
     /// **East Indies' mask, draw for draw** (`docs/MAPGEN.md` §5, §15 step
     /// 1): every East Indies trace's `make_continents` segment is, site and
@@ -2834,7 +2834,7 @@ mod tests {
     }
 
     /// The East Indies files carrying 7805 and 7807: a floor.
-    const ISLAND_FILES: usize = 0;
+    const ISLAND_FILES: usize = 202;
 
     /// **East Indies' mask at `map.cpp` 7807** (`docs/MAPGEN.md` §5, §15
     /// step 1): from the seed at 7805, the port lands on 7807's seed, part
@@ -2880,7 +2880,20 @@ mod tests {
             parted.len(),
             say_partings(&parted)
         );
-        assert!(files >= ISLAND_FILES, "the 7807 check reached {files} files");
+        assert!(
+            files >= ISLAND_FILES,
+            "the 7807 check reached {files} files"
+        );
+        let pinned = MAPGEN
+            .styles
+            .iter()
+            .find(|s| s.map == "EastIndies")
+            .expect("MAPGEN's EastIndies row");
+        assert_eq!(
+            pinned.ported, EAST_INDIES_CHECKED,
+            "an East Indies phase was ported or lost: re-pin `floors::MAPGEN` \
+             and the handoff's `Mapgen:` line"
+        );
     }
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
@@ -2892,4 +2905,7 @@ mod tests {
 
     /// The §15 phases this module checks on Great Lakes: the mask (7807).
     const GREAT_LAKES_CHECKED: i64 = 1;
+
+    /// The §15 phases this module checks on East Indies: the mask (7807).
+    const EAST_INDIES_CHECKED: i64 = 1;
 }
