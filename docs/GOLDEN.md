@@ -15907,8 +15907,59 @@ and 901 174 → 185.
 Unit::move_step+0x823` where ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
 
 **What is not established**: the Recoilless Gun's (94) and the Advanced Machine Gun's (77) muzzles (parked
-3810a–b), whose entries run1472's packet holds; which of the Advanced Machine Gun's two figures releases.
+3810a–b), whose entries run1472's packet holds; ~~which of the Advanced Machine Gun's two figures releases~~
+(the Advanced Machine Gun's rows and its release point: §152.7).
 `2/22` and `2/23`, struck on 690 in theirs and not in ours (block 701), are unexplained here.
+
+## 152.7 The Advanced Machine Gun's pair leaves from its muzzle — 724 → 755 (item 3813, run1473)
+
+**The booking.** Frame 724: ours 16 draws against theirs' 17. Theirs spends two `Guy::set_anim+0x97a <
+Unit::move_step+0x823` stands, at indices 0 and 1, before the V2 `0/16`'s `Guy::inc_time+0x271` animation. Ours
+spends one, the Elite Special Forces `2/26`'s (`RON_DEBUG_SITES`), so theirs acted.
+
+**The stand.** The booking's supposition was `1/26`, the Elite Special Forces walking beside `2/26` to the same
+explore point (22680, 15000). It is killed: run1473's window holds both on ours' positions through 725, `2/26`
+standing on 725 in both. run1473's `RON_COLLIDE_PROBE` names the extra stand. On 724 theirs refuses the Spanish-line
+probe's Elite Special Forces `0/22` (`TI` 77, land, uid 29) at (18411, 15640): `collide_here` hits cell (382,
+326), `will_be_corner` 7, and `is_corner` asks `0/20`, the Recoilless Gun. The quick spiral then runs, and `2/26`'s
+refusal is the second stand. Ours' `0/22` stood on (18465, 15704), a step short of theirs' (18438, 15672), so its
+step was never refused.
+
+**Why a step short.** Both sides' `0/22` flees from (18600, 15864) to (17640, 14664) after a 107 blow. Theirs takes
+the blow on 717 (block 718: `damage 107`, `damage_frame 717`, a `FLEETOORDER`); ours took it on 718, so it fled a
+tick behind. The blow is the Russian Advanced Machine Gun `2/25`'s (`TI` 127, piece 77, land): a pair loosed on 712
+and 713. Theirs' leave (20432, 18244, 554) and (20434, 18245, 555) with `total_time` 6. Ours' both left the unit's
+square, (20520, 18360, 456), with 7. This is parked 3810b's shape, at the figure's point.
+
+**The rows.** run1472's packet holds piece 77's 32 attack `AttachPos` rows (node 0, `RData +0x88` 1.0): twelve on
+`CHAR_ATTACK1` (frames 3, 9, 12, 17, 20, 24, 29, 32, 37, 39, 46, 47), eight on `CHAR_ATTACK2` (1, 2, 3, 5, 8, 9, 10,
+12) and twelve on `CHAR_ATTACK3` (3, 4, 12, 19, 20, 27, 29, 34, 37, 42, 46, with 12 entered twice with the same
+bits). None is a pivot piece's, so each is a `launch::Bay`. `get_position.py … sweep 77 0 <anim> <time>` sweeps each
+of the 31 distinct keys, and `fit_bay.py` fits every one across 361 of 361 headings with one `z` a row (2 to 3,260
+lattice points; the centroid is kept). The muzzle sits 143 to 148 ahead of the figure, −16.6 to 18.5 across it and
+90 to 110 over it. At `2/25`'s facing (322°, so sweep degree 142), frame 3 of `CHAR_ATTACK3` gives (−88, −116, 98)
+and frame 4 gives (−86, −115, 99). Those are theirs' two launch points less the unit's square and the ground's 456,
+exactly. So the pair is one figure's, released at the unit's point; 3810b's "which figure releases" is the unit's
+own.
+
+**Built**: 31 `launch::BAYS` rows for piece 77, and `Bay::offset`, the turned vector `Bay::point` adds. Tests:
+`run1473_s_advanced_machine_gun_pair_leaves_from_its_muzzle` (theirs' two points and heights) and
+`the_original_s_release_agrees_at_every_heading_for_piece_77` (`RON_BAY_SWEEPS_77`, 11,191 headings). The mutation
+(frame 3's row out, `tools/mutate.py`) holds the word at 724.
+
+**The value diff, after**: ours' `2/25` pair leaves (20432, 18244, 554) and (20434, 18245, 555) with `total_time`
+6, angles −449,839,104 and −450,035,712, the same as run1473's `AMMO`. `0/22` reads `dframe 717`, and over blocks
+724–726 it stands on (18438, 15672), (18456, 15672) and (18456, 15630), the same as run1473's blocks. The stride
+widening (701..1005: block 1001 joins) reads 674 keys over four blocks (701 117, 801 135, 901 190, 1001 232),
+rounds read (45, 17), 47 parting.
+
+**The word: 755**, ours 12 draws against theirs' 13. Through index 3 the streams agree (`2/14`'s `fight` roll,
+`1/25`'s round, `2/19`'s animation). At index 4 theirs spends `Unit::close+0xcb6` where ours spends
+`Farms::inc_time+0x1ae`, so theirs acted.
+
+**What is not established**: 29 of the 31 rows are backed by the sweep alone; no dumped round checks them in a game
+(parked 3813a). The Recoilless Gun's muzzle stays parked (3810a), and so does `0/20`'s own place in the
+refusal: ours' `0/20` and its cell are not compared on 724.
 
 ## 153. Reserved for the next item on the rules track
 
