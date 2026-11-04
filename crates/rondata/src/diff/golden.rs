@@ -3792,7 +3792,7 @@ fn widen_chapter_three(
             });
             for (name, mine, dumped) in [
                 ("cur_time", i64::from(p.cur_time), a.cur_time),
-                ("total_time", i64::from(p.total_time), a.total_time),
+                ("total_time", i64::from(p.total_time as u32), a.total_time),
                 ("sx", i64::from(p.launch.x), a.sx),
                 ("sy", i64::from(p.launch.y), a.sy),
                 ("ex", i64::from(p.landing.x), a.ex),
@@ -4027,7 +4027,9 @@ pub(super) fn obj_ident(sim: &sim::Sim, o: sim::combat::Obj) -> (i64, i64) {
 /// **Every field of `AmmoData::log_data` this crate carries**, ours
 /// against the dump's, for one round held on both sides: the clock, the
 /// launch and landing, the target, the accuracy, the splash, the heights,
-/// the bearing, the arc and the flag bits. `traj`, `dx`, the roll and
+/// the bearing, the arc and the flag bits (`total_time` as the dump
+/// prints it, unsigned: a NaN fall's `0x80000000` reads 2147483648, item
+/// 3836). `traj`, `dx`, the roll and
 /// bank angles, `gpiece` and `graph_index` are not carried.
 pub(super) fn ammo_value_rows(
     sim: &sim::Sim,
@@ -4037,7 +4039,7 @@ pub(super) fn ammo_value_rows(
     let target = p.target.map_or((-1, -1), |t| obj_ident(sim, t));
     [
         ("cur_time", i64::from(p.cur_time), a.cur_time),
-        ("total_time", i64::from(p.total_time), a.total_time),
+        ("total_time", i64::from(p.total_time as u32), a.total_time),
         ("sx", i64::from(p.launch.x), a.sx),
         ("sy", i64::from(p.launch.y), a.sy),
         ("ex", i64::from(p.landing.x), a.ex),
@@ -4068,7 +4070,7 @@ pub(crate) fn round_rows(
 ) -> Vec<(&'static str, i64, i64)> {
     [
         ("cur_time", i64::from(p.cur_time), a.cur_time),
-        ("total_time", i64::from(p.total_time), a.total_time),
+        ("total_time", i64::from(p.total_time as u32), a.total_time),
         ("sx", i64::from(p.launch.x), a.sx),
         ("sy", i64::from(p.launch.y), a.sy),
         ("ex", i64::from(p.landing.x), a.ex),

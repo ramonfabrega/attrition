@@ -525,7 +525,10 @@ const HALF: Single = Single::from_bits(0x3f00_0000);
 /// integer difference converted, the gravity term multiplied left to
 /// right, one subtract, one divide.
 pub fn arc_v1z(sz: i32, ez: i32, total_time: i32) -> Single {
-    let t = Single::from_i32(total_time);
+    // The listing converts `total_time` unsigned (`0x67cf..`'s `+ 2^32`
+    // fix-up on a set sign bit), so a fall of `0x80000000` is 2^31 here:
+    // run1468's `v1z 11260867584` (item 3836).
+    let t = Single::from_u32(total_time as u32);
     let g = GRAV_Z.mulss(HALF).mulss(t).mulss(t);
     Single::from_i32(ez - sz).subss(g).divss(t)
 }
@@ -1114,6 +1117,14 @@ pub const fn share(hits: i32, uber: i32, captain_alone: bool) -> i32 {
 }
 
 impl Projectile {
+    /// **`Ammo::inc_time@0067d380`'s end test is unsigned**: `if ((uint)
+    /// total_time <= (uint)cur_time) break` (`uVar6 <= uVar4`), so a fall
+    /// of `0x80000000` ([`fall_time`]'s NaN) stays up for 2^31 frames,
+    /// bumping its dead shooter's `hold_frames` every one (item 3836).
+    pub fn in_flight(&self) -> bool {
+        in_flight_at(self.cur_time, self.total_time)
+    }
+
     /// **The bearing a landed shot hits at**: `find_angle(ex − sx, ey −
     /// sy)`, its own landing point less its launch. `docs/COMBAT.md` §47.3.
     ///
@@ -2561,6 +2572,12 @@ fn bspline_basis(t: Single, i: usize, p: usize, k: &[Single]) -> Single {
     acc
 }
 
+/// [`Projectile::in_flight`]'s test: `total_time` and `cur_time` read
+/// unsigned, as `Ammo::inc_time@0067d380` compares them.
+pub fn in_flight_at(cur_time: i32, total_time: i32) -> bool {
+    (cur_time as u32) < (total_time as u32)
+}
+
 /// **A bomb's flight time** (`docs/ORDERS.md` §35.3): `Ammo::init@0067bbf0`'s
 /// Bomber arm, `0x67d24b`–`0x67d26f` — `(int)sqrtf((float)((ez − sz) · 2) /
 /// GRAV_Z)`, the time a round dropped from `sz` takes to fall to `ez` under
@@ -2570,15 +2587,23 @@ fn bspline_basis(t: Single, i: usize, p: usize, k: &[Single]) -> Single {
 /// rounded single root, since a double carries more than twice a single's
 /// bits — and truncates it (`cvtss2sd`, `cvttsd2si`).
 ///
-/// SEAM: a round released at or under its landing height, whose quotient
-/// is not positive: the original's root is a NaN and its truncation
-/// `0x80000000`. No bomb reaches it; this answers 0, which the caller
+/// **A round released under its landing height falls for 2^31 frames**
+/// (item 3836, `docs/GOLDEN.md` §152.14): its quotient is negative, the
+/// CRT's `sqrt` (`0xa571b0`) answers the NaN indefinite, and `cvttsd2si`
+/// truncates it to `0x80000000` — which `Ammo::inc_time`'s unsigned end
+/// test ([`Projectile::in_flight`]) never reaches. run1468 prints twelve
+/// such Stealth Bomber rounds, parked on the ground at `sz` 0, 12 and 17
+/// over `ez` 511–595, with `total_time 2147483648` from block 801 to the
+/// game's end. A zero quotient (either sign) roots to 0, which the caller
 /// raises to 1 as `Ammo::init` does a zero time.
 pub fn fall_time(sz: i32, ez: i32) -> i32 {
     let q = Single::from_i32((ez - sz).wrapping_mul(2)).divss(GRAV_Z);
     let bits = q.bits();
-    if bits & 0x8000_0000 != 0 || bits & 0x7fff_ffff == 0 {
+    if bits & 0x7fff_ffff == 0 {
         return 0;
+    }
+    if bits & 0x8000_0000 != 0 {
+        return i32::MIN;
     }
     let e = ((bits >> 23) & 0xff) as i32;
     let f = u128::from(bits & 0x007f_ffff);
@@ -3851,6 +3876,27 @@ mod tests {
         }
         assert_eq!(fall_time(1632, 10), 17);
         assert_eq!(fall_time(10, 10), 0);
+    }
+
+    /// **A bomb released under its landing falls for 2^31 frames** (item
+    /// 3836, `docs/GOLDEN.md` §152.14): run1468's Stealth Bomber `1/17`
+    /// drops from `sz` 12 onto ground at `ez` 578, and every block from
+    /// 801 prints `total_time 2147483648` and `v1z 11260867584.000000`
+    /// for it. The root of a negative quotient is the NaN indefinite, its
+    /// truncation `0x80000000`; `v1z` divides by the time read unsigned;
+    /// and `Ammo::inc_time`'s end test, unsigned too, holds it up.
+    #[test]
+    fn a_bomb_released_under_its_landing_never_comes_down() {
+        assert_eq!(fall_time(12, 578), i32::MIN);
+        assert_eq!(fall_time(0, 511), i32::MIN);
+        assert_eq!(fall_time(578, 578), 0, "a zero quotient roots to 0");
+        let v = arc_v1z(12, 578, i32::MIN);
+        assert_eq!(f32::from_bits(v.bits()), 11_260_867_584.0);
+        for cur in [1, 488, 1888, i32::MAX] {
+            assert!(in_flight_at(cur, i32::MIN), "still up at {cur}");
+        }
+        assert!(in_flight_at(4, 5));
+        assert!(!in_flight_at(5, 5), "an ordinary round ends at its time");
     }
 
     #[test]

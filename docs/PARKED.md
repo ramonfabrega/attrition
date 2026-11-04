@@ -3792,6 +3792,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 (3839) **`mutate.py --timeout` did not kill a hung mutant, and its verdict line claimed it had** (3831's "for the Loop", and the commander's read of it): the batch's ninth mutant (`last_ok` → `if true` in `sim::map_resources`, a pass that never succeeds) ran its `rondata` release test 84 minutes at 98 % CPU under `--timeout 600`, through `zsh tools/check.sh test`; the waiter's `STALLED lane-3831 95` named the child, the commander read the process table, and the lane killed the test pid by hand, after which the batch restored the tree and went on. Candidate: the timeout kills the process group the command starts (the check wrapper's children, not only the wrapper), and the verdict line says `killed at <s>` only when it did.
 
+(3842) **A melee's `Melee:` row cannot say its close is open** (3836's "for the Loop", and the commander's ruling): the third melee's draw stream agrees to 2,600 of 2,600 and the row reads `w2600 of 2,600`, the same as the two closed melees', while its closing state at 2601 reads one unit extra and three leader keys off (`information_melee_run1468_s_closing_state`, 3836c). The commander ruled it books the headline under DECISIONS 55 §3 (3841), and the handoff's prose is all that says the game is not closed. Candidate: the `Melee:` row carries the closing state as the `Endpoint` rows do (`w2600 of 2,600, 1 off`), and `the_handoff_s_melee_is_the_pinned_word` reads it from the endpoint's pin.
+
 ## Loop, filed 2026-11-03 — the sixty-fourth tranche's
 
 **3801** (the correction audit leaves the whole third-map words out; 3775's "for the Loop") — **built** by the sixty-fourth pass, an Opus 5.5 subagent's, red first, its text kept in `docs/audit/2026-11-04-fable-pass-64.md` ("Rulings"), and **the row's premise corrected by the build**: five of the "six whole Great Sahara words" are `Battery word:` lobbies — promoted out of the held-out battery and debugged against — and only Toughest is a third-map word; the pass's first ruling left that line out as "held out" and was wrong. Built: `audited!` reads `.name/.start/.long/.length` off any game const; every whole word the handoff names joins — the third map (2 hand rows), the third pair (2), all 28 battery words — each pinned from its own replay at 0.6–7.3 s, every one 0 corrections; the guard `audit::every_whole_scoreboard_word_is_audited` reads the queue's lines through `floors::ai_line_parts` and fails on a whole word the macro lacks (red first on eight), on a line neither list names, and on an `OWED` row that is audited or not whole. Owed, in code: the second pair's two (`walk_second` borrows no pasture) and the two melees (staged). 150 audit and floors tests; about a minute of gate. `docs/DATALAYER.md` §3 amended.
@@ -12659,7 +12661,8 @@ score.
 - **3829b. The other aircraft of the lobby leave from rows no dumped round checks**: the Eagle Fighter `0/14`,
   the Advanced Fighters and the Stealth Bombers have no `GUNS` or `BAYS` row read off run1472's packet here;
   piece 258's fourteen frames past frame 1 rest on the node key (all sixteen rows are one point a node). Names no
-  score until a word reaches one of their rounds.
+  score until a word reaches one of their rounds. The Stealth Bombers' are now checked: run1468's twelve bombs
+  that never come down print their points on every block from 801 (item 3836, 3836d).
 
 ## Parked by item 3776, 2026-11-03 — map generation's checksum reader and Great Sahara's mask
 
@@ -13341,13 +13344,28 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     The water counts are already exact (`water_subtiles`). Falsifier: parts 5, 6 and 10–12 at 720 on all
     185 files.
 
-## Parked by the next landing, slot YL — reserved
+## Parked by item 3836, 2026-11-04 — the bombs that never come down, and the third melee's closing state
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3836a. A round's target is forgotten at the death, not at `do_damage`** (GOLDEN §152.14). `Sim::forget`
+  clears every in-flight round's `target` when its object dies; `Ammo::do_damage@00678060`'s first test is
+  what forgets it in the original, so theirs' twelve held Stealth Bomber bombs print `whom 0 ox 17` (and
+  `ox 18`) on every block from 801 to 2601, the dead Partisan's and MG42's, where ours print −1. The
+  landing is the same either way; only a round that never lands shows it. Names no score: no draw reads it.
+- **3836b. The Attack Helicopter `1/15`'s damage parts in 701..801.** Theirs reads damage 6 on 701
+  (`damage_frame` 674) and 14 from 801 (`damage_frame` 753) to the close; ours reads 117/130 with frac 7 on
+  750, then 115 on 754 and 113 on 760, and stands at 17⅞ to 2601. It was standing on the base's block 1201
+  already (3834's widening). No window on disk covers 702..800 at `UNITS`; the next melee item that reads a
+  blow on `1/15` books it.
+- **3836c. Theirs' V2 Rocket `0/16` is in no 2601 record.** On 2501 it stands at (16152, 15864), `idle 73`,
+  2 hits; on the closing dump 2601 there is no `UNITDATA`, no `DEATH_OBJS` and no `AMMO` of `0/16`, and the
+  trace ends at 2600, so no draw says what took it. Ours holds it, and who=0's `active`, `control` and
+  `num_units[263]` part by one at 2601 (`information_melee_s_leaders_are_compared_on_every_seat`). The
+  closing dump is written partway through its frame (§151); the closing state's score is the commander's.
+- **3836d. The Stealth Bombers' bombs leave from their square, and their clocks.** Ours' twelve held bombs
+  launch from the bomber's own (x, y) at its `z` (ours (15960, 15384, 0) against theirs' (15868, 15433, 12)
+  for `1/17`'s first): the Stealth Bomber has no `BAYS` row (3829b). Two of `2/17`'s eight read `cur_time`
+  one off at 2501. `accuracy` is the recycled slot's in theirs (276, 268, 300), 0 in ours (the arm's SEAM).
+  Names no score while the stream is whole.
 
 ## Parked by the next landing, slot YM — reserved
 
