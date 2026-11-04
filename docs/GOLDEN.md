@@ -16071,6 +16071,56 @@ Bomber `2/18`'s rounds still leave its square at ground height where theirs leav
 frames against 5 (parked 3816a). `attack_dist` is read off this crate, and no dump prints it. A building shooter
 reaches the arm through the same `domain` read, and no capture has fired one.
 
+## 152.10 A dead group-mate is a nudge — 761 → 822 (item 3824, run1476)
+
+**The booking.** Frame 761: ours 14 draws against theirs' 13. At index 1 ours spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` where theirs spends `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`.
+
+**The unit.** `RON_DEBUG_SITES=761-761` names ours' extra draw: the Russian Anti-Tank Missile `2/22` (`TI` 141,
+land), its blocked stand. The `do_turn` is the Advanced Machine Gun `2/25`'s on both sides; it turns on 760 in both
+too. So ours acted. `2/22` stood at (18312, 16104) attacking `1/22`. On 760 the guard gives it a Move toward
+(20856, 19848), `timer` 270 (`0x1e` × 9 cells). Its guy turns instantly from a stop (`guy_flags & 0x10`,
+`last_speed` 0, theirs' block 756 the same), owes no turn and proposes (18280, 16083). Ours' probe refuses it.
+
+**What the disk could not answer.** run1474 ends at block 756 and run1468's stride prints nothing before 801.
+Block 801 has the same Guard and AttackTo order, with `2/22` on its path (17474, 15543), but not the first step.
+**run1476** (755..800, `RON_COLLIDE_PROBE`) answers it:
+
+- Block 761 holds the order as ours does (`timer` 269).
+- On block 762 `2/22` stands on (18280, 16083) with `timer` 268. On 763 it is at (18264, 16073). It walked.
+- The probe's sweep for that step is ours step for step: unit cell (380, 335), hit cell (379, 336),
+  `will_be_corner` 7. Of the ten candidates only `2/21` answers `is_here` 1: the Main Battle Tank, dead on 755,
+  still on the original's chain (§131). Theirs then calls **no `is_corner`** and returns 0. So the wreck was soft.
+  Ours named it hard.
+
+**The arm** (`detect_unit_collision@00617060:308`–`316`). It tests the asker's `+0x80` against the candidate
+object's, and against −1. Then the asker not attacking (`local_24`), the candidate's `+0x104` (its suspended
+search) clear, and its order list `+0xdc` empty or its front order passable. It reads the same object whether the
+unit lives or not. A death writes no `+0x80`: the export's writers of `+0x80 = -1` are births, builds, gathering,
+`do_attack`, `do_group_move`, `Group::kill` and `Groups::get_open_slot`. `Unit::close`'s last statement,
+`close_orders@005e37f0`, empties `+0xdc`. Theirs' `2/21` carries `group` 128, `2/22`'s, through block 755. So a dead
+group-mate passes, and a dead stranger is still §131's wall.
+
+**Built.** `SimDetect`'s `Wreck` node answers `groups_shared`, `node_searching` and `node_front_order` off the dead
+unit's own kept fields, as a `Live` one does. Before, every arm took the `_ =>` default, so a wreck could only be
+hard. `scan_colliders`' wreck loop asks `same_group_soft` too, so the recorder and the steps agree. The test is
+`collide::tests::a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall`. The mutation (`tools/mutate.py`, the
+wreck's `groups_shared` back to `false`) holds: the word returns to 761 on the same draw.
+
+**The value diff.** `2/22` stands on (18280, 16083) on ours' f762 and (18264, 16073) on f763, run1476's blocks
+762 and 763, `timer` 268 and 267. It agrees whole on block 801, at (17474, 15543) with `timer` 238.
+
+**The word: 822**, ours 13 draws against theirs' 15. At index 5 theirs spends `Ammo::do_damage+0xc59` where ours
+spends `Farms::inc_time+0x1ae`: a round lands in theirs. The widening (801..1072, blocks 801, 901 and 1001) reads
+403 keys, rounds read (37, 5) and 24 parting. Block 801's rows are blows still owed by the air shooters' release
+points (3816a): the Jet Fighter Bomber `2/18` at 178 damage against 193, `2/17` 36 against 43, and `1/18` and
+`1/21` struck a frame late.
+
+**What is not established.** Only the group test is pinned. Ours' wreck has empty orders and no search, so its
+`node_searching` and `node_front_order` arms read the same as the old defaults. The other soft arms (the guard's
+and the same-owner attackers') still read nothing off a wreck: `node_action_type` answers 0 for it, which an
+emptied order list makes true. `close_orders`' effect on the action slot is read, not diffed.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

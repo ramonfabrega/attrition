@@ -13162,13 +13162,19 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   disc's oil test. A 3-nation Great Lakes capture with `CHECKSUM` would check it, and it should be booked only
   when a later Great Lakes phase parts there.
 
-## Parked by the next landing, slot YC — reserved
+## Parked by item 3824, 2026-11-04 — a dead group-mate is a nudge
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3824a. A wreck's other soft arms read nothing off it.** `detect_unit_collision:308`–`316`'s group arm now
+  reads the wreck's kept `+0x80` (§152.10). The guard arm (`node_action_type`, `guard_targets_me`) and the
+  same-owner attackers' arm (`node_is_moving`) still answer their `_ =>` defaults for a `Wreck` node. An emptied
+  order list makes those the original's answers too, but only if `close_orders` also leaves the action slot
+  empty, and that is read, not diffed. Nothing pins the wreck's `node_searching` or `node_front_order` either:
+  ours' wreck has neither a search nor an order, so a mutant of them fails nothing. What checks it: a wreck
+  whose type blocks while dead, dying with a suspended search, beside a group-mate that walks into it.
+- **3824b. The word 822: a round lands in theirs.** At index 5 theirs spends `Ammo::do_damage+0xc59` where ours
+  spends `Farms::inc_time+0x1ae`. The widening's 801 rows are the blows 3816a still owes (`2/18` 178 against
+  193, `2/17` 36 against 43, `1/18` and `1/21` struck a frame late). A candidate, not the booking: the next item
+  names the round by its `AMMO` index first.
 
 ## Parked by the next landing, slot YD — reserved
 
