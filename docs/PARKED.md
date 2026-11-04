@@ -12978,9 +12978,10 @@ words and edits nothing here; a refill lands when two remain.
   region-size factors (every Great Sahara cell is in one 3,600-cell region), the 0x1000 centre tile, and
   `Cliffs::set_edge_flags`. Ported from the listings and never run. A style with water reaches them at 7937 and
   7945 once its mask is ported (3734a). Names no score.
-- **3807b. Which `Region.flags` 0x40 `adjust_for_blocking` releases** (`World::adjust_for_blocking@006b3230`,
-  `Region::release@00680560`): no writer of `Region.flags` (+0x8) was found in the export. `Regions` holds no
-  flags, so the port releases none, and Great Sahara's 7937 agrees. The flag's writer, grepped by raw offset in
+- **3807b. Which `Region.flags` 0x40 `adjust_for_blocking` releases** (`World::adjust_for_blocking@006b3230`):
+  no writer of `Region.flags` (+0x8) was found in the export, and no trace in `blind::TRACES` enters
+  `Region::release` (at 0x680560), so no traced game has released one. `Regions` holds no flags, so the port
+  releases none, and Great Sahara's 7937 agrees. The flag's writer, grepped by raw offset in
   the listing, settles what a release does on a map with water. Names no score.
 
 ## Parked by the next landing, slot XQ — reserved
