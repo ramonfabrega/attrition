@@ -13171,10 +13171,11 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   empty, and that is read, not diffed. Nothing pins the wreck's `node_searching` or `node_front_order` either:
   ours' wreck has neither a search nor an order, so a mutant of them fails nothing. What checks it: a wreck
   whose type blocks while dead, dying with a suspended search, beside a group-mate that walks into it.
-- **3824b. The word 822: a round lands in theirs.** At index 5 theirs spends `Ammo::do_damage+0xc59` where ours
+- ~~**3824b. The word 822: a round lands in theirs.** At index 5 theirs spends `Ammo::do_damage+0xc59` where ours
   spends `Farms::inc_time+0x1ae`. The widening's 801 rows are the blows 3816a still owes (`2/18` 178 against
   193, `2/17` 36 against 43, `1/18` and `1/21` struck a frame late). A candidate, not the booking: the next item
-  names the round by its `AMMO` index first.
+  names the round by its `AMMO` index first.~~ Closed by item 3827 (`docs/GOLDEN.md` §152.11): the round is the
+  MG42 `0/18`'s of 819, a land shooter on a land target, so it is not 3816a's; it leaves from its muzzle.
 
 ## Parked by the next landing, slot YD — reserved
 
@@ -13192,13 +13193,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YF — reserved
+## Parked by item 3827, 2026-11-04 — the MG42's burst leaves from its muzzle
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3827a. The Recoilless Gun's launches are now on disk** (piece 94, unit type 144; 3810a's rows, GOLDEN
+  §152.11). Three captures print who=0's Recoilless rounds at their first block, each from a muzzle off the
+  square: run1471's block 700 (`0/21`: (18149, 15605, 574), `total_time` 3, against ours' (18168, 15528, 497)),
+  run1474's block 732 (`0/20`: (18277, 15743, 590), 2) and run1477's blocks 818–821 (`0/20` (18319, 15581, 587)
+  with 5, `0/19` (18187, 15583, 580) with 4 where ours flies 5, `0/21` (18183, 15438, 570) with 4). So 3810a's
+  rows would be checked by dumped rounds, not by the sweep alone. Names no score until the word reaches a
+  Recoilless blow. The word 860 is a death in theirs, and its round is not yet named.
+- **3827b. Piece 80's 24 rows that no dumped round checks** (`launch::BAYS`): only `CHAR_ATTACK2` frames 1, 3
+  and 5 match run1477's three rounds. The other 24 rest on the sweep (`RON_BAY_SWEEPS_80`, 9,747 headings), as
+  3813a's do for piece 77. Names no score.
 
 ## Parked by the next landing, slot YG — reserved
 
