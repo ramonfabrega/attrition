@@ -6132,6 +6132,13 @@ impl Sim {
                     }
                     let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
                     let ground = crate::single::Single::from_i32(self.ground_z(at));
+                    if std::env::var("RON_PROBE_3827").is_ok() {
+                        eprintln!(
+                            "  probe3827 f{frame} slot {} t{}/{} at ({}, {}) z {:?} ({}) ground {} v1z {:?} sz {} launch {:?} landing {:?}",
+                            p.slot, p.cur_time, p.total_time, at.x, at.y, z, z.to_i32(),
+                            self.ground_z(at), p.v1z, p.sz, p.launch, p.landing
+                        );
+                    }
                     if z.gt(ground) {
                         i += 1;
                         continue;
