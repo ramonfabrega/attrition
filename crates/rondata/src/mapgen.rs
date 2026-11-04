@@ -2369,7 +2369,7 @@ mod tests {
             let mut regions = regions_of(&grid);
             adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
             compute_all_vals(&mut grid, &mut d, &makes);
-            let (_, coord, _) = terrain_init_without_heights(&mut grid, sea)
+            let (_, mut coord, _) = terrain_init_without_heights(&mut grid, sea)
                 .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
             let mut regions = regions_of(&grid);
             make_rivers(
@@ -2381,9 +2381,14 @@ mod tests {
                 |_, _| {},
             )
             .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
-            let z =
-                sim::map_heights::heights(&grid, &coord, run.4 as u32, &inputs.templates, &meshes)
-                    .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            let z = sim::map_heights::heights(
+                &grid,
+                &mut coord,
+                run.4 as u32,
+                &inputs.templates,
+                &meshes,
+            )
+            .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
             eprintln!(
                 "{} nations: {} mountains raise the grid",
                 run.1,
@@ -3838,6 +3843,169 @@ mod tests {
             "734..706 reached {files} Great Lakes files, the gate {dumps}"
         );
     }
+
+    /// **The heights on Great Lakes, against the start dump's grid**
+    /// (`docs/MAPGEN.md` §10, §15 step 7, item 3835): from each run's 7945
+    /// grid ([`great_lakes_at_7945`]) and its `CoordInfo` flags,
+    /// `generate_land` with its shore blend and smoothing,
+    /// `build_coastal_data`, the oil cells' terraform and
+    /// `adjust_for_mountains`, then each file's own roster stood on that
+    /// grid as Great Sahara's is. `make_rivers` is refused on Great Lakes
+    /// (its `RIVERLIST`), so the troughs it carves are not ours: a vertex
+    /// within a cell of a river cell (`0x1000` on the start dump) is
+    /// counted apart, and every other vertex is compared.
+    #[test]
+    fn great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let install = crate::Install::new(root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let meshes = crate::mountains::meshes(&install);
+        let loaded = crate::load::load(&install).expect("the install's tables");
+        let mut runs: std::collections::BTreeMap<GlRun, Vec<&str>> = Default::default();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                .or_default()
+                .push(name);
+        }
+        let (mut files, mut vertices, mut beside) = (0, 0, 0);
+        let (mut half_files, mut half_cells) = (0, 0);
+        let mut parted = Vec::new();
+        for (run, names) in &runs {
+            let g0 = &all.iter().find(|(n, _)| n == names[0]).expect("a file").1;
+            let (grid, _) = great_lakes_at_7945(root, g0, *run, range, &makes);
+            let (_, _, tileset) = great_lakes_at_7859(root, g0, *run, range);
+            let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
+                .expect("Great Lakes' place_all inputs");
+            let mut coord = coord_flags(&grid);
+            let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+            // The 720 decision: each gated cell's water sub-tiles on these
+            // heights, against the start dump's HALFLAND.
+            let water: Vec<u32> = (0..grid.cells.len() as i32)
+                .map(|i| sim::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs))
+                .collect();
+            sim::map_heights::create_doobers(&grid, &mut z);
+            sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+            let gate = coord_flags(&grid);
+            let ours_half: Vec<usize> = (0..grid.cells.len())
+                .filter(|&i| gate[i] & coord::GATE != 0 && (1..16).contains(&water[i]))
+                .collect();
+            for name in names {
+                let g = &all.iter().find(|(n, _)| n == name).expect("a file").1;
+                if let Some(cells) = &g.cells {
+                    let theirs: Vec<usize> = (0..cells.len())
+                        .filter(|&i| cells[i].flags & 0x100 != 0)
+                        .collect();
+                    assert_eq!(
+                        ours_half, theirs,
+                        "{name}: the gated cells with 1–15 water sub-tiles at 706 are not the \
+                         start dump's HALFLAND"
+                    );
+                    half_files += 1;
+                    half_cells += theirs.len();
+                }
+                let Some(prefix) =
+                    crate::testenv::dump(name).and_then(|p| start_prefix(Path::new(&p)))
+                else {
+                    continue;
+                };
+                let log = crate::gamelog::Log::parse(&prefix);
+                let Some(init) = log.initial() else {
+                    continue;
+                };
+                if init.heights.is_empty() {
+                    continue;
+                }
+                let Some(cells) = &all.iter().find(|(n, _)| n == name).expect("a file").1.cells
+                else {
+                    continue;
+                };
+                crate::diff::PRE_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(z.clone()));
+                drop(crate::diff::build_sim(
+                    &loaded,
+                    &init,
+                    sim::tuning::Tuning::RON,
+                ));
+                let ours = crate::diff::POST_ROSTER_HEIGHTS
+                    .with(|h| h.borrow_mut().take())
+                    .expect("the roster stood on the generated grid");
+                assert_eq!(ours.len(), init.heights.len(), "{name}: the grid's size");
+                let w = 4 * grid.xs + 1;
+                let river = |vx: i32, vy: i32| {
+                    let (cx, cy) = (vx / 4, vy / 4);
+                    (-2..=2).any(|dy| {
+                        (-2..=2).any(|dx| {
+                            let (u, v) = (cx + dx, cy + dy);
+                            u >= 0
+                                && v >= 0
+                                && u < grid.xs
+                                && v < grid.ys
+                                && cells[(v * grid.xs + u) as usize].flags & 0x1000 != 0
+                        })
+                    })
+                };
+                let mut bad = Vec::new();
+                for (i, v) in ours.iter().enumerate() {
+                    let (vx, vy) = (i as i32 % w, i as i32 / w);
+                    if river(vx, vy) {
+                        beside += 1;
+                        continue;
+                    }
+                    vertices += 1;
+                    if !v.prints_as(init.heights[i]) {
+                        bad.push(i);
+                    }
+                }
+                if let Some(&i) = bad.first() {
+                    let (vx, vy) = (i as i32 % w, i as i32 / w);
+                    let c = &grid.cells[((vy / 4).min(grid.ys - 1) * grid.xs
+                        + (vx / 4).min(grid.xs - 1))
+                        as usize];
+                    parted.push(format!(
+                        "{name}: {} of {} vertices part, the first ({vx}, {vy}) (land {}, flags \
+                         {:#x}, coord {:#x}) ours {:#x} {} against {}",
+                        bad.len(),
+                        ours.len(),
+                        c.land,
+                        c.flags,
+                        coord[((vy / 4).min(grid.ys - 1) * grid.xs + (vx / 4).min(grid.xs - 1))
+                            as usize],
+                        ours[i].0,
+                        f32::from_bits(ours[i].0),
+                        init.heights[i]
+                    ));
+                }
+                files += 1;
+            }
+        }
+        eprintln!(
+            "heights: GL start grids on {files} files, {vertices} vertices off the rivers, \
+             {beside} beside them; HALFLAND cell-exact on {half_files} files, {half_cells} cells"
+        );
+        assert!(
+            half_files >= LAKE_FILES && files >= MAPGEN_GL_HEIGHT_FILES,
+            "HALFLAND reached {half_files} Great Lakes files, the heights {files}"
+        );
+        assert!(
+            parted.is_empty(),
+            "{} of {files} files part:\n{}",
+            parted.len(),
+            parted.join("\n")
+        );
+    }
+
+    /// The Great Lakes start dumps that print the height grid: a floor
+    /// (45 on 2026-11-04).
+    const MAPGEN_GL_HEIGHT_FILES: usize = 45;
 
     /// The Great Lakes traces whose `place_all` segment the stream check
     /// walks: a floor.

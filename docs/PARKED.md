@@ -13318,13 +13318,31 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   `launch::tests::run1479_s_recoilless_rounds_leave_from_their_muzzles`. `CHAR_ATTACK1` frame 12's matches no
   dumped round and rests on the sweep alone (`RON_BAY_SWEEPS_94`, 1,083 headings). Names no score.
 
-## Parked by the next landing, slot YK — reserved
+## Parked by item 3835, 2026-11-04 — Great Lakes' heights through 706
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3835a. Three height arms Great Lakes cannot part** (`sim::map_heights`). Mutants of three arms fail
+    nothing against the 45 start grids, because the arms are inert on this grid:
+    - `texture_offset`'s clamp to 15 from 15.5: no texture height reaches it after the 0.16 scale;
+    - `find_closest_coordinfo`'s two rings past the first find, cut to one: a third ring cannot beat a
+      vertex already found;
+    - `adjust_aquatic_height`'s `land` 1/3 arm: the 7945 grid has no `SANDY` or `NONE` cell.
+
+    An archipelago (East Indies) or a sandy style may part them; until then each needs a unit test that
+    fails without it.
+- **3835b. Great Lakes' 720: `_wcoord`'s writes** (`docs/MAPGEN.md` §10, §15 steps 6 and 7). On the 706
+    heights 3835 checked, these are owed:
+    - `clear_halfland_wcoord`;
+    - the region scan (`move[1..25]`: the first non-HALFLAND neighbour of another region, else a
+      HALFLAND one's `region2`);
+    - `mark_halfwater` — the tile's 0x20, the cell's 0x100, `region`/`region2` and the region lists,
+      `land` 0, the three lists parts 10–12 walk (locs, `land`, `land_sub`), `move_ocean_goody`, and the
+      sixteenth tile's turn to `OCEAN`;
+    - `spot_update_land(1, 0)`, and the dry arm (`land`/`land_sub` with `coast_base`, `& 0xffc3`,
+      `CoordInfo` `& ~4`, the 0x4 spread to the first orthogonal wet neighbour);
+    - `verify_land@0084d8a0`'s flood over `TileSet::is_combo_acceptable`, and the relabel.
+
+    The water counts are already exact (`water_subtiles`). Falsifier: parts 5, 6 and 10–12 at 720 on all
+    185 files.
 
 ## Parked by item 3836, 2026-11-04 — the bombs that never come down, and the third melee's closing state
 
