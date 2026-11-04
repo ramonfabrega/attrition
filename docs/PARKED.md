@@ -13159,13 +13159,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YD — reserved
+## Parked by item 3825, 2026-11-04 — East Indies' zero-draw passes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3825a. `find_all`'s clamps and eviction are reached by no map** (`docs/MAPGEN.md` §6). The corpus's
+  densest grid is East Indies, at 12 land regions and 3 seas at 7835. Land clamps at 0x3e (62) and sea at
+  0x7d (61 seas), so `Regions::evict` runs on no file, and nothing but unit tests holds it. A lobby that would
+  reach it is a larger East Indies with far more islands, or a style that shatters its land. Until 3825 no test
+  held it either; `the_sea_clamp_evicts_into_0x40_then_bins` now holds the sea side from §6's reading alone, and
+  the land side (record 0 taken, the unlabelled cells moved to 0x3f) has no test. It names a score only once a
+  phase parts on such a grid.
 
 ## Parked by the next landing, slot YE — reserved
 
