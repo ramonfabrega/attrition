@@ -2828,6 +2828,24 @@ mod tests {
         regions.find_all(&mut grid);
         let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
         grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
+        // The regions `place_all`'s region patterns list (more than five
+        // cells): land 1..0x40, water 0x40..0x7f — the lake oil's list.
+        let mut sizes = std::collections::BTreeMap::<i16, usize>::new();
+        for c in &grid.cells {
+            *sizes.entry(c.region).or_default() += 1;
+        }
+        let listed = |r: std::ops::Range<i16>| {
+            sizes
+                .iter()
+                .filter(|&(k, &n)| r.contains(k) && n > 5)
+                .count()
+        };
+        eprintln!(
+            "{} nations: {} land and {} water regions over five cells",
+            run.1,
+            listed(1..0x40),
+            listed(0x40..0x7f)
+        );
         let inputs = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
             .expect("Great Lakes' place_all inputs");
         let mut d = Draws::new(draws.rng.seed);
