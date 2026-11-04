@@ -34136,3 +34136,31 @@ SHA-256 `e1f89b44c2a7ebf94cd5adda500c1c79e6bd8ca19d6123d0920dab4c00692fea`.
 - The packet: piece 201's seven `AttachPos` entries (`RData +0x88` 0.8), piece 94's three and piece 77's; the
   three `get_position.py … pivot 201` sweeps are in `~/ron-data/lab-experiments/2026-11-03-item-3810/sweeps-2/`
   (`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_201`, 277,248 cells).
+
+## run1473 — the third melee: the word's window 714..730 under `RON_COLLIDE_PROBE` (2026-11-03, item 3813, `att-3813`)
+
+`docs/GOLDEN.md` §152.7. **What the disk could not answer**: run1472's window ends at 714 and run1468's stride
+prints nothing between 701 and 801, so whose `Unit::move_step+0x823` stand theirs spends at index 0 or 1 of 724 was
+on no record: the two Elite Special Forces `1/26` and `2/26` agree with ours through 713, and no dump prints the
+cell `collide_here` refuses or who asked. run1472's line (`melee-information.cmd`, the lobby `PLAYERS=2`,
+`STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345,
+`--ffwd-minute 3`), with `--log-window 714 730`, detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`,
+`--callwin 723 725`, `--end-frame 735` and `--tracer-def RON_COLLIDE_PROBE`. No packet.
+- Pool lane 1. Launched 22:43:35, exited 22:44:05 (29.6 s launch to exit). `success`: 736 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 736 of 736 identical. DLL `8166921f…`. Not filed: the window's
+  gamelog and trace stay in the run's directory. `df -g ~` read 103 GiB free before it.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1473/map-7/gamelog.txt`, 5,403,234 bytes,
+SHA-256 `5724446678947ddd75342e98b86b887749bf660e7182594ece43a8561fafe4ea`.
+
+Trace `~/ron-golden/run1473/map-7/rontrace.log`, 9,398,688 bytes,
+SHA-256 `33792bcf1a77afb64b0923ef1a19d9bb7b15d4eb0702cff17f58cea05baf75b0`.
+
+**What it holds**: on 724 `detect_unit_collision` returns 1 twice, for the Elite Special Forces `0/22` at (18411,
+15640) — the hit cell (382, 326) `0/20`'s, then the quick spiral — and for `2/26`; theirs' `0/22` is a tick ahead
+of ours from its flight on block 718 (`damage 107`, `damage_frame 717`). The Advanced Machine Gun `2/25`'s pair of
+712 and 713 on `0/22` leaves (20432, 18244, 554) and (20434, 18245, 555) with `total_time` 6 — frames 3 and 4 of
+`CHAR_ATTACK3`, read against the 31 `get_position.py … sweep 77` files of run1472's packet in
+`~/ron-data/lab-experiments/2026-11-03-item-3813/sweeps/`
+(`launch::tests::the_original_s_release_agrees_at_every_heading_for_piece_77`).

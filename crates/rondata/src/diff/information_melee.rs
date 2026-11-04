@@ -215,8 +215,20 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // spends 16 against 17: at index 1 theirs spends `Guy::set_anim+0x97a
     // < Unit::move_step+0x823` where ours spends `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`.
-    count: 724,
-    sequence: 724,
+    //
+    // Item 3813: **724 → 755**. Theirs' extra stand was the Elite Special
+    // Forces `0/22`'s, refused a step by `0/20`'s cell (run1473's
+    // `RON_COLLIDE_PROBE`); ours' `0/22` walked a tick behind, struck on
+    // 718 against 717 and fleeing a frame late, because the Advanced
+    // Machine Gun `2/25`'s pair of 712 and 713 left its square and flew 7
+    // frames. Piece 77's muzzle (§152.7, run1472's packet; frames 3 and 4
+    // of `CHAR_ATTACK3`) launches them from (20432, 18244, 554) and
+    // (20434, 18245, 555) in 6, run1473's `AMMO` to the unit, and `0/22`
+    // stands on (18438, 15672) on 724 as theirs' block does. On 755 ours
+    // spends 12 against 13: at index 4 theirs spends `Unit::close+0xcb6`
+    // where ours spends `Farms::inc_time+0x1ae`.
+    count: 755,
+    sequence: 755,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -253,8 +265,9 @@ fn information_melee_first_parting() {
 /// three blocks as 3797's 601..873 and 3800's 601..878; item 3806: the
 /// word 676, so 601..926, which takes block 901 in; item 3808: the word
 /// 713, so 701..963, which lets block 601 go; item 3810: the word 724, so
-/// 701..974, the same three blocks).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 974);
+/// 701..974, the same three blocks; item 3813: the word 755, so 701..1005,
+/// which takes block 1001 in).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 1005);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -362,15 +375,24 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // §152.6) from 707 on. The word's value diff is run1472's window
     // (700..714): `1/21`'s round of 707 at (17878, 14908, 610), four
     // frames, and `1/14`'s attack on `0/17` on block 713.
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    //
+    // Item 3813 (the word 755, so 701..1005: block 1001 joins). **406 →
+    // 674** keys over four blocks, rounds read (33, 16) → (45, 17), 49 →
+    // 47 parting. Block 701 holds 117 keys (118), 801 135 (103), 901 190
+    // (185) and 1001 232: the Advanced Machine Guns' rounds leave their
+    // muzzles (piece 77, §152.7) from the first volley on. The word's
+    // value diff is run1473's window (714..730): `2/25`'s pair of 712 and
+    // 713 at (20432, 18244, 554) and (20434, 18245, 555), six frames, and
+    // `0/22` at (18438, 15672) on block 724.
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 406, "run1468's word window");
-    pin_eq!(w.rounds_read, (33, 16), "the rounds read");
-    pin_eq!(w.rounds.len(), 49, "the rounds that part");
+    pin_eq!(w.firsts.len(), 674, "run1468's word window");
+    pin_eq!(w.rounds_read, (45, 17), "the rounds read");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

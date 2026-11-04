@@ -393,11 +393,18 @@ impl Bay {
     /// The world point the round leaves from: the figure's point plus the
     /// vector turned by the whole degree, each axis truncated toward zero.
     pub fn point(self, pos: Pos, facing: Angle) -> Pos {
-        let (c, s) = cos_sin(whole_degrees(facing));
-        let den = 1000i64 << 30;
-        let x = (self.right * c + self.fwd * s) / den;
-        let y = (self.right * s - self.fwd * c) / den;
+        let (x, y) = self.offset(whole_degrees(facing));
         Pos::new(pos.x + x as i32, pos.y + y as i32)
+    }
+
+    /// The vector turned by the whole degree `d`, each axis truncated.
+    fn offset(self, d: i64) -> (i64, i64) {
+        let (c, s) = cos_sin(d);
+        let den = 1000i64 << 30;
+        (
+            (self.right * c + self.fwd * s) / den,
+            (self.right * s - self.fwd * c) / den,
+        )
     }
 }
 
@@ -443,6 +450,330 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: 47_814,
             fwd: 110_240,
             dz: 142,
+        },
+    ),
+    // **Piece 77, the Advanced Machine Gun** (`ADVANCEDMACHINEGUN`, unit
+    // type 127; item 3813, `docs/GOLDEN.md` §152.7): run1472's
+    // `RON_STATE_FRAME=707` packet on the third melee's lobby holds the
+    // piece's 32 attack `AttachPos` rows (node 0; twelve on `CHAR_ATTACK1`,
+    // eight on `CHAR_ATTACK2`, twelve on `CHAR_ATTACK3`, whose frame 12 is
+    // entered twice with the same bits), `RData +0x88` 1.0, and `fit_bay.py`
+    // fits each `get_position.py … sweep 77 0 <anim> <time>` (2 to 3,260
+    // lattice points, 361 of 361 headings, one `z` a row; the centroid is
+    // kept): the muzzle some 145 ahead of the figure and 90 to 110 over it.
+    // Without them who=2's `2/25` loosed its pair of 712 and 713 on the
+    // Elite Special Forces `0/22` from its own square (20520, 18360, 456)
+    // against run1473's (20432, 18244, 554) and (20434, 18245, 555) — frames
+    // 3 and 4 of `CHAR_ATTACK3` — flew 7 frames against 6, and `0/22` was
+    // struck and fled a tick late.
+    (
+        77,
+        crate::anim::ATTACK1,
+        3,
+        Bay {
+            right: -7_394,
+            fwd: 147_049,
+            dz: 100,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        9,
+        Bay {
+            right: -16_600,
+            fwd: 145_697,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -16_534,
+            fwd: 144_463,
+            dz: 98,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: -9_569,
+            fwd: 146_592,
+            dz: 97,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        20,
+        Bay {
+            right: 737,
+            fwd: 146_742,
+            dz: 91,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        24,
+        Bay {
+            right: 13_870,
+            fwd: 144_718,
+            dz: 96,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        29,
+        Bay {
+            right: 18_498,
+            fwd: 146_683,
+            dz: 93,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        32,
+        Bay {
+            right: 18_363,
+            fwd: 144_626,
+            dz: 90,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        37,
+        Bay {
+            right: 4_655,
+            fwd: 147_954,
+            dz: 96,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        39,
+        Bay {
+            right: 0,
+            fwd: 147_756,
+            dz: 97,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_320,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK1,
+        47,
+        Bay {
+            right: 0,
+            fwd: 147_206,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: -404,
+            fwd: 146_277,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        2,
+        Bay {
+            right: -1_409,
+            fwd: 147_815,
+            dz: 97,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        3,
+        Bay {
+            right: -2_741,
+            fwd: 145_367,
+            dz: 100,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        5,
+        Bay {
+            right: -5_593,
+            fwd: 143_864,
+            dz: 105,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        8,
+        Bay {
+            right: -7_499,
+            fwd: 144_016,
+            dz: 109,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: -5_575,
+            fwd: 142_638,
+            dz: 109,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        10,
+        Bay {
+            right: -3_046,
+            fwd: 144_117,
+            dz: 110,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 1_993,
+            fwd: 143_949,
+            dz: 110,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        3,
+        Bay {
+            right: 2_084,
+            fwd: 145_768,
+            dz: 98,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        4,
+        Bay {
+            right: 2_759,
+            fwd: 144_837,
+            dz: 99,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 13_626,
+            fwd: 147_563,
+            dz: 92,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        19,
+        Bay {
+            right: 18_407,
+            fwd: 144_206,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        20,
+        Bay {
+            right: 18_469,
+            fwd: 146_452,
+            dz: 91,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 7_510,
+            fwd: 145_934,
+            dz: 96,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        29,
+        Bay {
+            right: 1_202,
+            fwd: 145_993,
+            dz: 97,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        34,
+        Bay {
+            right: 0,
+            fwd: 147_095,
+            dz: 96,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        37,
+        Bay {
+            right: 0,
+            fwd: 145_144,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        42,
+        Bay {
+            right: 0,
+            fwd: 145_525,
+            dz: 95,
+        },
+    ),
+    (
+        77,
+        crate::anim::ATTACK3,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_477,
+            dz: 95,
         },
     ),
     // **Piece 126, `APEDEMAKARCHERS`** (unit type 176, the Apedemak
@@ -4650,6 +4981,62 @@ mod tests {
                 "node {node}"
             );
         }
+    }
+
+    /// **The Advanced Machine Gun's pair leaves from its muzzle** (item
+    /// 3813, `docs/GOLDEN.md` §152.7): run1473's `2/25` at (20520, 18360),
+    /// angle −449,576,960, looses frames 3 and 4 of `CHAR_ATTACK3` on 712
+    /// and 713 from (20432, 18244) and (20434, 18245), 98 and 99 over its
+    /// figure (`AMMO` `sz` 554 and 555 over the ground's 456). Made to fail
+    /// with the rows removed: both leave from the figure's point.
+    #[test]
+    fn run1473_s_advanced_machine_gun_pair_leaves_from_its_muzzle() {
+        let (at, facing) = (Pos::new(20520, 18360), Angle(-449_576_960));
+        for (start, want, dz) in [(3, (20432, 18244), 98), (4, (20434, 18245), 99)] {
+            let p = launch_point(at, facing, 77, crate::anim::ATTACK3, start, 0);
+            assert_eq!((p.x, p.y), want, "frame {start}");
+            assert_eq!(
+                release_dz(77, crate::anim::ATTACK3, start, 0),
+                Some(dz),
+                "frame {start}"
+            );
+        }
+    }
+
+    /// **Piece 77's rows agree with the original at every heading** (item
+    /// 3813): `get_position.py … sweep 77 0 <anim> <time>` on run1472's
+    /// packet, one file a row, `deg i x y z` at every whole degree 0..=360.
+    /// `$RON_BAY_SWEEPS_77` is the directory holding
+    /// `sweep-77-n0-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-11-03-item-3813/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_at_every_heading_for_piece_77() {
+        let Ok(dir) = std::env::var("RON_BAY_SWEEPS_77") else {
+            eprintln!("skipping: set RON_BAY_SWEEPS_77 (item 3813's oracle, run1472)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 77) {
+            let path = format!("{dir}/sweep-77-n0-a{a}-t{t}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_77");
+            for line in table.lines() {
+                let f: Vec<i64> = line
+                    .split_whitespace()
+                    .take(5)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                let (x, y) = b.offset((f[0] + 180) % 360);
+                if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                    off.push(format!(
+                        "a{a} t{t} deg {}: {x},{y} against {},{}",
+                        f[0], f[2], f[3]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert_eq!(rows, 31 * 361, "{dir}");
+        assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
     }
 
     #[test]
