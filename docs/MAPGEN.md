@@ -1125,8 +1125,7 @@ sets: the 2- and 3-nation lobbies), and on run100 for Great Lakes:
   patches' flattening (738 on run100); the troughs' `set_river_at` where a
   carved height is ≤ 0, `adjust_for_mountains` and the cliffs (894). On
   Great Sahara none of them moves a part, so **step 7 has no checksum
-  falsifier there**: the heights are checked only against the start
-  dump's `Log::terrain_heights`.
+  falsifier there**, only the start dump's grid.
 - **`make_rivers` on Great Sahara reads no height**: `make_riverbeds`
   (5012 → 5014, an LFSR, no draw) and its clear of 0x2000 and 0x2 on every cell (5076 → 5116)
   are its only writes that move a part there. Step 8 on Great Sahara can
@@ -1156,21 +1155,13 @@ the run100 column above: 734 moves part 4, nothing moves from 745 to 706,
 - Seed and parts 2, 5, 6 and 10–13 at every record from 734 to 706 are the
   7945 grid's on all 185 files (2,960 records), and part 4 at 734 is
   `GREATLAKES.xml`'s `SEA_MAP` 1, first run.
-- `_wcoord` on a gated cell compares each sub-tile's four corner heights
-  with −30.0f (`__real_c1f00000`) before any write, and `mark_halfwater`
-  is the setter of 0x100. The port refuses it by name
-  (`Unported::HalfLand`, all 876). So **720 is the first record the port
-  does not reach**: its parts 5, 6 and 10–12 are step 7's, and so is every
-  record after it, since 738's oil, the beach predicate (no part moves at
-  5012 although every coast cell is `BASELAND` beside `OCEAN` at 7945, so
-  `mark_halfwater` has rewritten the shore by then) and the relabel read
-  720's grid.
-- The falsifier that needs no height: every cell the start dump prints
-  `HALFLAND` (243 on each of the 185) is gated. Six mutants of the
-  flags fail it. The 0x4-as-`NONE`, `NONE`'s 0x4 and the 0x400 arms each
-  fail nothing alone, because every gated shore cell carries both bits, and
-  the 5×5 ring fails nothing because no final HALFLAND cell needs it. 3809's
-  unit tests hold all four (3832b).
+- `_wcoord` compares each sub-tile's four corner heights with −30.0f
+  before any write; the port refuses its body by name
+  (`Unported::HalfLand`, all 876), so **720 is the first record not
+  reached**, and every record after it reads 720's grid (738's oil, the
+  beach predicate, the relabel). Every start-dump `HALFLAND` cell is
+  gated; the 0x4-as-`NONE`, 0x400 and 5×5 arms fail nothing there and are
+  unit-tested (3832b).
 
 **`make_rivers` on Great Sahara** (item 3811, `sim::map_rivers`; the
 function's own order, `Map::make_rivers@00692fb0`):
@@ -1216,10 +1207,6 @@ parts 2, 5, 6 and 10–13 agree with the port at every record from 5012 to
 and the two `RIVER` lists' readers are not built; a non-empty list is
 refused by name (`Unported::RiverList`).
 
-Falsifier: parts 5, 6 and 10–12 at `Terrain.cpp` 720 and 894, and the
-seed at 5076. The height grid itself is in the `DUMP_ALL` start dump
-(`Log::terrain_heights`), already read by `crates/sim/src/terrain.rs`.
-
 **The heights on Great Sahara** (item 3812, `sim::map_heights`). The
 start dump prints `master_land_heights` whole (241 × 241 singles there),
 after `Terrain::init` **and after the starting cities and the start
@@ -1230,81 +1217,42 @@ every vertex. Three writes reach a height there, in this order:
   `a` and `b` are `Fractal::get_height` on (smooth 5, flags 2,
   `World.seed`) and (smooth 3, flags 2, `2 · World.seed`), and flags & 2
   makes it answer `h·100 >> 8`. `land_height` (0xcbe54c) is 30.0f, set
-  by `Terrain::init`; the decompile prints it as a constant.
-  `find_closest_coordinfo` finds no 0x20 cell and returns −1.0, so there
-  is no blend and nothing for `smooth_tcoord`.
+  by `Terrain::init`. No 0x20 cell, so no shore blend.
 - `TerrainOil::create_doobers` (738), before the mountains: a cell with
   the rock bit, not ocean, reaches `add_rocky_patch`. On an `OIL` cell,
   that runs `terraform_for_building(4c, 4c, 4, 4)` over the cell's tiles,
   with the building's own mean, border and refusals (`docs/ROADS.md`
   §7.4).
-- `adjust_for_mountains` → `fill_mountain_data`. Each placed mountain
-  adds its `tcoord_verts` z to the vertex its mesh vertex stands on, once
-  per mountain. `MountainRange::init` takes every 4th pixel of
-  `TEMPLATE_TEX` whose alpha is set, and the vertex adds
-  `byte · (height · 3) / 255` (`byte` the pixel's first byte, `height`
-  the `<MOUNTAIN>`'s); the cells walked are `Template.cells`.
+- `adjust_for_mountains` → `fill_mountain_data`: each placed mountain's
+  `TEMPLATE_TEX` displacement, `byte · (height · 3) / 255` per vertex,
+  once per mountain (`sim::map_heights::Mesh`).
 
-`build_coastal_data`, the troughs and the cliffs move no vertex there.
-**All 47 Great Sahara start dumps that print the grid agree on every
+Nothing else moves a vertex there. **All 47 Great Sahara start dumps that print the grid agree on every
 vertex**: 2,729,807 vertices, 25 distinct grids on the two generated
 ones (`great_sahara_s_heights_are_the_start_dump_s_grid`). The slope
 test is refused by name (`Unported::Slope`).
 
 **The heights on Great Lakes, through 706** (item 3835,
-`sim::map_heights`, each read off the listing):
-- **The shore blend.** `find_closest_coordinfo@0086a260(x, y, 4)` searches
-  ring by ring round the vertex's cell (`radius[]` 1, 9, 25, 49: the cell,
-  then `move[1..9]`, `[9..25]`, `[25..49]`) for a `CoordInfo` 0x20 cell,
-  and stops two rings past the first ring that finds one. It keeps the
-  strictly smallest `(vx·192 − x·192)² + (vy·192 − y·192)²` over each
-  found cell's 5×5 vertices, and answers `sqrtf(best) · oo_WCoordSize`
-  (`0x3aaaaaab`), or −1.0 when nothing is in reach. When `d ≥ 0`,
-  `determine_land_height_color` answers `0.25·(d·h) + ((d·0.05·7.5·192 +
-  land_height)·(4 − d))·0.25` (0x86c2ff–0x86c35a), and lists the vertex
-  when x and y are both under `4·xs`.
-- **`smooth_tcoord@0086c3a0`**, over that list in order, twice when x or y
-  is odd. It copies the 4×4 vertices from (x − 1, y − 1); the bound is the
-  tile grid, so an outer vertex reads 0. Then each vertex of the 2×2 from
-  (x, y) whose height is above 0 takes the mean of the copy's non-zero
-  values in its 3×3, summed row by row.
-- **`build_coastal_data@0086c540`'s height half.**
-  - `mark_valid_coastal_influencers` keeps a 0x20 cell (y outer) unless
-    N or S is 0x20 with E or W round a diagonal 0x4 cell: the inner corner
-    of a bend (0x869243–0x869299).
-  - `mark_coast_vert_influence` joins each influencer to its first two
-    valid neighbours (`move[1..9]`). It draws a `LineState` Bresenham line
-    of tiles to each, from its sub-tile at `trunc(min(texture·0.16, 15))`
-    (`texture_fractal`: xs + 1 by ys + 1, smoothing 0, flags 2,
-    `World.seed`; the clamp to 15 from 15.5) to the neighbour's at the
-    offset of the **last** neighbour joined. Each tile goes on the current
-    cell's influence list. The current cell becomes the tile's cell,
-    marked `has_influence`, when both its coordinates change, and **the
-    second line reads its end and count from that current cell**
-    (0x868e80 reads `[ebx + 2]` after `ebx` moved).
-  - `adjust_aquatic_height` enters a 0x4 or `OCEAN` cell (which gains
-    `CoordInfo` 0x8), a `land` 1 or 3 cell, or a `BASELAND` cell with
-    influence, provided its 5×5 holds influence. It sets each of its 5×5
-    vertices to `min(d/768, 10000)²·(1/9)·(−303 + land_height) +
-    land_height`, where `d` is the distance to the centre of the nearest
-    tile in those cells' lists (integer squared distance, strictly
-    smaller; the best index carries over from the previous vertex). A
-    negative height is multiplied by `beach_steepness`, a registered
-    tweak defaulting to 1.
-  - `relax_aquatic_verts` makes five passes over the entered cells off
-    the map's edge: `(below + above + left + right + self)·0.2`, in place.
+`sim::map_heights`, whose comments carry each constant and address):
+- **the shore blend**: `find_closest_coordinfo@0086a260` searches
+  ring by ring for a 0x20 cell and stops two rings past the first find;
+  with `d ≥ 0` the height is `0.25·(d·h) + ((d·0.05·7.5·192 + 30)·(4 −
+  d))·0.25`, and the vertex is listed;
+- `smooth_tcoord@0086c3a0` runs over that list, twice on an odd
+  coordinate;
+- `build_coastal_data`'s height half: the valid influencers (no inner bend
+  corner), `LineState` lines at `texture_fractal` sub-tile offsets (the
+  second line reads the *current* cell, 0x868e80), `adjust_aquatic_height`'s
+  `min(d/768, 10000)²·(1/9)·(−273) + 30`, and five
+  `relax_aquatic_verts` passes.
 
-**Every vertex agrees** with all 45 Great Lakes start dumps that print the
-grid, through each file's roster: 2,378,205 vertices. The 235,440 within
-two cells of a river cell (start dump 0x1000) are counted apart, because
-`make_rivers`' troughs are not built there
-(`great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers`). **And
-those heights decide HALFLAND cell-exact**: on all 185 keyed files, a
-cell is HALFLAND on the start dump exactly when it is gated and has 1–15
-sub-tiles whose four corners are all below −30.0f (`water_subtiles`;
-44,955 cells, 243 a file). On run1004, 250 gated cells read 0 (dry: the
-0x4 spread) and 383 read 16 (`OCEAN` through `mark_halfwater`); the spread's
-second sweep makes no cell HALFLAND. `_wcoord`'s writes are not built.
+**Every vertex agrees** off the rivers (two cells from a start-dump
+0x1000 cell) on all 45 start dumps that print the grid: 2,378,205
+(`great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers`).
+**And they decide HALFLAND cell-exact**: on all 185 files, a cell is
+HALFLAND exactly when it is gated and has 1–15 sub-tiles with four corners
+below −30.0f (`water_subtiles`; 243 a file). `_wcoord`'s writes are not
+built (3835b).
 
 ## 11. The float sites, and which decision governs each
 

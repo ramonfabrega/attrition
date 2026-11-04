@@ -336,10 +336,9 @@ pub struct CoastInfo {
     /// `+0x1`, `has_influence`.
     pub influence: bool,
     /// `+0x2`, `connected_out`: how many of its neighbours it joined, at
-    /// most 2.
+    /// most 2. (`+0x3`, `connected_in`, which the join sets on the
+    /// neighbour, no height reads and is not carried.)
     pub out: u8,
-    /// `+0x3`, `connected_in`.
-    pub connected_in: bool,
     /// `+0x4` and `+0x8`, `connected_to` and `connected_to2`.
     pub to: [(i32, i32); 2],
     /// `+0xc`, `influence`: tile indices `x + 4·xs·y`, in append order.
@@ -508,7 +507,6 @@ pub fn coast_vert_influence(
             if info[ci].out == 2 {
                 continue;
             }
-            info[ni].connected_in = true;
             info[ci].out += 1;
             let slot = usize::from(info[ci].out != 1);
             info[ci].to[slot] = (u, v);
