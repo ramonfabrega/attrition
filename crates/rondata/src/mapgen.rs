@@ -3336,6 +3336,110 @@ mod tests {
         );
     }
 
+    /// **Resources on Great Lakes** (`docs/MAPGEN.md` §8, §15 step 4, item
+    /// 3826): from each run's 7870 grid (3822's chain), nothing moves through
+    /// 7877 and 7880, then `Map::place_resources` — the whole stream from
+    /// `place_all` to `compute_all_vals`, draw for draw against every Great
+    /// Lakes trace, both lobbies, then seed, part 2 and part 5 at 7877, 7880
+    /// and 7927 on every file that carries it. The first run of the water
+    /// arms: the style's `FISH ` row is a `world` Fish over the lakes.
+    #[test]
+    fn great_lakes_s_resources_are_the_traced_stream_and_7927() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let mut runs: std::collections::BTreeMap<GlRun, (&StartGrid, Vec<&StartGrid>)> =
+            Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            runs.entry(run).or_insert((g, Vec::new())).1.push(g);
+            // The team lobby's 3-nation run (no start grid of its own).
+            runs.entry((run.0, 3, run.2, run.3, run.4))
+                .or_insert((g, Vec::new()));
+        }
+        let mut logs = Vec::new();
+        let mut files = [0usize; 3];
+        let mut parted = Vec::new();
+        let mut placed = Vec::new();
+        for (run, (g0, gs)) in &runs {
+            let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g0, *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part(),
+                    );
+                    if ours != (*seed, p[2], p[5], p[6]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5], p[6])
+                        ));
+                        return;
+                    }
+                }
+            };
+            check(&grid, &d, 0, 7877);
+            check(&grid, &d, 1, 7880);
+            let inputs = resource_inputs(root, "GREATLAKES.xml", run.2, run.3, run.1)
+                .expect("Great Lakes' rows");
+            let n = place_resources(&mut grid, &mut d, &inputs, run.1);
+            check(&grid, &d, 2, 7927);
+            let fish = grid.goods.iter().flatten().filter(|g| g.0 == 6).count();
+            placed.push((run.1, n, fish));
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let names = traces_of("greatlakes");
+        let lakes: Vec<_> = traces
+            .iter()
+            .filter(|(n, _)| names.binary_search(n).is_ok())
+            .collect();
+        let (met, stream) = stream_partings(&lakes, &logs, resources_part);
+        eprintln!(
+            "Great Lakes resources: placed (nations, objects, fish) {placed:?}; met whole {met:?}, \
+             lengths {:?}; 7877, 7880, 7927 on {files:?} files",
+            logs.iter().map(|(r, l)| (r.1, l.len())).collect::<Vec<_>>()
+        );
+        assert!(
+            stream.is_empty(),
+            "{} Great Lakes traces part from the port's resources:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            placed.iter().all(|&(_, _, fish)| fish > 0),
+            "a run placed no Fish: {placed:?}"
+        );
+        assert!(
+            lakes.len() >= LAKE_PLACE_ALL_TRACES && files.iter().all(|&n| n >= LAKE_FILES),
+            "the resources walked {} traces and {files:?} files",
+            lakes.len()
+        );
+    }
+
     /// The Great Lakes traces whose `place_all` segment the stream check
     /// walks: a floor.
     const LAKE_PLACE_ALL_TRACES: usize = 222;
