@@ -2636,9 +2636,11 @@ impl Sim {
             // run1470's `2/19` on `1/20`: 29 points, 28 frames, where the
             // straight line gave 4 and ours killed `1/20` on 648.
             //
-            // SEAM: the other arm (a V2's, a nuke's) is [`crate::air::
-            // MISSILE_FLIGHT`] with its points not laid, so it does not
-            // re-plan (parked 3806a).
+            // **The other arm is laid too** (item 3814, `docs/GOLDEN.md`
+            // §152.8): a V2's twelve points climb over the launch and drop
+            // onto the landing ([`combat::Spline::nuke`]), and the round
+            // re-plans at its fourth point as a guided one's — run1471's
+            // `0/16` on `2/21` lands on 690 where 120 frames gave 790.
             if self.air_line_is(u, crate::airbase::CRUISEMISSILE) {
                 let (ctl, n) = combat::cruise_control_points(
                     (launch.x, launch.y, sz),
@@ -2652,7 +2654,10 @@ impl Sim {
                 spline = Some(path);
                 i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
             } else {
-                crate::air::MISSILE_FLIGHT
+                let path =
+                    combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez));
+                spline = Some(path);
+                i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
             }
         } else if p.siege {
             combat::siege_flight_time(

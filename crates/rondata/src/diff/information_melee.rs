@@ -227,8 +227,24 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // stands on (18438, 15672) on 724 as theirs' block does. On 755 ours
     // spends 12 against 13: at index 4 theirs spends `Unit::close+0xcb6`
     // where ours spends `Farms::inc_time+0x1ae`.
-    count: 755,
-    sequence: 755,
+    //
+    // Item 3814: **755 → 718, a regression this landing names**. Theirs'
+    // death on 755 was the Main Battle Tank `2/21`'s, 47 hit points down
+    // on ours since 690: the Nubian V2 `0/16`'s round of 671 re-plans at
+    // its fourth point and lands on 690 in theirs, and flew its 120 frames
+    // in ours. `calc_nuke_spline`'s other arm (§152.8, run1471's block 672
+    // to the bit) lays it, and `2/21` takes theirs' 49 on 690. But the
+    // ammo pool's slots part on 642 (air rounds' release points and
+    // flight times, unbuilt), so ours' V2 holds slot 2 where theirs holds
+    // 6, and on 690 it lands before the Partisan `0/17`'s round on `2/24`
+    // (slot 6 against theirs' 5): its splash of 1 comes first and
+    // overkill cuts `0/17`'s 43 to 14, so `2/24` reads 15 against 44 and
+    // does not die on 718. Landed last (`RON_PROBE_3814`, reverted whole),
+    // `2/24` reads 44 and the word is 761. On 718 ours spends 14 against
+    // 15: at index 6 theirs spends `Unit::close+0xcb6` where ours spends
+    // `Farms::inc_time+0x1ae`.
+    count: 718,
+    sequence: 718,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -266,8 +282,9 @@ fn information_melee_first_parting() {
 /// word 676, so 601..926, which takes block 901 in; item 3808: the word
 /// 713, so 701..963, which lets block 601 go; item 3810: the word 724, so
 /// 701..974, the same three blocks; item 3813: the word 755, so 701..1005,
-/// which takes block 1001 in).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 1005);
+/// which takes block 1001 in; item 3814: the word 718, so 701..968,
+/// which lets block 1001 go).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 968);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -384,15 +401,27 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // value diff is run1473's window (714..730): `2/25`'s pair of 712 and
     // 713 at (20432, 18244, 554) and (20434, 18245, 555), six frames, and
     // `0/22` at (18438, 15672) on block 724.
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    //
+    // Item 3814 (the word 718, so 701..968: block 1001 leaves). **674 →
+    // 428** keys over three blocks, rounds read (45, 17) → (33, 14), 47
+    // → 53 parting. Block 701 holds 108 keys (117), 801 174 (135) and 901
+    // 146 (190). On 701 the Main Battle Tank `2/21`'s standing
+    // `hits:damage` (ours 85 against 132) is gone: the V2 `0/16`'s round
+    // re-plans and lands on 690 (§152.8). `2/24` stands in its place at
+    // 15 against 44, `damage_o` 16 against 17 — the V2's splash first on
+    // a slot the pool parted on 642. On 801 `2/21` dies on 754 against
+    // 755 and `2/24` on 721 against 718. The word's value diff is
+    // run1471's window: `0/16`'s spline on block 672, its re-plan to 12
+    // points on 675, and `2/21`'s `damage` 105 on block 691.
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 674, "run1468's word window");
-    pin_eq!(w.rounds_read, (45, 17), "the rounds read");
-    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+    pin_eq!(w.firsts.len(), 428, "run1468's word window");
+    pin_eq!(w.rounds_read, (33, 14), "the rounds read");
+    pin_eq!(w.rounds.len(), 53, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

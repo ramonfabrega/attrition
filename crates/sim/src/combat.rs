@@ -2304,6 +2304,84 @@ impl Spline {
         Spline::generate(&ctl[..n], DEGREE, &knots[..n + DEGREE + 1], res)
     }
 
+    /// **`Spline::calc_nuke_spline@00913ad0`'s other arm** (`param_4 ==
+    /// 0`: a missile-flag shooter that is not the Cruise Missile — the V2,
+    /// a nuke; item 3814, `docs/GOLDEN.md` §152.8), from the launch `s` to
+    /// the landing `e`. Twelve control points, each coordinate a single:
+    ///
+    /// - `s`, then `s` raised by 250, 750, 2,250 and 6,750 (`0xb696d0`,
+    ///   `443b8000`, `450ca000`, `45d2f000`);
+    /// - `((3·sx + ex)·¼, (3·sy + ey)·¼, (3·sz + ez)·¼ + 20,000)`,
+    ///   `((sx + ex)·½, (sy + ey)·½, (sz + ez)·½ + 20,000)` and
+    ///   `((3·ex + sx)·¼, (3·ey + sy)·¼, (3·ez + sz)·¼ + 10,000)`;
+    /// - `e` raised by 6,000, 4,000 and 2,000, then `e`.
+    ///
+    /// The cubic (`+0x40 = 3`) at the fixed resolution 120 (`+0x60 =
+    /// 0x780003`; no `set_min_seg_length`, and `+0x48` is 0, so
+    /// `calc_spline` caps nothing). The knot weights are 10 but for the
+    /// first three, 100, 30 and 15 (`+0x90`), and `clamp_knots@00910be0`
+    /// steps each knot past the degree by the sum of `degree` weights from
+    /// the step's own index: `0 0 0 0 145 200 235 265 295 325 355 385 415
+    /// 415 415 415`.
+    ///
+    /// run1471's V2 `0/16` on `2/21`: 121 points, `total_time` 120,
+    /// `total_spline_length` 39,282.046875; `Ammo::inc_time` re-plans it at
+    /// its fourth point as a guided round's.
+    pub fn nuke(s: (i32, i32, i32), e: (i32, i32, i32)) -> Spline {
+        const DEGREE: usize = 3;
+        const N: usize = 12;
+        let f = Single::from_i32;
+        let (sx, sy, sz) = (f(s.0), f(s.1), f(s.2));
+        let (ex, ey, ez) = (f(e.0), f(e.1), f(e.2));
+        let three = f(3);
+        let quarter = Single::from_bits(0x3e80_0000);
+        let half = Single::from_bits(0x3f00_0000);
+        let up = |z: Single, by: i32| z.addss(f(by));
+        let ctl: [[Single; 3]; N] = [
+            [sx, sy, sz],
+            [sx, sy, up(sz, 250)],
+            [sx, sy, up(sz, 750)],
+            [sx, sy, up(sz, 2250)],
+            [sx, sy, up(sz, 6750)],
+            [
+                sx.mulss(three).addss(ex).mulss(quarter),
+                sy.mulss(three).addss(ey).mulss(quarter),
+                up(sz.mulss(three).addss(ez).mulss(quarter), 20_000),
+            ],
+            [
+                sx.addss(ex).mulss(half),
+                sy.addss(ey).mulss(half),
+                up(sz.addss(ez).mulss(half), 20_000),
+            ],
+            [
+                ex.mulss(three).addss(sx).mulss(quarter),
+                ey.mulss(three).addss(sy).mulss(quarter),
+                up(ez.mulss(three).addss(sz).mulss(quarter), 10_000),
+            ],
+            [ex, ey, up(ez, 6000)],
+            [ex, ey, up(ez, 4000)],
+            [ex, ey, up(ez, 2000)],
+            [ex, ey, ez],
+        ];
+        let mut weights = [f(10); N + 4];
+        weights[0] = f(100);
+        weights[1] = f(30);
+        weights[2] = f(15);
+        let mut knots = [Single::from_bits(0); N + DEGREE + 1];
+        let mut k = Single::from_bits(0);
+        let mut step = 0;
+        for (i, slot) in knots.iter_mut().enumerate() {
+            if i > DEGREE && i <= N {
+                for w in &weights[step..step + DEGREE] {
+                    k = k.addss(*w);
+                }
+                step += 1;
+            }
+            *slot = k;
+        }
+        Spline::generate(&ctl, DEGREE, &knots, crate::air::MISSILE_FLIGHT)
+    }
+
     /// **`Spline::generate_bspline@00911820`** over `ctl` at `degree`, on
     /// the clamped `knots`, at the resolution `res`. Every step is the
     /// listing's single-precision operation:
@@ -2764,6 +2842,72 @@ mod tests {
         assert_eq!(cruise_clearance(0x4002), 250);
         assert_eq!(cruise_clearance(0x0030), 750);
         assert_eq!(cruise_clearance(0x4033), 1250, "the first test wins");
+    }
+
+    /// **A V2's round is laid by `calc_nuke_spline`'s other arm** (item
+    /// 3814, GOLDEN §152.8): run1471's Nubian V2 `0/16` fires on `2/21`
+    /// from (16043, 15865, 925) to (18223, 16238, 631). Block 672 prints
+    /// the twelve control points, the knots `0 0 0 0 145 200 … 415` and
+    /// the first thirty of 121 points — `depth` 120, `total_time` 120 —
+    /// every one to the dump's six decimals, the basis sums' wobble in `x`
+    /// and `y` included.
+    #[test]
+    fn a_v2_s_spline_is_run1471s() {
+        let s = |m: i64| Single::from_millionths(m).0;
+        let v = |x: i64, y: i64, z: i64| [s(x), s(y), s(z)];
+        let path = Spline::nuke((16043, 15865, 925), (18223, 16238, 631));
+        let printed_ctl = [
+            v(16_043_000_000, 15_865_000_000, 925_000_000),
+            v(16_043_000_000, 15_865_000_000, 1_175_000_000),
+            v(16_043_000_000, 15_865_000_000, 1_675_000_000),
+            v(16_043_000_000, 15_865_000_000, 3_175_000_000),
+            v(16_043_000_000, 15_865_000_000, 7_675_000_000),
+            v(16_588_000_000, 15_958_250_000, 20_851_500_000),
+            v(17_133_000_000, 16_051_500_000, 20_778_000_000),
+            v(17_678_000_000, 16_144_750_000, 10_704_500_000),
+            v(18_223_000_000, 16_238_000_000, 6_631_000_000),
+            v(18_223_000_000, 16_238_000_000, 4_631_000_000),
+            v(18_223_000_000, 16_238_000_000, 2_631_000_000),
+            v(18_223_000_000, 16_238_000_000, 631_000_000),
+        ];
+        assert_eq!(printed_ctl.len(), 12);
+        let printed = [
+            v(16_043_000_000, 15_865_000_000, 925_000_000),
+            v(16_043_001_953, 15_865_001_953, 943_084_045),
+            v(16_043_000_000, 15_864_999_023, 961_575_867),
+            v(16_042_998_047, 15_864_999_023, 980_499_878),
+            v(16_043_002_930, 15_865_001_953, 999_880_493),
+            v(16_043_000_000, 15_865_000_000, 1_019_740_845),
+            v(16_043_000_000, 15_865_001_953, 1_040_105_713),
+            v(16_042_999_023, 15_865_000_000, 1_060_999_023),
+            v(16_042_997_070, 15_864_996_094, 1_082_444_580),
+            v(16_043_001_953, 15_865_001_953, 1_104_467_041),
+            v(16_043_000_000, 15_865_000_000, 1_127_089_966),
+            v(16_042_999_023, 15_865_000_000, 1_150_337_402),
+            v(16_043_000_000, 15_864_999_023, 1_174_233_887),
+            v(16_043_000_000, 15_865_000_000, 1_198_802_856),
+            v(16_043_000_977, 15_865_000_977, 1_224_068_970),
+            v(16_042_999_023, 15_864_998_047, 1_250_055_908),
+            v(16_043_000_977, 15_865_000_000, 1_276_788_086),
+            v(16_043_000_977, 15_865_000_977, 1_304_289_307),
+            v(16_043_000_000, 15_864_999_023, 1_332_583_496),
+            v(16_043_001_953, 15_865_000_977, 1_361_695_313),
+            v(16_042_998_047, 15_865_000_000, 1_391_648_071),
+            v(16_042_999_023, 15_864_999_023, 1_422_466_431),
+            v(16_043_000_977, 15_865_000_977, 1_454_174_438),
+            v(16_043_000_000, 15_865_000_000, 1_486_795_654),
+            v(16_043_002_930, 15_865_001_953, 1_520_354_736),
+            v(16_042_998_047, 15_864_998_047, 1_554_875_244),
+            v(16_042_999_023, 15_865_000_000, 1_590_381_714),
+            v(16_042_999_023, 15_864_999_023, 1_626_897_827),
+            v(16_043_000_000, 15_864_999_023, 1_664_447_998),
+            v(16_042_999_023, 15_864_998_047, 1_703_056_152),
+        ];
+        assert_eq!(path.len(), 121, "depth 120 and the last point");
+        for (i, want) in printed.iter().enumerate() {
+            assert_eq!(path.point(i), *want, "block 672 point {i}");
+        }
+        assert_eq!(path.point(120), printed_ctl[11], "the landing");
     }
 
     /// **The guided round's two splines on run1469** (item 3802, GOLDEN
