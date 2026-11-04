@@ -2590,7 +2590,7 @@ impl Sim {
         let mut spline = None;
         let figure = match shooter {
             Obj::Unit(u) if missile && p.domain != Domain::Land => {
-                Some(self.units[u].movement.facing)
+                Some((self.units[u].movement.facing, self.units[u].airframe.pitch))
             }
             _ => None,
         };
@@ -2607,11 +2607,19 @@ impl Sim {
             // bearing to the target, and the middle point is rotated by it.
             // run1469's parked Jet Fighter `2/14` faces 120° and fires on
             // `1/14` to its south; its round swings 285 east in four frames.
+            //
+            // **And it is rotated as a float vector** (item 3808,
+            // [`combat::missile_lead`]): the figure's pitch, then its whole
+            // degree, through two quaternions, so a figure parked at 120°
+            // leads at 121° — run1471's `2/14`, whose second round on
+            // `1/14` re-planned to 10 points against theirs' 11.
             let lead = (p.domain != Domain::Land).then(|| {
-                (
-                    figure.unwrap_or(angle),
-                    i32::try_from(d * 5).unwrap_or(i32::MAX),
-                )
+                let (angle, pitch) = figure.unwrap_or((angle, Single::ZERO));
+                combat::Lead {
+                    angle,
+                    pitch,
+                    r: i32::try_from(d * 5).unwrap_or(i32::MAX),
+                }
             });
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
             let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
@@ -2700,7 +2708,7 @@ impl Sim {
             cur_time: 0,
             total_time,
             accuracy: acc,
-            angle: figure.unwrap_or(angle),
+            angle: figure.map_or(angle, |f| f.0),
             splash_area: p.splash_area,
             num_guys: 1,
             // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the

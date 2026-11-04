@@ -12987,13 +12987,15 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   releases none, and Great Sahara's 7937 agrees. The flag's writer, grepped by raw offset in
   the listing, settles what a release does on a map with water. Names no score.
 
-## Parked by the next landing, slot XQ — reserved
+## Parked by item 3808, 2026-11-03 — a figure's missile lead turns at one degree past it
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3808a. A pitched figure's lead is the listing's alone** (`Ammo::init@0067bbf0`, `67cbb3`–`67cc05`): every
+  figure that fires a lead in run717 and run1471 holds pitch 0, so the pitch's quaternion and its negative fold
+  are unexercised by any dump (GOLDEN §152.5). A capture with a climbing or diving air shooter firing a missile
+  would settle it. Names no score.
+- **3808b. The land and building arm's middle point** (`67c437`–`67c469`): its length and pitch are a stack
+  local this crate does not carry, and it still takes the straight line's half way point (`missile_flight_time`'s
+  SEAM). It reaches the count only below twelve speeds. Names no score.
 
 ## Parked by the next landing, slot XR — reserved
 

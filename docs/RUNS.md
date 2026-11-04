@@ -34086,3 +34086,24 @@ SHA-256 `f77ba87172eb077c1ab19abccde1ff9d05f95eef11e8989f93d0334640181b4c`.
 **What it holds**: every round on every block 640..665, with its spline. `2/19`'s round on `1/20` appears on 646
 with 28 points, launched from (16523, 16633, 958), and re-plans on 649, 653, 657 and 661. `combat::tests::
 a_cruise_missile_s_spline_is_run1470s` pins its control points and its 29 points.
+
+## run1471 — the third melee: the word's window 660..701 (2026-11-03, item 3808, `att-3808`)
+
+`docs/GOLDEN.md` §152.5. **What the disk could not answer**: run1470's window ends at 665, and run1468's stride
+prints nothing between 664 and 701. So theirs' Jet Fighter `1/14`'s order and its blow on block 676 were on no
+record. run1470's line (`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`,
+`ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345), with `--log-window 660
+701`, detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`, `--ffwd-minute 3`, `--callwin 0 701`,
+`--end-frame 701`. No packet.
+- Pool lane 1. Launched 20:16:27, exited 20:16:56 (29.6 s launch to exit). `success`: 702 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 702 of 702 identical. Not filed: the window's gamelog stays in
+  the run's directory.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1471/map-7/gamelog.txt`, 14,285,742 bytes,
+SHA-256 `c62b41fbb9be89ccdb822abe7bbcff4b2c06e89e35fc639818126cd9ed896186`.
+
+**What it holds**: every unit, figure and round on every block 660..701, and the deaths. The Russian Jet Fighter
+`2/14`'s second round on `1/14` is laid with its middle control point (13233.875, 17114.279297, −36) and re-plans
+on 665, 669 and 673 to 11, 8 and 5. `combat::tests::a_figure_s_lead_is_run1471s` pins the middle point, block
+662's 13 points and the re-plan to 11.

@@ -1310,58 +1310,49 @@ pub fn flight_time(n: i64, d: i64) -> i32 {
 /// line gave 19.
 ///
 /// `lead` is the middle point's offset: a sea or air shooter's is `5 ×
-/// speed` along the figure's angle (`67cb7d`–`67cb9b`; run717's `1/49`
-/// puts it 1,500 out at the launch's height). `None` is the building's
-/// and land unit's arm (`67c437`–`67c469`), whose length and pitch are
-/// a stack local this crate does not carry.
+/// speed` out, turned by the figure's pitch and angle ([`missile_lead`],
+/// item 3808; run717's `1/49` puts it 1,500 out at the launch's height).
+/// `None` is the building's and land unit's arm (`67c437`–`67c469`),
+/// whose length and pitch are a stack local this crate does not carry.
 ///
 /// SEAM: a land shooter's control point is taken on the straight line
-/// (`L` the plain distance); and the figure's pitch (`GuyData +0x4c`,
-/// zero on `1/49`) is not carried. Both reach the count only below
-/// twelve speeds, as do the float rounding of `L` and the sum.
+/// (`L` the plain distance). It reaches the count only below twelve
+/// speeds.
 pub fn missile_flight_time(
     launch: Pos,
     sz: i32,
     landing: Pos,
     ez: i32,
-    lead: Option<(Angle, i32)>,
+    lead: Option<Lead>,
     speed: i64,
 ) -> i32 {
     i32::try_from(missile_spline(launch, sz, landing, ez, lead, speed).len())
         .expect("at most SPLINE_MAX")
 }
 
+/// A missile's lead: the figure a sea or air shooter fires from — its
+/// angle (`GuyData +0x18`), its pitch (`+0x4c`, a single) — and the lead's
+/// length, `5 × speed`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Lead {
+    pub angle: Angle,
+    pub pitch: Single,
+    pub r: i32,
+}
+
 /// **A missile's spline as `Ammo::init` lays it** (item 3802): the launch
 /// `(sx, sy, sz)`, the middle control point, the landing `(ex, ey, ez)`,
-/// at `speed` — [`Spline::from_dir`]. The middle point is `lead`'s, at the
-/// launch's height; `None` takes it half way along the straight line,
-/// which keeps the polygon's length the plain distance.
-///
-/// SEAM: the middle point is rotated in integers, on this crate's sine
-/// table, where the original rotates a
-/// float vector by the figure's pitch and then its angle; its fraction,
-/// and any pitch, are not carried. A re-plan (`Ammo::inc_time`) lays its
-/// own middle point from the spline and carries no such seam.
+/// at `speed` — [`Spline::from_dir`]. The middle point is [`missile_lead`]'s
+/// (item 3808); `None` takes it half way along the straight line, which
+/// keeps the polygon's length the plain distance.
 pub fn missile_spline(
     launch: Pos,
     sz: i32,
     landing: Pos,
     ez: i32,
-    lead: Option<(Angle, i32)>,
+    lead: Option<Lead>,
     speed: i64,
 ) -> Spline {
-    let mid = match lead {
-        Some((angle, r)) => (
-            launch.x + crate::movement::sin_component(angle, r),
-            launch.y - crate::movement::cos_component(angle, r),
-            sz,
-        ),
-        None => (
-            launch.x + (landing.x - launch.x) / 2,
-            launch.y + (landing.y - launch.y) / 2,
-            sz + (ez - sz) / 2,
-        ),
-    };
     let v = |x: i32, y: i32, z: i32| {
         [
             Single::from_i32(x),
@@ -1369,14 +1360,825 @@ pub fn missile_spline(
             Single::from_i32(z),
         ]
     };
+    let mid = match lead {
+        Some(l) => missile_lead(launch, sz, l),
+        None => v(
+            launch.x + (landing.x - launch.x) / 2,
+            launch.y + (landing.y - launch.y) / 2,
+            sz + (ez - sz) / 2,
+        ),
+    };
     let speed = Single::from_i32(i32::try_from(speed).unwrap_or(i32::MAX));
     Spline::from_dir(
         v(launch.x, launch.y, sz),
-        v(mid.0, mid.1, mid.2),
+        mid,
         v(landing.x, landing.y, ez),
         speed,
     )
 }
+
+/// **The middle control point of a sea or air shooter's missile**
+/// (`Ammo::init@0067bbf0`, listing `67cb1f`–`67cd00`; item 3808,
+/// `docs/GOLDEN.md` §152.5): the vector `(0, −r, 0)`, rotated by two
+/// quaternions with [`quat_rotate`] — the figure's pitch about x, then its
+/// angle about z — and added to the launch's integers, in singles. It is
+/// never truncated: run1471's `2/14` lays (13233.875, 17114.279297, −36)
+/// from (12591, 16728, −36).
+///
+/// - The pitch's index is `cvttss2si(pitch)` folded into `0..360` (`67cbb3`
+///   –`67cc05`: a negative `p` reads `359 − (−p mod 360)`).
+/// - The angle's is `fast_angle_to_degrees` ([`crate::pivot::fast_degrees`],
+///   the top byte's whole degree) **negated** and folded the same way
+///   (`67cc4d`–`67cc90`), so a degree `d > 0` reads `359 − d`, one more than
+///   the turn back: a figure parked at 120° leads at 121°.
+/// - Each quaternion is `(s·k, s·k, s, c)` with the axis's slot `s`, `k`
+///   the `0.0` at `0xb693fc`, and `(c, s)` [`HALF_DEGREE_COS`] and
+///   [`HALF_DEGREE_SIN`] at the index.
+pub fn missile_lead(launch: Pos, sz: i32, lead: Lead) -> [Single; 3] {
+    let fold = |n: i32| {
+        if n < 0 {
+            (359 - n.unsigned_abs() % 360) as usize
+        } else {
+            (n % 360) as usize
+        }
+    };
+    let quat = |i: usize, axis: usize| {
+        let (c, s) = (
+            Single::from_bits(HALF_DEGREE_COS[i]),
+            Single::from_bits(HALF_DEGREE_SIN[i]),
+        );
+        let k = s.mulss(Single::ZERO);
+        let mut q = [k, k, k, c];
+        q[axis] = s;
+        q
+    };
+    let v = [Single::ZERO, Single::from_i32(lead.r).neg(), Single::ZERO];
+    let v = quat_rotate(quat(fold(lead.pitch.to_i32()), 0), v);
+    let d = crate::pivot::fast_degrees(lead.angle.0);
+    let v = quat_rotate(quat(fold(-d), 2), v);
+    [
+        v[0].addss(Single::from_i32(launch.x)),
+        Single::from_i32(launch.y).addss(v[1]),
+        Single::from_i32(sz).addss(v[2]),
+    ]
+}
+
+/// **`Point<float>::rotate(Quaternion *)@00420b10`**: `v` turned by the
+/// unit quaternion `q = (x, y, z, w)`, as the rotation matrix's rows times
+/// `v`, operation for operation in the listing's order (`addss` and
+/// `mulss` commute; their grouping is what is kept). `1` is the constant at
+/// `0xb69514`.
+pub fn quat_rotate(q: [Single; 4], v: [Single; 3]) -> [Single; 3] {
+    let one = Single::from_bits(0x3f80_0000);
+    let [qx, qy, qz, qw] = q;
+    let [vx, vy, vz] = v;
+    let (xx, xy, yy) = (qx.mulss(qx), qy.mulss(qx), qy.mulss(qy));
+    let (zx, zz, zy) = (qz.mulss(qx), qz.mulss(qz), qz.mulss(qy));
+    let (wz, wy, wx) = (qw.mulss(qz), qw.mulss(qy), qw.mulss(qx));
+    let a = zz.addss(yy);
+    let t = zx.subss(wy).mulss(vz).addss(wz.addss(xy).mulss(vy));
+    let x = one.subss(a.addss(a)).mulss(vx).addss(t.addss(t));
+    let h = zz.addss(xx);
+    let k = wx.addss(zy).mulss(vz).addss(xy.subss(wz).mulss(vx));
+    let y = one.subss(h.addss(h)).mulss(vy).addss(k.addss(k));
+    let m = yy.addss(xx);
+    let n = zy.subss(wx).mulss(vy).addss(wy.addss(zx).mulss(vx));
+    let z = one.subss(m.addss(m)).mulss(vz).addss(n.addss(n));
+    [x, y, z]
+}
+
+/// The two tables `fast_half_degree_to_cosine@00a29010` and
+/// `fast_half_degree_to_sine@00a29110` build at their first call:
+/// `cosf`/`sinf` of `(float)i × 0.5 × 0.017453292` (`0xb694c0`,
+/// `0xb6944c`) for `i` in `0..360`, the CRT's own transcendental — so
+/// pinned here, as the original holds them (`docs/DECISIONS.md` entry 16),
+/// read from run1469's packet. `fast_half_degree_to_cosine(i)` is entry `i`.
+const HALF_DEGREE_COS: [u32; 360] = [
+    0x3f80_0000,
+    0x3f7f_fd81,
+    0x3f7f_f605,
+    0x3f7f_e98b,
+    0x3f7f_d814,
+    0x3f7f_c1a0,
+    0x3f7f_a62f,
+    0x3f7f_85c3,
+    0x3f7f_605c,
+    0x3f7f_35f9,
+    0x3f7f_069e,
+    0x3f7e_d249,
+    0x3f7e_98fd,
+    0x3f7e_5aba,
+    0x3f7e_1781,
+    0x3f7d_cf55,
+    0x3f7d_8235,
+    0x3f7d_3025,
+    0x3f7c_d925,
+    0x3f7c_7d37,
+    0x3f7c_1c5c,
+    0x3f7b_b698,
+    0x3f7b_4beb,
+    0x3f7a_dc58,
+    0x3f7a_67e2,
+    0x3f79_ee89,
+    0x3f79_7051,
+    0x3f78_ed3c,
+    0x3f78_654d,
+    0x3f77_d886,
+    0x3f77_46ea,
+    0x3f76_b07c,
+    0x3f76_153f,
+    0x3f75_7536,
+    0x3f74_d064,
+    0x3f74_26cb,
+    0x3f73_7871,
+    0x3f72_c557,
+    0x3f72_0d81,
+    0x3f71_50f4,
+    0x3f70_8fb2,
+    0x3f6f_c9c0,
+    0x3f6e_ff20,
+    0x3f6e_2fd9,
+    0x3f6d_5bec,
+    0x3f6c_835e,
+    0x3f6b_a635,
+    0x3f6a_c473,
+    0x3f69_de1d,
+    0x3f68_f339,
+    0x3f68_03c9,
+    0x3f67_0fd4,
+    0x3f66_175e,
+    0x3f65_1a6b,
+    0x3f64_1901,
+    0x3f63_1324,
+    0x3f62_08da,
+    0x3f60_fa29,
+    0x3f5f_e714,
+    0x3f5e_cfa1,
+    0x3f5d_b3d7,
+    0x3f5c_93ba,
+    0x3f5b_6f51,
+    0x3f5a_46a0,
+    0x3f59_19ae,
+    0x3f57_e880,
+    0x3f56_b31d,
+    0x3f55_798b,
+    0x3f54_3bcf,
+    0x3f52_f9ef,
+    0x3f51_b3f3,
+    0x3f50_69e0,
+    0x3f4f_1bbd,
+    0x3f4d_c991,
+    0x3f4c_7361,
+    0x3f4b_1934,
+    0x3f49_bb13,
+    0x3f48_5902,
+    0x3f46_f309,
+    0x3f45_8931,
+    0x3f44_1b7d,
+    0x3f42_a9f7,
+    0x3f41_34a6,
+    0x3f3f_bb90,
+    0x3f3e_3ebd,
+    0x3f3c_be35,
+    0x3f3b_39ff,
+    0x3f39_b223,
+    0x3f38_26a7,
+    0x3f36_9795,
+    0x3f35_04f3,
+    0x3f33_6eca,
+    0x3f31_d522,
+    0x3f30_3801,
+    0x3f2e_9772,
+    0x3f2c_f37b,
+    0x3f2b_4c24,
+    0x3f29_a178,
+    0x3f27_f37c,
+    0x3f26_423a,
+    0x3f24_8dbb,
+    0x3f22_d606,
+    0x3f21_1b25,
+    0x3f1f_5d1f,
+    0x3f1d_9bfe,
+    0x3f1b_d7ca,
+    0x3f1a_108d,
+    0x3f18_464e,
+    0x3f16_7919,
+    0x3f14_a8f3,
+    0x3f12_d5e8,
+    0x3f11_0000,
+    0x3f0f_2744,
+    0x3f0d_4bbe,
+    0x3f0b_6d77,
+    0x3f09_8c77,
+    0x3f07_a8ca,
+    0x3f05_c278,
+    0x3f03_d989,
+    0x3f01_ee09,
+    0x3eff_ffff,
+    0x3efc_1ef1,
+    0x3ef8_38f6,
+    0x3ef4_4e27,
+    0x3ef0_5e95,
+    0x3eec_6a50,
+    0x3ee8_7172,
+    0x3ee4_7409,
+    0x3ee0_722f,
+    0x3edc_6bf5,
+    0x3ed8_616b,
+    0x3ed4_52ad,
+    0x3ed0_3fc8,
+    0x3ecc_28d7,
+    0x3ec8_0deb,
+    0x3ec3_ef15,
+    0x3ebf_cc71,
+    0x3ebb_a60c,
+    0x3eb7_7c02,
+    0x3eb3_4e60,
+    0x3eaf_1d44,
+    0x3eaa_e8bd,
+    0x3ea6_b0de,
+    0x3ea2_75c3,
+    0x3e9e_3779,
+    0x3e99_f61d,
+    0x3e95_b1c1,
+    0x3e91_6a75,
+    0x3e8d_2058,
+    0x3e88_d377,
+    0x3e84_83ef,
+    0x3e80_31cd,
+    0x3e77_ba60,
+    0x3e6f_0c51,
+    0x3e66_5991,
+    0x3e5d_a25b,
+    0x3e54_e6cb,
+    0x3e4c_271c,
+    0x3e43_6373,
+    0x3e3a_9bf3,
+    0x3e31_d0d7,
+    0x3e29_023b,
+    0x3e20_305d,
+    0x3e17_5b5e,
+    0x3e0e_8365,
+    0x3e05_a8ac,
+    0x3df9_96a0,
+    0x3de7_d71a,
+    0x3dd6_12ff,
+    0x3dc4_4ac8,
+    0x3db2_7ebe,
+    0x3da0_af28,
+    0x3d8e_dc80,
+    0x3d7a_0e00,
+    0x3d56_5e3f,
+    0x3d32_aa50,
+    0x3d0e_f2c6,
+    0x3cd6_7123,
+    0x3c8e_f84d,
+    0x3c0e_f9da,
+    0xb33b_bd2e,
+    0xbc0e_f9b8,
+    0xbc8e_f83c,
+    0xbcd6_7112,
+    0xbd0e_f2bd,
+    0xbd32_aa48,
+    0xbd56_5e36,
+    0xbd7a_0df7,
+    0xbd8e_dc7c,
+    0xbda0_af24,
+    0xbdb2_7eb9,
+    0xbdc4_4ac4,
+    0xbdd6_130b,
+    0xbde7_d716,
+    0xbdf9_969b,
+    0xbe05_a8aa,
+    0xbe0e_8363,
+    0xbe17_5b5c,
+    0xbe20_305a,
+    0xbe29_0239,
+    0xbe31_d0d5,
+    0xbe3a_9bf0,
+    0xbe43_6371,
+    0xbe4c_271a,
+    0xbe54_e6c9,
+    0xbe5d_a259,
+    0xbe66_598e,
+    0xbe6f_0c4f,
+    0xbe77_ba5e,
+    0xbe80_31d0,
+    0xbe84_83ee,
+    0xbe88_d376,
+    0xbe8d_2057,
+    0xbe91_6a74,
+    0xbe95_b1c0,
+    0xbe99_f61c,
+    0xbe9e_3778,
+    0xbea2_75c2,
+    0xbea6_b0dd,
+    0xbeaa_e8bc,
+    0xbeaf_1d43,
+    0xbeb3_4e63,
+    0xbeb7_7c01,
+    0xbebb_a60b,
+    0xbebf_cc70,
+    0xbec3_ef14,
+    0xbec8_0dea,
+    0xbecc_28d6,
+    0xbed0_3fc7,
+    0xbed4_52ac,
+    0xbed8_616e,
+    0xbedc_6bf4,
+    0xbee0_722e,
+    0xbee4_7408,
+    0xbee8_716e,
+    0xbeec_6a52,
+    0xbef0_5e94,
+    0xbef4_4e26,
+    0xbef8_38f5,
+    0xbefc_1eed,
+    0xbf00_0001,
+    0xbf01_ee09,
+    0xbf03_d988,
+    0xbf05_c276,
+    0xbf07_a8cb,
+    0xbf09_8c78,
+    0xbf0b_6d77,
+    0xbf0d_4bbd,
+    0xbf0f_2743,
+    0xbf11_0001,
+    0xbf12_d5e8,
+    0xbf14_a8f3,
+    0xbf16_7917,
+    0xbf18_464d,
+    0xbf1a_108e,
+    0xbf1b_d7ca,
+    0xbf1d_9bfd,
+    0xbf1f_5d1e,
+    0xbf21_1b23,
+    0xbf22_d607,
+    0xbf24_8dbb,
+    0xbf26_423a,
+    0xbf27_f37b,
+    0xbf29_a176,
+    0xbf2b_4c26,
+    0xbf2c_f37b,
+    0xbf2e_9771,
+    0xbf30_3800,
+    0xbf31_d520,
+    0xbf33_6ecb,
+    0xbf35_04f3,
+    0xbf36_9794,
+    0xbf38_26a6,
+    0xbf39_b224,
+    0xbf3b_3a00,
+    0xbf3c_be35,
+    0xbf3e_3ebd,
+    0xbf3f_bb8f,
+    0xbf41_34a7,
+    0xbf42_a9f8,
+    0xbf44_1b7d,
+    0xbf45_8930,
+    0xbf46_f308,
+    0xbf48_5903,
+    0xbf49_bb13,
+    0xbf4b_1934,
+    0xbf4c_7360,
+    0xbf4d_c98f,
+    0xbf4f_1bbe,
+    0xbf50_69e0,
+    0xbf51_b3f3,
+    0xbf52_f9ee,
+    0xbf54_3bcd,
+    0xbf55_798b,
+    0xbf56_b31d,
+    0xbf57_e880,
+    0xbf59_19ad,
+    0xbf5a_469f,
+    0xbf5b_6f51,
+    0xbf5c_93bb,
+    0xbf5d_b3d7,
+    0xbf5e_cfa1,
+    0xbf5f_e715,
+    0xbf60_fa29,
+    0xbf62_08da,
+    0xbf63_1324,
+    0xbf64_1900,
+    0xbf65_1a6c,
+    0xbf66_175e,
+    0xbf67_0fd4,
+    0xbf68_03c9,
+    0xbf68_f338,
+    0xbf69_de1e,
+    0xbf6a_c473,
+    0xbf6b_a635,
+    0xbf6c_835e,
+    0xbf6d_5beb,
+    0xbf6e_2fd9,
+    0xbf6e_ff21,
+    0xbf6f_c9bf,
+    0xbf70_8fb2,
+    0xbf71_50f3,
+    0xbf72_0d82,
+    0xbf72_c557,
+    0xbf73_7870,
+    0xbf74_26cb,
+    0xbf74_d063,
+    0xbf75_7536,
+    0xbf76_153f,
+    0xbf76_b07c,
+    0xbf77_46ea,
+    0xbf77_d886,
+    0xbf78_654d,
+    0xbf78_ed3c,
+    0xbf79_7051,
+    0xbf79_ee89,
+    0xbf7a_67e2,
+    0xbf7a_dc59,
+    0xbf7b_4beb,
+    0xbf7b_b698,
+    0xbf7c_1c5c,
+    0xbf7c_7d37,
+    0xbf7c_d925,
+    0xbf7d_3025,
+    0xbf7d_8235,
+    0xbf7d_cf54,
+    0xbf7e_1781,
+    0xbf7e_5aba,
+    0xbf7e_98fd,
+    0xbf7e_d249,
+    0xbf7f_069d,
+    0xbf7f_35fa,
+    0xbf7f_605c,
+    0xbf7f_85c3,
+    0xbf7f_a62f,
+    0xbf7f_c1a0,
+    0xbf7f_d814,
+    0xbf7f_e98b,
+    0xbf7f_f605,
+    0xbf7f_fd81,
+];
+
+/// `fast_half_degree_to_sine`'s table, as [`HALF_DEGREE_COS`].
+const HALF_DEGREE_SIN: [u32; 360] = [
+    0x0000_0000,
+    0x3c0e_f9be,
+    0x3c8e_f859,
+    0x3cd6_710b,
+    0x3d0e_f2c6,
+    0x3d32_aa3e,
+    0x3d56_5e3b,
+    0x3d7a_0e09,
+    0x3d8e_dc7b,
+    0x3da0_af2a,
+    0x3db2_7eb5,
+    0x3dc4_4ac7,
+    0x3dd6_1305,
+    0x3de7_d716,
+    0x3df9_96a3,
+    0x3e05_a8a9,
+    0x3e0e_8365,
+    0x3e17_5b59,
+    0x3e20_305c,
+    0x3e29_023d,
+    0x3e31_d0d4,
+    0x3e3a_9bf3,
+    0x3e43_636f,
+    0x3e4c_271b,
+    0x3e54_e6ce,
+    0x3e5d_a259,
+    0x3e66_5991,
+    0x3e6f_0c4d,
+    0x3e77_ba60,
+    0x3e80_31cf,
+    0x3e84_83ee,
+    0x3e88_d378,
+    0x3e8d_2057,
+    0x3e91_6a76,
+    0x3e95_b1be,
+    0x3e99_f61c,
+    0x3e9e_377a,
+    0x3ea2_75c1,
+    0x3ea6_b0de,
+    0x3eaa_e8bc,
+    0x3eaf_1d43,
+    0x3eb3_4e62,
+    0x3eb7_7c01,
+    0x3ebb_a60c,
+    0x3ebf_cc6f,
+    0x3ec3_ef16,
+    0x3ec8_0de9,
+    0x3ecc_28d7,
+    0x3ed0_3fc9,
+    0x3ed4_52ac,
+    0x3ed8_616c,
+    0x3edc_6bf3,
+    0x3ee0_722f,
+    0x3ee4_740a,
+    0x3ee8_7171,
+    0x3eec_6a50,
+    0x3ef0_5e94,
+    0x3ef4_4e27,
+    0x3ef8_38f7,
+    0x3efc_1ef1,
+    0x3f00_0000,
+    0x3f01_ee09,
+    0x3f03_d989,
+    0x3f05_c277,
+    0x3f07_a8ca,
+    0x3f09_8c78,
+    0x3f0b_6d77,
+    0x3f0d_4bbe,
+    0x3f0f_2744,
+    0x3f11_0000,
+    0x3f12_d5e8,
+    0x3f14_a8f3,
+    0x3f16_7918,
+    0x3f18_464e,
+    0x3f1a_108c,
+    0x3f1b_d7ca,
+    0x3f1d_9bfe,
+    0x3f1f_5d1f,
+    0x3f21_1b24,
+    0x3f22_d605,
+    0x3f24_8dba,
+    0x3f26_423a,
+    0x3f27_f37c,
+    0x3f29_a178,
+    0x3f2b_4c25,
+    0x3f2c_f37a,
+    0x3f2e_9772,
+    0x3f30_3801,
+    0x3f31_d522,
+    0x3f33_6eca,
+    0x3f35_04f3,
+    0x3f36_9795,
+    0x3f38_26a7,
+    0x3f39_b222,
+    0x3f3b_39ff,
+    0x3f3c_be35,
+    0x3f3e_3ebe,
+    0x3f3f_bb90,
+    0x3f41_34a5,
+    0x3f42_a9f7,
+    0x3f44_1b7d,
+    0x3f45_8930,
+    0x3f46_f309,
+    0x3f48_5902,
+    0x3f49_bb12,
+    0x3f4b_1934,
+    0x3f4c_7361,
+    0x3f4d_c990,
+    0x3f4f_1bbd,
+    0x3f50_69e0,
+    0x3f51_b3f3,
+    0x3f52_f9ef,
+    0x3f54_3bce,
+    0x3f55_798b,
+    0x3f56_b31d,
+    0x3f57_e881,
+    0x3f59_19ae,
+    0x3f5a_46a0,
+    0x3f5b_6f51,
+    0x3f5c_93ba,
+    0x3f5d_b3d8,
+    0x3f5e_cfa1,
+    0x3f5f_e714,
+    0x3f60_fa29,
+    0x3f62_08da,
+    0x3f63_1325,
+    0x3f64_1901,
+    0x3f65_1a6b,
+    0x3f66_175e,
+    0x3f67_0fd4,
+    0x3f68_03ca,
+    0x3f68_f339,
+    0x3f69_de1e,
+    0x3f6a_c473,
+    0x3f6b_a634,
+    0x3f6c_835e,
+    0x3f6d_5bec,
+    0x3f6e_2fd9,
+    0x3f6e_ff20,
+    0x3f6f_c9c0,
+    0x3f70_8fb2,
+    0x3f71_50f4,
+    0x3f72_0d81,
+    0x3f72_c557,
+    0x3f73_7871,
+    0x3f74_26cb,
+    0x3f74_d063,
+    0x3f75_7536,
+    0x3f76_153f,
+    0x3f76_b07c,
+    0x3f77_46ea,
+    0x3f77_d886,
+    0x3f78_654d,
+    0x3f78_ed3c,
+    0x3f79_7051,
+    0x3f79_ee89,
+    0x3f7a_67e2,
+    0x3f7a_dc58,
+    0x3f7b_4beb,
+    0x3f7b_b698,
+    0x3f7c_1c5c,
+    0x3f7c_7d37,
+    0x3f7c_d925,
+    0x3f7d_3025,
+    0x3f7d_8235,
+    0x3f7d_cf54,
+    0x3f7e_1781,
+    0x3f7e_5aba,
+    0x3f7e_98fd,
+    0x3f7e_d249,
+    0x3f7f_069e,
+    0x3f7f_35f9,
+    0x3f7f_605c,
+    0x3f7f_85c3,
+    0x3f7f_a62f,
+    0x3f7f_c1a0,
+    0x3f7f_d814,
+    0x3f7f_e98b,
+    0x3f7f_f605,
+    0x3f7f_fd81,
+    0x3f80_0000,
+    0x3f7f_fd81,
+    0x3f7f_f605,
+    0x3f7f_e98b,
+    0x3f7f_d814,
+    0x3f7f_c1a0,
+    0x3f7f_a62f,
+    0x3f7f_85c3,
+    0x3f7f_605c,
+    0x3f7f_35f9,
+    0x3f7f_069e,
+    0x3f7e_d249,
+    0x3f7e_98fd,
+    0x3f7e_5aba,
+    0x3f7e_1781,
+    0x3f7d_cf55,
+    0x3f7d_8235,
+    0x3f7d_3025,
+    0x3f7c_d925,
+    0x3f7c_7d37,
+    0x3f7c_1c5c,
+    0x3f7b_b698,
+    0x3f7b_4beb,
+    0x3f7a_dc59,
+    0x3f7a_67e2,
+    0x3f79_ee89,
+    0x3f79_7051,
+    0x3f78_ed3c,
+    0x3f78_654d,
+    0x3f77_d886,
+    0x3f77_46ea,
+    0x3f76_b07d,
+    0x3f76_153f,
+    0x3f75_7536,
+    0x3f74_d063,
+    0x3f74_26cb,
+    0x3f73_7871,
+    0x3f72_c557,
+    0x3f72_0d82,
+    0x3f71_50f4,
+    0x3f70_8fb2,
+    0x3f6f_c9bf,
+    0x3f6e_ff21,
+    0x3f6e_2fd9,
+    0x3f6d_5bec,
+    0x3f6c_835f,
+    0x3f6b_a635,
+    0x3f6a_c473,
+    0x3f69_de1e,
+    0x3f68_f339,
+    0x3f68_03c9,
+    0x3f67_0fd4,
+    0x3f66_175e,
+    0x3f65_1a6c,
+    0x3f64_1902,
+    0x3f63_1324,
+    0x3f62_08da,
+    0x3f60_fa29,
+    0x3f5f_e714,
+    0x3f5e_cfa3,
+    0x3f5d_b3d7,
+    0x3f5c_93ba,
+    0x3f5b_6f51,
+    0x3f5a_46a1,
+    0x3f59_19ad,
+    0x3f57_e880,
+    0x3f56_b31d,
+    0x3f55_798b,
+    0x3f54_3bcf,
+    0x3f52_f9ee,
+    0x3f51_b3f2,
+    0x3f50_69e0,
+    0x3f4f_1bbd,
+    0x3f4d_c991,
+    0x3f4c_7360,
+    0x3f4b_1934,
+    0x3f49_bb13,
+    0x3f48_5903,
+    0x3f46_f30b,
+    0x3f45_8930,
+    0x3f44_1b7d,
+    0x3f42_a9f7,
+    0x3f41_34a6,
+    0x3f3f_bb91,
+    0x3f3e_3ebd,
+    0x3f3c_be35,
+    0x3f3b_39ff,
+    0x3f39_b223,
+    0x3f38_26a9,
+    0x3f36_9794,
+    0x3f35_04f3,
+    0x3f33_6ecb,
+    0x3f31_d523,
+    0x3f30_3800,
+    0x3f2e_9771,
+    0x3f2c_f37b,
+    0x3f2b_4c25,
+    0x3f29_a179,
+    0x3f27_f37b,
+    0x3f26_423a,
+    0x3f24_8dbb,
+    0x3f22_d606,
+    0x3f21_1b26,
+    0x3f1f_5d1d,
+    0x3f1d_9bfd,
+    0x3f1b_d7ca,
+    0x3f1a_108e,
+    0x3f18_4650,
+    0x3f16_7917,
+    0x3f14_a8f3,
+    0x3f12_d5e8,
+    0x3f11_0001,
+    0x3f0f_2746,
+    0x3f0d_4bbd,
+    0x3f0b_6d77,
+    0x3f09_8c78,
+    0x3f07_a8cb,
+    0x3f05_c279,
+    0x3f03_d988,
+    0x3f01_ee09,
+    0x3f00_0001,
+    0x3efc_1ef4,
+    0x3ef8_38f5,
+    0x3ef4_4e26,
+    0x3ef0_5e94,
+    0x3eec_6a52,
+    0x3ee8_7174,
+    0x3ee4_7408,
+    0x3ee0_722e,
+    0x3edc_6bf4,
+    0x3ed8_616e,
+    0x3ed4_52b0,
+    0x3ed0_3fc7,
+    0x3ecc_28d6,
+    0x3ec8_0dea,
+    0x3ec3_ef17,
+    0x3ebf_cc73,
+    0x3ebb_a60a,
+    0x3eb7_7c00,
+    0x3eb3_4e63,
+    0x3eaf_1d46,
+    0x3eaa_e8c0,
+    0x3ea6_b0dd,
+    0x3ea2_75c1,
+    0x3e9e_377b,
+    0x3e99_f61f,
+    0x3e95_b1c3,
+    0x3e91_6a74,
+    0x3e8d_2057,
+    0x3e88_d37a,
+    0x3e84_83f1,
+    0x3e80_31cc,
+    0x3e77_ba5d,
+    0x3e6f_0c4e,
+    0x3e66_5996,
+    0x3e5d_a260,
+    0x3e54_e6c8,
+    0x3e4c_2719,
+    0x3e43_6370,
+    0x3e3a_9bf7,
+    0x3e31_d0dc,
+    0x3e29_0239,
+    0x3e20_305a,
+    0x3e17_5b5b,
+    0x3e0e_836a,
+    0x3e05_a8b1,
+    0x3df9_969a,
+    0x3de7_d714,
+    0x3dd6_1309,
+    0x3dc4_4ad2,
+    0x3db2_7ec8,
+    0x3da0_af22,
+    0x3d8e_dc7b,
+    0x3d7a_0e14,
+    0x3d56_5e53,
+    0x3d32_aa64,
+    0x3d0e_f2ba,
+    0x3cd6_710c,
+    0x3c8e_f875,
+    0x3c0e_fa2b,
+];
 
 /// The most points a round's spline holds here. A guided round's is
 /// fourteen at most: `calc_spline@00912f00` caps a three-point spline's
@@ -2025,6 +2827,114 @@ mod tests {
         }
     }
 
+    /// **A sea or air shooter's lead is a float rotation, at one degree
+    /// past its figure** (item 3808, GOLDEN §152.5): run1471's Russian Jet
+    /// Fighter `2/14`, parked at 120°, fires its second round on `1/14`
+    /// from (12591, 16728, −36) to (12835, 14802, 0). Block 662 prints the
+    /// middle control point (13233.875, 17114.279297, −36) — 750 out at
+    /// 121° — and thirteen points; block 665 the re-plan from `point[4]`,
+    /// eleven points (this crate laid twelve and ten before, and landed
+    /// the round a frame early). Every point to the dump's six decimals.
+    #[test]
+    fn a_figure_s_lead_is_run1471s() {
+        let s = |m: i64| Single::from_millionths(m).0;
+        let v = |x: i64, y: i64, z: i64| [s(x), s(y), s(z)];
+        // Six decimals name a single to the bit only above magnitude ~8;
+        // below it the print is the value to half a millionth.
+        let near = |got: [Single; 3], want: [Single; 3], what: &str| {
+            for (c, (&ours, &theirs)) in got.iter().zip(&want).enumerate() {
+                let (a, b) = (f32::from_bits(ours.bits()), f32::from_bits(theirs.bits()));
+                assert!(
+                    ours == theirs || (theirs.to_i32().abs() < 8 && (a - b).abs() <= 5e-7),
+                    "{what}[{c}]: {a} against {b}"
+                );
+            }
+        };
+        let (launch, landing) = (Pos::new(12591, 16728), Pos::new(12835, 14802));
+        let lead = Lead {
+            angle: Angle(1_431_655_765),
+            pitch: Single::ZERO,
+            r: 750,
+        };
+        assert_eq!(
+            missile_lead(launch, -36, lead),
+            v(13_233_875_000, 17_114_279_297, -36_000_000),
+            "the middle control point"
+        );
+        let first = missile_spline(launch, -36, landing, 0, Some(lead), 150);
+        let printed_662 = [
+            v(12_591_000_000, 16_728_000_000, -36_000_000),
+            v(12_690_911_133, 16_773_640_625, -35_750_000),
+            v(12_776_353_516, 16_781_798_828, -35_000_000),
+            v(12_847_328_125, 16_752_480_469, -33_750_000),
+            v(12_903_832_031, 16_685_677_734, -31_999_996),
+            v(12_945_870_117, 16_581_398_438, -29_750_000),
+            v(12_973_437_500, 16_439_640_625, -27_000_000),
+            v(12_986_536_133, 16_260_400_391, -23_750_000),
+            v(12_985_166_016, 16_043_679_688, -20_000_004),
+            v(12_969_328_125, 15_789_480_469, -15_750_003),
+            v(12_939_020_508, 15_497_798_828, -11_000_005),
+            v(12_894_244_141, 15_168_640_625, -5_750_006),
+            v(12_835_000_000, 14_802_000_000, -9),
+        ];
+        assert_eq!(first.len(), printed_662.len());
+        for (i, want) in printed_662.iter().enumerate() {
+            near(first.point(i), *want, &format!("block 662 point {i}"));
+        }
+        let at = first.point(4).map(|c| Single::from_i32(c.to_i32()));
+        let ahead = first.point(5);
+        let two = Single::from_bits(0x4000_0000);
+        let dir = [0, 1, 2].map(|c| ahead[c].subss(at[c]).mulss(two).addss(at[c]));
+        let speed = Single::from_i32(200 * UNIT_MOVE_SPEED);
+        let second = Spline::from_dir(at, dir, v(12_792_000_000, 14_712_000_000, 0), speed);
+        let printed_665 = [
+            v(12_903_000_000, 16_685_000_000, -31_000_000),
+            v(12_917_322_266, 16_627_970_703, -30_239_998),
+            v(12_925_998_047, 16_539_775_391, -28_960_003),
+            v(12_929_020_508, 16_420_404_297, -27_160_000),
+            v(12_926_395_508, 16_269_863_281, -24_840_000),
+            v(12_918_120_117, 16_088_148_438, -22_000_000),
+            v(12_904_195_313, 15_875_261_719, -18_639_999),
+            v(12_884_621_094, 15_631_204_102, -14_759_997),
+            v(12_859_396_484, 15_355_974_609, -10_359_996),
+            v(12_828_523_438, 15_049_573_242, -5_439_995),
+            v(12_792_000_000, 14_712_000_000, 0),
+        ];
+        assert_eq!(second.len(), printed_665.len(), "the re-plan's count");
+        for (i, want) in printed_665.iter().enumerate() {
+            near(second.point(i), *want, &format!("block 665 point {i}"));
+        }
+    }
+
+    /// **The lead's two index folds** (`67cbb3`–`67cc90`): a pitch reads
+    /// its truncated degree, a negative one `359 − (−p mod 360)`; the
+    /// angle's degree is negated first, so 0 stays 0 and 120 reads 239.
+    /// At pitch 0 and angle 0 the vector is `(0, −r, 0)` turned by nothing.
+    #[test]
+    fn the_lead_folds_its_degrees() {
+        let o = Pos::new(1000, 1000);
+        let at = |angle: i32, pitch: i32| {
+            missile_lead(
+                o,
+                0,
+                Lead {
+                    angle: Angle(angle),
+                    pitch: Single::from_i32(pitch),
+                    r: 1000,
+                },
+            )
+            .map(Single::to_i32)
+        };
+        assert_eq!(at(0, 0), [1000, 0, 0], "due north, untouched");
+        // 0x40000000 is 90°; the fold reads 269, a quarter turn and a degree.
+        let [x, y, _] = at(0x4000_0000, 0);
+        assert!(x > 999 && (17..=18).contains(&(y - 1000)), "({x}, {y})");
+        // A pitch tilts the vector out of the plane: z moves, x does not.
+        let [x, _, z] = at(0, 30);
+        assert_eq!(x, 1000);
+        assert_ne!(z, 0, "a pitched figure leads up or down");
+    }
+
     /// **A splash walks one spiral cell past its square** (item 3636,
     /// parked 3356c): `Ammo::do_damage`'s walk is `0..=radius[k]`, and the
     /// entry at `radius[k] = (2k+1)²` is the first of ring `k + 1` —
@@ -2054,7 +2964,18 @@ mod tests {
         let (launch, land) = (Pos::new(4472, 12771), Pos::new(6221, 7338));
         assert_eq!(flight_time(5707 * 5707, 300), 19, "the straight line");
         assert_eq!(
-            missile_flight_time(launch, 171, land, 193, Some((a, 1500)), 300),
+            missile_flight_time(
+                launch,
+                171,
+                land,
+                193,
+                Some(Lead {
+                    angle: a,
+                    pitch: Single::ZERO,
+                    r: 1500
+                }),
+                300
+            ),
             13
         );
         assert_eq!(missile_flight_time(launch, 171, land, 193, None, 300), 13);
@@ -2062,7 +2983,18 @@ mod tests {
         let o = Pos::new(10_000, 10_000);
         let near = Pos::new(10_000, 9_000);
         assert_eq!(
-            missile_flight_time(o, 0, near, 0, Some((Angle(0), 1500)), 300),
+            missile_flight_time(
+                o,
+                0,
+                near,
+                0,
+                Some(Lead {
+                    angle: Angle(0),
+                    pitch: Single::ZERO,
+                    r: 1500
+                }),
+                300
+            ),
             7
         );
         assert_eq!(missile_flight_time(o, 0, near, 0, None, 300), 4);
