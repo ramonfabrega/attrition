@@ -118,7 +118,7 @@ pub(crate) const MOVE: [(i32, i32); 49] = [
 
 /// `orthog_x/orthog_y[0..5]` (0xadd250, 0xadd210): the cell itself, then
 /// north, east, south, west. `check_and_set_halfland`'s tail reads from 0.
-const ORTHOG: [(i32, i32); 5] = [(0, 0), (0, -1), (1, 0), (0, 1), (-1, 0)];
+pub(crate) const ORTHOG: [(i32, i32); 5] = [(0, 0), (0, -1), (1, 0), (0, 1), (-1, 0)];
 
 fn inb(g: &MapGrid, x: i32, y: i32) -> bool {
     x >= 0 && y >= 0 && x < g.xs && y < g.ys
@@ -211,17 +211,45 @@ pub struct HalfLand {
     pub nuke_hits: Vec<i32>,
 }
 
+/// One list's walk (`Array<WCoordData>::walk_data@00478990`,
+/// `SimpleArray<int>::walk_data@00473120`): an empty list is its 4-byte
+/// zero count alone; a full one is `num` (+0x4), `size` (+0x8), the 2-byte
+/// grow step (+0xc), the flag byte (+0x14) `& 0xbf`, then the entries.
+/// `TerrainData::TerrainData@0049bdd0` builds all four with grow −1 and
+/// flags 0, and `increase_size` at grow −1 takes 4, then the current size
+/// again, so `size` is the first `4·2^k ≥ num`.
+fn list_part(entries: &[u8], num: usize) -> u32 {
+    let mut b = (num as u32).to_le_bytes().to_vec();
+    if num > 0 {
+        let mut size = 4u32;
+        while (size as usize) < num {
+            size *= 2;
+        }
+        b.extend_from_slice(&size.to_le_bytes());
+        b.extend_from_slice(&0xffffu16.to_le_bytes());
+        b.push(0);
+        b.extend_from_slice(entries);
+    }
+    adler32(&b)
+}
+
 impl HalfLand {
-    /// Parts 10–13. An empty list walks as its 4-byte count alone
-    /// (`SimpleArray<int>::walk_data@00473120` returns after a zero count),
-    /// which is every Great Sahara file's 262,145 at every record. `None`
-    /// for a full list: its entries' layout is not read.
+    /// Parts 10–13 ([`list_part`]): `halfland_locs` as `(x, y)` pairs of
+    /// `i32`, the other three as `i32`s. Every Great Sahara file's 262,145
+    /// at every record is four empty lists.
     pub fn parts(&self) -> Option<[u32; 4]> {
-        let empty = self.locs.is_empty()
-            && self.types.is_empty()
-            && self.subtypes.is_empty()
-            && self.nuke_hits.is_empty();
-        empty.then(|| [adler32(&0u32.to_le_bytes()); 4])
+        let ints = |v: &[i32]| v.iter().flat_map(|n| n.to_le_bytes()).collect::<Vec<u8>>();
+        let locs: Vec<u8> = self
+            .locs
+            .iter()
+            .flat_map(|&(x, y)| x.to_le_bytes().into_iter().chain(y.to_le_bytes()))
+            .collect();
+        Some([
+            list_part(&locs, self.locs.len()),
+            list_part(&ints(&self.types), self.types.len()),
+            list_part(&ints(&self.subtypes), self.subtypes.len()),
+            list_part(&ints(&self.nuke_hits), self.nuke_hits.len()),
+        ])
     }
 }
 
@@ -285,6 +313,83 @@ pub fn check_and_set_halfland(g: &mut MapGrid, coord: &mut [u16]) -> Result<(), 
         }
     }
     Ok(())
+}
+
+/// **`Terrain::check_and_set_halfland(0)` on a map whose gate opens**:
+/// the two sweeps of `_wcoord` on the 706 heights `z`
+/// ([`crate::halfland::Pass::sweeps`]), then passes 2–4 of
+/// [`check_and_set_halfland`] — the coast, the relabel and the 0x80 tail.
+/// Returns the half-land lists parts 10–12 walk.
+pub fn check_and_set_halfland_heights(
+    g: &mut MapGrid,
+    coord: &mut [u16],
+    z: &[crate::single::Single],
+    combo: crate::halfland::Combo,
+) -> Result<HalfLand, crate::halfland::Unported> {
+    let mut pass = crate::halfland::Pass::new(g, coord, z, combo);
+    pass.sweeps()?;
+    let lists = std::mem::take(&mut pass.lists);
+    for y in 0..g.ys {
+        for x in 0..g.xs {
+            check_and_set_coastal(g, x, y);
+        }
+    }
+    relabel(g);
+    shallow_tail(g, coord);
+    Ok(lists)
+}
+
+/// `check_and_set_halfland`'s third pass: a `BASELAND` cell in a water
+/// region (above 0x40) takes its `region2` and keeps the water region as
+/// `region2` when it has one; with none it takes the region of the first
+/// `move[1..25]` neighbour that is `BASELAND` in a land region not its own.
+/// The `Regions` lists' bookkeeping is not held; no cell write depends on
+/// it (the search stops at the first such neighbour either way).
+fn relabel(g: &mut MapGrid) {
+    for y in 0..g.ys {
+        for x in 0..g.xs {
+            let i = at(g, x, y);
+            let c = g.cells[i];
+            if c.land != 0 || c.region <= 0x40 {
+                continue;
+            }
+            if c.region2 != 0 {
+                g.cells[i].region = c.region2;
+                g.cells[i].region2 = c.region;
+                continue;
+            }
+            for &(dx, dy) in &MOVE[1..25] {
+                let (u, v) = (x + dx, y + dy);
+                if !inb(g, u, v) {
+                    continue;
+                }
+                let n = g.cells[at(g, u, v)];
+                if n.land == 0 && n.region < 0x41 && n.region != c.region {
+                    g.cells[i].region = n.region;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+/// `check_and_set_halfland`'s fourth pass: a cell flagged 0x4 or `OCEAN`
+/// with a HALFLAND cell at `orthog[0..5]` sets `CoordInfo` 0x80.
+fn shallow_tail(g: &MapGrid, coord: &mut [u16]) {
+    for y in 0..g.ys {
+        for x in 0..g.xs {
+            let c = &g.cells[at(g, x, y)];
+            if c.flags & 0x4 == 0 && c.land != 2 {
+                continue;
+            }
+            let half = ORTHOG.iter().any(|&(dx, dy)| {
+                inb(g, x + dx, y + dy) && g.cells[at(g, x + dx, y + dy)].flags & 0x100 != 0
+            });
+            if half {
+                coord[at(g, x, y)] |= coord::SHALLOW;
+            }
+        }
+    }
 }
 
 /// A tile `check_and_set_halfland`'s first pass marked wet: `mask & 0x30
