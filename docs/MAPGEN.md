@@ -862,6 +862,25 @@ mountain cell, but its blocks move parts 5 and 6. The water-edge arm, the
 region release, the 0x1000 tile and the water factors are reading-only
 here, because Great Sahara has no water (3807a).
 
+**Checked on Great Lakes** (item 3830, no sim change): from 3826's 7927
+grid, the whole stream through the last value draw is the trace's on **all
+222 traces**, 209 at 2 nations (2,920 value draws) and the 13 of the team
+lobby (2,908), and seed and parts 2, 5 and 6 agree at 7937 and 7945 on
+**all 185 files**, first run
+(`great_lakes_s_values_are_the_traced_stream_and_7937_and_7945`). Six water
+mutants turn it red: open water drawn, either water factor dropped
+(`water` in `(count / 5, count / 3)` → ×3/2, `water ≥ count / 3` → ÷10),
+the ring's `water += 1` or its `count −= 1` dropped, and the square's wet
+−1 dropped. Nine do not, and each is inert by the grid, as measured at
+7927 and 7945 (3830a): no ocean cell lies on the map's border, so the
+0x2000 edge, its `bad` count and its band write nothing; no cell is
+`SANDY`; every coast cell's `land` is 0 and every dry cell's food bit is
+already set, so counting a coast as `Land` moves no `goods`; no coast cell
+is rough; ocean oil's record 7 makes only Oil, which neither `val` nor
+`goods` reads; every cell is labelled, so the re-run `find_all` writes
+nothing; and the one land region holds every dry cell, so no region-size
+factor fires.
+
 `World::compute_all_vals@006b3790` walks **x outer, y inner**, so
 column-major. Per cell it stores `val` (clamped) and `goods`, a bit byte
 `0x20 | (count0 > 4) | …`. **`World::compute_val@006b0350` draws once per
@@ -1212,6 +1231,13 @@ Of the territory's 198 open or layout-only functions under the nine stems
   2, 5 and 6 at 7937 and 7945 on 105 files (item 3807). The water edges,
   the region release, the 0x1000 tile, the water and region-size factors
   and the cliffs' 0x8000 are reading-only (3807a);
+- §9's values on Great Lakes: draw for draw on 222 traces through the last
+  value draw, both lobbies, and seed and parts 2, 5 and 6 at 7937 and 7945
+  on 185 files (item 3830). Open water drawing nothing, the water count in
+  the rings and the square, and both water factors are diff-backed here;
+  the border edge, `SANDY`, the coast record, the rough coast's exemption,
+  ocean oil's record and the region-size factors run but cannot part
+  (3830a);
 - §10's `Map::make` tail: part 4 at 734 on 511 files of every style; and
   on Great Sahara, `Terrain::init`'s span with no cell gated: seed and
   parts 2, 5, 6 and 10–13 at every record from 734 to 5012 on 105 files
@@ -1306,7 +1332,9 @@ step is checked by §3 at its own checkpoint before the next begins:
    built** (item 3826, the same port on its 7870 grid, the water arms'
    first diff; its fourth phase); East Indies remains;
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
-   `sim::map_values`; the `Mapgen:` line's fifth phase);
+   `sim::map_values`; the `Mapgen:` line's fifth phase); **Great Lakes
+   built** (item 3830, the same port on its 7927 grid, the water count's
+   first diff; its fifth phase); East Indies remains;
 6. `Terrain::init` without heights (§10, 734–5012) — **Great Sahara
    built** (item 3809, `sim::terrain_init`; the `Mapgen:` line's sixth
    phase): no cell opens the half-land gate there, so every record to

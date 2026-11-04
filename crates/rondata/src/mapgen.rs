@@ -3552,9 +3552,43 @@ mod tests {
             };
             let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
                 .expect("Great Lakes' place_all inputs");
+            // What the arms Great Sahara cannot part would need here: an
+            // ocean cell on the map's border (the 0x2000 edge), a `SANDY`
+            // cell (`wet`'s land 1), the coast cells' own `land` (record 3
+            // over it), and a rough coast cell (the square's exemption).
+            let border = grid
+                .cells
+                .iter()
+                .enumerate()
+                .filter(|&(i, c)| {
+                    let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
+                    c.is_ocean() && (x == 0 || y == 0 || x == grid.xs - 1 || y == grid.ys - 1)
+                })
+                .count();
+            let sandy = grid.cells.iter().filter(|c| c.land == 1).count();
+            let coast_lands: std::collections::BTreeSet<i8> = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & sim::terrain_groups::flag::COAST != 0)
+                .map(|c| c.land)
+                .collect();
+            let rough_coast = grid
+                .cells
+                .iter()
+                .filter(|c| {
+                    c.flags & sim::terrain_groups::flag::COAST != 0
+                        && (c.flags & 0x70 != 0
+                            || (c.flags & sim::terrain_groups::flag::ROCK == 0
+                                && (c.land == 4 || c.land == 5)))
+                })
+                .count();
+            eprintln!(
+                "{} nations at 7927: border ocean {border}, sandy {sandy}, coast lands \
+                 {coast_lands:?}, rough coast {rough_coast}",
+                run.1
+            );
             let mut regions = regions_of(&grid);
             adjust_for_blocking(&mut grid, &mut regions, &groups.templates);
-            let edge = grid.tiles.iter().filter(|&&m| m & 0x2000 != 0).count();
             check(&grid, &d, 0, 7937);
             let before = d.log.len();
             compute_all_vals(&mut grid, &mut d, &makes);
@@ -3572,7 +3606,14 @@ mod tests {
                 .iter()
                 .filter(|c| !c.is_ocean() && region_size[c.region as usize] < size / 16)
                 .count();
-            wrote.push((run.1, dry, edge, small));
+            // A coast cell counts no food (record 3); a dry cell whose
+            // rings hold four or fewer food slots is where that shows.
+            let lean = grid
+                .cells
+                .iter()
+                .filter(|c| !c.is_ocean() && c.goods & 1 == 0)
+                .count();
+            wrote.push((run.1, dry, small, lean));
             check(&grid, &d, 1, 7945);
             logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
         }
@@ -3583,7 +3624,7 @@ mod tests {
             .collect();
         let (met, stream) = stream_partings(&lakes, &logs, |s| s);
         eprintln!(
-            "Great Lakes values: (nations, value draws, 0x2000 tiles, small-region cells) \
+            "Great Lakes values: (nations, value draws, small-region cells, foodless cells) \
              {wrote:?}; met whole {met:?}; 7937, 7945 on {files:?} files"
         );
         assert!(
@@ -3654,8 +3695,9 @@ mod tests {
 
     /// The §15 phases this module checks on Great Lakes: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
-    /// 7861..7870), and the resources (7877..7927).
-    const GREAT_LAKES_CHECKED: i64 = 4;
+    /// 7861..7870), the resources (7877..7927) and the values (7937,
+    /// 7945).
+    const GREAT_LAKES_CHECKED: i64 = 5;
 
     /// The §15 phases this module checks on East Indies: the mask (7807)
     /// and the zero-draw passes (7835..7854).
