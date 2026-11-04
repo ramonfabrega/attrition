@@ -4196,7 +4196,7 @@ mod tests {
             check(&grid, &d, 2, 7927);
             let mut kinds = std::collections::BTreeMap::<i32, usize>::new();
             for g in grid.goods.iter().flatten() {
-                *kinds.entry(g.0 as i32).or_default() += 1;
+                *kinds.entry(g.0).or_default() += 1;
             }
             use sim::map_resources::site;
             let sites = [
