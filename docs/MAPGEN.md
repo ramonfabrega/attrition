@@ -852,6 +852,38 @@ Falsifier: parts 5, 6 and 10–12 at `Terrain.cpp` 720 and 894, and the
 seed at 5076. The height grid itself is in the `DUMP_ALL` start dump
 (`Log::terrain_heights`), already read by `crates/sim/src/terrain.rs`.
 
+**The heights on Great Sahara** (item 3812, `sim::map_heights`). The
+start dump prints `master_land_heights` whole (241 × 241 singles there),
+after `Terrain::init` **and after the starting cities and the start
+roster have terraformed it**. So the check stands each file's own roster
+on the generated grid, the cities first (`build_cities`), and compares
+every vertex. Three writes reach a height there, in this order:
+- `generate_land`: `(a · 7.5 + land_height) + b · 1.875` in singles.
+  `a` and `b` are `Fractal::get_height` on (smooth 5, flags 2,
+  `World.seed`) and (smooth 3, flags 2, `2 · World.seed`), and flags & 2
+  makes it answer `h·100 >> 8`. `land_height` (0xcbe54c) is 30.0f, set
+  by `Terrain::init`; the decompile prints it as a constant.
+  `find_closest_coordinfo` finds no 0x20 cell and returns −1.0, so there
+  is no blend and nothing for `smooth_tcoord`.
+- `TerrainOil::create_doobers` (738), before the mountains: a cell with
+  the rock bit, not ocean, reaches `add_rocky_patch`. On an `OIL` cell,
+  that runs `terraform_for_building(4c, 4c, 4, 4)` over the cell's tiles,
+  with the building's own mean, border and refusals (`docs/ROADS.md`
+  §7.4).
+- `adjust_for_mountains` → `fill_mountain_data`. Each placed mountain
+  adds its `tcoord_verts` z to the vertex its mesh vertex stands on, once
+  per mountain. `MountainRange::init` takes every 4th pixel of
+  `TEMPLATE_TEX` whose alpha is set, and the vertex adds
+  `byte · (height · 3) / 255` (`byte` the pixel's first byte, `height`
+  the `<MOUNTAIN>`'s); the cells walked are `Template.cells`.
+
+`build_coastal_data`, the troughs and the cliffs move no vertex there.
+**All 47 Great Sahara start dumps that print the grid agree on every
+vertex**: 2,729,807 vertices, 25 distinct grids on the two generated
+ones (`great_sahara_s_heights_are_the_start_dump_s_grid`). The shore
+blend, `smooth_tcoord`, `build_coastal_data` and the slope test are
+refused by name (`Unported::Coast`, `Unported::Slope`).
+
 ## 11. The float sites, and which decision governs each
 
 DECISIONS 13 pins a float the original computes before the first frame as
@@ -872,7 +904,7 @@ reachable set.
 | `Map::scale_number@006a0320` | single, `SCALEWATER`/`SCALELAND` | correctly rounded | no stock map | 19 |
 | `TerrainGroups::init_tileset_data@006a61f0` | `(int)(freq/100f·255f)` | correctly rounded | fertility partitions (§6) | 19 |
 | `place_all`'s pattern-2/3 weights (only when `clumps > 6 && regions < 6`) | single: `cvtdq2ps`, an `addss` sum in list order, `divss` then `mulss`, `cvttss2si` (0x6a7e24..0x6a7f29) | correctly rounded | a draw's modulus and the order | 19: `sim::single`, in the port; on Great Sahara one region, so the weight is `n` exactly |
-| the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`) |
+| the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`); the fractals' bilinear sample in a software double (`sim::double`, item 3812) |
 | `TerrainOut::has_plus_slope@00869790` | `tanf(25°)` | **transcendental**, constant argument | the cliff threshold 89.531075f (`0x42b30fe9`) | **13**: pin it; the double result sits 0.30 ulp from the float, so a faithful libm agrees |
 | `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: no trace reaches it (§7) |
 | `MapFairness::calc_distances@0068a1c0` | single | correctly rounded | Warring States only | 19 |
@@ -934,6 +966,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   5012 to 5118 on 105 files (item 3811). The square's water and oil arms,
   the start-city radius and `find_all`'s relabel are unit-tested only;
   `make_riverlist` and `astar_river` are not built (3811a);
+- §10's heights on Great Sahara: `generate_land`, the oil cells'
+  terraform and `adjust_for_mountains`, on every vertex of 47 start
+  dumps through each file's roster (item 3812). Mutations that drop an
+  octave, the mountains or the oil, or swap the two weights, each fail
+  it; dropping the rock bit from the oil test fails nothing (§14);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -975,6 +1012,10 @@ tileset or a base-mask style is what would.
 - Several loops bound y by `xs`. That is harmless on the corpus's square
   maps and would part on a non-square one.
 - The 0x40 offset of §3's parts 10–13.
+- Whether `create_doobers`' rock-bit test decides a height: every
+  Great Sahara oil cell carries the rock bit, so the conjunction is
+  untested there. The flag-1 arm (a good the console's leader cannot
+  see yet) reaches no oil cell, since `set_oil_at` sets no flag 1.
 - `relax_aquatic_verts`' summation order and the river spline's
   predicates. Both need a listing read before a bit-exact port.
 
@@ -1000,9 +1041,12 @@ step is checked by §3 at its own checkpoint before the next begins:
    built** (item 3809, `sim::terrain_init`; the `Mapgen:` line's sixth
    phase): no cell opens the half-land gate there, so every record to
    5012 stands still but part 4 at 734;
-7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894);
-   on Great Sahara no checksum part moves for them, so their only
-   falsifier there is the start dump's height grid;
+7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894)
+   — **Great Sahara built** (item 3812, `sim::map_heights`; the `Mapgen:`
+   line's eighth phase). No checksum part moves for them there, so their
+   falsifier is the start dump's height grid, which all 47 files meet.
+   The shore blend, `smooth_tcoord`, `build_coastal_data` and the slope
+   test remain;
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear

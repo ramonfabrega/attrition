@@ -4,7 +4,7 @@
 //! singles ([`Single`]) and, for the two fractals' bilinear sample, its
 //! doubles ([`crate::double::Double`]).
 //!
-//! Two passes write it on a map without water:
+//! Three passes write it on a map without water:
 //! - **`TerrainOut::generate_land@0085f8d0`**, one vertex at a time, y
 //!   outer and x inner, through
 //!   `TerrainOut::determine_land_height_color@0086c1e0` (which returns in
@@ -12,6 +12,8 @@
 //!   `CoordInfo` codes carry 0x1000 `(−303 + land_height) · 1`, 0x4 zero,
 //!   0x2 100, and any other `(a · 7.5 + land_height) + b · 1.875`, `a` and
 //!   `b` the two fractals' samples ([`fractals`]).
+//! - **`TerrainOil::create_doobers@008a28e0`**, each oil cell's 4×4 tiles
+//!   flattened by `terraform_for_building` ([`create_doobers`]).
 //! - **`TerrainOut::adjust_for_mountains@008703c0`**, each placed mountain
 //!   adding its template's displacement to the vertices of its cells
 //!   ([`adjust_for_mountains`]).
@@ -392,7 +394,7 @@ pub fn slope_tiles(g: &MapGrid) -> Vec<(i32, i32)> {
 }
 
 /// **The phase** on a grid that has stood through `make_rivers`:
-/// `generate_land`, then `adjust_for_mountains`, then `Cliffs::init`'s
+/// `generate_land`, the oil cells' terraform, `adjust_for_mountains`, then `Cliffs::init`'s
 /// refusal. Between them, `check_and_set_halfland` reads a height only on
 /// a gated cell, which `sim::terrain_init` already refuses; the troughs
 /// carve only along a river list, which `sim::map_rivers` refuses.
@@ -412,4 +414,42 @@ pub fn heights(
         return Err(Unported::Slope(slope));
     }
     Ok(z)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mapgen::MapGrid;
+
+    /// `create_doobers` flattens an oil cell that carries the rock bit,
+    /// box and border as `terraform_for_building` draws them, and leaves
+    /// an oil cell without it, and every vertex outside the box, alone.
+    #[test]
+    fn an_oil_cell_with_rock_is_flattened_and_nothing_else_moves() {
+        let mut g = MapGrid::new(8, 8);
+        g.cells[3 * 8 + 3].flags |= OIL | ROCK;
+        g.cells[6 * 8 + 1].flags |= OIL;
+        let w = VERTS * g.xs + 1;
+        let before: Vec<Single> = (0..w * w)
+            .map(|i| Single::from_i32(10 + (i % w) * 3 + (i / w) * 7))
+            .collect();
+        let mut z = before.clone();
+        create_doobers(&g, &mut z);
+        let (x0, x1) = (11, 18);
+        let inner = z[(14 * w + 14) as usize];
+        for y in 0..w {
+            for x in 0..w {
+                let (b, a) = (before[(y * w + x) as usize], z[(y * w + x) as usize]);
+                let inside = (x0..x1).contains(&x) && (x0..x1).contains(&y);
+                if !inside {
+                    assert_eq!(a, b, "({x}, {y}) outside the box moved");
+                } else if x == x0 || y == x0 || x == x1 - 1 || y == x1 - 1 {
+                    assert_eq!(a, b.addss(inner).mulss(Single::HALF), "({x}, {y}) border");
+                } else {
+                    assert_eq!(a, inner, "({x}, {y}) interior");
+                }
+            }
+        }
+        assert_ne!(inner, before[(14 * w + 14) as usize]);
+    }
 }
