@@ -12967,7 +12967,10 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 - **3805b. The resource branches Great Sahara never takes** (`sim::map_resources`): `Map::find_avail_regions@0068f380`'s
   draw (every Great Sahara region call saw one available region), patterns `continent` and `nonplayer`, and the
   water goods (`SEA`, Fish and Whales) with their placement tests. Ported from the readings and never run; a style
-  with water and more than one region reaches them, once its mask is ported (3734a).
+  with water and more than one region reaches them, once its mask is ported (3734a). ~~`find_avail_regions`' draw
+  and the Fish with its placement tests~~ are diff-backed on Great Lakes by item 3826 (`docs/MAPGEN.md` §8): the
+  draw, the water region list, the shore test and the `world` move across regions. The Whales, `get_water` and
+  patterns 1 and 3 remain, as 3826b.
 - **3805c. The herds and the `Goods`/`Items` checksum lines are not compared.** `Objects::init_good` starts a
   good's herd, and the checksum's `Goods` and `Items` lines print the objects 7927 makes; the port writes the cells
   only (parts 5 and 6 agree) and carries no herd. MAPGEN §8's falsifier names the two lines; a reader of them in
@@ -13184,13 +13187,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YE — reserved
+## Parked by item 3826, 2026-11-04 — Great Lakes' resources
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3826a. Three water arms of `place_region_resource` the Great Lakes corpus runs but cannot part**
+  (`docs/MAPGEN.md` §8, `sim::map_resources`). Each mutant turns neither Great Lakes walk red on all 222 traces
+  and 185 files:
+  - The water cell's COAST refusal (`!water || f & 0x4 == 0`). COAST marks land, so no water cell carries it.
+  - `saturate`'s balance switch (`r.saturate == 0` in the threshold). The style's one Fish row is `saturate` 1,
+    and dropping the test applies the starved-player balance from half its 45 SCALE. Nothing moves, because
+    Fish fills its lakes at 12 (2 nations) or 17 (3 nations), well before half.
+  - The sea goods spacing only against each other. The 5×5 shore test already keeps a Fish two cells from
+    any land cell, and so from any land good, at spacing 3.
+
+  What checks them: a style whose water row is unsaturated and fits more than twice its count, or one whose
+  sea good spaces wider than the shore ring. Names no score.
+- **3826b. The Whales, `get_water` and patterns `continent`/`nonplayer` still run on no map.** Great Lakes'
+  own `FISH ` section overrides `default.xml`'s, which holds the Whales row. Its Fish row has a fixed type, so
+  `ResourceDivvyPool::get_water@0068a4a0` never draws. No Great Sahara or Great Lakes row is `continent` or
+  `nonplayer` either. These are what is left of 3805b's water half. East Indies' resources, a later step of its
+  chain, are the next map that could reach them. Names no score until a phase there parts.
 
 ## Parked by the next landing, slot YF — reserved
 

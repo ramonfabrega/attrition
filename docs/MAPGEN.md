@@ -733,9 +733,8 @@ It makes game objects, and the objects write cells:
 - `Item::init@006770e0` sets `down` −3 and flag 0x8000.
 
 So this phase moves parts 5 and 6, and the `Goods` and `Items` checksum
-lines. The 231 is consistent in kind and **not reconciled**: about 10 group
-rolls, roughly 30–40 on the player path, and the rest in the region
-retries.
+lines. The 231 is reconciled on Great Lakes by the port (item 3826, below):
+the port draws exactly the trace's 231 at 2 nations.
 
 **Ported on Great Sahara** (item 3805, `sim::map_resources`, from three
 blind readings kept outside the repo; inputs `rondata::mapgen::resource_inputs`).
@@ -760,6 +759,37 @@ The stream from `place_all` to `compute_all_vals` is the trace's on **all
 on `down_who`, until the oil goods were counted. Five mutations turn it red;
 a dead slot never reused turns nothing red, since no Great Sahara oil good
 dies before a later good is made (3805a).
+
+**Ported on Great Lakes, first try** (item 3826, no change to
+`sim::map_resources`). It runs from 3822's 7870 grid, reading
+`GREATLAKES.xml`'s own `BONUSES` and `FISH ` sections and `default.xml`'s
+`GOODIES`. The style's `FISH ` is one `world` row of Fish at 45 SCALE with
+`saturate` 1, and it overrides the default section that holds the Whales,
+so no Great Lakes run places a whale.
+
+The stream from `place_all` to `compute_all_vals` is the trace's on **all
+222 traces** (`great_lakes_s_resources_are_the_traced_stream_and_7927`):
+- 209 at 2 nations: 3,074 draws, 231 of them here;
+- 13 in the 3-nation team lobby: 3,469 draws.
+
+Seed and parts 2, 5 and 6 agree at 7877, 7880 and 7927 on **all 185
+files**. 43 objects are placed at 2 nations (12 Fish) and 58 at 3 (17
+Fish).
+
+This is the first diff of the water arms:
+- the water region list (0x40..0x7f);
+- `find_avail_regions`' draw over six lakes (`0x68f49d`);
+- the water cell's 5×5 shore test;
+- the `world` pattern's move to the next region, and its retry bookkeeping
+  across regions.
+
+Seven mutations turn the walk red. Three turn nothing red (parked 3826a):
+- a water cell's COAST refusal: COAST marks land, so no water cell carries
+  it;
+- `saturate`'s balance switch: Fish saturates its lakes before half its
+  count;
+- the sea goods' spacing against each other alone: the shore test already
+  keeps a Fish two cells from any land good.
 
 Falsifier: seed and parts 5 and 6 at 7927, and the `Goods`/`Items` lines.
 
@@ -1144,9 +1174,14 @@ Of the territory's 198 open or layout-only functions under the nine stems
   (type 7) and `clear_group`'s first branch are reading-only;
 - §7's tail and §8's `place_resources` on Great Sahara: draw for draw on
   280 traces, and seed and parts 2, 5 and 6 at 7861, 7865, 7870, 7877, 7880
-  and 7927 on 105 files (item 3805). Slot reuse, `find_avail_regions`' draw,
-  patterns 1 and 3, water goods and the `Goods`/`Items` lines are
-  reading-only (3805a–c);
+  and 7927 on 105 files (item 3805). Slot reuse, patterns 1 and 3, the
+  Whales and the `Goods`/`Items` lines are reading-only (3805a–c);
+- §8's `place_resources` on Great Lakes: draw for draw on 222 traces, both
+  lobbies, and seed and parts 2, 5 and 6 at 7877, 7880 and 7927 on 185
+  files (item 3826). `find_avail_regions`' draw, the water region list,
+  the shore test and the `world` move across regions are diff-backed here;
+  the water cell's COAST refusal, `saturate` and the sea-only spacing run
+  but cannot part (3826a);
 - §9's `adjust_for_blocking` and `compute_all_vals` on Great Sahara: draw
   for draw on 280 traces through the last value draw, and seed and parts
   2, 5 and 6 at 7937 and 7945 on 105 files (item 3807). The water edges,
@@ -1176,7 +1211,7 @@ Of the territory's 198 open or layout-only functions under the nine stems
 **Reading-only**, each with its falsifier named in its section: every
 per-function formula and predicate in §§4–10. The draw formulas for
 `make_continents` (GL's and EI's reconciled, items 3815 and 3820), `place_all`, `change_*_base`/`fix_transitions`,
-`place_resources` (reconciled on Great Sahara, item 3805) and `make_rivers` are consistent in kind but not
+`place_resources` (reconciled on Great Sahara and Great Lakes, items 3805 and 3826) and `make_rivers` are consistent in kind but not
 reconciled to their measured totals. Also §3's parts 10–13 offsets and
 §11's float classification.
 
@@ -1240,7 +1275,9 @@ step is checked by §3 at its own checkpoint before the next begins:
    `change_coast_base`'s first diff; its third phase); East Indies
    remains;
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
-   `sim::map_resources`; the `Mapgen:` line's fourth phase);
+   `sim::map_resources`; the `Mapgen:` line's fourth phase); **Great Lakes
+   built** (item 3826, the same port on its 7870 grid, the water arms'
+   first diff; its fourth phase); East Indies remains;
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
    `sim::map_values`; the `Mapgen:` line's fifth phase);
 6. `Terrain::init` without heights (§10, 734–5012) — **Great Sahara
