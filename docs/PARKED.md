@@ -12630,13 +12630,17 @@ question, not this word's.
 computer slot's `XPACK_LAST_TRIBE<slot>` and reads each back by `who`. Folding `--ai-tribe` into it is tooling, no
 score.
 
-## Parked by the next landing, slot WP — reserved
+## Parked by item 3829, 2026-11-04 — the Fighter Bombers' wings and a dead target's ground landing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot WP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3829a. `1/18`'s extra tick on block 734** (GOLDEN §152.12). run1474 prints the Jet Fighter Bomber `1/18`'s
+  damage 132 on block 730 on both sides, then theirs 133⅜ on 734 and 1⅛ a step on 735, 736, 738, 741, 745, 746,
+  748 and 749; ours takes the same 1⅛ steps from 735 and none on 734. `damage_frame` stays 722 through them on
+  both, so they are not rounds' first blows. The 1⅜ stands to 838, where `1/18` dies on both sides at 238
+  against 239⅜. Names no score until a word reaches a blow on a unit that has crossed one of these ticks.
+- **3829b. The other aircraft of the lobby leave from rows no dumped round checks**: the Eagle Fighter `0/14`,
+  the Advanced Fighters and the Stealth Bombers have no `GUNS` or `BAYS` row read off run1472's packet here;
+  piece 258's fourteen frames past frame 1 rest on the node key (all sixteen rows are one point a node). Names no
+  score until a word reaches one of their rounds.
 
 ## Parked by item 3776, 2026-11-03 — map generation's checksum reader and Great Sahara's mask
 
@@ -13109,6 +13113,9 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   block 643 and slot 1 on 649. It also shows as the widening's standing `2/18` `damage_frame` row on block 701,
   646 against 676. The land Anti-Aircraft Missile `1/20`'s launch parts too: (17400, 14712, 466) against (17346,
   14755, 639). Its point count happens to agree. Names no score until a word's frame reaches a round of these.
+  **The air half answered by item 3829** (GOLDEN §152.12): piece 259's two `launch::GUNS` rows loose `2/18`'s
+  rounds from (15843, 16406, −70) and (15657, 16725, −71), and their blows on `1/18` land on 643, 650, 683, 690,
+  723 and 730 as run1470–run1474 print; `1/20`'s land launch is still open.
 - **3816b. A land shooter's `r` is pinned only by the given 984** (GOLDEN §152.9). `r` at `dist / 3` fails nothing
   on the walk, and `combat::tests::a_land_shooter_s_lead_is_run1469s` takes `r` as an input. No dump prints
   `attack_dist`. A packet's `local_34` at `67c459` would pin the halving to the unit. Names no score.
@@ -13218,7 +13225,9 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   run1474's block 732 (`0/20`: (18277, 15743, 590), 2) and run1477's blocks 818–821 (`0/20` (18319, 15581, 587)
   with 5, `0/19` (18187, 15583, 580) with 4 where ours flies 5, `0/21` (18183, 15438, 570) with 4). So 3810a's
   rows would be checked by dumped rounds, not by the sweep alone. Names no score until the word reaches a
-  Recoilless blow. The word 860 is a death in theirs, and its round is not yet named.
+  Recoilless blow. The word 860 is a death in theirs, and its round is not yet named. **Not the cause of 860**
+  (item 3829, GOLDEN §152.12): the death was the Jet Fighter Bomber `2/18`'s, under the Fighter Bomber `0/15`'s
+  rounds; the hypothesis stays parked with that kill.
 - **3827b. Piece 80's 24 rows that no dumped round checks** (`launch::BAYS`): only `CHAR_ATTACK2` frames 1, 3
   and 5 match run1477's three rounds. The other 24 rest on the sweep (`RON_BAY_SWEEPS_80`, 9,747 headings), as
   3813a's do for piece 77. Names no score.

@@ -16187,6 +16187,67 @@ Recoilless Guns `0/19`–`0/21` (piece 94) still leave from their squares: on ru
 test of the rolling arm agrees on this one round; its `find_data_z` reads are ours, and the original's were not
 watched.
 
+## 152.12 The Fighter Bombers loose from their wings, and a round whose target died lands as ground — 860 → 897 (item 3829, run1478)
+
+**The booking.** Frame 860: ours 10 draws against theirs' 12. At index 3 theirs spends `Unit::close+0xcb6` and
+then `Ammo::init_crash+0x305` where ours spends `Farms::inc_time+0x1ae`, so a unit dies in theirs. Through
+index 2 (`1/23`'s launch pair and `2/19`'s `set_anim`) the streams agree.
+
+**The unit.** Ours' cast on 860 (`RON_DEBUG_UNIT='*/**@859-860'`) holds one unit a blow from death with rounds
+in flight onto it: the French Jet Fighter Bomber `2/18` (`TI` 309, `TY` 259, air) at 16 of 240, under the
+Nubian Fighter Bomber `0/15`'s (`TI` 308, `TY` 258, air, on its spawn at (15096, 15672) with no airbase) pairs.
+Ours loosed each pair from the square at the figure's height, (15096, 15672, 0), both rounds 8 frames; the pair
+of 853 was at `t7/8` on 860. run1477's block 822 prints theirs' pair leaving two wing points, (15179, 15597, −26)
+and (15074, 15782, −26), with `total_time` 7 and 8. So one round of each pair lands a frame sooner in theirs.
+3827a (the Recoilless Gun, piece 94) is not the cause: the shooter and the target both fly.
+
+**The rows.** run1472's `RON_STATE_FRAME=707` packet loads both pieces (`get_position.py … entries`):
+
+- piece 258: sixteen `AttachPos` rows, `RData +0x88` 0.765, all `CHAR_ATTACK2` at frames 1, 3, 7, 11, 14, 18, 22
+  and 26, node 0 at (29.13, −9.34, −7.27) and node 1 at (−29.23, −9.66, −7.27) on every one;
+- piece 259: two rows, node 0 at frame 9, (−50.29, 36.08, −19.34), and node 1 at frame 4, (50.54, 36.08, −19.31).
+
+Each node is one point at all its frames, so each is a `launch::GUNS` row keyed by node, as piece 245's are
+(§372.4 of `docs/AI.md`). `fit_bay.py` fits each node's sweep at 361 of 361 headings: 258's with 202 and 513
+lattice points and `dz` −26, 259's with 168 and 367 and `dz` −71 and −70; the centroid is kept. At the facing
+1,431,655,765 (whole degree 120) they give run1477's two `0/15` points and run1468 block 801's two `2/18`
+points, (15843, 16406, −70) and (15657, 16725, −71) (parked 3816a), to the unit.
+
+**The regression the rows exposed, and its predicate.** With the rows in, the word fell 860 → 837: ours killed
+`1/18` (the other Jet Fighter Bomber) on 837 where theirs kills it on 838. run1478 (826..862) prints `1/18`'s
+damage and walks back over run1470–run1476: the two agree at 132 to block 730, theirs takes one 1⅜ tick on 734
+that ours does not (3829a), and ours takes a 3½ splash on 797 that theirs does not. That blow is `0/15`'s round
+of 792 on the Stealth Bomber `1/17`, which dies on 795 on both sides: the round comes down at (15960, 15384), 455
+from `1/18`, and ours' splash took the plane. `Ammo::do_damage@00678060`'s first test (decompile lines 75–81)
+sets `whom`/`ox` (`AmmoData +0x48`/`+0x4c`) to −1 when the target object's `+8 & 1` is clear. The domain
+`check_hit` is handed (line 90) and the one the splash's unit arm compares (`local_10`, lines 146–151, 412) are
+the target type's `+0x218` only while those are set, and `GROUND` otherwise. So a round whose target died lands
+as a ground round: it finds and splashes nothing that flies. run1476's blocks 796–799 hold `1/18` at 205 through
+it. Ours kept the round's `air` from its launch.
+
+**Built**:
+
+- the four `launch::GUNS` rows; tests `launch::tests::the_fighter_bombers_rounds_leave_from_their_wings` (the four
+  dumped points and heights) and `the_original_s_release_agrees_at_every_heading_for_pieces_258_and_259`
+  (`RON_BAY_SWEEPS_3829`, 1,444 headings, the sweeps in `~/ron-data/lab-experiments/2026-11-04-item-3829/sweeps/`);
+- `Sim::land` takes the round's `air` only while its target stands; test
+  `fight::tests::a_round_whose_target_died_splashes_no_plane`.
+
+Mutations (`tools/mutate.py`): `air` kept at landing — `information_melee_first_parting` reads 837 and the unit
+test fails; both of piece 258's rows out — the walk reads 860. A 0.1-tile shift of one 258 row fails nothing.
+
+**The value diff.** `2/18`'s damage reads 193, 215, 237, 238¼ and 239½ on blocks 826, 831, 837, 859 and 860 in
+ours, run1478's to the step, and it dies on 860 on both sides. `1/18` dies on 838 on both, at 238 against
+theirs' 239⅜. **The widening** (801..1110 → 801..1147, the same four blocks): 483 → 301 keys (801 109 → 102,
+901 71 → 3, 1001 173 → 92, 1101 130 → 104), rounds read (50, 5) → (50, 8), 23 parting.
+
+**The word: 897**, ours 8 draws against theirs' 10. At index 1 theirs spends `Ammo::do_damage+0xc59` and `+0xc7e`
+(the puncture pair) where ours spends `Farms::inc_time+0x1ae`: a round lands on nothing in theirs.
+
+**What is not established.** `1/18`'s extra 1⅜ in theirs on block 734 (3829a). Piece 258's other fourteen
+frames read the same two points as frame 1, which the node key assumes. The other air lines' rows (the Eagle
+Fighter `0/14`, the Advanced Fighter, the Stealth Bomber's `1/17`) are not read here.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
