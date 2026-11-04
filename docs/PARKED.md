@@ -13123,13 +13123,26 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   tileset makes `init_map_data` draw again (`available[r % count]`, §4). This reader cannot see the available
   list, and stepping back once is then wrong. No corpus style takes that arm (the measured count is three).
 
-## Parked by the next landing, slot YA — reserved
+## Parked by item 3820, 2026-11-04 — East Indies' mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3820a. The East Indies arms the corpus's two generator runs cannot reach** (`docs/MAPGEN.md` §5, §13;
+  `sim::map_east_indies`). All 202 files and 418 traces are two runs, both with 2 nations on 60×60 at
+  `MAP_SIZE` 2: seed 2726892157, and the fuzz lobby's 2426541702. On them:
+  - **the restart never fires**: both players' islands reach `A` on the first generation. A mutation that
+    skips it fails no trace; `a_stalled_pass_restarts_the_generation` holds it on a hand-built lobby;
+  - the three-player radius `(m/2)·7/8` and the four-player two-draw angle are never taken; they are
+    unit-tested on hand-built lobbies only;
+  - the ring never falls, so the edge margin and the ring's step are unit-tested only, and the passes'
+    `max_dist` from the *first* radius (listing `0069788c`) is held by no test: on the corpus the first
+    radius is the fallen one;
+  - `scale_land_area`'s float path is refused as Great Lakes' is (3815b): 2 nations sit inside every
+    allowance.
+
+  A lobby with three or more nations on East Indies is what would reach them. It names a score only once
+  a later East Indies phase parts on such a lobby.
+- **3820b. Nothing caps the restart.** A lobby whose islands always stall restarts without end, in the
+  original as in the port: a 30×30 search held one generation's draw log past 16 GiB before the budget
+  killed it. No stock map size is that small. The port keeps the original's shape, with no cap.
 
 ## Parked by item 3822, 2026-11-04 — Great Lakes' `place_all` and its tail
 

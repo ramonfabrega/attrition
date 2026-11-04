@@ -326,17 +326,64 @@ as land.
 - Skipping `eliminate_pools` fails nothing, because this run's background
   is one region. Its merge is unit-tested only (3815b).
 
-**East Indies, `MapEastIndies::make_continents@00697540`.**
-- The angle is 1 draw, or 2 with four or more players.
-- The player islands grow on a ring that shrinks on each edge hit. Each
-  grows in two `grow_region` passes, to A/3 and then to A, with
-  `A = Map::scale_land_area@0068b1e0`(250).
-- Any stall restarts the whole generation. That is the 49,611 against
-  GL's 5,568.
-- One more draw sets the further islands' count,
-  `xs/12 − players + 8 + (r & 1)`. They are placed like GL's lakes, without
-  the invert.
-- **Player count changes the mask here**, unlike GS and GL.
+**East Indies, `MapEastIndies::make_continents@00697540`.** The islands
+are *land* regions grown on the wiped water, as GL's lakes are, but never
+inverted, so each island's region number stands in its cells at 7807.
+- `avoid_continent` becomes `max(4, scale_land_area(avoid_continent))`,
+  once. `A = Map::scale_land_area@0068b1e0(250)`; both refuse the float
+  path as GL's does.
+- Each generation runs `World::wipe` and `Regions::clear_all`. `wipe`
+  zeroes the four start arrays' counts (+0x84, +0xa0, +0xbc, +0xd8), so a
+  restart starts them empty. `avoid_modify` is a `Map` field, so it carries
+  across a restart.
+- The angle is one draw under four players: `(r % 4)·0x3fffffff +
+  0x1fffffff`, a quadrant's middle. With four or more it is two, the high
+  half and then the low half, as GS's. The ring's radius is `m/2`, or
+  `(m/2)·7/8` with three or more players, where `m` is the shorter side.
+- Each player's point is `project` about `(xs/2, ys/2)` (ecx and edx at
+  `006977be`, read off the listing) at the angle stepped by `0xffffffff /
+  players`; the first point is a step past the drawn angle. While the
+  point is within `max(avoid_edge) + 4` of any edge (`x ≤ e`, `xs − x ≤ e`,
+  and the same for y), the radius falls by one. It stays fallen for the
+  players after. The point is the start (`add_starting_location`) and
+  opens region `i`. The region record's flags take `|= 2`, which no grower
+  tests, since `grow_valid` and `point` read bit 1 only.
+- Two `grow_region` passes follow: every island to `A/3`, then every
+  island to `A`. Both use `max_dist` equal to half the **first** radius,
+  not the fallen one (`-0x10(%ebp)` at `0069788c` and `006978df`).
+- **A pass that ends short restarts the generation**, angle draws and all
+  (`jne 006979c4` and `jne 00697a71`, both back to `00697590`). Short means
+  `grow_region` returned non-zero with `param_6` 0, which happens on an
+  empty record or on either stall. Nothing caps the restarts: a lobby that
+  always stalls never ends.
+- Then one draw sets the further islands' count,
+  `xs/12 − players + 8 + (r & 1)`. They are placed exactly as GL's lakes
+  are, with the same sizes, spacing, 1,000-miss shrink and hundred-fail
+  stop, grown to `xs`, and numbered on from `players + 1`. Their record
+  flags are 5, 5 and +0xc = 1, which no grower reads. The function ends
+  there, with no `eliminate_pools`, invert or `check_player_land`.
+- **Player count changes the mask here**, unlike GS and GL: it changes the
+  ring's step, the radius and the further islands' count.
+
+**Diff-backed since item 3820** (`sim::map_east_indies::east_indies_make_continents`;
+`rondata::mapgen::tests::east_indies_s_mask_is_the_traced_stream` and
+`…_traced_7807`):
+- **Draw for draw**, site and word, on all 418 East Indies traces. A trace
+  counts as East Indies when its run has a `MAP_STYLE` 18 file, or when its
+  gamelog's name says `eastindies`; run1016's name does not say it. The
+  ported totals are §2's measured **49,611** and the fuzz lobby's
+  **55,533**.
+- The seed, part 2 and part 5 at 7807 agree on all 202 East Indies files
+  carrying both, first try. Two generator runs: seed 2726892157 on 200
+  files and 2426541702 (the fuzz lobby) on 2. Both are 2 nations on 60×60,
+  `MAP_SIZE` 2. Four more files (run21, run23, run24, run28) carry no start
+  grid.
+- **The restart never fires on the corpus**, which kills the booking's
+  reading that restarts made the 49,611. The two players' islands reach
+  `A` on the first generation of both runs. The draws are the ten further
+  islands' growth, each up to 180 cells on the open water, against GL's
+  lakes capped by one another. So the restart, the three-player radius and
+  the four-player angle are unit-tested only (3820a).
 
 The other overrides were only skimmed. `MapWarringStates` alone calls
 `MapFairness::calc_distances@0068a1c0` (float, §11).
@@ -1078,6 +1125,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   generator run (item 3815); `eliminate_pools`' merge, the 1,000-miss
   shrink and `scale_land_area`'s float path are reading-only or
   unit-tested (3815b);
+- §5's East Indies `MapEastIndies::make_continents@00697540`: draw for
+  draw on 418 traces, the
+  49,611 and 55,533, and its seed, part 2 and part 5 at 7807 on 202 files,
+  two generator runs of 2 nations (item 3820); the restart, the
+  three-player radius and the four-player angle are unit-tested only
+  (3820a);
 - §6's passes on Great Sahara at 7835, 7843, 7846 and 7854 on 105 files,
   `fill_fertile`'s `Fractal` and partitions with them, and `find_all`'s
   labels on 494 of 496 start grids (item 3798); the same four on Great
@@ -1122,7 +1175,7 @@ Of the territory's 198 open or layout-only functions under the nine stems
 
 **Reading-only**, each with its falsifier named in its section: every
 per-function formula and predicate in §§4–10. The draw formulas for
-`make_continents` (EI; GL's is reconciled, item 3815), `place_all`, `change_*_base`/`fix_transitions`,
+`make_continents` (GL's and EI's reconciled, items 3815 and 3820), `place_all`, `change_*_base`/`fix_transitions`,
 `place_resources` (reconciled on Great Sahara, item 3805) and `make_rivers` are consistent in kind but not
 reconciled to their measured totals. Also §3's parts 10–13 offsets and
 §11's float classification.
@@ -1144,7 +1197,8 @@ tileset or a base-mask style is what would.
 
 - The draw formulas reconciled to 1,016, 1,824, 231 and 173
   (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7; the
-  5,568 on Great Lakes, §5, item 3815). Each
+  5,568 on Great Lakes, item 3815, and the 49,611 on East Indies, item
+  3820, §5). Each
   needs the grid at its phase, which a port's own phase supplies, checked
   by §3. `GLOG_MAPMAKE` at detail 7–10 would count them in the original.
 - ~~Whether MSXML's `selectSingleNode` honours `FISH ` with its trailing
@@ -1172,7 +1226,8 @@ step is checked by §3 at its own checkpoint before the next begins:
 1. the land/sea mask against every grid (§5, 7807) — **Great Sahara
    built** (item 3776, `sim::mapgen`; the `Mapgen:` line's first phase);
    **Great Lakes built** (item 3815, `sim::map_lakes`; its first phase);
-   East Indies remains;
+   **East Indies built** (item 3820, `sim::map_east_indies`; its first
+   phase);
 2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
    `sim::mapgen`; the `Mapgen:` line's second phase); **Great Lakes
    built** (item 3819, the same passes on its 7807 grid, the water arms'
