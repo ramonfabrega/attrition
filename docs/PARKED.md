@@ -13047,10 +13047,12 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 ## Parked by item 3810, 2026-11-03 — the Main Battle Tank's round leaves from its muzzle
 
-- **3810a. The Recoilless Gun's muzzle, piece 94** (`RECOILGUN`, unit type 144): run1472's packet holds its three
+- ~~**3810a. The Recoilless Gun's muzzle, piece 94** (`RECOILGUN`, unit type 144): run1472's packet holds its three
   non-pivot `AttachPos` rows (node 0; frame 12 of `CHAR_ATTACK1`, 22 of `2`, 15 of `3`; e.g. (−6.54, −18.0,
   15.52)), and `launch::BAYS` has no row, so who=0's `0/19`–`0/21` loose from their squares. `fit_bay.py` on a
-  `get_position.py … sweep 94` per row builds them. Names no score until the word reaches a Recoilless Gun's blow.
+  `get_position.py … sweep 94` per row builds them. Names no score until the word reaches a Recoilless Gun's blow.~~
+  Closed by item 3834 (`docs/GOLDEN.md` §152.13): the word 897 was `0/19`'s round; the three rows are
+  `launch::BAYS` rows, and run1479's three Recoilless rounds leave from them to the unit.
 - ~~**3810b. The Advanced Machine Gun's muzzle, piece 77** (`ADVANCEDMACHINEGUN`, unit type 127; GOLDEN §152.6):
   run1471's `1/25` round of 686 on `2/21` leaves (19726, 14067, 558) in theirs and the unit's (19800, 13944, 449)
   in ours, 5 frames against 6. run1472's packet holds piece 77's `CHAR_ATTACK3` rows (a dozen events, node 0,
@@ -13235,7 +13237,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 ## Parked by item 3827, 2026-11-04 — the MG42's burst leaves from its muzzle
 
-- **3827a. The Recoilless Gun's launches are now on disk** (piece 94, unit type 144; 3810a's rows, GOLDEN
+- ~~**3827a. The Recoilless Gun's launches are now on disk** (piece 94, unit type 144; 3810a's rows, GOLDEN
   §152.11). Three captures print who=0's Recoilless rounds at their first block, each from a muzzle off the
   square: run1471's block 700 (`0/21`: (18149, 15605, 574), `total_time` 3, against ours' (18168, 15528, 497)),
   run1474's block 732 (`0/20`: (18277, 15743, 590), 2) and run1477's blocks 818–821 (`0/20` (18319, 15581, 587)
@@ -13243,7 +13245,8 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   rows would be checked by dumped rounds, not by the sweep alone. Names no score until the word reaches a
   Recoilless blow. The word 860 is a death in theirs, and its round is not yet named. **Not the cause of 860**
   (item 3829, GOLDEN §152.12): the death was the Jet Fighter Bomber `2/18`'s, under the Fighter Bomber `0/15`'s
-  rounds; the hypothesis stays parked with that kill.
+  rounds; the hypothesis stays parked with that kill.~~ Closed by item 3834 (`docs/GOLDEN.md` §152.13): the word
+  897 was the Recoilless Gun `0/19`'s round of 892, and piece 94's rows built it.
 - **3827b. Piece 80's 24 rows that no dumped round checks** (`launch::BAYS`): only `CHAR_ATTACK2` frames 1, 3
   and 5 match run1477's three rounds. The other 24 rest on the sweep (`RON_BAY_SWEEPS_80`, 9,747 headings), as
   3813a's do for piece 77. Names no score.
@@ -13290,13 +13293,14 @@ words and edits nothing here; a refill lands when two remain.
     not see a gate that shrinks. A cell-exact pin needs 3832a's `mark_halfwater`.
   East Indies' shore is the next grid that may separate them.
 
-## Parked by the next landing, slot YJ — reserved
+## Parked by item 3834, 2026-11-04 — the Recoilless Guns loose from their muzzles
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3834a. Piece 94's rows that no walk holds** (`launch::BAYS`; GOLDEN §152.13). Of the three rows, only
+  `CHAR_ATTACK2` frame 22's is held by the walk: taken out, `information_melee_first_parting` reads 897 again.
+  `CHAR_ATTACK3` frame 15's is backed by run1479's `0/20` round of 884, (18319, 15581, 586). Taken out, it fails
+  nothing in the walk, because that round lands on the same frame from either point. It is held only by
+  `launch::tests::run1479_s_recoilless_rounds_leave_from_their_muzzles`. `CHAR_ATTACK1` frame 12's matches no
+  dumped round and rests on the sweep alone (`RON_BAY_SWEEPS_94`, 1,083 headings). Names no score.
 
 ## Parked by the next landing, slot YK — reserved
 
