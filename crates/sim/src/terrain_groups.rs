@@ -1027,10 +1027,9 @@ impl Pass<'_> {
         if c.flags & (0x10 | 0x68 | 0x1800) != 0 || c.blocked != 0 {
             return false;
         }
-        assert!(
-            gr.kind != 7,
-            "place_region_group: sea oil's circle test is not ported"
-        );
+        if gr.kind == 7 && !self.sea_oil_room(gr.rock_space, x, y) {
+            return false;
+        }
         if !self.bounds_ok(gr, x, y, true, true) || self.border(x, y) {
             return false;
         }
@@ -1053,6 +1052,32 @@ impl Pass<'_> {
             }
         }
         true
+    }
+
+    /// `place_region_group`'s sea-oil disc (type 7, listing 0x6a31e0..): the
+    /// circle table from its centre out to `circle_radius[r]`, `r` the
+    /// group's `rock_space` (the world pattern's last argument) when over 3
+    /// and at most 63, else 3. An on-map cell inside `circle_radius[2]` must
+    /// be wet; a wet cell anywhere in the disc must hold no oil. Cells off
+    /// the map pass.
+    fn sea_oil_room(&self, rock_space: i32, x: i32, y: i32) -> bool {
+        let t = circle::table();
+        let r = if rock_space > 3 {
+            rock_space.min(0x3f)
+        } else {
+            3
+        };
+        let inner = t.radius[2] as usize;
+        (0..t.radius[r as usize] as usize).all(|i| {
+            let (u, v) = (x + i32::from(t.x[i]), y + i32::from(t.y[i]));
+            if !self.inb(u, v) {
+                return true;
+            }
+            if self.ocean(u, v) {
+                return self.flags(u, v) & flag::OIL == 0;
+            }
+            i >= inner
+        })
     }
 
     /// `place_region_group`'s growth: one orthogonal step at a time, each
