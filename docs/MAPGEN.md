@@ -586,7 +586,44 @@ marks 3×3 around 0x70 mountains with 0x200, blocks forest tiles, releases
 0x40 regions, re-runs the regions and `eliminate_dead_mount_spots`, marks
 water edges 0x2000, unblocks forest borders, and sets the gather bit 0x8000.
 Its `eliminate_dead_mount_spots` decompiles as a loop that never exits;
-read the listing before porting it.
+the listing says it runs exactly twice (the counter is set to 2 at
+0x84fdd5 and decremented at 0x850009), over one visited set the second
+pass does not clear.
+
+**Ported on Great Sahara** (item 3807, `sim::map_values`, read from the
+decompile and the listings by me; the readings' detail is the module's):
+- The forest pass (y outer) blocks a forest cell's 16 tiles through
+  `set_blocked_at`, takes one `solid` back for each tile not yet 0x30,
+  and marks each 0x38. The border pass (y outer) clears 0x30 and 0x08 on
+  a forest cell's east column or south row when that neighbour has
+  neither forest nor mountain, gives the `solid` back, and unblocks every
+  tile that is not mountain art (`mask & 3 != 2`).
+- `eliminate_dead_mount_spots` visits a mountain cell's 3×3 once a game.
+  A cell with no open orthogonal neighbour (`flags & 0x30 == 0`) has each
+  unblocked tile blocked, and each block rewrites its flags `& 0xffc3 |
+  0x10`. The `land` write there stores back the byte it read.
+- The 0x8000 bit is `World::set_edge_flags@006b0240`'s:
+  `WorldData::has_gather_access(…, −1, 0, 1)` on each placed range's
+  tiles, then the cliffs', then each forest cell's. The ranges are
+  `Mountains::add_mountain`'s list, so `MapGrid` now carries it
+  (`mountains`). No corpus map places a cliff (§13).
+- The released regions' flag (`Region.flags & 0x40`) has no writer found
+  in the export; the port releases none, and 7937 agrees.
+- `compute_val`'s land counts are `LandData::make[4]` (+0x4 of the 0x138
+  `Land` record), `rules.xml`'s `LANDS`, as `TypeIndex` values: `none`
+  reads −1, since 0 contradicts 7945 (a mutation). `get_land(…, 1)` counts
+  a coast, forest, mountain, rock or oil cell as its own land record.
+
+The whole stream from `place_all` through the last value draw is the
+trace's on **all 280 traces**, and seed and parts 2, 5 and 6 agree at 7937
+and 7945 on 105 files each, first run
+(`great_sahara_s_values_are_the_traced_stream_and_7937_and_7945`). All
+fourteen mutations turn it red, the two the booking named among them: a
+mark rule dropped, and the walk transposed. So does
+`eliminate_dead_mount_spots` dropped: on Great Sahara it makes no new
+mountain cell, but its blocks move parts 5 and 6. The water-edge arm, the
+region release, the 0x1000 tile and the water factors are reading-only
+here, because Great Sahara has no water (3807a).
 
 `World::compute_all_vals@006b3790` walks **x outer, y inner**, so
 column-major. Per cell it stores `val` (clamped) and `goods`, a bit byte
@@ -607,7 +644,9 @@ That is as it should be, because `Terrain::init` sets HALFLAND after 7945
 (§10). The order matters to the stream, and to `val` through the draw.
 
 Falsifier: seed and part 5 at 7945; `val` and `goods` in the start dump
-(`Terrain::init` does not write `val`).
+(`Terrain::init` does not write `val`). `compute_val`'s arithmetic, from its
+listing (0x6b03de..0x6b07d1), is integer throughout, with every divide
+truncating; it is ported as read in `sim::map_values::compute_val`.
 
 ## 10. `Terrain::init`: the height grid, half-land, rivers, cliffs
 
@@ -748,6 +787,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   and 7927 on 105 files (item 3805). Slot reuse, `find_avail_regions`' draw,
   patterns 1 and 3, water goods and the `Goods`/`Items` lines are
   reading-only (3805a–c);
+- §9's `adjust_for_blocking` and `compute_all_vals` on Great Sahara: draw
+  for draw on 280 traces through the last value draw, and seed and parts
+  2, 5 and 6 at 7937 and 7945 on 105 files (item 3807). The water edges,
+  the region release, the 0x1000 tile, the water and region-size factors
+  and the cliffs' 0x8000 are reading-only (3807a);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -808,7 +852,8 @@ step is checked by §3 at its own checkpoint before the next begins:
    built** with step 4 (item 3805);
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
    `sim::map_resources`; the `Mapgen:` line's fourth phase);
-5. values (§9, 7945);
+5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
+   `sim::map_values`; the `Mapgen:` line's fifth phase);
 6. `Terrain::init` without heights;
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894);
 8. rivers (5076).
