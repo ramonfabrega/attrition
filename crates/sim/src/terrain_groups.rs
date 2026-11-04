@@ -2003,6 +2003,55 @@ mod tests {
         assert_eq!(r.get(4), 0);
     }
 
+    /// The sea-oil disc's reach is the group's `rock_space` past 3: a wet
+    /// oiled cell on ring 4 refuses at `rock_space` 5 and not at 3, and a
+    /// dry cell refuses only inside `circle_radius[2]`. Great Lakes'
+    /// corpus never decides a start by ring 4 or 5 (`docs/MAPGEN.md` §7),
+    /// so this pins the listing's reading, not a diff.
+    #[test]
+    fn the_sea_oil_disc_reaches_rock_space() {
+        let mut g = MapGrid::new(20, 20);
+        for c in &mut g.cells {
+            c.land = 2;
+        }
+        let mut d = Draws::new(1);
+        let t = circle::table();
+        let ring = |k: usize| {
+            let i = t.radius[k - 1] as usize;
+            (10 + i32::from(t.x[i]), 10 + i32::from(t.y[i]))
+        };
+        let (ox, oy) = ring(4);
+        g.cells[(oy * 20 + ox) as usize].flags |= flag::OIL;
+        let pass = |g: &mut MapGrid, d: &mut Draws, rock: i32| {
+            Pass {
+                g,
+                d,
+                templates: &[],
+                rings: Rings::stock(),
+                help: Help::default(),
+                marks: Vec::new(),
+                tiles: Vec::new(),
+                base_tiles: 4,
+            }
+            .sea_oil_room(rock, 10, 10)
+        };
+        assert!(pass(&mut g, &mut d, 3), "ring 4 is past circle_radius[3]");
+        assert!(
+            !pass(&mut g, &mut d, 5),
+            "ring 4 is inside circle_radius[5]"
+        );
+        g.cells[(oy * 20 + ox) as usize].flags &= !flag::OIL;
+        let (lx, ly) = ring(3);
+        g.cells[(ly * 20 + lx) as usize].land = 0;
+        assert!(pass(&mut g, &mut d, 5), "a dry cell past circle_radius[2]");
+        let (lx, ly) = ring(2);
+        g.cells[(ly * 20 + lx) as usize].land = 0;
+        assert!(
+            !pass(&mut g, &mut d, 5),
+            "a dry cell inside circle_radius[2]"
+        );
+    }
+
     /// `place_region_group`'s walk is a maximal 16-bit Galois LFSR — the
     /// listing's 0x16800 is applied before the shift, so the taps are
     /// [`REGION_TAPS`]: from any nonzero state it visits every state below 2^16 once
