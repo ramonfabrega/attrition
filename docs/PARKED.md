@@ -12971,13 +12971,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XP — reserved
+## Parked by item 3807, 2026-11-03 — values on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3807a. The value branches Great Sahara never takes** (`docs/MAPGEN.md` §9; `sim::map_values`):
+  `adjust_for_blocking`'s water-edge 0x2000 arm, `compute_val`'s water count and its two water factors, the
+  region-size factors (every Great Sahara cell is in one 3,600-cell region), the 0x1000 centre tile, and
+  `Cliffs::set_edge_flags`. Ported from the listings and never run. A style with water reaches them at 7937 and
+  7945 once its mask is ported (3734a). Names no score.
+- **3807b. Which `Region.flags` 0x40 `adjust_for_blocking` releases** (`World::adjust_for_blocking@006b3230`,
+  `Region::release@00680560`): no writer of `Region.flags` (+0x8) was found in the export. `Regions` holds no
+  flags, so the port releases none, and Great Sahara's 7937 agrees. The flag's writer, grepped by raw offset in
+  the listing, settles what a release does on a map with water. Names no score.
 
 ## Parked by the next landing, slot XQ — reserved
 
