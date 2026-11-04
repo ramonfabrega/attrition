@@ -3484,6 +3484,129 @@ mod tests {
         );
     }
 
+    /// **Values on Great Lakes** (`docs/MAPGEN.md` §9, §15 step 5, item
+    /// 3830): from each run's 7927 grid (3826's chain),
+    /// `World::adjust_for_blocking` — seed and parts 2, 5 and 6 at 7937 —
+    /// then `World::compute_all_vals`: the whole stream from `place_all`
+    /// through the last value draw, draw for draw against every Great Lakes
+    /// trace, both lobbies, then seed and parts 2, 5 and 6 at 7945 on every
+    /// file that carries it. The first run of the water arms Great Sahara
+    /// cannot part: open water draws nothing, the water count and its two
+    /// factors, and the region-size factors over the lakes.
+    #[test]
+    fn great_lakes_s_values_are_the_traced_stream_and_7937_and_7945() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let mut runs: std::collections::BTreeMap<GlRun, (&StartGrid, Vec<&StartGrid>)> =
+            Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            runs.entry(run).or_insert((g, Vec::new())).1.push(g);
+            // The team lobby's 3-nation run (no start grid of its own).
+            runs.entry((run.0, 3, run.2, run.3, run.4))
+                .or_insert((g, Vec::new()));
+        }
+        let mut logs = Vec::new();
+        let mut files = [0usize; 2];
+        let mut parted = Vec::new();
+        let mut wrote = Vec::new();
+        for (run, (g0, gs)) in &runs {
+            let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g0, *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            let inputs = resource_inputs(root, "GREATLAKES.xml", run.2, run.3, run.1)
+                .expect("Great Lakes' rows");
+            place_resources(&mut grid, &mut d, &inputs, run.1);
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part(),
+                    );
+                    if ours != (*seed, p[2], p[5], p[6]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5], p[6])
+                        ));
+                        return;
+                    }
+                }
+            };
+            let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
+                .expect("Great Lakes' place_all inputs");
+            let mut regions = regions_of(&grid);
+            adjust_for_blocking(&mut grid, &mut regions, &groups.templates);
+            let edge = grid.tiles.iter().filter(|&&m| m & 0x2000 != 0).count();
+            check(&grid, &d, 0, 7937);
+            let before = d.log.len();
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let dry = grid.cells.iter().filter(|c| !c.is_ocean()).count();
+            assert_eq!(d.log.len() - before, dry, "one draw a non-water cell");
+            // The water arms reach the grid: a dry cell with water in its
+            // rings, and a cell in a region under a sixteenth of the map.
+            let size = grid.xs * grid.ys;
+            let mut region_size = [0i32; 0x80];
+            for c in &grid.cells {
+                region_size[c.region as usize] += 1;
+            }
+            let small = grid
+                .cells
+                .iter()
+                .filter(|c| !c.is_ocean() && region_size[c.region as usize] < size / 16)
+                .count();
+            wrote.push((run.1, dry, edge, small));
+            check(&grid, &d, 1, 7945);
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let names = traces_of("greatlakes");
+        let lakes: Vec<_> = traces
+            .iter()
+            .filter(|(n, _)| names.binary_search(n).is_ok())
+            .collect();
+        let (met, stream) = stream_partings(&lakes, &logs, |s| s);
+        eprintln!(
+            "Great Lakes values: (nations, value draws, 0x2000 tiles, small-region cells) \
+             {wrote:?}; met whole {met:?}; 7937, 7945 on {files:?} files"
+        );
+        assert!(
+            stream.is_empty(),
+            "{} Great Lakes traces part from the port's values:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            met.len() >= 2
+                && lakes.len() >= LAKE_PLACE_ALL_TRACES
+                && files.iter().all(|&n| n >= LAKE_FILES),
+            "the values met {met:?} on {} traces and {files:?} files",
+            lakes.len()
+        );
+    }
+
     /// The Great Lakes traces whose `place_all` segment the stream check
     /// walks: a floor.
     const LAKE_PLACE_ALL_TRACES: usize = 222;
