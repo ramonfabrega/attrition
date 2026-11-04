@@ -2743,37 +2743,54 @@ mod tests {
         assert_eq!(tileset_before(&chances[..1], 2_726_892_157), None);
     }
 
-    /// **Great Lakes' zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
-    /// §6, §15 step 2): from 7807's grid ([`great_lakes_at_7807`]), the same
-    /// four checkpoints as Great Sahara's, on every Great Lakes file that
-    /// carries them — the first diff of `fix_diag_land`, `make_coastlines`'
-    /// `fix_lakes` and thinning, and `find_all`'s sea labels and `region2`,
-    /// which Great Sahara's all-land mask cannot reach. Every checkpoint a
-    /// file carries is checked, in order, and the first that parts is named.
-    #[test]
-    fn great_lakes_s_zero_draw_passes_are_the_traced_7835_to_7854() {
-        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
-            eprintln!("skipped: no kept dumps or no install on this machine");
-            return;
+    /// What [`zero_draw_walk`] found: how many files carried each of 7835,
+    /// 7843, 7846 and 7854, the fertility each run drew, the partings, and
+    /// per run the land and sea regions `find_all` opened at 7835 and 7846.
+    struct ZeroDrawWalk {
+        carried: [usize; 4],
+        tilesets: std::collections::BTreeSet<String>,
+        parted: Vec<String>,
+        regions: std::collections::BTreeMap<GlRun, [(usize, usize); 2]>,
+    }
+
+    /// The land and sea regions `find_all` left: records 1..0x40 and
+    /// 0x41..0x80 with cells.
+    fn region_counts(regions: &Regions) -> (usize, usize) {
+        let open = |r: std::ops::Range<usize>| r.filter(|&k| regions.count[k] > 0).count();
+        (open(1..0x40), open(0x41..0x80))
+    }
+
+    /// **The zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md` §6), on
+    /// every file of `style` that carries 7805 and 7807: from the port's
+    /// 7807 grid (`at_7807`), every checkpoint a file carries is checked,
+    /// in order, and the first that parts is named.
+    fn zero_draw_walk(
+        all: &[(String, StartGrid)],
+        root: &Path,
+        style: i64,
+        style_file: &str,
+        at_7807: impl Fn(GlRun) -> (MapGrid, Draws),
+    ) -> ZeroDrawWalk {
+        let chances = tile_chances(root, style_file).expect("the style's tilesets");
+        let mut walk = ZeroDrawWalk {
+            carried: [0; 4],
+            tilesets: Default::default(),
+            parted: Vec::new(),
+            regions: Default::default(),
         };
-        let root = Path::new(&root);
-        let range = max_range_349(root);
-        let chances = tile_chances(root, "GREATLAKES.xml").expect("GREATLAKES.xml's tilesets");
-        let mut carried = [0usize; 4];
-        let mut tilesets = std::collections::BTreeSet::new();
-        let mut parted = Vec::new();
-        for (name, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+        for (name, g) in all.iter().filter(|(_, g)| g.style == style && g.xs > 0) {
             let (Some(before), Some(_)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
                 continue;
             };
             let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
             let tileset = tileset_before(&chances, before.2).expect("a drawn tileset");
-            let fert = fertility_of(root, "GREATLAKES.xml", &tileset).expect("its fertility");
-            tilesets.insert(format!("{fert:?}"));
+            let fert = fertility_of(root, style_file, &tileset).expect("its fertility");
+            walk.tilesets.insert(format!("{tileset}: {fert:?}"));
             let partitions = fertile_partitions(&fert.baseland);
-            let (mut grid, draws, _) = great_lakes_at_7807(root, run, range);
+            let (mut grid, draws) = at_7807(run);
             let seed = draws.rng.seed;
             let mut regions = Regions::default();
+            let (carried, parted) = (&mut walk.carried, &mut walk.parted);
             let mut check = |grid: &MapGrid, k: usize, line: i64, pass: &str| -> bool {
                 let Some((_, _, s, p)) = g.at("map.cpp", line) else {
                     return true;
@@ -2792,6 +2809,7 @@ mod tests {
             };
             regions.clear_all(&mut grid);
             regions.find_all(&mut grid);
+            let first = region_counts(&regions);
             grid.fix_diag_land();
             if !check(&grid, 0, 7835, "the regions and fix_diag_land") {
                 continue;
@@ -2802,6 +2820,7 @@ mod tests {
             }
             regions.clear_all(&mut grid);
             regions.find_all(&mut grid);
+            walk.regions.insert(run, [first, region_counts(&regions)]);
             if !check(&grid, 2, 7846, "the regions again") {
                 continue;
             }
@@ -2809,16 +2828,41 @@ mod tests {
             grid.fill_fertile(&fractal, &partitions);
             check(&grid, 3, 7854, "fill_fertile");
         }
-        eprintln!("7835, 7843, 7846, 7854: {carried:?} Great Lakes files, tilesets {tilesets:?}");
-        assert!(
-            parted.is_empty(),
-            "{} part:\n{}",
-            parted.len(),
-            say_partings(&parted)
+        walk
+    }
+
+    /// **Great Lakes' zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// §6, §15 step 2): from 7807's grid ([`great_lakes_at_7807`]), the same
+    /// four checkpoints as Great Sahara's, on every Great Lakes file that
+    /// carries them — the first diff of `fix_diag_land`, `make_coastlines`'
+    /// `fix_lakes` and thinning, and `find_all`'s sea labels and `region2`,
+    /// which Great Sahara's all-land mask cannot reach.
+    #[test]
+    fn great_lakes_s_zero_draw_passes_are_the_traced_7835_to_7854() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let walk = zero_draw_walk(all, root, 14, "GREATLAKES.xml", |run| {
+            let (grid, draws, _) = great_lakes_at_7807(root, run, range);
+            (grid, draws)
+        });
+        eprintln!(
+            "7835, 7843, 7846, 7854: {:?} Great Lakes files, tilesets {:?}, regions {:?}",
+            walk.carried, walk.tilesets, walk.regions
         );
         assert!(
-            carried.iter().all(|&n| n >= LAKE_FILES),
-            "the checkpoints reached {carried:?} files"
+            walk.parted.is_empty(),
+            "{} part:\n{}",
+            walk.parted.len(),
+            say_partings(&walk.parted)
+        );
+        assert!(
+            walk.carried.iter().all(|&n| n >= LAKE_FILES),
+            "the checkpoints reached {:?} files",
+            walk.carried
         );
     }
 
@@ -3444,6 +3488,40 @@ mod tests {
     /// walks: a floor.
     const LAKE_PLACE_ALL_TRACES: usize = 222;
 
+    /// **East Indies' zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// §6, §15 step 2): from 7807's grid ([`east_indies_at_7807`]), Great
+    /// Lakes' four checkpoints on every East Indies file that carries them —
+    /// an archipelago, many land regions in one sea, where Great Lakes is
+    /// one land round its lakes.
+    #[test]
+    fn east_indies_s_zero_draw_passes_are_the_traced_7835_to_7854() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let walk = zero_draw_walk(all, root, 18, "EASTINDIES.xml", |run| {
+            let (grid, draws, _) = east_indies_at_7807(root, run, range);
+            (grid, draws)
+        });
+        eprintln!(
+            "7835, 7843, 7846, 7854: {:?} East Indies files, tilesets {:?}, regions {:?}",
+            walk.carried, walk.tilesets, walk.regions
+        );
+        assert!(
+            walk.parted.is_empty(),
+            "{} part:\n{}",
+            walk.parted.len(),
+            say_partings(&walk.parted)
+        );
+        assert!(
+            walk.carried.iter().all(|&n| n >= ISLAND_FILES),
+            "the checkpoints reached {:?} files",
+            walk.carried
+        );
+    }
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
@@ -3456,6 +3534,7 @@ mod tests {
     /// 7861..7870), and the resources (7877..7927).
     const GREAT_LAKES_CHECKED: i64 = 4;
 
-    /// The §15 phases this module checks on East Indies: the mask (7807).
-    const EAST_INDIES_CHECKED: i64 = 1;
+    /// The §15 phases this module checks on East Indies: the mask (7807)
+    /// and the zero-draw passes (7835..7854).
+    const EAST_INDIES_CHECKED: i64 = 2;
 }

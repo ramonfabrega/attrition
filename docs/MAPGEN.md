@@ -504,6 +504,29 @@ files part on two cells when it is zeroed first). The adoption arm is
 equivalent after `clear_all`: a same-wetness neighbour with a label was
 flooded by `find`, and the flood took this cell too.
 
+**The archipelago's arms, diff-backed since item 3825** (checked by
+`rondata::mapgen::tests::east_indies_s_zero_draw_passes_are_the_traced_7835_to_7854`,
+which shares Great Lakes' walk): from East Indies' ported 7807 grid (§5),
+the seed, part 2 and part 5 agree at 7835, 7843, 7846 and 7854 on all
+**202 East Indies files**, both generator runs, on the first run. The
+tilesets §4's draw picks are `jungle` (seed 2726892157) and `sw_desert`
+(the fuzz lobby), both clump 3 and 80/5/5/10. `find_all` opens **12 land
+regions and 3 seas** at 7835 on both runs. At 7846 it opens 12 land
+regions and 1 sea, or 11 and 1 on the fuzz lobby: `fix_lakes` has filled
+the two enclosed seas. Great Lakes opens 1 land region and 6 seas at both.
+So **the land record search** (the first record from 1 whose count is 0)
+has its first diff here. Its mutant, which never advances and puts every
+island in record 1, parts East Indies and fails nothing on Great Lakes.
+Each of 3819's water-arm mutants also parts East Indies: `fix_diag_land`
+skipped, `fix_lakes` at `> 6`, the COAST marking skipped and the thinning
+skipped. So do two more: `find_all`'s scan with x outer (all 202 files at
+7835), and `clear_all` leaving the cells' `region`. Dropping the (−1, ±1)
+corners from `fix_diag_land` fails nothing, as the paragraph above says it
+cannot. No map reaches the clamps (0x3e land, 0x7d sea) or their eviction:
+twelve islands are far from 62. The sea side is unit-tested from the
+reading (`the_sea_clamp_evicts_into_0x40_then_bins`), and the land side
+has no test (parked 3825a).
+
 Falsifier: part 5 at 7835, 7843, 7846 and 7854.
 
 ## 7. Terrain groups: forest, mountains, rock, oil, cliffs
@@ -1166,8 +1189,10 @@ Of the territory's 198 open or layout-only functions under the nine stems
   labels on 494 of 496 start grids (item 3798); the same four on Great
   Lakes' 185 files, with `fix_diag_land`, `fix_lakes`, the COAST marking,
   the thinning, the sea labels and the drawn tileset each held by a mutant
-  (item 3819); the `region2` pass and the adoption arm are unit-tested
-  only, inert at these checkpoints (§6);
+  (item 3819); the same four on East Indies' 202 files, with the land
+  record search, the scan order and the second `clear_all` each held by a
+  mutant there too (item 3825); the `region2` pass and the adoption arm are
+  unit-tested only, inert at these checkpoints (§6);
 - §7's `place_all` on Great Sahara: draw for draw on 280 traces, and seed
   and parts 2, 5 and 6 at 7859 on 105 files (item 3803). The groups' parse
   and the templates come with it. Cliffs, patterns 3 and 4, oil by water
@@ -1266,7 +1291,9 @@ step is checked by §3 at its own checkpoint before the next begins:
 2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
    `sim::mapgen`; the `Mapgen:` line's second phase); **Great Lakes
    built** (item 3819, the same passes on its 7807 grid, the water arms'
-   first diff; its second phase); East Indies remains;
+   first diff; its second phase); **East Indies built** (item 3825, the
+   same passes on its 7807 grid, twelve islands, the land record search's
+   first diff; its second phase);
 3. `place_all` (§7, 7859) — **Great Sahara built** (item 3803,
    `sim::terrain_groups`; the `Mapgen:` line's third phase); 7861–7870's
    `nubify_forest`, `change_*_base` and `fix_transitions` — **Great Sahara

@@ -987,6 +987,34 @@ mod tests {
         assert_eq!(r.sea, 0x41);
     }
 
+    /// The sea clamp (`docs/MAPGEN.md` §6), from the reading alone — no map
+    /// reaches it (parked 3825a): 64 one-cell seas in land, numbered in scan
+    /// order. The 61st lands on 0x7d and takes record 0x40, which never
+    /// counted; from the 62nd no record is smaller, so each goes to 0x7e.
+    #[test]
+    fn the_sea_clamp_evicts_into_0x40_then_bins() {
+        let rows: Vec<String> = (0..8)
+            .map(|y| {
+                if y % 2 == 0 {
+                    "#.".repeat(16)
+                } else {
+                    "##".repeat(16)
+                }
+            })
+            .collect();
+        let rows: Vec<&str> = rows.iter().map(String::as_str).collect();
+        let mut g = sketch(&rows);
+        let mut r = Regions::default();
+        r.clear_all(&mut g);
+        r.find_all(&mut g);
+        let sea = |k: i32| g.cell(2 * (k % 16) + 1, 2 * (k / 16)).region;
+        assert_eq!((sea(0), sea(59)), (0x41, 0x7c));
+        assert_eq!(sea(60), 0x40);
+        assert_eq!((sea(61), sea(62), sea(63)), (0x7e, 0x7e, 0x7e));
+        assert_eq!((r.count[0x40], r.count[0x7d], r.count[0x7e]), (1, 0, 3));
+        assert_eq!(g.cell(0, 0).region, 1);
+    }
+
     /// `region2` is the second pass's, on HALFLAND cells only, and a value
     /// already there survives.
     #[test]
