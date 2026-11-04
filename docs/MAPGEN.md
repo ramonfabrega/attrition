@@ -708,8 +708,9 @@ sync stream. In order:
 - `PathFinder::astar_river@00686690` draws `r % 20 + 10` per orthogonal
   neighbour it expands.
 
-It writes the flag bits 0x1000 (path), 0x2 (bank) and 0x2000 (source),
-clearing 0x2000 and 0x2 after 5076. The count is data-dependent and not
+It writes the flag bits 0x1000 (path), 0x2 (bank) and 0x2000 (source).
+It clears 0x2000 and 0x2 before the sources and again after 5076, and it
+clears 0x1000 after 5014. The count is data-dependent and not
 reconciled; it is 0 on every map but GL.
 
 Two quirks:
@@ -730,8 +731,9 @@ sets: the 2- and 3-nation lobbies), and on run100 for Great Lakes:
 | `Terrain.cpp` 738 | — | 5 | the oil patches |
 | `Terrain.cpp` 749 … 815, `map.cpp` 5012 | — | — | `convert_beach_to_sandy` among them |
 | `map.cpp` 5014 | 5 | 5 | `Map::make_riverbeds@00694530` |
-| `map.cpp` 5076 | — | 5 (and the seed) | the rivers |
+| `map.cpp` 5076 | — | 5 (and the seed) | the rivers; on Great Sahara an empty `RIVERLIST` |
 | `map.cpp` 5116 | 5 | 5 | `make_rivers` clears 0x2000 and 0x2 on every cell |
+| `map.cpp` 5118 | — | | `Regions::find_all` |
 | `Terrain.cpp` 894 | — | 5, 6 | troughs, `adjust_for_mountains`, cliffs |
 | `setup.cpp` 884 | 6 | 6 | after `Terrain::init` |
 
@@ -801,6 +803,50 @@ records), and part 4 at 734 on 511 files, first run
 (`great_sahara_s_terrain_init_without_heights_is_734_to_5012`). Parts
 10–13 are their lists' empty walk, a 4-byte zero count, 262,145; a full
 list's entries are not read.
+
+**`make_rivers` on Great Sahara** (item 3811, `sim::map_rivers`; the
+function's own order, `Map::make_rivers@00692fb0`):
+- 5012; `Map::make_riverbeds@00694530` first clears 0x2000 and 0x2 on every
+  cell, then scans y outer, x inner. A cell becomes a source (0x2000, and
+  appended to `river_beds`) when:
+  - it is forest without 0x1 (`flags & 0x21 == 0x20`);
+  - none of its 16 tiles is mountain (`WorldData::has_mountain_tcoords@006b3050`);
+  - it is not within a start city's radius
+    (`WorldData::start_city_rad_wcoord@006b3850`: the octagonal distance
+    to a `start_city_x/y` entry, times 4, under `CITY_CENTER_RADIUS − 1`);
+  - its 7×7 square (`move[1..49]`) is all on the map, holds no source yet,
+    and holds no cell of land class 2 (`WorldData::get_land@006b4730`,
+    argument 1);
+  - at least `river_thresh` of its eight neighbours have no mountain tile
+    and no rock (0x8).
+
+  A refusal in the square zeroes the count rather than skipping the cell,
+  so a threshold of 0 would take every eligible forest cell. The listing
+  also inlines a land class of the cell (0x6945b1..0x6945f9), but it is
+  reached only when `flags & 0x74` is clear, which the forest bit rules
+  out. `river_thresh` is `default.xml`'s `RIVER_THRESHOLD`, 8;
+  `SAHARA.xml` sets none (`Map::Map@006a06e0`'s default is 30). No draw.
+- 5014; every cell loses 0x1000. With `river_beds` empty, the function
+  returns here and prints nothing more.
+- One `make_riverlist` per `RIVER` element of the style's `RIVERLIST`, or
+  of `default.xml`'s when the style has none. `SAHARA.xml`'s `<RIVERLIST/>`
+  is empty, so **on Great Sahara neither `make_riverlist` nor
+  `PathFinder::astar_river@00686690` runs**: the seed holds from 5012 to
+  5118 on all 105 files, and part 5 does not move at 5076, so no path
+  (0x1000) or bank (0x2) is written. The LFSR over `river_beds` seeded
+  from `World.seed` (+0x7c) is `make_riverlist`'s, not `make_riverbeds`'.
+- 5076; every cell loses 0x2000 and 0x2, which takes the sources back. Part
+  5 at 5116 is 5012's sum again on every file.
+- 5116; `Regions::find_all`, which relabels no cell there (every cell
+  already carries a region).
+- 5118.
+
+The sources: 26 on the 2-nation lobby, 31 on the 3-nation one. Seed and
+parts 2, 5, 6 and 10–13 agree with the port at every record from 5012 to
+5118 on 105 files (525 records), first run
+(`great_sahara_s_rivers_are_5012_to_5118`). `make_riverlist`, `astar_river`
+and the two `RIVER` lists' readers are not built; a non-empty list is
+refused by name (`Unported::RiverList`).
 
 Falsifier: parts 5, 6 and 10–12 at `Terrain.cpp` 720 and 894, and the
 seed at 5076. The height grid itself is in the `DUMP_ALL` start dump
@@ -883,6 +929,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   parts 2, 5, 6 and 10–13 at every record from 734 to 5012 on 105 files
   (item 3809). The flags' arms on a gated cell, the height-free passes'
   water arms and the beach predicate are unit-tested only (3809a);
+- §10's `make_rivers` on Great Sahara: `make_riverbeds`' sources and the
+  three clears, with seed and parts 2, 5, 6 and 10–13 at every record from
+  5012 to 5118 on 105 files (item 3811). The square's water and oil arms,
+  the start-city radius and `find_all`'s relabel are unit-tested only;
+  `make_riverlist` and `astar_river` are not built (3811a);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -952,6 +1003,9 @@ step is checked by §3 at its own checkpoint before the next begins:
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894);
    on Great Sahara no checksum part moves for them, so their only
    falsifier there is the start dump's height grid;
-8. rivers (5076); on Great Sahara height-free (`make_riverbeds` at 5014,
-   the 0x2000/0x2 clear at 5116), so it can be checked there before step
-   7.
+8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
+   `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
+   phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
+   at 5116) and draws nothing, since `SAHARA.xml`'s `RIVERLIST` is empty.
+   `make_riverlist` and `astar_river`, which Great Lakes' 173 draws need,
+   remain.

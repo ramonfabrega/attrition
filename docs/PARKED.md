@@ -13015,13 +13015,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XT — reserved
+## Parked by item 3811, 2026-11-03 — rivers on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3811a. The arms of `Map::make_rivers` that Great Sahara never enters** (`docs/MAPGEN.md` §10;
+  `sim::map_rivers`): `Map::make_riverlist@00693820` (the LFSR over `river_beds` seeded from `World.seed`,
+  its `r % (spread + 1)` draw, the 0x1000 path and 0x2 bank writes, the spline points) and
+  `PathFinder::astar_river@00686690` (`r % 20 + 10` per neighbour) are not built, and a non-empty `RIVERLIST`
+  is refused (`Unported::RiverList`). `GREATLAKES.xml`'s own list enters them (its 173 draws at
+  5076), and so does `default.xml`'s one `RIVER` on a style with no list; `EASTINDIES.xml`'s list is empty like
+  `SAHARA.xml`'s. Great Lakes' mask and steps 2–7 come first. The bank clear
+  at 5076 is not falsifiable without them: one mutant of 23 failed nothing for that reason. `make_riverbeds`'
+  water and oil arms, the start-city radius and `find_all`'s relabel at 5118 are unit-tested only. Names no
+  score.
 
 ## Parked by the next landing, slot XU — reserved
 
