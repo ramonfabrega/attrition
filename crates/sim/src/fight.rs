@@ -2630,7 +2630,7 @@ impl Sim {
             //
             // SEAM: the other arm (a V2's, a nuke's) is [`crate::air::
             // MISSILE_FLIGHT`] with its points not laid, so it does not
-            // re-plan; no capture has a V2 fire on a unit.
+            // re-plan (parked 3806a).
             if self.air_line_is(u, crate::airbase::CRUISEMISSILE) {
                 let (ctl, n) = combat::cruise_control_points(
                     (launch.x, launch.y, sz),

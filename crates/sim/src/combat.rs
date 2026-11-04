@@ -1387,7 +1387,7 @@ pub fn missile_spline(
 /// of 40 tiles over flat ground.
 ///
 /// SEAM: the original's point array grows; this one stops laying at
-/// [`SPLINE_MAX`], a polygon past 12,000, which no capture has flown.
+/// [`SPLINE_MAX`], a polygon past 12,000.
 pub const SPLINE_MAX: usize = 128;
 
 /// **A guided round's flight path** (item 3802, `docs/GOLDEN.md` §152.2):
