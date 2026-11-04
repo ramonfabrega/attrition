@@ -5383,6 +5383,73 @@ mod tests {
         assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
     }
 
+    /// **The two Fighter Bomber lines loose from their wings** (item 3829,
+    /// `docs/GOLDEN.md` §152.12): run1477's Fighter Bomber `0/15` (piece
+    /// 258) at (15096, 15672), angle 1,431,655,765, looses its pair of
+    /// block 822 from (15179, 15597) and (15074, 15782), 26 below its
+    /// figure; run1468's Jet Fighter Bomber `2/18` (piece 259) at (15864,
+    /// 16632), the same angle, looses block 801's from (15657, 16725) and
+    /// (15843, 16406), 71 and 70 below (parked 3816a). Made to fail with
+    /// the rows removed: every round leaves from the figure's point.
+    #[test]
+    fn the_fighter_bombers_rounds_leave_from_their_wings() {
+        let facing = Angle(1_431_655_765);
+        for (piece, at, node, want, dz) in [
+            (258, (15096, 15672), 0, (15179, 15597), -26),
+            (258, (15096, 15672), 1, (15074, 15782), -26),
+            (259, (15864, 16632), 0, (15657, 16725), -71),
+            (259, (15864, 16632), 1, (15843, 16406), -70),
+        ] {
+            let p = launch_point(
+                Pos::new(at.0, at.1),
+                facing,
+                piece,
+                crate::anim::ATTACK2,
+                1,
+                node,
+            );
+            assert_eq!((p.x, p.y), want, "piece {piece} node {node}");
+            assert_eq!(
+                release_dz(piece, crate::anim::ATTACK2, 1, node),
+                Some(dz),
+                "piece {piece} node {node}"
+            );
+        }
+    }
+
+    /// **Pieces 258 and 259 agree with the original at every heading**
+    /// (item 3829): `get_position.py … sweep <piece> <node> 12 <time>` on
+    /// run1472's packet, one file a node. `$RON_BAY_SWEEPS_3829` is the
+    /// directory, outside git
+    /// (`~/ron-data/lab-experiments/2026-11-04-item-3829/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_at_every_heading_for_pieces_258_and_259() {
+        let Ok(dir) = std::env::var("RON_BAY_SWEEPS_3829") else {
+            eprintln!("skipping: set RON_BAY_SWEEPS_3829 (item 3829's oracle, run1472)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (piece, node, time) in [(258, 0, 1), (258, 1, 1), (259, 0, 9), (259, 1, 4)] {
+            let b = bay(piece, crate::anim::ATTACK2, 1, node).expect("a row");
+            let path = format!("{dir}/sweep-{piece}-n{node}-a12-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_3829");
+            for line in table.lines() {
+                let f: Vec<i64> = line
+                    .split_whitespace()
+                    .take(5)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                let (x, y) = b.offset((f[0] + 180) % 360);
+                if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                    off.push(format!("{piece} n{node} deg {}: {x},{y}", f[0]));
+                }
+                rows += 1;
+            }
+        }
+        assert_eq!(rows, 4 * 361, "{dir}");
+        assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+    }
+
     /// **The MG42's burst leaves from its muzzle** (item 3827,
     /// `docs/GOLDEN.md` §152.11): run1477's `0/18` at (17400, 15672),
     /// angle 593,756,160, looses frames 1, 3 and 5 of `CHAR_ATTACK2` on
