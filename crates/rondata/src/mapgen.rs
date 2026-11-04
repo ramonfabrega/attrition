@@ -789,6 +789,40 @@ pub fn sea_map(root: &Path, style_file: &str) -> Option<i32> {
     }
 }
 
+/// **`Map::river_thresh`**, as `Map::init_map_data@0069f250` reads it:
+/// `RIVER_THRESHOLD`'s `value` in the style, else in `default.xml`, else
+/// `Map::Map@006a06e0`'s 30 (`docs/MAPGEN.md` §10). `None` when a file is
+/// missing or a value is not a number.
+pub fn river_thresh(root: &Path, style_file: &str) -> Option<i32> {
+    let mut thresh = sim::map_rivers::RIVER_THRESH_UNSET;
+    for file in ["default.xml", style_file] {
+        let text = std::fs::read_to_string(root.join(format!("mapstyles/{file}"))).ok()?;
+        let doc = roxmltree::Document::parse(&text).ok()?;
+        if let Some(n) = doc
+            .descendants()
+            .find(|n| n.has_tag_name("RIVER_THRESHOLD"))
+        {
+            thresh = n.attribute("value")?.trim().parse().ok()?;
+        }
+    }
+    Some(thresh)
+}
+
+/// **The `RIVER` elements `Map::make_rivers@00692fb0` hands to
+/// `make_riverlist`**: those of the style's `RIVERLIST` when it has one,
+/// even empty, else `default.xml`'s (`docs/MAPGEN.md` §10). `None` when a
+/// file is missing or neither has a `RIVERLIST`.
+pub fn river_list(root: &Path, style_file: &str) -> Option<usize> {
+    for file in [style_file, "default.xml"] {
+        let text = std::fs::read_to_string(root.join(format!("mapstyles/{file}"))).ok()?;
+        let doc = roxmltree::Document::parse(&text).ok()?;
+        if let Some(n) = doc.descendants().find(|n| n.has_tag_name("RIVERLIST")) {
+            return Some(n.children().filter(|c| c.has_tag_name("RIVER")).count());
+        }
+    }
+    None
+}
+
 /// Every stock style's `SEA_MAP` under the install's `mapstyles/`, −1 for
 /// a style without one.
 pub fn sea_maps(root: &Path) -> Option<std::collections::BTreeSet<i32>> {
@@ -816,6 +850,7 @@ mod tests {
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
     use sim::map_resources::place_resources;
+    use sim::map_rivers::make_rivers;
     use sim::map_values::{adjust_for_blocking, compute_all_vals};
     use sim::mapgen::adler_rewrite;
     use sim::mapgen::{
@@ -1979,6 +2014,117 @@ mod tests {
         );
     }
 
+    /// The records `Map::make_rivers` prints: `map.cpp` 5012 through 5118,
+    /// in trace order.
+    fn river_records(g: &StartGrid) -> &[(String, i64, u32, [u32; 16])] {
+        let find = |line: i64| {
+            g.checksums
+                .iter()
+                .position(|(f, l, _, _)| f == "map.cpp" && *l == line)
+        };
+        match (find(5012), find(5118)) {
+            (Some(a), Some(b)) if a <= b => &g.checksums[a..=b],
+            _ => &[],
+        }
+    }
+
+    /// **Rivers on Great Sahara** (`docs/MAPGEN.md` §10, §15 step 8, item
+    /// 3811): from each run's 5012 grid (step 6's), `Map::make_rivers` —
+    /// `make_riverbeds`' sources under `SAHARA.xml`'s threshold, the 0x1000
+    /// clear, `SAHARA.xml`'s empty `RIVERLIST`, the 0x2000/0x2 clear and
+    /// `Regions::find_all` — and seed and parts 2, 5, 6 and 10–13 at every
+    /// record from 5012 to 5118 are ours on every file, the records being
+    /// exactly the five lines the port prints. No draw: the seed holds.
+    #[test]
+    fn great_sahara_s_rivers_are_5012_to_5118() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let sea = sea_map(root, "SAHARA.xml").expect("SAHARA.xml's SEA_MAP");
+        let thresh = river_thresh(root, "SAHARA.xml").expect("RIVER_THRESHOLD");
+        let rivers = river_list(root, "SAHARA.xml").expect("a RIVERLIST");
+        assert_eq!(
+            (thresh, rivers),
+            (8, 0),
+            "default.xml's threshold, SAHARA.xml's empty list"
+        );
+        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let runs = great_sahara_runs(all);
+        let (mut files, mut records) = (0, 0);
+        for &run in runs.keys() {
+            let (mut grid, mut d) = great_sahara_at_7927(run, &fert, &ts, root);
+            let inputs = place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("inputs");
+            let mut regions = regions_of(&grid);
+            adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let (_, _, half) = terrain_init_without_heights(&mut grid, sea)
+                .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            let parts = half.parts().expect("empty half-land lists");
+            let mut regions = regions_of(&grid);
+            let mut ours = Vec::new();
+            let beds = make_rivers(
+                &mut grid,
+                &mut regions,
+                thresh,
+                city_radius,
+                rivers,
+                |l, g| {
+                    ours.push((
+                        l,
+                        (
+                            d.rng.seed,
+                            g.start_part(),
+                            g.cell_part(),
+                            g.tile_part(),
+                            parts,
+                        ),
+                    ))
+                },
+            )
+            .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            eprintln!("{} nations: {} river sources {beds:?}", run.1, beds.len());
+            assert!(
+                !beds.is_empty(),
+                "no source: the original prints 5076 on Great Sahara"
+            );
+            for g in &runs[&run] {
+                let reached = river_records(g);
+                assert!(
+                    !reached.is_empty(),
+                    "a Great Sahara file without 5012..5118"
+                );
+                let lines: Vec<i64> = reached.iter().map(|r| r.1).collect();
+                let printed: Vec<i64> = ours.iter().map(|o| o.0).collect();
+                assert_eq!(lines, printed, "the records make_rivers prints");
+                for ((f, l, seed, p), (_, o)) in reached.iter().zip(&ours) {
+                    assert_eq!(
+                        *o,
+                        (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]),
+                        "(seed, parts 2, 5, 6, 10–13) at {f} {l} on a {}-nation file",
+                        run.1
+                    );
+                    assert_eq!(p[4], reached[0].3[4], "part 4 moved at {f} {l}");
+                    records += 1;
+                }
+                files += 1;
+            }
+        }
+        eprintln!("rivers: GS 5012..5118 on {files} files, {records} records");
+        assert!(
+            files >= MAPGEN_GS_FILES,
+            "5012..5118 reached {files} Great Sahara files"
+        );
+    }
+
     /// The traced files carrying both 7945 and 734, every style: a floor
     /// (511 on 2026-11-03).
     const SEA_MAP_FILES: usize = 511;
@@ -1997,6 +2143,7 @@ mod tests {
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
-    /// `Terrain::init` without heights (734..5012).
-    const GREAT_SAHARA_CHECKED: i64 = 6;
+    /// `Terrain::init` without heights (734..5012), and the rivers
+    /// (5012..5118).
+    const GREAT_SAHARA_CHECKED: i64 = 7;
 }
