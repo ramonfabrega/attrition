@@ -330,15 +330,26 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // on `1/20` flies theirs' 28 frames, so `1/20` stands to 661 as
     // theirs' does. With 901: 480 keys, rounds read (33, 16), 46
     // parting. The word's value diff is run1470's window (§152.4).
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    //
+    // Item 3808 (the word 713, so 701..963: block 601 leaves, blocks
+    // 701, 801 and 901). **480 → 437** keys, rounds read (33, 16) →
+    // (33, 13), 46 → 47 parting. Block 701 holds 118 keys, 801 145 and
+    // 901 174. On 701 the standing families aside, the rows are blows a
+    // frame either side and their tallies: `1/17`, `1/18` and `2/21`
+    // struck on 683, 683 and 686 against 682, 682 and 685; `2/18` on
+    // 675 against 676; `2/22` and `2/23` not yet struck in ours against
+    // 690. The French Jet Fighter `1/14` no longer holds a missing order
+    // on 701 — the lead's rotation (§152.5). The word's value diff is
+    // run1471's window (§152.5).
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 480, "run1468's word window");
-    pin_eq!(w.rounds_read, (33, 16), "the rounds read");
-    pin_eq!(w.rounds.len(), 46, "the rounds that part");
+    pin_eq!(w.firsts.len(), 437, "run1468's word window");
+    pin_eq!(w.rounds_read, (33, 13), "the rounds read");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

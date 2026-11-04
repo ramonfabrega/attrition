@@ -15800,6 +15800,62 @@ spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`: theirs acted.
 unit. The clearance's + 750 and + 1250 arms were read off the listing, and Great Sahara's ground under this round
 takes neither. 3804b's three shooters still leave from the wrong point; none of them caused 648.
 
+## 152.5 A figure's missile lead turns at one degree past it — 676 → 713 (item 3808, run1471)
+
+**The booking.** Frame 676: ours 22 draws against theirs' 23. The draw streams agree through index 12: index 7 is
+the human Eagle Fighter `0/14`'s `fight` roll, and 10–12 are the idles of the three Recoilless Guns `0/19`–`0/21`
+born on 676. `Objects::process_all@0065dce0` walks the players from `(frame + i) % 10`, so theirs' extra roll at
+index 13 belongs to player 1 or 2.
+
+**What the disk could not answer.** run1468's stride prints nothing between 664 and 701, and run1470's window ends
+at 665. run1471 is run1470's line with the window at 660..701 and `DEATHS=1` (`docs/RUNS.md`). It is identical to
+run1468 on all 702 frames.
+
+**The value diff** (run1471, theirs' block `N` against ours' `f(N−1)`). The striker is the French Jet Fighter
+`1/14` (`TI` 295, air) at (12792, 14712). On block 676 theirs holds a new attack on the Russian Jet Fighter `2/14`
+and ours holds no order; on 676 theirs rolls the attack's research, index 13. Ours had no target because the blow
+on `1/14` lands a frame early: theirs' `damage` goes 64 → 86 on block 676, ours' hp 76 → 54 on 675, and theirs'
+retaliation takes `2/14`.
+
+- The blow is `2/14`'s second round on `1/14`, launched at (12591, 16728, −36), landing (12835, 14802, 0).
+- Theirs re-plans it on blocks 665, 669 and 673 to `total_time` 11, 8 and 5; ours re-planned to 10, 8 and 4.
+- The launch spline parts at point 1: theirs (12690.911133, 16773.640625), ours (12692.153, 16772.223).
+- Theirs' middle control point is (13233.875, 17114.279297, −36): 750 out at **121°**. Ours took the sine
+  table's integers at the figure's 120°, about (13242, 17105). `2/14`'s figure reads angle `1431655765` (120°)
+  and pitch 0 on every block 655–664.
+
+**The arm** (`Ammo::init@0067bbf0`, the listing `67cb1f`–`67cd00`):
+
+- The pitch is the figure's single at `GuyData +0x4c`; its index is `cvttss2si(pitch)` folded into `0..360`, a
+  negative `p` reading `359 − (−p mod 360)`.
+- The angle (`+0x18`) goes through `fast_angle_to_degrees` (`pivot::fast_degrees`; its table `(i·45 + 16)/32`
+  matches run1469's packet on all 256 entries). That degree is **negated** and folded the same way, so `d > 0`
+  reads `359 − d`: one past the turn back, and a figure at 120° leads at 121°.
+- Each quaternion is `(s·0.0, s·0.0, s, c)` with the axis's slot set to `s` — x for the pitch, z for the angle —
+  and `(c, s)` from `fast_half_degree_to_cosine@00a29010` and `_sine@00a29110`, tables of `cosf`/`sinf((float)i ·
+  0.5 · 0.017453292)` built before the first frame. They are pinned from run1469's packet (`0xc8d2cc`, `0xc8d2b0`;
+  DECISIONS 16).
+- `Point<float>::rotate@00420b10` is the rotation matrix times `v`. The middle point is `(0, −r, 0)` turned by
+  the pitch, then by the angle, plus the launch's integers, in singles, and it is never truncated.
+
+**Built**: `combat::Lead`, `combat::missile_lead`, `combat::quat_rotate`, `HALF_DEGREE_COS` and
+`HALF_DEGREE_SIN`, all on the software single; `missile_spline` takes `Option<Lead>` and `fight.rs` passes the
+figure's pitch. The tests: `a_figure_s_lead_is_run1471s` (the middle point, block 662's 13 points and block 665's
+re-plan of 11, to the dump's six decimals) and `the_lead_folds_its_degrees`.
+
+**The value diff, after**: ours' `2/14` round on `1/14` re-plans on `f664`, `f668` and `f672` to 11, 8 and 5,
+theirs' blocks 665, 669 and 673. `1/14`'s hp goes 76 → 54 on the same frame as theirs' `damage` 64 → 86 (676),
+one later than before. The stride widening (701..963: block 601 leaves the window) reads 437 keys, rounds read
+(33, 13) and 47 parting. On 701 the standing families aside, the rows are blows a frame either side and their
+tallies (`1/17`, `1/18`, `2/16`, `2/18`, `2/21`–`2/24`), and `1/14` no longer parts there.
+
+**The word: 713**, ours 27 draws against theirs' 28. At index 4 theirs spends `Unit::fight+0x9b0` where ours
+spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56`: theirs acted.
+
+**What is not established**: no capture has a figure with a non-zero pitch fire, so the pitch's fold and its
+quaternion are the listing's alone, as is the negative angle fold below 0 (the test checks the arithmetic, not a
+dump). The land and building arm (`67c437`–`67c469`) still takes the straight line's half way point.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

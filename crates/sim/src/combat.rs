@@ -1310,15 +1310,14 @@ pub fn flight_time(n: i64, d: i64) -> i32 {
 /// line gave 19.
 ///
 /// `lead` is the middle point's offset: a sea or air shooter's is `5 ×
-/// speed` along the figure's angle (`67cb7d`–`67cb9b`; run717's `1/49`
-/// puts it 1,500 out at the launch's height). `None` is the building's
-/// and land unit's arm (`67c437`–`67c469`), whose length and pitch are
-/// a stack local this crate does not carry.
+/// speed` out, turned by the figure's pitch and angle ([`missile_lead`],
+/// item 3808; run717's `1/49` puts it 1,500 out at the launch's height).
+/// `None` is the building's and land unit's arm (`67c437`–`67c469`),
+/// whose length and pitch are a stack local this crate does not carry.
 ///
 /// SEAM: a land shooter's control point is taken on the straight line
-/// (`L` the plain distance); and the figure's pitch (`GuyData +0x4c`,
-/// zero on `1/49`) is not carried. Both reach the count only below
-/// twelve speeds, as do the float rounding of `L` and the sum.
+/// (`L` the plain distance). It reaches the count only below twelve
+/// speeds.
 pub fn missile_flight_time(
     launch: Pos,
     sz: i32,
