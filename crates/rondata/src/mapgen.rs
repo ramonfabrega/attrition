@@ -3876,6 +3876,7 @@ mod tests {
                 .push(name);
         }
         let (mut files, mut vertices, mut beside) = (0, 0, 0);
+        let (mut half_files, mut half_cells) = (0, 0);
         let mut parted = Vec::new();
         for (run, names) in &runs {
             let g0 = &all.iter().find(|(n, _)| n == names[0]).expect("a file").1;
@@ -3887,9 +3888,31 @@ mod tests {
             let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
             let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
             sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+            // The 720 decision: each gated cell's water sub-tiles on these
+            // heights, against the start dump's HALFLAND.
+            let water: Vec<u32> = (0..grid.cells.len() as i32)
+                .map(|i| sim::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs))
+                .collect();
             sim::map_heights::create_doobers(&grid, &mut z);
             sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+            let gate = coord_flags(&grid);
+            let ours_half: Vec<usize> = (0..grid.cells.len())
+                .filter(|&i| gate[i] & coord::GATE != 0 && (1..16).contains(&water[i]))
+                .collect();
             for name in names {
+                let g = &all.iter().find(|(n, _)| n == name).expect("a file").1;
+                if let Some(cells) = &g.cells {
+                    let theirs: Vec<usize> = (0..cells.len())
+                        .filter(|&i| cells[i].flags & 0x100 != 0)
+                        .collect();
+                    assert_eq!(
+                        ours_half, theirs,
+                        "{name}: the gated cells with 1–15 water sub-tiles at 706 are not the \
+                         start dump's HALFLAND"
+                    );
+                    half_files += 1;
+                    half_cells += theirs.len();
+                }
                 let Some(prefix) =
                     crate::testenv::dump(name).and_then(|p| start_prefix(Path::new(&p)))
                 else {
@@ -3966,7 +3989,11 @@ mod tests {
         }
         eprintln!(
             "heights: GL start grids on {files} files, {vertices} vertices off the rivers, \
-             {beside} beside them"
+             {beside} beside them; HALFLAND cell-exact on {half_files} files, {half_cells} cells"
+        );
+        assert!(
+            half_files >= LAKE_FILES && files >= MAPGEN_GL_HEIGHT_FILES,
+            "HALFLAND reached {half_files} Great Lakes files, the heights {files}"
         );
         assert!(
             parted.is_empty(),
@@ -3974,8 +4001,11 @@ mod tests {
             parted.len(),
             parted.join("\n")
         );
-        assert!(files > 0, "no Great Lakes start grid");
     }
+
+    /// The Great Lakes start dumps that print the height grid: a floor
+    /// (45 on 2026-11-04).
+    const MAPGEN_GL_HEIGHT_FILES: usize = 45;
 
     /// The Great Lakes traces whose `place_all` segment the stream check
     /// walks: a floor.

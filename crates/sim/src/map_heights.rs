@@ -670,6 +670,30 @@ pub fn build_coastal_data(g: &MapGrid, coord: &mut [u16], z: &mut [Single], seed
     relax_aquatic_verts(g, &marked, z);
 }
 
+/// `check_and_set_halfland_wcoord`'s threshold (`__real_c1f00000`), −30.
+pub const WATERLINE: Single = Single(0xc1f0_0000);
+
+/// **`Terrain::check_and_set_halfland_wcoord@0084dec0`'s height test**: how
+/// many of cell `(x, y)`'s sixteen sub-tiles have all four corner heights
+/// strictly below −30 (`*p <= -30 && -30 != *p`, 0x84e0a0…), the count
+/// its body keys on — none leaves the cell dry and spreads 0x4, sixteen
+/// turns it `OCEAN` through `mark_halfwater`, and the rest leave it
+/// HALFLAND. The writes themselves are not built here.
+pub fn water_subtiles(g: &MapGrid, z: &[Single], x: i32, y: i32) -> u32 {
+    let stride = VERTS * g.xs + 1;
+    let below = |u: i32, v: i32| WATERLINE.gt(z[(v * stride + u) as usize]);
+    let mut n = 0;
+    for j in 0..VERTS {
+        for i in 0..VERTS {
+            let (u, v) = (VERTS * x + i, VERTS * y + j);
+            if below(u, v) && below(u + 1, v) && below(u, v + 1) && below(u + 1, v + 1) {
+                n += 1;
+            }
+        }
+    }
+    n
+}
+
 /// One mountain template's displacement, `MountainRange::init@008998b0`'s
 /// `tcoord_verts`: a vertex per tile corner of its `TEMPLATE_TEX` whose
 /// alpha is set, as an offset in vertices from the mountain's origin vertex
@@ -896,6 +920,21 @@ pub fn heights(
 mod tests {
     use super::*;
     use crate::mapgen::MapGrid;
+
+    /// `LineState`'s walk: both ends, one tile a step along the longer axis,
+    /// a point for a zero-length line.
+    #[test]
+    fn a_line_walks_its_longer_axis_end_to_end() {
+        assert_eq!(line(3, 3, 3, 3), vec![(3, 3)]);
+        assert_eq!(line(0, 0, 3, 0), vec![(0, 0), (1, 0), (2, 0), (3, 0)]);
+        assert_eq!(line(0, 0, 0, -2), vec![(0, 0), (0, -1), (0, -2)]);
+        assert_eq!(
+            line(0, 0, 4, 2),
+            vec![(0, 0), (1, 1), (2, 1), (3, 2), (4, 2)]
+        );
+        assert_eq!(line(0, 0, 1, 3), vec![(0, 0), (0, 1), (1, 2), (1, 3)]);
+        assert_eq!(line(0, 0, 2, 2), vec![(0, 0), (1, 1), (2, 2)]);
+    }
 
     /// `create_doobers` flattens an oil cell that carries the rock bit,
     /// box and border as `terraform_for_building` draws them, and leaves
