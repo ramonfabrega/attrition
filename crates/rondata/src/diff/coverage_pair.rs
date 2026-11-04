@@ -2007,7 +2007,11 @@ fn run717_s_missiles_fly_their_spline_s_count() {
             if a.cur_time == 1 {
                 launched.push(f - 1);
                 let at = |x: i64, y: i64| sim::world::Pos::new(x as i32, y as i32);
-                let lead = Some((sim::movement::Angle(a.angle as i32), 1500));
+                let lead = Some(sim::combat::Lead {
+                    angle: sim::movement::Angle(a.angle as i32),
+                    pitch: sim::single::Single::ZERO,
+                    r: 1500,
+                });
                 pin_eq!(
                     sim::combat::missile_flight_time(
                         at(a.sx, a.sy),

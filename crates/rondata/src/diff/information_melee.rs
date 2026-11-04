@@ -189,8 +189,22 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // ours spends 22 against 23: at index 13 theirs spends
     // `Unit::fight+0x9b0` where ours spends `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271` — theirs acted.
-    count: 676,
-    sequence: 676,
+    //
+    // Item 3808: **676 → 713**. Theirs' extra roll was the Jet Fighter
+    // `1/14`'s (TI 295) on `2/14`, which it held because `2/14`'s second
+    // guided round struck it on tick 675; ours landed it on 674. That
+    // round's first re-plan counted 10 points against theirs' 11, from a
+    // launch spline whose middle control point ours rotated by the
+    // figure's 120° on the sine table, where theirs turns `(0, −750, 0)`
+    // as floats through two quaternions at `fast_angle_to_degrees`' degree
+    // negated and folded — 121° (`Ammo::init`'s `67cb1f`–`67cd00`,
+    // §152.5). run1471's window (660..701) agrees on that round's spline,
+    // its re-plans (13, 11, 8, 5) and `1/14`'s `damage` 86 on block 676.
+    // On 713 ours spends 27 against 28: at index 4 theirs spends
+    // `Unit::fight+0x9b0` where ours spends `Guy::set_anim+0xf2f <
+    // Unit::set_anim+0x56` — theirs acted.
+    count: 713,
+    sequence: 713,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -225,8 +239,9 @@ fn information_melee_first_parting() {
 /// The word's window on run1468's stride: the block before the word to
 /// 250 frames past it (item 3802: the word 640, so 601..890 — the same
 /// three blocks as 3797's 601..873 and 3800's 601..878; item 3806: the
-/// word 676, so 601..926, which takes block 901 in).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 926);
+/// word 676, so 601..926, which takes block 901 in; item 3808: the word
+/// 713, so 701..963, which lets block 601 go).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 963);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
