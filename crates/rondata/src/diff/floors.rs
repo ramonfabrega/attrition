@@ -369,14 +369,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 5 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 6 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 5 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 4 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 6 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 5 of 8 phases",
             "Mapgen: checksum 496 of 496",
-            "Mapgen: checksum 496 496 \u{b7} GreatSahara 5 of 8 phases",
+            "Mapgen: checksum 496 496 \u{b7} GreatSahara 6 of 8 phases",
         ] {
             assert!(mapgen_verdict(wrong, &MAPGEN).is_err(), "{wrong:?} passed");
         }
