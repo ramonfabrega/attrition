@@ -452,6 +452,288 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 142,
         },
     ),
+    // **Piece 80, the MG42** (`MG42`, unit type 130; item 3827,
+    // `docs/GOLDEN.md` §152.11): run1472's `RON_STATE_FRAME=707` packet on
+    // the third melee's lobby holds the piece's 28 attack `AttachPos` rows
+    // (node 0; eleven on `CHAR_ATTACK1`, seven on `CHAR_ATTACK2`, ten on
+    // `CHAR_ATTACK3`, whose frame 12 is entered twice with the same bits),
+    // `RData +0x88` 1.0, and `fit_bay.py` fits each `get_position.py …
+    // sweep 80 0 <anim> <time>` (40 to 3,260 lattice points, 361 of 361
+    // headings, one `z` a row; the centroid is kept): the muzzle some 145
+    // ahead of the figure and 84 to 103 over it. Without them who=0's
+    // `0/18` loosed its round of 819 on the Anti-Tank Missile `1/22` from
+    // its own square (17400, 15672, 477), and the round, rolling on past
+    // its dead target, stayed over the ground a frame longer than theirs.
+    (
+        80,
+        crate::anim::ATTACK1,
+        3,
+        Bay {
+            right: -7_425,
+            fwd: 147_384,
+            dz: 93,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        9,
+        Bay {
+            right: -16_600,
+            fwd: 145_697,
+            dz: 88,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -16_551,
+            fwd: 144_695,
+            dz: 91,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: -9_573,
+            fwd: 146_738,
+            dz: 90,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        20,
+        Bay {
+            right: 752,
+            fwd: 146_479,
+            dz: 84,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        24,
+        Bay {
+            right: 13_866,
+            fwd: 144_797,
+            dz: 89,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        29,
+        Bay {
+            right: 18_457,
+            fwd: 146_563,
+            dz: 86,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        37,
+        Bay {
+            right: 4_674,
+            fwd: 148_076,
+            dz: 90,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        39,
+        Bay {
+            right: 0,
+            fwd: 147_935,
+            dz: 91,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_376,
+            dz: 88,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK1,
+        47,
+        Bay {
+            right: 0,
+            fwd: 147_224,
+            dz: 88,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: -402,
+            fwd: 146_341,
+            dz: 88,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        3,
+        Bay {
+            right: -2_732,
+            fwd: 145_714,
+            dz: 93,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        5,
+        Bay {
+            right: -5_603,
+            fwd: 144_577,
+            dz: 98,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        8,
+        Bay {
+            right: -7_510,
+            fwd: 145_038,
+            dz: 103,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: -5_569,
+            fwd: 143_666,
+            dz: 103,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        10,
+        Bay {
+            right: -3_051,
+            fwd: 145_130,
+            dz: 103,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 2_021,
+            fwd: 145_012,
+            dz: 103,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        3,
+        Bay {
+            right: 1_011,
+            fwd: 144_798,
+            dz: 91,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        4,
+        Bay {
+            right: 1_830,
+            fwd: 143_956,
+            dz: 92,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 11_993,
+            fwd: 147_443,
+            dz: 85,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        19,
+        Bay {
+            right: 18_422,
+            fwd: 144_413,
+            dz: 88,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        20,
+        Bay {
+            right: 18_428,
+            fwd: 146_106,
+            dz: 85,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        29,
+        Bay {
+            right: 1_830,
+            fwd: 146_325,
+            dz: 90,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        34,
+        Bay {
+            right: 0,
+            fwd: 146_847,
+            dz: 90,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        37,
+        Bay {
+            right: 0,
+            fwd: 145_400,
+            dz: 88,
+        },
+    ),
+    (
+        80,
+        crate::anim::ATTACK3,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_272,
+            dz: 88,
+        },
+    ),
     // **Piece 77, the Advanced Machine Gun** (`ADVANCEDMACHINEGUN`, unit
     // type 127; item 3813, `docs/GOLDEN.md` §152.7): run1472's
     // `RON_STATE_FRAME=707` packet on the third melee's lobby holds the
