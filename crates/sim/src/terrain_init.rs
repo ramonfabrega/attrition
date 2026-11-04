@@ -498,6 +498,19 @@ mod tests {
         assert_eq!(f[at(&g, 3, 1)], 0);
     }
 
+    /// `orthog[0]` is the cell itself: a HALFLAND `OCEAN` cell with no
+    /// HALFLAND neighbour is shallow.
+    #[test]
+    fn a_halfland_ocean_cell_reads_itself() {
+        let mut g = grid(3, 3);
+        cell(&mut g, 1, 1).land = 2;
+        cell(&mut g, 1, 1).flags = 0x100;
+        let mut f = vec![0u16; g.cells.len()];
+        check_and_set_halfland(&mut g, &mut f).expect("nothing unported");
+        assert_eq!(f[at(&g, 1, 1)], coord::SHALLOW);
+        assert_eq!(f.iter().filter(|&&x| x != 0).count(), 1);
+    }
+
     /// Every `BASELAND` cell touching the `OCEAN` one, row by row.
     #[test]
     fn a_beach_cell_is_refused_not_guessed() {
