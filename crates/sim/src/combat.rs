@@ -1312,12 +1312,10 @@ pub fn flight_time(n: i64, d: i64) -> i32 {
 /// `lead` is the middle point's offset: a sea or air shooter's is `5 ×
 /// speed` out, turned by the figure's pitch and angle ([`missile_lead`],
 /// item 3808; run717's `1/49` puts it 1,500 out at the launch's height).
-/// `None` is the building's and land unit's arm (`67c437`–`67c469`),
-/// whose length and pitch are a stack local this crate does not carry.
-///
-/// SEAM: a land shooter's control point is taken on the straight line
-/// (`L` the plain distance). It reaches the count only below twelve
-/// speeds.
+/// A building's and a land unit's lead (`67c437`–`67c469`, item 3816,
+/// `docs/GOLDEN.md` §152.9) is `attack_dist / 2` out at a pitch of 45° on
+/// the ammo's angle. `None` takes the control point on the straight line
+/// (`L` the plain distance), which no shot in `Ammo::init` does now.
 pub fn missile_flight_time(
     launch: Pos,
     sz: i32,
@@ -3047,6 +3045,48 @@ mod tests {
         assert_eq!(second.len(), printed_665.len(), "the re-plan's count");
         for (i, want) in printed_665.iter().enumerate() {
             near(second.point(i), *want, &format!("block 665 point {i}"));
+        }
+    }
+
+    /// **A land shooter's lead is half the distance out, at 45° up** (item
+    /// 3816, GOLDEN §152.9; `Ammo::init@0067bbf0`, `67c437`–`67c469`):
+    /// run1469's French Anti-Aircraft Missile `1/20` (`PROJ_SPEED` 400)
+    /// fires on the Russian `2/18` from (17346, 14755, 639) to (15778,
+    /// 16581, 0), the ammo's angle `−1,688,993,792` (218°). Block 639
+    /// prints the middle control point (16908.123047, 15295.732422,
+    /// 1334.793091) — `r` 984, `attack_dist` over two, rotated at 219° —
+    /// and the eight points; this crate laid the half-way point on the
+    /// straight line, seven points, and freed the round's slot four frames
+    /// early.
+    #[test]
+    fn a_land_shooter_s_lead_is_run1469s() {
+        let s = |m: i64| Single::from_millionths(m).0;
+        let v = |x: i64, y: i64, z: i64| [s(x), s(y), s(z)];
+        let (launch, landing) = (Pos::new(17346, 14755), Pos::new(15778, 16581));
+        let lead = Lead {
+            angle: Angle(-1_688_993_792),
+            pitch: Single::from_bits(0x4234_0000),
+            r: 984,
+        };
+        assert_eq!(
+            missile_lead(launch, 639, lead),
+            v(16_908_123_047, 15_295_732_422, 1_334_793_091),
+            "the middle control point"
+        );
+        let first = missile_spline(launch, 639, landing, 0, Some(lead), 400);
+        let printed_639 = [
+            v(17_346_000_000, 14_755_000_000, 639_000_000),
+            v(17_206_765_625, 14_924_689_453, 796_357_544),
+            v(17_039_275_391, 15_124_767_578, 870_833_984),
+            v(16_843_529_297, 15_355_236_328, 862_429_199),
+            v(16_619_529_297, 15_616_093_750, 771_143_494),
+            v(16_367_274_414, 15_907_338_867, 596_976_746),
+            v(16_086_764_648, 16_228_974_609, 339_928_894),
+            v(15_778_000_000, 16_581_000_000, 0),
+        ];
+        assert_eq!(first.len(), printed_639.len(), "the point count");
+        for (i, want) in printed_639.iter().enumerate() {
+            assert_eq!(first.point(i), *want, "block 639 point {i}");
         }
     }
 

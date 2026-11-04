@@ -172,7 +172,13 @@ draw, `available[r % count]`. Then `Map::make` makes one draw for
 `base_edge = r % 4` when `BASE_EDGE` is −1. That is default.xml's value, and
 none of the three corpus files overrides it.
 
-**1 + 1 + 1 = 3, the measured count** (run11, GL). The same holds for
+**1 + 1 + 1 = 3, the measured count** (run11, GL). The style file's draw
+is therefore the 7805 seed stepped back once, and a reader recovers the
+tileset from it (`rondata::mapgen::tileset_before`): on Great Lakes'
+generator run, 2,332,836,374 gives `r` 16,917 and `r % 100` 17, so
+**`early_autumn`** (CLUMP_FACTOR 2, baseland 40/30/20/10). Its 7854
+agreement backs the choice (§6), and the choice forced to `jungle` parts
+there (item 3819). The same holds for
 SAHARA.xml and EASTINDIES.xml. `Map::init_resources@0069e990`,
 `Map::init_rivers@0069e520` and `TerrainGroups::init_terrain_data@006a6540`
 also run here, and none of them draws.
@@ -481,13 +487,22 @@ named (parked 3798b): a half-land row that was water at 7937 moves an island
 ahead in the scan, and `Terrain::mark_halfwater@0084ece0` writes those
 cells' `region` later.
 
-**What no diff on disk checks** (parked 3798a): `fix_diag_land`,
-`make_coastlines` and `find_all`'s `region2` pass. Great Sahara has no water
-at 7807, so 7835 and 7843 carry none of their writes, and a dropped-corner
-mutant passes the GS check. A start dump's `region2` is a later writer's
-(185 GL files part on two cells when it is zeroed first). Unit tests and
-held mutants stand in. Great Lakes' or East Indies' 7835, 7843 and 7846 are
-what would check them, once those styles' masks exist (§15 step 1).
+**The water arms, diff-backed since item 3819** (checked by
+`rondata::mapgen::tests::great_lakes_s_zero_draw_passes_are_the_traced_7835_to_7854`):
+from Great Lakes' ported 7807 grid (§5), the seed, part 2 and part 5 agree
+at 7835, 7843, 7846 and 7854 on all **185 Great Lakes files**, one
+generator run, on the first run, with the `early_autumn` tileset §4's
+draw picks. Each water arm's mutant parts on that walk: `fix_diag_land`
+skipped and the first sea label moved to 0x42 part at 7835; `fix_lakes`
+at `> 6`, `fix_lakes` skipped, the COAST marking skipped and the thinning
+skipped part at 7843; the tileset forced to `jungle` parts at 7854. Two
+arms stay **unit-tested only**, and neither can part at these
+checkpoints on any map (parked 3819a). The `region2` pass writes nothing
+here, because nothing in `Map::make` sets HALFLAND before `Terrain::init`
+(§10), and a start dump's `region2` belongs to a later writer (185 GL
+files part on two cells when it is zeroed first). The adoption arm is
+equivalent after `clear_all`: a same-wetness neighbour with a label was
+flooded by `find`, and the flood took this cell too.
 
 Falsifier: part 5 at 7835, 7843, 7846 and 7854.
 
@@ -1055,8 +1070,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   (3820a);
 - §6's passes on Great Sahara at 7835, 7843, 7846 and 7854 on 105 files,
   `fill_fertile`'s `Fractal` and partitions with them, and `find_all`'s
-  labels on 494 of 496 start grids (item 3798); `fix_diag_land`,
-  `make_coastlines` and the `region2` pass are unit-tested only (§6);
+  labels on 494 of 496 start grids (item 3798); the same four on Great
+  Lakes' 185 files, with `fix_diag_land`, `fix_lakes`, the COAST marking,
+  the thinning, the sea labels and the drawn tileset each held by a mutant
+  (item 3819); the `region2` pass and the adoption arm are unit-tested
+  only, inert at these checkpoints (§6);
 - §7's `place_all` on Great Sahara: draw for draw on 280 traces, and seed
   and parts 2, 5 and 6 at 7859 on 105 files (item 3803). The groups' parse
   and the templates come with it. Cliffs, patterns 3 and 4, oil by water
@@ -1148,8 +1166,9 @@ step is checked by §3 at its own checkpoint before the next begins:
    **East Indies built** (item 3820, `sim::map_east_indies`; its first
    phase);
 2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
-   `sim::mapgen`; the `Mapgen:` line's second phase); the water passes
-   wait on a mask with water;
+   `sim::mapgen`; the `Mapgen:` line's second phase); **Great Lakes
+   built** (item 3819, the same passes on its 7807 grid, the water arms'
+   first diff; its second phase); East Indies remains;
 3. `place_all` (§7, 7859) — **Great Sahara built** (item 3803,
    `sim::terrain_groups`; the `Mapgen:` line's third phase); 7861–7870's
    `nubify_forest`, `change_*_base` and `fix_transitions` — **Great Sahara

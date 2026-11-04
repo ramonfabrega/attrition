@@ -243,8 +243,23 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // `2/24` reads 44 and the word is 761. On 718 ours spends 14 against
     // 15: at index 6 theirs spends `Unit::close+0xcb6` where ours spends
     // `Farms::inc_time+0x1ae`.
-    count: 718,
-    sequence: 718,
+    //
+    // Item 3816: **718 → 761**. The pool's slots parted on 646, not in
+    // the release points: the Cruise Missile `2/19`'s round took slot 6 in
+    // theirs because the Anti-Aircraft Missile `1/20`'s round on `2/18`
+    // still held slot 2 — run1469's block 639 lays it eight points, run1470
+    // re-plans it to eight on 642 and to three on 646 — where ours laid the
+    // land shooter's middle point half way on the straight line, seven
+    // points, re-planned to five and freed slot 2 by 645. A land shooter's
+    // (and a building's) middle point is `attack_dist / 2` out at 45° up
+    // on the ammo's angle (`Ammo::init`'s `67c437`–`67c469`, §152.9;
+    // block 639's point to the bit). So the V2 takes slot 6 and `0/17`'s
+    // round slot 5, and `2/24` takes 44 on 690 and dies on 718 as theirs'
+    // does. On 761 ours spends 14 against 13: at index 1 ours spends
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823` where theirs spends
+    // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`.
+    count: 761,
+    sequence: 761,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -283,8 +298,9 @@ fn information_melee_first_parting() {
 /// 713, so 701..963, which lets block 601 go; item 3810: the word 724, so
 /// 701..974, the same three blocks; item 3813: the word 755, so 701..1005,
 /// which takes block 1001 in; item 3814: the word 718, so 701..968,
-/// which lets block 1001 go).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 968);
+/// which lets block 1001 go; item 3816: the word 761, so 701..1011, which
+/// takes block 1001 back in).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 1011);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -413,15 +429,28 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // 755 and `2/24` on 721 against 718. The word's value diff is
     // run1471's window: `0/16`'s spline on block 672, its re-plan to 12
     // points on 675, and `2/21`'s `damage` 105 on block 691.
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    //
+    // Item 3816 (the word 761, so 701..1011: block 1001 joins again).
+    // **428 → 469** keys over four blocks, rounds read (33, 14) → (45,
+    // 13), 53 → 55 parting. Block 701 holds 108 keys, 801 52 (174), 901
+    // 164 (146) and 1001 145. `2/24`'s 15 against 44 has left block 701,
+    // and its death and `2/21`'s have left 801: the Anti-Aircraft
+    // Missile `1/20`'s round holds slot 2 to 648 (§152.9), so the V2
+    // lands after `0/17`'s round on 690. `2/18`'s standing `damage_frame`
+    // 646 against 676 on 701 is the next pool parting's (its own round on
+    // `1/18` flies 6 frames against 5 from its square). The word's value
+    // diff is run1469's and run1470's windows: `1/20`'s round of 638,
+    // eight points, re-planned to eight on 642 and three on 646, and
+    // `2/24` at 221 of 265 on 691.
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 428, "run1468's word window");
-    pin_eq!(w.rounds_read, (33, 14), "the rounds read");
-    pin_eq!(w.rounds.len(), 53, "the rounds that part");
+    pin_eq!(w.firsts.len(), 469, "run1468's word window");
+    pin_eq!(w.rounds_read, (45, 13), "the rounds read");
+    pin_eq!(w.rounds.len(), 55, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

@@ -3780,7 +3780,9 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-04 — the sixty-fourth pass's own
 
-(3821) **The drain's arm on the steer row was refused, and the refusal reached nobody** (the sixty-fourth's drain, 2026-11-04): `ccc clear steer --then "<the opener>"` armed at 02:01 −05:00 as the drain's last act, fired at once on the idle row and refused — `the clear on d388900a did not fire: d388900a's prompt box cannot be read (the cursor was … on "[Pasted text #1 +21 lines]"); nothing was typed` — because a person's unsent pasted draft sat in the steer's prompt box, which ccc rightly never submits or deletes; the commander's row then read "steer clear armed; 64th pass starts itself when row idles" for eight hours, until Ramon cleared both rows by hand and asked what had happened. The loop's half is built as a clause (`docs/LOOP.md`, the passes: the drain reads `ccc clear steer --status` a minute after the arm, and a `did not fire` goes to the phone as a permission-shaped block). Candidate, ccc's (Ramon's repo): a refused fire is a banner and a push like a blocked row — `ccc watch` prints `blocked` and `stalled`, and a refused fire is the same shape; and `ccc clear --status` could carry `refused` as a state beside `armed`, so a waiter can poll it. Measured first: how many fires ccc has refused on a draft since 0.1.38 (`ccc clear` with no ref lists the last few).
+(3821) **The drain's arm on the steer row was refused, and the refusal reached nobody** (the sixty-fourth's drain, 2026-11-04): `ccc clear steer --then "<the opener>"` armed at 02:01 −05:00 as the drain's last act, fired at once on the idle row and refused — `the clear on d388900a did not fire: d388900a's prompt box cannot be read (the cursor was … on "[Pasted text #1 +21 lines]"); nothing was typed` — because a person's unsent pasted draft sat in the steer's prompt box, which ccc rightly never submits or deletes; the commander's row then read "steer clear armed; 64th pass starts itself when row idles" for eight hours, until Ramon cleared both rows by hand and asked what had happened. The loop's half is built as a clause (`docs/LOOP.md`, the passes: the drain reads `ccc clear steer --status` a minute after the arm, and a `did not fire` goes to the phone as a permission-shaped block). Candidate, ccc's (Ramon's repo): a refused fire is a banner and a push like a blocked row — `ccc watch` prints `blocked` and `stalled`, and a refused fire is the same shape; and `ccc clear --status` could carry `refused` as a state beside `armed`, so a waiter can poll it. Measured first: how many fires ccc has refused on a draft since 0.1.38 (`ccc clear` with no ref lists the last few). **The second shape** (the sixty-fourth pass's own arms, 2026-11-04): the pass's two `ccc clear commander --then "<the opener>"` arms on the commander's fresh pane were refused too — `prompt box cannot be read … on "──⏵⏵ auto mode on"`, then `typed /clear; the screen never changed` — with no draft in the box, so the sixty-fifth's opener reached the commander as a cross-session message, the steer's one-time deviation (for the pass's record); and the steer's last message asked the drain not to arm `ccc clear steer` at all, which Ramon overruled the same hour: the drain runs the regular arm and its `--status` read, and a `did not fire` goes to him, who re-arms by hand and investigates. Measured first, beside the draft count: whether the status-line text `──⏵⏵ auto mode on` is what ccc's prompt-box reader takes for the cursor line on every fresh pane, or only after a `/clear`.
+
+(3823) **A gate filter `brief.py` accepts can match no test the lane gate runs** (3819's "for the Loop", the sixty-fifth's commander): 3818's refusal lists the workspace's tests, so `map_lakes` and `terrain_groups` — tests in `crates/sim` alone — passed the brief, and 3819's first lane gate exited 2 on them before its guard step because the branch touched no path under `crates/sim/` and `sim_crate_left` left the sim crate to the booking gate; the lane re-gated without them. Candidate: the gate drops (and names) a filter whose every match lives in a crate it left, instead of refusing; or `brief.py` warns that a crate-local filter is moot on a lane that may not touch the crate. Measured first: how many of the tranche's briefs named a sim-only filter for a lane that touched no sim path.
 
 ## Loop, filed 2026-11-03 — the sixty-fourth tranche's
 
@@ -12184,7 +12186,8 @@ one start dump each.
 - **3734b. The zero-draw passes** (§6, 7854): `Regions::find_all`'s labels, `fix_diag_land`,
   `make_coastlines`, `fill_fertile`. ~~Great Sahara's four checkpoints~~ — built by item 3798 (`sim::mapgen`; 105
   files at 7835, 7843, 7846 and 7854, and `find_all` on 494 of 496 start grids); the water passes' diff waits on
-  Great Lakes' and East Indies' masks (3798a). The region labels already have a consumer (`docs/AI.md` §13).
+  Great Lakes' and East Indies' masks (3798a); ~~Great Lakes'~~ — built by item 3819 (185 files at all four).
+  The region labels already have a consumer (`docs/AI.md` §13).
 - **3734c. `TerrainGroups::place_all`, `nubify_forest`, `change_*_base`, `fix_transitions`** (§7,
   7859..7870; 1,016 + 3 + 1,824 draws on GL). The player count enters here, which is the Great Sahara
   2p/3p split.
@@ -12874,13 +12877,15 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 ## Parked by item 3798, 2026-11-03 — map generation's zero-draw passes
 
-- **3798a. Three of the passes no diff on disk checks** (`docs/MAPGEN.md` §6): `Map::fix_diag_land`,
+- ~~**3798a. Three of the passes no diff on disk checks** (`docs/MAPGEN.md` §6): `Map::fix_diag_land`,
   `Map::make_coastlines` with `fix_lakes` and the thinning, and `find_all`'s `region2` pass. Great Sahara is all
   land at 7807, so 7835 and 7843 carry none of their writes; on run1000 the `1..=3` corner mutant passes the
   7835 check. A start dump's `region2` is a later writer's: zeroed before the relabel, 185 Great Lakes files part
   on two cells (`region2` 68, ours 0), and the stale-value rule then keeps the dumped value. Unit tests in
   `sim::mapgen` and three held mutants stand in. What checks them: Great Lakes' or East Indies' 7835, 7843 and
-  7846, which need that style's mask (3734a) first.
+  7846, which need that style's mask (3734a) first.~~ — answered by item 3819 (MAPGEN §6): Great Lakes' 7835,
+  7843, 7846 and 7854 agree on all 185 files, and `fix_diag_land`, `fix_lakes`, the COAST marking and the
+  thinning are each held by a mutant there; the `region2` pass cannot part at these checkpoints (3819a).
 - **3798b. A half-land row reorders `find_all`'s scan on one lobby** (`rondata::mapgen::tests::HALF_LAND_REORDERS`).
   On the fuzz lobby's East Indies (seed 424242, two files), relabelling the start grid swaps land regions 1 and 2
   on 106 cells. (31, 2)..(33, 2) are SANDY with HALFLAND, so they were water at 7937, and their `region` 2 is
@@ -12891,7 +12896,8 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   of `BASE` under the tileset's `BASELAND` in `Data/tilesets.xml`; `TileSet::init@0087b370`'s counter was not read.
   `Fractal::init`'s `flags & 1` path (no wrap column, one more column a level) is ported and never run: the
   tileset fractal passes 0. GS_Desert's 7854 agreement backs both for 4 tiles and clump factor 3; another
-  tileset at 7854 tests them.
+  tileset at 7854 tests them. *Item 3819: `early_autumn` at 7854 on 185 Great Lakes files backs clump factor 2,
+  again with 4 tiles; the `flags & 1` path is still never run.*
 - **3798d. The partitions' float is exact under |f| < 6,420** (`the_partition_float_is_the_integer_quotient`).
   At ±6,420 the single-precision product truncates one below `f·255/100`. The files write percentages, so no
   file reaches it. A mod with a frequency that large would part there.
@@ -13091,21 +13097,30 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   with another size or seed is what would reach them. It names a score only once a later Great Lakes phase
   parts on such a lobby.
 
-## Parked by the next landing, slot XY — reserved
+## Parked by item 3816, 2026-11-04 — a land shooter's missile lead
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3816a. The air shooters' rounds still leave their squares** (GOLDEN §152.9). The Jet Fighter Bomber `2/18`
+  (`TI` 309, air) fires on `1/18` from its square at ground height: ours (15864, 16632, 0), theirs (15843, 16406,
+  −70) and (15657, 16725, −71). Its rounds fly 6 frames against 5, and the pool's next partings follow: slot 7 on
+  block 643 and slot 1 on 649. It also shows as the widening's standing `2/18` `damage_frame` row on block 701,
+  646 against 676. The land Anti-Aircraft Missile `1/20`'s launch parts too: (17400, 14712, 466) against (17346,
+  14755, 639). Its point count happens to agree. Names no score until a word's frame reaches a round of these.
+- **3816b. A land shooter's `r` is pinned only by the given 984** (GOLDEN §152.9). `r` at `dist / 3` fails nothing
+  on the walk, and `combat::tests::a_land_shooter_s_lead_is_run1469s` takes `r` as an input. No dump prints
+  `attack_dist`. A packet's `local_34` at `67c459` would pin the halving to the unit. Names no score.
 
-## Parked by the next landing, slot XZ — reserved
+## Parked by item 3819, 2026-11-04 — Great Lakes' zero-draw passes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3819a. Two `find_all` arms no map-generation checkpoint can part** (`docs/MAPGEN.md` §6). The `region2`
+  pass writes only HALFLAND cells, and nothing in `Map::make` sets 0x100 before `Terrain::init`. So at 7835 and
+  7846 it writes nothing on any map, and its mutant (the pass skipped) fails nothing on Great Lakes' 185 files.
+  The adoption arm (an unlabelled cell takes a same-wetness neighbour's label) is equivalent right after
+  `clear_all`: `find`'s flood has already taken every same-wetness 8-neighbour of a labelled cell, and its mutant
+  fails nothing either. Unit tests stand in for both. What checks them: the 7927 → 7937 pair, once a ported
+  `Terrain::init` (§15 step 6) sets half-land before it; on Great Sahara no cell opens that gate.
+- **3819b. `tileset_before` cannot see the second tileset draw.** A `TILECHANCE` name that is not an available
+  tileset makes `init_map_data` draw again (`available[r % count]`, §4). This reader cannot see the available
+  list, and stepping back once is then wrong. No corpus style takes that arm (the measured count is three).
 
 ## Parked by item 3820, 2026-11-04 — East Indies' mask
 
@@ -13127,3 +13142,51 @@ words and edits nothing here; a refill lands when two remain.
 - **3820b. Nothing caps the restart.** A lobby whose islands always stall restarts without end, in the
   original as in the port: a 30×30 search held one generation's draw log past 16 GiB before the budget
   killed it. No stock map size is that small. The port keeps the original's shape, with no cap.
+
+## Parked by the next landing, slot YB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.

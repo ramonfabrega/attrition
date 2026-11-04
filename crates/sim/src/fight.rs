@@ -2525,14 +2525,11 @@ impl Sim {
         // Accuracy and scatter. A ground shot's accuracy is against the plain
         // distance to the point, and its scatter the land-unit formula unless
         // the point is at sea (`accuracy` flag set by `fight`), which is exact.
-        let acc = match target {
-            None => combat::accuracy(
-                p.to_hit,
-                p.attenuate,
-                vector_dist(target_pos.x - launch.x, target_pos.y - launch.y),
-            ),
-            Some(t) => combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(shooter, t)),
+        let dist = match target {
+            None => vector_dist(target_pos.x - launch.x, target_pos.y - launch.y),
+            Some(t) => self.attack_dist(shooter, t),
         };
+        let acc = combat::accuracy(p.to_hit, p.attenuate, dist);
         let land_unit = matches!(target, Some(Obj::Unit(_))) && matches!(tp.domain, Domain::Land);
         // **A strafing type's round is exact** (`0x67c33a`): a unit
         // shooter with `unit_flags & 0x400000` (flag `w`, the Fighter
@@ -2613,7 +2610,24 @@ impl Sim {
             // degree, through two quaternions, so a figure parked at 120°
             // leads at 121° — run1471's `2/14`, whose second round on
             // `1/14` re-planned to 10 points against theirs' 11.
-            let lead = (p.domain != Domain::Land).then(|| {
+            //
+            // **A land shooter's middle point is half the distance out, at
+            // 45° up** (item 3816, `docs/GOLDEN.md` §152.9;
+            // `Ammo::init@0067bbf0`, `67c437`–`67c469`): a shooter whose
+            // object type's `domain` (`+0x218`) is 0 — a land unit or a
+            // building — takes `r = local_34 / 2`, the distance the
+            // accuracy was read at, truncated toward zero, the pitch the
+            // `45.0` at `0xb69674`, and the ammo's own angle (`+0x2c`), and
+            // joins the air arm's rotation at `67cbaa`. run1469's
+            // Anti-Aircraft Missile `1/20` on `2/18` lays
+            // (16908.123047, 15295.732422, 1334.793091), 984 out at 219°.
+            let lead = Some(if p.domain == Domain::Land {
+                combat::Lead {
+                    angle,
+                    pitch: Single::from_bits(0x4234_0000),
+                    r: dist / 2,
+                }
+            } else {
                 let (angle, pitch) = figure.unwrap_or((angle, Single::ZERO));
                 combat::Lead {
                     angle,
@@ -11898,10 +11912,14 @@ mod tests {
                 0,
                 missile.landing,
                 missile.ez,
-                None,
+                Some(combat::Lead {
+                    angle: missile.angle,
+                    pitch: Single::from_bits(0x4234_0000),
+                    r: sim.attack_dist(Obj::Unit(me), Obj::Unit(foe)) / 2,
+                }),
                 d
             ),
-            "a land shooter's spline, its control point on the line"
+            "a land shooter's spline, half the distance out at 45° up (item 3816)"
         );
     }
 

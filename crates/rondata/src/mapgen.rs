@@ -195,17 +195,60 @@ pub struct Fertility {
 /// own entry, if it has one, is read over it as the second call reads it —
 /// a frequency it leaves out becomes −1, `get_attrib_num`'s default.
 pub fn fertility(root: &Path, style_file: &str) -> Option<Fertility> {
+    let chances = tile_chances(root, style_file)?;
+    let [(only, _)] = &chances[..] else {
+        return None;
+    };
+    fertility_of(root, style_file, only)
+}
+
+/// The style file's `TILECHANCE` list, `(type, chance)` in file order.
+pub fn tile_chances(root: &Path, style_file: &str) -> Option<Vec<(String, i32)>> {
+    let text = std::fs::read_to_string(root.join(format!("mapstyles/{style_file}"))).ok()?;
+    let style = roxmltree::Document::parse(&text).ok()?;
+    style
+        .descendants()
+        .filter(|n| n.has_tag_name("TILECHANCE"))
+        .map(|n| {
+            let chance = n.attribute("chance").and_then(|v| v.trim().parse().ok());
+            Some((n.attribute("type")?.to_string(), chance.unwrap_or(-1)))
+        })
+        .collect()
+}
+
+/// **The style's tileset, recovered from the seed at `map.cpp` 7805**
+/// (`docs/MAPGEN.md` §4): the style file's `init_map_data` draw is the
+/// setup path's second-last before 7805 (`base_edge`'s is the last), so the
+/// word it left is the 7805 seed stepped back once. It takes the first
+/// `TILECHANCE` whose running total is at least `r % T`, `r` the draw's
+/// `Random::get(0, 0xffff)`. `None` when the list has one entry or none (no
+/// draw). It takes the chosen name to be an available tileset: the second
+/// draw an unavailable one makes would put this draw one step further back,
+/// and this reader cannot see the available list (parked 3819b).
+pub fn tileset_before(chances: &[(String, i32)], seed_7805: u32) -> Option<String> {
+    let total: i32 = chances.iter().map(|c| c.1).sum();
+    if chances.len() < 2 || total < 2 {
+        return None;
+    }
+    // The step back: `seed = seed·0x19660d + 0x3c6ef35f`, inverted.
+    let word = seed_7805.wrapping_sub(0x3c6ef35f).wrapping_mul(INV_19660D);
+    let r = ((((word & 0xffff) * 0xffff) >> 16) as i32) % total;
+    let mut run = 0;
+    chances.iter().find_map(|(name, c)| {
+        run += c;
+        (r <= run).then(|| name.clone())
+    })
+}
+
+/// `0x19660d`'s inverse modulo 2³², `game_random`'s step taken backward.
+const INV_19660D: u32 = 0xfee0_58c5;
+
+/// [`Fertility`] for `tileset` under the style `mapstyles/<style_file>`.
+pub fn fertility_of(root: &Path, style_file: &str, tileset: &str) -> Option<Fertility> {
     let read = |rel: &str| std::fs::read_to_string(root.join(rel)).ok();
     let style_text = read(&format!("mapstyles/{style_file}"))?;
     let style = roxmltree::Document::parse(&style_text).ok()?;
-    let chances: Vec<_> = style
-        .descendants()
-        .filter(|n| n.has_tag_name("TILECHANCE"))
-        .collect();
-    let [only] = chances[..] else {
-        return None;
-    };
-    let tileset = only.attribute("type")?.to_string();
+    let tileset = tileset.to_string();
     let sets_text = read("Data/tilesets.xml")?;
     let sets = roxmltree::Document::parse(&sets_text).ok()?;
     let set = sets.descendants().find(|n| {
@@ -2647,6 +2690,123 @@ mod tests {
         );
     }
 
+    /// **The tileset draw, stepped back from 7805** (`docs/MAPGEN.md` §4):
+    /// Great Lakes' generator run leaves 2,726,892,157 at 7805 and
+    /// 87,628,868 at `setup.cpp` 716, three steps before it; the second of
+    /// those three leaves 2,332,836,374, whose `r` is 16,917 and `r % 100`
+    /// 17 — the running total reaches it at `early_autumn`'s 20.
+    #[test]
+    fn the_tileset_is_the_draw_before_base_edge() {
+        let chances: Vec<(String, i32)> = [
+            ("autumn", 10),
+            ("early_autumn", 10),
+            ("late_autumn", 10),
+            ("Dirty_2", 10),
+            ("Dirty", 10),
+            ("Snowy", 10),
+            ("m_steppe", 10),
+            ("m_steppe_2", 5),
+            ("m_steppe_3", 5),
+            ("arctic", 5),
+            ("jungle", 5),
+            ("sw_desert", 5),
+            ("gs_desert", 5),
+        ]
+        .iter()
+        .map(|&(n, c)| (n.to_string(), c))
+        .collect();
+        let mut rng = Rng::new(87_628_868);
+        rng.get(0, 0xffff);
+        rng.get(0, 0xffff);
+        assert_eq!(rng.seed, 2_332_836_374);
+        rng.get(0, 0xffff);
+        assert_eq!(rng.seed, 2_726_892_157);
+        assert_eq!(
+            tileset_before(&chances, 2_726_892_157).as_deref(),
+            Some("early_autumn")
+        );
+        assert_eq!(tileset_before(&chances[..1], 2_726_892_157), None);
+    }
+
+    /// **Great Lakes' zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// §6, §15 step 2): from 7807's grid ([`great_lakes_at_7807`]), the same
+    /// four checkpoints as Great Sahara's, on every Great Lakes file that
+    /// carries them — the first diff of `fix_diag_land`, `make_coastlines`'
+    /// `fix_lakes` and thinning, and `find_all`'s sea labels and `region2`,
+    /// which Great Sahara's all-land mask cannot reach. Every checkpoint a
+    /// file carries is checked, in order, and the first that parts is named.
+    #[test]
+    fn great_lakes_s_zero_draw_passes_are_the_traced_7835_to_7854() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let chances = tile_chances(root, "GREATLAKES.xml").expect("GREATLAKES.xml's tilesets");
+        let mut carried = [0usize; 4];
+        let mut tilesets = std::collections::BTreeSet::new();
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let (Some(before), Some(_)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            let tileset = tileset_before(&chances, before.2).expect("a drawn tileset");
+            let fert = fertility_of(root, "GREATLAKES.xml", &tileset).expect("its fertility");
+            tilesets.insert(format!("{fert:?}"));
+            let partitions = fertile_partitions(&fert.baseland);
+            let (mut grid, draws, _) = great_lakes_at_7807(root, run, range);
+            let seed = draws.rng.seed;
+            let mut regions = Regions::default();
+            let mut check = |grid: &MapGrid, k: usize, line: i64, pass: &str| -> bool {
+                let Some((_, _, s, p)) = g.at("map.cpp", line) else {
+                    return true;
+                };
+                carried[k] += 1;
+                let ours = (seed, grid.start_part(), grid.cell_part());
+                let theirs = (*s, p[2], p[5]);
+                if ours != theirs {
+                    parted.push(format!(
+                        "{name}: {line}, after {pass}: (seed, part 2, part 5) ours {ours:?} \
+                         against theirs {theirs:?}"
+                    ));
+                    return false;
+                }
+                true
+            };
+            regions.clear_all(&mut grid);
+            regions.find_all(&mut grid);
+            grid.fix_diag_land();
+            if !check(&grid, 0, 7835, "the regions and fix_diag_land") {
+                continue;
+            }
+            grid.make_coastlines();
+            if !check(&grid, 1, 7843, "make_coastlines") {
+                continue;
+            }
+            regions.clear_all(&mut grid);
+            regions.find_all(&mut grid);
+            if !check(&grid, 2, 7846, "the regions again") {
+                continue;
+            }
+            let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
+            grid.fill_fertile(&fractal, &partitions);
+            check(&grid, 3, 7854, "fill_fertile");
+        }
+        eprintln!("7835, 7843, 7846, 7854: {carried:?} Great Lakes files, tilesets {tilesets:?}");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            carried.iter().all(|&n| n >= LAKE_FILES),
+            "the checkpoints reached {carried:?} files"
+        );
+    }
+
     /// One East Indies generator run, keyed as [`GlRun`] is.
     type EiRun = GlRun;
 
@@ -2903,8 +3063,9 @@ mod tests {
     /// (5012..5118), and the heights (the start dump's grid).
     const GREAT_SAHARA_CHECKED: i64 = 8;
 
-    /// The §15 phases this module checks on Great Lakes: the mask (7807).
-    const GREAT_LAKES_CHECKED: i64 = 1;
+    /// The §15 phases this module checks on Great Lakes: the mask (7807)
+    /// and the zero-draw passes (7835..7854).
+    const GREAT_LAKES_CHECKED: i64 = 2;
 
     /// The §15 phases this module checks on East Indies: the mask (7807).
     const EAST_INDIES_CHECKED: i64 = 1;
