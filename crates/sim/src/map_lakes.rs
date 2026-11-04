@@ -646,6 +646,32 @@ mod tests {
         }
     }
 
+    /// A pool the lakes enclose is merged into land; the open water
+    /// round them, the larger region, is left. 7807 cannot say this on the
+    /// corpus's one Great Lakes run, whose background is one region.
+    #[test]
+    fn eliminate_pools_keeps_the_largest_water() {
+        let mut grid = MapGrid::new(10, 10);
+        grid.wipe();
+        grid.clear_regions();
+        for y in 3..=7 {
+            for x in 3..=7 {
+                if x == 3 || x == 7 || y == 3 || y == 7 {
+                    grid.cell_mut(x, y).land = 0;
+                }
+            }
+        }
+        eliminate_pools(&mut grid);
+        for y in 0..10 {
+            for x in 0..10 {
+                let inside = (4..=6).contains(&x) && (4..=6).contains(&y);
+                let ring = (3..=7).contains(&x) && (3..=7).contains(&y);
+                let want = if ring || inside { 0 } else { 2 };
+                assert_eq!(grid.cell(x, y).land, want, "({x}, {y})");
+            }
+        }
+    }
+
     #[test]
     fn a_lobby_past_its_allowance_is_refused() {
         assert_eq!(scale_land_area(8, 4, 4), Some(8));
