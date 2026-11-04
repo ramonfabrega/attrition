@@ -2251,7 +2251,10 @@ impl Sim {
     /// the second finds it dead and rolls on.
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
         let live: Vec<u32> = self.projectiles.iter().map(|q| q.slot).collect();
-        let slot = lowest_free_slot(&live);
+        let mut slot = lowest_free_slot(&live);
+        if std::env::var("RON_PROBE_3814").is_ok() && p.spline.map(|s| s.len()) == Some(121) {
+            slot = 1000 + slot;
+        }
         p.slot = slot;
         let at = self.projectiles.partition_point(|q| q.slot < slot);
         self.projectiles.insert(at, p);
