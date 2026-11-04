@@ -651,6 +651,7 @@ impl Pass<'_> {
                 }
             }
         }
+        self.g.mountains.push((x, y, range as usize));
         Some((x, y))
     }
 
@@ -1658,16 +1659,16 @@ pub(crate) fn set_blocked_at(g: &mut MapGrid, tx: i32, ty: i32, on: bool) {
     }
 }
 
-fn tile_at(g: &MapGrid, tx: i32, ty: i32) -> usize {
+pub(crate) fn tile_at(g: &MapGrid, tx: i32, ty: i32) -> usize {
     (ty * 4 * g.xs + tx) as usize
 }
 
-fn tile_inb(g: &MapGrid, tx: i32, ty: i32) -> bool {
+pub(crate) fn tile_inb(g: &MapGrid, tx: i32, ty: i32) -> bool {
     let (w, h) = g.tile_dims();
     tx >= 0 && ty >= 0 && tx < w && ty < h
 }
 
-fn owner(g: &mut MapGrid, tx: i32, ty: i32) -> &mut crate::mapgen::WCell {
+pub(crate) fn owner(g: &mut MapGrid, tx: i32, ty: i32) -> &mut crate::mapgen::WCell {
     let i = ((ty >> 2) * g.xs + (tx >> 2)) as usize;
     &mut g.cells[i]
 }

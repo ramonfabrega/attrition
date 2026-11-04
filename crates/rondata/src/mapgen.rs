@@ -691,11 +691,12 @@ pub fn place_all_inputs(
 }
 
 /// The draws of `Map::make` in a draw-site trace from `place_all` on: from
-/// the first `Mountains::randomize_mountains` draw to the last before the
-/// first `World::compute_val@006b0350` draw (`docs/MAPGEN.md` §2: `place_all`,
-/// its tail at 7861..7870 and `place_resources`, with nothing drawing
-/// between them). Reads only that far. `None` for a file that is not a
-/// trace, or whose setup path never reaches `compute_all_vals`.
+/// the first `Mountains::randomize_mountains` draw through the last
+/// `World::compute_val@006b0350` draw of `compute_all_vals` (`docs/MAPGEN.md`
+/// §2: `place_all`, its tail at 7861..7870, `place_resources` and the
+/// values, with nothing drawing between them). Reads only that far. `None`
+/// for a file that is not a trace, or whose setup path never reaches
+/// `compute_all_vals`.
 pub fn make_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
     use crate::trace::{IMAGE_BASE, RVA_GAME_RANDOM};
     use std::io::Read;
@@ -713,7 +714,8 @@ pub fn make_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
             2 => return Ok(None),
             1 | 3 if norm(word(&rec, 8)) == IMAGE_BASE + RVA_GAME_RANDOM => {
                 let site = norm(word(&rec, 4));
-                if (0x006b_0350..0x006b_07f0).contains(&site) && !out.is_empty() {
+                let val = (0x006b_0350..0x006b_07f0).contains(&site);
+                if !val && out.last().is_some_and(|&(s, _)| COMPUTE_VAL.contains(&s)) {
                     return Ok(Some(out));
                 }
                 if !out.is_empty() || (0x0089_ca70..0x0089_cb50).contains(&site) {
@@ -723,7 +725,55 @@ pub fn make_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
             _ => {}
         }
     }
-    Ok(None)
+    Ok(out
+        .last()
+        .is_some_and(|&(s, _)| COMPUTE_VAL.contains(&s))
+        .then_some(out))
+}
+
+/// `World::compute_val@006b0350`'s extent: the values' draw site.
+const COMPUTE_VAL: std::ops::Range<u32> = 0x006b_0350..0x006b_07f0;
+
+/// A [`make_draws`] segment up to the values: through `place_resources`, to
+/// the first `World::compute_val` draw.
+pub fn resources_part(seg: &[SetupDraw]) -> &[SetupDraw] {
+    let end = seg
+        .iter()
+        .position(|&(s, _)| COMPUTE_VAL.contains(&s))
+        .unwrap_or(seg.len());
+    &seg[..end]
+}
+
+/// **`LandData::make`** of each `Land` record (`docs/MAPGEN.md` §9):
+/// `rules.xml`'s `LANDS`, in file order, each `MAKE` slot's `type` as its
+/// `TypeIndex` — `Food` 0, `Timber` 1, `Wealth` 2, `Knowledge` 3, `Metal` 4,
+/// `Oil` 5 (the `enums/TypeIndex.txt` values) and `none` `TYPE_NONE` (−1).
+/// `None` for a land with other than four slots, or a type outside these.
+pub fn land_makes(root: &Path) -> Option<sim::map_values::LandMakes> {
+    let text = std::fs::read_to_string(root.join("Data/rules.xml")).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let lands = doc.descendants().find(|n| n.has_tag_name("LANDS"))?;
+    lands
+        .children()
+        .filter(|n| n.has_tag_name("LAND"))
+        .map(|land| {
+            let slots: Vec<i32> = land
+                .children()
+                .filter(|n| n.has_tag_name("MAKE"))
+                .map(|m| match m.attribute("type")?.trim() {
+                    "Food" => Some(0),
+                    "Timber" => Some(1),
+                    "Wealth" => Some(2),
+                    "Knowledge" => Some(3),
+                    "Metal" => Some(4),
+                    "Oil" => Some(5),
+                    "none" => Some(-1),
+                    _ => None,
+                })
+                .collect::<Option<_>>()?;
+            slots.try_into().ok()
+        })
+        .collect()
 }
 
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
@@ -742,6 +792,7 @@ mod tests {
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
     use sim::map_resources::place_resources;
+    use sim::map_values::{adjust_for_blocking, compute_all_vals};
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
@@ -1617,7 +1668,7 @@ mod tests {
             logs.push((run, d.log));
         }
         let sahara = sahara_traces(traces);
-        let (met, parted) = stream_partings(&sahara, &logs, |s| s);
+        let (met, parted) = stream_partings(&sahara, &logs, resources_part);
         assert!(
             parted.is_empty(),
             "{} Great Sahara traces part from the port's resources (met whole: {met:?}):\n{}",
@@ -1632,6 +1683,126 @@ mod tests {
         eprintln!(
             "resources: placed {placed:?}; traces met whole {met:?}; 7877, 7880, 7927 on {files:?} files"
         );
+        assert!(
+            files.iter().all(|&n| n > 0),
+            "a checkpoint reached no file: {files:?}"
+        );
+    }
+
+    /// One run's grid and stream through `place_resources` (7927), the chain
+    /// the tests above pin.
+    fn great_sahara_at_7927(
+        run: GsRun,
+        fert: &Fertility,
+        ts: &TilesetGroups,
+        root: &Path,
+    ) -> (MapGrid, Draws) {
+        let (mut grid, mut d) = great_sahara_at_7859(run, fert, root);
+        nubify_forest(&mut grid, &mut d);
+        change_bases(&mut grid, &mut d, ts);
+        let inputs = resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
+        place_resources(&mut grid, &mut d, &inputs, run.1);
+        (grid, d)
+    }
+
+    /// The region records as the labelling leaves them: each label's cell
+    /// count, and the sea counter at its highest label. `adjust_for_blocking`
+    /// re-runs `find_all` on these; on Great Sahara, with no region
+    /// released and every cell labelled, it writes nothing.
+    fn regions_of(grid: &MapGrid) -> Regions {
+        let mut r = Regions::default();
+        for c in &grid.cells {
+            r.count[c.region as usize] += 1;
+            if c.region >= 0x40 {
+                r.sea = r.sea.max(c.region);
+            }
+        }
+        r
+    }
+
+    /// **Values on Great Sahara** (`docs/MAPGEN.md` §9, §15 step 5, item
+    /// 3807): from each run's 7927 grid, `World::adjust_for_blocking` — seed
+    /// and parts 2, 5 and 6 at 7937 — then `World::compute_all_vals`: the
+    /// whole stream from `place_all` through the last value draw, draw for
+    /// draw against every Great Sahara trace, one draw a cell, and seed and
+    /// parts 2, 5 and 6 at 7945 on every file that carries it.
+    #[test]
+    fn great_sahara_s_values_are_the_traced_stream_and_7937_and_7945() {
+        let (Some(all), Some(traces)) = (archive(), make_traces()) else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        assert_eq!(
+            makes[..2],
+            [[3, 0, -1, -1], [-1; 4]],
+            "Land makes Knowledge and Food, Sandy nothing"
+        );
+        let runs = great_sahara_runs(all);
+        let mut logs = Vec::new();
+        let mut files = [0; 2];
+        for &run in runs.keys() {
+            let (mut grid, mut d) = great_sahara_at_7927(run, &fert, &ts, root);
+            let inputs = place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("inputs");
+            let mut regions = regions_of(&grid);
+            let was = grid.clone();
+            adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+            // What 7937 checks: every kind of write reaches the grid.
+            let cells = |bit: u16| grid.cells.iter().filter(|c| c.flags & bit != 0).count();
+            let tiles = |bit: u16| grid.tiles.iter().filter(|&&m| m & bit != 0).count();
+            let changed = (0..grid.cells.len())
+                .filter(|&i| grid.cells[i].flags & 0x10 != was.cells[i].flags & 0x10)
+                .count();
+            let wrote = [cells(0x200), tiles(0x8000), tiles(0x38), changed];
+            eprintln!(
+                "{} nations: 0x200 cells, 0x8000 and 0x38 tiles, dead spots {wrote:?}",
+                run.1
+            );
+            assert!(
+                wrote[..3].iter().all(|&n| n > 0),
+                "a mark wrote nothing: {wrote:?}"
+            );
+            files[0] += at_checkpoint(&runs, &run, 7937, &grid, &d);
+            let before = d.log.len();
+            compute_all_vals(&mut grid, &mut d, &makes);
+            assert_eq!(
+                d.log.len() - before,
+                grid.cells.iter().filter(|c| !c.is_ocean()).count(),
+                "one draw a non-water cell"
+            );
+            let vals: std::collections::BTreeSet<u8> = grid.cells.iter().map(|c| c.val).collect();
+            let goods: std::collections::BTreeSet<u8> =
+                grid.cells.iter().map(|c| c.goods).collect();
+            eprintln!(
+                "{} nations: vals {}..={}, goods {goods:x?}",
+                run.1,
+                vals.first().unwrap(),
+                vals.last().unwrap()
+            );
+            files[1] += at_checkpoint(&runs, &run, 7945, &grid, &d);
+            logs.push((run, d.log));
+        }
+        let sahara = sahara_traces(traces);
+        let (met, parted) = stream_partings(&sahara, &logs, |s| s);
+        assert!(
+            parted.is_empty(),
+            "{} Great Sahara traces part from the port's values (met whole: {met:?}):\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            met.len() >= 2 && sahara.len() >= PLACE_ALL_TRACES,
+            "the values' stream met {met:?} nation counts on {} traces",
+            sahara.len()
+        );
+        eprintln!("values: traces met whole {met:?}; 7937, 7945 on {files:?} files");
         assert!(
             files.iter().all(|&n| n > 0),
             "a checkpoint reached no file: {files:?}"
