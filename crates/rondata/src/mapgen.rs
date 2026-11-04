@@ -222,8 +222,9 @@ pub fn tile_chances(root: &Path, style_file: &str) -> Option<Vec<(String, i32)>>
 /// word it left is the 7805 seed stepped back once. It takes the first
 /// `TILECHANCE` whose running total is at least `r % T`, `r` the draw's
 /// `Random::get(0, 0xffff)`. `None` when the list has one entry or none (no
-/// draw), or when the choice would need the second draw — a name that is
-/// not an available tileset, which this reader cannot see.
+/// draw). It takes the chosen name to be an available tileset: the second
+/// draw an unavailable one makes would put this draw one step further back,
+/// and this reader cannot see the available list (parked 3819b).
 pub fn tileset_before(chances: &[(String, i32)], seed_7805: u32) -> Option<String> {
     let total: i32 = chances.iter().map(|c| c.1).sum();
     if chances.len() < 2 || total < 2 {
