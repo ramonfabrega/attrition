@@ -141,6 +141,7 @@ pub mod holdings;
 pub mod land_plane_view;
 pub mod launch;
 pub mod location;
+pub mod map_east_indies;
 pub mod map_heights;
 pub mod map_lakes;
 pub mod map_resources;

@@ -80,21 +80,31 @@ pub struct LakeMap {
 /// `region_flags` is 0 on every corpus style, so the adjacency masks
 /// (+0x24) `point` would keep are never written, and every record shares
 /// flag bit 1 with none.
-struct Lakes {
-    points: Vec<Vec<(i32, i32)>>,
+pub(crate) struct Lakes {
+    pub(crate) points: Vec<Vec<(i32, i32)>>,
+}
+
+impl Lakes {
+    /// `Regions::clear_all@00680060`'s reset of the 64 records: every
+    /// coordinate list empty.
+    pub(crate) fn cleared() -> Self {
+        Lakes {
+            points: vec![Vec::new(); 64],
+        }
+    }
 }
 
 /// One run of the growers: the grid, the regions, the stream and the map.
-struct Grower<'a> {
-    grid: &'a mut MapGrid,
-    lakes: Lakes,
-    draws: &'a mut Draws,
-    style: LakeStyle,
-    map: LakeMap,
+pub(crate) struct Grower<'a> {
+    pub(crate) grid: &'a mut MapGrid,
+    pub(crate) lakes: Lakes,
+    pub(crate) draws: &'a mut Draws,
+    pub(crate) style: LakeStyle,
+    pub(crate) map: LakeMap,
 }
 
 impl Grower<'_> {
-    fn size(&self) -> i32 {
+    pub(crate) fn size(&self) -> i32 {
         self.grid.xs * self.grid.ys
     }
 
@@ -115,7 +125,7 @@ impl Grower<'_> {
     /// nudges `avoid_modify` by `r % 3 − 1` (clamped to 0..4) and tests the
     /// edge `(base_edge + slot) & 3` at `avoid_edge + avoid_modify`; the
     /// first edge that fails ends the walk.
-    fn grow_valid(&mut self, id: i32, x: i32, y: i32) -> bool {
+    pub(crate) fn grow_valid(&mut self, id: i32, x: i32, y: i32) -> bool {
         let ac = self.map.avoid_continent;
         if ac > 0x40 {
             return false;
@@ -245,7 +255,7 @@ impl Grower<'_> {
     /// **`Map::make_region@0069d3f0`**: record `id` opens on `(x, y)` —
     /// the cell's `land` 0 and `region` `id`, the record's first coordinate,
     /// count 1.
-    fn make_region(&mut self, id: i32, x: i32, y: i32) {
+    pub(crate) fn make_region(&mut self, id: i32, x: i32, y: i32) {
         let c = self.grid.cell_mut(x, y);
         c.land = 0;
         c.land_sub = 0;
@@ -277,7 +287,12 @@ impl Grower<'_> {
     /// The pick takes a cross of points while the region is within 64 of
     /// `size`, a `large_stamp` before that. A step that grows nothing
     /// counts: `8·size` of them in all, or `size` in a row, ends it.
-    fn grow_region(&mut self, id: i32, size: i32, max_dist: i32) {
+    ///
+    /// True when it ends short of `size` — an empty region, or either
+    /// stall — which is the original's non-zero return with `param_6` 0:
+    /// the record's count, or 1 for an empty one. Great Lakes drops it;
+    /// East Indies restarts on it.
+    pub(crate) fn grow_region(&mut self, id: i32, size: i32, max_dist: i32) -> bool {
         let t = circle::table();
         let mut k: i32 = 2;
         if size / 4 > 12 {
@@ -294,7 +309,7 @@ impl Grower<'_> {
         let ku = k as usize;
         let count = |g: &Self| g.lakes.points[id as usize].len() as i32;
         if count(self) == 0 {
-            return;
+            return true;
         }
         let (ox, oy) = self.lakes.points[id as usize][0];
         let (cx, cy) = (ox, oy);
@@ -362,23 +377,24 @@ impl Grower<'_> {
             if count(self) == c0 {
                 idle += 1;
                 if idle >= size * 8 {
-                    return;
+                    return true;
                 }
                 stalled += 1;
                 if stalled >= size {
-                    return;
+                    return true;
                 }
             } else {
                 stalled = 0;
             }
         }
+        false
     }
 
     /// **`Map::land_dist@0069d970`** with its edge flag set: 0 on a cell
     /// that is not water, else the first ring round it that holds a cell off
     /// the grid, a HALFLAND cell or a cell that is not water (0x41 past
     /// ring 0x40).
-    fn land_dist(&self, x: i32, y: i32) -> i32 {
+    pub(crate) fn land_dist(&self, x: i32, y: i32) -> i32 {
         if !self.grid.cell(x, y).is_ocean() {
             return 0;
         }
@@ -400,14 +416,14 @@ impl Grower<'_> {
 /// at or under the map size's allowance the value is returned as given;
 /// past it the original divides in floats, which no corpus lobby reaches,
 /// so this refuses.
-fn scale_land_area(v: i32, players: i32, allowance: i32) -> Option<i32> {
+pub(crate) fn scale_land_area(v: i32, players: i32, allowance: i32) -> Option<i32> {
     (players == 0 || players <= allowance).then_some(v)
 }
 
 /// The integer square root `make_continents` takes of a lake's spacing
 /// term: Newton's iteration from `n / 2`, stopping when it no longer falls;
 /// `n` itself for `n ≤ 1`.
-fn isqrt(n: i32) -> i32 {
+pub(crate) fn isqrt(n: i32) -> i32 {
     if n <= 1 {
         return n;
     }
@@ -503,9 +519,7 @@ pub fn great_lakes_make_continents(
     grid.clear_regions();
     let mut g = Grower {
         grid,
-        lakes: Lakes {
-            points: vec![Vec::new(); 64],
-        },
+        lakes: Lakes::cleared(),
         draws,
         style,
         map: LakeMap {
@@ -557,7 +571,7 @@ pub fn great_lakes_make_continents(
             let id = last_id + 1;
             if g.grow_valid(id, x, y) {
                 g.make_region(id, x, y);
-                g.grow_region(id, lake, xs);
+                let _ = g.grow_region(id, lake, xs);
                 last_id = id;
                 left -= 1;
                 fails = 0;
