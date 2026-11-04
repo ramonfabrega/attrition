@@ -371,7 +371,7 @@ pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (2501, 2601);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
-pub(crate) fn information_melee_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn information_melee_closing_window() -> Option<harness::tests::Widened> {
     crate::diff::setup::with_staged_script(melee_script(), || {
         harness::tests::widen_on_siblings_with_rounds(
             &[MELEE_START],
@@ -394,7 +394,7 @@ pub(crate) fn information_melee_word_window() -> Option<harness::tests::Widened>
 #[test]
 fn information_melee_run1468_s_word_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = information_melee_word_window() else {
+    let Some(w) = information_melee_closing_window() else {
         return;
     };
     if std::env::var("RON_FIRSTS").is_ok() {
@@ -616,4 +616,57 @@ fn information_melee_s_leaders_are_compared_on_every_seat() {
         ],
         "the keys that part, by seat"
     );
+}
+
+/// **The melee's closing state** (item 3836): run1468's closing block, the
+/// whole map's units, walked from run1467's start with the script staged.
+#[test]
+fn information_melee_run1468_s_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(MELEE_LONG.0), dump(MELEE_START), trace(MELEE_LONG.1))
+    else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let Some(e) = crate::diff::setup::with_staged_script(melee_script(), || {
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(path);
+        let start_text = crate::capture::read(start);
+        let log = Log::parse(&text);
+        let start_log = Log::parse(&start_text);
+        let mut init = log.initial().unwrap();
+        let sibling = start_log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sibling]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let fin = log
+            .final_state()
+            .or_else(|| log.frame_states().pop())
+            .expect("closing whole-map state");
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        eprintln!(
+            "Information melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+            e.frame,
+            e.compared,
+            e.counts(),
+            e.torn,
+            e.off,
+            e.unlinked,
+            e.extra
+        );
+        Some(e)
+    }) else {
+        return;
+    };
+    pin_eq!(e.frame, 2601, "the closing block");
+    // Item 3836, the game whole: 151 units compared, and one extra — the
+    // V2 Rocket `0/16`, which ours holds and theirs' closing dump prints in
+    // no record (parked 3836c; `docs/GOLDEN.md` §152.14).
+    pin_eq!(e.compared, 151, "units compared");
+    pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![(0, 16)], "the closing extras");
 }

@@ -16387,8 +16387,9 @@ against 14 (parked 3836b, standing since 701..801). 2601 holds the human's citiz
 one-step order where theirs' are idle (§149's 3788b shape). The bombs' values are three parks: their launch
 from the square (3829b, 3836d), the target forgotten at the death (3836a) and the recycled slot's `accuracy`.
 The closing dump's leaders (`information_melee_s_leaders_are_compared_on_every_seat`, now with 2601) part on
-three who=0 keys, `active`, `control` and `num_units[263]`, ours 15/15/1 against 14/14/0. Theirs' V2 Rocket
-`0/16` is in no 2601 record (parked 3836c).
+three who=0 keys, `active`, `control` and `num_units[263]`, ours 15/15/1 against 14/14/0. The closing state
+(`information_melee_run1468_s_closing_state`) compares 151 units with one count off and one extra, `(0, 16)`:
+theirs' V2 Rocket `0/16` is in no 2601 record (parked 3836c).
 
 **What is not established.**
 
