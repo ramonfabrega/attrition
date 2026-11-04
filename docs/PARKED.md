@@ -12997,13 +12997,15 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   local this crate does not carry, and it still takes the straight line's half way point (`missile_flight_time`'s
   SEAM). It reaches the count only below twelve speeds. Names no score.
 
-## Parked by the next landing, slot XR — reserved
+## Parked by item 3809, 2026-11-03 — `Terrain::init` without heights on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3809a. The arms of `Terrain::init`'s span that Great Sahara never enters** (`docs/MAPGEN.md` §10;
+  `sim::terrain_init`): the `CoordInfo` flags on a `NONE`, 0x4, HALFLAND, 0x400 or `OCEAN` cell,
+  `check_and_set_halfland`'s tile mark, `check_and_set_coastal` and its 0x80 tail are built and unit-tested
+  only; the region relabel of a `BASELAND` cell above region 0x40, `convert_beach_to_sandy`'s write
+  (`spot_update_land`, whose `Terrain::verify_land@0084d8a0` is not read) and the 782 → 815 pass over the
+  `Terrain` list at +0x6460 are refused or unread. A style with water reaches them at 720 and 815 once its mask
+  and step 7 are ported. Names no score.
 
 ## Parked by the next landing, slot XS — reserved
 

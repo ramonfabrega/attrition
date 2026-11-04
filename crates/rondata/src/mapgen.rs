@@ -776,6 +776,30 @@ pub fn land_makes(root: &Path) -> Option<sim::map_values::LandMakes> {
         .collect()
 }
 
+/// **`Map::sea_map`**, as `Map::init_map_data@0069f250` reads it: the
+/// style's `MAP/SEA_MAP` `value`, −1 (`Map::Map@006a06e0`'s) when the
+/// style has none (`docs/MAPGEN.md` §10). `None` when the file is missing
+/// or the value is not a number.
+pub fn sea_map(root: &Path, style_file: &str) -> Option<i32> {
+    let text = std::fs::read_to_string(root.join(format!("mapstyles/{style_file}"))).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    match doc.descendants().find(|n| n.has_tag_name("SEA_MAP")) {
+        Some(n) => n.attribute("value")?.trim().parse().ok(),
+        None => Some(-1),
+    }
+}
+
+/// Every stock style's `SEA_MAP` under the install's `mapstyles/`, −1 for
+/// a style without one.
+pub fn sea_maps(root: &Path) -> Option<std::collections::BTreeSet<i32>> {
+    std::fs::read_dir(root.join("mapstyles"))
+        .ok()?
+        .filter_map(|e| e.ok()?.file_name().into_string().ok())
+        .filter(|n| n.ends_with(".xml"))
+        .map(|n| sea_map(root, &n))
+        .collect()
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// `TerrainGroups::nubify_forest` draw.
 pub fn place_all_part(seg: &[SetupDraw]) -> &[SetupDraw] {
@@ -793,10 +817,14 @@ mod tests {
     use sim::combat::Rng;
     use sim::map_resources::place_resources;
     use sim::map_values::{adjust_for_blocking, compute_all_vals};
+    use sim::mapgen::adler_rewrite;
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
     use sim::terrain_groups::{Draws, change_bases, nubify_forest, place_all};
+    use sim::terrain_init::{
+        PART4_LEN, PART4_SEA_MAP_AT, WORLD_SEA_MAP_BEFORE, coord, terrain_init_without_heights,
+    };
     use std::sync::OnceLock;
 
     /// Every kept dump's [`StartGrid`], read once for the tests below: the
@@ -1809,6 +1837,155 @@ mod tests {
         );
     }
 
+    /// `Map::make`'s tail on every traced file: part 4 at `setup.cpp` 734 is
+    /// part 4 at 7945 with `sea_map` rewritten from −1 to one stock style's
+    /// `SEA_MAP`, and nothing else moved; the files checked.
+    fn sea_map_steps(
+        all: &[(String, StartGrid)],
+        styles: &std::collections::BTreeSet<i32>,
+    ) -> usize {
+        let mut files = 0;
+        for (name, g) in all {
+            let (Some(before), Some(after)) = (g.at("map.cpp", 7945), g.at("setup.cpp", 734))
+            else {
+                continue;
+            };
+            let to = |v: i32| {
+                adler_rewrite(
+                    before.3[4],
+                    PART4_LEN,
+                    PART4_SEA_MAP_AT,
+                    &WORLD_SEA_MAP_BEFORE.to_le_bytes(),
+                    &v.to_le_bytes(),
+                )
+            };
+            assert!(
+                styles.iter().any(|&v| to(v) == after.3[4]),
+                "{name}: part 4 at 734 ({:#x}) is no `SEA_MAP` write over 7945's ({:#x})",
+                after.3[4],
+                before.3[4]
+            );
+            files += 1;
+        }
+        files
+    }
+
+    /// The records `Terrain::init` without heights reaches, after
+    /// `Map::make`: `setup.cpp` 734 through `map.cpp` 5012, in trace order.
+    fn terrain_init_records(g: &StartGrid) -> &[(String, i64, u32, [u32; 16])] {
+        let from = g
+            .checksums
+            .iter()
+            .position(|(f, l, _, _)| f == "setup.cpp" && *l == 734);
+        let to = g
+            .checksums
+            .iter()
+            .position(|(f, l, _, _)| f == "map.cpp" && *l == 5012);
+        match (from, to) {
+            (Some(a), Some(b)) if a <= b => &g.checksums[a..=b],
+            _ => &[],
+        }
+    }
+
+    /// **`Terrain::init` without heights on Great Sahara** (`docs/MAPGEN.md`
+    /// §10, §15 step 6, item 3809): from each run's 7945 grid, `Map::make`'s
+    /// `sea_map` write — part 4 at 734, on every traced file of every style
+    /// as one stock `SEA_MAP`, and on Great Sahara as `SAHARA.xml`'s — then
+    /// `generate_land_lists`' flags, `check_and_set_halfland`'s height-free
+    /// passes and `convert_beach_to_sandy`. No cell opens the half-land
+    /// gate, so no height is read; and seed and parts 2, 5, 6 and 10–13 at
+    /// every record from 734 to 5012 are ours on every file.
+    #[test]
+    fn great_sahara_s_terrain_init_without_heights_is_734_to_5012() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let styles = sea_maps(root).expect("the stock styles' SEA_MAP");
+        let stepped = sea_map_steps(all, &styles);
+        assert!(stepped >= SEA_MAP_FILES, "734 checked on {stepped} files");
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let sea = sea_map(root, "SAHARA.xml").expect("SAHARA.xml's SEA_MAP");
+        assert_eq!(sea, 0, "Great Sahara's SEA_MAP");
+        let runs = great_sahara_runs(all);
+        let (mut files, mut records) = (0, 0);
+        for &run in runs.keys() {
+            let (mut grid, mut d) = great_sahara_at_7927(run, &fert, &ts, root);
+            let inputs = place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("inputs");
+            let mut regions = regions_of(&grid);
+            adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let (sea_map, coord, half) = terrain_init_without_heights(&mut grid, sea)
+                .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            let count = |bit: u16| coord.iter().filter(|&&f| f & bit != 0).count();
+            eprintln!(
+                "{} nations: CoordInfo 0x20 {} cells, gated (0x84) {}",
+                run.1,
+                count(coord::COASTAL),
+                count(coord::GATE)
+            );
+            let parts = half.parts().expect("empty half-land lists");
+            for g in &runs[&run] {
+                let (Some(before), Some(after)) = (g.at("map.cpp", 7945), g.at("setup.cpp", 734))
+                else {
+                    continue;
+                };
+                assert_eq!(
+                    adler_rewrite(
+                        before.3[4],
+                        PART4_LEN,
+                        PART4_SEA_MAP_AT,
+                        &WORLD_SEA_MAP_BEFORE.to_le_bytes(),
+                        &sea_map.to_le_bytes()
+                    ),
+                    after.3[4],
+                    "part 4 at 734 on a {}-nation file",
+                    run.1
+                );
+                let reached = terrain_init_records(g);
+                assert!(!reached.is_empty(), "a file with 734 and no 5012");
+                for (f, l, seed, p) in reached {
+                    assert_eq!(
+                        (
+                            d.rng.seed,
+                            grid.start_part(),
+                            grid.cell_part(),
+                            grid.tile_part(),
+                            parts
+                        ),
+                        (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]),
+                        "(seed, parts 2, 5, 6, 10–13) at {f} {l} on a {}-nation file",
+                        run.1
+                    );
+                    assert_eq!(p[4], after.3[4], "part 4 moved after 734, at {f} {l}");
+                    records += 1;
+                }
+                files += 1;
+            }
+        }
+        eprintln!(
+            "terrain init: 734 on {stepped} files; GS 734..5012 on {files} files, {records} records"
+        );
+        assert!(
+            files >= MAPGEN_GS_FILES,
+            "734..5012 reached {files} Great Sahara files"
+        );
+    }
+
+    /// The traced files carrying both 7945 and 734, every style: a floor
+    /// (511 on 2026-11-03).
+    const SEA_MAP_FILES: usize = 511;
+
+    /// The Great Sahara files carrying both 7945 and 734: a floor.
+    const MAPGEN_GS_FILES: usize = 105;
+
     /// The start grids whose half-land reorders `find_all`'s scan: the fuzz
     /// lobby's East Indies (seed 424242), 106 cells of land regions 1 and 2
     /// swapped from (31, 2).
@@ -1819,6 +1996,7 @@ mod tests {
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
-    /// 7861..7870), the resources (7927) and the values (7937, 7945).
-    const GREAT_SAHARA_CHECKED: i64 = 5;
+    /// 7861..7870), the resources (7927), the values (7937, 7945) and
+    /// `Terrain::init` without heights (734..5012).
+    const GREAT_SAHARA_CHECKED: i64 = 6;
 }

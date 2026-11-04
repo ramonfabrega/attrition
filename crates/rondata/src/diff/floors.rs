@@ -76,8 +76,11 @@ pub const MAPGEN: Mapgen = Mapgen {
         // draw before `compute_all_vals`, and at 7927 on 105 files; 4 → 5
         // by item 3807: `adjust_for_blocking` (7937) and `compute_all_vals`,
         // draw for draw on 280 traces through the last value draw, and at
-        // 7937 and 7945 on 105 files.
-        ported: 5,
+        // 7937 and 7945 on 105 files; 5 → 6 by item 3809: `Terrain::init`
+        // without heights — `Map::make`'s `sea_map` (part 4 at 734 on every
+        // traced file), and no cell opening the half-land gate — at every
+        // record from 734 to 5012 on 105 files.
+        ported: 6,
         phases: 8,
     }],
 };
@@ -366,14 +369,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 5 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 6 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 5 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 4 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 6 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 5 of 8 phases",
             "Mapgen: checksum 496 of 496",
-            "Mapgen: checksum 496 496 \u{b7} GreatSahara 5 of 8 phases",
+            "Mapgen: checksum 496 496 \u{b7} GreatSahara 6 of 8 phases",
         ] {
             assert!(mapgen_verdict(wrong, &MAPGEN).is_err(), "{wrong:?} passed");
         }
