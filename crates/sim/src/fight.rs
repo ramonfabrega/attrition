@@ -2654,10 +2654,8 @@ impl Sim {
                 spline = Some(path);
                 i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
             } else {
-                let path = combat::Spline::nuke(
-                    (launch.x, launch.y, sz),
-                    (landing.x, landing.y, ez),
-                );
+                let path =
+                    combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez));
                 spline = Some(path);
                 i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
             }
