@@ -34189,3 +34189,28 @@ SHA-256 `1f8d1db50182a3f2d34c8a7e2bc4ea7eb59aa4cee5c2d867648ca16ac6c5740b`.
 227 and 228 on blocks 730, 733, 734, 735, 740 and 743, the same steps ours takes, and `myhits` 245. So on 755 it
 holds 17 hit points and dies (`DEATH_OBJS` `first_frame 755` on block 756), and ours, 47 short since 690, holds 64.
 The 47 is the V2 `0/16`'s round, which re-plans and lands on 690 in run1471's window (§152.8).
+
+## run1476 — the third melee: the word's window 755..800 under `RON_COLLIDE_PROBE` (2026-11-04, item 3824, `att-3824`)
+
+`docs/GOLDEN.md` §152.10. **What the disk could not answer**: run1474's window ends at block 756 and run1468's stride
+prints nothing between 701 and 801. So whether theirs' Anti-Tank Missile `2/22` stepped, turned or was refused on
+761, when its guard's move landed, and what the step's collision sweep named were on no record. run1474's line
+(`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`,
+`STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345, `--ffwd-minute 3`), with `--log-window 755 800`,
+detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`, `--callwin 758 765`, `--end-frame 801` and
+`--tracer-def RON_COLLIDE_PROBE`. No packet.
+- Pool lane 1. Launched 12:28:14, exited 12:28:45 (31.7 s launch to exit). `success`: 802 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 802 of 802 identical. Not filed: the window's gamelog and trace
+  stay in the run's directory. `df -g ~` read 116 GiB free before it.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1476/map-7/gamelog.txt`, 14,173,488 bytes,
+SHA-256 `5179e6aa1bbe9fd837424b98564241397fcc26c25d50695267b5522945c17945`.
+
+Trace `~/ron-golden/run1476/map-7/rontrace.log`, 9,975,936 bytes,
+SHA-256 `da15496f9155fb756369a161e939298b25bc3a41e70557e04199f87faad8cee4`.
+
+**What it holds**: `2/22`'s guard move on block 761 (`timer` 269), and its first step on 761 to (18280, 16083),
+block 762, then (18264, 16073) on 763. The probe's sweep for that step (`report.py … calls 761`) hits cell
+(379, 336), `will_be_corner` 7. The dead Main Battle Tank `2/21`, the one candidate `is_here`, gets no `is_corner`,
+and `detect_unit_collision` returns 0: a group-mate's wreck, soft.
