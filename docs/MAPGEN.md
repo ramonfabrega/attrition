@@ -1248,9 +1248,63 @@ every vertex. Three writes reach a height there, in this order:
 `build_coastal_data`, the troughs and the cliffs move no vertex there.
 **All 47 Great Sahara start dumps that print the grid agree on every
 vertex**: 2,729,807 vertices, 25 distinct grids on the two generated
-ones (`great_sahara_s_heights_are_the_start_dump_s_grid`). The shore
-blend, `smooth_tcoord`, `build_coastal_data` and the slope test are
-refused by name (`Unported::Coast`, `Unported::Slope`).
+ones (`great_sahara_s_heights_are_the_start_dump_s_grid`). The slope
+test is refused by name (`Unported::Slope`).
+
+**The heights on Great Lakes, through 706** (item 3835,
+`sim::map_heights`, each read off the listing):
+- **The shore blend.** `find_closest_coordinfo@0086a260(x, y, 4)` searches
+  ring by ring round the vertex's cell (`radius[]` 1, 9, 25, 49: the cell,
+  then `move[1..9]`, `[9..25]`, `[25..49]`) for a `CoordInfo` 0x20 cell,
+  and stops two rings past the first ring that finds one. It keeps the
+  strictly smallest `(vx·192 − x·192)² + (vy·192 − y·192)²` over each
+  found cell's 5×5 vertices, and answers `sqrtf(best) · oo_WCoordSize`
+  (`0x3aaaaaab`), or −1.0 when nothing is in reach. When `d ≥ 0`,
+  `determine_land_height_color` answers `0.25·(d·h) + ((d·0.05·7.5·192 +
+  land_height)·(4 − d))·0.25` (0x86c2ff–0x86c35a), and lists the vertex
+  when x and y are both under `4·xs`.
+- **`smooth_tcoord@0086c3a0`**, over that list in order, twice when x or y
+  is odd. It copies the 4×4 vertices from (x − 1, y − 1); the bound is the
+  tile grid, so an outer vertex reads 0. Then each vertex of the 2×2 from
+  (x, y) whose height is above 0 takes the mean of the copy's non-zero
+  values in its 3×3, summed row by row.
+- **`build_coastal_data@0086c540`'s height half.**
+  - `mark_valid_coastal_influencers` keeps a 0x20 cell (y outer) unless
+    N or S is 0x20 with E or W round a diagonal 0x4 cell: the inner corner
+    of a bend (0x869243–0x869299).
+  - `mark_coast_vert_influence` joins each influencer to its first two
+    valid neighbours (`move[1..9]`). It draws a `LineState` Bresenham line
+    of tiles to each, from its sub-tile at `trunc(min(texture·0.16, 15))`
+    (`texture_fractal`: xs + 1 by ys + 1, smoothing 0, flags 2,
+    `World.seed`; the clamp to 15 from 15.5) to the neighbour's at the
+    offset of the **last** neighbour joined. Each tile goes on the current
+    cell's influence list. The current cell becomes the tile's cell,
+    marked `has_influence`, when both its coordinates change, and **the
+    second line reads its end and count from that current cell**
+    (0x868e80 reads `[ebx + 2]` after `ebx` moved).
+  - `adjust_aquatic_height` enters a 0x4 or `OCEAN` cell (which gains
+    `CoordInfo` 0x8), a `land` 1 or 3 cell, or a `BASELAND` cell with
+    influence, provided its 5×5 holds influence. It sets each of its 5×5
+    vertices to `min(d/768, 10000)²·(1/9)·(−303 + land_height) +
+    land_height`, where `d` is the distance to the centre of the nearest
+    tile in those cells' lists (integer squared distance, strictly
+    smaller; the best index carries over from the previous vertex). A
+    negative height is multiplied by `beach_steepness`, a registered
+    tweak defaulting to 1.
+  - `relax_aquatic_verts` makes five passes over the entered cells off
+    the map's edge: `(below + above + left + right + self)·0.2`, in place.
+
+**Every vertex agrees** with all 45 Great Lakes start dumps that print the
+grid, through each file's roster: 2,378,205 vertices. The 235,440 within
+two cells of a river cell (start dump 0x1000) are counted apart, because
+`make_rivers`' troughs are not built there
+(`great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers`). **And
+those heights decide HALFLAND cell-exact**: on all 185 keyed files, a
+cell is HALFLAND on the start dump exactly when it is gated and has 1–15
+sub-tiles whose four corners are all below −30.0f (`water_subtiles`;
+44,955 cells, 243 a file). On run1004, 250 gated cells read 0 (dry: the
+0x4 spread) and 383 read 16 (`OCEAN` through `mark_halfwater`); the spread's
+second sweep makes no cell HALFLAND. `_wcoord`'s writes are not built.
 
 ## 11. The float sites, and which decision governs each
 
@@ -1272,7 +1326,7 @@ reachable set.
 | `Map::scale_number@006a0320` | single, `SCALEWATER`/`SCALELAND` | correctly rounded | no stock map | 19 |
 | `TerrainGroups::init_tileset_data@006a61f0` | `(int)(freq/100f·255f)` | correctly rounded | fertility partitions (§6) | 19 |
 | `place_all`'s pattern-2/3 weights (only when `clumps > 6 && regions < 6`) | single: `cvtdq2ps`, an `addss` sum in list order, `divss` then `mulss`, `cvttss2si` (0x6a7e24..0x6a7f29) | correctly rounded | a draw's modulus and the order | 19: `sim::single`, in the port; on Great Sahara one region, so the weight is `n` exactly |
-| the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`); the fractals' bilinear sample in a software double (`sim::double`, item 3812) |
+| the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`); the fractals' bilinear sample in a software double (`sim::double`, item 3812); the shore blend, smoothing and coastal pass the same (item 3835) |
 | `TerrainOut::has_plus_slope@00869790` | `tanf(25°)` | **transcendental**, constant argument | the cliff threshold 89.531075f (`0x42b30fe9`) | **13**: pin it; the double result sits 0.30 ulp from the float, so a faithful libm agrees |
 | `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: no trace reaches it (§7) |
 | `MapFairness::calc_distances@0068a1c0` | single | correctly rounded | Warring States only | 19 |
@@ -1378,6 +1432,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   dumps through each file's roster (item 3812). Mutations that drop an
   octave, the mountains or the oil, or swap the two weights, each fail
   it; dropping the rock bit from the oil test fails nothing (§14);
+- §10's heights on Great Lakes through 706: the shore blend, smoothing
+  and `build_coastal_data`, on every vertex off the rivers of 45 start
+  dumps, and the HALFLAND they decide cell-exact on 185 files (item
+  3835). Eight mutants fail it; the 15.5 clamp, the search's second ring
+  past the first find, and `adjust_aquatic_height`'s `land` 1/3 arm fail
+  nothing, being inert on this grid (3835a);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -1468,16 +1528,17 @@ step is checked by §3 at its own checkpoint before the next begins:
    (item 3832, no `sim` change; its phase count unmoved at five): the gate
    opens on 876 cells and holds the start dump's 243 HALFLAND cells, and
    720 is the first record a height decides. So on Great Lakes the rest of
-   step 6 cannot be checked before step 7's heights reach 720. The next
-   Great Lakes step is the heights through 706 with `_wcoord` and
-   `mark_halfwater`, falsified by parts 5, 6 and 10–12 at 720 and the 243
-   cells (3832a);
+   step 6 cannot be checked before step 7's heights reach 720. The
+   heights through 706 now agree (item 3835) and decide the 243 cells
+   exactly. The next Great Lakes step is `_wcoord`'s writes and
+   `mark_halfwater`, falsified by parts 5, 6 and 10–12 at 720 (3835b);
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894)
    — **Great Sahara built** (item 3812, `sim::map_heights`; the `Mapgen:`
    line's eighth phase). No checksum part moves for them there, so their
    falsifier is the start dump's height grid, which all 47 files meet.
-   The shore blend, `smooth_tcoord`, `build_coastal_data` and the slope
-   test remain;
+   **Great Lakes through 706** (item 3835): the shore blend,
+   `smooth_tcoord` and `build_coastal_data` on every vertex off the rivers
+   of 45 start dumps. The troughs and the slope test remain;
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
