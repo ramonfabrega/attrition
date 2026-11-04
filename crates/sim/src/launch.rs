@@ -4615,14 +4615,6 @@ pub fn launch_point(
     if let Some(b) = bay(gpiece, anim, starttime, node) {
         return b.point(pos, facing);
     }
-    if let Ok(v) = std::env::var("RON_PROBE_FWD") {
-        let mut it = v.split(':');
-        let pc: i32 = it.next().unwrap().parse().unwrap();
-        let fwd: i64 = it.next().unwrap().parse().unwrap();
-        if pc == gpiece {
-            return Bay { right: 0, fwd, dz: 0 }.point(pos, facing);
-        }
-    }
     match self::node(gpiece, anim, starttime) {
         Some(n) => point(pos, facing, n),
         None => pos,

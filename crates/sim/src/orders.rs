@@ -2327,23 +2327,7 @@ impl Sim {
 
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
-    fn probe3810(&self, u: usize, what: &str) {
-        if let Ok(v) = std::env::var("RON_PROBE_KILL") {
-            let tag = format!("{}/{}", self.units[u].owner, self.units[u].index);
-            if v.split(',').any(|x| x == tag) && (700..=713).contains(&self.frame) {
-                eprintln!("  PROBE f{} {} {} tgt {:?} n {}", self.frame, what, tag, self.units[u].combat.target, self.units[u].orders.len());
-            }
-        }
-    }
-
-    #[track_caller]
     pub fn kill_current_order(&mut self, u: usize) {
-        if let Ok(v) = std::env::var("RON_PROBE_KILL") {
-            let tag = format!("{}/{}", self.units[u].owner, self.units[u].index);
-            if v.split(',').any(|x| x == tag) && (700..=713).contains(&self.frame) {
-                eprintln!("  PROBE f{} kill {} at {}", self.frame, tag, std::panic::Location::caller());
-            }
-        }
         self.kill_order(u, false);
     }
 
@@ -2714,7 +2698,6 @@ impl Sim {
     /// `Unit::add_attack_order(o, who, pos, mandatory, action)` (§7.1). The
     /// target and `mandatory` live in [`combat::State`]; the order carries
     /// the rest.
-    #[track_caller]
     pub fn add_attack_order(
         &mut self,
         u: usize,
@@ -2723,7 +2706,6 @@ impl Sim {
         mandatory: bool,
         action: bool,
     ) {
-        self.probe3810(u, &format!("add {target:?} {pos:?} @{}", std::panic::Location::caller()));
         if pos == QueuePos::New {
             self.units[u].path.clear();
             self.close_orders(u);
@@ -8861,7 +8843,6 @@ impl Sim {
         else {
             return false;
         };
-        self.probe3810(u, "do_attack_fight");
         let me = Obj::Unit(u);
         // **`do_attack`'s own gate is the type's `attack`, and it is the
         // only aliveness test the function has** (item 463).
