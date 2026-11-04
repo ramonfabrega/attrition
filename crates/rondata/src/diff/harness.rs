@@ -1525,22 +1525,6 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
         }
     }
     for p in &built.sim.projectiles {
-        if std::env::var("RON_PROBE_3808").is_ok()
-            && let Some(sp) = &p.spline
-        {
-            let pts: Vec<String> = (0..sp.len())
-                .map(|i| {
-                    let q = sp.point(i);
-                    format!(
-                        "({}, {}, {})",
-                        f32::from_bits(q[0].0),
-                        f32::from_bits(q[1].0),
-                        f32::from_bits(q[2].0)
-                    )
-                })
-                .collect();
-            eprintln!("  PROBE3808 f{frame} spline #{} {:?}", p.slot, pts);
-        }
         let tpos = p.target.and_then(|t| match t {
             sim::combat::Obj::Unit(u) => Some(built.sim.units[u].pos),
             sim::combat::Obj::Building(_) => None,
