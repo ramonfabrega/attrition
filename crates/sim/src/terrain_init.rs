@@ -471,6 +471,20 @@ mod tests {
         assert_eq!(g.tiles[tile_at(&g, 3, 3)], 0);
     }
 
+    /// The square is 7×7: a wet tile three columns from the dry one is
+    /// marked, four is not.
+    #[test]
+    fn the_coast_reaches_three_tiles() {
+        let mut g = grid(4, 1);
+        for x in 1..4 {
+            cell(&mut g, x, 0).land = 1;
+        }
+        let mut f = coord_flags(&g);
+        check_and_set_halfland(&mut g, &mut f).expect("nothing unported");
+        assert_ne!(g.tiles[tile_at(&g, 6, 0)] & 0x400, 0);
+        assert_eq!(g.tiles[tile_at(&g, 7, 0)] & 0x400, 0);
+    }
+
     /// A tile with no dry tile among its neighbours marks nothing.
     #[test]
     fn a_wet_tile_without_a_dry_neighbour_marks_nothing() {
