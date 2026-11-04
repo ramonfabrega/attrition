@@ -3954,14 +3954,14 @@ mod tests {
                     })
                 };
                 let mut bad = Vec::new();
-                for i in 0..ours.len() {
+                for (i, v) in ours.iter().enumerate() {
                     let (vx, vy) = (i as i32 % w, i as i32 / w);
                     if river(vx, vy) {
                         beside += 1;
                         continue;
                     }
                     vertices += 1;
-                    if !ours[i].prints_as(init.heights[i]) {
+                    if !v.prints_as(init.heights[i]) {
                         bad.push(i);
                     }
                 }
