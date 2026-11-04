@@ -5321,6 +5321,67 @@ mod tests {
         assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
     }
 
+    /// **The MG42's burst leaves from its muzzle** (item 3827,
+    /// `docs/GOLDEN.md` §152.11): run1477's `0/18` at (17400, 15672),
+    /// angle 593,756,160, looses frames 1, 3 and 5 of `CHAR_ATTACK2` on
+    /// the Anti-Tank Missile `1/22` from (17510, 15576), (17508, 15575)
+    /// and (17505, 15573), 88, 93 and 98 over its figure (`AMMO` `sz` 565,
+    /// 570 and 575 over the ground's 477; blocks 816, 818 and 820). Made to
+    /// fail with the rows removed: each leaves from the figure's point.
+    #[test]
+    fn run1477_s_mg42_burst_leaves_from_its_muzzle() {
+        let (at, facing) = (Pos::new(17400, 15672), Angle(593_756_160));
+        for (start, want, dz) in [
+            (1, (17510, 15576), 88),
+            (3, (17508, 15575), 93),
+            (5, (17505, 15573), 98),
+        ] {
+            let p = launch_point(at, facing, 80, crate::anim::ATTACK2, start, 0);
+            assert_eq!((p.x, p.y), want, "frame {start}");
+            assert_eq!(
+                release_dz(80, crate::anim::ATTACK2, start, 0),
+                Some(dz),
+                "frame {start}"
+            );
+        }
+    }
+
+    /// **Piece 80's rows agree with the original at every heading** (item
+    /// 3827, `docs/GOLDEN.md` §152.11): `get_position.py … sweep 80 0
+    /// <anim> <time>` on run1472's packet, as piece 77's.
+    /// `$RON_BAY_SWEEPS_80` is the directory holding
+    /// `sweep-80-n0-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-11-04-item-3827/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_at_every_heading_for_piece_80() {
+        let Ok(dir) = std::env::var("RON_BAY_SWEEPS_80") else {
+            eprintln!("skipping: set RON_BAY_SWEEPS_80 (item 3827's oracle, run1472)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 80) {
+            let path = format!("{dir}/sweep-80-n0-a{a}-t{t}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_80");
+            for line in table.lines() {
+                let f: Vec<i64> = line
+                    .split_whitespace()
+                    .take(5)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                let (x, y) = b.offset((f[0] + 180) % 360);
+                if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                    off.push(format!(
+                        "a{a} t{t} deg {}: {x},{y} against {},{}",
+                        f[0], f[2], f[3]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert_eq!(rows, 27 * 361, "{dir}");
+        assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+    }
+
     #[test]
     fn run1439_s_aircraft_and_tow_rounds_leave_from_their_rows() {
         type Row = (i32, i32, i32, i32, i32, i32, i32);
