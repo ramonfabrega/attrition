@@ -12659,7 +12659,8 @@ score.
 - **3829b. The other aircraft of the lobby leave from rows no dumped round checks**: the Eagle Fighter `0/14`,
   the Advanced Fighters and the Stealth Bombers have no `GUNS` or `BAYS` row read off run1472's packet here;
   piece 258's fourteen frames past frame 1 rest on the node key (all sixteen rows are one point a node). Names no
-  score until a word reaches one of their rounds.
+  score until a word reaches one of their rounds. The Stealth Bombers' are now checked: run1468's twelve bombs
+  that never come down print their points on every block from 801 (item 3836, 3836d).
 
 ## Parked by item 3776, 2026-11-03 — map generation's checksum reader and Great Sahara's mask
 
@@ -13323,13 +13324,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YL — reserved
+## Parked by item 3836, 2026-11-04 — the bombs that never come down, and the third melee's closing state
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3836a. A round's target is forgotten at the death, not at `do_damage`** (GOLDEN §152.14). `Sim::forget`
+  clears every in-flight round's `target` when its object dies; `Ammo::do_damage@00678060`'s first test is
+  what forgets it in the original, so theirs' twelve held Stealth Bomber bombs print `whom 0 ox 17` (and
+  `ox 18`) on every block from 801 to 2601, the dead Partisan's and MG42's, where ours print −1. The
+  landing is the same either way; only a round that never lands shows it. Names no score: no draw reads it.
+- **3836b. The Attack Helicopter `1/15`'s damage parts in 701..801.** Theirs reads damage 6 on 701
+  (`damage_frame` 674) and 14 from 801 (`damage_frame` 753) to the close; ours reads 117/130 with frac 7 on
+  750, then 115 on 754 and 113 on 760, and stands at 17⅞ to 2601. It was standing on the base's block 1201
+  already (3834's widening). No window on disk covers 702..800 at `UNITS`; the next melee item that reads a
+  blow on `1/15` books it.
+- **3836c. Theirs' V2 Rocket `0/16` is in no 2601 record.** On 2501 it stands at (16152, 15864), `idle 73`,
+  2 hits; on the closing dump 2601 there is no `UNITDATA`, no `DEATH_OBJS` and no `AMMO` of `0/16`, and the
+  trace ends at 2600, so no draw says what took it. Ours holds it, and who=0's `active`, `control` and
+  `num_units[263]` part by one at 2601 (`information_melee_s_leaders_are_compared_on_every_seat`). The
+  closing dump is written partway through its frame (§151); the closing state's score is the commander's.
+- **3836d. The Stealth Bombers' bombs leave from their square, and their clocks.** Ours' twelve held bombs
+  launch from the bomber's own (x, y) at its `z` (ours (15960, 15384, 0) against theirs' (15868, 15433, 12)
+  for `1/17`'s first): the Stealth Bomber has no `BAYS` row (3829b). Two of `2/17`'s eight read `cur_time`
+  one off at 2501. `accuracy` is the recycled slot's in theirs (276, 268, 300), 0 in ours (the arm's SEAM).
+  Names no score while the stream is whole.
 
 ## Parked by the next landing, slot YM — reserved
 
