@@ -1001,6 +1001,25 @@ is rough; ocean oil's record 7 makes only Oil, which neither `val` nor
 nothing; and the one land region holds every dry cell, so no region-size
 factor fires.
 
+**Checked on East Indies** (item 3840, no sim change): from 3831's 7927
+grid, the whole stream through the last value draw is the trace's on **all
+418 traces** (1,479 value draws on the jungle run, 1,403 on the fuzz
+lobby's), and seed and parts 2, 5 and 6 agree at 7937 and 7945 on **all
+202 files**, first run
+(`east_indies_s_values_are_the_traced_stream_and_7937_and_7945`). The
+archipelago reaches six of 3830a's nine arms, and a mutant of each turns it
+red: 236 border cells are open sea, so the 0x2000 edge, its `bad` count and
+its two-tile band each part 5 and 6 (part 6 alone for `bad`) at 7937; the
+coast record 3 and the rough coast's exemption (20 and 23 rough coast
+cells) part 5 at 7945; and 930 and 996 dry cells lie in a region under a
+sixteenth of the map, so the `size / 16` factor parts 5 at 7945. Five
+mutants fail nothing, each inert by the grid (3840a): no cell is `SANDY`;
+ocean oil's record 7 makes only Oil (14 sea oil cells); the re-run
+`find_all` relabels 0 cells; and the 37 and 85 dry cells under `size / 64`
+(37 and 0 under `size / 128`) all keep `val` 0 — islets that small are
+nearly all water, so the ÷10 factor has already truncated the byte and
+the extra `/ 2` or `× 3 / 4` writes the same 0.
+
 `World::compute_all_vals@006b3790` walks **x outer, y inner**, so
 column-major. Per cell it stores `val` (clamped) and `goods`, a bit byte
 `0x20 | (count0 > 4) | …`. **`World::compute_val@006b0350` draws once per
@@ -1398,6 +1417,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   the border edge, `SANDY`, the coast record, the rough coast's exemption,
   ocean oil's record and the region-size factors run but cannot part
   (3830a);
+- §9's values on East Indies: draw for draw on 418 traces through the last
+  value draw, and seed and parts 2, 5 and 6 at 7937 and 7945 on 202 files
+  (item 3840). The border water edge, its `bad` count and band, the coast
+  record 3, the rough coast's exemption and the `size / 16` factor are
+  diff-backed here; `SANDY`, ocean oil's record, the re-run `find_all` and
+  the `size / 128` and `size / 64` factors run but cannot part (3840a);
 - §10's `Map::make` tail: part 4 at 734 on 511 files of every style; and
   on Great Sahara, `Terrain::init`'s span with no cell gated: seed and
   parts 2, 5, 6 and 10–13 at every record from 734 to 5012 on 105 files
@@ -1502,7 +1527,9 @@ step is checked by §3 at its own checkpoint before the next begins:
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
    `sim::map_values`; the `Mapgen:` line's fifth phase); **Great Lakes
    built** (item 3830, the same port on its 7927 grid, the water count's
-   first diff; its fifth phase); East Indies remains;
+   first diff; its fifth phase); **East Indies built** (item 3840, the
+   same port on its 7927 grid, the border water edge's and the region-size
+   factor's first diff; its fifth phase);
 6. `Terrain::init` without heights (§10, 734–5012) — **Great Sahara
    built** (item 3809, `sim::terrain_init`; the `Mapgen:` line's sixth
    phase): no cell opens the half-land gate there, so every record to

@@ -4368,6 +4368,16 @@ mod tests {
                     .filter(|c| !c.is_ocean() && region_size[c.region as usize] < t)
                     .count()
             });
+            // The largest `val` a cell under each threshold keeps: where it
+            // is 0 the factor's step truncates to the same byte either way.
+            let top = [size / 128, size / 64, size / 16].map(|t| {
+                grid.cells
+                    .iter()
+                    .filter(|c| !c.is_ocean() && region_size[c.region as usize] < t)
+                    .map(|c| c.val)
+                    .max()
+                    .unwrap_or(0)
+            });
             let lean = grid
                 .cells
                 .iter()
@@ -4382,6 +4392,7 @@ mod tests {
                 sea_oil,
                 relabelled,
                 under,
+                top,
                 lean,
                 dry,
             ));
@@ -4392,7 +4403,7 @@ mod tests {
         let (met, stream) = stream_partings(&islands, &logs, |s| s);
         eprintln!(
             "East Indies values: (seed, border ocean, sandy, coast lands, rough coast, sea oil, \
-             relabelled, dry cells under size/128, /64, /16, foodless, value draws) {reach:?}; \
+             relabelled, dry cells under size/128, /64, /16, their largest val, foodless, value draws) {reach:?}; \
              met whole {met:?}; 7937, 7945 on {files:?} files"
         );
         assert!(
@@ -4433,6 +4444,7 @@ mod tests {
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail
-    /// (7859, 7861..7870), and the resources (7877..7927).
-    const EAST_INDIES_CHECKED: i64 = 4;
+    /// (7859, 7861..7870), the resources (7877..7927) and the values
+    /// (7937, 7945).
+    const EAST_INDIES_CHECKED: i64 = 5;
 }

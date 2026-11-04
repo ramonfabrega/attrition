@@ -10795,7 +10795,10 @@ check that reads queues would book it, with the end-of-game path read first.
   - The region-size factors (`size / 128`, `/ 64`, `/ 16`): the one land region holds every dry cell, and open
     water returns before the factor.
   East Indies' values are the next map that reaches the edge (its sea runs to the border) and the region-size
-  factors (twelve islands). Names no score until a phase there parts.
+  factors (twelve islands). Names no score until a phase there parts. ~~The border water edge, its `bad` count
+  and band, the coast record 3, the rough coast's exemption and the `size / 16` factor~~ are held by mutants on
+  East Indies, item 3840 (`docs/MAPGEN.md` §9); `SANDY`, ocean oil's record, the re-run `find_all` and the
+  `size / 128` and `/ 64` factors remain, as 3840a.
 
 ## Parked by item 3591, 2026-10-24 — the Bantu word 5072 → 5322: the Umpakati's bays
 
@@ -13331,13 +13334,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YM — reserved
+## Parked by item 3840, 2026-11-04 — East Indies' values
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3840a. Five value arms East Indies runs but cannot part** (`docs/MAPGEN.md` §9, `sim::map_values`). Each
+  mutant turns `east_indies_s_values_are_the_traced_stream_and_7937_and_7945` green on all 418 traces and 202
+  files, and each is inert by the grid, as the test prints at 7927 and 7945:
+  - `wet`'s `SANDY` (`land` 1): no East Indies cell is Sandy, as on Great Lakes.
+  - Ocean oil's record 7: 14 sea cells carry oil, but the record makes only Oil (`TypeIndex` 5), which neither
+    `val` nor `goods` reads; inert on every map.
+  - The re-run `Regions::find_all`: it relabels 0 cells at 7937.
+  - The `size / 128` and `size / 64` factors: 37 and 85 dry cells (jungle and fuzz runs) lie under `size / 64`,
+    37 and 0 under `size / 128`, and every one keeps `val` 0 at 7945. An islet that small is nearly all water,
+    so the ÷10 factor has truncated the byte before the extra halving or ×3/4. What checks them: a map with a
+    small dry island (under 56 cells on 60×60) whose rings hold under a third water.
+  Names no score.
 
 ## Parked by the next landing, slot YN — reserved
 
