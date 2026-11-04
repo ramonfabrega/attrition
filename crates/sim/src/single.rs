@@ -333,6 +333,13 @@ impl Single {
         (s, unique)
     }
 
+    /// Whether a correctly rounded `%f` of this single could print as
+    /// `millionths` — the start dump's own test of a height
+    /// (`sim::map_heights`). From 16 up exactly one single does.
+    pub fn prints_as(self, millionths: i64) -> bool {
+        self.prints_as_millionths(millionths < 0, u128::from(millionths.unsigned_abs()))
+    }
+
     /// Whether this value lies within half a millionth of `± d / 10^6`, so
     /// that a correctly rounded six-decimal print could show it as `d`. A
     /// tie counts, which can only ever mark a print ambiguous.

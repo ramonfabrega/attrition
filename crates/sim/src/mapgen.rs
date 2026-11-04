@@ -10,6 +10,7 @@
 
 use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::combat::Rng;
+use crate::double::Double;
 use crate::movement::{Angle, cos_component, sin_component};
 use crate::world::{CORNER_X, CORNER_Y};
 
@@ -717,12 +718,15 @@ impl MapGrid {
 }
 
 /// **`Fractal`'s byte grid** as `Fractal::init@006aa2d0` builds it: `xs + 1`
-/// columns of `ys + 1` bytes, `frac[x][y]`. Its doubles (`x_inc`, `y_inc`)
-/// are `Fractal::get_height`'s and are not held; the bytes are integer.
+/// columns of `ys + 1` bytes, `frac[x][y]`, and the `flags` it was built
+/// with. Its doubles (`x_inc`, `y_inc`) are `Fractal::get_height`'s and are
+/// derived there from `xs`, `ys` and `flags & 1`; its `parts` are all −1,
+/// which `init` writes and nothing in map generation changes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Fractal {
     pub xs: i32,
     pub ys: i32,
+    pub flags: i32,
     pub frac: Vec<Vec<u8>>,
 }
 
@@ -780,11 +784,50 @@ impl Fractal {
             }
         }
         wrap(&mut frac);
-        Fractal { xs, ys, frac }
+        Fractal {
+            xs,
+            ys,
+            flags,
+            frac,
+        }
     }
 
     pub fn at(&self, x: i32, y: i32) -> u8 {
         self.frac[x as usize][y as usize]
+    }
+
+    /// **`Fractal::get_height@006aa870`** (`docs/MAPGEN.md` §10, §11): a
+    /// bilinear sample of the bytes in SSE2 doubles, in the listing's order
+    /// (0x6aa877..0x6aa960). `x_inc` is `xs / (xs − (flags & 1) + 1)` and
+    /// `y_inc` is `ys / ys`, both as `init` writes them (0x6aa4f2); the
+    /// point is `(x_inc·(x + 0.5), y_inc·(y + 0.5))`, its cell the
+    /// truncation, `fx`/`fy` the remainders and `ox`/`oy` their
+    /// complements; the sum is `ox·oy·f00 + 0.0 + oy·fx·f10 + ox·fy·f01 +
+    /// f11·(fy·fx)`, truncated and clamped to a byte. With `parts[0] == −1`
+    /// a fractal built with `flags & 2` answers `h·100 >> 8`.
+    ///
+    /// Every operation is correctly rounded, so [`Double`] reproduces it.
+    pub fn get_height(&self, x: i32, y: i32) -> u8 {
+        let x_inc = Double::ratio(self.xs, self.xs - (self.flags & 1) + 1);
+        let y_inc = Double::ratio(self.ys, self.ys);
+        let dx = x_inc.mulsd(Double::from_scaled(2 * i64::from(x) + 1, -1));
+        let dy = y_inc.mulsd(Double::from_scaled(2 * i64::from(y) + 1, -1));
+        let (i, j) = (dx.trunc(), dy.trunc());
+        let fx = dx.subsd(Double::from_i32(i));
+        let fy = dy.subsd(Double::from_i32(j));
+        let (ox, oy) = (Double::ONE.subsd(fx), Double::ONE.subsd(fy));
+        let b = |u: i32, v: i32| Double::from_i32(i32::from(self.at(u, v)));
+        let mut t = ox.mulsd(oy).mulsd(b(i, j));
+        t = t.addsd(Double::ZERO);
+        t = t.addsd(oy.mulsd(fx).mulsd(b(i + 1, j)));
+        t = t.addsd(ox.mulsd(fy).mulsd(b(i, j + 1)));
+        t = t.addsd(b(i + 1, j + 1).mulsd(fy.mulsd(fx)));
+        let h = t.trunc().clamp(0, 0xff);
+        if self.flags & 2 != 0 {
+            ((h * 100) >> 8) as u8
+        } else {
+            h as u8
+        }
     }
 }
 
@@ -809,6 +852,52 @@ pub fn fertile_partitions(freqs: &[i32]) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **`get_height` is the host's double, bit for bit** (item 3812):
+    /// every vertex of fractals of several sizes, smoothings and flags,
+    /// against the listing's operations in the host's own `f64` — the
+    /// arithmetic the sim refuses, as the oracle.
+    #[test]
+    #[allow(clippy::float_arithmetic)]
+    fn get_height_is_the_listing_s_doubles() {
+        for (n, smooth, flags, seed) in [
+            (241, 5, 2, 7236u32),
+            (241, 3, 2, 14472),
+            (61, 0, 2, 7236),
+            (97, 4, 0, 99),
+            (130, 2, 0, 5),
+            (33, 5, 2, 0xdead_beef),
+        ] {
+            let f = Fractal::init(n, n, smooth, flags, seed);
+            let open = flags & 1;
+            let (xi, yi) = (
+                f64::from(n) / f64::from(n - open + 1),
+                f64::from(n) / f64::from(n),
+            );
+            for y in 0..n {
+                for x in 0..n {
+                    let dx = xi * (f64::from(x) + 0.5);
+                    let dy = yi * (f64::from(y) + 0.5);
+                    let (i, j) = (dx as i32, dy as i32);
+                    let (fx, fy) = (dx - f64::from(i), dy - f64::from(j));
+                    let (ox, oy) = (1.0 - fx, 1.0 - fy);
+                    let b = |u: i32, v: i32| f64::from(f.at(u, v));
+                    let mut t = ox * oy * b(i, j);
+                    t += 0.0;
+                    t += oy * fx * b(i + 1, j);
+                    t += ox * fy * b(i, j + 1);
+                    t += b(i + 1, j + 1) * (fy * fx);
+                    let h = (t as i32).clamp(0, 255);
+                    let want = if flags & 2 != 0 { (h * 100) >> 8 } else { h };
+                    assert_eq!(
+                        i32::from(f.get_height(x, y)),
+                        want,
+                        "({x}, {y}) of a {n}-wide fractal, smooth {smooth}, flags {flags}"
+                    );
+                }
+            }
+        }
+    }
 
     /// The tell §3 names: an empty walk prints 1, and N zero bytes print
     /// `N·65536 + 1`.

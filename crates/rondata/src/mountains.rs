@@ -178,8 +178,73 @@ pub fn templates(install: &Install) -> Vec<MountainTemplate> {
         .collect()
 }
 
-/// Each `<MOUNTAIN>`'s `TEMPLATE_TEX` path as the XML writes it.
-pub fn template_files(install: &Install) -> Vec<String> {
+/// `MountainRange::init@008998b0`'s `tcoord_verts` pass over one template
+/// image: from `((w/2) % 16, (h/2) % 16)`, every fourth row while under the
+/// width and every fourth column while under the height (the listing
+/// bounds them so; the templates are square), each pixel whose alpha is
+/// not zero as `(x, y, its first byte)` — the blue of `[b, g, r, a]`, which
+/// is the 32-bit texel's lowest byte (`movzx … byte ptr [ecx + 4*eax]`,
+/// 0x899d90).
+pub fn mesh_pixels(t: &Tga) -> Vec<(i32, i32, u8)> {
+    let (w, h) = (t.width as i32, t.height as i32);
+    let (x0, y0) = ((w / 2) % 16, (h / 2) % 16);
+    let mut out = Vec::new();
+    let mut y = y0;
+    while y < w {
+        let mut x = x0;
+        while x < h {
+            if x < w && y < h {
+                let p = t.pixels[(y * w + x) as usize];
+                if p[3] != 0 {
+                    out.push((x, y, p[0]));
+                }
+            }
+            x += 4;
+        }
+        y += 4;
+    }
+    out
+}
+
+/// Every template's displacement mesh ([`sim::map_heights::Mesh`]), in
+/// template order: [`mesh_pixels`] of its `TEMPLATE_TEX` and the
+/// `<MOUNTAIN>`'s `height`, which `MountainRange::init` reads with
+/// `get_attrib_float` (0x899963) — 0 when absent. A template whose image
+/// cannot be read is left empty, as [`templates`] leaves its lists.
+pub fn meshes(install: &Install) -> Vec<sim::map_heights::Mesh> {
+    template_heights(install)
+        .into_iter()
+        .zip(template_files(install))
+        .map(|(height, rel)| {
+            crate::artdata::resolve_art(install.root(), &rel)
+                .and_then(|p| std::fs::read(p).ok())
+                .and_then(|b| decode_tga(&b))
+                .map(|t| {
+                    sim::map_heights::Mesh::from_pixels(
+                        t.width as i32,
+                        t.height as i32,
+                        &mesh_pixels(&t),
+                        sim::single::Single::from_i32(height),
+                    )
+                })
+                .unwrap_or_default()
+        })
+        .collect()
+}
+
+/// Each `<MOUNTAIN>`'s `height`, in file order. The stock file writes
+/// whole numbers (450, 250, 100); anything else is refused as 0 rather
+/// than rounded.
+pub fn template_heights(install: &Install) -> Vec<i32> {
+    mountain_elements(install, |m| {
+        m.attribute("height")
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(0)
+    })
+}
+
+/// Maps each `<MOUNTAIN>` under `effects_graphics.xml`'s `<MOUNTAINS>`.
+fn mountain_elements<T>(install: &Install, f: impl Fn(roxmltree::Node<'_, '_>) -> T) -> Vec<T> {
     let path = install.data("effects_graphics.xml");
     let Ok(text) = crate::read(&path) else {
         return Vec::new();
@@ -196,14 +261,19 @@ pub fn template_files(install: &Install) -> Vec<String> {
     };
     list.children()
         .filter(|n| n.is_element() && n.tag_name().name() == "MOUNTAIN")
-        .map(|m| {
-            m.children()
-                .find(|n| n.is_element())
-                .and_then(|n| n.attribute("file"))
-                .unwrap_or_default()
-                .to_string()
-        })
+        .map(f)
         .collect()
+}
+
+/// Each `<MOUNTAIN>`'s `TEMPLATE_TEX` path as the XML writes it.
+pub fn template_files(install: &Install) -> Vec<String> {
+    mountain_elements(install, |m| {
+        m.children()
+            .find(|n| n.is_element())
+            .and_then(|n| n.attribute("file"))
+            .unwrap_or_default()
+            .to_string()
+    })
 }
 
 /// The decoded template image at `rel`, for the survey's format checks.

@@ -82,8 +82,11 @@ pub const MAPGEN: Mapgen = Mapgen {
         // record from 734 to 5012 on 105 files; 6 → 7 by item 3811: the
         // rivers before the heights — `make_rivers`' sources and clears,
         // `SAHARA.xml`'s list empty, no draw — at every record from 5012 to
-        // 5118 on 105 files (step 7, the heights, still owed).
-        ported: 7,
+        // 5118 on 105 files; 7 → 8 by item 3812: the heights —
+        // `generate_land`'s two fractals, `create_doobers`' oil terraform
+        // and `adjust_for_mountains` — on every vertex of the 47 Great
+        // Sahara start grids, through each file's own roster.
+        ported: 8,
         phases: 8,
     }],
 };
@@ -372,14 +375,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 7 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 7 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 6 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 8 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 7 of 8 phases",
             "Mapgen: checksum 496 of 496",
-            "Mapgen: checksum 496 496 \u{b7} GreatSahara 7 of 8 phases",
+            "Mapgen: checksum 496 496 \u{b7} GreatSahara 8 of 8 phases",
         ] {
             assert!(mapgen_verdict(wrong, &MAPGEN).is_err(), "{wrong:?} passed");
         }
