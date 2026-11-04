@@ -1007,8 +1007,15 @@ impl DetectCollisionView for SimDetect<'_> {
     fn node_block(&mut self, n: Self::Node) -> i32 {
         self.sim.coll_size(self.unit_of(n))
     }
+    // **A wreck is read for the group arm too** (item 3824, `docs/GOLDEN.md`
+    // §152.10): `detect_unit_collision:308`–`316` reads the candidate
+    // object's `+0x80`, `+0x104` and `+0xdc`, and a death writes none of
+    // the first two — no writer of `+0x80 = -1` is on a death path —
+    // while `Unit::close`'s last statement, `close_orders`, empties the
+    // third. So a dead group-mate is a nudge, not a wall: run1476's `2/22`
+    // steps onto the dead Main Battle Tank `2/21`'s cell on 761.
     fn groups_shared(&mut self, n: Self::Node) -> bool {
-        let DetectNode::Live(i) = n else {
+        let (DetectNode::Live(i) | DetectNode::Wreck(i, _)) = n else {
             return false;
         };
         let (me, other) = (&self.sim.units[self.u], &self.sim.units[i]);
@@ -1016,10 +1023,10 @@ impl DetectCollisionView for SimDetect<'_> {
         me.owner == other.owner && me.group_ptr.is_some() && me.group_ptr == other.group_ptr
     }
     fn node_searching(&mut self, n: Self::Node) -> bool {
-        matches!(n, DetectNode::Live(i) if self.sim.units[i].search.is_some())
+        matches!(n, DetectNode::Live(i) | DetectNode::Wreck(i, _) if self.sim.units[i].search.is_some())
     }
     fn node_front_order(&mut self, n: Self::Node) -> Option<i32> {
-        let DetectNode::Live(i) = n else {
+        let (DetectNode::Live(i) | DetectNode::Wreck(i, _)) = n else {
             return None;
         };
         let front = self.sim.units[i].orders.front()?;
@@ -2373,6 +2380,20 @@ impl Sim {
                     })
                     || !self.unit_is_here(w, cell)
                 {
+                    continue;
+                }
+                // **A dead group-mate is soft** (item 3824, `docs/GOLDEN.md`
+                // §152.10): the group arm reads the wreck's own `+0x80`,
+                // which no death writes, and its emptied order list.
+                if self.same_group_soft(u, w) {
+                    rec(Candidate {
+                        who: self.units[w].owner as i32,
+                        o: i32::from(self.units[w].index),
+                        is_here: true,
+                        soft: true,
+                        is_corner: None,
+                    });
+                    soft = true;
                     continue;
                 }
                 let theirs = self.guy_corner(w, cell);
@@ -4964,6 +4985,50 @@ mod tests {
             sim.detect_unit_collision(x, into).is_some(),
             "an attacker gets no exemption"
         );
+    }
+
+    /// §4.3's group arm on a **wreck** (item 3824, `docs/GOLDEN.md`
+    /// §152.10): a dead group-mate whose type blocks while dead is a nudge,
+    /// and a dead stranger stays the wall §131 made it. The arm
+    /// (`detect_unit_collision:308`–`316`) reads the candidate object's
+    /// `+0x80`, `+0x104` and `+0xdc`; no death writes `+0x80`, and
+    /// `close_orders` empties `+0xdc`. run1476's `2/22` steps onto the dead
+    /// Main Battle Tank `2/21`'s cell on 761.
+    ///
+    /// **Made to fail on purpose**: with the wreck's node answering
+    /// `groups_shared` false, the second assertion collides, and the third
+    /// melee's word returns from 822 to 761.
+    #[test]
+    fn a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let into = b;
+        let wreck = |grouped: bool| {
+            let (mut sim, x, y) = pair(a, b);
+            let ty = sim.units[y].ty.expect("typed");
+            sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
+            if grouped {
+                let slot = sim.init_army(0, None);
+                sim.army_add_unit(0, slot, x);
+                sim.army_add_unit(0, slot, y);
+            }
+            sim.cast_sniper_unit(y, 2);
+            assert!(!sim.units[y].alive(), "a wreck");
+            assert!(sim.units[y].orders.is_empty(), "its orders closed");
+            (sim, x, y)
+        };
+        let (mut sim, x, y) = wreck(false);
+        assert_eq!(
+            sim.detect_unit_collision(x, into),
+            Some(y),
+            "a dead stranger whose type blocks while dead is hard"
+        );
+        let (mut sim, x, _) = wreck(true);
+        assert!(
+            sim.detect_unit_collision(x, into).is_none(),
+            "a dead group-mate is a nudge, read off its own kept group"
+        );
+        assert!(sim.units[x].half_step, "and the soft one-shot is raised");
     }
 
     /// §4.3's group arm again, from the **other seat**: two members of a
