@@ -272,8 +272,20 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // blocks do. On 822 ours spends 13 against 15: at index 5 theirs
     // spends `Ammo::do_damage+0xc59` where ours spends
     // `Farms::inc_time+0x1ae` — a round lands in theirs.
-    count: 822,
-    sequence: 822,
+    //
+    // Item 3827: **822 → 860**. The round was the Nubian MG42 `0/18`'s
+    // (TI 130, land) of 819 on the Anti-Tank Missile `1/22`, which dies
+    // that frame: it rolls on past its target, and ours, loosed from the
+    // unit's square (17400, 15672, 477), stayed over the ground at t 4
+    // (566 against 533) where theirs, from its muzzle, came down and
+    // punctured it. Piece 80's 27 `launch::BAYS` rows (§152.11, run1472's
+    // packet) loose it from (17505, 15573, 575), run1477's block 820 to
+    // the unit, `v1z` 10.731251; it reads 534 against 539 at t 4 and lands
+    // on 822. On 860 ours spends 10 against 12: at index 3 theirs spends
+    // `Unit::close+0xcb6` where ours spends `Farms::inc_time+0x1ae` — a
+    // unit dies in theirs.
+    count: 860,
+    sequence: 860,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -314,8 +326,9 @@ fn information_melee_first_parting() {
 /// which takes block 1001 in; item 3814: the word 718, so 701..968,
 /// which lets block 1001 go; item 3816: the word 761, so 701..1011, which
 /// takes block 1001 back in; item 3824: the word 822, so 801..1072, which
-/// lets block 701 go).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (801, 1072);
+/// lets block 701 go; item 3827: the word 860, so 801..1110, which takes
+/// block 1101 in).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (801, 1110);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -469,14 +482,22 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // 36 against 43, `1/18` and `1/21` struck a frame late. The word's
     // value diff is run1476's window (755..800): `2/22` on (18280, 16083)
     // and (18264, 16073) on blocks 762 and 763.
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    //
+    // Item 3827 (the word 860, so 801..1110: block 1101 joins). **403 →
+    // 483** keys over four blocks, rounds read (37, 5) → (50, 5), 24
+    // parting. Block 801 holds 109 keys as before, 901 81 → 71, 1001 213 →
+    // 173, and 1101 130. The word's value diff is run1477's window
+    // (815..825): the MG42 `0/18`'s three rounds of 815, 817 and 819 leave
+    // (17510, 15576, 565), (17508, 15575, 570) and (17505, 15573, 575),
+    // blocks 816, 818 and 820 to the unit, and the last comes down on 822.
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 403, "run1468's word window");
-    pin_eq!(w.rounds_read, (37, 5), "the rounds read");
+    pin_eq!(w.firsts.len(), 483, "run1468's word window");
+    pin_eq!(w.rounds_read, (50, 5), "the rounds read");
     pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
 

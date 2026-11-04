@@ -12967,7 +12967,10 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 - **3805b. The resource branches Great Sahara never takes** (`sim::map_resources`): `Map::find_avail_regions@0068f380`'s
   draw (every Great Sahara region call saw one available region), patterns `continent` and `nonplayer`, and the
   water goods (`SEA`, Fish and Whales) with their placement tests. Ported from the readings and never run; a style
-  with water and more than one region reaches them, once its mask is ported (3734a).
+  with water and more than one region reaches them, once its mask is ported (3734a). ~~`find_avail_regions`' draw
+  and the Fish with its placement tests~~ are diff-backed on Great Lakes by item 3826 (`docs/MAPGEN.md` §8): the
+  draw, the water region list, the shore test and the `world` move across regions. The Whales, `get_water` and
+  patterns 1 and 3 remain, as 3826b.
 - **3805c. The herds and the `Goods`/`Items` checksum lines are not compared.** `Objects::init_good` starts a
   good's herd, and the checksum's `Goods` and `Items` lines print the objects 7927 makes; the port writes the cells
   only (parts 5 and 6 agree) and carries no herd. MAPGEN §8's falsifier names the two lines; a reader of them in
@@ -13172,10 +13175,11 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   empty, and that is read, not diffed. Nothing pins the wreck's `node_searching` or `node_front_order` either:
   ours' wreck has neither a search nor an order, so a mutant of them fails nothing. What checks it: a wreck
   whose type blocks while dead, dying with a suspended search, beside a group-mate that walks into it.
-- **3824b. The word 822: a round lands in theirs.** At index 5 theirs spends `Ammo::do_damage+0xc59` where ours
+- ~~**3824b. The word 822: a round lands in theirs.** At index 5 theirs spends `Ammo::do_damage+0xc59` where ours
   spends `Farms::inc_time+0x1ae`. The widening's 801 rows are the blows 3816a still owes (`2/18` 178 against
   193, `2/17` 36 against 43, `1/18` and `1/21` struck a frame late). A candidate, not the booking: the next item
-  names the round by its `AMMO` index first.
+  names the round by its `AMMO` index first.~~ Closed by item 3827 (`docs/GOLDEN.md` §152.11): the round is the
+  MG42 `0/18`'s of 819, a land shooter on a land target, so it is not 3816a's; it leaves from its muzzle.
 
 ## Parked by item 3825, 2026-11-04 — East Indies' zero-draw passes
 
@@ -13187,21 +13191,38 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   the land side (record 0 taken, the unlabelled cells moved to 0x3f) has no test. It names a score only once a
   phase parts on such a grid.
 
-## Parked by the next landing, slot YE — reserved
+## Parked by item 3826, 2026-11-04 — Great Lakes' resources
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3826a. Three water arms of `place_region_resource` the Great Lakes corpus runs but cannot part**
+  (`docs/MAPGEN.md` §8, `sim::map_resources`). Each mutant turns neither Great Lakes walk red on all 222 traces
+  and 185 files:
+  - The water cell's COAST refusal (`!water || f & 0x4 == 0`). COAST marks land, so no water cell carries it.
+  - `saturate`'s balance switch (`r.saturate == 0` in the threshold). The style's one Fish row is `saturate` 1,
+    and dropping the test applies the starved-player balance from half its 45 SCALE. Nothing moves, because
+    Fish fills its lakes at 12 (2 nations) or 17 (3 nations), well before half.
+  - The sea goods spacing only against each other. The 5×5 shore test already keeps a Fish two cells from
+    any land cell, and so from any land good, at spacing 3.
 
-## Parked by the next landing, slot YF — reserved
+  What checks them: a style whose water row is unsaturated and fits more than twice its count, or one whose
+  sea good spaces wider than the shore ring. Names no score.
+- **3826b. The Whales, `get_water` and patterns `continent`/`nonplayer` still run on no map.** Great Lakes'
+  own `FISH ` section overrides `default.xml`'s, which holds the Whales row. Its Fish row has a fixed type, so
+  the pool's water list (`get_water`, `map_resources::site::GET_WATER`) never draws. No Great Sahara or Great Lakes row is `continent` or
+  `nonplayer` either. These are what is left of 3805b's water half. East Indies' resources, a later step of its
+  chain, are the next map that could reach them. Names no score until a phase there parts.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3827, 2026-11-04 — the MG42's burst leaves from its muzzle
+
+- **3827a. The Recoilless Gun's launches are now on disk** (piece 94, unit type 144; 3810a's rows, GOLDEN
+  §152.11). Three captures print who=0's Recoilless rounds at their first block, each from a muzzle off the
+  square: run1471's block 700 (`0/21`: (18149, 15605, 574), `total_time` 3, against ours' (18168, 15528, 497)),
+  run1474's block 732 (`0/20`: (18277, 15743, 590), 2) and run1477's blocks 818–821 (`0/20` (18319, 15581, 587)
+  with 5, `0/19` (18187, 15583, 580) with 4 where ours flies 5, `0/21` (18183, 15438, 570) with 4). So 3810a's
+  rows would be checked by dumped rounds, not by the sweep alone. Names no score until the word reaches a
+  Recoilless blow. The word 860 is a death in theirs, and its round is not yet named.
+- **3827b. Piece 80's 24 rows that no dumped round checks** (`launch::BAYS`): only `CHAR_ATTACK2` frames 1, 3
+  and 5 match run1477's three rounds. The other 24 rest on the sweep (`RON_BAY_SWEEPS_80`, 9,747 headings), as
+  3813a's do for piece 77. Names no score.
 
 ## Parked by item 3828, 2026-11-04 — `place_all` on East Indies
 
