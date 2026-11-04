@@ -12950,13 +12950,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XO — reserved
+## Parked by item 3806, 2026-11-03 — a Cruise Missile flies the ground at 250 up
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3806a. The other arm of `calc_nuke_spline` at a unit** (`Spline::calc_nuke_spline@00913ad0`, `param_4 == 0`):
+  a missile-flag shooter that is not the Cruise Missile line (a V2, a nuke) firing on a unit is given
+  `air::MISSILE_FLIGHT` frames with no points laid, so its round never re-plans. Theirs' arm lays fixed points
+  above the target and does re-plan. No capture has a V2 fire on a unit. Names no score.
+- **3806b. 3804b's hypothesis is killed for 648, and one of its labels is wrong**: the death on 648 was the
+  Cruise Missile `2/19`'s round on `1/20` (GOLDEN §152.4). `1/20` (`TI` 284) is the Anti-Aircraft Missile, a land
+  vehicle, not a Stealth Bomber-line shooter. The release points 3804b lists still part, and none of them names a
+  frame of the word 676. Names no score.
 
 ## Parked by the next landing, slot XP — reserved
 

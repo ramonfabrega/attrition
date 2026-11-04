@@ -15734,6 +15734,72 @@ spends `Farms::inc_time+0x1ae`: ours acted, a death in ours.
 for `Unit::init`'s own call; a squad member's seating calls `set_new_location` again, and no helicopter is a
 squad. The disk answered the booking, so run 1470 was not taken.
 
+## 152.4 A Cruise Missile flies the ground at 250 up — 648 → 676 (item 3806, run1470)
+
+**The booking.** Frame 648: ours 44 draws against theirs' 43. At index 35 ours spends `Unit::close+0xcb6` where
+theirs spends `Farms::inc_time+0x1ae`: a unit dies in ours. 3804 named three air shooters' release points (parked
+3804b) as the death's cause. That was a hypothesis, and it was wrong.
+
+**The death, from ours.** `RON_DEBUG_AMMO=640-648` and `RON_DEBUG_UNIT`: the unit that dies on 648 is the French
+Anti-Aircraft Missile `1/20` (`TI` 284, a land vehicle, `AVENGER`, 155 of 155 hits). It dies to the Russian Cruise
+Missile `2/19`'s round (`TI` 314, Air, attack 300), fired on 645, which in ours flew four frames. Both sides spend
+that round's two `Ammo::init` draws at the same index on 645, and the draw streams agree from 640 through 647.
+Theirs' next death is on 661, and `1/20` is gone by run1468's block 701.
+
+**What the disk could not answer.** run1469's window ends at 640, and run1468's stride prints no `AMMO` between 640
+and 701, so theirs' copy of the round fired on 645 was on no record. run1470 is run1469's line with the window at
+640..665 (`docs/RUNS.md`). It is identical to run1468 on all 701 frames.
+
+**The value diff** (run1470, theirs' block `N` against ours' `f(N−1)`): theirs' `2/19` round on `1/20` launches from
+(16523, 16633, 958), not ours' (16632, 16632, 672), and it has 28 frames where ours had 4. The landing (17398,
+14709, 541) agrees. Theirs' spline is a cubic (`degree 3`) over five control points, (16523, 16633, 958),
+(16523, 16633, 1208), (16960, 15671, 771), (17398, 14709, 791) and (17398, 14709, 541), with knots `0 0 0 0 90 180
+180 180 180`, 29 points and a curve length of 2310.78. It re-plans on 649 to 11 points ending at (17400, 14712,
+466), then to 9, 6 and 4.
+
+**The arm** (`Ammo::init@0067bbf0`):
+
+- **The launch** (`67c1d5`..`67c263`): a shooter whose type carries the missile flag (`+0x1e4 & 0x8000000`)
+  leaves from its object's `(x, y, z_internal)` plus `MISSILE_OFFSET` (−109, 1, 388). This holds for any target,
+  not only the ground-attack arm ours had (`air::missile_round`). `2/19`'s `z_internal` is 570.
+- **The time**: inside the `local_30 == 0` arm (the ammo is not `missile="1"`), a non-building shooter with the
+  missile flag takes `Spline::calc_nuke_spline@00913ad0`. This test comes before the Bomber's fall and the
+  straight line. `total_time` is the spline's points less one. The fourth argument is `is(0x13a)`, the Cruise
+  Missile line: the literal pushed is 314.
+- **The Cruise Missile arm** (`913b01`..`913eb3`). The control points are:
+  1. the launch;
+  2. the launch 250 up (`0xb696d0`);
+  3. for each `i` in `1..n`, where `n = vector_dist(|sx − ex|, |sy − ey|) / 768` (`0x2aaaaaab`, `sar 7`), the
+     point `((i·ex + (n−i)·sx)/n, (i·ey + (n−i)·sy)/n)` in singles, truncated, at `find_data_z(x, y, 0)` + 250;
+     that is + 1250 where the tile word (`worldc +0x138`) has bit 14 and both low bits set, else + 750 where its
+     `0x30` field is full;
+  4. the landing 250 up;
+  5. the landing.
+
+  Then `set_min_seg_length` at **96** (`0xb696a8`, `913de7`): the resolution is `(u16)(L / 96)`, and run1470's
+  2,700.6 gives 28. `calc_spline` caps nothing (`+0x48` is 0). Every knot weight is 30, so `clamp_knots` steps by
+  90. `generate_bspline` lays the first control point, one point a step and the last.
+- **The re-plan** is `Ammo::inc_time`'s spline arm, already built for a guided round (§152.2): it reads any round
+  that carries a spline.
+
+**Built**: `combat::cruise_control_points`, `combat::cruise_clearance`, `Spline::cruise`, and `Spline::generate`,
+the general `generate_bspline` that `Spline::from_dir` now calls. Also the missile-flag launch and time arm in
+`fire_ammo_aim`, and `SPLINE_MAX` 16 → 128. The tests: `a_cruise_missile_s_spline_is_run1470s` (every control
+point, and all 29 points to the dump's six decimals) and `a_cruise_missile_clears_the_ground_by_its_tile`.
+
+**The value diff, after**: ours' `2/19` round agrees with theirs on launch, landing, `cur_time` and `total_time` on
+every block 646..661: 28, then 11 (649), 9 (653), 6 (657) and 4 (661). The stride widening goes 388 → 325 keys
+and 47 → 41 rounds parting on its three old blocks. All of these are rows leaving. With block 901 (the window
+601..926) it is 480 keys and 46 rounds parting.
+
+**The word: 676**, ours 22 draws against theirs' 23. At index 13 theirs spends `Unit::fight+0x9b0` where ours
+spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`: theirs acted.
+
+**What is not established**: the other arm of `calc_nuke_spline` (a V2's or a nuke's at a unit) is taken as
+`MISSILE_FLIGHT` with its points not laid, so it does not re-plan (parked 3806a). No capture has a V2 fire on a
+unit. The clearance's + 750 and + 1250 arms were read off the listing, and Great Sahara's ground under this round
+takes neither. 3804b's three shooters still leave from the wrong point; none of them caused 648.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

@@ -34066,3 +34066,23 @@ SHA-256 `bd7fb39e6a6f33af116100cb1c5db6737da68e3a2329d4b3dc656425531476b1`.
 **What it holds**: `step4.py --this 158cb304` (`1/14`): at tick 628's start theirs' Jet Fighter holds an attack on
 `2/14` (`fight(o=14, who=2)`), and the re-search swaps it to `2/15`, so the roll is spent. This is the retaliation
 the guided round's earlier close gives.
+
+## run1470 — the third melee: the word's window 640..665 (2026-11-03, item 3806, `att-3806`)
+
+`docs/GOLDEN.md` §152.4. **What the disk could not answer**: run1469's window ends at 640, and run1468's stride
+prints no `AMMO` and no `UNITDATA` between 640 and 701. So theirs' copy of the Cruise Missile `2/19`'s round fired
+on 645 (on `1/20`, which dies in ours on 648) was on no record. run1468's staging (`melee-information.cmd`, the
+lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, seats 1=10 and
+2=13, map 7, seed 12345), with `--log-window 640 665`, detail `end:MISC,UNITS=3,GUYS=4,AMMO=5`, `cover=0`,
+`--callwin 0 700`, `--end-frame 700`. No packet.
+- Pool lane 1. Launched 19:04:15, exited 19:04:42 (27.0 s launch to exit). `success`: 701 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 701 of 701 identical. DLL `cfa26dd3…`. Not filed: the window's
+  gamelog stays in the run's directory.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1470/map-7/gamelog.txt`, 7,564,385 bytes,
+SHA-256 `f77ba87172eb077c1ab19abccde1ff9d05f95eef11e8989f93d0334640181b4c`.
+
+**What it holds**: every round on every block 640..665, with its spline. `2/19`'s round on `1/20` appears on 646
+with 28 points, launched from (16523, 16633, 958), and re-plans on 649, 653, 657 and 661. `combat::tests::
+a_cruise_missile_s_spline_is_run1470s` pins its control points and its 29 points.
