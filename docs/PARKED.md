@@ -13230,12 +13230,15 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     any land cell, and so from any land good, at spacing 3.
 
   What checks them: a style whose water row is unsaturated and fits more than twice its count, or one whose
-  sea good spaces wider than the shore ring. Names no score.
+  sea good spaces wider than the shore ring. Names no score. ~~`saturate`'s switch and the sea-only spacing~~
+  are held by mutants on East Indies, item 3831 (`docs/MAPGEN.md` §8); the COAST refusal remains, as 3831a.
 - **3826b. The Whales, `get_water` and patterns `continent`/`nonplayer` still run on no map.** Great Lakes'
   own `FISH ` section overrides `default.xml`'s, which holds the Whales row. Its Fish row has a fixed type, so
   the pool's water list (`get_water`, `map_resources::site::GET_WATER`) never draws. No Great Sahara or Great Lakes row is `continent` or
   `nonplayer` either. These are what is left of 3805b's water half. East Indies' resources, a later step of its
-  chain, are the next map that could reach them. Names no score until a phase there parts.
+  chain, are the next map that could reach them. Names no score until a phase there parts. ~~The Whales and
+  `nonplayer`~~ are diff-backed on East Indies, item 3831 (`docs/MAPGEN.md` §8); `get_water` and `continent`
+  remain, as 3831a.
 
 ## Parked by item 3827, 2026-11-04 — the MG42's burst leaves from its muzzle
 
@@ -13266,13 +13269,17 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   meets neither. `check_player_forest_patches_three_then_two_then_one` holds both from the listing. What
   checks the rewrite: a style with a forest or rock group at `coast_space` 0. None is known. Names no score.
 
-## Parked by the next landing, slot YH — reserved
+## Parked by item 3831, 2026-11-04 — East Indies' resources
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3831a. The water cell's COAST refusal, and `get_water`, `continent` and `corner`, still part nothing**
+  (`docs/MAPGEN.md` §8, `sim::map_resources`). On all 418 East Indies traces and 202 files:
+  - The COAST refusal mutant (`!water || f & 0x4 == 0` → `true`) turns nothing red, as on Great Lakes (3826a):
+    COAST marks land, so no water cell carries it.
+  - Both of `EASTINDIES.xml`'s sea rows name their type, so `get_water` never draws.
+  - No row is `continent` or `corner`.
+
+  `default.xml`'s `corner` goody row is overridden by the style's own `GOODIES` here. What checks them: a style
+  with a divvy water row, or a `continent` or `corner` row, on a map with water regions. Names no score.
 
 ## Parked by item 3832, 2026-11-04 — Great Lakes' Terrain::init to 706, and its half-land gate
 

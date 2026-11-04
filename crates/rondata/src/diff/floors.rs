@@ -132,8 +132,13 @@ pub const MAPGEN: Mapgen = Mapgen {
             // part 5 at 7859, 7861, 7865 and 7870 on all 202 files — with
             // `Map::check_player_forest`'s first port: the fuzz lobby's
             // island start holds under three forest cells, and its 3-cell
-            // patch is 7861's part 5.
-            ported: 3,
+            // patch is 7861's part 5. 3 → 4 by item 3831: `place_resources`,
+            // draw for draw on all 418 traces (3,484 and the fuzz lobby's
+            // 3,315) and seed and parts 2, 5 and 6 at 7877, 7880 and 7927
+            // on all 202 files, first try with no sim change — the first
+            // map with Whales and `nonplayer` rows, twelve of thirteen
+            // water and region mutants held.
+            ported: 4,
             phases: 8,
         },
     ],
@@ -454,14 +459,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 3 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 4 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 3 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 7 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 3 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 4 of 8 phases \u{b7} EastIndies 3 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 2 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 4 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 7 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 4 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 4 of 8 phases \u{b7} EastIndies 4 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 5 of 8 phases \u{b7} EastIndies 3 of 8 phases",
             "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 2 of 8 phases",
             "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases",
             "Mapgen: checksum 496 of 496",
