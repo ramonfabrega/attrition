@@ -21,6 +21,14 @@
 //! the loser's buildings and land units stand — run1468's 2601 holds who=0's
 //! `0/0`..`0/13` and its buildings `2000`..`2006`, and not its V2 Rocket.
 //!
+//! SEAM: **the other units' `clear_orders`**. Built with this crate's
+//! [`Sim::clear_orders`], it moved 54 closing states the wrong way (item
+//! 3841): a human unit walking on the quit frame takes its step in theirs
+//! and stops at once in ours, off by one step (~24) — while two tears
+//! (`british_classical`'s `0/4`, `classical_melee`'s `0/6`) dissolved and
+//! the Inca word's last count closed. So the original's clear lets some
+//! walkers finish a step and not others; which, is parked (3841c).
+//!
 //! SEAM: the building loop's `Build::clean_queue` on each active building
 //! (a refund; no closing dump on disk holds a quitter's queue), the
 //! achievement event, the messages, `Game::check_victory` and the tribute
@@ -31,8 +39,7 @@ use crate::{Player, Sim};
 
 impl Sim {
     /// `Leader::defeat(6, −1, 0)` for `who`, the human who quits: the leader
-    /// is defeated, its armies let go, its planes die and every other unit
-    /// it has drops its orders.
+    /// is defeated, its armies let go and its planes die.
     pub fn resign(&mut self, who: Player) {
         if self.defeated.get(who as usize).copied().unwrap_or(true) {
             return;
@@ -45,8 +52,6 @@ impl Sim {
             }
             if self.is_plane(u) {
                 self.die_quietly(u);
-            } else {
-                self.clear_orders(u);
             }
         }
     }

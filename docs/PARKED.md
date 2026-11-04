@@ -13357,13 +13357,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YN — reserved
+## Parked by item 3841, 2026-11-04 — the quit kills the human's planes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3841a. The widening's closing block reads 2601 without the quit.** `harness::widen_walk` (2501..2601,
+  `information_melee_closing_window`) ticks to the closing block as to any other, so the quit's `Leader::defeat` never
+  runs there. The human citizens `0/1`..`0/7` hold a one-step order in ours where theirs' are idle (3836's "3788b
+  shape"). That is what the defeat's `clear_orders` drops, and the arm is unbuilt (3841c). The walk cannot tell a
+  quit's block from an ordinary one, and teaching it moves every widening that ends on a capture's last block. Names no
+  score: the closing state reads 0 off (GOLDEN §152.15).
+- **3841b. What the defeated flag moves on the closing frame.** `Sim::resign` sets `defeated` before the last tick. That
+  closes the Inca word's `peasant_dist` row on city `0/2000` (ours 2, theirs 1 since item 3360), but which reader of
+  the flag moves it is not read. §151's measured shape, a human's `leftover` read one frame early, is the same
+  candidate: a defeated leader's skipped resource step. `seat_walk` still reads the human at n − 1.
+- **3841c. `Unit::clear_orders` on a walker at the quit.** Built with `Sim::clear_orders`, `Leader::defeat`'s
+  non-plane arm moved 54 closing states the wrong way. A human unit walking on the quit frame takes its step in
+  theirs and stops in ours, one step off: `american_industrial`'s `0/10` (3, −25), `aztec_modern`'s `0/2` (25, 0),
+  `korean_classical` seven units. The same arm dissolved two tears, `british_classical`'s `0/4` and
+  `classical_melee`'s `0/6`, and `shutdown.rs`'s one-tick tear (run72's `0/3`) is its shape. Whether the original's
+  clear keeps a guy's current step is `Unit::clear_orders`' to say. Names no score while every close holds; the
+  tears are pinned as torn.
 
 ## Parked by the next landing, slot YO — reserved
 
