@@ -605,15 +605,13 @@ fn information_melee_s_leaders_are_compared_on_every_seat() {
     // family standing to 2601 on a seat's first sites, and three keys on
     // who=0 alone — theirs' V2 Rocket `0/16` (TI 313, `num_units[263]`) is
     // in no 2601 record, with no death object and no round, where ours
-    // holds it (parked 3836c).
+    // holds it (parked 3836c). Item 3841: the quit's `Leader::defeat`
+    // kills it before the dump (`Sim::resign`, §152.15), and the three go —
+    // ours 15/15/1 against theirs' 14/14/0 before.
     pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
     pin_eq!(
         w.rest(),
-        vec![
-            "who=0 active 2601: ours 15 theirs 14 (1, to 2601)".to_string(),
-            "who=0 control 2601: ours 15 theirs 14 (1, to 2601)".to_string(),
-            "who=0 num_units[263] 2601: ours 1 theirs 0 (1, to 2601)".to_string(),
-        ],
+        Vec::<String>::new(),
         "the keys that part, by seat"
     );
 }
@@ -664,9 +662,16 @@ fn information_melee_run1468_s_closing_state() {
     };
     pin_eq!(e.frame, 2601, "the closing block");
     // Item 3836, the game whole: 151 units compared, and one extra — the
-    // V2 Rocket `0/16`, which ours holds and theirs' closing dump prints in
-    // no record (parked 3836c; `docs/GOLDEN.md` §152.14).
+    // V2 Rocket `0/16`, which ours held and theirs' closing dump prints in
+    // no record (parked 3836c; `docs/GOLDEN.md` §152.14). Item 3841: the
+    // quit kills it — `Leader::defeat(6, −1, 0)` on the closing frame's
+    // first act `die`s every plane the human has (`Sim::resign`, §152.15)
+    // — and the close reads 0 off.
     pin_eq!(e.compared, 151, "units compared");
-    pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(0, 16)], "the closing extras");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

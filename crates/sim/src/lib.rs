@@ -170,6 +170,7 @@ pub mod redo_patrol_view;
 pub mod relative_value;
 pub mod remove_inside_view;
 pub mod repair_view;
+pub mod resign;
 pub mod roads;
 pub mod roads_view;
 pub mod scout;

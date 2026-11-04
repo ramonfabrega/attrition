@@ -87,6 +87,16 @@ pub fn compare_shutdown(built: &mut Built, fin: &Frame, players: usize) -> Shutd
             .filter(|k| !bad.contains(k))
             .collect()
     };
+    // **The quit is the closing frame's first act** (item 3841,
+    // `docs/GOLDEN.md` §152.15): `CommandManager::issue_quit` →
+    // `Player::resign` → `Leader::defeat(6, −1, 0)` runs before any unit
+    // does, so the human's planes die and its other units drop their
+    // orders on the frame the dump is written in.
+    for who in 0..players.min(built.sim.nation.len()) {
+        if built.sim.nation[who].human {
+            built.sim.resign(who as sim::Player);
+        }
+    }
     built.tick();
     let after = compare(built, fin, players);
     let mut torn = Vec::new();
