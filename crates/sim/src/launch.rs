@@ -5092,6 +5092,68 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: -36,
         },
     ),
+    // **Piece 258, the Fighter Bomber's two wing guns** (`FIGHTERBOMBER`,
+    // unit type 308; item 3829, `docs/GOLDEN.md` §152.12): run1472's
+    // `RON_STATE_FRAME=707` packet loads sixteen `AttachPos` rows, `RData
+    // +0x88` 0.765, all in `CHAR_ATTACK2` at frames 1, 3, 7, 11, 14, 18, 22
+    // and 26 — node 0 at (29.13, −9.34, −7.27) and node 1 at (−29.23,
+    // −9.66, −7.27) on every one — and `fit_bay.py` fits each node's sweep
+    // at 361 of 361 headings (202 and 513 lattice points; the centroid is
+    // kept), 26 below the figure. Without them who=0's Fighter Bomber `0/15`
+    // loosed both rounds of each pair from its square at the figure's
+    // height, (15096, 15672, 0), where run1477's block 822 prints (15179,
+    // 15597, −26) and (15074, 15782, −26), `total_time` 7 and 8 against
+    // ours' 8 and 8.
+    (
+        258,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -106_967,
+            fwd: 34_296,
+            dz: -26,
+        },
+    ),
+    (
+        258,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 107_331,
+            fwd: 35_471,
+            dz: -26,
+        },
+    ),
+    // **Piece 259, the Jet Fighter Bomber's two `AARocket`s**
+    // (`JETFIGHTERBOMBER`, unit type 309; item 3829, `docs/GOLDEN.md`
+    // §152.12, parked 3816a): the same packet loads its two rows (`CHAR_
+    // ATTACK2`, node 0 at frame 9, (−50.29, 36.08, −19.34), and node 1 at
+    // frame 4, (50.54, 36.08, −19.31)), `RData +0x88` 0.765, and
+    // `fit_bay.py` fits each sweep at 361 of 361 headings (168 and 367
+    // lattice points; the centroid is kept), 71 and 70 below the figure.
+    // Without them who=2's `2/18` loosed its rounds from its square at the
+    // figure's height, (15864, 16632, 0), where run1468's block 801 prints
+    // (15843, 16406, −70) and (15657, 16725, −71).
+    (
+        259,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: 184_664,
+            fwd: -132_488,
+            dz: -71,
+        },
+    ),
+    (
+        259,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: -185_591,
+            fwd: -132_491,
+            dz: -70,
+        },
+    ),
     // **Piece 255, the Strategic Bomber's two bays** (`STRATEGICBOMBER`,
     // unit type 305; item 3760, `docs/AI.md` §372.4): run1437's packet loads
     // twelve `AttachPos` rows, `RData +0x88` 0.9, all in `CHAR_ATTACK2` — six
