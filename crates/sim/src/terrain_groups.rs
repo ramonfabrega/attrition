@@ -2153,7 +2153,8 @@ mod tests {
     /// (`docs/MAPGEN.md` §7): on dry, treeless land the first cell from
     /// `circle_radius[2]` takes its first two growing neighbours, north
     /// then east; on a lone dry cell (an islet in the disc) only the patch
-    /// of one lands, and on a dry pair the patch of two; a disc already
+    /// of one lands, and on a dry pair the patch of two; a start-city cell
+    /// never grows; a disc already
     /// holding three forest cells is left alone, two are not enough. The
     /// East Indies fuzz lobby's 7861 is the diff; this pins the arms it
     /// does not reach.
@@ -2188,6 +2189,13 @@ mod tests {
             forest(&g),
             want,
             "the patch of three: the cell, north, east"
+        );
+        let mut g = grid(0);
+        g.city[(y * 20 + x) as usize] = true;
+        check_player_forest(&mut g, 20);
+        assert!(
+            !forest(&g).contains(&(x, y)) && forest(&g).len() == 3,
+            "a start-city cell never grows"
         );
         let mut g = grid(2);
         g.cells[(y * 20 + x) as usize].land = 0;
