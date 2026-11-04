@@ -13116,6 +13116,9 @@ words and edits nothing here; a refill lands when two remain.
     skips it fails no trace; `a_stalled_pass_restarts_the_generation` holds it on a hand-built lobby;
   - the three-player radius `(m/2)·7/8` and the four-player two-draw angle are never taken; they are
     unit-tested on hand-built lobbies only;
+  - the ring never falls, so the edge margin and the ring's step are unit-tested only, and the passes'
+    `max_dist` from the *first* radius (listing `0069788c`) is held by no test: on the corpus the first
+    radius is the fallen one;
   - `scale_land_area`'s float path is refused as Great Lakes' is (3815b): 2 nations sit inside every
     allowance.
 

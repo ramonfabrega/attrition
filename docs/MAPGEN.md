@@ -1047,7 +1047,8 @@ Of the territory's 198 open or layout-only functions under the nine stems
   generator run (item 3815); `eliminate_pools`' merge, the 1,000-miss
   shrink and `scale_land_area`'s float path are reading-only or
   unit-tested (3815b);
-- §5's East Indies `make_continents`: draw for draw on 418 traces, the
+- §5's East Indies `MapEastIndies::make_continents@00697540`: draw for
+  draw on 418 traces, the
   49,611 and 55,533, and its seed, part 2 and part 5 at 7807 on 202 files,
   two generator runs of 2 nations (item 3820); the restart, the
   three-player radius and the four-player angle are unit-tested only
