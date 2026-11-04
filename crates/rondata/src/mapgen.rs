@@ -3915,7 +3915,7 @@ mod tests {
     const GREAT_LAKES_CHECKED: i64 = 4;
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
-    /// the zero-draw passes (7835..7854), and `place_all` with its tail
-    /// (7859, 7861..7870).
-    const EAST_INDIES_CHECKED: i64 = 3;
+    /// the zero-draw passes (7835..7854), `place_all` with its tail
+    /// (7859, 7861..7870), and the resources (7877..7927).
+    const EAST_INDIES_CHECKED: i64 = 4;
 }
