@@ -252,11 +252,20 @@ mod tests {
     /// With three players the ring starts at `(m/2)·7/8`, two at `m/2`:
     /// the first start is the first radius down from there whose point
     /// clears every edge by `max(avoid_edge) + 4`. No corpus lobby shrinks
-    /// the ring (3820a), so edges of 10 here make it fall.
+    /// the ring (3820a), so edges of 10 here make it fall; on 60×60 the
+    /// edges bind before the starting radius, so a 120×120 holds the ring
+    /// where it starts.
     #[test]
     fn the_ring_s_radius_reads_the_player_count() {
-        for (players, from, edges) in [(2, 30, 2), (3, 26, 2), (2, 30, 10), (3, 26, 10)] {
-            let mut grid = MapGrid::new(60, 60);
+        let cases = [
+            (60, 2, 30, 2),
+            (60, 3, 26, 2),
+            (60, 2, 30, 10),
+            (60, 3, 26, 10),
+            (120, 3, 52, 2),
+        ];
+        for (xs, players, from, edges) in cases {
+            let mut grid = MapGrid::new(xs, xs);
             let mut draws = Draws::new(11u32.wrapping_mul(2_654_435_761));
             let st = LakeStyle {
                 avoid_edge: [edges; 4],
@@ -271,19 +280,21 @@ mod tests {
             let e = edges + 4;
             let mut radius = from;
             let at = loop {
-                let (x, y) = project(30, 30, Angle(angle), radius);
-                if x > e && 60 - x > e && y > e && 60 - y > e {
+                let (x, y) = project(xs / 2, xs / 2, Angle(angle), radius);
+                if x > e && xs - x > e && y > e && xs - y > e {
                     break (x, y);
                 }
                 radius -= 1;
             };
-            if edges == 10 {
-                assert!(radius < from, "the ring fell");
+            match (xs, edges) {
+                (60, 10) => assert!(radius < from, "the ring fell"),
+                (120, _) => assert_eq!(radius, from, "the ring held"),
+                _ => {}
             }
             assert_eq!(
                 (grid.starts[0].list[0], grid.starts[1].list[0]),
                 at,
-                "{players} players, edges {edges}"
+                "{xs}×{xs}, {players} players, edges {edges}"
             );
         }
     }
