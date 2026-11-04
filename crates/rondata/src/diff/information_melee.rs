@@ -243,8 +243,23 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // `2/24` reads 44 and the word is 761. On 718 ours spends 14 against
     // 15: at index 6 theirs spends `Unit::close+0xcb6` where ours spends
     // `Farms::inc_time+0x1ae`.
-    count: 718,
-    sequence: 718,
+    //
+    // Item 3816: **718 → 761**. The pool's slots parted on 646, not in
+    // the release points: the Cruise Missile `2/19`'s round took slot 6 in
+    // theirs because the Anti-Aircraft Missile `1/20`'s round on `2/18`
+    // still held slot 2 — run1469's block 639 lays it eight points, run1470
+    // re-plans it to eight on 642 and to three on 646 — where ours laid the
+    // land shooter's middle point half way on the straight line, seven
+    // points, re-planned to five and freed slot 2 by 645. A land shooter's
+    // (and a building's) middle point is `attack_dist / 2` out at 45° up
+    // on the ammo's angle (`Ammo::init`'s `67c437`–`67c469`, §152.9;
+    // block 639's point to the bit). So the V2 takes slot 6 and `0/17`'s
+    // round slot 5, and `2/24` takes 44 on 690 and dies on 718 as theirs'
+    // does. On 761 ours spends 14 against 13: at index 1 ours spends
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823` where theirs spends
+    // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`.
+    count: 761,
+    sequence: 761,
 };
 
 /// The melee's word: the lower of the two partings.

@@ -3050,6 +3050,48 @@ mod tests {
         }
     }
 
+    /// **A land shooter's lead is half the distance out, at 45° up** (item
+    /// 3816, GOLDEN §152.9; `Ammo::init@0067bbf0`, `67c437`–`67c469`):
+    /// run1469's French Anti-Aircraft Missile `1/20` (`PROJ_SPEED` 400)
+    /// fires on the Russian `2/18` from (17346, 14755, 639) to (15778,
+    /// 16581, 0), the ammo's angle `−1,688,993,792` (218°). Block 639
+    /// prints the middle control point (16908.123047, 15295.732422,
+    /// 1334.793091) — `r` 984, `attack_dist` over two, rotated at 219° —
+    /// and the eight points; this crate laid the half-way point on the
+    /// straight line, seven points, and freed the round's slot four frames
+    /// early.
+    #[test]
+    fn a_land_shooter_s_lead_is_run1469s() {
+        let s = |m: i64| Single::from_millionths(m).0;
+        let v = |x: i64, y: i64, z: i64| [s(x), s(y), s(z)];
+        let (launch, landing) = (Pos::new(17346, 14755), Pos::new(15778, 16581));
+        let lead = Lead {
+            angle: Angle(-1_688_993_792),
+            pitch: Single::from_bits(0x4234_0000),
+            r: 984,
+        };
+        assert_eq!(
+            missile_lead(launch, 639, lead),
+            v(16_908_123_047, 15_295_732_422, 1_334_793_091),
+            "the middle control point"
+        );
+        let first = missile_spline(launch, 639, landing, 0, Some(lead), 400);
+        let printed_639 = [
+            v(17_346_000_000, 14_755_000_000, 639_000_000),
+            v(17_206_765_625, 14_924_689_453, 796_357_544),
+            v(17_039_275_391, 15_124_767_578, 870_833_984),
+            v(16_843_529_297, 15_355_236_328, 862_429_199),
+            v(16_619_529_297, 15_616_093_750, 771_143_494),
+            v(16_367_274_414, 15_907_338_867, 596_976_746),
+            v(16_086_764_648, 16_228_974_609, 339_928_894),
+            v(15_778_000_000, 16_581_000_000, 0),
+        ];
+        assert_eq!(first.len(), printed_639.len(), "the point count");
+        for (i, want) in printed_639.iter().enumerate() {
+            assert_eq!(first.point(i), *want, "block 639 point {i}");
+        }
+    }
+
     /// **The lead's two index folds** (`67cbb3`–`67cc90`): a pitch reads
     /// its truncated degree, a negative one `359 − (−p mod 360)`; the
     /// angle's degree is negated first, so 0 stays 0 and 120 reads 239.
