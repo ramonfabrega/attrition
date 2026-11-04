@@ -12942,13 +12942,26 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   8 against 7. These are the word 648's nearest candidates, as a hypothesis, not a booking: on 648 ours
   spends `Unit::close+0xcb6` at index 35, a death in ours.
 
-## Parked by the next landing, slot XN — reserved
+## Parked by item 3805, 2026-11-03 — `place_all`'s tail and `place_resources` on Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3805a. A goods slot is never reused on Great Sahara** (`docs/MAPGEN.md` §7, §8; `MapGrid::init_good`):
+  `Objects::init_good@00653f30` takes the first dead slot, and `World::set_oil_at@006b2a10` kills a live oil good
+  on its cell; on Great Sahara no oil good dies before a later good is made, so the mutation "never reuse a dead
+  slot" turns nothing red. The branch is ported from the reading. A style whose `place_all` clears oil it laid
+  tests it at 7927's `down_who`. Names no score.
+- **3805b. The resource branches Great Sahara never takes** (`sim::map_resources`): `Map::find_avail_regions@0068f380`'s
+  draw (every Great Sahara region call saw one available region), patterns `continent` and `nonplayer`, and the
+  water goods (`SEA`, Fish and Whales) with their placement tests. Ported from the readings and never run; a style
+  with water and more than one region reaches them, once its mask is ported (3734a).
+- **3805c. The herds and the `Goods`/`Items` checksum lines are not compared.** `Objects::init_good` starts a
+  good's herd, and the checksum's `Goods` and `Items` lines print the objects 7927 makes; the port writes the cells
+  only (parts 5 and 6 agree) and carries no herd. MAPGEN §8's falsifier names the two lines; a reader of them in
+  `rondata::diff` is the next widening of this phase. Names no score until a unit step reads a herd.
+- **3805d. An unmatched pattern string and a missing `group`** (`Map::place_resources@0068f4f0`, listing
+  0x68f752 and 0x68fd15..0x68fdab): a pattern word matching none of the five keeps the previous selected row's
+  pattern (a register left over, 0 at entry), and a row with no `group` (−1) on a pass's first row, or after other
+  −1 rows, does not roll and reuses the stale roll. Both from the listing; no stock row exercises either. Names no
+  score.
 
 ## Parked by the next landing, slot XO — reserved
 

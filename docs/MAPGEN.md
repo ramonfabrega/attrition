@@ -440,7 +440,12 @@ and word for word, on **all 280 Great Sahara traces**: 267 at 2 players
 on all 105 files that carry it (`great_sahara_s_place_all_is_the_traced_
 stream_and_7859`). It agreed on the first run. The 7859 grid holds forest,
 mountain, rock and oil on both lobbies; the oil cells' `goods` byte stays 0,
-because the OIL object `World::set_oil_at` makes walks no part. A moved
+because the OIL object `World::set_oil_at` makes walks no part. That object
+is still made: `World::set_oil_at@006b2a10` kills any live oil good on its
+cell on both arms (listing 0x6b2a10..0x6b2b05), and the on arm then calls
+`Objects::init_good(OIL)`, which takes the first dead slot. So a later
+good's index, the `down_who` §8 writes, counts `place_all`'s oil
+(`MapGrid::goods`, item 3805). A moved
 LFSR tap, a reordered ring draw, a fringe cell's lost FOREST bit and a
 stray tile-mask bit each turn the check red (`tools/mutate.py`), the last
 two at 7859 only.
@@ -483,6 +488,25 @@ Then:
   `TerrainGroups::nubify_transitions@006a1f30` draw once per over-long
   fertility-run cell until a nub lands. Together these are the 1,824.
 
+**Ported on Great Sahara** (item 3805, `sim::terrain_groups::nubify_forest`
+and `change_bases`). `nubify_forest` walks columns, then rows; a run of four
+with forest on one side draws `r & 3` and re-forests the side cell that many
+back, skipping a start-city cell, ocean, and a region edge
+(`World::is_edge_of_region`). The base passes take `orthog_x/y[1..=4]` (N,
+E, S, W) as the tables give them, and `nubify_transitions`' row pass bounds
+its rows by `xs`. The chances are the tileset's `FOREST_BASE`,
+`MOUNTAIN_BASE` and `COAST_BASE`, read by `TileSet::init@0087b370` (−1 when
+absent; GS_Desert 3/30, 2/30, 3/30). At 2 players the 5 are 5
+`nubify_forest` draws and the 1,004 are 370 `change_forest_base`, 202
+`change_mountain_base`, 0 coast (no Great Sahara cell is COAST) and 432
+`nubify_transitions`. The stream is the trace's through the last of them on
+**all 280 Great Sahara traces**, and seed and parts 2, 5 and 6 agree at
+7861, 7865 and 7870 on 105 files each, first try
+(`great_sahara_s_group_tail_is_the_traced_stream_and_7861_to_7870`). Five
+mutations turn it red; `nubify_forest` keeping the COAST, ROCK and MOUNTAIN
+bits it clears turns nothing red, because its 5 nubs land on forest cells
+that carry none of them.
+
 Falsifier: seed and parts 5 and 6 at 7859, 7865 and 7870.
 
 ## 8. Resources
@@ -498,7 +522,10 @@ MAPMAKE` would print the generator's own account (named, not booked).
 - It fills a `ResourceDivvyPool` with the goods (6..0x31) that have
   `random_rare_drop`. It reads `BONUSES`, `FISH ` (the map file's key has a
   trailing space) and `GOODIES`, from the style's file where it has the
-  section and from `default.xml` where it does not.
+  section and from `default.xml` where it does not. An empty style section
+  still wins: SAHARA.xml's `<FISH/>` is found through the trailing space,
+  and Great Sahara's 10 ladder rolls are 5 `BONUSES` and 5 default
+  `GOODIES` (a default `FISH` would add 2).
 - Each bonus entry rolls once per group (`r % 100` on a chance ladder).
 - Pattern `player` goes to `Map::place_player_resource@00691f70`; patterns
   `continent`, `world`, `nonplayer` and `corner` go to
@@ -525,6 +552,30 @@ So this phase moves parts 5 and 6, and the `Goods` and `Items` checksum
 lines. The 231 is consistent in kind and **not reconciled**: about 10 group
 rolls, roughly 30–40 on the player path, and the rest in the region
 retries.
+
+**Ported on Great Sahara** (item 3805, `sim::map_resources`, from three
+blind readings kept outside the repo; inputs `rondata::mapgen::resource_inputs`).
+- The ladder's roll and group carry across sections; the selected flag
+  resets per section.
+- The pool has two lists, told apart by the counts: early 23 goods, late 6
+  (Rubber, Sulphur, Aluminum, Coal, Uranium, Titanium — `PREQ0` Gunpowder
+  or the Industrial Age). Every repeat draw in both traces lands on a taken
+  index, and a modulus of 24 or 5 contradicts run1000. Only `default.xml`'s
+  `LAND_0` lists land goods.
+- `player_keep_away` is never scaled, so `16 SCALE` reads 16.
+- The region walk is `place_all`'s LFSR. Every Great Sahara region call saw
+  exactly one available region, so `find_avail_regions` drew nothing.
+- `create` marks the footprint 0x200 with `set_blocked_at`, then the cell's
+  flag (1 a good, 0x8000 a goody box), `down` (−2, −3) and `down_who`, the
+  good's slot in `MapGrid::goods` (§7's oil counts).
+
+The stream from `place_all` to `compute_all_vals` is the trace's on **all
+280 traces**, and seed and parts 2, 5 and 6 agree at 7877, 7880 and 7927 on
+105 files each (`great_sahara_s_resources_are_the_traced_stream_and_7927`):
+36 objects at 2 players and 45 at 3. The first run parted on part 5 alone,
+on `down_who`, until the oil goods were counted. Five mutations turn it red;
+a dead slot never reused turns nothing red, since no Great Sahara oil good
+dies before a later good is made (3805a).
 
 Falsifier: seed and parts 5 and 6 at 7927, and the `Goods`/`Items` lines.
 
@@ -692,6 +743,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   and parts 2, 5 and 6 at 7859 on 105 files (item 3803). The groups' parse
   and the templates come with it. Cliffs, patterns 3 and 4, oil by water
   (type 7) and `clear_group`'s first branch are reading-only;
+- §7's tail and §8's `place_resources` on Great Sahara: draw for draw on
+  280 traces, and seed and parts 2, 5 and 6 at 7861, 7865, 7870, 7877, 7880
+  and 7927 on 105 files (item 3805). Slot reuse, `find_avail_regions`' draw,
+  patterns 1 and 3, water goods and the `Goods`/`Items` lines are
+  reading-only (3805a–c);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -701,7 +757,7 @@ Of the territory's 198 open or layout-only functions under the nine stems
 **Reading-only**, each with its falsifier named in its section: every
 per-function formula and predicate in §§4–10. The draw formulas for
 `make_continents` (GL, EI), `place_all`, `change_*_base`/`fix_transitions`,
-`place_resources` and `make_rivers` are consistent in kind but not
+`place_resources` (reconciled on Great Sahara, item 3805) and `make_rivers` are consistent in kind but not
 reconciled to their measured totals. Also §3's parts 10–13 offsets and
 §11's float classification.
 
@@ -724,8 +780,8 @@ tileset or a base-mask style is what would.
   (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7). Each
   needs the grid at its phase, which a port's own phase supplies, checked
   by §3. `GLOG_MAPMAKE` at detail 7–10 would count them in the original.
-- Whether MSXML's `selectSingleNode` honours `FISH ` with its trailing
-  space, as read (§8).
+- ~~Whether MSXML's `selectSingleNode` honours `FISH ` with its trailing
+  space, as read (§8).~~ It does: §8, item 3805.
 - The unnamed int at +0x1fc of unit type 349, which GL takes as
   `check_player_land`'s radius, rounded up after dividing by 4.
 - `clear_group` writes `land_sub = num_tiles[0] − 1` on plain land, so it is
@@ -748,8 +804,10 @@ step is checked by §3 at its own checkpoint before the next begins:
    wait on a mask with water;
 3. `place_all` (§7, 7859) — **Great Sahara built** (item 3803,
    `sim::terrain_groups`; the `Mapgen:` line's third phase); 7861–7870's
-   `nubify_forest`, `change_*_base` and `fix_transitions` come next;
-4. resources (§8, 7927);
+   `nubify_forest`, `change_*_base` and `fix_transitions` — **Great Sahara
+   built** with step 4 (item 3805);
+4. resources (§8, 7927) — **Great Sahara built** (item 3805,
+   `sim::map_resources`; the `Mapgen:` line's fourth phase);
 5. values (§9, 7945);
 6. `Terrain::init` without heights;
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894);
