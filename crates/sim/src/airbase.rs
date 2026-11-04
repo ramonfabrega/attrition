@@ -43,6 +43,9 @@ const V2ROCKET: crate::tech::TypeId = 0x139;
 
 /// `NUCLEARMISSILE` (0x13b), the line it asks for a nuke (`6fc12e`).
 pub(crate) const NUCLEARMISSILE: crate::tech::TypeId = 0x13b;
+/// `CRUISEMISSILE` (0x13a): `Ammo::init`'s `is(0x13a)`, the fourth argument
+/// of `Spline::calc_nuke_spline@00913ad0` (item 3806, `docs/GOLDEN.md` §152.4).
+pub(crate) const CRUISEMISSILE: crate::tech::TypeId = 0x13a;
 
 /// The flight command's modifiers as `Console::execute_at_cursor` reads
 /// them: shift (every plane), ctrl (bombers only), alt (fighters only).

@@ -176,8 +176,21 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // launch, landing and clock, 620..639. On 648 ours spends 44 against
     // 43: at index 35 ours spends `Unit::close+0xcb6` where theirs spends
     // `Farms::inc_time+0x1ae` — ours acted.
-    count: 648,
-    sequence: 648,
+    //
+    // Item 3806: **648 → 676**. Ours' death was the Anti-Aircraft
+    // Missile `1/20`'s (TI 284), struck by the Cruise Missile `2/19`'s
+    // (TI 314) round, fired on 645 on both sides: ours flew it four
+    // frames on the straight line from the figure's (16632, 16632, 672),
+    // where theirs leaves the unit's point plus `MISSILE_OFFSET`,
+    // (16523, 16633, 958), on `calc_nuke_spline`'s Cruise Missile arm —
+    // a cubic over the ground at 250 up, 29 points, 28 frames (§152.4).
+    // run1470's window (640..665) agrees on that round's launch, landing,
+    // clock and four re-plans (28, 11, 9, 6, 4), blocks 646..661. On 676
+    // ours spends 22 against 23: at index 13 theirs spends
+    // `Unit::fight+0x9b0` where ours spends `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271` — theirs acted.
+    count: 676,
+    sequence: 676,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -211,8 +224,9 @@ fn information_melee_first_parting() {
 
 /// The word's window on run1468's stride: the block before the word to
 /// 250 frames past it (item 3802: the word 640, so 601..890 — the same
-/// three blocks as 3797's 601..873 and 3800's 601..878).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 890);
+/// three blocks as 3797's 601..873 and 3800's 601..878; item 3806: the
+/// word 676, so 601..926, which takes block 901 in).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (601, 926);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -294,15 +308,22 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // 30 low): their birth climb (§152.3). On 701 `1/15` carries 12 of
     // damage against 6, `1/14` and `1/17` hold no order against theirs'
     // one as before. The word's value diff is run1469's window (§152.3).
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    //
+    // Item 3806 (the word 676, so 601..926: block 901 joins). On the old
+    // three blocks **388 → 325** keys, rounds read (19, 15) → (19, 14),
+    // 47 → 41 parting — rows leaving: the Cruise Missile `2/19`'s round
+    // on `1/20` flies theirs' 28 frames, so `1/20` stands to 661 as
+    // theirs' does. With 901: 480 keys, rounds read (33, 16), 46
+    // parting. The word's value diff is run1470's window (§152.4).
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 388, "run1468's word window");
-    pin_eq!(w.rounds_read, (19, 15), "the rounds read");
-    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+    pin_eq!(w.firsts.len(), 480, "run1468's word window");
+    pin_eq!(w.rounds_read, (33, 16), "the rounds read");
+    pin_eq!(w.rounds.len(), 46, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

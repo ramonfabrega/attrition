@@ -2439,6 +2439,28 @@ impl Sim {
             Aim::Ground(_) => harmless,
         };
         let p = self.profile(shooter);
+        // **A missile leaves its own point** (item 3806, `docs/GOLDEN.md`
+        // §152.4; `Ammo::init@0067bbf0`, `67c1d5`..`67c263`): a shooter
+        // whose type carries the missile flag (`+0x1e4 & 0x8000000`)
+        // launches from its object's `(x, y, z_internal)` plus
+        // [`crate::air::MISSILE_OFFSET`], not from the release point the
+        // figure's piece names. run1470's Cruise Missile `2/19` at
+        // (16632, 16632), `z_internal` 570, fires from (16523, 16633, 958).
+        let missile_unit = match shooter {
+            Obj::Unit(u) if p.has(mask::MISSILE) => Some(u),
+            _ => None,
+        };
+        let (launch, sz) = match missile_unit {
+            Some(u) => {
+                let here = self.units[u].pos;
+                let off = crate::air::MISSILE_OFFSET;
+                (
+                    Pos::new(here.x + off.0, here.y + off.1),
+                    self.world.object_z(here.tile()) + off.2,
+                )
+            }
+            None => (launch, sz),
+        };
         let (target, ground) = match aim {
             Aim::At(t) => (Some(t), None),
             Aim::Ground(g) => (None, Some(g)),
@@ -2594,7 +2616,36 @@ impl Sim {
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
             let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
             spline = Some(path);
-            i32::try_from(path.len()).expect("at most 16")
+            i32::try_from(path.len()).expect("at most SPLINE_MAX")
+        } else if let Some(u) = missile_unit {
+            // **A missile unit flies `calc_nuke_spline`** (item 3806,
+            // `docs/GOLDEN.md` §152.4; `Ammo::init@0067bbf0`, the
+            // `local_30 == 0` arm's `+0x1e4 & 0x8000000` test, ahead of
+            // the Bomber's and the straight line): its time is the
+            // spline's points less one. The Cruise Missile (`is(0x13a)`)
+            // takes the arm that follows the ground; it is kept, and
+            // `Ammo::inc_time` steps and re-plans it as a guided round's.
+            // run1470's `2/19` on `1/20`: 29 points, 28 frames, where the
+            // straight line gave 4 and ours killed `1/20` on 648.
+            //
+            // SEAM: the other arm (a V2's, a nuke's) is [`crate::air::
+            // MISSILE_FLIGHT`] with its points not laid, so it does not
+            // re-plan (parked 3806a).
+            if self.air_line_is(u, crate::airbase::CRUISEMISSILE) {
+                let (ctl, n) = combat::cruise_control_points(
+                    (launch.x, launch.y, sz),
+                    (landing.x, landing.y, ez),
+                    |x, y| {
+                        let at = Pos::new(x, y);
+                        (self.ground_z(at), self.world.tile_mask(at.tile()))
+                    },
+                );
+                let path = combat::Spline::cruise(&ctl[..n]);
+                spline = Some(path);
+                i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
+            } else {
+                crate::air::MISSILE_FLIGHT
+            }
         } else if p.siege {
             combat::siege_flight_time(
                 self.max_range_of(shooter),
@@ -6165,7 +6216,7 @@ impl Sim {
             q.landing = at;
             q.ez = tz;
             q.spline = Some(next);
-            q.total_time = i32::try_from(next.len()).expect("at most 16");
+            q.total_time = i32::try_from(next.len()).expect("at most SPLINE_MAX");
             q.cur_time = 0;
         }
         false

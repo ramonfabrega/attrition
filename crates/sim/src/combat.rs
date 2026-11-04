@@ -1327,7 +1327,8 @@ pub fn missile_flight_time(
     lead: Option<(Angle, i32)>,
     speed: i64,
 ) -> i32 {
-    i32::try_from(missile_spline(launch, sz, landing, ez, lead, speed).len()).expect("at most 16")
+    i32::try_from(missile_spline(launch, sz, landing, ez, lead, speed).len())
+        .expect("at most SPLINE_MAX")
 }
 
 /// **A missile's spline as `Ammo::init` lays it** (item 3802): the launch
@@ -1377,11 +1378,17 @@ pub fn missile_spline(
     )
 }
 
-/// The most points a guided round's spline holds: `calc_spline@00912f00`
-/// caps a three-point spline's resolution at `3 × 4.0 = 12`, and
-/// `generate_bspline@00911820` lays the first point, one a step, and the
-/// last control point — fourteen at most.
-pub const SPLINE_MAX: usize = 16;
+/// The most points a round's spline holds here. A guided round's is
+/// fourteen at most: `calc_spline@00912f00` caps a three-point spline's
+/// resolution at `3 × 4.0 = 12`, and `generate_bspline@00911820` lays the
+/// first point, one a step, and the last control point. A Cruise
+/// Missile's ([`Spline::cruise`]) is uncapped, one point per 96 of its
+/// control polygon: 29 for run1470's 2,700, about 85 at its full range
+/// of 40 tiles over flat ground.
+///
+/// SEAM: the original's point array grows; this one stops laying at
+/// [`SPLINE_MAX`], a polygon past 12,000.
+pub const SPLINE_MAX: usize = 128;
 
 /// **A guided round's flight path** (item 3802, `docs/GOLDEN.md` §152.2):
 /// the points `Spline::calc_from_dir@00913960` lays for a round whose ammo
@@ -1412,8 +1419,10 @@ impl Spline {
     }
 
     fn push(&mut self, p: [Single; 3]) {
-        self.pts[usize::from(self.len)] = p;
-        self.len += 1;
+        if usize::from(self.len) < SPLINE_MAX {
+            self.pts[usize::from(self.len)] = p;
+            self.len += 1;
+        }
     }
 
     /// **`Spline::calc_from_dir@00913960` with a zero third vector** — the
@@ -1445,14 +1454,7 @@ impl Spline {
         let ctl = [start, dir, end];
         let zero = Single::from_bits(0);
         let one = Single::from_bits(0x3f80_0000);
-        let mut length = zero;
-        for w in ctl.windows(2) {
-            let d = |c: usize| w[1][c].subss(w[0][c]);
-            let (dx, dy, dz) = (d(0), d(1), d(2));
-            let sq = dx.mulss(dx).addss(dy.mulss(dy)).addss(dz.mulss(dz));
-            length = sq.sqrtss().addss(length);
-        }
-        let mut res = i32::from(length.divss(speed).to_i32() as u16);
+        let mut res = i32::from(polygon_length(&ctl).divss(speed).to_i32() as u16);
         let cap = Single::from_i32(3)
             .mulss(Single::from_bits(0x4080_0000))
             .to_i32();
@@ -1460,7 +1462,59 @@ impl Spline {
             res = cap;
         }
         res = res.max(DEGREE as i32);
-        let knots = [zero, zero, zero, one, one, one];
+        Spline::generate(&ctl, DEGREE, &[zero, zero, zero, one, one, one], res)
+    }
+
+    /// **`Spline::calc_nuke_spline@00913ad0`'s Cruise Missile arm**
+    /// (item 3806, `docs/GOLDEN.md` §152.4), from its control points on:
+    /// the cubic (`+0x60 = 3`) over [`cruise_control_points`]'s polygon.
+    ///
+    /// - `set_min_seg_length@009125e0` takes the resolution as the
+    ///   polygon's length over **96** (`0xb696a8`, loaded into `xmm1` at
+    ///   `913de7`), truncated to a `u16`;
+    /// - `calc_spline` caps nothing (`+0x48` is 0) and raises it to the
+    ///   degree;
+    /// - every knot weight is 30 (`913e96`), so `clamp_knots@00910be0`
+    ///   lays `degree + 1` zeros, then one step of `3 × 30` for each
+    ///   control point past the degree, the last value repeated to `n +
+    ///   degree + 1` knots — run1470's five points read `0 0 0 0 90 180
+    ///   180 180 180`;
+    /// - and `generate_bspline` lays them as [`Spline::from_dir`] does.
+    ///
+    /// run1470's Cruise Missile `2/19` on `1/20`: a 2,700.6 polygon, 28
+    /// steps, 29 points; `Ammo::init` takes `total_time` as 28.
+    pub fn cruise(ctl: &[[Single; 3]]) -> Spline {
+        const DEGREE: usize = 3;
+        let speed = Single::from_bits(0x42c0_0000);
+        let res = i32::from(polygon_length(ctl).divss(speed).to_i32() as u16).max(DEGREE as i32);
+        let step = Single::from_i32(30);
+        let mut knots = [Single::from_bits(0); SPLINE_CTL_MAX + DEGREE + 1];
+        let mut k = Single::from_bits(0);
+        let n = ctl.len().min(SPLINE_CTL_MAX);
+        for (i, slot) in knots.iter_mut().enumerate().take(n + DEGREE + 1) {
+            if i > DEGREE && i <= n {
+                for _ in 0..DEGREE {
+                    k = k.addss(step);
+                }
+            }
+            *slot = k;
+        }
+        Spline::generate(&ctl[..n], DEGREE, &knots[..n + DEGREE + 1], res)
+    }
+
+    /// **`Spline::generate_bspline@00911820`** over `ctl` at `degree`, on
+    /// the clamped `knots`, at the resolution `res`. Every step is the
+    /// listing's single-precision operation:
+    ///
+    /// - the parameter starts at `k₀ + δ`, `δ = (k_last − k₀) / res`, and is
+    ///   *accumulated*, `t += δ`; a point is laid while `k_last > t`, each
+    ///   the sum over the span's `degree + 1` control points of `P · N(t)`,
+    ///   the basis Cox–de Boor's with `calc_bspline_basis@009116e0`'s
+    ///   guards;
+    /// - and the last control point is laid when `k_last − (t − δ)`,
+    ///   widened to a double, exceeds 0.001 (`911b15`–`911b2d`).
+    fn generate(ctl: &[[Single; 3]], degree: usize, knots: &[Single], res: i32) -> Spline {
+        let zero = Single::from_bits(0);
         let last = knots.len() - 1;
         let delta = knots[last].subss(knots[0]).divss(Single::from_i32(res));
         let mut s = Spline {
@@ -1487,9 +1541,9 @@ impl Spline {
                 .iter()
                 .enumerate()
                 .take(span + 1)
-                .skip(span.saturating_sub(DEGREE))
+                .skip(span.saturating_sub(degree))
             {
-                let b = bspline_basis(t, j, DEGREE, &knots);
+                let b = bspline_basis(t, j, degree, knots);
                 for k in 0..3 {
                     p[k] = p[k].addss(c[k].mulss(b));
                 }
@@ -1506,6 +1560,96 @@ impl Spline {
             s.push(ctl[ctl.len() - 1]);
         }
         s
+    }
+}
+
+/// The most control points [`Spline::cruise`] takes: the launch and its
+/// rise, the descent and the landing, and one ground point per 768 —
+/// 13 at a Cruise Missile's full range.
+pub const SPLINE_CTL_MAX: usize = 64;
+
+/// `set_min_seg_length@009125e0`'s length: `Σ sqrt((dx·dx + dy·dy) +
+/// dz·dz)` over the control polygon, each root taken in double and rounded
+/// back (`9125e0`–`912656`), which is the correctly rounded single root.
+fn polygon_length(ctl: &[[Single; 3]]) -> Single {
+    let mut length = Single::from_bits(0);
+    for w in ctl.windows(2) {
+        let d = |c: usize| w[1][c].subss(w[0][c]);
+        let (dx, dy, dz) = (d(0), d(1), d(2));
+        let sq = dx.mulss(dx).addss(dy.mulss(dy)).addss(dz.mulss(dz));
+        length = sq.sqrtss().addss(length);
+    }
+    length
+}
+
+/// **`Spline::calc_nuke_spline@00913ad0`'s Cruise Missile arm**, its
+/// control points (item 3806, `docs/GOLDEN.md` §152.4): the arm
+/// `Ammo::init@0067bbf0` takes for a shooter whose type carries the
+/// missile flag (`+0x1e4 & 0x8000000`) and is the Cruise Missile
+/// (`is(0x13a)`, the fourth argument), whose ammo is not `missile="1"`.
+/// The launch `s`, then `s` 250 up (`0xb696d0`), then for each `i` of
+/// `1..n`, `n = vector_dist(|sx − ex|, |sy − ey|) / 768`, the point
+/// `((i·ex + (n−i)·sx) / n, (i·ey + (n−i)·sy) / n)` in singles,
+/// truncated (`913c10`–`913c55`), at `ground(x, y)` plus 250 —
+/// [`cruise_clearance`] — then `e` 250 up, then `e`.
+///
+/// `ground` is the caller's `find_data_z(x, y, 0)`; `mask` the tile word
+/// (`worldc +0x138`) under the point.
+pub fn cruise_control_points(
+    s: (i32, i32, i32),
+    e: (i32, i32, i32),
+    mut ground: impl FnMut(i32, i32) -> (i32, u16),
+) -> ([[Single; 3]; SPLINE_CTL_MAX], usize) {
+    let v = |x: i32, y: i32, z: i32| {
+        [
+            Single::from_i32(x),
+            Single::from_i32(y),
+            Single::from_i32(z),
+        ]
+    };
+    let mut out = [[Single::from_bits(0); 3]; SPLINE_CTL_MAX];
+    let mut n = 0;
+    let mut put = |p: [Single; 3]| {
+        if n < SPLINE_CTL_MAX - 2 {
+            out[n] = p;
+            n += 1;
+        }
+    };
+    put(v(s.0, s.1, s.2));
+    put(v(s.0, s.1, s.2 + 250));
+    let steps = vector_dist((s.0 - e.0).abs(), (s.1 - e.1).abs()) / 0x300;
+    let f = Single::from_i32(steps);
+    for i in 1..steps {
+        let (a, b) = (Single::from_i32(i), Single::from_i32(steps - i));
+        let x = a
+            .mulss(Single::from_i32(e.0))
+            .addss(b.mulss(Single::from_i32(s.0)))
+            .divss(f)
+            .to_i32();
+        let y = a
+            .mulss(Single::from_i32(e.1))
+            .addss(b.mulss(Single::from_i32(s.1)))
+            .divss(f)
+            .to_i32();
+        let (z, mask) = ground(x, y);
+        put(v(x, y, z + cruise_clearance(mask)));
+    }
+    out[n] = v(e.0, e.1, e.2 + 250);
+    out[n + 1] = v(e.0, e.1, e.2);
+    (out, n + 2)
+}
+
+/// The height a Cruise Missile's ground point keeps over the terrain
+/// (`913c6e`–`913ccf`): 250, and 1,000 more where the tile word carries
+/// bit 14 and its low two bits are both set, else 500 more where its
+/// surface field (`0x30`) is full.
+pub fn cruise_clearance(mask: u16) -> i32 {
+    if mask & 0x4000 != 0 && mask & 3 == 3 {
+        250 + 1000
+    } else if mask & 0x30 == 0x30 {
+        250 + 500
+    } else {
+        250
     }
 }
 
@@ -1741,6 +1885,84 @@ pub const fn garrison_arrows(attack: i32, base_arrows: i32, most_shots: i32, gar
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **A Cruise Missile's spline on run1470** (item 3806, GOLDEN §152.4):
+    /// `2/19`'s round on the Anti-Aircraft Missile `1/20`, block 646. The
+    /// control points [`cruise_control_points`] lays — the launch, 250 up,
+    /// one ground point (`vector_dist` 2,113 over 768 is two steps) at its
+    /// ground 521 plus 250, the landing 250 up, the landing — and the
+    /// twenty-nine points [`Spline::cruise`] lays over them, every one to
+    /// the dump's six decimals; `Ammo::init`'s `total_time` is 28.
+    #[test]
+    fn a_cruise_missile_s_spline_is_run1470s() {
+        let s = |m: i64| Single::from_millionths(m).0;
+        let v = |x: i64, y: i64, z: i64| [s(x), s(y), s(z)];
+        let (ctl, n) = cruise_control_points((16523, 16633, 958), (17398, 14709, 541), |x, y| {
+            assert_eq!((x, y), (16960, 15671), "the one ground point");
+            (521, 0)
+        });
+        let printed_ctl = [
+            v(16_523_000_000, 16_633_000_000, 958_000_000),
+            v(16_523_000_000, 16_633_000_000, 1_208_000_000),
+            v(16_960_000_000, 15_671_000_000, 771_000_000),
+            v(17_398_000_000, 14_709_000_000, 791_000_000),
+            v(17_398_000_000, 14_709_000_000, 541_000_000),
+        ];
+        assert_eq!(&ctl[..n], &printed_ctl[..]);
+        let path = Spline::cruise(&ctl[..n]);
+        let printed = [
+            v(16_523_000_000, 16_633_000_000, 958_000_000),
+            v(16_526_263_672, 16_625_812_500, 1_004_612_793),
+            v(16_535_742_188, 16_604_953_125, 1_038_158_081),
+            v(16_550_951_172, 16_571_472_656, 1_059_910_034),
+            v(16_571_417_969, 16_526_421_875, 1_071_142_822),
+            v(16_596_667_969, 16_470_855_469, 1_073_130_737),
+            v(16_626_216_797, 16_405_820_313, 1_067_147_827),
+            v(16_659_593_750, 16_332_375_000, 1_054_468_750),
+            v(16_696_320_313, 16_251_567_383, 1_036_367_554),
+            v(16_735_914_063, 16_164_446_289, 1_014_117_981),
+            v(16_777_900_391, 16_072_066_406, 988_994_934),
+            v(16_821_804_688, 15_975_480_469, 962_272_278),
+            v(16_867_152_344, 15_875_741_211, 935_224_548),
+            v(16_913_457_031, 15_773_895_508, 909_125_610),
+            v(16_960_250_000, 15_671_000_000, 885_250_000),
+            v(17_007_046_875, 15_568_102_539, 864_522_949),
+            v(17_053_376_953, 15_466_260_742, 846_475_220),
+            v(17_098_750_000, 15_366_517_578, 830_288_086),
+            v(17_142_697_266, 15_269_932_617, 815_143_555),
+            v(17_184_732_422, 15_177_553_711, 800_223_083),
+            v(17_224_376_953, 15_090_433_594, 784_708_374),
+            v(17_261_156_250, 15_009_624_023, 767_781_128),
+            v(17_294_585_938, 14_936_177_734, 748_623_047),
+            v(17_324_185_547, 14_871_144_531, 726_415_771),
+            v(17_349_480_469, 14_815_576_172, 700_341_064),
+            v(17_369_988_281, 14_770_527_344, 669_580_322),
+            v(17_385_232_422, 14_737_046_875, 633_315_491),
+            v(17_394_728_516, 14_716_186_523, 590_728_027),
+            v(17_398_000_000, 14_709_000_000, 541_000_000),
+        ];
+        assert_eq!(path.len(), printed.len());
+        for (i, want) in printed.iter().enumerate() {
+            for (c, (&ours, &theirs)) in path.point(i).iter().zip(want).enumerate() {
+                assert!(
+                    ours.bits().abs_diff(theirs.bits()) <= u32::from(theirs.to_i32().abs() < 8),
+                    "point {i}[{c}]: {ours:?} against {theirs:?}"
+                );
+            }
+        }
+    }
+
+    /// The clearance's three heights (`913c6e`–`913ccf`): bit 14 with both
+    /// low bits, a full surface field, and anything else.
+    #[test]
+    fn a_cruise_missile_clears_the_ground_by_its_tile() {
+        assert_eq!(cruise_clearance(0), 250);
+        assert_eq!(cruise_clearance(0x4003), 1250);
+        assert_eq!(cruise_clearance(0x0003), 250, "bit 14 is half of it");
+        assert_eq!(cruise_clearance(0x4002), 250);
+        assert_eq!(cruise_clearance(0x0030), 750);
+        assert_eq!(cruise_clearance(0x4033), 1250, "the first test wins");
+    }
 
     /// **The guided round's two splines on run1469** (item 3802, GOLDEN
     /// §152.2): the Russian Jet Fighter `2/14`'s round on `1/14`, launched
