@@ -277,6 +277,8 @@ mod tests {
             (2, 0, true),
             (2, 0x800, false),
             (2, 0x4, false),
+            (2, 0x20, false),
+            (2, 0x900, true),
             (1, 0, false),
         ] {
             let mut g = forest(7, 7);
@@ -309,6 +311,33 @@ mod tests {
         assert_eq!(make_riverbeds(&mut g, 0, 20).len(), 9);
     }
 
+    /// A mountain tile is `mask & 3 == 2`: a mask of 3 is not one.
+    #[test]
+    fn a_mask_of_3_is_no_mountain() {
+        let mut g = forest(7, 7);
+        g.tiles[8 * 28 + 9] = 3;
+        let t = (4 * 3 * 4 * 7 + 4 * 3) as usize;
+        g.tiles[t] = 0x7;
+        assert_eq!(make_riverbeds(&mut g, 8, 20), vec![(3, 3)]);
+    }
+
+    /// `find_all` runs after 5116: an unlabelled cell is labelled by 5118.
+    #[test]
+    fn find_all_runs_at_5118() {
+        let mut g = forest(7, 7);
+        g.cells[0].region = 0;
+        let mut regions = Regions::default();
+        regions.count[1] = 48;
+        let mut at_5116 = 0;
+        make_rivers(&mut g, &mut regions, 8, 20, 0, |l, g| {
+            if l == 5116 {
+                at_5116 = g.cells[0].region;
+            }
+        })
+        .expect("no river list");
+        assert_eq!((at_5116, g.cells[0].region), (0, 1));
+    }
+
     /// A cell with a mountain tile of its own is never a source.
     #[test]
     fn a_mountain_tile_refuses_the_cell() {
@@ -329,6 +358,11 @@ mod tests {
             let beds = make_riverbeds(&mut g, 8, 20);
             assert_eq!(beds.first() == Some(&(3, 3)), !refused, "city at {cx}");
         }
+        // `− 1`: at radius 21, distance 5 (4·5 = 20) is outside.
+        let mut g = forest(15, 7);
+        g.starts[2].list.push(8);
+        g.starts[3].list.push(3);
+        assert_eq!(make_riverbeds(&mut g, 8, 21).first(), Some(&(3, 3)));
         assert_eq!(octagonal(4, 0), 4);
         assert_eq!(octagonal(3, 4), 3 * 3 / 8 + 4);
         assert_eq!(octagonal(4, 3), 3 * 3 / 8 + 4);
