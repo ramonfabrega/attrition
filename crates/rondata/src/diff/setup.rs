@@ -1212,6 +1212,15 @@ pub(crate) fn start_of_game(
     units: &[UnitLink],
     notes: &mut Vec<String>,
 ) -> Vec<(usize, i64)> {
+    #[cfg(test)]
+    let generated = PRE_ROSTER_HEIGHTS.with(|h| h.borrow_mut().take());
+    #[cfg(test)]
+    if let Some(z) = &generated {
+        assert!(
+            sim.world.set_corner_singles(z.clone()),
+            "a generated grid of the wrong size"
+        );
+    }
     let Some(woodcutter) = loaded.build_of_type_index(WOODCUTTER) else {
         notes.push("no WOODCUTTER build type; start-of-game not placed".into());
         return Vec::new();
@@ -1480,10 +1489,29 @@ pub(crate) fn start_of_game(
     // whose border was blended is not the identity. The grid the dump
     // printed is the truth at frame 0; put it back
     // (`sim::terrain`, `docs/ROADS.md` §7.4).
+    #[cfg(test)]
+    if generated.is_some() {
+        let after = sim.world.corner_singles().to_vec();
+        POST_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(after));
+    }
     if !init.heights.is_empty() {
         sim.world.set_corner_grid(init.heights.clone());
     }
     all_builds
+}
+
+#[cfg(test)]
+thread_local! {
+    /// **Map generation's grid under the start roster** (item 3812,
+    /// `docs/MAPGEN.md` §10): a grid set here is installed before
+    /// [`start_of_game`] stands the buildings up, and the grid their
+    /// terraforms leave is kept in [`POST_ROSTER_HEIGHTS`] before the
+    /// dump's own is put back — so a generated grid meets the start dump's
+    /// print through the roster's own `terraform_for_building`.
+    pub(crate) static PRE_ROSTER_HEIGHTS: std::cell::RefCell<Option<Vec<sim::single::Single>>> =
+        const { std::cell::RefCell::new(None) };
+    pub(crate) static POST_ROSTER_HEIGHTS: std::cell::RefCell<Option<Vec<sim::single::Single>>> =
+        const { std::cell::RefCell::new(None) };
 }
 
 /// **The ground guard** (`docs/COMBAT.md` §46.3): every replay the

@@ -1172,6 +1172,30 @@ impl World {
         true
     }
 
+    /// Installs a corner grid of the original's own singles — map
+    /// generation's (`sim::map_heights`) — and derives every tile's height
+    /// from it, as [`World::set_corner_grid`] does from a print.
+    pub fn set_corner_singles(&mut self, z: Vec<Single>) -> bool {
+        let (w, ht) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
+        if z.len() != (w * ht) as usize {
+            return false;
+        }
+        self.corner_exact = vec![true; z.len()];
+        self.corner_z = z;
+        let (tw, th) = (self.width * TILES_PER_CELL, self.height * TILES_PER_CELL);
+        for ty in 0..th {
+            for tx in 0..tw {
+                self.retile_z(Pos::new(tx, ty));
+            }
+        }
+        true
+    }
+
+    /// The corner grid, row-major, as [`World::set_corner_singles`] takes it.
+    pub fn corner_singles(&self) -> &[Single] {
+        &self.corner_z
+    }
+
     /// `TerrainOut::find_tcoord_z@008544a0` for one tile, from the corner
     /// grid: the truncated mean of the two **anti-diagonal** corners, and 0
     /// where the tile's surface bits say ocean — in the listing's SSE,
