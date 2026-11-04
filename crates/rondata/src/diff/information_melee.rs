@@ -258,8 +258,22 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // does. On 761 ours spends 14 against 13: at index 1 ours spends
     // `Guy::set_anim+0x97a < Unit::move_step+0x823` where theirs spends
     // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`.
-    count: 761,
-    sequence: 761,
+    //
+    // Item 3824: **761 → 822**. Ours' extra draw was the Anti-Tank Missile
+    // `2/22`'s (TI 141, land) blocked stand: given the guard's move on
+    // 760 on both sides (run1476's block 761, `timer` 269), its first step
+    // to (18280, 16083) hits cell (379, 336), where the one candidate here
+    // is the Main Battle Tank `2/21`'s wreck (dead on 755, still on the
+    // original's chain). Ours named it hard; theirs passes it with no
+    // `is_corner` — a group-mate (`group` 128 both) with its orders
+    // closed, so the group arm (`detect_unit_collision:308`–`316`) rules
+    // it soft, read off the wreck's own fields (§152.10). `2/22` stands on
+    // (18280, 16083) and (18264, 16073) on 762 and 763 as run1476's
+    // blocks do. On 822 ours spends 13 against 15: at index 5 theirs
+    // spends `Ammo::do_damage+0xc59` where ours spends
+    // `Farms::inc_time+0x1ae` — a round lands in theirs.
+    count: 822,
+    sequence: 822,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -299,8 +313,9 @@ fn information_melee_first_parting() {
 /// 701..974, the same three blocks; item 3813: the word 755, so 701..1005,
 /// which takes block 1001 in; item 3814: the word 718, so 701..968,
 /// which lets block 1001 go; item 3816: the word 761, so 701..1011, which
-/// takes block 1001 back in).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 1011);
+/// takes block 1001 back in; item 3824: the word 822, so 801..1072, which
+/// lets block 701 go).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (801, 1072);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -442,15 +457,27 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // diff is run1469's and run1470's windows: `1/20`'s round of 638,
     // eight points, re-planned to eight on 642 and three on 646, and
     // `2/24` at 221 of 265 on 691.
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    //
+    // Item 3824 (the word 822, so 801..1072: block 701 leaves). **469 →
+    // 403** keys over three blocks, rounds read (45, 13) → (37, 5), 55 →
+    // 24 parting. Block 801 holds 109 keys, 901 81 and 1001 213. The
+    // Anti-Tank Missiles `2/22` and `2/23` agree whole on 801 — `2/22` at
+    // (17474, 15543), its guard's move `timer` 238 — where ours stood
+    // refused at (18312, 16104) by the Main Battle Tank `2/21`'s wreck
+    // (§152.10). On 801 what parts are blows still owed by the air
+    // shooters' release points (3816a): `2/18` at 178 against 193, `2/17`
+    // 36 against 43, `1/18` and `1/21` struck a frame late. The word's
+    // value diff is run1476's window (755..800): `2/22` on (18280, 16083)
+    // and (18264, 16073) on blocks 762 and 763.
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 469, "run1468's word window");
-    pin_eq!(w.rounds_read, (45, 13), "the rounds read");
-    pin_eq!(w.rounds.len(), 55, "the rounds that part");
+    pin_eq!(w.firsts.len(), 403, "run1468's word window");
+    pin_eq!(w.rounds_read, (37, 5), "the rounds read");
+    pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
