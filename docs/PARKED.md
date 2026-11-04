@@ -3784,7 +3784,13 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 (3823) **A gate filter `brief.py` accepts can match no test the lane gate runs** (3819's "for the Loop", the sixty-fifth's commander): 3818's refusal lists the workspace's tests, so `map_lakes` and `terrain_groups` — tests in `crates/sim` alone — passed the brief, and 3819's first lane gate exited 2 on them before its guard step because the branch touched no path under `crates/sim/` and `sim_crate_left` left the sim crate to the booking gate; the lane re-gated without them. Candidate: the gate drops (and names) a filter whose every match lives in a crate it left, instead of refusing; or `brief.py` warns that a crate-local filter is moot on a lane that may not touch the crate. Measured first: how many of the tranche's briefs named a sim-only filter for a lane that touched no sim path.
 
-(3833) **The `DEEP` answer's arm would clear a lane mid-gate when its push is the landing** (the sixty-fifth's commander, 3829): `DEEP lane-3829 300k` was answered by the clause — one line (journal as a draft, commit, push, end the turn) and the waiter re-armed `--arm-after-push lane-3829` — but the lane was further on than its ninety-minute status: its push (`6a4346518`) was the landing, the word 860 → 897 and the journal final, with its lane gate (`--item 3829`) still running in that session; the waiter had not yet polled the push, so it was stopped by hand with nothing armed (`ccc clear lane-3829 --status`: none) and the lane told to stay, quote its gate and land, which it did (`e1fc7587e`). Loop 3817's refusal keys on a push whose newest commit is the journal's gate quote, which a landing pushed before its gate exits does not yet carry. Candidate: the waiter refuses an `--arm-after-push` arm while the lane's own `release_gate.py` is running (its pid under the lane's job tmp) or when the pushed journal names a gate log but no `Lane verdict:`; and the `DEEP` line says "if the item is finished, land instead". Measured first: how many `DEEP` lanes of the last three tranches pushed a landing rather than a draft at their answer.
+(3833) **The `DEEP` answer's arm would clear a lane mid-gate when its push is the landing** (the sixty-fifth's commander, 3829): `DEEP lane-3829 300k` was answered by the clause — one line (journal as a draft, commit, push, end the turn) and the waiter re-armed `--arm-after-push lane-3829` — but the lane was further on than its ninety-minute status: its push (`6a4346518`) was the landing, the word 860 → 897 and the journal final, with its lane gate (`--item 3829`) still running in that session; the waiter had not yet polled the push, so it was stopped by hand with nothing armed (`ccc clear lane-3829 --status`: none) and the lane told to stay, quote its gate and land, which it did (`e1fc7587e`). Loop 3817's refusal keys on a push whose newest commit is the journal's gate quote, which a landing pushed before its gate exits does not yet carry. Candidate: the waiter refuses an `--arm-after-push` arm while the lane's own `release_gate.py` is running (its pid under the lane's job tmp) or when the pushed journal names a gate log but no `Lane verdict:`; and the `DEEP` line says "if the item is finished, land instead". Measured first: how many `DEEP` lanes of the last three tranches pushed a landing rather than a draft at their answer. **Second, 3836** (the same commander): `DEEP lane-3836 305k` was answered with the draft line and the waiter re-armed `--arm-after-push lane-3836`; the lane pushed `487fd0337` as its landing — the third melee whole, 1232 → 2600 — with its second lane gate running, and said so by message; the waiter was stopped before its next poll (`ccc clear lane-3836 --status`: no clear armed). Two of the tranche's two `DEEP` answers were landings.
+
+(3837) **The spawn line the handoff names cuts no worktree** (the sixty-fifth's commander, 3835): the queue's lane line and LOOP.md's roster give `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`, and the chain gives `… && ccc spawn … - < brief.md`; spelled so from the integration worktree, the spawn answered `cwd` `replan-pdb` with no `worktree` key, and the lane ran in the integration checkout. It was stopped within the minute (`claude stop 0450d885`) with nothing written there; the `att-3835` it had cut at the booking commit, clean and with no commit of its own, was removed by hand, and the lane respawned `--replace --worktree=att-3835` (`0f143e8e`). The stopped row stays listed and is not reaped, because `ccc rm` on it names the integration worktree. Candidate: the handoff's and LOOP.md's spawn line spell `--worktree=att-<N>`, and a spawn from the integration row without it is refused (or `brief.py` prints the whole spawn line).
+
+(3838) **`lanewait.py`'s second-row check reads a stopped row's tree** (the sixty-fifth's commander, 3835): `roster()` writes `trees[name]` for every row in `ccc list --json` and keeps only the newest row's state, so a name `--replace` left listed as stopped (`0450d885`, cwd `replan-pdb`) overwrote the live `lane-3835`'s tree (`att-3835`) and `second_rows` exited 2 naming `commander` and `steer` on it. Ran a scratch copy with `trees[name]` set under the newest-wins branch (`$CLAUDE_JOB_DIR/tmp/t65/lw/`), which waited on all three lanes and exited `STALLED` and `DEEP` as the tool does. Candidate: that one-line move, with a test of a stopped and a live row under one name.
+
+(3839) **`mutate.py --timeout` did not kill a hung mutant, and its verdict line claimed it had** (3831's "for the Loop", and the commander's read of it): the batch's ninth mutant (`last_ok` → `if true` in `sim::map_resources`, a pass that never succeeds) ran its `rondata` release test 84 minutes at 98 % CPU under `--timeout 600`, through `zsh tools/check.sh test`; the waiter's `STALLED lane-3831 95` named the child, the commander read the process table, and the lane killed the test pid by hand, after which the batch restored the tree and went on. Candidate: the timeout kills the process group the command starts (the check wrapper's children, not only the wrapper), and the verdict line says `killed at <s>` only when it did.
 
 ## Loop, filed 2026-11-03 — the sixty-fourth tranche's
 
@@ -13047,10 +13053,12 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
 ## Parked by item 3810, 2026-11-03 — the Main Battle Tank's round leaves from its muzzle
 
-- **3810a. The Recoilless Gun's muzzle, piece 94** (`RECOILGUN`, unit type 144): run1472's packet holds its three
+- ~~**3810a. The Recoilless Gun's muzzle, piece 94** (`RECOILGUN`, unit type 144): run1472's packet holds its three
   non-pivot `AttachPos` rows (node 0; frame 12 of `CHAR_ATTACK1`, 22 of `2`, 15 of `3`; e.g. (−6.54, −18.0,
   15.52)), and `launch::BAYS` has no row, so who=0's `0/19`–`0/21` loose from their squares. `fit_bay.py` on a
-  `get_position.py … sweep 94` per row builds them. Names no score until the word reaches a Recoilless Gun's blow.
+  `get_position.py … sweep 94` per row builds them. Names no score until the word reaches a Recoilless Gun's blow.~~
+  Closed by item 3834 (`docs/GOLDEN.md` §152.13): the word 897 was `0/19`'s round; the three rows are
+  `launch::BAYS` rows, and run1479's three Recoilless rounds leave from them to the unit.
 - ~~**3810b. The Advanced Machine Gun's muzzle, piece 77** (`ADVANCEDMACHINEGUN`, unit type 127; GOLDEN §152.6):
   run1471's `1/25` round of 686 on `2/21` leaves (19726, 14067, 558) in theirs and the unit's (19800, 13944, 449)
   in ours, 5 frames against 6. run1472's packet holds piece 77's `CHAR_ATTACK3` rows (a dozen events, node 0,
@@ -13226,16 +13234,19 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     any land cell, and so from any land good, at spacing 3.
 
   What checks them: a style whose water row is unsaturated and fits more than twice its count, or one whose
-  sea good spaces wider than the shore ring. Names no score.
+  sea good spaces wider than the shore ring. Names no score. ~~`saturate`'s switch and the sea-only spacing~~
+  are held by mutants on East Indies, item 3831 (`docs/MAPGEN.md` §8); the COAST refusal remains, as 3831a.
 - **3826b. The Whales, `get_water` and patterns `continent`/`nonplayer` still run on no map.** Great Lakes'
   own `FISH ` section overrides `default.xml`'s, which holds the Whales row. Its Fish row has a fixed type, so
   the pool's water list (`get_water`, `map_resources::site::GET_WATER`) never draws. No Great Sahara or Great Lakes row is `continent` or
   `nonplayer` either. These are what is left of 3805b's water half. East Indies' resources, a later step of its
-  chain, are the next map that could reach them. Names no score until a phase there parts.
+  chain, are the next map that could reach them. Names no score until a phase there parts. ~~The Whales and
+  `nonplayer`~~ are diff-backed on East Indies, item 3831 (`docs/MAPGEN.md` §8); `get_water` and `continent`
+  remain, as 3831a.
 
 ## Parked by item 3827, 2026-11-04 — the MG42's burst leaves from its muzzle
 
-- **3827a. The Recoilless Gun's launches are now on disk** (piece 94, unit type 144; 3810a's rows, GOLDEN
+- ~~**3827a. The Recoilless Gun's launches are now on disk** (piece 94, unit type 144; 3810a's rows, GOLDEN
   §152.11). Three captures print who=0's Recoilless rounds at their first block, each from a muzzle off the
   square: run1471's block 700 (`0/21`: (18149, 15605, 574), `total_time` 3, against ours' (18168, 15528, 497)),
   run1474's block 732 (`0/20`: (18277, 15743, 590), 2) and run1477's blocks 818–821 (`0/20` (18319, 15581, 587)
@@ -13243,7 +13254,8 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   rows would be checked by dumped rounds, not by the sweep alone. Names no score until the word reaches a
   Recoilless blow. The word 860 is a death in theirs, and its round is not yet named. **Not the cause of 860**
   (item 3829, GOLDEN §152.12): the death was the Jet Fighter Bomber `2/18`'s, under the Fighter Bomber `0/15`'s
-  rounds; the hypothesis stays parked with that kill.
+  rounds; the hypothesis stays parked with that kill.~~ Closed by item 3834 (`docs/GOLDEN.md` §152.13): the word
+  897 was the Recoilless Gun `0/19`'s round of 892, and piece 94's rows built it.
 - **3827b. Piece 80's 24 rows that no dumped round checks** (`launch::BAYS`): only `CHAR_ATTACK2` frames 1, 3
   and 5 match run1477's three rounds. The other 24 rest on the sweep (`RON_BAY_SWEEPS_80`, 9,747 headings), as
   3813a's do for piece 77. Names no score.
@@ -13261,13 +13273,17 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   meets neither. `check_player_forest_patches_three_then_two_then_one` holds both from the listing. What
   checks the rewrite: a style with a forest or rock group at `coast_space` 0. None is known. Names no score.
 
-## Parked by the next landing, slot YH — reserved
+## Parked by item 3831, 2026-11-04 — East Indies' resources
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3831a. The water cell's COAST refusal, and `get_water`, `continent` and `corner`, still part nothing**
+  (`docs/MAPGEN.md` §8, `sim::map_resources`). On all 418 East Indies traces and 202 files:
+  - The COAST refusal mutant (`!water || f & 0x4 == 0` → `true`) turns nothing red, as on Great Lakes (3826a):
+    COAST marks land, so no water cell carries it.
+  - Both of `EASTINDIES.xml`'s sea rows name their type, so `get_water` never draws.
+  - No row is `continent` or `corner`.
+
+  `default.xml`'s `corner` goody row is overridden by the style's own `GOODIES` here. What checks them: a style
+  with a divvy water row, or a `continent` or `corner` row, on a map with water regions. Names no score.
 
 ## Parked by item 3832, 2026-11-04 — Great Lakes' Terrain::init to 706, and its half-land gate
 
@@ -13290,13 +13306,14 @@ words and edits nothing here; a refill lands when two remain.
     not see a gate that shrinks. A cell-exact pin needs 3832a's `mark_halfwater`.
   East Indies' shore is the next grid that may separate them.
 
-## Parked by the next landing, slot YJ — reserved
+## Parked by item 3834, 2026-11-04 — the Recoilless Guns loose from their muzzles
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3834a. Piece 94's rows that no walk holds** (`launch::BAYS`; GOLDEN §152.13). Of the three rows, only
+  `CHAR_ATTACK2` frame 22's is held by the walk: taken out, `information_melee_first_parting` reads 897 again.
+  `CHAR_ATTACK3` frame 15's is backed by run1479's `0/20` round of 884, (18319, 15581, 586). Taken out, it fails
+  nothing in the walk, because that round lands on the same frame from either point. It is held only by
+  `launch::tests::run1479_s_recoilless_rounds_leave_from_their_muzzles`. `CHAR_ATTACK1` frame 12's matches no
+  dumped round and rests on the sweep alone (`RON_BAY_SWEEPS_94`, 1,083 headings). Names no score.
 
 ## Parked by item 3835, 2026-11-04 — Great Lakes' heights through 706
 
@@ -13336,6 +13353,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot YM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YS renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

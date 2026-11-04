@@ -899,6 +899,41 @@ Seven mutations turn the walk red. Three turn nothing red (parked 3826a):
 - the sea goods' spacing against each other alone: the shore test already
   keeps a Fish two cells from any land good.
 
+East Indies parts the last two (item 3831, below); the COAST refusal stays
+inert there too.
+
+**Ported on East Indies, first try** (item 3831, no change to
+`sim::map_resources`). It runs from 3828's 7870 grid, reading
+`EASTINDIES.xml`'s own three sections. `BONUSES` is two `player` home rows
+and two `nonplayer` divvy rows (`Early`, `Late`); `FISH ` is two `world`
+rows, Whales (12 SCALE, `saturate` 0) and Fish (50 SCALE, `saturate` 1);
+`GOODIES` is one `player` and one `nonplayer` row. No row is `continent`
+or `corner`, and both sea rows name their type, so `get_water` never
+draws.
+
+The stream from `place_all` to `compute_all_vals` is the trace's on **all
+418 traces** (`east_indies_s_resources_are_the_traced_stream_and_7927`):
+3,484 draws on the jungle run, and 3,315 on the fuzz lobby, which no trace
+walks. Seed and parts 2, 5 and 6 agree at 7877, 7880 and 7927 on **all 202
+files**. 53 objects are placed on the jungle run (30 Fish, 10 Whales) and
+58 on the fuzz lobby (35 Fish, 10 Whales); `find_avail_regions` draws 3
+times on each, over twelve and eleven islands.
+
+This is the first diff of:
+- the Whales, a sea good spacing only against Fish;
+- `nonplayer`: the islands holding a start left out of the list, its
+  move to the next region after each try, and its multi-region threshold
+  arm (patterns 1 and 3 keep the balance off when more than one region
+  is available);
+- an unsaturated water row's starved-player balance (the Whales reach half
+  their count), and the starved player's strict maximum;
+- `saturate`'s switch on the Fish;
+- the sea goods' spacing against each other alone.
+
+Twelve of thirteen mutations turn the walk red; `last_ok` forced does not
+terminate. The water cell's COAST refusal turns nothing red, as on Great
+Lakes (parked 3831a).
+
 Falsifier: seed and parts 5 and 6 at 7927, and the `Goods`/`Items` lines.
 
 ## 9. Values: `compute_all_vals` and its 2,920 draws
@@ -1348,6 +1383,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   the shore test and the `world` move across regions are diff-backed here;
   the water cell's COAST refusal, `saturate` and the sea-only spacing run
   but cannot part (3826a);
+- §8's `place_resources` on East Indies: draw for draw on 418 traces, and
+  seed and parts 2, 5 and 6 at 7877, 7880 and 7927 on 202 files (item
+  3831). The Whales, `nonplayer`, the unsaturated balance, `saturate` and
+  the sea-only spacing are diff-backed here; the COAST refusal stays inert
+  (3831a), and `get_water`, `continent` and `corner` run on no corpus map;
 - §9's `adjust_for_blocking` and `compute_all_vals` on Great Sahara: draw
   for draw on 280 traces through the last value draw, and seed and parts
   2, 5 and 6 at 7937 and 7945 on 105 files (item 3807). The water edges,
@@ -1395,7 +1435,7 @@ Of the territory's 198 open or layout-only functions under the nine stems
 **Reading-only**, each with its falsifier named in its section: every
 per-function formula and predicate in §§4–10. The draw formulas for
 `make_continents` (GL's and EI's reconciled, items 3815 and 3820), `place_all`, `change_*_base`/`fix_transitions`,
-`place_resources` (reconciled on Great Sahara and Great Lakes, items 3805 and 3826) and `make_rivers` are consistent in kind but not
+`place_resources` (reconciled on Great Sahara, Great Lakes and East Indies, items 3805, 3826 and 3831) and `make_rivers` are consistent in kind but not
 reconciled to their measured totals. Also §3's parts 10–13 offsets and
 §11's float classification.
 
@@ -1464,7 +1504,9 @@ step is checked by §3 at its own checkpoint before the next begins:
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
    `sim::map_resources`; the `Mapgen:` line's fourth phase); **Great Lakes
    built** (item 3826, the same port on its 7870 grid, the water arms'
-   first diff; its fourth phase); East Indies remains;
+   first diff; its fourth phase); **East Indies built** (item 3831, the
+   same port on its 7870 grid, the Whales' and `nonplayer`'s first diff;
+   its fourth phase);
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
    `sim::map_values`; the `Mapgen:` line's fifth phase); **Great Lakes
    built** (item 3830, the same port on its 7927 grid, the water count's

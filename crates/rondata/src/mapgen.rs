@@ -4305,6 +4305,117 @@ mod tests {
         );
     }
 
+    /// **East Indies' resources, draw for draw** (`docs/MAPGEN.md` §8, §15
+    /// step 4): from the 7870 grid
+    /// [`east_indies_s_group_tail_is_the_traced_stream_and_7861_to_7870`]
+    /// checks, `place_resources` against every East Indies trace's
+    /// resources segment, site and word, then seed and parts 2, 5 and 6 at
+    /// 7877, 7880 and 7927 on every file that carries them. The first map
+    /// with Whales and `nonplayer` rows: an archipelago's dozen islands in
+    /// one sea.
+    #[test]
+    fn east_indies_s_resources_are_the_traced_stream_and_7927() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let runs = east_indies_files(all);
+        let mut logs = Vec::new();
+        let mut files = [0usize; 3];
+        let mut parted = Vec::new();
+        let mut placed = Vec::new();
+        for (run, gs) in &runs {
+            let (mut grid, mut d, tileset) = east_indies_at_7859(root, gs[0], *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part(),
+                    );
+                    if ours != (*seed, p[2], p[5], p[6]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5], p[6])
+                        ));
+                        return;
+                    }
+                }
+            };
+            check(&grid, &d, 0, 7877);
+            check(&grid, &d, 1, 7880);
+            let inputs = resource_inputs(root, "EASTINDIES.xml", run.2, run.3, run.1)
+                .expect("East Indies' rows");
+            let n = place_resources(&mut grid, &mut d, &inputs, run.1);
+            check(&grid, &d, 2, 7927);
+            let mut kinds = std::collections::BTreeMap::<i32, usize>::new();
+            for g in grid.goods.iter().flatten() {
+                *kinds.entry(g.0).or_default() += 1;
+            }
+            use sim::map_resources::site;
+            let sites = [
+                site::LADDER,
+                site::GET_EARLY,
+                site::GET_LATE,
+                site::GET_WATER,
+                site::FIND_AVAIL,
+                site::PLAYER_RING,
+                site::REGION_START,
+            ]
+            .map(|s| d.log.iter().filter(|x| x.0 == s).count());
+            eprintln!(
+                "{run:?}: ladder, get_early, get_late, get_water, find_avail_regions, player \
+                 ring, region start draws {sites:?}"
+            );
+            placed.push((run.0, n, kinds));
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let islands = east_indies_make_traces(all, traces);
+        let (met, stream) = stream_partings(&islands, &logs, resources_part);
+        eprintln!(
+            "East Indies resources: placed (seed, objects, goods by kind) {placed:?}; met whole \
+             {met:?}, lengths {:?}; 7877, 7880, 7927 on {files:?} files",
+            logs.iter().map(|(r, l)| (r.0, l.len())).collect::<Vec<_>>()
+        );
+        assert!(
+            stream.is_empty(),
+            "{} East Indies traces part from the port's resources:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            placed
+                .iter()
+                .all(|(_, _, k)| k.get(&0x1f).is_some_and(|&w| w > 0)),
+            "a run placed no Whales: {placed:?}"
+        );
+        assert!(
+            islands.len() >= ISLAND_PLACE_ALL_TRACES && files.iter().all(|&n| n >= ISLAND_FILES),
+            "the resources walked {} traces and {files:?} files",
+            islands.len()
+        );
+    }
+
     /// The East Indies traces whose `place_all` segment the stream check
     /// walks: a floor.
     const ISLAND_PLACE_ALL_TRACES: usize = 418;
@@ -4323,7 +4434,7 @@ mod tests {
     const GREAT_LAKES_CHECKED: i64 = 5;
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
-    /// the zero-draw passes (7835..7854), and `place_all` with its tail
-    /// (7859, 7861..7870).
-    const EAST_INDIES_CHECKED: i64 = 3;
+    /// the zero-draw passes (7835..7854), `place_all` with its tail
+    /// (7859, 7861..7870), and the resources (7877..7927).
+    const EAST_INDIES_CHECKED: i64 = 4;
 }
