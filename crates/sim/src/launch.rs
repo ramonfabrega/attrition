@@ -452,6 +452,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 142,
         },
     ),
+    // **Piece 94, the Recoilless Gun** (`RECOILGUN`, unit type 144; item
+    // 3834, `docs/GOLDEN.md` §152.13): run1472's packet holds the piece's
+    // three attack `AttachPos` rows (node 0, frame 12 of `CHAR_ATTACK1`, 22
+    // of `CHAR_ATTACK2`, 15 of `CHAR_ATTACK3`), `RData +0x88` 1.0, and
+    // `fit_bay.py` fits each `get_position.py … sweep 94 0 <anim> <time>`
+    // (176, 278 and 75 lattice points, 361 of 361 headings, one `z` a row;
+    // the centroid is kept): the muzzle some 80 to 92 out and 73 to 77 over
+    // the figure. Without them who=0's `0/19` loosed its round of 892 on
+    // the Main Battle Tank `1/21` from its square (18168, 15672, 506) with
+    // `total_time` 5, where run1479 prints (18182, 15594, 583) with 4, and
+    // the round, rolling on past its dead target, came down a frame later.
+    (
+        94,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 31_393,
+            fwd: 86_406,
+            dz: 74,
+        },
+    ),
+    (
+        94,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 25_178,
+            fwd: 75_595,
+            dz: 77,
+        },
+    ),
+    (
+        94,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 31_038,
+            fwd: 86_590,
+            dz: 73,
+        },
+    ),
     // **Piece 80, the MG42** (`MG42`, unit type 130; item 3827,
     // `docs/GOLDEN.md` §152.11): run1472's `RON_STATE_FRAME=707` packet on
     // the third melee's lobby holds the piece's 28 attack `AttachPos` rows
@@ -5508,6 +5549,85 @@ mod tests {
             }
         }
         assert_eq!(rows, 27 * 361, "{dir}");
+        assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+    }
+
+    /// **The Recoilless Guns loose from their muzzles** (item 3834,
+    /// `docs/GOLDEN.md` §152.13): run1479's `0/20` at (18312, 15672),
+    /// angle −181,600,256, looses frame 15 of `CHAR_ATTACK3` on 884 from
+    /// (18319, 15581, 586); `0/21` at (18168, 15528), −101,777,408, frame
+    /// 22 of `CHAR_ATTACK2` on 891 from (18179, 15450, 574); and `0/19` at
+    /// (18168, 15672), −87,359,488, the same frame on 892 from (18182,
+    /// 15594, 583) — 73, 77 and 77 over the ground's 513, 497 and 506
+    /// (`AMMO` blocks 885, 892 and 893, `GUY` angle and `cur_anim`). Made
+    /// to fail with the rows removed: each leaves from the figure's point.
+    #[test]
+    fn run1479_s_recoilless_rounds_leave_from_their_muzzles() {
+        for (at, facing, anim, start, want, dz) in [
+            (
+                (18312, 15672),
+                -181_600_256,
+                crate::anim::ATTACK3,
+                15,
+                (18319, 15581),
+                73,
+            ),
+            (
+                (18168, 15528),
+                -101_777_408,
+                crate::anim::ATTACK2,
+                22,
+                (18179, 15450),
+                77,
+            ),
+            (
+                (18168, 15672),
+                -87_359_488,
+                crate::anim::ATTACK2,
+                22,
+                (18182, 15594),
+                77,
+            ),
+        ] {
+            let p = launch_point(Pos::new(at.0, at.1), Angle(facing), 94, anim, start, 0);
+            assert_eq!((p.x, p.y), want, "{at:?}");
+            assert_eq!(release_dz(94, anim, start, 0), Some(dz), "{at:?}");
+        }
+    }
+
+    /// **Piece 94's rows agree with the original at every heading** (item
+    /// 3834, `docs/GOLDEN.md` §152.13): `get_position.py … sweep 94 0
+    /// <anim> <time>` on run1472's packet, as piece 80's.
+    /// `$RON_BAY_SWEEPS_94` is the directory holding
+    /// `sweep-94-n0-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-11-04-item-3834/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_at_every_heading_for_piece_94() {
+        let Ok(dir) = std::env::var("RON_BAY_SWEEPS_94") else {
+            eprintln!("skipping: set RON_BAY_SWEEPS_94 (item 3834's oracle, run1472)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 94) {
+            let path = format!("{dir}/sweep-94-n0-a{a}-t{t}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_94");
+            for line in table.lines() {
+                let f: Vec<i64> = line
+                    .split_whitespace()
+                    .take(5)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                let (x, y) = b.offset((f[0] + 180) % 360);
+                if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                    off.push(format!(
+                        "a{a} t{t} deg {}: {x},{y} against {},{}",
+                        f[0], f[2], f[3]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert_eq!(rows, 3 * 361, "{dir}");
         assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
     }
 

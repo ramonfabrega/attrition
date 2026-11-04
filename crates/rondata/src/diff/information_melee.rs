@@ -297,8 +297,16 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // 860, run1478's to the step, and dies on 860. On 897 ours spends 8
     // against 10: at index 1 theirs spends `Ammo::do_damage+0xc59` where
     // ours spends `Farms::inc_time+0x1ae` — a round punctures in theirs.
-    count: 897,
-    sequence: 897,
+    // That round was the Recoilless Gun `0/19`'s of 892 on the dead Main
+    // Battle Tank `1/21` (run1479, §152.13): piece 94 now has its three
+    // `launch::BAYS` rows, so who=0's three Recoilless Guns loose from
+    // theirs' muzzles, `0/19` from (18182, 15594, 583) with `total_time` 4
+    // against the square's (18168, 15672, 506) with 5, and the round comes
+    // down on 897. On 1232 ours spends 40 against 38: at index 32 ours
+    // spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where theirs
+    // spends `Farms::inc_time+0x1ae` — ours acted.
+    count: 1232,
+    sequence: 1232,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -341,8 +349,9 @@ fn information_melee_first_parting() {
 /// takes block 1001 back in; item 3824: the word 822, so 801..1072, which
 /// lets block 701 go; item 3827: the word 860, so 801..1110, which takes
 /// block 1101 in; item 3829: the word 897, so 801..1147, the same four
-/// blocks).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (801, 1147);
+/// blocks; item 3834: the word 1232, so 1201..1482, which lets blocks
+/// 801–1101 go and takes 1201–1401 in).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (1201, 1482);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -514,15 +523,25 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // 826, 831, 837, 859 and 860 on both sides, and it dies on 860; `1/18`
     // dies on 838 on both, 1⅜ short of theirs since block 734 (parked
     // 3829a).
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    //
+    // Item 3834 (the word 1232, so 1201..1482: blocks 801–1101 go, 1201,
+    // 1301 and 1401 come in). **301 → 370** keys over three blocks, 1201
+    // 110, 1301 172 and 1401 88; rounds read (50, 8) → (36, 0), 12
+    // parting. The word's value diff is run1479's window (880..900): the
+    // Recoilless Gun `0/19`'s round of 892 on `1/21` leaves (18182, 15594,
+    // 583) with `total_time` 4 on both sides, `0/21`'s of 891 (18179,
+    // 15450, 574) and `0/20`'s of 884 (18319, 15581, 586), blocks 893, 892
+    // and 885 to the unit; `0/19`'s, its target dead on 896, comes down
+    // on 897 on both.
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 301, "run1468's word window");
-    pin_eq!(w.rounds_read, (50, 8), "the rounds read");
-    pin_eq!(w.rounds.len(), 23, "the rounds that part");
+    pin_eq!(w.firsts.len(), 370, "run1468's word window");
+    pin_eq!(w.rounds_read, (36, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 12, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
