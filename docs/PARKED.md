@@ -13005,13 +13005,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot XS — reserved
+## Parked by item 3810, 2026-11-03 — the Main Battle Tank's round leaves from its muzzle
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3810a. The Recoilless Gun's muzzle, piece 94** (`RECOILGUN`, unit type 144): run1472's packet holds its three
+  non-pivot `AttachPos` rows (node 0; frame 12 of `CHAR_ATTACK1`, 22 of `2`, 15 of `3`; e.g. (−6.54, −18.0,
+  15.52)), and `launch::BAYS` has no row, so who=0's `0/19`–`0/21` loose from their squares. `fit_bay.py` on a
+  `get_position.py … sweep 94` per row builds them. Names no score until the word reaches a Recoilless Gun's blow.
+- **3810b. The Advanced Machine Gun's muzzle, piece 77** (`ADVANCEDMACHINEGUN`, unit type 127; GOLDEN §152.6):
+  run1471's `1/25` round of 686 on `2/21` leaves (19726, 14067, 558) in theirs and the unit's (19800, 13944, 449)
+  in ours, 5 frames against 6. run1472's packet holds piece 77's `CHAR_ATTACK3` rows (a dozen events, node 0,
+  about 30 out and 20 up); the other figure's piece (12749, 19085) and which figure releases are unread. Names no
+  score until the word reaches one of its blows.
 
 ## Parked by the next landing, slot XT — reserved
 

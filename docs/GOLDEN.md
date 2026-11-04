@@ -15856,6 +15856,60 @@ spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56`: theirs acted.
 quaternion are the listing's alone, as is the negative angle fold below 0 (the test checks the arithmetic, not a
 dump). The land and building arm (`67c437`–`67c469`) still takes the straight line's half way point.
 
+## 152.6 The Main Battle Tank's round leaves from its muzzle — 713 → 724 (item 3810, run1472)
+
+**The booking.** Frame 713: ours 27 draws against theirs' 28. Through index 3 the streams agree (`8/5`'s walk,
+the MG42 `0/18`'s `fight` roll and swing); at index 4 theirs spends `Unit::fight+0x9b0` where ours spends the
+Stealth Bomber `1/17`'s swing. Theirs' extra roll sits between `0/18`'s and `1/17`'s, so it is who 0's after
+`0/18` or who 1's before `1/17`.
+
+**The striker** (ours: `RON_DEBUG_SITES`, `RON_DEBUG_UNIT`, a `kill_current_order` caller probe reverted whole;
+theirs: run1471, then run1472). It is the French Jet Fighter `1/14` (`TI` 295, air, piece 245), on its spawn
+with no airbase. Each frame it holds an attack, `fight`'s research roll (`fight+0x9b0`, `roll % 5 != 0`) runs
+`find_new_target`. A different target keeps an attack into the next frame. The same one goes on to the chase,
+which `find_attack_pos` refuses (`chase_refused`), and the order drops. The idle search re-adds an attack the
+frame after. run1471's `1/14` holds that pattern frame for frame with ours over 660..700 (`2/15`, `2/14`, none,
+…). On tick 712 ours' search re-found `2/14` and dropped it, so ours rolls nothing on 713. Theirs' search
+re-found the Partisan `0/17` (`TI` 68, uid 24): run1472's block 713 holds `1/14`'s `ATTACKORDER` on `0/17`.
+Ours' idle search found `0/17` on 713, one tick late.
+
+**Why one tick.** `0/17` took the French Main Battle Tank `1/21`'s round of 707 (`TI` 251, `HEAVYTANK`, piece
+201, land). Ours flew it 5 frames from the hull's square (18168, 14712, 468) and struck on 712, after `1/14`'s
+search. run1472 prints theirs leaving (17878, 14908, 610) with `total_time` 4, blocks 709–711. The same shape
+stands in run1471: the Advanced Machine Gun `1/25`'s round of 686 leaves (19726, 14067, 558) against the unit's
+(19800, 13944, 449), 5 frames against 6 (parked 3810b). A payoff probe, any muzzle offset that flies `1/21`'s
+round in four, moved the word to 724.
+
+**The rows.** No packet on disk loaded piece 201: run1469's is tick 627, and the staging adds the tank on 638.
+run1472's packet at logger frame 707 holds its seven entries, `RData +0x88` 0.8:
+
+- the turret `(4, 0, 0)`: (0, 0, 27.11) (`0x41d8e147`);
+- node 0 at 11 of `CHAR_ATTACK1`: the turret, and the muzzle (0.14, −90.5699, 10.0652);
+- node 0 at 23 of `CHAR_ATTACK2`: the turret, and the muzzle (0.14, −91.1928, 10.1071);
+- node 0 at 27 of `CHAR_ATTACK3`: the turret (0, 0.1395, 27.1388), and the muzzle (0.14, −80.3970, 9.3636).
+
+`<RESTRICTION name="HEAVYTANK" node="4">` makes it a pivot piece, so the round takes `pivot::release`. The three
+`get_position.py … pivot 201 0 <anim> <time> 1` sweeps reproduce every one of 277,248 cells. `CHAR_ATTACK3`
+needs ten `float_lands`; the other two need none. The muzzle sits about 350 out and 142 up at heading 0.
+
+**Built**: three `pivot::RELEASES` rows and `RDATA_SCALE` 4/5 for piece 201. Tests:
+`the_main_battle_tank_s_round_leaves_from_its_muzzle` (three cells a row, no oracle needed) and
+`the_original_s_release_agrees_on_every_cell_for_piece_201` (`RON_RELEASE_TABLE_201`). The mutation (the scale
+row out) holds the word at 713.
+
+**The value diff, after**: ours' `1/21` round leaves (17878, 14908, 610) with `total_time` 4 on `f708`–`f710`,
+the same as theirs' blocks 709–711. `0/17` goes 63 → 41 hp in ours on tick 711. `1/14` holds `(0, 17)` on `f713`,
+matching theirs' `ATTACKORDER` on `0/17` on block 713. The stride widening (701..974, the same three blocks)
+reads 406 keys (437), rounds read (33, 16) and 49 parting. Block 701's 118 keys are unchanged; 801 goes 145 → 103
+and 901 174 → 185.
+
+**The word: 724**, ours 16 draws against theirs' 17. At index 1 theirs spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823` where ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+
+**What is not established**: the Recoilless Gun's (94) and the Advanced Machine Gun's (77) muzzles (parked
+3810a–b), whose entries run1472's packet holds; which of the Advanced Machine Gun's two figures releases.
+`2/22` and `2/23`, struck on 690 in theirs and not in ours (block 701), are unexplained here.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
