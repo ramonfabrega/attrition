@@ -34238,3 +34238,55 @@ SHA-256 `749bdaa79c996445ada7c28eec221a145ffc53856f70b9fb0791dd45f6a5aa49`.
 and (17505, 15573, 575) with `total_time` 3. The last is at `cur_time` 3 with `whom −1` on block 822 and gone on 823.
 The Recoilless Guns' rounds leave from a muzzle too: `0/19`'s on block 819 at (18187, 15583, 580) with `total_time`
 4 (parked 3810a).
+
+## run1478 — the third melee: the word's window 826..862 (2026-11-04, item 3829, `att-3829`)
+
+`docs/GOLDEN.md` §152.12. **What the disk could not answer**: run1477's window ends at 825 and run1468's stride
+prints nothing between 801 and 901. So theirs' `1/18` and `2/18` damage over 826–860, and `0/15`'s rounds on
+them, were on no record. run1477's line (`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`,
+`ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345, `--ffwd-minute 3`), with
+`--log-window 826 862`, detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`, `--callwin 0 863` and
+`--end-frame 863`. No packet, no probe.
+- Pool lane 1. Launched 14:58:41, exited 14:59:15 (34.3 s launch to exit). `success`: 864 frames, `page_faults`
+  0, `relaunches: []`. `rngcmp.py` against run1468: 864 of 864 identical. Not filed: the window's gamelog and
+  trace stay in the run's directory. `df -g ~` read 113 GiB free before it.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1478/map-7/gamelog.txt`, 10,889,947 bytes,
+SHA-256 `ba25b060a67481dbec1be52d9050fdb96436e446ddbc317a215d5b4da67be9fa`.
+
+Trace `~/ron-golden/run1478/map-7/rontrace.log`, 15,131,456 bytes,
+SHA-256 `f1231b747fd8e85a4da3e5b882e39af5b9177529ca6923162b5f57eb5c9250bf`.
+
+**What it holds**: `1/18`'s damage 219⅜ on block 826, then 223⅜, 227⅜, 231⅜, 235⅜ and 239⅜ on blocks 828, 829,
+831, 834 and 838, every blow `0/15`'s; `2/18`'s 193 on 826, then 215, 237, 238¼ and 239½ on 831, 837, 859 and
+860, the last blows `1/18`'s.
+
+## run1479 — the third melee: the word's window 880..900 (2026-11-04, item 3834, `att-3834`)
+
+`docs/GOLDEN.md` §152.13. **What the disk could not answer**: run1478's window ends at 862, and run1468's stride
+prints 801 and 901. So the round theirs punctures on 897, its shooter and its launch were on no record. run1478's
+line (`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`,
+`STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345, `--ffwd-minute 3`), with `--log-window 880 900`,
+detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`, `--callwin 0 901` and `--end-frame 901`. No packet, no
+probe.
+- Pool lane 1. Launched 16:03:13, exited 16:03:51 (37.5 s launch to exit). `success`: 902 frames, `page_faults`
+  0, `relaunches: []`. `rngcmp.py` against run1468: 902 of 902 identical. Not filed: the window's gamelog and
+  trace stay in the run's directory. `df -g ~` read 115 GiB free before it.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1479/map-7/gamelog.txt`, 5,743,800 bytes,
+SHA-256 `39093f1a7f57f9f96b25986961f616cc22be18690627f988bc3d32ef6d367fd0`.
+
+Trace `~/ron-golden/run1479/map-7/rontrace.log`, 15,335,456 bytes,
+SHA-256 `99f2509ffce1752591490588792866958fca4792114dadb69fe1be4332501dec`.
+
+**What it holds**: who=0's three Recoilless Gun rounds at their first block, each from a muzzle:
+
+- `0/20`'s of 884, (18319, 15581, 586), `total_time` 5, on block 885;
+- `0/21`'s of 891, (18179, 15450, 574), 4, on block 892;
+- `0/19`'s of 892, (18182, 15594, 583), 4, on block 893.
+
+`0/19`'s is at `cur_time 5` with `whom −1` on block 897 and gone on 898. The `GUY` records give each gun's angle
+and `cur_anim` at the release.
+

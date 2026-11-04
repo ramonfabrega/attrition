@@ -1038,7 +1038,8 @@ mod tests {
     };
     use sim::terrain_groups::{Draws, change_bases, check_player_forest, nubify_forest, place_all};
     use sim::terrain_init::{
-        PART4_LEN, PART4_SEA_MAP_AT, WORLD_SEA_MAP_BEFORE, coord, terrain_init_without_heights,
+        HalfLand, PART4_LEN, PART4_SEA_MAP_AT, Unported, WORLD_SEA_MAP_BEFORE, coord, coord_flags,
+        sea_map_after_make, terrain_init_without_heights,
     };
     use std::sync::OnceLock;
 
@@ -3489,6 +3490,355 @@ mod tests {
         );
     }
 
+    /// **Values on Great Lakes** (`docs/MAPGEN.md` §9, §15 step 5, item
+    /// 3830): from each run's 7927 grid (3826's chain),
+    /// `World::adjust_for_blocking` — seed and parts 2, 5 and 6 at 7937 —
+    /// then `World::compute_all_vals`: the whole stream from `place_all`
+    /// through the last value draw, draw for draw against every Great Lakes
+    /// trace, both lobbies, then seed and parts 2, 5 and 6 at 7945 on every
+    /// file that carries it. The first run of the water arms Great Sahara
+    /// cannot part: open water draws nothing, the water count and its two
+    /// factors, and the region-size factors over the lakes.
+    #[test]
+    fn great_lakes_s_values_are_the_traced_stream_and_7937_and_7945() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let mut runs: std::collections::BTreeMap<GlRun, (&StartGrid, Vec<&StartGrid>)> =
+            Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            runs.entry(run).or_insert((g, Vec::new())).1.push(g);
+            // The team lobby's 3-nation run (no start grid of its own).
+            runs.entry((run.0, 3, run.2, run.3, run.4))
+                .or_insert((g, Vec::new()));
+        }
+        let mut logs = Vec::new();
+        let mut files = [0usize; 2];
+        let mut parted = Vec::new();
+        let mut wrote = Vec::new();
+        for (run, (g0, gs)) in &runs {
+            let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g0, *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            let inputs = resource_inputs(root, "GREATLAKES.xml", run.2, run.3, run.1)
+                .expect("Great Lakes' rows");
+            place_resources(&mut grid, &mut d, &inputs, run.1);
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part(),
+                    );
+                    if ours != (*seed, p[2], p[5], p[6]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5], p[6])
+                        ));
+                        return;
+                    }
+                }
+            };
+            let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
+                .expect("Great Lakes' place_all inputs");
+            // What the arms Great Sahara cannot part would need here: an
+            // ocean cell on the map's border (the 0x2000 edge), a `SANDY`
+            // cell (`wet`'s land 1), the coast cells' own `land` (record 3
+            // over it), and a rough coast cell (the square's exemption).
+            let border = grid
+                .cells
+                .iter()
+                .enumerate()
+                .filter(|&(i, c)| {
+                    let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
+                    c.is_ocean() && (x == 0 || y == 0 || x == grid.xs - 1 || y == grid.ys - 1)
+                })
+                .count();
+            let sandy = grid.cells.iter().filter(|c| c.land == 1).count();
+            let coast_lands: std::collections::BTreeSet<i8> = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & sim::terrain_groups::flag::COAST != 0)
+                .map(|c| c.land)
+                .collect();
+            let rough_coast = grid
+                .cells
+                .iter()
+                .filter(|c| {
+                    c.flags & sim::terrain_groups::flag::COAST != 0
+                        && (c.flags & 0x70 != 0
+                            || (c.flags & sim::terrain_groups::flag::ROCK == 0
+                                && (c.land == 4 || c.land == 5)))
+                })
+                .count();
+            eprintln!(
+                "{} nations at 7927: border ocean {border}, sandy {sandy}, coast lands \
+                 {coast_lands:?}, rough coast {rough_coast}",
+                run.1
+            );
+            let mut regions = regions_of(&grid);
+            adjust_for_blocking(&mut grid, &mut regions, &groups.templates);
+            check(&grid, &d, 0, 7937);
+            let before = d.log.len();
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let dry = grid.cells.iter().filter(|c| !c.is_ocean()).count();
+            assert_eq!(d.log.len() - before, dry, "one draw a non-water cell");
+            // The water arms reach the grid: a dry cell with water in its
+            // rings, and a cell in a region under a sixteenth of the map.
+            let size = grid.xs * grid.ys;
+            let mut region_size = [0i32; 0x80];
+            for c in &grid.cells {
+                region_size[c.region as usize] += 1;
+            }
+            let small = grid
+                .cells
+                .iter()
+                .filter(|c| !c.is_ocean() && region_size[c.region as usize] < size / 16)
+                .count();
+            // A coast cell counts no food (record 3); a dry cell whose
+            // rings hold four or fewer food slots is where that shows.
+            let lean = grid
+                .cells
+                .iter()
+                .filter(|c| !c.is_ocean() && c.goods & 1 == 0)
+                .count();
+            wrote.push((run.1, dry, small, lean));
+            check(&grid, &d, 1, 7945);
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let names = traces_of("greatlakes");
+        let lakes: Vec<_> = traces
+            .iter()
+            .filter(|(n, _)| names.binary_search(n).is_ok())
+            .collect();
+        let (met, stream) = stream_partings(&lakes, &logs, |s| s);
+        eprintln!(
+            "Great Lakes values: (nations, value draws, small-region cells, foodless cells) \
+             {wrote:?}; met whole {met:?}; 7937, 7945 on {files:?} files"
+        );
+        assert!(
+            stream.is_empty(),
+            "{} Great Lakes traces part from the port's values:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            met.len() >= 2
+                && lakes.len() >= LAKE_PLACE_ALL_TRACES
+                && files.iter().all(|&n| n >= LAKE_FILES),
+            "the values met {met:?} on {} traces and {files:?} files",
+            lakes.len()
+        );
+    }
+
+    /// Each Great Lakes run's grid and stream at `map.cpp` 7945, after
+    /// `compute_all_vals`: [`great_lakes_at_7859`] and the chain 3822, 3826
+    /// and 3830 check, in their order.
+    fn great_lakes_at_7945(
+        root: &Path,
+        g: &StartGrid,
+        run: GlRun,
+        range: i32,
+        makes: &sim::map_values::LandMakes,
+    ) -> (MapGrid, Draws) {
+        let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g, run, range);
+        let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+        nubify_forest(&mut grid, &mut d);
+        change_bases(&mut grid, &mut d, &ts);
+        let inputs = resource_inputs(root, "GREATLAKES.xml", run.2, run.3, run.1)
+            .expect("Great Lakes' rows");
+        place_resources(&mut grid, &mut d, &inputs, run.1);
+        let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
+            .expect("Great Lakes' place_all inputs");
+        let mut regions = regions_of(&grid);
+        adjust_for_blocking(&mut grid, &mut regions, &groups.templates);
+        compute_all_vals(&mut grid, &mut d, makes);
+        (grid, d)
+    }
+
+    /// The records `Terrain::init` prints before `check_and_set_halfland`'s
+    /// return: `setup.cpp` 734 through `Terrain.cpp` 706, in trace order.
+    fn before_halfland_records(g: &StartGrid) -> &[(String, i64, u32, [u32; 16])] {
+        let from = g
+            .checksums
+            .iter()
+            .position(|(f, l, _, _)| f == "setup.cpp" && *l == 734);
+        let to = g
+            .checksums
+            .iter()
+            .position(|(f, l, _, _)| f == "Terrain.cpp" && *l == 706);
+        match (from, to) {
+            (Some(a), Some(b)) if a <= b => &g.checksums[a..=b],
+            _ => &[],
+        }
+    }
+
+    /// **`Terrain::init` without heights on Great Lakes** (`docs/MAPGEN.md`
+    /// §10, §15 step 6, item 3832): from each run's 7945 grid
+    /// ([`great_lakes_at_7945`]), `Map::make`'s `sea_map` write —
+    /// `GREATLAKES.xml`'s 1, part 4 at 734 — and seed and parts 2, 5, 6 and
+    /// 10–13 at every record from 734 to 706 on every Great Lakes file. Then
+    /// the half-land gate opens: `generate_land_lists`' flags gate the lake
+    /// shore, the port refuses `_wcoord`'s body by name (a corner height
+    /// against −30.0f decides it, step 7's), and every cell the start dump
+    /// prints `HALFLAND` — set only by `mark_halfwater`, which only a gated
+    /// cell reaches — is one the port gates. 720, where parts 5, 6 and 10–12
+    /// move, is the first record the port does not reach.
+    #[test]
+    fn great_lakes_s_terrain_init_is_734_to_706_and_its_gate() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let sea = sea_map(root, "GREATLAKES.xml").expect("GREATLAKES.xml's SEA_MAP");
+        assert_eq!(sea, 1, "Great Lakes' SEA_MAP");
+        let mut runs: std::collections::BTreeMap<GlRun, (&StartGrid, Vec<&StartGrid>)> =
+            Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            runs.entry(run).or_insert((g, Vec::new())).1.push(g);
+        }
+        // Every Great Lakes file with the span, and those without the start
+        // grid or the 7805 record a run is keyed on.
+        let carried: Vec<&str> = all
+            .iter()
+            .filter(|(_, g)| g.style == 14 && !before_halfland_records(g).is_empty())
+            .filter(|(_, g)| g.xs == 0 || g.at("map.cpp", 7805).is_none())
+            .map(|(n, _)| n.as_str())
+            .collect();
+        eprintln!(
+            "734..706 on {} files no run keys: {carried:?}",
+            carried.len()
+        );
+        let (mut files, mut records, mut dumps) = (0, 0, 0);
+        for (run, (g0, gs)) in &runs {
+            let (mut grid, d) = great_lakes_at_7945(root, g0, *run, range, &makes);
+            let coord = coord_flags(&grid);
+            let gated: Vec<usize> = (0..coord.len())
+                .filter(|&i| coord[i] & coord::GATE != 0)
+                .collect();
+            let count = |bit: u16| coord.iter().filter(|&&f| f & bit != 0).count();
+            eprintln!(
+                "{} nations: CoordInfo NONE {}, 0x4 {}, 0x20 {}, OCEAN {}, shallow (0x80) {}; \
+                 gated (0x84) {}",
+                run.1,
+                count(coord::NONE),
+                count(coord::HALF),
+                count(coord::COASTAL),
+                count(coord::OCEAN),
+                count(coord::SHALLOW),
+                gated.len()
+            );
+            let parts = HalfLand::default().parts().expect("the lists start empty");
+            let ours = (
+                d.rng.seed,
+                grid.start_part(),
+                grid.cell_part(),
+                grid.tile_part(),
+                parts,
+            );
+            for g in gs {
+                let (Some(before), Some(after)) = (g.at("map.cpp", 7945), g.at("setup.cpp", 734))
+                else {
+                    continue;
+                };
+                assert_eq!(
+                    adler_rewrite(
+                        before.3[4],
+                        PART4_LEN,
+                        PART4_SEA_MAP_AT,
+                        &WORLD_SEA_MAP_BEFORE.to_le_bytes(),
+                        &sea_map_after_make(WORLD_SEA_MAP_BEFORE, sea).to_le_bytes()
+                    ),
+                    after.3[4],
+                    "part 4 at 734 on a {}-nation file",
+                    run.1
+                );
+                let reached = before_halfland_records(g);
+                assert!(!reached.is_empty(), "a file with 734 and no 706");
+                for (f, l, seed, p) in reached {
+                    assert_eq!(
+                        ours,
+                        (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]),
+                        "(seed, parts 2, 5, 6, 10–13) at {f} {l} on a {}-nation file",
+                        run.1
+                    );
+                    assert_eq!(p[4], after.3[4], "part 4 moved after 734, at {f} {l}");
+                    records += 1;
+                }
+                // 720 is `check_and_set_halfland`'s return: the first record
+                // a height decides, and it moves on every file.
+                let at720 = g.at("Terrain.cpp", 720).expect("720 after 706");
+                assert_ne!(
+                    (at720.3[5], at720.3[6]),
+                    (ours.2, ours.3),
+                    "720 stood still on a Great Lakes file"
+                );
+                files += 1;
+                if let Some(cells) = &g.cells {
+                    let half: Vec<usize> = (0..cells.len())
+                        .filter(|&i| cells[i].flags & 0x100 != 0)
+                        .collect();
+                    let outside: Vec<(i32, i32)> = half
+                        .iter()
+                        .filter(|&&i| coord[i] & coord::GATE == 0)
+                        .map(|&i| (i as i32 % grid.xs, i as i32 / grid.xs))
+                        .collect();
+                    assert!(
+                        !half.is_empty() && outside.is_empty(),
+                        "{} of the start dump's {} HALFLAND cells are not gated: {outside:?}",
+                        outside.len(),
+                        half.len()
+                    );
+                    dumps += 1;
+                }
+            }
+            match terrain_init_without_heights(&mut grid, sea) {
+                Err(Unported::HalfLand(cells)) => assert_eq!(cells.len(), gated.len()),
+                other => {
+                    panic!("the gate opens on Great Lakes, and `_wcoord` is refused: {other:?}")
+                }
+            }
+        }
+        eprintln!(
+            "terrain init: GL 734..706 on {files} files, {records} records; the gate holds the \
+             start dump's HALFLAND on {dumps} files"
+        );
+        assert!(
+            files >= LAKE_FILES && dumps >= LAKE_FILES,
+            "734..706 reached {files} Great Lakes files, the gate {dumps}"
+        );
+    }
+
     /// The Great Lakes traces whose `place_all` segment the stream check
     /// walks: a floor.
     const LAKE_PLACE_ALL_TRACES: usize = 222;
@@ -3911,8 +4261,9 @@ mod tests {
 
     /// The §15 phases this module checks on Great Lakes: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
-    /// 7861..7870), and the resources (7877..7927).
-    const GREAT_LAKES_CHECKED: i64 = 4;
+    /// 7861..7870), the resources (7877..7927) and the values (7937,
+    /// 7945).
+    const GREAT_LAKES_CHECKED: i64 = 5;
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail

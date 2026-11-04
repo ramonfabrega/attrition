@@ -6337,6 +6337,21 @@ impl Sim {
     /// there instead — and the splash around it.
     fn land(&mut self, p: combat::Projectile, frame: i64) {
         let mut target = p.target.filter(|&t| self.struck(t));
+        // **A round whose target is gone lands as a ground round**
+        // (`Ammo::do_damage@00678060`'s first test, item 3829, `docs/
+        // GOLDEN.md` §152.12): an inactive target object (`+8 & 1` clear)
+        // has `whom`/`ox` set to −1 before anything else, and the domain
+        // `check_hit` and the splash's unit arm are handed is the target
+        // type's `+0x218` only while those are set — `GROUND` otherwise.
+        // So an air shooter's round on a plane that died in flight finds
+        // and splashes only what is not air: run1476's `0/15` round of 792
+        // on the dead Stealth Bomber `1/17` comes down on 797 455 from the
+        // Jet Fighter Bomber `1/18` and leaves it whole (205 on blocks
+        // 796–799), where ours splashed it for 3½.
+        let p = combat::Projectile {
+            air: p.air && target.is_some(),
+            ..p
+        };
         if !self.hit_target(&p) {
             target = self.check_hit(&p);
         }
@@ -7317,6 +7332,49 @@ mod tests {
         assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
         assert!(!sim.hits[0].splash, "at the full count");
         let _ = other;
+    }
+
+    /// **A round whose target is gone lands as a ground round** (item
+    /// 3829, `Ammo::do_damage@00678060`'s first test, `docs/GOLDEN.md`
+    /// §152.12): an air round on a plane that died in flight splashes no
+    /// plane beside its landing, and one whose target still stands does.
+    /// run1476's `0/15` round of 792 on the dead `1/17` left `1/18` whole.
+    /// Made to fail with the round's own `air` kept at landing.
+    #[test]
+    fn a_round_whose_target_died_splashes_no_plane() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                domain: Domain::Air,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(1000, 1000));
+        let dead = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+        let near = put(&mut sim, 1, ty, Pos::new(3000, 3200));
+        let air_round = |sim: &Sim| combat::Projectile {
+            air: true,
+            ..round(sim, me, Some(Obj::Unit(dead)), Pos::new(3000, 3000), 4)
+        };
+        let mut live = sim.clone();
+        let p = air_round(&live);
+        live.land(p, 797);
+        assert!(
+            live.hits.iter().any(|h| h.target == Obj::Unit(near)),
+            "a standing target's round splashes the plane beside it"
+        );
+        sim.units[dead].health = 0;
+        let p = air_round(&sim);
+        sim.land(p, 797);
+        assert!(
+            sim.hits.iter().all(|h| h.target != Obj::Unit(near)),
+            "a dead target's round lands as ground"
+        );
     }
 
     /// **A decoy target takes `get_damage`'s step 17** (item 3385): armour
