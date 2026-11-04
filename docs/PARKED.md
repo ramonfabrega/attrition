@@ -12930,7 +12930,8 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 ## Parked by item 3803, 2026-11-03 — `place_all` on Great Sahara
 
 - **3803a. The branches Great Sahara's groups never take** (`docs/MAPGEN.md` §7, `sim::terrain_groups`): cliffs
-  (type 8, and with them §11's `acos`), oil by water (type 7), patterns 3 and 4, `clear_group`'s first branch
+  (type 8, and with them §11's `acos`), ~~oil by water (type 7)~~ (diffed on Great Lakes by item 3822, MAPGEN
+  §7; its inert arms are 3822a), patterns 3 and 4, `clear_group`'s first branch
   (`land_sub = num_tiles[0] − 1`), the negative per-nation counts, and the style-9 skip of `treeify_mountains`.
   They are ported from the readings and never run. A Great Sahara grid cannot check them. Another style's
   7859 can, once its mask is ported (3734a).
@@ -13143,13 +13144,23 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   original as in the port: a 30×30 search held one generation's draw log past 16 GiB before the budget
   killed it. No stock map size is that small. The port keeps the original's shape, with no cap.
 
-## Parked by the next landing, slot YB — reserved
+## Parked by item 3822, 2026-11-04 — Great Lakes' `place_all` and its tail
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3822a. Three water arms the Great Lakes corpus runs but cannot part** (`docs/MAPGEN.md` §7,
+  `sim::terrain_groups`). Each one's mutant fails nothing on all 222 traces and 185 files:
+  - The sea-oil disc's reach past ring 3 (`rock_space` 5): no start is decided by rings 4 or 5. A unit test
+    pins the reading.
+  - `drop_tile`'s COAST → `land` 2 rewrite: every Great Lakes forest and rock group has `coast_space` ≥ 1, so
+    `available_rough_tile` refuses a COAST cell before the drop.
+  - The type-7 start test's COAST alternative: type 7 walks only water regions, and COAST marks land.
+
+  What checks them: a style with a forest or rock group at `coast_space` 0 (the rewrite), or more lake oil
+  in fewer lakes (the reach). No corpus style is known to have either. Names no score.
+- **3822b. The team lobby's 3-nation run has a stream and no checkpoint.** run1077 and the click-free team
+  lobbies (run1086–1113) log no checksum, so their `place_all` and tail (1,319 and 3,247 draws) agree draw
+  for draw but no part is checked at 7859–7870. The only mutant that parts on those 13 traces alone is the
+  disc's oil test. A 3-nation Great Lakes capture with `CHECKSUM` would check it, and it should be booked only
+  when a later Great Lakes phase parts there.
 
 ## Parked by the next landing, slot YC — reserved
 

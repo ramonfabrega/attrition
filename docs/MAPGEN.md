@@ -628,6 +628,69 @@ mutations turn it red; `nubify_forest` keeping the COAST, ROCK and MOUNTAIN
 bits it clears turns nothing red, because its 5 nubs land on forest cells
 that carry none of them.
 
+**Ported on Great Lakes** (item 3822, the same `sim::terrain_groups` on
+3819's 7854 grid, tileset `early_autumn`). Great Lakes' ten groups include
+the first type-7 group any corpus map runs: "lake oil", pattern 2, 8
+clumps of size 1, `rock_space` "6 SCALE" (5 at 60×60). Its start test was
+the port's one refusal. `place_region_group@006a2f60` reads it as follows.
+A type-7 start must be wet (`land` 2, or COAST). Then a disc is walked
+from the centre over the circle table to `circle_radius[r]`, where `r` is
+the call's last argument when over 3 (at most 63), else 3. In the world
+pattern that argument is the group's `rock_space`. Every on-map cell
+inside `circle_radius[2]` must be wet (`is_ocean`), and no wet cell in
+the disc may hold oil. Off-map cells pass. The test comes after the
+flag/blocked tests and before the centre, edge and corner bounds.
+
+**The team lobby is a second generator run on the same seed.** The
+run1077 lobby (a human and two computers) and its click-free kin
+(run1086–1113) log no checksum, so they have no start grid. Their setup
+path is the 2-nation run's to 7805, and the mask draws the same 5,568 on
+both. `place_all` is the first pass that reads the count. The tail of
+that lobby draws no `nubify_forest`, so `place_all_part` now cuts at the
+first draw of any tail pass.
+
+The stream is the trace's, site and word, on **all 222 Great Lakes
+traces**: 209 at 2 nations (1,016 draws, §2's figure) and 13 at 3 (1,319).
+Through the tail it is 2,843 and 3,247. At 2 nations the tail's passes
+draw:
+
+| pass | 2 nations | 3 nations |
+|---|---|---|
+| `nubify_forest` | 3 | 0 |
+| `change_forest_base` | 436 | 488 |
+| `change_mountain_base` | 296 | 288 |
+| `change_coast_base` | 384 | 386 |
+| `nubify_transitions` | 708 | 766 |
+
+`change_coast_base` runs for the first time here, from 722 COAST cells.
+Seed, part 2 and part 5 agree at 7859, 7861, 7865 and 7870 on all 185
+files, first try (`great_lakes_s_place_all_is_the_traced_stream_and_7859`,
+`great_lakes_s_group_tail_is_the_traced_stream_and_7861_to_7870`). The
+185 files are all 2-nation, so the 3-nation lobby is checked by its
+stream alone.
+
+The 7859 grid holds 189/203/16/15 forest, mountain, rock and oil cells.
+Five mutations on the water arms turn the check red:
+- the disc's dry core dropped;
+- the disc's oil test dropped (this one only on the 13 team-lobby traces);
+- the water region span (type 7 lists regions 0x40..0x7f) narrowed to land;
+- `available_rough_tile`'s coast ring emptied;
+- `change_coast_base` given no source cells.
+
+Three fail nothing, and each is inert on this corpus:
+- **The disc's reach.** The disc's reach is `rock_space` 5 against 3, and
+  no start is decided by rings 4 or 5. The unit test
+  `the_sea_oil_disc_reaches_rock_space` pins the reading instead.
+- **`drop_tile`'s COAST → `land` 2 rewrite.** Every forest and rock group
+  has `coast_space` of at least 1, so `available` refuses a COAST cell
+  first.
+- **The start test's COAST alternative.** Type 7 walks only water
+  regions, and COAST marks land, so the disc's dry core refuses such a
+  cell anyway.
+
+The pattern-2 weight did not run: there are 6 water regions over five
+cells, not fewer (3803b stands).
+
 Falsifier: seed and parts 5 and 6 at 7859, 7865 and 7870.
 
 ## 8. Resources
@@ -1172,7 +1235,10 @@ step is checked by §3 at its own checkpoint before the next begins:
 3. `place_all` (§7, 7859) — **Great Sahara built** (item 3803,
    `sim::terrain_groups`; the `Mapgen:` line's third phase); 7861–7870's
    `nubify_forest`, `change_*_base` and `fix_transitions` — **Great Sahara
-   built** with step 4 (item 3805);
+   built** with step 4 (item 3805); **Great Lakes built**, `place_all`
+   and its tail together (item 3822, the sea-oil disc and
+   `change_coast_base`'s first diff; its third phase); East Indies
+   remains;
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
    `sim::map_resources`; the `Mapgen:` line's fourth phase);
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,

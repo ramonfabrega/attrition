@@ -725,6 +725,19 @@ pub fn place_all_inputs(
     map_style: i32,
 ) -> Option<Inputs> {
     let fert = fertility(root, style_file)?;
+    place_all_inputs_of(root, style_file, &fert.tileset, xs, ys, map_style)
+}
+
+/// [`place_all_inputs`] on a named tileset of the style's: a style with
+/// several `TILECHANCE`s draws one ([`tileset_before`]).
+pub fn place_all_inputs_of(
+    root: &Path,
+    style_file: &str,
+    tileset: &str,
+    xs: i32,
+    ys: i32,
+    map_style: i32,
+) -> Option<Inputs> {
     let templates = crate::mountains::templates(&crate::Install::new(root))
         .iter()
         .map(group_template)
@@ -732,7 +745,7 @@ pub fn place_all_inputs(
     Some(Inputs {
         groups: terrain_groups(root, style_file, xs, ys, 1)?,
         templates,
-        tileset: tileset_groups(root, &fert.tileset)?,
+        tileset: tileset_groups(root, tileset)?,
         map_style,
     })
 }
@@ -1000,11 +1013,13 @@ pub fn islands_part(setup: &[SetupDraw]) -> &[SetupDraw] {
 }
 
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
-/// `TerrainGroups::nubify_forest` draw.
+/// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
+/// run of forest draws one (Great Lakes' team lobby), the first
+/// `change_*_base` (to `fix_transitions@006a9f70`).
 pub fn place_all_part(seg: &[SetupDraw]) -> &[SetupDraw] {
     let end = seg
         .iter()
-        .position(|&(s, _)| (0x006a_93b0..0x006a_9a60).contains(&s))
+        .position(|&(s, _)| (0x006a_93b0..0x006a_9f70).contains(&s))
         .unwrap_or(seg.len());
     &seg[..end]
 }
@@ -3056,6 +3071,275 @@ mod tests {
         );
     }
 
+    /// Each Great Lakes run's grid and stream through `place_all` (7859),
+    /// from 7807 ([`great_lakes_at_7807`]) and 3819's passes: the file's
+    /// world seed feeds the fractal, and the tileset is the one drawn before
+    /// `base_edge` ([`tileset_before`]).
+    fn great_lakes_at_7859(
+        root: &Path,
+        g: &StartGrid,
+        run: GlRun,
+        range: i32,
+    ) -> (MapGrid, Draws, String) {
+        let chances = tile_chances(root, "GREATLAKES.xml").expect("GREATLAKES.xml's tilesets");
+        let tileset = tileset_before(&chances, run.0).expect("a drawn tileset");
+        let fert = fertility_of(root, "GREATLAKES.xml", &tileset).expect("its fertility");
+        let (mut grid, draws, _) = great_lakes_at_7807(root, run, range);
+        let mut regions = Regions::default();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        grid.fix_diag_land();
+        grid.make_coastlines();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
+        grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
+        // The regions `place_all`'s region patterns list (more than five
+        // cells): land 1..0x40, water 0x40..0x7f — the lake oil's list.
+        let mut sizes = std::collections::BTreeMap::<i16, usize>::new();
+        for c in &grid.cells {
+            *sizes.entry(c.region).or_default() += 1;
+        }
+        let listed = |r: std::ops::Range<i16>| {
+            sizes
+                .iter()
+                .filter(|&(k, &n)| r.contains(k) && n > 5)
+                .count()
+        };
+        eprintln!(
+            "{} nations: {} land and {} water regions over five cells",
+            run.1,
+            listed(1..0x40),
+            listed(0x40..0x7f)
+        );
+        let inputs = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
+            .expect("Great Lakes' place_all inputs");
+        let mut d = Draws::new(draws.rng.seed);
+        place_all(&mut grid, &mut d, &inputs);
+        (grid, d, tileset)
+    }
+
+    /// **`place_all` on Great Lakes, draw for draw** (`docs/MAPGEN.md` §7,
+    /// §15 step 3): from the 7854 grid 3819 checks, the port's tagged stream
+    /// against every Great Lakes trace's `place_all` segment
+    /// ([`place_all_part`] of [`make_draws`]), site and word, then seed,
+    /// part 2 and part 5 at 7859 on every Great Lakes file that carries it —
+    /// the first run of the water arms: the lake-oil group's water regions,
+    /// the coast spacing against lakes, and `drop_tile`'s COAST rewrite.
+    #[test]
+    fn great_lakes_s_place_all_is_the_traced_stream_and_7859() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let mut ported: std::collections::BTreeMap<GlRun, (MapGrid, Draws, String)> =
+            Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            ported
+                .entry(run)
+                .or_insert_with(|| great_lakes_at_7859(root, g, run, range));
+        }
+        // The team lobby (run1077's, a human and two computers) logs no
+        // checksum and so no start grid; its setup path is the 2-nation
+        // run's to 7805, and `place_all` is the first reader of the count.
+        let two: Vec<(GlRun, StartGrid)> = all
+            .iter()
+            .filter(|(_, g)| g.style == 14 && g.xs > 0 && g.nations == 2)
+            .filter_map(|(_, g)| {
+                Some((
+                    (g.at("map.cpp", 7805)?.2, 3, g.xs, g.ys, g.map_size),
+                    g.clone(),
+                ))
+            })
+            .take(1)
+            .collect();
+        for (run, g) in &two {
+            ported
+                .entry(*run)
+                .or_insert_with(|| great_lakes_at_7859(root, g, *run, range));
+        }
+        let names = traces_of("greatlakes");
+        let lakes: Vec<_> = traces
+            .iter()
+            .filter(|(n, _)| names.binary_search(n).is_ok())
+            .collect();
+        let logs: Vec<(GsRun, Vec<SetupDraw>)> = ported
+            .iter()
+            .map(|(r, (_, d, _))| ((r.0, r.1, r.2, r.3, 0), d.log.clone()))
+            .collect();
+        let (met, parted) = stream_partings(&lakes, &logs, place_all_part);
+        eprintln!(
+            "Great Lakes place_all: {} traces with a segment, met whole {met:?}, runs {:?}",
+            lakes.len(),
+            ported
+                .iter()
+                .map(|(r, (_, d, t))| (r, d.log.len(), t))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            parted.is_empty(),
+            "{} Great Lakes traces part from the port's place_all:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            lakes.len() >= LAKE_PLACE_ALL_TRACES,
+            "the place_all stream walked {} Great Lakes traces",
+            lakes.len()
+        );
+        let mut files = 0;
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let (Some(before), Some((_, _, seed, p))) =
+                (g.at("map.cpp", 7805), g.at("map.cpp", 7859))
+            else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            let (grid, d, _) = &ported[&run];
+            let ours = (d.rng.seed, grid.start_part(), grid.cell_part());
+            let theirs = (*seed, p[2], p[5]);
+            if ours != theirs {
+                parted.push(format!(
+                    "{name}: 7859 (seed, part 2, part 5) ours {ours:?} against theirs {theirs:?}"
+                ));
+            }
+            files += 1;
+        }
+        for (run, (grid, _, _)) in &ported {
+            let count = |bit: u16| grid.cells.iter().filter(|c| c.flags & bit != 0).count();
+            eprintln!(
+                "{run:?}: forest, mountain, rock, oil cells {:?}",
+                [0x20, 0x10, 0x8, 0x800].map(count)
+            );
+        }
+        eprintln!("7859: {files} Great Lakes files");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(files >= LAKE_FILES, "the 7859 check reached {files} files");
+    }
+
+    /// **Step 3's tail on Great Lakes** (`docs/MAPGEN.md` §7, §15 step 3):
+    /// `nubify_forest` (7865) and the base passes with `fix_transitions`
+    /// (7870) after the port's `place_all`, 7861 between them — the stream
+    /// draw for draw against every Great Lakes trace through the last groups
+    /// draw, both lobbies, then seed, part 2 and part 5 at each checkpoint on
+    /// every file that carries it. `change_coast_base`'s first run: Great
+    /// Sahara has no COAST cell.
+    #[test]
+    fn great_lakes_s_group_tail_is_the_traced_stream_and_7861_to_7870() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let mut runs: std::collections::BTreeMap<GlRun, (&StartGrid, Vec<&StartGrid>)> =
+            Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            runs.entry(run).or_insert((g, Vec::new())).1.push(g);
+            // The team lobby's 3-nation run (no start grid of its own).
+            runs.entry((run.0, 3, run.2, run.3, run.4))
+                .or_insert((g, Vec::new()));
+        }
+        let mut logs = Vec::new();
+        let mut files = [0usize; 3];
+        let mut parted = Vec::new();
+        let mut coast = 0;
+        for (run, (g0, gs)) in &runs {
+            let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g0, *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            coast += grid.cells.iter().filter(|c| c.flags & 4 != 0).count();
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (d.rng.seed, grid.start_part(), grid.cell_part());
+                    if ours != (*seed, p[2], p[5]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, part 2, part 5) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5])
+                        ));
+                        return;
+                    }
+                }
+            };
+            check(&grid, &d, 0, 7861);
+            nubify_forest(&mut grid, &mut d);
+            check(&grid, &d, 1, 7865);
+            change_bases(&mut grid, &mut d, &ts);
+            check(&grid, &d, 2, 7870);
+            let by = |r: std::ops::Range<u32>| d.log.iter().filter(|(s, _)| r.contains(s)).count();
+            let passes = [
+                by(0x006a_93b0..0x006a_9a60),
+                by(0x006a_9a60..0x006a_9c10),
+                by(0x006a_9c10..0x006a_9dc0),
+                by(0x006a_9dc0..0x006a_9f70),
+                by(0x006a_1f30..0x006a_2320),
+            ];
+            eprintln!(
+                "{} nations: nubify_forest, change_forest/mountain/coast_base, \
+                 nubify_transitions draws {passes:?}",
+                run.1
+            );
+            assert!(passes[3] > 0, "change_coast_base drew nothing: {passes:?}");
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let names = traces_of("greatlakes");
+        let lakes: Vec<_> = traces
+            .iter()
+            .filter(|(n, _)| names.binary_search(n).is_ok())
+            .collect();
+        let (met, stream) = stream_partings(&lakes, &logs, groups_part);
+        eprintln!(
+            "Great Lakes group tail: met whole {met:?}, lengths {:?}; 7861, 7865, 7870 on \
+             {files:?} files; {coast} COAST cells entering",
+            logs.iter().map(|(r, l)| (r.1, l.len())).collect::<Vec<_>>()
+        );
+        assert!(
+            stream.is_empty(),
+            "{} Great Lakes traces part from the port's groups and tail:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            lakes.len() >= LAKE_PLACE_ALL_TRACES && files.iter().all(|&n| n >= LAKE_FILES),
+            "the tail walked {} traces and {files:?} files",
+            lakes.len()
+        );
+    }
+
+    /// The Great Lakes traces whose `place_all` segment the stream check
+    /// walks: a floor.
+    const LAKE_PLACE_ALL_TRACES: usize = 222;
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
@@ -3063,9 +3347,10 @@ mod tests {
     /// (5012..5118), and the heights (the start dump's grid).
     const GREAT_SAHARA_CHECKED: i64 = 8;
 
-    /// The §15 phases this module checks on Great Lakes: the mask (7807)
-    /// and the zero-draw passes (7835..7854).
-    const GREAT_LAKES_CHECKED: i64 = 2;
+    /// The §15 phases this module checks on Great Lakes: the mask (7807),
+    /// the zero-draw passes (7835..7854), and `place_all` with its tail
+    /// (7859, 7861..7870).
+    const GREAT_LAKES_CHECKED: i64 = 3;
 
     /// The §15 phases this module checks on East Indies: the mask (7807).
     const EAST_INDIES_CHECKED: i64 = 1;
