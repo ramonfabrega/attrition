@@ -240,28 +240,85 @@ left open:
   returns the value.
 
 **Great Lakes, `MapGreatLakes::make_continents@00699e40`: the 5,568.**
+The lakes are grown as *land* regions on a wiped, all-water world, and the
+world is inverted at the end, so a lake ends as water and the background
+as land.
 - Three opening draws: two for the angle, one for the lake count
-  `xs/12 + (r & 1)`.
-- Each lake centre is two draws, `(r % xs, r % ys)`. It is retried until
-  `Map::land_dist@0069d970` reaches
-  `max(3, (avoid_continent + 1)/2 + isqrt(S·7/22))`; after 1,000 attempts
-  the lake shrinks.
-- The first lake's size is `max(90, cells/20)`. Each later lake is
-  `small + r % (big − small)` with `small = max(24, cells/40)`, one draw.
-- `Map::grow_valid@0069d000` makes one draw per non-zero `avoid_edge` until
-  an edge fails. Each draw nudges a persistent `avoid_modify` by
-  `r % 3 − 1`, clamped to 0..4. All four GL edges are `8 SCALE`, so a pass
-  costs 4.
-- `Map::grow_region@0069c600` calls `grow_valid` again for every free
-  `point`, costs 1–3 draws a growth step, and `Map::large_stamp@0069cb20`
-  adds 1 (3 in its fourth case).
-- Then `Map::eliminate_pools@0068b890` over the whole world, `invert_land`,
-  the starts on a fixed angle at a decreasing radius, and
-  `Map::check_player_land@0068ef00` — no draws in that tail.
+  `xs/12 + (r & 1)`. Before them `avoid_continent` becomes
+  `max(6, scale_land_area(avoid_continent))`; `scale_land_area` returns
+  its argument unless the nations pass `Map::get_player_overage`'s
+  allowance for the map size (2, 2, 3, 4, 6, 8), where it divides in
+  floats. No corpus lobby passes it; the port refuses one that would.
+- Each lake centre is two draws, `(r % xs, r % ys)`, retried until
+  `Map::land_dist@0069d970` (the first ring round a water cell holding a
+  non-water or off-grid cell) reaches
+  `max(3, (avoid_continent + 1)/2 + isqrt(size·7/22))`. The root is the
+  function's own integer Newton loop from `n/2`. After 1,000 misses the
+  lake shrinks to `small`, then `small` by 13/16 while it stays over 19.
+  A hundred attempts in a row that open no lake end the loop.
+- The first lake is `max(90, cells/20)` cells. **After every attempt**,
+  opened or not, the next size is `small + r % (first − small)`, one draw,
+  with `small = max(24, cells/40)`.
+- A centre that `Map::grow_valid@0069d000` passes opens a region
+  (`Map::make_region@0069d3f0`), grown by `Map::grow_region@0069c600` to
+  the lake's size, no further than `xs` from its first cell. Region ids
+  count up from 1.
+- `grow_valid` refuses, with no draw, when another region is live and the
+  point is within `avoid_center` of the **map's** centre. It also refuses
+  when another region lies in the disc of `avoid_continent` round the
+  point. Only then does it make one draw per non-zero `avoid_edge`, in
+  slot order. Each draw nudges a persistent `avoid_modify` (+0x64) by
+  `r % 3 − 1`, clamped to 0..4, and tests edge `(base_edge + slot) & 3`
+  at `avoid_edge + avoid_modify`. The first edge that fails ends the
+  walk. All four GL edges are `8 SCALE`, so a full pass costs 4.
+  `base_edge` is `Map::make`'s `r % 4`, recovered from the seed at 7805.
+- `grow_region` first gives a one-cell region the disc to ring `k`, the
+  first `k ≥ 3` with `3k² ≥ size/4` (else 2). It takes each cell
+  `grow_valid` passes, and each one is tested twice, since
+  `Map::point@0069d5a0` asks again. Each later step picks one of the
+  region's cells. Past `scale_by_area(512)` cells (512 on a 60×60), one
+  step in `count/8` (a draw) picks in the newest eighth (a second draw)
+  if that cell is within the distance. Otherwise, while ring `k` is
+  unfilled, it picks any cell (one draw), else a cell of ring `k` onward
+  (one draw). Within 64 of the size the pick takes a cross of `point`s;
+  before that it takes `Map::large_stamp@0069cb20`, a stamp and then one
+  draw for one of nine shapes (two more in shape 4). A step that grows
+  nothing counts: `8·size` of them in all, or `size` in a row, ends it.
+  `point` returns false only on a `grow_valid` refusal. A cell off the
+  grid or already taken is a success, which is what the stamps'
+  short-circuits read.
+- Then the drawless tail:
+  - `Map::eliminate_pools@0068b890` over the whole world: the regions are
+    relabelled, and every water region but the largest is made land (the
+    smallest first, the first of equals);
+  - `invert_land`;
+  - each start, on the angle stepped by `0xffffffff / players`, walked in
+    from `3·xs/2` in steps of 3 from `(xs/2, xs/2)` (y also `xs/2`, from
+    the listing) to the first land cell two in from every edge;
+  - `Map::check_player_land@0068ef00`, called with `ecx = 1` and
+    `edx = avoid_continent` (listing). It makes land of the disc to ring
+    `ceil(r/4)` round each start-city cell, where `r` is unit type 349's
+    `max_range`, 24 in the shipped rules, so ring 6. With every `region`
+    0 after `invert_land`, its neighbour searches find nothing to adopt
+    or protect.
 
-The total depends on the grid, so the reading is consistent in kind and
-**not reconciled to 5,568**. `GLOG_MAPMAKE` at detail 10 logs every point
-and `grow_valid` and would count it (named, not booked).
+**Diff-backed since item 3815** (`sim::map_lakes::great_lakes_make_continents`;
+`rondata::mapgen::tests::great_lakes_s_mask_is_the_traced_stream` and
+`…_traced_7807`):
+- **Reconciled to 5,568 draw for draw**, site and word, on all 222 Great
+  Lakes traces.
+- The seed, part 2 and part 5 at 7807 agree on all 185 Great Lakes files
+  carrying both, first try.
+- All of them are one generator run: 2 nations, 60×60, seed 2726892157.
+  Eleven more files carry the checkpoints but no start grid, so they give
+  no size (3815a).
+- Fail first: dropping `avoid_modify`'s upper clamp parts every trace at
+  draw 419. Dropping the spacing's root parts them at draw 5. Shrinking
+  `check_player_land`'s ring parts part 5 alone.
+- Removing the first lake's `max(90)` fails nothing, because `cells/20` is
+  180 here.
+- Skipping `eliminate_pools` fails nothing, because this run's background
+  is one region. Its merge is unit-tested only (3815b).
 
 **East Indies, `MapEastIndies::make_continents@00697540`.**
 - The angle is 1 draw, or 2 with four or more players.
@@ -938,6 +995,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
 - §3's Adler-32 identity (337 of 337; 496 of 496 pinned, item 3776);
 - §5's Great Sahara `make_continents`: its seed, part 2 and part 5 at 7807
   on 105 files (item 3776);
+- §5's Great Lakes `make_continents`: draw for draw on 222 traces, the
+  5,568, and its seed, part 2 and part 5 at 7807 on 185 files, one
+  generator run (item 3815); `eliminate_pools`' merge, the 1,000-miss
+  shrink and `scale_land_area`'s float path are reading-only or
+  unit-tested (3815b);
 - §6's passes on Great Sahara at 7835, 7843, 7846 and 7854 on 105 files,
   `fill_fertile`'s `Fractal` and partitions with them, and `find_all`'s
   labels on 494 of 496 start grids (item 3798); `fix_diag_land`,
@@ -979,7 +1041,7 @@ Of the territory's 198 open or layout-only functions under the nine stems
 
 **Reading-only**, each with its falsifier named in its section: every
 per-function formula and predicate in §§4–10. The draw formulas for
-`make_continents` (GL, EI), `place_all`, `change_*_base`/`fix_transitions`,
+`make_continents` (EI; GL's is reconciled, item 3815), `place_all`, `change_*_base`/`fix_transitions`,
 `place_resources` (reconciled on Great Sahara, item 3805) and `make_rivers` are consistent in kind but not
 reconciled to their measured totals. Also §3's parts 10–13 offsets and
 §11's float classification.
@@ -999,14 +1061,17 @@ tileset or a base-mask style is what would.
 
 ## 14. What is not established
 
-- The draw formulas reconciled to 5,568, 1,016, 1,824, 231 and 173
-  (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7). Each
+- The draw formulas reconciled to 1,016, 1,824, 231 and 173
+  (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7; the
+  5,568 on Great Lakes, §5, item 3815). Each
   needs the grid at its phase, which a port's own phase supplies, checked
   by §3. `GLOG_MAPMAKE` at detail 7–10 would count them in the original.
 - ~~Whether MSXML's `selectSingleNode` honours `FISH ` with its trailing
   space, as read (§8).~~ It does: §8, item 3805.
-- The unnamed int at +0x1fc of unit type 349, which GL takes as
-  `check_player_land`'s radius, rounded up after dividing by 4.
+- ~~The unnamed int at +0x1fc of unit type 349, which GL takes as
+  `check_player_land`'s radius, rounded up after dividing by 4.~~ It is
+  `max_range`, 24 in the shipped rules, so ring 6; 7807 meets it on 185
+  files (§5, item 3815).
 - `clear_group` writes `land_sub = num_tiles[0] − 1` on plain land, so it is
   not a true undo (listing-confirmed); whether that reaches a corpus grid.
 - Several loops bound y by `xs`. That is harmless on the corpus's square
@@ -1025,7 +1090,8 @@ Parked, not queued (`docs/PARKED.md`, item 3734's heading), in order. Each
 step is checked by §3 at its own checkpoint before the next begins:
 1. the land/sea mask against every grid (§5, 7807) — **Great Sahara
    built** (item 3776, `sim::mapgen`; the `Mapgen:` line's first phase);
-   Great Lakes and East Indies remain;
+   **Great Lakes built** (item 3815, `sim::map_lakes`; its first phase);
+   East Indies remains;
 2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
    `sim::mapgen`; the `Mapgen:` line's second phase); the water passes
    wait on a mask with water;

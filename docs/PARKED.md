@@ -13064,13 +13064,24 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   or closes, so only the round's position differs, and no compared field reads it. `Spline::nuke` would lay it.
   Names no score.
 
-## Parked by the next landing, slot XX — reserved
+## Parked by item 3815, 2026-11-04 — Great Lakes' mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot XX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3815a. Eleven Great Lakes files whose head gives no grid size** (`docs/MAPGEN.md` §5;
+  `rondata::mapgen::tests::great_lakes_s_mask_is_the_traced_7807`). These are run16, 16b, 17, 18a, 18b, 19
+  and runs 47–52. Each carries 7805 and 7807 but no start `WORLD` block, so `StartGrid` has no `xs`. The test
+  names them and skips them. Part 1, the walked header, would give the size. A reader of it would add them to
+  the 185, but no score moves for them.
+- **3815b. The Great Lakes arms the corpus's one generator run cannot reach** (`docs/MAPGEN.md` §5, §13;
+  `sim::map_lakes`). All 185 files and 222 traces are one run: 2 nations, 60×60, seed 2726892157. On it:
+  - `eliminate_pools` merges nothing, because the background is one region. A mutation that skips it fails
+    nothing; `eliminate_pools_keeps_the_largest_water` holds the merge.
+  - The first lake's `max(90)` and `small`'s `max(24)` are inert (`cells/20` is 180).
+  - `scale_land_area`'s float path past the allowance is refused, not ported.
+
+  Which other arms the run takes is not measured: the 1,000-miss shrink, the hundred-attempt stop,
+  `avoid_center`'s refusal, `grow_region`'s outer pick and each `large_stamp` shape. A Great Lakes lobby
+  with another size or seed is what would reach them. It names a score only once a later Great Lakes phase
+  parts on such a lobby.
 
 ## Parked by the next landing, slot XY — reserved
 
