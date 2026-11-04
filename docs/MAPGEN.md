@@ -147,8 +147,10 @@ has 14 checkpoints of falsifier on every traced lobby.
 The parts each phase moves (run100, GL): `make_continents` 2 and 5; each
 zero-draw pass 5; `place_all` 5 and 6; `nubify_forest` **none** (§7);
 `change_*_base` 5; `place_resources` 5 and 6; `adjust_for_blocking` 5 and 6;
-`compute_all_vals` 5. After 7945, `Terrain::init` moves 4, 5, 6 and 10–12
-before `map.cpp` 5012.
+`compute_all_vals` 5. After 7945, `Map::make`'s tail moves part 4 at
+`setup.cpp` 734 (`sea_map`, §10, on every traced file), and on run100
+`Terrain::init` moves 5, 6 and 10–12 at `Terrain.cpp` 720 and 5 at 738
+before `map.cpp` 5012; on Great Sahara it moves none (§10, item 3809).
 
 **Not settled.** Parts 10–13 name `MiscAccess::terrain` offsets 0x40 past
 the PDB's `Terrain` record (`halfland_locs` +0x4b40, `halfland_types`,
@@ -716,6 +718,90 @@ Two quirks:
   process reuses the old ones. Fresh-process captures are unaffected.
 - **A `Prefs` value flattens every height to 0.**
 
+**Which parts move, on the disk (item 3809).** Every record from 7945 to
+`setup.cpp` 884, on all 105 Great Sahara files (one pattern, two value
+sets: the 2- and 3-nation lobbies), and on run100 for Great Lakes:
+
+| record | moved on Great Sahara | moved on run100 (GL) | the write |
+|---|---|---|---|
+| `setup.cpp` 734 | 4 | 4 | `Map::make@0068bc90`'s last line, after 7945: `world.sea_map = map.sea_map` when not negative |
+| `setup.cpp` 745 … `Terrain.cpp` 699, 706 | — | — | |
+| `Terrain.cpp` 720 | — | 5, 6, 10–12 | `check_and_set_halfland` → `mark_halfwater` |
+| `Terrain.cpp` 738 | — | 5 | the oil patches |
+| `Terrain.cpp` 749 … 815, `map.cpp` 5012 | — | — | `convert_beach_to_sandy` among them |
+| `map.cpp` 5014 | 5 | 5 | `Map::make_riverbeds@00694530` |
+| `map.cpp` 5076 | — | 5 (and the seed) | the rivers |
+| `map.cpp` 5116 | 5 | 5 | `make_rivers` clears 0x2000 and 0x2 on every cell |
+| `Terrain.cpp` 894 | — | 5, 6 | troughs, `adjust_for_mountains`, cliffs |
+| `setup.cpp` 884 | 6 | 6 | after `Terrain::init` |
+
+- **Part 4 at 734 is one write, `sea_map` (+0x34) from −1 to the style's
+  `SEA_MAP`.** Adler-32 weighs byte `i` of an `n`-byte run 1 in its low
+  half and `n − i` in its high half, so a 4-byte change at a known offset
+  is checkable without the run's other bytes
+  (`sim::mapgen::adler_rewrite`). Over part 4's 120 bytes, 7945 → 734 is
+  `0xffffffff` → the style's value at byte 44 on **all 511 traced files**
+  of every style: 0 on Great Sahara and Himalayas, 1 on Great Lakes, 3 on
+  East Indies and British Isles, each the style file's
+  `<SEA_MAP value=…/>` (`Map::init_map_data@0069f250`, default −1 from
+  `Map::Map@006a06e0`). Nothing else in part 4 moves there.
+- **The half-land gate is `generate_land_lists`' flags, not a height.**
+  `check_and_set_halfland_wcoord@0084dec0` — the only reader of a corner
+  height in `check_and_set_halfland`, and the only caller of
+  `mark_halfwater` — enters a cell only when its `CoordInfo.flags`
+  (+0x1c) carries 0x84. `TerrainList::add_new_coord_info@0084ba10` sets
+  0x4 on a cell that is `NONE`, flagged 0x4, HALFLAND (0x100) or 0x400,
+  and 0x80 on an `OCEAN` cell with a `NONE` or 0x4 cell in its 5×5; it
+  also sets 0x8000 (`NONE`), 0x1000 (`OCEAN`) and 0x20 (`BASELAND` with a
+  `NONE` or 0x4 cell among its eight neighbours). In `Terrain::init`'s span
+  the only other writers of either gate bit are `check_and_set_halfland`'s
+  tail (0x80) and `_wcoord` itself (it clears 0x4), by a grep of the
+  export for the `| 4`/`| 0x80`/`& 0xfffb` writes. **On Great Sahara no
+  cell is gated** (and no cell is 0x20), from the port's own 7945 grid, so
+  no float is read and no sub-tile can turn water. The dump's
+  `Log::terrain_heights` is the final grid, after the oil, the troughs and
+  `adjust_for_mountains`, so it is not the 720 grid and is not the proof;
+  parts 5, 6 and 10–13 standing still at 720 on 105 files are.
+- `check_and_set_halfland(0)`'s height-free passes, in order: a cell not
+  HALFLAND whose `land` is `SANDY` or `OCEAN` marks its 16 tiles `& 0xffef
+  | 0x20`; `check_and_set_coastal@0084dd70` gives every wet tile (`mask &
+  0x30 == 0x20`) in the 7×7 of each wet tile's first dry neighbour 0x400;
+  a `BASELAND` cell in a region above 0x40 is moved to a neighbour's
+  region (the region lists' arm, not built); a cell flagged 0x4 or `OCEAN`
+  with a HALFLAND cell at `orthog[0..5]` (itself first) sets `CoordInfo`
+  0x80. Each needs `SANDY`, `OCEAN`, HALFLAND or 0x4 to enter.
+- `convert_beach_to_sandy` converts a `BASELAND` cell with an `OCEAN`
+  neighbour (`move[1..9]`) through `spot_update_land(x, y, 1, 0)`, whose
+  World half is `land`, `land_sub` and `Terrain::verify_land@0084d8a0`
+  (not read), and clears `CoordInfo` 0x2000.
+- Between 782 and 815 `Terrain::init` clears flag 0x4 (cell and
+  `CoordInfo`) on the cells of a `Terrain` list at +0x6460 and hands them
+  to `spot_update_land_batch`; only `Terrain::init` names that offset, and
+  on Great Sahara no part moves there. Not read further (3809a).
+- **Which writes a height governs (step 7's):** `_wcoord`'s body —
+  `mark_halfwater`, its `spot_update_land`, its land and region rewrite,
+  its 0x4 spread to orthogonal neighbours — on a gated cell; the oil
+  patches' flattening (738 on run100); the troughs' `set_river_at` where a
+  carved height is ≤ 0, `adjust_for_mountains` and the cliffs (894). On
+  Great Sahara none of them moves a part, so **step 7 has no checksum
+  falsifier there**: the heights are checked only against the start
+  dump's `Log::terrain_heights`.
+- **`make_rivers` on Great Sahara reads no height**: `make_riverbeds`
+  (5012 → 5014, an LFSR, no draw) and its clear of 0x2000 and 0x2 on every cell (5076 → 5116)
+  are its only writes that move a part there. Step 8 on Great Sahara can
+  precede step 7 (§15).
+
+**Ported on Great Sahara** (item 3809, `sim::terrain_init`): the `sea_map`
+write, the `CoordInfo` flags, the gate, `check_and_set_halfland`'s
+height-free passes and `convert_beach_to_sandy`'s predicate. An arm the
+grid enters that is not built (the `_wcoord` body, the region relabel, the
+beach's write) is refused by name, never guessed. Seed and parts 2, 5, 6
+and 10–13 agree at every record from 734 to 5012 on 105 files (2,415
+records), and part 4 at 734 on 511 files, first run
+(`great_sahara_s_terrain_init_without_heights_is_734_to_5012`). Parts
+10–13 are their lists' empty walk, a 4-byte zero count, 262,145; a full
+list's entries are not read.
+
 Falsifier: parts 5, 6 and 10–12 at `Terrain.cpp` 720 and 894, and the
 seed at 5076. The height grid itself is in the `DUMP_ALL` start dump
 (`Log::terrain_heights`), already read by `crates/sim/src/terrain.rs`.
@@ -792,6 +878,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   2, 5 and 6 at 7937 and 7945 on 105 files (item 3807). The water edges,
   the region release, the 0x1000 tile, the water and region-size factors
   and the cliffs' 0x8000 are reading-only (3807a);
+- §10's `Map::make` tail: part 4 at 734 on 511 files of every style; and
+  on Great Sahara, `Terrain::init`'s span with no cell gated: seed and
+  parts 2, 5, 6 and 10–13 at every record from 734 to 5012 on 105 files
+  (item 3809). The flags' arms on a gated cell, the height-free passes'
+  water arms and the beach predicate are unit-tested only (3809a);
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -854,6 +945,13 @@ step is checked by §3 at its own checkpoint before the next begins:
    `sim::map_resources`; the `Mapgen:` line's fourth phase);
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
    `sim::map_values`; the `Mapgen:` line's fifth phase);
-6. `Terrain::init` without heights;
+6. `Terrain::init` without heights (§10, 734–5012) — **Great Sahara
+   built** (item 3809, `sim::terrain_init`; the `Mapgen:` line's sixth
+   phase): no cell opens the half-land gate there, so every record to
+   5012 stands still but part 4 at 734;
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894);
-8. rivers (5076).
+   on Great Sahara no checksum part moves for them, so their only
+   falsifier there is the start dump's height grid;
+8. rivers (5076); on Great Sahara height-free (`make_riverbeds` at 5014,
+   the 0x2000/0x2 clear at 5116), so it can be checked there before step
+   7.

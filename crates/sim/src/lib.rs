@@ -188,6 +188,7 @@ pub mod tcoord;
 pub mod tech;
 pub mod terrain;
 pub mod terrain_groups;
+pub mod terrain_init;
 pub mod territory;
 pub mod topp;
 pub mod tpath;

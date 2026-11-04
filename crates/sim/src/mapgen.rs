@@ -125,6 +125,22 @@ pub fn adler32(bytes: &[u8]) -> u32 {
     s.sum()
 }
 
+/// The Adler-32 of a `len`-byte run whose sum is `sum`, after the bytes at
+/// `at` change from `old` to `new`: a byte `i` from the start weighs 1 in
+/// the low half and `len − i` in the high half. This checks one field's
+/// write against a part whose other fields the port does not carry
+/// (`docs/MAPGEN.md` §10: part 4 at `setup.cpp` 734).
+pub fn adler_rewrite(sum: u32, len: usize, at: usize, old: &[u8], new: &[u8]) -> u32 {
+    const MOD: i64 = 65521;
+    let (mut a, mut b) = (i64::from(sum & 0xffff), i64::from(sum >> 16));
+    for (k, (&o, &n)) in old.iter().zip(new).enumerate() {
+        let d = i64::from(n) - i64::from(o);
+        a += d;
+        b += d * (len - at - k) as i64;
+    }
+    ((b.rem_euclid(MOD) as u32) << 16) | a.rem_euclid(MOD) as u32
+}
+
 /// One `SimpleArray<WCoord>` as `SimpleArray<WCoord>::walk_data@0047c660`
 /// walks it: an empty array is its 4-byte `num` alone; a full one is
 /// `num`, the capacity, the 2-byte growth increment at +0xc, the flag byte
