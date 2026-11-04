@@ -37,8 +37,6 @@ pub mod site {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct IslandMap {
     pub map: LakeMap,
-    /// `A`, `Map::scale_land_area`(250): each player island's size.
-    pub player_land: i32,
     /// The generations a stalled `grow_region` pass threw away.
     pub restarts: u32,
     /// The further islands opened.
@@ -187,7 +185,6 @@ pub fn east_indies_make_continents(
     }
     Some(IslandMap {
         map: g.map,
-        player_land,
         restarts,
         islands,
     })
