@@ -298,8 +298,9 @@ fn information_melee_first_parting() {
 /// 713, so 701..963, which lets block 601 go; item 3810: the word 724, so
 /// 701..974, the same three blocks; item 3813: the word 755, so 701..1005,
 /// which takes block 1001 in; item 3814: the word 718, so 701..968,
-/// which lets block 1001 go).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 968);
+/// which lets block 1001 go; item 3816: the word 761, so 701..1011, which
+/// takes block 1001 back in).
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (701, 1011);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -428,15 +429,28 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // 755 and `2/24` on 721 against 718. The word's value diff is
     // run1471's window: `0/16`'s spline on block 672, its re-plan to 12
     // points on 675, and `2/21`'s `damage` 105 on block 691.
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    //
+    // Item 3816 (the word 761, so 701..1011: block 1001 joins again).
+    // **428 → 469** keys over four blocks, rounds read (33, 14) → (45,
+    // 13), 53 → 55 parting. Block 701 holds 108 keys, 801 52 (174), 901
+    // 164 (146) and 1001 145. `2/24`'s 15 against 44 has left block 701,
+    // and its death and `2/21`'s have left 801: the Anti-Aircraft
+    // Missile `1/20`'s round holds slot 2 to 648 (§152.9), so the V2
+    // lands after `0/17`'s round on 690. `2/18`'s standing `damage_frame`
+    // 646 against 676 on 701 is the next pool parting's (its own round on
+    // `1/18` flies 6 frames against 5 from its square). The word's value
+    // diff is run1469's and run1470's windows: `1/20`'s round of 638,
+    // eight points, re-planned to eight on 642 and three on 646, and
+    // `2/24` at 221 of 265 on 691.
+    pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 428, "run1468's word window");
-    pin_eq!(w.rounds_read, (33, 14), "the rounds read");
-    pin_eq!(w.rounds.len(), 53, "the rounds that part");
+    pin_eq!(w.firsts.len(), 469, "run1468's word window");
+    pin_eq!(w.rounds_read, (45, 13), "the rounds read");
+    pin_eq!(w.rounds.len(), 55, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
