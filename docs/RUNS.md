@@ -34214,3 +34214,27 @@ SHA-256 `da15496f9155fb756369a161e939298b25bc3a41e70557e04199f87faad8cee4`.
 block 762, then (18264, 16073) on 763. The probe's sweep for that step (`report.py … calls 761`) hits cell
 (379, 336), `will_be_corner` 7. The dead Main Battle Tank `2/21`, the one candidate `is_here`, gets no `is_corner`,
 and `detect_unit_collision` returns 0: a group-mate's wreck, soft.
+
+## run1477 — the third melee: the word's window 815..825 (2026-11-04, item 3827, `att-3827`)
+
+`docs/GOLDEN.md` §152.11. **What the disk could not answer**: no `AMMO` record on disk is an MG42's. run1468's stride
+prints nothing between 801 and 901, and the windows run1469–run1476 hold no `0/18` round. So where theirs' MG42
+`0/18` loosed its round of 819 on `1/22` from, its `v1z`, and the frame it came down were on no record. run1474's
+line (`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`, `ENDING_TECHNOLOGY=7`,
+`STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345, `--ffwd-minute 3`), with `--log-window 815 825`,
+detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0` and `--end-frame 826`. No packet, no probe.
+- Pool lane 1. Launched 13:40:25, exited 13:41:07 (41.7 s launch to exit). `success`: 827 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 827 of 827 identical. Not filed: the window's gamelog and trace
+  stay in the run's directory. `df -g ~` read 113 GiB free before it.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1477/map-7/gamelog.txt`, 3,052,935 bytes,
+SHA-256 `c44c4bc99366a4804530158a6e096006728ddc68bf0b1729b97e8a17da2ca10c`.
+
+Trace `~/ron-golden/run1477/map-7/rontrace.log`, 14,523,776 bytes,
+SHA-256 `749bdaa79c996445ada7c28eec221a145ffc53856f70b9fb0791dd45f6a5aa49`.
+
+**What it holds**: `0/18`'s three rounds, on blocks 816, 818 and 820, leave (17510, 15576, 565), (17508, 15575, 570)
+and (17505, 15573, 575) with `total_time` 3. The last is at `cur_time` 3 with `whom −1` on block 822 and gone on 823.
+The Recoilless Guns' rounds leave from a muzzle too: `0/19`'s on block 819 at (18187, 15583, 580) with `total_time`
+4 (parked 3810a).

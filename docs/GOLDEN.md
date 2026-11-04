@@ -16121,6 +16121,72 @@ points (3816a): the Jet Fighter Bomber `2/18` at 178 damage against 193, `2/17` 
 and the same-owner attackers') still read nothing off a wreck: `node_action_type` answers 0 for it, which an
 emptied order list makes true. `close_orders`' effect on the action slot is read, not diffed.
 
+## 152.11 The MG42's burst leaves from its muzzle — 822 → 860 (item 3827, run1477)
+
+**The booking.** Frame 822: ours 13 draws against theirs' 15. At index 5 theirs spends `Ammo::do_damage+0xc59`
+and `+0xc7e` where ours spends `Farms::inc_time+0x1ae`. Those two draws are the puncture pair: a round that hits
+nothing jitters its decal (§39). Through 821 the streams agree, theirs' launches included (`Ammo::init+0xcd9`/
+`+0xd0b` on 815, 817, 818, 819 and 820 on both sides).
+
+**The round.** `RON_DEBUG_AMMO=812-823` holds one round past its time on 822: slot 4, the Nubian MG42 `0/18`'s
+(`TI` 130, `TY` 80, land, standing at (17400, 15672)). It was fired on 819 at the French Anti-Tank Missile `1/22`
+(`TI` 141, land), which dies on 819 on both sides (`Unit::close+0xcb6`). The round is a rolling one (`flags 4`:
+land shooter, land target, not a missile; §42.2), `total_time` 3. On 821 its target is gone, `hit_target` and
+`check_hit` name nothing, and it rolls on along its line until the arc meets the ground. A probe on that test
+(`RON_PROBE_3827`, reverted whole) read ours' arc at t 3 as 560 over 485 and at t 4 as 566 over 533 at (19004,
+14330). So ours stayed up on 822, and theirs came down and punctured. 3816a (the air shooters) is not the cause:
+neither the shooter nor the target flies.
+
+**The direction.** Theirs acted: it lands the round on 822. The parted value is upstream, at the launch. Ours
+loosed the round from the unit's square at the ground's height, (17400, 15672, 477). With the arc's end fixed at
+the target's `z + 0x4b` (560), a launch 98 lower means a steeper `v1z`: 43.4 against theirs' 10.73.
+
+**What the disk could not answer.** No `AMMO` record on disk is an MG42's. run1468's stride prints 801 and 901,
+and the windows run1469–run1476 hold who=0's Recoilless Guns and V2 but no `0/18` round. The windows did show
+that the Recoilless Guns' rounds leave from a muzzle too: run1471's block 700 has `0/21`'s at (18149, 15605, 574)
+against ours' square (18168, 15528, 497), which is parked 3810a. **run1477** is run1474's line with the window at
+815..825 and `--end-frame 826`. It took one take, 41.7 s, and all 827 of its frames are identical to run1468's.
+`0/18`'s three rounds of the window, on blocks 816, 818 and 820, leave (17510, 15576, 565), (17508, 15575, 570)
+and (17505, 15573, 575), each `total_time` 3, with `v1z` 14.064584, 12.397918 and 10.731251. The last is at
+`cur_time` 3 with `whom −1` on block 822 and gone on 823.
+
+**The rows.** run1472's `RON_STATE_FRAME=707` packet loads piece 80 (`get_position.py … entries 80`): 28 attack
+`AttachPos` rows, all node 0, `RData +0x88` 1.0. Eleven are on `CHAR_ATTACK1` (frames 3, 9, 12, 17, 20, 24, 29,
+37, 39, 46, 47), seven on `CHAR_ATTACK2` (1, 3, 5, 8, 9, 10, 12) and ten on `CHAR_ATTACK3` (3, 4, 12, 19, 20, 29,
+34, 37, 46, with frame 12 entered twice with the same bits). None belongs to a pivot piece, so each is a
+`launch::Bay`. `get_position.py … sweep 80 0 <anim> <time>` sweeps each of the 27 distinct keys (into
+`~/ron-data/lab-experiments/2026-11-04-item-3827/sweeps/`). `fit_bay.py` fits every one at 361 of 361 headings with
+one `z` a row (40 to 3,260 lattice points; the centroid is kept). The muzzle sits 143.7 to 148.1 ahead of the
+figure, −16.6 to 18.5 across it and 84 to 103 over it. At `0/18`'s facing (593,756,160, whole degree 49), frames
+1, 3 and 5 of `CHAR_ATTACK2` give run1477's three points and heights exactly. So the burst is one attack
+animation's three releases.
+
+**Built**: 27 `launch::BAYS` rows for piece 80. Tests:
+
+- `launch::tests::run1477_s_mg42_burst_leaves_from_its_muzzle`: the three points and heights.
+- `launch::tests::the_original_s_release_agrees_at_every_heading_for_piece_80` (`RON_BAY_SWEEPS_80`, 9,747
+  headings).
+
+The mutation (frame 5's row out, `tools/mutate.py`) holds: `information_melee_first_parting` reads 822 on the same
+draw.
+
+**The value diff.** Ours' `0/18` rounds now leave (17510, 15576, 565), (17508, 15575, 570) and (17505, 15573, 575),
+angles 595,132,416, 596,180,992 and 597,884,928, `t/3` each. Those are run1477's blocks 816, 818 and 820, the frame
+after ours'. The round of 819 reads 534 over 539 at t 4, (18969, 14363), and comes down on 822 with the puncture
+pair, as theirs does.
+
+**The widening** (801..1072 → 801..1110; block 1101 joins) reads 403 → 483 keys over four blocks: 801 109 (as
+before), 901 81 → 71, 1001 213 → 173, and 1101 130. Rounds read (37, 5) → (50, 5), 24 parting.
+
+**The word: 860**, ours 10 draws against theirs' 12. At index 3 theirs spends `Unit::close+0xcb6` where ours
+spends `Farms::inc_time+0x1ae`, so a unit dies in theirs.
+
+**What is not established.** Three of the 27 rows are backed by a dumped round, and 24 by the sweep alone. The
+Recoilless Guns `0/19`–`0/21` (piece 94) still leave from their squares: on run1477's block 819 theirs'
+`0/19` leaves (18187, 15583, 580) with `total_time` 4, where ours (18168, 15672, 506) flies 5 (3810a). The terrain
+test of the rolling arm agrees on this one round; its `find_data_z` reads are ours, and the original's were not
+watched.
+
 ## 153. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
