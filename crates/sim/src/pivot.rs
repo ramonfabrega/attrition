@@ -4264,6 +4264,49 @@ mod tests {
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
+    /// **The Main Battle Tank's round leaves from its muzzle** (item 3810,
+    /// `docs/GOLDEN.md` §152.6): three cells of each of piece 201's rows
+    /// from run1472's sweeps (`deg i t x y z`), the muzzle some 350 out and
+    /// 142 up. Made to fail with the rows out of `RELEASES`: no row, and
+    /// the round leaves the hull's square.
+    #[test]
+    fn the_main_battle_tank_s_round_leaves_from_its_muzzle() {
+        for (slot, time, cells) in [
+            (
+                crate::anim::ATTACK1,
+                11,
+                [
+                    (0, 0, (0, 347, 142)),
+                    (144, 77, (227, -262, 142)),
+                    (224, 238, (-340, -71, 142)),
+                ],
+            ),
+            (
+                crate::anim::ATTACK2,
+                23,
+                [
+                    (0, 0, (0, 350, 142)),
+                    (144, 77, (229, -264, 142)),
+                    (224, 238, (-342, -72, 142)),
+                ],
+            ),
+            (
+                crate::anim::ATTACK3,
+                27,
+                [
+                    (0, 0, (0, 308, 140)),
+                    (144, 77, (202, -232, 140)),
+                    (224, 238, (-302, -63, 140)),
+                ],
+            ),
+        ] {
+            let r = release(201, slot, time).expect("piece 201's row");
+            for (d1, t, want) in cells {
+                assert_eq!(release_offset_at(&r, d1, t), want, "a{slot} ({d1}, {t})");
+            }
+        }
+    }
+
     /// **Piece 201's three rows agree with the original on every cell**
     /// (item 3810): `get_position.py … pivot 201 0 <anim> <time> 1` on
     /// run1472's packet, one sweep a row (the muzzle's entries differ by
