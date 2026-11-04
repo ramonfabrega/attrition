@@ -2271,7 +2271,7 @@ mod tests {
 
     /// The traced Great Sahara files whose start dump prints the height
     /// grid: a floor.
-    const MAPGEN_GS_HEIGHT_FILES: usize = 1;
+    const MAPGEN_GS_HEIGHT_FILES: usize = 47;
 
     /// The traced files carrying both 7945 and 734, every style: a floor
     /// (511 on 2026-11-03).
@@ -2291,7 +2291,7 @@ mod tests {
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
-    /// `Terrain::init` without heights (734..5012), and the rivers
-    /// (5012..5118).
-    const GREAT_SAHARA_CHECKED: i64 = 7;
+    /// `Terrain::init` without heights (734..5012), the rivers
+    /// (5012..5118), and the heights (the start dump's grid).
+    const GREAT_SAHARA_CHECKED: i64 = 8;
 }

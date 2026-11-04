@@ -25,10 +25,13 @@ use std::collections::BTreeMap;
 use crate::mapgen::{COAST, Fractal, MapGrid};
 use crate::single::Single;
 use crate::terrain_groups::Template;
+use crate::terrain_groups::flag::{OIL, ROCK};
 use crate::terrain_init::coord;
 
 /// `TerrainOut+0x4b7c`: vertices per cell each way.
 pub const VERTS: i32 = 4;
+/// The `OIL` good type (`Objects::init_good`'s type 5).
+const OIL_GOOD: i32 = 5;
 /// `land_height` (0xcbe54c), which `Terrain::init@00850f70` sets to 30.0f
 /// before `generate_land`.
 pub const LAND_HEIGHT: Single = Single(0x41f0_0000);
@@ -269,6 +272,100 @@ pub fn adjust_for_mountains(
     }
 }
 
+/// **`TerrainOil::create_doobers@008a28e0`**'s terraform, which
+/// `Terrain::init` runs between `generate_land` and
+/// `adjust_for_mountains`: each cell, y outer, that carries the rock bit
+/// (or a good the console's leader cannot see yet, flag 1) and is not
+/// ocean reaches `TerrainOil::add_rocky_patch@008a2b30`, which on an
+/// `OIL` cell flattens the cell's 4×4 tiles with
+/// `TerrainOut::terraform_for_building` at the cell's tile corner
+/// (`div_3_table[(12·c + 1.5)]`, `4·c`). Every other cell's patch is
+/// render data and writes no height.
+///
+/// An `OIL` cell carries no good of flag 1 (`World::set_oil_at` sets
+/// none), so the flag-1 arm's `LeaderData::type_avail` test never decides
+/// a height; its cells are not walked. The ocean arm's clearing of the
+/// rock bit is outside the heights and not modelled.
+pub fn create_doobers(g: &MapGrid, z: &mut [Single]) {
+    for y in 0..g.ys {
+        for x in 0..g.xs {
+            let c = &g.cells[(y * g.xs + x) as usize];
+            if c.flags & ROCK != 0 && c.flags & OIL != 0 && !c.is_ocean() {
+                terraform(g, z, VERTS * x, VERTS * y, VERTS, VERTS);
+            }
+        }
+    }
+}
+
+/// **`TerrainOut::terraform_for_building@00875210`** on the map
+/// generator's grid: the same box, mean and refusals as
+/// `Sim::terraform_for_building` (`docs/ROADS.md` §7.4) — the box
+/// `[cx − 1, cx + w + 2) × [cy − 1, cy + h + 2)` clamped, the mean over it
+/// and its closing column and row (abandoned on a corner at or below
+/// zero), the interior set to the mean and the border to `(h + mean) / 2`,
+/// held back on ocean, on a mountain or cliff tile in the corner's 3×3,
+/// on a cell with `land`, and on a tile of a live good that is not oil.
+fn terraform(g: &MapGrid, z: &mut [Single], cx: i32, cy: i32, w: i32, h: i32) {
+    let (gw, gh) = (VERTS * g.xs, VERTS * g.ys);
+    let stride = gw + 1;
+    if cx == 0 || cy == 0 || cx == gw - 1 || cy == gw - 1 {
+        return;
+    }
+    let (x0, y0) = ((cx - 1).max(0), (cy - 1).max(0));
+    let (x1, y1) = ((cx + w + 2).min(gw - 1), (cy + h + 2).min(gh - 1));
+    let at = |x: i32, y: i32| (y * stride + x) as usize;
+    let mut sum = Single::ZERO;
+    let mut n = 0;
+    let column = (y0..y1).map(|y| (x1, y));
+    let row = (x0..x1).map(|x| (x, y1));
+    let inside = (y0..y1).flat_map(|y| (x0..x1).map(move |x| (x, y)));
+    for (x, y) in column.chain(row).chain(inside) {
+        let v = z[at(x, y)];
+        if !v.gt(Single::ZERO) {
+            return;
+        }
+        sum = sum.addss(v);
+        n += 1;
+    }
+    let mean = sum.divss(Single::from_i32(n));
+    let tile = |x: i32, y: i32| g.tiles[(y * gw + x) as usize];
+    for y in y0..y1 {
+        for x in x0..x1 {
+            let c = &g.cells[((y >> 2) * g.xs + (x >> 2)) as usize];
+            if c.is_ocean() || c.land != 0 {
+                continue;
+            }
+            let held = (-1..=1).any(|dy| {
+                (-1..=1).any(|dx| {
+                    let (u, v) = (x + dx, y + dy);
+                    u >= 0 && v >= 0 && u < gw && v < gh && matches!(tile(u, v) & 3, 1 | 2)
+                })
+            });
+            if held {
+                continue;
+            }
+            if x < gw && y < gh && tile(x, y) & 0x200 != 0 && good_here(g, x >> 2, y >> 2) {
+                continue;
+            }
+            let border = y == y0 || y == y1 - 1 || x == x0 || x == x1 - 1;
+            let v = &mut z[at(x, y)];
+            *v = if border {
+                v.addss(mean).mulss(Single::HALF)
+            } else {
+                mean
+            };
+        }
+    }
+}
+
+/// A live good that is not oil on the cell (`Sim::good_here`).
+fn good_here(g: &MapGrid, x: i32, y: i32) -> bool {
+    g.goods
+        .iter()
+        .flatten()
+        .any(|&(t, gx, gy)| gx == x && gy == y && t != OIL_GOOD)
+}
+
 /// `Cliffs::init@008a8020`'s refusal: every tile `assess_wcoord` would hand
 /// to `has_plus_slope` — of a cell flagged 0x40, neither COAST nor `land`
 /// 1 or 2, and not a mountain tile (`mask & 3 == 2`).
@@ -308,6 +405,7 @@ pub fn heights(
 ) -> Result<Vec<Single>, Unported> {
     let f = fractals(g.xs, g.ys, seed);
     let mut z = generate_land(g, coord, &f)?;
+    create_doobers(g, &mut z);
     adjust_for_mountains(g, &mut z, templates, meshes);
     let slope = slope_tiles(g);
     if !slope.is_empty() {
