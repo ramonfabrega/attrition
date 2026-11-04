@@ -810,18 +810,18 @@ impl Fractal {
     pub fn get_height(&self, x: i32, y: i32) -> u8 {
         let x_inc = Double::ratio(self.xs, self.xs - (self.flags & 1) + 1);
         let y_inc = Double::ratio(self.ys, self.ys);
-        let dx = x_inc.mul(Double::from_scaled(2 * i64::from(x) + 1, -1));
-        let dy = y_inc.mul(Double::from_scaled(2 * i64::from(y) + 1, -1));
+        let dx = x_inc.mulsd(Double::from_scaled(2 * i64::from(x) + 1, -1));
+        let dy = y_inc.mulsd(Double::from_scaled(2 * i64::from(y) + 1, -1));
         let (i, j) = (dx.trunc(), dy.trunc());
-        let fx = dx.sub(Double::from_i32(i));
-        let fy = dy.sub(Double::from_i32(j));
-        let (ox, oy) = (Double::ONE.sub(fx), Double::ONE.sub(fy));
+        let fx = dx.subsd(Double::from_i32(i));
+        let fy = dy.subsd(Double::from_i32(j));
+        let (ox, oy) = (Double::ONE.subsd(fx), Double::ONE.subsd(fy));
         let b = |u: i32, v: i32| Double::from_i32(i32::from(self.at(u, v)));
-        let mut t = ox.mul(oy).mul(b(i, j));
-        t = t.add(Double::ZERO);
-        t = t.add(oy.mul(fx).mul(b(i + 1, j)));
-        t = t.add(ox.mul(fy).mul(b(i, j + 1)));
-        t = t.add(b(i + 1, j + 1).mul(fy.mul(fx)));
+        let mut t = ox.mulsd(oy).mulsd(b(i, j));
+        t = t.addsd(Double::ZERO);
+        t = t.addsd(oy.mulsd(fx).mulsd(b(i + 1, j)));
+        t = t.addsd(ox.mulsd(fy).mulsd(b(i, j + 1)));
+        t = t.addsd(b(i + 1, j + 1).mulsd(fy.mulsd(fx)));
         let h = t.trunc().clamp(0, 0xff);
         if self.flags & 2 != 0 {
             ((h * 100) >> 8) as u8

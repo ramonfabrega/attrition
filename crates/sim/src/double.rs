@@ -84,7 +84,7 @@ impl Double {
     }
 
     /// `addsd`.
-    pub fn add(self, other: Double) -> Double {
+    pub fn addsd(self, other: Double) -> Double {
         let (a, b) = if self.e >= other.e {
             (self, other)
         } else {
@@ -106,7 +106,7 @@ impl Double {
     }
 
     /// `subsd`, for `self ≥ other`.
-    pub fn sub(self, other: Double) -> Double {
+    pub fn subsd(self, other: Double) -> Double {
         if other.m == 0 {
             return self;
         }
@@ -125,7 +125,7 @@ impl Double {
     }
 
     /// `mulsd`.
-    pub fn mul(self, other: Double) -> Double {
+    pub fn mulsd(self, other: Double) -> Double {
         if self.m == 0 || other.m == 0 {
             return Double::ZERO;
         }
@@ -185,23 +185,23 @@ mod tests {
             let xh = f64::from(x) + 0.5;
             let xd = Double::from_scaled(2 * i64::from(x) + 1, -1);
             assert_eq!(xd.bits(), xh.to_bits(), "{x} + 0.5");
-            let p = r.mul(xd);
+            let p = r.mulsd(xd);
             let ph = rh * xh;
             assert_eq!(p.bits(), ph.to_bits(), "{rh} × {xh}");
             let i = p.trunc();
             assert_eq!(i, ph as i32, "trunc {ph}");
-            let f = p.sub(Double::from_i32(i));
+            let f = p.subsd(Double::from_i32(i));
             let fh = ph - f64::from(i);
             assert_eq!(f.bits(), fh.to_bits(), "{ph} − {i}");
-            let o = Double::ONE.sub(f);
+            let o = Double::ONE.subsd(f);
             let oh = 1.0 - fh;
             assert_eq!(o.bits(), oh.to_bits(), "1 − {fh}");
             let b = Double::from_i32((next(&mut seed) % 256) as i32);
             let bh = f64::from(b.trunc());
-            let t = o.mul(f).mul(b);
+            let t = o.mulsd(f).mulsd(b);
             let th = oh * fh * bh;
             assert_eq!(t.bits(), th.to_bits(), "{oh} × {fh} × {bh}");
-            let s = t.add(p).add(Double::ZERO).add(r);
+            let s = t.addsd(p).addsd(Double::ZERO).addsd(r);
             let sh = th + ph + 0.0 + rh;
             assert_eq!(s.bits(), sh.to_bits(), "{th} + {ph} + {rh}");
             assert_eq!(s.trunc(), sh as i32, "trunc {sh}");
@@ -215,12 +215,12 @@ mod tests {
         let big = Double::from_scaled(1 << 53, 0);
         let one = Double::ONE;
         assert_eq!(
-            big.add(one).bits(),
+            big.addsd(one).bits(),
             (9_007_199_254_740_992.0f64 + 1.0).to_bits()
         );
         let odd = Double::from_scaled((1 << 53) + 2, 0);
         assert_eq!(
-            odd.add(one).bits(),
+            odd.addsd(one).bits(),
             (9_007_199_254_740_994.0f64 + 1.0).to_bits()
         );
         assert_eq!(Double::ratio(1, 3).bits(), (1.0f64 / 3.0).to_bits());
