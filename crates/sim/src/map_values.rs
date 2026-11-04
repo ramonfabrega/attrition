@@ -224,7 +224,7 @@ fn has_gather_access(g: &MapGrid, tx: i32, ty: i32) -> bool {
 /// order), then the cliffs' (`Cliffs::set_edge_flags@008a85e0`; no corpus
 /// map places one, §13), then every forest cell's 16 tiles, y outer.
 fn set_edge_flags(g: &mut MapGrid, templates: &[Template]) {
-    let mut mark = |g: &mut MapGrid, tx: i32, ty: i32| {
+    let mark = |g: &mut MapGrid, tx: i32, ty: i32| {
         if has_gather_access(g, tx, ty) {
             let t = tile_at(g, tx, ty);
             g.tiles[t] |= 0x8000;
