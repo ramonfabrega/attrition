@@ -982,6 +982,23 @@ pub fn lakes_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of an East Indies setup path: from its
+/// first `MapEastIndies::make_continents` draw, every draw whose site is
+/// that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §5), up to the first that is none.
+pub fn islands_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let ei = 0x0069_7540..0x0069_7dd0;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| ei.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !ei.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// `TerrainGroups::nubify_forest` draw.
 pub fn place_all_part(seg: &[SetupDraw]) -> &[SetupDraw] {
@@ -2790,6 +2807,255 @@ mod tests {
         );
     }
 
+    /// One East Indies generator run, keyed as [`GlRun`] is.
+    type EiRun = GlRun;
+
+    /// The archive's East Indies generator runs (`MAP_STYLE` 18) and how
+    /// many files carry each.
+    fn east_indies_runs(all: &[(String, StartGrid)]) -> std::collections::BTreeMap<EiRun, usize> {
+        let mut runs = std::collections::BTreeMap::new();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 18 && g.xs > 0) {
+            if let Some(before) = g.at("map.cpp", 7805) {
+                *runs
+                    .entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                    .or_insert(0) += 1;
+            }
+        }
+        runs
+    }
+
+    /// One East Indies run's mask from the seed at 7805: the grid, the
+    /// recorded stream and what the mask leaves.
+    fn east_indies_at_7807(
+        root: &Path,
+        run: EiRun,
+        range: i32,
+    ) -> (MapGrid, Draws, sim::map_east_indies::IslandMap) {
+        let (seed, nations, xs, ys, map_size) = run;
+        let style = lake_style(
+            root,
+            "EASTINDIES.xml",
+            (xs, ys, nations, map_size),
+            base_edge_before(seed),
+            range,
+        )
+        .expect("East Indies' style");
+        let mut grid = MapGrid::new(xs, ys);
+        let mut draws = Draws::new(seed);
+        let map = sim::map_east_indies::east_indies_make_continents(
+            &mut grid, nations, style, &mut draws,
+        )
+        .expect("a lobby inside its allowance");
+        (grid, draws, map)
+    }
+
+    /// The traces of the runs an East Indies file belongs to: a run whose
+    /// kept file is `MAP_STYLE` 18 (whatever its name says — run1016's
+    /// does not say), or whose gamelog's name says `eastindies`.
+    fn east_indies_trace_names(all: &[(String, StartGrid)]) -> Vec<String> {
+        let run_of = |g: &str| -> Option<String> {
+            let rest = g.strip_prefix("gamelog-")?;
+            Some(rest.split('-').next()?.to_string())
+        };
+        let mut runs: std::collections::BTreeSet<String> = all
+            .iter()
+            .filter(|(_, g)| g.style == 18)
+            .filter_map(|(n, _)| run_of(n))
+            .collect();
+        let names: Vec<String> = std::fs::read_dir(gamelog_dir())
+            .map(|r| {
+                r.filter_map(|e| e.ok()?.file_name().into_string().ok())
+                    .collect()
+            })
+            .unwrap_or_default();
+        for n in names.iter().filter(|n| n.contains("eastindies")) {
+            if let Some(r) = run_of(n) {
+                runs.insert(r);
+            }
+        }
+        let mut out: Vec<String> = names
+            .iter()
+            .filter(|n| n.starts_with("rontrace-") && n.ends_with(".log"))
+            .filter(|t| runs.contains(t.trim_start_matches("rontrace-").trim_end_matches(".log")))
+            .cloned()
+            .collect();
+        out.sort();
+        out
+    }
+
+    /// Every East Indies trace's `make_continents` segment
+    /// ([`islands_part`] of its setup path), read once; a trace whose
+    /// segment is empty is not East Indies after all, and is dropped.
+    fn island_traces(all: &[(String, StartGrid)]) -> &'static [(String, Vec<SetupDraw>)] {
+        static ALL: OnceLock<Vec<(String, Vec<SetupDraw>)>> = OnceLock::new();
+        ALL.get_or_init(|| {
+            let paths: Vec<(String, String)> = east_indies_trace_names(all)
+                .into_iter()
+                .filter_map(|n| Some((crate::testenv::dump(&n)?, n)))
+                .collect();
+            let chunk = paths.len().div_ceil(4).max(1);
+            let mut out: Vec<(String, Vec<SetupDraw>)> = std::thread::scope(|s| {
+                let hands: Vec<_> = paths
+                    .chunks(chunk)
+                    .map(|part| {
+                        s.spawn(move || {
+                            part.iter()
+                                .filter_map(|(p, n)| {
+                                    let setup = setup_draws(Path::new(p)).ok()??;
+                                    let seg = islands_part(&setup);
+                                    (!seg.is_empty()).then(|| (n.clone(), seg.to_vec()))
+                                })
+                                .collect::<Vec<_>>()
+                        })
+                    })
+                    .collect();
+                hands
+                    .into_iter()
+                    .flat_map(|h| h.join().expect("a sweep thread"))
+                    .collect()
+            });
+            out.sort_by(|a, b| a.0.cmp(&b.0));
+            out
+        })
+    }
+
+    /// The East Indies traces the stream check walks: a floor.
+    const ISLAND_TRACES: usize = 418;
+
+    /// **East Indies' mask, draw for draw** (`docs/MAPGEN.md` §5, §15 step
+    /// 1): every East Indies trace's `make_continents` segment is, site and
+    /// word, the stream the port draws from its first word on the run whose
+    /// seed it opens on.
+    #[test]
+    fn east_indies_s_mask_is_the_traced_stream() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let runs = east_indies_runs(all);
+        let ported: Vec<(EiRun, Vec<SetupDraw>, sim::map_east_indies::IslandMap)> = runs
+            .keys()
+            .map(|&run| {
+                let (_, d, m) = east_indies_at_7807(root, run, range);
+                (run, d.log, m)
+            })
+            .collect();
+        let traces = island_traces(all);
+        let mut walked = 0;
+        let mut parted = Vec::new();
+        for (name, seg) in traces {
+            let opens: Vec<_> = ported
+                .iter()
+                .filter(|(_, log, _)| log.first().map(|x| x.1) == seg.first().map(|x| x.1))
+                .collect();
+            if opens.is_empty() {
+                parted.push(format!(
+                    "{name}: opens on {:?}, no run's 7805 seed",
+                    seg.first()
+                ));
+                continue;
+            }
+            walked += 1;
+            let best = opens
+                .iter()
+                .map(|(run, log, _)| (run, log, first_parting(log, seg)))
+                .max_by_key(|(_, _, p)| p.map_or(usize::MAX, |p| p));
+            if let Some((run, log, Some(at))) = best {
+                let site = |v: &[SetupDraw]| v.get(at).map(|&(s, w)| format!("{s:#x} word {w:#x}"));
+                parted.push(format!(
+                    "{name}: run {run:?}, draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
+                    log.len(),
+                    seg.len(),
+                    site(log),
+                    site(seg)
+                ));
+            }
+        }
+        eprintln!(
+            "East Indies mask: {walked} traces walked of {} read, runs {:?}",
+            traces.len(),
+            ported
+                .iter()
+                .map(|(r, l, m)| (r, l.len(), m.restarts, m.islands))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            walked >= ISLAND_TRACES,
+            "the stream check walked {walked} traces"
+        );
+    }
+
+    /// The East Indies files carrying 7805 and 7807: a floor.
+    const ISLAND_FILES: usize = 202;
+
+    /// **East Indies' mask at `map.cpp` 7807** (`docs/MAPGEN.md` §5, §15
+    /// step 1): from the seed at 7805, the port lands on 7807's seed, part
+    /// 2 and part 5 on every East Indies file that carries both.
+    #[test]
+    fn east_indies_s_mask_is_the_traced_7807() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let mut files = 0;
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 18) {
+            if g.xs <= 0 {
+                eprintln!("{name}: no grid size in its head");
+                continue;
+            }
+            let (Some(before), Some(after)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            let (grid, draws, _) = east_indies_at_7807(root, run, range);
+            let ours = (draws.rng.seed, grid.start_part(), grid.cell_part());
+            let theirs = (after.2, after.3[2], after.3[5]);
+            if ours != theirs {
+                parted.push(format!(
+                    "{name}: run {run:?}: (seed, part 2, part 5) ours {ours:?} against theirs \
+                     {theirs:?}; starts {:?} {:?}",
+                    grid.starts[0].list, grid.starts[1].list
+                ));
+            }
+            files += 1;
+        }
+        eprintln!(
+            "7807: {files} East Indies files, runs {:?}",
+            east_indies_runs(all)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            files >= ISLAND_FILES,
+            "the 7807 check reached {files} files"
+        );
+        let pinned = MAPGEN
+            .styles
+            .iter()
+            .find(|s| s.map == "EastIndies")
+            .expect("MAPGEN's EastIndies row");
+        assert_eq!(
+            pinned.ported, EAST_INDIES_CHECKED,
+            "an East Indies phase was ported or lost: re-pin `floors::MAPGEN` \
+             and the handoff's `Mapgen:` line"
+        );
+    }
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
@@ -2800,4 +3066,7 @@ mod tests {
     /// The §15 phases this module checks on Great Lakes: the mask (7807)
     /// and the zero-draw passes (7835..7854).
     const GREAT_LAKES_CHECKED: i64 = 2;
+
+    /// The §15 phases this module checks on East Indies: the mask (7807).
+    const EAST_INDIES_CHECKED: i64 = 1;
 }
