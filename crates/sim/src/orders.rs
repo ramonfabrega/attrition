@@ -8836,12 +8836,6 @@ impl Sim {
     /// 1/5 re-search, range → strike, out of range → the chase inserted in
     /// front.
     pub(crate) fn do_attack_fight(&mut self, u: usize, frame: i64) -> bool {
-        if std::env::var("RON_PROBE_3808").is_ok() && (670..=677).contains(&frame) {
-            eprintln!(
-                "PROBE3808 f{} {}/{} enter rech {} captain {}",
-                frame, self.units[u].owner, self.units[u].index, self.units[u].combat.recharging, self.units[u].combat.captain
-            );
-        }
         let Some(Order {
             body: Body::Attack(mut a),
             flags,
@@ -9192,12 +9186,6 @@ impl Sim {
         // `find_new_target`.
         // The arm is `recharging == 0`'s alone (`fight@005fd4d0:368`): a
         // recharging melee-and-ranged unit past the gate skips it.
-        if std::env::var("RON_PROBE_3808").is_ok() && (670..=677).contains(&frame) {
-            eprintln!(
-                "PROBE3808 f{} {}/{} arm mandatory {} rech {} captain {} target {:?}",
-                frame, self.units[u].owner, self.units[u].index, state.mandatory, state.recharging, state.captain, target
-            );
-        }
         if !state.mandatory
             && state.recharging == 0
             && state.captain == i32::from(self.units[u].index)
