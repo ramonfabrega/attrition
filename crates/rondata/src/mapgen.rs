@@ -1036,7 +1036,7 @@ mod tests {
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
-    use sim::terrain_groups::{Draws, change_bases, nubify_forest, place_all};
+    use sim::terrain_groups::{Draws, change_bases, check_player_forest, nubify_forest, place_all};
     use sim::terrain_init::{
         PART4_LEN, PART4_SEA_MAP_AT, WORLD_SEA_MAP_BEFORE, coord, terrain_init_without_heights,
     };
@@ -1847,6 +1847,7 @@ mod tests {
         let mut files = [0; 3];
         for &run in runs.keys() {
             let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
             files[0] += at_checkpoint(&runs, &run, 7861, &grid, &d);
             nubify_forest(&mut grid, &mut d);
             files[1] += at_checkpoint(&runs, &run, 7865, &grid, &d);
@@ -1899,6 +1900,7 @@ mod tests {
         let mut placed = Vec::new();
         for &run in runs.keys() {
             let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
             nubify_forest(&mut grid, &mut d);
             change_bases(&mut grid, &mut d, &ts);
             files[0] += at_checkpoint(&runs, &run, 7877, &grid, &d);
@@ -1941,6 +1943,7 @@ mod tests {
         root: &Path,
     ) -> (MapGrid, Draws) {
         let (mut grid, mut d) = great_sahara_at_7859(run, fert, root);
+        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
         nubify_forest(&mut grid, &mut d);
         change_bases(&mut grid, &mut d, ts);
         let inputs = resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
@@ -3329,6 +3332,7 @@ mod tests {
                     }
                 }
             };
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
             check(&grid, &d, 0, 7861);
             nubify_forest(&mut grid, &mut d);
             check(&grid, &d, 1, 7865);
@@ -3416,6 +3420,7 @@ mod tests {
         for (run, (g0, gs)) in &runs {
             let (mut grid, mut d, tileset) = great_lakes_at_7859(root, g0, *run, range);
             let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
             nubify_forest(&mut grid, &mut d);
             change_bases(&mut grid, &mut d, &ts);
             let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
@@ -3522,6 +3527,270 @@ mod tests {
         );
     }
 
+    /// Each East Indies run's grid and stream through `place_all` (7859),
+    /// from 7807 ([`east_indies_at_7807`]) and 3825's passes, as
+    /// [`great_lakes_at_7859`] is: the file's world seed feeds the fractal,
+    /// and the tileset is the one drawn before `base_edge`.
+    fn east_indies_at_7859(
+        root: &Path,
+        g: &StartGrid,
+        run: EiRun,
+        range: i32,
+    ) -> (MapGrid, Draws, String) {
+        let chances = tile_chances(root, "EASTINDIES.xml").expect("EASTINDIES.xml's tilesets");
+        let tileset = tileset_before(&chances, run.0).expect("a drawn tileset");
+        let fert = fertility_of(root, "EASTINDIES.xml", &tileset).expect("its fertility");
+        let (mut grid, draws, _) = east_indies_at_7807(root, run, range);
+        let mut regions = Regions::default();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        grid.fix_diag_land();
+        grid.make_coastlines();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
+        grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
+        let mut sizes = std::collections::BTreeMap::<i16, usize>::new();
+        for c in &grid.cells {
+            *sizes.entry(c.region).or_default() += 1;
+        }
+        let listed = |r: std::ops::Range<i16>| {
+            sizes
+                .iter()
+                .filter(|&(k, &n)| r.contains(k) && n > 5)
+                .count()
+        };
+        let inputs = place_all_inputs_of(root, "EASTINDIES.xml", &tileset, run.2, run.3, 18)
+            .expect("East Indies' place_all inputs");
+        eprintln!(
+            "{run:?} on {tileset}: {} land and {} water regions over five cells; groups \
+             (kind, pattern, clumps, coast_space) {:?}",
+            listed(1..0x40),
+            listed(0x40..0x7f),
+            inputs
+                .groups
+                .iter()
+                .map(|g| (
+                    g.kind,
+                    g.pattern,
+                    (g.min_clumps, g.max_clumps),
+                    g.coast_space
+                ))
+                .collect::<Vec<_>>()
+        );
+        let mut d = Draws::new(draws.rng.seed);
+        place_all(&mut grid, &mut d, &inputs);
+        (grid, d, tileset)
+    }
+
+    /// Every East Indies run in the archive, keyed by its 7805 seed, with
+    /// the files that carry it.
+    fn east_indies_files(
+        all: &[(String, StartGrid)],
+    ) -> std::collections::BTreeMap<EiRun, Vec<&StartGrid>> {
+        let mut runs: std::collections::BTreeMap<EiRun, Vec<&StartGrid>> = Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 18 && g.xs > 0) {
+            if let Some(before) = g.at("map.cpp", 7805) {
+                runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                    .or_default()
+                    .push(g);
+            }
+        }
+        runs
+    }
+
+    /// The East Indies traces with a `Map::make` segment
+    /// ([`east_indies_trace_names`] against [`make_traces`]).
+    fn east_indies_make_traces(
+        all: &[(String, StartGrid)],
+        traces: &'static [(String, Vec<SetupDraw>)],
+    ) -> Vec<&'static (String, Vec<SetupDraw>)> {
+        let names = east_indies_trace_names(all);
+        traces
+            .iter()
+            .filter(|(n, _)| names.binary_search(n).is_ok())
+            .collect()
+    }
+
+    /// **`place_all` on East Indies, draw for draw** (`docs/MAPGEN.md` §7,
+    /// §15 step 3): from the 7854 grid 3825 checks, the port's tagged stream
+    /// against every East Indies trace's `place_all` segment, site and word,
+    /// then seed, part 2 and part 5 at 7859 on every East Indies file that
+    /// carries it — an archipelago: a dozen islands in one sea, where Great
+    /// Lakes is one land round its lakes.
+    #[test]
+    fn east_indies_s_place_all_is_the_traced_stream_and_7859() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let runs = east_indies_files(all);
+        let ported: std::collections::BTreeMap<EiRun, (MapGrid, Draws, String)> = runs
+            .iter()
+            .map(|(run, gs)| (*run, east_indies_at_7859(root, gs[0], *run, range)))
+            .collect();
+        let islands = east_indies_make_traces(all, traces);
+        let logs: Vec<(GsRun, Vec<SetupDraw>)> = ported
+            .iter()
+            .map(|(r, (_, d, _))| ((r.0, r.1, r.2, r.3, 0), d.log.clone()))
+            .collect();
+        let (met, parted) = stream_partings(&islands, &logs, place_all_part);
+        eprintln!(
+            "East Indies place_all: {} traces with a segment, met whole {met:?}, runs {:?}",
+            islands.len(),
+            ported
+                .iter()
+                .map(|(r, (_, d, t))| (r, d.log.len(), t))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            parted.is_empty(),
+            "{} East Indies traces part from the port's place_all:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            islands.len() >= ISLAND_PLACE_ALL_TRACES,
+            "the place_all stream walked {} East Indies traces",
+            islands.len()
+        );
+        let mut files = 0;
+        let mut parted = Vec::new();
+        for (run, gs) in &runs {
+            let (grid, d, _) = &ported[run];
+            for g in gs {
+                let Some((_, _, seed, p)) = g.at("map.cpp", 7859) else {
+                    continue;
+                };
+                let ours = (d.rng.seed, grid.start_part(), grid.cell_part());
+                let theirs = (*seed, p[2], p[5]);
+                if ours != theirs {
+                    parted.push(format!(
+                        "{run:?}: 7859 (seed, part 2, part 5) ours {ours:?} against theirs \
+                         {theirs:?}"
+                    ));
+                }
+                files += 1;
+            }
+        }
+        for (run, (grid, _, _)) in &ported {
+            let count = |bit: u16| grid.cells.iter().filter(|c| c.flags & bit != 0).count();
+            eprintln!(
+                "{run:?}: forest, mountain, rock, oil cells {:?}",
+                [0x20, 0x10, 0x8, 0x800].map(count)
+            );
+        }
+        eprintln!("7859: {files} East Indies files");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            files >= ISLAND_FILES,
+            "the 7859 check reached {files} files"
+        );
+    }
+
+    /// **Step 3's tail on East Indies** (`docs/MAPGEN.md` §7, §15 step 3):
+    /// `nubify_forest` (7865) and the base passes with `fix_transitions`
+    /// (7870) after the port's `place_all`, 7861 between them, as
+    /// [`great_lakes_s_group_tail_is_the_traced_stream_and_7861_to_7870`]
+    /// takes them: the stream through the last groups draw on every East
+    /// Indies trace, then seed, part 2 and part 5 at each checkpoint on
+    /// every file that carries it. Every island is shore.
+    #[test]
+    fn east_indies_s_group_tail_is_the_traced_stream_and_7861_to_7870() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let runs = east_indies_files(all);
+        let mut logs = Vec::new();
+        let mut files = [0usize; 3];
+        let mut parted = Vec::new();
+        for (run, gs) in &runs {
+            let (mut grid, mut d, tileset) = east_indies_at_7859(root, gs[0], *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            let coast = grid.cells.iter().filter(|c| c.flags & 4 != 0).count();
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (d.rng.seed, grid.start_part(), grid.cell_part());
+                    if ours != (*seed, p[2], p[5]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, part 2, part 5) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5])
+                        ));
+                        return;
+                    }
+                }
+            };
+            let forest = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count();
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            let patched = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count() - forest;
+            check(&grid, &d, 0, 7861);
+            nubify_forest(&mut grid, &mut d);
+            check(&grid, &d, 1, 7865);
+            change_bases(&mut grid, &mut d, &ts);
+            check(&grid, &d, 2, 7870);
+            let by = |r: std::ops::Range<u32>| d.log.iter().filter(|(s, _)| r.contains(s)).count();
+            let passes = [
+                by(0x006a_93b0..0x006a_9a60),
+                by(0x006a_9a60..0x006a_9c10),
+                by(0x006a_9c10..0x006a_9dc0),
+                by(0x006a_9dc0..0x006a_9f70),
+                by(0x006a_1f30..0x006a_2320),
+            ];
+            eprintln!(
+                "{run:?} on {tileset} ({coast} COAST cells, {patched} forest cells patched): nubify_forest, \
+                 change_forest/mountain/coast_base, nubify_transitions draws {passes:?}"
+            );
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let islands = east_indies_make_traces(all, traces);
+        let (met, stream) = stream_partings(&islands, &logs, groups_part);
+        eprintln!(
+            "East Indies group tail: met whole {met:?}, lengths {:?}; 7861, 7865, 7870 on \
+             {files:?} files",
+            logs.iter().map(|(r, l)| (r.0, l.len())).collect::<Vec<_>>()
+        );
+        assert!(
+            stream.is_empty(),
+            "{} East Indies traces part from the port's groups and tail:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            islands.len() >= ISLAND_PLACE_ALL_TRACES && files.iter().all(|&n| n >= ISLAND_FILES),
+            "the tail walked {} traces and {files:?} files",
+            islands.len()
+        );
+    }
+
+    /// The East Indies traces whose `place_all` segment the stream check
+    /// walks: a floor.
+    const ISLAND_PLACE_ALL_TRACES: usize = 418;
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
@@ -3534,7 +3803,8 @@ mod tests {
     /// 7861..7870), and the resources (7877..7927).
     const GREAT_LAKES_CHECKED: i64 = 4;
 
-    /// The §15 phases this module checks on East Indies: the mask (7807)
-    /// and the zero-draw passes (7835..7854).
-    const EAST_INDIES_CHECKED: i64 = 2;
+    /// The §15 phases this module checks on East Indies: the mask (7807),
+    /// the zero-draw passes (7835..7854), and `place_all` with its tail
+    /// (7859, 7861..7870).
+    const EAST_INDIES_CHECKED: i64 = 3;
 }
