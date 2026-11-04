@@ -119,6 +119,9 @@ pub struct StartGrid {
     /// The `PLAYER` blocks under `GAMEINFO`: the nation count `Map::make`
     /// takes as its first argument.
     pub nations: i32,
+    /// `GAMEINFO`'s `MAP_SIZE`, the category `Map::get_player_overage`
+    /// reads.
+    pub map_size: i64,
 }
 
 impl StartGrid {
@@ -152,6 +155,7 @@ pub fn start_grid(head: &str) -> StartGrid {
             .and_then(|(_, v)| v.trim().parse::<i64>().ok())
     };
     g.style = int("MAP_STYLE").unwrap_or(-1);
+    g.map_size = int("MAP_SIZE").unwrap_or(-1);
     g.nations = init.players.len() as i32;
     let world_int = |k: &str| {
         init.world
@@ -832,6 +836,107 @@ pub fn sea_maps(root: &Path) -> Option<std::collections::BTreeSet<i32>> {
         .filter(|n| n.ends_with(".xml"))
         .map(|n| sea_map(root, &n))
         .collect()
+}
+
+/// **The `Map` fields Great Lakes' mask reads** (`docs/MAPGEN.md` §5,
+/// `sim::map_lakes::LakeStyle`), as `Map::Map@006a06e0` and the two
+/// `Map::init_map_data@0069f250` calls leave them: `AVOID_CENTER`,
+/// `AVOID_CONTINENT` (at least `rules.xml`'s `MIN_CONTINENT_SPACING`) and
+/// `AVOID_EDGE_0..3` from `default.xml`, then the style's file over them,
+/// each `scalevalue` through [`scale_number`]. `base_edge` is the lobby's
+/// draw, `start_land` unit type 349's `max_range` quartered and rounded up,
+/// and the allowance [`overage_allowance`]'s. `None` when a file is
+/// missing or a value takes the float path.
+pub fn lake_style(
+    root: &Path,
+    style_file: &str,
+    (xs, ys, nations, map_size): (i32, i32, i32, i64),
+    base_edge: i32,
+    max_range_349: i32,
+) -> Option<sim::map_lakes::LakeStyle> {
+    let standard = standard_map_size(root)?;
+    let rules = std::fs::read_to_string(root.join("Data/rules.xml")).ok()?;
+    let rules = roxmltree::Document::parse(&rules).ok()?;
+    let spacing = leading_int(
+        rules
+            .descendants()
+            .find(|n| n.has_tag_name("MIN_CONTINENT_SPACING"))?
+            .attribute("value")?,
+    );
+    let (mut center, mut continent, mut edge) = (0xc, 6, [0; 4]);
+    for file in ["default.xml", style_file] {
+        let text = std::fs::read_to_string(root.join(format!("mapstyles/{file}"))).ok()?;
+        let doc = roxmltree::Document::parse(&text).ok()?;
+        let scaled = |tag: &str| -> Option<Option<i32>> {
+            match doc.descendants().find(|n| n.has_tag_name(tag)) {
+                None => Some(None),
+                Some(n) => Some(Some(scale_number(
+                    n.attribute("scalevalue")?,
+                    nations,
+                    xs,
+                    xs * ys,
+                    standard,
+                )?)),
+            }
+        };
+        if let Some(v) = scaled("AVOID_CENTER")? {
+            center = v;
+        }
+        if let Some(v) = scaled("AVOID_CONTINENT")? {
+            continent = v.max(spacing);
+        }
+        for (i, e) in edge.iter_mut().enumerate() {
+            if let Some(v) = scaled(&format!("AVOID_EDGE_{i}"))? {
+                *e = v;
+            }
+        }
+    }
+    let q = max_range_349 >> 2;
+    Some(sim::map_lakes::LakeStyle {
+        avoid_center: center,
+        avoid_continent: continent,
+        avoid_edge: edge,
+        base_edge,
+        standard,
+        start_land: if max_range_349 & 3 == 0 { q } else { q + 1 },
+        overage_allowance: overage_allowance(map_size),
+    })
+}
+
+/// **`Map::get_player_overage@0068b280`**'s nations per map size:
+/// Tiny and Small 2, then 3, 4, 6, and 8 past them.
+pub fn overage_allowance(map_size: i64) -> i32 {
+    match map_size {
+        0 | 1 => 2,
+        2 => 3,
+        3 => 4,
+        4 => 6,
+        _ => 8,
+    }
+}
+
+/// `base_edge`, when the style leaves it −1: `Map::make`'s `r % 4`, the
+/// setup path's last draw before `map.cpp` 7805, recovered from the seed
+/// that draw left (`docs/MAPGEN.md` §4).
+pub fn base_edge_before(seed_7805: u32) -> i32 {
+    ((((seed_7805 & 0xffff) * 0xffff) >> 16) % 4) as i32
+}
+
+/// The `make_continents` segment of a Great Lakes setup path: from its
+/// first `MapGreatLakes::make_continents` draw, every draw whose site is
+/// that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §5), up to the first that is none.
+pub fn lakes_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let gl = 0x0069_9e40..0x0069_a650;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| gl.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !gl.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
 }
 
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
@@ -2288,10 +2393,250 @@ mod tests {
         "gamelog-fuzz-424242-heights.txt",
     ];
 
+    /// One Great Lakes generator run, as the archive's files key it: the
+    /// seed at 7805, the nations, the size and `MAP_SIZE`.
+    type GlRun = (u32, i32, i32, i32, i64);
+
+    /// The archive's Great Lakes generator runs (`MAP_STYLE` 14) and how
+    /// many files carry each.
+    fn great_lakes_runs(all: &[(String, StartGrid)]) -> std::collections::BTreeMap<GlRun, usize> {
+        let mut runs = std::collections::BTreeMap::new();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            if let Some(before) = g.at("map.cpp", 7805) {
+                *runs
+                    .entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                    .or_insert(0) += 1;
+            }
+        }
+        runs
+    }
+
+    /// Unit type 349's `max_range`, `check_player_land`'s ring before it is
+    /// quartered, from the install's rules.
+    fn max_range_349(root: &Path) -> i32 {
+        let loaded = crate::load::load(&crate::Install::new(root)).expect("the rules load");
+        let i = loaded.unit_of_type_index(349).expect("type 349 is a unit");
+        loaded.unit_types[i].combat.max_range
+    }
+
+    /// One Great Lakes run's mask from the seed at 7805: the grid, the
+    /// recorded stream and the map fields it leaves.
+    fn great_lakes_at_7807(
+        root: &Path,
+        run: GlRun,
+        range: i32,
+    ) -> (MapGrid, Draws, sim::map_lakes::LakeMap) {
+        let (seed, nations, xs, ys, map_size) = run;
+        let style = lake_style(
+            root,
+            "GREATLAKES.xml",
+            (xs, ys, nations, map_size),
+            base_edge_before(seed),
+            range,
+        )
+        .expect("Great Lakes' style");
+        let mut grid = MapGrid::new(xs, ys);
+        let mut draws = Draws::new(seed);
+        let map =
+            sim::map_lakes::great_lakes_make_continents(&mut grid, nations, style, &mut draws)
+                .expect("a lobby inside its allowance");
+        (grid, draws, map)
+    }
+
+    /// The traces a gamelog of whose run names `word` in its file name.
+    fn traces_of(word: &str) -> Vec<String> {
+        let names: Vec<String> = std::fs::read_dir(gamelog_dir())
+            .map(|r| {
+                r.filter_map(|e| e.ok()?.file_name().into_string().ok())
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut out: Vec<String> = names
+            .iter()
+            .filter(|n| n.starts_with("rontrace-") && n.ends_with(".log"))
+            .filter(|t| {
+                let run = t.trim_start_matches("rontrace-").trim_end_matches(".log");
+                names.iter().any(|g| {
+                    g.strip_prefix("gamelog-")
+                        .and_then(|g| g.strip_prefix(run))
+                        .is_some_and(|rest| rest.starts_with('-') && rest.contains(word))
+                })
+            })
+            .cloned()
+            .collect();
+        out.sort();
+        out
+    }
+
+    /// Every Great Lakes trace's `make_continents` segment ([`lakes_part`]
+    /// of its setup path), read once.
+    fn lake_traces() -> &'static [(String, Vec<SetupDraw>)] {
+        static ALL: OnceLock<Vec<(String, Vec<SetupDraw>)>> = OnceLock::new();
+        ALL.get_or_init(|| {
+            let paths: Vec<(String, String)> = traces_of("greatlakes")
+                .into_iter()
+                .filter_map(|n| Some((crate::testenv::dump(&n)?, n)))
+                .collect();
+            let chunk = paths.len().div_ceil(4).max(1);
+            let mut out: Vec<(String, Vec<SetupDraw>)> = std::thread::scope(|s| {
+                let hands: Vec<_> = paths
+                    .chunks(chunk)
+                    .map(|part| {
+                        s.spawn(move || {
+                            part.iter()
+                                .filter_map(|(p, n)| {
+                                    let setup = setup_draws(Path::new(p)).ok()??;
+                                    Some((n.clone(), lakes_part(&setup).to_vec()))
+                                })
+                                .collect::<Vec<_>>()
+                        })
+                    })
+                    .collect();
+                hands
+                    .into_iter()
+                    .flat_map(|h| h.join().expect("a sweep thread"))
+                    .collect()
+            });
+            out.sort_by(|a, b| a.0.cmp(&b.0));
+            out
+        })
+    }
+
+    /// The Great Lakes traces the stream check walks: a floor.
+    const LAKE_TRACES: usize = 222;
+
+    /// **Great Lakes' mask, draw for draw** (`docs/MAPGEN.md` §5, §15 step
+    /// 1): every Great Lakes trace's `make_continents` segment is, site and
+    /// word, the stream the port draws from its first word on the run whose
+    /// seed it opens on.
+    #[test]
+    fn great_lakes_s_mask_is_the_traced_stream() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let runs = great_lakes_runs(all);
+        let ported: Vec<(GlRun, Vec<SetupDraw>)> = runs
+            .keys()
+            .map(|&run| (run, great_lakes_at_7807(root, run, range).1.log))
+            .collect();
+        let traces = lake_traces();
+        let mut walked = 0;
+        let mut parted = Vec::new();
+        for (name, seg) in traces.iter().filter(|(_, s)| !s.is_empty()) {
+            let opens: Vec<_> = ported
+                .iter()
+                .filter(|(_, log)| log.first().map(|x| x.1) == seg.first().map(|x| x.1))
+                .collect();
+            if opens.is_empty() {
+                parted.push(format!(
+                    "{name}: opens on {:?}, no run's 7805 seed",
+                    seg.first()
+                ));
+                continue;
+            }
+            walked += 1;
+            let best = opens
+                .iter()
+                .map(|(run, log)| (run, log, first_parting(log, seg)))
+                .max_by_key(|(_, _, p)| p.map_or(usize::MAX, |p| p));
+            if let Some((run, log, Some(at))) = best {
+                let site = |v: &[SetupDraw]| v.get(at).map(|&(s, w)| format!("{s:#x} word {w:#x}"));
+                parted.push(format!(
+                    "{name}: run {run:?}, draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
+                    log.len(),
+                    seg.len(),
+                    site(log),
+                    site(seg)
+                ));
+            }
+        }
+        eprintln!(
+            "Great Lakes mask: {walked} traces walked of {} read, runs {:?}",
+            traces.len(),
+            ported.iter().map(|(r, l)| (r, l.len())).collect::<Vec<_>>()
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            walked >= LAKE_TRACES,
+            "the stream check walked {walked} traces"
+        );
+    }
+
+    /// The Great Lakes files carrying 7805 and 7807: a floor.
+    const LAKE_FILES: usize = 185;
+
+    /// **Great Lakes' mask at `map.cpp` 7807** (`docs/MAPGEN.md` §5, §15
+    /// step 1): from the seed at 7805, the port lands on 7807's seed, part 2
+    /// and part 5 on every Great Lakes file that carries both.
+    #[test]
+    fn great_lakes_s_mask_is_the_traced_7807() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let mut files = 0;
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 14) {
+            if g.xs <= 0 {
+                eprintln!("{name}: no grid size in its head");
+                continue;
+            }
+            let (Some(before), Some(after)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
+                continue;
+            };
+            let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
+            let (grid, draws, _) = great_lakes_at_7807(root, run, range);
+            let ours = (draws.rng.seed, grid.start_part(), grid.cell_part());
+            let theirs = (after.2, after.3[2], after.3[5]);
+            if ours != theirs {
+                parted.push(format!(
+                    "{name}: run {run:?}: (seed, part 2, part 5) ours {ours:?} against theirs \
+                     {theirs:?}; starts {:?} {:?}",
+                    grid.starts[0].list, grid.starts[1].list
+                ));
+            }
+            files += 1;
+        }
+        eprintln!(
+            "7807: {files} Great Lakes files, runs {:?}",
+            great_lakes_runs(all)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(files >= LAKE_FILES, "the 7807 check reached {files} files");
+        let pinned = MAPGEN
+            .styles
+            .iter()
+            .find(|s| s.map == "GreatLakes")
+            .expect("MAPGEN's GreatLakes row");
+        assert_eq!(
+            pinned.ported, GREAT_LAKES_CHECKED,
+            "a Great Lakes phase was ported or lost: re-pin `floors::MAPGEN` \
+             and the handoff's `Mapgen:` line"
+        );
+    }
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
     /// `Terrain::init` without heights (734..5012), the rivers
     /// (5012..5118), and the heights (the start dump's grid).
     const GREAT_SAHARA_CHECKED: i64 = 8;
+
+    /// The §15 phases this module checks on Great Lakes: the mask (7807).
+    const GREAT_LAKES_CHECKED: i64 = 1;
 }

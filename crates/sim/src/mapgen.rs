@@ -380,7 +380,7 @@ impl MapGrid {
 
 /// `project@0092d000` on cells: the point `d` along `angle` from `(x, y)`,
 /// `x + sin·d`, `y − cos·d` — the same fold as [`crate::army::step_along`].
-fn project(x: i32, y: i32, angle: Angle, d: i32) -> (i32, i32) {
+pub(crate) fn project(x: i32, y: i32, angle: Angle, d: i32) -> (i32, i32) {
     (x + sin_component(angle, d), y - cos_component(angle, d))
 }
 

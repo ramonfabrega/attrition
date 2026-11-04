@@ -67,28 +67,38 @@ pub const MAPGEN: Mapgen = Mapgen {
     // grid, 337 when item 3734 counted them on 2026-10-28.
     checksum: 496,
     checksum_of: 496,
-    styles: &[MapgenStyle {
-        map: "GreatSahara",
-        // 1 → 2 by item 3798: the zero-draw passes, 7835..7854; 2 → 3 by
-        // item 3803: `place_all`, draw for draw on 280 traces and at 7859;
-        // 3 → 4 by item 3805: the groups' tail (7861..7870) and
-        // `place_resources`, draw for draw on 280 traces through the last
-        // draw before `compute_all_vals`, and at 7927 on 105 files; 4 → 5
-        // by item 3807: `adjust_for_blocking` (7937) and `compute_all_vals`,
-        // draw for draw on 280 traces through the last value draw, and at
-        // 7937 and 7945 on 105 files; 5 → 6 by item 3809: `Terrain::init`
-        // without heights — `Map::make`'s `sea_map` (part 4 at 734 on every
-        // traced file), and no cell opening the half-land gate — at every
-        // record from 734 to 5012 on 105 files; 6 → 7 by item 3811: the
-        // rivers before the heights — `make_rivers`' sources and clears,
-        // `SAHARA.xml`'s list empty, no draw — at every record from 5012 to
-        // 5118 on 105 files; 7 → 8 by item 3812: the heights —
-        // `generate_land`'s two fractals, `create_doobers`' oil terraform
-        // and `adjust_for_mountains` — on every vertex of the 47 Great
-        // Sahara start grids, through each file's own roster.
-        ported: 8,
-        phases: 8,
-    }],
+    styles: &[
+        MapgenStyle {
+            map: "GreatSahara",
+            // 1 → 2 by item 3798: the zero-draw passes, 7835..7854; 2 → 3 by
+            // item 3803: `place_all`, draw for draw on 280 traces and at 7859;
+            // 3 → 4 by item 3805: the groups' tail (7861..7870) and
+            // `place_resources`, draw for draw on 280 traces through the last
+            // draw before `compute_all_vals`, and at 7927 on 105 files; 4 → 5
+            // by item 3807: `adjust_for_blocking` (7937) and `compute_all_vals`,
+            // draw for draw on 280 traces through the last value draw, and at
+            // 7937 and 7945 on 105 files; 5 → 6 by item 3809: `Terrain::init`
+            // without heights — `Map::make`'s `sea_map` (part 4 at 734 on every
+            // traced file), and no cell opening the half-land gate — at every
+            // record from 734 to 5012 on 105 files; 6 → 7 by item 3811: the
+            // rivers before the heights — `make_rivers`' sources and clears,
+            // `SAHARA.xml`'s list empty, no draw — at every record from 5012 to
+            // 5118 on 105 files; 7 → 8 by item 3812: the heights —
+            // `generate_land`'s two fractals, `create_doobers`' oil terraform
+            // and `adjust_for_mountains` — on every vertex of the 47 Great
+            // Sahara start grids, through each file's own roster.
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
+            map: "GreatLakes",
+            // 0 → 1 by item 3815: `MapGreatLakes::make_continents`, draw for
+            // draw on 222 traces (the 5,568) and at 7807 on 185 files, one
+            // generator run (2 nations, 60×60), first try.
+            ported: 1,
+            phases: 8,
+        },
+    ],
 };
 
 #[cfg(test)]
@@ -375,12 +385,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 1 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 8 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 7 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 1 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 7 of 8 phases \u{b7} GreatLakes 1 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 0 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases",
             "Mapgen: checksum 496 of 496",
             "Mapgen: checksum 496 496 \u{b7} GreatSahara 8 of 8 phases",
         ] {
