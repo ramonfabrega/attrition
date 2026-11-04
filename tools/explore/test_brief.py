@@ -120,7 +120,7 @@ class ABriefIsComposed(unittest.TestCase):
     def compose(self, item, kind='residue', **kw):
         args = dict(queue=QUEUE, frame=brief.FRAME.read_text(), base='abc1234',
                     model='Opus 5.5', runs=['run423', 'run424'], sections=[], read=[], note='',
-                    tests=['sahara::', 'floors::'])
+                    tests=['sahara_coverage::', 'floors::'])
         args.update(kw)
         return brief.compose(item, kind, **args)
 
@@ -242,7 +242,7 @@ class ABriefIsComposed(unittest.TestCase):
         # coverage_pair::` and its widening had put run718's window in the
         # coverage driver, whose two pins went red on the booking gate.
         text = self.compose(1133)
-        self.assertIn('--tests sahara:: floors:: coverage::', text)
+        self.assertIn('--tests sahara_coverage:: floors:: coverage::', text)
         self.assertNotIn('{tests}', text)
         with self.assertRaisesRegex(ValueError, '--tests'):
             self.compose(1133, tests=[])
@@ -330,6 +330,23 @@ class ABriefIsComposed(unittest.TestCase):
         # a module path (`coverage::`) and composes too.
         self.assertIn('battery_floors', brief.filters('residue', ['battery_floors']))
         self.assertIn('nations::', brief.filters('residue', ['nations::']))
+
+    def test_a_filter_that_matches_no_test_is_refused(self):
+        # Loop 3818: the sixty-fourth's commander named `map_resources` for
+        # 3807 and 3811, a module with no tests, and 3811's first lane gate
+        # exited 2 on it. A nonsense name is refused the same way.
+        for t in ('map_resources', 'no_such_test_name_3818'):
+            with self.assertRaises(ValueError) as e:
+                brief.filters('residue', [t])
+            self.assertIn(t, str(e.exception))
+            self.assertIn('matches no test', str(e.exception))
+        # A filter that matches a live test passes, by fn name or module path:
+        # `map_lakes` names tests of `sim::map_lakes`, `golden::` a module.
+        # A test a `macro_rules!` writes (`diff::audit`'s `audited!`) and one
+        # a `#[path]` module holds are found too.
+        for t in ('map_lakes', 'golden::', 'diff::harness::tests::', 'sweep::',
+                  'audit::american_enlightenment_pair_corrections_change_nothing'):
+            self.assertIn(t, brief.filters('residue', [t]))
 
     def test_a_run_number_goes_through_runs_and_is_reserved_once(self):
         # Loop 3176 (the commander, at 3162's merge): two notes offered run

@@ -322,9 +322,9 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// packaging and manager 168, the order classes' plumbing 97, the turn
 /// pump 35, the XML loaders 15, the scripting VM 3), open 1305 (layout 903,
 /// name 4, unmarked 398), excluded 1459.
-pub const RUBRIC_TERRITORY_PORTED: usize = 529;
+pub const RUBRIC_TERRITORY_PORTED: usize = 541;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1305;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1294;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

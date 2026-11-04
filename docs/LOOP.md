@@ -144,6 +144,16 @@ base is unreliable in both directions. On the commander's side, **merge,
 book, spawn, gate, push and reap are one chain**; a reap left for "before the next
 spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
+**A word may fall on a named regression** (DECISIONS 104 §2; rule 864,
+`docs/audit/README.md`): a landing whose value diff closes a standing row
+on the widening, whose fall is named by its frame and cause with a probe
+that reads above the old word, and whose new word books the next item,
+lands with the floor re-pinned down and the queue's line reading "a named
+regression from <old>" until the word passes it again — 3814 took the
+third melee 755 → 718 that way. Holding the old word by leaving a right
+arm out is the parity gate the thesis names; landing the probe would pin
+what does not exist.
+
 ## The commander's chain
 
 **The commander's chain is ccc's, and it is one line.** **A done line is
@@ -358,7 +368,16 @@ stand-ups' 8.3–9.8 — **and Loop 3777 measured those minutes as 273
 emulator sweeps re-run past the cache cap on every gate, and the pass
 built the compressed cache** (DECISIONS 103 §1): the five binaries 683.5
 → 41.8 s warm, so the sixty-fourth's gates run without them and its
-drain reads the rule); a
+drain reads the rule) — **and the sixty-fourth read 26.3 waiting and 15.3
+gate a session on two lanes** (DECISIONS 104 §1), both under the figures
+the lane was taken at and not by a hair: the residue lane gates 9.9–12.2
+release minutes against 20.4–23.5, the stand-ups' 9.2–12.1, **so the
+third lane returns for the sixty-fifth**, three Opus lanes at medium, read
+at its drain against 26.3 waiting — a fifth above, 31.6, takes it away
+again — and 15.3 gate, and watched on what the lane cost before: the door
+(1,320.5 s on two lanes) and the lane gates past a lane's first (three
+this tranche, none on a row list: 3804 on a moved base, 3810 twice, 3811
+on an empty filter, Loop 3818)); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
@@ -431,7 +450,14 @@ and its lanes drained, ends by clearing the pass's row the same way:
 act and the only one; a drain that stops without it is a stall** (Loop
 3536: the fifty-second tranche's commander halted at twenty reading
 "never message the steer row" as "never clear it", and the handoff waited
-36 minutes for a person). The opener the pass writes names the verb. **The two rows are permanent
+36 minutes for a person). **The steer's row is idle when the drain arms,
+so the fire is immediate, and the drain reads it**: a backgrounded `sleep
+150; ccc clear steer --status` is armed after the clear and the turn ends;
+when it re-invokes the session, a `did not fire` — a person's unsent draft
+in the steer's prompt box, which ccc never submits or deletes — goes to the
+phone as a permission-shaped block, with the opener in the message (Loop
+3821: the sixty-fourth's arm was refused that way and the pass began eight
+hours late, on Ramon's question). The opener the pass writes names the verb. **The two rows are permanent
 and `spawn --replace` is not used**: a cross-session clear fires (ccc
 measured it, 2026-10-07, `docs/DECISIONS.md` entry 64 (iv)) when the
 target's tree is committed at the arm and at the fire, the target is at
@@ -466,7 +492,11 @@ start** (`ccc rm <ref>` on a merged row; eight stood at the fifty-third's
 drain, Loop 3565). **Its first act is the archives' compression,
 backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
 `~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
-gate (DECISIONS 77) — **and its table of the tranche's gates is
+gate (DECISIONS 77) — **and the integration tree's debug profile is
+cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
+GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
+**when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6)
+— **and its table of the tranche's gates is
 `python3 tools/gates.py <the commander's job tmp> --since <the last
 pass's gate log>`** (DECISIONS 80), **and its rubric is `python3
 tools/rubric.py --record "<the pass>"`** — the content view (ages held,

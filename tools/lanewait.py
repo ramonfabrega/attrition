@@ -66,6 +66,10 @@ And the lines that are not exits — the wait goes on past each:
                                              an --arm-after-push lane's push sent with
                                              its done line (stdout; Loop 3749): the
                                              row stopping is its LANDED
+       PUSHED <lane> … — its journal quotes its lane gate, '…'; a landing, not armed
+                                             the same for a push whose newest commit
+                                             adds a landing's `Lane verdict:` to the
+                                             item's journal (stdout; Loop 3817)
        GATING <lane> <state> — <command> (<n> min); held, read again at its exit
                                              a row out of `working` with a gate running
                                              under its session (stderr; Loop 3753):
@@ -75,6 +79,10 @@ And the lines that are not exits — the wait goes on past each:
                                              anything else (stdout, before the exit
                                              line; Loop 3765): the next
                                              --arm-after-push wait on it arms it
+       HELD <lane> <base>..<new> — seeded from the last wait's base; …
+                                             that next wait's second line when the
+                                             seeded push is still held at its start
+                                             (stdout; Loop 3817)
 
 A push while the row still works is printed as `PUSHED <lane> <branch>
 <old>..<new>` and watched on (the twenty-fifth pass): the twenty-fifth
@@ -935,7 +943,7 @@ def done_line_of(lane, since, where, sessions):
 
 
 def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_armed=armed_clear,
-               states=None, landed=None, since=None, stalled=()):
+               states=None, landed=None, since=None, stalled=(), quoted=None):
     """Arm each pending lane's clear on its first push (Loop 3526), as
     `(drafts, lines)`: the DRAFT lines for stderr and the ARMED /
     ARM-REFUSED lines for stdout. Called before `event` on every poll.
@@ -961,6 +969,11 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
     `stalled` names the lanes whose held push sits on a row that reads
     `working` but is idle with nothing running (`held_ripe`, Loop 3795):
     the push is armed as if the row had stopped, its DRAFT saying why.
+
+    `quoted(lane, tip)` (Loop 3817) is the lane gate's `Lane verdict:`
+    line the push's newest commit adds to the item's journal, or None;
+    asked before the done line, a quote makes the push a landing as a
+    done line does — the landing's own shape, whatever its line says.
     """
     drafts, lines = [], []
     for lane in sorted(pending):
@@ -985,6 +998,13 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
             seen['tip'] = tip
         seen.pop('pushed', None)
         moved = f"{lane} {seen['branch']} {old}..{seen['tip'][:8]}"
+        quote = quoted(lane, seen['tip']) if quoted is not None else None
+        if quote:
+            pending.discard(lane)
+            seen.pop('held', None)
+            seen['pushed'] = moved
+            lines.append(f"PUSHED {moved} — its journal quotes its lane gate, {quote!r}; a landing, not armed")
+            continue
         if landed is not None:
             said = landed(lane, pushed_at if pushed_at is not None else 0)
             if said:
@@ -1006,6 +1026,35 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
         ok, said = arm(lane, then_prompt(template, lane))
         lines.append(f"ARMED {lane} — {said}" if ok else f"ARM-REFUSED {lane}: {said}")
     return drafts, lines
+
+
+# A landing's journal quotes its lane gate's verdict (`release_gate.py`'s
+# LANE_GREEN and the commander's-lines red; the docs guard asks it of every
+# landing); a red on the worker's own is not a landing's quote.
+LANDING_VERDICT = re.compile(r"Lane verdict: (green|red only on the commander's)")
+
+
+def gate_quote_of(cwd, tip, item, run=subprocess.run):
+    """The `Lane verdict:` line `tip`'s newest non-merge commit on its
+    first parent adds to `docs/journal/*-item-<item>.md`, or None (Loop
+    3817). The first parent, because a lane's `ccc update` after its gate
+    tops the quote with a merge; a missing tree or ref, or a git that
+    fails, is no quote."""
+    if not cwd or not tip or not os.path.isdir(cwd):
+        return None
+    try:
+        sha = run(['git', 'rev-list', '-1', '--first-parent', '--no-merges', tip], cwd=cwd, capture_output=True,
+                  text=True, check=False, timeout=30).stdout.strip()
+        if not sha:
+            return None
+        diff = run(['git', 'show', '--format=', '-U0', sha, '--', f'docs/journal/*-item-{item}.md'], cwd=cwd,
+                   capture_output=True, text=True, check=False, timeout=30).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    for line in diff.splitlines():
+        if line.startswith('+') and not line.startswith('+++') and LANDING_VERDICT.search(line):
+            return line[1:].strip()[:200]
+    return None
 
 
 def origin_tip(cwd, branch):
@@ -1103,7 +1152,7 @@ def main(argv=None):
         arm_drafts, arm_lines = arm_pushes(
             watch, tips, sessions, arm_pending, args.then, arm=arm_clear, already_armed=armed_clear,
             states=states, since=since, landed=lambda lane, at: done_line_of(lane, at, where, sessions),
-            stalled=stalled)
+            stalled=stalled, quoted=lambda lane, tip: gate_quote_of(where[lane], tip, item_of(lane)))
         for draft in arm_drafts:
             print(draft, file=sys.stderr, flush=True)
         for line in arm_lines:
@@ -1124,6 +1173,12 @@ def main(argv=None):
     if seeded:
         settle({lane: rows[lane][0] for lane in watch}, {lane: seen['tip'] for lane, seen in watch.items()},
                {lane: seen.get('session') for lane, seen in watch.items()}, None)
+        # A seeded push still held is said (Loop 3817): 3812's re-armed wait
+        # held it in silence and was killed for a wait that could not see it.
+        for lane in seeded:
+            if watch[lane].get('held'):
+                print(f"HELD {lane} {watch[lane]['held'][0]}..{watch[lane]['tip'][:8]} — seeded from the last "
+                      "wait's base; held for its done line, armed when the row stops or stalls", flush=True)
 
     started = time.monotonic()
     polled_at = time.time()

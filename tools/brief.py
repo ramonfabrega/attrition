@@ -20,13 +20,15 @@ Kinds: `residue` — a word on the AI track, a pair's or the third map's;
 `chapter` — the rules track's; `sweep` — a batch of never-backed functions;
 `reading` — the never-entered functions a document cites, read into claims
 that each name their falsifying capture (DECISIONS 84). A refusal is a `ValueError` and exit 2: an
-item the queue does not book has no brief.
+item the queue does not book has no brief, and a `--tests` filter that matches no test in the
+workspace, or only `#[ignore]` ones, has no lane gate (Loop 3818, 3227).
 
 Why (the nineteenth pass, 2026-09-29): a brief was the previous brief,
 copied from the job's scratch directory and edited, and it had grown from
 4,700 characters to 11,000 in ten days. `tools/explore/test_brief.py`.
 """
 import argparse
+import functools
 import os
 import re
 import subprocess
@@ -150,20 +152,90 @@ def open_items(queue):
     return out
 
 
-TEST_FN = re.compile(r'^(\s*#\[ignore[^\n]*\n(?:\s*#\[[^\n]*\n)*)?\s*(?:pub(?:\([^)]*\))?\s+)?fn\s+([a-z_][a-z0-9_]*)\s*\(', re.M)
+# A Rust source with its comments, strings and char literals blanked, so a
+# brace or a `fn` inside one is not read. The lookaheads are for speed alone.
+RUST_NOISE = re.compile(r'(?=[/"\'br])(?://[^\n]*|/\*(?:[^*]|\*(?!/))*\*/|b?r(#*)"[\s\S]*?"\1'
+                        r'|b?"(?:\\[\s\S]|[^"\\])*"'
+                        r"|b?'(?:\\(?:u\{[0-9a-fA-F]*\}|x..|.)|[^'\\\n])')")
+RUST_TOKEN = re.compile(r'(?=[m{}#f])(?:\bmod\s+([A-Za-z_]\w*)\s*\{|(\{)|(\})|#\s*\[\s*(test|ignore)\b'
+                        r'|\bfn\s+([A-Za-z_]\w*))')
+PATH_MOD = re.compile(r'#\[path\s*=\s*"([^"]+)"\]\s*(?:pub(?:\([^)]*\))?\s+)?mod\s+([A-Za-z_]\w*)\s*;')
+# A `macro_rules!` whose arm repeats `$($NAME:ident ...)` and writes
+# `#[test] fn $NAME` (`diff::audit`'s `audited!`): each entry of its
+# invocations is a test, named by the ident that opens the entry.
+TEST_MACRO = re.compile(r'macro_rules!\s*([A-Za-z_]\w*)\s*\{\s*\(\s*\$\(\s*\$(\w+)\s*:\s*ident'
+                        r'(?:(?!macro_rules!)[\s\S])*?#\s*\[\s*test\s*\]\s*fn\s+\$\2\b')
 
 
-def test_fns(crates=('crates/rondata/src', 'crates/sim/src')):
-    """`{fn name: ignored?}` over the crates' sources — the names a lane
-    gate's `--tests` filter matches as a substring, and whether each is
-    `#[ignore]` (Loop 3227: three briefs named `battery_measure`, which is,
-    and a lane gate exited 2 on it)."""
+def module_of(path, crate):
+    """The module path cargo prints a test file's tests under, crate left out:
+    `src/a/b.rs` and `src/a/b/mod.rs` are `a::b`; `lib.rs`, `main.rs`, a
+    `src/bin/` file and a `tests/` file are their binary's root."""
+    rel = path.relative_to(crate)
+    parts = list(rel.with_suffix('').parts)
+    if parts[0] == 'tests' or parts[:2] == ['src', 'bin']:
+        return []
+    parts = parts[1:]
+    if parts and parts[-1] in ('lib', 'main', 'mod'):
+        parts = parts[:-1]
+    return parts
+
+
+def file_tests(text, prefix):
+    """`{full test name: ignored?}` for a file's `#[test]` fns, named the way
+    `cargo test -- --list` prints them: the file's module path, every inline
+    `mod NAME {` enclosing the fn, the fn."""
+    clean = RUST_NOISE.sub(' ', text)
+    out, stack, depth, test, ignored = {}, [], 0, False, False
+    for m in RUST_TOKEN.finditer(clean):
+        if m.group(1):
+            depth += 1
+            stack.append((m.group(1), depth))
+        elif m.group(2):
+            depth += 1
+        elif m.group(3):
+            if stack and stack[-1][1] == depth:
+                stack.pop()
+            depth -= 1
+        elif m.group(4):
+            test, ignored = test or m.group(4) == 'test', ignored or m.group(4) == 'ignore'
+        else:
+            if test:
+                name = '::'.join(prefix + [n for n, _ in stack] + [m.group(5)])
+                out[name] = out.get(name, False) or ignored
+            test = ignored = False
+    for macro, _ in TEST_MACRO.findall(clean):
+        for call in re.finditer(rf'\b{macro}!\s*\{{([^{{}}]*)\}}', clean):
+            for entry in re.findall(r'(?:^|;)\s*([A-Za-z_]\w*)\s*:(?!:)', call.group(1)):
+                out.setdefault('::'.join(prefix + [entry]), False)
+    return out
+
+
+@functools.lru_cache(maxsize=None)
+def test_fns(crates=None):
+    """`{full test name: ignored?}` over the workspace's sources — the names
+    `cargo test -- --list` prints, which a lane gate's `--tests` filter
+    matches as a substring, and whether each is `#[ignore]` (Loop 3227:
+    three briefs named `battery_measure`, which is, and a lane gate exited
+    2 on it). A `#[path = ...] mod NAME;` file is named under `NAME` too.
+    Read from the source, not from `cargo test -- --list` (Loop 3818: 0.6 s
+    against 2.6 s on a built release tree, and minutes on one cargo would
+    rebuild); on 2026-11-04 it held all 5,303 names that list printed, the
+    doctests aside, and 1,447 more (a `#[path]` file under its own path too,
+    a debug-only test), which can only let a filter through."""
+    crates = [ROOT / c for c in crates] if crates else sorted(p for p in (ROOT / 'crates').iterdir() if p.is_dir())
     out = {}
     for crate in crates:
-        for path in (ROOT / crate).rglob('*.rs'):
-            for m in TEST_FN.finditer(path.read_text(errors='replace')):
-                name = m.group(2)
-                out[name] = out.get(name, False) or bool(m.group(1))
+        for path in sorted(list((crate / 'src').rglob('*.rs')) + list((crate / 'tests').glob('*.rs'))):
+            text = path.read_text(errors='replace')
+            mod = module_of(path, crate)
+            for name, ign in file_tests(text, mod).items():
+                out[name] = out.get(name, False) or ign
+            for target, alias in PATH_MOD.findall(text):
+                other = (path.parent / target).resolve()
+                if other.is_file():
+                    for name, ign in file_tests(other.read_text(errors='replace'), mod + [alias]).items():
+                        out[name] = out.get(name, False) or ign
     return out
 
 
@@ -171,14 +243,18 @@ def filters(kind, tests):
     """The lane gate's `--tests` for a brief: what the commander names,
     and the kind's own always among them (1623: 1611's lane gate never ran
     the coverage pins its widening moved, and the booking gate was red).
-    A filter whose every matching `fn` is `#[ignore]` is refused (3227)."""
+    A filter that matches no test is refused (3818), and so is one whose
+    every matching test is `#[ignore]` (3227)."""
     tests = [t for t in (tests or ()) if t]
     if kind not in NO_WORD and not tests:
         raise ValueError("a word's brief names its lane gate's filters: --tests FILTER [FILTER ...]")
     fns = test_fns()
     for t in tests:
         hits = [n for n in fns if t in n]
-        if hits and all(fns[n] for n in hits):
+        if not hits:
+            raise ValueError(f"--tests {t} matches no test in the workspace: the lane gate exits 2 on it "
+                             "(Loop 3818); name a test or a module that has one")
+        if all(fns[n] for n in hits):
             raise ValueError(f"--tests {t} matches only #[ignore] tests ({', '.join(sorted(hits))}): "
                              "the lane gate exits 2 on it; name a live test, or say the measurement is by hand")
     return tests + [t for t in ALWAYS_TESTS[kind] if t not in tests]
@@ -320,7 +396,7 @@ def main():
     ap.add_argument('--model', default='Opus 5.5')
     ap.add_argument('--tests', nargs='+', default=[],
                     help="the lane gate's filters for the word; `coverage::` is added (1623); "
-                         "a sweep or a reading names none")
+                         "a sweep or a reading names none; one that matches no test is refused (3818)")
     ap.add_argument('--park', help='the park slot letter reserved for the item (parked 1812)')
     ap.add_argument('--no-seams', action='store_true', help='leave out the seams.py print (parked 1743)')
     ap.add_argument('--briefs', type=Path, default=Path(os.environ['CLAUDE_JOB_DIR']) / 'tmp' if os.environ.get('CLAUDE_JOB_DIR') else None,

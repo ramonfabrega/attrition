@@ -811,6 +811,21 @@ and each counter's `attempted` is pinned beside it, because the
 corrections run only on the frames a `DUMP_ALL` sibling carries — one word
 and 33–138 clocks at the start of a pair, so the audit covers a pair's
 first frames and the rest of the game runs uncorrected by construction.
+**And every whole word the handoff names (2026-11-04, Loop 3801)**: the
+third map's (Great Sahara's long word and Toughest, beside its two
+All-Technologies pairs), the third pair's two, and all 28 of the `Battery
+word:` line's lobbies — promoted out of the held-out battery and debugged
+against since, so audited as any pair is (a `battery::Lobby` takes an
+`audited!` row as a `Pair` does) — each zero changed at 0.6–7.3 s a replay.
+The held-out battery itself (the `Held-out:` line, `battery::BATTERY`) is
+not audited: it is scored by its first try and never debugged against, so
+a correction there has no tuning to hide.
+`audit::every_whole_scoreboard_word_is_audited` reads every handoff line of
+`w<N> of <length>` parts with the floors guards' parser
+(`floors::ai_line_parts`) and fails on a whole word with no audit; the four
+still owed — the second pair's two, stood up by `second::walk_second`
+(Great Lakes borrows no pasture), and the two staged melees (`audit_walk`
+stages no script) — are its `OWED` list, held to exactly the missing set.
 
 ### 3.1 The order diff — the intent, every frame
 

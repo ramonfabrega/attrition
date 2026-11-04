@@ -19,7 +19,6 @@
 //! counter that attempted nothing asserts nothing, and the pin says so
 //! ([`Expect::attempted`]).
 
-use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
 use crate::capture::indexed::IndexedCapture;
@@ -197,10 +196,6 @@ fn audit_and_pin(name: &str, siblings: &[&str], long: (&str, &str), length: i64,
     );
 }
 
-fn audit_pair(p: &Pair, want: &Expect) {
-    audit_and_pin(p.name, &[p.start], p.long, p.length, want);
-}
-
 /// **East Indies' long word** (run54, 24,000 frames), stood up from run38's
 /// start as its widenings are (`harness::tests::widen_east_indies`).
 #[test]
@@ -241,36 +236,257 @@ fn great_lakes_long_word_corrections_change_nothing() {
     );
 }
 
-/// One test per whole pair, its audit pinned: `(seed, clock, gaia)`
+/// **Great Sahara's long word** (run383, 24,000 frames), the third map's
+/// (Loop 3801), stood up from run381's start as `third::walk_sahara` is.
+#[test]
+fn great_sahara_long_word_corrections_change_nothing() {
+    audit_and_pin(
+        "LONG_WORD_GREAT_SAHARA",
+        &[crate::diff::third::SAHARA_START],
+        crate::diff::third::SAHARA_LONG,
+        LONG_WORD_GREAT_SAHARA,
+        &Expect {
+            attempted: (1, 20, 8),
+            reseats_changed: 0,
+            first_reseats: &[],
+        },
+    );
+}
+
+/// **Great Sahara at Toughest** (run470, 15,432 frames), the third map in
+/// the second pair's lobby (Loop 3801), stood up from run468's start as
+/// its walks are.
+#[test]
+fn great_sahara_toughest_corrections_change_nothing() {
+    audit_and_pin(
+        "THIRD_WORD_GREAT_SAHARA_TOUGHEST",
+        &[crate::diff::sahara_toughest::TOUGHEST_START],
+        crate::diff::sahara_toughest::TOUGHEST_LONG,
+        THIRD_WORD_GREAT_SAHARA_TOUGHEST,
+        &Expect {
+            attempted: (1, 20, 8),
+            reseats_changed: 0,
+            first_reseats: &[],
+        },
+    );
+}
+
+/// **The third pair's East Indies word** (run600, 17,379 frames), stood
+/// up from run595's start as `third_pair`'s walk is (Loop 3801).
+#[test]
+fn third_pair_east_indies_corrections_change_nothing() {
+    audit_and_pin(
+        "THIRD_PAIR_WORD_EAST_INDIES",
+        &[crate::diff::third_pair::EAST_START],
+        crate::diff::third_pair::EAST_LONG,
+        THIRD_PAIR_WORD_EAST_INDIES,
+        &Expect {
+            attempted: (1, 116, 104),
+            reseats_changed: 0,
+            first_reseats: &[],
+        },
+    );
+}
+
+/// **The third pair's Great Lakes word** (run598, 5,638 frames), stood up from
+/// run597's start as `third_pair`'s walk is (Loop 3801).
+#[test]
+fn third_pair_great_lakes_corrections_change_nothing() {
+    audit_and_pin(
+        "THIRD_PAIR_WORD_GREAT_LAKES",
+        &[crate::diff::third_pair::LAKES_START],
+        crate::diff::third_pair::LAKES_LONG,
+        THIRD_PAIR_WORD_GREAT_LAKES,
+        &Expect {
+            attempted: (1, 52, 40),
+            reseats_changed: 0,
+            first_reseats: &[],
+        },
+    );
+}
+
+/// One test per whole game, its audit pinned: `(seed, clock, gaia)`
 /// attempted, the re-seats that changed and the first [`NAMED`] of them.
+/// A row is any const with a `name`, a `start` sibling, a `long` capture
+/// and a `length` — a `coverage_pair::Pair` or a `battery::Lobby` (item
+/// 3801) — and its name joins [`AUDITED_ROWS`], which the scoreboard's
+/// guard reads.
 macro_rules! audited {
-    ($($test:ident: $pair:path => $att:expr, $n:expr, [$($k:expr),* $(,)?];)*) => {$(
-        #[test]
-        fn $test() {
-            audit_pair(
-                &$pair,
-                &Expect {
-                    attempted: $att,
-                    reseats_changed: $n,
-                    first_reseats: &[$($k),*],
-                },
-            );
+    ($($test:ident: $game:path => $att:expr, $n:expr, [$($k:expr),* $(,)?];)*) => {
+        $(
+            #[test]
+            fn $test() {
+                audit_and_pin(
+                    $game.name,
+                    &[$game.start],
+                    $game.long,
+                    $game.length,
+                    &Expect {
+                        attempted: $att,
+                        reseats_changed: $n,
+                        first_reseats: &[$($k),*],
+                    },
+                );
+            }
+        )*
+        /// Every `audited!` row's game, as the handoff's lines name it.
+        const AUDITED_ROWS: &[&str] = &[$($game.name),*];
+    };
+}
+
+/// The audits written out by hand, `(line, word)` as the handoff names
+/// them: a bare map name is on more than one line (`EastIndies` is a long
+/// capture and the second pair), so these carry their line.
+const HAND_AUDITED: &[(&str, &str)] = &[
+    ("Long captures", "EastIndies"),
+    ("Long captures", "GreatLakes"),
+    ("Third map", "GreatSahara"),
+    ("Third map", "GreatSaharaToughest"),
+    ("Third pair", "EastIndiesFrench"),
+    ("Third pair", "GreatLakesFrench"),
+];
+
+/// Whole words on an audited line that have no audit yet, `(line, word,
+/// why)` — the guard holds this list to exactly the words missing, so a
+/// word that gains its row fails until it is struck here, and a word that
+/// closes without one fails until it is given a row or a line here (Loop
+/// 3801 found these beside the third map's; which of them the audit owes
+/// is the pass's).
+const OWED: &[(&str, &str, &str)] = &[
+    (
+        "Second pair",
+        "EastIndies",
+        "stood up by `second::walk_second`, not one start sibling",
+    ),
+    (
+        "Second pair",
+        "GreatLakes",
+        "stood up by `second::walk_second`, not one start sibling",
+    ),
+    (
+        "Melee",
+        "GreatSaharaGunpowderMelee",
+        "a staged game: `audit_walk` stages no script",
+    ),
+    (
+        "Melee",
+        "GreatSaharaClassicalMelee",
+        "a staged game: `audit_walk` stages no script",
+    ),
+];
+
+/// The handoff's lines whose whole words the audit owes (Loop 3801, the
+/// sixty-fourth pass's corrected ruling): every line of `<word> w<N> of
+/// <length>` parts — `Battery word:` among them, its lobbies promoted out
+/// of the held-out battery and debugged against — but `Scoreboard:`, whose
+/// parts are the score runs' ticks and orders and never read `of <length>`
+/// (its maps' whole games are the `Long captures:` and `Third map:` lines).
+/// The held-out battery itself (`Held-out:`, `battery::BATTERY`) is no
+/// `w<N> of` line and is not audited: it is scored by its first try.
+const AUDITED_LINES: &[&str] = &[
+    "Long captures",
+    "Battery word",
+    "Second pair",
+    "Third pair",
+    "Coverage pair",
+    "Successor pair",
+    "Peace pair",
+    "Late ages",
+    "Third map",
+    "Melee",
+];
+
+/// The line the guard leaves out, with its reason above.
+const UNAUDITED_LINES: &[&str] = &["Scoreboard"];
+
+/// **Every whole word the handoff names is audited** (Loop 3801). A word is
+/// whole when its line reads `w<N> of <N>`; each one on [`AUDITED_LINES`]
+/// must be an `audited!` row or a [`HAND_AUDITED`] test, so a game that
+/// closes without its row is named here rather than passing unseen. The
+/// queue's lines are read with the floors guards' own parser
+/// (`floors::ai_line_parts`), and a line of `w<N> of` parts that neither
+/// list names fails too, so a new line cannot slip past the audit.
+#[test]
+fn every_whole_scoreboard_word_is_audited() {
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+    let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+    let mut missing = Vec::new();
+    for prefix in AUDITED_LINES {
+        let head = format!("{prefix}:");
+        let line = q
+            .lines()
+            .find(|l| l.starts_with(&head))
+            .unwrap_or_else(|| panic!("docs/QUEUE.md has no `{head}` line"));
+        let parts = super::floors::ai_line_parts(line, prefix).unwrap_or_else(|e| panic!("{e}"));
+        for (word, w, length) in parts {
+            if w < length {
+                continue;
+            }
+            let audited = AUDITED_ROWS.contains(&word.as_str())
+                || HAND_AUDITED.contains(&(*prefix, word.as_str()));
+            let owed = OWED.iter().any(|(l, w, _)| l == prefix && *w == word);
+            if audited == owed {
+                missing.push(format!(
+                    "{prefix}: {word} ({})",
+                    if owed {
+                        "audited and still OWED"
+                    } else {
+                        "no audit"
+                    }
+                ));
+            }
         }
-    )*};
+    }
+    // Any other line the same parser reads whole is a scoreboard line too.
+    let unlisted: Vec<&str> = q
+        .lines()
+        .filter_map(|l| l.split_once(':').map(|(p, _)| (p, l)))
+        .filter(|(p, _)| !AUDITED_LINES.contains(p) && !UNAUDITED_LINES.contains(p))
+        .filter(|(p, l)| super::floors::ai_line_parts(l, p).is_ok())
+        .map(|(p, _)| p)
+        .collect();
+    assert!(
+        unlisted.is_empty(),
+        "docs/QUEUE.md carries `w<N> of <length>` lines the audit's guard does not \
+         name: {unlisted:?}; add each to AUDITED_LINES or, with its reason, to \
+         UNAUDITED_LINES"
+    );
+    assert!(
+        missing.is_empty(),
+        "whole words on the handoff with no correction audit: {missing:?}; give \
+         each an `audited!` row (or a hand-written audit in HAND_AUDITED), its \
+         tuple measured by the replay, and strike an audited word from OWED"
+    );
+    let stale: Vec<_> = OWED
+        .iter()
+        .filter(|(l, w, _)| {
+            let line = q.lines().find(|x| x.starts_with(&format!("{l}:")));
+            let parts = line.and_then(|x| super::floors::ai_line_parts(x, l).ok());
+            !parts.is_some_and(|ps| ps.iter().any(|(m, a, n)| m == w && a >= n))
+        })
+        .collect();
+    assert!(
+        stale.is_empty(),
+        "OWED names words that are not whole on the handoff: {stale:?}"
+    );
 }
 
 audited! {
     american_enlightenment_pair_corrections_change_nothing: crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT => (1, 132, 104), 0, [];
     american_industrial_pair_corrections_change_nothing: crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL => (1, 35, 8), 0, [];
     american_information_pair_corrections_change_nothing: crate::diff::american_information_pair::AMERICAN_INFORMATION => (1, 67, 40), 0, [];
+    american_lakes_word_corrections_change_nothing: crate::diff::american_lakes_word::AMERICAN_LAKES => (1, 52, 40), 0, [];
     american_modern_pair_corrections_change_nothing: crate::diff::american_modern_pair::AMERICAN_MODERN => (1, 35, 8), 0, [];
+    american_word_corrections_change_nothing: crate::diff::american_word::AMERICAN => (1, 116, 104), 0, [];
     aztec_alltech_pair_corrections_change_nothing: crate::diff::aztec_alltech_pair::AZTEC_ALLTECH => (1, 35, 8), 0, [];
     aztec_ancient_pair_corrections_change_nothing: crate::diff::aztec_ancient_pair::AZTEC_ANCIENT => (1, 132, 104), 0, [];
     aztec_medieval_pair_corrections_change_nothing: crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL => (1, 36, 8), 0, [];
     aztec_modern_pair_corrections_change_nothing: crate::diff::aztec_modern_pair::AZTEC_MODERN => (1, 67, 40), 0, [];
+    aztec_word_corrections_change_nothing: crate::diff::aztec_word::AZTEC => (1, 20, 8), 0, [];
     bantu_ancient_pair_corrections_change_nothing: crate::diff::bantu_ancient_pair::BANTU_ANCIENT => (1, 132, 104), 0, [];
     bantu_medieval_pair_corrections_change_nothing: crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL => (1, 36, 8), 0, [];
     bantu_modern_pair_corrections_change_nothing: crate::diff::bantu_modern_pair::BANTU_MODERN => (1, 67, 40), 0, [];
+    bantu_word_corrections_change_nothing: crate::diff::bantu_word::BANTU => (1, 20, 8), 0, [];
     british_classical_pair_corrections_change_nothing: crate::diff::british_classical_pair::BRITISH_CLASSICAL => (1, 132, 104), 0, [];
     british_enlightenment_pair_corrections_change_nothing: crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT => (1, 132, 104), 0, [];
     british_industrial_pair_corrections_change_nothing: crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL => (1, 35, 8), 0, [];
@@ -283,44 +499,61 @@ audited! {
     chinese_modern_pair_corrections_change_nothing: crate::diff::chinese_modern_pair::CHINESE_MODERN => (1, 131, 104), 0, [];
     coverage_pair_corrections_change_nothing: crate::diff::coverage_pair::COVERAGE => (1, 131, 104), 0, [];
     dutch_medieval_pair_corrections_change_nothing: crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL => (1, 138, 104), 0, [];
+    dutch_sahara_word_corrections_change_nothing: crate::diff::dutch_sahara_word::DUTCH_SAHARA => (1, 23, 8), 0, [];
+    dutch_word_corrections_change_nothing: crate::diff::dutch_word::DUTCH => (1, 122, 104), 0, [];
     egyptian_classical_pair_corrections_change_nothing: crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL => (1, 132, 104), 0, [];
     egyptian_gunpowder_pair_corrections_change_nothing: crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER => (1, 36, 8), 0, [];
     egyptian_industrial_pair_corrections_change_nothing: crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL => (1, 131, 104), 0, [];
     egyptian_information_pair_corrections_change_nothing: crate::diff::egyptian_information_pair::EGYPTIAN_INFORMATION => (1, 67, 40), 0, [];
     egyptian_modern_pair_corrections_change_nothing: crate::diff::egyptian_modern_pair::EGYPTIAN_MODERN => (1, 67, 40), 0, [];
+    egyptian_word_corrections_change_nothing: crate::diff::egyptian_word::EGYPTIAN => (1, 20, 8), 0, [];
     french_classical_pair_corrections_change_nothing: crate::diff::french_classical_pair::FRENCH_CLASSICAL => (1, 36, 8), 0, [];
     french_enlightenment_pair_corrections_change_nothing: crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT => (1, 132, 104), 0, [];
     french_information_pair_corrections_change_nothing: crate::diff::french_information_pair::FRENCH_INFORMATION => (1, 35, 8), 0, [];
     french_medieval_pair_corrections_change_nothing: crate::diff::french_medieval_pair::FRENCH_MEDIEVAL => (1, 68, 40), 0, [];
+    french_word_corrections_change_nothing: crate::diff::french_word::FRENCH => (1, 20, 8), 0, [];
     german_alltech_pair_corrections_change_nothing: crate::diff::german_alltech_pair::GERMAN_ALLTECH => (1, 131, 104), 0, [];
     german_ancient_pair_corrections_change_nothing: crate::diff::german_ancient_pair::GERMAN_ANCIENT => (1, 36, 8), 0, [];
     german_industrial_pair_corrections_change_nothing: crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL => (1, 67, 40), 0, [];
     german_modern_pair_corrections_change_nothing: crate::diff::german_modern_pair::GERMAN_MODERN => (1, 67, 40), 0, [];
+    german_sahara_word_corrections_change_nothing: crate::diff::german_sahara_word::GERMAN_SAHARA => (1, 20, 8), 0, [];
+    german_word_corrections_change_nothing: crate::diff::german_word::GERMAN => (1, 116, 104), 0, [];
     greek_classical_pair_corrections_change_nothing: crate::diff::greek_classical_pair::GREEK_CLASSICAL => (1, 132, 104), 0, [];
     greek_enlightenment_pair_corrections_change_nothing: crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT => (1, 68, 40), 0, [];
     greek_gunpowder_pair_corrections_change_nothing: crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER => (1, 36, 8), 0, [];
     greek_medieval_pair_corrections_change_nothing: crate::diff::greek_medieval_pair::GREEK_MEDIEVAL => (1, 132, 104), 0, [];
+    greek_word_corrections_change_nothing: crate::diff::greek_word::GREEK => (1, 20, 8), 0, [];
     inca_classical_pair_corrections_change_nothing: crate::diff::inca_classical_pair::INCA_CLASSICAL => (1, 132, 104), 0, [];
     inca_enlightenment_pair_corrections_change_nothing: crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT => (1, 36, 8), 0, [];
     inca_industrial_pair_corrections_change_nothing: crate::diff::inca_industrial_pair::INCA_INDUSTRIAL => (1, 67, 40), 0, [];
+    inca_sahara_word_corrections_change_nothing: crate::diff::inca_sahara_word::INCA_SAHARA => (1, 20, 8), 0, [];
+    inca_word_corrections_change_nothing: crate::diff::inca_word::INCA => (1, 116, 104), 0, [];
     indian_enlightenment_pair_corrections_change_nothing: crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT => (1, 132, 104), 0, [];
+    indian_sahara_word_corrections_change_nothing: crate::diff::indian_sahara_word::INDIAN_SAHARA => (1, 20, 8), 0, [];
+    indian_word_corrections_change_nothing: crate::diff::indian_word::INDIAN => (1, 116, 104), 0, [];
     iroquois_ancient_pair_corrections_change_nothing: crate::diff::iroquois_ancient_pair::IROQUOIS_ANCIENT => (1, 36, 8), 0, [];
     iroquois_enlightenment_pair_corrections_change_nothing: crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT => (1, 132, 104), 0, [];
+    iroquois_sahara_word_corrections_change_nothing: crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA => (1, 20, 8), 0, [];
+    iroquois_word_corrections_change_nothing: crate::diff::iroquois_word::IROQUOIS => (1, 52, 40), 0, [];
     japanese_ancient_pair_corrections_change_nothing: crate::diff::japanese_ancient_pair::JAPANESE_ANCIENT => (1, 132, 104), 0, [];
     japanese_enlightenment_pair_corrections_change_nothing: crate::diff::japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT => (1, 132, 104), 0, [];
     japanese_gunpowder_pair_corrections_change_nothing: crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER => (1, 36, 8), 0, [];
     japanese_industrial_pair_corrections_change_nothing: crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL => (1, 131, 104), 0, [];
     japanese_medieval_pair_corrections_change_nothing: crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL => (1, 68, 40), 0, [];
     japanese_modern_pair_corrections_change_nothing: crate::diff::japanese_modern_pair::JAPANESE_MODERN => (1, 67, 40), 0, [];
+    japanese_word_corrections_change_nothing: crate::diff::japanese_word::JAPANESE => (1, 20, 8), 0, [];
     korean_ancient_pair_corrections_change_nothing: crate::diff::korean_ancient_pair::KOREAN_ANCIENT => (1, 133, 104), 0, [];
     korean_classical_pair_corrections_change_nothing: crate::diff::korean_classical_pair::KOREAN_CLASSICAL => (1, 37, 8), 0, [];
     korean_medieval_pair_corrections_change_nothing: crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL => (1, 69, 40), 0, [];
+    korean_word_corrections_change_nothing: crate::diff::korean_word::KOREAN => (1, 21, 8), 0, [];
     lakota_enlightenment_pair_corrections_change_nothing: crate::diff::lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT => (1, 65, 40), 0, [];
     lakota_gunpowder_pair_corrections_change_nothing: crate::diff::lakota_gunpowder_pair::LAKOTA_GUNPOWDER => (1, 33, 8), 0, [];
     lakota_medieval_pair_corrections_change_nothing: crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL => (1, 129, 104), 0, [];
     lakota_pair_corrections_change_nothing: crate::diff::lakota_pair::LAKOTA => (1, 128, 104), 0, [];
+    lakota_word_corrections_change_nothing: crate::diff::lakota_word::LAKOTA => (1, 49, 40), 0, [];
     maya_ancient_pair_corrections_change_nothing: crate::diff::maya_ancient_pair::MAYA_ANCIENT => (1, 132, 104), 0, [];
     maya_information_pair_corrections_change_nothing: crate::diff::maya_information_pair::MAYA_INFORMATION => (1, 67, 40), 0, [];
+    maya_word_corrections_change_nothing: crate::diff::maya_word::MAYA => (1, 20, 8), 0, [];
     mongol_classical_pair_corrections_change_nothing: crate::diff::mongol_classical_pair::MONGOL_CLASSICAL => (1, 36, 8), 0, [];
     mongol_enlightenment_pair_corrections_change_nothing: crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT => (1, 68, 40), 0, [];
     mongol_gunpowder_pair_corrections_change_nothing: crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER => (1, 132, 104), 0, [];
@@ -329,20 +562,27 @@ audited! {
     persian_classical_pair_corrections_change_nothing: crate::diff::persian_classical_pair::PERSIAN_CLASSICAL => (1, 68, 40), 0, [];
     persian_gunpowder_pair_corrections_change_nothing: crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER => (1, 132, 104), 0, [];
     persian_medieval_pair_corrections_change_nothing: crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL => (1, 132, 104), 0, [];
+    persian_word_corrections_change_nothing: crate::diff::persian_word::PERSIAN => (1, 52, 40), 0, [];
     roman_classical_pair_corrections_change_nothing: crate::diff::roman_classical_pair::ROMAN_CLASSICAL => (1, 36, 8), 0, [];
     roman_gunpowder_pair_corrections_change_nothing: crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER => (1, 68, 40), 0, [];
     roman_medieval_pair_corrections_change_nothing: crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL => (1, 132, 104), 0, [];
     roman_modern_pair_corrections_change_nothing: crate::diff::roman_modern_pair::ROMAN_MODERN => (1, 131, 104), 0, [];
+    roman_word_corrections_change_nothing: crate::diff::roman_word::ROMAN => (1, 116, 104), 0, [];
     russian_gunpowder_pair_corrections_change_nothing: crate::diff::russian_gunpowder_pair::RUSSIAN_GUNPOWDER => (1, 68, 40), 0, [];
     russian_information_pair_corrections_change_nothing: crate::diff::russian_information_pair::RUSSIAN_INFORMATION => (1, 131, 104), 0, [];
     russian_medieval_pair_corrections_change_nothing: crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL => (1, 36, 8), 0, [];
     russian_modern_pair_corrections_change_nothing: crate::diff::russian_modern_pair::RUSSIAN_MODERN => (1, 131, 104), 0, [];
+    russian_word_corrections_change_nothing: crate::diff::russian_word::RUSSIAN => (1, 52, 40), 0, [];
     sahara_coverage_corrections_change_nothing: crate::diff::sahara_coverage::SAHARA_COVERAGE => (1, 35, 8), 0, [];
     sahara_mongol_corrections_change_nothing: crate::diff::sahara_mongol::SAHARA_MONGOL => (1, 35, 8), 0, [];
     spanish_classical_pair_corrections_change_nothing: crate::diff::spanish_classical_pair::SPANISH_CLASSICAL => (1, 36, 8), 0, [];
+    spanish_east_word_corrections_change_nothing: crate::diff::spanish_east_word::SPANISH_EAST => (1, 116, 104), 0, [];
     spanish_gunpowder_pair_corrections_change_nothing: crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER => (1, 132, 104), 0, [];
     spanish_industrial_pair_corrections_change_nothing: crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL => (1, 67, 40), 0, [];
+    spanish_lakes_word_corrections_change_nothing: crate::diff::spanish_lakes_word::SPANISH_LAKES => (1, 52, 40), 0, [];
     spanish_modern_pair_corrections_change_nothing: crate::diff::spanish_modern_pair::SPANISH_MODERN => (1, 131, 104), 0, [];
+    spanish_word_corrections_change_nothing: crate::diff::spanish_word::SPANISH => (1, 20, 8), 0, [];
     turkish_enlightenment_pair_corrections_change_nothing: crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT => (1, 36, 8), 0, [];
     turkish_information_pair_corrections_change_nothing: crate::diff::turkish_information_pair::TURKISH_INFORMATION => (1, 131, 104), 0, [];
+    turkish_word_corrections_change_nothing: crate::diff::turkish_word::TURKISH => (1, 52, 40), 0, [];
 }

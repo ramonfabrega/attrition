@@ -21718,3 +21718,30 @@ digest-only cache). The backlog 10 → 7. The sixty-fourth is launched on two Op
 the rubric's melee count, the third melee, the correction audit, and map
 generation's first two steps. **DECISIONS 103.**
 `docs/audit/2026-10-29-fable-pass-63.md`.
+
+**2026-11-04 — the sixty-fourth Fable pass** (the `steer` session, reached
+eight hours after the drain: the commander's `ccc clear steer --then` was
+refused on a pasted draft in the steer's prompt box and nobody was told,
+Loop 3821): the sixty-fourth tranche measured — twenty landings on two
+Opus lanes from `ad287b0fe` in 11 h 39 from the commander's first session
+(the weekly limit held the loop between the pass and it); the third melee
+stood up at 623 and moved to 755 on seven combat-flight rules, then fell
+to 718 on 3814's named regression (the V2's spline built to the bit closes
+a 47-hit-point row; the ammo pool's slot order parts on 642), ruled a word
+that moved under three conditions (DECISIONS 104 §2); Great Sahara's map
+generation whole at 8 of 8 phases and Great Lakes' mask first try, so the
+territory moved for the first time, ported 529 → 541; 176.50 USD for the
+workers, 8.82 a landing, waiting 26.3 a landing against 42.0, the gate
+class 15.3 against 26.2 on the compressed cache and the capture class 0.4
+against 2.4; both lane-rule figures under, so the third lane returns;
+unit types 263 → 275 of 302, lockstep bytes 77.4 → 77.5. Built under the
+pass by three Opus 5.5 subagents, red first: the waiter prints a seeded
+hold and never arms a landing (3817, its row corrected by the
+measurement), `brief.py` refuses a `--tests` filter matching no test
+(3818), and every whole word the scoreboard names joins the correction
+audit under a guard on the queue's lines (3801, the pass's first ruling
+corrected by the subagent); the disk 102 → 144 GiB on the debug profile's
+clean, now a first act. The backlog 10 → 8. The sixty-fifth is launched on
+three Opus lanes at medium: the melee's frame 718, Great Lakes' zero-draw
+passes and East Indies' mask. **DECISIONS 104.**
+`docs/audit/2026-11-04-fable-pass-64.md`.

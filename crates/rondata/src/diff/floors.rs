@@ -101,6 +101,37 @@ pub const MAPGEN: Mapgen = Mapgen {
     ],
 };
 
+/// One of the AI track's handoff lines read part by part: `<map> w<word>
+/// of <length>`, the length with or without its comma. The one parser of
+/// those lines — the floors guards read it against `AI_WORDS`, and the
+/// correction audit's guard (`audit::every_whole_scoreboard_word_is_audited`)
+/// reads it for the whole words.
+#[cfg(test)]
+pub(crate) fn ai_line_parts(line: &str, prefix: &str) -> Result<Vec<(String, i64, i64)>, String> {
+    let mut said = Vec::new();
+    let body = line
+        .strip_prefix(prefix)
+        .and_then(|l| l.strip_prefix(':'))
+        .ok_or_else(|| format!("not a `{prefix}:` line: {line:?}"))?;
+    for part in body.split('\u{b7}') {
+        let t: Vec<&str> = part.split_whitespace().collect();
+        let word = t
+            .get(1)
+            .and_then(|w| w.strip_prefix('w'))
+            .and_then(|w| w.parse::<i64>().ok())
+            .ok_or_else(|| format!("unreadable part {part:?} on the `{prefix}:` line"))?;
+        let length = (t.get(2) == Some(&"of"))
+            .then(|| t.get(3))
+            .flatten()
+            .and_then(|n| n.replace(',', "").parse::<i64>().ok())
+            .ok_or_else(|| {
+                format!("part {part:?} on the `{prefix}:` line names no `of <length>`")
+            })?;
+        said.push((t[0].to_string(), word, length));
+    }
+    Ok(said)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -575,27 +606,7 @@ mod tests {
     /// One of the AI track's lines read part by part against its rows:
     /// `<map> w<word> of <length>`, the length with or without its comma.
     fn ai_line_verdict(line: &str, prefix: &str, rows: &[(&str, i64, i64)]) -> Result<(), String> {
-        let mut said = Vec::new();
-        let body = line
-            .strip_prefix(prefix)
-            .and_then(|l| l.strip_prefix(':'))
-            .ok_or_else(|| format!("not a `{prefix}:` line: {line:?}"))?;
-        for part in body.split('\u{b7}') {
-            let t: Vec<&str> = part.split_whitespace().collect();
-            let word = t
-                .get(1)
-                .and_then(|w| w.strip_prefix('w'))
-                .and_then(|w| w.parse::<i64>().ok())
-                .ok_or_else(|| format!("unreadable part {part:?} on the `{prefix}:` line"))?;
-            let length = (t.get(2) == Some(&"of"))
-                .then(|| t.get(3))
-                .flatten()
-                .and_then(|n| n.replace(',', "").parse::<i64>().ok())
-                .ok_or_else(|| {
-                    format!("part {part:?} on the `{prefix}:` line names no `of <length>`")
-                })?;
-            said.push((t[0].to_string(), word, length));
-        }
+        let said = ai_line_parts(line, prefix)?;
         let pinned: Vec<(String, i64, i64)> = rows
             .iter()
             .map(|(m, w, l)| (m.to_string(), *w, *l))

@@ -10,13 +10,13 @@ use super::*;
 use crate::testenv::dump;
 mod replay;
 
-const EAST_START: &str = "gamelog-run595-islands-french-toughest-start.txt";
-const EAST_LONG: (&str, &str) = (
+pub(crate) const EAST_START: &str = "gamelog-run595-islands-french-toughest-start.txt";
+pub(crate) const EAST_LONG: (&str, &str) = (
     "gamelog-run600-islands-french-toughest-24k-trace.txt",
     "rontrace-run600.log",
 );
-const LAKES_START: &str = "gamelog-run597-lakes-french-toughest-start.txt";
-const LAKES_LONG: (&str, &str) = (
+pub(crate) const LAKES_START: &str = "gamelog-run597-lakes-french-toughest-start.txt";
+pub(crate) const LAKES_LONG: (&str, &str) = (
     "gamelog-run598-lakes-french-toughest-24k-trace.txt",
     "rontrace-run598.log",
 );
