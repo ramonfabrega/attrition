@@ -69,6 +69,15 @@ pub mod site {
     pub const ROCK_SIZE: u32 = 0x006a_1540 + 0x602;
     pub const FRINGE_A: u32 = 0x006a_1cc0 + 0xf4;
     pub const FRINGE_B: u32 = 0x006a_1cc0 + 0x213;
+    pub const NUB_FOREST_X: u32 = 0x006a_93b0 + 0x183;
+    pub const NUB_FOREST_Y: u32 = 0x006a_93b0 + 0x3d8;
+    pub const FOREST_BASE: u32 = 0x006a_9a60 + 0x121;
+    pub const MOUNTAIN_BASE: u32 = 0x006a_9c10 + 0x122;
+    /// `change_coast_base`'s draw, by the same shape as the two above; no
+    /// Great Sahara cell is COAST, so no trace has printed it.
+    pub const COAST_BASE: u32 = 0x006a_9dc0 + 0x121;
+    pub const NUB_TRANS_X: u32 = 0x006a_1f30 + 0xa0;
+    pub const NUB_TRANS_Y: u32 = 0x006a_1f30 + 0x2a5;
 }
 
 /// `WData::flags` bits this phase reads and writes.
@@ -95,6 +104,8 @@ const CORNER_BOX: [(i32, i32); 4] = [(0, 0), (0, 1), (1, 0), (1, 1)];
 const REGION_TAPS: i32 = 0xB400;
 /// `move_x/move_y[0..81]`: the 9×9 square, for the pure any-tests.
 const SQUARE: i32 = 4;
+/// The `OIL` good type, `set_oil_at`'s object.
+const OIL_GOOD: i32 = 5;
 
 /// One `GROUPENTRY`, as `TerrainGroups::init_terrain_data@006a6540` parses
 /// it (`docs/MAPGEN.md` §7).
@@ -147,6 +158,15 @@ pub struct TilesetGroups {
     /// `num_tiles[0]`: what `clear_group`'s first branch writes back as
     /// `land_sub − 1`'s base. Unreached on Great Sahara.
     pub base_tiles: i32,
+    /// `FOREST_BASE`, `MOUNTAIN_BASE`, `COAST_BASE` and their growth
+    /// chances, as `TileSet::init@0087b370` reads them (−1 when absent): a
+    /// negative base skips its `change_*_base` pass.
+    pub forest_base: i32,
+    pub forest_growth_prob: i32,
+    pub mountain_base: i32,
+    pub mountain_growth_prob: i32,
+    pub coast_base: i32,
+    pub coast_growth_prob: i32,
 }
 
 /// What `place_all` reads that is not the grid: the groups, the sixteen
@@ -289,92 +309,30 @@ impl Pass<'_> {
         tx >= 0 && ty >= 0 && tx < w && ty < h
     }
 
-    /// The cell that owns a tile.
-    fn owner(&mut self, tx: i32, ty: i32) -> &mut crate::mapgen::WCell {
-        let i = self.at(tx >> 2, ty >> 2);
-        &mut self.g.cells[i]
-    }
-
     /// `WorldData::has_mountain_tcoords@006b3050`: any of the cell's 16
     /// tiles is mountain (`mask & 3 == 2`).
     fn mountain_tiles(&self, x: i32, y: i32) -> bool {
         (0..16).any(|j| self.g.tiles[self.tile_at(4 * x + (j & 3), 4 * y + (j >> 2))] & 3 == 2)
     }
 
-    /// `WorldData::has_blocked_neighbors@006b2990`.
-    fn blocked_neighbours(&self, tx: i32, ty: i32) -> bool {
-        (1..=8).any(|k| {
-            let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
-            self.tile_inb(u, v) && self.g.tiles[self.tile_at(u, v)] & 0x4000 != 0
-        })
-    }
-
-    /// **`World::set_blocked_at@006b4900`**: the tile's 0x4000, its owner's
-    /// `blocked`/`solid`, and the 0x2000 "beside a blocked tile" mark with
-    /// its owner's `bad` count, on the tile and its eight neighbours — in
-    /// call order, which is why the callers block in the original's order.
-    /// `set_road_at(…, 0, 0, 0)` is the ROAD flag's clear: no road exists
-    /// before the first frame.
     fn set_blocked(&mut self, tx: i32, ty: i32, on: bool) {
-        let i = self.tile_at(tx, ty);
-        let m = self.g.tiles[i];
-        if on {
-            if m & 0x4000 == 0 {
-                let c = self.owner(tx, ty);
-                c.blocked = c.blocked.wrapping_add(1);
-                c.solid = c.solid.wrapping_add(1);
-            }
-            let mut m = m | 0x4000;
-            if m & 0x2000 != 0 {
-                let c = self.owner(tx, ty);
-                c.bad = c.bad.wrapping_sub(1);
-            }
-            m &= !0x2000;
-            self.g.tiles[i] = m;
-            self.owner(tx, ty).flags &= !flag::ROAD;
-        } else {
-            if m & 0x4000 != 0 {
-                let c = self.owner(tx, ty);
-                c.blocked = c.blocked.wrapping_sub(1);
-                c.solid = c.solid.wrapping_sub(1);
-            }
-            self.g.tiles[i] = m & 0x3fff;
-        }
-        for k in 1..=8 {
-            let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
-            if !self.tile_inb(u, v) {
-                continue;
-            }
-            let j = self.tile_at(u, v);
-            if on {
-                if self.g.tiles[j] & 0x2000 == 0 {
-                    let c = self.owner(u, v);
-                    c.bad = c.bad.wrapping_add(1);
-                    self.g.tiles[j] |= 0x2000;
-                }
-            } else if !self.blocked_neighbours(u, v) {
-                if self.g.tiles[j] & 0x2000 != 0 {
-                    let c = self.owner(u, v);
-                    c.bad = c.bad.wrapping_sub(1);
-                }
-                self.g.tiles[j] &= !0x2000;
-            }
-        }
-        if !on && self.blocked_neighbours(tx, ty) {
-            if self.g.tiles[i] & 0x2000 == 0 {
-                let c = self.owner(tx, ty);
-                c.bad = c.bad.wrapping_add(1);
-            }
-            self.g.tiles[i] |= 0x2000;
-        }
+        set_blocked_at(self.g, tx, ty, on);
     }
 
-    /// `World::set_oil_at@006b2a10`'s cell write. The OIL goods object it
-    /// also makes is not held: no part walks it.
+    /// **`World::set_oil_at@006b2a10`**: any live oil good on the cell is
+    /// killed (listing 0x6b2a10..0x6b2ab6, both arms), then on the OIL flag
+    /// and a fresh oil good at the cell's centre, off the flag cleared. No
+    /// part walks the good; its slot is what a later good's index counts.
     fn set_oil(&mut self, x: i32, y: i32, on: bool) {
+        for slot in &mut self.g.goods {
+            if *slot == Some((OIL_GOOD, x, y)) {
+                *slot = None;
+            }
+        }
         let i = self.at(x, y);
         if on {
             self.g.cells[i].flags |= flag::OIL;
+            self.g.init_good(OIL_GOOD, x, y);
         } else {
             self.g.cells[i].flags &= 0xf7ff;
         }
@@ -1635,6 +1593,360 @@ fn treeify_mountains(p: &mut Pass<'_>, prob: i32) {
                     p.g.cells[i].land = 0;
                 }
                 break;
+            }
+        }
+    }
+}
+
+/// **`World::set_blocked_at@006b4900`**: the tile's 0x4000, its owner's
+/// `blocked`/`solid`, and the 0x2000 "beside a blocked tile" mark with
+/// its owner's `bad` count, on the tile and its eight neighbours — in
+/// call order, which is why the callers block in the original's order.
+/// `set_road_at(…, 0, 0, 0)` is the ROAD flag's clear: no road exists
+/// before the first frame.
+pub(crate) fn set_blocked_at(g: &mut MapGrid, tx: i32, ty: i32, on: bool) {
+    let i = tile_at(g, tx, ty);
+    let m = g.tiles[i];
+    if on {
+        if m & 0x4000 == 0 {
+            let c = owner(g, tx, ty);
+            c.blocked = c.blocked.wrapping_add(1);
+            c.solid = c.solid.wrapping_add(1);
+        }
+        let mut m = m | 0x4000;
+        if m & 0x2000 != 0 {
+            let c = owner(g, tx, ty);
+            c.bad = c.bad.wrapping_sub(1);
+        }
+        m &= !0x2000;
+        g.tiles[i] = m;
+        owner(g, tx, ty).flags &= !flag::ROAD;
+    } else {
+        if m & 0x4000 != 0 {
+            let c = owner(g, tx, ty);
+            c.blocked = c.blocked.wrapping_sub(1);
+            c.solid = c.solid.wrapping_sub(1);
+        }
+        g.tiles[i] = m & 0x3fff;
+    }
+    for k in 1..=8 {
+        let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
+        if !tile_inb(g, u, v) {
+            continue;
+        }
+        let j = tile_at(g, u, v);
+        if on {
+            if g.tiles[j] & 0x2000 == 0 {
+                let c = owner(g, u, v);
+                c.bad = c.bad.wrapping_add(1);
+                g.tiles[j] |= 0x2000;
+            }
+        } else if !blocked_neighbours(g, u, v) {
+            if g.tiles[j] & 0x2000 != 0 {
+                let c = owner(g, u, v);
+                c.bad = c.bad.wrapping_sub(1);
+            }
+            g.tiles[j] &= !0x2000;
+        }
+    }
+    if !on && blocked_neighbours(g, tx, ty) {
+        if g.tiles[i] & 0x2000 == 0 {
+            let c = owner(g, tx, ty);
+            c.bad = c.bad.wrapping_add(1);
+        }
+        g.tiles[i] |= 0x2000;
+    }
+}
+
+fn tile_at(g: &MapGrid, tx: i32, ty: i32) -> usize {
+    (ty * 4 * g.xs + tx) as usize
+}
+
+fn tile_inb(g: &MapGrid, tx: i32, ty: i32) -> bool {
+    let (w, h) = g.tile_dims();
+    tx >= 0 && ty >= 0 && tx < w && ty < h
+}
+
+fn owner(g: &mut MapGrid, tx: i32, ty: i32) -> &mut crate::mapgen::WCell {
+    let i = ((ty >> 2) * g.xs + (tx >> 2)) as usize;
+    &mut g.cells[i]
+}
+
+fn blocked_neighbours(g: &MapGrid, tx: i32, ty: i32) -> bool {
+    (1..=8).any(|k| {
+        let (u, v) = (tx + MOVE_X[k], ty + MOVE_Y[k]);
+        tile_inb(g, u, v) && g.tiles[tile_at(g, u, v)] & 0x4000 != 0
+    })
+}
+
+/// `orthog_x/orthog_y[1..=4]` read straight from the tables, as the
+/// `change_*_base` passes index them: north, east, south, west.
+const ORTHOG_TABLE: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+
+/// **`map.cpp` 7865 → 7870** (`docs/MAPGEN.md` §7, §15 step 3's tail):
+/// the `change_*_base` passes whose base the tileset names, in forest,
+/// mountain, coast order, then `TerrainGroups::fix_transitions@006a9f70`.
+/// [`nubify_forest`] (7861 → 7865) runs before them, and only inside
+/// `place_all`'s semaphore block; `Map::check_player_forest` between 7859
+/// and 7861 draws nothing and moves no part.
+pub fn change_bases(grid: &mut MapGrid, d: &mut Draws, ts: &TilesetGroups) {
+    change_base(
+        grid,
+        d,
+        ts.forest_base,
+        ts.forest_growth_prob,
+        site::FOREST_BASE,
+        Base::Forest,
+    );
+    change_base(
+        grid,
+        d,
+        ts.mountain_base,
+        ts.mountain_growth_prob,
+        site::MOUNTAIN_BASE,
+        Base::Mountain,
+    );
+    change_base(
+        grid,
+        d,
+        ts.coast_base,
+        ts.coast_growth_prob,
+        site::COAST_BASE,
+        Base::Coast,
+    );
+    fix_transitions(grid, d);
+}
+
+/// **`TerrainGroups::nubify_forest@006a93b0`**: along each column (then
+/// each row) of the interior, a run of four cells whose same side is forest
+/// draws `r & 3` and re-forests the cell that far back on that side — which
+/// the run makes forest already, so the pass clears its COAST, ROCK and
+/// MOUNTAIN bits and little else. A start-city cell, a water cell or a
+/// cell on a region edge is left alone; the run restarts either way.
+pub fn nubify_forest(g: &mut MapGrid, d: &mut Draws) {
+    let (xs, ys) = (g.xs, g.ys);
+    let forest =
+        |g: &MapGrid, x: i32, y: i32| g.cells[(y * xs + x) as usize].flags & flag::FOREST != 0;
+    // `(u, v)` is the cell `(x, y)` along a column, or `(y, x)` along a row.
+    for column in [true, false] {
+        let (outer, inner) = if column { (xs, ys) } else { (ys, xs) };
+        for u in 1..outer - 1 {
+            let (mut side, mut run) = (0, 0);
+            for v in 1..inner - 1 {
+                let at = |a: i32, b: i32| if column { (a, b) } else { (b, a) };
+                let (x, y) = at(u, v);
+                if !forest(g, x, y) {
+                    run = 0;
+                    continue;
+                }
+                let (px, py) = at(u + 1, v);
+                let (mx, my) = at(u - 1, v);
+                let (plus, minus) = (forest(g, px, py), forest(g, mx, my));
+                if (plus && side == 1) || (minus && side == -1) {
+                    run += 1;
+                    if run <= 3 {
+                        continue;
+                    }
+                    run = 0;
+                    let site = if column {
+                        site::NUB_FOREST_X
+                    } else {
+                        site::NUB_FOREST_Y
+                    };
+                    let back = d.get(site) & 3;
+                    let (tx, ty) = at(u + side, v - back);
+                    nub_forest_cell(g, tx, ty);
+                } else if plus && minus {
+                    run = 0;
+                } else {
+                    run = 1;
+                    side = if plus { 1 } else { -i32::from(minus) };
+                }
+            }
+        }
+    }
+}
+
+fn nub_forest_cell(g: &mut MapGrid, x: i32, y: i32) {
+    let i = (y * g.xs + x) as usize;
+    if g.city[i] || g.cells[i].is_ocean() || edge_of_region(g, x, y) {
+        return;
+    }
+    let c = &mut g.cells[i];
+    let land = if c.flags & flag::COAST != 0 {
+        2
+    } else {
+        c.land
+    };
+    if land >= 0 {
+        c.land = land;
+    }
+    c.flags = (c.flags & 0xffc3) | flag::FOREST;
+}
+
+/// `World::is_edge_of_region@006b3180`: an in-bounds neighbour of the
+/// eight in another region.
+fn edge_of_region(g: &MapGrid, x: i32, y: i32) -> bool {
+    let r = g.cells[(y * g.xs + x) as usize].region;
+    (1..=8).any(|k| {
+        let (u, v) = (x + MOVE_X[k], y + MOVE_Y[k]);
+        u >= 0 && v >= 0 && u < g.xs && v < g.ys && g.cells[(v * g.xs + u) as usize].region != r
+    })
+}
+
+/// Which cells a `change_*_base` pass grows from.
+#[derive(Clone, Copy)]
+enum Base {
+    Forest,
+    Mountain,
+    Coast,
+}
+
+/// **`TerrainGroups::change_forest_base@006a9a60`**, `change_mountain_base
+/// @006a9c10` and `change_coast_base@006a9dc0`: every source cell (forest,
+/// mountain art, COAST), scanned column by column, takes `land` 0 and the
+/// base as `land_sub`; each in-bounds orthogonal neighbour that is no source
+/// and not `land` 2 then draws once, and takes the same at `r % 100 <
+/// prob`. A grown neighbour is not a source, so the pass does not spread.
+fn change_base(g: &mut MapGrid, d: &mut Draws, base: i32, prob: i32, site: u32, kind: Base) {
+    if base < 0 {
+        return;
+    }
+    let source = |g: &MapGrid, x: i32, y: i32| {
+        let f = g.cells[(y * g.xs + x) as usize].flags;
+        match kind {
+            Base::Forest => f & flag::FOREST != 0,
+            Base::Coast => f & flag::COAST != 0,
+            Base::Mountain => (0..16).any(|j| {
+                let (tx, ty) = (4 * x + (j & 3), 4 * y + (j >> 2));
+                g.tiles[(ty * 4 * g.xs + tx) as usize] & 3 == 2
+            }),
+        }
+    };
+    let set = |c: &mut crate::mapgen::WCell| {
+        c.land_sub = base as u8;
+        c.land = 0;
+    };
+    for x in 0..g.xs {
+        for y in 0..g.ys {
+            if !source(g, x, y) {
+                continue;
+            }
+            set(&mut g.cells[(y * g.xs + x) as usize]);
+            for (dx, dy) in ORTHOG_TABLE {
+                let (u, v) = (x + dx, y + dy);
+                if u < 0 || v < 0 || u >= g.xs || v >= g.ys || source(g, u, v) {
+                    continue;
+                }
+                let i = (v * g.xs + u) as usize;
+                if g.cells[i].land != 2 && d.get(site) % 100 < prob {
+                    set(&mut g.cells[i]);
+                }
+            }
+        }
+    }
+}
+
+/// **`TerrainGroups::fix_transitions@006a9f70`**: nubs on fertility 3, then
+/// every land-0 fertility-3 cell's eight neighbours that are neither water
+/// (unless COAST) nor already 2 or 3 drop to 2; the same from 2 down to 1;
+/// then nubs on 1.
+fn fix_transitions(g: &mut MapGrid, d: &mut Draws) {
+    nubify_transitions(g, d, 3);
+    step_down(g, 3, &[3, 2], 2);
+    nubify_transitions(g, d, 2);
+    step_down(g, 2, &[3, 2, 1], 1);
+    nubify_transitions(g, d, 1);
+}
+
+fn step_down(g: &mut MapGrid, from: u8, keep: &[u8], to: u8) {
+    for x in 0..g.xs {
+        for y in 0..g.ys {
+            let c = g.cells[(y * g.xs + x) as usize];
+            if c.land != 0 || c.land_sub != from {
+                continue;
+            }
+            for k in 1..=8 {
+                let (u, v) = (x + MOVE_X[k], y + MOVE_Y[k]);
+                if u < 0 || v < 0 || u >= g.xs || v >= g.ys {
+                    continue;
+                }
+                let n = &mut g.cells[(v * g.xs + u) as usize];
+                if n.is_ocean() && n.flags & flag::COAST == 0 {
+                    continue;
+                }
+                if n.land != 0 || !keep.contains(&n.land_sub) {
+                    n.land = 0;
+                    n.land_sub = to;
+                }
+            }
+        }
+    }
+}
+
+/// **`TerrainGroups::nubify_transitions@006a1f30`**: a run of five land-0,
+/// non-COAST cells of fertility `n` down a column draws `r % 3` and raises
+/// the west neighbour of the cell 1..3 back to `n` when it sits below `n`
+/// (else the east one); a run of four along a row draws `r & 3` and raises
+/// the cell above (else below) the one 0..3 back. A run whose nub found no
+/// home stays long and draws again on its next cell. The row pass bounds
+/// its rows by `xs`, as the original does.
+fn nubify_transitions(g: &mut MapGrid, d: &mut Draws, n: u8) {
+    let (xs, ys) = (g.xs, g.ys);
+    let at = |x: i32, y: i32| (y * xs + x) as usize;
+    let inb = |x: i32, y: i32| x >= 0 && y >= 0 && x < xs && y < ys;
+    let lower = |g: &MapGrid, x: i32, y: i32| {
+        let c = g.cells[at(x, y)];
+        c.flags & flag::COAST == 0 && c.land == 0 && c.land_sub < n
+    };
+    let runs = |g: &MapGrid, x: i32, y: i32| {
+        let c = g.cells[at(x, y)];
+        c.flags & flag::COAST == 0 && c.land == 0 && c.land_sub == n
+    };
+    let raise = |g: &mut MapGrid, x: i32, y: i32| {
+        let c = &mut g.cells[at(x, y)];
+        c.land_sub = n;
+        c.land = 0;
+    };
+    for x in 0..xs {
+        let mut run = 0;
+        for y in 0..ys {
+            if !runs(g, x, y) {
+                run = 0;
+                continue;
+            }
+            run += 1;
+            if run <= 4 {
+                continue;
+            }
+            let ty = y - d.get(site::NUB_TRANS_X) % 3 - 1;
+            if inb(x - 1, ty) && lower(g, x - 1, ty) {
+                raise(g, x - 1, ty);
+                run = 0;
+            } else if inb(x + 1, ty) && lower(g, x + 1, ty) {
+                raise(g, x + 1, ty);
+                run = 0;
+            }
+        }
+    }
+    for y in 0..xs {
+        let mut run = 0;
+        for x in 0..xs {
+            if !runs(g, x, y) {
+                run = 0;
+                continue;
+            }
+            run += 1;
+            if run <= 3 {
+                continue;
+            }
+            let tx = x - (d.get(site::NUB_TRANS_Y) & 3);
+            if inb(tx, y - 1) && lower(g, tx, y - 1) {
+                raise(g, tx, y - 1);
+                run = 0;
+            } else if inb(tx, y + 1) && lower(g, tx, y + 1) {
+                raise(g, tx, y + 1);
+                run = 0;
             }
         }
     }

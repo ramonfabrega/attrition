@@ -9,6 +9,7 @@
 //! [`Log::parse`] reads what it returns.
 
 use crate::gamelog::{CellDump, Log, WorldChecksum, world_cells};
+use sim::map_resources::{Footprint, GOODY, Inputs as ResourceInputs, NO_TYPE, Row};
 use sim::mapgen::{Adler32, WCell};
 use sim::terrain_groups::{Group, Inputs, Template, TilesetGroups};
 use std::io::{self, BufRead, BufReader};
@@ -430,6 +431,186 @@ pub fn terrain_groups(
     Some(out)
 }
 
+/// The goods `resourcerules.xml` lists, in record order (the good index):
+/// name, footprint, `RANDOM_RARE_DROP`, and `PREQ0`.
+fn goods_table(root: &Path) -> Option<Vec<(String, Footprint, bool, String)>> {
+    let text = std::fs::read_to_string(root.join("Data/resourcerules.xml")).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let out = doc
+        .descendants()
+        .filter(|n| n.has_tag_name("RESOURCE"))
+        .map(|r| {
+            let text = |k: &str| {
+                r.children()
+                    .find(|n| n.has_tag_name(k))
+                    .and_then(|n| n.text())
+                    .unwrap_or("")
+                    .trim()
+                    .to_string()
+            };
+            let num = |k: &str| text(k).parse::<i32>().unwrap_or(0);
+            (
+                text("NAME"),
+                Footprint {
+                    x_size: num("X_SIZE").max(1),
+                    y_size: num("Y_SIZE").max(1),
+                    block: num("BLOCK") != 0,
+                },
+                num("RANDOM_RARE_DROP") != 0,
+                text("PREQ0"),
+            )
+        })
+        .collect();
+    Some(out)
+}
+
+/// The ages from Gunpowder on: a good whose `PREQ0` names one is a late
+/// good (`ObjectTypeData::get_age` ≥ 3, `ResourceDivvyPool::add_good`).
+const LATE_AGES: [&str; 5] = [
+    "Gunpowder Age",
+    "Enlightenment Age",
+    "Industrial Age",
+    "Modern Age",
+    "Information Age",
+];
+
+/// **What `Map::place_resources@0068f4f0` reads** (`docs/MAPGEN.md` §8): the
+/// `BONUSES`, `FISH ` and `GOODIES` sections — the style file's where it has
+/// the section, even empty, else `default.xml`'s (the style's key `FISH `
+/// keeps its trailing space, which the lookup ignores) — each `BONUS` row
+/// resolved as the ladder reads it; the divvy pool's lists (goods 6..49 with
+/// `RANDOM_RARE_DROP`, the ocean's goods to the water list with Fish ten
+/// times, the rest early or late by `PREQ0`'s age); the footprints; and
+/// `default.xml`'s `LAND_<c>` rare lists. `None` for a row this reader does
+/// not take: a float-scaled count.
+pub fn resource_inputs(
+    root: &Path,
+    style_file: &str,
+    xs: i32,
+    ys: i32,
+    nations: i32,
+) -> Option<ResourceInputs> {
+    let standard = standard_map_size(root)?;
+    let read = |rel: &str| std::fs::read_to_string(root.join(rel)).ok();
+    let style_text = read(&format!("mapstyles/{style_file}"))?;
+    let default_text = read("mapstyles/default.xml")?;
+    let style = roxmltree::Document::parse(&style_text).ok()?;
+    let default = roxmltree::Document::parse(&default_text).ok()?;
+    let goods = goods_table(root)?;
+    let good_key = |name: &str| {
+        goods
+            .iter()
+            .position(|g| g.0.eq_ignore_ascii_case(name))
+            .map(|i| i as i32)
+    };
+    let mut lands: Vec<Vec<i32>> = Vec::new();
+    for land in default.descendants().filter(|n| {
+        n.tag_name()
+            .name()
+            .strip_prefix("LAND_")
+            .is_some_and(|k| k.parse::<usize>().is_ok())
+    }) {
+        let c: usize = land.tag_name().name()[5..].parse().ok()?;
+        if lands.len() <= c {
+            lands.resize(c + 1, Vec::new());
+        }
+        lands[c] = land
+            .descendants()
+            .filter(|n| n.has_tag_name("RARE"))
+            .filter_map(|n| good_key(n.attribute("name")?))
+            .collect();
+    }
+    let ocean = lands.get(2).cloned().unwrap_or_default();
+    let (mut early, mut late, mut water) = (Vec::new(), Vec::new(), Vec::new());
+    for (g, (_, _, drop, preq)) in goods.iter().enumerate().take(0x32).skip(6) {
+        if !drop {
+            continue;
+        }
+        let g = g as i32;
+        if ocean.contains(&g) {
+            water.extend(std::iter::repeat_n(g, if g == 6 { 10 } else { 1 }));
+        } else if LATE_AGES.iter().any(|a| a.eq_ignore_ascii_case(preq)) {
+            late.push(g);
+        } else {
+            early.push(g);
+        }
+    }
+    let section = |style_key: &str, default_key: &str| {
+        let find = |d: &'_ roxmltree::Document<'_>, k: &str| {
+            d.root_element()
+                .children()
+                .find(|n| n.has_tag_name(k.trim_end()))
+                .map(|n| n.range())
+        };
+        find(&style, style_key)
+            .map(|r| (true, r))
+            .or_else(|| find(&default, default_key).map(|r| (false, r)))
+    };
+    let mut sections = Vec::new();
+    let mut pattern = 0;
+    for (sk, dk) in [
+        ("BONUSES", "BONUSES"),
+        ("FISH ", "FISH"),
+        ("GOODIES", "GOODIES"),
+    ] {
+        let mut rows = Vec::new();
+        if let Some((in_style, range)) = section(sk, dk) {
+            let doc = if in_style { &style } else { &default };
+            let node = doc.descendants().find(|n| n.range() == range)?;
+            for e in node.children().filter(|n| n.has_tag_name("BONUS")) {
+                let attr = |k: &str| e.attribute(k).unwrap_or("");
+                let num = |k: &str| e.attribute(k).map_or(-1, leading_int);
+                let scaled = |k: &str| scale_number(attr(k), nations, xs, xs * ys, standard);
+                let ty = attr("type");
+                let (ty, kind) = match good_key(ty) {
+                    Some(g) => (g, 0),
+                    None if ty.eq_ignore_ascii_case("Random") => (NO_TYPE, 1),
+                    None if ty.len() >= 5 && ty[..5].eq_ignore_ascii_case("Goody") => (GOODY, 0),
+                    None if ty.eq_ignore_ascii_case("Early") => (NO_TYPE, 2),
+                    None if ty.eq_ignore_ascii_case("Late") => (NO_TYPE, 3),
+                    None => continue,
+                };
+                pattern = match attr("pattern") {
+                    "player" => 0,
+                    "continent" => 1,
+                    "world" => 2,
+                    "nonplayer" => 3,
+                    "corner" => 4,
+                    _ => pattern,
+                };
+                rows.push(Row {
+                    ty,
+                    kind,
+                    chance: num("chance"),
+                    group: num("group"),
+                    pattern,
+                    saturate: num("saturate").max(0),
+                    numrare: scaled("numrare")?,
+                    player_keep_away: num("player_keep_away"),
+                    player_stay_near: scaled("player_stay_near")?,
+                    spacing: scaled("spacing")?.max(1),
+                    group_spacing: scaled("group_spacing")?.max(1),
+                    center_keep_away: scaled("center_keep_away")?,
+                    center_stay_near: scaled("center_stay_near")?,
+                    edge_keep_away: scaled("edge_keep_away")?,
+                    edge_stay_near: scaled("edge_stay_near")?,
+                    corner_keep_away: scaled("corner_keep_away")?,
+                    corner_stay_near: scaled("corner_stay_near")?,
+                });
+            }
+        }
+        sections.push(rows);
+    }
+    Some(ResourceInputs {
+        sections,
+        early,
+        late,
+        water,
+        goods: goods.iter().map(|g| g.1).collect(),
+        lands,
+    })
+}
+
 /// The tileset's `TERRAINGROUP` numbers `place_all` reads, for the style's
 /// one tileset ([`fertility`]'s), and `num_tiles[0]`, its `BASELAND` count.
 pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
@@ -459,6 +640,12 @@ pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
         mnt_rock_clump_prob: value("MOUNTAIN_ROCK_CLUMP_PROB"),
         mnt_fringe_tree_prob: value("MOUNTAIN_FRINGE_TREE_PROB"),
         base_tiles,
+        forest_base: value("FOREST_BASE"),
+        forest_growth_prob: value("FOREST_GROWTH_PROB"),
+        mountain_base: value("MOUNTAIN_BASE"),
+        mountain_growth_prob: value("MOUNTAIN_GROWTH_PROB"),
+        coast_base: value("COAST_BASE"),
+        coast_growth_prob: value("COAST_GROWTH_PROB"),
     })
 }
 
@@ -503,12 +690,13 @@ pub fn place_all_inputs(
     })
 }
 
-/// The draws of `place_all` in a draw-site trace: from the first
-/// `Mountains::randomize_mountains` draw to the last before the first
-/// `TerrainGroups::nubify_forest` draw (`docs/MAPGEN.md` §2: nothing between
-/// draws). Reads only that far. `None` for a file that is not a trace, or
-/// whose setup path never reaches `nubify_forest`.
-pub fn place_all_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
+/// The draws of `Map::make` in a draw-site trace from `place_all` on: from
+/// the first `Mountains::randomize_mountains` draw to the last before the
+/// first `World::compute_val@006b0350` draw (`docs/MAPGEN.md` §2: `place_all`,
+/// its tail at 7861..7870 and `place_resources`, with nothing drawing
+/// between them). Reads only that far. `None` for a file that is not a
+/// trace, or whose setup path never reaches `compute_all_vals`.
+pub fn make_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
     use crate::trace::{IMAGE_BASE, RVA_GAME_RANDOM};
     use std::io::Read;
     let mut r = BufReader::with_capacity(1 << 16, std::fs::File::open(path)?);
@@ -525,7 +713,7 @@ pub fn place_all_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
             2 => return Ok(None),
             1 | 3 if norm(word(&rec, 8)) == IMAGE_BASE + RVA_GAME_RANDOM => {
                 let site = norm(word(&rec, 4));
-                if (0x006a_93b0..0x006a_9a60).contains(&site) && !out.is_empty() {
+                if (0x006b_0350..0x006b_07f0).contains(&site) && !out.is_empty() {
                     return Ok(Some(out));
                 }
                 if !out.is_empty() || (0x0089_ca70..0x0089_cb50).contains(&site) {
@@ -538,15 +726,26 @@ pub fn place_all_draws(path: &Path) -> io::Result<Option<Vec<SetupDraw>>> {
     Ok(None)
 }
 
+/// The `place_all` prefix of a [`make_draws`] segment: up to its first
+/// `TerrainGroups::nubify_forest` draw.
+pub fn place_all_part(seg: &[SetupDraw]) -> &[SetupDraw] {
+    let end = seg
+        .iter()
+        .position(|&(s, _)| (0x006a_93b0..0x006a_9a60).contains(&s))
+        .unwrap_or(seg.len());
+    &seg[..end]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
+    use sim::map_resources::place_resources;
     use sim::mapgen::{
         Fractal, MapGrid, Regions, fertile_partitions, great_sahara_make_continents,
     };
-    use sim::terrain_groups::{Draws, place_all};
+    use sim::terrain_groups::{Draws, change_bases, nubify_forest, place_all};
     use std::sync::OnceLock;
 
     /// Every kept dump's [`StartGrid`], read once for the tests below: the
@@ -1049,9 +1248,9 @@ mod tests {
         (grid, rng)
     }
 
-    /// Every kept draw-site trace's `place_all` segment ([`place_all_draws`]),
-    /// read once. `None` without the archive.
-    fn place_all_traces() -> Option<&'static [(String, Vec<SetupDraw>)]> {
+    /// Every kept draw-site trace's `Map::make` segment from `place_all` on
+    /// ([`make_draws`]), read once. `None` without the archive.
+    fn make_traces() -> Option<&'static [(String, Vec<SetupDraw>)]> {
         type Segments = Vec<(String, Vec<SetupDraw>)>;
         static ALL: OnceLock<Option<Segments>> = OnceLock::new();
         ALL.get_or_init(|| {
@@ -1073,7 +1272,7 @@ mod tests {
                         s.spawn(move || {
                             part.iter()
                                 .filter_map(|(p, n)| {
-                                    Some((n.clone(), place_all_draws(Path::new(p)).ok()??))
+                                    Some((n.clone(), make_draws(Path::new(p)).ok()??))
                                 })
                                 .collect::<Vec<_>>()
                         })
@@ -1099,26 +1298,10 @@ mod tests {
             .or((ours.len() != theirs.len()).then_some(n))
     }
 
-    /// **`place_all` on Great Sahara, draw for draw** (`docs/MAPGEN.md` §7,
-    /// §15 step 3): from each generator run's 7854 grid and seed, the port's
-    /// tagged stream against every kept trace whose `place_all` segment
-    /// opens on that seed, site by site — the first parting names its draw
-    /// site and so its sub-pass. The 2- and 3-player runs enter on one
-    /// seed and one grid, so a trace passes when it is one run's stream
-    /// whole; both runs must be met. Then seed and parts 2, 5 and 6 at
-    /// 7859 on every Great Sahara file that carries it.
-    #[test]
-    fn great_sahara_s_place_all_is_the_traced_stream_and_7859() {
-        let (Some(all), Some(traces)) = (archive(), place_all_traces()) else {
-            eprintln!("skipped: no kept dumps on this machine");
-            return;
-        };
-        let Some(root) = crate::testenv::install_root() else {
-            eprintln!("skipped: no install on this machine");
-            return;
-        };
-        let root = Path::new(&root);
-        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+    /// The archive's Great Sahara generator runs and the files of each.
+    fn great_sahara_runs(
+        all: &[(String, StartGrid)],
+    ) -> std::collections::BTreeMap<GsRun, Vec<&StartGrid>> {
         let mut runs: std::collections::BTreeMap<GsRun, Vec<&StartGrid>> = Default::default();
         for (_, g) in all.iter().filter(|(_, g)| g.style == 7) {
             if let Some(before) = g.at("map.cpp", 7805) {
@@ -1127,20 +1310,16 @@ mod tests {
                     .push(g);
             }
         }
-        let ported: Vec<(GsRun, MapGrid, Draws)> = runs
-            .keys()
-            .map(|&run| {
-                let (mut grid, rng) = great_sahara_at_7854(run, &fert);
-                let inputs =
-                    place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("the inputs");
-                let mut d = Draws::new(rng.seed);
-                place_all(&mut grid, &mut d, &inputs);
-                (run, grid, d)
-            })
-            .collect();
-        // A trace is Great Sahara's when a gamelog of its run names the map:
-        // other styles (Himalayas, the click-free Amazon) enter `place_all`
-        // on the same seed and part at the ladder, by their own groups.
+        runs
+    }
+
+    /// The traces that are Great Sahara's: a gamelog of the trace's run names
+    /// the map. Other styles (Himalayas, the click-free Amazon) enter
+    /// `place_all` on the same seed and part at the ladder, by their own
+    /// groups.
+    fn sahara_traces(
+        traces: &'static [(String, Vec<SetupDraw>)],
+    ) -> Vec<&'static (String, Vec<SetupDraw>)> {
         let gamelogs: Vec<String> = std::fs::read_dir(gamelog_dir())
             .map(|r| {
                 r.filter_map(|e| e.ok()?.file_name().into_string().ok())
@@ -1157,14 +1336,25 @@ mod tests {
                     .is_some_and(|rest| rest.starts_with('-') && rest.contains("greatsahara"))
             })
         };
+        traces.iter().filter(|(n, _)| sahara(n)).collect()
+    }
+
+    /// Each Great Sahara trace's phase (`cut` of its segment) against the
+    /// ported streams that open on its seed: the trace passes when it is one
+    /// run's stream whole. Returns the nation counts met and how often, and
+    /// each parting trace named with its first parted draw — site and word,
+    /// both sides.
+    fn stream_partings(
+        traces: &[&(String, Vec<SetupDraw>)],
+        ported: &[(GsRun, Vec<SetupDraw>)],
+        cut: fn(&[SetupDraw]) -> &[SetupDraw],
+    ) -> (std::collections::BTreeMap<i32, usize>, Vec<String>) {
         let mut met = std::collections::BTreeMap::new();
         let mut parted = Vec::new();
-        let mut named = 0;
-        for (name, seg) in traces.iter().filter(|(n, _)| sahara(n)) {
-            named += 1;
+        for (name, seg) in traces.iter().map(|t| (&t.0, cut(&t.1))) {
             let opens: Vec<_> = ported
                 .iter()
-                .filter(|(_, _, d)| d.log.first().map(|x| x.1) == seg.first().map(|x| x.1))
+                .filter(|(_, log)| log.first().map(|x| x.1) == seg.first().map(|x| x.1))
                 .collect();
             if opens.is_empty() {
                 parted.push(format!(
@@ -1175,46 +1365,122 @@ mod tests {
             }
             let partings: Vec<_> = opens
                 .iter()
-                .map(|(run, _, d)| (run, first_parting(&d.log, seg)))
+                .map(|(run, log)| (run, log, first_parting(log, seg)))
                 .collect();
-            if let Some((run, _)) = partings.iter().find(|(_, p)| p.is_none()) {
+            if let Some((run, _, _)) = partings.iter().find(|(_, _, p)| p.is_none()) {
                 *met.entry(run.1).or_insert(0) += 1;
                 continue;
             }
-            let (run, at) = partings
+            let (run, log, at) = partings
                 .iter()
-                .max_by_key(|(_, p)| *p)
-                .map(|(r, p)| (r, p.expect("parted")))
+                .max_by_key(|(_, _, p)| *p)
+                .map(|(r, l, p)| (r, l, p.expect("parted")))
                 .expect("a candidate");
             let site = |v: &[SetupDraw]| v.get(at).map(|&(s, w)| format!("{s:#x} word {w:#x}"));
             parted.push(format!(
                 "{name}: {} nations, draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
                 run.1,
-                opens
-                    .iter()
-                    .find(|(r, _, _)| r == *run)
-                    .map_or(0, |(_, _, d)| d.log.len()),
+                log.len(),
                 seg.len(),
-                site(&opens.iter().find(|(r, _, _)| r == *run).expect("run").2.log),
+                site(log),
                 site(seg)
             ));
         }
         parted.sort();
+        (met, parted)
+    }
+
+    /// The partings, a dozen named, as a test failure says them.
+    fn say_partings(parted: &[String]) -> String {
+        parted
+            .iter()
+            .take(12)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    /// One run's grid and stream through `place_all` (7859).
+    fn great_sahara_at_7859(run: GsRun, fert: &Fertility, root: &Path) -> (MapGrid, Draws) {
+        let (mut grid, rng) = great_sahara_at_7854(run, fert);
+        let inputs = place_all_inputs(root, "SAHARA.xml", run.2, run.3, 7).expect("the inputs");
+        let mut d = Draws::new(rng.seed);
+        place_all(&mut grid, &mut d, &inputs);
+        (grid, d)
+    }
+
+    /// The checkpoint's `(seed, parts 2, 5, 6)` on every file of `run`
+    /// that carries `line`, against ours; the files checked.
+    fn at_checkpoint(
+        runs: &std::collections::BTreeMap<GsRun, Vec<&StartGrid>>,
+        run: &GsRun,
+        line: i64,
+        grid: &MapGrid,
+        d: &Draws,
+    ) -> usize {
+        let mut files = 0;
+        for g in &runs[run] {
+            let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                continue;
+            };
+            assert_eq!(
+                (
+                    d.rng.seed,
+                    grid.start_part(),
+                    grid.cell_part(),
+                    grid.tile_part()
+                ),
+                (*seed, p[2], p[5], p[6]),
+                "(seed, parts 2, 5, 6) at {line} on a {}-nation file, ours against theirs",
+                run.1
+            );
+            files += 1;
+        }
+        files
+    }
+
+    /// **`place_all` on Great Sahara, draw for draw** (`docs/MAPGEN.md` §7,
+    /// §15 step 3): from each generator run's 7854 grid and seed, the port's
+    /// tagged stream against every kept trace whose `place_all` segment
+    /// opens on that seed, site by site — the first parting names its draw
+    /// site and so its sub-pass. The 2- and 3-player runs enter on one
+    /// seed and one grid, so a trace passes when it is one run's stream
+    /// whole; both runs must be met. Then seed and parts 2, 5 and 6 at
+    /// 7859 on every Great Sahara file that carries it.
+    #[test]
+    fn great_sahara_s_place_all_is_the_traced_stream_and_7859() {
+        let (Some(all), Some(traces)) = (archive(), make_traces()) else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let runs = great_sahara_runs(all);
+        let ported: Vec<(GsRun, MapGrid, Draws)> = runs
+            .keys()
+            .map(|&run| {
+                let (grid, d) = great_sahara_at_7859(run, &fert, root);
+                (run, grid, d)
+            })
+            .collect();
+        let sahara = sahara_traces(traces);
+        let logs: Vec<_> = ported.iter().map(|(r, _, d)| (*r, d.log.clone())).collect();
+        let (met, parted) = stream_partings(&sahara, &logs, place_all_part);
         assert!(
             parted.is_empty(),
             "{} Great Sahara traces part from the port's place_all (met whole: {met:?}):\n{}",
             parted.len(),
-            parted
-                .iter()
-                .take(12)
-                .cloned()
-                .collect::<Vec<_>>()
-                .join("\n")
+            say_partings(&parted)
         );
         assert!(
-            met.len() >= 2 && named >= PLACE_ALL_TRACES,
-            "the place_all stream met {met:?} nation counts on {named} Great Sahara \
-             traces, under the pinned {PLACE_ALL_TRACES}; 2 and 3 are both kept"
+            met.len() >= 2 && sahara.len() >= PLACE_ALL_TRACES,
+            "the place_all stream met {met:?} nation counts on {} Great Sahara \
+             traces, under the pinned {PLACE_ALL_TRACES}; 2 and 3 are both kept",
+            sahara.len()
         );
         let mut files = 0;
         for (run, grid, d) in &ported {
@@ -1232,26 +1498,144 @@ mod tests {
                 "a kind placed nothing: {placed:?}"
             );
             assert!(grid.cells.iter().all(|c| c.goods == 0));
-            for g in &runs[run] {
-                let Some((_, _, seed, p)) = g.at("map.cpp", 7859) else {
-                    continue;
-                };
-                assert_eq!(
-                    (
-                        d.rng.seed,
-                        grid.start_part(),
-                        grid.cell_part(),
-                        grid.tile_part()
-                    ),
-                    (*seed, p[2], p[5], p[6]),
-                    "(seed, parts 2, 5, 6) at 7859 on a {}-nation file, ours against theirs",
-                    run.1
-                );
-                files += 1;
-            }
+            files += at_checkpoint(&runs, run, 7859, grid, d);
         }
         eprintln!("place_all: traces met whole {met:?}; 7859 on {files} files");
         assert!(files > 0, "the 7859 check reached no file");
+    }
+
+    /// The groups' phase of a [`make_draws`] segment: `place_all` and its
+    /// tail, to the first draw outside `TerrainGroups`, `TerrainGroup` and
+    /// `Mountains` — `Map::place_resources`' first.
+    fn groups_part(seg: &[SetupDraw]) -> &[SetupDraw] {
+        let end = seg
+            .iter()
+            .position(|&(s, _)| {
+                !(0x006a_0000..0x006b_0000).contains(&s) && !(0x0089_0000..0x008a_0000).contains(&s)
+            })
+            .unwrap_or(seg.len());
+        &seg[..end]
+    }
+
+    /// **Step 3's tail on Great Sahara** (`docs/MAPGEN.md` §7, §15 step 3,
+    /// item 3805): `check_player_forest` (7861), `nubify_forest` (7865) and
+    /// the base passes with `fix_transitions` (7870), after the port's
+    /// `place_all` — the stream draw for draw against every Great Sahara
+    /// trace through the last groups draw, and seed and parts 2, 5 and 6 at
+    /// each of the three checkpoints on every file that carries it.
+    #[test]
+    fn great_sahara_s_group_tail_is_the_traced_stream_and_7861_to_7870() {
+        let (Some(all), Some(traces)) = (archive(), make_traces()) else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        assert_eq!(
+            (
+                ts.forest_base,
+                ts.forest_growth_prob,
+                ts.mountain_base,
+                ts.mountain_growth_prob,
+                ts.coast_base,
+                ts.coast_growth_prob
+            ),
+            (3, 30, 2, 30, 3, 30),
+            "GS_Desert's bases and growth chances, as tilesets.xml writes them"
+        );
+        let runs = great_sahara_runs(all);
+        let mut logs = Vec::new();
+        let mut files = [0; 3];
+        for &run in runs.keys() {
+            let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
+            files[0] += at_checkpoint(&runs, &run, 7861, &grid, &d);
+            nubify_forest(&mut grid, &mut d);
+            files[1] += at_checkpoint(&runs, &run, 7865, &grid, &d);
+            change_bases(&mut grid, &mut d, &ts);
+            files[2] += at_checkpoint(&runs, &run, 7870, &grid, &d);
+            logs.push((run, d.log));
+        }
+        let sahara = sahara_traces(traces);
+        let (met, parted) = stream_partings(&sahara, &logs, groups_part);
+        assert!(
+            parted.is_empty(),
+            "{} Great Sahara traces part from the port's groups and tail (met whole: {met:?}):\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            met.len() >= 2 && sahara.len() >= PLACE_ALL_TRACES,
+            "the groups' stream met {met:?} nation counts on {} traces",
+            sahara.len()
+        );
+        eprintln!("group tail: traces met whole {met:?}; 7861, 7865, 7870 on {files:?} files");
+        assert!(
+            files.iter().all(|&n| n > 0),
+            "a checkpoint reached no file: {files:?}"
+        );
+    }
+
+    /// **Resources on Great Sahara** (`docs/MAPGEN.md` §8, §15 step 4, item
+    /// 3805): from each run's 7870 grid (the groups and their tail), nothing
+    /// moves through 7877 and 7880, then `Map::place_resources` — the whole
+    /// stream from `place_all` to `compute_all_vals`, draw for draw against
+    /// every Great Sahara trace, and seed and parts 2, 5 and 6 at 7927 on
+    /// every file that carries it.
+    #[test]
+    fn great_sahara_s_resources_are_the_traced_stream_and_7927() {
+        let (Some(all), Some(traces)) = (archive(), make_traces()) else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipped: no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SAHARA.xml").expect("SAHARA.xml's one tileset");
+        let ts = tileset_groups(root, &fert.tileset).expect("GS_Desert");
+        let runs = great_sahara_runs(all);
+        let mut logs = Vec::new();
+        let mut files = [0; 3];
+        let mut placed = Vec::new();
+        for &run in runs.keys() {
+            let (mut grid, mut d) = great_sahara_at_7859(run, &fert, root);
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            files[0] += at_checkpoint(&runs, &run, 7877, &grid, &d);
+            files[1] += at_checkpoint(&runs, &run, 7880, &grid, &d);
+            let inputs =
+                resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
+            let n = place_resources(&mut grid, &mut d, &inputs, run.1);
+            placed.push((run.1, n));
+            files[2] += at_checkpoint(&runs, &run, 7927, &grid, &d);
+            logs.push((run, d.log));
+        }
+        let sahara = sahara_traces(traces);
+        let (met, parted) = stream_partings(&sahara, &logs, |s| s);
+        assert!(
+            parted.is_empty(),
+            "{} Great Sahara traces part from the port's resources (met whole: {met:?}):\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            met.len() >= 2 && sahara.len() >= PLACE_ALL_TRACES,
+            "the resources' stream met {met:?} nation counts on {} traces",
+            sahara.len()
+        );
+        eprintln!(
+            "resources: placed {placed:?}; traces met whole {met:?}; 7877, 7880, 7927 on {files:?} files"
+        );
+        assert!(
+            files.iter().all(|&n| n > 0),
+            "a checkpoint reached no file: {files:?}"
+        );
     }
 
     /// The start grids whose half-land reorders `find_all`'s scan: the fuzz
@@ -1263,6 +1647,7 @@ mod tests {
     ];
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
-    /// the zero-draw passes (7835..7854) and `place_all` (7859).
-    const GREAT_SAHARA_CHECKED: i64 = 3;
+    /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
+    /// 7861..7870) and the resources (7927).
+    const GREAT_SAHARA_CHECKED: i64 = 4;
 }

@@ -70,8 +70,11 @@ pub const MAPGEN: Mapgen = Mapgen {
     styles: &[MapgenStyle {
         map: "GreatSahara",
         // 1 → 2 by item 3798: the zero-draw passes, 7835..7854; 2 → 3 by
-        // item 3803: `place_all`, draw for draw on 280 traces and at 7859.
-        ported: 3,
+        // item 3803: `place_all`, draw for draw on 280 traces and at 7859;
+        // 3 → 4 by item 3805: the groups' tail (7861..7870) and
+        // `place_resources`, draw for draw on 280 traces through the last
+        // draw before `compute_all_vals`, and at 7927 on 105 files.
+        ported: 4,
         phases: 8,
     }],
 };
@@ -360,14 +363,14 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 3 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 4 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
-            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 3 of 8 phases",
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 2 of 8 phases",
+            "Mapgen: checksum 495 of 496 \u{b7} GreatSahara 4 of 8 phases",
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 3 of 8 phases",
             "Mapgen: checksum 496 of 496",
-            "Mapgen: checksum 496 496 \u{b7} GreatSahara 3 of 8 phases",
+            "Mapgen: checksum 496 496 \u{b7} GreatSahara 4 of 8 phases",
         ] {
             assert!(mapgen_verdict(wrong, &MAPGEN).is_err(), "{wrong:?} passed");
         }
