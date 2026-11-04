@@ -251,28 +251,39 @@ mod tests {
 
     /// With three players the ring starts at `(m/2)·7/8`, two at `m/2`:
     /// the first start is the first radius down from there whose point
-    /// clears every edge by `max(avoid_edge) + 4`.
+    /// clears every edge by `max(avoid_edge) + 4`. No corpus lobby shrinks
+    /// the ring (3820a), so edges of 10 here make it fall.
     #[test]
     fn the_ring_s_radius_reads_the_player_count() {
-        for (players, from) in [(2, 30), (3, 26)] {
-            let (grid, draws, _) = run(60, players, 11);
+        for (players, from, edges) in [(2, 30, 2), (3, 26, 2), (2, 30, 10), (3, 26, 10)] {
+            let mut grid = MapGrid::new(60, 60);
+            let mut draws = Draws::new(11u32.wrapping_mul(2_654_435_761));
+            let st = LakeStyle {
+                avoid_edge: [edges; 4],
+                ..style(3)
+            };
+            east_indies_make_continents(&mut grid, players, st, &mut draws).expect("allowed");
             let word = Draws::new(draws.log[0].1).get(site::ANGLE);
             let angle = (word % 4)
                 .wrapping_mul(0x3fff_ffff)
                 .wrapping_add(0x1fff_ffff)
                 .wrapping_add((u32::MAX / players as u32) as i32);
+            let e = edges + 4;
             let mut radius = from;
             let at = loop {
                 let (x, y) = project(30, 30, Angle(angle), radius);
-                if x > 6 && 60 - x > 6 && y > 6 && 60 - y > 6 {
+                if x > e && 60 - x > e && y > e && 60 - y > e {
                     break (x, y);
                 }
                 radius -= 1;
             };
+            if edges == 10 {
+                assert!(radius < from, "the ring fell");
+            }
             assert_eq!(
                 (grid.starts[0].list[0], grid.starts[1].list[0]),
                 at,
-                "{players} players"
+                "{players} players, edges {edges}"
             );
         }
     }
