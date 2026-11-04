@@ -3786,6 +3786,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 (3833) **The `DEEP` answer's arm would clear a lane mid-gate when its push is the landing** (the sixty-fifth's commander, 3829): `DEEP lane-3829 300k` was answered by the clause — one line (journal as a draft, commit, push, end the turn) and the waiter re-armed `--arm-after-push lane-3829` — but the lane was further on than its ninety-minute status: its push (`6a4346518`) was the landing, the word 860 → 897 and the journal final, with its lane gate (`--item 3829`) still running in that session; the waiter had not yet polled the push, so it was stopped by hand with nothing armed (`ccc clear lane-3829 --status`: none) and the lane told to stay, quote its gate and land, which it did (`e1fc7587e`). Loop 3817's refusal keys on a push whose newest commit is the journal's gate quote, which a landing pushed before its gate exits does not yet carry. Candidate: the waiter refuses an `--arm-after-push` arm while the lane's own `release_gate.py` is running (its pid under the lane's job tmp) or when the pushed journal names a gate log but no `Lane verdict:`; and the `DEEP` line says "if the item is finished, land instead". Measured first: how many `DEEP` lanes of the last three tranches pushed a landing rather than a draft at their answer.
 
+(3837) **The spawn line the handoff names cuts no worktree** (the sixty-fifth's commander, 3835): the queue's lane line and LOOP.md's roster give `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`, and the chain gives `… && ccc spawn … - < brief.md`; spelled so from the integration worktree, the spawn answered `cwd` `replan-pdb` with no `worktree` key, and the lane ran in the integration checkout. It was stopped within the minute (`claude stop 0450d885`) with nothing written there; the `att-3835` it had cut at the booking commit, clean and with no commit of its own, was removed by hand, and the lane respawned `--replace --worktree=att-3835` (`0f143e8e`). The stopped row stays listed and is not reaped, because `ccc rm` on it names the integration worktree. Candidate: the handoff's and LOOP.md's spawn line spell `--worktree=att-<N>`, and a spawn from the integration row without it is refused (or `brief.py` prints the whole spawn line).
+
 ## Loop, filed 2026-11-03 — the sixty-fourth tranche's
 
 **3801** (the correction audit leaves the whole third-map words out; 3775's "for the Loop") — **built** by the sixty-fourth pass, an Opus 5.5 subagent's, red first, its text kept in `docs/audit/2026-11-04-fable-pass-64.md` ("Rulings"), and **the row's premise corrected by the build**: five of the "six whole Great Sahara words" are `Battery word:` lobbies — promoted out of the held-out battery and debugged against — and only Toughest is a third-map word; the pass's first ruling left that line out as "held out" and was wrong. Built: `audited!` reads `.name/.start/.long/.length` off any game const; every whole word the handoff names joins — the third map (2 hand rows), the third pair (2), all 28 battery words — each pinned from its own replay at 0.6–7.3 s, every one 0 corrections; the guard `audit::every_whole_scoreboard_word_is_audited` reads the queue's lines through `floors::ai_line_parts` and fails on a whole word the macro lacks (red first on eight), on a line neither list names, and on an `OWED` row that is audited or not whole. Owed, in code: the second pair's two (`walk_second` borrows no pasture) and the two melees (staged). 150 audit and floors tests; about a minute of gate. `docs/DATALAYER.md` §3 amended.
@@ -13322,6 +13324,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot YM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot YS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot YS renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
