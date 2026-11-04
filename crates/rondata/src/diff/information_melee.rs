@@ -305,8 +305,22 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     // down on 897. On 1232 ours spends 40 against 38: at index 32 ours
     // spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where theirs
     // spends `Farms::inc_time+0x1ae` — ours acted.
-    count: 1232,
-    sequence: 1232,
+    //
+    // Item 3836: **1232 → 2600, the game whole.** Ours' extra set was the
+    // Anti-Tank Missile `1/18` (#110, TI 141)'s, born on 1208 with its
+    // twins; theirs numbers the three `1/20`, `1/21` and `1/29`, because
+    // `1/17` and `1/22`..`1/25` are held there. `1/22`..`1/25` by death
+    // objects, as in ours; `1/17` by the Stealth Bomber's four bombs of
+    // 713..723, which theirs holds up for good: released at `sz` 0, 12
+    // and 17 over ground at 578 and 595, the fall's quotient is negative,
+    // its root a NaN and its `total_time` `0x80000000`, which `inc_time`'s
+    // unsigned end test never reaches — so every frame bumps the dead
+    // bomber's `hold_frames` (run1468, `total_time 2147483648` on every
+    // block 801..2601; `docs/GOLDEN.md` §152.14). Ours landed them a frame
+    // after release, so the Citizen of ~1150 took 17 where theirs took 18,
+    // and the order the guys run in parted with it.
+    count: 2600,
+    sequence: 2600,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -350,8 +364,10 @@ fn information_melee_first_parting() {
 /// lets block 701 go; item 3827: the word 860, so 801..1110, which takes
 /// block 1101 in; item 3829: the word 897, so 801..1147, the same four
 /// blocks; item 3834: the word 1232, so 1201..1482, which lets blocks
-/// 801–1101 go and takes 1201–1401 in).
-pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (1201, 1482);
+/// 801–1101 go and takes 1201–1401 in). Item 3836 closes the game: the
+/// window is the block before the word, 2501, through the closing block
+/// 2601.
+pub(crate) const WIDENING_INFORMATION_MELEE: (i64, i64) = (2501, 2601);
 
 /// The word's window, widened whole on run1468's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -365,7 +381,7 @@ pub(crate) fn information_melee_word_window() -> Option<harness::tests::Widened>
             &[(MELEE_LONG.0, WIDENING_INFORMATION_MELEE.0)],
             WIDENING_INFORMATION_MELEE,
             1,
-            &[],
+            &[2601],
             true,
         )
     })
@@ -533,22 +549,36 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     // 15450, 574) and `0/20`'s of 884 (18319, 15581, 586), blocks 893, 892
     // and 885 to the unit; `0/19`'s, its target dead on 896, comes down
     // on 897 on both.
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    //
+    // Item 3836, the game whole (window 2501..2601, the block before the
+    // word and the closing block): **165** keys, 2501 140 and 2601 25;
+    // rounds read (24, 24), every one parting by value. The old window
+    // 1201..1482 reads 116 keys (370 before) and rounds (36, 36): the
+    // twelve Stealth Bomber bombs theirs holds up (`total_time
+    // 2147483648`, §152.14) are held on both sides, and the slots they
+    // keep — `1/17`, `2/17` — number the births after them alike. What
+    // parts is standing: 2501's `build` (78), `form` (40), the groups and
+    // pools, and `1/15`'s damage 17⅞ against 14 (parked 3836b, from
+    // 701..801); 2601's human citizens `0/1`..`0/7` holding a one-step
+    // order where theirs' are idle (3788b's shape); and the bombs' values —
+    // the launch from the bomber's square, not its bays (3829b), the
+    // target forgotten at the death (3836a) and the recycled slot's
+    // `accuracy` (the arm's SEAM).
+    pin_eq!(w.blocks, 2, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 370, "run1468's word window");
-    pin_eq!(w.rounds_read, (36, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 12, "the rounds that part");
+    pin_eq!(w.firsts.len(), 165, "run1468's word window");
+    pin_eq!(w.rounds_read, (24, 24), "the rounds read");
+    pin_eq!(w.rounds.len(), 107, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the
 /// shape item 3791 gave the first two, `docs/GOLDEN.md` §151): run1467's frames 1 and 37 print all three
 /// seats' `LEADERDATA` whole. run1468's only other leader records are its
-/// closing dump at 2601, past the word, so they are not compared while the
-/// game parts.
+/// closing dump at 2601, compared since item 3836 closed the game.
 #[test]
 fn information_melee_s_leaders_are_compared_on_every_seat() {
     let _pins = Pins::hold();
@@ -557,25 +587,33 @@ fn information_melee_s_leaders_are_compared_on_every_seat() {
         MELEE_START,
         MELEE_LONG,
         &[MELEE_START],
-        false,
+        true,
     ) else {
         return;
     };
-    w.report("run1467");
+    w.report("run1467+closing");
     pin_eq!(w.players, 3, "the seats the lobby seats");
     pin_eq!(
         w.records.clone(),
-        vec![2, 2, 2],
+        vec![3, 3, 3],
         "leader records compared, by seat"
     );
     // Item 3797, first try: the standing family (`SITE[i].reg`,
     // `aggression[j]`) on both frames and every seat, and nothing else —
     // 12, 9 and 7 keys (the Russians' 7 against the Egyptians' 9 in
-    // §150's lobby).
+    // §150's lobby). Item 3836, the closing dump in: the same counts, the
+    // family standing to 2601 on a seat's first sites, and three keys on
+    // who=0 alone — theirs' V2 Rocket `0/16` (TI 313, `num_units[263]`) is
+    // in no 2601 record, with no death object and no round, where ours
+    // holds it (parked 3836c).
     pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
     pin_eq!(
         w.rest(),
-        Vec::<String>::new(),
+        vec![
+            "who=0 active 2601: ours 15 theirs 14 (1, to 2601)".to_string(),
+            "who=0 control 2601: ours 15 theirs 14 (1, to 2601)".to_string(),
+            "who=0 num_units[263] 2601: ours 1 theirs 0 (1, to 2601)".to_string(),
+        ],
         "the keys that part, by seat"
     );
 }

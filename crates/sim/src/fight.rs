@@ -2484,7 +2484,12 @@ impl Sim {
                 (launch.y - crate::movement::cos_component(facing, 0xc0)).clamp(0, h - 1),
             );
             let ez = self.ground_z(landing);
-            let total_time = combat::fall_time(sz, ez).max(1);
+            // `Ammo::init:795`: a zero time is raised to 1, and nothing
+            // else — a NaN fall's `0x80000000` stands ([`combat::fall_time`]).
+            let total_time = match combat::fall_time(sz, ez) {
+                0 => 1,
+                t => t,
+            };
             let _ = (angle, frame);
             self.add_ammo(combat::Projectile {
                 shooter,
@@ -6061,7 +6066,7 @@ impl Sim {
                 {
                     self.units[s].hold_frames += 1;
                 }
-                if p.cur_time < p.total_time {
+                if p.in_flight() {
                     if !self.crash_comes_down(i) {
                         i += 1;
                         continue;
@@ -6091,7 +6096,7 @@ impl Sim {
             }
             // **A guided round** (item 3802): `inc_time`'s spline arm, which
             // either closes it on this frame or holds it, re-planned or not.
-            if p.cur_time < p.total_time && !(p.spline.is_some() && self.guided_closes(i)) {
+            if p.in_flight() && !(p.spline.is_some() && self.guided_closes(i)) {
                 i += 1;
                 continue;
             }
@@ -6113,7 +6118,7 @@ impl Sim {
                     // `if ((uint)(total_time * 3) < cur_time) close()` —
                     // and `close` is not `do_damage`, so a shot that
                     // never meets the ground damages nothing.
-                    if p.cur_time > p.total_time * 3 {
+                    if (p.total_time.wrapping_mul(3) as u32) < p.cur_time as u32 {
                         self.projectiles.remove(i);
                         continue;
                     }
