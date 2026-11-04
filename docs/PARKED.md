@@ -13205,7 +13205,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   sea good spaces wider than the shore ring. Names no score.
 - **3826b. The Whales, `get_water` and patterns `continent`/`nonplayer` still run on no map.** Great Lakes'
   own `FISH ` section overrides `default.xml`'s, which holds the Whales row. Its Fish row has a fixed type, so
-  `ResourceDivvyPool::get_water@0068a4a0` never draws. No Great Sahara or Great Lakes row is `continent` or
+  the pool's water list (`get_water`, `map_resources::site::GET_WATER`) never draws. No Great Sahara or Great Lakes row is `continent` or
   `nonplayer` either. These are what is left of 3805b's water half. East Indies' resources, a later step of its
   chain, are the next map that could reach them. Names no score until a phase there parts.
 
