@@ -515,6 +515,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (204, (3, 4)),
     (143, (9, 10)),
     (141, (9, 10)),
+    (201, (4, 5)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -1053,6 +1054,23 @@ const FLOAT_LANDS_189_A13: &[(i32, i32, i32, i32)] = &[];
 /// entries are the same bits, so one sweep serves all three rows.
 const FLOAT_LANDS_190: &[(i32, i32, i32, i32)] = &[];
 
+/// Piece 201's [`Release::float_lands`], one list per anim (item 3810,
+/// run1472's packet).
+const FLOAT_LANDS_201_A11: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_201_A12: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_201_A13: &[(i32, i32, i32, i32)] = &[
+    (227, 60, 295, 90),
+    (255, 70, 177, 252),
+    (252, 212, -300, -73),
+    (342, 212, 73, -300),
+    (4, 235, 264, -160),
+    (94, 235, 160, 264),
+    (86, 243, 160, 264),
+    (356, 243, 264, -160),
+    (108, 356, -299, -73),
+    (198, 356, 73, -299),
+];
+
 /// Piece 298's [`Release::float_lands`], one list per anim and turret
 /// (item 3523): `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s entries differ in
 /// their bits, so each row is its own sweep.
@@ -1198,6 +1216,52 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [32_120, -466_466, 37_334_103],
             at: [155_086, -27_273_699, 3_934_948],
             float_lands: FLOAT_LANDS_189_A13,
+        },
+    ),
+    // **The Main Battle Tank, piece 201** (`HEAVYTANK`, unit type 251; item
+    // 3810, `docs/GOLDEN.md` §152.6): run1472's `RON_STATE_FRAME=707` packet
+    // on the third melee's lobby holds the piece's seven entries, `RData
+    // +0x88` 0.8 — the turret `(4, 0, 0)` (0, 0, 27.11) and, for each of its
+    // three `<RELEASEEVENT>`s (node 0; frame 11 of `CHAR_ATTACK1`, 23 of `2`,
+    // 27 of `3`), the turret's and the muzzle's, which differ by anim. The
+    // muzzle sits some 90 model units ahead of the turret: who=1's `1/21`
+    // round of 707 on the Partisan `0/17` flew 5 frames from the hull's
+    // square where the original's left the muzzle, and its blow came a tick
+    // after `1/14`'s search of 712.
+    (
+        201,
+        crate::anim::ATTACK1,
+        11,
+        Release {
+            piece: 201,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -90_569_908, 10_065_222],
+            float_lands: FLOAT_LANDS_201_A11,
+        },
+    ),
+    (
+        201,
+        crate::anim::ATTACK2,
+        23,
+        Release {
+            piece: 201,
+            node: 0,
+            pivot: [0, 0, 27_109_999],
+            at: [140_000, -91_192_764, 10_107_065],
+            float_lands: FLOAT_LANDS_201_A12,
+        },
+    ),
+    (
+        201,
+        crate::anim::ATTACK3,
+        27,
+        Release {
+            piece: 201,
+            node: 0,
+            pivot: [0, 139_500, 27_138_798],
+            at: [140_000, -80_396_957, 9_363_552],
+            float_lands: FLOAT_LANDS_201_A13,
         },
     ),
     // **The British and Russian Light Tank `MARK4`, piece 190** (unit type
@@ -4180,6 +4244,90 @@ mod tests {
             (crate::anim::ATTACK3, 1),
         ] {
             let r = release(190, slot, time).expect("the row");
+            assert_eq!(r.node, 0);
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "a{slot} ({}, {}, {}, {}) z {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The Main Battle Tank's round leaves from its muzzle** (item 3810,
+    /// `docs/GOLDEN.md` §152.6): three cells of each of piece 201's rows
+    /// from run1472's sweeps (`deg i t x y z`), the muzzle some 350 out and
+    /// 142 up. Made to fail with the rows out of `RELEASES`: no row, and
+    /// the round leaves the hull's square.
+    #[test]
+    fn the_main_battle_tank_s_round_leaves_from_its_muzzle() {
+        for (slot, time, cells) in [
+            (
+                crate::anim::ATTACK1,
+                11,
+                [
+                    (0, 0, (0, 347, 142)),
+                    (144, 77, (227, -262, 142)),
+                    (224, 238, (-340, -71, 142)),
+                ],
+            ),
+            (
+                crate::anim::ATTACK2,
+                23,
+                [
+                    (0, 0, (0, 350, 142)),
+                    (144, 77, (229, -264, 142)),
+                    (224, 238, (-342, -72, 142)),
+                ],
+            ),
+            (
+                crate::anim::ATTACK3,
+                27,
+                [
+                    (0, 0, (0, 308, 140)),
+                    (144, 77, (202, -232, 140)),
+                    (224, 238, (-302, -63, 140)),
+                ],
+            ),
+        ] {
+            let r = release(201, slot, time).expect("piece 201's row");
+            for (d1, t, want) in cells {
+                assert_eq!(release_offset_at(&r, d1, t), want, "a{slot} ({d1}, {t})");
+            }
+        }
+    }
+
+    /// **Piece 201's three rows agree with the original on every cell**
+    /// (item 3810): `get_position.py … pivot 201 0 <anim> <time> 1` on
+    /// run1472's packet, one sweep a row (the muzzle's entries differ by
+    /// anim). `$RON_RELEASE_TABLE_201` is the directory holding
+    /// `pivot-201-n0-a11-t11.txt`, `-a12-t23` and `-a13-t27`, outside git
+    /// (`~/ron-data/lab-experiments/2026-11-03-item-3810/sweeps-2/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_201() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_201") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_201 (item 3810's oracle, run1472)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 11),
+            (crate::anim::ATTACK2, 23),
+            (crate::anim::ATTACK3, 27),
+        ] {
+            let path = format!("{dir}/pivot-201-n0-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_201");
+            let r = release(201, slot, time).expect("the row");
             assert_eq!(r.node, 0);
             for line in table.lines() {
                 let f: Vec<i32> = line

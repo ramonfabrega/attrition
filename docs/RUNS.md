@@ -34107,3 +34107,32 @@ SHA-256 `c62b41fbb9be89ccdb822abe7bbcff4b2c06e89e35fc639818126cd9ed896186`.
 `2/14`'s second round on `1/14` is laid with its middle control point (13233.875, 17114.279297, −36) and re-plans
 on 665, 669 and 673 to 11, 8 and 5. `combat::tests::a_figure_s_lead_is_run1471s` pins the middle point, block
 662's 13 points and the re-plan to 11.
+
+## run1472 — the third melee: the word's window 700..714 and a packet at 707 (2026-11-03, item 3810, `att-3810`)
+
+`docs/GOLDEN.md` §152.6. **What the disk could not answer**: run1471's window ends at 701 and run1468's stride
+prints nothing between 701 and 801, so who held which order on 712 and 713, and where the Main Battle Tank `1/21`'s
+round of 707 left from, were on no record; and no packet on disk loads piece 201 (`get_position.py … entries` on
+the 26 newest, run1469's and run1469b's among them: both are tick 627/628, before the staging's `add
+main_battle_tank` of 638). run1469's line (`melee-information.cmd`, the lobby `PLAYERS=2`, `STARTING_TECHNOLOGY=7`,
+`ENDING_TECHNOLOGY=7`, `STARTING_RESOURCES=7`, seats 1=10 and 2=13, map 7, seed 12345, `--ffwd-minute 3`), with
+`--log-window 700 714`, detail `end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `cover=0`, `--callwin 0 720`,
+`--end-frame 720`, and `--tracer-def RON_STATE_FRAME=707` with item 597's plan. One dead take came first: the
+packet's frame without `RON_STATE_PLAN` was refused before launch.
+- Pool lane 1. Launched 21:55:09, exited 21:55:36 (26.7 s launch to exit). `success`: 721 frames, `page_faults` 0,
+  `relaunches: []`. `rngcmp.py` against run1468: 721 of 721 identical. Not filed: the packet and the window's
+  gamelog stay in the run's directory.
+- Minutes waited on another lane: none.
+
+Window `~/ron-golden/run1472/map-7/gamelog.txt`, 4,913,624 bytes,
+SHA-256 `40df0b1dc49fee34270d8590c181f36469f323bdef7e06decac290abcace6368`.
+
+Packet `~/ron-golden/run1472/map-7/frame-snapshot.bin`, 914,493,880 bytes,
+SHA-256 `e1f89b44c2a7ebf94cd5adda500c1c79e6bd8ca19d6123d0920dab4c00692fea`.
+
+**What it holds**:
+- The window: `1/21`'s round on the Partisan `0/17` launched at (17878, 14908, 610), `total_time` 4, blocks
+  709–711; the Jet Fighter `1/14` on `2/15`, `2/14` and then, on 713, `0/17` (uid 24).
+- The packet: piece 201's seven `AttachPos` entries (`RData +0x88` 0.8), piece 94's three and piece 77's; the
+  three `get_position.py … pivot 201` sweeps are in `~/ron-data/lab-experiments/2026-11-03-item-3810/sweeps-2/`
+  (`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_201`, 277,248 cells).
