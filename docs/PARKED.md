@@ -13269,13 +13269,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YI — reserved
+## Parked by item 3832, 2026-11-04 — Great Lakes' Terrain::init to 706, and its half-land gate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3832a. Great Lakes' 720 is a height's: step 6's tail waits on step 7** (`docs/MAPGEN.md` §10, §15 steps 6 and
+  7). On all 196 Great Lakes files, 720 moves parts 5, 6 and 10–12, and the port refuses `_wcoord`'s body on the 876
+  gated cells (`Unported::HalfLand`): each sub-tile's four corner heights against −30.0f decide `mark_halfwater`.
+  Every record after 720 (738's oil, the beach predicate, the relabel, 5012) reads 720's grid, so none can be checked
+  first. What it needs: `generate_land`'s shore blend (`find_closest_coordinfo` finds 406 `CoordInfo` 0x20 cells here,
+  none on Great Sahara), `smooth_tcoord`, `build_coastal_data` with `adjust_aquatic_height` and
+  `relax_aquatic_verts` (`Unported::Coast` today), then `_wcoord`'s region scan and body, `mark_halfwater`, the 0x4
+  spread's second sweep, and parts 10–12's entries' layout. Its falsifiers are on disk: parts 5, 6 and 10–12 at 720 on
+  185 files, and the start dump's 243 `HALFLAND` cells on each. No capture is owed. This is the next
+  Great Lakes booking; it moves `GreatLakes` 5 → 6 only once it and step 6's tail reach 5012 together.
+- **3832b. Four flag arms the Great Lakes gate pin cannot part** (`sim::terrain_init::coord_flags`). Each mutant
+  turns `great_lakes_s_terrain_init_is_734_to_706_and_its_gate` green on all 185 files, and each is held by 3809's
+  unit tests (`terrain_init`, 4 of 4):
+  - `land == 3`'s `NONE | 0x4`, `coord_land`'s 0x4-as-`NONE`, and the 0x400 half of the `HALF` test: the 360
+    gated shore cells all carry world flags 0x4 and 0x400, so any one arm alone still gates them.
+  - The shallow 5×5 ring narrowed to the eight: no final HALFLAND cell needs the outer ring, and a superset pin does
+    not see a gate that shrinks. A cell-exact pin needs 3832a's `mark_halfwater`.
+  East Indies' shore is the next grid that may separate them.
 
 ## Parked by the next landing, slot YJ — reserved
 
