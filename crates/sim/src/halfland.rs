@@ -129,6 +129,12 @@ impl<'a> Pass<'a> {
         }
     }
 
+    /// `verify_land`'s `depth` as an earlier pass left it.
+    pub fn with_depth(mut self, depth: i32) -> Self {
+        self.depth = depth;
+        self
+    }
+
     fn inb(&self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && x < self.g.xs && y < self.g.ys
     }
@@ -579,6 +585,41 @@ impl<'a> Pass<'a> {
         }
     }
 
+    /// **`Terrain::convert_beach_to_sandy@0084b8e0`** (815 → 5012), y outer,
+    /// x inner: a `BASELAND` cell with an `OCEAN` cell among `move[1..9]`
+    /// goes through `spot_update_land(x, y, 1, 0)` and clears `CoordInfo`
+    /// 0x2000. Returns how many cells it entered.
+    pub fn convert_beach_to_sandy(&mut self) -> Result<usize, Unported> {
+        let mut entered = 0;
+        for y in 0..self.g.ys {
+            for x in 0..self.g.xs {
+                if self.g.cells[self.at(x, y)].land != 0 {
+                    continue;
+                }
+                let beach = MOVE[1..9].iter().any(|&(dx, dy)| {
+                    self.inb(x + dx, y + dy) && self.g.cells[self.at(x + dx, y + dy)].land == 2
+                });
+                if beach {
+                    entered += 1;
+                    self.spot_update_land(x, y, 1, 0);
+                    let i = self.at(x, y);
+                    self.coord[i] &= !coord::BEACH;
+                }
+            }
+        }
+        self.refusals().map(|()| entered)
+    }
+
+    fn refusals(&mut self) -> Result<(), Unported> {
+        if let Some(l) = self.unread {
+            return Err(Unported::NumTiles(l));
+        }
+        if !self.goody.is_empty() {
+            return Err(Unported::Goody(std::mem::take(&mut self.goody)));
+        }
+        Ok(())
+    }
+
     /// `check_and_set_halfland(0)`'s two sweeps: every cell (y outer, x
     /// inner), then the dry arm's queue until it stays empty.
     pub fn sweeps(&mut self) -> Result<(), Unported> {
@@ -596,12 +637,251 @@ impl<'a> Pass<'a> {
                 self.mark_wet(x, y);
             }
         }
-        if let Some(l) = self.unread {
-            return Err(Unported::NumTiles(l));
+        self.refusals()
+    }
+}
+
+/// **`TerrainOil::create_doobers@008a28e0`'s cell write** (720 → 738): a
+/// wet cell (not HALFLAND, `land` `SANDY` or `OCEAN`) carrying rock (0x8)
+/// loses it — where `move_ocean_goody` moved oil onto water at 720. Its
+/// rocky patches' heights are [`crate::map_heights::create_doobers`]'.
+pub fn create_doobers_flags(g: &mut MapGrid) {
+    for c in &mut g.cells {
+        if c.flags & 0x8 != 0 && c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2) {
+            c.flags &= 0xfff7;
         }
-        if !self.goody.is_empty() {
-            return Err(Unported::Goody(std::mem::take(&mut self.goody)));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::terrain_init::coord_flags;
+
+    const COMBO: Combo = Combo {
+        coast_base: 3,
+        num_tiles: [Some(4), Some(1), Some(1), None],
+    };
+
+    /// A `xs × ys` grid of heights all at `h` (as `Single` bits).
+    fn flat(xs: i32, ys: i32, h: Single) -> Vec<Single> {
+        vec![h; ((4 * xs + 1) * (4 * ys + 1)) as usize]
+    }
+
+    const DRY: Single = Single(0x4120_0000); // 10
+    const WET: Single = Single(0xc220_0000); // −40
+
+    #[test]
+    fn the_combo_table_reads_its_lands() {
+        let c = COMBO;
+        assert_eq!(is_combo_acceptable(&c, 0, 1, 0, 2), Ok(1));
+        assert_eq!(is_combo_acceptable(&c, 0, 2, 0, 1), Ok(2));
+        assert_eq!(is_combo_acceptable(&c, 0, 0, 0, 2), Ok(0));
+        assert_eq!(is_combo_acceptable(&c, 0, 3, 1, 0), Ok(1));
+        assert_eq!(is_combo_acceptable(&c, 0, 2, 1, 0), Ok(0));
+        assert_eq!(is_combo_acceptable(&c, 1, 0, 0, 3), Ok(2));
+        assert_eq!(is_combo_acceptable(&c, 1, 0, 2, 0), Ok(1));
+        // A water centre: a land neighbour must sit at num_tiles[0] − 1.
+        assert_eq!(is_combo_acceptable(&c, 2, 0, 0, 3), Ok(2));
+        assert_eq!(is_combo_acceptable(&c, 2, 0, 0, 2), Ok(0));
+        assert_eq!(is_combo_acceptable(&c, 2, 1, 0, 3), Ok(0));
+        // Past the special cases, the lower land's last sub-tile decides.
+        assert_eq!(is_combo_acceptable(&c, 0, 3, 3, 0), Ok(1));
+        assert_eq!(is_combo_acceptable(&c, 3, 0, 1, 0), Ok(2));
+        assert_eq!(is_combo_acceptable(&c, 3, 1, 1, 0), Ok(0));
+        // A `num_tiles` entry not loaded is named, not guessed.
+        assert_eq!(is_combo_acceptable(&c, 3, 0, 0, 1), Ok(0));
+        assert_eq!(is_combo_acceptable(&c, 0, 1, 3, 0), Ok(0));
+        assert_eq!(is_combo_acceptable(&c, 1, 0, 3, 0), Ok(1));
+        let unread = Combo {
+            num_tiles: [Some(4), None, None, None],
+            ..c
+        };
+        assert_eq!(is_combo_acceptable(&unread, 1, 0, 3, 0), Err(1));
+    }
+
+    /// A fully wet gated cell turns `OCEAN` (its sixteenth tile), then
+    /// `spot_update_land(1, 0)` makes it `SANDY` and `verify_land` sets each
+    /// `BASELAND` neighbour off `COAST_BASE` to it.
+    #[test]
+    fn a_wet_cell_turns_sandy_and_its_shore_to_coast_base() {
+        let mut g = MapGrid::new(3, 3);
+        for c in g.cells.iter_mut() {
+            c.land_sub = 1;
+            c.region = 1;
         }
-        Ok(())
+        g.cells[4].land = 2;
+        g.cells[4].region = 0x41;
+        g.cells[3].flags = 0x4;
+        let mut coord = coord_flags(&g);
+        let mut z = flat(3, 3, DRY);
+        for v in 4..=8 {
+            for u in 4..=8 {
+                z[(v * 13 + u) as usize] = WET;
+            }
+        }
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.sweeps().expect("nothing unported");
+        // The dry shore cell (0, 1) spreads 0x4 east and queues (1, 1),
+        // which its sixteenth tile had left not HALFLAND: the second visit
+        // is a first touch again and lists it again, as `SANDY` at 0.
+        assert_eq!(p.lists.locs, vec![(1, 1), (1, 1)]);
+        assert_eq!(
+            (p.lists.types.clone(), p.lists.subtypes.clone()),
+            (vec![2, 1], vec![1, 0])
+        );
+        let c = g.cells[4];
+        assert_eq!((c.land, c.land_sub, c.flags & 0x100), (1, 0, 0));
+        assert_eq!((c.region, c.region2), (0x41, 0));
+        for (i, n) in g.cells.iter().enumerate() {
+            if i != 4 {
+                assert_eq!((n.land, n.land_sub), (0, 3), "cell {i}");
+            }
+        }
+    }
+
+    /// A gated cell with no water sub-tile: `OCEAN` becomes `BASELAND` at
+    /// `COAST_BASE`, flags lose 0x3c, and 0x4 goes to the first orthogonal
+    /// wet neighbour, which is queued and visited.
+    #[test]
+    fn a_dry_cell_spreads_0x4_to_its_first_wet_neighbour() {
+        let mut g = MapGrid::new(3, 1);
+        g.cells[0].flags = 0x4 | 0x8 | 0x20;
+        g.cells[1].land = 2;
+        g.cells[1].region = 0x41;
+        g.cells[2].land = 2;
+        g.cells[2].region = 0x41;
+        let mut coord = coord_flags(&g);
+        let z = flat(3, 1, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.sweeps().expect("nothing unported");
+        assert_eq!(g.cells[0].flags, 0);
+        assert_eq!(coord[0] & coord::HALF, 0);
+        // Both lake cells are shallow, so gated: each dry visit makes it
+        // `BASELAND` at 3 and hands 0x4 on. `verify_land` then grades the
+        // subs one step at a time from (1, 0)'s 3 against (0, 0)'s 0.
+        assert!(g.cells.iter().all(|c| c.land == 0 && c.flags & 0x4 == 0));
+        let subs: Vec<u8> = g.cells.iter().map(|c| c.land_sub).collect();
+        assert_eq!(subs, vec![1, 2, 3]);
+    }
+
+    /// `clear_halfland_wcoord`: a cell that was not HALFLAND loses its
+    /// `region2`; one that was keeps it until the scan rewrites it.
+    #[test]
+    fn a_cell_not_halfland_loses_its_region2() {
+        let mut g = MapGrid::new(1, 1);
+        g.cells[0].flags = 0x4;
+        g.cells[0].region2 = 7;
+        let mut coord = coord_flags(&g);
+        let z = flat(1, 1, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.clear_halfland_wcoord(0, 0);
+        assert_eq!(g.cells[0].region2, 0);
+        g.cells[0].flags |= 0x100;
+        g.cells[0].region2 = 7;
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.clear_halfland_wcoord(0, 0);
+        assert_eq!((g.cells[0].region2, g.cells[0].flags & 0x100), (7, 0));
+    }
+
+    /// `verify_land`'s depth is a static the refusal past 500 never
+    /// decrements: once it passes, every later call returns at once.
+    #[test]
+    fn verify_land_past_500_stays_refused() {
+        let mut g = MapGrid::new(2, 1);
+        g.cells[1].land_sub = 3;
+        let mut coord = vec![0; 2];
+        let z = flat(2, 1, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO).with_depth(500);
+        let (mut l, mut s) = (0, 0);
+        p.verify_land(0, 0, &mut l, &mut s);
+        assert_eq!(p.depth, 501);
+        assert_eq!(g.cells[1].land_sub, 3, "a refused call writes nothing");
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        let (mut l, mut s) = (0, 0);
+        p.verify_land(0, 0, &mut l, &mut s);
+        assert_eq!(p.depth, 0);
+        assert_eq!(g.cells[1].land_sub, 2, "one step toward the centre's 0");
+    }
+
+    /// A goody box on a cell turning wet moves to the first clear
+    /// `BASELAND` cell of `move[9..25]` off the map's edge; the old cell
+    /// loses 0x8000 and its `down`.
+    #[test]
+    fn a_goody_moves_off_a_cell_turning_wet() {
+        let mut g = MapGrid::new(7, 7);
+        let at = |x: i32, y: i32| (y * 7 + x) as usize;
+        let c = &mut g.cells[at(3, 3)];
+        c.flags = 0x8000;
+        c.down = -3;
+        c.down_who = 5;
+        let mut coord = vec![0; 49];
+        let z = flat(7, 7, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.move_ocean_goody(3, 3);
+        let old = g.cells[at(3, 3)];
+        assert_eq!((old.flags, old.down, old.down_who), (0, -1, -1));
+        // move[9] is (−1, −2) from the cell.
+        let new = g.cells[at(2, 1)];
+        assert_eq!((new.flags, new.down, new.down_who), (0x8000, -3, 5));
+    }
+
+    /// Oil on a cell turning wet: the cell loses 0x800, 0x8 and its good
+    /// (`down_who` −1); the first water cell of `move[9..49]` clear of
+    /// 0x8 takes it.
+    #[test]
+    fn oil_moves_to_water_and_its_old_cell_takes_down_who_minus_one() {
+        let mut g = MapGrid::new(7, 7);
+        for c in g.cells.iter_mut() {
+            c.land = 2;
+            c.down = -1;
+        }
+        let at = |x: i32, y: i32| (y * 7 + x) as usize;
+        g.cells[at(3, 3)].flags = 0x800 | 0x8;
+        g.init_good(OIL_GOOD, 3, 3);
+        let mut coord = vec![0; 49];
+        let z = flat(7, 7, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.move_ocean_goody(3, 3);
+        let old = g.cells[at(3, 3)];
+        assert_eq!((old.flags, old.down_who), (0, -1));
+        assert_eq!(g.cells[at(2, 1)].flags, 0x808);
+        assert_eq!(g.goods, vec![Some((OIL_GOOD, 2, 1))]);
+        create_doobers_flags(&mut g);
+        assert_eq!(g.cells[at(2, 1)].flags, 0x800, "738 takes the rock back");
+    }
+
+    /// A good other than oil is refused by name.
+    #[test]
+    fn a_good_on_a_cell_turning_wet_is_refused() {
+        let mut g = MapGrid::new(3, 3);
+        let n = g.init_good(2, 1, 1) as i16;
+        g.cells[4].down = -2;
+        g.cells[4].down_who = n;
+        let mut coord = vec![0; 9];
+        let z = flat(3, 3, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.move_ocean_goody(1, 1);
+        assert_eq!(p.refusals(), Err(Unported::Goody(vec![(1, 1)])));
+    }
+
+    /// The beach: a `BASELAND` cell beside `OCEAN` turns `SANDY` at 0 and
+    /// clears `CoordInfo` 0x2000; its `BASELAND` neighbours off
+    /// `COAST_BASE` follow to it.
+    #[test]
+    fn a_beach_cell_turns_sandy() {
+        let mut g = MapGrid::new(3, 1);
+        g.cells[2].land = 2;
+        g.cells[0].land_sub = 1;
+        g.cells[1].land_sub = 2;
+        let mut coord = vec![coord::BEACH; 3];
+        let z = flat(3, 1, DRY);
+        let entered = Pass::new(&mut g, &mut coord, &z, COMBO)
+            .convert_beach_to_sandy()
+            .expect("nothing unported");
+        assert_eq!(entered, 1);
+        assert_eq!((g.cells[1].land, g.cells[1].land_sub), (1, 0));
+        assert_eq!(coord[1], 0);
+        assert_eq!((g.cells[0].land, g.cells[0].land_sub), (0, 3));
     }
 }

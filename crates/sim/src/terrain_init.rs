@@ -319,15 +319,19 @@ pub fn check_and_set_halfland(g: &mut MapGrid, coord: &mut [u16]) -> Result<(), 
 /// the two sweeps of `_wcoord` on the 706 heights `z`
 /// ([`crate::halfland::Pass::sweeps`]), then passes 2–4 of
 /// [`check_and_set_halfland`] — the coast, the relabel and the 0x80 tail.
-/// Returns the half-land lists parts 10–12 walk.
+/// Returns the half-land lists parts 10–12 walk. `depth` is
+/// `verify_land`'s static, carried in and out.
 pub fn check_and_set_halfland_heights(
     g: &mut MapGrid,
     coord: &mut [u16],
     z: &[crate::single::Single],
     combo: crate::halfland::Combo,
+    depth: &mut i32,
 ) -> Result<HalfLand, crate::halfland::Unported> {
     let mut pass = crate::halfland::Pass::new(g, coord, z, combo);
+    pass.depth = *depth;
     pass.sweeps()?;
+    *depth = pass.depth;
     let lists = std::mem::take(&mut pass.lists);
     for y in 0..g.ys {
         for x in 0..g.xs {

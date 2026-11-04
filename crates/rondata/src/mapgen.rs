@@ -4008,16 +4008,18 @@ mod tests {
         );
     }
 
-    /// **Great Lakes' half-land at 720** (`docs/MAPGEN.md` §10, §15 steps 6
-    /// and 7, item 3843): from each run's 7945 grid and its 706 heights
-    /// (`generate_land`, `build_coastal_data`), `_wcoord`'s body on every
-    /// gated cell — `clear_halfland_wcoord`, the region scan,
-    /// `mark_halfwater`, the dry arm's 0x4 spread and its queue,
-    /// `verify_land` — then the coast, the relabel and the 0x80 tail; seed
-    /// and parts 5, 6 and 10–13 at `Terrain.cpp` 720 on every Great Lakes
-    /// file.
+    /// **Great Lakes' half-land at 720, and the records to 5012**
+    /// (`docs/MAPGEN.md` §10, §15 steps 6 and 7, item 3843): from each run's
+    /// 7945 grid and its 706 heights (`generate_land`, `build_coastal_data`),
+    /// `_wcoord`'s body on every gated cell — `clear_halfland_wcoord`, the
+    /// region scan, `mark_halfwater`, `move_ocean_goody`, the dry arm's 0x4
+    /// spread and its queue, `verify_land` — then the coast, the relabel and
+    /// the 0x80 tail: seed and parts 5, 6 and 10–13 at `Terrain.cpp` 720.
+    /// Then `create_doobers`' rock clear (738), nothing through 815, and
+    /// `convert_beach_to_sandy` (`map.cpp` 5012), at every record from 720
+    /// to 5012 on every Great Lakes file.
     #[test]
-    fn great_lakes_s_halfland_is_720() {
+    fn great_lakes_s_halfland_is_720_to_5012() {
         let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return;
@@ -4034,7 +4036,7 @@ mod tests {
                 .or_default()
                 .push(g);
         }
-        let (mut files, mut parted) = (0, Vec::new());
+        let (mut files, mut records, mut at5012, mut parted) = (0, 0, 0, Vec::new());
         for (run, gs) in &runs {
             let (mut grid, d) = great_lakes_at_7945(root, gs[0], *run, range, &makes);
             let (_, _, tileset) = great_lakes_at_7859(root, gs[0], *run, range);
@@ -4052,51 +4054,74 @@ mod tests {
                     None,
                 ],
             };
-            let lists =
-                sim::terrain_init::check_and_set_halfland_heights(&mut grid, &mut coord, &z, combo)
-                    .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
+            let mut depth = 0;
+            let lists = sim::terrain_init::check_and_set_halfland_heights(
+                &mut grid, &mut coord, &z, combo, &mut depth,
+            )
+            .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
             let p = lists.parts().expect("the lists' walk");
-            let ours = [
-                d.rng.seed,
-                grid.cell_part(),
-                grid.tile_part(),
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-            ];
+            let lists_parts = [p[0], p[1], p[2], p[3]];
+            let state = |g: &MapGrid| (d.rng.seed, g.cell_part(), g.tile_part(), lists_parts);
+            let s720 = state(&grid);
+            sim::halfland::create_doobers_flags(&mut grid);
+            let s738 = state(&grid);
+            let beach = sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                .with_depth(depth)
+                .convert_beach_to_sandy()
+                .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
+            let s5012 = state(&grid);
             eprintln!(
-                "{} nations ({tileset}: {ts:?}): {} half-land cells listed, ours {ours:?}",
+                "{} nations: {} half-land cells listed, {beach} beach cells, verify_land depth \
+                 {depth}; 720 {s720:?}, 738 {s738:?}, 5012 {s5012:?}",
                 run.1,
                 lists.locs.len()
             );
             for g in gs {
-                let Some(r) = g.at("Terrain.cpp", 720) else {
+                let (Some(from), Some(to)) = (
+                    g.checksums
+                        .iter()
+                        .position(|(f, l, _, _)| f == "Terrain.cpp" && *l == 720),
+                    g.checksums
+                        .iter()
+                        .position(|(f, l, _, _)| f == "map.cpp" && *l == 5012),
+                ) else {
                     continue;
                 };
-                let theirs = [r.2, r.3[5], r.3[6], r.3[10], r.3[11], r.3[12], r.3[13]];
-                if ours != theirs {
-                    let same: Vec<bool> = ours
-                        .iter()
-                        .zip(theirs.iter())
-                        .map(|(a, b)| a == b)
-                        .collect();
-                    parted.push(format!(
-                        "{} nations: agree {same:?} theirs {theirs:?}",
-                        run.1
-                    ));
+                for (f, l, seed, p) in &g.checksums[from..=to] {
+                    let ours = match (f.as_str(), *l) {
+                        ("Terrain.cpp", 720) => s720,
+                        ("map.cpp", 5012) => {
+                            at5012 += 1;
+                            s5012
+                        }
+                        _ => s738,
+                    };
+                    let theirs = (*seed, p[5], p[6], [p[10], p[11], p[12], p[13]]);
+                    if ours != theirs {
+                        parted.push(format!(
+                            "{} nations, {f} {l}: ours {ours:?} theirs {theirs:?}",
+                            run.1
+                        ));
+                    }
+                    records += 1;
                 }
                 files += 1;
             }
         }
-        eprintln!("halfland: GL 720 on {files} files, {} part", parted.len());
+        eprintln!(
+            "halfland: GL 720..5012 on {files} files, {records} records, 5012 on {at5012}; {} part",
+            parted.len()
+        );
         assert!(
             parted.is_empty(),
-            "seed and parts 5, 6, 10–13 at 720 part on {} of {files} files:\n{}",
+            "seed and parts 5, 6, 10–13 part at {} of {records} records:\n{}",
             parted.len(),
-            parted.join("\n")
+            parted[..parted.len().min(20)].join("\n")
         );
-        assert!(files >= LAKE_FILES, "720 reached {files} Great Lakes files");
+        assert!(
+            files >= LAKE_FILES && at5012 >= LAKE_FILES,
+            "720 reached {files} Great Lakes files, 5012 {at5012}"
+        );
     }
 
     /// The Great Lakes start dumps that print the height grid: a floor
