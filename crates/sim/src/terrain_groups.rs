@@ -105,7 +105,7 @@ const REGION_TAPS: i32 = 0xB400;
 /// `move_x/move_y[0..81]`: the 9×9 square, for the pure any-tests.
 const SQUARE: i32 = 4;
 /// The `OIL` good type, `set_oil_at`'s object.
-const OIL_GOOD: i32 = 5;
+pub(crate) const OIL_GOOD: i32 = 5;
 
 /// One `GROUPENTRY`, as `TerrainGroups::init_terrain_data@006a6540` parses
 /// it (`docs/MAPGEN.md` §7).
@@ -158,6 +158,12 @@ pub struct TilesetGroups {
     /// `num_tiles[0]`: what `clear_group`'s first branch writes back as
     /// `land_sub − 1`'s base. Unreached on Great Sahara.
     pub base_tiles: i32,
+    /// `num_tiles[1]` and `num_tiles[2]`: the `BASE` counts of the
+    /// tileset's `COASTAL` and `OCEAN` elements, the second and third of the
+    /// three lands `TileSet::init@0087b370` hands `load_land_data@008767d0`
+    /// (`is_combo_acceptable` reads them, `docs/MAPGEN.md` §10).
+    pub coastal_tiles: i32,
+    pub ocean_tiles: i32,
     /// `FOREST_BASE`, `MOUNTAIN_BASE`, `COAST_BASE` and their growth
     /// chances, as `TileSet::init@0087b370` reads them (−1 when absent): a
     /// negative base skips its `change_*_base` pass.

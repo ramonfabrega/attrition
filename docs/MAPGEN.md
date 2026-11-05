@@ -156,9 +156,10 @@ before `map.cpp` 5012; on Great Sahara it moves none (§10, item 3809).
 the PDB's `Terrain` record (`halfland_locs` +0x4b40, `halfland_types`,
 `halfland_subtypes`, `nuke_hits`). The shapes match: one `WCoordList` and
 three `SimpleArray<int>`. `Terrain::mark_halfwater@0084ece0` writes all
-three of the first, which fits parts 10–12 moving in `Terrain::init`. The
-0x40 is unexplained. Its falsifier is the same Adler-32 taken over the
-dump's half-land lists, which no reader of ours parses yet.
+three of the first, which fits parts 10–12 moving in `Terrain::init`, and
+the port's three lists walked in that order agree with parts 10–12 at 720
+on all 185 Great Lakes files (item 3843, §16), so the shapes are
+diff-backed. The 0x40 is unexplained.
 
 ## 4. Load: the map data and the first three draws
 
@@ -1071,7 +1072,8 @@ sync stream. In order:
   `Terrain::check_and_set_halfland_wcoord@0084dec0`. **A sub-tile is water
   when all four of its corner heights are below −30.0f.** That drives
   `Terrain::mark_halfwater@0084ece0`: HALFLAND, `region`, `region2`, `land`,
-  COAST spreading, and parts 10–12. **This is where a float decides cells.**
+  COAST spreading, and parts 10–12. **This is where a float decides cells**
+  (the body, §16).
 - 720 → 782: oil patches flatten heights
   (`TerrainOil::create_doobers@008a28e0`, `TerrainOut::terraform_for_building@00875210`),
   then skirts, renderer nodes and water.
@@ -1210,11 +1212,10 @@ the run100 column above: 734 moves part 4, nothing moves from 745 to 706,
   7945 grid's on all 185 files (2,960 records), and part 4 at 734 is
   `GREATLAKES.xml`'s `SEA_MAP` 1, first run.
 - `_wcoord` compares each sub-tile's four corner heights with −30.0f
-  before any write; the port refuses its body by name
-  (`Unported::HalfLand`, all 876), so **720 is the first record not
-  reached**, and every record after it reads 720's grid (738's oil, the
-  beach predicate, the relabel). Every start-dump `HALFLAND` cell is
-  gated (3832b).
+  before any write, so 720 was the first record a height decides; its
+  body is §16 (item 3843). Every start-dump `HALFLAND` cell is gated; the
+  0x4-as-`NONE`, 0x400 and 5×5 arms fail nothing there and are
+  unit-tested (3832b).
 
 East Indies is the same (item 3844, §15 step 6).
 
@@ -1306,8 +1307,8 @@ test is refused by name (`Unported::Slope`).
 (`great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers`).
 **And they decide HALFLAND cell-exact**: on all 185 files, a cell is
 HALFLAND exactly when it is gated and has 1–15 sub-tiles with four corners
-below −30.0f (`water_subtiles`; 243 a file). `_wcoord`'s writes are not
-built (3835b).
+below −30.0f (`water_subtiles`; 243 a file). `_wcoord`'s writes on them
+are §16.
 
 ## 11. The float sites, and which decision governs each
 
@@ -1435,7 +1436,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   record from 734 to 706 on 185 files, and the gate holds every one of the
   start dump's 243 `HALFLAND` cells on all 185 (item 3832); the 0x4,
   `NONE`, 0x400 and 5×5 arms are redundant or beyond that pin there and
-  stay unit-tested (3832b); 720 onward is height-decided (3832a);
+  stay unit-tested (3832b); 720 onward is height-decided (3832a), and on
+  the 706 heights `_wcoord`'s body moves seed and parts 5, 6 and 10–13 at
+  720 and every record to 5012 as the original's on all 185 files (item
+  3843, §16): the scan's break and last `region2`, the 0x4 spread's break,
+  oil's third ring and the relabel's swap are unit-tested only, the good
+  arm and the beach's write are not reached (3843a);
 - §10's `make_rivers` on Great Sahara: `make_riverbeds`' sources and the
   three clears, with seed and parts 2, 5, 6 and 10–13 at every record from
   5012 to 5118 on 105 files (item 3811). The square's water and oil arms,
@@ -1553,32 +1559,125 @@ step is checked by §3 at its own checkpoint before the next begins:
    720 is the first record a height decides. So on Great Lakes the rest of
    step 6 cannot be checked before step 7's heights reach 720. The
    heights through 706 now agree (item 3835) and decide the 243 cells
-   exactly. The next Great Lakes step is `_wcoord`'s writes and
-   `mark_halfwater`, falsified by parts 5, 6 and 10–12 at 720 (3835b).
-   **East Indies checked to 706** (item 3844, no `sim` change; its phase
-   count unmoved at five): all 206 files share Great Lakes' pattern (734
-   moves 4; 720 moves 5, 6 and 10–12; 738 moves 5), and seed and parts 2,
-   5, 6 and 10–13 agree from 734 to 706 on the 202 keyed files, 3,232
-   records, `SEA_MAP` 3 at 734. The gate opens round every island (1,921
-   and 1,932 cells, 574 and 566 world 0x4), and the 706 heights decide the
-   start dump's `HALFLAND` cell for cell on all 202 (81,086 cells). On
-   3843's unmerged `_wcoord` draft, a clone of its walk agrees at every
-   record from 720 to 5012 on all 202 (1,414 records, 1,558 and 1,560
-   half-land entries), so the step closes on East Indies with that walk
-   once `sim::halfland` lands (3844b);
+   exactly. **Great Lakes built** (item 3843, `sim::halfland`, §16; its
+   sixth phase): `_wcoord`'s writes and `mark_halfwater` agree at 720 and
+   every record to 5012 on all 185 files. **East Indies built** (item
+   3844, no `sim` change; its sixth phase): all 206 files share Great
+   Lakes' pattern; from 734 to 5012 seed and parts 2, 5, 6 and 10–13
+   agree on the 202 keyed (4,646 records), `SEA_MAP` 3 at 734. The gate
+   opens round every island (1,921 and 1,932 cells), and the 706 heights
+   decide the start dump's `HALFLAND` cell for cell on all 202 (81,086
+   cells);
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894)
    — **Great Sahara built** (item 3812, `sim::map_heights`; the `Mapgen:`
    line's eighth phase). No checksum part moves for them there, so their
    falsifier is the start dump's height grid, which all 47 files meet.
    **Great Lakes through 706** (item 3835): the shore blend,
    `smooth_tcoord` and `build_coastal_data` on every vertex off the rivers
-   of 45 start dumps. The troughs and the slope test remain. **East
-   Indies through 706** (item 3844): every vertex of the 56 start dumps
-   that print the grid (3,252,536; `RIVERLIST` empty, so none is set
-   apart);
+   of 45 start dumps; the half-land they decide is step 6's (item 3843).
+   The troughs and the slope test remain. **East Indies through 706**
+   (item 3844): every vertex of the 56 start dumps that print the grid
+   (3,252,536; `RIVERLIST` empty, so none is set apart);
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
    at 5116) and draws nothing, since `SAHARA.xml`'s `RIVERLIST` is empty.
    `make_riverlist` and `astar_river`, which Great Lakes' 173 draws need,
    remain.
+
+## 16. Great Lakes' half-land: `_wcoord`'s body, 720 → 5012
+
+Item 3843, `sim::halfland`, on the 706 heights §10 checks (item 3835). Each
+arm below was read off the decompile, and off the listing where the
+decompile was doubtful. **Seed and parts 5, 6 and 10–13 at 720 agree on all
+185 Great Lakes files, and every record from 720 to `map.cpp` 5012 does
+too** (1,295 records, `great_lakes_s_halfland_is_720_to_5012`), which moves
+the `Mapgen:` line's Great Lakes count 5 → 6. On the run: 692 half-land
+list entries, four goodies moved, two oils moved, and `verify_land`'s depth
+back at 0.
+
+`check_and_set_halfland_wcoord@0084dec0`, on a gated cell
+(`CoordInfo.flags & 0x84`), in order:
+- **`clear_halfland_wcoord@0084e500`**: the cell's wet tiles dry
+  (`World::clear_waterhalf@006b1bd0`), HALFLAND goes, 0x400 goes on all 16
+  tiles, and **a cell that was not HALFLAND loses `region2`** (the listing's
+  `notw %di; shrl 8; andl 1` at 0x84e534: the decompile's `~flags` is
+  right).
+- **The region scan, `move[1..25]`**: the first neighbour not HALFLAND whose
+  `region` differs from the cell's stops the scan with that region (`near`);
+  otherwise each HALFLAND neighbour whose `region2` is not the cell's region
+  is kept, the last one winning (`half`).
+- **The sub-tile test**: all four corners strictly below −30.0f, compared
+  as `Single` bits. Each wet sub-tile is counted; `mark_halfwater` runs only
+  when an other region exists (`near`, else `half`), and the region it used
+  becomes `near` for the cell's later sub-tiles.
+- **Any wet sub-tile: `spot_update_land(1, 0)`**, so the cell turns
+  `SANDY`. **None: the dry arm** — `OCEAN` becomes `BASELAND` at
+  `COAST_BASE`; flags `& 0xffc3`; `CoordInfo` `& ~4`; 0x4 to the first
+  orthogonal neighbour with `land != 0` and no 0x4, which is queued;
+  `verify_land`; then the region rescan, which calls `move_ocean_goody`
+  when the region changes.
+- **The two sweeps**: every cell (y outer, x inner), then the queue until
+  it stays empty. A cell may be listed twice; its second visit is a first
+  touch again.
+
+**`mark_halfwater@0084ece0`**, sub-tile `(tx, ty)` of a cell:
+- On a first touch (not HALFLAND): `move_ocean_goody` runs; the tile takes
+  `& 0xffef | 0x20` and the cell 0x100; `region` and `region2` take the land
+  and water regions, in that order, swapped when the cell's region is above
+  0x40 (it is then the water one). The three lists parts 10–12 walk take
+  `(x, y)`, `land` and `land_sub`; then `land` and `land_sub` go to 0 as one
+  2-byte write and `verify_land(0, 0)` runs.
+- The sixteenth wet tile: HALFLAND clears, `region` takes the water region,
+  `region2` 0, `land`/`land_sub` `2/0`, and `verify_land(2, 0)` runs.
+
+**`verify_land@0084d8a0`** walks the eight neighbours against
+**`TileSet::is_combo_acceptable@0087abe0`** and recurses into the ones it
+rewrote. Its static `depth` is never decremented past a refusal at 500, so
+it is carried across the pass. `num_tiles` holds the `BASE` counts of
+`BASELAND`, `COASTAL` and `OCEAN`, in the land order `TileSet::init@0087b370`
+hands `load_land_data`; only three lands exist, so `num_tiles[3]` is
+`None` and refused by name (`Unported::NumTiles`).
+
+**`move_ocean_goody@0084aec0`**: a goody box (`Item::close` takes 0x8000 and
+`clear_down`; `Item::init` and `set_down(−3)` go to the first clear cell of
+`move[9..25]`) and oil (`set_oil_at` 0, `& ~8`, then the first
+`is_clear_land(0x88)` water cell of `move[9..49]` takes oil and 0x8) are
+built. **720's part 5 was the oil kill**: `Good::close@0066d860` →
+`World::clear_down@006b3ad0` writes `down_who` −1 on the old oil cell. The
+Adler difference was +1020 low and 7729 high, exactly `down_who` 0 → −1
+on both oil cells, and it was solved before the arm was built. The
+good arm (a non-oil good) is refused, `Unported::Goody`; the oil
+footprint's tile 0x200 clear is not held (part 6 does not move for it here).
+
+**Parts 10–13's walk**: `num`, `size` (4, doubling: `increase_size` at grow
+−1), the grow short 0xffff, the flag byte 0, then the entries — read off
+`SimpleArray<int>::walk_data`'s listing at 0x4731a4..0x4731dc and
+`TerrainData::TerrainData`. Parts 10–12 agree with the port's lists in that
+order, so §3's shapes are diff-backed; its 0x40 offset is not.
+
+After the sweeps: `check_and_set_halfland`'s relabel and its 0x80 tail run
+on the half-land result; `create_doobers`' cell write (738) takes 0x8 off a
+wet cell; `rebuild_spot_list` has no writer by name or by offset, so the
+782–815 drain is empty; and `convert_beach_to_sandy` runs through
+`spot_update_land`, entering **0 cells** on Great Lakes (unit-tested only).
+
+**The value diff at 720**: the start dump agrees with ours on `land`,
+`region`, `region2`, HALFLAND, the moved goodies and the oil. Its other
+differences are later phases', and no record shows them at 720: 47
+`land_sub` rows reading 2 in start-city areas (0x1000), the roster's
+goodies, and the 0x1000, 0x4000 and 0x80 flags.
+
+**Mutants** (`tools/mutate.py --batch`, on `99ed165a9` and `32e1bcd03`):
+24 of 25 held. 17 by the walk; two more by the unit tests already there
+(`clear_halfland_wcoord`'s `~flags`, the dry mask `0xffc3`); and five the
+walk cannot part on Great Lakes — the scan's break, its last HALFLAND
+`region2`, the 0x4 spread's break, oil's third ring and the relabel's swap
+— by unit tests written for them. The one left, the first touch keeping
+`land_sub`, is unobservable as built: `spot_update_land(1, 0)` follows
+every wet sub-tile (3843a).
+
+**Not established**: the good arm of `move_ocean_goody`; the beach's write
+on a map that enters it; `num_tiles[3]`; the `Regions` lists
+`mark_halfwater` and the rescan keep (no checksum part walks them); the
+oil footprint's 0x200 clear (3843a).

@@ -13332,7 +13332,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
     An archipelago (East Indies) or a sandy style may part them; until then each needs a unit test that
     fails without it.
-- **3835b. Great Lakes' 720: `_wcoord`'s writes** (`docs/MAPGEN.md` §10, §15 steps 6 and 7). On the 706
+- ~~**3835b. Great Lakes' 720: `_wcoord`'s writes** (`docs/MAPGEN.md` §10, §15 steps 6 and 7). On the 706
     heights 3835 checked, these are owed:
     - `clear_halfland_wcoord`;
     - the region scan (`move[1..25]`: the first non-HALFLAND neighbour of another region, else a
@@ -13345,6 +13345,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     - `verify_land@0084d8a0`'s flood over `TileSet::is_combo_acceptable`, and the relabel.
 
     The water counts are already exact (`water_subtiles`). Falsifier: parts 5, 6 and 10–12 at 720 on all
+    185 files.~~ Closed by item 3843 (`docs/MAPGEN.md` §16): every one built, and 720 to 5012 agree on all
     185 files.
 
 ## Parked by item 3836, 2026-11-04 — the bombs that never come down, and the third melee's closing state
@@ -13385,21 +13386,46 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     small dry island (under 56 cells on 60×60) whose rings hold under a third water.
   Names no score.
 
-## Parked by the next landing, slot YN — reserved
+## Parked by item 3841, 2026-11-04 — the quit kills the human's planes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3841a. The widening's closing block reads 2601 without the quit.** `harness::widen_walk` (2501..2601,
+  `information_melee_closing_window`) ticks to the closing block as to any other, so the quit's `Leader::defeat` never
+  runs there. The human citizens `0/1`..`0/7` hold a one-step order in ours where theirs' are idle (3836's "3788b
+  shape"). That is what the defeat's `clear_orders` drops, and the arm is unbuilt (3841c). The walk cannot tell a
+  quit's block from an ordinary one, and teaching it moves every widening that ends on a capture's last block. Names no
+  score: the closing state reads 0 off (GOLDEN §152.15).
+- **3841b. What the defeated flag moves on the closing frame.** `Sim::resign` sets `defeated` before the last tick. That
+  closes the Inca word's `peasant_dist` row on city `0/2000` (ours 2, theirs 1 since item 3360), but which reader of
+  the flag moves it is not read. §151's measured shape, a human's `leftover` read one frame early, is the same
+  candidate: a defeated leader's skipped resource step. `seat_walk` still reads the human at n − 1.
+- **3841c. `Unit::clear_orders` on a walker at the quit.** Built with `Sim::clear_orders`, `Leader::defeat`'s
+  non-plane arm moved 54 closing states the wrong way. A human unit walking on the quit frame takes its step in
+  theirs and stops in ours, one step off: `american_industrial`'s `0/10` (3, −25), `aztec_modern`'s `0/2` (25, 0),
+  `korean_classical` seven units. The same arm dissolved two tears, `british_classical`'s `0/4` and
+  `classical_melee`'s `0/6`, and `shutdown.rs`'s one-tick tear (run72's `0/3`) is its shape. Whether the original's
+  clear keeps a guy's current step is `Unit::clear_orders`' to say. Names no score while every close holds; the
+  tears are pinned as torn.
 
-## Parked by the next landing, slot YO — reserved
+## Parked by item 3843, 2026-11-04 — Great Lakes' half-land at 720, and the walk to 5012
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3843a. What `_wcoord`'s body holds that Great Lakes does not reach** (`docs/MAPGEN.md` §16,
+    `sim::halfland`). 720 and every record to 5012 agree on all 185 files; these do not part there:
+    - `move_ocean_goody`'s good arm (a good other than oil on a cell turning wet): refused,
+      `Unported::Goody`; no Great Lakes cell enters it;
+    - `convert_beach_to_sandy` enters 0 cells on Great Lakes: its write is unit-tested only;
+    - `is_combo_acceptable`'s `num_tiles[3]`: only three lands exist, so it is `None` and refused by
+      name, `Unported::NumTiles`;
+    - the `Regions` lists `mark_halfwater` and the rescan keep: no checksum part walks them, so they are
+      not held;
+    - `set_oil_at`'s footprint tile 0x200 clear: not held, and part 6 does not move for it here;
+    - `verify_land`'s depth leak past 500: built, inert (the run ends at depth 0);
+    - one inert mutant of 25: `mark_halfwater`'s first touch keeping `land_sub` fails nothing, walk or
+      unit, because `spot_update_land(1, 0)` follows every wet sub-tile. It could only show through a
+      neighbour's `verify_land` recursion reading the centre mid-cell, and no grid built so far does.
+
+    Five other arms the walk cannot part (the scan's break, its last HALFLAND `region2`, the 0x4
+    spread's break, oil's third ring, the relabel's swap) hold by unit tests written for them. A map with
+    goods on its shore, or a beach, parts the first two rows; East Indies' half-land is the nearest.
 
 ## Parked by item 3844, 2026-11-04 — East Indies' `Terrain::init` without heights
 
