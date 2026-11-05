@@ -1169,7 +1169,9 @@ sets: the 2- and 3-nation lobbies), and on run100 for Great Lakes:
   patches' flattening (738 on run100); the troughs' `set_river_at` where a
   carved height is ≤ 0, `adjust_for_mountains` and the cliffs (894). On
   Great Sahara none of them moves a part, so **step 7 has no checksum
-  falsifier there**, only the start dump's grid.
+  falsifier there**, only the start dump's grid. On East Indies, with no
+  river, 894 and the grid are the oil, the beach and the mountains alone
+  (item 3851, §17).
 - **`make_rivers` on Great Sahara reads no height**: `make_riverbeds`
   (5012 → 5014, an LFSR, no draw) and its clear of 0x2000 and 0x2 on every cell (5076 → 5116)
   are its only writes that move a part there. Step 8 on Great Sahara can
@@ -1462,6 +1464,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   10–13 at 894 on all 185 files, every vertex of 45 start dumps
   (2,613,645) and the 0x1000 cells on 185, first run; 23 of 33 mutants
   fail it, the ten inert arms named in §17;
+- §10's step 7 tail on East Indies (item 3851): seed and parts 2, 5, 6 and
+  10–13 at 894 on all 205 files, every vertex of 57 start dumps
+  (3,310,617), and no 0x1000 or 0x40 cell on 205, first run with no `sim`
+  change; the arms that can part there fail it, the rest are measured
+  inert (§17, "On East Indies");
 - §10's `Terrain::init` without heights and its heights on East Indies
   (item 3844): seed and parts 2, 5, 6 and 10–13 from 734 to 706 on 202
   files, every vertex of 56 start dumps, and `HALFLAND` cell-exact on 202.
@@ -1589,7 +1596,15 @@ step is checked by §3 at its own checkpoint before the next begins:
    and every vertex of the 45 grids. The slope test is inert there: no
    Great Lakes cell carries 0x40, which `great_lakes_at_894` asserts. **East Indies through 706**
    (item 3844): every vertex of the 56 start dumps that print the grid
-   (3,252,536; `RIVERLIST` empty, so none is set apart);
+   (3,252,536; `RIVERLIST` empty, so none is set apart). **East Indies
+   built** (item 3851, no `sim` change; its eighth phase): the oil
+   terraform, the beach, `make_rivers`, the troughs and
+   `adjust_for_mountains` in `Terrain::init`'s order
+   (`east_indies_at_894`); seed and parts 2, 5, 6 and 10–13 at 894 on all
+   205 files (`east_indies_s_tail_is_894`) and every vertex of the 57
+   start grids (3,310,617; `east_indies_s_heights_at_894_are_the_start_dump_s_grid`),
+   first run. No river, so no trough; no start dump carries a 0x1000 or
+   0x40 cell, and the slope arm is handed no tile;
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
@@ -1756,3 +1771,20 @@ by nothing), its 30 and its `|i − 4| < 2`; the wet section's `1.5`; the
 
 **Not established**: oil, a goody box or a good in a trough (no trace
 meets one); the render-only callees are taken to write no height or part.
+
+**On East Indies** (item 3851, no `sim` change): `EASTINDIES.xml`'s
+`RIVERLIST` is empty, so `calculate_all` has no river to calculate, and
+894 is the oil terraform (738), the beach (5012) and
+`adjust_for_mountains` on 706's heights. Seed and parts 2, 5, 6 and 10–13
+at 894 agree on all 205 files and every vertex of the 57 start grids
+(3,310,617), first run. Measured (3851a, `tools/mutate.py` on each test):
+- **fail it**: the oil terraform switched off (the grid), the mountains
+  switched off and their used-vertex mark cleared (the grid),
+  `create_doobers_flags`' 0x8 clear (894's part 5), and the slope arm
+  handed a tile (894's assertion); the oil terraform let onto the ocean
+  hangs the grid test and is counted caught by `mutate.py`'s rule;
+- **inert**: the oil's rock-bit test (every oil cell off the ocean carries
+  it), the beach (`convert_beach_to_sandy` enters 0 cells on all three
+  runs, so its predicate and its `CoordInfo` clear are read by nothing),
+  the troughs and `move_goody`'s oil arm (no river), and `Cliffs::init`'s
+  slope test (no 0x40 cell on any of 205 start dumps).

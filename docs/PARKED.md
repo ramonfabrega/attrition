@@ -13552,13 +13552,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YV — reserved
+## Parked by item 3851, 2026-11-05 — East Indies' eighth step, 894
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3851a. The step 7 tail arms East Indies' walk cannot part** (`docs/MAPGEN.md` §17, "On East Indies"; `sim::map_heights`,
+  `sim::halfland`, `sim::map_troughs`): of 9 mutants each scored by `east_indies_s_tail_is_894` and
+  `east_indies_s_heights_at_894_are_the_start_dump_s_grid` (`tools/mutate.py --batch` on `0b7b1984a`), 6 held — the oil
+  terraform off, the mountains off, their used-vertex mark, `create_doobers_flags`' 0x8 clear, the slope arm handed a
+  tile, and the oil let onto the ocean (a hang, counted caught) — and 3 failed nothing: the oil's rock-bit test, and
+  `convert_beach_to_sandy`'s `OCEAN` neighbour test and `CoordInfo` clear (the beach enters 0 cells on all three runs).
+  The troughs and `move_goody`'s oil arm have no river to enter; no start dump of 205 carries a 0x40 cell. Each keeps
+  Great Sahara's and Great Lakes' tests (3812, 3850a). Names no score.
 
 ## Parked by item 3854, 2026-11-05 — the carriers repair themselves
 
