@@ -34636,3 +34636,26 @@ SHA-256 `d8f770007984ae40e71757988345b9d1251ccd4262fec531900af6ed9e29555d`.
 
 **What it holds**: pinned in `blind::TRACES`; the rubric's unit types (296 and 312 enter the ledger once the melee
 runs whole).
+## run1493 — Southwest Mesa (style 10), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-05, item 3869, `att-3869`)
+
+`docs/MAPGEN.md` §15 step 1, §18.3. The first checksum trace of the one style with a live cliff group, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1493 --map 10 --end-frame 36 --timeout 1200
+--dump-all-start --cover cover=0` (`check_all_level` 14, `CHECKSUM` 2, a start `WORLD` 6). **What the disk could not
+answer**: run1118 (style 10, `cover=1`) carries a start dump and no setup trace, so no Mesa checkpoint was on disk.
+- Pool lane 1, the pool's pick. Launched 12:43:43, exited 12:44:10 (27.5 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 10, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60 at `MAP_SIZE` 2;
+  `page_faults` 0, `relaunches: []`. `df -g ~` read 146 GiB free before it. Filed with `filerun.py run1493
+  southwestmesa-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1493-southwestmesa-mapgen-start.txt`, 149,618,196 bytes,
+SHA-256 `30b3deb6a28167b75af8e3c06dce23e5072a6f099a4ff2dc5c0589d6dd725a39`.
+
+Archive `rontrace-run1493.log`, 8,347,552 bytes,
+SHA-256 `92456bde50baedf3282538b40d60b7a27784cae65ac64ca44ae9833f360ecc8e`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945 and `Terrain.cpp` checkpoints, 7805's seed 2726892157;
+the mask's four draws (sites 0x69bb94, 0x69bbac, 0x69bbc2, 0x69bbf3) and 7807 at seed 2355140353, part 2 292424319,
+part 5 1267075849, which the port meets (`southwest_mesa_s_mask_is_the_traced_7807`,
+`southwest_mesa_s_mask_is_the_traced_stream`); `Cliffs::position_cliff`'s eleven template draws (site 0x8a8d2f), the
+cliff chain's next falsifier.

@@ -418,6 +418,16 @@ pub fn great_sahara_make_continents(grid: &mut MapGrid, players: i32, rng: &mut 
     start_dist
 }
 
+/// **`MapSouthwestMesa::make_continents@0069bb20`** (`docs/MAPGEN.md` §5,
+/// §18.3; item 3869): instruction for instruction Great Sahara's
+/// ([`great_sahara_make_continents`]) — the listing from 0x69bb20 to its
+/// `ret $4` and 0x69bf70's to its own agree but for the relative call
+/// targets — so the same whole land, the same ring and the same four draws.
+/// What makes Mesa Mesa is its XML, read from `place_all` on (the cliffs).
+pub fn southwest_mesa_make_continents(grid: &mut MapGrid, players: i32, rng: &mut Rng) -> i32 {
+    great_sahara_make_continents(grid, players, rng)
+}
+
 /// `WData::flags` bit 0x100, HALFLAND (`crate::world`'s `HALFLAND`): a cell
 /// that carries it is never ocean.
 pub const HALFLAND: u16 = 0x100;

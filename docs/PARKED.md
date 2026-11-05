@@ -13793,21 +13793,35 @@ read, would lack one unit. Names no score until a Spanish lobby's start is simul
   helicopter this crate has flown from its own Airbase. **Score**: none while the draws agree; the first read if a
   word lands on `2/19`'s turn (`Unit::set_angle`'s callers, parked 2234's check).
 
-## Parked by the next landing, slot ZL — reserved
+## Parked by item 3869, 2026-11-05 — Southwest Mesa's first capture and mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3869a) **Two of the mask's arms are inert on run1493's one generator run.** `hi % 0xffff` → `% 0xfffe` and
+`cy + bit` → `cy − bit` fail nothing: the first parts only on a draw ≥ 0xfffe, the second only when y's jitter
+bit is 1, and it is 0 on seed 2726892157 (the bit-flip mutant `1 − bit` is caught, and so is cx's). A second
+Mesa seed (any other `--seed` on run1493's line, 30 s) would hold the second; the first is a 1-in-32768 draw and
+stays a reading. Names no score until a Mesa step parts on it.
 
-## Parked by the next landing, slot ZM — reserved
+(3869b) **Mesa's next step is the zero-draw passes (7835..7854) on run1493's file**, then `place_all` at 7859,
+where `position_cliff`'s eleven template draws (site 0x8a8d2f) are the cliff chain's first value diff (§18.3).
+The refill of lane 2 (QUEUE's lanes line), the commander's to book.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3870, 2026-11-05 — the flood's depth, writer by writer
+
+(3870a) **3863a's bound does not close by reading; the start's two batches are the open part** (`docs/MAPGEN.md`
+§19.6). `depth` (0xee1224) leaks one per capped frame and is never reset. Every single-write flood on a Q grid stays in
+the 7×7 around its write: 7, 26 and 17 deep at most over the 43 start grids. So the mid-game (`Wall::start` →
+`object_placed`) is safe while the start's leak L is 0. The two `Terrain::init` batches (the half-land `SANDY` list and
+the river's `riverbase` list) chain along their lists. In the scratch model a long list through ground two steps off
+caps. Killed by: a packet read of 0xee1224 at frame 0 on a lobby with rivers, or a reading of the pre-river ground
+along each list. Confirmed by: a start `WORLD` dump that breaks Q. Names no score: one reach.
+
+(3870b) **The console-planted contact belongs to Great Lakes, not Great Sahara, and needs an aimed cursor** (§19.6).
+Great Sahara's 23 start grids hold no `OCEAN` or `SANDY` cell. The console's `weather` (case 99) stores `BASELAND` sub
+3 at `mouse_coord`, and a `.cmd` line leaves that cursor stale at (0, 0). On Great Lakes, `weather` at (41, 42) or
+(16, 45) plants §19.3's south-west shape (13 sites on East Indies). The `coverage` capture needs either the click lane
+hovering the cell or a tracer store of `ConsoleWin` +0x518/+0x51c before the line. Run 1494 stays held for the
+commander's booking. Killed by: that capture's `cover=1` trace not entering `008595f0` with C's word non-empty in the
+same frame's `WORLD` block.
 
 ## Parked by the next landing, slot ZN — reserved
 
