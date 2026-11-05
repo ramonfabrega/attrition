@@ -56,12 +56,11 @@ ours spends `Unit::do_move+0xe84` where theirs spends `Guy::set_anim+0x97a` unde
 `1/11`, whose order lists part from 1986 with no draw — a state the draw stream cannot see, so the value diff walked back from 2090 to 1986 is the first act.
 Run 1488 reserved (a window round 1986 and 2090, or a packet if a value parts); the lane moves the floor and the close, the commander the `Melee:` row; park ZB.
 
-3861. **Four parked `RESIDUE` candidates, a blind second reading** (CLAUDE.md's second-reading rule; `docs/audit/README.md`): 3478a's
-`ItemOut::draw_overlays@00677590` (+0x5c dispatched on no `items` entry), 3479a's `Storm::on_field_change@00842050` (no registration path) and 3479b's
-`BorderSpline::on_field_change@004a1ca0` and `CircleRender::on_field_change@008c6db0` (reached only through a fault), each asked whether any path a v1
-game runs enters it, from the decompile and the listing alone, the report committed before the parked rows are opened; then adjudicated in the same
-audit file, `FABLE:` on what is not settled; where both say unreachable, a `blind::RESIDUE` row and the `Blind:` line moves (open 49 → 45 at most);
-no run; park ZD.
+3861. **Four parked `RESIDUE` candidates, a blind second reading** (CLAUDE.md's second-reading rule; `docs/audit/README.md`):
+`ItemOut::draw_overlays@00677590` (3478a), `Storm::on_field_change@00842050` (3479a), `BorderSpline::on_field_change@004a1ca0` and
+`CircleRender::on_field_change@008c6db0` (3479b), each asked whether any path a v1 game runs enters it, from the decompile and the listing alone,
+the report committed before the parked rows are opened; then adjudicated in the same audit file, `FABLE:` on what is not settled; where both say
+unreachable, a `blind::RESIDUE` row and the `Blind:` line moves (open 49 → 45 at most); no run; park ZD.
 
 ## How to maintain this file
 
