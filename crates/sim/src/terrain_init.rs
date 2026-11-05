@@ -634,6 +634,18 @@ mod tests {
         assert_eq!(f.iter().filter(|&&x| x != 0).count(), 1);
     }
 
+    /// The relabel: a `BASELAND` cell in a water region with a `region2`
+    /// swaps the two.
+    #[test]
+    fn the_relabel_swaps_region_and_region2() {
+        let mut g = grid(1, 1);
+        cell(&mut g, 0, 0).region = 0x41;
+        cell(&mut g, 0, 0).region2 = 3;
+        relabel(&mut g);
+        let c = *cell(&mut g, 0, 0);
+        assert_eq!((c.region, c.region2), (3, 0x41));
+    }
+
     /// Every `BASELAND` cell touching the `OCEAN` one, row by row.
     #[test]
     fn a_beach_cell_is_refused_not_guessed() {

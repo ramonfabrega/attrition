@@ -851,6 +851,85 @@ mod tests {
         assert_eq!(g.cells[at(2, 1)].flags, 0x800, "738 takes the rock back");
     }
 
+    /// A 5×5 grid in region 1 whose centre is gated and has one wet
+    /// sub-tile, its first.
+    fn centre_wet() -> (MapGrid, Vec<u16>, Vec<Single>) {
+        let mut g = MapGrid::new(5, 5);
+        for c in g.cells.iter_mut() {
+            c.region = 1;
+        }
+        let mut coord = vec![0; 25];
+        coord[12] = coord::HALF;
+        let mut z = flat(5, 5, DRY);
+        for v in 8..=9 {
+            for u in 8..=9 {
+                z[v * 21 + u] = WET;
+            }
+        }
+        (g, coord, z)
+    }
+
+    /// The scan stops at the first neighbour not HALFLAND of another
+    /// region: `move[1]`'s 5 wins over `move[2]`'s 6.
+    #[test]
+    fn the_scan_stops_at_the_first_other_region() {
+        let (mut g, mut coord, z) = centre_wet();
+        g.cells[6].region = 5; // (1, 1), move[1]
+        g.cells[7].region = 6; // (2, 1), move[2]
+        Pass::new(&mut g, &mut coord, &z, COMBO).wcoord(2, 2);
+        assert_eq!((g.cells[12].region, g.cells[12].region2), (1, 5));
+    }
+
+    /// With no such neighbour, the last HALFLAND neighbour whose `region2`
+    /// is not the cell's region wins: `move[2]`'s 8 over `move[1]`'s 7.
+    #[test]
+    fn the_last_halfland_region2_wins() {
+        let (mut g, mut coord, z) = centre_wet();
+        for (i, r2) in [(6, 7), (7, 8)] {
+            g.cells[i].flags = 0x100;
+            g.cells[i].region2 = r2;
+        }
+        Pass::new(&mut g, &mut coord, &z, COMBO).wcoord(2, 2);
+        assert_eq!((g.cells[12].region, g.cells[12].region2), (1, 8));
+    }
+
+    /// The dry arm hands 0x4 to the first orthogonal wet neighbour only:
+    /// `orthog[2]`, east, before `orthog[4]`, west.
+    #[test]
+    fn the_dry_arm_spreads_0x4_once() {
+        let mut g = MapGrid::new(3, 1);
+        g.cells[0].land = 2;
+        g.cells[2].land = 2;
+        let mut coord = vec![0, coord::HALF, 0];
+        let z = flat(3, 1, DRY);
+        let mut p = Pass::new(&mut g, &mut coord, &z, COMBO);
+        p.wcoord(1, 0);
+        assert_eq!(p.queue, vec![2]);
+        assert_eq!((g.cells[0].flags & 0x4, g.cells[2].flags & 0x4), (0, 0x4));
+    }
+
+    /// Oil searches `move[9..49]`: with water only in the third ring, the
+    /// third ring's first cell, `move[25]` (−3, −3), takes it.
+    #[test]
+    fn oil_reaches_the_third_ring() {
+        let mut g = MapGrid::new(9, 9);
+        for c in g.cells.iter_mut() {
+            c.down = -1;
+        }
+        let at = |x: i32, y: i32| (y * 9 + x) as usize;
+        for &(dx, dy) in &MOVE[25..49] {
+            g.cells[at(4 + dx, 4 + dy)].land = 2;
+        }
+        g.cells[at(4, 4)].land = 2;
+        g.cells[at(4, 4)].flags = 0x800 | 0x8;
+        g.init_good(OIL_GOOD, 4, 4);
+        let mut coord = vec![0; 81];
+        let z = flat(9, 9, DRY);
+        Pass::new(&mut g, &mut coord, &z, COMBO).move_ocean_goody(4, 4);
+        assert_eq!(g.cells[at(1, 1)].flags, 0x808);
+        assert_eq!(g.goods, vec![Some((OIL_GOOD, 1, 1))]);
+    }
+
     /// A good other than oil is refused by name.
     #[test]
     fn a_good_on_a_cell_turning_wet_is_refused() {
