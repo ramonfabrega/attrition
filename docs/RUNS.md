@@ -34762,6 +34762,40 @@ after; the Jet Fighter (uid 69) first in `1/41` on 1540; and in the packet, `1/1
 one more than ours. Together these name the death records' bump after the ammo walk, which takes the fifth melee
 whole.
 
+## run1497 — item 3876's planted cell on East Indies: `weather` at (2, 17) by `@aim`, printed, to 640: `check_for_diagonal` entered (2026-11-05, item 3879, `att-3879`)
+
+**What the disk could not answer**: whether one console `weather` plant at a cell `tools/gamelog/plant.py` passes
+enters `TerrainOut::check_for_diagonal@008595f0` (`docs/MAPGEN.md` §20, "The offline search"; parked 3876a). No
+trace on disk holds a plant on East Indies, and run1494/run1495's Great Lakes cell fails the tendril gate. Launched
+through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1497 --map 18 --no-ffwd --end-frame 640
+--log-window 600 640 --timeout 3600 --cmd-file tools/gamelog/coverage/weather3879-eastindies.cmd --cover cover=1
+--console-log 0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`: run1156's lobby with run1495's line moved to (2, 17), and without
+`@cursor` and `--hover`, so it shares every input with the twin run1157 before 620. 134 GiB free before.
+- Pool lane 1 (`~/wine-ron`). Launched 15:38:43, exited 15:39:49: **66.1 s launch to exit**, after one relaunch
+  (`exit_before_frame_zero` at 4.3 s, exit code 9). `success`, lifecycle verified, `map_verified`, map style 18, 641
+  frames, `last_frame` 640, seed 12345, players who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). DLL
+  `992c06a0…`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0. Minutes waited on another lane: none.
+- **`TerrainOut::check_for_diagonal@008595f0` entered, first on 620** (`report.py … functions`: `f620`).
+  `WorldData::is_valid@00471170` is not. 6,657 functions entered.
+- 620's block prints 80 `Set edge` writes. `plant.py cell gamelog-run1157-… 2,17 --printed <this file>`: **printed
+  80, predicted 80, equal**, and C = (3, 16) lists N E S W `[0, 0, 0, 0]` after `check_blocks`.
+- Block 621's `@dumpall` grid against run1157's start grid: (2, 17) `OCEAN` 0 → `BASELAND` 3 is the one land change.
+  Three `BASELAND` sub-indices also differ, at (48, 47) 3 → 2, (49, 47) 2 → 1 and (50, 48) 3 → 2, 46 cells from P
+  and outside the re-mark. Every start grid of the two-player lobby on disk holds the start values, and no mid-game
+  grid on disk carries cells, so the game's own writer of the three is not read.
+- `rngcmp.py` against run1157 (the `cover=0` twin): **641 in common, 0 differing, 641 identical**. `samegame.py
+  --from 620` against run1157: one common block (601) differs, at detail alone. run1157 dumps `GUYS=2`, and every
+  line of run1497's 601 `UNITDATA` and `ANIMALDATA` is in run1157's. So it is the same game before 620.
+- Filed with `filerun.py run1497 eastindies-weather-diagonal-cover1-clickfree`. Pinned into `blind::TRACES`.
+
+Archive `gamelog-run1497-eastindies-weather-diagonal-cover1-clickfree.txt`, 70,854,006 bytes,
+SHA-256 `093747cc51622b012a49826cfd06111a50a87ad3464d0fe91baa758657889b5e`.
+
+Archive `rontrace-run1497.log`, 20,913,088 bytes,
+SHA-256 `dc28a70fe1c67db119897d29ab4fd3c4e23aa2254214f5fd1d0351e4f02bf05a`.
+
+**What it holds**: the diagonal arm's entry (`docs/MAPGEN.md` §20, "The take (i)"). `Blind:` open 40 → 39, after 3881's run1498.
 ## run1498 — chapter fifteen's lobby with a General in the selection, `cover=1` on the click-free pool to 1000 (2026-11-05, item 3881, `att-3881`)
 
 **What the disk could not answer**: no trace enters `GroupData::get_max_range@00711080`. Its two calls are

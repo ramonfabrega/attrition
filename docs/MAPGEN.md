@@ -987,7 +987,14 @@ decompile and the listings by me; the readings' detail is the module's):
   `WorldData::has_gather_access(…, −1, 0, 1)` on each placed range's
   tiles, then the cliffs', then each forest cell's. The ranges are
   `Mountains::add_mountain`'s list, so `MapGrid` now carries it
-  (`mountains`). No corpus map places a cliff (§13).
+  (`mountains`). The cliffs' pass, `Cliffs::set_edge_flags@008a85e0`,
+  walks `cliff_mining_data` (`Cliffs` +0x40: count +0x44, list +0x50 at
+  0x8a85f0..0x8a85fd; each `CliffMiningData`'s `tcoords` at +0x1c, count
+  +0x20, list +0x2c), not the queue `add_cliff` appends to
+  (`deferred_cliffs`, +0x7a4, count at 0xe89658). Only `Cliffs::init@008a8020`
+  fills that list, after `CliffsOut::close`, inside `Terrain::init` after
+  7945 (`walk_data`, a load, is the only other writer). So at 7937 the pass
+  has nothing to walk, and the port has no cliffs' pass (item 3882).
 - The released regions' flag (`Region.flags & 0x40`) has no writer found
   in the export; the port releases none, and 7937 agrees.
 - `compute_val`'s land counts are `LandData::make[4]` (+0x4 of the 0x138
@@ -1024,6 +1031,32 @@ is rough; ocean oil's record 7 makes only Oil, which neither `val` nor
 `goods` reads; every cell is labelled, so the re-run `find_all` writes
 nothing; and the one land region holds every dry cell, so no region-size
 factor fires.
+
+**Checked on Southwest Mesa** (item 3882, no sim change): from 3878's
+7927 grid, the first with cliff cells (292 0x40), the whole stream from
+`place_all` through the last value draw is run1493's trace, 6,161 draws
+with 3,600 value draws, and seed and parts 2, 5 and 6 agree at 7937
+(3871037036 / 292424319 / 253482500 / 644716173) and 7945 (718896060 /
+292424319 / 3822669751 / 644716173) on its one file, the one record of
+each it carries, first run
+(`southwest_mesa_s_values_are_the_traced_stream_and_7937_and_7945`). Of 18
+mutants on `1ceb95bb1`, 13 turn it red. Three are the cliff cells' own
+arms: the 0x200 ring's `0x70` as `0x30`, `get_land(…, 1)`'s 0x40 as class
+5, and the square's rough `0x70`. The others are the forest cells' 0x8000
+pass, `has_gather_access`' blocked test, the forest tiles' 0x38, the east
+border's unforest, the walk transposed, the draw's `% 10`, the timber and
+metal factors, and two made to fire on every cell (the 0x1000 centre test
+inverted, the `size / 16` threshold raised), which say only that each
+branch's write reaches the parts: the grid has no 0x1000 tile and one
+region of 3,600 cells, so neither decides a cell here. Five fail nothing, each measured on the 7937 grid as inert (3882a):
+Mesa places no mountain range, so `Mountains::set_edge_flags` walks
+nothing; `eliminate_dead_mount_spots` finds no dead spot; no cell is wet,
+so the `÷10` water factor never fires; every cell counts at least 10 food
+slots, so `> 4` and `> 5` agree; and none of the 4,672 tiles of the cliff
+cells has a gather mask at 7937, so even a filled cliff list would add no
+0x8000 here. The cliffs' 0x8000 therefore stays reading-only, now because
+its list is empty and its tiles unmarked at 7937, not because no map has
+cliffs.
 
 **Checked on East Indies** (item 3840, no sim change): from 3831's 7927
 grid, the whole stream through the last value draw is the trace's on **all
@@ -1443,6 +1476,16 @@ Of the territory's 198 open or layout-only functions under the nine stems
   2, 5 and 6 at 7937 and 7945 on 105 files (item 3807). The water edges,
   the region release, the 0x1000 tile, the water and region-size factors
   and the cliffs' 0x8000 are reading-only (3807a);
+- §9's values on Southwest Mesa: draw for draw on run1493's trace through
+  the last value draw, and seed and parts 2, 5 and 6 at 7937 and 7945 on
+  its one file (item 3882), the first values over cliff cells. The 0x200
+  ring, `get_land`'s class 5 and the square's rough test on a 0x40 cell
+  are diff-backed here; the 0x1000 tile and the region-size factors are
+  not (no 0x1000 tile, one region). The cliffs'
+  0x8000 stays reading-only: its pass walks a list nothing fills before
+  7945, and no cliff cell's tile has a gather mask at 7937 (§9). The ranges' 0x8000,
+  the dead spots, the water factor and the food bit's threshold also
+  run but cannot part (3882a);
 - §9's values on Great Lakes: draw for draw on 222 traces through the last
   value draw, both lobbies, and seed and parts 2, 5 and 6 at 7937 and 7945
   on 185 files (item 3830). Open water drawing nothing, the water count in
@@ -1685,7 +1728,14 @@ step is checked by §3 at its own checkpoint before the next begins:
    built** (item 3830, the same port on its 7927 grid, the water count's
    first diff; its fifth phase); **East Indies built** (item 3840, the
    same port on its 7927 grid, the border water edge's and the region-size
-   factor's first diff; its fifth phase);
+   factor's first diff; its fifth phase); **Southwest Mesa built** (item
+   3882, no `sim` change; its fifth phase): on 3878's 7927 grid, the seed
+   and parts 2, 5 and 6 at 7937 and 7945 agree on run1493's one file,
+   which carries one record of each, and the 6,161 draws from `place_all`
+   through the last `compute_val` are the trace's, site and word, first run
+   (7945: seed 718896060, part 5 3822669751, part 6 644716173). The cliff
+   cells' three value arms hold, and five mutants are inert by the grid,
+   each measured (3882a; §9);
 6. `Terrain::init` without heights (§10, 734–5012) — **Great Sahara
    built** (item 3809, `sim::terrain_init`; the `Mapgen:` line's sixth
    phase): no cell opens the half-land gate there, so every record to
@@ -2518,8 +2568,15 @@ it logs each edge write as the `TERRAIN` 40 print does.
   `check_for_diagonal@008595f0` is entered at (3, 16). *Falsifier*: that
   take at `cover=1` with the `@dumpall` showing (2, 17) `OCEAN` 0 →
   `BASELAND` 3 alone, and no `HIT` for 008595f0, kills the model.
-  `plant.py cell … 2,17 --printed <the take>` names the first write that
-  parts.
+  ~~`plant.py cell … 2,17 --printed <the take>` names the first write that
+  parts.~~ **Taken (item 3879, run1497): entered.** `check_for_diagonal`
+  is first entered on 620; `--printed` reads 80 writes, equal to the
+  model's in order; block 621's grid against run1157's start changes
+  (2, 17)'s land alone (`OCEAN` 0 → `BASELAND` 3), plus three `BASELAND`
+  sub-indices at (48..50, 47..48), 46 cells off and outside the re-mark.
+  `WorldData::is_valid@00471170` is not entered, so the arm's body
+  reaches no `is_valid` call on this cell (not read). The model is
+  diff-backed on this take.
 - **On the golden line, two plants.** On Great Lakes' golden grid, `weather`
   at (42, 43) and then at (41, 42) lifts F2 = (42, 42) from sum 3 to 4 and
   enters at C = (42, 41). (17, 46) then (16, 45) enters at (17, 44).

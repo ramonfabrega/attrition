@@ -38196,7 +38196,7 @@ To move the nine to `RESIDUE`:
 **Coverage.** Every claim in this section is reading-only. The slot table, the
 call-site table and the absent address copies are scans of the image. This
 reading moves no row to `RESIDUE`. Its cite of 383.6's four destructors adds
-them to `blind::NEVER`: never 263 → 267, open 40 → 44.
+them to `blind::NEVER`: never 262 → 266, open 39 → 43 (on run1497's 262 and 39).
 
 ## 384. Reserved for the next item on the AI track
 
