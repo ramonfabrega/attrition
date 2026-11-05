@@ -38004,7 +38004,12 @@ holds. **One take does not light the family**: 382.4's take reaches no
 `find_new_target` on a grouped head. The cheapest route to this pair stays
 3504a's staging, and this reading adds only that it is the *only* route.
 
-### 382.6 What a second reading must re-derive
+### ~~382.6 What a second reading must re-derive~~ — re-derived by item 3887
+
+*Struck 2026-11-05: item 3887's blind second reading agrees on 382.1's and 382.2's
+predicates, and both rows are `blind::RESIDUE` (`docs/audit/2026-11-05-item-3887.md`;
+`action_board_ship` has a third caller, `Group::finish_insert`'s re-issue of a
+held order, which brings no new producer). The list below is kept as written.*
 
 To move 382.1 and 382.2 to `RESIDUE`:
 1. The factory: every call to `00730ac0` and `00730550`, with the type
@@ -38175,7 +38180,13 @@ all four: *no live path calls the out-of-line copy*. **Killer**: a trace that
 enters any of the four. A thrown constructor is the cheapest way to get one,
 and a skirmish has none.
 
-### 383.7 What a second reading must re-derive
+### ~~383.7 What a second reading must re-derive~~ — re-derived by item 3887
+
+*Struck 2026-11-05: item 3887's blind second reading agrees on all six points and all
+thirteen rows (383.1–383.6), and they are `blind::RESIDUE`
+(`docs/audit/2026-11-05-item-3887.md`; `Object::~Object` has nine funclet callers;
+the Wall premise is re-derived through `find_free`'s seven callers and
+`get_new_data`'s case 2). The list below is kept as written.*
 
 To move the nine to `RESIDUE`:
 1. The slot of each row, from the tables' **bytes** (not `vtables.txt`'s
