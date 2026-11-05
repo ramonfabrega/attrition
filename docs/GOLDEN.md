@@ -16696,6 +16696,54 @@ the test is its only evidence. The leaders' closing comparison moved its third s
 game running further. **The next word, 1613**: ours 12 against 11, ours acted. Its first parted state is run1486's
 block 1435, the Camel Corps' round of 1430 (3849b), and 3849b now names that score.
 
+## 153.3 The later Camel Raider leaves from its turret — the fourth melee 1613 → 1980 (item 3855)
+
+**The booking**: frame 1613, ours 12 draws against 11, `Unit::close+0xcb6` at index 6 — ours acted, our Aircraft
+Carrier `2/18` dying. Walked back on run1486 (§153.2), the first parted state is block 1435: theirs' `2/18` takes 6
+from `0/14`'s round of 1430, which leaves (30461, 27533, 298) and flies 6 frames in theirs, and the figure's square
+(30456, 27384, 17) and 7 frames in ours.
+
+**The unit, named off the record.** `0/14` is `TI` 194, `ECAMELRAIDER`, a land unit on the strait's shore, `gpiece`
+144. Its `GUY` record carries what 3849b's reading did not use: `turret_angles[0]` −347799552 on 1429 and 1430,
+`node_flags` 15. `unit_graphics.xml` gives `<RESTRICTION name="CAMELRAIDER" node="4" minangle="-150"
+maxangle="150">`, so it is a pivot piece, and its `RELEASEEVENT`s are node 0. The figure stands on `cur_anim` 12
+(`CHAR_ATTACK2`) and `cur_time` 12 on 1429 and 13 on 1430: the release at 13.
+
+**The height is the two nodes summed.** run1484's packet (`get_position.py … entries 144`) holds nine entries,
+`RData +0x88` 0.9. At `CHAR_ATTACK2`, 13, the pivot node 4 sits at z 48.574 and the release node 0 at z 16.682. Their
+sum, scaled by 4.8 × 0.9, is 281.9, which truncates to the dump's 281 over the figure's 17. 3849b had swept each node
+alone (49 × 4.3 ≈ 210 at most) and never the two added through `get_position`'s pivot branch (`docs/COMBAT.md`
+§55). The xy comes from the same branch: facing step 10° and turret step 330° give (5.1, 149.2), which truncates to
+the dump's (5, 149).
+
+**Piece 144 is piece 143.** Its nine entries are bit for bit piece 143's off run1440: the Camel Raider row set item
+3770 measured (§149.6), `RData +0x88` included, and the four `(anim, time)` keys too (12, 12, 13, 18). So every
+`get_position` answer is 143's, and 143's measured `float_lands` with it. Built as `(144, 143)` in `pivot::SAME_AS`,
+plus 144's own `RDATA_SCALE` row, because `offset_at` scales by the raw piece (parked 3855a). Test:
+`the_later_camel_raider_s_rounds_leave_from_its_pivot`. Both `0/14` rounds the windows print from their first block
+fit at the dump's own turret step and nowhere else, at height 298: run1485's of 798, at (30400, 27516) with turret
+−262144, and run1486's of 1430. Mutated (`tools/mutate.py`, the row out): `sea_melee_first_parting` goes back to 1613,
+ours 12 against 11, `mutation: held`.
+
+**The value diff, on the frame the state first parted.** run1486's block 1435 now agrees: no `2/18` `hits:damage`
+row (`sea_melee_run1486_s_window_is_widened_whole`: 118 → 111 keys, the rounds read (381, 381), 46 → 24 parting —
+the standing families, 3849a's dead targets and parked 3855b's `ez`). 3849b's other arm closes too. Over 801..1201
+on run1483's stride (a scratch widening), no unit row parts but the standing families, and no round parts. So `1/17`'s
+`damage_frame` 802 against 801 was this round.
+
+**The word: 1613 → 1980** (the count 1986). On 1980 both sides spend 121. At index 53 ours spends
+`PathFinder::calc_road_cost+0x46` where theirs spends `Unit::think_scout+0xaba`. The widening
+(`sea_melee_run1483_s_word_window_is_widened_whole`, 1901..2230, 4 blocks, 558 keys, the rounds read (17, 17), 16
+parting): 1901 parts on the standing families alone. On 2001 the first moved unit is the Russian Fluyt `2/20` (`TI`
+332, sea, group 139 in theirs), on an `EXPLORETOORDER` bound for (44280, 38904) with its path down to (44256, 38880)
+in theirs, and for (42744, 28152) in ours. Beside it are the Aegis Cruiser `2/48`'s explore destination (`TI` 330;
+y 22776 against ours' 23544) and the French Citizens `1/6`' and `1/11`'s order lists. **The close** (block 2601):
+247 → **187** off, 135 units compared.
+
+**What is not established**: the scouting draw on 1980 — which side's `think_scout` arm (`Unit::think_scout+0xaba`
+in theirs) places the Fluyt's explore point, and whether `calc_road_cost` in ours is the same search reached by
+another path. It belongs to the next item, and the disk holds only 1901 and 2001 around it.
+
 ## 154. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
