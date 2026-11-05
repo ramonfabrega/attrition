@@ -545,6 +545,16 @@ pub const TRACES: &[&str] = &[
     // run1483b): run1483's game on every frame (rngcmp 2601 identical, 0
     // differing).
     "rontrace-run1483b.log",
+    // Item 3858: two of item 3493's click-free style sweep (`docs/RUNS.md`
+    // run1118, run1122), the default lobby at `--map 10` and `--map 15`
+    // under `cover=1` on the click-free pool, to their `--end-frame` 36,
+    // seed 12345, no twin taken. Each enters its map script on −1, before
+    // any frame a twin compares: run1118 (Southwest Mesa, the one style with
+    // a live cliff group) the cliff chain and `TerrainOut::has_plus_slope`,
+    // run1122 (Warring States) `MapWarringStates::make_continents` and
+    // `MapFairness::calc_distances` (`docs/MAPGEN.md` §18).
+    "rontrace-run1118.log",
+    "rontrace-run1122.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -983,6 +993,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Cliffs::add_cliff@008a6690`, `ScenarioEditor::generate_map@009a0950` and
 /// `ScenarioEditor::import_image@009a3f30`; run1118 (Southwest Mesa) and run1122
 /// (Warring States) are archived traces that enter five of 256's seven, not yet here.
+/// **255** with run1118 and run1122 (item 3858: two of item 3493's style sweep, joined with
+/// no capture), each row entered on −1: run1118 (Southwest Mesa) `TerrainOut::has_plus_slope`,
+/// `Cliffs::verify_placement`, `Cliffs::add_cliff`, `Cliffs::place_cliff`,
+/// `Cliffs::verify_defensive_position` and `Cliffs::position_cliff`; run1122 (Warring States)
+/// `MapFairness::calc_distances` and `MapWarringStates::make_continents` — five of 256's
+/// rows and three of 263's.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -999,14 +1015,14 @@ pub const NEVER: &[u32] = &[
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
-    0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_a1c0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x0069_8b60, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
+    0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_0aa0, 0x0071_1080, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_ec90, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
-    0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0086_9790, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
-    0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008a_6310, 0x008a_6690, 0x008a_7ea0, 0x008a_8680, 0x008a_8bc0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
+    0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
+    0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
     0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,

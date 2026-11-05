@@ -1329,7 +1329,7 @@ reachable set.
 | `place_all`'s pattern-2/3 weights (only when `clumps > 6 && regions < 6`) | single: `cvtdq2ps`, an `addss` sum in list order, `divss` then `mulss`, `cvttss2si` (0x6a7e24..0x6a7f29) | correctly rounded | a draw's modulus and the order | 19: `sim::single`, in the port; on Great Sahara one region, so the weight is `n` exactly |
 | the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`); the fractals' bilinear sample in a software double (`sim::double`, item 3812); the shore blend, smoothing and coastal pass the same (item 3835) |
 | `TerrainOut::has_plus_slope@00869790` | `tanf(25°)` | **transcendental**, constant argument | the cliff threshold 89.531075f (`0x42b30fe9`) | **13**: pin it; the double result sits 0.30 ulp from the float, so a faithful libm agrees |
-| `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: no trace in `TRACES` reaches it, and run1118 (Southwest Mesa, the one cliff style) does (§18.3, item 3856) |
+| `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: run1118 (Southwest Mesa, the one cliff style) enters it, in `TRACES` since item 3858; no value diff (§18.3) |
 | `MapFairness::calc_distances@0068a1c0` | single, but an integer score × 1.0f | **exact** (every value is an integer below 2²⁴) | Warring States only (run1122 enters it) | 19; integer-exact as read (§18.2, item 3856) |
 
 The `acos` site is the only one no decision covers. It is unreached on
@@ -1493,11 +1493,9 @@ reconciled to their measured totals. Also §3's parts 10–13 offsets and
 `blind::NEVER` with this item):
 - `Map::make_continents@00694ab0`,
 - `Map::force_continent_spacing@0068e6a0`,
-- `Cliffs::position_cliff@008a8bc0`,
-- `Cliffs::verify_defensive_position@008a8680`,
-- `Cliffs::place_cliff@008a7ea0`,
-- `MapFairness::calc_distances@0068a1c0`,
-- `TerrainOut::has_plus_slope@00869790` — `Cliffs::assess_wcoord` is entered, but it reaches the slope test only on a cell with flag 0x40 that is not COAST, `land` 1 or 2, or a tile whose mask's low bits read 2. So §10's 89.53 threshold has decided no corpus cell; a start dump's count of 0x40 cells is its falsifier.
+- ~~`Cliffs::position_cliff@008a8bc0`, `Cliffs::verify_defensive_position@008a8680`, `Cliffs::place_cliff@008a7ea0`,
+  `MapFairness::calc_distances@0068a1c0`, `TerrainOut::has_plus_slope@00869790`~~ — entered on −1 by run1118 and
+  run1122, in `TRACES` since item 3858; entry only, so their values stay reading-only (3856b).
 
 Their claims are reading-only until a capture enters them; a cliff
 tileset or a base-mask style is what would.
@@ -1509,15 +1507,16 @@ the trace scan covered every `rontrace-*.log` under `~/ron-data`):
 |---|---|---|---|
 | `Map::make_continents@00694ab0` | nothing: only `MapScenario` keeps the slot, and its `make` never dispatches +0x40 (§18.1) | none | `RESIDUE` candidate |
 | `Map::force_continent_spacing@0068e6a0` | `ScenarioEditor::import_image` only (§5) | none, since the editor is cut | `RESIDUE` candidate |
-| `MapFairness::calc_distances@0068a1c0` | every Warring States lobby with nations (style 15) | **run1122, on disk**: join `TRACES` | entered |
+| `MapFairness::calc_distances@0068a1c0` | every Warring States lobby with nations (style 15) | **run1122**, in `TRACES` (3858) | entered |
 | `Cliffs::position_cliff@008a8bc0` | Southwest Mesa's type-8 groups (style 10) | **run1118, on disk** | entered |
 | `Cliffs::verify_defensive_position@008a8680` | Mesa's `pattern="player"` cliffs | run1118 | entered |
 | `Cliffs::place_cliff@008a7ea0` | any queued cliff, through `Cliffs::init` | run1118 | entered |
 | `TerrainOut::has_plus_slope@00869790` | a 0x40 cell, which Mesa's cliffs make (§18.4) | run1118 | entered |
 
-Five of the seven need **no capture**. Adding `rontrace-run1118.log` and
-`rontrace-run1122.log` to `blind::TRACES` takes them off `NEVER` (and
-whatever else those two enter). A value diff of the cliff chain is a
+Five of the seven need **no capture**: item 3858 joined `rontrace-run1118.log`
+and `rontrace-run1122.log` to `blind::TRACES`, and eight rows left `NEVER`
+(263 → 255, measured), the five and `verify_placement`, `add_cliff`,
+`MapWarringStates::make_continents`. A value diff of the cliff chain is a
 second item: a Southwest Mesa checksum capture at `check_all_level ≥ 14`
 whose falsifiers are 7859 and 894 (§18.3, §18.4).
 

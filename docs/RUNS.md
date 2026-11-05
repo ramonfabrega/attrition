@@ -23692,6 +23692,8 @@ SHA-256 `c2099f9c7569f74338bbd7d1a9a23251fa46d01b6065a828da88933ad4f46a1d`.
 Archive `rontrace-run1118.log`, 8,704,064 bytes,
 SHA-256 `30c10445cdee2371013d9381d7bd723592d06cb1792d66f217e01e390627858f`.
 
+Joined to `blind::TRACES` by item 3858 (2026-11-05) with no twin (parked 3858a). The cliff and map-script rows MAPGEN later cited are entered on −1; the blind list's count line names them.
+
 ## run1119 — African Watering Hole (style 11) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
 
 run1117's line, at `--map 11`.
@@ -23751,6 +23753,8 @@ SHA-256 `48009be1be786749e5479a1d7c3c3d8a6b144b0478a488df36b3943f6acce743`.
 
 Archive `rontrace-run1122.log`, 8,951,776 bytes,
 SHA-256 `e5d8462fe34c7308ba88ea5af09586c7909cb25486202af442913075f8f4496a`.
+
+Joined to `blind::TRACES` by item 3858 (2026-11-05) with no twin (parked 3858a). The cliff and map-script rows MAPGEN later cited are entered on −1; the blind list's count line names them.
 
 ## run1123 — New World (style 16) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
 
