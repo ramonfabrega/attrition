@@ -663,7 +663,15 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// 312, 78), the two sea lines (332, 351), five land lines no lobby fields
 /// (67, 124, 175, 192, 194), Boadicea and six gaia animals; read by
 /// `rubric.py --record "the sixty-fifth pass"`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 285;
+/// Item 3866: 285 -> 293. The base already read 292 — the fourth melee
+/// whole at 2600 (item 3862) read as a lockstep game and never re-pinned:
+/// `Fluyt` 332, `Aircraft Carrier` 351, `Minuteman` 67, `Royal Kushite
+/// Archers` 175, `Heavy Camel Archer` 192, `Camel Corps` 194 and a gaia
+/// animal — and the Spanish Information pair whole at 3500 adds `Elite
+/// Special Forces[ELITESPECIALSPANISH]` (78), standing from the start
+/// (§380, GOLDEN §154); 9 never: 296, 312, 124, Boadicea and five gaia
+/// animals; read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 293;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

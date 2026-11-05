@@ -37659,12 +37659,65 @@ No draw parts. So the closing state is scored:
 - The standing families (`form`, the groups' `held` and pools, `SITE[..].reg`, `mirror`, `dest_angle`) are the
   same families every closed pair carries; no draw reads them to 3191.
 
-## 380. Reserved for the next item on the AI track
+## 380. The Spanish at a held Information age, Great Lakes: whole on the first try at 3500 (item 3866)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3866, 2026-11-05, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4, 102 §3). This is §379's lobby with the
+map and the nation moved: `MAP_STYLE 14`, human Nubians (4) against the **Spanish (9)** at Difficulty 3, seed
+12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 7`, `ENDING_TECHNOLOGY 7`. Both `GAME INFO`s read the 7s and
+the 3 back, and `Pair::assert_lobby` asserts them. The captures are run1488 (a `DUMP_ALL` start) and run1489 (the
+draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100). run1489 ended itself on 3500 (closing block
+3501). `rngcmp.py` finds run1488 and run1489 identical on all 37 frames. The walk is seeded from run1488's initial
+state (3506a). `diff::spanish_information_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The triple, `(14, 9, 3)`, is minted** under entry 72's rule (3): `python3 tools/refill.py 14 9 3` read
+`(14, 9, 3) free` on this tree before the lobby was minted, and reads it `scored` after. The Spanish hold this map
+at 4 (`spanish_lakes_word`) and 5 (`spanish_industrial_pair`), Great Sahara at 3 (`spanish_word`) and 5
+(`spanish_classical_pair`), and East Indies at 3 (`spanish_east_word`), 4 (`spanish_modern_pair`) and 5
+(`spanish_gunpowder_pair`); the battery fields no Spanish. `spanish_information_pair_is_no_other_lobby` asserts
+all of it.
+
+**The claim it tests holds** (`docs/GOLDEN.md` §154: a start owns its own age's upgrades). On the start dump's
+first frame the Spanish seat stands **two** `Elite Special Forces[ELITESPECIALSPANISH]` (78), `1/0` and `1/1` (130
+hits each), and no 77. The Nubian seat stands the generic 77. The second 78 is `SPANISH_EXTRA_SCOUT`'s (parked
+3865c). This crate does not carry that constant, yet the walk seeded from the start dump stands both, so the pair
+never reads the gap. `spanish_information_pair_s_start_stands_the_spanish_elite_special_forces` asserts it. The
+killer named at booking, a start with no 78 on the Spanish seat, did not fire.
+
+**The score: whole on the first try**: count 3500, sequence 3500, of 3500
+(`spanish_information_pair_first_parting`). No draw parts, so the closing state is scored:
+- **The closing block** (run1489's 3501, walked from run1488): 114 units compared, none off, torn, unlinked or
+  extra, no building row. There is **one closing field**: who=1's city `1/2046`'s `assimilation_timer`, ours 3500
+  against theirs 3497. It is 3699a's, 3742c's and 3760d's family on a fourth lobby (parked 3866a). Counts
+  `[0, 0, 0, 0, 0, 0, 1]` (`spanish_information_pair_run1489_s_closing_state`).
+- **The stride, the whole game** (run1489, 101..3401): 34 blocks and 102 keys. They are the standing families
+  (`build:extra` 53, `form` 27, who=1's groups 64..70' `held` and pools, and `mirror` on `1/63`, `1/75`, `1/87`,
+  `1/102`, `1/109` and `1/115`, ours 0 against theirs 1), plus **one value row**. That row is the Assault
+  Infantry `1/18`'s (TI 104, land, group 65, at its full 180 hits) `damage_frac`, ours 13 against theirs 12 from
+  block 3101 (parked 3866b).
+- **The closing window** (run1489b, 3244..3501, `BUILDS`, `CITIES`, `LEADERS=9`, `AMMO=5`; `rngcmp.py` against
+  run1489: 3501 frames identical): 257 blocks and 47 keys. They are the standing families (`form`, the groups'
+  `held` and pools, who=0's `SITE[0..9].reg` and `aggression[1]`, the six `mirror`s) and `1/18`'s `damage_frac`.
+  **Rounds read 85 against 85, none parting.**
+
+**The cast**, read by `rubric.py --tables 3 --dumps` on run1488 and run1489 (the herds aside): 78 (×172 rows), 77,
+Assault Infantry 104, Flamethrower 131, `Anti-Tank Missile[TOW]` 141, Armored Cavalry 220, `Main Battle
+Tank[ABRAM]` 254, `Rocket Artillery[MLRS]` 273, `Anti-Aircraft Missile[AVENGER]` 284, `Jet Fighter[JETFIGHTER]`
+295, Strategic Bomber 305 and Nuclear ICBM 316, with the Citizen, Caravan, Merchant, Supply Wagon and three
+leaders (Despot, Monarch, Comrade).
+
+**The rubric**: `rubric.py --tables 3` reads unit types seen **293 of 302** with this pair registered, against
+**292** on the base. 78 leaves the never list. The pin read 285. The seven between 285 and 292 are the fourth
+melee's (item 3862, whole at 2600, read as a lockstep game): 332, 351, 67, 175, 192, 194 and a gaia animal. They
+were never re-pinned. `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned 285 → 293. Nine types stay never: 296, 312,
+124, Boadicea and five gaia animals.
+
+**Not established**:
+- Whether `SPANISH_EXTRA_SCOUT` needs carrying. It matters only for a start the sim builds itself rather than
+  seeds from a dump; no pair does that (3865c stands).
+- The two residues, the city's assimilation stamp and `1/18`'s sixteenth, spend no draw to 3500. Their writers are
+  unread here.
 
 ## 381. Reserved for the next item on the AI track
 

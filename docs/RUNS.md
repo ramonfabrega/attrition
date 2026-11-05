@@ -34452,3 +34452,72 @@ SHA-256 `a5d2352cf25ee616e1c17f6ba3b7dd00d06ee3dc57878828e2739d30649b42db`.
 seed poked to `0a2b6fdb`: 51 cells accepted, (57,38) and (57,39) the two ours refused as seen), the fog grid, and the
 `FROM` chains that put the Fluyt (`TI` 332) and the cruiser (`TI` 330) under the Bark. Its window is
 `sea_melee_run1487_s_window_is_widened_whole`.
+
+## run1488 — the Spanish at a held Information age, Great Lakes, at difficulty 3: the `DUMP_ALL` start (2026-11-05, item 3866, `att-3866`)
+
+`docs/AI.md` §380. run1447's line with the map and nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1488 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`.
+- Pool lane 1, the pool's pick. Launched 08:01:46, exited 08:02:11 (25.4 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 9, map style 14, five files restored;
+  `page_faults` 0, `relaunches: []`. `GAME INFO` reads back `DIFFICULTY 3` and `STARTING_TECHNOLOGY 7`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1488 greatlakes-spanish-information-start`. `df -g ~` read 145
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1488-greatlakes-spanish-information-start.txt`, 151,157,678 bytes,
+SHA-256 `97fff5f5f2d1ae949deda6df15d0f53d886eacd3eaf71d62a921e897622ce222`.
+
+Archive `rontrace-run1488.log`, 8,818,336 bytes,
+SHA-256 `af0c53aa8b9799ee340f852c390d9333c1832e8d94a9063bd80f3f4c9291fed1`.
+
+**What it holds**: the start of `spanish_information_pair::SPANISH_INFORMATION`, and the walk's initial state; the
+Spanish seat's two `Elite Special Forces[ELITESPECIALSPANISH]` (78), `1/0` and `1/1`, on frame 1
+(`spanish_information_pair_s_start_stands_the_spanish_elite_special_forces`).
+
+## run1489 — the Spanish at a held Information age, Great Lakes, at difficulty 3: the draw stream to the game's end (2026-11-05, item 3866, `att-3866`)
+
+`docs/AI.md` §380. run1448's line with `--map 14`, `--ai-tribe 9` and run1488's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 9 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=3 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1488. Launched 08:01:50, exited 08:03:22 (92.3 s launch to exit). `success`;
+  `page_faults` 0, `relaunches: []`. **The game ended itself on 3500** (closing block 3501, `ended_early`). `GAME
+  INFO` reads back as run1488's. `rngcmp.py` against run1488: 37 frames identical. Filed with `filerun.py run1489
+  greatlakes-spanish-information-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1489-greatlakes-spanish-information-trace.txt`, 20,811,976 bytes,
+SHA-256 `ebcda7a59f539ce2a042c61a1763076924ace15f2b360145aabf2fab30c448ba`.
+
+Archive `rontrace-run1489.log`, 48,849,120 bytes,
+SHA-256 `44f5b88abcb2c6219cdf8cecc30daa650971634b5200db1729032c747f652700`.
+
+**What it holds**: the pair's first try, **whole at 3500** by the count and the sequence
+(`spanish_information_pair_first_parting`); its stride over the whole game, 101..3401, 34 blocks and 102 keys
+(`spanish_information_pair_the_long_s_stride_walks_back_from_the_word`); the closing block 3501, 114 units, counts
+`[0, 0, 0, 0, 0, 0, 1]`, the one a city's `assimilation_timer` (`spanish_information_pair_run1489_s_closing_state`).
+
+## run1489b — the Spanish at a held Information age, Great Lakes, at difficulty 3: the closing window, blocks 3244..3501 (2026-11-05, item 3866, `att-3866`)
+
+`docs/AI.md` §380. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1489's stride prints units every hundred frames (3401, then the closing block), with no `AMMO` and no leader,
+building or city record past the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1489b --map 14
+--end-frame 3500 --allow-early-end --timeout 3600 --log-window 3244 3501 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0 --profile
+STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 08:12:15, exited 08:14:23 (128.4 s launch to exit). `success`; `page_faults` 0,
+  `relaunches: []`, last frame 3500. `rngcmp.py` against run1489: 3501 frames identical. Filed with `filerun.py
+  run1489b greatlakes-spanish-information-closing-window-3244-3501`. `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1489b-greatlakes-spanish-information-closing-window-3244-3501.txt`, 511,717,971 bytes,
+SHA-256 `7732703fda9bf749734dd285a9ae701d5ed2a13102232a9d3de7dabbdee40682`.
+
+Archive `rontrace-run1489b.log`, 48,900,128 bytes,
+SHA-256 `8100607269dad67cc996750a2e1ed72cd84e8ef8ce73afb19bf3ae26e253e520`.
+
+**What it holds**: the pair's closing widening (`spanish_information_pair_run1489b_s_closing_frame_is_widened_whole`):
+257 blocks, 47 keys, the standing families and `1/18`'s `damage_frac`; rounds read 85 against 85, none parting.
