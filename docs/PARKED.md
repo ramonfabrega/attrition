@@ -13705,13 +13705,18 @@ v1 game's floods ever reach 500: what the deepest flood is, and from which write
 the flood below 500 on a 60×60 grid. It would be confirmed by a late `WORLD ≥ 3` dump that holds a P1 pair near a
 building. Names no score until the second reading of §19 agrees: one reach.
 
-## Parked by the next landing, slot ZG — reserved
+## Parked by item 3864, 2026-11-05 — the diagonal arm's second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3864a) **`TerrainOut::check_for_diagonal@008595f0` becomes `RESIDUE` on 3863a's bound alone.** The blind
+second reading (`docs/audit/2026-11-05-item-3864-blind.md`) agrees with `docs/MAPGEN.md` §19 on the
+predicate, P1 ∧ P2: the corner, the chains, the tilesets and the start counts (its own: 42 distinct start
+grids, 0 fertile–ocean orthogonal contacts, 0 of 80,798 listed cells reaching the arm in a scratch port).
+On the listing, `verify_land`'s `cmp eax, 0x1f4; jg 0x84dd49` skips the one `dec [0xee1224]` (`84dd43`),
+and nothing else writes `depth`. So 3863a stands, and nothing moved (`Blind:` open). What would kill
+3863a: a reading that bounds every v1 flood's recursion below 500 — `convert_beach_to_sandy`, the river
+batch, `check_and_set_halfland_wcoord`, `object_placed`. That moves the row to `RESIDUE` on the audit with
+no further reading (`Blind:` open −1). What would confirm it: a late `WORLD ≥ 3` dump with a P1 pair beside a
+building. Names the `Blind:` counter.
 
 ## Parked by item 3865, 2026-11-05 — the four lines a seat must train itself
 

@@ -2086,9 +2086,14 @@ field is (A)'s 7, and nothing else writes one.**
   `MapScenario::make@0068c8f0` at 0x68cafc and 0x68cc24, which §18.1
   keeps out of every lobby.
 
-**Verdict: unreachable while P1 and P2 hold.** The next item is the
-predicate's blind second reading. Until it agrees, the `is_valid` row
-stays open, not `RESIDUE`.
+**Verdict: unreachable while P1 and P2 hold.** ~~The next item is the
+predicate's blind second reading.~~ The second reading
+(`docs/audit/2026-11-05-item-3864-blind.md`) re-derives P1 ∧ P2, the
+south-west corner and the tileset arithmetic independently. Its blind
+part claimed more and was wrong twice: on which grid the initial pass
+marks (the pre-beach grid, which §19.4 counts) and on `verify_land`'s
+mid-game hold (3863a). So the arm and the `is_valid` row stay open, not
+`RESIDUE`, until 3863a's flood is bounded below depth 500.
 
 ### 19.5 What would kill it, and what is not established
 
