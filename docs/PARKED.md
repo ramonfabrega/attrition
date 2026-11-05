@@ -13659,13 +13659,17 @@ Two writers of `info.map_style` that feed `set_map`'s pass-through are unsettled
 style byte of the install's shipped `scenario/` files. The other half is a direction call (FABLE: is scenario play,
 as distinct from the editor, inside v1?). With both settled, the row becomes `RESIDUE`. It names no score.
 
-## Parked by the next landing, slot ZD — reserved
+## Parked by item 3861, 2026-11-05 — the parameter window's second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3861a) **`BorderSpline::on_field_change@004a1ca0` and `CircleRender::on_field_change@008c6db0` stay open: 3479b's
+predicate is false.** Both readings agree the two are entered only through the cheat-gated debug parameter window
+(`Console::exec_keymap` command `0x1e` under `cheat_keys`, which is 0 unless a `prefs2` entry or the console's cheat
+command `0x11` sets it). 3479b's "only by faulting" covers the edit box's Return alone. `ParamRegisterWindow::on_scroll@009343b0`
+reads the current object's descriptor at the scroll's id minus 2, so one of Sun's stale Scrolls moved after a switch
+to Splines or Misc Effects writes that object's parameter and calls its +0xc with no `get_text` and no fault
+(`docs/audit/2026-11-05-item-3861-blind.md`, part 2). FABLE: is the debug parameter window inside v1? If it is out,
+both rows become `RESIDUE` ("the debug parameter window only"). If it is in, a run settles them: cheats on, F12,
+Splines, drag the first Scroll, and `004a1ca0` and `009343b0` are entered. It names no score.
 
 ## Parked by the next landing, slot ZE — reserved
 
