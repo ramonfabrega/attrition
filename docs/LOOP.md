@@ -261,7 +261,13 @@ clear <lane> --then "continue item <N> from the journal"` at that lane's
 next push and prints `ARMED` or `ARM-REFUSED` — **a push on a lane whose
 own gate still runs is `GATING … held, not armed`**, read again at the
 gate's exit, and a push whose journal is no draft is `PUSHED … a
-landing, not armed` (Loop 3833 built; the sixty-fifth pass) (Loop 3526: `ccc clear`
+landing, not armed` (Loop 3833 built; the sixty-fifth pass) — **and
+`LANDED` needs the journal's `Lane verdict:` quote or the row's done
+line; a push with neither is `PUSHED … progress, not a landing: its
+journal quotes no lane gate yet`**, and a landing whose newest commit is
+not the quote's exits `ENDED` with the row's line (Loop 3853 built; the
+sixty-sixth pass: a fresh session's re-pin push read `LANDED` with no
+gate run) (Loop 3526: `ccc clear`
 refuses a lane with uncommitted work, so an arm in the answer's own
 turn failed twice and the commander's line had already said "armed");
 a lane's own arm is refused (DECISIONS 61) and five sessions over 300 k
@@ -401,7 +407,13 @@ two merges of the two map chains conflicting in `floors.rs` (3825, 3828;
 twenty took 9 h 04 against 11 h 39. The lane returns when a two-lane
 tranche reads waiting under 26.3 and the gate under 15.3, the two-lane
 figures it was returned on, or on Ramon's word, which the landing's price
-and the tranche's clock argue for (DECISIONS 105 §1); a
+and the tranche's clock argue for (DECISIONS 105 §1) — **and the
+sixty-sixth read 25.0 waiting and 12.3 gate a session on two lanes**
+(DECISIONS 106 §1), both under, **so the third lane returns for the
+sixty-seventh**, three Opus lanes at medium, read at its drain against
+26.3 waiting — a fifth above, 31.6, takes it away — and 15.3 gate, and
+watched on the door (1,669.2 s on two lanes against 6,234.8 on the last
+three) and on the whole gates' length (46.3–48.8 release minutes); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
@@ -520,7 +532,8 @@ gate (DECISIONS 77) — **and the integration tree's debug profile is
 cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
 GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
 **when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6;
-the sixty-fifth read 114 at its start, 125 after both)
+the sixty-fifth read 114 at its start, 125 after both; the sixty-sixth
+141, over 125, so the archives alone, 147 after)
 — **and its table of the tranche's gates is
 `python3 tools/gates.py <the commander's job tmp> --since <the last
 pass's gate log>`** (DECISIONS 80), **and its rubric is `python3

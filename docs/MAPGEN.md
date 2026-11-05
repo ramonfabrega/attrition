@@ -1867,7 +1867,16 @@ mask of map styles 0x18/0x19, which only `ConquestGame::build_conquest_game`
 mints and the skirmish lobby's 23-entry style combo cannot select. The
 verdict stands for the lobby. A scenario file's stored style byte
 (`ScenarioRead::import@009b1430`) and the console's `map_style` command
-are not settled, so the function stays an open `NEVER` row (parked 3859a).
+~~are not settled, so the function stays an open `NEVER` row (parked 3859a).~~
+**Settled by the sixty-sixth pass** (DECISIONS 106 §3): the console's `map`
+command clamps its parsed style by `range(0x16)` (the listing at
+0x7d9eb6–0x7d9ece), so it writes 0..22 and never 0x18/0x19; and scenario
+play is cut from v1 with the editor and the trigger system
+(`Game::run_scenario`'s residue row), so a scenario file's style byte
+reaches no game a capture runs. `force_continent_spacing`, `import_image`,
+`ScenarioEditor::generate_map`, `MapConquest::make_continents`,
+`GameSpy::UpdateLobbyFromDTO` and `ScenarioRead::import` are
+`blind::RESIDUE` rows.
 
 ### 18.2 Warring States' fairness distances
 
@@ -2093,7 +2102,17 @@ south-west corner and the tileset arithmetic independently. Its blind
 part claimed more and was wrong twice: on which grid the initial pass
 marks (the pre-beach grid, which §19.4 counts) and on `verify_land`'s
 mid-game hold (3863a). So the arm and the `is_valid` row stay open, not
-`RESIDUE`, until 3863a's flood is bounded below depth 500.
+`RESIDUE`, until 3863a's flood is bounded below depth 500. **The
+sixty-sixth pass** (DECISIONS 106 §3): the developer console is the
+oracle's own instrument (`crate::golden` models its `add`, `resource`,
+`tech` and `age`; every chapter is staged through it), so a row the
+console can reach is open, never residue on scope (Loop 3473) — the arm
+stays open and item 3870 takes 3863a's bound first, the console-planted
+contact second. `TerrainOut::generate_transitions@00861960` is referenced
+nowhere in the image (the pass's scan; the byte before it is the
+preceding function's own `ret`) and is a `RESIDUE` row; `River::calculate`
+stays open, entered by the console's two river arms and
+`TerrainMap::river_stop`.
 
 ### 19.5 What would kill it, and what is not established
 

@@ -393,6 +393,10 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
             18
         } else if text.contains("Great Lakes") {
             14
+        } else if text.contains("Southwest Mesa") {
+            // The fourth map chain's first capture (item 3869, the
+            // sixty-sixth pass): style 10, run1118's.
+            10
         } else {
             // 571 as first written: a squad, a block, a capture — and no map,
             // so nothing could check the ledger against it.
@@ -1504,7 +1508,11 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// **149** with item 3861's `StormOut::registration` (the storm's one
 /// registration with the parameter window; cited only under `docs/audit/`
 /// and `docs/journal/`).
-const UNREFERENCED: usize = 148 + 1;
+/// **150** with the sixty-sixth pass's scan of the tranche's new open rows:
+/// `TerrainOut::generate_transitions@00861960`, cited by `docs/MAPGEN.md`
+/// §19 (item 3864's cite) — the byte before it is the preceding function's
+/// own `ret`, so no fall-through (DECISIONS 106 §3).
+const UNREFERENCED: usize = 148 + 1 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1561,6 +1569,7 @@ const DEAD_CITED: &[(&str, u32)] = &[
     ("GROUPS.md", 0x007137f0),
     ("GROUPS.md", 0x00713bb0),
     ("INPUT.md", 0x005930c0),
+    ("MAPGEN.md", 0x00861960),
     ("MOVEMENT.md", 0x00a469f0),
     ("ORDERS.md", 0x00622ce0),
     ("ORDERS.md", 0x00683730),
@@ -1802,7 +1811,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOODY.md", 4),
     ("GROUPS.md", 3),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 7),
+    ("ORDERS.md", 6),
     ("PRODUCTION.md", 4),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),

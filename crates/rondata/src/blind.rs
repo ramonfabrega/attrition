@@ -1012,6 +1012,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **264** with item 3864's cite of the transition rebuild's callers (no capture joins [`TRACES`]):
 /// `TerrainOut::generate_transitions@00861960` and `River::calculate@008858e0`; the second
 /// reading agrees on §19's predicate, and the arm stays open on parked 3863a's depth leak.
+/// **264** unmoved by the sixty-sixth pass, which ratified ten open rows as [`RESIDUE`]
+/// (DECISIONS 106): 3859a's six on scope (the editor, Conquer the World's mask, GameSpy,
+/// scenario play, and the console's `map` command clamped to 0..22), 3861a's three (the
+/// debug parameter window, out of v1 with the renderer it tunes) and the scan's one dead row
+/// (`TerrainOut::generate_transitions@00861960`); residue 213 → 223, open 51 → 41.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1219,6 +1224,15 @@ pub const RESIDUE: &[(u32, &str)] = &[
          orders' vtables (its two vtordisp thunks), and no instruction \
          dispatches that slot on an order (docs/ORDERS.md §1.3, two readings); \
          the live predicate is UnitData::is_fleeing@0046efa0 (item 1182)",
+    ),
+    (
+        0x004a_1ca0,
+        "BorderSpline::on_field_change: the debug parameter window only \
+         (ParamRegisterWindow, ParameterWindow.obj; keymap 0x1e under \
+         Console::cheat_keys), whose Scrolls write a registered object's parameter \
+         and call its +0xc; the window tunes renderer objects and is out of v1 with \
+         the renderer it tunes (two readings, item 3861; the sixty-sixth pass, \
+         DECISIONS 106)",
     ),
     (
         0x0058_3380,
@@ -1848,6 +1862,22 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0068_dba0,
+        "MapConquest::make_continents: the mask of map styles 0x18/0x19, which only \
+         ConquestGame::build_conquest_game mints (Conquer the World, cut from v1); \
+         the skirmish combo stops at 22, the console's map command clamps its parse \
+         to 0..22 (range(0x16) at 007d9ec9), and a scenario file's style byte is \
+         scenario play, cut (item 3859; the sixty-sixth pass, DECISIONS 106)",
+    ),
+    (
+        0x0068_e6a0,
+        "Map::force_continent_spacing: its one caller ScenarioEditor::import_image \
+         has two callers, ScenarioEditor::generate_map (the editor, cut from v1) \
+         and MapConquest::make_continents (styles 0x18/0x19, Conquer the World, \
+         cut); no lobby, console command or shipped skirmish reaches either (two \
+         readings, items 3856 and 3859; the sixty-sixth pass, DECISIONS 106)",
+    ),
+    (
         0x0069_4ab0,
         "Map::make_continents: live only as MapScenario::vftable +0x40 (style \
          0x1a; Map::vftable is the ctor's and dtor's transient vptr), and a \
@@ -2205,6 +2235,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0086_1960,
+        "TerrainOut::generate_transitions: no reference in the executable (the \
+         sixty-sixth pass's scan; the byte before is the preceding function's own \
+         ret at 0x86195f, so no fall-through)",
+    ),
+    (
         0x0089_7a50,
         "Signposts::cur_y: a terrain-side getter or builder inlined at every \
          use, or one nothing calls; no reference in the executable (the \
@@ -2295,6 +2331,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x008c_6db0,
+        "CircleRender::on_field_change: the debug parameter window only; the \
+         circle's registration from Game::init under Misc Effects is reached by a \
+         Scroll of ParamRegisterWindow and nothing else (two readings, item 3861; \
+         the sixty-sixth pass, DECISIONS 106)",
+    ),
+    (
         0x008d_1830,
         "WorldMapFog::get_fog_lookup: a terrain-side getter or builder inlined \
          at every use, or one nothing calls; no reference in the executable \
@@ -2332,6 +2375,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
         0x0092_fc50,
         "GameLog::dump_armies: no reference in the executable, and gamelog.ini \
          has no ARMY key",
+    ),
+    (
+        0x0093_43b0,
+        "ParamRegisterWindow::on_scroll: the debug parameter window's scroll \
+         handler, its one home ParamRegisterWindow::vftable +0x330; the window is \
+         keymap 0x1e under Console::cheat_keys and out of v1 (item 3861; the \
+         sixty-sixth pass, DECISIONS 106)",
     ),
     (
         0x0093_a140,
@@ -2388,10 +2438,35 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0096_2c70,
+        "GameSpy::UpdateLobbyFromDTO: the online lobby, GameSpy, cut from v1; its \
+         three callers are GameSpy::OnLobbyJoined and two lambdas of the lobby \
+         client (item 3859; the sixty-sixth pass)",
+    ),
+    (
         0x0099_6ac0,
         "ScenarioData::issue_order: a scenario file's initial orders, applied \
          once at ScenarioRead::import, not the trigger system; no capture loads \
          a scenario (docs/GOLDEN.md §144.2, §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x009a_0950,
+        "ScenarioEditor::generate_map: the scenario editor, cut from v1; its two \
+         callers are Options::exec_editor's (item 3859; the sixty-sixth pass)",
+    ),
+    (
+        0x009a_3f30,
+        "ScenarioEditor::import_image: the editor's image import and the Conquer \
+         the World mask's (MapConquest::make_continents), both cut from v1 (item \
+         3859; the sixty-sixth pass)",
+    ),
+    (
+        0x009b_1430,
+        "ScenarioRead::import: a scenario file's load — Setup::build_game's \
+         scenario arm, MapScenario::make (style 0x1a) and the editor's test and \
+         load screens; scenario play is cut from v1 with the editor and the trigger \
+         system (Game::run_scenario's row, the forty-eighth pass; item 3859; the \
+         sixty-sixth pass, DECISIONS 106)",
     ),
     (
         0x009b_32f0,

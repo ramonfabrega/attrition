@@ -21772,3 +21772,32 @@ merged branches' remote delete is classifier-refused). The backlog 14 → 9.
 The sixty-sixth is launched on two Opus lanes at medium: the fourth melee
 and the map chains' rivers. **DECISIONS 105.**
 `docs/audit/2026-11-04-fable-pass-65.md`.
+
+**2026-11-05 — the sixty-sixth steering pass (steer, Fable).** The
+sixty-sixth tranche measured: twenty landings on two Opus 5.5 lanes in
+11 h 12; the fourth melee ran 677 → 2,600 on six items and closed with
+its state 0 off (3849 the leaders' permutation and the release tables,
+3854 the carriers' self-repair, 3855 piece 144's `SAME_AS` rows, 3857 the
+scout's lineage sibling, 3860 an unstarted site holds no centre, 3862 a
+sunk transport takes its rider); every map chain runs whole at 8 of 8
+(3845, 3850 Great Lakes' rivers and troughs; 3846, 3851 East Indies');
+two late-age pairs stood up whole on the first try (3866 the Spanish at
+Information, 3867 the Germans at Industrial at Moderate) off 3865's
+reading; 149.05 USD for the workers, 7.45 a landing, waiting 25.0 a
+landing against 26.3 and the gate class 12.3 against 15.3 — both under,
+so the rule's letter returns the third lane (DECISIONS 106 §1); unit
+types 285 → 294 of 302, lockstep bytes 77.6 → 77.7, the territory 543 →
+544. The three `FABLE:` direction questions ruled: scenario play and the
+debug parameter window out of v1, the developer console in as the
+oracle's instrument; the console's `map` command read as clamped to
+0..22 and the scan's one dead row, so ten open blind rows are residue
+(213 → 223, open 51 → 41; DECISIONS 106 §3). GOLDEN §155 lets a chapter
+that moves no lever stage the trainer its lines need, and the fifth
+melee is booked as the fourth's lobby with two `add`ed Airbases (3868,
+DECISIONS 106 §2); the map lane turns to Southwest Mesa's chain (3869)
+and the diagonal arm's bound reading (3870). Built under the pass by one
+Opus 5.5 subagent, red first: the waiter's `LANDED` needs the journal's
+gate quote or the row's done line (3853); 3852 a clause in the brief's
+frame. The backlog 11 → 9. The sixty-seventh is launched on three Opus
+lanes at medium. **DECISIONS 106.**
+`docs/audit/2026-11-05-fable-pass-66.md`.

@@ -325,9 +325,9 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// 541, open 1294 (twelve map-generation ports, the first move). The
 /// sixty-fifth pass: ported 543, open 1292 (`sim::halfland` and
 /// `sim::map_east_indies`, items 3843 and 3820).
-pub const RUBRIC_TERRITORY_PORTED: usize = 543;
+pub const RUBRIC_TERRITORY_PORTED: usize = 544;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1292;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1291;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose
@@ -397,7 +397,7 @@ pub const RUBRIC_TERRITORY_OPEN: usize = 1292;
 /// `unit` cell 106 -> 52 (the 54 parked 3733c measured), Classical's 51
 /// unchanged (3774b). The sixty-fifth pass: 2,255 -> 2,258, 77.5 -> 77.6 %
 /// (the third melee's twin joined).
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 776;
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 777;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->

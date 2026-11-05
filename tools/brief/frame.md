@@ -146,27 +146,28 @@ Before any reading:
 
 ## chapter
 
-- **At most three arms of one staging; one that opens with a parting
+- **At most three arms of one staging; one opening with a parting
   ends there**: walked, captured, pinned, written; **at the trace's end `word == hi − 1`; `Golden:` is mine** (1781).
 - **A chapter's staging is walked before its capture** (794): a dump
   when every predicate prints (821), else a staging-only packet (808),
   via the command's entry (885); combat precondition first (828); **a
-  cheat goes two frames clear of a birth** (2479).
-- **A staging booked on a function greps its writers and gates first**
+  cheat is two frames clear of a birth** (2479).
+- **A staging booked on a function greps its writers and gates**
   (903, 968); **a cast lists its callees' lines** (2824); **no
-  capture while a packet or widening on disk answers it** (2330);
-  **an AI-track arm: its constant's readers in the export** (2356);
-  **`blind.rs` is a pin an issuer chapter moves** (950), a citation
-  picks address or pin (943); **control: `--cmd-without <the arm's
-  frame>`, second run** (2542); **the staging is the landing; a build
-  without it parks** (2756).
-- **`success: true` with nothing staged** (1170): `stage_walk` first;
-  **another player's units hold `be` over the pump** (1205); **`@`
-  lines: `issuesmatch.py --none-refused <trace>`** (966, 1256); **ids
+  capture a packet or widening on disk answers** (2330);
+  **an AI-track arm: its constant's readers** (2356);
+  **`blind.rs` is a pin an issuer chapter moves** (950), a cite
+  picks address or pin (943); **control: `--cmd-without <arm frame>`,
+  second run** (2542); **the staging is the landing; a build
+  without one parks** (2756).
+- **`success: true`, nothing staged** (1170): `stage_walk` first;
+  **other players' units hold `be` over the pump** (1205); **`@`
+  lines: `issuesmatch.py --none-refused`** (966, 1256); **ids
   off `RON_STAGE_ALL`**, `add N <type>` is N squads (1730);
-  **`runwiring.py --chapter N`: places and staged count** (2914); **a
-  row that will not fit says where** (932, 949); **the walk prints each
-  `add`** (2970, 2654).
+  **`runwiring.py --chapter N`: places, staged count** (2914); **a
+  row that cannot fit says where** (932, 949); **the walk prints each
+  `add`; a piece is its record's `type`, not its `add` place** (2970,
+  2654, 3852).
 
 ## sweep
 

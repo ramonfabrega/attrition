@@ -13,7 +13,9 @@ session. A lane is named as `ccc list` names it. The exits:
                                              and the row is out of `working`, its
                                              session unchanged and no clear armed
                                              (a push under a clear is a DRAFT on
-                                             stderr; item 3368, Loop 3458)
+                                             stderr; item 3368, Loop 3458), and the
+                                             push quotes its lane gate or came with
+                                             its done line (Loop 3853)
     3  ENDED <lane> <state> — <detail>       the row left `working` and stayed out;
                                              the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
@@ -75,10 +77,14 @@ And the lines that are not exits — the wait goes on past each:
                                              gate under its session (stdout, once):
                                              never armed while the gate lives; read
                                              again at its exit, where the quote decides
-       PUSHED <lane> … — its journal is no draft and quotes no lane gate yet; a landing, not armed (Loop 3833)
-                                             a push that would be armed whose journal's
-                                             head never says `draft` (stdout): the row
-                                             stopping is its LANDED
+       PUSHED <lane> … — progress, not a landing: its journal quotes no lane gate yet (Loop 3853)
+                                             a push whose newest commit adds no `Lane
+                                             verdict:` to the item's journal (stdout),
+                                             and an --arm-after-push lane's push that
+                                             would be armed whose journal's head never
+                                             says `draft` (Loop 3833): never armed,
+                                             never landed; the row stopping on it is an
+                                             ENDED
        GATING <lane> <state> — <command> (<n> min); held, read again at its exit
                                              a row out of `working` with a gate running
                                              under its session (stderr; Loop 3753):
@@ -249,6 +255,16 @@ and a push that would be armed whose journal on the tip is no draft is
 a landing, never armed. A journal that says `draft`, or none on the
 tip, arms as before.
 
+And a landing is the gate's, not the draft marker's absence (Loop
+3853, the sixty-sixth pass): 3849's armed clear fired, the fresh session
+pushed its re-pin (084f4caa) with its journal no longer a draft, and
+the waiter printed `PUSHED` and then `LANDED lane-3849` while the lane
+asked for a capture run number — no done line, no lane gate run. So a
+push lands only when its newest commit quotes the lane gate
+(`gate_quote_of`), or an --arm-after-push lane's came with its done
+line; any other push is `PUSHED … — progress, not a landing`, and the
+row stopping on it is an ENDED with the row's own line.
+
 And a name's tree is its newest row's (Loop 3838): `--replace` leaves
 the stopped row listed, and its tree once lent a live lane the two
 permanent rows as second rows.
@@ -285,7 +301,7 @@ def ends_on_clear(tail):
 
 
 def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, sessions=None,
-          cleared=None, drafts=None, armed=None, gating=None, gating_notes=None):
+          cleared=None, drafts=None, armed=None, gating=None, gating_notes=None, quoted=None):
     """The first event among the lanes, as (exit code, line), or None.
 
     `watch` maps a lane to {'branch', 'tip', 'still'} and is updated in
@@ -319,6 +335,12 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
     `gating_notes` once per gate, and the row must stay out STILL polls
     past the gate's exit before it is ENDED — the exit's notice is what
     re-invokes the session.
+
+    `quoted(lane, tip)`, when given, is the lane gate's `Lane verdict:`
+    line the push's newest commit adds to the item's journal
+    (`gate_quote_of`, Loop 3853): a push without one is progress, said
+    as `PUSHED … — progress, not a landing: …`, its tip remembered and
+    never landed, so the row stopping on it is an ENDED.
     """
     sessions = sessions or {}
     gating = gating or {}
@@ -346,6 +368,12 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
                     why = ('session {}..{}'.format(*moved_session[lane]) if moved_session[lane]
                            else 'transcript ends on /clear')
                     drafts.append(f"DRAFT {moved} — pushed under a clear ({why}); watching on")
+                continue
+            if quoted is not None and not quoted(lane, tip):
+                seen['tip'] = tip
+                seen.pop('pushed', None)
+                if notes is not None:
+                    notes.append(f"PUSHED {moved} — {PROGRESS}")
                 continue
             if states.get(lane) == WORKING:
                 seen['tip'] = tip
@@ -395,6 +423,9 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
         return 4, f"QUIET {' '.join(watch)} {int(minutes)}"
     return None
 
+
+# A push with no lane gate quoted is progress (Loop 3853).
+PROGRESS = 'progress, not a landing: its journal quotes no lane gate yet (Loop 3853)'
 
 DEEP_STEP = 40_000
 
@@ -1014,9 +1045,10 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
     or stopped, and read again when the gate has gone, where the quote
     decides. `drafted(lane, tip)` is whether the pushed journal's head
     says `draft` (`journal_is_draft`): False makes a push that would be
-    armed a landing instead — said as `PUSHED … — its journal is no
-    draft …`, `event`'s to land when the row stops — and True or None
-    (no journal on the tip) arms as before.
+    armed no draft — never armed — and, quoting no lane gate, no landing
+    either (Loop 3853): said as `PUSHED … — progress, not a landing: …`,
+    the lane left to `event`'s watch, where the row stopping is an
+    ENDED; True or None (no journal on the tip) arms as before.
     """
     drafts, lines = [], []
     for lane in sorted(pending):
@@ -1071,9 +1103,7 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
         if drafted is not None and drafted(lane, seen['tip']) is False:
             pending.discard(lane)
             seen.pop('held', None)
-            seen['pushed'] = moved
-            lines.append(f"PUSHED {moved} — its journal is no draft and quotes no lane gate yet; a landing, "
-                         "not armed (Loop 3833)")
+            lines.append(f"PUSHED {moved} — {PROGRESS}")
             continue
         pending.discard(lane)
         seen.pop('held', None)
@@ -1351,7 +1381,8 @@ def main(argv=None):
         cleared = {lane for lane, tail in tails.items() if ends_on_clear(tail)}
         notes, drafts, gate_notes = [], [], []
         found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes,
-                      details, sessions, cleared, drafts, armed_clear, gating, gate_notes)
+                      details, sessions, cleared, drafts, armed_clear, gating, gate_notes,
+                      quoted=lambda lane, tip: gate_quote_of(where[lane], tip, item_of(lane)))
         for note in notes:
             print(note, flush=True)
         for draft in drafts + gate_notes:

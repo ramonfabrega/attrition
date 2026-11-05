@@ -17007,7 +17007,10 @@ writes both `reg_buildings` (the `create_units` gate above) and `mil_trainers` (
 need a seat: a third computer (`--profile PLAYERS=3`, `--seat-tribe 3=9`) keeps both air lines. Swapping who 2 to the
 Spanish costs 312. **What it should stand**: 78 at frame 0 (two of them, on the Spanish seat). 296 first, on the
 first `end:` block after one purchase and 170 frames of training, **by block 1101**. 312 later, by block 2601 at the
-latest, and the least certain of the four.
+latest, and the least certain of the four. **Amended by the sixty-sixth pass** (DECISIONS 106 §2): 78 stood at frame
+1 of the Spanish Information pair (3866) and 124 on block 4601 of the German Industrial pair at Moderate (3867), so
+Proposal A keeps the fourth's two seats and stages no third; the fifth melee is item 3868 (§156), its script the
+fourth's with the two Airbase lines, and Proposal B is spent.
 
 **Proposal B, a later melee: an Industrial-age German chapter.** The age moves to Industrial, a German computer is
 seated under clause (i), and the map is held. Nothing is staged for the line, because the German computer builds its
@@ -17121,7 +17124,16 @@ each side's shore, and a fifth falsifier joins the four: (e) a sea line
 §152. The boarding rows (`do_board`, `check_meet_ship`) are not the map's
 to reach: they live under a `BoardOrder` no site issues (`blind::RESIDUE`),
 so a sea melee is booked on the sea lines and the ships' fight, never on
-them.
+them. **A chapter moves at most one lever, and one that moves none names
+the never-seen lines its staging alone reaches** (amended by the
+sixty-sixth pass, DECISIONS 106 §2): an `add` line may name the trainer
+a seat's own line needs — `add`'s building arm (INPUT.md §11.5;
+modelled, `golden::apply`'s `AddTarget::Build`) places a finished
+building, which `Wall::increment_stats`' active arm files in
+`reg_buildings` and `mil_trainers` only inside a city (AI.md §29), so the
+computer's own make list buys the line (§154.3, Proposal A). The seats
+are not a lever: a chapter keeps the melee before's, and §154.3's clause
+(i) went unused — 78 and 124 came through pairs (3866, 3867).
 
 **The cheat arms this crate does not model** are three replicated commands
 of `docs/COMMANDS.md` §3 — `cheat_ai_toggle` 0x40 (the console `ai` is
