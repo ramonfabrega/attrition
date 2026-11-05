@@ -1501,7 +1501,10 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// executable" — the dead list's length, pinned so a new row is a decision.
 /// **148** with item 3505's `Special::walk_data` (inlined into
 /// `Specials::walk_data`; no top-level document cites it).
-const UNREFERENCED: usize = 147 + 1;
+/// **149** with item 3861's `StormOut::registration` (the storm's one
+/// registration with the parameter window; cited only under `docs/audit/`
+/// and `docs/journal/`).
+const UNREFERENCED: usize = 148 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
