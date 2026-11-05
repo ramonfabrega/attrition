@@ -860,6 +860,10 @@ impl Sim {
         }
         if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
             eprintln!("PROBE scout u{u} who{who} ti{} region{region} n{n} stride{stride} start{start} here{:?} best{} tile{:?}", self.units[u].type_index, here, scan.score, scan.tile);
+            for fy in 70..86 {
+                let row: Vec<String> = (108..122).map(|fx| format!("{:02x}", self.world.seen2(fx, fy).unwrap_or(0xff))).collect();
+                eprintln!("PROBE fog {fy} {}", row.join(" "));
+            }
             for c in self.world.region_coords_strided(region, start, stride) {
                 let seen = self.was_really_seen(c, who);
                 let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
