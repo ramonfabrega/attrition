@@ -6540,10 +6540,36 @@ mod tests {
             change_bases(&mut grid, &mut d, &ts);
             check(&grid, &d, 2, 7870);
             let tail = d.log.len() - from;
+            // What the tail's and the resources' inert arms would decide on
+            // (item 3878's mutants): the cliff cells and how many of them
+            // are unblocked, `land` 2, 0x1000, ocean, COAST, and class-1
+            // tiles.
+            let count = |p: &dyn Fn(&sim::mapgen::WCell) -> bool| {
+                grid.cells.iter().filter(|c| p(c)).count()
+            };
+            eprintln!(
+                "{name} at 7870: cliff cells {}, unblocked {}; land 2 {}, 0x1000 {}, ocean {}, \
+                 COAST {}; class-1 tiles {}",
+                count(&|c| c.flags & 0x40 != 0),
+                count(&|c| c.flags & 0x40 != 0 && c.blocked == 0),
+                count(&|c| c.land == 2),
+                count(&|c| c.flags & 0x1000 != 0),
+                count(&|c| c.is_ocean()),
+                count(&|c| c.flags & 4 != 0),
+                grid.tiles.iter().filter(|&&t| t & 3 == 1).count()
+            );
             check(&grid, &d, 3, 7877);
             check(&grid, &d, 4, 7880);
             let inputs = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
                 .expect("Southwest Mesa's rows");
+            eprintln!(
+                "{name}: the rows' edge_keep_away {:?}",
+                inputs
+                    .sections
+                    .iter()
+                    .map(|s| s.iter().map(|r| r.edge_keep_away).collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            );
             let n = place_resources(&mut grid, &mut d, &inputs, g.nations);
             check(&grid, &d, 5, 7927);
             let mut kinds = std::collections::BTreeMap::<i32, usize>::new();
