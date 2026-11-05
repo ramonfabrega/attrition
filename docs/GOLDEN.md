@@ -16550,6 +16550,65 @@ squad of three), nothing carried; every ship on an `is_ocean` cell, every land l
 Cruiser at (26616, 31992) for (26592, 31968), `0/19` the probe as 123 at (28920, 25848). Both Attack Submarines are
 dead by 700 in ours.
 
+**The takes**: run1482 started first try on the click-free pool (27.9 s, 37 frames, no page fault) — the first
+three-seat East Indies start on that lane; run1483 (88.0 s) and run1483b (61.9 s) to 2600. The twin is the same game:
+`rngcmp.py` run1483 against run1483b 2601 identical, run1482 against run1483 37; `samegame.py` 26 blocks in common, 0
+differing.
+
+**The falsifiers.**
+- (a) **Not fired.** run1482's start block: every leader reads `diplos` 0 to both others and 2 to itself.
+- (b) **Not fired.** Block 701: every combat ship holds an `ATTACKORDER` (`1/14` on `2/17`, `2/14` on `1/14`, the
+  Fluyts `1/20` and `2/20` each on the other side's Transport Freighter, in range); the Transport Freighters `1/19` and
+  `2/19` hold a `FLEETOORDER`, fleeing. Both Attack Submarines are dead by 701 in theirs too.
+- (c) **Not read.** The `resource` lines ran; `end:` prints no leader, and the closing buckets are the closing dump's.
+- (d) **Not fired.** `cmdsran.py`: 24 parsed, 24 ran, every one returning 1.
+- (e) **Not fired for the placement; its other arm fired for the Aircraft Carrier.** Every ship stands on an
+  `is_ocean` cell and every land line on land, and every ship but the carriers has left its spawn by 701 (`1/14` at
+  (28392, 30168) from (26616, 31992)). **Both Aircraft Carriers never move**: `1/18` and `2/18` stand on (31224,
+  31992) and (31224, 29688) on every block they hold, each with an attack `in_range 0`, `new_ord 1`, until they die
+  (parked 3847d). The land lines stand idle on their spawns, no order, out of the ships' reach.
+- (f) **Not fired.** run1482's receipt: who 0 tribe 4, who 1 tribe 10, who 2 tribe 13.
+- (g) **Not fired.** `0/19` is `TI` 123 on block 701; no 124 record (parked 3847b).
+
+**The score: first try 677 of 2600**, the count and the sequence together (`sea_melee_first_parting`), 67 frames past
+the first `add`. Ours spends 13 draws against theirs' 12:
+
+| index | ours | theirs |
+|---|---|---|
+| 0..3 | the same four | the same four |
+| 4 | `Unit::close+0xcb6` | `Farms::inc_time+0x1ae` |
+| 5.. | the rest | the same, one index earlier |
+
+**The direction: ours acted** — a unit dies in ours a frame early. **The value diff** (`sea_melee_run1483_s_word_window_is_widened_whole`,
+run1483's stride 601..927, rounds compared: 4 blocks, 405 keys, rounds read (15, 10), 28 parting). Block 601 holds the
+standing families alone (`build`, `form`, the groups). On **block 701** the record that names the word:
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| `2/15`, Attack Submarine (`TI` 339, sea, who 2) | `death:first_frame` | 677 | 678 |
+| `1/15`, Attack Submarine (`TI` 339, sea, who 1) | `death:cur_anim` | 20 | 19 |
+| `1/14`, Missile Cruiser (`TI` 330, sea, who 1) | `pos` / `damage_frame` / `recharging` | (28488, 29928) / 675 / 22 | (28392, 30168) / 674 / 12 |
+| `2/14`, Missile Cruiser (`TI` 330, sea, who 2) | `damage_frame` / `heading` | 681 / 756678656 | 680 / 179896320 |
+
+So the Russian Attack Submarine's death is the extra `close` on 677. On the same block a human citizen `0/5`, who 1's
+citizen `1/3` and four gaia herds part by their move's destination, with the draw stream agreeing before 677.
+
+**The seats** (`sea_melee_s_leaders_are_compared_on_every_seat`): the two computers' `PERSONALITY` blocks part from
+frame 1, all thirteen fields **swapped between who 1 and who 2** (parked 3847a) — the third melee's lobby parts none.
+
+**The close** (`sea_melee_run1483_s_closing_state`, block 2601, the `Melee:` row's suffix): 129 units compared, **448
+off** — 115 units off, 8 unlinked, 4 extra (who 1's `0`, `54`, `57`, `58` in ours alone), 7 buildings unlinked, 289
+diverged, 25 cities diverged.
+
+**What the twin enters**: two functions no pinned trace had (8444 → 8446), and 0 of the 257 cited and never entered
+(parked 3847c). `rubric.py` reads a whole melee only, so unit types stand at 285: the six never-seen lines run1483
+stands up — `Fluyt` 332, the `Aircraft Carrier` 351, the Minuteman 67, the Royal Kushite Archers 175, the Heavy Camel
+Archer 192 and the Camel Corps 194 — wait on the melee running whole.
+
+**What is not established**: which strike kills `2/15` on 677 in ours (the next item's first question, by
+`RON_DEBUG_UNIT` and `RON_DEBUG_AMMO` on both submarines over 670..678); whether the swapped personalities reach the
+draw stream before 677; why a carrier holding an attack never closes.
+
 ## 154. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

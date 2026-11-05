@@ -34290,3 +34290,70 @@ SHA-256 `99f2509ffce1752591490588792866958fca4792114dadb69fe1be4332501dec`.
 `0/19`'s is at `cur_time 5` with `whom −1` on block 897 and gone on 898. The `GUY` records give each gun's angle
 and `cur_anim` at the release.
 
+
+## run1482 — the fourth melee, a sea fight on East Indies at the held Information age: the `DUMP_ALL` start (2026-11-04, item 3847, `att-3847`)
+
+`docs/GOLDEN.md` §153. **What the disk could not answer**: no capture on disk holds this lobby — three seats on East
+Indies at a held Information age, the French and the Russians as the two computers — and the strait's cells are read
+off its own terrain grid. The line, through `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1482`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --profile PLAYERS=2
+--profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --seat-tribe 1=10
+--seat-tribe 2=13`. **The first three-seat East Indies start on the click-free lane: it started first try.**
+- Pool lane 1. Launched 23:22:27, exited 23:22:55 (27.9 s launch to exit). `success`, 37 frames, `page_faults` 0, no
+  `relaunches`. The receipt's seats: who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13);
+  map style 18, seed 12345. DLL `9db4ac37…`. Filed with `filerun.py run1482 eastindies-information-melee-start`.
+  `df -g ~` read 123 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1482-eastindies-information-melee-start.txt`, 157,566,944 bytes,
+SHA-256 `3fc565fc9c7373fabe1fbf32bc145dc80dd1ef467a61ee3cc27430c88dcd83cb`.
+
+Archive `rontrace-run1482.log`, 10,457,216 bytes,
+SHA-256 `66e80f10fc7c3a1da11ee2ae26e90548bef954974ad054fcc2bb179ad9080eff`.
+
+**What it holds**: the fourth melee's initial state, which `sea_melee_staging_walk` and `sea_melee_first_parting`
+start from; its first `WORLD` block is where the strait's cells were read (sea region 65, the channel at cells x
+34–43, y 37–41). Every leader reads `diplos` 0 to both others and 2 to itself.
+
+## run1483 — the fourth melee, a sea fight on East Indies: the staged script to 2600 (2026-11-04, item 3847, `att-3847`)
+
+`docs/GOLDEN.md` §153. **What the disk could not answer**: no capture on disk holds a computer-versus-computer fight at
+sea, a `Fluyt` or an `Aircraft Carrier`. run1482's lobby with `--end-frame 2600 --timeout 3600 --allow-early-end
+--log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file
+tools/gamelog/golden/melee-sea.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1. Launched 23:32:12, exited 23:33:40 (88.0 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1482: 37 identical. `cmdsran.py`: 24 parsed and 24 ran, every one
+  returning 1. Filed with `filerun.py run1483 eastindies-information-melee-trace`. `df -g ~` read 118 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1483-eastindies-information-melee-trace.txt`, 25,525,100 bytes,
+SHA-256 `0c870487c84f7b91edc6a1111f09733168c950c83afe6f9738c43589601a3b89`.
+
+Archive `rontrace-run1483.log`, 59,231,776 bytes,
+SHA-256 `8cfb0b86da8fd0a5689d02c2f47f41517a3868795b580d3e4e17670085a4d0d8`.
+
+**What it holds**: the fourth melee's first try, **677 of 2600** (`sea_melee_first_parting`). Its stride 601..927 is
+the word's widening (`sea_melee_run1483_s_word_window_is_widened_whole`): 4 blocks, 405 keys, the rounds read (15,
+10), 28 parting. Its block 701 holds falsifiers (b), (e) and (g).
+
+## run1483b — the fourth melee, a sea fight on East Indies: the `cover=1` twin (2026-11-04, item 3847, `att-3847`)
+
+`docs/GOLDEN.md` §153. **What the disk could not answer**: no coverage trace holds a sea fight at Information.
+run1483's line with `--cover cover=1`.
+- Pool lane 1. Launched 23:34:12, exited 23:35:14 (61.9 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1483: 2601 identical. `samegame.py`: 26 blocks in common (1..2501), 0
+  differing. DLL `2f279ce8…`. Filed with `filerun.py run1483b eastindies-information-melee-trace-cover`. `df -g ~`
+  read 117 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1483b-eastindies-information-melee-trace-cover.txt`, 25,525,054 bytes,
+SHA-256 `69b74a84b8a9cf7ac98f3a31499ca2fb240f79a6569f6b2bfabebc9789f69961`.
+
+Archive `rontrace-run1483b.log`, 59,172,864 bytes,
+SHA-256 `42353ab2a4be34a26961e65cdf18c8ad63fefc1662ad3d83e02cea9761d2ea4f`.
+
+**What it holds**: pinned in `blind::TRACES`; it enters two functions no pinned trace had (8444 → 8446, one of them a
+cited `Unit` method) and none of the 257 cited and never entered (parked 3847c).

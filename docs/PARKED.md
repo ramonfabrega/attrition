@@ -13469,13 +13469,37 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YS — reserved
+## Parked by item 3847, 2026-11-04 — the fourth melee, a sea fight on East Indies at the held Information age
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3847a) **The two computers' personalities are swapped between seats from frame 1.** run1482's frames 1 and 37 and
+run1483's 2601 print who 1's and who 2's `PERSONALITY` blocks, and every one of the thirteen fields parts, each
+seat's ours equal to the other seat's theirs: `air` ours −1 (who 1) and 1 (who 2) against theirs' 1 and −1, `naval`
+−1 and 0 against 0 and −1, `raid` 1 and −1 against −1 and 1, `arms` 1 and 2 against 2 and 1, and so through
+`alliance_ai`, `alliance_human`, `army`, `army_size`, `cities`, `early_army`, `invade`, `market` and `scouts`
+(`sea_melee_s_leaders_are_compared_on_every_seat`, 26 of its 210 keys). `setup::build_sim` hands the checksum
+trace's `random_personality` brackets (`leaders.cpp` 13383 → 13457) out in seat order, and each roll lands on its
+bracket's far end, so the setup note reads "as the original did" for both while the rolls sit on the wrong seats —
+as if on this lobby `Setup::build_game` visited who 2's `Leader::init` first. The third melee's lobby on Great Sahara parts
+none of the 26. The hypothesis is the visiting order (the start permutation); the killer is the bracket order against
+each seat's dumped block on frame 1. The draw stream agrees to 677 with it, so it names no frame yet; a personality
+is read by the computers' production and army choices, which the closing dump parts in `MAKE`, `SITE` and the
+buckets.
+
+(3847b) **124, the German Machine Gun, cannot be staged by `add`** — the 3797a shape. unitrules' record 74 carries
+`NAME` "Machine Gun", 123's; `add`'s walk (`golden::add_named`) reads `NAME` alone, so `machine_gun_german` names
+123 on eleven characters (run1483's `0/19`, `TI` 123, on block 701; falsifier (g) of GOLDEN §153 not fired). It
+enters a lockstep game only when a German seat trains it. It joins 3797a's 296, 312 and 78.
+
+(3847c) **The twin enters none of the never rows.** `census.py --pin --never` with and without run1483b: entered
+8444 → 8446 (one of them a cited `Unit` method), never 257 unmoved. A sea fight's functions this lobby reaches are
+entered already by the pairs on East Indies and Great Lakes.
+
+(3847d) **The Aircraft Carrier, `add`ed at sea, never moves** — falsifier (e)'s other arm (GOLDEN §153). Both
+carriers (`1/18`, `2/18`, `TI` 351) stand on their spawns (31224, 31992) and (31224, 29688) on every block they hold,
+701 to 901 and 701 to 1301, each holding an `ATTACKORDER` with `in_range 0`, `ever_in_range 0`, `new_ord 1`, until
+they die; every other ship moves. A carrier fields no weapon of its own and was `add`ed with no aircraft, so its
+attack neither strikes nor closes. Ours holds them on their spawns too at 700. It names no frame; the carrier's
+launch arm (its planes) is what a later staging would reach.
 
 ## Parked by the next landing, slot YT — reserved
 
