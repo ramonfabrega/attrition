@@ -13789,13 +13789,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZL — reserved
+## Parked by item 3869, 2026-11-05 — Southwest Mesa's first capture and mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3869a) **Two of the mask's arms are inert on run1493's one generator run.** `hi % 0xffff` → `% 0xfffe` and
+`cy + bit` → `cy − bit` fail nothing: the first parts only on a draw ≥ 0xfffe, the second only when y's jitter
+bit is 1, and it is 0 on seed 2726892157 (the bit-flip mutant `1 − bit` is caught, and so is cx's). A second
+Mesa seed (any other `--seed` on run1493's line, 30 s) would hold the second; the first is a 1-in-32768 draw and
+stays a reading. Names no score until a Mesa step parts on it.
+
+(3869b) **Mesa's next step is the zero-draw passes (7835..7854) on run1493's file**, then `place_all` at 7859,
+where `position_cliff`'s eleven template draws (site 0x8a8d2f) are the cliff chain's first value diff (§18.3).
+The refill of lane 2 (QUEUE's lanes line), the commander's to book.
 
 ## Parked by the next landing, slot ZM — reserved
 
