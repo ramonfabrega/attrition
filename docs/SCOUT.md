@@ -438,6 +438,13 @@ frames this mechanic has been observed at.~~ It is not: §8.2.
 `basic_type`, of the scout's own leader, that is not the scout, **headed**
 within `0x600` (two cells) of the candidate's centre — its `orders_x`/
 `orders_y`, not its body (§8.1) — rejects the candidate outright.
+**`basic_type` is the lineage's root, and the simulation tested the exact
+type until item 3857** (`docs/GOLDEN.md` §153.4): the type's vslot `+0xe4`
+is `ObjectTypeData::basic_type@006619e0` — `from` (`TypeData +0x3c`)
+followed to the type whose `from` is negative, and that type's own index.
+The fourth melee's Fluyt (`TI` 332) and Aegis Cruiser (`TI` 330) both root
+at the Bark (323) on run1487's packet, so the cruiser bound for a cell
+refuses it to the Fluyt; diff-backed by `sea_melee_first_parting`.
 
 ### 8.2 The danger term was routed to zero, and Great Lakes paid a hundred frames for it
 
@@ -1241,7 +1248,8 @@ A spy with a target in range would be the capture that reads it.
    has the AI at exactly one city at frame 0, so the `& 0x10` arm is live
    and the `& 0x02` arm is not. Which good bits those are is not read.
 5. **`find_unit_ordered`'s filter chain** (§8/§9). The simulation
-   implements the predicate the call site asks for — same basic type, mine,
+   implements the predicate the call site asks for — same basic type (the
+   `FROM` root since item 3857, §8; diff-backed), mine,
    not me, within `0x600` — and not `Search::valid_search`'s
    leader-visibility layer, which for a search of one's *own* units is
    believed to be a no-op. *Capture:* two scouts of one AI leader within

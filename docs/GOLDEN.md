@@ -16740,9 +16740,60 @@ in theirs, and for (42744, 28152) in ours. Beside it are the Aegis Cruiser `2/48
 y 22776 against ours' 23544) and the French Citizens `1/6`' and `1/11`'s order lists. **The close** (block 2601):
 247 → **187** off, 135 units compared.
 
-**What is not established**: the scouting draw on 1980 — which side's `think_scout` arm (`Unit::think_scout+0xaba`
+**What is not established**: ~~the scouting draw on 1980 — which side's `think_scout` arm (`Unit::think_scout+0xaba`
 in theirs) places the Fluyt's explore point, and whether `calc_road_cost` in ours is the same search reached by
-another path. It belongs to the next item, and the disk holds only 1901 and 2001 around it.
+another path. It belongs to the next item, and the disk holds only 1901 and 2001 around it.~~ Answered in §153.4: the
+draws are the Aegis Cruiser's region scan, and the Fluyt's point was chosen on 1957 by the sibling test.
+
+## 153.4 The scout's sibling is its lineage — the fourth melee 1980 → 2090 (item 3857, run1487)
+
+**The booking**: frame 1980, 121 draws on each side, parting at index 53, where ours spends
+`PathFinder::calc_road_cost+0x46` and theirs `Unit::think_scout+0xaba`. Read whole, the frame has two deltas: theirs
+spends 51 `think_scout+0xaba` draws to ours' 49, and ours spends two more `Guy::set_anim+0x104b` later in the frame,
+which is why the count agrees. **The unit is not the Fluyt.** The scout on 1980 is the Aegis Cruiser `2/48` (`TI` 330,
+sea), and its scan's winner is the same cell on both sides: run1487's block 1981 has it bound for (44280, 9720), tile
+(230, 50), the cell ours picks.
+
+**One draw per accepted cell.** `+0xaba` is the region scan's jitter (§11 of `docs/SCOUT.md`), drawn for each cell
+that passes the fog, `invalid_loc` and the surface test. Ours scans region 0 (1998 cells, stride 24, start 13) and
+accepts 49 of the 83 cells it visits. **run1487's packet** (logger frame 1980) runs `think_scout@005f6010` on the
+cruiser under `step4.py`, the seed poked to the trace's index-3 `0a2b6fdb`: start 13, the same 83 cells, 51 accepted.
+The two theirs takes and ours refuses are (57,38) and (57,39). Ours calls both already seen by player 2. Theirs'
+fog (`world +0x160` at `(2y+1, 2x+1)`, against the leader's `+0x6929`) does not. Over the whole grid the fog
+differs in 71 half-cells: ours has uncovered a band north of half-cell row 84 near x 111–119, theirs one south of it.
+That band is the Fluyt `2/20`'s wake.
+
+**Walked back: the Fluyt's point of 1957.** Both Fluyts reach (42720, 32736) on 1954, the draw streams agreeing.
+Ours' region scan of 1957 scores (55,36) at 202 and (57,50) at 264 and takes (55,36). Theirs' run1487 position on
+1975, (43377, 33404) bound for (44280, 38904), is (57,50)'s path at speed 55 from 1958. Both cells drew on both
+sides (the counts agree), so theirs refused (55,36) after the score: `find_unit_ordered`. Ours had one player-2 unit
+headed within `0x600` of its centre, at 659: the Aegis Cruiser, on a move. Ours compared exact types. The original
+hands the search `FILTER_BASE_TYPE` and the type's vslot `+0xe4`. On the packet that slot is
+`ObjectTypeData::basic_type@006619e0`, which follows `from` (`TypeData +0x3c`) to the type whose `from` is negative
+and returns its index. **The loaded chains are 332 → 331 → 324 → 323 and 330 → 329 → … → 324 → 323**: the Fluyt
+and the Aegis Cruiser share the Bark. (`unitrules.xml` read by `NAME` gives the Aegis Cruiser no `FROM`. The
+packet's chain is the evidence.)
+
+**Built**: `sim::scout`'s `scout_unit_near` compares `unit_base_type`, the `FROM` root, where it compared `ty`; a
+type outside the tree matches only its own record. Test: `a_sibling_of_the_scout_s_lineage_blocks_a_cell_whatever_its_rung`.
+Mutated (`tools/mutate.py`, the exact-type test back): `sea_melee_first_parting` returns to 1980, ours 121 against
+121 at index 53, `mutation: held`. `docs/SCOUT.md` §8 had said "same `basic_type`" all along and is amended.
+
+**The value diff.** run1483's block 2001 now agrees on the Fluyt `2/20` and on the cruiser `2/48`
+(`sea_melee_run1483_s_word_window_is_widened_whole` over the old window had them first). run1487's window
+(`sea_melee_run1487_s_window_is_widened_whole`, 1975..2001, 26 blocks, 148 keys, the rounds (121, 121), 6 parting):
+neither scout parts. What parts is the standing families, parked 3855b's `ez` on `2/16`'s rounds (141 against
+131), and the French Citizens' order lists, `1/6` 1 against 3 and `1/11` 4 against 2, from block 1986.
+
+**The word: 1980 → 2090.** On 2090 ours 13 against theirs 14: at index 0 ours spends `Unit::do_move+0xe84` where
+theirs spends `Guy::set_anim+0x97a < Unit::move_step+0x823`. The word window moves to 2001..2340
+(`sea_melee_run1483_s_word_window_is_widened_whole`: 4 blocks, 557 keys, the rounds (9, 9), 10 parting). **The
+close** (block 2601): 187 → **157** off, 133 units compared.
+
+**What is not established**: who spends 2090's index 0, and whether it is the French Citizens `1/6` and `1/11`,
+whose order lists part from 1986 with no draw spent (run1487). The disk holds run1483's 2001 and 2101 round it.
+Neither is read here. The packet's `think_scout` stops in `Group::action_move_near` on a null read at `00704a3e`
+after the scan, so the issue was not run on it. Nothing here depends on that.
 
 ## 154. Reserved for the next item on the rules track
 
