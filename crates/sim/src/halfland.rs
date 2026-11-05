@@ -743,6 +743,48 @@ mod tests {
         assert_eq!(is_combo_acceptable(&unread, 1, 0, 3, 0), Err(1));
     }
 
+    /// **`TerrainOut::check_for_diagonal@008595f0`'s route to
+    /// `WorldData::is_valid@00471170` needs a P1 pair** (item 3886,
+    /// `docs/MAPGEN.md` §20): a cell enters the arm only with each corner's
+    /// flanks F one up from it (C → F 1) and the corner's diagonal D one
+    /// below (D → C 1), and the arm falls through to `is_valid` only when
+    /// the corner's two flanks differ. Over every shipped land and sub, at
+    /// `COAST_BASE` 3 and 0, two distinct one-up flanks always put D beside
+    /// a flank it is mutually unacceptable with, and a `SANDY` centre has
+    /// one one-up land only, `OCEAN`.
+    #[test]
+    fn the_diagonal_arm_reaches_is_valid_only_past_a_p1_pair() {
+        let mut cells: Vec<(i32, i32)> = (0..4).map(|s| (0, s)).collect();
+        cells.extend([(1, 0), (2, 0)]);
+        for cb in [3, 0] {
+            let c = Combo {
+                coast_base: cb,
+                ..COMBO
+            };
+            let k =
+                |a: (i32, i32), b: (i32, i32)| is_combo_acceptable(&c, a.0, a.1, b.0, b.1).unwrap();
+            let ups = |x: (i32, i32)| cells.iter().copied().filter(move |&f| k(x, f) == 1);
+            assert_eq!(
+                ups((1, 0)).collect::<Vec<_>>(),
+                vec![(2, 0)],
+                "SANDY's one-up lands"
+            );
+            let mut distinct = 0;
+            for &centre in &cells {
+                for &d in cells.iter().filter(|&&d| k(d, centre) == 1) {
+                    for f1 in ups(centre) {
+                        for f2 in ups(centre).filter(|&f2| f2 != f1) {
+                            distinct += 1;
+                            let p1 = [f1, f2].iter().any(|&f| k(d, f) == 0 && k(f, d) == 0);
+                            assert!(p1, "cb {cb}: C {centre:?} D {d:?} flanks {f1:?} {f2:?}");
+                        }
+                    }
+                }
+            }
+            assert_eq!(distinct, if cb == 3 { 6 } else { 4 });
+        }
+    }
+
     /// A fully wet gated cell turns `OCEAN` (its sixteenth tile), then
     /// `spot_update_land(1, 0)` makes it `SANDY` and `verify_land` sets each
     /// `BASELAND` neighbour off `COAST_BASE` to it.
