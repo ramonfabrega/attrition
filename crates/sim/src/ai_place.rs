@@ -1007,7 +1007,7 @@ impl Sim {
             for c in [Pos::new(16896, 43776), Pos::new(17856, 43776)] {
                 let corner = self.tile_corner(rec, c);
                 let tiles: Vec<_> = self
-                    .footprint(rec, corner)
+                    .footprint(rec, corner).into_iter()
                     .map(|t| {
                         (
                             t.x,
