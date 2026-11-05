@@ -6117,11 +6117,13 @@ mod tests {
     /// The §15 phases this module checks on Southwest Mesa: the mask (7807).
     const SOUTHWEST_MESA_CHECKED: i64 = 1;
 
+    /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
+    /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
+    type MesaRun = (String, u32, (u32, u32, u32), (u32, u32, u32), Vec<u32>);
+
     /// Every Southwest Mesa file's 7807 run, ported: `(file, 7805's
     /// record, 7807's record, our grid, our draws as (site-less) words)`.
-    fn mesa_at_7807(
-        all: &[(String, StartGrid)],
-    ) -> Vec<(String, u32, (u32, u32, u32), (u32, u32, u32), Vec<u32>)> {
+    fn mesa_at_7807(all: &[(String, StartGrid)]) -> Vec<MesaRun> {
         let mut out = Vec::new();
         for (name, g) in all.iter().filter(|(_, g)| g.style == 10) {
             let (Some(before), Some(after)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
