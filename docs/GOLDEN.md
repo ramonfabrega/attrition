@@ -16494,12 +16494,61 @@ The harness runs the quit where theirs does:
 
 Run 1481 was not used: every frame this needed was on disk (run1468's closing block, run1468b's per-frame coverage).
 
-## 153. Reserved for the next item on the rules track
+## 153. The fourth melee — a sea fight on East Indies at the held Information age, every seat a computer (item 3847, run1482–run1483b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The shape is §155; the lobby is §152's. **The one lever changed is the map**: East Indies (`MAP_STYLE 18`) in place of
+Great Sahara, the age held at Information (DECISIONS 105 §2: Great Sahara has no sea, so no melee there fields `Fluyt`
+332 or the `Aircraft Carrier` 351). Same seed, same seats: the idle human Nubians (who 0, tribe 4), the French (who 1,
+10) and the Russians (who 2, 13).
+
+**The lines** (`rubric.py --tables 3` on base `814d328c`: 285 of 302, 17 never). The never-seen lines this script
+stands up: `Fluyt` 332 (the Dutch line — **no seat owns it**) and the `Aircraft Carrier` 351 (every nation's) at sea;
+the Minuteman 67 (every nation's) on each side's shore; the Royal Kushite Archers 175, the Heavy Camel Archer 192 and
+the Camel Corps 194 — **who 0's, the Nubians' lines** — on who 0. **No seat owns** 124 (the Germans'), 78 (the
+Spanish), and of the two the computers own, 296 (the French) and 312 (the Russians) are §152's: `add` names none of
+the four (3797a). Boadicea 401 and the six gaia animals no lobby fields. Beside the new two, the age's ships: the
+Missile Cruiser 330, the Attack Submarine 339, the Advanced Battleship 350, the Destroyer 328 and the Transport
+Freighter 322.
+
+**124 and `add`**: unitrules' record 74 carries `NAME` "Machine Gun" and `TYPENAME` "Machine Gun german"; 123's `NAME`
+is "Machine Gun". `parse_type`'s walk (§152, `golden::add_named`) reads `NAME` alone, longest prefix first, lowest
+index first, so `machine_gun_german` names 123 on eleven characters and nothing names 124. It is staged as a probe
+(falsifier (g)); the staging walk stands it up as 123 (`0/19`).
+
+**The strait, read off run1482's first `WORLD` block** (§4's method, sea in place of the land border). Sea is region
+65 here (1,998 cells: 853 `OCEAN`, 1,145 `SANDY` shallows — `WorldData::is_ocean`, `land` 1 or 2 without `HALFLAND`);
+the land regions are 1–11. Who 1's territory lies on region 9 (cells x 13–33, y 38–57), who 2's on region 5 (x 38–57,
+y 13–38), who 0's on region 3 in the north-west. Between the first two runs a channel, region 65's cells x 34–43, y
+37–41, every one `is_ocean` with flags 0; region 6, an unowned island (x 32–41, y 26–36), lies north of it.
+
+1. **Premise**: the French (who 1) and the Russians (who 2), granted 100,000 a good on 600 and 602, field seven ships a
+   side from 610, two frames apart, across the channel, and a Minuteman each on its shore; the idle human Nubians (who
+   0), at war with both, field their three lines on the island north of it. All fight under their own target selection.
+2. **Cheat lines**, `tools/gamelog/golden/melee-sea.cmd` (22 lines): the two `resource` lines; seven `add` twins —
+   Missile Cruiser, Attack Submarine, Advanced Battleship, Destroyer, Aircraft Carrier, Transport Freighter, Fluyt — who
+   1's on tile row 166 (cell row 41), who 2's on tile row 154 (cell row 38), tile x 138..174 by six; the Minutemen at
+   tiles (126, 170) and (190, 150), cells (31, 42) and (47, 37), clear land of regions 9 and 5; then on who 0 the Camel
+   Corps, the Royal Kushite Archers, the Heavy Camel Archer and the probe `machine_gun_german`, on region 6's cells (37–
+   39, 33–35). No `tech` line, no `!ai off`, no `select`.
+3. **Records**: run1482 the `DUMP_ALL` start; run1483 the staged game at `cover=0`, §155's `end:` set on a stride of
+   100; run1483b its `cover=1` twin.
+
+**The falsifiers, written before the first take** (§155's (a)–(e), and two of §152's):
+- (a) the two computers are not at war on frame 0 — run1482's start block, `LEADERDATA`'s `diplos`.
+- (b) a spawned ship never acquires a target — no `ATTACKORDER`/`TARGETORDER` on any staged ship record by block 901.
+- (c) the granted resources are not spent — the buckets on block 701 read 120,000.
+- (d) a reachable type is refused by `add` — `INFO cmd`'s return on the spawn's frame (`cmdsran.py`).
+- (e) **a sea line `add`ed at a cell the grid calls land, or a land line at sea, never moves** — every staged record on
+  the first `end:` block after 700 against its spawn; killed for the placement if each ship stands on an `is_ocean`
+  cell and each land line on land. **Its other arm**: a ship `add`ed at sea that never moves either is a finding, not
+  a pass.
+- (f) the seats are not the French and the Russians — run1482's receipt, the PLAYER records' tribes.
+- (g) **`machine_gun_german` names 123** — killed by a 124 record on block 701 or by the line returning 0.
+
+**The staging, walked first** (`sea_melee_staging_walk`, to 700): 22 lines ran, 22 units (the Royal Kushite Archers a
+squad of three), nothing carried; every ship on an `is_ocean` cell, every land line on land; e.g. `1/14` Missile
+Cruiser at (26616, 31992) for (26592, 31968), `0/19` the probe as 123 at (28920, 25848). Both Attack Submarines are
+dead by 700 in ours.
 
 ## 154. Reserved for the next item on the rules track
 
