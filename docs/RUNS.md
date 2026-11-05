@@ -34357,3 +34357,47 @@ SHA-256 `42353ab2a4be34a26961e65cdf18c8ad63fefc1662ad3d83e02cea9761d2ea4f`.
 
 **What it holds**: pinned in `blind::TRACES`; it enters two functions no pinned trace had (8444 → 8446, one of them a
 cited `Unit` method) and none of the 257 cited and never entered (parked 3847c).
+
+## run1484 — the fourth melee at 677: the window 660..680 and a packet at 676 (2026-11-05, item 3849, `att-3849`)
+
+`docs/GOLDEN.md` §153.1. **What the disk could not answer**: nothing between run1483's blocks 601 and 701, and no
+packet on disk loads pieces 289, 280 or 300 on this lobby's art. run1483's line with `--log-window 660 680`,
+`--detail end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `--end-frame 690`, `--callwin 0 690`, no stride, and the tracer
+defines `RON_STATE_FRAME=676` and item 597's `RON_STATE_PLAN`.
+- Pool lane 1. Launched 00:31:34, exited 00:32:15 (41.0 s launch to exit). `success`, 691 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1483: 691 identical. Filed with `filerun.py run1484
+  eastindies-information-melee-window-660-680`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1484-eastindies-information-melee-window-660-680.txt`, 14,038,530 bytes,
+SHA-256 `a349e84a550abda2644f0b2c00822ab56a6555ed931b160da48a4532d6d651de`.
+
+Archive `rontrace-run1484.log`, 15,016,416 bytes,
+SHA-256 `46d74b665d822fe055bf041059b11c2853d995f399e0073761745f8c679a0df2`.
+
+Packet `~/ron-golden/run1484/map-18/frame-snapshot.bin`, 915,882,176 bytes,
+SHA-256 `ef3ef036e354950dc84cdc88e0acad41c72641c5044eb6506794515fb56f6680`.
+
+**What it holds**: the value diff on 677 (the Missile Cruisers' rounds leaving their turrets) and the
+`AttachPos` rows of pieces 125, 144, 280, 282, 289 and 300 — the release tables 3849 built. Its window is
+`sea_melee_run1484_s_window_is_widened_whole`.
+
+## run1485 — the fourth melee at 820: the window 795..822 (2026-11-05, item 3849, `att-3849`)
+
+`docs/GOLDEN.md` §153.1. **What the disk could not answer**: run1483 dumps only 801 and 901; nothing covers 802..819,
+where the round that punctures the ground on 820 is launched. run1483's line with `--log-window 795 822`,
+`--detail end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `--end-frame 830`, `--callwin 0 830`, no stride. `df -g ~` read
+113 GiB free before it.
+- Pool lane 1. Launched 01:09:18, exited 01:09:52 (33.8 s launch to exit). `success`, 831 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1483: 831 identical. Filed with `filerun.py run1485
+  eastindies-information-melee-window-795-822`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1485-eastindies-information-melee-window-795-822.txt`, 18,746,432 bytes,
+SHA-256 `b6c5c204a6560b37df3c5476572117500b5aeb92ea80a6333201f50503187d8c`.
+
+Archive `rontrace-run1485.log`, 16,788,192 bytes,
+SHA-256 `3a32d0a2b46b03fd967a69992230aae83abdad56a0703f6aeff816b2bc43814f`.
+
+**What it holds**: the archers' arrows of 801, from (12, 66) and 101 up and (−71, 85) and 116 up, the third flying
+20 frames to the ground on 820 — the round piece 125's rows reproduce whole.

@@ -187,8 +187,9 @@ fn sea_melee_first_parting() {
 
 /// The word's window on run1483's stride: the block before the word to
 /// 250 frames past it (item 3847: the word 677, so 601..927, blocks 601,
-/// 701, 801 and 901).
-pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (601, 927);
+/// 701, 801 and 901). Item 3849 moved the word to 1233: 1201..1483,
+/// blocks 1201, 1301 and 1401.
+pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (1201, 1483);
 
 /// The word's window, widened whole on run1483's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -236,15 +237,15 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
         }
     }
     // WIDEN_NOTE
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 103, "run1483's word window");
-    pin_eq!(w.rounds_read, (15, 15), "the rounds read");
-    pin_eq!(w.rounds.len(), 8, "the rounds that part");
+    pin_eq!(w.firsts.len(), 326, "run1483's word window");
+    pin_eq!(w.rounds_read, (12, 9), "the rounds read");
+    pin_eq!(w.rounds.len(), 14, "the rounds that part");
 }
 
 /// run1484: run1483's game with a window at every frame of 660..680 and

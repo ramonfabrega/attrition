@@ -13474,7 +13474,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3847, 2026-11-04 — the fourth melee, a sea fight on East Indies at the held Information age
 
-(3847a) **The two computers' personalities are swapped between seats from frame 1.** run1482's frames 1 and 37 and
+(3847a) ~~**The two computers' personalities are swapped between seats from frame 1.**~~ Closed by item 3849
+(`docs/GOLDEN.md` §153.1): `Setup::build_game` visits the leaders in its start permutation, 3, 2, 5, 4, 7, 6, 1, 0,
+and `setup::leader_visit_order` replays it; the 26 keys close and the word does not move. run1482's frames 1 and 37 and
 run1483's 2601 print who 1's and who 2's `PERSONALITY` blocks, and every one of the thirteen fields parts, each
 seat's ours equal to the other seat's theirs: `air` ours −1 (who 1) and 1 (who 2) against theirs' 1 and −1, `naval`
 −1 and 0 against 0 and −1, `raid` 1 and −1 against −1 and 1, `arms` 1 and 2 against 2 and 1, and so through
@@ -13504,13 +13506,26 @@ they die; every other ship moves. A carrier fields no weapon of its own and was 
 attack neither strikes nor closes. Ours holds them on their spawns too at 700. It names no frame; the carrier's
 launch arm (its planes) is what a later staging would reach.
 
-## Parked by the next landing, slot YT — reserved
+## Parked by item 3849, 2026-11-05 — the fourth melee at 677: the ships and the archers leave from their muzzles
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3849a) **A guided round keeps a dead target.** run1484's 679: the Missile Cruiser `1/14`'s round 7 and
+`1/17`'s (`TI` 328) rounds 0 and 5 hold `whom 2 ox 15` — the Attack Submarine `2/15`, closed on 678 — where ours
+reads −1 on all three (`sea_melee_run1484_s_window_is_widened_whole`). The draw stream agrees through it, and the
+word moved past it to 1233; a round that keeps its dead target flies on to the target's last point, which only a
+later miss can show. Names no score.
+
+(3849b) **The Camel Corps' round leaves from no node of its piece.** run1485's `0/14` (`TI` 194, piece 144) round of
+797 leaves (−56, +132) and 281 up from the figure, (30400, 27516, 298), and flies 5 frames; ours leaves its own square
+at 17 and flies 6. No sweep of piece 144's nine `AttachPos` rows (nodes 0 and 4, `CHAR_ATTACKWALK` to
+`CHAR_ATTACK3`, `RData +0x88` 0.9) lands on (−56, 132); its tallest point is 49 × 4.3 ≈ 210. The round strikes
+`1/17` a frame apart (801 against 802, block 901's `damage_frame`) and draws nothing. The hypothesis — the piece
+the original plays is not 144 (a rider's, a variant's) — is killed or kept by `entries` on the piece the packet's
+unit 0/14 holds in its guy's `gpiece`. Names no score until a word parts on it.
+
+(3849c) **The 24 pivot rows' `float_lands` are unmeasured.** Pieces 280 (12 rows) and 300 (12) carry empty
+`float_lands` lists, an assumption: the `get_position.py … pivot 280 <node> <anim> <time> 4` and `pivot 300 … 1`
+sweeps, as 3810 did for 201, decide which cells the exact integer form misses. No word parts on them; the rounds of
+run1484's window agree whole to the unit.
 
 ## Parked by the next landing, slot YU — reserved
 
