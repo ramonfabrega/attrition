@@ -13938,13 +13938,26 @@ score.
   3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
   The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
 
-## Parked by the next landing, slot ZU — reserved
+## Parked by item 3878, 2026-11-05 — Southwest Mesa's tail and resources, 7861..7927
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3878a) **Fourteen of twenty single mutants of the tail and the resources fail nothing on Mesa, each measured.**
+On run1493's 7870 grid there is no ocean, COAST, `land` 2 or 0x1000 cell and no class-1 tile, and there is one
+land region. Both starts' city discs hold 7 and 5 FOREST cells. So these mutants fail nothing:
+`check_player_forest`'s two grow masks (it never patches), `nub_forest_cell`'s region-edge test,
+`change_base`'s `land != 2`, `step_down`'s ocean skip, `place_resources`' 0x1000 refusal, its COAST-neighbour
+refusal and its mountain-tile class. `nubify_forest`'s `& 3` as `& 1` also fails nothing, because the cell it
+re-forests is forest already and carries no COAST, ROCK or MOUNTAIN bit; that is a reading, not measured. The
+border's `y == 0` also fails nothing, because no candidate on row 0 reaches it; that is a reading, and the rows'
+`edge_keep_away` are all 0. The four cliff refusals (both predicates' `0x1878`, `land_class`'s 0x40, the goody box's
+`0x70`) are each covered by another. The player pair `0x1878` + `0x70` holds: part 5 at 7927 is 256434726
+against 2072961574. The nonplayer three stay inert, because all 675 of its cliff-cell tests also fail `bounds_ok` or
+the spacing. Names no score: only a Mesa lobby whose non-goody rows reach a cliff cell, or a map with water and
+cliffs, would part on them.
+
+(3878b) **Mesa's step 5 is the values, 7937 and 7945, on run1493.** This is `adjust_for_blocking` and
+`compute_all_vals` on the 7927 grid that now agrees: shared code, on the first grid with cliffs, whose 0x8000 in the values
+is reading-only so far (MAPGEN §13, 3807a). `make_draws`' segment ends at the last `compute_val` draw, so the trace answers
+it with no capture. The refill of the map lane, the commander's to book.
 
 ## Parked by the next landing, slot ZV — reserved
 
