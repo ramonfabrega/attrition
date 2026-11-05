@@ -13528,7 +13528,10 @@ reads −1 on all three (`sea_melee_run1484_s_window_is_widened_whole`). The dra
 word moved past it to 1233; a round that keeps its dead target flies on to the target's last point, which only a
 later miss can show. Names no score.
 
-(3849b) **The Camel Corps' round leaves from no node of its piece.** run1485's `0/14` (`TI` 194, piece 144) round of
+(3849b) **Answered by item 3855** (`docs/GOLDEN.md` §153.3): the unit is the Camel Raider of the later ages (`TI` 194,
+`ECAMELRAIDER`), a pivot piece (`<RESTRICTION name="CAMELRAIDER" node="4">`), and its round leaves through the turret —
+the pivot node's 48.57 plus the release node's 16.68 over the figure is the 281; piece 144's entries are piece 143's bit
+for bit, and `pivot::SAME_AS` reads them. ~~**The Camel Corps' round leaves from no node of its piece.** run1485's `0/14` (`TI` 194, piece 144) round of
 797 leaves (−56, +132) and 281 up from the figure, (30400, 27516, 298), and flies 5 frames; ours leaves its own square
 at 17 and flies 6. No sweep of piece 144's nine `AttachPos` rows (nodes 0 and 4, `CHAR_ATTACKWALK` to
 `CHAR_ATTACK3`, `RData +0x88` 0.9) lands on (−56, 132); its tallest point is 49 × 4.3 ≈ 210. The round strikes
@@ -13537,7 +13540,7 @@ the original plays is not 144 (a rider's, a variant's) — is killed or kept by 
 unit 0/14 holds in its guy's `gpiece`. Names no score until a word parts on it. **It names one since item 3854**
 (`docs/GOLDEN.md` §153.2): the word 1613's first parted state is run1486's block 1435, where the round of 1430 —
 (30461, 27533, 298) in theirs, flying 6, against the figure's square at 17 and 7 in ours — strikes the carrier `2/18`
-in theirs alone.
+in theirs alone.~~
 
 (3849c) **The 24 pivot rows' `float_lands` are unmeasured.** Pieces 280 (12 rows) and 300 (12) carry empty
 `float_lands` lists, an assumption: the `get_position.py … pivot 280 <node> <anim> <time> 4` and `pivot 300 … 1`
@@ -13576,13 +13579,19 @@ transport, is built from the reading and checked only by
 hurt ship but the carriers heals in run1485's 795..822). A lobby whose sea seat holds Citrus would settle it; none is
 booked.
 
-## Parked by the next landing, slot YX — reserved
+## Parked by item 3855, 2026-11-05 — the fourth melee at 1613: the later Camel Raider leaves from its turret
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3855a) **The pivot bearing of a `SAME_AS` piece scales by its own piece.** [`pivot::offset_at`] finds the node through
+`rows_of` but scales by `scale(piece)`, the raw piece; a piece missing from `RDATA_SCALE` reads 1.0. Pieces 192 and 193
+(the `A7V` and `A7VDES` Light Tanks, 189's rows, 189 at 0.9) and 195 carry no row there, so `set_all_pivots`' bearing
+for them is taken from a node scaled 1.0 where the original's is (on 192, measured by run1351) 0.9. The release is
+unaffected (`Release::piece` names 189). Item 3855 gave 144 its own row (0.9, run1484's packet). No word parts on it:
+the turret bearing differs by a tenth of a node vector of 3.96, under a 1.4° turret step at any range a tank fires.
+
+(3855b) **Two rounds' `ez` read 25 against 24.** run1486's window (`sea_melee_run1486_s_window_is_widened_whole`, 24
+rounds parting) prints `2/14`'s and `2/16`'s rounds of 1400..1416 with `ez` 24 where ours aims at
+25 — a target object's `z`, which `Ammo::init`'s `ez` takes unmasked (`sim::fight::aim_z`). Every other field of
+those rounds agrees, and the word moved past them to 1980. Names no score.
 
 ## Parked by the next landing, slot YY — reserved
 
