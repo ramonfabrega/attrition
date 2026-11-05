@@ -13332,7 +13332,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
 
     An archipelago (East Indies) or a sandy style may part them; until then each needs a unit test that
     fails without it.
-- **3835b. Great Lakes' 720: `_wcoord`'s writes** (`docs/MAPGEN.md` §10, §15 steps 6 and 7). On the 706
+- ~~**3835b. Great Lakes' 720: `_wcoord`'s writes** (`docs/MAPGEN.md` §10, §15 steps 6 and 7). On the 706
     heights 3835 checked, these are owed:
     - `clear_halfland_wcoord`;
     - the region scan (`move[1..25]`: the first non-HALFLAND neighbour of another region, else a
@@ -13345,6 +13345,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     - `verify_land@0084d8a0`'s flood over `TileSet::is_combo_acceptable`, and the relabel.
 
     The water counts are already exact (`water_subtiles`). Falsifier: parts 5, 6 and 10–12 at 720 on all
+    185 files.~~ Closed by item 3843 (`docs/MAPGEN.md` §16): every one built, and 720 to 5012 agree on all
     185 files.
 
 ## Parked by item 3836, 2026-11-04 — the bombs that never come down, and the third melee's closing state
@@ -13405,13 +13406,26 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   clear keeps a guy's current step is `Unit::clear_orders`' to say. Names no score while every close holds; the
   tears are pinned as torn.
 
-## Parked by the next landing, slot YO — reserved
+## Parked by item 3843, 2026-11-04 — Great Lakes' half-land at 720, and the walk to 5012
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3843a. What `_wcoord`'s body holds that Great Lakes does not reach** (`docs/MAPGEN.md` §16,
+    `sim::halfland`). 720 and every record to 5012 agree on all 185 files; these do not part there:
+    - `move_ocean_goody`'s good arm (a good other than oil on a cell turning wet): refused,
+      `Unported::Goody`; no Great Lakes cell enters it;
+    - `convert_beach_to_sandy` enters 0 cells on Great Lakes: its write is unit-tested only;
+    - `is_combo_acceptable`'s `num_tiles[3]`: only three lands exist, so it is `None` and refused by
+      name, `Unported::NumTiles`;
+    - the `Regions` lists `mark_halfwater` and the rescan keep: no checksum part walks them, so they are
+      not held;
+    - `set_oil_at`'s footprint tile 0x200 clear: not held, and part 6 does not move for it here;
+    - `verify_land`'s depth leak past 500: built, inert (the run ends at depth 0);
+    - one inert mutant of 25: `mark_halfwater`'s first touch keeping `land_sub` fails nothing, walk or
+      unit, because `spot_update_land(1, 0)` follows every wet sub-tile. It could only show through a
+      neighbour's `verify_land` recursion reading the centre mid-cell, and no grid built so far does.
+
+    Five other arms the walk cannot part (the scan's break, its last HALFLAND `region2`, the 0x4
+    spread's break, oil's third ring, the relabel's swap) hold by unit tests written for them. A map with
+    goods on its shore, or a beach, parts the first two rows; East Indies' half-land is the nearest.
 
 ## Parked by the next landing, slot YP — reserved
 

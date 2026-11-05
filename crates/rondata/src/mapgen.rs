@@ -676,17 +676,22 @@ pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
             .and_then(|n| n.attribute("value")?.trim().parse().ok())
             .unwrap_or(-1)
     };
-    let base_tiles = set
-        .children()
-        .find(|n| n.has_tag_name("BASELAND"))?
-        .children()
-        .filter(|n| n.has_tag_name("BASE"))
-        .count() as i32;
+    let count = |land: &str| {
+        set.children()
+            .find(|n| n.has_tag_name(land))
+            .map_or(0, |l| {
+                l.children().filter(|n| n.has_tag_name("BASE")).count() as i32
+            })
+    };
+    set.children().find(|n| n.has_tag_name("BASELAND"))?;
+    let base_tiles = count("BASELAND");
     Some(TilesetGroups {
         bush_clump_prob: value("BUSH_CLUMP_PROB"),
         mnt_rock_clump_prob: value("MOUNTAIN_ROCK_CLUMP_PROB"),
         mnt_fringe_tree_prob: value("MOUNTAIN_FRINGE_TREE_PROB"),
         base_tiles,
+        coastal_tiles: count("COASTAL"),
+        ocean_tiles: count("OCEAN"),
         forest_base: value("FOREST_BASE"),
         forest_growth_prob: value("FOREST_GROWTH_PROB"),
         mountain_base: value("MOUNTAIN_BASE"),
@@ -4003,6 +4008,122 @@ mod tests {
         );
     }
 
+    /// **Great Lakes' half-land at 720, and the records to 5012**
+    /// (`docs/MAPGEN.md` §10, §15 steps 6 and 7, item 3843): from each run's
+    /// 7945 grid and its 706 heights (`generate_land`, `build_coastal_data`),
+    /// `_wcoord`'s body on every gated cell — `clear_halfland_wcoord`, the
+    /// region scan, `mark_halfwater`, `move_ocean_goody`, the dry arm's 0x4
+    /// spread and its queue, `verify_land` — then the coast, the relabel and
+    /// the 0x80 tail: seed and parts 5, 6 and 10–13 at `Terrain.cpp` 720.
+    /// Then `create_doobers`' rock clear (738), nothing through 815, and
+    /// `convert_beach_to_sandy` (`map.cpp` 5012), at every record from 720
+    /// to 5012 on every Great Lakes file.
+    #[test]
+    fn great_lakes_s_halfland_is_720_to_5012() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let mut runs: std::collections::BTreeMap<GlRun, Vec<&StartGrid>> = Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                .or_default()
+                .push(g);
+        }
+        let (mut files, mut records, mut at5012, mut parted) = (0, 0, 0, Vec::new());
+        for (run, gs) in &runs {
+            let (mut grid, d) = great_lakes_at_7945(root, gs[0], *run, range, &makes);
+            let (_, _, tileset) = great_lakes_at_7859(root, gs[0], *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            let mut coord = coord_flags(&grid);
+            let f = sim::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
+            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, gs[0].seed as u32);
+            let combo = sim::halfland::Combo {
+                coast_base: ts.coast_base,
+                num_tiles: [
+                    Some(ts.base_tiles),
+                    Some(ts.coastal_tiles),
+                    Some(ts.ocean_tiles),
+                    None,
+                ],
+            };
+            let mut depth = 0;
+            let lists = sim::terrain_init::check_and_set_halfland_heights(
+                &mut grid, &mut coord, &z, combo, &mut depth,
+            )
+            .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
+            let p = lists.parts().expect("the lists' walk");
+            let lists_parts = [p[0], p[1], p[2], p[3]];
+            let state = |g: &MapGrid| (d.rng.seed, g.cell_part(), g.tile_part(), lists_parts);
+            let s720 = state(&grid);
+            sim::halfland::create_doobers_flags(&mut grid);
+            let s738 = state(&grid);
+            let beach = sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                .with_depth(depth)
+                .convert_beach_to_sandy()
+                .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
+            let s5012 = state(&grid);
+            eprintln!(
+                "{} nations: {} half-land cells listed, {beach} beach cells, verify_land depth \
+                 {depth}; 720 {s720:?}, 738 {s738:?}, 5012 {s5012:?}",
+                run.1,
+                lists.locs.len()
+            );
+            for g in gs {
+                let (Some(from), Some(to)) = (
+                    g.checksums
+                        .iter()
+                        .position(|(f, l, _, _)| f == "Terrain.cpp" && *l == 720),
+                    g.checksums
+                        .iter()
+                        .position(|(f, l, _, _)| f == "map.cpp" && *l == 5012),
+                ) else {
+                    continue;
+                };
+                for (f, l, seed, p) in &g.checksums[from..=to] {
+                    let ours = match (f.as_str(), *l) {
+                        ("Terrain.cpp", 720) => s720,
+                        ("map.cpp", 5012) => {
+                            at5012 += 1;
+                            s5012
+                        }
+                        _ => s738,
+                    };
+                    let theirs = (*seed, p[5], p[6], [p[10], p[11], p[12], p[13]]);
+                    if ours != theirs {
+                        parted.push(format!(
+                            "{} nations, {f} {l}: ours {ours:?} theirs {theirs:?}",
+                            run.1
+                        ));
+                    }
+                    records += 1;
+                }
+                files += 1;
+            }
+        }
+        eprintln!(
+            "halfland: GL 720..5012 on {files} files, {records} records, 5012 on {at5012}; {} part",
+            parted.len()
+        );
+        assert!(
+            parted.is_empty(),
+            "seed and parts 5, 6, 10–13 part at {} of {records} records:\n{}",
+            parted.len(),
+            parted[..parted.len().min(20)].join("\n")
+        );
+        assert!(
+            files >= LAKE_FILES && at5012 >= LAKE_FILES,
+            "720 reached {files} Great Lakes files, 5012 {at5012}"
+        );
+    }
+
     /// The Great Lakes start dumps that print the height grid: a floor
     /// (45 on 2026-11-04).
     const MAPGEN_GL_HEIGHT_FILES: usize = 45;
@@ -4606,9 +4727,9 @@ mod tests {
 
     /// The §15 phases this module checks on Great Lakes: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
-    /// 7861..7870), the resources (7877..7927) and the values (7937,
-    /// 7945).
-    const GREAT_LAKES_CHECKED: i64 = 5;
+    /// 7861..7870), the resources (7877..7927), the values (7937,
+    /// 7945) and `Terrain::init` with its half-land (734..5012, item 3843).
+    const GREAT_LAKES_CHECKED: i64 = 6;
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail
