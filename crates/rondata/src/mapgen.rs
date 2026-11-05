@@ -4550,9 +4550,9 @@ mod tests {
 
     /// The §15 phases this module checks on Great Lakes: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
-    /// 7861..7870), the resources (7877..7927) and the values (7937,
-    /// 7945).
-    const GREAT_LAKES_CHECKED: i64 = 5;
+    /// 7861..7870), the resources (7877..7927), the values (7937,
+    /// 7945) and `Terrain::init` with its half-land (734..5012, item 3843).
+    const GREAT_LAKES_CHECKED: i64 = 6;
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail
