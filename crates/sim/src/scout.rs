@@ -865,7 +865,7 @@ impl Sim {
                 let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
                 let inv = self.invalid_loc(u, tile, false, false, false, false, false);
                 let oc = self.world.is_ocean(c);
-                eprintln!("PROBE  c{},{} seen{} inv{} ocean{}", c.x, c.y, seen as u8, inv, oc as u8);
+                eprintln!("PROBE  c{},{} seen{} inv{} ocean{} mask{:#06x}", c.x, c.y, seen as u8, inv, oc as u8, self.world.tile_mask(tile));
             }
         }
     }
