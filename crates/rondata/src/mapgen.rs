@@ -6201,8 +6201,9 @@ mod tests {
     /// the zero-draw passes (7835..7854, item 3872), `place_all` with
     /// the cliffs (7859, item 3875), and its tail and the resources
     /// (7861..7927, item 3878), the values (7937, 7945, item 3882), and
-    /// `Terrain::init` without heights (734..5012, item 3885).
-    const SOUTHWEST_MESA_CHECKED: i64 = 6;
+    /// `Terrain::init` without heights (734..5012, item 3885), and the
+    /// rivers (5012..5118, item 3888).
+    const SOUTHWEST_MESA_CHECKED: i64 = 7;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -7200,7 +7201,8 @@ mod tests {
         );
     }
 
-    /// run1493's records from `map.cpp` 5012 to 5118: a floor (item 3888).
+    /// run1493's records from `map.cpp` 5012 to 5118: a floor (5 on
+    /// 2026-11-05, item 3888).
     const MESA_RIVER_RECORDS: usize = 5;
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
