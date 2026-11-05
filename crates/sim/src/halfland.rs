@@ -326,6 +326,21 @@ impl<'a> Pass<'a> {
     ///   forest south of it gains oil and 0x8.
     /// - A good: not reached on Great Lakes ([`Unported::Goody`]).
     fn move_ocean_goody(&mut self, x: i32, y: i32) {
+        self.move_any(x, y, false);
+    }
+
+    /// **`Terrain::move_goody@0084a3d0`**, which the river troughs call:
+    /// [`Self::move_ocean_goody`]'s body, except that the oil's new cell
+    /// takes the rock bit only when the old one was dry, and — `TerrainOil`
+    /// being initialised by then — its rocky patch
+    /// (`TerrainOil::add_rocky_patch@008a2b30`), whose terraform is the
+    /// caller's: the cell the oil moved to is returned.
+    pub fn move_goody(&mut self, x: i32, y: i32) -> Result<Option<(i32, i32)>, Unported> {
+        let to = self.move_any(x, y, true);
+        self.refusals().map(|()| to)
+    }
+
+    fn move_any(&mut self, x: i32, y: i32, rocky: bool) -> Option<(i32, i32)> {
         let c = self.g.cells[self.at(x, y)];
         let wet = c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2);
         let goody = if !wet && c.down == -3 {
@@ -336,7 +351,7 @@ impl<'a> Pass<'a> {
         let oil = c.flags & 0x800 != 0;
         let good = self.find_good_at(x, y);
         if goody == -1 && !oil && good < 0 {
-            return;
+            return None;
         }
         let lands: Vec<i32> = MOVE
             .iter()
@@ -402,10 +417,13 @@ impl<'a> Pass<'a> {
                 }
                 self.set_oil_at(nx, ny, true);
                 let n = self.at(nx, ny);
-                self.g.cells[n].flags |= 0x8;
-                return;
+                if !rocky || mask != 0x88 {
+                    self.g.cells[n].flags |= 0x8;
+                }
+                return Some((nx, ny));
             }
         }
+        None
     }
 
     /// `WorldData::num_waterhalf@006b4db0`: the wet tiles of a HALFLAND
@@ -583,6 +601,31 @@ impl<'a> Pass<'a> {
                 self.g.tiles[t] = self.g.tiles[t] & 0xffef | 0x20;
             }
         }
+    }
+
+    /// **`Terrain::spot_update_land_batch@0084d540`**: each listed cell
+    /// whose `land` or `land_sub` differs takes `land_sub`, then `land`
+    /// (a negative value not written); then `verify_land(land, sub)` on
+    /// every listed cell, repeats included, each from the batch's own pair.
+    /// The render lists it rebuilds are not walked by any part.
+    pub fn spot_update_land_batch(
+        &mut self,
+        cells: &[(i32, i32)],
+        land: i32,
+        sub: i32,
+    ) -> Result<(), Unported> {
+        for &(x, y) in cells {
+            let i = self.at(x, y);
+            let c = self.g.cells[i];
+            if c.land as i32 != land || c.land_sub as i32 != sub {
+                self.set_land(i, land, sub);
+            }
+        }
+        for &(x, y) in cells {
+            let (mut l, mut s) = (land, sub);
+            self.verify_land(x, y, &mut l, &mut s);
+        }
+        self.refusals()
     }
 
     /// **`Terrain::convert_beach_to_sandy@0084b8e0`** (815 → 5012), y outer,
