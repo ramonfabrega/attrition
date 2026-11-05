@@ -2128,9 +2128,111 @@ stays open, entered by the console's two river arms and
   depth 500 (line 40) skips the decrement at line 175. After one flood
   that deep, every later call returns at once, so a later placement can
   leave a P1 pair, the `(B_i, B_{i+1}, B_{i+2})` chain. Whether a v1
-  game's floods ever reach 500 is not read.
+  game's floods ever reach 500 is not read. ~~"every later call returns
+  at once"~~: each early return leaks one, so the headroom shrinks by
+  the count of capped frames (§19.6).
 - **Not walked.** That map generation guarantees P1 and P2 before line
   760 is measured on four lobbies and 86 dumps, not read. The writers of
   `land` and `land_sub` before the transitions are not walked for it.
 - **Out of scope.** `ConsoleWin::run_cmd@007d6a70` and the scenario
   editor also reach `spot_update_land`; both are cheat or cut.
+
+### 19.6 The flood's depth, writer by writer (item 3870)
+
+The sources are the decompile and the listing. The counts come from a
+scratch model of the flood as read, run over the first `WORLD` block of
+the 43 distinct start grids on disk (Great Sahara 23, Great Lakes 13,
+East Indies 5, Himalayas 1, Southwest Mesa 1). The model is not
+committed. Every claim here is reading-only.
+
+- **The counter leaks; it never sticks.** `depth` is the global at
+  0xee1224, which has three references in the image, all in
+  `Terrain::verify_land@0084d8a0`: the load and `incl` at entry, and the
+  `decl` at 0x84dd43. A frame entered past 500 (`cmpl $0x1f4; jg
+  0x84dd49`) skips the `decl`, but its callers still take theirs. So
+  after a flood, `depth` holds the number of capped frames, L, and every
+  later flood runs with 500 − L levels. Nothing resets it. *Falsifier*:
+  a packet read of 0xee1224 at any frame (0 means no flood was ever
+  capped). No dump prints it.
+- **One frame per rewrite.** A nested frame enters only a neighbour its
+  caller rewrote, or the centre itself after `verify_land` sets it to
+  `BASELAND` at `COAST_BASE`. That second case happens at most once per
+  cell, because `SANDY` and `OCEAN` then accept the centre. So a flood's
+  depth is at most one plus its rewrites. Below the top frame, the centre
+  is always `BASELAND`.
+- **Q, the precondition.** No two `BASELAND` 8-neighbours differ by 2 or
+  more, and every `BASELAND` cell beside `SANDY` sits at `COAST_BASE`.
+  All 43 start grids hold Q: 0 violations under each grid's own
+  `COAST_BASE`, as 3864's count found. A flood that is not capped
+  restores Q around every cell it rewrote, because each rewrite is
+  followed by that cell's own frame. *Falsifier*: a `WORLD` dump (`GLOG_TERRAIN`)
+  with a pair that breaks Q.
+- **Locality, proved for one write on a Q grid.** Write value v at a
+  cell, and let F(n) be the old value L(n) clamped into
+  [v − d, v + d], where d is the Chebyshev distance to the write. L and
+  F are both 1-Lipschitz. A rewrite moves a cell one step toward a
+  neighbour at least 2 away, so every cell stays between L(n) and F(n).
+  Subs run from 0 to 3, so nothing at d ≥ 3 changes. A `BASELAND` write
+  (`Terrain::object_placed@00850c40` at `weatherbase`, `mark_halfwater`'s
+  sub-0 call) changes at most the 5×5 around it. A `SANDY` or `OCEAN`
+  centre (`Terrain::convert_beach_to_sandy@0084b8e0`, the two arms of
+  `Terrain::check_and_set_halfland_wcoord@0084dec0`, and
+  `Terrain::mark_halfwater@0084ece0`'s ocean call) first sets its
+  neighbours to `COAST_BASE`, and the changes stay in the 7×7 around it.
+  The rewrite count inside that window is measured, not proved. Over
+  every cell of the 43 grids, the deepest flood of each writer is: a
+  `weatherbase` write 7 (v = 0..3), a `SANDY` centre 26, an `OCEAN`
+  centre 17. Random Q grids of 11, 13 and 25 cells a side give the same
+  depths and the same radius (3), whatever the grid size.
+- **Mid-game holds.** `Wall::start@0063e810` is the v1 mid-game writer.
+  It calls `object_placed`, which runs one top-level `spot_update_land`
+  flood per footprint cell. Each such flood is a single write on a Q grid
+  (induction from the start's Q, while L = 0), so it stays far below 500.
+  **3863a's route needs L ≥ 494 when the game begins.**
+- **The batches have no grid-free bound.**
+  `Terrain::spot_update_land_batch@0084d540` writes every listed cell
+  before it verifies any of them. So the first flood finds the later
+  cells' unrepaired neighbours and runs along the list. Two batches run
+  in `Terrain::init@00850f70`: the half-land list at line 867 (`SANDY`
+  0) and `RiversOut::calculate_all@00888820` → `River::calculate@008858e0`
+  (`BASELAND` at `riverbase`). In the model, a 544-cell `SANDY` batch
+  through ground two steps off `COAST_BASE` caps at 502–531 and leaves
+  1,698–2,408 Q violations behind. A 60-cell diagonal reaches 356. Only
+  the ground along the list keeps these floods shallow, and the
+  pre-river ground is not on disk. The 43 start grids' Q is consistent
+  with L = 0 but does not prove it: a capped flood need not leave a
+  violation.
+
+**Verdict: no bound by reading.** Every single-write flood is bounded,
+and the mid-game is bounded given L = 0 at the start. The start's two
+batches are not bounded. The rows stay open: a second reading would
+have to re-derive the leak, the locality lemma and the batch chain, and
+a bound would still owe the start's L.
+
+**The console-planted contact.** `ConsoleWin::run_cmd@007d6a70` case 99
+is `weather`, a console-only command. It calls `spot_update_land` at the
+cursor cell with land `BASELAND` and sub 3, whatever the cell held, so
+on an ocean cell it plants fertile land in the sea. Case 0x65 is
+`river`: its `grow` adds a control point at the cursor, its `calc` runs
+`River::calculate`, and its fourth word runs `PathFinder::astar_river`
+from the cursor. **All three aim at `mouse_coord`.** A `.cmd` line runs
+with `no_mouse` = 1, which leaves the cursor stale: (0, 6) raw, the cell
+(0, 0) (ORACLE.md, "The cheat channel"). The cell (0, 0) is open ground
+on Great Sahara, Great Lakes and Southwest Mesa, and open sea on East
+Indies. None of those makes §19.3's shape.
+
+**Great Sahara cannot host the contact.** Its 23 start grids hold no
+`OCEAN` and no `SANDY` cell, so only P1 is open there, and only through
+a capped flood. The south-west shape for `weather` is a `SANDY` cell C
+with `OCEAN` on its west, its south and north of its west flank, and no
+`BASELAND` at `COAST_BASE` on its north or east. Planted at C's
+south-west diagonal, `weather`'s sub 3 survives its own flood. The model
+finds the cells (41, 42) and (16, 45) on all 13 Great Lakes start grids,
+and 13 cells on East Indies, among them (2, 17) and (43, 17). The
+`coverage` capture is `weather` with the cursor on (41, 42) in Great
+Lakes' default lobby, `cover=1`, then the same frame's `WORLD` block
+(`GLOG_TERRAIN`). Entering `008595f0` confirms the predicate, and a
+non-empty word at C kills it. A `.cmd` line cannot aim the cursor.
+Either the click lane hovers the cell, or the tracer stores
+`mouse_coord_x/y` (`ConsoleWin` +0x518/+0x51c) before the line, which
+is tooling this item does not build.
