@@ -1836,7 +1836,11 @@ out by the predicate "every `new_map` class but `MapScenario` overrides
 +0x40, and `MapScenario::make` never dispatches it". What would kill the
 claim: a `cover=1` trace of any lobby whose function list holds
 `00694ab0`, or a `+0x68` dispatch on a map found by
-`report.py <exe> refs 0068c870`. It has a second reading still to come.
+`report.py <exe> refs 0068c870`. **Item 3859's blind second reading agrees**
+(`docs/audit/2026-11-05-item-3859-blind.md`): no `call`/`jmp [reg + 0x68]`
+in the whole listing has a map receiver, and `Map::~Map` is the only other
+writer of `Map::vftable`; it is a `blind::RESIDUE` row, its two vtable
+slots pinned in the residue's image test.
 
 `Map::force_continent_spacing@0068e6a0`: **Item 3856 corrects that** (reading-only): it has exactly one caller,
 `ScenarioEditor::import_image@009a3f30` (call at 0x9a4420; the listing holds
@@ -1844,7 +1848,14 @@ no other `call`, `jmp` or immediate copy of the address). The scenario
 editor is cut from v1, so no lobby enters it. It is a **`blind::RESIDUE`
 candidate** whose predicate is "only the editor's image import calls it".
 What would kill the claim: a `refs 0068e6a0` hit outside
-`ScenarioEditor`.
+`ScenarioEditor`. **Item 3859's blind reading finds the predicate false**
+(`docs/audit/2026-11-05-item-3859-blind.md`): `import_image` has a second
+caller, `MapConquest::make_continents@0068dba0` (call at 0x68e142), the
+mask of map styles 0x18/0x19, which only `ConquestGame::build_conquest_game`
+mints and the skirmish lobby's 23-entry style combo cannot select. The
+verdict stands for the lobby. A scenario file's stored style byte
+(`ScenarioRead::import@009b1430`) and the console's `map_style` command
+are not settled, so the function stays an open `NEVER` row (parked 3859a).
 
 ### 18.2 Warring States' fairness distances
 

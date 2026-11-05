@@ -13648,13 +13648,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZC — reserved
+## Parked by item 3859, 2026-11-05 — the continent mask's second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3859a) **`Map::force_continent_spacing@0068e6a0` stays open: the first reading's predicate is false.** Its one caller,
+`ScenarioEditor::import_image@009a3f30`, has a second caller, `MapConquest::make_continents@0068dba0` (call at 0x68e142),
+the mask of map styles 0x18/0x19 (`docs/audit/2026-11-05-item-3859-blind.md`). Only `ConquestGame::build_conquest_game`
+mints those styles, and the skirmish lobby's style combo (`SetupWin::setup_combos`, 23 entries) cannot select them.
+Two writers of `info.map_style` that feed `set_map`'s pass-through are unsettled: a scenario file's stored style byte
+(`ScenarioRead::import@009b1430`) and the console's command (`ConsoleWin::run_cmd`). The cheap half is to read the
+style byte of the install's shipped `scenario/` files. The other half is a direction call (FABLE: is scenario play,
+as distinct from the editor, inside v1?). With both settled, the row becomes `RESIDUE`. It names no score.
 
 ## Parked by the next landing, slot ZD — reserved
 
