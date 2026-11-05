@@ -1541,10 +1541,10 @@ mod tests {
         let at = Pos::new(target.x * 768 + 384, target.y * 768 + 384);
         let traits = crate::tech::UnitTraits::default();
         let mut tree = crate::tech::TechTree::default();
-        let root = tree.add(crate::tech::TypeDef::unit("Bark", traits.clone()));
-        let fluyt = tree.add(crate::tech::TypeDef::unit("Fluyt", traits.clone()).from(root));
-        let mid = tree.add(crate::tech::TypeDef::unit("Cruiser", traits.clone()).from(root));
-        let aegis = tree.add(crate::tech::TypeDef::unit("Aegis Cruiser", traits.clone()).from(mid));
+        let root = tree.add(crate::tech::TypeDef::unit("Bark", traits));
+        let fluyt = tree.add(crate::tech::TypeDef::unit("Fluyt", traits).from(root));
+        let mid = tree.add(crate::tech::TypeDef::unit("Cruiser", traits).from(root));
+        let aegis = tree.add(crate::tech::TypeDef::unit("Aegis Cruiser", traits).from(mid));
         let other = tree.add(crate::tech::TypeDef::unit("Galley", traits));
         tree.finalize();
         s.set_tech_tree(tree);
