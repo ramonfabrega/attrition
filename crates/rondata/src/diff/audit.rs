@@ -589,6 +589,7 @@ audited! {
     spanish_east_word_corrections_change_nothing: crate::diff::spanish_east_word::SPANISH_EAST => (1, 116, 104), 0, [];
     spanish_gunpowder_pair_corrections_change_nothing: crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER => (1, 132, 104), 0, [];
     spanish_industrial_pair_corrections_change_nothing: crate::diff::spanish_industrial_pair::SPANISH_INDUSTRIAL => (1, 67, 40), 0, [];
+    spanish_information_pair_corrections_change_nothing: crate::diff::spanish_information_pair::SPANISH_INFORMATION => (1, 67, 40), 0, [];
     spanish_lakes_word_corrections_change_nothing: crate::diff::spanish_lakes_word::SPANISH_LAKES => (1, 52, 40), 0, [];
     spanish_modern_pair_corrections_change_nothing: crate::diff::spanish_modern_pair::SPANISH_MODERN => (1, 131, 104), 0, [];
     spanish_word_corrections_change_nothing: crate::diff::spanish_word::SPANISH => (1, 20, 8), 0, [];
