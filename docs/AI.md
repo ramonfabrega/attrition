@@ -37952,6 +37952,34 @@ General's `MOVEORDER` at `(R + 2) × 0xc0` from the chariot along its
 bearing, with `R` the hoplites' `max_range`. That is §348.3's diffed
 formula, so it needs no new reader.
 
+**The take, run1498 (item 3881): entered.** The staging is
+`tools/gamelog/coverage/maxrange3881-ch15.cmd`. It puts the General at
+`611`, which makes it `0/9` and pushes the second squad to `0/10`..`0/12`.
+The selection is widened to `6 9 10`. **`00711080` is entered on trace frame
+735**, which is block 736 by GOLDEN §17's convention: `process_attack 6 1 0 2
+735` closes block 735, and its orders are stepped in 736. It is the trace's
+only `NEVER` row.
+
+**The first killer was framed one step late, and it did not fire.** The
+General's head on 736 is a `MOVEORDER`, not an `ATTACKORDER`. But the
+grouped arm *replaces* the attack with the stand-off move inside the same
+`do_attack` call, so an end-of-frame dump can never show the General holding
+the `ATTACKORDER`. The evidence that the attack was given is the
+`get_max_range` hit itself. No armed member reaches `:119`, and the General is
+the selection's only unarmed member.
+- On 735 the General held the 620 `GroupMoveOrder`.
+- On 736 it holds one `MOVEORDER` to (3192, 12888), `group 1`. That is 480
+  from the Chariot at (3192, 12408), on the General's own side of the target:
+  it stood at (3168, 14138).
+- The six Hoplites hold `ATTACKORDER ox 6 whom 1`, as in run215.
+
+The projected point has not been checked against `do_attack.rs`'s `grouped`
+arithmetic. With a melee `max_range` of 0, the arm projects `(0 + 1) × 0xc0 +
+0xc0` = 384 toward the General, and `find_nearby_spot` then snaps the point.
+The dump does not settle either the range or the snap (parked 3881a).
+**Twin**: run215 is the same game before the `add` line. `rngcmp` finds 617
+identical frames, with the first difference at 612 (harness word 611).
+
 ### 382.5 The pair left on 3504a's route: the two `kill_group_order`s
 
 **`Group::kill_group_order@00710aa0`** `normalize`s the group and then calls
@@ -37995,7 +38023,8 @@ To move 382.1 and 382.2 to `RESIDUE`:
 **Coverage.** Every claim in this section is reading-only except
 `get_max_range`'s siege selection and the stand-off formula, which §348.3's
 run1356 diff backs. The one-call-site table and the absent address copies
-are scans of the image. No row of `blind::NEVER` moves: open stays 41.
+are scans of the image. This reading moved no row of `blind::NEVER`. run1498
+(item 3881, §382.4) takes `get_max_range` off the list: open 41 → 40.
 
 ## 383. Reserved for the next item on the AI track
 
