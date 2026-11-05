@@ -762,7 +762,7 @@ pub fn calculate_all(
         out.sections.push(made);
         goody.append(&mut r.goody);
         out.moved.append(&mut r.moved);
-        let spot = std::mem::take(&mut r.spot);
+        let spot = r.spot;
         let mut p = Pass::new(g, coord, &*z, combo).with_depth(out.depth);
         p.spot_update_land_batch(&spot, 0, riverbase)
             .map_err(Unported::Land)?;
