@@ -1,6 +1,6 @@
 //! **`Terrain::check_and_set_halfland_wcoord@0084dec0`'s body** — the
-//! half-land writes a corner height decides (`docs/MAPGEN.md` §10, §15
-//! steps 6 and 7): `Terrain.cpp` 706 → 720 on a map whose gate opens.
+//! half-land writes a corner height decides (`docs/MAPGEN.md` §16, §10,
+//! §15 steps 6 and 7): `Terrain.cpp` 706 → 720 on a map whose gate opens.
 //!
 //! On each gated cell (`CoordInfo.flags & 0x84`), in this order:
 //! - `Terrain::clear_halfland_wcoord@0084e500`: the cell's wet tiles dry
@@ -25,9 +25,9 @@
 //! across the pass ([`Pass::depth`]).
 //!
 //! The `Regions` lists `mark_halfwater` and the rescan keep are not
-//! walked by any checksum part and are not held. `move_ocean_goody`, which
-//! moves a goody, a good or oil off a cell turning wet, is
-//! [`Unported::Goody`] where it would act.
+//! walked by any checksum part and are not held. `move_ocean_goody` moves
+//! a goody box or oil off a cell turning wet; a good other than oil is
+//! [`Unported::Goody`].
 //!
 //! The corner test reads the heights as [`Single`]s and compares them
 //! as integers; no float.
