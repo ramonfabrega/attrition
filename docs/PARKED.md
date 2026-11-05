@@ -13910,7 +13910,9 @@ player cliff below size 5 is `FACE_ANY`. Names no score until a style or a scena
 
 ## Parked by item 3876, 2026-11-05 — the diagonal arm's contact, searched
 
-(3876a) **A single `weather` plant on East Indies passes every gate in front of `check_for_diagonal@008595f0`**
+(3876a) ~~**A single `weather` plant on East Indies passes every gate in front of `check_for_diagonal@008595f0`**~~
+Taken and entered (item 3879, run1497; MAPGEN §20, "The take (i)"): 80 printed writes equal to the model's.
+**A single `weather` plant on East Indies passes every gate in front of `check_for_diagonal@008595f0`**
 (`docs/MAPGEN.md` §20, "The offline search"). `tools/gamelog/plant.py` models the re-mark and reproduces run1495's
 81 printed writes. It plants every cell of the 68 distinct grids on disk and finds 62 passing plants on 18 grids,
 all §19.3's south-west shape and none on Great Sahara or Great Lakes. `check_for_tendrils` returns 0 at a flank sum
@@ -13922,7 +13924,8 @@ the take's trace holding no `HIT` for 008595f0 while its `@dumpall` shows (2, 17
 2,17 --printed <the take>` then names the write that parts. Names no score: the `Blind:` row's route (008595f0, and
 `WorldData::is_valid@00471170` if the arm reaches it).
 
-(3876b) **On the golden line, two plants pass.** On Great Lakes' golden grid, `weather` at (42, 43) and then at
+(3876b) ~~**On the golden line, two plants pass.**~~ Not needed: 3876a's lobby took the line (item 3879).
+**On the golden line, two plants pass.** On Great Lakes' golden grid, `weather` at (42, 43) and then at
 (41, 42) lifts F2 = (42, 42) from sum 3 to 4 and enters at C = (42, 41). (17, 46) then (16, 45) enters at (17, 44).
 That is run1495's own line with `620 @aim 42 43` and `620 !weather` ahead of its pair, and run1130 stays its twin.
 It is the fallback if 3876a's lobby will not take the line. Killed by that take not entering 008595f0. Names no
@@ -13964,13 +13967,12 @@ cliffs, would part on them.
 is reading-only so far (MAPGEN §13, 3807a). `make_draws`' segment ends at the last `compute_val` draw, so the trace answers
 it with no capture. The refill of the map lane, the commander's to book.
 
-## Parked by the next landing, slot ZV — reserved
+## Parked by item 3879, 2026-11-05 — the diagonal arm entered
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3879a) **`check_for_diagonal@008595f0`'s body on (3, 16) is entered and unread.** Run1497 enters it on 620 and
+does not enter `WorldData::is_valid@00471170`; `plant.py` stops at the entry, and no dump prints what the arm writes.
+Killed by a reading of the body that needs `is_valid` on a SW-shaped C with P `BASELAND`. Names no score: the
+`Blind:` row `is_valid@00471170`, whose route is now this body.
 
 ## Parked by item 3881, 2026-11-05 — `get_max_range` entered on the golden start
 
@@ -14024,3 +14026,51 @@ words and edits nothing here; a refill lands when two remain.
   is Great Sahara's height-free phase and can precede step 7 there, as it did on Great Sahara. Two counts come
   first: whether run1493's start dump prints `master_land_heights`, and how many of the 292 cliff cells' tiles
   `has_plus_slope` is handed. The refill of the map lane is the commander's to book.
+
+## Parked by the next landing, slot AA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
