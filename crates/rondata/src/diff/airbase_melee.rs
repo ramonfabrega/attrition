@@ -378,3 +378,55 @@ fn airbase_melee_run1492_s_closing_state() {
     );
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
+
+/// The stride before the word, walked back: run1492's blocks 1401..1701,
+/// where the dead Aircraft Carrier `1/18`'s number is freed and the two
+/// births of 1502..1601 take 18 and 41.
+pub(crate) const WIDENING_AIRBASE_MELEE_BACK: (i64, i64) = (1401, 1701);
+
+/// run1492's stride over [`WIDENING_AIRBASE_MELEE_BACK`], the rounds
+/// compared — the coverage driver's slice too.
+pub(crate) fn airbase_melee_back_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1492",
+            &[(MELEE_LONG.0, WIDENING_AIRBASE_MELEE_BACK.0)],
+            WIDENING_AIRBASE_MELEE_BACK,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **The stride before the word, widened whole** (item 3868): the frame
+/// the state first parted, walked back from the word's block 1801.
+/// `RON_FIRSTS=1` prints every row.
+#[test]
+fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = airbase_melee_back_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.blocks, 0, "every stride block in the window");
+    pin_eq!(w.firsts.len(), 0, "run1492's stride before the word");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
