@@ -460,16 +460,6 @@ impl Pass<'_> {
         if keep > 0 && (0..nations).any(|q| dist(q) < keep) {
             return false;
         }
-        if std::env::var_os("RON_PROBE_3878").is_some() && f & 0x40 != 0 {
-            let own = dist(p);
-            eprintln!(
-                "P3878 player ty {ty} ({x}, {y}) rest 0x1838 {} near {} nearer {} bounds {} south_forest {} border {} spaced {} mountain {} class {} fits {} occupied {}",
-                f & 0x1838 != 0, own > near, (0..nations).any(|q| q != p && dist(q) <= own),
-                self.bounds_ok(r, x, y, None), self.south_forest(x, y), self.border(x, y),
-                self.spaced(ty, sea, x, y, spacing), self.mountain_tiles(x, y),
-                self.land_class(x, y), self.allows(self.land_class(x, y), ty), self.occupied(x, y)
-            );
-        }
         if f & 0x1878 != 0 || self.g.cells[self.at(x, y)].blocked != 0 {
             return false;
         }
@@ -691,16 +681,6 @@ impl Pass<'_> {
             && starts.iter().any(|s| dist(s) < r.player_keep_away)
         {
             return false;
-        }
-        if std::env::var_os("RON_PROBE_3878").is_some() && f & 0x40 != 0 {
-            eprintln!(
-                "P3878 nonplayer ty {ty} ({x}, {y}) rest 0x1838 {} stay {} bounds {} spaced {} mountain {} border {} south_forest {} class {} fits {} occupied {}",
-                f & 0x1838 != 0,
-                r.player_stay_near > 0 && starts.iter().any(|s| dist(s) > r.player_stay_near),
-                self.bounds_ok(r, x, y, corner), self.spaced(ty, water, x, y, spacing),
-                self.mountain_tiles(x, y), self.border(x, y), self.south_forest(x, y),
-                self.land_class(x, y), self.allows(self.land_class(x, y), ty), self.occupied(x, y)
-            );
         }
         if f & 0x1878 != 0 || self.g.cells[self.at(x, y)].blocked != 0 {
             return false;
