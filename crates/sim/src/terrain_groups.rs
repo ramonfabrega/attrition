@@ -2358,6 +2358,7 @@ mod tests {
     /// oracle for [`cliff_cells`]: `byte · (1/255) · 480`, each cell's 6 × 6
     /// window from pixel `4c − 1`, 0 off the texture, max from 0 and min
     /// from 480, covered when the span exceeds 192.
+    #[allow(clippy::float_arithmetic)] // the oracle: the host's own `f32`
     fn heights_oracle(width: i32, px: &[[u8; 2]]) -> Vec<(i32, i32)> {
         let n = width >> 2;
         let h = |r: i32, c: i32| -> f32 {
