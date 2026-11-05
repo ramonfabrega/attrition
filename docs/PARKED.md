@@ -13685,13 +13685,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZF — reserved
+## Parked by item 3863, 2026-11-05 — the diagonal arm's predicate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3863a) **`verify_land`'s depth can saturate, and the arm's predicate then has a route in.** `docs/MAPGEN.md`
+§19 keeps `TerrainOut::check_for_diagonal@008595f0` out with P1 and P2. P1 is that no two orthogonal neighbours are
+mutually unacceptable to `is_combo_acceptable`. In mid-game, P1 rests on `Terrain::verify_land@0084d8a0` repairing
+each `object_placed` footprint, but its early return past depth 500 (line 40) skips the decrement at line 175. After
+one flood that deep, every later call returns at once for the rest of the process. A later `weatherbase` footprint
+can then leave a `(B_i, B_{i+1}, B_{i+2})` ladder, the one chain that needs no ocean. What is not read is whether a
+v1 game's floods ever reach 500: what the deepest flood is, and from which writer. Killed by: a reading that bounds
+the flood below 500 on a 60×60 grid. It would be confirmed by a late `WORLD ≥ 3` dump that holds a P1 pair near a
+building. Names no score until the second reading of §19 agrees: one reach.
 
 ## Parked by the next landing, slot ZG — reserved
 
