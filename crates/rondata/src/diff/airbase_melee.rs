@@ -443,3 +443,70 @@ fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
     pin_eq!(w.rounds_read, (12, 12), "the rounds read");
     pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
+
+/// run1496: run1492's game with a window at every frame of 1500..1545 and
+/// a packet at 1539 (item 3873, `docs/GOLDEN.md` §156.1): the dead
+/// Aircraft Carrier `1/18`'s death record to its end on tick 1509, and the
+/// Jet Fighter's birth into `1/41` on 1540.
+pub(crate) const MELEE_WINDOW_1500: (&str, &str) = (
+    "gamelog-run1496-eastindies-airbase-melee-window-1500-1545.txt",
+    "rontrace-run1496.log",
+);
+
+/// run1496's window, every block.
+pub(crate) const WIDENING_AIRBASE_MELEE_WINDOW_1500: (i64, i64) = (1500, 1545);
+
+/// run1496's window widened whole, the rounds compared — the coverage
+/// driver's slice too.
+pub(crate) fn airbase_melee_run1496_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1496",
+            &[(MELEE_WINDOW_1500.0, WIDENING_AIRBASE_MELEE_WINDOW_1500.0)],
+            WIDENING_AIRBASE_MELEE_WINDOW_1500,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **run1496's window, widened whole** (item 3873): every dumped record on
+/// every block of [`WIDENING_AIRBASE_MELEE_WINDOW_1500`], both directions,
+/// the rounds and the death records too — the record of `1/18` ends on the
+/// same frame on both sides, and the Jet Fighter (uid 69) stands in `1/41`
+/// from 1540 on both. `RON_FIRSTS=1` prints every row.
+#[test]
+fn airbase_melee_run1496_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = airbase_melee_run1496_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    assert!(
+        !w.firsts
+            .keys()
+            .any(|(who, o, _)| *who == 1 && (*o == 18 || *o == 41)),
+        "neither 1/18 nor 1/41 parts on any block of the window"
+    );
+    pin_eq!(w.blocks, 45, "every block in the window");
+    pin_eq!(w.firsts.len(), 120, "run1496's window");
+    pin_eq!(w.rounds_read, (139, 139), "the rounds read");
+    pin_eq!(w.rounds.len(), 15, "the rounds that part");
+}

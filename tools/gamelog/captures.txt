@@ -11148,3 +11148,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1492  run1483's line with --cmd-file tools/gamelog/golden/melee-airbase.cmd   (the staged melee)
 #   run1492b run1492's line with --cover cover=1   (the coverage twin)
 # Checks: `rngcmp.py` run1482 vs run1492 -> 37 identical; run1492 vs run1492b -> 2601 identical; `samegame.py` run1492 vs run1492b -> 26 common, 0 differing.
+# ==== item 3873: the fifth melee's word, the dead Carrier's hold (`docs/GOLDEN.md` §156.1; `docs/RUNS.md` run1496) ====
+#   run1496  run1492's line with --log-window 1500 1545 --detail end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5 --end-frame 1550 --callwin 0 1550, no stride, --tracer-def RON_STATE_FRAME=1539 and item 597's RON_STATE_PLAN   (the window and the packet)
+# Checks: `rngcmp.py` run1492 vs run1496 -> 1551 identical.

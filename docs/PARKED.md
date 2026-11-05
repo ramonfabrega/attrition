@@ -13839,13 +13839,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZP — reserved
+## Parked by item 3873, 2026-11-05 — the fifth melee whole: the death records after the rounds
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3873a. The ammo walk's dead-shooter bump is one pass ahead of the walk, not each round's own step**
+  (`Sim::hold_frames_tick`; `Ammo::inc_time@0067d380`'s first statement; GOLDEN §156.1). Theirs bumps a dead
+  shooter's `+0x32` at the start of each round's step. A shooter killed by an earlier round of the same walk is
+  therefore bumped by its own later rounds on that frame, and ours does not bump it until the next frame. Item 3873
+  moved the death records' bump after the walk and left this bump where it was. No capture on disk holds a
+  shooter killed with its own round still flying behind the killing one. **Score**: none until a numbering word's
+  slot hold is one short with a dead shooter's round in flight on its death frame.
 
 ## Parked by the next landing, slot ZQ — reserved
 
