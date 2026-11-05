@@ -11122,11 +11122,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 1980 (piece 144's release rows), widened over 1901..2230. Item
     // 3857 moved it to 2090 (the scout's sibling on its lineage), widened
     // over 2001..2340; run1487's window 1975..2001 is its value diff.
+    // Item 3860 moved it to 2598 (the spiral's centre on a started
+    // building), widened over 2501..2600; run1487's 1986, where the French
+    // Citizens' order lists no longer part, is its value diff.
     (
         "SEA_MELEE_WORD",
         crate::diff::sea_melee::SEA_MELEE_WORD,
         Some("sea_melee_run1483_s_word_window_is_widened_whole"),
-        3857,
+        3860,
         Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
     ),
     // **The Russians at a held Information age** (item 3721): East Indies

@@ -16790,10 +16790,63 @@ theirs spends `Guy::set_anim+0x97a < Unit::move_step+0x823`. The word window mov
 (`sea_melee_run1483_s_word_window_is_widened_whole`: 4 blocks, 557 keys, the rounds (9, 9), 10 parting). **The
 close** (block 2601): 187 → **157** off, 133 units compared.
 
-**What is not established**: who spends 2090's index 0, and whether it is the French Citizens `1/6` and `1/11`,
+**What is not established**: ~~who spends 2090's index 0, and whether it is the French Citizens `1/6` and `1/11`,
 whose order lists part from 1986 with no draw spent (run1487). The disk holds run1483's 2001 and 2101 round it.
-Neither is read here. The packet's `think_scout` stops in `Group::action_move_near` on a null read at `00704a3e`
+Neither is read here.~~ Answered in §153.5: it is the Citizens, sent by city 1's dock placement of 1985. The packet's `think_scout` stops in `Group::action_move_near` on a null read at `00704a3e`
 after the scan, so the issue was not run on it. Nothing here depends on that.
+
+## 153.5 A site holds its cell once it starts — the fourth melee 2090 → 2598 (item 3860, run1487's packet)
+
+**The booking**: frame 2090, ours 13 draws against theirs' 14, at index 0 ours `Unit::do_move+0xe84` where theirs
+spends `Guy::set_anim+0x97a < Unit::move_step+0x823`; 3857's hypothesis the French Citizens `1/6` and `1/11` (both
+`TI` 50, Citizen, land), whose order lists part on run1487's 1986 with no draw.
+
+**The value diff, walked back.** run1487's 1986 is the first parted row on either Citizen. Theirs' `1/6` holds
+`[BUILD 2036 (uid 88), EXPLORETO (15816, 36984), BUILD 2031]`; ours' holds `[Build 2031]` alone, and ours' `1/11`
+holds the new build, `[…, Build 2026, EXPLORETO (14856, 41928), Build 2036]`, where theirs' holds two orders. So
+both sides place `1/2036` on 1985 (logger 1986) and send a different builder. `1/41`'s `BUILD 2037`, the Airbase
+placed beside it, agrees. Ours' `1/2036` is rec 20, the **Shipyard** (dock lineage, 4×4), sited at (14400, 41664)
+for city 1 (anchor `1/2000`, cell (24, 53)); theirs' closing block 2601 has `1/2036` at **(15360, 37248)**,
+`orig_type` 434, city ordinal 0 (theirs numbers cities per player: 0 is ours' city 1). The builder follows the
+site, so the site is the first act.
+
+**Theirs' scan, off the packet.** run1487's packet (logger frame 1980) enters `Leader::produce_building@006e1400`
+for player 1 (`this` `0xe4127c` = `0xe3a390 + 0x6eec`, the scenario caller's own arithmetic at `009f5644`),
+type `0x1b2`, near `2000`, escrow 0, hooked at the score compare `006e23e7` (`ebx` the score, `ecx`/`eax` the
+cell). Theirs scores seven cells: (22, 57) 1255, (23, 57) 1255, (18, 54) 3255, (19, 49) 588, **(19, 48) 4255**,
+(31, 56) 588, (32, 52) 588. Ours scored the same six and not (19, 48). The stride is the same on both sides
+(53, 55, then by three from 55: 109, 112, …). (19, 48)'s dock slide takes (+2, 0), the first clear position in
+`dx`-outer order, which is (15360, 37248). Its two friends make it `(2 + 2) × 1000 + 0xff − val` = 4255.
+
+**Why ours skipped it.** The spiral's first gate is the cell's `WData +0 & 0x4000` (`testw` at `006e1b65`). This crate
+read it as "some live building has its centre in the cell". The Shipyard `1/2033` (rec 20) sits at (14592, 36864),
+cell (19, 48). It was placed for city 1 on 1782, its builder `1/4` still walking to it on 1985. **The flag's one
+writer is `BuildType::mask_me@006312a0`** (sets with `param_4`, clears without), reached from `Wall::start@0063e810`
+(`mask_me(this, 1, REGEN_FORCE)`), from `Build::activate` and `Build::finished` on an upgrade's re-mask of an
+already-started building, and from `Wall::close` (`mask_me(this, 0, …)`); `City::init`'s `| 0x4000` is a
+`CityData` flag, and `World::set_blocked_at`'s is the tile grid's (`+0x138`). So a site holds its centre from
+`Wall::start` to `Wall::close`, and an unstarted one holds none.
+
+**Built**: `sim::ai_place`'s `cell_has_centre` reads `alive && started` (`Building::started` is `flags & 2`, set
+by [`Sim::wall_start`]). Test: `a_placed_site_holds_no_centre_until_it_starts` (`init_build`'s unstarted site,
+started, closed). Mutated (`tools/mutate.py`, `b.started` dropped): `sea_melee_first_parting` returns to 2090,
+ours 13 against 14 at index 0, `mutation: held`. Every lobby's `first_parting` (118) holds.
+
+**The value diff after.** run1487's window (`sea_melee_run1487_s_window_is_widened_whole`, 1975..2001): 148 → 144
+keys, the four Citizen rows gone; what parts is the standing families and parked 3855b's `ez` on `2/16`'s rounds
+(141 against 131). The leaders (`sea_melee_s_leaders_are_compared_on_every_seat`): the parted keys 137 → 4,
+standing 12/9/6.
+
+**The word: 2090 → 2598.** On 2598 ours 10 against theirs' 12: at index 4 ours spends `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` where theirs spends `Guy::init_real+0x52`, a birth in theirs. The word window moves to
+2501..2600 (`sea_melee_run1483_s_word_window_is_widened_whole`: block 2501 alone, 160 keys, the rounds (4, 4), 4
+parting: the Aegis Cruiser `2/48`'s `ez` 47 against 41). **The close** (block 2601): 157 → **2** off, 136 units
+compared. One unit unlinked, `1/56` (theirs alone), and one extra, `1/0` (ours alone).
+
+**What is not established**: who is born on 2598 in theirs, and whether it is `1/56`, the close's one unlinked
+unit. The disk holds run1483's 2501 and the closing 2601 round it. The cell flag is one bit: `Wall::close` clears
+it even when another started building's centre stands in the same cell, which this crate's reading keeps set
+(parked 3860a). No capture on file reaches that case.
 
 ## 154. Reserved for the next item on the rules track
 

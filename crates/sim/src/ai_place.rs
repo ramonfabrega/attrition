@@ -198,10 +198,19 @@ pub(crate) fn best_corner(w: i32, h: i32, max: i32, mut space: impl FnMut(i32, i
 impl Sim {
     /// Whether some live building of anyone has its centre in this cell —
     /// the cell flag `0x4000` the spiral skips.
+    ///
+    /// **A started one** (item 3860, `docs/GOLDEN.md` §153.5): the flag's
+    /// one writer is `BuildType::mask_me@006312a0`, which sets it from
+    /// `Wall::start@0063e810` (and re-sets it on an upgrade's `activate`
+    /// and `finished`) and clears it from `Wall::close`. A site placed and
+    /// not yet begun holds no centre. The French Shipyard `1/2033`, placed
+    /// on 1782 and unstarted on 1985, left theirs' cell (19, 48) open to
+    /// the next dock at 4255; ours skipped it and sited `1/2036` at
+    /// (18, 54).
     pub(crate) fn cell_has_centre(&self, cell: Cell) -> bool {
         self.buildings
             .iter()
-            .any(|b| b.alive && b.pos.cell() == cell)
+            .any(|b| b.alive && b.started && b.pos.cell() == cell)
     }
 
     /// `WorldData::is_ocean`: the cell's region is water.
@@ -1253,6 +1262,34 @@ mod tests {
             .filter(|&(x, y)| sim.building_placed_at(1, Cell::new(x, y)) == Some(b))
             .collect();
         assert_eq!(small, [(51, 52)]);
+    }
+
+    /// **A placed site holds no centre until it starts** (item 3860,
+    /// `docs/GOLDEN.md` §153.5): the spiral's skip is the cell's `0x4000`,
+    /// which `BuildType::mask_me` sets from `Wall::start` and clears from
+    /// `Wall::close`. The fourth melee's French Shipyard `1/2033`, placed
+    /// on 1782 and unstarted on 1985, left its cell (19, 48) to the next
+    /// dock in theirs.
+    #[test]
+    fn a_placed_site_holds_no_centre_until_it_starts() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
+        let rec = sim.build_types.len();
+        sim.build_types.push(crate::build::BuildType {
+            x_size: 4,
+            y_size: 4,
+            hits: 100,
+            ..crate::build::BuildType::default()
+        });
+        let pos = Pos::new(14592, 36864);
+        let b = sim.init_build(1, rec, pos, false);
+        let cell = Cell::new(19, 48);
+        assert_eq!(pos.cell(), cell, "`1/2033`'s own cell");
+        assert!(!sim.buildings[b].started, "placed, not begun");
+        assert!(!sim.cell_has_centre(cell), "no `Wall::start`, no `0x4000`");
+        sim.buildings[b].started = true;
+        assert!(sim.cell_has_centre(cell), "`Wall::start` masks the centre");
+        sim.buildings[b].alive = false;
+        assert!(!sim.cell_has_centre(cell), "`Wall::close` clears it");
     }
 
     /// **An enhancer's friends are the gather buildings of its own good**
