@@ -331,13 +331,14 @@ pub struct Troughs {
     pub river_cells: usize,
     /// `verify_land`'s static depth after the last batch.
     pub depth: i32,
+    /// The oil `move_goody` moved off a trough, from and to.
+    pub moved: Vec<((i32, i32), (i32, i32))>,
 }
 
 /// The arms the troughs can enter that are not built.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Unported {
-    /// `Terrain::move_goody@0084a3d0` would move a goody box, oil or a
-    /// good off these cells.
+    /// `Terrain::move_goody@0084a3d0` would move a good off these cells.
     Goody(Vec<(i32, i32)>),
     /// The land batch's `verify_land` refused (`crate::halfland`).
     Land(HalfUnported),
@@ -346,7 +347,10 @@ pub enum Unported {
 /// One river's state as `create_sections` and its callees keep it.
 struct River<'a> {
     g: &'a mut MapGrid,
-    coord: &'a [u16],
+    coord: &'a mut [u16],
+    combo: Combo,
+    /// The oil `move_goody` moved, from and to.
+    moved: Vec<((i32, i32), (i32, i32))>,
     z: &'a mut [Single],
     /// `spot_update_wcoords` (+0x284): every terraformed cell, repeats
     /// kept.
@@ -455,19 +459,18 @@ impl River<'_> {
         }
     }
 
-    /// `Terrain::move_goody@0084a3d0`'s test on cell `(x, y)`: a goody box
-    /// (on a cell not dry-wet), oil, or a good. Refused by name.
+    /// **`Terrain::move_goody@0084a3d0`** on cell `(x, y)`
+    /// ([`Pass::move_goody`]); oil that moves takes its rocky patch's
+    /// terraform on its new cell. A good refuses by name.
     fn move_goody(&mut self, x: i32, y: i32) {
-        let c = self.g.cells[(y * self.g.xs + x) as usize];
-        let goody = !c.is_ocean() && c.down == -3;
-        let good = self
-            .g
-            .goods
-            .iter()
-            .flatten()
-            .any(|&(_, gx, gy)| gx == x && gy == y);
-        if goody || c.flags & 0x800 != 0 || good {
-            self.goody.push((x, y));
+        let to = Pass::new(&mut *self.g, &mut *self.coord, &*self.z, self.combo).move_goody(x, y);
+        match to {
+            Ok(Some((nx, ny))) => {
+                self.moved.push(((x, y), (nx, ny)));
+                crate::map_heights::terraform_oil(self.g, self.z, nx, ny);
+            }
+            Ok(None) => {}
+            Err(_) => self.goody.push((x, y)),
         }
     }
 
@@ -691,7 +694,9 @@ pub fn calculate_all(
         let steps = cd.mulss(SECTIONS_PER_WCOORD).to_i32() as u16;
         spline.calc(i32::from(steps));
         let mut r = River {
-            coord: &*coord,
+            coord: &mut *coord,
+            combo,
+            moved: Vec::new(),
             z: &mut *z,
             spot: Vec::new(),
             smooth: Vec::new(),
@@ -757,6 +762,7 @@ pub fn calculate_all(
         }
         out.sections.push(made);
         goody.append(&mut r.goody);
+        out.moved.append(&mut r.moved);
         let spot = std::mem::take(&mut r.spot);
         let mut p = Pass::new(g, coord, &*z, combo).with_depth(out.depth);
         p.spot_update_land_batch(&spot, 0, riverbase)

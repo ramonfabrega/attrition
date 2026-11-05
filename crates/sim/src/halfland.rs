@@ -326,6 +326,21 @@ impl<'a> Pass<'a> {
     ///   forest south of it gains oil and 0x8.
     /// - A good: not reached on Great Lakes ([`Unported::Goody`]).
     fn move_ocean_goody(&mut self, x: i32, y: i32) {
+        self.move_any(x, y, false);
+    }
+
+    /// **`Terrain::move_goody@0084a3d0`**, which the river troughs call:
+    /// [`Self::move_ocean_goody`]'s body, except that the oil's new cell
+    /// takes the rock bit only when the old one was dry, and — `TerrainOil`
+    /// being initialised by then — its rocky patch
+    /// (`TerrainOil::add_rocky_patch@008a2b30`), whose terraform is the
+    /// caller's: the cell the oil moved to is returned.
+    pub fn move_goody(&mut self, x: i32, y: i32) -> Result<Option<(i32, i32)>, Unported> {
+        let to = self.move_any(x, y, true);
+        self.refusals().map(|()| to)
+    }
+
+    fn move_any(&mut self, x: i32, y: i32, rocky: bool) -> Option<(i32, i32)> {
         let c = self.g.cells[self.at(x, y)];
         let wet = c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2);
         let goody = if !wet && c.down == -3 {
@@ -336,7 +351,7 @@ impl<'a> Pass<'a> {
         let oil = c.flags & 0x800 != 0;
         let good = self.find_good_at(x, y);
         if goody == -1 && !oil && good < 0 {
-            return;
+            return None;
         }
         let lands: Vec<i32> = MOVE
             .iter()
@@ -402,10 +417,13 @@ impl<'a> Pass<'a> {
                 }
                 self.set_oil_at(nx, ny, true);
                 let n = self.at(nx, ny);
-                self.g.cells[n].flags |= 0x8;
-                return;
+                if !rocky || mask != 0x88 {
+                    self.g.cells[n].flags |= 0x8;
+                }
+                return Some((nx, ny));
             }
         }
+        None
     }
 
     /// `WorldData::num_waterhalf@006b4db0`: the wet tiles of a HALFLAND

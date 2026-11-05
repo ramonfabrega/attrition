@@ -796,6 +796,12 @@ pub fn create_doobers(g: &MapGrid, z: &mut [Single]) {
     }
 }
 
+/// `TerrainOil::add_rocky_patch@008a2b30`'s terraform of an oil cell
+/// `(x, y)`: [`create_doobers`]' box at the cell's tile corner.
+pub fn terraform_oil(g: &MapGrid, z: &mut [Single], x: i32, y: i32) {
+    terraform(g, z, VERTS * x, VERTS * y, VERTS, VERTS);
+}
+
 /// **`TerrainOut::terraform_for_building@00875210`** on the map
 /// generator's grid: the same box, mean and refusals as
 /// `Sim::terraform_for_building` (`docs/ROADS.md` §7.4) — the box

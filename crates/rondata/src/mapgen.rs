@@ -698,6 +698,10 @@ pub fn tileset_groups(root: &Path, tileset: &str) -> Option<TilesetGroups> {
         mountain_growth_prob: value("MOUNTAIN_GROWTH_PROB"),
         coast_base: value("COAST_BASE"),
         coast_growth_prob: value("COAST_GROWTH_PROB"),
+        riverbase: set
+            .attribute("riverbase")
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(0),
     })
 }
 
@@ -4365,6 +4369,252 @@ mod tests {
             met.len() >= 2 && with.len() >= LAKE_RIVER_TRACES && files >= LAKE_FILES,
             "the draws met {met:?} on {} traces, 5012..5118 {files} Great Lakes files",
             with.len()
+        );
+    }
+
+    /// One Great Lakes run carried to `Terrain.cpp` 894: the 5012 walk of
+    /// [`great_lakes_s_rivers_are_5012_to_5118`] with the oil cells'
+    /// terraform (738) on the 706 heights, `make_rivers`, the troughs
+    /// (`sim::map_troughs::calculate_all`) and `adjust_for_mountains`;
+    /// `Cliffs::init`'s slope arm is asserted inert. Returns the grid, the
+    /// heights, the stream, parts 10–13 and what the troughs made.
+    fn great_lakes_at_894(
+        root: &Path,
+        g0: &StartGrid,
+        run: GlRun,
+        range: i32,
+        makes: &sim::map_values::LandMakes,
+    ) -> (
+        MapGrid,
+        Vec<sim::single::Single>,
+        Draws,
+        [u32; 4],
+        sim::map_troughs::Troughs,
+    ) {
+        let install = crate::Install::new(root);
+        let meshes = crate::mountains::meshes(&install);
+        let thresh = river_thresh(root, "GREATLAKES.xml").expect("RIVER_THRESHOLD");
+        let rivers = river_list(root, "GREATLAKES.xml").expect("a RIVERLIST");
+        let standard = standard_map_size(root).expect("the Standard map size");
+        let (mut grid, mut d) = great_lakes_at_7945(root, g0, run, range, makes);
+        let (_, _, tileset) = great_lakes_at_7859(root, g0, run, range);
+        let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+        let groups = place_all_inputs_of(root, "GREATLAKES.xml", &tileset, run.2, run.3, 14)
+            .expect("Great Lakes' place_all inputs");
+        let mut coord = coord_flags(&grid);
+        let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+        let combo = sim::halfland::Combo {
+            coast_base: ts.coast_base,
+            num_tiles: [
+                Some(ts.base_tiles),
+                Some(ts.coastal_tiles),
+                Some(ts.ocean_tiles),
+                None,
+            ],
+        };
+        let mut depth = 0;
+        let lists = sim::terrain_init::check_and_set_halfland_heights(
+            &mut grid, &mut coord, &z, combo, &mut depth,
+        )
+        .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
+        let p = lists.parts().expect("the lists' walk");
+        sim::halfland::create_doobers_flags(&mut grid);
+        sim::map_heights::create_doobers(&grid, &mut z);
+        sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+            .with_depth(depth)
+            .convert_beach_to_sandy()
+            .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
+        // `convert_beach`' own `verify_land` depth is not returned; the
+        // beach pass's refusal past 500 would have said so.
+        let mut regions = regions_of(&grid);
+        let phase = Phase {
+            thresh,
+            city_radius: sim::tuning::Tuning::RON.city_center_radius,
+            rivers: &rivers,
+            standard,
+            seed: g0.seed as u32,
+            nations: run.1,
+        };
+        make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
+        let troughs = sim::map_troughs::calculate_all(
+            &mut grid,
+            &mut coord,
+            &mut z,
+            ts.riverbase,
+            combo,
+            depth,
+        )
+        .unwrap_or_else(|e| panic!("{} nations, the troughs: {e:?}", run.1));
+        sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+        assert_eq!(
+            sim::map_heights::slope_tiles(&grid).len(),
+            0,
+            "a Great Lakes cell flagged 0x40 reaches the slope arm"
+        );
+        (grid, z, d, [p[0], p[1], p[2], p[3]], troughs)
+    }
+
+    /// **The troughs on Great Lakes** (`docs/MAPGEN.md` §10, §15 step 8,
+    /// item 3850): from each run's 5118 grid ([`great_lakes_at_894`]),
+    /// seed and parts 2, 5, 6 and 10–13 at `Terrain.cpp` 894 on every
+    /// Great Lakes file that prints it, part 4 held.
+    #[test]
+    fn great_lakes_s_troughs_are_894() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let mut runs: std::collections::BTreeMap<GlRun, Vec<&StartGrid>> = Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                .or_default()
+                .push(g);
+        }
+        let (mut files, mut parted) = (0, Vec::new());
+        for (run, gs) in &runs {
+            let (grid, _, d, lists, troughs) = great_lakes_at_894(root, gs[0], *run, range, &makes);
+            eprintln!(
+                "{} nations: sections per river {:?}, {} cells newly 0x1000, oil moved {:?}",
+                run.1, troughs.sections, troughs.river_cells, troughs.moved
+            );
+            let ours = (
+                d.rng.seed,
+                grid.start_part(),
+                grid.cell_part(),
+                grid.tile_part(),
+                lists,
+            );
+            for g in gs {
+                let Some((_, _, seed, p)) = g.at("Terrain.cpp", 894) else {
+                    continue;
+                };
+                let theirs = (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
+                if ours != theirs {
+                    parted.push(format!("{} nations: ours {ours:?} theirs {theirs:?}", run.1));
+                }
+                files += 1;
+            }
+        }
+        eprintln!("troughs: 894 on {files} Great Lakes files; {} part", parted.len());
+        assert!(
+            parted.is_empty(),
+            "(seed, parts 2, 5, 6, 10–13) part at 894 on {} of {files} files:\n{}",
+            parted.len(),
+            parted[..parted.len().min(20)].join("\n")
+        );
+        assert!(files >= LAKE_FILES, "894 reached {files} Great Lakes files");
+    }
+
+    /// **The heights on Great Lakes, every vertex** (`docs/MAPGEN.md` §10,
+    /// §15 step 8, item 3850): [`great_lakes_at_894`]'s heights, each
+    /// file's own roster stood on them as Great Sahara's is, against the
+    /// start dump's grid; and the 0x1000 cells against the start dump's.
+    #[test]
+    fn great_lakes_s_heights_are_the_start_dump_s_grid() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let install = crate::Install::new(root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let loaded = crate::load::load(&install).expect("the install's tables");
+        let mut runs: std::collections::BTreeMap<GlRun, Vec<&str>> = Default::default();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 14 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                .or_default()
+                .push(name);
+        }
+        let (mut files, mut vertices, mut river_files) = (0, 0, 0);
+        let mut parted = Vec::new();
+        for (run, names) in &runs {
+            let g0 = &all.iter().find(|(n, _)| n == names[0]).expect("a file").1;
+            let (grid, z, _, _, _) = great_lakes_at_894(root, g0, *run, range, &makes);
+            for name in names {
+                let g = &all.iter().find(|(n, _)| n == name).expect("a file").1;
+                let Some(cells) = &g.cells else {
+                    continue;
+                };
+                let river = |cs: &[WCell]| -> Vec<usize> {
+                    (0..cs.len()).filter(|&i| cs[i].flags & 0x1000 != 0).collect()
+                };
+                let theirs_river: Vec<usize> =
+                    (0..cells.len()).filter(|&i| cells[i].flags & 0x1000 != 0).collect();
+                if river(&grid.cells) != theirs_river {
+                    parted.push(format!(
+                        "{name}: the 0x1000 cells, ours {} theirs {}",
+                        river(&grid.cells).len(),
+                        theirs_river.len()
+                    ));
+                }
+                river_files += 1;
+                let Some(prefix) =
+                    crate::testenv::dump(name).and_then(|p| start_prefix(Path::new(&p)))
+                else {
+                    continue;
+                };
+                let log = crate::gamelog::Log::parse(&prefix);
+                let Some(init) = log.initial() else {
+                    continue;
+                };
+                if init.heights.is_empty() {
+                    continue;
+                }
+                crate::diff::PRE_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(z.clone()));
+                drop(crate::diff::build_sim(
+                    &loaded,
+                    &init,
+                    sim::tuning::Tuning::RON,
+                ));
+                let ours = crate::diff::POST_ROSTER_HEIGHTS
+                    .with(|h| h.borrow_mut().take())
+                    .expect("the roster stood on the generated grid");
+                assert_eq!(ours.len(), init.heights.len(), "{name}: the grid's size");
+                let w = 4 * grid.xs + 1;
+                let bad: Vec<usize> = (0..ours.len())
+                    .filter(|&i| !ours[i].prints_as(init.heights[i]))
+                    .collect();
+                vertices += ours.len();
+                if let Some(&i) = bad.first() {
+                    let (vx, vy) = (i as i32 % w, i as i32 / w);
+                    parted.push(format!(
+                        "{name}: {} of {} vertices part, the first ({vx}, {vy}) ours {:#x} {} \
+                         against {}",
+                        bad.len(),
+                        ours.len(),
+                        ours[i].0,
+                        f32::from_bits(ours[i].0),
+                        init.heights[i]
+                    ));
+                }
+                files += 1;
+            }
+        }
+        eprintln!(
+            "heights: GL start grids on {files} files, {vertices} vertices; the 0x1000 cells on \
+             {river_files} files"
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            parted[..parted.len().min(30)].join("\n")
+        );
+        assert!(
+            files >= MAPGEN_GL_HEIGHT_FILES && river_files >= LAKE_FILES,
+            "the heights reached {files} Great Lakes files, the 0x1000 cells {river_files}"
         );
     }
 

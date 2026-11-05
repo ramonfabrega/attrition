@@ -173,6 +173,10 @@ pub struct TilesetGroups {
     pub mountain_growth_prob: i32,
     pub coast_base: i32,
     pub coast_growth_prob: i32,
+    /// The `TILESET` element's `riverbase` (`TileSet+0x229`): the
+    /// `BASELAND` sub-tile `spot_update_land_batch` gives a river trough's
+    /// cells ([`crate::map_troughs`]); 0 when absent.
+    pub riverbase: i32,
 }
 
 /// What `place_all` reads that is not the grid: the groups, the sixteen
