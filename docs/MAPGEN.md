@@ -1482,9 +1482,8 @@ Of the territory's 198 open or layout-only functions under the nine stems
   ring, `get_land`'s class 5 and the square's rough test on a 0x40 cell
   are diff-backed here; the 0x1000 tile and the region-size factors are
   not (no 0x1000 tile, one region). The cliffs'
-  0x8000 stays reading-only: `Cliffs::set_edge_flags` walks
-  `cliff_mining_data`, which only `Cliffs::init` fills, after 7945, and
-  no cliff cell's tile has a gather mask at 7937. The ranges' 0x8000,
+  0x8000 stays reading-only: its pass walks a list nothing fills before
+  7945, and no cliff cell's tile has a gather mask at 7937 (§9). The ranges' 0x8000,
   the dead spots, the water factor and the food bit's threshold also
   run but cannot part (3882a);
 - §9's values on Great Lakes: draw for draw on 222 traces through the last
