@@ -1520,8 +1520,20 @@ and `rontrace-run1122.log` to `blind::TRACES`, and eight rows left `NEVER`
 second item: a Southwest Mesa checksum capture at `check_all_level ≥ 14`
 whose falsifiers are 7859 and 894 (§18.3, §18.4).
 
+**Item 3863's verdict, reading-only** (§19): `TerrainOut::check_for_diagonal@008595f0`
+and `WorldData::is_valid@00471170` are kept out by a predicate. The arm
+needs P1 (orthogonal neighbours mutually unacceptable) or P2 (an orthogonal
+`BASELAND`–`OCEAN` pair). Every claim of §19.1–§19.3 is a reading. §19.4's
+counts (0 P1, 0 P2 on 86 start grids and on the four ported pre-beach grids)
+come from a scratch port, which is not pinned. The predicate is owed a blind
+second reading before the row is called `RESIDUE`.
+
 ## 14. What is not established
 
+- That map generation holds §19's P1 and P2 before `Terrain::init`'s
+  transitions is measured on four lobbies and 86 dumps, not read. Whether
+  `verify_land`'s depth ever saturates in a v1 game is not read either
+  (3863a).
 - The draw formulas reconciled to 1,016, 1,824 and 231
   (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7; the
   5,568 on Great Lakes, item 3815, and the 49,611 on East Indies, item
@@ -1946,3 +1958,155 @@ from `assess_wcoord`. It writes min and max through the two out
 pointers. What would kill it: a Southwest Mesa start dump with 0x40
 cells (zero on all three closed maps' 205 files) whose `blocked` cells
 or part 5/6 at 894 part from a port that applies this test.
+
+## 19. The diagonal-transition arm: the predicate that keeps it out
+
+Item 3863 read the arm 3480a and 3493a left open:
+`TerrainOut::check_for_diagonal@008595f0` and the `int` overload
+`WorldData::is_valid@00471170`, which no `cover=1` trace of the seventeen
+concrete styles enters. Its sources are the decompile, the listing and the
+install's `Data/tilesets.xml`; no capture, packet or emulator run was
+taken. Every claim here is reading-only (§13) unless it names a count. The
+counts come from a scratch port of the predicate run over the dumps and
+the ported grids. It is not committed, and it backs no claim as a diff
+would.
+
+### 19.1 The gate is `check_blocks` alone
+
+`TerrainOut::create_transition_renderables@00862c60` walks the list at
+`+0x66f0`: data at `+0x6700`, count at `+0x66f4`, and cursor at `+0x6708`,
+which 3480a read as the count. At its end it zeroes the count. For each
+listed cell, `TerrainOut::build_trans_flags@00864160` builds a 12-bit word
+at shifts 6, 3 and 0. The word is the north field (`+0x49a0` at (x, y))
+`<< 9`, then the east field (`+0x499c` at x + 1) `<< 6`, then the
+bit-reversed south field (`+0x49a0` at y + 1) `<< 3`, then the
+bit-reversed west field (`+0x499c` at x). `+0x499c` holds the vertical
+edges, row-major at stride `ys + 1`. `+0x49a0` holds the horizontal
+edges, stored by column at stride `xs + 1`. Only
+`TerrainOut::check_blocks@0085b3e0` writes the shift-6 word.
+`TerrainOut::check_connects@0085b790` and `TerrainOut::check_fills@0085b2c0`
+read it as their second argument and write the shift-3 and shift-0 words.
+So "empty after the three passes" means empty after `check_blocks`. The
+arm's test is an integer one (`movl -0x1c(%ebp),%edx; testl; jne` at
+0x862d97), and the decompile's float compare is a misprint.
+
+`check_blocks`, for each side M (N, E, S, W, in bounds): if the field is
+full (7; `andl $0xe00; cmpl $0xe00` at 0x85b421) and C → M is 1, the
+field goes to 0. If the field is not full and M → C is 1, it goes to 7.
+Its closing ORs only spread bits that survived. Here "A → B is 1" is
+`TileSet::is_combo_acceptable@0087abe0` with the neighbour's land first,
+read as "B stands one step above A". From the body, that holds when the
+land is the same and B's sub is A's + 1; when A is `BASELAND` at
+`COAST_BASE` and B is `SANDY`; and when B is `OCEAN` and A is any land.
+It is never 1 both ways. **The arm is entered only when each side's field
+is 0 with M → C not 1, or is 7 with C → M 1.**
+
+### 19.2 Who is listed, and what writes a shift-6 field
+
+`TerrainOut::mark_trans_flags@008625a0` runs row-major from
+`TerrainOut::mark_nodes@0085bc20`, which `Terrain::init@00850f70` calls at
+line 759. It also runs over the update lists of
+`Terrain::spot_update_land@0084fa50` and
+`Terrain::spot_update_land_batch@0084d540`, which reset those cells' edges
+to 0x38 first: shift 6 at zero.
+- **(A)** An orthogonal M with M → C 1: `ArrayBase<int>::add_unique@0047adb0`
+  lists C. It returns −1 for a cell already listed (`cmpl $-0x1; je` at
+  0x862721), so only the **first such M in the order N, E, S, W** is acted
+  on. That M gets the four shift-3 fields, then
+  `TerrainOut::check_for_tendrils@00859eb0`. If that returns 0,
+  `TerrainOut::set_edge_x@00859500` or `set_edge_y@00859410` writes 7 at
+  shift 6 on the edge toward M.
+- **(B)** No in-bounds orthogonal with M → C 1, and at least one diagonal
+  with D → C 1: C is listed if it is not already, and `check_for_tendrils`
+  runs.
+
+Only `set_edge_*` writes shift 6: an OR, which also clears the same bits
+at shift 3. Its values are 7 from (A), and 4, 1 and 5 from
+`check_for_tendrils`. Nothing clears a shift-6 bit between
+`TerrainOut::create_nodes@0085bc70`'s `memset` and the pass. **A full
+field is (A)'s 7, and nothing else writes one.**
+
+### 19.3 The predicate
+
+- **An (A) cell never reaches the arm.** `check_blocks` makes the first
+  M's side 7, and only C → M 1 clears it, which cannot hold since M → C
+  is 1.
+- **A (B) cell**, whose four orthogonal flags are all 0, gets a nonzero,
+  non-full value from `check_for_tendrils` on both flank edges of every
+  corner whose diagonal D has D → C 1. A NW corner writes 4 on W and N; NE
+  writes 4 on E and 1 on N; SW writes 1 on W and 4 on S; SE writes 1 on E
+  and on S. `check_blocks` clears them only if each flank edge is full
+  and the flank F has C → F 1. That needs (A)'s 7 from F, with C as F's
+  first orthogonal.
+- So the arm needs a chain **D → C → F**, each step one up, with D
+  orthogonally adjacent to F, on both flanks of the corner.
+- Every shipped tileset has four `BASELAND` bases, one `SANDY` and one
+  `OCEAN`. `COAST_BASE` is 3 on sixteen of them and 0 on `SW_Desert`.
+  The chains the numbers allow are four:
+  - `(B_i, B_{i+1}, B_{i+2})` and, at `COAST_BASE` 3, `(B_2, B_3, SANDY)`.
+    In both, D and F are **mutually unacceptable**: `is_combo_acceptable`
+    is 0 both ways.
+  - `(B_i, B_{i+1}, OCEAN)` and `(B_cb, SANDY, OCEAN)`. In both, D is a
+    `BASELAND` cell **orthogonally beside an `OCEAN`** cell.
+- **The predicate: the arm is entered only on a grid that holds either
+  (P1), two orthogonal neighbours mutually unacceptable, or (P2), an
+  orthogonal `BASELAND`–`OCEAN` pair.** On the ocean chains, D → F is 1
+  as well. The first-hit order in (A) then leaves only the **south-west**
+  corner: a flank whose north neighbour is D, or whose east neighbour is
+  D, acts toward D before C (the east neighbour comes before its south
+  neighbour C). The scratch port bears this out. In a 9×9 ocean with one
+  `SANDY` cell and `BASELAND` sub 3 at its south-west diagonal, the cell
+  reaches the arm under `COAST_BASE` 3. With the land at any of the other
+  three corners, it does not.
+
+### 19.4 No grid on file holds P1 or P2
+
+- **The initial pass.** `Terrain::init` builds the transitions at line
+  760, before `Terrain::convert_beach_to_sandy@0084b8e0` at line 904. On
+  the ported pre-beach grids of the four Great Lakes and East Indies
+  lobbies, as the rondata half-land tests build them, there are 0 P1 and
+  0 P2 pairs (scratch count).
+- **The start dumps.** The disk holds 86 distinct start grids (styles 7,
+  9, 14, 18 and 22). Under each grid's own `COAST_BASE`, they hold 0 P1
+  and 0 P2 pairs. The scratch port lists 1,068–1,970 cells per grid,
+  167–532 of them (B), and sends none to the arm. That agrees with 3480's
+  five styles and 3493's twelve.
+- **The beach.** It only turns `BASELAND` into `SANDY`, so P2 holds. Each
+  conversion goes through `spot_update_land`, whose
+  `Terrain::verify_land@0084d8a0` runs before the re-mark: around a
+  `SANDY` centre, it rewrites an unacceptable neighbour to `BASELAND` at
+  `COAST_BASE`.
+- **Mid-game.** `Terrain::object_placed@00850c40` rewrites only
+  `BASELAND` cells under a footprint, and only to `BASELAND` at the
+  tileset's `weatherbase` (0–3), so P2 holds. P1 can break, for instance
+  `weatherbase` 0 beside sub 2, and `verify_land` repairs it around the
+  centre and recurses into each cell it rewrote.
+- `WorldData::is_valid@00471170` has two callers in the listing: the four
+  call sites in `check_for_diagonal` (the decompile prints one) and
+  `MapScenario::make@0068c8f0` at 0x68cafc and 0x68cc24, which §18.1
+  keeps out of every lobby.
+
+**Verdict: unreachable while P1 and P2 hold.** The next item is the
+predicate's blind second reading. Until it agrees, the `is_valid` row
+stays open, not `RESIDUE`.
+
+### 19.5 What would kill it, and what is not established
+
+- **Killers.**
+  - A `cover=1` trace that enters `008595f0` on a grid with no P1 or P2
+    pair kills the predicate.
+  - A start dump (`WORLD` ≥ 3) that holds a P1 or P2 pair kills §19.4's
+    "no grid", and names the lobby to trace.
+  - The frame-0 packet, run 1489, is reserved for a tie: two edge arrays
+    and the list, at `Terrain.cpp` 815, with a listed cell whose shift-6
+    word `check_blocks` empties.
+- **The loophole** (parked 3863a). `verify_land`'s early return past
+  depth 500 (line 40) skips the decrement at line 175. After one flood
+  that deep, every later call returns at once, so a later placement can
+  leave a P1 pair, the `(B_i, B_{i+1}, B_{i+2})` chain. Whether a v1
+  game's floods ever reach 500 is not read.
+- **Not walked.** That map generation guarantees P1 and P2 before line
+  760 is measured on four lobbies and 86 dumps, not read. The writers of
+  `land` and `land_sub` before the transitions are not walked for it.
+- **Out of scope.** `ConsoleWin::run_cmd@007d6a70` and the scenario
+  editor also reach `spot_update_land`; both are cheat or cut.
