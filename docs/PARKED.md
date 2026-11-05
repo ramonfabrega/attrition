@@ -13734,13 +13734,18 @@ window's `LEADERDATA` `control` against `pop_cap`, and the Airbase's homed count
 harness seeds a start from the dump, so no word has needed it. A Spanish start's opening, simulated rather than
 read, would lack one unit. Names no score until a Spanish lobby's start is simulated.
 
-## Parked by the next landing, slot ZI — reserved
+## Parked by item 3866, 2026-11-05 — the Spanish Information pair whole at 3500
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3866a. City `1/2046`'s `assimilation_timer` reads 3500 in ours against 3497 at the close** (run1489's block
+  3501, the one count of `[0, 0, 0, 0, 0, 0, 1]`; `spanish_information_pair_run1489_s_closing_state`). This is
+  3699a's, 3742c's and 3760d's family on a fourth lobby: a city stamp three frames apart at the game's last
+  frame. No draw reads it to 3500. **Score**: none while the pair stays whole; it joins whichever item reads the
+  family's writer.
+- **3866b. The Assault Infantry `1/18`'s `damage_frac`, ours 13 against theirs 12, from block 3101 to the close**
+  (TI 104, land, group 65, at its full 180 hits; run1489's stride and run1489b's window). This is a sixteenth of
+  carried damage, the same quiet family as 3691c and the Egyptian Gunpowder pair's `1/47`. It spends no draw. The
+  stride cannot place the blow between 3001 and 3101. **Score**: none; a window over 3001..3101 with `AMMO=5`
+  would name the round if a later word reads it.
 
 ## Parked by the next landing, slot ZJ — reserved
 
@@ -13754,6 +13759,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot ZK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZQ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

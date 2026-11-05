@@ -11133,3 +11133,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1483  --map 18 --end-frame 2600 --timeout 3600 --allow-early-end --log-window 0 2601 --stride 100 --ffwd-minute 3 --cover cover=0 --callwin 0 2600 --cmd-file tools/gamelog/golden/melee-sea.cmd --detail end:MISC,UNITS=3,GUYS=2,DEATHS=1,AMMO=5 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1, run1482's profiles and seats   (the staged melee)
 #   run1483b run1483's line with --cover cover=1   (the coverage twin)
 # Checks: `rngcmp.py` run1482 vs run1483 -> 37 identical; run1483 vs run1483b -> 2601 identical; `samegame.py` run1483 vs run1483b -> 26 common, 0 differing.
+# ==== item 3866: the Spanish at a held Information age, Great Lakes, at difficulty 3 (`docs/AI.md` §380; `docs/RUNS.md` run1488, run1489, run1489b) ====
+#   run1488  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=7 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1489  run1448's line with --map 14, --ai-tribe 9 and run1488's lobby   (the draw stream; ended itself on 3500)
+#   run1489b --map 14 --end-frame 3500 --allow-early-end --timeout 3600 --log-window 3244 3501 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1488's lobby   (the closing window)
+# Checks: `rngcmp.py` run1488 vs run1489 -> 37 identical; run1489 vs run1489b -> 3501 identical.

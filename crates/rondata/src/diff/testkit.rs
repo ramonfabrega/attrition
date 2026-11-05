@@ -11247,6 +11247,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3773,
         Some(crate::diff::french_information_pair::WIDENING_FRENCH_INFORMATION_CLOSING),
     ),
+    // **The Spanish at a held Information age** (item 3866): Great Lakes at
+    // Moderate — whole on the first try at 3500; widened on run1489b over
+    // 3244..3501 (the closing block), the rounds compared.
+    (
+        "SPANISH_INFORMATION_PAIR_WORD",
+        crate::diff::spanish_information_pair::SPANISH_INFORMATION_PAIR_WORD,
+        Some("spanish_information_pair_run1489b_s_closing_frame_is_widened_whole"),
+        3866,
+        Some(crate::diff::spanish_information_pair::WIDENING_SPANISH_INFORMATION_CLOSING),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13924,6 +13934,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_191,
         endpoint: Some("french_information_pair_run1448_s_closing_state"),
         window: Some("french_information_closing_window"),
+    },
+    // The Spanish at a held Information age (`STARTING_TECHNOLOGY` 7,
+    // `ENDING_TECHNOLOGY` 7), Great Lakes at Moderate (item 3866): whole on
+    // the first try at 3500, the Spanish seat's two 78s standing from the
+    // start; the closing window run1489b over 3244..3501, the rounds
+    // compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesSpanishInformation",
+        named: "Great Lakes (Spanish, Information)",
+        word: crate::diff::spanish_information_pair::SPANISH_INFORMATION_PAIR_WORD,
+        length: 3_500,
+        endpoint: Some("spanish_information_pair_run1489_s_closing_state"),
+        window: Some("spanish_information_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

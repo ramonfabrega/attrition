@@ -579,6 +579,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the AI word's `(7, 10, 4)` nor the Classical pair's `(7, 10, 5)`, this
     // map at other difficulties; no battery game fields the French.
     (7, 10, 3),
+    // The Spanish at a held Information age, Great Lakes at Moderate (item
+    // 3866, `diff::spanish_information_pair`), minted under rule (3) — not
+    // the Lakes word's `(14, 9, 4)` nor the Industrial pair's `(14, 9, 5)`,
+    // this map at other difficulties; no battery game fields the Spanish.
+    (14, 9, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
