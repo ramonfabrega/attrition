@@ -112,3 +112,229 @@ fn sea_melee_staging_walk() {
     assert_eq!(st.applied.skipped_total(), 0, "add refuses nothing");
     assert_eq!(st.applied.ran, MELEE_STAGED, "every line ran");
 }
+
+/// run1483: the staged game, the draw stream to its end at `cover=0`, the
+/// melee's records on a stride of 100.
+pub(crate) const MELEE_LONG: (&str, &str) = (
+    "gamelog-run1483-eastindies-information-melee-trace.txt",
+    "rontrace-run1483.log",
+);
+
+pub(crate) use super::gunpowder_melee::Melee;
+
+pub(crate) const SEA_MELEE: Melee = Melee {
+    length: 2600,
+    // Item 3847, first try: **677 of 2600**, the count and the sequence
+    // together, 67 frames past the first `add` (610). Ours 13 draws
+    // against 12: at index 4 ours spends `Unit::close+0xcb6` — a unit
+    // dies in ours — where theirs spends `Farms::inc_time+0x1ae`. Ours
+    // acted (`docs/GOLDEN.md` §153).
+    count: 677,
+    sequence: 677,
+};
+
+/// **The melee's closing state, as the `Melee:` line says it** (Loop
+/// 3842): the records its closing-state test reads off at the close — the
+/// sum of [`endpoint::EndpointResult::counts`]' seven — and the `<n> off`
+/// suffix of this row's part of the handoff's `Melee:` line
+/// (`floors::ai_line_closes`). A draw stream whole to the game's last frame
+/// with a close that is not reads `w2600 of 2,600 1 off`, not the closed
+/// melees' line; a close that moves re-pins this and the line together.
+pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 448;
+
+/// The melee's word: the lower of the two partings.
+pub(crate) const SEA_MELEE_WORD: i64 = if SEA_MELEE.count < SEA_MELEE.sequence {
+    SEA_MELEE.count
+} else {
+    SEA_MELEE.sequence
+};
+
+/// **Where the fourth melee's draw stream first parts** (item 3847): the
+/// harness walks run1482's start with the script staged and compares every
+/// frame's draws against run1483's trace, the count and the sequence.
+#[test]
+fn sea_melee_first_parting() {
+    let _pins = Pins::hold();
+    let m = &SEA_MELEE;
+    let Some(w) = crate::diff::setup::with_staged_script(melee_script(), || {
+        third::walk_from(MELEE_START, MELEE_LONG)
+    }) else {
+        return;
+    };
+    eprintln!(
+        "SEA_MELEE: count {} sequence {} of {}; {}",
+        w.count, w.sequence, w.last, w.row
+    );
+    pin_eq!(w.last, m.length, "the game's last frame");
+    pin_eq!(w.count, m.count, "the draw count's first parting");
+    pin_eq!(w.sequence, m.sequence, "the draw sequence's first parting");
+}
+
+/// The word's window on run1483's stride: the block before the word to
+/// 250 frames past it (item 3847: the word 677, so 601..927, blocks 601,
+/// 701, 801 and 901).
+pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (601, 927);
+
+/// The word's window, widened whole on run1483's stride blocks, the rounds
+/// compared — the coverage driver's slice too.
+pub(crate) fn sea_melee_word_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1483",
+            &[(MELEE_LONG.0, WIDENING_SEA_MELEE.0)],
+            WIDENING_SEA_MELEE,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **The fourth melee's word window, widened whole** (item 3847): every
+/// dumped record on run1483's stride blocks over
+/// [`WIDENING_SEA_MELEE`], both directions, the rounds too.
+/// `RON_FIRSTS=1` prints every row.
+#[test]
+fn sea_melee_run1483_s_word_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sea_melee_word_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    // WIDEN_NOTE
+    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 405, "run1483's word window");
+    pin_eq!(w.rounds_read, (15, 10), "the rounds read");
+    pin_eq!(w.rounds.len(), 28, "the rounds that part");
+}
+
+/// **Every seat's leader on the start dump's frames** (item 3847, the
+/// shape item 3791 gave the first two, `docs/GOLDEN.md` §151): run1482's frames 1 and 37 print all three
+/// seats' `LEADERDATA` whole. run1483's only other leader records are its
+/// closing dump at 2601, compared too.
+#[test]
+fn sea_melee_s_leaders_are_compared_on_every_seat() {
+    let _pins = Pins::hold();
+    let Some(w) = crate::diff::gunpowder_melee::seat_walk(
+        melee_script,
+        MELEE_START,
+        MELEE_LONG,
+        &[MELEE_START],
+        true,
+    ) else {
+        return;
+    };
+    w.report("run1482+closing");
+    pin_eq!(w.players, 3, "the seats the lobby seats");
+    pin_eq!(
+        w.records.clone(),
+        vec![3, 3, 3],
+        "leader records compared, by seat"
+    );
+    // Item 3847, first try: the standing family on both start frames and
+    // every seat (12, 9 and 9 keys), and 210 keys that part. 26 are the two
+    // computers' `PERSONALITY` blocks from frame 1, all thirteen fields a
+    // seat, **swapped between who 1 and who 2** (`air` ours −1 and 1
+    // against theirs' 1 and −1, `naval` −1 and 0 against 0 and −1, …):
+    // `setup::build_sim` hands the checksum trace's `random_personality`
+    // brackets out in seat order, and each lands on its far end, so the
+    // rolls are the original's on the other seat (parked 3847a). The
+    // other 184 are the closing dump's at 2601, a game parted since 677.
+    pin_eq!(w.standing(), vec![12, 9, 9], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 210, "the keys that part, by seat");
+    pin_eq!(
+        w.rest()
+            .iter()
+            .filter(|k| k.contains("PERSONALITY") && k.contains(" 1: "))
+            .count(),
+        26,
+        "the personality fields parted from frame 1"
+    );
+}
+
+/// **The melee's closing state** (item 3847): run1483's closing block, the
+/// whole map's units, walked from run1482's start with the script staged.
+#[test]
+fn sea_melee_run1483_s_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(MELEE_LONG.0), dump(MELEE_START), trace(MELEE_LONG.1))
+    else {
+        eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", MELEE_LONG.0);
+        return;
+    };
+    let Some(e) = crate::diff::setup::with_staged_script(melee_script(), || {
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(path);
+        let start_text = crate::capture::read(start);
+        let log = Log::parse(&text);
+        let start_log = Log::parse(&start_text);
+        let mut init = log.initial().unwrap();
+        let sibling = start_log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sibling]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let fin = log
+            .final_state()
+            .or_else(|| log.frame_states().pop())
+            .expect("closing whole-map state");
+        let e = endpoint::walk_to_close(&mut built, &fin, 8);
+        eprintln!(
+            "Sea melee closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+            e.frame,
+            e.compared,
+            e.counts(),
+            e.torn,
+            e.off,
+            e.unlinked,
+            e.extra
+        );
+        Some(e)
+    }) else {
+        return;
+    };
+    pin_eq!(e.frame, 2601, "the closing block");
+    // Item 3847, first try: 129 units compared at a close 1,924 frames
+    // past the word, 448 records off — 115 units off, 8 unlinked, 4 extra
+    // (who 1's `0`, `54`, `57` and `58` in ours alone), 7 buildings
+    // unlinked and 289 diverged, 25 cities diverged.
+    pin_eq!(e.compared, 129, "units compared");
+    pin_eq!(e.counts(), [115, 8, 4, 7, 289, 0, 25], "the closing counts");
+    pin_eq!(
+        e.counts().iter().sum::<usize>(),
+        SEA_MELEE_CLOSING_OFF,
+        "the closing records off, the `Melee:` line's suffix"
+    );
+    pin_eq!(
+        e.extra.clone(),
+        vec![(1, 0), (1, 54), (1, 57), (1, 58)],
+        "the closing extras"
+    );
+}
