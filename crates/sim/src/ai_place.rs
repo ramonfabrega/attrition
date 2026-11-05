@@ -1017,6 +1017,18 @@ impl Sim {
                         )
                     })
                     .collect();
+                let cl = c.cell();
+                let centre = Pos::new(
+                    cl.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+                    cl.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+                );
+                eprintln!(
+                    "PLACECLOSED f{frame} cell=({},{}) closed={} enemy={}",
+                    cl.x,
+                    cl.y,
+                    self.world.cell_data(cl).flags & cell::CLOSED != 0,
+                    self.enemy_object_within(who, centre, 0xf00)
+                );
                 eprintln!("PLACETILES f{frame} cand={c:?} {:?} tiles={tiles:?}", self.blocked_site(Some(who), rec, c, None));
             }
             for (cx, cy) in [(19, 48), (20, 48), (19, 47), (20, 47), (18, 48)] {
