@@ -37787,12 +37787,215 @@ Airbase lines (296, 312).
   `create_units`' land valuation, unread here. No word turns on it.
 - The round's target fields on a target's close: this crate's write (3714a). They spend no draw to 4784.
 
-## 382. Reserved for the next item on the AI track
+## 382. The group-order family's six blind rows, read: two residue candidates, one golden-start take, three left on routes already parked (item 3877)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3877, 2026-11-05, Opus 5.5; a reading, no capture, no sim change.
+The six rows are `blind::NEVER`'s group-order family (CENSUS row 9). Each
+claim names the address it is read at and the capture that would kill it.
+The decompile export is the source, and `llvm-objdump` settles the call
+sites and the factory arguments.*
+
+**The call graph, settled off the image.** Every row has **exactly one**
+direct call site, and no four-byte copy of any of the six entries sits
+anywhere in the image, `.rdata`'s vtables included (`xxd` over the whole
+file):
+
+| row | its one call site | the caller |
+|---|---|---|
+| `Unit::kill_group_order@005e3310` | `710b1e` | `Group::kill_group_order@00710aa0` |
+| `Group::kill_group_order@00710aa0` | `5e76c4`, `5ff78f` | `Unit::do_group_attack@005e75a0:67`, `Unit::find_new_target@005ff6a0:71` |
+| `Unit::do_group_attack@005e75a0` | `617b0c` | `Unit::do_job@00617a10`, case `GROUP_ATTACK` (0x14) |
+| `Unit::do_await_board@005ed040` | `617a9c` | `Unit::do_job@00617a10`, case `AWAIT_BOARD` (9) |
+| `GroupData::get_max_range@00711080` | `5f1e0f`, `5f1e2d` | `Unit::do_attack@005f1b80:121`, `:124` |
+| `CommandPackage::process_move_near@009495c0` | `94a8ff` | `CommandPackage::process@0094a700`, case 8 |
+
+Parked 3504a named `find_new_target` as `Group::kill_group_order`'s only
+route. **`do_group_attack:67` is a second route, and it is dead** (below).
+That leaves 3504a's route the only live one. **Killer**: a trace that
+enters `00710aa0` from `5e76c4`. No pinned trace does.
+
+### 382.1 The order no site makes: `GROUP_ATTACK`
+
+`do_job` switches on the head order's `get_type` (vslot `+0x10`). The only
+class whose `get_type` answers `GROUP_ATTACK` is `GroupAttackOrder`
+(`GroupAttackOrder::get_type@00485320`; its four vtable entries in
+`vtables.txt` are that one function and its thunk). An order list holds a
+`GroupAttackOrder` only if the order factory makes one. That is
+`get_new_order@00730550`'s case 0x14, reached through
+`OrdersMemManager::get_obj@00730ac0`.
+
+**The factory's 51 call sites, read off the listing**: every one whose type
+is an immediate pushes something other than 0x14. The five that pass the type
+in a register are `copy_order@0072f900` (the type is the *source* order's
+`+0x10`, a copy of an order that exists), `OrderList::walk_data@00730270` (the
+type read from the save stream), `OrdersMemManager::init@00730cd0` (the free
+pool's prefill, not a unit's list), `OrderList::get_new_data` (already
+`RESIDUE`, inlined into `walk_data`) and `get_obj`'s own fall-through into
+`get_new_order`. **No site makes a `GroupAttackOrder` from nothing.** This
+is the same evidence as `GroupAttackOrder::log_data@00485140`'s `RESIDUE`
+row (GOLDEN §144.4), carried one step down to the order's step function.
+
+**`Unit::do_group_attack@005e75a0`, what it would do.** The order holds a
+target (`+8`, `+0xc`), a group slot (`+0x30`), a leader (`+0x28`, `+0x2c`), an
+angle (`+0x38`) and a mandatory flag (`+0x3c`).
+- With no group (`+0x80 == −1`), it converts itself into a plain
+  `AttackOrder` copy at the head.
+- **As the leader**: a target with `flags & 1` clear (`objects[whom][ox] +8`)
+  sends the group to `Group::kill_group_order(group +0x30)` (`:67`). An
+  in-range target takes `fight`. An out-of-range target with mandatory 0
+  takes `kill_group_move` and `Group::distribute_attack`. A mandatory target
+  goes to `:67` as well.
+- **As a follower** of a live leader in the same group: it searches
+  `find_nearby_target` at `(range + 4) × 0xc0` and fights what is in range.
+  Otherwise it turns to the angle or re-steps a `GROUP_MOVE` tail.
+- **Otherwise** it calls `Group::refresh_group_order`.
+
+**`RESIDUE` candidate** with this predicate: *the head order's
+`get_type` answers 0x14, which only a `GroupAttackOrder` does, and no
+factory site makes one except as a copy or a load of one that exists.* A
+loaded save can hold one only if a game made one. **Killer**: a `HIT` on
+`005e75a0` in any trace, or a `GROUPATTACKORDER` label in any `UNITS` dump.
+Run215 (chapter fifteen, the player's group attack) printed none: "no
+GroupAttackOrder anywhere".
+
+### 382.2 The order only a residue builder makes: `AWAIT_BOARD`
+
+`get_obj(AWAIT_BOARD)` has one immediate caller,
+`Unit::add_await_board_order@005e4c80` (`5e4c85 push 0x9`, then `5e4c89 call
+get_obj`; the 51-site tally has one 0x9). That function is `RESIDUE` already, with
+`check_meet_ship`, `do_board`, `add_board_order`, `Group::action_board_ship`
+and `process_board_ship` (GOLDEN §144.4, the forty-eighth pass): its callers
+are `Group::action_board_ship` and `Unit::check_meet_ship`, both under the
+board-ship command (type 0x0f) that no `add_command` site writes.
+
+**`Unit::do_await_board@005ed040`, what it would do.** The order holds the
+awaited rider (`+8` ox, `+0xc` whom). The awaiter sets `CHAR_DEFAULT`.
+- If the rider is itself, the order dies.
+- If the rider is the awaiter's own player's, active and on the map, and the
+  awaiter `can_carry` it, and the rider's action is `BOARD_SHIP` (8): when
+  the rider's board target is this unit, the awaiter **holds** (returns with
+  the order kept); when it is another unit, the awaiter kills its own order.
+- Otherwise, for a live rider whose `BOARD_SHIP` names this unit, the rider is
+  `repath`ed and its order killed, and then the awaiter's order dies
+  (`LAB_005ed1de`).
+
+**`RESIDUE` candidate**: *the head is an `AwaitBoardOrder`, whose one
+maker is `RESIDUE`.* Boarding in a played game is a cast, not a board
+order (GOLDEN §144.4 and `docs/TRANSPORT.md` §6.1). **Killer**: a `HIT`
+on `005ed040`, or an `AWAITBOARDORDER` label in any `UNITS` dump. The disk
+has none: GOLDEN §144.4 grepped 149 gamelogs and the golden and lab
+captures.
+
+### 382.3 The command no site writes: `move_near`
+
+**`CommandPackage::process_move_near@009495c0`** logs the command (sync
+line and two `COMMANDMANAGER` detail-1 `say`s, `to_x, to_y` and
+`form, width`). Then, when the package's group is `≥ 0`, it calls
+`Group::action_move_near(to_x, to_y, tolerance, queued, set_angle, angle,
+orders, 1, form, width, disembark)` and returns the command size 0x1a. The
+entry predicate is a command byte of 8 at `CommandPackage::process:107`, and
+`docs/COMMANDS.md` §3 and §6 have no emitter of type 8. `Group::action_move_near`
+itself is live: `Unit::do_guard` and `think_civilian_transport` call it
+directly, which is why it is entered while this is not. **Not a new
+candidate**: this is parked 3505d's row exactly ("forged bytes", a hand-edited
+`.rec` played back), and DECISIONS 106 ruled the console in but did not rule
+on recorded-game playback. **Killer**: an `add_command` site, or a console
+verb, that writes byte 8. A `misc:COMMANDMANAGER=1` capture would print
+`process_move_near`'s two `say`s on the frame after it.
+
+### 382.4 The one row a golden-start take lights: `get_max_range`
+
+**`GroupData::get_max_range@00711080`** returns the largest `+0x130`
+(`max_range`) over the group's members. A non-building group counts a member
+that is active (`+8`), on the map (`+0xbc`) and not an aircraft (`+0xc0`), is
+armed (the type's `+0x1e8`, `attack`), and whose `+0x10c` (`is_siege`)
+matches the argument's truth. A building group (`buildings != 0`) asks
+`+0x20` instead. The siege arm is §348.3's and diff-backed on run1356's 5679
+stand-offs. The building arm is parked 3693b.
+
+**The predicate that enters it** is `Unit::do_attack:119`: the attacker's
+type has `attack == 0` (`*(type +0x1e8) == 0`, the name `friends.rs` and
+`ai_load.rs` give it) and the unit is in a group (`+0x80 ≥ 0`). So it is an
+**unarmed** member (a General, a Spy, a Supply Wagon) stepping an
+`ATTACK` order. **The group need not be an army's.**
+`CommandPackage::process_group@0094a0c0` calls `Groups::push_group`, which
+writes `+0x80` for every member (`docs/GROUPS.md` §3.2). Every player
+command's selection is a pool group.
+
+**The take, booked from this list**: chapter fifteen's lines
+(`tools/gamelog/golden/chapter15.cmd`) with an unarmed member in the
+selection range:
+```
+0 !ai off
+610 add hoplite who=0 12,84
+611 add general who=0 14,84
+612 add hoplite who=0 18,84
+614 add chariot who=1 16,64
+620 @move 0 3192 10752 6 9
+734 @attack 0 6 1 6 9
+```
+`add general` is chapter thirty-nine's console line. The selection range
+`6 9` must hold the General's object number, so the take reads its ox off
+the `UNITS` dump at 612 before fixing the range. **What lights**:
+`00711080` on 735 or 736, once `process_attack` has run and the General's
+head is the `ATTACK`. **Two killers, each on its own unit**:
+- The General's head on 736 (`UNITS=3`) is not an `ATTACKORDER`. Then
+  `Group::action_attack@00712490` filters an unarmed member out before
+  `add_attack_order`, and the take wants the AI's `engagement` route
+  instead (§348.2's 5678, run1356's lobby).
+- `0x711080` carries no `HIT` while the General's head is an `ATTACKORDER`.
+  Then `do_attack:119`'s gate is not `attack == 0`, which this reading
+  claims.
+
+A coverage trace (`cover=1`) is the instrument. The value check is the
+General's `MOVEORDER` at `(R + 2) × 0xc0` from the chariot along its
+bearing, with `R` the hoplites' `max_range`. That is §348.3's diffed
+formula, so it needs no new reader.
+
+### 382.5 The pair left on 3504a's route: the two `kill_group_order`s
+
+**`Group::kill_group_order@00710aa0`** `normalize`s the group and then calls
+`Unit::kill_group_order(id)` on every member that is active (`+8`) and on
+the map (`+0xbc`).
+
+**`Unit::kill_group_order@005e3310`** walks the unit's whole order list
+from the head. For each node:
+- An order that answers `+0x14` and `+0x24` has its action bit (`+4 & 1`)
+  cleared, and `kill_current_path` runs.
+- An order whose `+0x94` (the group-order view) is non-null and whose
+  `+0xc` is the id is killed by `kill_current_order(0)`.
+
+The walk stops when the list wraps (`*(+0xd4) == +0xdc`) or empties
+(`+0xd8 == 0`).
+
+With 382.1's route dead, both enter only from `find_new_target:63–71`, so
+the head must be a group order (`+0x2c`) with `group ≥ 0`. 3504a's walk has
+already narrowed that to a grouped leader's suspended `find_upath` on the
+4-frame collide beat. **Not `RESIDUE`**: every predicate is a state the game
+holds. **One take does not light the family**: 382.4's take reaches no
+`find_new_target` on a grouped head. The cheapest route to this pair stays
+3504a's staging, and this reading adds only that it is the *only* route.
+
+### 382.6 What a second reading must re-derive
+
+To move 382.1 and 382.2 to `RESIDUE`:
+1. The factory: every call to `00730ac0` and `00730550`, with the type
+   argument at each. The **immediate** sites hold no 0x14 and one 9
+   (`add_await_board_order`). The **register** sites (`46ed66`, `72f90f`,
+   `730327`, `730b29`, `730cf4`) only copy, load, prefill or forward.
+2. That `GroupAttackOrder` is the only `get_type` answering 0x14, and
+   `AwaitBoardOrder` the only one answering 9.
+3. That nothing outside the factory constructs either class. The one call to
+   `GroupAttackOrder::GroupAttackOrder@004853b0` is `730908`, and the one call to
+   `AwaitBoardOrder::AwaitBoardOrder@00482260` is `73077a`, both inside
+   `get_new_order`.
+4. That `do_job` is each function's only caller (one call site each, no
+   address copy).
+
+**Coverage.** Every claim in this section is reading-only except
+`get_max_range`'s siege selection and the stand-off formula, which §348.3's
+run1356 diff backs. The one-call-site table and the absent address copies
+are scans of the image. No row of `blind::NEVER` moves: open stays 41.
 
 ## 383. Reserved for the next item on the AI track
 

@@ -3780,6 +3780,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 (3799) **The emu row cache stores what it could recompute, and it is 16 GiB** (the sixty-third pass, from Loop 3777's build): the 273 over-cap sweeps' rows are 41.9 GB raw and gzip packs them only 3.05x (three of the largest 1.75x), so the cache that took the five binaries 683.5 → 41.8 s cost 13 GiB of the 147 free, and every change to `tools/emu/` or the executable's key rewrites it. The test needs the original's rows only to compare the port's against them. Candidate: store a digest of the original's rows (SHA-256 over the canonical row text) beside the receipt, hash the port's rows the same way, and re-run the emulator only on a disagreement to find the row — a cache of kilobytes, the slow path paid once by the one sweep that broke, `RON_VERIFY_EMU` unchanged. Measured first: the cache's size and rewrite count over the sixty-fourth; taken when either shows up in a drain's table rather than in a hunch. **The sixty-fourth pass, measured**: the cache 16 GiB unmoved and `tools/emu/` untouched over the tranche, so 0 rewrites; the disk's fall (134 → 102 GiB over the tranche) was the integration tree's debug profile — `cargo clean --profile dev` removed 180,851 files, 74.2 GiB, and the pass now cleans it as a first act (DECISIONS 104 §6) — not the cache. Not taken: neither number is in a table yet. Stays filed. **The sixty-fifth pass, measured**: the cache 16 GiB (2,344 files) and 0 files rewritten since the base, `tools/emu/` untouched; the disk 114 → 125 on `afsctool` and the debug profile's clean. Stays filed.
  **The sixty-sixth pass, measured**: the cache 16 GiB (2,344 files), 0 files rewritten since the base, `tools/emu/` untouched; the disk 141 → 147 on `afsctool` alone (the debug profile's clean skipped at 141, over the last pass's 125; DECISIONS 104 §6). Stays filed.
 
+## Loop, filed 2026-11-05 — the sixty-seventh tranche's
+
+(3880) **A melee that closes whole is red at the booking gate on its audit row, never at its lane gate** (the sixty-seventh's commander, 3873): `diff::audit::every_whole_scoreboard_word_is_audited` holds every whole word on an audited line to an `audited!` row or an `OWED` line, and a melee's lane gate filters (`airbase_melee:: sea_melee:: … first_parting battery_floors blind:: coverage::`) never run `diff::audit::`, so 3873's lane gate was green on the fifth melee closing whole and the scoped booking gate on `f9eb0373e` was red on it alone — a second commit (`6eaeec7e2`) and a re-gate, 12.5 release minutes, exactly as the fourth melee's closing did at 3862 (`f28d7fbe5`). Twice running is the shape. **The fix**: `brief.py` adds `diff::audit::` to every lane gate whose `--tests` names a word's module (a melee, a pair, a battery word), or the audit guard reads the lane's branch for a closing `*_MELEE_CLOSING_OFF` of 0 and names the row owed. Yours.
+
 ## Loop, filed 2026-11-05 — the sixty-sixth tranche's
 
 **3852** (a piece is named by the order it was `add`ed in, not by the type its record prints; 3849's "for the Loop") — **a clause** by the sixty-sixth pass, its text kept in `docs/audit/2026-11-05-fable-pass-66.md` ("The built rows' text, kept"): 3849's draft journal named `1/20` the Minutemen from its position in the `add` order, and the dump's own `type` field (332, the Fluyt) said otherwise in one `awk`; the second session caught it. The brief checklist's row 1267 ("name each unit a booking names by `TypeIndex` and domain") covers units a booking names, not pieces a lane names to itself. Candidate: the frame's row reads "every unit and piece a journal names", or `rubric.py`/the stand-up's staging walk prints each `add` line beside the `type` its first record carries. Names no score; the loop's.
@@ -13872,8 +13876,9 @@ retake"). Run1495 printed the re-mark at `TERRAIN` 40 through the new `@logdetai
 `check_for_tendrils`' three-neighbour arm on the S flank F2 = (42, 42): N (C), E (43, 42) `SANDY` and W (P) are one
 up, so it returns 1 and (A)'s 7 never reaches C's S field. On `OCEAN` flanks, the SW contact needs each flank's
 other two orthogonals not one up: (x − 1, y − 1) and (x − 2, y) for F1, and (x + 1, y + 1) and (x, y + 2) for F2. A
-plant only adds land, so a second plant cannot lower a sum. A scratch search of block 621's grid finds seven
-candidates and none passing. **The next route** is that search over the 86 start grids on disk (MAPGEN §19.4) and
+plant only adds land, so a second plant cannot lower a sum (~~so no route~~: it can raise a 3 to 4, which passes,
+item 3876 below). A scratch search of block 621's grid finds seven
+candidates and none passing. ~~**The next route** is that search~~ Searched (item 3876, 3876a) over the 86 start grids on disk (MAPGEN §19.4) and
 East Indies' 13 sites. A grid that holds a passing cell is a `weather` take at it, and the commander books the run.
 Killed by: a cell passing that search whose take prints both of C's flank fields at 7 and still does not enter
 `008595f0`; or no grid on disk passing, which leaves the arm to the multi-cell routes (3870a). Names no score: the
@@ -13898,21 +13903,39 @@ the commander's to book. `place_cliff`'s heights stay step 7's (894).
 and 1 below size 5 measure an `acos` in single and double precision. No shipped style reaches it: Mesa's one
 player cliff below size 5 is `FACE_ANY`. Names no score until a style or a scenario does.
 
-## Parked by the next landing, slot ZS — reserved
+## Parked by item 3876, 2026-11-05 — the diagonal arm's contact, searched
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3876a) **A single `weather` plant on East Indies passes every gate in front of `check_for_diagonal@008595f0`**
+(`docs/MAPGEN.md` §20, "The offline search"). `tools/gamelog/plant.py` models the re-mark and reproduces run1495's
+81 printed writes. It plants every cell of the 68 distinct grids on disk and finds 62 passing plants on 18 grids,
+all §19.3's south-west shape and none on Great Sahara or Great Lakes. `check_for_tendrils` returns 0 at a flank sum
+of 2 or 4. **The take**: East Indies, `--map 18`, map size 2, two players, seed 12345 (run1156's lobby). It is
+run1494's line with `620 @aim 2 17`, `620 !weather`, `621 @dumpall` and 3874's `@logdetail 0 28 40` / `0 28 0`,
+at `cover=1`. The model predicts 80 writes: write 19 `x (3,16) 7` from F1 (2, 16), write 38 `y (3,17) 7` from F2
+(3, 17), and an empty word at C = (3, 16). The other passes are (27, 38), (29, 40), (14, 57) and (26, 59). Killed by
+the take's trace holding no `HIT` for 008595f0 while its `@dumpall` shows (2, 17) alone changed. `plant.py cell …
+2,17 --printed <the take>` then names the write that parts. Names no score: the `Blind:` row's route (008595f0, and
+`WorldData::is_valid@00471170` if the arm reaches it).
 
-## Parked by the next landing, slot ZT — reserved
+(3876b) **On the golden line, two plants pass.** On Great Lakes' golden grid, `weather` at (42, 43) and then at
+(41, 42) lifts F2 = (42, 42) from sum 3 to 4 and enters at C = (42, 41). (17, 46) then (16, 45) enters at (17, 44).
+That is run1495's own line with `620 @aim 42 43` and `620 !weather` ahead of its pair, and run1130 stays its twin.
+It is the fallback if 3876a's lobby will not take the line. Killed by that take not entering 008595f0. Names no
+score.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3877, 2026-11-05 — the group-order family's six blind rows, read
+
+- **3877a. `Unit::do_group_attack@005e75a0` and `Unit::do_await_board@005ed040` are `RESIDUE` candidates** (`docs/AI.md`
+  §382.1–§382.2). Nothing makes a `GroupAttackOrder` except as a copy or a load: no `get_obj` site pushes 0x14, and the
+  constructor's one call is inside `get_new_order`. An `AwaitBoardOrder`'s one maker is `add_await_board_order`, which
+  is `RESIDUE`. Each moves on a second reading's agreement over §382.6's four points. **Score**: `Blind:` open 41 → 39.
+- **3877b. `get_max_range`'s golden-start take** (`docs/AI.md` §382.4): chapter fifteen's lines with `add general who=0`
+  in the selection range. A `cover=1` trace should enter `GroupData::get_max_range@00711080` on 735–736, through
+  `do_attack:119`'s unarmed, grouped arm. Two killers: the General's head on 736 is not an `ATTACKORDER`, or there is
+  no `HIT` while it is one. **Score**: `Blind:` open 41 → 40.
+- **3877c. `Group::kill_group_order@00710aa0`'s second caller is dead**: `do_group_attack:67` (`5e76c4`) is under
+  3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
+  The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
 
 ## Parked by item 3878, 2026-11-05 — Southwest Mesa's tail and resources, 7861..7927
 
@@ -13947,6 +13970,30 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot ZW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

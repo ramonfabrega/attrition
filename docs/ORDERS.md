@@ -534,7 +534,9 @@ frame.
     do_group_attack`; `GROUP_ATTACK_TO → do_group_attack_to`; `GROUP_PATROL →
     do_patrol`; `ATTACK_GROUND → do_attack_ground`; `AIR_ATTACK_GROUND →
     do_air_attack_ground`; `SPECIAL_ANIM → do_spec_anim`; `GARRISON →
-    do_garrison`; `THINK → do_think_order`.
+    do_garrison`; `THINK → do_think_order`. The `GROUP_ATTACK` and
+    `AWAIT_BOARD` arms, the group-order family's blind rows, are read in
+    `docs/AI.md` §382 (item 3877).
 13. Post-step: the stacking separation for `unit_flags & 0x20` types (push two
     same-type units within `0x180` apart by half their separation each);
     `unit_masks &= ~0x10`.
