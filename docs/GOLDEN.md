@@ -17149,12 +17149,52 @@ set on a stride is in the pairs' class (82 frames a wall second, ~35 s of
 simulation; the dumps 300–700 MB at `UNITS=3`), its `cover=1` twin the
 same lobby again. The first cell's booking is item 3733.
 
-## 156. Reserved for the next item on the rules track
+## 156. The fifth melee — the fourth's lobby with an Airbase a computer (item 3868, run1492–run1492b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The chapter** (§155 as the sixty-sixth pass amended it: a chapter that moves no lever stages the trainer its lines
+need; §154.3's Proposal A without the third seat; DECISIONS 106 §2). No lever moves: run1482's lobby is held whole
+(East Indies, `MAP_STYLE 18`, seed 12345, `--profile PLAYERS=2 STARTING_TECHNOLOGY=7 ENDING_TECHNOLOGY=7
+STARTING_RESOURCES=7`, `--seat-tribe 1=10 --seat-tribe 2=13`), and so is its start dump, which this melee shares:
+the two lines it adds run at 603 and 605, after run1482's 37 frames. `tools/gamelog/golden/melee-airbase.cmd` is
+`melee-sea.cmd`'s twenty-two lines and, before the first unit `add` at 610:
+
+    603 add airbase who=1 95,193
+    605 add airbase who=2 220,107
+
+**The cells.** The Airbase is building type 33, 5 × 9 tiles. Who 1's capital stands at tile (96, 212), who 2's at
+(212, 96) (run1482's `BUILDDATA` `2000`, `orig_type` 414). Each cell is the nearest tile to its capital whose
+Airbase site `blocked_site` calls clear **at frame 603 on the harness's staged walk of run1482**, with
+`find_city_at` answering the capital's city, and with every centre of the 5 × 5 around it clear too, so a tile
+of drift in `snap_center` does not move the footprint onto something. The frame matters: on frame 0 the nearest
+roomy sites were (104, 220) and (213, 86), and by 603 the computers had built over who 1's and pushed who 2's
+out. `add`'s building arm makes no site test (`Objects::init_build` takes the cell whatever stands there), so
+the clear site is this chapter's choice, not the original's requirement. A site that was clear in ours and not
+in theirs, an Airbase on top of a building the original's computer placed on 603 or 604, would be the first
+thing a parting on 603–610 asks. `airbase_melee_staging_walk` checks both sites on 603 and asserts that, from the
+frame the line runs, each Airbase stands active, in its capital's city (`city` 1 and 2), counted by
+`num_buildings_of` and on its owner's `mil_trainers`: `Wall::activate`'s call took `Wall::increment_stats`'
+active arm (AI.md §29).
+
+**What should stand** (§154.3): the Jet Fighter (`MIRAGE`, 296) on who 1 by block 1101; the Attack Helicopter
+(`HIND`, 312) on who 2 by block 2601, the least certain. **Ours, before any take**: by 1101 each computer has a
+Strategic Bomber (305) out of its Airbase, who 1's queue reads 305, 296, 296 and who 2's 299, 312, 305; by 2600
+ours stands two 296s on who 1 and two 312s on who 2. The make list's first pick is the Bomber in ours. It was
+the Bomber in run1448b's French pair too (parked 3865b), which then held its 296s untrained.
+
+**The killers, written before the first take** (each read on run1492's stride blocks or its closing dump):
+
+- **296**: no `TI` 296 `GUY` on any block to 1101. Then read who 1's Airbase in the closing dump: an empty
+  `queue[scan]` with `queued 0` kills the gate reading (`+0x55a0` is not the count an `add`ed Airbase raises), a
+  296 held untrained is 3865b's stall, and a `TI` 295 anywhere kills §154.1 1.
+- **312**: no `TI` 312 by 2601, with the Russian Airbase's closing queue empty of it, says the helicopter's
+  ranking holds it back and the gate does not. A `TI` 311 kills §154.1 1.
+- **The Airbases** (this chapter's own): an `INFO cmd` on 603 or 605 returning other than 1 (the `add` refused);
+  no `BUILDDATA` of `orig_type` 447 on who 1 or who 2 on block 701; or one whose `city` reads −1 (the city test
+  refused it, so neither list holds it).
+- **(a)** the computers not at war on frame 0 (`LEADERDATA` `diplos`, the start block; run1482's, unmoved);
+  **(b)** a spawned squad with no `TARGETORDER` by 900; **(c)** the granted buckets unspent on the block after
+  600; **(d)** a line `add` refuses (`INFO cmd`); **(e)** a sea line `add`ed on land, or a land line at sea, that
+  never moves (block 701), with the fourth melee's carriers (parked 3847d) excepted as already known.
 
 ## 157. Reserved for the next item on the rules track
 
