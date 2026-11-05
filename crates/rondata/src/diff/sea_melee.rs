@@ -158,9 +158,17 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // the cruiser's region scan accepts 51 cells as theirs does (run1487's
     // packet). On 2090 ours 13 against 14: at index 0 ours spends
     // `Unit::do_move+0xe84` where theirs spends `Guy::set_anim+0x97a <
-    // Unit::move_step+0x823` (§153.4).
-    count: 2090,
-    sequence: 2090,
+    // Unit::move_step+0x823` (§153.4). Item 3860: **2090 → 2598** with
+    // the spiral's centre test on a *started* building (`sim::ai_place`'s
+    // `cell_has_centre`, the cell's `0x4000` written by `Wall::start`): on
+    // 1985 the French dock of city 1 takes cell (19, 48), beside the
+    // unstarted Shipyard `1/2033`, at 4255, as theirs does (run1487's
+    // packet), and `1/2036` goes to `1/6` at (15360, 37248). On 2598 ours
+    // 10 against 12: at index 4 ours spends `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271` where theirs spends `Guy::init_real+0x52` — a
+    // birth in theirs (§153.5).
+    count: 2598,
+    sequence: 2598,
 };
 
 /// **The melee's closing state, as the `Melee:` line says it** (Loop
@@ -178,8 +186,9 @@ pub(crate) const SEA_MELEE: Melee = Melee {
 /// 352 with piece 125's (the word at 1233). Item 3854: 352 → 247 with the
 /// ship heal (the word at 1613). Item 3855: 247 → 187 with piece 144's
 /// release (the word at 1980). Item 3857: 187 → 157 with the scout's
-/// lineage test (the word at 2090).
-pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 157;
+/// lineage test (the word at 2090). Item 3860: 157 → 2 with the spiral's
+/// started-centre test (the word at 2598).
+pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 2;
 
 /// The melee's word: the lower of the two partings.
 pub(crate) const SEA_MELEE_WORD: i64 = if SEA_MELEE.count < SEA_MELEE.sequence {
@@ -215,8 +224,11 @@ fn sea_melee_first_parting() {
 /// blocks 1201, 1301 and 1401. Item 3854 moved it to 1613: 1601..1863,
 /// blocks 1601, 1701 and 1801. Item 3855 moved it to 1980: 1901..2230,
 /// blocks 1901, 2001, 2101 and 2201. Item 3857 moved it to 2090:
-/// 2001..2340, blocks 2001, 2101, 2201 and 2301.
-pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (2001, 2340);
+/// 2001..2340, blocks 2001, 2101, 2201 and 2301. Item 3860 moved it to
+/// 2598: 2501..2600, block 2501 alone — 250 past the word is beyond the
+/// game's last frame, and the closing block 2601 is
+/// [`sea_melee_run1483_s_closing_state`]'s.
+pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (2501, 2600);
 
 /// The word's window, widened whole on run1483's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -272,15 +284,15 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     // 2090 (2001..2340): the Fluyt and the cruiser agree on 2001, and what
     // parts there is the standing families and `1/6`' and `1/11`'s order
     // lists (1 against 3, 4 against 2), first parted on run1487's 1986.
-    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(w.blocks, 1, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 557, "run1483's word window");
-    pin_eq!(w.rounds_read, (9, 9), "the rounds read");
-    pin_eq!(w.rounds.len(), 10, "the rounds that part");
+    pin_eq!(w.firsts.len(), 160, "run1483's word window");
+    pin_eq!(w.rounds_read, (4, 4), "the rounds read");
+    pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }
 
 /// run1484: run1483's game with a window at every frame of 660..680 and
@@ -482,7 +494,7 @@ fn sea_melee_run1487_s_window_is_widened_whole() {
         .collect();
     pin_eq!(scouts, vec![], "the two scouts' first parted rows");
     pin_eq!(w.blocks, 26, "every block in the window");
-    pin_eq!(w.firsts.len(), 148, "run1487's window");
+    pin_eq!(w.firsts.len(), 144, "run1487's window");
     pin_eq!(w.rounds_read, (121, 121), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
@@ -525,8 +537,8 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // who 2 first, the human last — and the brackets are now handed out
     // in that order ([`crate::diff::setup::leader_visit_order`]). The
     // standing family is 12, 10 and 7; the 203 are the closing dump's.
-    pin_eq!(w.standing(), vec![12, 10, 8], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 137, "the keys that part, by seat");
+    pin_eq!(w.standing(), vec![12, 9, 6], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 4, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()
@@ -589,12 +601,12 @@ fn sea_melee_run1483_s_closing_state() {
     // personalities on their own seats: 130 compared, 474 off — 115 units
     // off, 7 unlinked, 2 extra (who 1's `0` and `54`), 6 buildings
     // unlinked and 310 diverged, 34 cities diverged.
-    pin_eq!(e.compared, 133, "units compared");
-    pin_eq!(e.counts(), [70, 4, 2, 4, 50, 0, 27], "the closing counts");
+    pin_eq!(e.compared, 136, "units compared");
+    pin_eq!(e.counts(), [0, 1, 1, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         SEA_MELEE_CLOSING_OFF,
         "the closing records off, the `Melee:` line's suffix"
     );
-    pin_eq!(e.extra.clone(), vec![(1, 0), (1, 54)], "the closing extras");
+    pin_eq!(e.extra.clone(), vec![(1, 0)], "the closing extras");
 }
