@@ -13835,10 +13835,12 @@ branch is not read. **The cheapest settle is a printed retake** (run 1495, the c
 with `TERRAIN` at detail 40 on 620. Every edge write in `mark_trans_flags` and `check_for_tendrils` is a `Log::say`
 at `GLOG_TERRAIN` 0x28, and no dump on disk prints that level. Killed by: the printed writes leaving both of C's flank
 fields at 7 with C → F 1, which would put the gate in `check_blocks` or `create_transition_renderables` instead.
-Names no score: the `Blind:` row's route.
+Names no score: the `Blind:` row's route. ~~The branch is not read~~: taken by item 3874 (run1495), the three-neighbour arm on the S flank (42, 42);
+the killer did not fire (3874a).
 
 (3871b) **(16, 45) is the same shape on the same grid** and waits on 3871a's gate. A take before that gate is named
-repeats run1494. Killed by: 3871a naming a gate that (16, 45)'s neighbourhood passes.
+repeats run1494. Killed by: 3871a naming a gate that (16, 45)'s neighbourhood passes. ~~Waits on 3871a~~: killed by item 3874, since (16, 45)'s S flank (17, 45)
+has E (18, 45) `SANDY` and sums 3 too (3874a).
 
 ## Parked by the next landing, slot ZO — reserved
 
@@ -13856,10 +13858,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZQ — reserved
+## Parked by item 3874, 2026-11-05 — the console-planted contact, printed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3874a) **No single `weather` plant on Great Lakes' golden start reaches the arm** (`docs/MAPGEN.md` §20, "The printed
+retake"). Run1495 printed the re-mark at `TERRAIN` 40 through the new `@logdetail` line. The gate is
+`check_for_tendrils`' three-neighbour arm on the S flank F2 = (42, 42): N (C), E (43, 42) `SANDY` and W (P) are one
+up, so it returns 1 and (A)'s 7 never reaches C's S field. On `OCEAN` flanks, the SW contact needs each flank's
+other two orthogonals not one up: (x − 1, y − 1) and (x − 2, y) for F1, and (x + 1, y + 1) and (x, y + 2) for F2. A
+plant only adds land, so a second plant cannot lower a sum. A scratch search of block 621's grid finds seven
+candidates and none passing. **The next route** is that search over the 86 start grids on disk (MAPGEN §19.4) and
+East Indies' 13 sites. A grid that holds a passing cell is a `weather` take at it, and the commander books the run.
+Killed by: a cell passing that search whose take prints both of C's flank fields at 7 and still does not enter
+`008595f0`; or no grid on disk passing, which leaves the arm to the multi-cell routes (3870a). Names no score: the
+`Blind:` row's route.
+
