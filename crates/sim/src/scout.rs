@@ -849,6 +849,9 @@ impl Sim {
             // (%ecx,%ecx), %eax` at `005f6bb9` — so a region-scan cell has
             // to be twice as good as a city-loop one to take the frame.
             let score = score * 2;
+            if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
+                eprintln!("PROBE score u{u} c{},{} owner{owner} cityr{} score{score} best{}", c.x, c.y, (self.world.tile_mask(tile) & tile::CITY_RADIUS != 0) as u8, scan.score);
+            }
             if score >= scan.score {
                 continue;
             }
