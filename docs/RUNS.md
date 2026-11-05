@@ -34401,3 +34401,24 @@ SHA-256 `3a32d0a2b46b03fd967a69992230aae83abdad56a0703f6aeff816b2bc43814f`.
 
 **What it holds**: the archers' arrows of 801, from (12, 66) and 101 up and (−71, 85) and 116 up, the third flying
 20 frames to the ground on 820 — the round piece 125's rows reproduce whole.
+
+## run1486 — the fourth melee at 1613: the window 1400..1502 (2026-11-05, item 3854, `att-3854`)
+
+`docs/GOLDEN.md` §153.2. **What the disk could not answer**: run1483 dumps only 1401 and 1501; the carrier `2/18`
+agrees on 1401 and stands 552 against 540 on 1501, and no record between them says which blow parts. run1483's line
+with `--log-window 1400 1502`, `--detail end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`, `--end-frame 1510`, `--callwin 0
+1510`, no stride. `df -g ~` read 110 GiB free before it.
+- Pool lane 1. Launched 02:00:47, exited 02:02:03 (76.7 s launch to exit). `success`, 1511 frames, seed 12345,
+  `page_faults` 0, no `relaunches`. `rngcmp.py` against run1483: 1511 identical. Filed with `filerun.py run1486
+  eastindies-information-melee-window-1400-1502`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1486-eastindies-information-melee-window-1400-1502.txt`, 78,969,710 bytes,
+SHA-256 `b5f56a8692821967b37a474691a4d2a3080c7243d0c56bfeb4e95be81c7cd4cc`.
+
+Archive `rontrace-run1486.log`, 30,151,904 bytes,
+SHA-256 `8c49c42bc660487399ec192a173ab6cb85c9ec47e93d6fb06993fa3219cfe5d3`.
+
+**What it holds**: the carrier `2/18`'s first parted blow on block 1435 — 6 from the Camel Corps `0/14`, whose round
+of 1430 leaves (30461, 27533, 298) and flies 6 frames in theirs (`sea_melee_run1486_s_window_is_widened_whole`: 102
+blocks, 118 keys, the rounds read (381, 382), 46 parting).
