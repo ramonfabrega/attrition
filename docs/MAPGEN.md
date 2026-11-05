@@ -196,29 +196,11 @@ Falsifier: the seed at 7805 (the three draws), and part 4 at 7805.
 
 ## 5. `make_continents` — the land/sea mask
 
-**Base, `Map::make_continents@00694ab0`** (no override in the corpus calls
-it; no trace enters it). It builds four `Fractal`s on private `Random`s
+**Base, `Map::make_continents@00694ab0`** (no lobby reaches it, §18.1;
+no trace enters it). It builds four `Fractal`s on private `Random`s
 seeded from `World.seed` × 19, 29, 31 and 37, with smoothing 3, 4, 2 and 4.
 It mixes B and C into A. A cell is water (`land` 2) where A's height is
 below 55, land (0) otherwise; D is never read. **No `game_random` draw.**
-
-**No lobby can enter it** (item 3856, reading-only). `Map::make@0068bc90`
-reaches the mask only through vtable slot +0x40, and `Map::new_map@006a0950`
-builds one class per style 6–0x1a. Every random-map class overrides +0x40;
-`MapConquestSea` inherits `MapConquest`'s. The base entry sits in only two
-vtables, `Map::vftable` (no `new_map` case leaves it installed) and
-`MapScenario::vftable` (style 0x1a). `MapScenario` overrides +0x64 with
-`MapScenario::make@0068c8f0`, which makes no indirect call through +0x40,
-+0x64 or +0x68 (listing 0x68c8f0..0x68d1a0). The one dispatcher of +0x64 on
-`game_map` is `Setup::build_game@005ac190` (line 271), alongside
-`ScenarioEditor::generate_map@009a0950`. The other route to +0x40,
-`Map::run_map_script@0068c870` (slot +0x68), has no dispatch on `game_map`
-in the export. So the base body is a **`blind::RESIDUE` candidate**, kept
-out by the predicate "every `new_map` class but `MapScenario` overrides
-+0x40, and `MapScenario::make` never dispatches it". What would kill the
-claim: a `cover=1` trace of any lobby whose function list holds
-`00694ab0`, or a `+0x68` dispatch on a map found by
-`report.py <exe> refs 0068c870`. It has a second reading still to come.
 
 **Great Sahara, `MapGreatSahara::make_continents@0069bf70`: exactly 4
 draws.** Two make the angle (`(r % 0xffff) << 16 + r % 0xffff`) and two
@@ -405,44 +387,8 @@ inverted, so each island's region number stands in its cells at 7807.
   the four-player angle are unit-tested only (3820a).
 
 The other overrides were only skimmed. `MapWarringStates` alone calls
-`MapFairness::calc_distances@0068a1c0` (float, §11).
-`Map::force_continent_spacing@0068e6a0` has no caller in the export.
-
-**Item 3856 corrects that** (reading-only): it has exactly one caller,
-`ScenarioEditor::import_image@009a3f30` (call at 0x9a4420; the listing holds
-no other `call`, `jmp` or immediate copy of the address). The scenario
-editor is cut from v1, so no lobby enters it. It is a **`blind::RESIDUE`
-candidate** whose predicate is "only the editor's image import calls it".
-What would kill the claim: a `refs 0068e6a0` hit outside
-`ScenarioEditor`.
-
-**`MapFairness::calc_distances@0068a1c0`, the Warring States entry**
-(reading; **run1122 enters it**, a `cover=1` trace of style 15, seed 12345,
-click-free pool, archived and not in `blind::TRACES`).
-- It is called once, at 0x699a8a in `MapWarringStates::make_continents@00698b60`,
-  inside the start-placement loop (the loop runs when `param_1` ≠ 0, the
-  nation count). The loop draws a radius `r % 55 + 193`, takes its integer
-  square root, and sets `local_18 = max((avoid_continent + isqrt) / 2, 5)`.
-  It then walks a candidate ring from one draw's offset. A candidate first
-  passes `Map::land_dist(.., 1) ≥ local_18`, then is scored.
-- For each team member, the score is dx = |start x − cx| and dy the same
-  for y. With M the larger and m the smaller, it is
-  `M + m²/(2M)` (or `(m + 2M)/2` once m ≥ 60000; 0 when M is 0).
-  `dists[team] = (float)score · w`, where w is xmm3 = `[0xb69514]` = **1.0f**
-  (read off the PE bytes). So every float here is an exact integer below
-  2²⁴. Then `lowest_dist` (+0x4c) and `highest_dist` (+0x50) take the
-  argmin and argmax team index. Those are the type record's names, though
-  the fields hold indices. The compares are strict, `<` from 0x5368d4a5 and
-  `>` from 0, so the first in team order wins a tie.
-- The loop breaks on `local_34 ≠ 0` or `+0x4c == highest_player (+0x48)`,
-  as the decompile has it; that compare has not been listing-read. Then
-  `fairness[team] += dists`.
-
-So §11's "float, single" row is **integer-exact on its one call site**.
-What would kill the claim: a Warring States checksum trace whose seed and
-part 2 at 7807 part from an integer port of this scorer. The lobby is
-run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
-`WORLD` dump.
+`MapFairness::calc_distances@0068a1c0` (integer-exact, §18.2).
+`Map::force_continent_spacing@0068e6a0`: editor-only (§18.1).
 
 Falsifier: seed and parts 2 and 5 at 7807, per style. All seven runs in §2
 check it, and the fourteen single-dump styles check the final grid only.
@@ -669,56 +615,8 @@ the first difference (`TerrainGroups.cpp`): detail 5 at 2076, 2079, 2097,
 **Cliffs.** Type-8 groups reach `Cliffs::position_cliff@008a8bc0` (one
 draw when two or more templates fit) and
 `Cliffs::verify_defensive_position@008a8680`, the one libm transcendental
-on a data path (§11). **No trace enters either**, and none enters
-`Cliffs::place_cliff@008a7ea0`. As read, no corpus tileset places a cliff
-group.
-
-**Item 3856, the cliff chain read (reading-only; run1118 enters all three).**
-- **Which style enters it.** In the install's `mapstyles/`, with comments
-  stripped, only `SOUTHWESTMESA.xml` (style 10, `MapSouthwestMesa`) carries
-  a live `<GROUPENTRY type="cliffs">`. It has five: two with
-  `pattern="player"` (`cliff_face` 1 and 2) and three with
-  `pattern="world"` (`cliff_face` 2). `default.xml` has two, but every
-  style carries its own `TERRAIN_GROUPS`, so `tileset_groups` never falls
-  back to them. The two in `CONQUESTMAP*.xml` are commented out.
-- **The entry.** `TerrainGroup::drop_tile@006a2ab0`'s type-8 case calls
-  `Cliffs::position_cliff(x, y, template = size − 1, −1, −1, 0,
-  FACE_WORLD_CENTER, ..)` (0x6a2c6b). `place_player_group@006a4190` calls
-  `verify_defensive_position` (0x6a4a0b), then `position_cliff` (0x6a4a51),
-  and on type 8 widens the ring's inner bound by one (`param_3 − 1`).
-- **`position_cliff@008a8bc0`.** With `param_6` = 0, a wanted facing is
-  read from the 2×2 table `[0xb69908]` by the signs of the offset from
-  (`param_4`, `param_5`). With `param_6` ≠ 0, a facing below `FACE_ANY` (2)
-  measures against the map centre, and `FACE_ANY` asks for facing 1. The
-  wanted facing is −1 when `param_4` is −1, which matches any. Each
-  template of the size whose facing matches and that passes
-  `Cliffs::verify_placement@008a6310` joins a list. If the list holds two
-  or more, one `game_random` draw picks one (`r % n`); one entry is taken
-  without a draw. Then `Cliffs::add_cliff@008a6690` queues it.
-- **`verify_defensive_position@008a8680`.** It returns 1 for `FACE_ANY`
-  with no float. Otherwise it takes the angle between (target − cell) and
-  (cell → the cliff's point), each a single-float vector normalised by
-  `1/sqrtf` unless len² is 0 or 1. The angle is
-  `|(float)acos(dot) · 57.29578|`, where acos is `_libm_sse2_acos_precise`
-  in double. It passes when the angle is below **22.5°** (`0x41b40000`)
-  for `FACE_WORLD_CENTER`, with the target at (xs/2, ys/2). It passes below
-  **17.5°** (`0x418c0000`) for the other facing, with the target at the
-  mean of the starts: Σx / `World+0x84` but Σy / `World+0xa0`, two
-  different counts as read, not settled.
-- **`place_cliff@008a7ea0`.** It is called by `Cliffs::init@008a8020` (and
-  by `ConsoleWin::run_cmd`) once per queued cliff, so it is entered exactly
-  when `add_cliff` queued one. Over the template's
-  `index_to_size[t]`² vertex box at `offtable[t]`, it skips vertices whose
-  cell is off-map, carries 0x10, or is dry-skipped (no 0x100 and `land` 1
-  or 2). On a cell with no 0x1000 and tile mask bit 4 clear, it adds the
-  template's float offset to the height vertex. **No draw.** `Cliffs::init`
-  then stamps the cliff's index into each footprint cell's tile +0x6a.
-- **What would kill these claims.** run1118's function list already holds
-  `008a8bc0`, `008a8680` and `008a7ea0`. A Southwest Mesa lobby at
-  `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start `WORLD`
-  dump (run1118's click-free line with the checksum detail added) parts
-  at 7859 (`place_all`'s draws) if the template draw is wrong. It parts at
-  894 (part 5, the heights) if `place_cliff`'s offsets are wrong.
+on a data path (§11). No trace in `TRACES` enters either, or
+`Cliffs::place_cliff@008a7ea0`; run1118 (Southwest Mesa) enters all three (§18.3).
 
 Then:
 - `Map::check_player_forest@0068e8f0` draws nothing, but it can write.
@@ -1188,16 +1086,8 @@ sync stream. In order:
     cliff where a tile's corner heights span more than
     **192·tanf(25°) = 89.531075f** (`TerrainOut::has_plus_slope@00869790`),
     which blocks it and moves goodies (`Terrain::move_goody@0084a3d0`).
-    It is tested only on cells with flag 0x40, and no trace in
-    `blind::TRACES` enters the slope test (§13). **run1118 enters it**
-    (Southwest Mesa, item 3856), which is the one shipped style with a
-    live cliff group (§7). As read: the four corner vertices of the tile,
-    at stride `4·xs + 1`, are each clamped to ±10000. The test passes when
-    max − min > 192 · tanf(angle · 0.017453292), with the angle in xmm3
-    from `assess_wcoord`. It writes min and max through the two out
-    pointers. What would kill it: a Southwest Mesa start dump with 0x40
-    cells (zero on all three closed maps' 205 files) whose `blocked` cells
-    or part 5/6 at 894 part from a port that applies this test.
+    It is tested only on cells with flag 0x40, and only run1118
+    enters the test (§18.4).
 - 894 → 933: surf (built and closed), borders, and `refresh_good_z`, the
   integer object z from `TerrainOut::find_data_z@00866560`.
 
@@ -1439,8 +1329,8 @@ reachable set.
 | `place_all`'s pattern-2/3 weights (only when `clumps > 6 && regions < 6`) | single: `cvtdq2ps`, an `addss` sum in list order, `divss` then `mulss`, `cvttss2si` (0x6a7e24..0x6a7f29) | correctly rounded | a draw's modulus and the order | 19: `sim::single`, in the port; on Great Sahara one region, so the weight is `n` exactly |
 | the heights (`generate_land` … `relax_aquatic_verts`) | single, sqrt through `_libm_sse2_sqrt_precise` (equal to a correctly rounded sqrt) | correctly rounded | half-land (§10), cliffs, rivers, object z | 19, and its software single (`sim::single`); the fractals' bilinear sample in a software double (`sim::double`, item 3812); the shore blend, smoothing and coastal pass the same (item 3835) |
 | `TerrainOut::has_plus_slope@00869790` | `tanf(25°)` | **transcendental**, constant argument | the cliff threshold 89.531075f (`0x42b30fe9`) | **13**: pin it; the double result sits 0.30 ulp from the float, so a faithful libm agrees |
-| `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: no trace in `TRACES` reaches it, and run1118 (Southwest Mesa, the one cliff style) does (§7, item 3856) |
-| `MapFairness::calc_distances@0068a1c0` | single, but an integer score × 1.0f | **exact** (every value is an integer below 2²⁴) | Warring States only (run1122 enters it) | 19; integer-exact as read (§5, item 3856) |
+| `Cliffs::verify_defensive_position@008a8680` | `sqrtf`, then **`acos`** ×57.29578 against 22.5° or 17.5° | **transcendental, data-dependent** | whether a cliff group places | **neither**: no trace in `TRACES` reaches it, and run1118 (Southwest Mesa, the one cliff style) does (§18.3, item 3856) |
+| `MapFairness::calc_distances@0068a1c0` | single, but an integer score × 1.0f | **exact** (every value is an integer below 2²⁴) | Warring States only (run1122 enters it) | 19; integer-exact as read (§18.2, item 3856) |
 
 The `acos` site is the only one no decision covers. It is unreached on
 every corpus map. It names DECISIONS work for the day a cliff tileset is
@@ -1617,19 +1507,19 @@ the trace scan covered every `rontrace-*.log` under `~/ron-data`):
 
 | function | what enters it | the take | verdict |
 |---|---|---|---|
-| `Map::make_continents@00694ab0` | nothing: only `MapScenario` keeps the slot, and its `make` never dispatches +0x40 (§5) | none | `RESIDUE` candidate |
+| `Map::make_continents@00694ab0` | nothing: only `MapScenario` keeps the slot, and its `make` never dispatches +0x40 (§18.1) | none | `RESIDUE` candidate |
 | `Map::force_continent_spacing@0068e6a0` | `ScenarioEditor::import_image` only (§5) | none, since the editor is cut | `RESIDUE` candidate |
 | `MapFairness::calc_distances@0068a1c0` | every Warring States lobby with nations (style 15) | **run1122, on disk**: join `TRACES` | entered |
 | `Cliffs::position_cliff@008a8bc0` | Southwest Mesa's type-8 groups (style 10) | **run1118, on disk** | entered |
 | `Cliffs::verify_defensive_position@008a8680` | Mesa's `pattern="player"` cliffs | run1118 | entered |
 | `Cliffs::place_cliff@008a7ea0` | any queued cliff, through `Cliffs::init` | run1118 | entered |
-| `TerrainOut::has_plus_slope@00869790` | a 0x40 cell, which Mesa's cliffs make | run1118 | entered |
+| `TerrainOut::has_plus_slope@00869790` | a 0x40 cell, which Mesa's cliffs make (§18.4) | run1118 | entered |
 
 Five of the seven need **no capture**. Adding `rontrace-run1118.log` and
 `rontrace-run1122.log` to `blind::TRACES` takes them off `NEVER` (and
 whatever else those two enter). A value diff of the cliff chain is a
 second item: a Southwest Mesa checksum capture at `check_all_level ≥ 14`
-whose falsifiers are 7859 and 894 (§7, §10).
+whose falsifiers are 7859 and 894 (§18.3, §18.4).
 
 ## 14. What is not established
 
@@ -1651,10 +1541,10 @@ whose falsifiers are 7859 and 894 (§7, §10).
   maps and would part on a non-square one.
 - The 0x40 offset of §3's parts 10–13.
 - `verify_defensive_position`'s players-centre target divides Σx by
-  `World+0x84` and Σy by `World+0xa0` (§7, item 3856). Whether the two
-  counts are ever unequal is unread.
+  `World+0x84` and Σy by `World+0xa0` (§18.3, item 3856). Whether the two
+  counts are ever unequal is unread (§18.3).
 - Warring States' fairness break compares +0x4c with +0x48 as the
-  decompile prints it, and the compare is not listing-read (§5).
+  decompile prints it, and the compare is not listing-read (§18.2).
 - Whether `create_doobers`' rock-bit test decides a height: every
   Great Sahara oil cell carries the rock bit, so the conjunction is
   untested there. The flag-1 arm (a good the console's leader cannot
@@ -1921,3 +1811,128 @@ at 894 agree on all 205 files and every vertex of the 57 start grids
   runs, so its predicate and its `CoordInfo` clear are read by nothing),
   the troughs and `move_goody`'s oil arm (no river), and `Cliffs::init`'s
   slope test (no 0x40 cell on any of 205 start dumps).
+
+## 18. The never-entered seven: entry and falsifiers
+
+Item 3856 read the seven functions `blind::NEVER`'s 256 row named, using
+the decompile, the listing and the install's `mapstyles/`, and took no
+capture. Every claim here is reading-only (§13's verdict table), unless
+it names the trace that enters it.
+
+### 18.1 The base mask and the continent spacing
+
+`Map::make_continents@00694ab0`: **No lobby can enter it** (item 3856, reading-only). `Map::make@0068bc90`
+reaches the mask only through vtable slot +0x40, and `Map::new_map@006a0950`
+builds one class per style 6–0x1a. Every random-map class overrides +0x40;
+`MapConquestSea` inherits `MapConquest`'s. The base entry sits in only two
+vtables, `Map::vftable` (no `new_map` case leaves it installed) and
+`MapScenario::vftable` (style 0x1a). `MapScenario` overrides +0x64 with
+`MapScenario::make@0068c8f0`, which makes no indirect call through +0x40,
++0x64 or +0x68 (listing 0x68c8f0..0x68d1a0). The one dispatcher of +0x64 on
+`game_map` is `Setup::build_game@005ac190` (line 271), alongside
+`ScenarioEditor::generate_map@009a0950`. The other route to +0x40,
+`Map::run_map_script@0068c870` (slot +0x68), has no dispatch on `game_map`
+in the export. So the base body is a **`blind::RESIDUE` candidate**, kept
+out by the predicate "every `new_map` class but `MapScenario` overrides
++0x40, and `MapScenario::make` never dispatches it". What would kill the
+claim: a `cover=1` trace of any lobby whose function list holds
+`00694ab0`, or a `+0x68` dispatch on a map found by
+`report.py <exe> refs 0068c870`. It has a second reading still to come.
+
+`Map::force_continent_spacing@0068e6a0`: **Item 3856 corrects that** (reading-only): it has exactly one caller,
+`ScenarioEditor::import_image@009a3f30` (call at 0x9a4420; the listing holds
+no other `call`, `jmp` or immediate copy of the address). The scenario
+editor is cut from v1, so no lobby enters it. It is a **`blind::RESIDUE`
+candidate** whose predicate is "only the editor's image import calls it".
+What would kill the claim: a `refs 0068e6a0` hit outside
+`ScenarioEditor`.
+
+### 18.2 Warring States' fairness distances
+
+**`MapFairness::calc_distances@0068a1c0`, the Warring States entry**
+(reading; **run1122 enters it**, a `cover=1` trace of style 15, seed 12345,
+click-free pool, archived and not in `blind::TRACES`).
+- It is called once, at 0x699a8a in `MapWarringStates::make_continents@00698b60`,
+  inside the start-placement loop (the loop runs when `param_1` ≠ 0, the
+  nation count). The loop draws a radius `r % 55 + 193`, takes its integer
+  square root, and sets `local_18 = max((avoid_continent + isqrt) / 2, 5)`.
+  It then walks a candidate ring from one draw's offset. A candidate first
+  passes `Map::land_dist(.., 1) ≥ local_18`, then is scored.
+- For each team member, the score is dx = |start x − cx| and dy the same
+  for y. With M the larger and m the smaller, it is
+  `M + m²/(2M)` (or `(m + 2M)/2` once m ≥ 60000; 0 when M is 0).
+  `dists[team] = (float)score · w`, where w is xmm3 = `[0xb69514]` = **1.0f**
+  (read off the PE bytes). So every float here is an exact integer below
+  2²⁴. Then `lowest_dist` (+0x4c) and `highest_dist` (+0x50) take the
+  argmin and argmax team index. Those are the type record's names, though
+  the fields hold indices. The compares are strict, `<` from 0x5368d4a5 and
+  `>` from 0, so the first in team order wins a tie.
+- The loop breaks on `local_34 ≠ 0` or `+0x4c == highest_player (+0x48)`,
+  as the decompile has it; that compare has not been listing-read. Then
+  `fairness[team] += dists`.
+
+So §11's "float, single" row is **integer-exact on its one call site**.
+What would kill the claim: a Warring States checksum trace whose seed and
+part 2 at 7807 part from an integer port of this scorer. The lobby is
+run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
+`WORLD` dump.
+
+### 18.3 The cliff chain
+
+**Item 3856, the cliff chain read (reading-only; run1118 enters all three).**
+- **Which style enters it.** In the install's `mapstyles/`, with comments
+  stripped, only `SOUTHWESTMESA.xml` (style 10, `MapSouthwestMesa`) carries
+  a live `<GROUPENTRY type="cliffs">`. It has five: two with
+  `pattern="player"` (`cliff_face` 1 and 2) and three with
+  `pattern="world"` (`cliff_face` 2). `default.xml` has two, but every
+  style carries its own `TERRAIN_GROUPS`, so `tileset_groups` never falls
+  back to them. The two in `CONQUESTMAP*.xml` are commented out.
+- **The entry.** `TerrainGroup::drop_tile@006a2ab0`'s type-8 case calls
+  `Cliffs::position_cliff(x, y, template = size − 1, −1, −1, 0,
+  FACE_WORLD_CENTER, ..)` (0x6a2c6b). `place_player_group@006a4190` calls
+  `verify_defensive_position` (0x6a4a0b), then `position_cliff` (0x6a4a51),
+  and on type 8 widens the ring's inner bound by one (`param_3 − 1`).
+- **`position_cliff@008a8bc0`.** With `param_6` = 0, a wanted facing is
+  read from the 2×2 table `[0xb69908]` by the signs of the offset from
+  (`param_4`, `param_5`). With `param_6` ≠ 0, a facing below `FACE_ANY` (2)
+  measures against the map centre, and `FACE_ANY` asks for facing 1. The
+  wanted facing is −1 when `param_4` is −1, which matches any. Each
+  template of the size whose facing matches and that passes
+  `Cliffs::verify_placement@008a6310` joins a list. If the list holds two
+  or more, one `game_random` draw picks one (`r % n`); one entry is taken
+  without a draw. Then `Cliffs::add_cliff@008a6690` queues it.
+- **`verify_defensive_position@008a8680`.** It returns 1 for `FACE_ANY`
+  with no float. Otherwise it takes the angle between (target − cell) and
+  (cell → the cliff's point), each a single-float vector normalised by
+  `1/sqrtf` unless len² is 0 or 1. The angle is
+  `|(float)acos(dot) · 57.29578|`, where acos is `_libm_sse2_acos_precise`
+  in double. It passes when the angle is below **22.5°** (`0x41b40000`)
+  for `FACE_WORLD_CENTER`, with the target at (xs/2, ys/2). It passes below
+  **17.5°** (`0x418c0000`) for the other facing, with the target at the
+  mean of the starts: Σx / `World+0x84` but Σy / `World+0xa0`, two
+  different counts as read, not settled.
+- **`place_cliff@008a7ea0`.** It is called by `Cliffs::init@008a8020` (and
+  by `ConsoleWin::run_cmd`) once per queued cliff, so it is entered exactly
+  when `add_cliff` queued one. Over the template's
+  `index_to_size[t]`² vertex box at `offtable[t]`, it skips vertices whose
+  cell is off-map, carries 0x10, or is dry-skipped (no 0x100 and `land` 1
+  or 2). On a cell with no 0x1000 and tile mask bit 4 clear, it adds the
+  template's float offset to the height vertex. **No draw.** `Cliffs::init`
+  then stamps the cliff's index into each footprint cell's tile +0x6a.
+- **What would kill these claims.** run1118's function list already holds
+  `008a8bc0`, `008a8680` and `008a7ea0`. A Southwest Mesa lobby at
+  `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start `WORLD`
+  dump (run1118's click-free line with the checksum detail added) parts
+  at 7859 (`place_all`'s draws) if the template draw is wrong. It parts at
+  894 (part 5, the heights) if `place_cliff`'s offsets are wrong.
+
+### 18.4 The slope test
+
+`TerrainOut::has_plus_slope@00869790`: **run1118 enters it** (Southwest Mesa), which is the one shipped style with a
+live cliff group (§7). As read: the four corner vertices of the tile,
+at stride `4·xs + 1`, are each clamped to ±10000. The test passes when
+max − min > 192 · tanf(angle · 0.017453292), with the angle in xmm3
+from `assess_wcoord`. It writes min and max through the two out
+pointers. What would kill it: a Southwest Mesa start dump with 0x40
+cells (zero on all three closed maps' 205 files) whose `blocked` cells
+or part 5/6 at 894 part from a port that applies this test.

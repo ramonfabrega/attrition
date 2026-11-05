@@ -13617,12 +13617,12 @@ enter, still to be measured. The take is a coverage item (MAPGEN §13's verdict 
 dump and no checksum trace. A Mesa lobby at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start `WORLD` dump
 falsifies `position_cliff`'s template draw at 7859 and `place_cliff`'s height offsets and the slope test at 894 (part 5/6,
 the 0x40 count). It is a fourth map chain's first capture, which names a score only once the chain is booked
-(MAPGEN §7, §10).
+(MAPGEN §18.3, §18.4).
 
 (3856c) **Two `RESIDUE` candidates, one reading each.** `Map::make_continents@00694ab0`: only `MapScenario` keeps the
 base +0x40, and `MapScenario::make@0068c8f0` never dispatches it. `Map::force_continent_spacing@0068e6a0`: its one caller
 is `ScenarioEditor::import_image@009a3f30`, and the editor is cut. Each needs the blind second reading before it is a
-`RESIDUE` row (MAPGEN §5).
+`RESIDUE` row (MAPGEN §18.1).
 
 ## Parked by the next landing, slot ZA — reserved
 
