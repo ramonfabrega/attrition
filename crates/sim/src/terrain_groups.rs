@@ -2354,6 +2354,79 @@ fn nubify_transitions(g: &mut MapGrid, d: &mut Draws, n: u8) {
 mod tests {
     use super::*;
 
+    /// `init_templates`' height arm in native single precision, the test
+    /// oracle for [`cliff_cells`]: `byte · (1/255) · 480`, each cell's 6 × 6
+    /// window from pixel `4c − 1`, 0 off the texture, max from 0 and min
+    /// from 480, covered when the span exceeds 192.
+    fn heights_oracle(width: i32, px: &[[u8; 2]]) -> Vec<(i32, i32)> {
+        let n = width >> 2;
+        let h = |r: i32, c: i32| -> f32 {
+            if r < 0 || c < 0 || r >= width || c >= width {
+                return 0.0;
+            }
+            f32::from(px[(r * width + c) as usize][0]) * f32::from_bits(0x3b80_8081) * 480.0
+        };
+        let mut out = Vec::new();
+        for cy in 0..n {
+            for cx in 0..n {
+                let (mut hi, mut lo) = (0.0f32, 480.0f32);
+                for r in 4 * cy - 1..=4 * cy + 4 {
+                    for c in 4 * cx - 1..=4 * cx + 4 {
+                        hi = hi.max(h(r, c));
+                        lo = lo.min(h(r, c));
+                    }
+                }
+                if hi - lo > 192.0 {
+                    out.push((cx, cy));
+                }
+            }
+        }
+        out
+    }
+
+    /// **The cliff mask's height arm** (`docs/MAPGEN.md` §18.3, item 3875):
+    /// on textures with no zero alpha — the arm only six of
+    /// `Data/Cliffs.xml`'s 32-pixel templates take, and none run1493's
+    /// stream decides — [`cliff_cells`] is the oracle's set, over a step
+    /// either side of the real-number boundary (Δ = 102 is 192 exactly) at
+    /// every offset, a step one pixel past the window, and seeded noise.
+    #[test]
+    fn the_cliff_mask_s_height_arm_is_single_precision() {
+        let flat = |w: i32, v: u8| vec![[v, 0xff]; (w * w) as usize];
+        let mut cases = Vec::new();
+        for lo in 0..=152u8 {
+            for d in [101u8, 102, 103] {
+                let mut px = flat(16, lo);
+                px[5 * 16 + 6] = [lo + d, 0xff];
+                cases.push(px);
+            }
+        }
+        // A spike at pixel (4, 3) is inside the windows of cells 0 and 1
+        // both ways (pixels −1..=4 and 3..=8), one at (8, 8) inside cells
+        // 1..=2's.
+        for at in [(4, 3), (8, 8), (0, 0), (15, 15)] {
+            let mut px = flat(16, 0);
+            px[at.1 * 16 + at.0] = [200, 0xff];
+            cases.push(px);
+        }
+        let mut rng = Rng::new(3875);
+        for _ in 0..200 {
+            cases.push(
+                (0..256)
+                    .map(|_| [(rng.roll() & 0xff) as u8, 0xff])
+                    .collect(),
+            );
+        }
+        for (k, px) in cases.iter().enumerate() {
+            assert_eq!(cliff_cells(16, px), heights_oracle(16, px), "case {k}");
+        }
+        assert_eq!(
+            cliff_cells(16, &cases[cases.len() - 204]),
+            vec![(0, 0), (1, 0), (0, 1), (1, 1)],
+            "a spike at (4, 3) reaches four windows"
+        );
+    }
+
     /// `randomize_mountains` on run1000's two words (`docs/MAPGEN.md` §7):
     /// the small ring holds one range and draws nothing; 1131 % 8 seats the
     /// medium ring on range 11 and 13530 % 7 the large on range 0, and
@@ -2399,6 +2472,7 @@ mod tests {
                 g,
                 d,
                 templates: &[],
+                cliffs: Default::default(),
                 rings: Rings::stock(),
                 help: Help::default(),
                 marks: Vec::new(),
