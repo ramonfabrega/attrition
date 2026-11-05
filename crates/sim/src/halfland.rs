@@ -585,6 +585,31 @@ impl<'a> Pass<'a> {
         }
     }
 
+    /// **`Terrain::spot_update_land_batch@0084d540`**: each listed cell
+    /// whose `land` or `land_sub` differs takes `land_sub`, then `land`
+    /// (a negative value not written); then `verify_land(land, sub)` on
+    /// every listed cell, repeats included, each from the batch's own pair.
+    /// The render lists it rebuilds are not walked by any part.
+    pub fn spot_update_land_batch(
+        &mut self,
+        cells: &[(i32, i32)],
+        land: i32,
+        sub: i32,
+    ) -> Result<(), Unported> {
+        for &(x, y) in cells {
+            let i = self.at(x, y);
+            let c = self.g.cells[i];
+            if c.land as i32 != land || c.land_sub as i32 != sub {
+                self.set_land(i, land, sub);
+            }
+        }
+        for &(x, y) in cells {
+            let (mut l, mut s) = (land, sub);
+            self.verify_land(x, y, &mut l, &mut s);
+        }
+        self.refusals()
+    }
+
     /// **`Terrain::convert_beach_to_sandy@0084b8e0`** (815 → 5012), y outer,
     /// x inner: a `BASELAND` cell with an `OCEAN` cell among `move[1..9]`
     /// goes through `spot_update_land(x, y, 1, 0)` and clears `CoordInfo`
