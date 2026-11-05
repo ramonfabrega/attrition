@@ -6200,8 +6200,8 @@ mod tests {
     /// The §15 phases this module checks on Southwest Mesa: the mask (7807),
     /// the zero-draw passes (7835..7854, item 3872), `place_all` with
     /// the cliffs (7859, item 3875), and its tail and the resources
-    /// (7861..7927, item 3878).
-    const SOUTHWEST_MESA_CHECKED: i64 = 4;
+    /// (7861..7927, item 3878), and the values (7937, 7945, item 3882).
+    const SOUTHWEST_MESA_CHECKED: i64 = 5;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -6766,11 +6766,92 @@ mod tests {
                 tiles(0x2000),
                 cliff_tiles.len()
             );
+            // The placed ranges' tiles `Mountains::set_edge_flags` reads:
+            // how many hold 0x8000, and how many of those lie in a forest
+            // cell, which the forest pass marks again.
+            let range_tiles: Vec<usize> = grid
+                .mountains
+                .iter()
+                .flat_map(|&(mx, my, r)| {
+                    inputs.templates[r]
+                        .tiles
+                        .iter()
+                        .map(move |&(tx, ty)| ((ty + 4 * my) * txs + tx + 4 * mx) as usize)
+                })
+                .collect();
+            let range_marked = range_tiles
+                .iter()
+                .filter(|&&t| grid.tiles[t] & 0x8000 != 0)
+                .count();
+            let range_in_forest = range_tiles
+                .iter()
+                .filter(|&&t| {
+                    let (tx, ty) = (t as i32 % txs, t as i32 / txs);
+                    grid.tiles[t] & 0x8000 != 0
+                        && grid.cells[((ty / 4) * grid.xs + tx / 4) as usize].flags & 0x20 != 0
+                })
+                .count();
+            eprintln!(
+                "{name} at 7937: {} placed ranges, {} range tiles, {range_marked} with 0x8000, \
+                 {range_in_forest} of those in a forest cell",
+                grid.mountains.len(),
+                range_tiles.len()
+            );
             check(&grid, &d, 0, 7937);
+            // `compute_val`'s food slots per dry cell (`get_land(…, 1)`'s
+            // record over rings 3 and 4, a 0x1000 centre tile skipped): the
+            // fewest, and the cells at exactly 5, where `> 4` and `> 5` part.
+            let record = |c: &sim::mapgen::WCell| -> usize {
+                let f = c.flags;
+                if f & 4 != 0 {
+                    3
+                } else if f & 0x20 != 0 {
+                    4
+                } else if f & 0x50 != 0 {
+                    5
+                } else if f & sim::terrain_groups::flag::ROCK != 0 {
+                    6 + usize::from(f & sim::terrain_groups::flag::OIL != 0)
+                } else {
+                    c.land as usize
+                }
+            };
+            let t = sim::scout::circle::table();
+            let food: Vec<usize> = (0..grid.cells.len())
+                .map(|i| {
+                    let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
+                    (t.radius[2]..t.radius[4])
+                        .map(|k| {
+                            (
+                                x + i32::from(t.x[k as usize]),
+                                y + i32::from(t.y[k as usize]),
+                            )
+                        })
+                        .filter(|&(u, v)| u >= 0 && v >= 0 && u < grid.xs && v < grid.ys)
+                        .filter(|&(u, v)| {
+                            grid.tiles[((4 * v + 2) * txs + 4 * u + 2) as usize] & 0x1000 == 0
+                        })
+                        .map(|(u, v)| {
+                            let c = &grid.cells[(v * grid.xs + u) as usize];
+                            makes[record(c)].iter().filter(|&&m| m == 0).count()
+                        })
+                        .sum()
+                })
+                .collect();
+            eprintln!(
+                "{name} at 7937: food slots fewest {:?}, cells at exactly 5: {}",
+                food.iter().min(),
+                food.iter().filter(|&&n| n == 5).count()
+            );
             let before = d.log.len();
             compute_all_vals(&mut grid, &mut d, &makes);
             let dry = grid.cells.iter().filter(|c| !c.is_ocean()).count();
             assert_eq!(d.log.len() - before, dry, "one draw a non-water cell");
+            let wets = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & 0x100 != 0 || c.land == 1 || c.land == 2)
+                .count();
+            eprintln!("{name} at 7945: wet cells (HALFLAND, SANDY, OCEAN) {wets}");
             let mut region_size = [0i32; 0x80];
             for c in &grid.cells {
                 region_size[c.region as usize] += 1;
