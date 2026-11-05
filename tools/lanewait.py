@@ -70,6 +70,15 @@ And the lines that are not exits — the wait goes on past each:
                                              the same for a push whose newest commit
                                              adds a landing's `Lane verdict:` to the
                                              item's journal (stdout; Loop 3817)
+       GATING <lane> <branch> <old>..<new> — pushed with its lane gate still running; held, not armed (Loop 3833)
+                                             an --arm-after-push lane's push with a
+                                             gate under its session (stdout, once):
+                                             never armed while the gate lives; read
+                                             again at its exit, where the quote decides
+       PUSHED <lane> … — its journal is no draft and quotes no lane gate yet; a landing, not armed (Loop 3833)
+                                             a push that would be armed whose journal's
+                                             head never says `draft` (stdout): the row
+                                             stopping is its LANDED
        GATING <lane> <state> — <command> (<n> min); held, read again at its exit
                                              a row out of `working` with a gate running
                                              under its session (stderr; Loop 3753):
@@ -223,6 +232,26 @@ commander's nudge never reaches it (Loop 3796: a hand-armed clear
 fired, and the nudge the STALLED asked for reached the fresh session,
 which idled on it); a refused arm leaves the stall to the commander,
 and it exits STALLED as before.
+
+And a landing pushed before its gate exits is never armed (Loop 3833,
+the sixty-fifth pass): `DEEP lane-3829 300k` and `DEEP lane-3836 305k`
+were answered and re-armed `--arm-after-push`, and each lane's next
+push was its landing (6a4346518, 487fd0337) with its lane gate still
+running — Loop 3817's quote comes after the gate — and both waits were
+stopped by hand before they armed. Of the thirteen DEEP lanes of the
+sixty-third to sixty-fifth tranches, four next pushes were landings
+(3779, 3782, 3829, 3836), each with its gate running, and nine were
+drafts with none; every draft's pushed journal says `draft` in its
+first six lines and no landing's does. So a pending lane's push with a
+gate under its session (`gate_under`, GATING's detector) is held and
+said once, whatever the row reads, and read again at the gate's exit;
+and a push that would be armed whose journal on the tip is no draft is
+a landing, never armed. A journal that says `draft`, or none on the
+tip, arms as before.
+
+And a name's tree is its newest row's (Loop 3838): `--replace` leaves
+the stopped row listed, and its tree once lent a live lane the two
+permanent rows as second rows.
 
 And the first line is the waiter's own (Loop 3716, the sixtieth pass):
 fourteen of the sixtieth tranche's thirty-four logs and nine of the
@@ -777,7 +806,8 @@ def second_rows(trees, lanes):
 
 def roster():
     """Each named session's (state, cwd, branch, startedAt, detail), by name,
-    and every row's tree under `roster.trees`; None when ccc did not answer."""
+    and every name's tree under `roster.trees` — its newest row's, as its
+    state is; None when ccc did not answer."""
     out = subprocess.run(['ccc', 'list', '--json'], capture_output=True, text=True, check=False).stdout
     try:
         rows = json.loads(out)
@@ -789,9 +819,12 @@ def roster():
         name = session.get('name')
         if not name:
             continue
-        trees[name] = session.get('cwd')
-        # A name's newest row wins: `--replace` leaves the stopped one listed.
+        # A name's newest row wins, by `startedAt` and never by list order:
+        # `--replace` leaves the stopped one listed, and its tree is not the
+        # live row's (Loop 3838: a stopped `lane-3835` on the integration
+        # tree lent it `commander` and `steer` as second rows).
         if name not in found or session.get('startedAt', '') > found[name][3]:
+            trees[name] = session.get('cwd')
             found[name] = (state_of(session, row.get('job')), session.get('cwd'),
                            (row.get('worktree') or {}).get('branch'), session.get('startedAt', ''),
                            session.get('detail') or (row.get('job') or {}).get('detail'))
@@ -943,7 +976,7 @@ def done_line_of(lane, since, where, sessions):
 
 
 def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_armed=armed_clear,
-               states=None, landed=None, since=None, stalled=(), quoted=None):
+               states=None, landed=None, since=None, stalled=(), quoted=None, gating=None, drafted=None):
     """Arm each pending lane's clear on its first push (Loop 3526), as
     `(drafts, lines)`: the DRAFT lines for stderr and the ARMED /
     ARM-REFUSED lines for stdout. Called before `event` on every poll.
@@ -974,6 +1007,16 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
     line the push's newest commit adds to the item's journal, or None;
     asked before the done line, a quote makes the push a landing as a
     done line does — the landing's own shape, whatever its line says.
+
+    `gating(lane)` (Loop 3833) is the lane gate running under the lane's
+    session (`gate_under`), or None: a push with one is held, not armed —
+    `GATING <lane> <range> — …` once — whatever the row reads, stalled
+    or stopped, and read again when the gate has gone, where the quote
+    decides. `drafted(lane, tip)` is whether the pushed journal's head
+    says `draft` (`journal_is_draft`): False makes a push that would be
+    armed a landing instead — said as `PUSHED … — its journal is no
+    draft …`, `event`'s to land when the row stops — and True or None
+    (no journal on the tip) arms as before.
     """
     drafts, lines = [], []
     for lane in sorted(pending):
@@ -1013,8 +1056,24 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
                 seen['pushed'] = moved
                 lines.append(f"PUSHED {moved} — its done line, {said!r}; a landing, not armed")
                 continue
+        gate = gating(lane) if gating is not None else None
+        if gate:
+            if not seen.get('gate_held'):
+                lines.append(f"GATING {moved} — pushed with its lane gate still running; held, not armed "
+                             "(Loop 3833)")
+            seen['gate_held'] = True
+            seen['held'] = (old, pushed_at)
+            continue
+        seen.pop('gate_held', None)
         if states is not None and states.get(lane) == WORKING and not (held and lane in stalled):
             seen['held'] = (old, pushed_at)
+            continue
+        if drafted is not None and drafted(lane, seen['tip']) is False:
+            pending.discard(lane)
+            seen.pop('held', None)
+            seen['pushed'] = moved
+            lines.append(f"PUSHED {moved} — its journal is no draft and quotes no lane gate yet; a landing, "
+                         "not armed (Loop 3833)")
             continue
         pending.discard(lane)
         seen.pop('held', None)
@@ -1055,6 +1114,37 @@ def gate_quote_of(cwd, tip, item, run=subprocess.run):
         if line.startswith('+') and not line.startswith('+++') and LANDING_VERDICT.search(line):
             return line[1:].strip()[:200]
     return None
+
+
+# A draft's journal says so in its head — the title's `— DRAFT`, or the
+# first paragraph's "a draft, handed over": nine of nine DEEP drafts'
+# pushed journals over the sixty-third to sixty-fifth tranches, and none
+# of the four landings pushed on a DEEP answer (Loop 3833).
+DRAFT_HEAD = re.compile(r'\bdraft\b', re.I)
+HEAD_LINES = 6
+
+
+def journal_is_draft(cwd, tip, item, run=subprocess.run):
+    """Whether `docs/journal/*-item-<item>.md` on `tip` says `draft` in
+    its head (its first HEAD_LINES lines: the title and the paragraph
+    under it), or None when the tip carries no such journal, or the tree,
+    the ref or git fails (Loop 3833). The newest by name when there are
+    several (the date leads the name)."""
+    if not cwd or not tip or not os.path.isdir(cwd):
+        return None
+    try:
+        names = run(['git', 'ls-tree', '-r', '--name-only', tip, 'docs/journal/'], cwd=cwd, capture_output=True,
+                    text=True, check=False, timeout=30).stdout.split()
+        names = sorted(n for n in names if n.endswith(f'-item-{item}.md'))
+        if not names:
+            return None
+        shown = run(['git', 'show', f'{tip}:{names[-1]}'], cwd=cwd, capture_output=True, text=True, check=False,
+                    timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if shown.returncode != 0:
+        return None
+    return bool(DRAFT_HEAD.search('\n'.join(shown.stdout.splitlines()[:HEAD_LINES])))
 
 
 def origin_tip(cwd, branch):
@@ -1149,10 +1239,24 @@ def main(argv=None):
     print(f"WAITING {named} — {begun} pid {os.getpid()}{arming}", flush=True)
 
     def settle(states, tips, sessions, since, stalled=()):
+        table = []
+
+        def lane_gate(lane):
+            # A push on a lane with its lane gate running is held (Loop
+            # 3833): `gate_under` its session, as GATING's; the process
+            # table is read once a settle, and only when asked.
+            pid = (getattr(roster, 'rests', {}).get(lane) or (None,))[0]
+            if not pid:
+                return None
+            if not table:
+                table.append(process_table())
+            return gate_under(pid, table[0])
+
         arm_drafts, arm_lines = arm_pushes(
             watch, tips, sessions, arm_pending, args.then, arm=arm_clear, already_armed=armed_clear,
             states=states, since=since, landed=lambda lane, at: done_line_of(lane, at, where, sessions),
-            stalled=stalled, quoted=lambda lane, tip: gate_quote_of(where[lane], tip, item_of(lane)))
+            stalled=stalled, quoted=lambda lane, tip: gate_quote_of(where[lane], tip, item_of(lane)),
+            gating=lane_gate, drafted=lambda lane, tip: journal_is_draft(where[lane], tip, item_of(lane)))
         for draft in arm_drafts:
             print(draft, file=sys.stderr, flush=True)
         for line in arm_lines:

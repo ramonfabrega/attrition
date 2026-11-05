@@ -154,9 +154,108 @@ class Mutate(unittest.TestCase):
         code = mutate.batch(d, str(batch), '\t', sleeper, out=self.out, timeout=1.0)
         self.assertEqual(code, 0)
         self.assertIn('batch 1/1 src.rs \'let x = 1;\': hung', self.out.getvalue())
+        self.assertIn("'let x = 1;': hung — killed after 1 s; counted as held", self.out.getvalue())
         self.assertIn('1 held (1 hung)', self.out.getvalue())
         self.assertIn('let x = 1;', (Path(d) / 'src.rs').read_text())
         self.assertEqual(mutate.dirty(d), [])
+
+    def _escaper(self, sleep=20):
+        """A command whose child leaves the process group the way
+        `tools/resource_budget.py` starts cargo (`start_new_session`), and
+        writes its pid where the test can find it; mutated, it hangs."""
+        pidfile = Path(tempfile.mkdtemp()) / 'grandchild.pid'
+        self.addCleanup(self._reap, pidfile)
+        code = ('import subprocess, sys, time\n'
+                'if "let x = 2;" not in open("src.rs").read(): sys.exit(0)\n'
+                f'g = subprocess.Popen([sys.executable, "-c", "import time; time.sleep({sleep})"], start_new_session=True)\n'
+                f'open({str(pidfile)!r}, "w").write(str(g.pid))\n'
+                'time.sleep(60)\n')
+        return [sys.executable, '-c', code], pidfile
+
+    @staticmethod
+    def _alive(pid):
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        state = subprocess.run(['ps', '-o', 'stat=', '-p', str(pid)], capture_output=True, text=True).stdout.strip()
+        return bool(state) and not state.startswith('Z')
+
+    def _reap(self, pidfile):
+        import signal
+        if pidfile.exists():
+            try:
+                os.kill(int(pidfile.read_text()), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+
+    def test_a_hung_mutant_s_escaped_grandchild_is_killed_too(self):
+        # Loop 3839 (3831's ninth mutant, the sixty-fifth pass): under
+        # `zsh tools/check.sh test`, `resource_budget.py` starts cargo in a
+        # session of its own, so `killpg` of the wrapper's group left the
+        # test binary at 98 % CPU for 84 minutes — and mutate.py sat in
+        # `communicate()` on the pipe it held, then printed `killed after
+        # 600 s` once the lane killed it by hand. Every descendant dies.
+        import time
+        command, pidfile = self._escaper(sleep=20)
+        began = time.monotonic()
+        with self.assertRaises(mutate.Hung) as cm:
+            mutate.run(self.d, self.edit(), command, out=self.out, timeout=2.0)
+        took = time.monotonic() - began
+        self.assertLess(took, 12, 'mutate.py waited on the escaped grandchild')
+        grandchild = int(pidfile.read_text())
+        for _ in range(50):
+            if not self._alive(grandchild):
+                break
+            time.sleep(0.05)
+        self.assertFalse(self._alive(grandchild), f'the escaped grandchild {grandchild} survived the timeout')
+        self.assertEqual(str(cm.exception), 'killed after 2 s')
+        self.assertEqual(cm.exception.survivors, [])
+        self.assertEqual(mutate.dirty(self.d), [])
+
+    def test_the_budget_wrapper_s_child_is_killed_with_it(self):
+        # The row's own shape, with the real wrapper on a private lease
+        # directory: `resource_budget.py -- sleep` under `--timeout`.
+        import time
+        lease = tempfile.mkdtemp()
+        tag = f'30.{os.getpid()}'  # a unique argv, and bounded when red
+        command = [sys.executable, str(ROOT / 'tools/resource_budget.py'), '--directory', lease,
+                   '--cpu', '1', '--memory-mib', '128', '--', 'sleep', tag]
+        d = repo()
+        out = StringIO()
+        began = time.monotonic()
+        with self.assertRaises(mutate.Hung):
+            mutate.run(d, lambda r: mutate.apply_edit(r, 'src.rs', 'let x = 1;', 'let x = 2;'),
+                       command, out=out, timeout=2.0)
+        self.assertLess(time.monotonic() - began, 15)
+        left = subprocess.run(['pgrep', '-f', f'^sleep {tag.replace(".", "[.]")}$'], capture_output=True, text=True).stdout.split()
+        for pid in left:
+            os.kill(int(pid), 9)
+        self.assertEqual(left, [], 'the wrapper\'s child outlived the timeout')
+
+    def test_a_survivor_is_named_in_the_verdict_and_the_batch_count(self):
+        # A descendant that outlives SIGKILL (not ours to kill, or stuck in
+        # the kernel) is not called killed: the line names it, and the
+        # batch still counts the mutant caught but says so.
+        import signal
+        command, pidfile = self._escaper(sleep=20)
+        real_kill = os.kill
+
+        def kill(pid, sig):
+            if sig == signal.SIGKILL and pidfile.exists() and pid == int(pidfile.read_text()):
+                return  # this one does not die
+            return real_kill(pid, sig)
+        d = self.d
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('src.rs\tlet x = 1;\tlet x = 2;\n')
+        with patch.object(mutate.os, 'kill', kill):
+            code = mutate.batch(d, str(batch), '\t', command, out=self.out, timeout=2.0)
+        text = self.out.getvalue()
+        grandchild = int(pidfile.read_text())
+        self.assertIn(f"hung — killed after 2 s; 1 survived: {grandchild} (", text)
+        self.assertIn('counted as held', text)
+        self.assertIn('1 held (1 hung, 1 with survivors)', text)
+        self.assertEqual(code, 0)
 
     def test_the_batch_s_default_timeout_is_a_multiple_of_the_unmutated_run(self):
         self.assertEqual(mutate.timeout_for(2.0), 60.0)

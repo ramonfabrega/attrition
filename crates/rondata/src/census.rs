@@ -321,10 +321,13 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// The sixtieth pass's sequel: ported 529, replaced 318 (the command
 /// packaging and manager 168, the order classes' plumbing 97, the turn
 /// pump 35, the XML loaders 15, the scripting VM 3), open 1305 (layout 903,
-/// name 4, unmarked 398), excluded 1459.
-pub const RUBRIC_TERRITORY_PORTED: usize = 541;
+/// name 4, unmarked 398), excluded 1459. The sixty-fourth pass: ported
+/// 541, open 1294 (twelve map-generation ports, the first move). The
+/// sixty-fifth pass: ported 543, open 1292 (`sim::halfland` and
+/// `sim::map_east_indies`, items 3843 and 3820).
+pub const RUBRIC_TERRITORY_PORTED: usize = 543;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1294;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1292;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose
@@ -392,8 +395,9 @@ pub const RUBRIC_TERRITORY_OPEN: usize = 1294;
 /// no other lockstep trace enters, 13,129 bytes — 8,823,805 -> 8,836,934,
 /// 2,247 -> 2,255 of 3,611 functions, 77.45 % -> 77.57 %; the Gunpowder
 /// `unit` cell 106 -> 52 (the 54 parked 3733c measured), Classical's 51
-/// unchanged (3774b).
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 775;
+/// unchanged (3774b). The sixty-fifth pass: 2,255 -> 2,258, 77.5 -> 77.6 %
+/// (the third melee's twin joined).
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 776;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
@@ -650,7 +654,16 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Raider[CAMELRAIDER]` (193), `Chariot` (195), `Companion` (231),
 /// `Chevalier` (235) and `Herd Bear[HERDBLACKBEAR]` (410), read by
 /// `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 275;
+/// The sixty-fifth pass: 275 -> 285, the third melee whole at 2600 (item
+/// 3836, its close 0 off by 3841) read as a lockstep game — ten air,
+/// missile and Modern land lines (`Partisan` 68, `MG42` 130, `Recoilless
+/// Gun` 144, `Jet Fighter Bomber` 309, `Stealth Bomber` 306, `Advanced
+/// Fighter` 301, `Eagle Fighter` 303, `Fighter Bomber` 308, `V2 Rocket`
+/// 313, `Cruise Missile` 314); 17 never: three unnameable by `add` (296,
+/// 312, 78), the two sea lines (332, 351), five land lines no lobby fields
+/// (67, 124, 175, 192, 194), Boadicea and six gaia animals; read by
+/// `rubric.py --record "the sixty-fifth pass"`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 285;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

@@ -21745,3 +21745,30 @@ clean, now a first act. The backlog 10 → 8. The sixty-fifth is launched on
 three Opus lanes at medium: the melee's frame 718, Great Lakes' zero-draw
 passes and East Indies' mask. **DECISIONS 104.**
 `docs/audit/2026-11-04-fable-pass-64.md`.
+
+**2026-11-04 — the sixty-fifth Fable pass** (the `steer` session, started
+by the drain's own arm, which fired at once): the sixty-fifth tranche
+measured — twenty landings on three Opus lanes from `5451f3938` in 9 h 04;
+the third melee moved 718 → 2,600 on six combat-flight items (the last,
+3836, twelve Stealth Bomber bombs kept in the air by a NaN fall time and an
+unsigned end test) and closed with its state 0 off (3841: the capture's
+quit is a resign and `Leader::defeat` kills every plane first), so no word
+is open; map generation ran Great Lakes 1 → 6 and East Indies 0 → 6 of 8
+phases, the territory 541 → 543; 124.19 USD for the workers, 6.21 a
+landing, waiting 43.0 a landing against 26.3 and the gate class 21.3
+against 15.3 — both over, so the rule's letter takes the third lane away
+while the landing's price and the tranche's clock argue for it (DECISIONS
+105 §1); unit types 275 → 285 of 302 on the melee's lines, lockstep bytes
+77.5 → 77.6. GOLDEN §155 gains the map as a second lever — one lever a
+chapter, the map moving when the braces hold sea lines — and the fourth
+melee is booked at sea on East Indies at the held Information age (3847,
+DECISIONS 105 §2). Built under the pass by four Opus 5.5 subagents, red
+first: the waiter holds a push whose lane gate still runs and reads a
+stopped row's tree no more (3833, 3838), `mutate.py` kills every
+descendant of a hung mutant and says so (3839), the lane gate drops and
+names a sim-only filter on a lane that left the crate (3823), and the
+`Melee:` row carries its close (3842); 3837 a clause; 3848 filed (the
+merged branches' remote delete is classifier-refused). The backlog 14 → 9.
+The sixty-sixth is launched on two Opus lanes at medium: the fourth melee
+and the map chains' rivers. **DECISIONS 105.**
+`docs/audit/2026-11-04-fable-pass-65.md`.

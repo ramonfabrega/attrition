@@ -48,7 +48,9 @@ Loop 3653: 680 of a stand-up's 1,044 release seconds at four threads were theirs
 on binaries its branch cannot change), widened or not since the fifty-eighth
 (the cut had been tied to the fast suite, and two stand-ups that widened on one
 data-crate file each ran the binaries for eleven minutes apiece); the receipt's
-`sim_crate` says which.
+`sim_crate` says which. On such a lane a `--tests` filter whose every
+match is a sim test is dropped and named (`Lane filter dropped:`, Loop
+3823) rather than turning the gate red for matching nothing that ran.
 
 The worker's own full run, measured on the tree after its last `ccc
 update`, is still owed before the gate (the brief's "measure" rows); the
@@ -441,6 +443,31 @@ def sim_crate_left(touched, *, lane, whole):
                 and not any(p.startswith(SIM_BUILD_INPUTS) for p in touched))
 
 
+# Loop 3823 (the sixty-fifth pass): `map_lakes` and `terrain_groups`, tests
+# in `crates/sim` alone, passed 3819's brief — `brief.py` lists the whole
+# workspace's tests (Loop 3818) — and its first lane gate exited 2 on them
+# before its guard step: the branch touched no sim path, so the crate was
+# left to the booking gate and the filters matched no test that ran. Seven
+# of the tranche's twenty briefs named such a filter for a lane that
+# touched no sim path. The lane drops it and names it; the exit 2 stays for
+# a filter that matches nothing anywhere. The test list is `brief.py`'s.
+def crate_tests():
+    """`{crate: {test name: ignored?}}` over the workspace, `brief.py`'s lister."""
+    import brief
+    return brief.crate_tests()
+
+
+def sim_only_filters(tests, by_crate):
+    """The filters whose every live match is in the sim crate (`brief.sim_only`)."""
+    import brief
+    return brief.sim_only(tests, by_crate)
+
+
+def dropped_line(t):
+    return (f'Lane filter dropped: {t} — every match is in crates/sim, which this lane left to the '
+            'booking gate (Loop 3823)')
+
+
 def branch_paths(base, run=subprocess.run):
     """Every path the branch changed since it left `base`, or None when
     `base` is not a ref this tree knows."""
@@ -753,6 +780,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
+    dropped = sim_only_filters(tests, crate_tests()) if sim_left and tests else []
+    tests = [t for t in tests if t not in dropped]
+    for t in dropped:
+        print(dropped_line(t), flush=True)
     if report_dir is None:
         report_dir = Path(tempfile.mkdtemp(prefix='attrition-gate-'))
     else:
@@ -798,7 +829,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                           'whole': bool(whole),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
-                          'row_only': row_only,
+                          'row_only': row_only, 'dropped': dropped,
                           'base_overlap': base_overlap,
                           'sim_crate': 'left to the booking gate' if sim_left else 'run'}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')

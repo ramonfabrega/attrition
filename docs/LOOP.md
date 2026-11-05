@@ -36,8 +36,10 @@ Sonnet 5.5 at `--effort medium` on each of two sweep lanes** (Ramon, at
 the forty-fifth steer, DECISIONS 84: the second sweep is the
 token-for-CPU trade, its clock its own subagents' and no capture lane
 held; three lanes stood from the forty-fourth steer, DECISIONS 83, four
-from the fortieth, DECISIONS 78–82; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
-`--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
+from the fortieth, DECISIONS 78–82; `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium` and
+`--model 'claude-sonnet-5-5[1m]' --effort medium` — **`--worktree=att-<N>` on every spawn**: without it a
+lane from the integration row runs in the integration checkout (Loop 3837: 3835's first spawn, stopped within the
+minute; the sixty-fifth pass) — after three Opus
 tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
 model and effort verified from each worker's transcript and the spawn
 line — the harness's defaults differ by model, and a trial once moved
@@ -182,7 +184,10 @@ commits behind (parked 1492) —
 `ccc rm <ref>`, and `git push origin --delete <the lane's branch>` — a
 worker pushes its branch, `ccc rm` deletes only the worktree and the local
 branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
-(parked 727) — never a raw `git merge`, never a hand-rolled reap, **no
+(parked 727); **the classifier may refuse that delete** (`[Git
+Destructive]`, from the commander's row and the steer's alike, Loop 3848):
+a refusal is reported at the drain with the count, never retried — never a
+raw `git merge`, never a hand-rolled reap, **no
 spawn and no `ccc update` between the merge and its booking commit** (the
 tree is red in that window), and **nothing under `docs/` is edited while
 a gate runs**: the handoff is rewritten before the gate, not during it.
@@ -247,10 +252,16 @@ lane's draft journal, pushed for its `DEEP` answer, exited the waiter
 sixteen of the twenty-ninth tranche's `LANDED` exits came after the
 lane's own line, each a whole-context turn that learned nothing (parked
 1695). **And a `DEEP <lane> <ctx>k` exit is answered in its turn**: one
-line to the lane — journal as a draft, commit, push, end the turn — and
+line to the lane — journal as a draft, commit, push, end the turn, **or,
+if the item is finished, land instead** (Loop 3833: four of thirteen
+`DEEP` lanes over three tranches were past their status and pushed the
+landing, every one with its lane gate still running) — and
 the waiter re-armed with `--arm-after-push <lane>`, which arms `ccc
 clear <lane> --then "continue item <N> from the journal"` at that lane's
-next push and prints `ARMED` or `ARM-REFUSED` (Loop 3526: `ccc clear`
+next push and prints `ARMED` or `ARM-REFUSED` — **a push on a lane whose
+own gate still runs is `GATING … held, not armed`**, read again at the
+gate's exit, and a push whose journal is no draft is `PUSHED … a
+landing, not armed` (Loop 3833 built; the sixty-fifth pass) (Loop 3526: `ccc clear`
 refuses a lane with uncommitted work, so an arm in the answer's own
 turn failed twice and the commander's line had already said "armed");
 a lane's own arm is refused (DECISIONS 61) and five sessions over 300 k
@@ -377,7 +388,20 @@ at its drain against 26.3 waiting — a fifth above, 31.6, takes it away
 again — and 15.3 gate, and watched on what the lane cost before: the door
 (1,320.5 s on two lanes) and the lane gates past a lane's first (three
 this tranche, none on a row list: 3804 on a moved base, 3810 twice, 3811
-on an empty filter, Loop 3818)); a
+on an empty filter, Loop 3818)) — **and the sixty-fifth read 43.0 waiting
+and 21.3 gate a session on three lanes** (DECISIONS 105 §1), 43.0 against
+the 31.6 a fifth above 26.3 allows, **so the rule's letter takes the third
+lane away for the sixty-sixth**, two Opus lanes at medium. What it cost
+was the door and the chains, not the lane gates: admission 6,234.8 s
+summed against 1,320.5, seven gate ends of fifteen past the cores against
+one, the whole booking gates 50.4–53.2 release minutes against 44.1–49.4,
+two merges of the two map chains conflicting in `floors.rs` (3825, 3828;
+`message` 0.8 → 6.4 a session) and one lane 96 minutes on a hung mutant
+(3831, Loop 3839) — while the landing read 6.21 USD against 8.82 and the
+twenty took 9 h 04 against 11 h 39. The lane returns when a two-lane
+tranche reads waiting under 26.3 and the gate under 15.3, the two-lane
+figures it was returned on, or on Ramon's word, which the landing's price
+and the tranche's clock argue for (DECISIONS 105 §1); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
@@ -495,7 +519,8 @@ backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
 gate (DECISIONS 77) — **and the integration tree's debug profile is
 cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
 GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
-**when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6)
+**when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6;
+the sixty-fifth read 114 at its start, 125 after both)
 — **and its table of the tranche's gates is
 `python3 tools/gates.py <the commander's job tmp> --since <the last
 pass's gate log>`** (DECISIONS 80), **and its rubric is `python3

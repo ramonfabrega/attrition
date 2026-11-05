@@ -348,6 +348,24 @@ class ABriefIsComposed(unittest.TestCase):
                   'audit::american_enlightenment_pair_corrections_change_nothing'):
             self.assertIn(t, brief.filters('residue', [t]))
 
+    def test_a_sim_only_filter_is_noted_on_stderr_and_composes(self):
+        # Loop 3823: `map_lakes` and `terrain_groups` are tests in
+        # `crates/sim` alone, and on a lane that touches no sim path the
+        # gate leaves that crate to the booking gate (Loop 3653) — 3819's
+        # first lane gate exited 2 on them. A note, not a refusal: the
+        # commander cannot know at booking whether the lane will touch sim.
+        import contextlib
+        import io
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            out = brief.filters('residue', ['mapgen', 'map_lakes', 'terrain_groups'])
+        self.assertEqual(out[:3], ['mapgen', 'map_lakes', 'terrain_groups'])
+        self.assertEqual(err.getvalue().splitlines(), [
+            f'note: --tests {t} matches tests in crates/sim only; moot on a lane that touches no sim '
+            'path (Loop 3823)' for t in ('map_lakes', 'terrain_groups')])
+        self.assertEqual(brief.sim_only(['mapgen', 'coverage::', 'map_lakes'], brief.crate_tests()),
+                         ['map_lakes'])
+
     def test_a_run_number_goes_through_runs_and_is_reserved_once(self):
         # Loop 3176 (the commander, at 3162's merge): two notes offered run
         # 923 "if needed" and a third brief reserved it with `--runs`; two

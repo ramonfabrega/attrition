@@ -16562,10 +16562,28 @@ and `age` are modelled by `crate::golden` (`docs/INPUT.md` §11).
    `end:` block after 900; (c) the block after 600; (d) the trace's `INFO
    cmd` record on the spawn's own frame.
 
-**Each chapter changes one lever**: the age. The first melee is staged in
-the matrix's emptiest cell on the tree that books it (the queue's item
-names the cell and the types); the next takes the next cell, never two ages
-in one script.
+**Each chapter changes one lever** — the age, or, from the fourth melee,
+the map (amended by the sixty-fifth pass, DECISIONS 105 §2). A melee has
+two levers, the age it holds and the map it is staged on, and a chapter
+moves exactly one of them from the melee before, never both in one
+script. The first melee is staged in the matrix's emptiest cell on the
+tree that books it (the queue's item names the cell and the types); a
+later cell is the age whose fight and `add` lines reach what no game has
+held, the matrix's count beside it (DECISIONS 103 §2); and **the map
+moves when the never-seen lines the braces hold are sea lines, or the
+families the age's fight reaches are naval** — Great Sahara has no sea,
+so no melee staged there can field `Fluyt` (332) or the `Aircraft
+Carrier` (351) or enter a ship's fight (parked 3733c). On a map with sea
+the premise's "common border" is the strait between the two capitals'
+islands: the sea lines are `add`ed at water cells the start dump's
+terrain grid calls sea between the two territories, the land lines at
+each side's shore, and a fifth falsifier joins the four: (e) a sea line
+`add`ed at a cell the grid calls land, or a land line at sea, never moves
+— its record on the first `end:` block after 700, the same read as (f) of
+§152. The boarding rows (`do_board`, `check_meet_ship`) are not the map's
+to reach: they live under a `BoardOrder` no site issues (`blind::RESIDUE`),
+so a sea melee is booked on the sea lines and the ships' fight, never on
+them.
 
 **The cheat arms this crate does not model** are three replicated commands
 of `docs/COMMANDS.md` §3 — `cheat_ai_toggle` 0x40 (the console `ai` is
@@ -16580,3 +16598,17 @@ stream (`docs/ORACLE.md`, the `.rcx`) parts there until the row lands.
 set on a stride is in the pairs' class (82 frames a wall second, ~35 s of
 simulation; the dumps 300–700 MB at `UNITS=3`), its `cover=1` twin the
 same lobby again. The first cell's booking is item 3733.
+
+## 156. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 157. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.

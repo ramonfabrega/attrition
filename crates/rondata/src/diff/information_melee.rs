@@ -323,6 +323,15 @@ pub(crate) const INFORMATION_MELEE: Melee = Melee {
     sequence: 2600,
 };
 
+/// **The melee's closing state, as the `Melee:` line says it** (Loop
+/// 3842): the records its closing-state test reads off at the close — the
+/// sum of [`endpoint::EndpointResult::counts`]' seven — and the `<n> off`
+/// suffix of this row's part of the handoff's `Melee:` line
+/// (`floors::ai_line_closes`). A draw stream whole to the game's last frame
+/// with a close that is not reads `w2600 of 2,600 1 off`, not the closed
+/// melees' line; a close that moves re-pins this and the line together.
+pub(crate) const INFORMATION_MELEE_CLOSING_OFF: usize = 0;
+
 /// The melee's word: the lower of the two partings.
 pub(crate) const INFORMATION_MELEE_WORD: i64 =
     if INFORMATION_MELEE.count < INFORMATION_MELEE.sequence {
@@ -669,6 +678,11 @@ fn information_melee_run1468_s_closing_state() {
     // — and the close reads 0 off.
     pin_eq!(e.compared, 151, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.counts().iter().sum::<usize>(),
+        INFORMATION_MELEE_CLOSING_OFF,
+        "the closing records off, the `Melee:` line's suffix"
+    );
     pin_eq!(
         e.extra.clone(),
         Vec::<(i64, i64)>::new(),

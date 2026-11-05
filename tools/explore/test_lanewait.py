@@ -1243,5 +1243,189 @@ class ALandingsGateQuoteIsNeverArmed(unittest.TestCase):
             self.assertIsNone(lanewait.gate_quote_of(tmp, 'f' * 40, '7'))
 
 
+
+class ANameSRowIsItsNewest(unittest.TestCase):
+    """Loop 3838 (the sixty-fifth tranche): `roster()` wrote `trees[name]`
+    for every row `ccc list --json` holds and kept only the newest row's
+    state, so a `lane-3835` that `--replace` left listed as stopped
+    (`0450d885`, cwd the integration tree) overwrote the live row's tree
+    (`att-3835`), and `second_rows` exited 2 naming `commander` and `steer`
+    on it. A name's tree is its newest row's, by `startedAt`, as its state
+    is — whatever order ccc lists them in."""
+
+    INTEGRATION = '/w/replan-pdb'
+    STOPPED = {'session': {'name': 'lane-3835', 'state': 'stopped', 'cwd': INTEGRATION,
+                           'startedAt': '2026-11-04T21:30:00.000Z', 'sessionId': '0450d885-old'},
+               'worktree': {'branch': 'worktree-replan-pdb'}, 'job': {'tempo': 'idle'}}
+    LIVE = {'session': {'name': 'lane-3835', 'state': 'working', 'cwd': '/w/att-3835',
+                        'startedAt': '2026-11-04T21:40:00.000Z', 'sessionId': '0f143e8e-new'},
+            'worktree': {'branch': 'worktree-att-3835'}, 'job': {'tempo': 'working'}}
+    PERMANENT = [{'session': {'name': 'commander', 'state': 'working', 'cwd': INTEGRATION,
+                              'startedAt': '2026-11-04T19:00:00.000Z'}, 'worktree': {'branch': 'worktree-replan-pdb'}},
+                 {'session': {'name': 'steer', 'state': 'idle', 'cwd': INTEGRATION,
+                              'startedAt': '2026-11-04T18:00:00.000Z'}, 'worktree': {'branch': 'worktree-replan-pdb'}}]
+
+    def roster_of(self, rows):
+        import json
+        import subprocess
+        from unittest import mock
+        answer = subprocess.CompletedProcess(['ccc'], 0, json.dumps(rows), '')
+        with mock.patch.object(lanewait.subprocess, 'run', lambda *a, **k: answer):
+            return lanewait.roster()
+
+    def test_a_stopped_row_listed_beside_the_live_one_never_lends_its_tree(self):
+        # Both list orders: the stopped row after the live one is 3835's.
+        for rows in (self.PERMANENT + [self.LIVE, self.STOPPED], self.PERMANENT + [self.STOPPED, self.LIVE]):
+            found = self.roster_of(rows)
+            self.assertEqual(found['lane-3835'][:3], ('working', '/w/att-3835', 'worktree-att-3835'))
+            self.assertEqual(lanewait.roster.trees['lane-3835'], '/w/att-3835')
+            self.assertEqual(lanewait.roster.sessions['lane-3835'], '0f143e8e-new')
+            self.assertEqual(lanewait.second_rows(lanewait.roster.trees, ['lane-3835']), [])
+
+    def test_a_second_row_on_a_live_lane_s_tree_is_still_refused(self):
+        other = {'session': {'name': 'lane-3835-2', 'state': 'working', 'cwd': '/w/att-3835',
+                             'startedAt': '2026-11-04T21:50:00.000Z'}, 'worktree': {'branch': 'worktree-att-3835'}}
+        self.roster_of(self.PERMANENT + [self.LIVE, self.STOPPED, other])
+        self.assertEqual(lanewait.second_rows(lanewait.roster.trees, ['lane-3835']),
+                         [('lane-3835', 'lane-3835-2', '/w/att-3835')])
+
+
+class ALandingPushedBeforeItsGateExitsIsNeverArmed(unittest.TestCase):
+    """Loop 3833 (the sixty-fifth tranche, twice): `DEEP lane-3829 300k`
+    was answered and the wait re-armed `--arm-after-push lane-3829`, but
+    the lane's next push (6a4346518) was its landing — word 860 → 897 —
+    with its lane gate still running; `DEEP lane-3836 305k` the same
+    (487fd0337, the third melee whole, its second lane gate running). Both
+    waits were stopped by hand before they armed a clear mid-gate. Loop
+    3817's quote cannot see them: the quote lands after the gate exits.
+    Over the three tranches' thirteen DEEP lanes, four next pushes were
+    landings (3779, 3782, 3829, 3836), each with its lane gate running;
+    nine were drafts, none with a gate running, and every one of the nine
+    pushed journals says `draft` in its head where none of the four does."""
+
+    run_main = AHeldPushOutlivesItsWait.run_main
+    Stop = AHeldPushOutlivesItsWait.Stop
+    ARGS = ['lane-1', 'lane-2', '--arm-after-push', 'lane-1']
+    HELD = ('GATING a worktree-a 11111111..22222222 — pushed with its lane gate still running; held, '
+            'not armed (Loop 3833)')
+
+    def watching(self):
+        watch = watching(a='1' * 40)
+        watch['a']['session'] = 's1'
+        return watch
+
+    def push(self, watch, pending, arms, state, gate=None, quote=None, drafted=None, since=100.0):
+        return lanewait.arm_pushes(
+            watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}',
+            lambda lane, prompt: arms.append(lane) or (True, 'armed'), already_armed=lambda lane: False,
+            states={'a': state}, landed=lambda lane, at: None, since=since,
+            quoted=lambda lane, tip: quote, gating=lambda lane: gate, drafted=lambda lane, tip: drafted)
+
+    def test_a_push_with_its_lane_gate_running_is_held_said_once_and_read_again_at_its_exit(self):
+        for state in ('working', 'idle'):
+            watch, pending, arms = self.watching(), {'a'}, []
+            gate = (4.0, GATE)
+            self.assertEqual(self.push(watch, pending, arms, state, gate), ([], [self.HELD]))
+            # Held while the gate lives, whatever the row reads: said once.
+            self.assertEqual(self.push(watch, pending, arms, 'idle', gate, since=130.0), ([], []))
+            self.assertEqual((arms, pending, watch['a']['held'][0]), ([], {'a'}, '11111111'))
+            # No PUSHED, no LANDED from event() while held.
+            self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 6, 100,
+                                             sessions={'a': 's1'}))
+            # The gate exits and the lane quotes it: Loop 3817 decides, a landing.
+            quote = "- `Lane verdict: green, nothing red`"
+            drafts, lines = self.push(watch, pending, arms, 'idle', None, quote=quote, since=160.0)
+            self.assertEqual((drafts, arms, pending), ([], [], set()))
+            self.assertEqual(lines, ['PUSHED a worktree-a 11111111..22222222 — its journal quotes its lane gate, '
+                                     f"{quote!r}; a landing, not armed"])
+
+    def test_a_gate_that_exits_with_no_quote_on_a_stopped_row_is_the_draft_armed_as_before(self):
+        watch, pending, arms = self.watching(), {'a'}, []
+        self.push(watch, pending, arms, 'idle', (1.0, GATE))
+        drafts, lines = self.push(watch, pending, arms, 'idle', None, since=130.0)
+        self.assertEqual(drafts, ["DRAFT a worktree-a 11111111..22222222 — the DEEP answer's push; arming its clear"])
+        self.assertEqual((lines, arms), (['ARMED a — armed'], ['a']))
+
+    def test_a_held_gate_is_never_armed_as_a_stall(self):
+        watch, pending, arms = self.watching(), {'a'}, []
+        self.push(watch, pending, arms, 'working', (1.0, GATE))
+        out = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}',
+                                  lambda lane, prompt: arms.append(lane) or (True, 'armed'),
+                                  already_armed=lambda lane: False, states={'a': 'working'},
+                                  landed=lambda lane, at: None, since=130.0, stalled={'a'},
+                                  gating=lambda lane: (2.0, GATE))
+        self.assertEqual((out, arms, pending), (([], []), [], {'a'}))
+
+    def test_a_pushed_journal_that_is_no_draft_is_a_landing_not_an_arm(self):
+        # Held while the row works, as any push with no done line; where
+        # the draft would be armed, a journal that is no draft is not.
+        watch, pending, arms = self.watching(), {'a'}, []
+        self.assertEqual(self.push(watch, pending, arms, 'working', drafted=False), ([], []))
+        drafts, lines = self.push(watch, pending, arms, 'idle', drafted=False, since=130.0)
+        self.assertEqual((drafts, arms, pending), ([], [], set()))
+        self.assertEqual(lines, ['PUSHED a worktree-a 11111111..22222222 — its journal is no draft and quotes no '
+                                 'lane gate yet; a landing, not armed (Loop 3833)'])
+        self.assertEqual(watch['a']['pushed'], 'a worktree-a 11111111..22222222')
+        # A draft's journal, or none on the tip, is armed as before.
+        for drafted in (True, None):
+            watch, pending, arms = self.watching(), {'a'}, []
+            drafts, lines = self.push(watch, pending, arms, 'idle', drafted=drafted)
+            self.assertEqual((lines, arms), (['ARMED a — armed'], ['a']), drafted)
+
+    def test_the_journal_s_head_says_draft_or_not(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            def git(*args):
+                return subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', *args], cwd=tmp,
+                                      capture_output=True, text=True, check=True).stdout.strip()
+            git('init', '-q', '-b', 'main')
+            (Path(tmp) / 'x.txt').write_text('x\n')
+            git('add', '-A')
+            git('commit', '-q', '-m', 'Book 7')
+            self.assertIsNone(lanewait.journal_is_draft(tmp, git('rev-parse', 'HEAD'), '7'), 'no journal')
+            journal = Path(tmp) / 'docs' / 'journal' / '2026-11-04-item-7.md'
+            journal.parent.mkdir(parents=True)
+            # The 3843 shape: the title ends `— DRAFT`.
+            journal.write_text('# Item 7 — the half-land (2026-11-04, `att-7`, Opus 5.5) — DRAFT\n\n'
+                               '**A draft handoff at 309k.** Still owed: the gate.\n')
+            git('add', '-A')
+            git('commit', '-q', '-m', 'Item 7: the draft journal')
+            self.assertIs(lanewait.journal_is_draft(tmp, git('rev-parse', 'HEAD'), '7'), True)
+            # The 3793 shape: the title is plain, the first paragraph says it.
+            journal.write_text('# Item 7 — the second melee whole (2026-11-04, `att-7`, Opus 5.5)\n\n'
+                               'A lane of the tranche. **A draft, handed over at 310 k context**: the build.\n')
+            git('commit', '-q', '-am', 'Item 7: handed over')
+            self.assertIs(lanewait.journal_is_draft(tmp, git('rev-parse', 'HEAD'), '7'), True)
+            # The 3829 shape: a landing's journal, pushed before its gate's quote;
+            # a `draft` far below the head is not the head's word.
+            journal.write_text('# Item 7 — the wings: the word 860 → 897 (2026-11-04, `att-7`, Opus 5.5)\n\n'
+                               'Booked on frame 860: ours 10 draws against theirs\' 12.\n\n' + 'body\n' * 30 +
+                               'An earlier draft of this reading was wrong.\n')
+            git('commit', '-q', '-am', 'Item 7: the journal')
+            self.assertIs(lanewait.journal_is_draft(tmp, git('rev-parse', 'HEAD'), '7'), False)
+            # No tree, no tip, a bad ref: none, never a raise.
+            self.assertIsNone(lanewait.journal_is_draft(str(Path(tmp) / 'gone'), git('rev-parse', 'HEAD'), '7'))
+            self.assertIsNone(lanewait.journal_is_draft(tmp, None, '7'))
+            self.assertIsNone(lanewait.journal_is_draft(tmp, 'f' * 40, '7'))
+
+    def test_the_wait_holds_a_push_whose_lane_gate_runs_under_its_session(self):
+        # main(): the gate is `gate_under` the lane's session pid, as GATING's.
+        ps = {100: (1, 60.0, 'claude'), 101: (100, 4.0, GATE)}
+        arms = []
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out, err = self.run_main(self.ARGS, tmp, [
+                {'tips': {}}, {'tips': {'lane-1': '2' * 40}, 'ps': ps},
+                {'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}, 'ps': ps},
+                {'tips': {'lane-1': '2' * 40}, 'states': {'lane-1': 'idle'}, 'ps': ps,
+                 'ctx': {'lane-2': 320_000}}], arms=arms)
+        self.assertEqual((code, arms), (5, []), out + err)
+        self.assertEqual(out.splitlines()[1:], [
+            'GATING lane-1 worktree-att-1 none..22222222 — pushed with its lane gate still running; held, not '
+            'armed (Loop 3833)',
+            'HELD lane-1 none..22222222 — held for its done line, not armed; the next --arm-after-push lane-1 '
+            'wait arms it',
+            'DEEP lane-2 320k'])
+
+
 if __name__ == '__main__':
     unittest.main()

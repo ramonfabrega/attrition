@@ -26,12 +26,18 @@ files are `touch`ed so cargo rebuilds, and the last line is one of
     mutation: held — <command> exited N       (the walk caught it)
     mutation: failed nothing — <command> exited 0
     mutation: hung — killed after N s          (counted as caught; Loop 3276)
+    mutation: hung — killed after N s; K survived: PID (ARGV), …   (Loop 3839)
     mutation: no verdict — the command did not compile   (Loop 3300)
 
 A mutant past `--timeout` (a batch's default: five times the un-mutated
-run, at least a minute) is killed with its process group and counted as
+run, at least a minute) is killed with every descendant and counted as
 caught — a mutant of `find_ordered_collision` that never terminated held
-one `cargo test` for 100 minutes (Loop 3276). A run whose output says the
+one `cargo test` for 100 minutes (Loop 3276). Every descendant, not the
+process group: `zsh tools/check.sh test` runs cargo under
+`resource_budget.py`, which starts it in a session of its own, and a
+`killpg` that reached only the wrapper left a test binary running 84
+minutes while this script waited on the pipe it held (Loop 3839); a
+descendant SIGKILL does not end is named on the verdict line. A run whose output says the
 command did not compile (`error: could not compile`, `error[E…]`) is no
 verdict and counted apart: `cargo test` exits 101 for a type error as it
 does for a red walk, and a lane read one as a catch (Loop 3300). A signal
@@ -51,7 +57,18 @@ class Refused(Exception):
 
 
 class Hung(Exception):
-    """The command ran past the timeout; killed, the tree restored."""
+    """The command ran past the timeout; killed, the tree restored.
+    `survivors` is `[(pid, argv)]` of the descendants SIGKILL did not end
+    (Loop 3839): the message says `killed` only when it is empty."""
+
+    def __init__(self, timeout, survivors=()):
+        self.timeout = timeout
+        self.survivors = list(survivors)
+        message = f'killed after {timeout:g} s'
+        if self.survivors:
+            message += f'; {len(self.survivors)} survived: ' + ', '.join(
+                f'{pid} ({argv})' for pid, argv in self.survivors)
+        super().__init__(message)
 
 
 class NoVerdict(Exception):
@@ -67,21 +84,101 @@ def timeout_for(unmutated_seconds):
     return max(60.0, 5.0 * unmutated_seconds)
 
 
+def process_table():
+    """`{pid: (ppid, argv)}` of the live processes; a zombie is dead."""
+    rows = subprocess.run(['ps', '-axo', 'pid=,ppid=,stat=,command='],
+                          capture_output=True, text=True).stdout
+    table = {}
+    for line in rows.splitlines():
+        parts = line.split(None, 3)
+        if len(parts) < 3 or parts[2].startswith('Z'):
+            continue
+        table[int(parts[0])] = (int(parts[1]), parts[3] if len(parts) > 3 else '')
+    return table
+
+
+def descendants(table, roots):
+    """The pids under `roots` in `table`, deepest first (children before
+    their parents), `roots` themselves last."""
+    children = {}
+    for pid, (parent, _) in table.items():
+        children.setdefault(parent, []).append(pid)
+    depth = {r: 0 for r in roots}
+    pending = list(roots)
+    while pending:
+        pid = pending.pop()
+        for child in children.get(pid, []):
+            if child not in depth:
+                depth[child] = depth[pid] + 1
+                pending.append(child)
+    return sorted(depth, key=lambda p: -depth[p])
+
+
+def kill_tree(pid, rounds=10):
+    """SIGKILL `pid`'s whole tree, not only its process group (Loop 3839:
+    `resource_budget.py` starts cargo in a session of its own, so `killpg`
+    of the wrapper's group left the test binary running for 84 minutes).
+    Every pid a walk meets is remembered and later walks start from all
+    of them — a child whose parent dies is re-parented to launchd, and no
+    walk from `pid` finds it again. The tree is frozen first (SIGSTOP,
+    parents first, until a walk finds nobody new) so nothing forks under
+    the kill; then SIGKILL, children before parents, until a walk finds
+    nobody alive or `rounds` run out. Returns `[(pid, argv)]` of the
+    survivors."""
+    seen = {pid: ''}
+
+    def walk():
+        table = process_table()
+        order = descendants(table, [p for p in seen if p in table])
+        for p in order:
+            seen[p] = table[p][1]
+        return order
+
+    def send(pids, sig):
+        for p in pids:
+            try:
+                os.kill(p, sig)
+            except (ProcessLookupError, PermissionError):
+                pass
+
+    for _ in range(rounds):
+        known = set(seen)
+        send(reversed(walk()), signal.SIGSTOP)
+        if set(seen) == known:
+            break
+    for _ in range(rounds):
+        order = walk()
+        if not order:
+            return []
+        send(order, signal.SIGKILL)
+        time.sleep(0.05)
+    table = process_table()
+    return [(p, table[p][1]) for p in seen if p in table]
+
+
 def run_command(command, root, timeout=None, out=sys.stdout):
     """The command in its own process group, its output copied to `out`
-    when it ends; `(code, output)`, or `Hung` after `timeout` seconds."""
+    when it ends; `(code, output)`, or `Hung` after `timeout` seconds,
+    every descendant killed first (Loop 3839) and the survivors named."""
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
     proc = subprocess.Popen(command, cwd=root, env=env, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, text=True, start_new_session=True)
     try:
         output, _ = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
+        survivors = kill_tree(proc.pid)
         try:
             os.killpg(proc.pid, signal.SIGKILL)
-        except ProcessLookupError:
+        except (ProcessLookupError, PermissionError):
             pass
-        proc.communicate()
-        raise Hung(f'killed after {timeout:g} s')
+        try:
+            # A survivor still holding the pipe would hold this read for
+            # as long as it runs (the 84 minutes were spent here).
+            proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.stdout.close()
+            proc.wait()
+        raise Hung(timeout, survivors)
     out.write(output)
     out.flush()
     return proc.returncode, output
@@ -226,7 +323,7 @@ def batch(root, path, sep, command, out=sys.stdout, timeout=None):
         timeout = timeout_for(took)
     print(f'batch: the un-mutated run took {took:.1f} s; a mutant is killed after {timeout:g} s (Loop 3276)',
           file=out, flush=True)
-    held = failed = refused = hung = noverdict = 0
+    held = failed = refused = hung = survived = noverdict = 0
     for k, (file, old, new, nth) in enumerate(breaks, 1):
         try:
             code = run(root, lambda r: apply_edit(r, file, old, new, nth), command, out, timeout=timeout)
@@ -237,6 +334,7 @@ def batch(root, path, sep, command, out=sys.stdout, timeout=None):
             verdict = f'hung — {e}; counted as held'
             held += 1
             hung += 1
+            survived += bool(e.survivors)
         except NoVerdict as e:
             verdict = f'no verdict — {e}'
             noverdict += 1
@@ -244,7 +342,8 @@ def batch(root, path, sep, command, out=sys.stdout, timeout=None):
             verdict = f'refused — {e}'
             refused += 1
         print(f'batch {k}/{len(breaks)} {file} {old!r}: {verdict}', file=out, flush=True)
-    print(f'batch: {len(breaks)} break(s) — {held} held' + (f' ({hung} hung)' if hung else '')
+    hung_note = f' ({hung} hung' + (f', {survived} with survivors' if survived else '') + ')'
+    print(f'batch: {len(breaks)} break(s) — {held} held' + (hung_note if hung else '')
           + f', {failed} failed nothing, {refused} refused' + (f', {noverdict} no verdict' if noverdict else ''),
           file=out)
     return 0 if held == len(breaks) else 1

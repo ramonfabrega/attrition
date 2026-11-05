@@ -105,12 +105,13 @@ is append-only and amended in place, as it always was.
 - 96 standing — The fifty-seventh tranche: two Opus lanes, twenty landings in 13 h 22, six pairs stand, the Roman word closes, the lane gate's floor is the sim crate's suite and is cut from a lane that touches no sim path, the fifty-eighth booked on the two open words
 - 97 standing — The fifty-eighth tranche: two Opus lanes, twenty landings in 12 h 34, nine pairs stand, unit types 205 of 302, the cut read on the branch's paths alone, the third lane returns, the fifty-ninth booked on the Korean word and nine pairs
 - 98 standing — The fifty-ninth tranche: three Opus lanes, twenty landings in 11 h 34, nine words close, unit types 220 of 302, waiting 57.3 on lane gates re-run after `Base moved:`, the third lane goes, the sixtieth booked on ten pairs
-- 99 standing — The sixtieth tranche: two Opus lanes, twenty landings in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next, the launch waits on Ramon
+- 99 standing — The sixtieth tranche: two Opus lanes, twenty landings in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next
 - 100 standing — The sixtieth pass's sequel: the territory map, five layers replaced by design, the audit at zero on seventy replays, the melee booked, map generation in scope, Astra retired
-- 101 extended by 102 — The sixty-first tranche: two Opus lanes with the lever, twenty landings in 12 h 41, eight words close and seven late-age pairs stand, unit types 250 of 302, waiting 44.6 on the capture class, the third lane stays out, the sixty-second booked on the Modern words, the melee and map generation
-- 102 extended by 103 — The sixty-second tranche: two Opus lanes, twenty landings in 13 h 07, seven late-age words close so every late-age word is whole, the first melee moves 182 → 863, map generation read, unit types 261 of 302, waiting 42.3 and the gate 26.8 so two lanes stay, the sixty-third booked on the melee track
-- 103 extended by 104 — The sixty-third tranche: two Opus lanes, twenty landings in 13 h 07, both melees whole and every word on the queue whole, unit types 263 of 302, waiting 42.0 and the gate 26.2 so two lanes stay, the sim crate's eleven gate minutes measured as over-cap sweeps and cached away, the third melee at Information the headline's next word, the sixty-fourth booked on it, the rubric's melee count, the audit and map generation
-- 104 standing — The sixty-fourth tranche: two Opus lanes, twenty landings in 11 h 39, the third melee stands up and moves 623 → 755 → 718 on a named regression ruled a word that moved, Great Sahara's map generation whole and Great Lakes' first step, the territory 529 → 541, waiting 26.3 and the gate 15.3 so the third lane returns, the sixty-fifth booked on the melee's frame and two map chains
+- 101 extended by 102 — The sixty-first tranche: two Opus lanes with the lever, twenty landings in 12 h 41, eight words close and seven late-age pairs stand, unit types 250 of 302, waiting 44.6 on the capture class so the third lane stays out, the sixty-second booked on the late words and the melee
+- 102 extended by 103 — The sixty-second tranche: two Opus lanes, twenty landings in 13 h 07, every late-age word whole, the first melee 182 → 863, map generation read, unit types 261 of 302, waiting 42.3 and the gate 26.8 so the third lane stays out, the sixty-third booked on the melee track
+- 103 extended by 104 — The sixty-third tranche: two Opus lanes, twenty landings in 13 h 07, both melees whole and every queued word whole, unit types 263 of 302, waiting 42.0 and the gate 26.2 so two lanes stay, the sim crate's gate minutes cached away, the third melee at Information booked
+- 104 extended by 105 — The sixty-fourth tranche: two Opus lanes, twenty landings in 11 h 39, the third melee stands up and moves 623 → 755 → 718 on a named regression ruled a word that moved, Great Sahara's map generation whole, the territory 529 → 541, waiting 26.3 and the gate 15.3 so the third lane returns
+- 105 standing — The sixty-fifth tranche: three Opus lanes, twenty landings in 9 h 04, the third melee closes whole with its state 0 off so no word is open, both map chains at 6 of 8, unit types 285 of 302, waiting 43.0 and the gate 21.3 so the third lane goes, §155 gains the map lever and the fourth melee is booked at sea on East Indies, the sixty-sixth on two lanes
 - 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty landings in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
@@ -10041,3 +10042,196 @@ the admission against 1,320.5 s on two lanes; red gates against zero;
 items past 300 k against seven; the lane rows at the drain against zero;
 the waiter logs' `ARMED` lines against the `DEEP` answers; the backlog
 against 8; the disk against 144 GiB.
+
+## 105. The sixty-fifth tranche is scored on three Opus lanes at twenty landings in 9 h 04, the third melee moves 718 → 2,600 on six items and closes with its state 0 off so no word is open, map generation runs both remaining chains to 6 of 8 so the territory moves 541 → 543, the rubric reads unit types 285 of 302 on the melee's lines, waiting reads 43.0 and the gate 21.3 so the rule's letter takes the third lane away, GOLDEN §155 gains the map as a second lever and the fourth melee is booked at sea on East Indies, five Loop items become tools and one a clause, and the sixty-sixth is booked on two lanes
+
+*2026-11-04, the sixty-fifth pass (the `steer` session, Fable), started by
+the drain's own `ccc clear steer --then` at 20:13 −05:00, which fired at
+once on the idle row — the regular flow, after the sixty-fourth's refusal
+(Loop 3821). The record is `docs/audit/2026-11-04-fable-pass-65.md`; this
+entry carries the decisions. Extends entry 104; amends GOLDEN §155's
+one-lever rule (entry 100 §3 as 103 §2 amended it).*
+
+**What was measured.** Twenty landings on three Opus 5.5 lanes at
+`--effort medium`, every lane session's model read off its transcript (21
+of 21 `claude-opus-5-5`), in **9 h 04** from the base (`5451f3938`, 11:09)
+to the drain's commit (20:13) — 11 h 39 the tranche before. **The third
+melee closed**: 718 → 761 → 822 → 860 → 897 → 1232 → 2,600 on six items
+(3816, 3824, 3827, 3829, 3834, 3836; GOLDEN §152.9–§152.14: a land
+shooter's missile leads half the distance out at 45° up, a dead group-mate
+is a nudge, the MG42's round, the Recoilless Guns' muzzle, and twelve
+Stealth Bomber bombs released below the ground they land on whose fall
+time is the root of a negative — a NaN that truncates to `i32::MIN` and an
+unsigned end test that keeps them in the air for good), **and its closing
+state 0 off by 3841** (§152.15: the capture's quit is a resign, and
+`Leader::defeat` kills every plane before any unit acts; `Sim::resign`
+built, `clear_orders`'s non-plane arm parked, 3841c). So **no word is
+open** for the first time since the melee track began. **Map generation
+ran both remaining chains to 6 of 8**: Great Lakes 1 → 6 (3819, 3822, 3826,
+3830, 3832 and 3835 with no sim change, 3843: `sim::halfland`, MAPGEN §16)
+and East Indies 0 → 6 (3820, 3825, 3828 — `Map::check_player_forest`
+ported into every map's chain — 3831, 3840, 3844 with no sim change), each
+step draw for draw on every trace and at its checkpoints on every file,
+first try or within its item; two merges of the two chains conflicted in
+`floors.rs` (3825, 3828) and landed on a second gate. **The territory:
+ported 541 → 543, open 1294 → 1292**; backed 1447 → 1448, bytes backed
+36.2 → 36.3 %. **The rubric, lockstep (278 dumps): unit types 275 → 285 of
+302** (the third melee's dumps joined; 17 never: 296, 312 and 78 which
+`add` cannot name, the two sea lines 332 and 351, five land lines no lobby
+fields — 67, 124, 175, 192, 194 — Boadicea and six gaia animals), **ages 8
+of 8, lockstep bytes 77.5 → 77.6 %** (2,258 functions). 3,218 sim lines on
+13 files outside `sweep/` (`halfland.rs` +966 new, `launch.rs` +592,
+`map_heights.rs` +589, `map_east_indies.rs` +298 new, `terrain_groups.rs`
++284); the whole tree 49 files +9,868 −303. **The price: 124.19 USD list
+for the workers over 21 sessions, 6.21 a landing** (176.50 / 8.82). **Waiting
+43.0 minutes a landing, 41.0 a session** (26.3 / 21.0): **the gate 21.3**
+(15.3), other 8.7 (3.5), **message 6.4** (0.8; 3831's 96 minutes on a hung
+mutant, Loop 3839, and the two conflicts' round trips), suite 2.8, **the
+capture 0.9** (0.4). Fifteen gate logs for twenty bookings and the drain
+(six bookings under a neighbour's gate): six whole at 44.6–53.2 release
+minutes, nine scoped at 9.5–13.5, **two red** (3836's booking on
+`every_whole_scoreboard_word_is_audited`, the third melee's `OWED` row,
+pushed red because the push was chained after the log's tail rather than
+its exit; 3843's on the census pin, read and not pushed), each a second
+commit; 435.5 minutes of gate (482.8); **admission 6,234.8 s summed,
+longest 117.5** (1,320.5 / 72.1), **seven gate ends of fifteen past the
+sixteen cores** (one of eighteen). **Four `DEEP`** (3829 315 k, 3835 336 k,
+3836 318 k, 3843 323 k; eight before): one answered through the waiter and
+**two of the three answers met a push that was the landing** (3829, 3836;
+3843 a draft; Loop 3833, built under this pass). The lanes' own gates: the map steps
+8.5–14.6 release minutes, the melee's residue items 10.0–19.4 (9.9–12.2);
+**five lanes gated past their first** (three): 3819 on filters matching no
+test the lane runs (Loop 3823), 3825 and 3828 on conflicts, 3843 across two
+sessions, 3844 on a moved base. Four captures, 0.2 a landing (0.5), on one
+pool lane, median 24.6 frames a wall second. 16 waiter logs: 16 `WAITING`,
+9 `PUSHED`, 1 `DEEP`, no `HELD`, `GATING`, `STALLED` or `ARMED`; one spawn
+ran without `--worktree` and was stopped within the minute (3835's first,
+Loop 3837), its stopped row left listed because `ccc rm` on it named the
+integration tree (reaped by this pass with `ccc forget`). No `no verdict
+(error)`; no kill rule; no merge backed out; no `FABLE:` row; no message
+between the rows but the opener, which came as the sixty-fourth pass's
+one-time deviation after its own two arms on the commander were refused
+(Loop 3821's second shape). The remote delete of the merged lane branches
+is classifier-refused from both rows: 29 `origin/worktree-att-*` stand.
+The disk: 114 GiB free at the pass's start (144 after the last pass);
+`afsctool` and the debug profile's clean (9.9 GiB) gave 125.
+
+**What it means.**
+
+1. **The rule's letter takes the third lane away for the sixty-sixth.**
+   Entry 104 §1 returned it to be read at this drain against 26.3 waiting
+   — a fifth above, 31.6, takes it away — and 15.3 gate. The sixty-fifth
+   read **43.0 and 21.3**, both over. What it cost was the door and the
+   chains: admission 6,234.8 s against 1,320.5, seven gate ends past the
+   cores against one, the whole booking gates 50.4–53.2 release minutes
+   against 44.1–49.4, two chain merges conflicting in `floors.rs` and one
+   lane 96 minutes on a hung mutant; subtracting 3831's wait alone leaves
+   38.3, still over. What the lane bought is the other column: **6.21 USD a
+   landing against 8.82, and twenty landings in 9 h 04 against 11 h 39** —
+   53 a day against 41. The rule reads waiting, and the pass does not move
+   the lane count past the rule (DECISIONS 61); so **two Opus 5.5 lanes at
+   medium**, the headline's and the map chains', the lane returning when a
+   two-lane tranche reads waiting under 26.3 and the gate under 15.3 — the
+   two-lane figures it was returned on — or on Ramon's word, which the
+   price and the clock argue for and the record puts to him.
+2. **GOLDEN §155 gains the map as a second lever, and the fourth melee is
+   a sea fight on East Indies at the held Information age** (item 3847).
+   Entry 103 §2 said the pass after 3797 runs whole amends §155, and it
+   does: a melee has two levers, the age and the map, and a chapter moves
+   exactly one of them from the melee before; the map moves when the
+   braces' never-seen lines are sea lines or the families the age's fight
+   reaches are naval. The braces now hold seven fieldable lines, two of
+   them at sea (`Fluyt` 332, the `Aircraft Carrier` 351), and Great Sahara
+   has no sea (3733c); the third melee's lobby with the map changed to East
+   Indies (`MAP_STYLE 18`) and the age held is the one-lever move: the
+   same `--profile PLAYERS=2`, the French and Russians as the computers,
+   the Nubians idle; the sea lines and the age's ships `add`ed at water
+   cells of the strait between the two capitals' islands, the five land
+   lines (67, 124, 175, 192, 194) at the shores and on who 0 where the
+   nation gates them, 124 a probe of `parse_type`'s name column (it shares
+   `Machine Gun` with 123, the 296/312/78 shape, 3797a); the fifth
+   falsifier (e) of §155 as amended; runs 1482 (the `DUMP_ALL` start),
+   1483 and 1483b. What it reaches that no lockstep game has held: a
+   ship's fight — carriers, missile cruisers, submarines, their rounds and
+   deaths — and two more unit types. The boarding rows are not its claim:
+   `do_board` and `check_meet_ship` live under a `BoardOrder` no site
+   issues (`blind::RESIDUE`), so a sea melee that enters none of them has
+   broken nothing. Its `Melee:` row carries its closing state (Loop 3842,
+   built under this pass).
+3. **The map chains share one lane.** With two lanes and the fourth melee
+   on the first, the second lane takes the queue's map items in order:
+   East Indies' rivers (3846: `make_riverbeds` at 5014 and the 0x2000/0x2
+   clear at 5116 are height-free on Great Sahara, and East Indies'
+   `RIVERLIST` is read before it is called empty), then Great Lakes' (3845:
+   173 river draws, `make_riverlist` and `astar_river`), then each map's
+   eighth step (the troughs and the slope test of §10). A chain's landing
+   refills that lane with the next map item; the two chains stay
+   independent and a conflict between them stays a lane's second gate.
+4. **Five Loop items become tools and one a clause; the backlog 14 → 9.**
+   Built by four Opus 5.5 subagents under this pass, red first: 3838 and
+   3833 in the waiter (a stopped row under a live row's name no longer
+   overwrites its tree; a push on a lane whose own gate still runs is held and
+   never armed, and a push whose journal is no draft is a landing — four
+   of thirteen `DEEP` lanes over three tranches pushed the landing, each
+   with its gate running; the row's second case, a journal naming a gate
+   log, caught none and was not built), 3839 in `mutate.py` (the timeout kills every descendant of
+   the command, since `resource_budget.py` starts cargo in a session of
+   its own and `killpg` reached the wrapper alone; the verdict line says
+   `killed` only when nothing survived), 3823 in the lane gate (a filter
+   whose every match is in the sim crate is dropped and named on a lane
+   that left the crate, instead of exiting 2) and 3842 in `rondata` (the
+   `Melee:` row carries its close as the `Endpoint` rows do, pinned from
+   the closing-state test). 3837 is a clause: the roster's spawn line
+   spells `--worktree=att-<N>`. 3799 measured again: the cache 16 GiB and
+   0 files rewritten over the tranche; stays filed. 3821 measured: the
+   drain's arm fired at once this time; ccc's half stays Ramon's. Filed:
+   3848, the merged lane branches' remote delete refused from both rows.
+   The six standing rows stay Ramon's with this tranche's numbers.
+5. **The pass's first acts, measured.** The disk read 114 at the start,
+   under the last pass's 144, so both ran: `afsctool` on the two archives
+   and `cargo clean --profile dev` on the integration tree (9.9 GiB, the
+   reflex's rebuild in minutes), 125 after. The rubric's record, the
+   suite's 54 untimed tests timed (1,941 on file, 4,617 s), the stopped
+   lane row forgotten, and the stub pools refilled (GOLDEN §156–§157).
+
+**Against entry 104's estimate**: 3816 lands and the word passes 755 within
+three items — met (761 on 3816 alone); Great Lakes' zero-draw passes agree
+at 7854 on 185 files first run and the chain reaches resources in the
+tranche — met (step 6); East Indies' mask agrees at 7807 on 202 files
+within two items — met (one); unit types 275 unmoved unless the melee
+closes, bytes move iff it does — met (285, 77.6); the territory's ported
+passes 560 — **missed** (543); every lane gate under thirteen release
+minutes — **missed** (3819 14.6, 3827 19.4, 3840 14.1); lane gates past the
+first under three — **missed** (five); the gate class under 20 on three
+lanes — **missed** (21.3); waiting under 31.6 — **missed** (43.0); a landing
+under 9.00 USD — met (6.21); the capture class under 2 — met (0.9);
+admission under 2,500 s — **missed** (6,234.8); `DEEP` under six — met
+(four); no red booking gate — **missed** (two); a gate log for every
+booking — **half** (six bookings under a neighbour's whole gate, the
+landings that arrived during one); the drain's arm fires or its refusal
+reaches the phone within five minutes — met (fired); no draft unarmed —
+met. Nine of seventeen, one half.
+
+**The estimate, written down to be wrong on record**, on two Opus lanes:
+the fourth melee stands up on East Indies past 600 with both sea lines
+fielded, so unit types read 287 or more; its residue items are under
+eight and the sea fight moves lockstep bytes off 77.6; East Indies'
+rivers land with no sim change on their first run and Great Lakes' 173
+draws agree within two items, both maps at 8 of 8 by the drain; the
+territory's ported passes 550; every lane gate under fifteen release
+minutes; lane gates past the first under three; the gate class under 18
+on two lanes; waiting under 31.6 and a landing under 8.00 USD; the capture
+class under 3; admission under 2,000 s; `DEEP` under four; no red booking
+gate; a gate log for every booking that is not merged under a neighbour's;
+no `GATING` push armed; the drain's arm fires.
+
+**The measure for the next pass**: unit types against 285, lockstep bytes
+against 77.6, the territory's open against 1292, ages 8 of 8, the fourth
+melee's word against its first parting; each landing's USD and waiting
+against 6.21 / 43.0 and the capture class against 0.9; the gates past the
+first against five; the gate class against 21.3 and the residue lane gates
+against 10.0–19.4; the map steps' release minutes against 8.5–14.6; the
+admission against 6,234.8 s on three lanes and 1,320.5 on two; red gates
+against two; items past 300 k against four; the lane rows at the drain
+against one; the waiter's `GATING` holds against its `ARMED` lines; the
+backlog against 8; the disk against 125 GiB.

@@ -885,6 +885,80 @@ class GateTests(unittest.TestCase):
         command, policy = self.release_command(touched=['tools/emu_receipts.py'], lane=True, tests=WORD)
         self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
 
+    # Loop 3823 (the sixty-fifth pass): `map_lakes` and `terrain_groups` —
+    # tests in `crates/sim` alone — passed 3819's brief (3818 lists the
+    # workspace's tests), and its first lane gate exited 2 on them before
+    # its guard step: the branch touched no sim path, so `sim_crate_left`
+    # left the crate's binaries to the booking gate and the filters matched
+    # no test that ran. Seven of the tranche's twenty briefs named a
+    # sim-only filter for a lane that touched no sim path (3819, 3826, 3830,
+    # 3831, 3832, 3840, 3844); three journals quote the exit 2.
+    CRATES = {'sim': {'map_lakes::tests::the_lakes_agree': False, 'mapgen::the_mask_is_cut': False,
+                      'map_heights::tests::slow_walk': False, 'sweep::only_ignored_here': True},
+              'rondata': {'diff::mapgen::tests::the_mapgen_walk': False,
+                          'diff::floors::tests::the_gate_has_a_bounded_test_width': False,
+                          'map_heights_measure': True},
+              'fixed': {}}
+
+    def test_a_filter_whose_every_match_is_in_the_sim_crate_is_sim_only(self):
+        only = gate.sim_only_filters(
+            ['map_lakes', 'mapgen', 'the_gate_has_a_bounded_test_width', 'coverage::',
+             'no_such_test_3823', 'map_heights', 'only_ignored_here'], self.CRATES)
+        # `mapgen` matches both crates and stays; a filter that matches
+        # nothing anywhere stays (its exit 2 is a typo's); one whose live
+        # matches are sim's alone (an ignored data-crate test runs nothing)
+        # is sim-only; one whose sim matches are all ignored stays.
+        self.assertEqual(only, ['map_lakes', 'map_heights'])
+
+    def test_the_lister_is_brief_s_and_knows_each_test_s_crate(self):
+        crates = gate.crate_tests()
+        self.assertEqual(set(crates), {'fixed', 'rondata', 'sim'})
+        self.assertEqual(gate.sim_only_filters(['map_lakes', 'terrain_groups', 'mapgen', WORD[0]], crates),
+                         ['map_lakes', 'terrain_groups'])
+
+    def lane_with(self, touched, tests, log=RELEASE_LOG):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append(command)
+                if '--release' in command:
+                    release_ran(kwargs, log=log)
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), patch.object(gate, 'branch_paths', return_value=list(touched)), \
+                    patch.object(gate, 'row_only_edits', return_value=set()), \
+                    patch.object(gate, 'crate_tests', return_value=self.CRATES):
+                gate.gate(path, report_dir=path/'report', run=run, test_threads=4, git=UNMOVED,
+                          lane=True, tests=tests, isolated=False)
+            policy=json.loads((path/'report/gate-policy.json').read_text())
+        return calls, policy, out.getvalue()
+
+    def test_a_lane_that_left_the_sim_crate_drops_its_sim_only_filters_and_names_them(self):
+        green = RELEASE_LOG.replace(' ... FAILED', ' ... ok') + 'test diff::mapgen::tests::the_mapgen_walk ... ok\n'
+        calls, policy, out = self.lane_with(['crates/rondata/src/diff/mapgen.rs', 'docs/MAPGEN.md'],
+                                            ['mapgen', 'map_lakes'] + WORD, log=green)
+        self.assertEqual(gate.step_name(calls[-1]), 'guard')
+        self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
+        self.assertEqual(policy['lane']['tests'], ['mapgen'] + WORD)
+        self.assertEqual(policy['lane']['dropped'], ['map_lakes'])
+        self.assertIn('Lane filter dropped: map_lakes — every match is in crates/sim, which this lane '
+                      'left to the booking gate (Loop 3823)\n', out)
+        self.assertNotIn('Lane filter dropped: mapgen', out)
+        self.assertIn("the word's: mapgen, " + WORD[0], out)
+        # A lane that keeps the sim crate keeps the filter, and runs it.
+        calls, policy, out = self.lane_with(['crates/sim/src/map_lakes.rs'], ['map_lakes'] + WORD,
+                                            log=green + 'test map_lakes::tests::the_lakes_agree ... ok\n')
+        self.assertEqual(policy['lane']['tests'], ['map_lakes'] + WORD)
+        self.assertEqual(policy['lane']['dropped'], [])
+        self.assertNotIn('Lane filter dropped', out)
+
+    def test_a_filter_that_matches_nothing_anywhere_is_still_red_on_a_lane_that_left_the_sim_crate(self):
+        with self.assertRaises(ValueError) as caught:
+            self.lane_with(['docs/MAPGEN.md'], ['map_lakes', 'no_such_test_3823'] + WORD,
+                           log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+        self.assertIn('no_such_test_3823', str(caught.exception))
+        self.assertNotIn('map_lakes', str(caught.exception))
+
     def test_a_branch_that_can_move_the_diff_pins_widens_the_lane_gate(self):
         # Loop 2415 (the thirty-fifth pass; DECISIONS 71 amended): both kill
         # rules of the thirty-fifth tranche tripped by one route — 2384's

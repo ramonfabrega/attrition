@@ -21,7 +21,8 @@ Kinds: `residue` — a word on the AI track, a pair's or the third map's;
 `reading` — the never-entered functions a document cites, read into claims
 that each name their falsifying capture (DECISIONS 84). A refusal is a `ValueError` and exit 2: an
 item the queue does not book has no brief, and a `--tests` filter that matches no test in the
-workspace, or only `#[ignore]` ones, has no lane gate (Loop 3818, 3227).
+workspace, or only `#[ignore]` ones, has no lane gate (Loop 3818, 3227); one whose every match is
+in `crates/sim` is noted on stderr, since a lane that touches no sim path drops it (Loop 3823).
 
 Why (the nineteenth pass, 2026-09-29): a brief was the previous brief,
 copied from the job's scratch directory and edited, and it had grown from
@@ -239,6 +240,28 @@ def test_fns(crates=None):
     return out
 
 
+SIM_CRATE = 'sim'
+
+
+def crate_tests():
+    """`{crate: test_fns of that crate alone}` for every crate of the
+    workspace — what says which crate's binaries a filter's matches run in
+    (Loop 3823); `release_gate.py` reads the same."""
+    return {p.name: test_fns((str(p.relative_to(ROOT)),))
+            for p in sorted((ROOT / 'crates').iterdir()) if p.is_dir()}
+
+
+def sim_only(tests, by_crate):
+    """The filters whose every live match is a test of `crates/sim` — none
+    elsewhere, at least one there (Loop 3823). A lane gate that leaves the
+    sim crate to the booking gate (`sim_crate_left`, Loop 3653) runs none
+    of their tests; one that matches nothing anywhere is not among them."""
+    def live(crate, t):
+        return any(t in n and not ignored for n, ignored in by_crate.get(crate, {}).items())
+    return [t for t in tests if live(SIM_CRATE, t)
+            and not any(live(c, t) for c in by_crate if c != SIM_CRATE)]
+
+
 def filters(kind, tests):
     """The lane gate's `--tests` for a brief: what the commander names,
     and the kind's own always among them (1623: 1611's lane gate never ran
@@ -257,6 +280,12 @@ def filters(kind, tests):
         if all(fns[n] for n in hits):
             raise ValueError(f"--tests {t} matches only #[ignore] tests ({', '.join(sorted(hits))}): "
                              "the lane gate exits 2 on it; name a live test, or say the measurement is by hand")
+    # Loop 3823: a note, not a refusal — 3819's first lane gate exited 2 on
+    # `map_lakes` and `terrain_groups`, its branch touching no sim path; the
+    # gate now drops such a filter there and names it.
+    for t in sim_only(tests, crate_tests()) if tests else ():
+        print(f'note: --tests {t} matches tests in crates/sim only; moot on a lane that touches '
+              'no sim path (Loop 3823)', file=sys.stderr)
     return tests + [t for t in ALWAYS_TESTS[kind] if t not in tests]
 
 

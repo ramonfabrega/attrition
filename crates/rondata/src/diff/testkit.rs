@@ -12232,7 +12232,42 @@ impl AiWord {
     pub(crate) fn closed(&self) -> bool {
         self.word >= self.length
     }
+
+    /// The row's closing pin, where its line carries its close
+    /// ([`AI_CLOSINGS`]).
+    pub(crate) fn closing_off(&self) -> Option<usize> {
+        AI_CLOSINGS
+            .iter()
+            .find(|(m, _)| *m == self.map)
+            .map(|(_, off)| *off)
+    }
 }
+
+/// **The handoff lines whose parts carry their close** (Loop 3842): on
+/// these a closed row's part reads `<map> w<word> of <length> <n> off`,
+/// the `<n>` its closing-state test's pin in [`AI_CLOSINGS`], and an open
+/// row's part has no suffix. The third melee's draw stream read `w2600 of
+/// 2,600` beside one unit extra at its close (3836c), the line the two
+/// closed melees' read, and only the handoff's prose said the game was not
+/// closed.
+pub(crate) const CLOSING_LINES: &[&str] = &["Melee"];
+
+/// Each closing pin by its row's map, every row of [`CLOSING_LINES`] with
+/// an `endpoint` (`floors::tests::every_closing_line_row_has_its_close`).
+pub(crate) const AI_CLOSINGS: &[(&str, usize)] = &[
+    (
+        "GreatSaharaGunpowderMelee",
+        crate::diff::gunpowder_melee::GUNPOWDER_MELEE_CLOSING_OFF,
+    ),
+    (
+        "GreatSaharaClassicalMelee",
+        crate::diff::classical_melee::CLASSICAL_MELEE_CLOSING_OFF,
+    ),
+    (
+        "GreatSaharaInformationMelee",
+        crate::diff::information_melee::INFORMATION_MELEE_CLOSING_OFF,
+    ),
+];
 
 /// A game's length by its line's spelling of the map; the walks that read
 /// each trace to its end hold the table to it.

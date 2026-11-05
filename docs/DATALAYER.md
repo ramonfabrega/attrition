@@ -826,6 +826,13 @@ a correction there has no tuning to hide.
 still owed — the second pair's two, stood up by `second::walk_second`
 (Great Lakes borrows no pasture), and the two staged melees (`audit_walk`
 stages no script) — are its `OWED` list, held to exactly the missing set.
+A closed melee's part carries its close (Loop 3842): `<map> w<word> of
+<length> <n> off`, `<n>` the records its closing-state test reads off at
+the close — the sum of `EndpointResult::counts` — pinned by its module's
+`*_MELEE_CLOSING_OFF` (`testkit::AI_CLOSINGS`, the lines in
+`CLOSING_LINES`) and read by `floors::ai_line_closes`; a draw stream whole
+to the last frame beside a close that is not reads `1 off`, not the closed
+melees' line.
 
 ### 3.1 The order diff — the intent, every frame
 

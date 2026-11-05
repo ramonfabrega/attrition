@@ -171,9 +171,28 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// of <length>`, the length with or without its comma. The one parser of
 /// those lines — the floors guards read it against `AI_WORDS`, and the
 /// correction audit's guard (`audit::every_whole_scoreboard_word_is_audited`)
-/// reads it for the whole words.
+/// reads it for the whole words. The closing suffix is
+/// [`ai_line_closes`]', dropped here.
 #[cfg(test)]
 pub(crate) fn ai_line_parts(line: &str, prefix: &str) -> Result<Vec<(String, i64, i64)>, String> {
+    Ok(ai_line_closes(line, prefix)?
+        .into_iter()
+        .map(|(m, w, l, _)| (m, w, l))
+        .collect())
+}
+
+/// One part of an AI track line: map, word, length and closing suffix.
+#[cfg(test)]
+pub(crate) type AiPart = (String, i64, i64, Option<usize>);
+
+/// [`ai_line_parts`] with each part's closing suffix (Loop 3842): `<map>
+/// w<word> of <length> <n> off`, `Some(n)` where the part carries one and
+/// `None` where it does not. Every line is read the same way; which parts
+/// owe a suffix is the rows' (`testkit::CLOSING_LINES`, `AI_CLOSINGS`), so
+/// a suffix on any other line, or none on a closed melee's part, fails the
+/// verdict rather than the parse.
+#[cfg(test)]
+pub(crate) fn ai_line_closes(line: &str, prefix: &str) -> Result<Vec<AiPart>, String> {
     let mut said = Vec::new();
     let body = line
         .strip_prefix(prefix)
@@ -193,7 +212,10 @@ pub(crate) fn ai_line_parts(line: &str, prefix: &str) -> Result<Vec<(String, i64
             .ok_or_else(|| {
                 format!("part {part:?} on the `{prefix}:` line names no `of <length>`")
             })?;
-        said.push((t[0].to_string(), word, length));
+        let close = (t.get(5) == Some(&"off"))
+            .then(|| t.get(4).and_then(|n| n.parse::<usize>().ok()))
+            .flatten();
+        said.push((t[0].to_string(), word, length, close));
     }
     Ok(said)
 }
@@ -404,9 +426,40 @@ mod tests {
 
     /// **The melee's line is its pinned word** (item 3733, `docs/GOLDEN.md`
     /// §149): the first melee, a staged Gunpowder game on Great Sahara.
+    /// **And its close** since Loop 3842: a closed melee's part reads
+    /// `<map> w<word> of <length> <n> off`, the `<n>` its module's
+    /// `*_MELEE_CLOSING_OFF` (`AI_CLOSINGS`), which its closing-state test
+    /// pins — so a draw stream whole to the last frame beside a close that
+    /// is not cannot read as the closed melees' line. Made to fail first on
+    /// the line with no suffix, then with the third part's `1 off`.
     #[test]
     fn the_handoff_s_melee_is_the_pinned_word() {
         the_handoff_carries("Melee");
+    }
+
+    /// **Every closed row of a closing line has its close, and no other
+    /// row has one** (Loop 3842): a fourth melee that closes without its
+    /// `AI_CLOSINGS` pin, or a pin on a row whose line carries no close,
+    /// fails here rather than reading as a line with no suffix.
+    #[test]
+    fn every_closing_line_row_has_its_close() {
+        let mut wrong = Vec::new();
+        for w in AI_WORDS {
+            let owed = CLOSING_LINES.contains(&w.line) && w.endpoint.is_some();
+            if owed != w.closing_off().is_some() {
+                wrong.push((w.line, w.map, owed));
+            }
+        }
+        for (m, _) in AI_CLOSINGS {
+            if !AI_WORDS.iter().any(|w| w.map == *m) {
+                wrong.push(("AI_CLOSINGS", m, false));
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "(line, map, owes a close) where AI_CLOSINGS disagrees with the \
+             rows of CLOSING_LINES that carry an endpoint: {wrong:?}"
+        );
     }
 
     /// **The map generator's line is its pins** (item 3776,
@@ -658,13 +711,14 @@ mod tests {
             panic!(
                 "docs/QUEUE.md has no `{head}` line in the handoff; write \
                  `{head} <map> w<word> of <length>`, one part per row of \
-                 `AI_WORDS` on that line, in order, parted by a middle dot"
+                 `AI_WORDS` on that line, in order, parted by a middle dot \
+                 (and ` <n> off` after a closed row's length on a closing line)"
             )
         });
-        let rows: Vec<(&str, i64, i64)> = AI_WORDS
+        let rows: Vec<(&str, i64, i64, Option<usize>)> = AI_WORDS
             .iter()
             .filter(|w| w.line == prefix)
-            .map(|w| (w.map, w.word, w.length))
+            .map(|w| (w.map, w.word, w.length, w.closing_off()))
             .collect();
         if let Err(e) = ai_line_verdict(line, prefix, &rows) {
             panic!("{e}");
@@ -672,34 +726,49 @@ mod tests {
     }
 
     /// One of the AI track's lines read part by part against its rows:
-    /// `<map> w<word> of <length>`, the length with or without its comma.
-    fn ai_line_verdict(line: &str, prefix: &str, rows: &[(&str, i64, i64)]) -> Result<(), String> {
-        let said = ai_line_parts(line, prefix)?;
-        let pinned: Vec<(String, i64, i64)> = rows
+    /// `<map> w<word> of <length>`, the length with or without its comma,
+    /// and ` <n> off` after it where the row carries its close.
+    fn ai_line_verdict(
+        line: &str,
+        prefix: &str,
+        rows: &[(&str, i64, i64, Option<usize>)],
+    ) -> Result<(), String> {
+        let said = ai_line_closes(line, prefix)?;
+        let pinned: Vec<AiPart> = rows
             .iter()
-            .map(|(m, w, l)| (m.to_string(), *w, *l))
+            .map(|(m, w, l, c)| (m.to_string(), *w, *l, *c))
             .collect();
         if said == pinned {
             Ok(())
         } else {
             Err(format!(
                 "the handoff's `{prefix}:` line is not the pins: the queue's \
-                 line says {said:?}, `AI_WORDS` says {pinned:?}"
+                 line says {said:?}, `AI_WORDS` and `AI_CLOSINGS` say {pinned:?} \
+                 (map, word, length, closing records off)"
             ))
         }
     }
 
     #[test]
     fn an_ai_line_is_read_against_its_rows() {
-        let rows = [("EastIndies", 612, 18_140), ("GreatLakes", 700, 5_930)];
+        let rows = [
+            ("EastIndies", 612, 18_140, None),
+            ("GreatLakes", 700, 5_930, None),
+        ];
         let ok = "Second pair: EastIndies w612 of 18,140 \u{b7} GreatLakes w700 of 5,930";
         assert_eq!(ai_line_verdict(ok, "Second pair", &rows), Ok(()));
-        let stale = [("EastIndies", 613, 18_140), ("GreatLakes", 700, 5_930)];
+        let stale = [
+            ("EastIndies", 613, 18_140, None),
+            ("GreatLakes", 700, 5_930, None),
+        ];
         assert!(
             ai_line_verdict(ok, "Second pair", &stale).is_err(),
             "a stale East Indies word"
         );
-        let stale = [("EastIndies", 612, 18_140), ("GreatLakes", 699, 5_930)];
+        let stale = [
+            ("EastIndies", 612, 18_140, None),
+            ("GreatLakes", 699, 5_930, None),
+        ];
         assert!(
             ai_line_verdict(ok, "Second pair", &stale).is_err(),
             "a stale Great Lakes word"
@@ -723,10 +792,44 @@ mod tests {
         assert!(ai_line_verdict("Second pair: none pinned", "Second pair", &rows).is_err());
         let third = "Third map: GreatSahara w8 of 24,000";
         assert_eq!(
-            ai_line_verdict(third, "Third map", &[("GreatSahara", 8, 24_000)]),
+            ai_line_verdict(third, "Third map", &[("GreatSahara", 8, 24_000, None)]),
             Ok(())
         );
-        assert!(ai_line_verdict(third, "Third map", &[("GreatSahara", 9, 24_000)]).is_err());
+        assert!(ai_line_verdict(third, "Third map", &[("GreatSahara", 9, 24_000, None)]).is_err());
+        // A closing line (Loop 3842): the close is the row's, and a part
+        // that drops it, or says another, is not the pins.
+        let closes = [
+            ("GreatSaharaGunpowderMelee", 2600, 2_600, Some(0)),
+            ("GreatSaharaInformationMelee", 2600, 2_600, Some(0)),
+        ];
+        let ok = "Melee: GreatSaharaGunpowderMelee w2600 of 2,600 0 off \u{b7} \
+                  GreatSaharaInformationMelee w2600 of 2,600 0 off";
+        assert_eq!(ai_line_verdict(ok, "Melee", &closes), Ok(()));
+        let comma = "Melee: GreatSaharaGunpowderMelee w2600 of 2,600, 0 off \u{b7} \
+                     GreatSaharaInformationMelee w2600 of 2,600, 0 off";
+        assert_eq!(ai_line_verdict(comma, "Melee", &closes), Ok(()));
+        let open = "Melee: GreatSaharaGunpowderMelee w2600 of 2,600 0 off \u{b7} \
+                    GreatSaharaInformationMelee w2600 of 2,600 1 off";
+        assert!(
+            ai_line_verdict(open, "Melee", &closes).is_err(),
+            "a close the pin does not say"
+        );
+        let bare = "Melee: GreatSaharaGunpowderMelee w2600 of 2,600 0 off \u{b7} \
+                    GreatSaharaInformationMelee w2600 of 2,600";
+        assert!(
+            ai_line_verdict(bare, "Melee", &closes).is_err(),
+            "a closed melee's part with no close"
+        );
+        let stray = "Third map: GreatSahara w8 of 24,000 0 off";
+        assert!(
+            ai_line_verdict(stray, "Third map", &[("GreatSahara", 8, 24_000, None)]).is_err(),
+            "a close on a line whose rows carry none"
+        );
+        assert_eq!(
+            ai_line_parts(ok, "Melee").map(|p| p.len()),
+            Ok(2),
+            "the three-part reading drops the close"
+        );
     }
 
     /// **The rules track's headline has the guard the AI track's has** —
