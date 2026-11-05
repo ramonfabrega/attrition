@@ -1217,6 +1217,8 @@ the run100 column above: 734 moves part 4, nothing moves from 745 to 706,
   0x4-as-`NONE`, 0x400 and 5×5 arms fail nothing there and are
   unit-tested (3832b).
 
+East Indies is the same (item 3844, §15 step 6).
+
 **`make_rivers` on Great Sahara** (item 3811, `sim::map_rivers`; the
 function's own order, `Map::make_rivers@00692fb0`):
 - 5012; `Map::make_riverbeds@00694530` first clears 0x2000 and 0x2 on every
@@ -1456,6 +1458,14 @@ Of the territory's 198 open or layout-only functions under the nine stems
   3835). Eight mutants fail it; the 15.5 clamp, the search's second ring
   past the first find, and `adjust_aquatic_height`'s `land` 1/3 arm fail
   nothing, being inert on this grid (3835a);
+- §10's `Terrain::init` without heights and its heights on East Indies
+  (item 3844): seed and parts 2, 5, 6 and 10–13 from 734 to 706 on 202
+  files, every vertex of 56 start dumps, and `HALFLAND` cell-exact on 202.
+  Of 3832b's and 3835a's seven arms, `coord_land`'s 0x4-as-`NONE` now
+  fails it; the other six fail nothing here too, measured inert (3844a).
+  §16's half-land body, 720 to 5012 on all 202 (item 3844, on 3843's
+  `sim::halfland`): the 0x4 spread's break and the shallow 5×5 ring now
+  fail it; five of 3843a's arms stay unit-tested;
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
@@ -1554,7 +1564,13 @@ step is checked by §3 at its own checkpoint before the next begins:
    heights through 706 now agree (item 3835) and decide the 243 cells
    exactly. **Great Lakes built** (item 3843, `sim::halfland`, §16; its
    sixth phase): `_wcoord`'s writes and `mark_halfwater` agree at 720 and
-   every record to 5012 on all 185 files;
+   every record to 5012 on all 185 files. **East Indies built** (item
+   3844, no `sim` change; its sixth phase): all 206 files share Great
+   Lakes' pattern; from 734 to 5012 seed and parts 2, 5, 6 and 10–13
+   agree on the 202 keyed (4,646 records), `SEA_MAP` 3 at 734. The gate
+   opens round every island (1,921 and 1,932 cells), and the 706 heights
+   decide the start dump's `HALFLAND` cell for cell on all 202 (81,086
+   cells);
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894)
    — **Great Sahara built** (item 3812, `sim::map_heights`; the `Mapgen:`
    line's eighth phase). No checksum part moves for them there, so their
@@ -1562,7 +1578,9 @@ step is checked by §3 at its own checkpoint before the next begins:
    **Great Lakes through 706** (item 3835): the shore blend,
    `smooth_tcoord` and `build_coastal_data` on every vertex off the rivers
    of 45 start dumps; the half-land they decide is step 6's (item 3843).
-   The troughs and the slope test remain;
+   The troughs and the slope test remain. **East Indies through 706**
+   (item 3844): every vertex of the 56 start dumps that print the grid
+   (3,252,536; `RIVERLIST` empty, so none is set apart);
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
