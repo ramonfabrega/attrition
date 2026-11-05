@@ -5171,6 +5171,138 @@ mod tests {
         );
     }
 
+    /// **Rivers on East Indies** (`docs/MAPGEN.md` §10, §15 step 8, item
+    /// 3846): Great Sahara's check (3811) on the archipelago. From each
+    /// run's 5012 grid (the walk of [`east_indies_s_halfland_is_720_to_5012`]),
+    /// `Map::make_rivers` under `default.xml`'s threshold and
+    /// `EASTINDIES.xml`'s empty `RIVERLIST` — seed and parts 2, 5, 6 and
+    /// 10–13 at every record from 5012 to 5118 on every East Indies file,
+    /// the records being exactly the lines the port prints, part 4 held.
+    /// Each checkpoint's file count is printed first. No draw: the seed
+    /// holds.
+    #[test]
+    fn east_indies_s_rivers_are_5012_to_5118() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let thresh = river_thresh(root, "EASTINDIES.xml").expect("RIVER_THRESHOLD");
+        let rivers = river_list(root, "EASTINDIES.xml").expect("a RIVERLIST");
+        assert_eq!(
+            (thresh, rivers),
+            (8, 0),
+            "default.xml's threshold, EASTINDIES.xml's empty list"
+        );
+        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let mut runs: std::collections::BTreeMap<EiRun, Vec<&StartGrid>> = Default::default();
+        let mut carried: std::collections::BTreeMap<i64, usize> = Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 18 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            for l in [5012, 5014, 5076, 5116, 5118] {
+                if g.at("map.cpp", l).is_some() {
+                    *carried.entry(l).or_default() += 1;
+                }
+            }
+            runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                .or_default()
+                .push(g);
+        }
+        eprintln!("rivers: EI files carrying each make_rivers line {carried:?}");
+        let (mut files, mut records, mut parted) = (0, 0, Vec::new());
+        for (run, gs) in &runs {
+            let (mut grid, d, tileset) = east_indies_at_7945(root, gs[0], *run, range, &makes);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            let mut coord = coord_flags(&grid);
+            let f = sim::map_heights::fractals(grid.xs, grid.ys, gs[0].seed as u32);
+            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, gs[0].seed as u32);
+            let combo = sim::halfland::Combo {
+                coast_base: ts.coast_base,
+                num_tiles: [
+                    Some(ts.base_tiles),
+                    Some(ts.coastal_tiles),
+                    Some(ts.ocean_tiles),
+                    None,
+                ],
+            };
+            let mut depth = 0;
+            let lists = sim::terrain_init::check_and_set_halfland_heights(
+                &mut grid, &mut coord, &z, combo, &mut depth,
+            )
+            .unwrap_or_else(|e| panic!("{} nations: {e:?}", run.1));
+            let p = lists.parts().expect("the lists' walk");
+            let lists_parts = [p[0], p[1], p[2], p[3]];
+            sim::halfland::create_doobers_flags(&mut grid);
+            sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                .with_depth(depth)
+                .convert_beach_to_sandy()
+                .unwrap_or_else(|e| panic!("{} nations, the beach: {e:?}", run.1));
+            let mut regions = regions_of(&grid);
+            let mut ours = Vec::new();
+            let beds = make_rivers(
+                &mut grid,
+                &mut regions,
+                thresh,
+                city_radius,
+                rivers,
+                |l, g| {
+                    ours.push((
+                        l,
+                        (
+                            d.rng.seed,
+                            g.start_part(),
+                            g.cell_part(),
+                            g.tile_part(),
+                            lists_parts,
+                        ),
+                    ))
+                },
+            )
+            .unwrap_or_else(|u| panic!("{} nations: an unported arm: {u:?}", run.1));
+            eprintln!("{} nations: {} river sources {beds:?}", run.1, beds.len());
+            for g in gs {
+                let reached = river_records(g);
+                if reached.is_empty() {
+                    continue;
+                }
+                let lines: Vec<i64> = reached.iter().map(|r| r.1).collect();
+                let printed: Vec<i64> = ours.iter().map(|o| o.0).collect();
+                assert_eq!(lines, printed, "the records make_rivers prints");
+                for ((f, l, seed, p), (_, o)) in reached.iter().zip(&ours) {
+                    let theirs = (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
+                    if *o != theirs {
+                        parted.push(format!(
+                            "{} nations, {f} {l}: ours {o:?} theirs {theirs:?}",
+                            run.1
+                        ));
+                    }
+                    assert_eq!(p[4], reached[0].3[4], "part 4 moved at {f} {l}");
+                    records += 1;
+                }
+                files += 1;
+            }
+        }
+        eprintln!(
+            "rivers: EI 5012..5118 on {files} files, {records} records; {} part",
+            parted.len()
+        );
+        assert!(
+            parted.is_empty(),
+            "(seed, parts 2, 5, 6, 10–13) part at {} of {records} records:\n{}",
+            parted.len(),
+            parted[..parted.len().min(20)].join("\n")
+        );
+        assert!(
+            files >= ISLAND_FILES,
+            "5012..5118 reached {files} East Indies files"
+        );
+    }
+
     /// The East Indies start dumps that print the height grid: a floor
     /// (56 on 2026-11-04).
     const MAPGEN_EI_HEIGHT_FILES: usize = 56;
@@ -5195,7 +5327,7 @@ mod tests {
     /// The §15 phases this module checks on East Indies: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail
     /// (7859, 7861..7870), the resources (7877..7927), the values
-    /// (7937, 7945) and `Terrain::init` with its half-land (734..5012,
-    /// item 3844).
-    const EAST_INDIES_CHECKED: i64 = 6;
+    /// (7937, 7945), `Terrain::init` with its half-land (734..5012,
+    /// item 3844) and the rivers (5012..5118, item 3846).
+    const EAST_INDIES_CHECKED: i64 = 7;
 }
