@@ -294,10 +294,7 @@ impl Spline {
         }
         self.scan -= 1;
         let s = self.scan as usize;
-        if self.curr.gt(self.target)
-            && self.scan < n
-            && !min.gt(self.total.subss(self.target))
-        {
+        if self.curr.gt(self.target) && self.scan < n && !min.gt(self.total.subss(self.target)) {
             if Single::ZERO.gt(seg) {
                 seg = self.seg(s);
             }
@@ -607,20 +604,18 @@ fn ensure_ocean_end(g: &MapGrid, pts: &mut Vec<(i32, i32)>, cd: &mut Single) {
             centre(cy).subss(last.y),
             Single::ZERO,
         );
-        let dot = v
-            .y
-            .mulss(dir.y)
-            .addss(v.x.mulss(dir.x))
-            .addss(dir.z.mulss(Single::ZERO));
+        let dot =
+            v.y.mulss(dir.y)
+                .addss(v.x.mulss(dir.x))
+                .addss(dir.z.mulss(Single::ZERO));
         if Single::ZERO.gt(dot) {
             continue;
         }
-        let dist = v
-            .y
-            .mulss(v.y)
-            .addss(v.x.mulss(v.x))
-            .addss(Single::ZERO)
-            .sqrtss();
+        let dist =
+            v.y.mulss(v.y)
+                .addss(v.x.mulss(v.x))
+                .addss(Single::ZERO)
+                .sqrtss();
         if best.gt(dist) {
             best = dist;
             found = Some((cx, cy));
@@ -630,7 +625,11 @@ fn ensure_ocean_end(g: &MapGrid, pts: &mut Vec<(i32, i32)>, cd: &mut Single) {
         return;
     };
     add_point(pts, cd, (bx, by));
-    let mut w = V3::new(v.x.subss(dir.x), v.y.subss(dir.y), Single::ZERO.subss(dir.z));
+    let mut w = V3::new(
+        v.x.subss(dir.x),
+        v.y.subss(dir.y),
+        Single::ZERO.subss(dir.z),
+    );
     let l = w.len2();
     if !l.eq_value(Single::ZERO) && !l.eq_value(ONE) {
         let inv = ONE.divss(l.sqrtss());

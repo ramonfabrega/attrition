@@ -589,7 +589,10 @@ pub fn make_riverlist(
             g.rivers.push(Vec::new());
             for i in from.max(0)..to.min(len) {
                 mark(g, path[i as usize], valley);
-                g.rivers.last_mut().expect("just started").push(path[i as usize]);
+                g.rivers
+                    .last_mut()
+                    .expect("just started")
+                    .push(path[i as usize]);
             }
         };
         let started = g.rivers.len();

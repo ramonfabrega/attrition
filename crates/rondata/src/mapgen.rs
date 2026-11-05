@@ -4498,12 +4498,18 @@ mod tests {
                 };
                 let theirs = (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
                 if ours != theirs {
-                    parted.push(format!("{} nations: ours {ours:?} theirs {theirs:?}", run.1));
+                    parted.push(format!(
+                        "{} nations: ours {ours:?} theirs {theirs:?}",
+                        run.1
+                    ));
                 }
                 files += 1;
             }
         }
-        eprintln!("troughs: 894 on {files} Great Lakes files; {} part", parted.len());
+        eprintln!(
+            "troughs: 894 on {files} Great Lakes files; {} part",
+            parted.len()
+        );
         assert!(
             parted.is_empty(),
             "(seed, parts 2, 5, 6, 10–13) part at 894 on {} of {files} files:\n{}",
@@ -4548,10 +4554,13 @@ mod tests {
                     continue;
                 };
                 let river = |cs: &[WCell]| -> Vec<usize> {
-                    (0..cs.len()).filter(|&i| cs[i].flags & 0x1000 != 0).collect()
+                    (0..cs.len())
+                        .filter(|&i| cs[i].flags & 0x1000 != 0)
+                        .collect()
                 };
-                let theirs_river: Vec<usize> =
-                    (0..cells.len()).filter(|&i| cells[i].flags & 0x1000 != 0).collect();
+                let theirs_river: Vec<usize> = (0..cells.len())
+                    .filter(|&i| cells[i].flags & 0x1000 != 0)
+                    .collect();
                 if river(&grid.cells) != theirs_river {
                     parted.push(format!(
                         "{name}: the 0x1000 cells, ours {} theirs {}",
