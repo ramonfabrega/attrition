@@ -2134,49 +2134,7 @@ impl Sim {
                     } else {
                         self.ground_z(self.units[u].pos)
                     };
-                    let mut sz = z + dz;
-                    let mut from = from;
-                    // PROBE 3849 (reverted whole): a sea shooter's release
-                    // key, and a trial bay `piece:right:fwd:dz[;...]`.
-                    if domain == crate::attrition::Domain::Sea
-                        && std::env::var_os("RON_PROBE_3849").is_some()
-                    {
-                        let pos = self.units[u].pos;
-                        let facing = self.units[u].movement.facing;
-                        if let Ok(spec) = std::env::var("RON_PROBE_3849_BAY") {
-                            for row in spec.split(';') {
-                                let v: Vec<i64> =
-                                    row.split(':').filter_map(|x| x.parse().ok()).collect();
-                                if v.len() == 5
-                                    && v[0] == i64::from(guy.gpiece)
-                                    && v[1] == i64::from(node)
-                                {
-                                    let b = crate::launch::Bay {
-                                        right: v[2],
-                                        fwd: v[3],
-                                        dz: v[4] as i32,
-                                    };
-                                    from = b.point(pos, facing);
-                                    sz = z + b.dz;
-                                }
-                            }
-                        }
-                        eprintln!(
-                            "  probe3849 f{frame} {}/{} piece {} anim {} start {} node {} pos ({}, {}) facing {} from ({}, {}, {})",
-                            self.units[u].owner,
-                            self.units[u].index,
-                            guy.gpiece,
-                            guy.anim,
-                            start,
-                            node,
-                            pos.x,
-                            pos.y,
-                            facing.0,
-                            from.x,
-                            from.y,
-                            sz
-                        );
-                    }
+                    let sz = z + dz;
                     let to = match (target, ground) {
                         (Some(t), _) => self.pos_of(t),
                         (None, Some(g)) => g.at,
