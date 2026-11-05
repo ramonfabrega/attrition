@@ -530,6 +530,26 @@ twelve islands are far from 62. The sea side is unit-tested from the
 reading (`the_sea_clamp_evicts_into_0x40_then_bins`), and the land side
 has no test (parked 3825a).
 
+**Southwest Mesa, diff-backed since item 3872** (checked by
+`rondata::mapgen::tests::southwest_mesa_s_zero_draw_passes_are_the_traced_7835_to_7854`,
+Great Lakes' walk, which now takes a one-entry `TILECHANCE` list's tileset
+as Great Sahara's test does): from the ported 7807 grid (§5), run1493's
+one file carries the four records, one each, and the seed (2,355,140,353,
+held from 7807), part 2 (292,424,319) and part 5 agree at all four on the
+first run. Part 5 is 1,267,075,849 at 7807, 2,334,202,137 at 7835, 7843
+and 7846 (every cell `region` 1, Great Sahara's value), and 969,480,808 at
+7854 under `SW_desert` (clump 3, 80/5/5/10, Great Sahara's numbers). The
+mask is Great Sahara's, all land: **one land region and no sea** at both
+region passes. So of eleven mutants (`tools/mutate.py --batch` on
+`49243ec26`), five hold: the first land label moved to 2 (at 7835), and
+at 7854 `fill_fertile`'s `>=` as `>`, its bucket one lower, its fractal
+read transposed and the clump factor + 1. Six fail nothing, each for the
+mask's reason: `fix_diag_land` skipped, `fix_lakes` at `> 6`, the COAST
+marking and the thinning skipped (no water cell), the land record search
+never advancing (one region), and the second `clear_all` leaving the
+cells' `region` (every cell already 1). Those arms stay held by Great
+Lakes' and East Indies' walks.
+
 Falsifier: part 5 at 7835, 7843, 7846 and 7854.
 
 ## 7. Terrain groups: forest, mountains, rock, oil, cliffs
@@ -1381,7 +1401,9 @@ Of the territory's 198 open or layout-only functions under the nine stems
   the thinning, the sea labels and the drawn tileset each held by a mutant
   (item 3819); the same four on East Indies' 202 files, with the land
   record search, the scan order and the second `clear_all` each held by a
-  mutant there too (item 3825); the `region2` pass and the adoption arm are
+  mutant there too (item 3825); the same four on Southwest Mesa's one
+  file, the label and `fill_fertile` held by a mutant there and the water
+  arms inert on its all-land mask (item 3872); the `region2` pass and the adoption arm are
   unit-tested only, inert at these checkpoints (§6);
 - §7's `place_all` on Great Sahara: draw for draw on 280 traces, and seed
   and parts 2, 5 and 6 at 7859 on 105 files (item 3803). The groups' parse
@@ -1589,7 +1611,9 @@ step is checked by §3 at its own checkpoint before the next begins:
    built** (item 3819, the same passes on its 7807 grid, the water arms'
    first diff; its second phase); **East Indies built** (item 3825, the
    same passes on its 7807 grid, twelve islands, the land record search's
-   first diff; its second phase);
+   first diff; its second phase); **Southwest Mesa built** (item 3872,
+   the same passes on its 7807 grid, run1493's four records, first run;
+   its second phase; an all-land mask, so the water arms are inert there);
 3. `place_all` (§7, 7859) — **Great Sahara built** (item 3803,
    `sim::terrain_groups`; the `Mapgen:` line's third phase); 7861–7870's
    `nubify_forest`, `change_*_base` and `fix_transitions` — **Great Sahara
@@ -2076,7 +2100,7 @@ field is (A)'s 7, and nothing else writes one.**
   neighbour C). The scratch port bears this out. In a 9×9 ocean with one
   `SANDY` cell and `BASELAND` sub 3 at its south-west diagonal, the cell
   reaches the arm under `COAST_BASE` 3. With the land at any of the other
-  three corners, it does not.
+  three corners, it does not. (Not on the original: §20.)
 
 ### 19.4 No grid on file holds P1 or P2
 
@@ -2245,4 +2269,66 @@ Lakes' default lobby, `cover=1`, then the same frame's `WORLD` block
 non-empty word at C kills it. A `.cmd` line cannot aim the cursor.
 Either the click lane hovers the cell, or the tracer stores
 `mouse_coord_x/y` (`ConsoleWin` +0x518/+0x51c) before the line, which
-is tooling this item does not build.
+is tooling this item does not build. Taken: §20.
+
+## 20. The console-planted contact, taken (item 3871)
+
+Run1494 is the golden start (Great Lakes, `--map 14`, seed 12345) at
+`cover=1` on the click-free pool, to 640. It uses run1129's line, with
+`620 @aim 41 42` and `620 !weather` added. `@aim` is a new tracer line
+(`tools/trace/tracer.c`, record `I_AIM` 33). It stores 768 c + 384 into
+`ConsoleWin` +0x518/+0x51c, because `weather` reads its cell as
+`div_3_table[coord >> 6] >> 2` and a `.cmd` line's `no_mouse` 1 skips
+the mouse read. The store was taken instead of an `@click` because a
+click reaches the cell only through `TerrainOut::get_mouse_coords@00864270`'s
+float camera projection. It also needs the typed path, since `parse_cmd`
+reads the mouse only when `no_mouse` is 0.
+
+- **The aim landed.** `I_AIM` reads cell (41, 42) and the stores 31,872
+  and 32,640. `!weather` ran with `parse_cmd` returning 1. Block 621
+  (`@dumpall`) against the golden start's own `WORLD` grid (run1030's
+  first block, the same seed) differs in exactly one cell: index
+  `xs · 42 + 41`, `OCEAN` 0 → `BASELAND` 3. It is the engine's own
+  `spot_update_land` index (`Terrain::spot_update_land@0084fa50`), so the
+  dump is row-major. §19.6's two cells are row-major too: the south-west
+  shape found by search on that grid is (41, 42) and (16, 45), and
+  C = (42, 41) is `SANDY` 0. The flanks (41, 41) and (42, 42) are `OCEAN`,
+  as are P's other seven neighbours.
+- **The arm was not entered.** `report.py functions` has no `HIT` for
+  `TerrainOut::check_for_diagonal@008595f0` or `WorldData::is_valid@00471170`,
+  and both are in the trace's function table. The re-mark did run over C:
+  `TerrainOut::add_update_wcoord@008738a0` lists P and its eight
+  neighbours, and `spot_update_land` marks the list and then calls
+  `create_transition_renderables` in the same call (line 111).
+- **What the kill reads.** `TileSet::is_combo_acceptable@0087abe0` is
+  three-valued. Same land within one sub returns 1 when B's sub is
+  greater and 2 otherwise, so ocean beside ocean is 2, never 1. With that
+  read, §19.2's (A) and (B) arms agree with `mark_trans_flags`. C is a (B)
+  cell: no orthogonal M → C is 1, and only the south-west diagonal D → C
+  is. Each flank's first M with M → F 1 is C. So the gate that withheld
+  C's 7, or emptied a flank, sits in a branch of
+  `TerrainOut::check_for_tendrils@00859eb0` that §19.3 did not walk. Its
+  return decides (A)'s 7 (`mark_trans_flags`, `iVar6 == 0`), and its
+  three-neighbour arm (`local_14 + local_10 + local_c + local_18 == 3`)
+  returns 1 after writing 5s. Which branch fired is not read: the
+  eight-slot map from `move_x/move_y` to its flags was not walked.
+- **The instrument that names it.** Every edge write in
+  `mark_trans_flags` and `check_for_tendrils` is a `Log::say` at
+  `GLOG_TERRAIN`, detail 0x28. No dump on disk prints `TERRAIN` at 40, so
+  a retake of this line that prints `TERRAIN` at 40 on 620 prints the
+  re-mark write by write. That retake is the next booking (parked 3871a).
+- **Twin.** run1130, run1129's `cover=0` twin: `rngcmp.py` finds 641 in
+  common, 641 identical, 0 differing. `samegame.py --from 620` finds 40
+  in common and the same game before 620. It parts on 621 and 622, the
+  `@dumpall` block and the next opening dump, by construction.
+- **Not pinned.** The trace enters no `NEVER` row (0 of 264), so joining
+  `blind::TRACES` would cost a read and move nothing. `Blind:` is
+  unmoved: never 264 · residue 223 · open 41.
+
+**Verdict: the plant is not a contact.** §19.3's south-west shape is not
+sufficient on the original. The predicate keeps the arm out of a single
+plant, and the arm and `is_valid` stay open. The row is not `RESIDUE`
+while the console can plant. (16, 45) is the same shape on the same
+grid and is not worth a take until the gate is named. 3870a (the
+start's leak, 0xee1224) stays parked, because the trace does not print
+it.

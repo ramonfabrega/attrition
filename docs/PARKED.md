@@ -13821,23 +13821,37 @@ Great Sahara's 23 start grids hold no `OCEAN` or `SANDY` cell. The console's `we
 (16, 45) plants §19.3's south-west shape (13 sites on East Indies). The `coverage` capture needs either the click lane
 hovering the cell or a tracer store of `ConsoleWin` +0x518/+0x51c before the line. Run 1494 stays held for the
 commander's booking. Killed by: that capture's `cover=1` trace not entering `008595f0` with C's word non-empty in the
-same frame's `WORLD` block.
+same frame's `WORLD` block. ~~Run 1494 stays held~~: taken by item 3871, not entered (3871a).
 
-## Parked by the next landing, slot ZN — reserved
+## Parked by item 3871, 2026-11-05 — the console-planted contact, taken
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3871a) **The plant at (41, 42) did not enter the arm; the gate is in `check_for_tendrils`** (`docs/MAPGEN.md` §20).
+Run1494 aimed `weather` with the new `@aim` line. Block 621 differs from the golden start's `WORLD` grid in that one
+cell alone (`OCEAN` 0 → `BASELAND` 3, C = (42, 41) `SANDY`). No `HIT` for `TerrainOut::check_for_diagonal@008595f0` or
+`WorldData::is_valid@00471170` landed. `is_combo_acceptable` is three-valued (2 = acceptable, not up), and with that
+read the (A) and (B) arms agree with §19.2, so the branch that withheld or emptied C's flank sits inside
+`TerrainOut::check_for_tendrils@00859eb0` (its return gates (A)'s 7, and its three-neighbour arm returns 1). That
+branch is not read. **The cheapest settle is a printed retake** (run 1495, the commander's to book): run1494's line
+with `TERRAIN` at detail 40 on 620. Every edge write in `mark_trans_flags` and `check_for_tendrils` is a `Log::say`
+at `GLOG_TERRAIN` 0x28, and no dump on disk prints that level. Killed by: the printed writes leaving both of C's flank
+fields at 7 with C → F 1, which would put the gate in `check_blocks` or `create_transition_renderables` instead.
+Names no score: the `Blind:` row's route.
 
-## Parked by the next landing, slot ZO — reserved
+(3871b) **(16, 45) is the same shape on the same grid** and waits on 3871a's gate. A take before that gate is named
+repeats run1494. Killed by: 3871a naming a gate that (16, 45)'s neighbourhood passes.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3872, 2026-11-05 — Southwest Mesa's zero-draw passes
+
+(3872a) **Six of the passes' arms are inert on run1493's all-land mask** (`docs/MAPGEN.md` §6): `fix_diag_land`,
+`fix_lakes`, the COAST marking, the thinning, the land record search and the second `clear_all`'s cell write
+fail nothing there (one land region, no sea). Each is held by Great Lakes' or East Indies' walk (3819, 3825).
+Names no score: Mesa's mask cannot make water, so no Mesa file will part on them.
+
+(3872b) **Mesa's next step is `place_all` at 7859, and its first draws are a cliff group's.** `SOUTHWESTMESA.xml`'s
+first `GROUPENTRY` is `cliffs` (player, size 5, `cliff_face` 1), and `sim::terrain_groups` has no type-8 arm.
+So the next item first reads which draw the port's `place_all` stream parts on, against run1493's `place_all`
+segment from 7854's seed 2355140353. That should be the first of `position_cliff`'s eleven template draws
+(site 0x8a8d2f). The refill of lane 2, the commander's to book.
 
 ## Parked by item 3873, 2026-11-05 — the fifth melee whole: the death records after the rounds
 
@@ -13853,6 +13867,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot ZQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZW renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

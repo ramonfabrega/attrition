@@ -214,6 +214,8 @@ enum {
     I_HOVER = 30, /* the pinned hover re-sent at `describe_mouseover` (`hover.h`); 25..29 are `dumptime.h`'s */
     I_HOLD = 31, /* an `@hold` line (`hold.h`) */
     I_HOLD_ASKED = 32, /* the first held `GetKeyState` answer of a frame (`hold.h`) */
+    I_AIM = 33, /* an `@aim` line: a = frame, b = line index | refusal << 16 (0 stored; 1 no
+                 * console_win; 5 the text did not parse), c = cx | cy << 16, d = the stored x, e = y */
 };
 
 typedef struct {
@@ -657,6 +659,9 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@cursor <x> <y>`                     client point, through the game's own
  *                                         handlers, the cursor pinned (item
  *                                         3437, `click.h`)
+ *   `@aim <cx> <cy>`                      not an issuer: the console's cursor
+ *                                         stored on a land cell, for the next
+ *                                         `!` line (item 3871)
  *   `@key <vk>`, `@char <c>`              not an issuer: a key pressed and
  *                                         released, or its `WM_CHAR`,
  *                                         through the game's own handler
@@ -1112,6 +1117,27 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_DUMPALL, (u32)frame, idx, (u32)*flag, 1, 0);
         *flag = 1;
         g_dumpall_until = frame + 1;
+        return;
+    }
+    if (issue_verb(&t, "aim ")) {
+        /* `@aim <cx> <cy>`: the console's cursor on land cell (cx, cy), for the
+         * next `!` line (item 3871, `docs/MAPGEN.md` §19). A `.cmd` line runs
+         * `parse_cmd` with `no_mouse` 1, so `mouse_coord_x/y` (`ConsoleWin`
+         * +0x518, +0x51c) keep whatever the last mouse read left; the commands
+         * that aim there (`weather`, `river`, `road`) read the cell as
+         * `div_3_table[coord >> 6] >> 2`, so the store is the cell's centre,
+         * 768 c + 384. Stored at the top of `do_frame`, like every `@` line,
+         * so a `!` line on the same frame after it reads it. */
+        i32 cx = 0, cy = 0, why = 0;
+        u8 *console = *(u8 **)(g_base + RVA_CONSOLE_WIN);
+        if (!issue_int(&t, &cx) || !issue_int(&t, &cy) || cx < 0 || cy < 0 || cx > 0x3ff || cy > 0x3ff) why = 5;
+        else if (!console) why = 1;
+        i32 sx = cx * 768 + 384, sy = cy * 768 + 384;
+        if (!why) {
+            *(i32 *)(console + 0x518) = sx;
+            *(i32 *)(console + 0x51c) = sy;
+        }
+        emit(K_INFO, I_AIM, (u32)frame, idx | ((u32)why << 16), (u32)cx | (u32)cy << 16, (u32)sx, (u32)sy);
         return;
     }
     if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }
