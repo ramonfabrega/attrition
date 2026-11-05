@@ -140,7 +140,11 @@ pub(crate) const SEA_MELEE: Melee = Melee {
 /// (`floors::ai_line_closes`). A draw stream whole to the game's last frame
 /// with a close that is not reads `w2600 of 2,600 1 off`, not the closed
 /// melees' line; a close that moves re-pins this and the line together.
-pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 448;
+///
+/// Item 3849: 448 → 474, with the personalities on their own seats
+/// ([`crate::diff::setup::leader_visit_order`]) — a game parted at 677
+/// plays on differently once the computers' personalities are right.
+pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 474;
 
 /// The melee's word: the lower of the two partings.
 pub(crate) const SEA_MELEE_WORD: i64 = if SEA_MELEE.count < SEA_MELEE.sequence {
@@ -260,18 +264,24 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // computers' `PERSONALITY` blocks from frame 1, all thirteen fields a
     // seat, **swapped between who 1 and who 2** (`air` ours −1 and 1
     // against theirs' 1 and −1, `naval` −1 and 0 against 0 and −1, …):
-    // `setup::build_sim` hands the checksum trace's `random_personality`
+    // `setup::build_sim` handed the checksum trace's `random_personality`
     // brackets out in seat order, and each lands on its far end, so the
-    // rolls are the original's on the other seat (parked 3847a). The
+    // rolls were the original's on the other seat (parked 3847a). The
     // other 184 are the closing dump's at 2601, a game parted since 677.
-    pin_eq!(w.standing(), vec![12, 9, 9], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 210, "the keys that part, by seat");
+    //
+    // Item 3849: 210 → 203 and the 26 → 0. `Setup::build_game` visits the
+    // leaders in its start permutation, here 3, 2, 5, 4, 7, 6, 1, 0 —
+    // who 2 first, the human last — and the brackets are now handed out
+    // in that order ([`crate::diff::setup::leader_visit_order`]). The
+    // standing family is 12, 10 and 7; the 203 are the closing dump's.
+    pin_eq!(w.standing(), vec![12, 10, 7], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 203, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()
             .filter(|k| k.contains("PERSONALITY") && k.contains(" 1: "))
             .count(),
-        26,
+        0,
         "the personality fields parted from frame 1"
     );
 }
@@ -324,17 +334,16 @@ fn sea_melee_run1483_s_closing_state() {
     // Item 3847, first try: 129 units compared at a close 1,924 frames
     // past the word, 448 records off — 115 units off, 8 unlinked, 4 extra
     // (who 1's `0`, `54`, `57` and `58` in ours alone), 7 buildings
-    // unlinked and 289 diverged, 25 cities diverged.
-    pin_eq!(e.compared, 129, "units compared");
-    pin_eq!(e.counts(), [115, 8, 4, 7, 289, 0, 25], "the closing counts");
+    // unlinked and 289 diverged, 25 cities diverged. Item 3849, the
+    // personalities on their own seats: 130 compared, 474 off — 115 units
+    // off, 7 unlinked, 2 extra (who 1's `0` and `54`), 6 buildings
+    // unlinked and 310 diverged, 34 cities diverged.
+    pin_eq!(e.compared, 130, "units compared");
+    pin_eq!(e.counts(), [115, 7, 2, 6, 310, 0, 34], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         SEA_MELEE_CLOSING_OFF,
         "the closing records off, the `Melee:` line's suffix"
     );
-    pin_eq!(
-        e.extra.clone(),
-        vec![(1, 0), (1, 54), (1, 57), (1, 58)],
-        "the closing extras"
-    );
+    pin_eq!(e.extra.clone(), vec![(1, 0), (1, 54)], "the closing extras");
 }
