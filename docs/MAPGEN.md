@@ -1095,18 +1095,9 @@ sync stream. In order:
 - 894 → 933: surf (built and closed), borders, and `refresh_good_z`, the
   integer object z from `TerrainOut::find_data_z@00866560`.
 
-**`make_rivers`, the 173.** Only two `game_random` sites are reachable:
-- `Map::make_riverlist@00693820` draws `r % (spread + 1)` per river
-  element with a spread ≥ 1. It picks sources from
-  `Map::make_riverbeds@00694530` (FOREST cells with bit 1 clear, no draw)
-  through an LFSR seeded from `World.seed`.
-- `PathFinder::astar_river@00686690` draws `r % 20 + 10` per orthogonal
-  neighbour it expands.
-
-It writes the flag bits 0x1000 (path), 0x2 (bank) and 0x2000 (source).
-It clears 0x2000 and 0x2 before the sources and again after 5076, and it
-clears 0x1000 after 5014. The count is data-dependent and not
-reconciled; it is 0 on every map but GL.
+**`make_rivers` is the span's only `game_random` user** (173 draws on
+Great Lakes at 2 nations, 62 at 3, none on an empty `RIVERLIST`): the
+`make_rivers` block below.
 
 Two quirks:
 - **The Fractals are rebuilt only when the map size changes**, keyed on a
@@ -1219,7 +1210,7 @@ the run100 column above: 734 moves part 4, nothing moves from 745 to 706,
 
 East Indies is the same (item 3844, §15 step 6).
 
-**`make_rivers` on Great Sahara** (item 3811, `sim::map_rivers`; the
+**`make_rivers`** (items 3811 and 3845, `sim::map_rivers`; the
 function's own order, `Map::make_rivers@00692fb0`):
 - 5012; `Map::make_riverbeds@00694530` first clears 0x2000 and 0x2 on every
   cell, then scans y outer, x inner. A cell becomes a source (0x2000, and
@@ -1236,32 +1227,41 @@ function's own order, `Map::make_rivers@00692fb0`):
     and no rock (0x8).
 
   A refusal in the square zeroes the count rather than skipping the cell,
-  so a threshold of 0 would take every eligible forest cell. The listing
-  also inlines a land class of the cell (0x6945b1..0x6945f9), but it is
-  reached only when `flags & 0x74` is clear, which the forest bit rules
-  out. `river_thresh` is `default.xml`'s `RIVER_THRESHOLD`, 8;
+  so a threshold of 0 would take every eligible forest cell (the
+  listing's dead inlined land class: its doc comment). `river_thresh` is `default.xml`'s `RIVER_THRESHOLD`, 8;
   `SAHARA.xml` sets none (`Map::Map@006a06e0`'s default is 30). No draw.
 - 5014; every cell loses 0x1000. With `river_beds` empty, the function
   returns here and prints nothing more.
-- One `make_riverlist` per `RIVER` element of the style's `RIVERLIST`, or
-  of `default.xml`'s when the style has none. `SAHARA.xml`'s `<RIVERLIST/>`
-  is empty, so **on Great Sahara neither `make_riverlist` nor
-  `PathFinder::astar_river@00686690` runs**: the seed holds from 5012 to
-  5118 on all 105 files, and part 5 does not move at 5076, so no path
-  (0x1000) or bank (0x2) is written. The LFSR over `river_beds` seeded
-  from `World.seed` (+0x7c) is `make_riverlist`'s, not `make_riverbeds`'.
-- 5076; every cell loses 0x2000 and 0x2, which takes the sources back. Part
-  5 at 5116 is 5012's sum again on every file.
-- 5116; `Regions::find_all`, which relabels no cell there (every cell
-  already carries a region).
+- One `Map::make_riverlist@00693820` per `RIVER` of the style's
+  `RIVERLIST`, else `default.xml`'s (empty on Great Sahara and East
+  Indies), `river_length` (capped at 399),
+  `river_min_length` and `river_valley` `SCALE`d by width:
+  - one draw `% (spread + 1)` (`+0x76`); `SCALE(start + r)` rivers, ≥ 1;
+  - the sources in a Galois LFSR's order over `1..=n` (8 bits, taps 0xb8
+    under 251; 12, 0xca0 under 4001; else 16, 0xb400) from `World.seed`
+    (+0x7c) `% n + 1`, to its third return; with nations, a source whose
+    nearest start city ends more rivers than the least is passed;
+  - `PathFinder::astar_river@00686690` from each: greedy best-first over
+    `orthog[1..5]`, equals newest first, one draw `% 20 + 10` (`+0xa28`)
+    per dry neighbour it prices, times `twist + 1` straight or `101 − twist` turning, plus a
+    pull toward `river_length` under flag 8; it ends on water, a path or
+    the border that far off (every refusal: its doc comment);
+  - a path of 1..399 cells ending on water (flag 1), the border (2) or
+    inland (4), at least `min_length` and `length / (wraps + 1)` long, is
+    kept: 0x1000 on its cells, 0x2 on the `circle_radius[valley]` disc
+    round each within the cell's region; the walk ends when the count is
+    spent or at its second wrap.
+- 5076; every cell loses 0x2000 and 0x2.
+- 5116; `Regions::find_all` (it relabels nothing on Great Sahara).
 - 5118.
 
-The sources: 26 on the 2-nation lobby, 31 on the 3-nation one. Seed and
-parts 2, 5, 6 and 10–13 agree with the port at every record from 5012 to
-5118 on 105 files (525 records), first run
-(`great_sahara_s_rivers_are_5012_to_5118`). `make_riverlist`, `astar_river`
-and the two `RIVER` lists' readers are not built; a non-empty list is
-refused by name (`Unported::RiverList`).
+Great Sahara: 26 and 31 sources, 525 records on 105 files
+(`great_sahara_s_rivers_are_5012_to_5118`). Great Lakes (item 3845): 20
+and 22; the river draws meet every trace whole (173 on 209, 62 on 13),
+and seed and parts 2, 5, 6 and 10–13 agree at every record from 5012 to
+5118 on all 185 files (925; 59 path and 707 bank cells at 5076), first
+run (`great_lakes_s_rivers_are_5012_to_5118`). The spline is the
+renderer's, not built.
 
 **The heights on Great Sahara** (item 3812, `sim::map_heights`). The
 start dump prints `master_land_heights` whole (241 × 241 singles there),
@@ -1446,8 +1446,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   three clears, with seed and parts 2, 5, 6 and 10–13 at every record from
   5012 to 5118 on 105 files (item 3811), and on East Indies' 202 (1,010
   records, item 3846), where the start-city test is held by the walk; the square's water and oil arms, the radius's `− 1`
-  and `find_all`'s relabel are unit-tested only (3846a);
-  `make_riverlist` and `astar_river` are not built (3811a);
+  and `find_all`'s relabel are unit-tested only (3846a). `make_riverlist`
+  and `astar_river` on Great Lakes (item 3845): draw for draw on all 222
+  traces (173 on 209, 62 on 13) and every record from 5012 to 5118 on 185
+  files (925), the 5076 bank clear included; 26 of 47 mutants held, the
+  21 that failed nothing are 3845a;
 - §10's heights on Great Sahara: `generate_land`, the oil cells'
   terraform and `adjust_for_mountains`, on every vertex of 47 start
   dumps through each file's roster (item 3812). Mutations that drop an
@@ -1495,10 +1498,10 @@ tileset or a base-mask style is what would.
 
 ## 14. What is not established
 
-- The draw formulas reconciled to 1,016, 1,824, 231 and 173
+- The draw formulas reconciled to 1,016, 1,824 and 231
   (`place_all`'s are reconciled on Great Sahara, 1,238 and 1,324, §7; the
   5,568 on Great Lakes, item 3815, and the 49,611 on East Indies, item
-  3820, §5). Each
+  3820, §5; the rivers' 173 and 62 on Great Lakes, item 3845, §10). Each
   needs the grid at its phase, which a port's own phase supplies, checked
   by §3. `GLOG_MAPMAKE` at detail 7–10 would count them in the original.
 - ~~Whether MSXML's `selectSingleNode` honours `FISH ` with its trailing
@@ -1516,8 +1519,10 @@ tileset or a base-mask style is what would.
   Great Sahara oil cell carries the rock bit, so the conjunction is
   untested there. The flag-1 arm (a good the console's leader cannot
   see yet) reaches no oil cell, since `set_oil_at` sets no flag 1.
-- `relax_aquatic_verts`' summation order and the river spline's
-  predicates. Both need a listing read before a bit-exact port.
+- `relax_aquatic_verts`' summation order, which needs a listing read
+  before a bit-exact port. ~~The river spline's predicates~~: the spline
+  (`RiverOut::add_spline_point`) writes nothing a part reads — every
+  record from 5012 to 5118 agrees without it (item 3845, §10).
 
 ## 15. The port chain
 
@@ -1591,8 +1596,12 @@ step is checked by §3 at its own checkpoint before the next begins:
    sources, seed and parts 2, 5, 6 and 10–13 at every record from 5012 to
    5118 on all 202 files (1,010 records; all 202 carry all five lines),
    first run, no sim change (`east_indies_s_rivers_are_5012_to_5118`).
-   `make_riverlist` and `astar_river`, which Great Lakes' 173 draws need,
-   remain.
+   **Great Lakes built** (item 3845, `make_riverlist`, `astar_river` and
+   the `RIVER` rows; its seventh phase): 20 and 22 sources, the river
+   draws whole on all 222 traces (173 at 2 nations, 62 at 3), and seed
+   and parts 2, 5, 6 and 10–13 at every record from 5012 to 5118 on all
+   185 files (925 records), first run
+   (`great_lakes_s_rivers_are_5012_to_5118`).
 
 ## 16. Great Lakes' half-land: `_wcoord`'s body, 720 → 5012
 
