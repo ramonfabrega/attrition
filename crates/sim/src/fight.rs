@@ -4126,15 +4126,41 @@ impl Sim {
     /// number (item 1594, `docs/AI.md` §165).
     pub(crate) const NUKE_SPREAD: i32 = 0x1e;
 
-    /// **`DeathObj::inc_time@008d5240`'s first statement**, and
-    /// `Ammo::inc_time@0067d380`'s: every frame, a death object bumps its
-    /// own object's `hold_frames`, and so does every shot in flight whose
-    /// shooter is no longer active (§42.3).
-    ///
-    /// Both are on dead slots only, which is why the dump prints
-    /// `hold_frames 0` on every living unit of every capture — the row
-    /// `crate::diff::compare` now carries.
+    /// **`Ammo::inc_time@0067d380`'s first statement**: every frame, a
+    /// shot in flight whose shooter is no longer active bumps the
+    /// shooter's `hold_frames` (§42.3). On dead slots only, which is why
+    /// the dump prints `hold_frames 0` on every living unit of every
+    /// capture — the row `crate::diff::compare` now carries. The death
+    /// objects' own bump is [`Self::death_objs_inc_time`], after the walk.
     pub(crate) fn hold_frames_tick(&mut self) {
+        for k in 0..self.projectiles.len() {
+            // A crash round bumps its own plane's slot in its step
+            // ([`Sim::process_projectiles`]).
+            if self.projectiles[k].crash.is_some() {
+                continue;
+            }
+            let Obj::Unit(s) = self.projectiles[k].shooter else {
+                continue;
+            };
+            if !self.active(Obj::Unit(s)) {
+                self.units[s].hold_frames += 1;
+            }
+        }
+    }
+
+    /// **`DeathObj::inc_time@008d5240`'s first statement**: every frame, a
+    /// death object bumps its own object's `hold_frames`, and then ends at
+    /// its life ([`Self::cull_deaths`]).
+    ///
+    /// **After the ammo walk, not before it** (item 3873, `docs/GOLDEN.md`
+    /// §156.1): `Objects::inc_time@0065db70` runs every `Ammo::inc_time`
+    /// (line 74) and then every live record (line 86), so a ship a round
+    /// sinks gets its record's first bump on its own frame. The hold it
+    /// keeps while the record lives is then 31, not 30 — run1496's packet
+    /// at 1539 reads the dead Carrier `1/18`'s `+0x32` at 2 where the
+    /// bump ahead of the walk left 1, and the Jet that ours put into 18 on
+    /// tick 1539 takes 41 in theirs.
+    pub(crate) fn death_objs_inc_time(&mut self) {
         for k in 0..self.deaths.len() {
             let (who, o) = (self.deaths[k].who, self.deaths[k].o);
             // **One bump a record** (item 3784, `docs/GOLDEN.md` §149.10):
@@ -4155,19 +4181,6 @@ impl Sim {
             }
         }
         self.cull_deaths();
-        for k in 0..self.projectiles.len() {
-            // A crash round bumps its own plane's slot in its step
-            // ([`Sim::process_projectiles`]).
-            if self.projectiles[k].crash.is_some() {
-                continue;
-            }
-            let Obj::Unit(s) = self.projectiles[k].shooter else {
-                continue;
-            };
-            if !self.active(Obj::Unit(s)) {
-                self.units[s].hold_frames += 1;
-            }
-        }
     }
 
     /// **The death object's end** (`DeathObj::inc_time@008d5240`, item
@@ -11573,6 +11586,41 @@ mod tests {
             sim.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE),
             Some(0),
             "a number nothing holds is reused"
+        );
+    }
+
+    /// **A death a round makes is bumped on its own frame** (item 3873,
+    /// `docs/GOLDEN.md` §156.1). `Objects::inc_time@0065db70` runs every
+    /// `Ammo::inc_time` and then every live `DeathObj::inc_time`, so the
+    /// record a killing round makes takes its first bump on the frame it
+    /// is made: `Object::close`'s thirty, plus one, held level from then
+    /// on by the bump and `process_all`'s take. run1492's Aircraft Carrier
+    /// `1/18`, sunk by a round on 1390, held 31 in theirs (run1496's packet
+    /// at 1539 reads `+0x32` 2), and the Jet Fighter born on tick 1539 took
+    /// 41. Made to fail with the death bump back ahead of the ammo walk.
+    #[test]
+    fn a_death_a_round_makes_is_bumped_on_its_own_frame() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let (a, b) = (Pos::new(0x1000, 0x1000), Pos::new(0x1400, 0x1000));
+        let foe = put(&mut sim, 1, ty, b);
+        sim.units[foe].health = 1;
+        let mut p = shot(me, a, b, 1, 0, 0);
+        (p.target, p.rolling) = (Some(Obj::Unit(foe)), false);
+        sim.add_ammo(p);
+        sim.tick();
+        assert!(!sim.units[foe].alive(), "the round kills it");
+        assert_eq!(sim.deaths.len(), 1, "its death object");
+        assert_eq!(
+            sim.units[foe].hold_frames,
+            Sim::CLOSE_HOLD + 1,
+            "the record's first bump is on its own frame"
+        );
+        sim.tick();
+        assert_eq!(
+            sim.units[foe].hold_frames,
+            Sim::CLOSE_HOLD + 1,
+            "held level"
         );
     }
 
