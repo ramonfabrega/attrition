@@ -2436,11 +2436,12 @@ mod tests {
         ("chapter97.cmd", &[]),
         ("chapter98.cmd", &[]),
         ("chapter99.cmd", &[]),
-        // Items 3733, 3774 and 3797: `resource` and `add` only (GOLDEN §149,
-        // §150, §152).
+        // Items 3733, 3774, 3797 and 3847: `resource` and `add` only
+        // (GOLDEN §149, §150, §152, §153).
         ("melee-classical.cmd", &[]),
         ("melee-gunpowder.cmd", &[]),
         ("melee-information.cmd", &[]),
+        ("melee-sea.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
