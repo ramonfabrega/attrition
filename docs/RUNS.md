@@ -34592,3 +34592,38 @@ SHA-256 `18877232c075d2e5f0f36e5be79ddd366e78f8b19cabbf2b84ee02f0775de6d0`.
 (`german_industrial_moderate_pair_run1491b_s_closing_frame_is_widened_whole`): 257 blocks, 52 keys, all standing
 families; rounds read 1015 against 1015, one parting on `ammo[3].ox` and `whom` (the Armored Car `1/35`'s round at a
 dead Citizen, parked 3867a); three German Barracks queuing 124 from block 4528.
+
+## run1494 — the golden start at `cover=1` on the click-free pool, `weather` aimed at (41, 42) by `@aim`, to 640: `check_for_diagonal` not entered (2026-11-05, item 3871, `att-3871`)
+
+**What the disk could not answer**: whether a console-planted `BASELAND` sub 3 at the south-west diagonal of a `SANDY`
+cell enters `TerrainOut::check_for_diagonal@008595f0` (`docs/MAPGEN.md` §19.6; parked 3870b). No trace or dump on disk
+holds a console write at an aimed cell: a `.cmd` line runs `parse_cmd` with `no_mouse` 1, and the cursor stays at (0, 0).
+The take adds `@aim <cx> <cy>` to the tracer (`tools/trace/tracer.c`, `I_AIM` 33), which stores 768 c + 384 into
+`ConsoleWin` +0x518/+0x51c. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1494 --map 14
+--no-ffwd --end-frame 640 --log-window 600 640 --timeout 3600 --cmd-file tools/gamelog/coverage/weather3871-start.cmd
+--cover cover=1 --cursor 1400,1000 --console-log 0 --hover`, which is run1129's line with `620 @aim 41 42`, `620 !weather`
+and `621 @dumpall` added. 141 GiB free before.
+- Pool lane 1 (`~/wine-ron`). Launched 13:21:27, exited 13:22:35: **67.9 s launch to exit**. `success`, lifecycle
+  verified, `map_verified`, map style 14, 641 frames, `last_frame` 640, seed 12345, PLAYER records who 0 (flags 7,
+  tribe 4) and who 1 (flags 1, tribe 11). DLL `8e8d96be…`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0. Minutes waited on
+  another lane: none.
+- `I_AIM` on 620: cell 41 | 42 << 16, stores 0x7c80 and 0x7f80. `INFO cmd` on 620, line 2, `from_chat` 0, `parse_cmd`
+  returned 1. The `@dumpall` flag was set on 621 and cleared on 622.
+- Block 621's first `WORLD` grid against run1030's (the golden start, the same seed): **one cell differs**, index
+  `60 · 42 + 41`, `OCEAN` 0 → `BASELAND` 3 (2,810 → 2,811 `BASELAND`, 164 → 163 `OCEAN`). The cell aimed is the
+  cell written.
+- **6,728 functions entered. `check_for_diagonal@008595f0` and `WorldData::is_valid@00471170` are not**, though both
+  are in `rontrace.funcs`. No `NEVER` row is entered (0 of 264), so the run is not pinned.
+- `rngcmp.py` against run1130 (run1129's `cover=0` twin): **641 in common, 0 differing, 641 identical**. `samegame.py
+  --from 620`: 40 in common (600..639), **same game before 620**. It parts on 621 and 622, the `@dumpall` block and
+  the next opening dump, by construction.
+- Filed with `filerun.py run1494 greatlakes-weather-aimed-cover1-clickfree`.
+
+Archive `gamelog-run1494-greatlakes-weather-aimed-cover1-clickfree.txt`, 64,612,704 bytes,
+SHA-256 `3e5f73d1e77db7e00bd756be188942eff57b31f7b274ccc834c0dad75f404f9e`.
+
+Archive `rontrace-run1494.log`, 17,228,384 bytes,
+SHA-256 `e7a97e8a70a66b70b2865f050ffa0623366fdfd74539d89dd0c8788ca7315aed`.
+
+**What it holds**: the plant is not a contact (`docs/MAPGEN.md` §19.7). The gate is in `check_for_tendrils`, and the
+next take prints `TERRAIN` at detail 40 on 620 (parked 3871a).
