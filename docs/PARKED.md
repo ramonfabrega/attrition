@@ -13534,7 +13534,10 @@ at 17 and flies 6. No sweep of piece 144's nine `AttachPos` rows (nodes 0 and 4,
 `CHAR_ATTACK3`, `RData +0x88` 0.9) lands on (−56, 132); its tallest point is 49 × 4.3 ≈ 210. The round strikes
 `1/17` a frame apart (801 against 802, block 901's `damage_frame`) and draws nothing. The hypothesis — the piece
 the original plays is not 144 (a rider's, a variant's) — is killed or kept by `entries` on the piece the packet's
-unit 0/14 holds in its guy's `gpiece`. Names no score until a word parts on it.
+unit 0/14 holds in its guy's `gpiece`. Names no score until a word parts on it. **It names one since item 3854**
+(`docs/GOLDEN.md` §153.2): the word 1613's first parted state is run1486's block 1435, where the round of 1430 —
+(30461, 27533, 298) in theirs, flying 6, against the figure's square at 17 and 7 in ours — strikes the carrier `2/18`
+in theirs alone.
 
 (3849c) **The 24 pivot rows' `float_lands` are unmeasured.** Pieces 280 (12 rows) and 300 (12) carry empty
 `float_lands` lists, an assumption: the `get_position.py … pivot 280 <node> <anim> <time> 4` and `pivot 300 … 1`
@@ -13557,13 +13560,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YW — reserved
+## Parked by item 3854, 2026-11-05 — the carriers repair themselves
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3854a) **`healing` (`UnitData +0x38`) is not carried.** `process_healing`'s ship arm writes `max(UNIT_HEAL_RATE[0],
+healing)` with each repair, and run1485 prints it: 20 on `1/18` at block 803, 8 on `2/18` at 795 — a decay of one a
+frame from 20, whose writer is unread. The key stays on `coverage.rs`'s unread list; ours' `Sim::ship_heal`, like the
+civilian and CEO heals, does not write it. No score parts on it: nothing this crate reads takes `healing`.
+
+(3854b) **The Citrus arm runs on no capture.** `process_healing`'s first sea heal (`:40`–`:51`), Citrus held and not a
+transport, is built from the reading and checked only by
+`a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship`. No seat of the fourth melee holds Citrus (no
+hurt ship but the carriers heals in run1485's 795..822). A lobby whose sea seat holds Citrus would settle it; none is
+booked.
 
 ## Parked by the next landing, slot YX — reserved
 
