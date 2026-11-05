@@ -13310,7 +13310,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
     gated shore cells all carry world flags 0x4 and 0x400, so any one arm alone still gates them.
   - The shallow 5×5 ring narrowed to the eight: no final HALFLAND cell needs the outer ring, and a superset pin does
     not see a gate that shrinks. A cell-exact pin needs 3832a's `mark_halfwater`.
-  East Indies' shore is the next grid that may separate them.
+  East Indies' shore is the next grid that may separate them. ~~`coord_land`'s 0x4-as-`NONE`~~ is diff-backed on East Indies, item 3844; the other three are inert there too (3844a).
 
 ## Parked by item 3834, 2026-11-04 — the Recoilless Guns loose from their muzzles
 
@@ -13401,13 +13401,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YP — reserved
+## Parked by item 3844, 2026-11-04 — East Indies' `Terrain::init` without heights
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3844a. Six flag and height arms the archipelago cannot part either** (`sim::terrain_init::coord_flags`,
+  `sim::map_heights`; `docs/MAPGEN.md` §13). Scored by `east_indies_s_heights_are_the_start_dump_s_grid`
+  (`HALFLAND` cell-exact on 202 files, every vertex of 56) with `tools/mutate.py --batch`: `coord_land`'s
+  0x4-as-`NONE` held (the fuzz lobby's `HALFLAND` parts); six failed nothing:
+  - `land == 3`'s `NONE | 0x4`, the 0x400 half of the `HALF` test, and `adjust_aquatic_height`'s `land` 1/3
+    arm: the 7945 grid has no `land` 1 or 3 cell, and every world 0x4 cell carries 0x400, on both lobbies, as
+    on Great Lakes — no corpus map reaches them before 720's writes;
+  - the shallow 5×5 ring cut to the eight: it reaches 691 and 711 cells by its outer sixteen alone, every one
+    all water at 706, so `HALFLAND` cannot see it; 720's `_wcoord` writes are its first reader;
+  - the 15.5 clamp and the search's second ring past the first find, inert as on Great Lakes (3835a).
+  Names no score; the ring is a candidate killer for 3844b's walk.
+- **3844b. East Indies' 720..5012 waits only on `sim::halfland`** (`docs/MAPGEN.md` §15 step 6; item 3843).
+  On a scratch merge of `origin/worktree-att-3843` (`99ed165a9`), a clone of
+  `great_lakes_s_halfland_is_720_to_5012` with `east_indies_at_7945` agrees at every record from 720 to 5012
+  on all 202 East Indies files (1,414 records; 1,558 and 1,560 half-land entries, 0 beach cells, `verify_land`
+  depth 0), first run. Once 3843 lands, that clone is the check that moves `floors::MAPGEN`'s East Indies row
+  5 → 6; the score it moves is the `Mapgen:` line.
 
 ## Parked by the next landing, slot YQ — reserved
 
