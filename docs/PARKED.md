@@ -13423,8 +13423,9 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
       unit, because `spot_update_land(1, 0)` follows every wet sub-tile. It could only show through a
       neighbour's `verify_land` recursion reading the centre mid-cell, and no grid built so far does.
 
-    Five other arms the walk cannot part (the scan's break, its last HALFLAND `region2`, the 0x4
-    spread's break, oil's third ring, the relabel's swap) hold by unit tests written for them. A map with
+    Five other arms the walk cannot part (the scan's break, its last HALFLAND `region2`, ~~the 0x4
+    spread's break~~ — held by East Indies' walk, item 3844 —, oil's third ring, the relabel's swap) hold
+    by unit tests written for them. A map with
     goods on its shore, or a beach, parts the first two rows; East Indies' half-land is the nearest.
 
 ## Parked by item 3844, 2026-11-04 — East Indies' `Terrain::init` without heights
@@ -13436,16 +13437,17 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   - `land == 3`'s `NONE | 0x4`, the 0x400 half of the `HALF` test, and `adjust_aquatic_height`'s `land` 1/3
     arm: the 7945 grid has no `land` 1 or 3 cell, and every world 0x4 cell carries 0x400, on both lobbies, as
     on Great Lakes — no corpus map reaches them before 720's writes;
-  - the shallow 5×5 ring cut to the eight: it reaches 691 and 711 cells by its outer sixteen alone, every one
-    all water at 706, so `HALFLAND` cannot see it; 720's `_wcoord` writes are its first reader;
+  - ~~the shallow 5×5 ring cut to the eight~~: it reaches 691 and 711 cells by its outer sixteen alone, every
+    one all water at 706, so `HALFLAND` cannot see it — **held by 720's walk**,
+    `east_indies_s_halfland_is_720_to_5012`, item 3844;
   - the 15.5 clamp and the search's second ring past the first find, inert as on Great Lakes (3835a).
-  Names no score; the ring is a candidate killer for 3844b's walk.
-- **3844b. East Indies' 720..5012 waits only on `sim::halfland`** (`docs/MAPGEN.md` §15 step 6; item 3843).
-  On a scratch merge of `origin/worktree-att-3843` (`99ed165a9`), a clone of
-  `great_lakes_s_halfland_is_720_to_5012` with `east_indies_at_7945` agrees at every record from 720 to 5012
-  on all 202 East Indies files (1,414 records; 1,558 and 1,560 half-land entries, 0 beach cells, `verify_land`
-  depth 0), first run. Once 3843 lands, that clone is the check that moves `floors::MAPGEN`'s East Indies row
-  5 → 6; the score it moves is the `Mapgen:` line.
+  Names no score.
+- ~~**3844b. East Indies' 720..5012 waits only on `sim::halfland`**~~ Closed by item 3844 itself: 3843 landed
+  while it worked, and `east_indies_s_halfland_is_720_to_5012` agrees at every record from 720 to 5012 on all
+  202 files (1,414 records), so `floors::MAPGEN`'s East Indies row is 6 (`docs/MAPGEN.md` §15 step 6). Of
+  3843a's arms on that walk, the 0x4 spread's break and 3844a's shallow ring hold; the scan's break, its last
+  HALFLAND `region2`, oil's third ring, the relabel's swap and the first touch's `land_sub` fail nothing here too
+  and stay unit-tested (`tools/mutate.py --batch`, 2 held, 5 failed nothing).
 
 ## Parked by the next landing, slot YQ — reserved
 

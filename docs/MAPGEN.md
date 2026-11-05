@@ -1462,7 +1462,10 @@ Of the territory's 198 open or layout-only functions under the nine stems
   (item 3844): seed and parts 2, 5, 6 and 10–13 from 734 to 706 on 202
   files, every vertex of 56 start dumps, and `HALFLAND` cell-exact on 202.
   Of 3832b's and 3835a's seven arms, `coord_land`'s 0x4-as-`NONE` now
-  fails it; the other six fail nothing here too, measured inert (3844a);
+  fails it; the other six fail nothing here too, measured inert (3844a).
+  §16's half-land body, 720 to 5012 on all 202 (item 3844, on 3843's
+  `sim::halfland`): the 0x4 spread's break and the shallow 5×5 ring now
+  fail it; five of 3843a's arms stay unit-tested;
 - §2's GS finding that the land mask is independent of the player count;
 - §4's three draws as a total;
 - §9's one draw per non-water cell, exact on GS and Himalayas and
