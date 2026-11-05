@@ -997,6 +997,16 @@ impl Sim {
             }
         }
 
+        if std::env::var("RON_PROBE_PLACE").is_ok() {
+            eprintln!(
+                "PLACE f{frame} who={who} rec={rec} {:?} size={}x{} near={near} anchor={:?} city={city:?} best={best} sp={best_sp} cand={cand:?} corner={corner:?} builder={:?}",
+                ident,
+                bt.x_size,
+                bt.y_size,
+                anchor,
+                builder.map(|(u, k)| (self.units[u].index, k, self.units[u].pos)),
+            );
+        }
         // 4.6 Creation: paid after frame 0, the site, the builder's order.
         if frame != 0 {
             let charges = self.building_price(who, rec);
