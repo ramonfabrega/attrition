@@ -16649,6 +16649,53 @@ ours acted, a unit dying a frame early; run1483's blocks 1201 and 1301 bracket i
 both Aircraft Carriers carry 23 more damage in ours (`1/18` 545 against 522, 55 hit points left against 78; `2/18`
 341 against 318), and `1/17`'s `damage_frame` still reads 802 against 801 — the Camel Corps' round (3849b).
 
+## 153.2 The carriers repair themselves — the fourth melee 1233 → 1613 (item 3854, run1486)
+
+**The booking**: frame 1233, ours 15 draws against 14, `Unit::close+0xcb6` at index 5 — ours acted. On block 1201 both
+Aircraft Carriers (`TI` 351, sea) carry 23 more damage in ours (`1/18` 545 against 522, `2/18` 341 against 318).
+
+**The value diff walked back, and the direction.** The carriers never move (3847d), so the booking's hypothesis was a
+blow. The 23 is not one. Run 1483's stride, widened over 801..1201, already parts on 801 (`2/18` 30 against 27) and
+901 (`1/18` 48 against 43). run1485's window prints every frame, and there **theirs' damage falls**: `1/18` 6 → 5
+and `2/18` 27 → 26 on block 803, `healing` 20 on `1/18`, and `2/18`'s `healing 8` on 795 (a heal twelve blocks
+earlier). No other ship's damage falls in 795..822, though `1/14`, `1/16` and `2/17` are hurt. **Theirs acted**: the
+carriers heal, and ours never did.
+
+**The mechanism** is `Unit::process_healing@005e0670`'s sea arm (`:39`–`:71`), which returns before every other
+on-map heal. After the head (a captain, not air, `has_damage(1)`, `inside_up < 0`), a sea unit takes:
+
+1. **Citrus** — not a transport (`unit_flags & 0x10`), the owner holding Citrus (`+0x6da6 & 0x10` or `+0x6dce &
+   0x10`, `TypeIndex` 26) and `(o + frame) % UNIT_HEAL_RATE[0] == 0`: `repair_damage(1, 1, 1)`;
+2. **the carrier** — `is(AIRCRAFTCARRIER, 1)` (`0x15f`, strict lineage) on the same phase: `repair_damage(1, 1, 1)`.
+
+`UNIT_HEAL_RATE[0]` is 20. Block N prints the state after game frame N − 1, so 803's heal is frame 802 and `(18 +
+802) % 20 = 0` for both carriers (`o` 18). Built as `Sim::ship_heal` (`sim::heal`, `economy::CITRUS`), with
+`a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship`. Mutated (`tools/mutate.py`, the carrier arm
+off), `sea_melee_first_parting` fails.
+
+**3849b's 802-against-801 round is not this blow.** It is `1/17`'s `damage_frame`, the Destroyer struck by the Camel
+Corps a frame apart, and it still stands on 1201. The carriers' rows close on every block 795..1201, both windows.
+
+**The word: 1233 → 1613**, ours 12 against 11, at index 6 ours spends `Unit::close+0xcb6` where theirs spends
+`Farms::inc_time+0x1ae` — ours acted again. Its widening (`sea_melee_run1483_s_word_window_is_widened_whole`,
+1601..1863, 3 blocks, 528 keys, the rounds read (4, 9), 22 parting). On 1601 the carrier `2/18` stands at 598 damage
+against 566, 2 hit points against 34; `RON_DEBUG_UNIT=2/18@1610-1615` holds it at 3 hit points to 1613 and absent
+from 1614 — ours' carrier is the death on the word, and theirs' dies before 1801. **The close** (block 2601): 352 → **247** off.
+
+**Walked back on run1486** (run1483's line, `--log-window 1400 1502`; the disk held only 1401 and 1501, which bracket
+the first parting: on 1501 `2/18` is 552 against 540, ours' last blow `1/17`'s on 1500, theirs' `o` 20's on 1494).
+`sea_melee_run1486_s_window_is_widened_whole` (102 blocks, 118 keys, the rounds read (381, 382), 46 parting): the
+first unit row is block 1435. **Theirs' `2/18` takes 6 from the Camel Corps `0/14`** (`TI` 194, Nubian; 500 against
+494, `damage_frame` 1434, `damage_who/o` 0/14 against ours' 1/17). That round, of block 1430, leaves (30461, 27533,
+**298**) and flies 6 frames in theirs, and leaves the figure's square (30456, 27384, 17) and flies 7 in ours. It is
+parked 3849b's release on a later shot. From there the carrier's blows part, and ours' `2/18` dies 188 frames early.
+
+**What is not established**: `healing` (`+0x38`) is not carried, nor its decay (still on `coverage.rs`'s unread
+list; 795's 8 fits a decay of one a frame from 20). The Citrus arm runs on no capture: no seat here holds Citrus, and
+the test is its only evidence. The leaders' closing comparison moved its third seat's standing count 7 → 8 with the
+game running further. **The next word, 1613**: ours 12 against 11, ours acted. Its first parted state is run1486's
+block 1435, the Camel Corps' round of 1430 (3849b), and 3849b now names that score.
+
 ## 154. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

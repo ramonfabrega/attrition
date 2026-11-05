@@ -11117,12 +11117,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Information age, a sea fight across the strait — first try 677 of
     // 2600, widened on run1483's stride over 601..927, the rounds
     // compared. Item 3849 moved it to 1233 (the ships' and the archers'
-    // release tables), widened over 1201..1483.
+    // release tables), widened over 1201..1483. Item 3854 moved it to
+    // 1613 (the ship heal), widened over 1601..1863.
     (
         "SEA_MELEE_WORD",
         crate::diff::sea_melee::SEA_MELEE_WORD,
         Some("sea_melee_run1483_s_word_window_is_widened_whole"),
-        3849,
+        3854,
         Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
     ),
     // **The Russians at a held Information age** (item 3721): East Indies
