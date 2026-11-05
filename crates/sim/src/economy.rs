@@ -275,6 +275,13 @@ pub const GEMS: usize = 29;
 /// item 1147).
 pub const PEACOCKS: usize = 25;
 
+/// `TypeIndex::CITRUS` — the rare `Unit::process_healing@005e0670`'s sea
+/// arm reads (`:41`–`:42`): `+0x6da6 & 0x10`, else the same at `0x6dce` —
+/// byte 2 bit 4 of `rare` or of `rare_conquest`, which is bit `26 −
+/// `[`BASE_RARE`]` = 20` — and every ship but a transport heals a point on
+/// its phase of `UNIT_HEAL_RATE` (item 3854, [`crate::Sim::ship_heal`]).
+pub const CITRUS: usize = 26;
+
 /// What one `resourcerules.xml` record pays whoever stands on it —
 /// `GoodTypeData`'s two `(BONUS_TYPE, BONUS_NUM)` pairs, which is the whole
 /// of what `LeaderData::calc_rare@006e08d0` reads off the good.
