@@ -17196,6 +17196,59 @@ the Bomber in run1448b's French pair too (parked 3865b), which then held its 296
   600; **(d)** a line `add` refuses (`INFO cmd`); **(e)** a sea line `add`ed on land, or a land line at sea, that
   never moves (block 701), with the fourth melee's carriers (parked 3847d) excepted as already known.
 
+**The takes** (`docs/RUNS.md`): run1492 (`cover=0`, 87.1 s) and run1492b (`cover=1`, 71.0 s), both on pool lane 1,
+`success`, 2601 frames, no page fault, no relaunch. The twin is the same game: `rngcmp.py` 2601 identical,
+`samegame.py` 26 common blocks, 0 differing; `cmdsran.py` 26 parsed, 26 ran, every one returning 1.
+
+**What stood, against the killers.** The Airbase killers did not fire: both `add airbase` lines returned 1, and
+each Airbase filed in its capital's city. **Both lines stand**:
+
+| block | who 1 (the French) | who 2 (the Russians) |
+|---|---|---|
+| 1101 | Strategic Bomber (305) `1/25` | Strategic Bomber (305) `2/14` |
+| 1301 | — | Jet Fighter (299) `2/23` |
+| 1401 | Strategic Bomber (305) `1/32` | — |
+| 1501 | — | **Attack Helicopter (`HIND`, 312)** `2/19`, uid 59 |
+| 1601 | **Jet Fighter (`MIRAGE`, 296)** `1/41`, uid 69 | — |
+
+§154.3's "296 by block 1101" **fired as written** in theirs as well as ours: each computer's first Airbase purchase
+is the Bomber, and the Jet Fighter waits until the Bomber is out. That is a miss on the estimate, not on the gate
+reading. The gate reading holds: the `add`ed Airbase raises the count `create_units` reads, and 296 stands by 1601.
+312 comes 100 frames **before** 296, and second in who 2's queue (299, 312, 305 in ours on 1101), so §154.2's "the HIND
+ranks under every jet and bomber" is read too strongly. It ranks under the Bomber and the first jet, and above the
+second Bomber. No `TI` 295 or 311 stands, so §154.1 1 holds. (a)–(e) did not fire: the sea and land lines are
+§153's, and the staged walk to 700 matched (`airbase_melee_staging_walk`).
+
+**The score, first try: 1817 of 2600** (`diff::airbase_melee::airbase_melee_first_parting`), the sequence; the
+count parts at 2184. On 1817 both sides spend 60 draws: at index 2 ours spends `Guy::set_anim+0x97a <
+Guy::do_turn+0x4a < Unit::move_step+0x389` where theirs spends `Unit::do_move+0xe84`. The close is 39 off
+(`airbase_melee_run1492_s_closing_state`, 137 units).
+
+**The value diff, walked back** (`airbase_melee_run1492_s_stride_before_the_word_is_widened_whole`, 1401..1701;
+`airbase_melee_run1492_s_word_window_is_widened_whole`, 1801..2067). **Two numbers are swapped**, first on block
+1601: theirs' `1/41` is the Jet Fighter (uid 69, inside the Airbase `2016` at (18360, 37176), 140 hits), and theirs'
+`1/18` is a `TI` 254 in group 65 (uid 70, at (15480, 42456), 245 hits). Ours has them the other way round. On
+block 1801 the same two units part every field, through `pos`, `orders`, `path` and `inside`. Slot 18 belonged
+to who 1's Aircraft Carrier (uid 35), which died on 1390 (`DEATH_OBJS` `first_frame` 1390 on both sides, printed on
+blocks 1401 and 1501 by both). In ours its record lives 120 frames to 1509, and the hold (COMBAT §59.3) runs down
+from 30 to 0 on **1540**. The Jet is born on 1540 and takes 18; the 254 is born on 1580 and takes the mark, 41.
+Theirs gave the Jet 41, so at the Jet's birth theirs' slot 18 still held. **Two readings fit, and the disk tells
+them apart on neither block**: (i) theirs' record ends a frame later than ours (`DeathObj::inc_time@008d5240`'s
+counter `+0x40` against `get_game_frames + fade`, for a type whose vslot `+0x120` answers; the raise to 30 is
+skipped on the end frame), so the hold reaches 0 on 1541; (ii) theirs' birth reads the slot before
+`Objects::process_all@0065dce0`'s decrement of `1/18` on 1540. `Objects::inc_time@0065db70` runs `Ammo::inc_time`
+(line 74) before the death objects (line 86), so a Carrier sunk by a round gets its first call on its own frame,
+as ours models, and (i) does not follow from the order alone. **What kills each**: a window over 1500..1545 with
+`DEATHS=1`, which prints the record's last frame (kills (i) if it is 1509), or a packet at 1539 with `--watch` on
+`1/18`'s `+0x32` over the Airbase's train completion (kills (ii) if the hold reads 0 at the birth).
+
+### 156.1 Coverage
+
+**Diff-backed** (run1492, run1492b): the Airbases' `add` and their filing in the capitals' cities (the computers
+train from them); 305, 299, 312 and 296 standing on the frames of the table; the draw stream to 1817. **Reading
+only**: the two readings of the hold above. **Not established**: which of (i) and (ii) is the original's. The
+rubric does not move while the melee parts (unit types 294 of 302; 296 and 312 enter once it runs whole).
+
 ## 157. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

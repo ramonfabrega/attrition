@@ -7299,7 +7299,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("airbase_melee_s_leaders_are_compared_on_every_seat", 49),
     ("airbase_melee_run1492_s_word_window_is_widened_whole", 6),
     // The stride before the word, 1401..1701: 6.
-    ("airbase_melee_run1492_s_stride_before_the_word_is_widened_whole", 6),
+    (
+        "airbase_melee_run1492_s_stride_before_the_word_is_widened_whole",
+        6,
+    ),
     // Item 3744: the Russian Information pair's first try, run1401 walked
     // from run1400's start past the word 6153 once the siege-city arm lands
     // (`docs/AI.md` §368.1): 8 inexact corners.

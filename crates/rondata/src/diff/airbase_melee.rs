@@ -425,8 +425,8 @@ fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
             eprintln!("  round {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.blocks, 0, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 0, "run1492's stride before the word");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    pin_eq!(w.blocks, 4, "every stride block in the window");
+    pin_eq!(w.firsts.len(), 149, "run1492's stride before the word");
+    pin_eq!(w.rounds_read, (12, 12), "the rounds read");
+    pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
