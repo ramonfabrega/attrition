@@ -860,6 +860,15 @@ impl Sim {
         }
         if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
             eprintln!("PROBE scout u{u} who{who} ti{} region{region} n{n} stride{stride} start{start} here{:?} best{} tile{:?}", self.units[u].type_index, here, scan.score, scan.tile);
+            if let Ok(path) = std::env::var("RON_PROBE_FOG_OUT") {
+                let mut out = String::new();
+                for fy in 0..120 {
+                    let row: Vec<String> = (0..120).map(|fx| format!("{:02x}", self.world.seen2(fx, fy).unwrap_or(0xff))).collect();
+                    out.push_str(&row.join(" "));
+                    out.push('\n');
+                }
+                std::fs::write(path, out).unwrap();
+            }
             for fy in 70..86 {
                 let row: Vec<String> = (108..122).map(|fx| format!("{:02x}", self.world.seen2(fx, fy).unwrap_or(0xff))).collect();
                 eprintln!("PROBE fog {fy} {}", row.join(" "));
