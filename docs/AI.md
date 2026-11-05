@@ -37719,12 +37719,73 @@ were never re-pinned. `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned 285 → 293.
 - The two residues, the city's assimilation stamp and `1/18`'s sixteenth, spend no draw to 3500. Their writers are
   unread here.
 
-## 381. Reserved for the next item on the AI track
+## 381. The Germans at a held Industrial age, Great Lakes, at Moderate: whole on the first try at 4784, the German machine gun on block 4601 (item 3867)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3867, 2026-11-05, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3, 99 §3, 101 §4, 102 §3). This is §346's lobby
+(`german_industrial_pair`, Toughest) with the difficulty moved to 3: `MAP_STYLE 14`, human Nubians (4) against the
+**Germans (12)** at Difficulty 3, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 5`,
+`ENDING_TECHNOLOGY 5`. Both `GAME INFO`s read the 5s and the 3 back, and `Pair::assert_lobby` asserts them. The
+captures are run1490 (a `DUMP_ALL` start) and run1491 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride
+of 100). run1491 ended itself on 4784 (closing block 4785). The walk is seeded from run1490's initial state (3506a).
+`diff::german_industrial_moderate_pair` pins it, named `GreatLakesGermanIndustrialModerate`: the Industrial name
+is the Toughest pair's, and a second difficulty is named as `GreatSaharaToughest` names its own. No twin (DECISIONS
+93 §2).
+
+**The triple, `(14, 12, 3)`, is minted** under entry 72's rule (3): `python3 tools/refill.py 14 12 3` read
+`(14, 12, 3) free` on this tree before the lobby was minted. The Germans hold this map at 4 (`german_modern_pair`)
+and 5 (`german_industrial_pair`), Great Sahara at 3 (`german_sahara_word`) and 5 (`german_ancient_pair`), and East
+Indies at 3 (`german_word`) and 5 (`german_alltech_pair`); the battery fields no Germans.
+`german_industrial_moderate_pair_is_no_other_lobby` asserts all of it.
+
+**The claim it tests holds** (`docs/GOLDEN.md` §154.1 1 and 3: the German line's owned top at an Industrial start
+is their own `Machine Gun[MACHINEGUNGERMAN]`, 124). run1491's first 124 stands on **block 4601**, on the German
+seat. It is on 4701 and on the closing block 4785, and no block holds the generic 123
+(`german_industrial_moderate_pair_s_computer_fields_the_german_machine_gun`). On the closing block (`endgame:`
+`BUILDS=7`) the German seat's three Barracks (`orig_type` 427), `1/2017`, `1/2024` and `1/2038`, queue 124 seven
+times and the Flamethrower 131 three times, and nothing else. run1491b's window holds 124 in those three queues from
+its first block, 4528, so the first purchase is earlier still; the stride carries no `BUILDS` to place it. Both of
+the booking's killers stayed silent: no Barracks queued 123, and 124 stood well before 4,000 frames ran out of game.
+§154.2's frame range for the first machine gun, 2501–3901, held only for the other nations; the German one stands
+between 4501 and 4601 here.
+
+**And the disk had a German Industrial start already.** §154.2 says none existed. run1333/run1334 (§346, this map
+at Toughest, 4,772 frames) is one, and `rubric.py --tables 3 --dumps` on run1334 and run1334b reads **no machine
+gun at all**, neither 123 nor 124. Its Barracks lines seen are the Riflemen 101, the Flamethrower 131 and the Anti-tank
+Rifle 138. So whether the line enters turns on more than the age. Unread:
+`create_units`' land branch, which picks among the Barracks lines by value (the amendment to §154.2 points here).
+
+**The score: whole on the first try**: count 4784, sequence 4784, of 4784
+(`german_industrial_moderate_pair_first_parting`). No draw parts, so the closing state is scored:
+- **The closing block** (run1491's 4785, walked from run1490): 148 units compared, none off, torn, unlinked or
+  extra, no building row, **no closing field**. Counts `[0, 0, 0, 0, 0, 0, 0]`
+  (`german_industrial_moderate_pair_run1491_s_closing_state`).
+- **The stride, the whole game** (run1491, 101..4701): 47 blocks and 107 keys, every one a standing family:
+  `build:extra` 64, `form` 27, and who=1's groups 64..71' `held` and pools (8 each). No value row.
+- **The closing window** (run1491b, 4528..4785, `BUILDS`, `CITIES`, `LEADERS=9`, `AMMO=5`): 257 blocks and 52 keys,
+  all standing families (`form` 23, the groups' `held` and pools at 9 each, who=0's `SITE[0..9].reg`,
+  `aggression[1]`). **Rounds read 1015 against 1015, and one parts on two fields.** The Armored Car `1/35`'s
+  (TI 216, land, group 64, attacking the Citizen `0/12`) `ammo[3]` on 4564 flies at `0/12`, which is last on block
+  4563. Theirs keeps `ox` 12 and `whom` 0, and ours reads −1 for both. This is 3714a's family, "a round keeps its
+  dead target", on a second lobby (parked 3867a). It lands nowhere a draw feels.
+
+**The cast**, read by `rubric.py --tables 3 --dumps` on run1490 and run1491 (the herds aside): 124 (×28 rows),
+Riflemen 101, Commando 73, Flamethrower 131, Anti-tank Rifle 138, Armored Car 216, `Light Tank[A7V]` 242,
+`Artillery[ARTILLERYGERMAN]` 270, Anti-Aircraft Gun 281 and `Biplane[ALBATROSS]` 288, with the German General, the
+Spy, the Citizen, Caravan, Merchant, Supply Wagon and three leaders (Despot, Monarch, Comrade).
+
+**The rubric**: `rubric.py --tables 3` reads unit types seen **294 of 302** with this pair registered, against 293
+on the base. 124 leaves the never list. `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned 293 → 294. Eight types stay
+never: 296, 312, Boadicea and five gaia animals. **Of the four fieldable lines §154 named, two remain**, both
+Airbase lines (296, 312).
+
+**Not established**:
+- The frame of the first 124 purchase. It is before 4528, and the stride prints no `BUILDS`. A `BUILDS=7` window
+  over 4401..4528 would name it, but no score reads it.
+- Why the Toughest computer fields no machine gun in 4,772 frames while the Moderate one does by 4601. This is
+  `create_units`' land valuation, unread here. No word turns on it.
+- The round's target fields on a target's close: this crate's write (3714a). They spend no draw to 4784.
 
 ## 382. Reserved for the next item on the AI track
 

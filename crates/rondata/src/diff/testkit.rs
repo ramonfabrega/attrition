@@ -11257,6 +11257,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3866,
         Some(crate::diff::spanish_information_pair::WIDENING_SPANISH_INFORMATION_CLOSING),
     ),
+    // **The Germans at a held Industrial age, at Moderate** (item 3867):
+    // Great Lakes at Moderate — whole on the first try at 4784; widened on
+    // run1491b over 4528..4785 (the closing block), the rounds compared.
+    (
+        "GERMAN_INDUSTRIAL_MODERATE_PAIR_WORD",
+        crate::diff::german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE_PAIR_WORD,
+        Some("german_industrial_moderate_pair_run1491b_s_closing_frame_is_widened_whole"),
+        3867,
+        Some(crate::diff::german_industrial_moderate_pair::WIDENING_GERMAN_INDUSTRIAL_MODERATE_CLOSING),
+    ),
     // **The Egyptians at a held Modern age** (item 3724): Great Lakes at
     // Hard — first try 3451 of 3878, theirs' `Unit::close` on the Special
     // Forces `0/0` where ours spends a farm's chance draw, downstream of
@@ -13948,6 +13958,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_500,
         endpoint: Some("spanish_information_pair_run1489_s_closing_state"),
         window: Some("spanish_information_closing_window"),
+    },
+    // The Germans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
+    // `ENDING_TECHNOLOGY` 5), Great Lakes at Moderate (item 3867): whole on
+    // the first try at 4784, the German seat's first Machine Gun
+    // [MACHINEGUNGERMAN] (124) standing on block 4601; the closing window
+    // run1491b over 4528..4785, the rounds compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesGermanIndustrialModerate",
+        named: "Great Lakes (Germans, Industrial, Moderate)",
+        word: crate::diff::german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE_PAIR_WORD,
+        length: 4_784,
+        endpoint: Some("german_industrial_moderate_pair_run1491_s_closing_state"),
+        window: Some("german_industrial_moderate_closing_window"),
     },
     // **The first melee** (item 3733, `docs/GOLDEN.md` §149, §155): Great
     // Sahara with three seats at a held Gunpowder age, the two computers

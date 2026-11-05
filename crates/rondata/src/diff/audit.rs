@@ -522,6 +522,7 @@ audited! {
     french_information_pair_corrections_change_nothing: crate::diff::french_information_pair::FRENCH_INFORMATION => (1, 35, 8), 0, [];
     french_medieval_pair_corrections_change_nothing: crate::diff::french_medieval_pair::FRENCH_MEDIEVAL => (1, 68, 40), 0, [];
     french_word_corrections_change_nothing: crate::diff::french_word::FRENCH => (1, 20, 8), 0, [];
+    german_industrial_moderate_pair_corrections_change_nothing: crate::diff::german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE => (1, 67, 40), 0, [];
     german_alltech_pair_corrections_change_nothing: crate::diff::german_alltech_pair::GERMAN_ALLTECH => (1, 131, 104), 0, [];
     german_ancient_pair_corrections_change_nothing: crate::diff::german_ancient_pair::GERMAN_ANCIENT => (1, 36, 8), 0, [];
     german_industrial_pair_corrections_change_nothing: crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL => (1, 67, 40), 0, [];

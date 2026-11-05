@@ -11138,3 +11138,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1489  run1448's line with --map 14, --ai-tribe 9 and run1488's lobby   (the draw stream; ended itself on 3500)
 #   run1489b --map 14 --end-frame 3500 --allow-early-end --timeout 3600 --log-window 3244 3501 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1488's lobby   (the closing window)
 # Checks: `rngcmp.py` run1488 vs run1489 -> 37 identical; run1489 vs run1489b -> 3501 identical.
+# ==== item 3867: the Germans at a held Industrial age, Great Lakes, at difficulty 3 (`docs/AI.md` §381; `docs/RUNS.md` run1490, run1491, run1491b) ====
+#   run1490  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1491  run1489's line with --ai-tribe 12 and run1490's lobby   (the draw stream; ended itself on 4784)
+#   run1491b --map 14 --end-frame 4784 --allow-early-end --timeout 3600 --log-window 4528 4785 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1490's lobby   (the closing window)
+# Checks: `rngcmp.py` run1490 vs run1491 -> 37 identical; run1491 vs run1491b -> 4785 identical.

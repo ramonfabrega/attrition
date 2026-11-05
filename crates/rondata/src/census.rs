@@ -670,8 +670,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// animal — and the Spanish Information pair whole at 3500 adds `Elite
 /// Special Forces[ELITESPECIALSPANISH]` (78), standing from the start
 /// (§380, GOLDEN §154); 9 never: 296, 312, 124, Boadicea and five gaia
-/// animals; read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 293;
+/// animals; read by `rubric.py --tables 3`. Item 3867: 293 -> 294, the
+/// German Industrial Moderate pair whole at 4784 adds `Machine
+/// Gun[MACHINEGUNGERMAN]` (124), first standing on block 4601 (§381,
+/// GOLDEN §154.1 3); 8 never: 296, 312, Boadicea and five gaia animals.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 294;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
