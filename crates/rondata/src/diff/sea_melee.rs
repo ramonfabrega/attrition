@@ -284,6 +284,9 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     // 2090 (2001..2340): the Fluyt and the cruiser agree on 2001, and what
     // parts there is the standing families and `1/6`' and `1/11`'s order
     // lists (1 against 3, 4 against 2), first parted on run1487's 1986.
+    // Item 3860, the word at 2598 (2501..2600): block 2501 parts on the
+    // standing families and the Aegis Cruiser `2/48`'s rounds alone, their
+    // `ez` 47 against 41 (parked 3855b's family); the Citizens agree.
     pin_eq!(w.blocks, 1, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
@@ -466,8 +469,11 @@ pub(crate) fn sea_melee_run1487_window() -> Option<harness::tests::Widened> {
 /// rounds too — the value diff the word 1980 walks back to. Before the
 /// lineage test the Fluyt `2/20` stood at (42941, 31979) bound for
 /// (42720, 28128) on 1975 in ours, and at (43377, 33404) bound for
-/// (44280, 38904) in theirs: its explore point of 1957. `RON_FIRSTS=1`
-/// prints every row.
+/// (44280, 38904) in theirs: its explore point of 1957. Before item
+/// 3860's started-centre test the French Citizens' order lists parted on
+/// 1986 — `1/6` 1 against 3, `1/11` 4 against 2 — city 1's dock `1/2036`
+/// sited at (14400, 41664) for `1/11` in ours and at (15360, 37248) for
+/// `1/6` in theirs. `RON_FIRSTS=1` prints every row.
 #[test]
 fn sea_melee_run1487_s_window_is_widened_whole() {
     let _pins = Pins::hold();

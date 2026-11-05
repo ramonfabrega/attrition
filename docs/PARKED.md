@@ -13640,13 +13640,19 @@ frames 0–36. The capture that does it is `--cover cover=0` on run1117's line a
 by `rngcmp.py` against run1118 and run1122. Neither moves a score: the rubric reads no `TRACES` comment that lacks
 `run<N>'s game on every frame`, and these two have none. So it is filed here and not booked.
 
-## Parked by the next landing, slot ZB — reserved
+## Parked by item 3860, 2026-11-05 — a site holds its cell once it starts
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3860a) **The cell's `0x4000` is one bit, not a count.** `BuildType::mask_me@006312a0` sets and clears `WData +0 &
+0x4000` for the building's centre cell, and `Wall::close` clears it whatever else stands there; `sim::ai_place`'s
+`cell_has_centre` asks whether any started live building's centre is in the cell, so a cell holding two started
+centres, one of them then closed, reads set here and clear in the original. No capture on file is known to reach
+it (two building centres in one 768-unit cell). Names no score.
+
+(3860b) **`produce_building` runs whole on a packet.** run1487's packet enters `Leader::produce_building@006e1400`
+for a leader at `0xe3a390 + 0x6eec × who` (the scenario caller's arithmetic, `009f5644`) with `(type, near_o,
+escrow)`, and a hook at `006e23e7` (`ebx` the score, `ecx`/`eax` the cell) lists every scored spiral cell in 4.7 s;
+it stops later in the builder's order (an unmapped read at `0085c01d`). Any later AI placement parting can read
+theirs' scan this way before a capture. Names no score.
 
 ## Parked by the next landing, slot ZC — reserved
 
