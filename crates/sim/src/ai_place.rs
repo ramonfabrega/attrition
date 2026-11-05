@@ -780,12 +780,6 @@ impl Sim {
                     }
                     score = (score + plenty) * w1;
                 }
-                if std::env::var("RON_PROBE_PLACE").is_ok() && is_dock {
-                    eprintln!(
-                        "PLACECAND f{frame} who={who} rec={rec} idx={idx} cell=({},{}) d={d} score={score} best={best} cand={cand:?}",
-                        cell.x, cell.y
-                    );
-                }
                 if score < best {
                     break 'cand;
                 }
@@ -1003,68 +997,6 @@ impl Sim {
             }
         }
 
-        if std::env::var("RON_PROBE_PLACE").is_ok() && is_dock {
-            for c in [Pos::new(16896, 43776), Pos::new(17856, 43776)] {
-                let corner = self.tile_corner(rec, c);
-                let tiles: Vec<_> = self
-                    .footprint(rec, corner).into_iter()
-                    .map(|t| {
-                        (
-                            t.x,
-                            t.y,
-                            format!("{:?}", self.blocked_tcoord(Some(who), rec, t, None)),
-                            self.was_seen_fog(t.x >> 1, t.y >> 1, who),
-                        )
-                    })
-                    .collect();
-                let cl = c.cell();
-                let centre = Pos::new(
-                    cl.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
-                    cl.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
-                );
-                eprintln!(
-                    "PLACECLOSED f{frame} cell=({},{}) closed={} enemy={}",
-                    cl.x,
-                    cl.y,
-                    self.world.cell_data(cl).flags & cell::CLOSED != 0,
-                    self.enemy_object_within(who, centre, 0xf00)
-                );
-                eprintln!("PLACETILES f{frame} cand={c:?} {:?} tiles={tiles:?}", self.blocked_site(Some(who), rec, c, None));
-            }
-            for (cx, cy) in [(19, 48), (20, 48), (19, 47), (20, 47), (18, 48)] {
-                let cell = Cell::new(cx, cy);
-                let sp = self.check_building_wcoord(who, cell, w, h, max, !nocity);
-                let base = Pos::new(
-                    cell.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2),
-                    cell.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2),
-                );
-                let mut slides = Vec::new();
-                for dx in -2..=2 {
-                    for dy in -2..=2 {
-                        let p = Pos::new(base.x + dx * UNITS_PER_TILE, base.y + dy * UNITS_PER_TILE);
-                        slides.push((dx, dy, format!("{:?}", self.blocked_site(Some(who), rec, p, None))));
-                    }
-                }
-                eprintln!(
-                    "PLACEWHY f{frame} cell=({cx},{cy}) centre={} sp={sp} allowed={} ocean={} owner={:?} friends={} slides={slides:?}",
-                    self.cell_has_centre(cell),
-                    self.world.buildings_allowed(cell),
-                    self.cell_is_ocean(cell),
-                    self.world.owner(cell).player(),
-                    self.find_friends(rec, cell, city, who),
-                );
-            }
-        }
-        if std::env::var("RON_PROBE_PLACE").is_ok() {
-            eprintln!(
-                "PLACE f{frame} who={who} rec={rec} {:?} size={}x{} near={near} anchor={:?} city={city:?} best={best} sp={best_sp} cand={cand:?} corner={corner:?} builder={:?}",
-                ident,
-                bt.x_size,
-                bt.y_size,
-                anchor,
-                builder.map(|(u, k)| (self.units[u].index, k, self.units[u].pos)),
-            );
-        }
         // 4.6 Creation: paid after frame 0, the site, the builder's order.
         if frame != 0 {
             let charges = self.building_price(who, rec);
