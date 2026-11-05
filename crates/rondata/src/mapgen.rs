@@ -5807,6 +5807,17 @@ mod tests {
         );
     }
 
+    /// [`east_indies_at_894`]'s answer: the grid, the heights, the stream,
+    /// parts 10–13, the troughs and the slope arm's tiles.
+    type EiAt894 = (
+        MapGrid,
+        Vec<sim::single::Single>,
+        Draws,
+        [u32; 4],
+        sim::map_troughs::Troughs,
+        Vec<(i32, i32)>,
+    );
+
     /// One East Indies run carried to `Terrain.cpp` 894 (item 3851): the
     /// 5118 walk of [`east_indies_s_rivers_are_5012_to_5118`] with the oil
     /// cells' terraform (738) on the 706 heights, `make_rivers`, the
@@ -5821,14 +5832,7 @@ mod tests {
         run: EiRun,
         range: i32,
         makes: &sim::map_values::LandMakes,
-    ) -> (
-        MapGrid,
-        Vec<sim::single::Single>,
-        Draws,
-        [u32; 4],
-        sim::map_troughs::Troughs,
-        Vec<(i32, i32)>,
-    ) {
+    ) -> EiAt894 {
         let install = crate::Install::new(root);
         let meshes = crate::mountains::meshes(&install);
         let thresh = river_thresh(root, "EASTINDIES.xml").expect("RIVER_THRESHOLD");
