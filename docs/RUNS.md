@@ -34627,3 +34627,69 @@ SHA-256 `e7a97e8a70a66b70b2865f050ffa0623366fdfd74539d89dd0c8788ca7315aed`.
 
 **What it holds**: the plant is not a contact (`docs/MAPGEN.md` §20). The gate is in `check_for_tendrils`, and the
 next take prints `TERRAIN` at detail 40 on 620 (parked 3871a).
+## run1492 — the fifth melee, the fourth's lobby with an Airbase a computer: the staged script to 2600 (2026-11-05, item 3868, `att-3868`)
+
+`docs/GOLDEN.md` §156. **What the disk could not answer**: no capture on disk holds a computer training from an
+Airbase `add`ed inside its city, or a French or Russian computer's own aircraft inside a melee's 2,600 frames
+(GOLDEN §154.2's table: every melee's Airbase queue empty at 2601). run1483's line with `--cmd-file
+tools/gamelog/golden/melee-airbase.cmd`, through `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1492`; the start is run1482's, shared.
+- Pool lane 1. Launched 12:51:53, exited 12:53:20 (87.1 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. Seats who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13); map style
+  18, seed 12345. DLL `fda8a5ec…`. `rngcmp.py` against run1482: 37 identical. `cmdsran.py`: 26 parsed and 26 ran,
+  every one returning 1 (the two `add airbase` lines on 603 and 605 among them). Filed with `filerun.py run1492
+  eastindies-airbase-melee-trace`. `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1492-eastindies-airbase-melee-trace.txt`, 25,582,331 bytes,
+SHA-256 `a048b5e0d735a30604216099eece5fd44673a9a5df617de83e881c52e61e9c8d`.
+
+Archive `rontrace-run1492.log`, 58,393,888 bytes,
+SHA-256 `65ee74c26c1285ba96eab376b3aed72a28513c63cea78838f79fd78dc49202df`.
+
+**What it holds**: the fifth melee's first try, **1817 of 2600** (`airbase_melee_first_parting`; the count 2184).
+Strategic Bombers (305) on both computers at block 1101, the Attack Helicopter (`HIND`, 312) on who 2 from 1501 and
+the Jet Fighter (`MIRAGE`, 296) on who 1 from 1601. Its stride 1801..2067 is the word's widening
+(`airbase_melee_run1492_s_word_window_is_widened_whole`).
+
+## run1492b — the fifth melee: the `cover=1` twin (2026-11-05, item 3868, `att-3868`)
+
+`docs/GOLDEN.md` §156. **What the disk could not answer**: no coverage trace holds a computer's own aircraft at
+Information. run1492's line with `--cover cover=1`.
+- Pool lane 1. Launched 12:54:01, exited 12:55:12 (71.0 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1492: 2601 identical. `samegame.py`: 26 blocks in common (1..2501), 0
+  differing. DLL `7e9ae93e…`. Filed with `filerun.py run1492b eastindies-airbase-melee-trace-cover`. `df -g ~` read
+  143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1492b-eastindies-airbase-melee-trace-cover.txt`, 25,582,287 bytes,
+SHA-256 `e39b39c36817acc13cd06aecd78fceea6e05ae469ed3de73619dd4ce6c5fe834`.
+
+Archive `rontrace-run1492b.log`, 58,903,360 bytes,
+SHA-256 `d8f770007984ae40e71757988345b9d1251ccd4262fec531900af6ed9e29555d`.
+
+**What it holds**: pinned in `blind::TRACES`; the rubric's unit types (296 and 312 enter the ledger once the melee
+runs whole).
+## run1493 — Southwest Mesa (style 10), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-05, item 3869, `att-3869`)
+
+`docs/MAPGEN.md` §15 step 1, §18.3. The first checksum trace of the one style with a live cliff group, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1493 --map 10 --end-frame 36 --timeout 1200
+--dump-all-start --cover cover=0` (`check_all_level` 14, `CHECKSUM` 2, a start `WORLD` 6). **What the disk could not
+answer**: run1118 (style 10, `cover=1`) carries a start dump and no setup trace, so no Mesa checkpoint was on disk.
+- Pool lane 1, the pool's pick. Launched 12:43:43, exited 12:44:10 (27.5 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 10, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60 at `MAP_SIZE` 2;
+  `page_faults` 0, `relaunches: []`. `df -g ~` read 146 GiB free before it. Filed with `filerun.py run1493
+  southwestmesa-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1493-southwestmesa-mapgen-start.txt`, 149,618,196 bytes,
+SHA-256 `30b3deb6a28167b75af8e3c06dce23e5072a6f099a4ff2dc5c0589d6dd725a39`.
+
+Archive `rontrace-run1493.log`, 8,347,552 bytes,
+SHA-256 `92456bde50baedf3282538b40d60b7a27784cae65ac64ca44ae9833f360ecc8e`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945 and `Terrain.cpp` checkpoints, 7805's seed 2726892157;
+the mask's four draws (sites 0x69bb94, 0x69bbac, 0x69bbc2, 0x69bbf3) and 7807 at seed 2355140353, part 2 292424319,
+part 5 1267075849, which the port meets (`southwest_mesa_s_mask_is_the_traced_7807`,
+`southwest_mesa_s_mask_is_the_traced_stream`); `Cliffs::position_cliff`'s eleven template draws (site 0x8a8d2f), the
+cliff chain's next falsifier.

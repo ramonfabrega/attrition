@@ -13781,21 +13781,29 @@ read, would lack one unit. Names no score until a Spanish lobby's start is simul
   unread. **Score**: none; both pairs are whole. It is a reading for whoever stages a German line in a melee
   (GOLDEN §154's Proposal B).
 
-## Parked by the next landing, slot ZK — reserved
+## Parked by item 3868, 2026-11-05 — the fifth melee stood up, first try 1817 of 2600
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3868a. The Russian Missile Cruiser `2/16`'s rounds part on `ez` and on a dead target** (run1492's blocks 1501,
+  1701 and 1901; `airbase_melee_run1492_s_stride_before_the_word_is_widened_whole`). On 1501 three rounds read
+  `ox` −1 and `whom` −1 in ours against `ox` 17 and `whom` 0 in theirs (3714a's and 3867a's family, a round keeping
+  its dead target), and one `ez` 16 against 17. On 1701 and 1901, `ez` is one apart on four and five rounds (3855b's
+  family). No draw parts on any of them to 1817. **Score**: none until a landing or a draw on a word's frame reads one.
+- **3868b. The Attack Helicopter `2/19`'s `mirror` reads 1 in ours against 0 on block 1501**, its first block (TI
+  312, air, group 131, born 1402..1501). Nothing else of it parts there or on 1601. It is a figure flag on the one
+  helicopter this crate has flown from its own Airbase. **Score**: none while the draws agree; the first read if a
+  word lands on `2/19`'s turn (`Unit::set_angle`'s callers, parked 2234's check).
 
-## Parked by the next landing, slot ZL — reserved
+## Parked by item 3869, 2026-11-05 — Southwest Mesa's first capture and mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3869a) **Two of the mask's arms are inert on run1493's one generator run.** `hi % 0xffff` → `% 0xfffe` and
+`cy + bit` → `cy − bit` fail nothing: the first parts only on a draw ≥ 0xfffe, the second only when y's jitter
+bit is 1, and it is 0 on seed 2726892157 (the bit-flip mutant `1 − bit` is caught, and so is cx's). A second
+Mesa seed (any other `--seed` on run1493's line, 30 s) would hold the second; the first is a 1-in-32768 draw and
+stays a reading. Names no score until a Mesa step parts on it.
+
+(3869b) **Mesa's next step is the zero-draw passes (7835..7854) on run1493's file**, then `place_all` at 7859,
+where `position_cliff`'s eleven template draws (site 0x8a8d2f) are the cliff chain's first value diff (§18.3).
+The refill of lane 2 (QUEUE's lanes line), the commander's to book.
 
 ## Parked by item 3870, 2026-11-05 — the flood's depth, writer by writer
 

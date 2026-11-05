@@ -207,7 +207,9 @@ draws.** Two make the angle (`(r % 0xffff) << 16 + r % 0xffff`) and two
 jitter the centre by `r & 1` each. `World::wipe@006b2c00` and `invert_land`
 then make every cell land 0, region 0. The starts sit on a ring of radius
 `min(m/2 − 4, (m/2)·80/100)`, stepped by `0xffffffff / players`. Amazon,
-Himalayas, Old World and Southwest Mesa read the same. **This is why GS's
+Himalayas, Old World and Southwest Mesa read the same; for Mesa
+(`MapSouthwestMesa::make_continents@0069bb20`) the listing is the same
+instruction for instruction (item 3869), and run1493's 7807 agrees. **This is why GS's
 mask is independent of the player count**: only the angular step reads
 it. `World::add_starting_location@006b2de0` writes the start arrays and
 the start-city bits, never a `WData`, so at 7807 only part 2 can differ —
@@ -1518,7 +1520,9 @@ and `rontrace-run1122.log` to `blind::TRACES`, and eight rows left `NEVER`
 (263 → 255, measured), the five and `verify_placement`, `add_cliff`,
 `MapWarringStates::make_continents`. A value diff of the cliff chain is a
 second item: a Southwest Mesa checksum capture at `check_all_level ≥ 14`
-whose falsifiers are 7859 and 894 (§18.3, §18.4).
+whose falsifiers are 7859 and 894 (§18.3, §18.4). **Taken: run1493**
+(item 3869), whose trace holds `position_cliff`'s eleven template draws
+(site 0x8a8d2f) in `place_all`'s segment.
 
 **Item 3863's verdict, reading-only** (§19): `TerrainOut::check_for_diagonal@008595f0`
 and `WorldData::is_valid@00471170` are kept out by a predicate. The arm
@@ -1573,7 +1577,13 @@ step is checked by §3 at its own checkpoint before the next begins:
    built** (item 3776, `sim::mapgen`; the `Mapgen:` line's first phase);
    **Great Lakes built** (item 3815, `sim::map_lakes`; its first phase);
    **East Indies built** (item 3820, `sim::map_east_indies`; its first
-   phase);
+   phase); **Southwest Mesa built** (item 3869,
+   `sim::mapgen::southwest_mesa_make_continents`, Great Sahara's listing
+   at 0x69bb20; its first phase): the four draws site and word on
+   run1493's trace and 7807's seed, part 2 and part 5 on its one file,
+   first run. run1493 (the default lobby at `--map 10`,
+   `--dump-all-start`) carries every checkpoint 7805..7945 and
+   `Terrain.cpp`'s, so the chain's later steps need no capture;
 2. the zero-draw passes (§6, 7854) — **Great Sahara built** (item 3798,
    `sim::mapgen`; the `Mapgen:` line's second phase); **Great Lakes
    built** (item 3819, the same passes on its 7807 grid, the water arms'
@@ -1953,8 +1963,8 @@ run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
 - **What would kill these claims.** run1118's function list already holds
   `008a8bc0`, `008a8680` and `008a7ea0`. A Southwest Mesa lobby at
   `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start `WORLD`
-  dump (run1118's click-free line with the checksum detail added) parts
-  at 7859 (`place_all`'s draws) if the template draw is wrong. It parts at
+  dump (run1118's click-free line with the checksum detail added; **run1493**,
+  item 3869) parts at 7859 (`place_all`'s draws) if the template draw is wrong. It parts at
   894 (part 5, the heights) if `place_cliff`'s offsets are wrong.
 
 ### 18.4 The slope test

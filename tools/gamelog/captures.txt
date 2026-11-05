@@ -11143,3 +11143,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1491  run1489's line with --ai-tribe 12 and run1490's lobby   (the draw stream; ended itself on 4784)
 #   run1491b --map 14 --end-frame 4784 --allow-early-end --timeout 3600 --log-window 4528 4785 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1490's lobby   (the closing window)
 # Checks: `rngcmp.py` run1490 vs run1491 -> 37 identical; run1491 vs run1491b -> 4785 identical.
+# ==== item 3868: the fifth melee, the fourth's lobby with an Airbase a computer (`docs/GOLDEN.md` §156; `docs/RUNS.md` run1492, run1492b) ====
+#   (start: run1482's, shared — the two Airbase lines run at 603 and 605)
+#   run1492  run1483's line with --cmd-file tools/gamelog/golden/melee-airbase.cmd   (the staged melee)
+#   run1492b run1492's line with --cover cover=1   (the coverage twin)
+# Checks: `rngcmp.py` run1482 vs run1492 -> 37 identical; run1492 vs run1492b -> 2601 identical; `samegame.py` run1492 vs run1492b -> 26 common, 0 differing.
