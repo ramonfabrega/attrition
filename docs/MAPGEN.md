@@ -2585,7 +2585,65 @@ it logs each edge write as the `TERRAIN` 40 print does.
 - **Not established.** That the take's frame-620 grid equals the start's
   around (2, 17) (the `@dumpall` settles it). `verify_land`'s `depth`
   (3870a) does not matter here: its walk rewrites nothing around
-  (2, 17), so an early return changes nothing. And
+  (2, 17), so an early return changes nothing. ~~And
   everything past the entry: `check_for_diagonal`'s body and
-  `WorldData::is_valid@00471170` are not modelled. Every claim here is
+  `WorldData::is_valid@00471170` are not modelled.~~ Modelled (item 3886,
+  below). Every claim here is
   reading-only except the 81 writes.
+
+**The arm's body (item 3886).** `check_for_diagonal@008595f0` reads C's
+four orthogonals (land, sub), zeroed off the map, then runs four pair
+tests in order: N = E "tr", N = W "tl", S = E "br" and S = W "bl". Each is
+true when both cells hold the same land and sub, and that differs from C's.
+Each true test prints `Found <tr|tl|br|bl> corner at (x,y)
+(t=…,r=…,b=…,l=…)` (`TERRAIN`, detail 0x24, the four lands). It then sets
+the caller's shift-6 block word to 0xfc0, 0xe07, 0x1f8 or 0x3f, and ORs the
+shift-0 fill word with 0xc, 0x60, 0x801 or 0x300
+(`create_transition_renderables@00862c60` line 95 passes `&local_20` and
+`&local_30`).
+- **Then** (the listing, 0x859a4b..0x859b1e, which agrees with the
+  decompile):
+  - if "tr" is true and so are the other three, it prints `ISLAND`, zeroes
+    the block word, restores the fill word and returns;
+  - if "tr" is true and any other is false, it returns;
+  - if "tr" is false, then only when tl, br and bl are also false does it
+    reach the four `WorldData::is_valid` calls (0x859b33, 0x859c16,
+    0x859cf1, 0x859dd4). Those calls bounds-check the diagonals NW, NE, SW
+    and SE, and for each diagonal D with D → C 1 the arm prints `CORNER:
+    Found … corner`, sets the block word (0x801, 0x300, 0xc, 0x60) and ORs
+    the fill word (0x1fc, 0x3f, 0xfc0, 0xe07).
+- **The arm writes nothing persistent.** It writes only the two words on the
+  caller's stack, which the caller's 0xe00/0x1c0/0x38/7 tests then read.
+- **Diff-backed on run1497.** Its one print is `Found bl corner at (3,16)
+  (t=1,r=1,b=2,l=2)`: S and W are both `OCEAN` 0 and differ from C, which is
+  `SANDY` 0. `plant.py cell … 2,17 --printed <run1497>` predicts that line,
+  and only that line, and exits 0. That is why (3, 16) reaches no
+  `is_valid`.
+- **The predicate.** A cell enters only as §19.2's (B). At each corner
+  whose D has D → C 1, both flank fields must be cleared, so C → F is 1 for
+  each flank, and two equal flanks fire that corner's own pair test. So
+  `is_valid` is reached only when every such corner's two flanks differ.
+  Over every shipped land and sub, at `COAST_BASE` 3 and 0, distinct
+  one-up flanks always put D beside a flank it is mutually unacceptable
+  with. `SANDY`'s only one-up land is `OCEAN`. **So the route to
+  `is_valid` needs §19.3's P1 pair, and P2 alone, the console's
+  south-west contact, never reaches it.**
+  `halfland::tests::the_diagonal_arm_reaches_is_valid_only_past_a_p1_pair`
+  pins it on the crate's own `is_combo_acceptable`, made to fail once.
+- **The search.** `plant.py scan` covers 69 distinct grids (597 files):
+  66 single plants enter the arm and 0 reach `is_valid`. A two-plant scratch
+  search, with the second plant within Chebyshev 3 of the first, at
+  `COAST_BASE` 3, gives 8,201,021 plant pairs on the 69 grids, 2,152 entering the arm (on 41 grids), and 0 reaching `is_valid`.
+- **Verdict: (ii), none.** `WorldData::is_valid@00471170` is a
+  `blind::RESIDUE` candidate, moved only on a second reading's agreement.
+  That reading must re-derive four things:
+  - the four pair tests and the fall-through (0x859776..0x859b1e);
+  - that C → F 1 holds on both flanks of an entered corner (§19.2–§19.3);
+  - `SANDY`'s single one-up land;
+  - the distinct-flank ⇒ P1 step.
+
+  The one route that reopens it is a P1 pair surviving the re-mark, which
+  takes `verify_land`'s depth leak past 500 (3863a, §19.6). No plant
+  sequence on disk is read to reach that. *Falsifier*: a `cover=1` take
+  that prints `CORNER: Found` (`TERRAIN` 0x24 by `@logdetail 0 28 40`), or
+  that has a `HIT` on 00471170, with no P1 pair around C in its `@dumpall`.
