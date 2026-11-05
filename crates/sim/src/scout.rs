@@ -713,18 +713,6 @@ impl Sim {
     /// (`docs/SCOUT.md` §8.1; item 1156). The merchant's
     /// `Sim::merchant_refused` had it from the same listing.
     fn scout_unit_near(&self, u: usize, c: Cell) -> bool {
-        if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-            let half = crate::world::UNITS_PER_CELL / 2;
-            let at = Pos::new(c.x * crate::world::UNITS_PER_CELL + half, c.y * crate::world::UNITS_PER_CELL + half);
-            for (o, other) in self.units.iter().enumerate() {
-                if o != u && other.alive() && other.owner == self.units[u].owner {
-                    let d = vector_dist(other.orders_pos.x - at.x, other.orders_pos.y - at.y);
-                    if d <= 0x600 {
-                        eprintln!("PROBE near c{},{} o{o} ti{} order{:?} d{d}", c.x, c.y, other.type_index, self.order_type(o));
-                    }
-                }
-            }
-        }
         let who = self.units[u].owner;
         let ty = self.units[u].ty;
         let half = crate::world::UNITS_PER_CELL / 2;
@@ -861,9 +849,6 @@ impl Sim {
             // (%ecx,%ecx), %eax` at `005f6bb9` — so a region-scan cell has
             // to be twice as good as a city-loop one to take the frame.
             let score = score * 2;
-            if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-                eprintln!("PROBE score u{u} c{},{} owner{owner} cityr{} score{score} best{}", c.x, c.y, (self.world.tile_mask(tile) & tile::CITY_RADIUS != 0) as u8, scan.score);
-            }
             if score >= scan.score {
                 continue;
             }
@@ -872,29 +857,6 @@ impl Sim {
             }
             scan.score = score;
             scan.tile = tile;
-        }
-        if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-            eprintln!("PROBE scout u{u} who{who} ti{} region{region} n{n} stride{stride} start{start} here{:?} best{} tile{:?}", self.units[u].type_index, here, scan.score, scan.tile);
-            if let Ok(path) = std::env::var("RON_PROBE_FOG_OUT") {
-                let mut out = String::new();
-                for fy in 0..120 {
-                    let row: Vec<String> = (0..120).map(|fx| format!("{:02x}", self.world.seen2(fx, fy).unwrap_or(0xff))).collect();
-                    out.push_str(&row.join(" "));
-                    out.push('\n');
-                }
-                std::fs::write(path, out).unwrap();
-            }
-            for fy in 70..86 {
-                let row: Vec<String> = (108..122).map(|fx| format!("{:02x}", self.world.seen2(fx, fy).unwrap_or(0xff))).collect();
-                eprintln!("PROBE fog {fy} {}", row.join(" "));
-            }
-            for c in self.world.region_coords_strided(region, start, stride) {
-                let seen = self.was_really_seen(c, who);
-                let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
-                let inv = self.invalid_loc(u, tile, false, false, false, false, false);
-                let oc = self.world.is_ocean(c);
-                eprintln!("PROBE  c{},{} seen{} inv{} ocean{} mask{:#06x}", c.x, c.y, seen as u8, inv, oc as u8, self.world.tile_mask(tile));
-            }
         }
     }
 
