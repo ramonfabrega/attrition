@@ -713,6 +713,18 @@ impl Sim {
     /// (`docs/SCOUT.md` §8.1; item 1156). The merchant's
     /// `Sim::merchant_refused` had it from the same listing.
     fn scout_unit_near(&self, u: usize, c: Cell) -> bool {
+        if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
+            let half = crate::world::UNITS_PER_CELL / 2;
+            let at = Pos::new(c.x * crate::world::UNITS_PER_CELL + half, c.y * crate::world::UNITS_PER_CELL + half);
+            for (o, other) in self.units.iter().enumerate() {
+                if o != u && other.alive() && other.owner == self.units[u].owner {
+                    let d = vector_dist(other.orders_pos.x - at.x, other.orders_pos.y - at.y);
+                    if d <= 0x600 {
+                        eprintln!("PROBE near c{},{} o{o} ti{} order{:?} d{d}", c.x, c.y, other.type_index, self.order_type(o));
+                    }
+                }
+            }
+        }
         let who = self.units[u].owner;
         let ty = self.units[u].ty;
         let half = crate::world::UNITS_PER_CELL / 2;
