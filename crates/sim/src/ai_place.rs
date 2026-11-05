@@ -1004,6 +1004,21 @@ impl Sim {
         }
 
         if std::env::var("RON_PROBE_PLACE").is_ok() && is_dock {
+            for c in [Pos::new(16896, 43776), Pos::new(17856, 43776)] {
+                let corner = self.tile_corner(rec, c);
+                let tiles: Vec<_> = self
+                    .footprint(rec, corner)
+                    .map(|t| {
+                        (
+                            t.x,
+                            t.y,
+                            format!("{:?}", self.blocked_tcoord(Some(who), rec, t, None)),
+                            self.was_seen_fog(t.x >> 1, t.y >> 1, who),
+                        )
+                    })
+                    .collect();
+                eprintln!("PLACETILES f{frame} cand={c:?} {:?} tiles={tiles:?}", self.blocked_site(Some(who), rec, c, None));
+            }
             for (cx, cy) in [(19, 48), (20, 48), (19, 47), (20, 47), (18, 48)] {
                 let cell = Cell::new(cx, cy);
                 let sp = self.check_building_wcoord(who, cell, w, h, max, !nocity);
