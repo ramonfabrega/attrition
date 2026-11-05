@@ -6198,9 +6198,10 @@ mod tests {
     const MESA_TRACES: usize = 1;
 
     /// The §15 phases this module checks on Southwest Mesa: the mask (7807),
-    /// the zero-draw passes (7835..7854, item 3872) and `place_all` with
-    /// the cliffs (7859, item 3875).
-    const SOUTHWEST_MESA_CHECKED: i64 = 3;
+    /// the zero-draw passes (7835..7854, item 3872), `place_all` with
+    /// the cliffs (7859, item 3875), and its tail and the resources
+    /// (7861..7927, item 3878).
+    const SOUTHWEST_MESA_CHECKED: i64 = 4;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -6477,6 +6478,170 @@ mod tests {
         assert!(
             walked >= MESA_TRACES && files >= MESA_FILES,
             "the place_all check walked {walked} traces and {files} files"
+        );
+    }
+
+    /// **Southwest Mesa's group tail and resources, 7861 to 7927**
+    /// (`docs/MAPGEN.md` §7, §8, §15 steps 3 and 4, item 3878): from the
+    /// port's 7859 grid ([`southwest_mesa_at_7859`], the cliffs placed),
+    /// `check_player_forest` (7861), `nubify_forest` (7865), the base
+    /// passes with `fix_transitions` (7870), nothing through 7877 and
+    /// 7880, then `place_resources` (7927) — seed and parts 2, 5 and 6 at
+    /// each of the six checkpoints on every Southwest Mesa file, and the
+    /// stream from the tail's first draw to the first `compute_val` draw,
+    /// site and word, against run1493's [`make_draws`] segment.
+    #[test]
+    fn southwest_mesa_s_tail_and_resources_are_the_traced_stream_and_7861_to_7927() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
+        let ts = tileset_groups(root, &fert.tileset).expect("SW_desert's groups");
+        let run_of = |n: &str| {
+            n.strip_prefix("gamelog-")
+                .and_then(|r| r.split('-').next())
+                .map(str::to_string)
+        };
+        let (mut walked, mut files) = (0, [0usize; 6]);
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let Some((mut grid, mut d)) = southwest_mesa_at_7859(root, g) else {
+                continue;
+            };
+            let from = d.log.len();
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                    return;
+                };
+                files[k] += 1;
+                let ours = (
+                    d.rng.seed,
+                    grid.start_part(),
+                    grid.cell_part(),
+                    grid.tile_part(),
+                );
+                let theirs = (*seed, p[2], p[5], p[6]);
+                eprintln!("{name}: {line} (seed, parts 2, 5, 6) ours {ours:?}, theirs {theirs:?}");
+                if ours != theirs {
+                    parted.push(format!(
+                        "{name} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against theirs \
+                         {theirs:?}"
+                    ));
+                }
+            };
+            // `check_player_forest`'s count: each start's city disc, rings 0
+            // to `city_center_radius / 4 − 1`, in FOREST cells — three or
+            // more and the start takes no patch.
+            let t = sim::scout::circle::table();
+            let k = (sim::tuning::Tuning::RON.city_center_radius / 4 - 1) as usize;
+            let discs: Vec<usize> = (0..grid.starts[0].list.len())
+                .map(|s| {
+                    let (x0, y0) = (grid.starts[0].list[s], grid.starts[1].list[s]);
+                    (t.radius[0]..t.radius[k])
+                        .map(|i| {
+                            (
+                                x0 + i32::from(t.x[i as usize]),
+                                y0 + i32::from(t.y[i as usize]),
+                            )
+                        })
+                        .filter(|&(x, y)| {
+                            x >= 0
+                                && y >= 0
+                                && x < grid.xs
+                                && y < grid.ys
+                                && grid.cells[(y * grid.xs + x) as usize].flags & 0x20 != 0
+                        })
+                        .count()
+                })
+                .collect();
+            let forest = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count();
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            let patched = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count() - forest;
+            check(&grid, &d, 0, 7861);
+            nubify_forest(&mut grid, &mut d);
+            check(&grid, &d, 1, 7865);
+            change_bases(&mut grid, &mut d, &ts);
+            check(&grid, &d, 2, 7870);
+            let tail = d.log.len() - from;
+            eprintln!("{name}: the starts' city discs hold {discs:?} FOREST cells at 7859");
+            // What the tail's and the resources' inert arms would decide on
+            // (item 3878's mutants): the cliff cells and how many of them
+            // are unblocked, `land` 2, 0x1000, ocean, COAST, and class-1
+            // tiles.
+            let count = |p: &dyn Fn(&sim::mapgen::WCell) -> bool| {
+                grid.cells.iter().filter(|c| p(c)).count()
+            };
+            eprintln!(
+                "{name} at 7870: cliff cells {}, unblocked {}; land 2 {}, 0x1000 {}, ocean {}, \
+                 COAST {}; class-1 tiles {}",
+                count(&|c| c.flags & 0x40 != 0),
+                count(&|c| c.flags & 0x40 != 0 && c.blocked == 0),
+                count(&|c| c.land == 2),
+                count(&|c| c.flags & 0x1000 != 0),
+                count(&|c| c.is_ocean()),
+                count(&|c| c.flags & 4 != 0),
+                grid.tiles.iter().filter(|&&t| t & 3 == 1).count()
+            );
+            check(&grid, &d, 3, 7877);
+            check(&grid, &d, 4, 7880);
+            let inputs = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
+                .expect("Southwest Mesa's rows");
+            eprintln!(
+                "{name}: the rows' edge_keep_away {:?}",
+                inputs
+                    .sections
+                    .iter()
+                    .map(|s| s.iter().map(|r| r.edge_keep_away).collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            );
+            let n = place_resources(&mut grid, &mut d, &inputs, g.nations);
+            check(&grid, &d, 5, 7927);
+            let mut kinds = std::collections::BTreeMap::<i32, usize>::new();
+            for x in grid.goods.iter().flatten() {
+                *kinds.entry(x.0).or_default() += 1;
+            }
+            eprintln!(
+                "{name} on {}: {patched} forest cells patched, {tail} tail draws, {} resource \
+                 draws, {n} objects, goods by kind {kinds:?}",
+                fert.tileset,
+                d.log.len() - from - tail
+            );
+            if let Some(trace) = run_of(name).map(|r| format!("rontrace-{r}.log"))
+                && let Some(path) = crate::testenv::dump(&trace)
+                && let Some(seg) = make_draws(Path::new(&path)).expect("a readable trace")
+            {
+                walked += 1;
+                let seg = resources_part(&seg);
+                let theirs = &seg[place_all_part(seg).len()..];
+                let ours = &d.log[from..];
+                if let Some(at) = first_parting(ours, theirs) {
+                    let say = |v: &[SetupDraw]| {
+                        v.get(at.saturating_sub(2)..(at + 3).min(v.len()))
+                            .map(|w| format!("{w:x?}"))
+                    };
+                    parted.push(format!(
+                        "{trace}: tail and resources draw {at} of ours {} / theirs {}: ours \
+                         {:?}, theirs {:?}",
+                        ours.len(),
+                        theirs.len(),
+                        say(ours),
+                        say(theirs)
+                    ));
+                }
+            }
+        }
+        eprintln!("Southwest Mesa 7861..7927: {walked} traces, checkpoints on {files:?} files");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            walked >= MESA_TRACES && files.iter().all(|&n| n >= MESA_FILES),
+            "the tail walked {walked} traces and {files:?} files"
         );
     }
 
