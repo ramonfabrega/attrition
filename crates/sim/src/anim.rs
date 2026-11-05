@@ -2159,9 +2159,11 @@ impl Sim {
                             }
                         }
                         eprintln!(
-                            "  probe3849 f{frame} {}/{} piece {} anim {} start {} node {} pos ({}, {}) facing {} from ({}, {}, {})",
+                            "  probe3849 f{frame} {}/{} pivots {} turrets {:?} piece {} anim {} start {} node {} pos ({}, {}) facing {} from ({}, {}, {})",
                             self.units[u].owner,
                             self.units[u].index,
+                            pivots,
+                            guy.turret.angles,
                             guy.gpiece,
                             guy.anim,
                             start,
