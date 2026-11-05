@@ -6645,6 +6645,189 @@ mod tests {
         );
     }
 
+    /// Each Southwest Mesa file's grid and stream at 7927: 3878's chain from
+    /// [`southwest_mesa_at_7859`] — `check_player_forest`, `nubify_forest`,
+    /// the base passes and `place_resources` — in its order.
+    fn southwest_mesa_at_7927(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
+        let (mut grid, mut d) = southwest_mesa_at_7859(root, g)?;
+        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
+        let ts = tileset_groups(root, &fert.tileset).expect("SW_desert's groups");
+        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+        nubify_forest(&mut grid, &mut d);
+        change_bases(&mut grid, &mut d, &ts);
+        let inputs = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
+            .expect("Southwest Mesa's rows");
+        place_resources(&mut grid, &mut d, &inputs, g.nations);
+        Some((grid, d))
+    }
+
+    /// **Values on Southwest Mesa** (`docs/MAPGEN.md` §9, §15 step 5, item
+    /// 3882): from the port's 7927 grid ([`southwest_mesa_at_7927`]),
+    /// `World::adjust_for_blocking` — seed and parts 2, 5 and 6 at 7937 —
+    /// then `World::compute_all_vals`, one draw a non-water cell: the whole
+    /// stream from `place_all` through the last value draw against
+    /// run1493's [`make_draws`] segment, site and word, then seed and parts
+    /// 2, 5 and 6 at 7945. The first values over cliff cells (0x40), so the
+    /// test prints what a cliff decides on: the 0x40 cells, their 0x200
+    /// ring, and the tiles of theirs a filled `cliff_mining_data` would
+    /// give the 0x8000 bit (empty before `Cliffs::init`, §9).
+    #[test]
+    fn southwest_mesa_s_values_are_the_traced_stream_and_7937_and_7945() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let run_of = |n: &str| {
+            n.strip_prefix("gamelog-")
+                .and_then(|r| r.split('-').next())
+                .map(str::to_string)
+        };
+        let (mut walked, mut files) = (0, [0usize; 2]);
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let Some((mut grid, mut d)) = southwest_mesa_at_7927(root, g) else {
+                continue;
+            };
+            let records = [7937, 7945].map(|line| {
+                g.checksums
+                    .iter()
+                    .filter(|(f, l, _, _)| f == "map.cpp" && *l == line)
+                    .count()
+            });
+            eprintln!("{name}: records at 7937, 7945: {records:?}");
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for (_, _, seed, p) in g
+                    .checksums
+                    .iter()
+                    .filter(|(f, l, _, _)| f == "map.cpp" && *l == line)
+                {
+                    files[k] += 1;
+                    let ours = (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part(),
+                    );
+                    let theirs = (*seed, p[2], p[5], p[6]);
+                    eprintln!(
+                        "{name}: {line} (seed, parts 2, 5, 6) ours {ours:?}, theirs {theirs:?}"
+                    );
+                    if ours != theirs {
+                        parted.push(format!(
+                            "{name} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against \
+                             theirs {theirs:?}"
+                        ));
+                    }
+                }
+            };
+            let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
+                .expect("Southwest Mesa's place_all inputs");
+            let mut regions = regions_of(&grid);
+            let was = grid.clone();
+            let labels: Vec<i16> = grid.cells.iter().map(|c| c.region).collect();
+            adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+            let cells = |bit: u16| grid.cells.iter().filter(|c| c.flags & bit != 0).count();
+            let tiles = |bit: u16| grid.tiles.iter().filter(|&&m| m & bit != 0).count();
+            let dead = (0..grid.cells.len())
+                .filter(|&i| grid.cells[i].flags & 0x10 != was.cells[i].flags & 0x10)
+                .count();
+            let relabelled = grid
+                .cells
+                .iter()
+                .zip(&labels)
+                .filter(|(c, r)| c.region != **r)
+                .count();
+            // The 0x40 cells' tiles a filled cliff list would mark: gather
+            // access (`has_gather_access(−1, 0, 1)`'s mask test and an open
+            // neighbour) and no 0x8000 yet.
+            let (txs, _) = grid.tile_dims();
+            let gather = |m: u16| m & 0x30 == 0x30 || m & 3 == 2 || m & 3 == 1;
+            let cliff_tiles: Vec<usize> = (0..grid.cells.len())
+                .filter(|&i| grid.cells[i].flags & 0x40 != 0)
+                .flat_map(|i| {
+                    let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
+                    (0..16).map(move |k| ((4 * y + k / 4) * txs + 4 * x + k % 4) as usize)
+                })
+                .collect();
+            let cliff_gather = cliff_tiles
+                .iter()
+                .filter(|&&t| gather(grid.tiles[t]) && grid.tiles[t] & 0x8000 == 0)
+                .count();
+            eprintln!(
+                "{name} at 7937: cliff cells {}, 0x200 cells {}, 0x8000 tiles {}, 0x38 tiles {}, \
+                 0x2000 tiles {}, dead spots {dead}, relabelled {relabelled}; cliff tiles {}, \
+                 their gather-mask tiles without 0x8000 {cliff_gather}",
+                cells(0x40),
+                cells(0x200),
+                tiles(0x8000),
+                tiles(0x38),
+                tiles(0x2000),
+                cliff_tiles.len()
+            );
+            check(&grid, &d, 0, 7937);
+            let before = d.log.len();
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let dry = grid.cells.iter().filter(|c| !c.is_ocean()).count();
+            assert_eq!(d.log.len() - before, dry, "one draw a non-water cell");
+            let mut region_size = [0i32; 0x80];
+            for c in &grid.cells {
+                region_size[c.region as usize] += 1;
+            }
+            let size = grid.xs * grid.ys;
+            let under = [size / 128, size / 64, size / 16].map(|t| {
+                grid.cells
+                    .iter()
+                    .filter(|c| !c.is_ocean() && region_size[c.region as usize] < t)
+                    .count()
+            });
+            let cliff_vals: std::collections::BTreeSet<u8> = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & 0x40 != 0)
+                .map(|c| c.val)
+                .collect();
+            let lands: std::collections::BTreeSet<i8> = grid.cells.iter().map(|c| c.land).collect();
+            eprintln!(
+                "{name} at 7945: {dry} value draws, lands {lands:?}, dry cells under size/128, \
+                 /64, /16 {under:?}, the cliff cells' vals {cliff_vals:?}"
+            );
+            check(&grid, &d, 1, 7945);
+            if let Some(trace) = run_of(name).map(|r| format!("rontrace-{r}.log"))
+                && let Some(path) = crate::testenv::dump(&trace)
+                && let Some(seg) = make_draws(Path::new(&path)).expect("a readable trace")
+            {
+                walked += 1;
+                if let Some(at) = first_parting(&d.log, &seg) {
+                    let say = |v: &[SetupDraw]| {
+                        v.get(at.saturating_sub(2)..(at + 3).min(v.len()))
+                            .map(|w| format!("{w:x?}"))
+                    };
+                    parted.push(format!(
+                        "{trace}: draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
+                        d.log.len(),
+                        seg.len(),
+                        say(&d.log),
+                        say(&seg)
+                    ));
+                }
+                eprintln!("{trace}: {} draws place_all through the values", seg.len());
+            }
+        }
+        eprintln!("Southwest Mesa values: {walked} traces, 7937, 7945 on {files:?} files");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            walked >= MESA_TRACES && files.iter().all(|&n| n >= MESA_FILES),
+            "the values walked {walked} traces and {files:?} files"
+        );
+    }
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
