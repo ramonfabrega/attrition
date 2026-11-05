@@ -16,10 +16,10 @@
 //! - 5116; `Regions::find_all`;
 //! - 5118.
 //!
-//! No height is read, and no float: the river's spline
-//! (`RiverOut::add_spline_point`, `RiversOut::start_river`) is the
-//! renderer's, takes integer cell coordinates, and writes nothing a
-//! checksum part reads; it is not built.
+//! No height is read, and no float: each stretch's spline points
+//! (`RiversOut::start_river`, `RiverOut::add_spline_point`) are recorded
+//! as cells in [`MapGrid::rivers`], and the troughs they carve are
+//! [`crate::map_troughs`]'.
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet};

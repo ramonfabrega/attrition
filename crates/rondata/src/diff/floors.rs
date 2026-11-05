@@ -128,8 +128,12 @@ pub const MAPGEN: Mapgen = Mapgen {
             // (173 river draws at 2 nations on 209, 62 at 3 on 13), and seed
             // and parts 2, 5, 6 and 10–13 at every record from 5012 to 5118
             // on all 185 files (925 records), first run: 59 path and 707
-            // bank cells at 5076, the banks gone again at 5116.
-            ported: 7,
+            // bank cells at 5076, the banks gone again at 5116. 7 → 8 by
+            // item 3850: the troughs (`sim::map_troughs`) and
+            // `adjust_for_mountains`, seed and parts 2, 5, 6 and 10–13 at
+            // 894 on all 185 files and every vertex of the 45 start grids,
+            // first run; the slope arm inert (no 0x40 cell).
+            ported: 8,
             phases: 8,
         },
         MapgenStyle {

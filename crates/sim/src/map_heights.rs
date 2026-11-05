@@ -900,7 +900,8 @@ pub fn slope_tiles(g: &MapGrid) -> Vec<(i32, i32)> {
 /// `generate_land`, the oil cells' terraform, `adjust_for_mountains`, then `Cliffs::init`'s
 /// refusal. Between them, `check_and_set_halfland` reads a height only on
 /// a gated cell, which `sim::terrain_init` already refuses; the troughs
-/// carve only along a river list, which `sim::map_rivers` refuses.
+/// carve only along a river list ([`crate::map_troughs`], not called here:
+/// a style without one carves nothing).
 pub fn heights(
     g: &MapGrid,
     coord: &mut [u16],

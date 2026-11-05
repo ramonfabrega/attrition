@@ -1081,10 +1081,7 @@ sync stream. In order:
   - `Terrain::convert_beach_to_sandy@0084b8e0` sets `land` 1 on land next
     to `land` 2.
   - `Map::make_rivers@00692fb0` runs (`map.cpp` 5012..5118).
-  - `RiversOut::calculate_all@00888820` carves troughs.
-    `RiverSection::create_trough_edge@00889660` calls
-    `World::set_river_at@006b1f80` (tile 0x800) where the carved height is
-    ≤ 0.
+  - `RiversOut::calculate_all@00888820` carves troughs (§17).
   - `TerrainOut::adjust_for_mountains@008703c0` runs.
   - `Cliffs::init@008a8020` runs: `Cliffs::assess_wcoord@008a6a40` marks a
     cliff where a tile's corner heights span more than
@@ -1302,9 +1299,8 @@ test is refused by name (`Unported::Slope`).
   `min(d/768, 10000)²·(1/9)·(−273) + 30`, and five
   `relax_aquatic_verts` passes.
 
-**Every vertex agrees** off the rivers (two cells from a start-dump
-0x1000 cell) on all 45 start dumps that print the grid: 2,378,205
-(`great_lakes_s_heights_are_the_start_dump_s_grid_off_the_rivers`).
+**Every vertex agrees** on all 45 start dumps that print the grid,
+the troughs (§17) included (`great_lakes_s_heights_are_the_start_dump_s_grid`).
 **And they decide HALFLAND cell-exact**: on all 185 files, a cell is
 HALFLAND exactly when it is gated and has 1–15 sub-tiles with four corners
 below −30.0f (`water_subtiles`; 243 a file). `_wcoord`'s writes on them
@@ -1462,6 +1458,10 @@ Of the territory's 198 open or layout-only functions under the nine stems
   3835). Eight mutants fail it; the 15.5 clamp, the search's second ring
   past the first find, and `adjust_aquatic_height`'s `land` 1/3 arm fail
   nothing, being inert on this grid (3835a);
+- §17's troughs on Great Lakes (item 3850): seed and parts 2, 5, 6 and
+  10–13 at 894 on all 185 files, every vertex of 45 start dumps
+  (2,613,645) and the 0x1000 cells on 185, first run; 23 of 33 mutants
+  fail it, the ten inert arms named in §17;
 - §10's `Terrain::init` without heights and its heights on East Indies
   (item 3844): seed and parts 2, 5, 6 and 10–13 from 734 to 706 on 202
   files, every vertex of 56 start dumps, and `HALFLAND` cell-exact on 202.
@@ -1584,7 +1584,10 @@ step is checked by §3 at its own checkpoint before the next begins:
    **Great Lakes through 706** (item 3835): the shore blend,
    `smooth_tcoord` and `build_coastal_data` on every vertex off the rivers
    of 45 start dumps; the half-land they decide is step 6's (item 3843).
-   The troughs and the slope test remain. **East Indies through 706**
+   **Great Lakes built** (item 3850, `sim::map_troughs`, §17; its eighth
+   phase): the troughs, then `adjust_for_mountains`; 894 on all 185 files
+   and every vertex of the 45 grids. The slope test is inert there: no
+   Great Lakes cell carries 0x40, which `great_lakes_at_894` asserts. **East Indies through 706**
    (item 3844): every vertex of the 56 start dumps that print the grid
    (3,252,536; `RIVERLIST` empty, so none is set apart);
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
@@ -1699,3 +1702,57 @@ every wet sub-tile (3843a).
 on a map that enters it; `num_tiles[3]`; the `Regions` lists
 `mark_halfwater` and the rescan keep (no checksum part walks them); the
 oil footprint's 0x200 clear (3843a).
+
+## 17. Great Lakes' troughs: `RiversOut::calculate_all`, 5118 → 894
+
+Item 3850, `sim::map_troughs`, whose comments carry each constant and
+address. **Diff-backed**: seed and parts 2, 5, 6 and 10–13 at
+`Terrain.cpp` 894 on all 185 Great Lakes files
+(`great_lakes_s_troughs_are_894`), every vertex of the 45 start dumps that
+print the grid and every 0x1000 cell on all 185
+(`great_lakes_s_heights_are_the_start_dump_s_grid`), first run. Two
+rivers at 2 nations, 59 and 29 sections; 49 cells take 0x1000.
+
+- **The spline points** are `make_riverlist`'s marked cells, each stretch
+  its own `start_river` (`MapGrid::rivers`); a border end adds the end
+  cell again and one cell off the map. `add_spline_point` stores the cell
+  centre `(768c + 384)` and sums the length in cells, `sqrt(dy² + dx²) /
+  768`.
+- **`ensure_ocean_end@00885400`**: the direction in (normalised); the
+  nearest cell of the end's 7 × 7 that is off the map or `OCEAN` and not
+  behind it becomes a point, and a step on from it along the **last
+  scanned candidate's** offset less the direction another, when on the
+  map and `OCEAN`.
+- **`calc_spline`**: a clamped cubic B-spline, `(u16)(length · 1.7)`
+  steps; `build_normals` with `up = +z`, each vertex the normalised sum of
+  its two segments' normals.
+- **`create_sections`**: steps of `768 / 1.7` along `next_at_dist`
+  (ratio 0.33); each width `(byte · 0.005 + 0.5) · 0.75` from a 50 × 50
+  width fractal (smoothing 2, flags 2, seed 0), and once a step's midpoint
+  is wet, `min(1.5 · last, 1.5)` from then on. Each section is three
+  trough edges, nine vertices each, `width · o · 192` apart, sunk to
+  `−60 − profile · −60 + 15` (profile 1, .75, .26, 0, 0, 0, .26, .75, 1).
+- **`terraform_from_river_vert`**: a tile not wet, not `SANDY`, with no
+  `SANDY`, `OCEAN` or HALFLAND neighbour cell and not a mountain tile has
+  its four corners averaged with the depth, its cell listed for the land
+  batch and its 11 × 11 listed to smooth. **`set_river_at`** marks each
+  of the 3 × 3 tiles with a corner strictly below 0 whose cell passes
+  `move_ocean_goody`'s free-cell test.
+- **Then** `ensure_45_deg_slope` until its list empties (a neighbour more
+  than 79.68 above comes down to 4 under that), two `smooth_tcoord`
+  passes, and `spot_update_land_batch(0, riverbase)` — `riverbase` from
+  the `TILESET` element.
+- **`Terrain::move_goody@0084a3d0`** is `move_ocean_goody`'s body, except
+  that moved oil takes the rock bit only from a dry cell and gets its
+  rocky patch's terraform (`TerrainOil` is initialised at 493). It moves
+  nothing on Great Lakes.
+
+**Inert here, measured** (3850a, mutants that fail nothing): the wet
+tile's deepening (the terraform refuses a wet tile, so its depth is read
+by nothing), its 30 and its `|i − 4| < 2`; the wet section's `1.5`; the
+0x40 and HALFLAND-neighbour tests; `generate_bspline`'s tail test;
+`ensure_ocean_end`'s normalisation. One-ulp nudges of 1.7, 0.33 and
+0.005 fail nothing, and larger ones fail it.
+
+**Not established**: oil, a goody box or a good in a trough (no trace
+meets one); the render-only callees are taken to write no height or part.
