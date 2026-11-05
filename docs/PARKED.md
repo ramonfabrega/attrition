@@ -13677,13 +13677,21 @@ to Splines or Misc Effects writes that object's parameter and calls its +0xc wit
 both rows become `RESIDUE` ("the debug parameter window only"). If it is in, a run settles them: cheats on, F12,
 Splines, drag the first Scroll, and `004a1ca0` and `009343b0` are entered. It names no score.
 
-## Parked by the next landing, slot ZE — reserved
+## Parked by item 3862, 2026-11-05 — a sunk transport takes its rider
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3862a) **The fourth melee's three leader keys at the close.** `sea_melee_s_leaders_are_compared_on_every_seat`
+reads, on run1483's closing block 2601 beside the standing families: who=1 `num_units[272]` ours 1 theirs 0, who=2
+`num_units[272]` ours 1 theirs 0 (row 272 is the Transport Freighter), and who=1 `strong[2]` 64 against 0 with
+`SITE[7].reg` 65 against 0. The muster counts a Freighter on both computers that theirs does not, with every unit of
+the close linked and agreeing (137, 0 off), so the count, not a unit, parts. The leader record is dumped on 37 and
+2601 alone, so the frame it first parts is not on disk. Names no score: the melee is whole.
+
+(3862b) **Four Russian sites read `build:extra` on the closing block.** `sea_melee_run1483_s_word_window_is_widened_whole`
+over 2501..2601 reports `2/2043`, `2/2044`, `2/2046` and `2/2047` (uids 122, 123, 125, 126, `flags 1`, the last four
+`BUILDDATA` records before `UNITDATA`) as held by this crate alone, while run1483's 2601 prints all four as top-level
+records and `sea_melee_run1483_s_closing_state` links all 92 buildings. A reader question in the window's builds
+direction (`harness.rs`'s `build:extra` loop against `frame.builds`), not a sim one; the third melee's closing window
+shows none. Names no score.
 
 ## Parked by the next landing, slot ZF — reserved
 
