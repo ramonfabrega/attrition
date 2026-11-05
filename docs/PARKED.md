@@ -13923,13 +13923,19 @@ That is run1495's own line with `620 @aim 42 43` and `620 !weather` ahead of its
 It is the fallback if 3876a's lobby will not take the line. Killed by that take not entering 008595f0. Names no
 score.
 
-## Parked by the next landing, slot ZT — reserved
+## Parked by item 3877, 2026-11-05 — the group-order family's six blind rows, read
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3877a. `Unit::do_group_attack@005e75a0` and `Unit::do_await_board@005ed040` are `RESIDUE` candidates** (`docs/AI.md`
+  §382.1–§382.2). Nothing makes a `GroupAttackOrder` except as a copy or a load: no `get_obj` site pushes 0x14, and the
+  constructor's one call is inside `get_new_order`. An `AwaitBoardOrder`'s one maker is `add_await_board_order`, which
+  is `RESIDUE`. Each moves on a second reading's agreement over §382.6's four points. **Score**: `Blind:` open 41 → 39.
+- **3877b. `get_max_range`'s golden-start take** (`docs/AI.md` §382.4): chapter fifteen's lines with `add general who=0`
+  in the selection range. A `cover=1` trace should enter `GroupData::get_max_range@00711080` on 735–736, through
+  `do_attack:119`'s unarmed, grouped arm. Two killers: the General's head on 736 is not an `ATTACKORDER`, or there is
+  no `HIT` while it is one. **Score**: `Blind:` open 41 → 40.
+- **3877c. `Group::kill_group_order@00710aa0`'s second caller is dead**: `do_group_attack:67` (`5e76c4`) is under
+  3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
+  The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
 
 ## Parked by the next landing, slot ZU — reserved
 
