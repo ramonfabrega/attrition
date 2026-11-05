@@ -320,6 +320,79 @@ fn sea_melee_run1484_s_window_is_widened_whole() {
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
+/// run1486: run1483's game with a window at every frame of 1400..1502
+/// (item 3854, `docs/GOLDEN.md` §153.2): the frames where the Aircraft
+/// Carrier `2/18`, which dies in ours on the word's frame 1613, first
+/// parts.
+pub(crate) const MELEE_WINDOW_1400: (&str, &str) = (
+    "gamelog-run1486-eastindies-information-melee-window-1400-1502.txt",
+    "rontrace-run1486.log",
+);
+
+/// run1486's window, every block.
+pub(crate) const WIDENING_SEA_MELEE_WINDOW_1400: (i64, i64) = (1400, 1502);
+
+/// run1486's window widened whole, the rounds compared — the coverage
+/// driver's slice too.
+pub(crate) fn sea_melee_run1486_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1486",
+            &[(MELEE_WINDOW_1400.0, WIDENING_SEA_MELEE_WINDOW_1400.0)],
+            WIDENING_SEA_MELEE_WINDOW_1400,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **run1486's window, widened whole** (item 3854): every dumped record
+/// on every block of [`WIDENING_SEA_MELEE_WINDOW_1400`], both directions,
+/// the rounds too — the value diff the word 1613 walks back to. The first
+/// unit row is block 1435: theirs' `2/18` takes 6 damage from the Camel
+/// Corps `0/14` (500 against ours' 494, `damage_frame` 1434), whose round
+/// of block 1430 leaves (30461, 27533, 298) and flies 6 frames in theirs
+/// against the figure's square (30456, 27384, 17) and 7 in ours — parked
+/// 3849b's release. `RON_FIRSTS=1` prints every row.
+#[test]
+fn sea_melee_run1486_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sea_melee_run1486_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    let carrier: Vec<_> = w
+        .firsts
+        .iter()
+        .filter(|((who, o, what), _)| *who == 2 && *o == 18 && what == "hits:damage")
+        .map(|(_, (f, r))| (*f, r.clone()))
+        .collect();
+    pin_eq!(
+        carrier,
+        vec![(1435, "ours 494 theirs 500".to_string())],
+        "the carrier's first parted damage"
+    );
+    pin_eq!(w.blocks, 102, "every block in the window");
+    pin_eq!(w.firsts.len(), 118, "run1486's window");
+    pin_eq!(w.rounds_read, (381, 382), "the rounds read");
+    pin_eq!(w.rounds.len(), 46, "the rounds that part");
+}
+
 /// **Every seat's leader on the start dump's frames** (item 3847, the
 /// shape item 3791 gave the first two, `docs/GOLDEN.md` §151): run1482's frames 1 and 37 print all three
 /// seats' `LEADERDATA` whole. run1483's only other leader records are its
