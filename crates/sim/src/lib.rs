@@ -147,6 +147,7 @@ pub mod map_heights;
 pub mod map_lakes;
 pub mod map_resources;
 pub mod map_rivers;
+pub mod map_troughs;
 pub mod map_values;
 pub mod mapgen;
 pub mod market;

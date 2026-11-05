@@ -241,6 +241,13 @@ pub struct MapGrid {
     /// No part walks it; `World::set_edge_flags`' 0x8000 pass reads it
     /// (`docs/MAPGEN.md` §9).
     pub mountains: Vec<(i32, i32, usize)>,
+    /// `RiversOut::all_rivers` (+0x40): one entry per
+    /// `RiversOut::start_river@00888f70`, each its spline's control points
+    /// as the cells `RiverOut::add_spline_point@00885a40` was handed —
+    /// one per path cell [`crate::map_rivers::make_riverlist`] marks, and
+    /// on a border end the end cell again and one off the map. The
+    /// troughs read them ([`crate::map_troughs`]); no part walks them.
+    pub rivers: Vec<Vec<(i32, i32)>>,
 }
 
 impl MapGrid {
@@ -271,6 +278,7 @@ impl MapGrid {
             city: vec![false; (xs * ys) as usize],
             goods: Vec::new(),
             mountains: Vec::new(),
+            rivers: Vec::new(),
         }
     }
 

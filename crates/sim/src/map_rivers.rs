@@ -16,10 +16,10 @@
 //! - 5116; `Regions::find_all`;
 //! - 5118.
 //!
-//! No height is read, and no float: the river's spline
-//! (`RiverOut::add_spline_point`, `RiversOut::start_river`) is the
-//! renderer's, takes integer cell coordinates, and writes nothing a
-//! checksum part reads; it is not built.
+//! No height is read, and no float: each stretch's spline points
+//! (`RiversOut::start_river`, `RiverOut::add_spline_point`) are recorded
+//! as cells in [`MapGrid::rivers`], and the troughs they carve are
+//! [`crate::map_troughs`]'.
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet};
@@ -583,11 +583,19 @@ pub fn make_riverlist(
                 .min()
                 .unwrap_or(0);
         }
+        // Each stretch is its own `start_river`, and each cell it marks
+        // its next spline point.
         let stretch = |g: &mut MapGrid, from: i32, to: i32| {
+            g.rivers.push(Vec::new());
             for i in from.max(0)..to.min(len) {
                 mark(g, path[i as usize], valley);
+                g.rivers
+                    .last_mut()
+                    .expect("just started")
+                    .push(path[i as usize]);
             }
         };
+        let started = g.rivers.len();
         if a != 0 {
             stretch(g, 0, a);
         }
@@ -600,6 +608,25 @@ pub fn make_riverlist(
         if edge {
             let i = at(g, ex, ey);
             g.cells[i].flags |= bit::PATH;
+            // The end cell again, then one point off the map past the
+            // border it stands on, on the last river started (the original
+            // reads a null one when none was; no stretch-less edge exists).
+            let off = if ex == 0 {
+                Some((-1, ey))
+            } else if ey == 0 {
+                Some((ex, -1))
+            } else if ex == g.xs - 1 {
+                Some((g.xs, ey))
+            } else if ey == g.ys - 1 {
+                Some((ex, g.ys))
+            } else {
+                None
+            };
+            if g.rivers.len() > started {
+                let last = g.rivers.last_mut().expect("a river started");
+                last.push((ex, ey));
+                last.extend(off);
+            }
         }
         if !more {
             return;
