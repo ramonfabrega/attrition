@@ -13855,13 +13855,15 @@ So the next item first reads which draw the port's `place_all` stream parts on, 
 segment from 7854's seed 2355140353. That should be the first of `position_cliff`'s eleven template draws
 (site 0x8a8d2f). The refill of lane 2, the commander's to book.
 
-## Parked by the next landing, slot ZP — reserved
+## Parked by item 3873, 2026-11-05 — the fifth melee whole: the death records after the rounds
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3873a. The ammo walk's dead-shooter bump is one pass ahead of the walk, not each round's own step**
+  (`Sim::hold_frames_tick`; `Ammo::inc_time@0067d380`'s first statement; GOLDEN §156.1). Theirs bumps a dead
+  shooter's `+0x32` at the start of each round's step. A shooter killed by an earlier round of the same walk is
+  therefore bumped by its own later rounds on that frame, and ours does not bump it until the next frame. Item 3873
+  moved the death records' bump after the walk and left this bump where it was. No capture on disk holds a
+  shooter killed with its own round still flying behind the killing one. **Score**: none until a numbering word's
+  slot hold is one short with a dead shooter's round in flight on its death frame.
 
 ## Parked by item 3874, 2026-11-05 — the console-planted contact, printed
 
@@ -13878,13 +13880,24 @@ Killed by: a cell passing that search whose take prints both of C's flank fields
 `008595f0`; or no grid on disk passing, which leaves the arm to the multi-cell routes (3870a). Names no score: the
 `Blind:` row's route.
 
-## Parked by the next landing, slot ZR — reserved
+## Parked by item 3875, 2026-11-05 — Southwest Mesa's `place_all` and the cliff chain
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3875a) **Six cliff arms are inert on run1493** (`docs/MAPGEN.md` §18.3). These are `verify_placement`'s dry-skip
+(Mesa is all land) and blocked test, `is_clear_land`'s loose blocked and 0x40 admits (no cell is blocked before
+the cliffs, and no loose cliff overlaps another), the one-candidate no-draw (every list had 0 or ≥ 2 templates),
+and the loose pass-outright (both loose sites pass the strict test too). Mutating any of the six fails nothing.
+Names no score: only a Mesa lobby whose cliffs crowd one another or the water would part on them. No shipped
+style but Mesa places a cliff.
+
+(3875b) **Mesa's step 4 is the tail and the resources, 7861..7927, on run1493.** This is
+`nubify_forest`, `change_*_base` and `fix_transitions` (7861..7870), then `place_resources` (7927), on the
+7859 grid that now agrees: shared code, as on the three closed chains. `make_draws`' segment runs past
+`place_all`'s 1,645 draws to `compute_all_vals`, so the trace answers it with no capture. The refill of lane 2,
+the commander's to book. `place_cliff`'s heights stay step 7's (894).
+
+(3875c) **`verify_defensive_position`'s angle test is a `SEAM`** (`sim::terrain_groups`, an `assert!`). Faces 0
+and 1 below size 5 measure an `acos` in single and double precision. No shipped style reaches it: Mesa's one
+player cliff below size 5 is `FACE_ANY`. Names no score until a style or a scenario does.
 
 ## Parked by item 3876, 2026-11-05 — the diagonal arm's contact, searched
 

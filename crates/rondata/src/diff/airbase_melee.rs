@@ -194,8 +194,16 @@ pub(crate) const AIRBASE_MELEE: Melee = Melee {
     // parts at 2184. On 1817 both spend 60: at index 2 ours spends
     // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`
     // where theirs spends `Unit::do_move+0xe84` (`docs/GOLDEN.md` §156).
-    count: 2184,
-    sequence: 1817,
+    // Item 3873: **1817 → 2600, the game whole** (the count 2184 → 2600),
+    // with the death records' bump after the ammo walk
+    // ([`sim::Sim::death_objs_inc_time`]): the Aircraft Carrier `1/18`
+    // (uid 35, `TI` 351, sea), sunk by a round on 1390, keeps its number
+    // at 31 while its record lives, not 30, so on tick 1539 slot 18 still
+    // holds and the Jet Fighter (uid 69, `TI` 296, air) takes 41 as in
+    // theirs (run1496's packet at 1539: `+0x32` 2 against ours' 1;
+    // §156.1).
+    count: 2600,
+    sequence: 2600,
 };
 
 /// The melee's word: the lower of the two partings.
@@ -232,17 +240,22 @@ fn airbase_melee_first_parting() {
 /// handoff's `Melee:` line.
 ///
 /// Item 3868, first try: 39 off at a close 784 frames past the word — 18
-/// units off, 1 unlinked, 11 buildings diverged, 9 cities diverged.
-pub(crate) const AIRBASE_MELEE_CLOSING_OFF: usize = 39;
+/// units off, 1 unlinked, 11 buildings diverged, 9 cities diverged. Item
+/// 3873: 39 → 0 with the death records' bump after the ammo walk (the
+/// game whole): the Jet Fighter (uid 69) in `1/41` and the Abrams (uid
+/// 70) in `1/18` as in theirs, 138 units compared.
+pub(crate) const AIRBASE_MELEE_CLOSING_OFF: usize = 0;
 
 /// The word's window on run1492's stride: the block before the word to
 /// 250 frames past it (item 3868: the word 1817, so 1801..2067, blocks
-/// 1801, 1901 and 2001).
-pub(crate) const WIDENING_AIRBASE_MELEE: (i64, i64) = (1801, 2067);
+/// 1801, 1901 and 2001). Item 3873 closes the game: the window is the
+/// block before the word, 2501, through the closing block 2601, as the
+/// fourth melee's.
+pub(crate) const WIDENING_AIRBASE_MELEE: (i64, i64) = (2501, 2601);
 
 /// The word's window, widened whole on run1492's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
-pub(crate) fn airbase_melee_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn airbase_melee_closing_window() -> Option<harness::tests::Widened> {
     crate::diff::setup::with_staged_script(melee_script(), || {
         harness::tests::widen_on_siblings_with_rounds(
             &[MELEE_START],
@@ -252,7 +265,7 @@ pub(crate) fn airbase_melee_word_window() -> Option<harness::tests::Widened> {
             &[(MELEE_LONG.0, WIDENING_AIRBASE_MELEE.0)],
             WIDENING_AIRBASE_MELEE,
             1,
-            &[],
+            &[2601],
             true,
         )
     })
@@ -265,7 +278,7 @@ pub(crate) fn airbase_melee_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn airbase_melee_run1492_s_word_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = airbase_melee_word_window() else {
+    let Some(w) = airbase_melee_closing_window() else {
         return;
     };
     if std::env::var("RON_FIRSTS").is_ok() {
@@ -287,15 +300,15 @@ fn airbase_melee_run1492_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 3, "every stride block in the window");
+    pin_eq!(w.blocks, 2, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 178, "run1492's word window");
-    pin_eq!(w.rounds_read, (9, 9), "the rounds read");
-    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+    pin_eq!(w.firsts.len(), 181, "run1492's word window");
+    pin_eq!(w.rounds_read, (4, 4), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **Every seat's leader** (the shape item 3791 gave the first two,
@@ -320,8 +333,8 @@ fn airbase_melee_s_leaders_are_compared_on_every_seat() {
         vec![3, 3, 3],
         "leader records compared, by seat"
     );
-    pin_eq!(w.standing(), vec![12, 8, 7], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 43, "the keys that part, by seat");
+    pin_eq!(w.standing(), vec![12, 8, 6], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 3, "the keys that part, by seat");
 }
 
 /// **The melee's closing state** (item 3868): run1492's closing block, the
@@ -369,8 +382,8 @@ fn airbase_melee_run1492_s_closing_state() {
         return;
     };
     pin_eq!(e.frame, 2601, "the closing block");
-    pin_eq!(e.compared, 137, "units compared");
-    pin_eq!(e.counts(), [18, 1, 0, 0, 11, 0, 9], "the closing counts");
+    pin_eq!(e.compared, 138, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         AIRBASE_MELEE_CLOSING_OFF,
@@ -426,7 +439,74 @@ fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
         }
     }
     pin_eq!(w.blocks, 4, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 149, "run1492's stride before the word");
+    pin_eq!(w.firsts.len(), 123, "run1492's stride before the word");
     pin_eq!(w.rounds_read, (12, 12), "the rounds read");
     pin_eq!(w.rounds.len(), 10, "the rounds that part");
+}
+
+/// run1496: run1492's game with a window at every frame of 1500..1545 and
+/// a packet at 1539 (item 3873, `docs/GOLDEN.md` §156.1): the dead
+/// Aircraft Carrier `1/18`'s death record to its end on tick 1509, and the
+/// Jet Fighter's birth into `1/41` on 1540.
+pub(crate) const MELEE_WINDOW_1500: (&str, &str) = (
+    "gamelog-run1496-eastindies-airbase-melee-window-1500-1545.txt",
+    "rontrace-run1496.log",
+);
+
+/// run1496's window, every block.
+pub(crate) const WIDENING_AIRBASE_MELEE_WINDOW_1500: (i64, i64) = (1500, 1545);
+
+/// run1496's window widened whole, the rounds compared — the coverage
+/// driver's slice too.
+pub(crate) fn airbase_melee_run1496_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1496",
+            &[(MELEE_WINDOW_1500.0, WIDENING_AIRBASE_MELEE_WINDOW_1500.0)],
+            WIDENING_AIRBASE_MELEE_WINDOW_1500,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **run1496's window, widened whole** (item 3873): every dumped record on
+/// every block of [`WIDENING_AIRBASE_MELEE_WINDOW_1500`], both directions,
+/// the rounds and the death records too — the record of `1/18` ends on the
+/// same frame on both sides, and the Jet Fighter (uid 69) stands in `1/41`
+/// from 1540 on both. `RON_FIRSTS=1` prints every row.
+#[test]
+fn airbase_melee_run1496_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = airbase_melee_run1496_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    assert!(
+        !w.firsts
+            .keys()
+            .any(|(who, o, _)| *who == 1 && (*o == 18 || *o == 41)),
+        "neither 1/18 nor 1/41 parts on any block of the window"
+    );
+    pin_eq!(w.blocks, 45, "every block in the window");
+    pin_eq!(w.firsts.len(), 120, "run1496's window");
+    pin_eq!(w.rounds_read, (139, 139), "the rounds read");
+    pin_eq!(w.rounds.len(), 15, "the rounds that part");
 }

@@ -635,10 +635,12 @@ the first difference (`TerrainGroups.cpp`): detail 5 at 2076, 2079, 2097,
 1345 and 1383 in `place_oil_deposits`.
 
 **Cliffs.** Type-8 groups reach `Cliffs::position_cliff@008a8bc0` (one
-draw when two or more templates fit) and
+draw when two or more templates fit), through `drop_tile`'s type-8 case and
+`place_player_group`'s cliff arm, and mark their footprints 0x40 for every
+later group's predicates. `sim::terrain_groups` ports the chain (item 3875,
+§18.3), diffed on Southwest Mesa at 7859; the angle test of
 `Cliffs::verify_defensive_position@008a8680`, the one libm transcendental
-on a data path (§11). No trace in `TRACES` enters either, or
-`Cliffs::place_cliff@008a7ea0`; run1118 (Southwest Mesa) enters all three (§18.3).
+on a data path (§11), is a `SEAM` no shipped style reaches.
 
 Then:
 - `Map::check_player_forest@0068e8f0` draws nothing, but it can write.
@@ -1544,7 +1546,11 @@ and `rontrace-run1122.log` to `blind::TRACES`, and eight rows left `NEVER`
 second item: a Southwest Mesa checksum capture at `check_all_level ≥ 14`
 whose falsifiers are 7859 and 894 (§18.3, §18.4). **Taken: run1493**
 (item 3869), whose trace holds `position_cliff`'s eleven template draws
-(site 0x8a8d2f) in `place_all`'s segment.
+(site 0x8a8d2f) in `place_all`'s segment. **Diffed by item 3875**:
+`position_cliff`, `verify_placement`, `add_cliff`, `is_clear_land` at masks
+2 and 0x22, the template masks and both callers' arms are diff-backed by
+run1493's 1,645 `place_all` draws and 7859's part 5; `place_cliff` (894)
+and `verify_defensive_position`'s angle stay reading-only.
 
 **Item 3863's verdict, reading-only** (§19): `TerrainOut::check_for_diagonal@008595f0`
 and `WorldData::is_valid@00471170` are kept out by a predicate. The arm
@@ -1625,7 +1631,14 @@ step is checked by §3 at its own checkpoint before the next begins:
    and its tail together (item 3822, the sea-oil disc and
    `change_coast_base`'s first diff; its third phase); **East Indies
    built** (item 3828, the disc's reach and `check_player_forest`'s
-   first diff; its third phase);
+   first diff; its third phase); **Southwest Mesa built** (item 3875,
+   `place_all` alone with the cliff chain of §18.3, the chain's first
+   diff; its third phase): the first parting before the port was draw 25,
+   theirs `position_cliff`'s 0x8a8d2f (word 0x76715ae4) where ours drew
+   the next player's ring (0x6a42de), as booked. Ported, run1493's 1,645
+   draws are whole and 7859's seed 2248721384, part 2 292424319 and part 5
+   1583465931 are both sides', first run: eleven cliffs (six at size 4,
+   three at 3, two at 1), 292 cells 0x40. The tail 7861..7870 is step 4's;
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
    `sim::map_resources`; the `Mapgen:` line's fourth phase); **Great Lakes
    built** (item 3826, the same port on its 7870 grid, the water arms'
@@ -1957,19 +1970,55 @@ run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
   style carries its own `TERRAIN_GROUPS`, so `tileset_groups` never falls
   back to them. The two in `CONQUESTMAP*.xml` are commented out.
 - **The entry.** `TerrainGroup::drop_tile@006a2ab0`'s type-8 case calls
-  `Cliffs::position_cliff(x, y, template = size − 1, −1, −1, 0,
-  FACE_WORLD_CENTER, ..)` (0x6a2c6b). `place_player_group@006a4190` calls
-  `verify_defensive_position` (0x6a4a0b), then `position_cliff` (0x6a4a51),
-  and on type 8 widens the ring's inner bound by one (`param_3 − 1`).
+  `Cliffs::position_cliff(x, y, template = range − 1, −1, −1, 0,
+  FACE_WORLD_CENTER, ..)` (0x6a2c6b; `range` is its sixth argument).
+  `place_player_group@006a4190`'s arm takes template `t = size − 1` (the
+  ring's `param_3 − 1`, item 3856's "inner bound" misread), stores
+  `t == 4` at `0x10(%ebp)` (0x6a49c9), and unless `t` is 4 calls
+  `verify_defensive_position` (0x6a4a0b) first; then `position_cliff(x, y,
+  t, start_x[p], start_y[p], t == 4, cliff_face)` (0x6a4a51), returning 1
+  on success. `cliff_face` is parsed for type 8 alone, −1 read as 0
+  (`init_terrain_data@006a6540`). **Diff-backed** (item 3875, run1493 at
+  7859); mutating `t == 4` or the template's `− 1` breaks the stream.
+- **The templates** (`CliffsOut::init_templates@008a71a0`). Each
+  `Data/Cliffs.xml` `CLIFFS/CLIFF` in order loads its `path` TGA (all RLE,
+  32 bits, bottom-left origin; row 0 is the image's top). The size index
+  is the width (64 → 4, 32 → 3, 16 → 2, 8 → 1, else 0), not the `size`
+  attribute; the facing is `orientation`. A texture with any zero alpha
+  covers the cells holding one. Otherwise a cell is covered when the heights
+  `byte0 · (1/255) · 480` (two `mulss`) over its 6 × 6 pixel window
+  (`4c − 1 ..= 4c + 4`, 0 off the texture) span more than 192, in single
+  precision (`cliff_cells`, by `Single`). Box offsets `offtable@00af2fb0` =
+  `[0, −1, −2, −4, −8]`. Row order, the transposition and the alpha arm are
+  diff-backed. The height arm reaches six 32-px templates that no run1493
+  verdict turns on, so it is held by a native-`f32` oracle test
+  (`the_cliff_mask_s_height_arm_is_single_precision`).
 - **`position_cliff@008a8bc0`.** With `param_6` = 0, a wanted facing is
-  read from the 2×2 table `[0xb69908]` by the signs of the offset from
-  (`param_4`, `param_5`). With `param_6` ≠ 0, a facing below `FACE_ANY` (2)
+  read from the table `[0xb69900]` = `[1, 2, 4, 3]` at `2·[dy ≥ 0] +
+  [dx ≥ 0]` of (x, y) − (`param_4`, `param_5`); loose, of (xs/2, xs/2) −
+  (`param_4`, `param_5`), both halves from `xs`. The decompile shows only
+  two slots: the listing copies all four (`movaps`, 0x8a8bdb). With `param_6` ≠ 0, a facing below `FACE_ANY` (2)
   measures against the map centre, and `FACE_ANY` asks for facing 1. The
   wanted facing is −1 when `param_4` is −1, which matches any. Each
   template of the size whose facing matches and that passes
   `Cliffs::verify_placement@008a6310` joins a list. If the list holds two
   or more, one `game_random` draw picks one (`r % n`); one entry is taken
   without a draw. Then `Cliffs::add_cliff@008a6690` queues it.
+  `verify_placement` with `param_6` ≠ 0 passes outright: it returns 1 at
+  its first on-map cell and at the list's end. Strict, every cell must be
+  on the map, with no 0x40 among the 48 cells round it (`move[1..49]`, the
+  7 × 7), no 0x20 among the 8 (`move[1..9]`), and none of 0x10, 0x28,
+  0x800, 0x1000 or 0x40 on the cell itself; it must not be dry-skipped (no
+  0x100, `land` 1 or 2) or blocked (+0x11). `add_cliff` re-verifies,
+  queues (x, y, t, i), and marks 0x40 on each on-map cell
+  `is_clear_land(.., 2)` passes (0x22 when loose, which admits a 0x40 or
+  blocked cell). **Diff-backed** (item 3875): the facing table, the
+  offsets, the 7 × 7 and 3 × 3 tests and the loose facings break the
+  stream when mutated. Inert on run1493, with each cause read: the
+  dry-skip (all land), both blocked tests (no cell blocked yet), the
+  loose 0x40 admit (no overlap), the one-candidate no-draw (every list
+  had 0 or ≥ 2), and loose's pass-outright (both loose sites pass strict
+  too).
 - **`verify_defensive_position@008a8680`.** It returns 1 for `FACE_ANY`
   with no float. Otherwise it takes the angle between (target − cell) and
   (cell → the cliff's point), each a single-float vector normalised by
@@ -2004,7 +2053,9 @@ max − min > 192 · tanf(angle · 0.017453292), with the angle in xmm3
 from `assess_wcoord`. It writes min and max through the two out
 pointers. What would kill it: a Southwest Mesa start dump with 0x40
 cells (zero on all three closed maps' 205 files) whose `blocked` cells
-or part 5/6 at 894 part from a port that applies this test.
+or part 5/6 at 894 part from a port that applies this test. The port's
+`place_all` marks 292 cells 0x40 on run1493 at 7859 (item 3875), so
+Southwest Mesa's step 7 is the first to hand this test a tile.
 
 ## 19. The diagonal-transition arm: the predicate that keeps it out
 

@@ -7068,13 +7068,14 @@ impl Sim {
         // `Wall::inc_time`.
         self.guys_inc_time();
         self.mark("projectiles");
-        // `DeathObj::inc_time`'s and `Ammo::inc_time`'s own per-frame
-        // bump of a **dead** slot's `hold_frames` (`docs/COMBAT.md`
-        // §42.3). It is folded into one pass here rather than split
-        // across the death list and the ammo walk, because nothing reads
-        // the field within a frame and no capture can see the order.
+        // `Ammo::inc_time`'s own per-frame bump of a **dead** shooter's
+        // `hold_frames` (`docs/COMBAT.md` §42.3), then the walk, then
+        // `DeathObj::inc_time`'s bump: the death list runs after the ammo
+        // list, so a death a round makes is bumped on its own frame (item
+        // 3873, `docs/GOLDEN.md` §156.1 — a packet sees the order).
         self.hold_frames_tick();
         self.process_projectiles(frame);
+        self.death_objs_inc_time();
         self.mark("farms");
         self.farms_inc_time();
         self.mark("end");

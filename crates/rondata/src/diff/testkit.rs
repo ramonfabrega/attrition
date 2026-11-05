@@ -7291,13 +7291,15 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3868: the fifth melee's first try, run1492 walked from run1482's
     // start with the two Airbases staged — the computers' Strategic Bombers
-    // (305) drop from 1101 (chapter seventeen's corners).
-    ("airbase_melee_first_parting", 6),
+    // (305) drop from 1101 (chapter seventeen's corners): 6 to the word
+    // 1817. Item 3873, the game whole: 48 to its last frame.
+    ("airbase_melee_first_parting", 48),
     // Its closing state and its leaders' walk, run1492 to the closing block
-    // 2601: 49 each; the word's window 1801..2067: 6.
+    // 2601: 49 each; the word's window 1801..2067: 6, and 49 once item
+    // 3873 made it the closing window 2501..2601.
     ("airbase_melee_run1492_s_closing_state", 49),
     ("airbase_melee_s_leaders_are_compared_on_every_seat", 49),
-    ("airbase_melee_run1492_s_word_window_is_widened_whole", 6),
+    ("airbase_melee_run1492_s_word_window_is_widened_whole", 49),
     // The stride before the word, 1401..1701: 6.
     (
         "airbase_melee_run1492_s_stride_before_the_word_is_widened_whole",
@@ -14085,7 +14087,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::airbase_melee::AIRBASE_MELEE_WORD,
         length: 2_600,
         endpoint: Some("airbase_melee_run1492_s_closing_state"),
-        window: Some("airbase_melee_word_window"),
+        window: Some("airbase_melee_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
