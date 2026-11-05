@@ -59,12 +59,13 @@ impl Sim {
     /// `Unit::die(0, −1, 0)` → `Object::die`: the close through vslot
     /// `+0x150` with `dtype` 0 — no death animation, no draw and no death
     /// object (`close_unit`'s first test) — and the slot held.
-    fn die_quietly(&mut self, v: usize) {
+    pub(crate) fn die_quietly(&mut self, v: usize) {
         let frame = self.frame;
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
         self.close_unit(v, 0, frame);
+        self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
         self.hold_dead_slot(v);

@@ -16843,17 +16843,206 @@ Guy::inc_time+0x271` where theirs spends `Guy::init_real+0x52`, a birth in their
 parting: the Aegis Cruiser `2/48`'s `ez` 47 against 41). **The close** (block 2601): 157 → **2** off, 136 units
 compared. One unit unlinked, `1/56` (theirs alone), and one extra, `1/0` (ours alone).
 
-**What is not established**: who is born on 2598 in theirs, and whether it is `1/56`, the close's one unlinked
-unit. The disk holds run1483's 2501 and the closing 2601 round it. The cell flag is one bit: `Wall::close` clears
+**What is not established**: ~~who is born on 2598 in theirs, and whether it is `1/56`, the close's one unlinked
+unit.~~ Answered in §153.6: it is `1/56`, and it waited on the sunk Freighter's rider. The disk holds run1483's 2501 and the closing 2601 round it. The cell flag is one bit: `Wall::close` clears
 it even when another started building's centre stands in the same cell, which this crate's reading keeps set
 (parked 3860a). No capture on file reaches that case.
 
-## 154. Reserved for the next item on the rules track
+## 153.6 A sunk transport takes its rider — the fourth melee 2598 → 2600, whole (item 3862)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: frame 2598, ours 10 draws against theirs' 12, at index 4 ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` where theirs spends `Guy::init_real+0x52` — a birth in theirs; 3860's hypothesis `1/56`, the
+close's one unit theirs holds alone, and `1/0` ours holds extra.
+
+**The cast either side of the word, off the disk.** run1483's 2501 and 2601 (`births.py`): between them theirs
+gains `1/52` (uid 101, a new unit in a freed number) and **`1/56` (uid 102, `TI` 77, Elite Special Forces, land)** at
+(22145, 41970), 130 hits, group 68, a move order; and loses `1/0` (uid 7, `TI` 77, group 68), the Freighter `1/52`
+(uid 97) and **the Freighter `1/54` (uid 99, `TI` 322)**. On 2501 `1/0` is aboard `1/54` (`inside_up 54`; `1/54`
+`inside_down 0`), the boat bound west at (13235, 30386). Ours (`RON_DEBUG_UNIT`): `1/54` takes the same blows (130 →
+34 by 2565, 10 on 2581) and closes on 2584; `1/0` stood on, `in (1, 54)`, alive, to the close — the extra unit —
+and ours never bore `1/56`. The rider is the first act, the birth its consequence: the word's frame was right and
+its unit was the one after.
+
+**The original's close.** `Object::close@00647160` on an object still on the map (vslot `+0xbc`) holding anything
+(`num_inside(1) != 0`) ejects its contents only when `!can_carry(AIR) && vslot +0x18 == 0`; a `Unit`'s `+0x18` is
+the folded `Buffer::is_pending_load@0041e0e0`, `return 1`. So a unit never ejects: it calls
+`Object::kill_contents@00645550`, which for each head of `inside_down` calls `Unit::come_out(p, 0)` and
+`Unit::die_uber(p, 0)` — `Object::die(p, 0, −1, 0)` over the rider's squad, `dtype` 0, so no death draw (the draw
+stream agreed through 2584 with ours' rider alive). A boat off the map — inside an oil platform — takes the
+`remove_from_inside` arm instead (§165 of `docs/AI.md`, `Sim::boat_dies_into`).
+
+**Built**: `sim::fight`'s `kill_contents`, called beside `close_unit` on the combat death, attrition, the Sniper's
+kill and the quiet death (`resign.rs`'s `die_quietly`, now the riders' death too). Test:
+`a_unit_killed_on_the_map_takes_its_rider_with_it` (one death draw, the boat's; the rider dead, its slot held 30
+frames).
+
+**The value diff after.** Ours closes `1/0` with `1/54` on 2584 and bears `1/56` on 2598 at (22104, 41976);
+run1483's 2601 has `1/56` at (22145, 41970), and the close compares it whole. **The word: 2598 → 2600, the game
+whole**, count and sequence. **The close** (block 2601): 2 → **0** off, 137 units compared, none unlinked or extra.
+The word window is the block before the word and the closing block, 2501..2601
+(`sea_melee_run1483_s_word_window_is_widened_whole`: 2 blocks, 192 keys, 160 on 2501 as before; 2601's 32 are the
+idle human's citizens `0/1`..`0/7` holding a one-step order where theirs' are idle — 3788b's shape, as on the third
+melee's close — and four Russian sites read `build:extra`, parked 3862b); rounds read (8, 8), the 4 parting
+2501's `2/48` `ez` 47 against 41 (parked 3855b's family). The leaders: 4 → 3 parted keys (parked 3862a). The
+rubric's unit types: 285 → 292 of 302 with the melee's dumps in the lockstep set (`rubric.py --tables 3`, 281
+dumps).
+
+**What is not established**: which of `1/0`'s holdings `1/56`'s birth waited on — a count, its group's slot, the
+army's want — since ours bears it on the same frame once the rider closes, no draw parts to say. `come_out(p, 0)`'s
+own effects on the rider before its death are not modelled; none reaches a dump, the rider being dead on the frame.
+
+## 154. The four lines a seat must train itself — a proposal for the fifth melee (item 3865, no run)
+
+**The question** (the queue's 3865): `Jet Fighter[MIRAGE]` 296 {French}, `Attack Helicopter[HIND]` 312 {Russians},
+`Elite Special Forces[ELITESPECIALSPANISH]` 78 {Spanish} and `Machine Gun[MACHINEGUNGERMAN]` 124 {Germans} are the
+four fieldable lines of the rubric's ten never seen (292 of 302). `add` names none of them, because `parse_type`
+reads `NAME` alone (§152's (g), §153's (g); parked 3797a, 3847b). So each one enters a lockstep game only if its own
+nation's seat stands it up. For each line this section names the seat, the building, the gates and what comes first,
+then the cheapest staging and the frame by which the line should stand. **A proposal for the pass; it amends nothing in
+§155 and books nothing.** How it was established: the install's `unitrules.xml` and `rules.xml`; the decompile at the
+addresses cited; and **the disk**, read before any capture (CLAUDE.md): first appearances of `GUY` types, and closing
+`BUILDDATA` queues, in the lockstep dumps `rubric.py --tables 3` reads. The probes are scratch scripts in the job's
+tmp, not tools. No capture, no packet, no emulator run. The AI scripts under `ai/scripts/` train only economic units
+(`train_unit_with_cost` names Citizen, Caravan, Merchant, Fishermen, Scholar, and the Hoplites and Slingers of
+`defensive.bhs:382–386`). Every military choice below belongs to the executable.
+
+**The four records** (unitrules record = `TypeIndex` − 50; all four carry `UPGRADE` and are trained where `WHERE` says):
+
+| `TI` | `NAME` | `WHERE` | `PREQ0` | `FROM` | generic twin (`TI`) |
+|---|---|---|---|---|---|
+| 296 | Jet Fighter | Airbase (447) | Information Age | Fighter | 295 `JETFIGHTER` |
+| 312 | Attack Helicopter | Airbase (447) | Information age | Helicopter | 311 `ATTACKHELICOPTER` |
+| 78 | Elite Special Forces | Barracks (427) | Information Age | Special Forces | 77 `ELITESPECIAL` |
+| 124 | Machine Gun | Barracks (427) | Industrial Age | none | 123 `MACHINEGUN` |
+
+### 154.1 Which member of a line a start age owns
+
+1. **A trainer trains the line's owned top.** `LeaderData::current_upgrade@006e3140` walks a type's upgrade link
+   (`+0x48`) while the next member passes `has_preq` and the leader's tech bit, and swaps in the nation's own variant
+   through the type's vslot `0x68` wherever `tribe_can_type` refuses the generic one. So the French Fighter line's top
+   is 296 once the Jet Fighter bit is set, and the Germans' Machine Gun line answers 124 only while Heavy Machine Gun
+   (`MG42`, 130, for the Germans) is not owned. *Falsifier*: a German computer at an Industrial start whose Barracks
+   queues 123 (`BUILDS=7`, the closing block's `queue[scan].type`).
+2. **A start owns its own age's upgrades.** `Leader::init@006e3930`'s unit loop withholds a unit's bit only when its
+   grafted `FROM` has an age prerequisite whose `+0x1c8` equals `starting_age − 1` (`starting_age` itself under rules
+   4 and 11). `starting_age` is 7 at Information and the Information Age tech's age is 6. So the members withheld are
+   those whose `FROM` needs Information (the Advanced Fighter); those whose `FROM` is a Modern unit are owned at frame
+   0. The French therefore own the Jet Fighter (296), the Russians the Attack Helicopter (312) and the Spanish the
+   Elite Special Forces (78) from the first frame of any Information start. **Disk-backed, two ways.** (i) Every
+   Information-age start dump holds 77 on every seat at its start block (run1447 who 0 and 1; run1482 who 0, 1 and 2).
+   That 77 is `Setup::build_units@005aafc0`'s starting scout, placed as `current_upgrade(SCOUT)`, so Elite Special
+   Forces is owned. (ii) The French Information pair's Airbase `1/2026` (run1448b, from 2935) queues 296 at 88, 90
+   and 92 of good 2. That is a train job's ramp, not the doubled research price (`RESEARCH_PREMIUM_COST 2`), so the
+   bit was set (PRODUCTION.md, "Time"). At a Modern start the same rule makes the Heavy Machine Gun owned: every
+   Modern pair's computer fields 125 or 126 and never 123 (run1151 125 at 3301, run1407 125 at 3201, run1444 126 at
+   3901). *Falsifier*: a Spanish Information start whose start block lacks a 78.
+3. **The Germans field 124 at an Industrial start only.** At Modern and Information the Germans own `MG42` (130), so
+   `current_upgrade` returns 130. Before Industrial the line has no member. *Falsifier*: a German Modern start whose
+   Barracks trains 124.
+
+### 154.2 Each line: the seat, the building, what comes first
+
+- **78, the Spanish.** No building and no order: `Setup::build_units@005aafc0` places
+  `current_upgrade(SCOUT)` for every seat, **human or computer**, and a second one for the Spanish
+  (`has_tribe_bonus(9)`, `SPANISH_EXTRA_SCOUT` 1 in `rules.xml`; this crate does not carry the constant, parked 3865c).
+  The Spanish Modern start shows the shape: run1394's start block holds 76 (Special Forces Spanish) on the Spanish
+  who 1 and 75 on the human. **So 78 stands at frame 0 of any Information start that seats the Spanish.** It enters
+  the rubric through the start dump alone, with no game played. *Falsifier*: that start block holds no 78.
+- **296, the French, and 312, the Russians.** Both are already seated in the third and fourth melees' lobbies (§152,
+  §153). What stops them is the building. `Leader::create_units@006c40a0:367` values an air military type only while
+  the census's air count (`+0x964`) is under eight times the leader's Airbase count (`+0x55a0`, read as
+  `reg_buildings[AIRBASE]`; `sim::ai_units`' `air_value`). With no finished Airbase, no aircraft goes on the make
+  list. The disk:
+
+  | game | the computer's first Airbase started | first aircraft standing | the line |
+  |---|---|---|---|
+  | run1448, French pair, Great Sahara | 1630 (`1/2026`) | 305 at 2501 | 296 queued by 2935, none stood by 3192 |
+  | run1409, American pair, Great Lakes | — | 305 at 2201 | 295 at 2401 |
+  | run1446, Turkish pair, East Indies | — | 298 at 2601 | **311 at 4601** |
+  | run1401, Russian pair, East Indies | — | 305 at 5101 | 299 at 5601; no helicopter by 6707 |
+  | run1468, third melee (French, Russian) | 1939 who 1, 1430 who 2 | only `add`ed aircraft | Airbase queues empty at 2601 |
+  | run1483, fourth melee (French, Russian) | 1710 who 1, 2429 who 2 | none | Airbase queues empty at 2601 |
+
+  The melees' computers start their first Airbase between 1430 and 2429, and none queues an aircraft by 2601. A pair
+  computer's first aircraft stands 800 to 900 frames after the Airbase is started. **Inside 2,600 frames the
+  computer's own build order does not reach either line**; the melee's 100,000 grant does not change that. The HIND
+  is the later of the two. It carries `ATTACK` 20 against the jets' 46 and the Strategic Bomber's 52, and `air_value`
+  scales by `attack / 10`, so it ranks under every jet and bomber of the same pass. The one pair computer that
+  trained a generic 311 did so 2,000 frames after its first jet. Once bought, either line is a **train job**
+  (owned, §154.1 2): 170 frames of `JOB_TIME`. The Jet Fighter waits on the Airbase's pad
+  (`Build::finished@00628490`, ten homed aircraft, AI.md §186). The helicopter does not.
+- **124, the Germans.** A computer seat at an Industrial start, trained at a Barracks; the human never trains. The
+  computers start their Barracks between 401 and 754 in the melees. The Industrial pairs' computers field their first
+  generic Machine Gun at 2501 (British run1336), 3201 (Chinese run1155), 3601 (Inca run1372), 3701 (American run1338)
+  and 3901 (Spanish run1368), all at the pairs' own resources. With the melee's grant at 600 it may come earlier. That
+  is unmeasured, and the line competes with every other Barracks line in `create_units`' land branch. No German seat
+  has played an Industrial start: run1000 (Ancient) and run1144 (all techs) are the German starts on disk, and run1396
+  (Modern) fields an ME109 at 2301 and no machine gun.
+
+### 154.3 The cheapest staging, and what §155 would need
+
+**§155's one lever reaches none of the four as written.** The age lever cannot help 296, 312 or 78: Information is the
+only age that fields them, and it is already held. The map lever does not move a computer's first Airbase inside
+2,600 frames: it stood at 1430–2429 on both maps. 124 needs the age moved to Industrial **and** a German seat. The
+seats are not one of §155's two levers. §152 moved them with its age ("the seats follow it"), §153 held them, and
+§155 is silent on them.
+
+**Proposal A, the fifth melee: the fourth's lobby, the seats and two Airbases.** Information held, East Indies held,
+seed held. The pass amends §155 by two clauses:
+
+- (i) **The seats follow the lines**: a chapter may choose its computer seats' nations (`--seat-tribe`) for the
+  never-seen lines it names, without that counting as a lever.
+- (ii) **An `add` line may name the trainer a seat's own line needs**: `add`'s building arm (INPUT.md §11.5;
+  `ConsoleWin::run_cmd@007d6a70` case 0x4d calls `Objects::init_build@0065d190`, then `Build::activate@00623e20`)
+  places a finished building with no price. This crate models the arm (`golden::apply`'s `AddTarget::Build`, item
+  552), but no melee has staged it.
+
+The staging: `603 add airbase who=1 <cell>` and `605 add airbase who=2 <cell>`, each on clear land **inside its own
+capital's city**, so that `Wall::activate@0063e4b0:62` takes `Wall::increment_stats@00643270`'s active arm. That arm
+writes both `reg_buildings` (the `create_units` gate above) and `mil_trainers` (`produce_unit`'s trainer list, AI.md
+§29). Placed outside a city, the Airbase counts for neither. Both Airbases go in **before** the first unit `add` at
+610, so the staged aircraft (§152) do not fill the pad. Keep the French (who 1) and the Russians (who 2). The Spanish
+need a seat: a third computer (`--profile PLAYERS=3`, `--seat-tribe 3=9`) keeps both air lines. Swapping who 2 to the
+Spanish costs 312. **What it should stand**: 78 at frame 0 (two of them, on the Spanish seat). 296 first, on the
+first `end:` block after one purchase and 170 frames of training, **by block 1101**. 312 later, by block 2601 at the
+latest, and the least certain of the four.
+
+**Proposal B, a later melee: an Industrial-age German chapter.** The age moves to Industrial, a German computer is
+seated under clause (i), and the map is held. Nothing is staged for the line, because the German computer builds its
+own Barracks by 754. **What it should stand**: 124 inside 2,600 frames only if the grant pulls the first machine gun
+forward from the pairs' 2501–3901. It is the one line here whose frame is not even estimated. A cheaper first step
+for it is a `DUMP_ALL` start plus a `cover=0` take to 4,000 of a German Industrial *pair*. That needs no clause,
+since a pair's nation is its own lobby, but a pair is not a melee, and it is §155's form the pass would be choosing.
+
+**What would kill each claim, in the take that runs it** (the melee's `end:UNITS=3,GUYS=2,DEATHS=1,AMMO=5` on a
+stride of 100; `rubric.py --tables 3` on the twin):
+- 78: the start block of the Spanish seat holds no `TI` 78 (kills §154.1 2 for the scout line, and with it the
+  ownership claim for the other two).
+- 296: no `TI` 296 `GUY` on any block to 1101 → read the Airbase in the closing dump. An empty `queue[scan]` with
+  `queued 0` kills the gate reading (`+0x55a0` is not the count an `add`ed Airbase raises: the city test, or the
+  field). A 295 kills §154.1 1.
+- 312: no `TI` 312 by 2601 with the Russian Airbase's closing queue empty of it → the helicopter's ranking, not the
+  gate, holds it back. A 311 kills §154.1 1.
+- 124: a German Barracks queuing 123 kills §154.1 1. No 124 by 2601 with no machine gun queued says the pairs'
+  frames hold under the grant too.
+- (a) for a third seat: run the start block's `LEADERDATA` `diplos` (§155's (a)). Under `TEAM_STYLE 1` the third
+  computer's team is not read here.
+
+### 154.4 Coverage
+
+**Disk-backed** (no capture taken; first `GUY` appearances and closing `BUILDDATA` read off the dumps named): the
+frame-0 scout on every seat of the Information and Modern starts; the French pair's 296 queue at train-job prices; the
+Modern pairs fielding 125/126 and never 123; the first-Airbase and first-aircraft frames of the table; the Industrial
+pairs' first machine guns. **Reading only**: `current_upgrade`'s walk; `Leader::init`'s withholding test and its
+`+0x1c8` comparison; the Spanish second scout; the `create_units:367` gate, with `+0x55a0` named as
+`reg_buildings[AIRBASE]` by its offset and by `sim::ai_units`, not by a type record; the in-city requirement for an
+`add`ed Airbase's `reg_buildings` and `mil_trainers` (AI.md §29's guard); the helicopter's rank under `attack / 10`.
+**Not established**: whether a third computer seat works on the click-free lane (`PLAYERS=3`; parked 3774c refuses
+it for `--ai-tribe`, not for `--seat-tribe`) and what team it lands on (parked 3865a); the purchase frame after an
+`add`ed Airbase, and why the French pair's Airbase holds 296 untrained from 2935 (parked 3865b);
+whether the make list buys an Attack Helicopter at all while jets and bombers outrank it; the German Industrial
+machine-gun frame under the grant. No function cited here is new to `blind::NEVER`: each is entered by the pinned
+traces (`census.py --pin --never --cites docs/GOLDEN.md`: 17 never, 0 net of residue, none of them §154's).
 
 ## 155. The melee — a staged late-age chapter shape, every seat a computer (Loop 3729; the sixtieth pass's sequel)
 
@@ -16954,6 +17143,48 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 157. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 158. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 159. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 160. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 161. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 162. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 163. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

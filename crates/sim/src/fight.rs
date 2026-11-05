@@ -3281,6 +3281,7 @@ impl Sim {
                     self.close_count(i);
                     self.relink_squad(i);
                     self.close_unit(i, dtype, _frame);
+                    self.kill_contents(i);
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
                     self.hold_dead_slot(i);
@@ -3515,6 +3516,7 @@ impl Sim {
         self.close_count(v);
         self.relink_squad(v);
         self.close_unit(v, dtype, frame);
+        self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
         self.hold_dead_slot(v);
@@ -3535,6 +3537,7 @@ impl Sim {
         self.close_count(i);
         self.relink_squad(i);
         self.close_unit(i, ATTRITION_DTYPE, frame);
+        self.kill_contents(i);
         self.kremlin_spy_closed(i);
         self.close_dead_orders(i);
         self.hold_dead_slot(i);
@@ -3970,6 +3973,31 @@ impl Sim {
             life,
             figures,
         });
+    }
+
+    /// **`Object::close@00647160`'s contents arm on a unit** (item 3862,
+    /// `docs/GOLDEN.md` §153.6): an object on the map (vslot `+0xbc`) that
+    /// holds anything (`num_inside(1) != 0`) ejects it only when it cannot
+    /// carry air **and** its vslot `+0x18` answers 0 — and a `Unit`'s
+    /// `+0x18` is the folded `return 1` (`0041e0e0`), so a unit never
+    /// ejects: it takes `Object::kill_contents@00645550`, which for each
+    /// head of `inside_down` calls `Unit::come_out(p, 0)` and
+    /// `Unit::die_uber(p, 0)` — `Object::die(p, 0, −1, 0)` on the squad,
+    /// no death draw. A transport sunk at sea takes its riders with it:
+    /// run1483's Freighter `1/54` and the Elite Special Forces `1/0`
+    /// aboard it. A boat off the map (inside an oil platform) takes the
+    /// `remove_from_inside` arm instead ([`Sim::boat_dies_into`]).
+    pub(crate) fn kill_contents(&mut self, boat: usize) {
+        if !self.units[boat].on_map {
+            return;
+        }
+        let riders: Vec<usize> = (0..self.units.len())
+            .filter(|&r| self.units[r].inside_unit == Some(boat) && self.units[r].alive())
+            .collect();
+        for r in riders {
+            self.units[r].inside_unit = None;
+            self.die_quietly(r);
+        }
     }
 
     /// `DeathObj body_fade_end`, in frames: a land unit whose death piece
@@ -7923,6 +7951,46 @@ mod tests {
             "the submarine"
         );
         assert_eq!(takes(&sim, askers[2]), [true, true, true], "the frigate");
+    }
+
+    /// **A unit killed on the map takes what it carries with it** (item
+    /// 3862, `docs/GOLDEN.md` §153.6): `Object::close@00647160`'s contents
+    /// arm is `kill_contents` for every `Unit` (vslot `+0x18` answers 1),
+    /// and each rider dies by `Object::die(p, 0, −1, 0)` — no death draw.
+    /// run1483: the Freighter `1/54` sinks and the Elite Special Forces
+    /// `1/0` aboard is gone from theirs' closing block; ours kept it alive
+    /// aboard a dead boat, and its slot, until item 3862.
+    ///
+    /// Made to fail by dropping [`Sim::kill_contents`] from the kill arm:
+    /// the rider lives on, inside a boat that is gone.
+    #[test]
+    fn a_unit_killed_on_the_map_takes_its_rider_with_it() {
+        let (mut sim, ty) = at_war();
+        let boat = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let rider = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        sim.units[rider].on_map = false;
+        sim.units[rider].inside_unit = Some(boat);
+        let rng = sim.rng;
+        sim.units[boat].health = 1;
+        let taken = sim.take_damage_typed(
+            Obj::Unit(boat),
+            Sixteenths { whole: 5, frac: 0 },
+            Obj::Unit(foe),
+            10,
+            1,
+            false,
+        );
+        assert!(matches!(taken, Taken::Died { .. }), "the boat sinks");
+        assert!(!sim.units[rider].alive(), "its rider goes with it");
+        assert_eq!(sim.units[rider].inside_unit, None);
+        assert_eq!(sim.units[rider].hold_frames, Sim::CLOSE_HOLD);
+        assert!(sim.units[foe].alive());
+        // The boat's own death draws (it is on the map); the rider's,
+        // `dtype` 0 and off the map, draws nothing past it.
+        let mut once = rng;
+        let _ = once.roll();
+        assert_eq!(sim.rng, once, "one death draw, the boat's");
     }
 
     /// **A hit is answered by the victim's captain, never by the figure that
