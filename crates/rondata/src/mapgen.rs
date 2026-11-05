@@ -4593,6 +4593,322 @@ mod tests {
         );
     }
 
+    /// Each East Indies run's grid and stream at `map.cpp` 7945: 3840's
+    /// chain from [`east_indies_at_7859`], in its order, as
+    /// [`great_lakes_at_7945`] is Great Lakes'.
+    fn east_indies_at_7945(
+        root: &Path,
+        g: &StartGrid,
+        run: EiRun,
+        range: i32,
+        makes: &sim::map_values::LandMakes,
+    ) -> (MapGrid, Draws, String) {
+        let (mut grid, mut d, tileset) = east_indies_at_7859(root, g, run, range);
+        let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+        nubify_forest(&mut grid, &mut d);
+        change_bases(&mut grid, &mut d, &ts);
+        let inputs = resource_inputs(root, "EASTINDIES.xml", run.2, run.3, run.1)
+            .expect("East Indies' rows");
+        place_resources(&mut grid, &mut d, &inputs, run.1);
+        let groups = place_all_inputs_of(root, "EASTINDIES.xml", &tileset, run.2, run.3, 18)
+            .expect("East Indies' place_all inputs");
+        let mut regions = regions_of(&grid);
+        adjust_for_blocking(&mut grid, &mut regions, &groups.templates);
+        compute_all_vals(&mut grid, &mut d, makes);
+        (grid, d, tileset)
+    }
+
+    /// **`Terrain::init` without heights on East Indies** (`docs/MAPGEN.md`
+    /// §10, §15 step 6, item 3844): Great Lakes' check (3832) on the
+    /// archipelago. From each run's 7945 grid ([`east_indies_at_7945`]),
+    /// `EASTINDIES.xml`'s `SEA_MAP` 3 at part 4 of 734, and seed and parts
+    /// 2, 5, 6 and 10–13 at every record from 734 to 706 on every East
+    /// Indies file; then the half-land gate, which an archipelago opens on
+    /// every island's shore, refused by name, and every cell the start
+    /// dump prints `HALFLAND` gated. The parts each record from 7945 to
+    /// `setup.cpp` 884 moves are tabulated per file first.
+    #[test]
+    fn east_indies_s_terrain_init_is_734_to_706_and_its_gate() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let sea = sea_map(root, "EASTINDIES.xml").expect("EASTINDIES.xml's SEA_MAP");
+        assert_eq!(sea, 3, "East Indies' SEA_MAP");
+        // The disk: the parts each record from 7945 to 884 moves, as a
+        // pattern, and how many East Indies files carry each record.
+        let mut patterns: std::collections::BTreeMap<Vec<String>, usize> = Default::default();
+        let mut carry: std::collections::BTreeMap<(String, i64), usize> = Default::default();
+        for (_, g) in all.iter().filter(|(_, g)| g.style == 18) {
+            let Some(from) = g
+                .checksums
+                .iter()
+                .position(|(f, l, _, _)| f == "map.cpp" && *l == 7945)
+            else {
+                continue;
+            };
+            let mut pat = Vec::new();
+            for w in g.checksums[from..].windows(2) {
+                let (a, b) = (&w[0], &w[1]);
+                *carry.entry((b.0.clone(), b.1)).or_default() += 1;
+                let moved: Vec<usize> = (0..16).filter(|&k| a.3[k] != b.3[k]).collect();
+                pat.push(format!(
+                    "{} {}{}: {moved:?}",
+                    b.0,
+                    b.1,
+                    if a.2 != b.2 { " (seed)" } else { "" }
+                ));
+                if b.0 == "setup.cpp" && b.1 == 884 {
+                    break;
+                }
+            }
+            *patterns.entry(pat).or_default() += 1;
+        }
+        for (pat, n) in &patterns {
+            eprintln!("{n} East Indies files move, from 7945: {}", pat.join("; "));
+        }
+        eprintln!("East Indies files carrying each record after 7945: {carry:?}");
+        let runs = east_indies_files(all);
+        let (mut files, mut records, mut dumps) = (0, 0, 0);
+        for (run, gs) in &runs {
+            let (mut grid, d, _) = east_indies_at_7945(root, gs[0], *run, range, &makes);
+            let coord = coord_flags(&grid);
+            let gated: Vec<usize> = (0..coord.len())
+                .filter(|&i| coord[i] & coord::GATE != 0)
+                .collect();
+            let count = |bit: u16| coord.iter().filter(|&&f| f & bit != 0).count();
+            eprintln!(
+                "{run:?}: CoordInfo NONE {}, 0x4 {}, 0x20 {}, OCEAN {}, shallow (0x80) {}; \
+                 gated (0x84) {}",
+                count(coord::NONE),
+                count(coord::HALF),
+                count(coord::COASTAL),
+                count(coord::OCEAN),
+                count(coord::SHALLOW),
+                gated.len()
+            );
+            let parts = HalfLand::default().parts().expect("the lists start empty");
+            let ours = (
+                d.rng.seed,
+                grid.start_part(),
+                grid.cell_part(),
+                grid.tile_part(),
+                parts,
+            );
+            for g in gs {
+                let (Some(before), Some(after)) = (g.at("map.cpp", 7945), g.at("setup.cpp", 734))
+                else {
+                    continue;
+                };
+                assert_eq!(
+                    adler_rewrite(
+                        before.3[4],
+                        PART4_LEN,
+                        PART4_SEA_MAP_AT,
+                        &WORLD_SEA_MAP_BEFORE.to_le_bytes(),
+                        &sea_map_after_make(WORLD_SEA_MAP_BEFORE, sea).to_le_bytes()
+                    ),
+                    after.3[4],
+                    "part 4 at 734 on {run:?}"
+                );
+                let reached = before_halfland_records(g);
+                assert!(!reached.is_empty(), "a file with 734 and no 706");
+                for (f, l, seed, p) in reached {
+                    assert_eq!(
+                        ours,
+                        (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]),
+                        "(seed, parts 2, 5, 6, 10–13) at {f} {l} on {run:?}"
+                    );
+                    assert_eq!(p[4], after.3[4], "part 4 moved after 734, at {f} {l}");
+                    records += 1;
+                }
+                let at720 = g.at("Terrain.cpp", 720).expect("720 after 706");
+                assert_ne!(
+                    (at720.3[5], at720.3[6]),
+                    (ours.2, ours.3),
+                    "720 stood still on an East Indies file"
+                );
+                files += 1;
+                if let Some(cells) = &g.cells {
+                    let half: Vec<usize> = (0..cells.len())
+                        .filter(|&i| cells[i].flags & 0x100 != 0)
+                        .collect();
+                    let outside: Vec<(i32, i32)> = half
+                        .iter()
+                        .filter(|&&i| coord[i] & coord::GATE == 0)
+                        .map(|&i| (i as i32 % grid.xs, i as i32 / grid.xs))
+                        .collect();
+                    assert!(
+                        !half.is_empty() && outside.is_empty(),
+                        "{} of the start dump's {} HALFLAND cells are not gated: {outside:?}",
+                        outside.len(),
+                        half.len()
+                    );
+                    dumps += 1;
+                }
+            }
+            match terrain_init_without_heights(&mut grid, sea) {
+                Err(Unported::HalfLand(cells)) => assert_eq!(cells.len(), gated.len()),
+                other => {
+                    panic!("the gate opens on East Indies, and `_wcoord` is refused: {other:?}")
+                }
+            }
+        }
+        eprintln!(
+            "terrain init: EI 734..706 on {files} files, {records} records; the gate holds the \
+             start dump's HALFLAND on {dumps} files"
+        );
+        assert!(
+            files >= ISLAND_FILES && dumps >= ISLAND_FILES,
+            "734..706 reached {files} East Indies files, the gate {dumps}"
+        );
+    }
+
+    /// **The heights on East Indies, against the start dump's grid**
+    /// (`docs/MAPGEN.md` §10, §15 step 7, item 3844): Great Lakes' check
+    /// (3835) on the archipelago, whose shore blend runs round every
+    /// island. `EASTINDIES.xml`'s `RIVERLIST` is empty, so no vertex is set
+    /// apart: every vertex of every start dump that prints the grid is
+    /// compared, and the gated cells with 1–15 water sub-tiles at 706 are
+    /// the start dump's `HALFLAND`, cell for cell.
+    #[test]
+    fn east_indies_s_heights_are_the_start_dump_s_grid() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let install = crate::Install::new(root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let meshes = crate::mountains::meshes(&install);
+        let loaded = crate::load::load(&install).expect("the install's tables");
+        let mut runs: std::collections::BTreeMap<EiRun, Vec<&str>> = Default::default();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 18 && g.xs > 0) {
+            let Some(before) = g.at("map.cpp", 7805) else {
+                continue;
+            };
+            runs.entry((before.2, g.nations, g.xs, g.ys, g.map_size))
+                .or_default()
+                .push(name);
+        }
+        let (mut files, mut vertices) = (0, 0);
+        let (mut half_files, mut half_cells) = (0, 0);
+        let mut parted = Vec::new();
+        for (run, names) in &runs {
+            let g0 = &all.iter().find(|(n, _)| n == names[0]).expect("a file").1;
+            let (grid, _, tileset) = east_indies_at_7945(root, g0, *run, range, &makes);
+            let groups = place_all_inputs_of(root, "EASTINDIES.xml", &tileset, run.2, run.3, 18)
+                .expect("East Indies' place_all inputs");
+            let mut coord = coord_flags(&grid);
+            let f = sim::map_heights::fractals(grid.xs, grid.ys, g0.seed as u32);
+            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g0.seed as u32);
+            let water: Vec<u32> = (0..grid.cells.len() as i32)
+                .map(|i| sim::map_heights::water_subtiles(&grid, &z, i % grid.xs, i / grid.xs))
+                .collect();
+            sim::map_heights::create_doobers(&grid, &mut z);
+            sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
+            let gate = coord_flags(&grid);
+            let ours_half: Vec<usize> = (0..grid.cells.len())
+                .filter(|&i| gate[i] & coord::GATE != 0 && (1..16).contains(&water[i]))
+                .collect();
+            let tally = |pred: &dyn Fn(u32) -> bool| {
+                (0..grid.cells.len())
+                    .filter(|&i| gate[i] & coord::GATE != 0 && pred(water[i]))
+                    .count()
+            };
+            eprintln!(
+                "{run:?}: gated cells dry {}, all water {}, half {}",
+                tally(&|w| w == 0),
+                tally(&|w| w == 16),
+                ours_half.len()
+            );
+            for name in names {
+                let g = &all.iter().find(|(n, _)| n == name).expect("a file").1;
+                if let Some(cells) = &g.cells {
+                    let theirs: Vec<usize> = (0..cells.len())
+                        .filter(|&i| cells[i].flags & 0x100 != 0)
+                        .collect();
+                    assert_eq!(
+                        ours_half, theirs,
+                        "{name}: the gated cells with 1–15 water sub-tiles at 706 are not the \
+                         start dump's HALFLAND"
+                    );
+                    half_files += 1;
+                    half_cells += theirs.len();
+                }
+                let Some(prefix) =
+                    crate::testenv::dump(name).and_then(|p| start_prefix(Path::new(&p)))
+                else {
+                    continue;
+                };
+                let log = crate::gamelog::Log::parse(&prefix);
+                let Some(init) = log.initial() else {
+                    continue;
+                };
+                if init.heights.is_empty() {
+                    continue;
+                }
+                crate::diff::PRE_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(z.clone()));
+                drop(crate::diff::build_sim(
+                    &loaded,
+                    &init,
+                    sim::tuning::Tuning::RON,
+                ));
+                let ours = crate::diff::POST_ROSTER_HEIGHTS
+                    .with(|h| h.borrow_mut().take())
+                    .expect("the roster stood on the generated grid");
+                assert_eq!(ours.len(), init.heights.len(), "{name}: the grid's size");
+                let w = 4 * grid.xs + 1;
+                let bad: Vec<usize> = (0..ours.len())
+                    .filter(|&i| !ours[i].prints_as(init.heights[i]))
+                    .collect();
+                vertices += ours.len();
+                if let Some(&i) = bad.first() {
+                    let (vx, vy) = (i as i32 % w, i as i32 / w);
+                    let at =
+                        ((vy / 4).min(grid.ys - 1) * grid.xs + (vx / 4).min(grid.xs - 1)) as usize;
+                    parted.push(format!(
+                        "{name}: {} of {} vertices part, the first ({vx}, {vy}) (land {}, flags \
+                         {:#x}, coord {:#x}) ours {:#x} {} against {}",
+                        bad.len(),
+                        ours.len(),
+                        grid.cells[at].land,
+                        grid.cells[at].flags,
+                        coord[at],
+                        ours[i].0,
+                        f32::from_bits(ours[i].0),
+                        init.heights[i]
+                    ));
+                }
+                files += 1;
+            }
+        }
+        eprintln!(
+            "heights: EI start grids on {files} files, {vertices} vertices; HALFLAND cell-exact \
+             on {half_files} files, {half_cells} cells"
+        );
+        assert!(
+            parted.is_empty(),
+            "{} of {files} files part:\n{}",
+            parted.len(),
+            parted.join("\n")
+        );
+        assert!(
+            half_files >= ISLAND_FILES && files >= MAPGEN_EI_HEIGHT_FILES,
+            "HALFLAND reached {half_files} East Indies files, the heights {files}"
+        );
+    }
+
+    /// The East Indies start dumps that print the height grid: a floor
+    /// (56 on 2026-11-04).
+    const MAPGEN_EI_HEIGHT_FILES: usize = 56;
+
     /// The East Indies traces whose `place_all` segment the stream check
     /// walks: a floor.
     const ISLAND_PLACE_ALL_TRACES: usize = 418;
