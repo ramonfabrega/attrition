@@ -34426,3 +34426,29 @@ SHA-256 `8c49c42bc660487399ec192a173ab6cb85c9ec47e93d6fb06993fa3219cfe5d3`.
 **What it holds**: the carrier `2/18`'s first parted blow on block 1435 — 6 from the Camel Corps `0/14`, whose round
 of 1430 leaves (30461, 27533, 298) and flies 6 frames in theirs (`sea_melee_run1486_s_window_is_widened_whole`: 102
 blocks, 118 keys, the rounds read (381, 382), 46 parting).
+
+## run1487 — the fourth melee at 1980: the window 1975..2001 and a packet at 1980 (2026-11-05, item 3857, `att-3857`)
+
+`docs/GOLDEN.md` §153.4. **What the disk could not answer**: run1483 dumps only 1901 and 2001 round the word, and no
+dump prints the fog or the region scan's accepted cells — the two `think_scout+0xaba` draws theirs spends on 1980 and
+ours does not. run1483's line with `--log-window 1975 2001`, `--detail end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`,
+`--end-frame 2010`, `--callwin 0 2010`, no stride, and the tracer defines `RON_STATE_FRAME=1980` and item 597's
+`RON_STATE_PLAN`. `df -g ~` read 113 GiB free before it.
+- Pool lane 1. Launched 03:37:46, exited 03:38:43 (57.3 s launch to exit). `success`, 2011 frames, seed 12345,
+  `page_faults` 0, no `relaunches`. `rngcmp.py` against run1483: 2011 identical. Filed with `filerun.py run1487
+  eastindies-information-melee-window-1975-2001`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1487-eastindies-information-melee-window-1975-2001.txt`, 23,532,629 bytes,
+SHA-256 `8a63b2e367f09849c29973349f7c6ab0469268a5c99539e1f0dd67f3dcbe8d1d`.
+
+Archive `rontrace-run1487.log`, 44,848,352 bytes,
+SHA-256 `698e61c6931356142580a5a41ac13e740b0b1bcfda63b400e50c5705568e1895`.
+
+Packet `~/ron-golden/run1487/map-18/frame-snapshot.bin`, 923,885,856 bytes,
+SHA-256 `a5d2352cf25ee616e1c17f6ba3b7dd00d06ee3dc57878828e2739d30649b42db`.
+
+**What it holds**: on the packet, the Aegis Cruiser `2/48`'s region scan run whole (`step4.py --entry 005f6010`, the
+seed poked to `0a2b6fdb`: 51 cells accepted, (57,38) and (57,39) the two ours refused as seen), the fog grid, and the
+`FROM` chains that put the Fluyt (`TI` 332) and the cruiser (`TI` 330) under the Bark. Its window is
+`sea_melee_run1487_s_window_is_widened_whole`.

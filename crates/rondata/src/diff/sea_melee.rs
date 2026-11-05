@@ -149,9 +149,18 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // leave from its turret, and run1486's block 1435, where theirs' `2/18`
     // took 6 from its round of 1430 in theirs alone, agrees. On 1980 both
     // spend 121: at index 53 ours spends `PathFinder::calc_road_cost+0x46`
-    // where theirs spends `Unit::think_scout+0xaba` (§153.3).
-    count: 1986,
-    sequence: 1980,
+    // where theirs spends `Unit::think_scout+0xaba` (§153.3). Item 3857:
+    // **1980 → 2090** with the scout's sibling test on the lineage
+    // (`FILTER_BASE_TYPE`, `sim::scout`'s `scout_unit_near`): on 1957 the
+    // Fluyt `2/20` refuses cell (55,36), where the Aegis Cruiser `2/48`,
+    // its lineage-mate under the Bark, is bound, and takes (57,50) as
+    // theirs does; the fog the two Fluyts uncover then agrees, and on 1980
+    // the cruiser's region scan accepts 51 cells as theirs does (run1487's
+    // packet). On 2090 ours 13 against 14: at index 0 ours spends
+    // `Unit::do_move+0xe84` where theirs spends `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823` (§153.4).
+    count: 2090,
+    sequence: 2090,
 };
 
 /// **The melee's closing state, as the `Melee:` line says it** (Loop
@@ -168,8 +177,9 @@ pub(crate) const SEA_MELEE: Melee = Melee {
 /// 474 → 466 with the word at 820, back to 474 with piece 282's bays, and
 /// 352 with piece 125's (the word at 1233). Item 3854: 352 → 247 with the
 /// ship heal (the word at 1613). Item 3855: 247 → 187 with piece 144's
-/// release (the word at 1980).
-pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 187;
+/// release (the word at 1980). Item 3857: 187 → 157 with the scout's
+/// lineage test (the word at 2090).
+pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 157;
 
 /// The melee's word: the lower of the two partings.
 pub(crate) const SEA_MELEE_WORD: i64 = if SEA_MELEE.count < SEA_MELEE.sequence {
@@ -204,8 +214,9 @@ fn sea_melee_first_parting() {
 /// 701, 801 and 901). Item 3849 moved the word to 1233: 1201..1483,
 /// blocks 1201, 1301 and 1401. Item 3854 moved it to 1613: 1601..1863,
 /// blocks 1601, 1701 and 1801. Item 3855 moved it to 1980: 1901..2230,
-/// blocks 1901, 2001, 2101 and 2201.
-pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (1901, 2230);
+/// blocks 1901, 2001, 2101 and 2201. Item 3857 moved it to 2090:
+/// 2001..2340, blocks 2001, 2101, 2201 and 2301.
+pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (2001, 2340);
 
 /// The word's window, widened whole on run1483's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
@@ -257,16 +268,19 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     // families alone; on 2001 the Russian Fluyt `2/20` (`TI` 332, sea) is
     // first, its `EXPLORETOORDER` bound for (44280, 38904) in theirs and
     // (42744, 28152) in ours, beside the Aegis Cruiser `2/48`'s and the
-    // French Citizens `1/6`' and `1/11`'s orders.
+    // French Citizens `1/6`' and `1/11`'s orders. Item 3857, the word at
+    // 2090 (2001..2340): the Fluyt and the cruiser agree on 2001, and what
+    // parts there is the standing families and `1/6`' and `1/11`'s order
+    // lists (1 against 3, 4 against 2), first parted on run1487's 1986.
     pin_eq!(w.blocks, 4, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 558, "run1483's word window");
-    pin_eq!(w.rounds_read, (17, 17), "the rounds read");
-    pin_eq!(w.rounds.len(), 16, "the rounds that part");
+    pin_eq!(w.firsts.len(), 557, "run1483's word window");
+    pin_eq!(w.rounds_read, (9, 9), "the rounds read");
+    pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
 
 /// run1484: run1483's game with a window at every frame of 660..680 and
@@ -405,6 +419,74 @@ fn sea_melee_run1486_s_window_is_widened_whole() {
     pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
 
+/// run1487: run1483's game with a window at every frame of 1975..2001 and
+/// a packet at logger frame 1980 (item 3857, `docs/GOLDEN.md` §153.4): the
+/// frames round 1980, where the Aegis Cruiser `2/48`'s region scan drew 49
+/// cells in ours against 51, and where nothing of run1483 dumps.
+pub(crate) const MELEE_WINDOW_1975: (&str, &str) = (
+    "gamelog-run1487-eastindies-information-melee-window-1975-2001.txt",
+    "rontrace-run1487.log",
+);
+
+/// run1487's window, every block.
+pub(crate) const WIDENING_SEA_MELEE_WINDOW_1975: (i64, i64) = (1975, 2001);
+
+/// run1487's window widened whole, the rounds compared — the coverage
+/// driver's slice too.
+pub(crate) fn sea_melee_run1487_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1487",
+            &[(MELEE_WINDOW_1975.0, WIDENING_SEA_MELEE_WINDOW_1975.0)],
+            WIDENING_SEA_MELEE_WINDOW_1975,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **run1487's window, widened whole** (item 3857): every dumped record on
+/// every block of [`WIDENING_SEA_MELEE_WINDOW_1975`], both directions, the
+/// rounds too — the value diff the word 1980 walks back to. Before the
+/// lineage test the Fluyt `2/20` stood at (42941, 31979) bound for
+/// (42720, 28128) on 1975 in ours, and at (43377, 33404) bound for
+/// (44280, 38904) in theirs: its explore point of 1957. `RON_FIRSTS=1`
+/// prints every row.
+#[test]
+fn sea_melee_run1487_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sea_melee_run1487_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    let scouts: Vec<_> = w
+        .firsts
+        .iter()
+        .filter(|((who, o, _), _)| *who == 2 && (*o == 20 || *o == 48))
+        .map(|((_, o, what), (f, _))| (*f, *o, what.clone()))
+        .collect();
+    pin_eq!(scouts, vec![], "the two scouts' first parted rows");
+    pin_eq!(w.blocks, 26, "every block in the window");
+    pin_eq!(w.firsts.len(), 148, "run1487's window");
+    pin_eq!(w.rounds_read, (121, 121), "the rounds read");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+}
+
 /// **Every seat's leader on the start dump's frames** (item 3847, the
 /// shape item 3791 gave the first two, `docs/GOLDEN.md` §151): run1482's frames 1 and 37 print all three
 /// seats' `LEADERDATA` whole. run1483's only other leader records are its
@@ -443,8 +525,8 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // who 2 first, the human last — and the brackets are now handed out
     // in that order ([`crate::diff::setup::leader_visit_order`]). The
     // standing family is 12, 10 and 7; the 203 are the closing dump's.
-    pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 117, "the keys that part, by seat");
+    pin_eq!(w.standing(), vec![12, 10, 8], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 137, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()
@@ -507,8 +589,8 @@ fn sea_melee_run1483_s_closing_state() {
     // personalities on their own seats: 130 compared, 474 off — 115 units
     // off, 7 unlinked, 2 extra (who 1's `0` and `54`), 6 buildings
     // unlinked and 310 diverged, 34 cities diverged.
-    pin_eq!(e.compared, 135, "units compared");
-    pin_eq!(e.counts(), [71, 2, 2, 3, 84, 0, 25], "the closing counts");
+    pin_eq!(e.compared, 133, "units compared");
+    pin_eq!(e.counts(), [70, 4, 2, 4, 50, 0, 27], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         SEA_MELEE_CLOSING_OFF,

@@ -685,12 +685,23 @@ impl Sim {
         self.world.danger_half(who, c)
     }
 
-    /// `find_unit_ordered(<same type, mine, not me, within 0x600>)` (§8):
-    /// whether one of the scout's own units of the same type is already
-    /// **on its way** to within two cells of the candidate, which rejects
-    /// it. The original filters on `basic_type` and adds
-    /// `Search::valid_search`'s leader-visibility layer, which for a search
-    /// of one's own units is a no-op (`docs/SCOUT.md` §13 item 5).
+    /// `find_unit_ordered(<same lineage, mine, not me, within 0x600>)` (§8):
+    /// whether one of the scout's own units **of the same lineage** is
+    /// already **on its way** to within two cells of the candidate, which
+    /// rejects it. `Search::valid_search`'s leader-visibility layer, which
+    /// for a search of one's own units is a no-op (`docs/SCOUT.md` §13
+    /// item 5).
+    ///
+    /// **"Same type" is `FILTER_BASE_TYPE`, the root of the `FROM` chain**
+    /// (item 3857, `docs/GOLDEN.md` §153.4): the value `think_scout` hands
+    /// the search is the scout's type's vslot `+0xe4`, which on a packet is
+    /// `ObjectTypeData::basic_type@006619e0` — `from` (`TypeData +0x3c`)
+    /// followed to the type whose `from` is negative, and that type's own
+    /// index. The fourth melee's Russian Fluyt (`TI` 332, 331 → 324 → 323)
+    /// and Aegis Cruiser (`TI` 330, 329 → … → 323) share the Bark: on 1957
+    /// the cruiser's explore point sits 659 units from the Fluyt's best
+    /// cell, and the original refuses that cell where an exact-type test
+    /// took it.
     ///
     /// **The "ordered" in the name is two predicates, not a synonym for
     /// "standing"** (`ObjectsData::find_unit_ordered@0065bc40`, read
@@ -714,7 +725,7 @@ impl Sim {
     /// `Sim::merchant_refused` had it from the same listing.
     fn scout_unit_near(&self, u: usize, c: Cell) -> bool {
         let who = self.units[u].owner;
-        let ty = self.units[u].ty;
+        let base = self.unit_base_type(u);
         let half = crate::world::UNITS_PER_CELL / 2;
         let at = Pos::new(
             c.x * crate::world::UNITS_PER_CELL + half,
@@ -728,11 +739,30 @@ impl Sim {
                 && other.alive()
                 && other.on_map
                 && other.owner == who
-                && other.ty == ty
+                && self.unit_base_type(o) == base
                 && MOVE_FAMILY.contains(&self.order_type(o))
                 && self.world.region_of(other.pos.cell()) == region
                 && vector_dist(other.orders_pos.x - at.x, other.orders_pos.y - at.y) <= 0x600
         })
+    }
+
+    /// `ObjectTypeData::basic_type@006619e0` on a unit's type: `from`
+    /// followed to the root of the lineage. A type outside the tree is its
+    /// own record, so two such units match only on the same record.
+    fn unit_base_type(&self, u: usize) -> Result<crate::tech::TypeId, Option<usize>> {
+        let rec = self.units[u].ty;
+        let Some(mut t) = rec.and_then(|i| self.unit_types[i].tree) else {
+            return Err(rec);
+        };
+        let mut guard = 0;
+        while let Some(f) = self.tech_tree.types.get(t).and_then(|d| d.from) {
+            t = f;
+            guard += 1;
+            if guard > 16 {
+                break;
+            }
+        }
+        Ok(t)
     }
 
     /// §5's `find_city` — the index, **within the scout's own leader's city
@@ -1493,6 +1523,64 @@ mod tests {
         assert!(
             s.scout_unit_near(ai, target),
             "a sibling headed for the cell rejects it from six cells off"
+        );
+    }
+
+    /// **"Same type" is the lineage** (item 3857, `docs/GOLDEN.md` §153.4):
+    /// `think_scout` hands `find_unit_ordered` `FILTER_BASE_TYPE` and its
+    /// type's `basic_type`, the root of the `FROM` chain. The fourth
+    /// melee's Fluyt (`TI` 332) and Aegis Cruiser (`TI` 330) both root at
+    /// the Bark: the cruiser bound for a cell refuses it to the Fluyt,
+    /// where an exact-type test let the Fluyt take it on 1957. A ship of
+    /// another lineage still does not.
+    #[test]
+    fn a_sibling_of_the_scout_s_lineage_blocks_a_cell_whatever_its_rung() {
+        let (mut s, ai, _) = scout_sim(true);
+        let here = s.units[ai].pos.cell();
+        let target = Cell::new(here.x + 4, here.y);
+        let at = Pos::new(target.x * 768 + 384, target.y * 768 + 384);
+        let traits = crate::tech::UnitTraits::default();
+        let mut tree = crate::tech::TechTree::default();
+        let root = tree.add(crate::tech::TypeDef::unit("Bark", traits));
+        let fluyt = tree.add(crate::tech::TypeDef::unit("Fluyt", traits).from(root));
+        let mid = tree.add(crate::tech::TypeDef::unit("Cruiser", traits).from(root));
+        let aegis = tree.add(crate::tech::TypeDef::unit("Aegis Cruiser", traits).from(mid));
+        let other = tree.add(crate::tech::TypeDef::unit("Galley", traits));
+        tree.finalize();
+        s.set_tech_tree(tree);
+        let rec = s.units[ai].ty.expect("the fixture's type");
+        let typed = |s: &mut Sim, t| {
+            let mut ty = s.unit_types[rec].clone();
+            ty.tree = Some(t);
+            s.add_unit_type(ty)
+        };
+        let scout_rec = typed(&mut s, fluyt);
+        let aegis_rec = typed(&mut s, aegis);
+        let other_rec = typed(&mut s, other);
+        s.units[ai].ty = Some(scout_rec);
+
+        let mut sib = crate::Unit::new(1, s.units.len() as i16, Pos::new(at.x - 768, at.y), 20);
+        sib.ty = Some(aegis_rec);
+        let sib = s.add_unit(sib);
+        s.add_move_facing_order(
+            sib,
+            at,
+            MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+            crate::movement::Angle(0),
+            None,
+            false,
+        );
+        assert!(
+            s.scout_unit_near(ai, target),
+            "a cruiser two rungs up the Fluyt's lineage rejects the cell"
+        );
+
+        s.units[sib].ty = Some(other_rec);
+        assert!(
+            !s.scout_unit_near(ai, target),
+            "a ship of another lineage does not"
         );
     }
 

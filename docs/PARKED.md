@@ -13593,13 +13593,18 @@ rounds parting) prints `2/14`'s and `2/16`'s rounds of 1400..1416 with `ez` 24 w
 25 — a target object's `z`, which `Ammo::init`'s `ez` takes unmasked (`sim::fight::aim_z`). Every other field of
 those rounds agrees, and the word moved past them to 1980. Names no score.
 
-## Parked by the next landing, slot YY — reserved
+## Parked by item 3857, 2026-11-05 — the scout's sibling is its lineage
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3857a) **`think_scout` on a packet stops in the issue.** run1487's packet runs the Aegis Cruiser `2/48`'s
+`think_scout@005f6010` through the whole region scan (51 draws, the trace's count with the seed poked), then stops on a
+null read at `00704a3e` in `Group::action_move_near`, so the group push and the move it issues were never run there.
+The scan was all §153.4 needed. A later packet that asks what the issue writes would have to stub that read first.
+Names no score.
+
+(3857b) **`unitrules.xml` keyed by `NAME` gives the wrong `FROM` root.** Walking `<FROM>` by `<NAME>` roots the Aegis
+Cruiser at itself. The loaded `TypeData +0x3c` chain on run1487's packet is 330 → 329 → … → 323, the Bark, the
+Fluyt's root too. Anything that reads a lineage off the XML by hand (a probe, a census) should read the loader's
+chain (`tech::TypeDef::from`) or a packet instead. Names no score.
 
 ## Parked by item 3856, 2026-11-05 — map generation's never-entered seven, read
 

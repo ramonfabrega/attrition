@@ -11119,12 +11119,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // compared. Item 3849 moved it to 1233 (the ships' and the archers'
     // release tables), widened over 1201..1483. Item 3854 moved it to
     // 1613 (the ship heal), widened over 1601..1863. Item 3855 moved it
-    // to 1980 (piece 144's release rows), widened over 1901..2230.
+    // to 1980 (piece 144's release rows), widened over 1901..2230. Item
+    // 3857 moved it to 2090 (the scout's sibling on its lineage), widened
+    // over 2001..2340; run1487's window 1975..2001 is its value diff.
     (
         "SEA_MELEE_WORD",
         crate::diff::sea_melee::SEA_MELEE_WORD,
         Some("sea_melee_run1483_s_word_window_is_widened_whole"),
-        3855,
+        3857,
         Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
     ),
     // **The Russians at a held Information age** (item 3721): East Indies
