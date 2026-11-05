@@ -128,9 +128,14 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // together, 67 frames past the first `add` (610). Ours 13 draws
     // against 12: at index 4 ours spends `Unit::close+0xcb6` — a unit
     // dies in ours — where theirs spends `Farms::inc_time+0x1ae`. Ours
-    // acted (`docs/GOLDEN.md` §153).
-    count: 677,
-    sequence: 677,
+    // acted (`docs/GOLDEN.md` §153). Item 3849: **677 → 820** — the
+    // leaders visited in the start permutation left it at 677; the sea
+    // pieces' release rows (280, 289, 300) and the cruisers' and the
+    // battleship's turret seats moved it. On 820 theirs spends 16 against
+    // ours' 14: at index 4 theirs spends `Ammo::do_damage+0xc59` where
+    // ours spends `Farms::inc_time+0x1ae` — theirs acted (§153.1).
+    count: 820,
+    sequence: 820,
 };
 
 /// **The melee's closing state, as the `Melee:` line says it** (Loop
@@ -143,7 +148,8 @@ pub(crate) const SEA_MELEE: Melee = Melee {
 ///
 /// Item 3849: 448 → 474, with the personalities on their own seats
 /// ([`crate::diff::setup::leader_visit_order`]) — a game parted at 677
-/// plays on differently once the computers' personalities are right.
+/// plays on differently once the computers' personalities are right; then
+/// 474 → 466 with the word at 820, and back to 474 with piece 282's bays.
 pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 474;
 
 /// The melee's word: the lower of the two partings.
@@ -231,9 +237,9 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 405, "run1483's word window");
-    pin_eq!(w.rounds_read, (15, 10), "the rounds read");
-    pin_eq!(w.rounds.len(), 28, "the rounds that part");
+    pin_eq!(w.firsts.len(), 131, "run1483's word window");
+    pin_eq!(w.rounds_read, (15, 17), "the rounds read");
+    pin_eq!(w.rounds.len(), 14, "the rounds that part");
 }
 
 /// run1484: run1483's game with a window at every frame of 660..680 and
@@ -294,10 +300,10 @@ fn sea_melee_run1484_s_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 21, "every block in the window");
-    pin_eq!(w.firsts.len(), 0, "run1484's window");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    pin_eq!(w.blocks, 20, "every block in the window");
+    pin_eq!(w.firsts.len(), 90, "run1484's window");
+    pin_eq!(w.rounds_read, (157, 157), "the rounds read");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3847, the
@@ -338,8 +344,8 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // who 2 first, the human last — and the brackets are now handed out
     // in that order ([`crate::diff::setup::leader_visit_order`]). The
     // standing family is 12, 10 and 7; the 203 are the closing dump's.
-    pin_eq!(w.standing(), vec![12, 10, 7], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 203, "the keys that part, by seat");
+    pin_eq!(w.standing(), vec![12, 10, 6], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 207, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()
@@ -402,12 +408,16 @@ fn sea_melee_run1483_s_closing_state() {
     // personalities on their own seats: 130 compared, 474 off — 115 units
     // off, 7 unlinked, 2 extra (who 1's `0` and `54`), 6 buildings
     // unlinked and 310 diverged, 34 cities diverged.
-    pin_eq!(e.compared, 130, "units compared");
-    pin_eq!(e.counts(), [115, 7, 2, 6, 310, 0, 34], "the closing counts");
+    pin_eq!(e.compared, 135, "units compared");
+    pin_eq!(e.counts(), [120, 2, 5, 4, 308, 0, 35], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         SEA_MELEE_CLOSING_OFF,
         "the closing records off, the `Melee:` line's suffix"
     );
-    pin_eq!(e.extra.clone(), vec![(1, 0), (1, 54)], "the closing extras");
+    pin_eq!(
+        e.extra.clone(),
+        vec![(1, 0), (1, 54), (1, 58), (1, 57), (1, 59)],
+        "the closing extras"
+    );
 }
