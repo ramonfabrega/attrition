@@ -383,6 +383,11 @@ const OWED: &[(&str, &str, &str)] = &[
         "EastIndiesInformationMelee",
         "a staged game: `audit_walk` stages no script",
     ),
+    (
+        "Melee",
+        "EastIndiesAirbaseMelee",
+        "a staged game: `audit_walk` stages no script",
+    ),
 ];
 
 /// The handoff's lines whose whole words the audit owes (Loop 3801, the
