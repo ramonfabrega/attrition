@@ -2076,7 +2076,7 @@ field is (A)'s 7, and nothing else writes one.**
   neighbour C). The scratch port bears this out. In a 9×9 ocean with one
   `SANDY` cell and `BASELAND` sub 3 at its south-west diagonal, the cell
   reaches the arm under `COAST_BASE` 3. With the land at any of the other
-  three corners, it does not.
+  three corners, it does not. (Not on the original: §20.)
 
 ### 19.4 No grid on file holds P1 or P2
 
@@ -2245,4 +2245,66 @@ Lakes' default lobby, `cover=1`, then the same frame's `WORLD` block
 non-empty word at C kills it. A `.cmd` line cannot aim the cursor.
 Either the click lane hovers the cell, or the tracer stores
 `mouse_coord_x/y` (`ConsoleWin` +0x518/+0x51c) before the line, which
-is tooling this item does not build.
+is tooling this item does not build. Taken: §20.
+
+## 20. The console-planted contact, taken (item 3871)
+
+Run1494 is the golden start (Great Lakes, `--map 14`, seed 12345) at
+`cover=1` on the click-free pool, to 640. It uses run1129's line, with
+`620 @aim 41 42` and `620 !weather` added. `@aim` is a new tracer line
+(`tools/trace/tracer.c`, record `I_AIM` 33). It stores 768 c + 384 into
+`ConsoleWin` +0x518/+0x51c, because `weather` reads its cell as
+`div_3_table[coord >> 6] >> 2` and a `.cmd` line's `no_mouse` 1 skips
+the mouse read. The store was taken instead of an `@click` because a
+click reaches the cell only through `TerrainOut::get_mouse_coords@00864270`'s
+float camera projection. It also needs the typed path, since `parse_cmd`
+reads the mouse only when `no_mouse` is 0.
+
+- **The aim landed.** `I_AIM` reads cell (41, 42) and the stores 31,872
+  and 32,640. `!weather` ran with `parse_cmd` returning 1. Block 621
+  (`@dumpall`) against the golden start's own `WORLD` grid (run1030's
+  first block, the same seed) differs in exactly one cell: index
+  `xs · 42 + 41`, `OCEAN` 0 → `BASELAND` 3. It is the engine's own
+  `spot_update_land` index (`Terrain::spot_update_land@0084fa50`), so the
+  dump is row-major. §19.6's two cells are row-major too: the south-west
+  shape found by search on that grid is (41, 42) and (16, 45), and
+  C = (42, 41) is `SANDY` 0. The flanks (41, 41) and (42, 42) are `OCEAN`,
+  as are P's other seven neighbours.
+- **The arm was not entered.** `report.py functions` has no `HIT` for
+  `TerrainOut::check_for_diagonal@008595f0` or `WorldData::is_valid@00471170`,
+  and both are in the trace's function table. The re-mark did run over C:
+  `TerrainOut::add_update_wcoord@008738a0` lists P and its eight
+  neighbours, and `spot_update_land` marks the list and then calls
+  `create_transition_renderables` in the same call (line 111).
+- **What the kill reads.** `TileSet::is_combo_acceptable@0087abe0` is
+  three-valued. Same land within one sub returns 1 when B's sub is
+  greater and 2 otherwise, so ocean beside ocean is 2, never 1. With that
+  read, §19.2's (A) and (B) arms agree with `mark_trans_flags`. C is a (B)
+  cell: no orthogonal M → C is 1, and only the south-west diagonal D → C
+  is. Each flank's first M with M → F 1 is C. So the gate that withheld
+  C's 7, or emptied a flank, sits in a branch of
+  `TerrainOut::check_for_tendrils@00859eb0` that §19.3 did not walk. Its
+  return decides (A)'s 7 (`mark_trans_flags`, `iVar6 == 0`), and its
+  three-neighbour arm (`local_14 + local_10 + local_c + local_18 == 3`)
+  returns 1 after writing 5s. Which branch fired is not read: the
+  eight-slot map from `move_x/move_y` to its flags was not walked.
+- **The instrument that names it.** Every edge write in
+  `mark_trans_flags` and `check_for_tendrils` is a `Log::say` at
+  `GLOG_TERRAIN`, detail 0x28. No dump on disk prints `TERRAIN` at 40, so
+  a retake of this line that prints `TERRAIN` at 40 on 620 prints the
+  re-mark write by write. That retake is the next booking (parked 3871a).
+- **Twin.** run1130, run1129's `cover=0` twin: `rngcmp.py` finds 641 in
+  common, 641 identical, 0 differing. `samegame.py --from 620` finds 40
+  in common and the same game before 620. It parts on 621 and 622, the
+  `@dumpall` block and the next opening dump, by construction.
+- **Not pinned.** The trace enters no `NEVER` row (0 of 264), so joining
+  `blind::TRACES` would cost a read and move nothing. `Blind:` is
+  unmoved: never 264 · residue 223 · open 41.
+
+**Verdict: the plant is not a contact.** §19.3's south-west shape is not
+sufficient on the original. The predicate keeps the arm out of a single
+plant, and the arm and `is_valid` stay open. The row is not `RESIDUE`
+while the console can plant. (16, 45) is the same shape on the same
+grid and is not worth a take until the gate is named. 3870a (the
+start's leak, 0xee1224) stays parked, because the trace does not print
+it.
