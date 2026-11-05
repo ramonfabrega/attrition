@@ -262,9 +262,12 @@ fn run969b_inca_closing_state() {
     );
     pin_eq!(e.frame, 24001, "the closing block");
     pin_eq!(e.compared, 177, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     // Item 3360, the first walk (the word at 24000): 177 units compared on
     // block 24001, none apart, no building field-row; one closing field,
     // city `0/2000`'s `peasant_dist`, ours 2 against theirs 1 — the human's
-    // city, which the draw stream never feels.
+    // city, which the draw stream never feels. Item 3841: the quit's
+    // `Leader::defeat` (`Sim::resign`, `docs/GOLDEN.md` §152.15) closes
+    // it — the human is defeated on the closing frame, and the field
+    // follows the flag (which reader of it, not read: parked 3841b).
 }

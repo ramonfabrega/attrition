@@ -1362,10 +1362,23 @@ pub(crate) fn seat_walk(
             // Logger frame n prints the state ours holds after frame n − 1.
             let n = built.sim.frame;
             for who in 0..players {
-                let rows = || crate::diff::leader::rows(&loaded, &built, who);
                 if let Some(t) = theirs.get(&(n, who)) {
-                    w.compare(n, who, &rows(), t);
+                    w.compare(n, who, &crate::diff::leader::rows(&loaded, &built, who), t);
                 }
+            }
+            // The quit is the closing frame's first act (item 3841,
+            // `docs/GOLDEN.md` §152.15): `Leader::defeat(6, −1, 0)` takes
+            // the human's planes off before the dump, so it runs before the
+            // human's trailing record is read and before the last tick.
+            let closing_next = closing && n + 1 == last && trailing.keys().any(|(f, _)| *f == last);
+            if closing_next {
+                for who in 0..players {
+                    if built.sim.nation[who].human {
+                        built.sim.resign(who as sim::Player);
+                    }
+                }
+            }
+            for who in 0..players {
                 // A trailing dump is written after the computers' resource
                 // step of its frame and before the human's: a computer is
                 // read at n, the human at n − 1 (measured, §151).
@@ -1375,7 +1388,7 @@ pub(crate) fn seat_walk(
                     n
                 };
                 if let Some(t) = trailing.get(&(at, who)) {
-                    w.compare(at, who, &rows(), t);
+                    w.compare(at, who, &crate::diff::leader::rows(&loaded, &built, who), t);
                 }
             }
         }

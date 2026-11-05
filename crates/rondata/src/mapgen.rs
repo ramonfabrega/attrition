@@ -4537,6 +4537,183 @@ mod tests {
         );
     }
 
+    /// **Values on East Indies** (`docs/MAPGEN.md` §9, §15 step 5, item
+    /// 3840): from each run's 7927 grid (3831's chain),
+    /// `World::adjust_for_blocking` — seed and parts 2, 5 and 6 at 7937 —
+    /// then `World::compute_all_vals`: the whole stream from `place_all`
+    /// through the last value draw, draw for draw against every East Indies
+    /// trace, then seed and parts 2, 5 and 6 at 7945 on every file that
+    /// carries it. An archipelago: open sea on the map's border and a dozen
+    /// islands, so the arms Great Lakes could not part (3830a) meet the
+    /// grid here, and the test prints each one's reach.
+    #[test]
+    fn east_indies_s_values_are_the_traced_stream_and_7937_and_7945() {
+        let (Some(all), Some(traces), Some(root)) =
+            (archive(), make_traces(), crate::testenv::install_root())
+        else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let range = max_range_349(root);
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let runs = east_indies_files(all);
+        let mut logs = Vec::new();
+        let mut files = [0usize; 2];
+        let mut parted = Vec::new();
+        let mut reach = Vec::new();
+        for (run, gs) in &runs {
+            let (mut grid, mut d, tileset) = east_indies_at_7859(root, gs[0], *run, range);
+            let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+            check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+            nubify_forest(&mut grid, &mut d);
+            change_bases(&mut grid, &mut d, &ts);
+            let inputs = resource_inputs(root, "EASTINDIES.xml", run.2, run.3, run.1)
+                .expect("East Indies' rows");
+            place_resources(&mut grid, &mut d, &inputs, run.1);
+            let mut check = |grid: &MapGrid, d: &Draws, k: usize, line: i64| {
+                for g in gs {
+                    let Some((_, _, seed, p)) = g.at("map.cpp", line) else {
+                        continue;
+                    };
+                    files[k] += 1;
+                    let ours = (
+                        d.rng.seed,
+                        grid.start_part(),
+                        grid.cell_part(),
+                        grid.tile_part(),
+                    );
+                    if ours != (*seed, p[2], p[5], p[6]) {
+                        parted.push(format!(
+                            "{run:?} at {line}: (seed, parts 2, 5, 6) ours {ours:?} against \
+                             theirs {:?}",
+                            (*seed, p[2], p[5], p[6])
+                        ));
+                        return;
+                    }
+                }
+            };
+            let groups = place_all_inputs_of(root, "EASTINDIES.xml", &tileset, run.2, run.3, 18)
+                .expect("East Indies' place_all inputs");
+            // 3830a's arms, measured on the 7927 grid: border ocean (the
+            // 0x2000 edge), `SANDY` cells (`wet`'s land 1), the coast
+            // cells' own `land` (record 3 over it), a rough coast cell
+            // (the square's exemption) and ocean oil (record 7).
+            let border = grid
+                .cells
+                .iter()
+                .enumerate()
+                .filter(|&(i, c)| {
+                    let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
+                    c.is_ocean() && (x == 0 || y == 0 || x == grid.xs - 1 || y == grid.ys - 1)
+                })
+                .count();
+            let sandy = grid.cells.iter().filter(|c| c.land == 1).count();
+            let coast_lands: std::collections::BTreeSet<i8> = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & sim::terrain_groups::flag::COAST != 0)
+                .map(|c| c.land)
+                .collect();
+            let rough_coast = grid
+                .cells
+                .iter()
+                .filter(|c| {
+                    c.flags & sim::terrain_groups::flag::COAST != 0
+                        && (c.flags & 0x70 != 0
+                            || (c.flags & sim::terrain_groups::flag::ROCK == 0
+                                && (c.land == 4 || c.land == 5)))
+                })
+                .count();
+            let sea_oil = grid
+                .cells
+                .iter()
+                .filter(|c| c.is_ocean() && c.flags & sim::terrain_groups::flag::OIL != 0)
+                .count();
+            let mut regions = regions_of(&grid);
+            let labels: Vec<i16> = grid.cells.iter().map(|c| c.region).collect();
+            adjust_for_blocking(&mut grid, &mut regions, &groups.templates);
+            // The re-run `find_all`: cells whose label it changed.
+            let relabelled = grid
+                .cells
+                .iter()
+                .zip(&labels)
+                .filter(|(c, r)| c.region != **r)
+                .count();
+            check(&grid, &d, 0, 7937);
+            let before = d.log.len();
+            compute_all_vals(&mut grid, &mut d, &makes);
+            let dry = grid.cells.iter().filter(|c| !c.is_ocean()).count();
+            assert_eq!(d.log.len() - before, dry, "one draw a non-water cell");
+            // The region-size factors: dry cells under each threshold.
+            let size = grid.xs * grid.ys;
+            let mut region_size = [0i32; 0x80];
+            for c in &grid.cells {
+                region_size[c.region as usize] += 1;
+            }
+            let under = [size / 128, size / 64, size / 16].map(|t| {
+                grid.cells
+                    .iter()
+                    .filter(|c| !c.is_ocean() && region_size[c.region as usize] < t)
+                    .count()
+            });
+            // The largest `val` a cell under each threshold keeps: where it
+            // is 0 the factor's step truncates to the same byte either way.
+            let top = [size / 128, size / 64, size / 16].map(|t| {
+                grid.cells
+                    .iter()
+                    .filter(|c| !c.is_ocean() && region_size[c.region as usize] < t)
+                    .map(|c| c.val)
+                    .max()
+                    .unwrap_or(0)
+            });
+            let lean = grid
+                .cells
+                .iter()
+                .filter(|c| !c.is_ocean() && c.goods & 1 == 0)
+                .count();
+            reach.push((
+                run.0,
+                border,
+                sandy,
+                coast_lands,
+                rough_coast,
+                sea_oil,
+                relabelled,
+                under,
+                top,
+                lean,
+                dry,
+            ));
+            check(&grid, &d, 1, 7945);
+            logs.push(((run.0, run.1, run.2, run.3, 0), d.log));
+        }
+        let islands = east_indies_make_traces(all, traces);
+        let (met, stream) = stream_partings(&islands, &logs, |s| s);
+        eprintln!(
+            "East Indies values: (seed, border ocean, sandy, coast lands, rough coast, sea oil, \
+             relabelled, dry cells under size/128, /64, /16, their largest val, foodless, value draws) {reach:?}; \
+             met whole {met:?}; 7937, 7945 on {files:?} files"
+        );
+        assert!(
+            stream.is_empty(),
+            "{} East Indies traces part from the port's values:\n{}",
+            stream.len(),
+            say_partings(&stream)
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            islands.len() >= ISLAND_PLACE_ALL_TRACES && files.iter().all(|&n| n >= ISLAND_FILES),
+            "the values walked {} traces and {files:?} files",
+            islands.len()
+        );
+    }
+
     /// The East Indies traces whose `place_all` segment the stream check
     /// walks: a floor.
     const ISLAND_PLACE_ALL_TRACES: usize = 418;
@@ -4556,6 +4733,7 @@ mod tests {
 
     /// The §15 phases this module checks on East Indies: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail
-    /// (7859, 7861..7870), and the resources (7877..7927).
-    const EAST_INDIES_CHECKED: i64 = 4;
+    /// (7859, 7861..7870), the resources (7877..7927) and the values
+    /// (7937, 7945).
+    const EAST_INDIES_CHECKED: i64 = 5;
 }

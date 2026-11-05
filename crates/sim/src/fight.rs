@@ -3910,7 +3910,7 @@ impl Sim {
     /// it off — so the gate this crate applies is `on_map` and the decoy
     /// bit, and never [`crate::Unit::alive`], which the caller has
     /// already cleared.
-    fn close_unit(&mut self, i: usize, dtype: i32, frame: i64) {
+    pub(crate) fn close_unit(&mut self, i: usize, dtype: i32, frame: i64) {
         if dtype == 0 {
             return;
         }

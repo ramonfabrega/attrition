@@ -16397,9 +16397,102 @@ theirs' V2 Rocket `0/16` is in no 2601 record (parked 3836c).
   stepped under the emulator.
 - The `traj 1` arm's per-frame terrain test is not modelled for an ordinary round: ours waits out
   `total_time`. Under 2^31 it never fires on either side.
-- What takes theirs' `0/16` before the closing dump (3836c).
+- ~~What takes theirs' `0/16` before the closing dump (3836c).~~ The quit's `Leader::defeat`: §152.15.
 
 Run 1480 was not used: every frame this needed was on disk (run1468's stride blocks, its trace).
+
+## 152.15 The quit kills the human's planes — the third melee's close whole (item 3841)
+
+**The booking** (3836c): the closing block 2601 reads 151 units compared, one count off and one extra, `(0, 16)`,
+and who=0's `active`, `control` and `num_units[263]` part by one, ours 15/15/1 against theirs' 14/14/0.
+
+**The unit, by type and domain.** `0/16` is uid 23, `TypeIndex` 313, the V2 Rocket. It is of the air domain
+(`z_internal` 537) and is not a helicopter, so `UnitData::is_plane` answers yes. It is the human's last air
+unit: the Fighter-Bomber `0/15` and `0/14` are gone before 2501. Its record stands unchanged on both sides from
+1401 to 2501: (16152, 15864), 2 hits, no order, `mana_burn` saturated at its MANA 250. Only `idle` climbs, at its
+sixteen-frame cadence (67 on 2401, 73 on 2501). Nothing on 2501 names uid 23: no order, no round, no
+`near_o`. On 2601, who=0's units are `0/0`..`0/13` and the buildings `2000`..`2006`. `0/16` alone is missing, with
+no `DEATH_OBJS` and no `AMMO`.
+
+**The direction: theirs acted, on the quit.** The draw stream agrees whole to 2600, so the removal draws
+nothing. The `cover=1` twin's first entries (run1468b, `report.py … coverage`) show nothing new between 2351
+(`Leader::do_sell`) and the trace's last frame. Read in record order (one probe over `report.read_log`), that frame
+opens with, before any unit acts:
+
+1. `CommandManager::issue_quit`
+2. `Player::quit`
+3. `Player::resign`, with its one draw, `SoundGlobal::play+0x2a < Player::resign+0x18a`
+4. `Player::leave_game`
+5. `Leader::defeat`
+6. `Leader::defeat_by`
+7. `LeaderData::any_humans`
+8. `Armies::leader_defeated`
+9. `Build::clean_queue`, `Player::lose`, `Game::check_victory`, `GameLog::create_report`
+
+The units' `do_idle` draws follow. The capture's `--end-frame` quit is a resign. `resign` calls
+`leave_game(6)`, which calls `Leader::defeat(6, −1, 0)`, reason 6 (`ACHIEVEEVENT_RESIGNED`) with no captor.
+
+**What the defeat does to units** (`Leader::defeat@006ecb00`, after the building loop). It walks `objects[who]`,
+and each active unit asks vslot `+0xc0` (`vtables.txt`: `UnitData::is_plane`):
+
+- a plane takes vslot `+0x158`, `Unit::die`, with `(0, −1, 0)`. `Unit::die@0060eda0` is `Object::die@00647080`,
+  the close through `+0x150` with `dtype` 0, then the slot held for at least a frame. `dtype` 0 rolls no death
+  animation and leaves no death object, which is why 2601 prints no record of it;
+- every other unit takes `Unit::clear_orders`;
+- both lose `unit_masks & 0x40000`.
+
+`defeat_by(−1, 6)` takes neither of its unit arms here. The captor arm wants `param_1 >= 0`. The blow-up arm wants
+`semaphore & 4`, two unallied survivors, and either another live human or none (`local_1c != 0 || local_18 == 0`).
+The human is the only human, so who=0's land units and buildings stand at 2601.
+
+**The value diff.** `UNITDATA (0, 16)` on block 2601: theirs absent, ours present at (16152, 15864) with 2 hits.
+Walked back, the two first differ on the quit frame's first act. On 2501 both sides hold the unit with the same
+fields.
+
+The leader keys follow from `0/16` alone:
+- `active` and `control` come off with the close (`close_count`: `+0x93c` and the population, POP 1);
+- `num_units[263]` is the V2's count.
+
+**Built** (`crates/sim/src/resign.rs`): `Sim::resign(who)`. It sets the leader defeated, lets the armies go, and walks
+every live unit of who's. A plane (`Sim::is_plane`) dies quietly: the `cast_sniper_unit` tail at `dtype` 0, with
+`close_unit`'s first test drawing nothing. `close_unit` is `pub(crate)` for it.
+
+**The other units' `clear_orders` is not built**, and the measurement says why. Built with this crate's
+`Sim::clear_orders`, 54 closing states moved the wrong way. In each, a human unit walking on the quit frame is one
+step off (about 24), because it takes its step in theirs and stops at once in ours: `american_industrial`'s `0/10`
+(3, −25), `aztec_modern`'s `0/2` (25, 0), and up to seven units on a pair. The same arm dissolved two tears,
+`british_classical`'s `0/4` and `classical_melee`'s `0/6`, which in theirs stood still. So the original's clear lets
+some walkers finish their step and stops others. Which ones is parked as 3841c, and `shutdown.rs`'s one-tick tear is
+its candidate.
+
+The harness runs the quit where theirs does:
+- `shutdown::compare_shutdown` resigns every human seat before the closing frame's tick;
+- `gunpowder_melee::seat_walk` resigns after the frame before the close, ahead of the human's trailing read and the
+  last tick.
+
+**The verdict.**
+- `information_melee_run1468_s_closing_state` reads 151 units, counts all zero, no extras: **the third melee's closing
+  state is 0 off.** `0/16` was the only plane on a quitter's side at any close on disk that the walk reads.
+- `information_melee_s_leaders_are_compared_on_every_seat`'s rows are the standing family alone (12, 9, 7).
+- The first two melees' closes are unchanged.
+
+- **One other close moves, for the better.** The Inca word's last closing field, city `0/2000`'s `peasant_dist`, ours 2
+  against theirs 1 since item 3360, closes when the human is defeated on the closing frame
+  (`run969b_inca_closing_state`, `[0, 0, 0, 0, 0, 0, 1]` → all zero). Which reader of the flag moves it is not read
+  (3841b).
+- Every other close on disk is unchanged: the 190 `closing` tests and the shutdown census.
+
+**What is not established.**
+
+- The building loop's `Build::clean_queue` (a refund) is a SEAM. The human's buildings hold no queue on 2601.
+- The widening's closing block (`widen_walk` over 2501..2601) reads 2601 without the quit. The human citizens
+  `0/1`..`0/7`'s one-step orders there, 3836's "3788b shape", are what the defeat's `clear_orders` would drop, and
+  that arm is unbuilt (3841a, 3841c).
+- §151's "the human's `leftover` one frame early" is likely the defeated leader's skipped resource step. `seat_walk`
+  still reads the human at n − 1. That, and the reader that closes the Inca `peasant_dist`, are 3841b.
+- The tribute arm for allies, `Game::check_victory` and the messages are not modelled.
+
+Run 1481 was not used: every frame this needed was on disk (run1468's closing block, run1468b's per-frame coverage).
 
 ## 153. Reserved for the next item on the rules track
 
