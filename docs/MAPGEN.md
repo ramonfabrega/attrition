@@ -2066,9 +2066,7 @@ field is (A)'s 7, and nothing else writes one.**
   neighbour C). The scratch port bears this out. In a 9×9 ocean with one
   `SANDY` cell and `BASELAND` sub 3 at its south-west diagonal, the cell
   reaches the arm under `COAST_BASE` 3. With the land at any of the other
-  three corners, it does not. ~~reaches the arm~~: on the original, the
-  same plant at (41, 42) on Great Lakes does not (run1494, §19.7), so the
-  shape is necessary at most, never sufficient.
+  three corners, it does not. (Not on the original: §20.)
 
 ### 19.4 No grid on file holds P1 or P2
 
@@ -2237,11 +2235,9 @@ Lakes' default lobby, `cover=1`, then the same frame's `WORLD` block
 non-empty word at C kills it. A `.cmd` line cannot aim the cursor.
 Either the click lane hovers the cell, or the tracer stores
 `mouse_coord_x/y` (`ConsoleWin` +0x518/+0x51c) before the line, which
-is tooling this item does not build. ~~tooling this item does not
-build~~: item 3871 built the store (`@aim`) and took it, and the arm was
-not entered (§19.7).
+is tooling this item does not build. Taken: §20.
 
-### 19.7 The console-planted contact, taken (item 3871)
+## 20. The console-planted contact, taken (item 3871)
 
 Run1494 is the golden start (Great Lakes, `--map 14`, seed 12345) at
 `cover=1` on the click-free pool, to 640. It uses run1129's line, with

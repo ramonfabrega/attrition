@@ -34625,5 +34625,5 @@ SHA-256 `3e5f73d1e77db7e00bd756be188942eff57b31f7b274ccc834c0dad75f404f9e`.
 Archive `rontrace-run1494.log`, 17,228,384 bytes,
 SHA-256 `e7a97e8a70a66b70b2865f050ffa0623366fdfd74539d89dd0c8788ca7315aed`.
 
-**What it holds**: the plant is not a contact (`docs/MAPGEN.md` §19.7). The gate is in `check_for_tendrils`, and the
+**What it holds**: the plant is not a contact (`docs/MAPGEN.md` §20). The gate is in `check_for_tendrils`, and the
 next take prints `TERRAIN` at detail 40 on 620 (parked 3871a).

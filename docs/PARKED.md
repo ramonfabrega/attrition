@@ -13817,7 +13817,7 @@ same frame's `WORLD` block. ~~Run 1494 stays held~~: taken by item 3871, not ent
 
 ## Parked by item 3871, 2026-11-05 — the console-planted contact, taken
 
-(3871a) **The plant at (41, 42) did not enter the arm; the gate is in `check_for_tendrils`** (`docs/MAPGEN.md` §19.7).
+(3871a) **The plant at (41, 42) did not enter the arm; the gate is in `check_for_tendrils`** (`docs/MAPGEN.md` §20).
 Run1494 aimed `weather` with the new `@aim` line. Block 621 differs from the golden start's `WORLD` grid in that one
 cell alone (`OCEAN` 0 → `BASELAND` 3, C = (42, 41) `SANDY`). No `HIT` for `TerrainOut::check_for_diagonal@008595f0` or
 `WorldData::is_valid@00471170` landed. `is_combo_acceptable` is three-valued (2 = acceptable, not up), and with that
