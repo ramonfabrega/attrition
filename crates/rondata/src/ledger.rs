@@ -395,6 +395,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the fourth melee's walks: it compares no field itself (item 3847)",
     ),
     (
+        "diff/airbase_melee.rs",
+        "the fifth melee's walks: it compares no field itself (item 3868)",
+    ),
+    (
         "diff/gunpowder_melee.rs",
         "the first melee's walks: it compares no field itself (item 3733)",
     ),

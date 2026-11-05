@@ -3650,6 +3650,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::sea_melee::sea_melee_run1484_window(),
         || super::sea_melee::sea_melee_run1486_window(),
         || super::sea_melee::sea_melee_run1487_window(),
+        || super::airbase_melee::airbase_melee_word_window(),
         || super::russian_information_pair::russian_information_stride_window(),
         || super::russian_information_pair::russian_information_frame_6153_window(),
         || super::russian_information_pair::russian_information_gap_5795_window(),

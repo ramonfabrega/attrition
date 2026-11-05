@@ -7289,6 +7289,15 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3868: the fifth melee's first try, run1492 walked from run1482's
+    // start with the two Airbases staged — the computers' Strategic Bombers
+    // (305) drop from 1101 (chapter seventeen's corners).
+    ("airbase_melee_first_parting", 6),
+    // Its closing state and its leaders' walk, run1492 to the closing block
+    // 2601: 49 each; the word's window 1801..2067: 6.
+    ("airbase_melee_run1492_s_closing_state", 49),
+    ("airbase_melee_s_leaders_are_compared_on_every_seat", 49),
+    ("airbase_melee_run1492_s_word_window_is_widened_whole", 6),
     // Item 3744: the Russian Information pair's first try, run1401 walked
     // from run1400's start past the word 6153 once the siege-city arm lands
     // (`docs/AI.md` §368.1): 8 inexact corners.
@@ -11135,6 +11144,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3862,
         Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
     ),
+    // **The fifth melee** (item 3868, `docs/GOLDEN.md` §156): the fourth's
+    // lobby with an Airbase a computer. First try 1817 of 2600, widened on
+    // run1492's stride over 1801..2067, the rounds compared.
+    (
+        "AIRBASE_MELEE_WORD",
+        crate::diff::airbase_melee::AIRBASE_MELEE_WORD,
+        Some("airbase_melee_run1492_s_word_window_is_widened_whole"),
+        3868,
+        Some(crate::diff::airbase_melee::WIDENING_AIRBASE_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -12312,6 +12331,10 @@ pub(crate) const AI_CLOSINGS: &[(&str, usize)] = &[
     (
         "EastIndiesInformationMelee",
         crate::diff::sea_melee::SEA_MELEE_CLOSING_OFF,
+    ),
+    (
+        "EastIndiesAirbaseMelee",
+        crate::diff::airbase_melee::AIRBASE_MELEE_CLOSING_OFF,
     ),
 ];
 
@@ -14043,6 +14066,21 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 2_600,
         endpoint: Some("sea_melee_run1483_s_closing_state"),
         window: Some("sea_melee_closing_window"),
+    },
+    // **The fifth melee** (item 3868, `docs/GOLDEN.md` §156, §155 as the
+    // sixty-sixth pass amended it): the fourth's lobby, no lever moved,
+    // with an Airbase `add`ed for each computer inside its capital's city
+    // on 603 and 605 (`tools/gamelog/golden/melee-airbase.cmd`). First try
+    // 1817 of 2600; run1492's word window over 1801..2067, the rounds
+    // compared; the closing state run1492's block 2601.
+    AiWord {
+        line: "Melee",
+        map: "EastIndiesAirbaseMelee",
+        named: "East Indies (the melee, an Airbase a computer)",
+        word: crate::diff::airbase_melee::AIRBASE_MELEE_WORD,
+        length: 2_600,
+        endpoint: Some("airbase_melee_run1492_s_closing_state"),
+        window: Some("airbase_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -545,6 +545,11 @@ pub const TRACES: &[&str] = &[
     // run1483b): run1483's game on every frame (rngcmp 2601 identical, 0
     // differing).
     "rontrace-run1483b.log",
+    // Item 3868: the fifth melee (the fourth's lobby with an Airbase a
+    // computer, `tools/gamelog/golden/melee-airbase.cmd`) at `cover=1` on
+    // the click-free pool, to 2600 (`docs/RUNS.md` run1492b): run1492's
+    // game on every frame (rngcmp 2601 identical, 0 differing).
+    "rontrace-run1492b.log",
     // Item 3858: two of item 3493's click-free style sweep (`docs/RUNS.md`
     // run1118, run1122), the default lobby at `--map 10` and `--map 15`
     // under `cover=1` on the click-free pool, to their `--end-frame` 36,

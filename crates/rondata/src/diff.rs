@@ -30,6 +30,8 @@ use crate::load::Loaded;
 use sim::{Pos, Sim, Tuning, Unit, World};
 
 #[cfg(test)]
+mod airbase_melee;
+#[cfg(test)]
 mod american_enlightenment_pair;
 #[cfg(test)]
 mod american_industrial_pair;
@@ -262,8 +264,6 @@ mod sahara_coverage;
 mod sahara_mongol;
 #[cfg(test)]
 mod sahara_toughest;
-#[cfg(test)]
-mod airbase_melee;
 #[cfg(test)]
 mod sea_melee;
 #[cfg(test)]
