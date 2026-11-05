@@ -34521,3 +34521,74 @@ SHA-256 `8100607269dad67cc996750a2e1ed72cd84e8ef8ce73afb19bf3ae26e253e520`.
 
 **What it holds**: the pair's closing widening (`spanish_information_pair_run1489b_s_closing_frame_is_widened_whole`):
 257 blocks, 47 keys, the standing families and `1/18`'s `damage_frac`; rounds read 85 against 85, none parting.
+
+## run1490 — the Germans at a held Industrial age, Great Lakes, at difficulty 3: the `DUMP_ALL` start (2026-11-05, item 3867, `att-3867`)
+
+`docs/AI.md` §381. run1488's line with the nation and age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1490 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`.
+- Pool lane 1, the pool's pick. Launched 08:51:05, exited 08:51:39 (33.6 s launch to exit). `success`: 37 frames,
+  3370 `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 12, map style 14, five files restored;
+  `page_faults` 0, `relaunches: []`. `GAME INFO` reads back `DIFFICULTY 3` and `STARTING_TECHNOLOGY 5`
+  (`Pair::assert_lobby`). Filed with `filerun.py run1490 greatlakes-german-industrial-moderate-start`. `df -g ~`
+  read 135 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1490-greatlakes-german-industrial-moderate-start.txt`, 151,502,062 bytes,
+SHA-256 `b26c563f59a3f30f5681c7f312c2eebb727f139c277026e49f52c10c4970dfa1`.
+
+Archive `rontrace-run1490.log`, 9,351,808 bytes,
+SHA-256 `3c1e34a2531d8a59af699aa6c9446a501301323b0d3975a783823c40d556af70`.
+
+**What it holds**: the start of `german_industrial_moderate_pair::GERMAN_INDUSTRIAL_MODERATE`, and the walk's
+initial state.
+
+## run1491 — the Germans at a held Industrial age, Great Lakes, at difficulty 3: the draw stream to the game's end (2026-11-05, item 3867, `att-3867`)
+
+`docs/AI.md` §381. run1489's line with `--ai-tribe 12` and run1490's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=3 --detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1490. Launched 08:51:12, exited 08:53:43 (151.6 s launch to exit). `success`;
+  `page_faults` 0, `relaunches: []`. **The game ended itself on 4784** (closing block 4785, `ended_early`). `GAME
+  INFO` reads back as run1490's. `rngcmp.py` against run1490: 37 frames identical. Filed with `filerun.py run1491
+  greatlakes-german-industrial-moderate-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1491-greatlakes-german-industrial-moderate-trace.txt`, 26,053,862 bytes,
+SHA-256 `7800805de5329ca751e7aef5db55ef9020cc318cb35b4bfc3db5471dd6a92bb9`.
+
+Archive `rontrace-run1491.log`, 81,488,000 bytes,
+SHA-256 `20bf68af33ae7b083478d2d56c7bcf56b01e8e4ab55cbc6a788554bd64f5c432`.
+
+**What it holds**: the pair's first try, **whole at 4784** by the count and the sequence
+(`german_industrial_moderate_pair_first_parting`); the German seat's first `Machine Gun[MACHINEGUNGERMAN]` (124) on
+block 4601, and no 123 on any block (`german_industrial_moderate_pair_s_computer_fields_the_german_machine_gun`);
+its stride, 101..4701, 47 blocks and 107 keys; the closing block 4785, 148 units, counts `[0, 0, 0, 0, 0, 0, 0]`,
+three German Barracks queuing 124 and 131 and never 123.
+
+## run1491b — the Germans at a held Industrial age, Great Lakes, at difficulty 3: the closing window, blocks 4528..4785 (2026-11-05, item 3867, `att-3867`)
+
+`docs/AI.md` §381. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1491's stride prints units every hundred frames (4701, then the closing block), with no `AMMO` and no leader,
+building or city record past the start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1491b --map 14
+--end-frame 4784 --allow-early-end --timeout 3600 --log-window 4528 4785 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0 --profile
+STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 08:57:55, exited 09:00:14 (139.0 s launch to exit). `success`; `page_faults` 0,
+  `relaunches: []`, last frame 4784. `rngcmp.py` against run1491: 4785 frames identical. Filed with `filerun.py
+  run1491b greatlakes-german-industrial-moderate-closing-window-4528-4785`. `df -g ~` read 132 GiB free after it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1491b-greatlakes-german-industrial-moderate-closing-window-4528-4785.txt`, 542,613,291 bytes,
+SHA-256 `85edbab51affbebc0d2a70509b69796de6a5a9d1ee964a51a82692d9df84b82a`.
+
+Archive `rontrace-run1491b.log`, 81,165,984 bytes,
+SHA-256 `18877232c075d2e5f0f36e5be79ddd366e78f8b19cabbf2b84ee02f0775de6d0`.
+
+**What it holds**: the pair's closing widening
+(`german_industrial_moderate_pair_run1491b_s_closing_frame_is_widened_whole`): 257 blocks, 52 keys, all standing
+families; rounds read 1015 against 1015, one parting on `ammo[3].ox` and `whom` (the Armored Car `1/35`'s round at a
+dead Citizen, parked 3867a); three German Barracks queuing 124 from block 4528.

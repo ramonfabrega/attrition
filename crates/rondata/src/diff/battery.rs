@@ -584,6 +584,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the Lakes word's `(14, 9, 4)` nor the Industrial pair's `(14, 9, 5)`,
     // this map at other difficulties; no battery game fields the Spanish.
     (14, 9, 3),
+    // The Germans at a held Industrial age, Great Lakes at Moderate (item
+    // 3867, `diff::german_industrial_moderate_pair`), minted under rule (3)
+    // — not the Modern pair's `(14, 12, 4)` nor the Industrial pair's
+    // `(14, 12, 5)`, this map at other difficulties; no battery game fields
+    // the Germans.
+    (14, 12, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

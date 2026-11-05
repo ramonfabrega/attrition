@@ -16975,9 +16975,11 @@ tmp, not tools. No capture, no packet, no emulator run. The AI scripts under `ai
   computers start their Barracks between 401 and 754 in the melees. The Industrial pairs' computers field their first
   generic Machine Gun at 2501 (British run1336), 3201 (Chinese run1155), 3601 (Inca run1372), 3701 (American run1338)
   and 3901 (Spanish run1368), all at the pairs' own resources. With the melee's grant at 600 it may come earlier. That
-  is unmeasured, and the line competes with every other Barracks line in `create_units`' land branch. No German seat
+  is unmeasured, and the line competes with every other Barracks line in `create_units`' land branch. ~~No German seat
   has played an Industrial start: run1000 (Ancient) and run1144 (all techs) are the German starts on disk, and run1396
-  (Modern) fields an ME109 at 2301 and no machine gun.
+  (Modern) fields an ME109 at 2301 and no machine gun.~~ One had: run1333/run1334, this map at Toughest (AI.md §346),
+  fields no machine gun in 4,772 frames. At Moderate, run1491 fields 124 from block 4601, its Barracks queuing it by
+  4528 and never 123 (item 3867, AI.md §381).
 
 ### 154.3 The cheapest staging, and what §155 would need
 

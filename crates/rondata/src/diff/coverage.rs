@@ -3677,6 +3677,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::french_information_pair::french_information_closing_window(),
         || super::spanish_information_pair::spanish_information_stride_window(),
         || super::spanish_information_pair::spanish_information_closing_window(),
+        || super::german_industrial_moderate_pair::german_industrial_moderate_stride_window(),
+        || super::german_industrial_moderate_pair::german_industrial_moderate_closing_window(),
         || super::bantu_modern_pair::bantu_modern_late_stride_window(),
         || super::bantu_modern_pair::bantu_modern_frame_4304_window(),
         || super::egyptian_modern_pair::egyptian_modern_stride_window(),

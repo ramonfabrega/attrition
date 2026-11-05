@@ -13756,13 +13756,18 @@ read, would lack one unit. Names no score until a Spanish lobby's start is simul
   stride cannot place the blow between 3001 and 3101. **Score**: none; a window over 3001..3101 with `AMMO=5`
   would name the round if a later word reads it.
 
-## Parked by the next landing, slot ZJ — reserved
+## Parked by item 3867, 2026-11-05 — the German Industrial Moderate pair whole at 4784
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3867a. A round keeps its dead target, on a second lobby** (run1491b's block 4564;
+  `german_industrial_moderate_pair_run1491b_s_closing_frame_is_widened_whole`, the two parting round fields). The
+  Armored Car `1/35`'s (TI 216, land, group 64) `ammo[3]` flies at the Citizen `0/12`, last on block 4563. Theirs
+  keeps `ox` 12 and `whom` 0, and ours reads −1 for both. This is 3714a's family. Nothing reads the fields before
+  the round lands, and no draw parts to 4784. **Score**: none while the pair stays whole; it joins 3714a when a
+  round whose target died parts a landing or a draw on a word's frame.
+- **3867b. The Toughest German Industrial computer fields no machine gun** (run1333/run1334, §346: neither 123 nor
+  124 in 4,772 frames), while the Moderate one fields 124 from 4601 (§381). This is `create_units`' land valuation,
+  unread. **Score**: none; both pairs are whole. It is a reading for whoever stages a German line in a melee
+  (GOLDEN §154's Proposal B).
 
 ## Parked by the next landing, slot ZK — reserved
 

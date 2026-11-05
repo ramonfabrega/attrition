@@ -125,6 +125,8 @@ mod german_alltech_pair;
 #[cfg(test)]
 mod german_ancient_pair;
 #[cfg(test)]
+mod german_industrial_moderate_pair;
+#[cfg(test)]
 mod german_industrial_pair;
 #[cfg(test)]
 mod german_modern_pair;
