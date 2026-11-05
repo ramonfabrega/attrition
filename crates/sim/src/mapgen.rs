@@ -248,6 +248,11 @@ pub struct MapGrid {
     /// on a border end the end cell again and one off the map. The
     /// troughs read them ([`crate::map_troughs`]); no part walks them.
     pub rivers: Vec<Vec<(i32, i32)>>,
+    /// `Cliffs`' queued cliffs (`cliffs` +0x40): each
+    /// `Cliffs::add_cliff@008a6690` appends its origin cell, size index and
+    /// template index, for `Cliffs::init@008a8020` to place in
+    /// `Terrain::init` (`docs/MAPGEN.md` §18.3). No part walks it.
+    pub cliffs: Vec<(i32, i32, usize, usize)>,
 }
 
 impl MapGrid {
@@ -279,6 +284,7 @@ impl MapGrid {
             goods: Vec::new(),
             mountains: Vec::new(),
             rivers: Vec::new(),
+            cliffs: Vec::new(),
         }
     }
 

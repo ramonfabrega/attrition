@@ -78,12 +78,16 @@ pub mod site {
     pub const COAST_BASE: u32 = 0x006a_9dc0 + 0x121;
     pub const NUB_TRANS_X: u32 = 0x006a_1f30 + 0xa0;
     pub const NUB_TRANS_Y: u32 = 0x006a_1f30 + 0x2a5;
+    /// `Cliffs::position_cliff@008a8bc0`'s template pick.
+    pub const CLIFF: u32 = 0x008a_8bc0 + 0x16f;
 }
 
 /// `WData::flags` bits this phase reads and writes.
 pub mod flag {
     pub const COAST: u16 = 0x4;
     pub const ROCK: u16 = 0x8;
+    /// A cliff's footprint, `Cliffs::add_cliff@008a6690`'s mark.
+    pub const CLIFF: u16 = 0x40;
     pub const MOUNTAIN: u16 = 0x10;
     pub const FOREST: u16 = 0x20;
     pub const ROAD: u16 = 0x80;
@@ -135,6 +139,9 @@ pub struct Group {
     pub corner_max: i32,
     pub min_oil: i32,
     pub max_oil: i32,
+    /// `cliff_face` (`CliffFacing`: 0 world centre, 1 player centre, 2
+    /// any); a cliff group's only.
+    pub cliff_face: i32,
 }
 
 /// One mountain template, `MountainRange::init@008998b0`'s cell-level
@@ -179,12 +186,111 @@ pub struct TilesetGroups {
     pub riverbase: i32,
 }
 
+/// One cliff template, as **`CliffsOut::init_templates@008a71a0`** builds
+/// it from a `Data/Cliffs.xml` `CLIFF` and its texture (`docs/MAPGEN.md`
+/// §18.3): the size index its texture's width gives
+/// ([`cliff_size_index`]), its `orientation` (1 NW, 2 NE, 3 SE, 4 SW), and
+/// the cells of its `n × n` box it covers ([`cliff_cells`]), y outer and x
+/// inner, relative to the box's corner.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct CliffTemplate {
+    pub size: usize,
+    pub facing: i32,
+    pub cells: Vec<(i32, i32)>,
+}
+
+/// `init_templates`' size index from a texture's width: 64 → 4, 32 → 3,
+/// 16 → 2, 8 → 1, anything else 0.
+pub fn cliff_size_index(width: i32) -> usize {
+    match width {
+        64 => 4,
+        32 => 3,
+        16 => 2,
+        8 => 1,
+        _ => 0,
+    }
+}
+
+/// `offtable@00af2fb0`: each size index's box, centred on the origin
+/// cell.
+const CLIFF_OFFSET: [i32; 5] = [0, -1, -2, -4, -8];
+
+/// `Cliffs::position_cliff`'s facing table (`[0xb69900]`), by
+/// `2·[dy ≥ 0] + [dx ≥ 0]`.
+const CLIFF_FACING: [i32; 4] = [1, 2, 4, 3];
+
+/// **`init_templates`' cell mask** for a `width`² texture whose pixels are
+/// `px`, row 0 first, each `[byte 0, alpha]` of its 32-bit texel. A texture
+/// with any zero alpha covers the cells holding one; otherwise a cell is
+/// covered when the heights `byte · (1/255) · 480` (two `mulss`, listing
+/// 0x8a762f..0x8a763a) over its 6 × 6 window — pixels `4c − 1 ..= 4c + 4`
+/// each way, 0 off the texture — span more than 192 (`maxss`/`minss` from
+/// 0 and 480, `subss`, `comiss`; 0x8a7700..0x8a7862), single precision
+/// throughout and so [`Single`] exactly.
+pub fn cliff_cells(width: i32, px: &[[u8; 2]]) -> Vec<(i32, i32)> {
+    let n = width >> 2;
+    let w = width as usize;
+    let alpha = px.iter().any(|p| p[1] == 0);
+    let mut out = Vec::new();
+    if alpha {
+        let mut mask = vec![false; (n * n) as usize];
+        for (i, p) in px.iter().enumerate() {
+            if p[1] == 0 {
+                let (r, c) = ((i / w) as i32, (i % w) as i32);
+                mask[((r >> 2) * n + (c >> 2)) as usize] = true;
+            }
+        }
+        for cy in 0..n {
+            for cx in 0..n {
+                if mask[(cy * n + cx) as usize] {
+                    out.push((cx, cy));
+                }
+            }
+        }
+        return out;
+    }
+    let (inv, scale) = (
+        Single::from_bits(0x3b80_8081),
+        Single::from_bits(0x43f0_0000),
+    );
+    let height = |r: i32, c: i32| {
+        if r < 0 || c < 0 || r >= width || c >= width {
+            return Single::ZERO;
+        }
+        Single::from_i32(i32::from(px[r as usize * w + c as usize][0]))
+            .mulss(inv)
+            .mulss(scale)
+    };
+    for cy in 0..n {
+        for cx in 0..n {
+            let (mut hi, mut lo) = (Single::ZERO, scale);
+            for r in 4 * cy - 1..=4 * cy + 4 {
+                for c in 4 * cx - 1..=4 * cx + 4 {
+                    let v = height(r, c);
+                    if !hi.gt(v) {
+                        hi = v;
+                    }
+                    if !v.gt(lo) {
+                        lo = v;
+                    }
+                }
+            }
+            if hi.subss(lo).gt(Single::from_bits(0x4340_0000)) {
+                out.push((cx, cy));
+            }
+        }
+    }
+    out
+}
+
 /// What `place_all` reads that is not the grid: the groups, the sixteen
-/// templates in range order, and the tileset's numbers.
+/// templates in range order, the cliff templates in `Data/Cliffs.xml`'s
+/// order, and the tileset's numbers.
 #[derive(Clone, Debug, Default)]
 pub struct Inputs {
     pub groups: Vec<Group>,
     pub templates: Vec<Template>,
+    pub cliffs: Vec<CliffTemplate>,
     pub tileset: TilesetGroups,
     /// `game.info.map_style`; style 9 skips `treeify_mountains`.
     pub map_style: i32,
@@ -251,6 +357,8 @@ struct Pass<'a> {
     g: &'a mut MapGrid,
     d: &'a mut Draws,
     templates: &'a [Template],
+    /// `cliffs`' five per-size lists, each in `Data/Cliffs.xml`'s order.
+    cliffs: [Vec<&'a CliffTemplate>; 5],
     rings: Rings,
     help: Help,
     /// `Mountains::verify_bits`, the sliding verify's per-cell marks.
@@ -453,8 +561,160 @@ impl Pass<'_> {
                 self.tiles.push((x, y));
                 true
             }
+            8 => {
+                // `position_cliff(x, y, range − 1, −1, −1, 0,
+                // FACE_WORLD_CENTER)` (0x6a2c6b).
+                if !self.position_cliff(x, y, range - 1, (-1, -1), false, 0) {
+                    return false;
+                }
+                self.tiles.push((x, y));
+                true
+            }
             _ => false,
         }
+    }
+
+    // ---- the cliffs (`docs/MAPGEN.md` §18.3) --------------------------------
+
+    /// **`Cliffs::verify_placement@008a6310`** for template `i` of size `t`
+    /// at `(x, y)`. A `loose` check passes outright: its first on-map cell
+    /// returns 1, and so does the end of the list. Otherwise every cell is
+    /// on the map; no cliff (0x40) within the 7 × 7 round it and no forest
+    /// (0x20) within the 3 × 3 (`move_x/move_y[1..49]`, `[1..9]`); and the
+    /// cell itself carries none of 0x10, 0x28, 0x800, 0x1000 or 0x40, is not
+    /// dry-skipped (no 0x100 and `land` 1 or 2) and is not blocked.
+    fn verify_placement(&self, x: i32, y: i32, t: usize, i: usize, loose: bool) -> bool {
+        if loose {
+            return true;
+        }
+        let off = CLIFF_OFFSET[t];
+        self.cliffs[t][i].cells.iter().all(|&(cx, cy)| {
+            let (u, v) = (x + off + cx, y + off + cy);
+            if !self.inb(u, v) {
+                return false;
+            }
+            for dy in -3..=3 {
+                for dx in -3..=3 {
+                    if (dx, dy) == (0, 0) || !self.inb(u + dx, v + dy) {
+                        continue;
+                    }
+                    let f = self.flags(u + dx, v + dy);
+                    if f & flag::CLIFF != 0
+                        || (dx.abs() <= 1 && dy.abs() <= 1 && f & flag::FOREST != 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+            let c = &self.g.cells[self.at(u, v)];
+            let f = c.flags;
+            !(f & (0x10 | 0x28 | 0x800) != 0
+                || (f & 0x100 == 0 && (c.land == 1 || c.land == 2))
+                || f & (0x1000 | 0x40) != 0
+                || c.blocked != 0)
+        })
+    }
+
+    /// `TerrainOut::is_clear_land@00874b60` under `add_cliff`'s masks: 2,
+    /// or 0x22 for a loose cliff, which lets a cliff cell and a blocked one
+    /// through. Neither mask's low byte is negative, so no good is sought.
+    fn cliff_clear_land(&self, x: i32, y: i32, loose: bool) -> bool {
+        let c = &self.g.cells[self.at(x, y)];
+        let f = c.flags;
+        if f & (0x10 | 0x20 | 0x8 | 0x800) != 0 {
+            return false;
+        }
+        if f & 0x100 == 0 && (c.land == 1 || c.land == 2) {
+            return false;
+        }
+        if f & 0x1000 != 0 || (f & flag::CLIFF != 0 && !loose) {
+            return false;
+        }
+        loose || c.blocked == 0
+    }
+
+    /// **`Cliffs::add_cliff@008a6690`**: verified again, queued, and every
+    /// on-map cell of the template that is clear land marked 0x40.
+    fn add_cliff(&mut self, x: i32, y: i32, t: usize, i: usize, loose: bool) {
+        if !self.verify_placement(x, y, t, i, loose) {
+            // −1, which every caller reads as placed.
+            return;
+        }
+        self.g.cliffs.push((x, y, t, i));
+        let off = CLIFF_OFFSET[t];
+        for k in 0..self.cliffs[t][i].cells.len() {
+            let (cx, cy) = self.cliffs[t][i].cells[k];
+            let (u, v) = (x + off + cx, y + off + cy);
+            if self.inb(u, v) && self.cliff_clear_land(u, v, loose) {
+                let j = self.at(u, v);
+                self.g.cells[j].flags |= flag::CLIFF;
+            }
+        }
+    }
+
+    /// **`Cliffs::position_cliff@008a8bc0`**: the templates of size `t`
+    /// whose facing is the one wanted and that [`Self::verify_placement`]
+    /// passes, one drawn (`r % n`) when two or more do, then
+    /// [`Self::add_cliff`]. The facing wanted, by [`CLIFF_FACING`]: unless
+    /// `loose`, of `(x, y)` from `toward`; loose and `face` below
+    /// `FACE_ANY`, of the map centre (`xs / 2` both ways) from `toward`;
+    /// loose otherwise, 1. `toward.0` −1 wants any facing.
+    fn position_cliff(
+        &mut self,
+        x: i32,
+        y: i32,
+        t: i32,
+        toward: (i32, i32),
+        loose: bool,
+        face: i32,
+    ) -> bool {
+        let Ok(t) = usize::try_from(t) else {
+            return false;
+        };
+        if t >= self.cliffs.len() {
+            return false;
+        }
+        let facing =
+            |dx: i32, dy: i32| CLIFF_FACING[2 * usize::from(dy >= 0) + usize::from(dx >= 0)];
+        let want = if !loose {
+            (toward.0 != -1).then(|| facing(x - toward.0, y - toward.1))
+        } else if (face as u32) < 2 {
+            let c = self.g.xs >> 1;
+            (toward.0 != -1).then(|| facing(c - toward.0, c - toward.1))
+        } else {
+            Some(1)
+        };
+        let list: Vec<usize> = (0..self.cliffs[t].len())
+            .filter(|&i| {
+                want.is_none_or(|w| self.cliffs[t][i].facing == w)
+                    && self.verify_placement(x, y, t, i, loose)
+            })
+            .collect();
+        if list.is_empty() {
+            return false;
+        }
+        let k = if list.len() >= 2 {
+            (self.d.get(site::CLIFF) % list.len() as i32) as usize
+        } else {
+            0
+        };
+        self.add_cliff(x, y, t, list[k], loose);
+        true
+    }
+
+    /// **`Cliffs::verify_defensive_position@008a8680`** for a cliff below
+    /// the largest size: `FACE_ANY` passes with no float. The other two
+    /// facings measure an angle in single and double precision (§18.3),
+    /// which no shipped style reaches — Southwest Mesa's one player cliff
+    /// below size 5 is `FACE_ANY`.
+    fn verify_defensive_position(&self, face: i32) -> bool {
+        // SEAM: the angle test (`acos` of two normalised single vectors,
+        // 22.5° and 17.5°) is not ported; nothing shipped enters it.
+        assert!(
+            face >= 2,
+            "verify_defensive_position: the angle test is not ported (MAPGEN §18.3)"
+        );
+        true
     }
 
     /// **`TerrainGroup::clear_group@006a28e0`**: the undo of a failed group,
@@ -832,7 +1092,11 @@ impl Pass<'_> {
             return self.add_mountain(gr, msz, x, y, Verify::Sliding).is_some();
         }
         if gr.kind == 8 {
-            return false;
+            // 0x6a49c9..0x6a4a58: the largest template skips the defensive
+            // test and is placed loose.
+            let loose = msz == 4;
+            return (loose || self.verify_defensive_position(gr.cliff_face))
+                && self.position_cliff(x, y, msz, home, loose, gr.cliff_face);
         }
         if gr.kind == 4 && !shape.is_empty() {
             let (mx, my) = MIRROR[(self.d.get(site::PPG_MIRROR) & 3) as usize];
@@ -1150,6 +1414,7 @@ pub fn place_all(grid: &mut MapGrid, d: &mut Draws, inputs: &Inputs) {
         g: grid,
         d,
         templates: &inputs.templates,
+        cliffs: std::array::from_fn(|k| inputs.cliffs.iter().filter(|t| t.size == k).collect()),
         rings: Rings::stock(),
         help: Help {
             scores: vec![[0; 5]; players],
