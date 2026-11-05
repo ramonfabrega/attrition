@@ -162,12 +162,11 @@ fn german_industrial_moderate_pair_s_computer_fields_the_german_machine_gun() {
         let t = line.trim();
         if let Some(n) = t.strip_prefix("BEGIN FRAME ") {
             frame = n.trim().parse().unwrap_or(frame);
-        } else if let Some(k) = t.strip_prefix("type ") {
-            if let Ok(k @ (123 | 124)) = k.trim().parse::<i64>() {
-                if seen.last() != Some(&(frame, k)) {
-                    seen.push((frame, k));
-                }
-            }
+        } else if let Some(k) = t.strip_prefix("type ")
+            && let Ok(k @ (123 | 124)) = k.trim().parse::<i64>()
+            && seen.last() != Some(&(frame, k))
+        {
+            seen.push((frame, k));
         }
     }
     assert_eq!(
