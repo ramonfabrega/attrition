@@ -2836,9 +2836,14 @@ mod tests {
                 continue;
             };
             let run = (before.2, g.nations, g.xs, g.ys, g.map_size);
-            let tileset = tileset_before(&chances, before.2).expect("a drawn tileset");
-            let fert = fertility_of(root, style_file, &tileset).expect("its fertility");
-            walk.tilesets.insert(format!("{tileset}: {fert:?}"));
+            // A one-entry `TILECHANCE` list draws nothing (§4): its one
+            // tileset, as Great Sahara's and Southwest Mesa's.
+            let fert = match tileset_before(&chances, before.2) {
+                Some(tileset) => fertility_of(root, style_file, &tileset),
+                None => fertility(root, style_file),
+            }
+            .expect("its fertility");
+            walk.tilesets.insert(format!("{}: {fert:?}", fert.tileset));
             let partitions = fertile_partitions(&fert.baseland);
             let (mut grid, draws) = at_7807(run);
             let seed = draws.rng.seed;
@@ -6114,8 +6119,9 @@ mod tests {
     const MESA_FILES: usize = 1;
     const MESA_TRACES: usize = 1;
 
-    /// The §15 phases this module checks on Southwest Mesa: the mask (7807).
-    const SOUTHWEST_MESA_CHECKED: i64 = 1;
+    /// The §15 phases this module checks on Southwest Mesa: the mask (7807)
+    /// and the zero-draw passes (7835..7854, item 3872).
+    const SOUTHWEST_MESA_CHECKED: i64 = 2;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -6256,6 +6262,42 @@ mod tests {
         assert!(
             walked >= MESA_TRACES,
             "the stream check walked {walked} traces"
+        );
+    }
+
+    /// **Southwest Mesa's zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// §6, §15 step 2, item 3872): from the port's 7807 grid
+    /// ([`southwest_mesa_make_continents`] on 7805's seed), Great Lakes'
+    /// four checkpoints on every Southwest Mesa file that carries them —
+    /// run1493's one, under its one tileset `SW_desert`.
+    #[test]
+    fn southwest_mesa_s_zero_draw_passes_are_the_traced_7835_to_7854() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let walk = zero_draw_walk(all, root, 10, "SOUTHWESTMESA.xml", |run| {
+            let (seed, nations, xs, ys, _) = run;
+            let mut grid = MapGrid::new(xs, ys);
+            let mut draws = Draws::new(seed);
+            sim::mapgen::southwest_mesa_make_continents(&mut grid, nations, &mut draws.rng);
+            (grid, draws)
+        });
+        eprintln!(
+            "7835, 7843, 7846, 7854: {:?} Southwest Mesa files, tilesets {:?}, regions {:?}",
+            walk.carried, walk.tilesets, walk.regions
+        );
+        assert!(
+            walk.parted.is_empty(),
+            "{} part:\n{}",
+            walk.parted.len(),
+            say_partings(&walk.parted)
+        );
+        assert!(
+            walk.carried.iter().all(|&n| n >= MESA_FILES),
+            "the checkpoints reached {:?} files",
+            walk.carried
         );
     }
 
