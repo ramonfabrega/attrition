@@ -13087,7 +13087,7 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   `SAHARA.xml`'s. Great Lakes' mask and steps 2–7 come first. The bank clear
   at 5076 is not falsifiable without them: one mutant of 23 failed nothing for that reason. `make_riverbeds`'
   water and oil arms, the start-city radius and `find_all`'s relabel at 5118 are unit-tested only. Names no
-  score.
+  score. *(The start-city test is held by East Indies' walk: 3846a.)*
 
 ## Parked by item 3812, 2026-11-03 — heights on Great Sahara
 
@@ -13461,13 +13461,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot YR — reserved
+## Parked by item 3846, 2026-11-04 — East Indies' rivers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3846a. The `make_riverbeds` arms East Indies' walk cannot part** (`docs/MAPGEN.md` §13, §15 step 8;
+  `sim::map_rivers`): of 19 mutants scored by `east_indies_s_rivers_are_5012_to_5118` (`tools/mutate.py --batch`
+  on `e2381b247`), 7 held — the start-city test, the neighbours' rock, the eight-neighbour cut, the refusal's zero,
+  a source in the square, the octagonal distance and the 5076 clear whole (its bank half stays unfalsifiable with
+  no path, 3811a) — and 12 failed nothing: `get_land`'s coast (3), forest (4), mountain 0x40, rock-with-oil and sea-oil
+  arms and the `== 2` test they feed, the radius's `− 1`, the cell's own mountain tiles, the 0x1 bit of the forest
+  predicate, the 0x1000 clear, `make_riverbeds`' opening clear and `find_all` at 5118. Each keeps 3811's unit
+  tests; none parts on either archipelago lobby. Names no score.
 
 ## Parked by the next landing, slot YS — reserved
 
