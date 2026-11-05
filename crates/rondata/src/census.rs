@@ -674,7 +674,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// German Industrial Moderate pair whole at 4784 adds `Machine
 /// Gun[MACHINEGUNGERMAN]` (124), first standing on block 4601 (§381,
 /// GOLDEN §154.1 3); 8 never: 296, 312, Boadicea and five gaia animals.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 294;
+/// Item 3873: 294 -> 296, the fifth melee whole at 2600 (its close 0 off)
+/// adds `Jet Fighter[MIRAGE]` (296, who 1 from block 1601) and `Attack
+/// Helicopter[HIND]` (312, who 2 from 1501), each out of a computer's
+/// `add`ed Airbase (GOLDEN §156, §156.1); 6 never; read by `rubric.py
+/// --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 296;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

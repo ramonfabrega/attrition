@@ -34734,3 +34734,30 @@ the mask's four draws (sites 0x69bb94, 0x69bbac, 0x69bbc2, 0x69bbf3) and 7807 at
 part 5 1267075849, which the port meets (`southwest_mesa_s_mask_is_the_traced_7807`,
 `southwest_mesa_s_mask_is_the_traced_stream`); `Cliffs::position_cliff`'s eleven template draws (site 0x8a8d2f), the
 cliff chain's next falsifier.
+
+## run1496 — the fifth melee: the window 1500..1545 and a packet at 1539 (2026-11-05, item 3873, `att-3873`)
+
+`docs/GOLDEN.md` §156.1. **What the disk could not answer**: run1492 prints `DEATH_OBJS` only on its stride
+blocks, so the dead Aircraft Carrier `1/18`'s record end is not on disk, and no dump prints a dead object's
+`hold_frames`. run1492's line with `--log-window 1500 1545`, `--detail end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`,
+`--end-frame 1550`, `--callwin 0 1550`, no stride, and the tracer defines `RON_STATE_FRAME=1539` and item 597's
+`RON_STATE_PLAN`, through `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1496`.
+`df -g ~` read 137 GiB free before it.
+- Pool lane 1. Launched 13:47:57, exited 13:48:59 (62.6 s launch to exit). `success`, 1551 frames, seed 12345,
+  `page_faults` 0, no `relaunches`. `rngcmp.py` against run1492: 1551 identical. Filed with `filerun.py run1496
+  eastindies-airbase-melee-window-1500-1545`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1496-eastindies-airbase-melee-window-1500-1545.txt`, 36,607,644 bytes,
+SHA-256 `57e61e4a5a3d8f9936c2c01b0ef7334f980f304ea06001c629513eb07feb8793`.
+
+Archive `rontrace-run1496.log`, 32,570,784 bytes,
+SHA-256 `05ec6949a9b7ebb3d5c85c12ad4db577744248fecef897cfcab77c60fb54cb7b`.
+
+Packet `~/ron-golden/run1496/map-18/frame-snapshot.bin`, 923,615,724 bytes,
+SHA-256 `8731d9ea5bf0b72ead153af8a67e4c015e05d250f28535c4daa085060bbb8827`.
+
+**What it holds**: the Carrier's record `who 1 o 18 first_frame 1390` on every frame through 1509 and on none
+after; the Jet Fighter (uid 69) first in `1/41` on 1540; and in the packet, `1/18`'s `+0x32` at 2 after tick 1538,
+one more than ours. Together these name the death records' bump after the ammo walk, which takes the fifth melee
+whole.

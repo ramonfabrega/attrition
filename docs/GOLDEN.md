@@ -17242,12 +17242,59 @@ as ours models, and (i) does not follow from the order alone. **What kills each*
 `DEATHS=1`, which prints the record's last frame (kills (i) if it is 1509), or a packet at 1539 with `--watch` on
 `1/18`'s `+0x32` over the Airbase's train completion (kills (ii) if the hold reads 0 at the birth).
 
-### 156.1 Coverage
+### 156.1 The dead Carrier's thirty-one: the death records run after the rounds (item 3873, run1496)
 
-**Diff-backed** (run1492, run1492b): the Airbases' `add` and their filing in the capitals' cities (the computers
-train from them); 305, 299, 312 and 296 standing on the frames of the table; the draw stream to 1817. **Reading
-only**: the two readings of the hold above. **Not established**: which of (i) and (ii) is the original's. The
-rubric does not move while the melee parts (unit types 294 of 302; 296 and 312 enter once it runs whole).
+**Both readings above were killed by one take.** run1496 is run1492's line with a window at every frame of
+1500..1545 (`end:MISC,UNITS=3,GUYS=4,DEATHS=1,AMMO=5`) and a packet at 1539 (`RON_STATE_FRAME=1539`), launched
+with the killers committed (`75010d915`). The disk could not answer either reading: run1492 prints `DEATH_OBJS`
+only on its stride blocks, and no dump prints a dead object's `hold_frames`. The units, by `TypeIndex` and domain:
+the Aircraft Carrier `1/18` (uid 35) is `TI` 351, sea; the Jet Fighter (uid 69) is `TI` 296, air; uid 70 is the
+Abrams, `TI` 254, land.
+
+- **(i) is killed.** Theirs' record `who 1 o 18 first_frame 1390` prints on every frame through 1509 and is gone
+  on 1510. A dump at logger frame N is the state after trace tick N−1 (EMULATOR §8), so the record ended on tick
+  1509, the tick ours culls it on.
+- **(ii) is killed.** The packet at 1539 is the state after tick 1538. There theirs' `1/18` is dead (`flags
+  0x120100`), still at the Carrier's (31224, 31992), and its `+0x32` reads **2**. Ours reads **1** at the same
+  boundary (`RON_DEBUG_SLOTS`: 30 through tick 1509, then one less a tick). Theirs held one frame longer, so no
+  ordering of the birth against the decrement is needed. `Objects::process_all@0065dce0` walks every player's
+  units (from `frame % 10`) before any building's band, so the Airbase's train completion always comes after the
+  decrement anyway.
+
+**What it is.** While a record lives, the hold stays level: `process_all` takes one off, the record's
+`DeathObj::inc_time@008d5240` puts one back, and the `blocks_while_dead` raise to 30 only floors it. So theirs'
+2 on 1538 means 31 at the record's end, where ours held 30. The extra one is the death frame's own bump.
+`Objects::inc_time@0065db70` runs every `Ammo::inc_time` (line 74) and then every live record (line 86). The
+Carrier was sunk by a round on 1390, so its record took a bump on 1390: `Object::close`'s 30, plus one. This crate
+had folded both bumps into one pass **ahead of** `process_projectiles`, with the comment "no capture can see the
+order". A record made in the walk was therefore first bumped on the frame after its death, and the hold settled
+one lower. Now `Sim::hold_frames_tick` keeps `Ammo::inc_time`'s dead-shooter bump ahead of the walk, and
+`Sim::death_objs_inc_time` runs the records' bump and cull after it (`crates/sim/src/fight.rs`, the call order in
+`Sim::tick`). Test: `fight::tests::a_death_a_round_makes_is_bumped_on_its_own_frame`.
+
+**What moved**: **1817 → 2600, the game whole** (the count 2184 → 2600; `airbase_melee_first_parting`), and the
+close **39 → 0 off**, 138 units compared (`airbase_melee_run1492_s_closing_state`). The value diff on the block
+the state first parted, 1601: theirs' `1/41` is the Jet Fighter (uid 69, `inside` 2016, at (18360, 37176), 140
+hits) and `1/18` the Abrams (uid 70, group 65, at (15480, 42456), 245 hits). Ours now matches both:
+`airbase_melee_run1492_s_stride_before_the_word_is_widened_whole` (1401..1701) holds no `1/18` or `1/41` row,
+149 → 123 firsts. The rest are the standing families, `build:extra`, `form` and the group pool, as in the fourth
+melee's. Ours puts the Jet into 41 on tick 1539, as theirs does. The closing window, 2501..2601
+(`airbase_melee_run1492_s_word_window_is_widened_whole`), holds 181 firsts, all from the standing families, and
+no round parts (4 read). Every other lobby's `first_parting` is unmoved (121 pass). The mutation that puts the
+records' bump back ahead of the walk returns the melee to 1817 / 2184 and fails the unit test (`tools/mutate.py`,
+both held). **The rubric**: unit types **294 → 296 of 302**. `Jet Fighter[MIRAGE]` (296) and `Attack
+Helicopter[HIND]` (312) enter with the melee whole (`census::RUBRIC_UNIT_TYPES_SEEN`). 6 never.
+
+**Not established**: the per-round order inside the ammo walk. Theirs bumps a dead shooter at that round's own
+step, so a shooter that an earlier round of the same walk kills is bumped by its later rounds on that frame.
+Ours bumps every round before the walk (parked 3873a).
+
+### 156.2 Coverage
+
+**Diff-backed** (run1492, run1492b, run1496): the Airbases' `add` and their filing in the capitals' cities (the
+computers train from them); 305, 299, 312 and 296 standing on the frames of the table; the draw stream to the
+game's end and the close, 0 off; the death record's last frame (run1496's window) and the dead Carrier's hold at
+1539 (its packet). **Reading only**: the ammo walk's per-round bump order (§156.1). The rubric reads 296 of 302.
 
 ## 157. Reserved for the next item on the rules track
 
