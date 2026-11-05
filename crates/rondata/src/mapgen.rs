@@ -1039,6 +1039,22 @@ pub fn islands_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Southwest Mesa setup path: every
+/// draw whose site is `MapSouthwestMesa::make_continents@0069bb20`
+/// (`docs/MAPGEN.md` §5, item 3869), which calls no drawing function, from
+/// the first to the first that is not.
+pub fn mesa_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let mesa = 0x0069_bb20..0x0069_bf70;
+    let Some(from) = setup.iter().position(|(s, _)| mesa.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !mesa.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -6092,6 +6108,154 @@ mod tests {
     /// The East Indies traces whose `place_all` segment the stream check
     /// walks: a floor.
     const ISLAND_PLACE_ALL_TRACES: usize = 418;
+
+    /// The Southwest Mesa files carrying 7805 and 7807, and the traces whose
+    /// mask segment the stream check walks: floors (run1493, item 3869).
+    const MESA_FILES: usize = 1;
+    const MESA_TRACES: usize = 1;
+
+    /// The §15 phases this module checks on Southwest Mesa: the mask (7807).
+    const SOUTHWEST_MESA_CHECKED: i64 = 1;
+
+    /// Every Southwest Mesa file's 7807 run, ported: `(file, 7805's
+    /// record, 7807's record, our grid, our draws as (site-less) words)`.
+    fn mesa_at_7807(
+        all: &[(String, StartGrid)],
+    ) -> Vec<(String, u32, (u32, u32, u32), (u32, u32, u32), Vec<u32>)> {
+        let mut out = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10) {
+            let (Some(before), Some(after)) = (g.at("map.cpp", 7805), g.at("map.cpp", 7807)) else {
+                continue;
+            };
+            assert!(g.xs > 0 && g.nations > 0, "{name}: no grid size or nations");
+            let mut grid = MapGrid::new(g.xs, g.ys);
+            let mut rng = Rng::new(before.2);
+            // The words before each draw: the trace's record holds the word
+            // a draw steps from, so stepping a twin by one roll per draw
+            // walks them.
+            let mut twin = Rng::new(before.2);
+            let start_dist =
+                sim::mapgen::southwest_mesa_make_continents(&mut grid, g.nations, &mut rng);
+            assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
+            let mut words = Vec::new();
+            while twin.seed != rng.seed && words.len() < 64 {
+                words.push(twin.seed);
+                twin.roll();
+            }
+            out.push((
+                name.clone(),
+                before.2,
+                (rng.seed, grid.start_part(), grid.cell_part()),
+                (after.2, after.3[2], after.3[5]),
+                words,
+            ));
+        }
+        out
+    }
+
+    /// **Southwest Mesa's mask at `map.cpp` 7807** (`docs/MAPGEN.md` §5,
+    /// §15 step 1, item 3869): from the seed at 7805, the port lands on
+    /// 7807's seed, part 2 and part 5 on every Southwest Mesa file that
+    /// carries both — run1493, the default lobby at `--map 10`.
+    #[test]
+    fn southwest_mesa_s_mask_is_the_traced_7807() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let runs = mesa_at_7807(all);
+        let parted: Vec<String> = runs
+            .iter()
+            .filter(|(_, _, ours, theirs, _)| ours != theirs)
+            .map(|(n, _, ours, theirs, _)| {
+                format!(
+                    "{n}: (seed, part 2, part 5) at 7807, ours {ours:?} against theirs {theirs:?}"
+                )
+            })
+            .collect();
+        eprintln!(
+            "7807: {} Southwest Mesa files, (7805 seed, ours, theirs) {:?}",
+            runs.len(),
+            runs.iter().map(|r| (r.1, r.2, r.3)).collect::<Vec<_>>()
+        );
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            runs.len() >= MESA_FILES,
+            "the 7807 check reached {} files",
+            runs.len()
+        );
+        let pinned = MAPGEN
+            .styles
+            .iter()
+            .find(|s| s.map == "SouthwestMesa")
+            .expect("MAPGEN's SouthwestMesa row");
+        assert_eq!(
+            pinned.ported, SOUTHWEST_MESA_CHECKED,
+            "a Southwest Mesa phase was ported or lost: re-pin `floors::MAPGEN` \
+             and the handoff's `Mapgen:` line"
+        );
+    }
+
+    /// **Southwest Mesa's mask, draw for draw** (`docs/MAPGEN.md` §5, §15
+    /// step 1, item 3869): each Southwest Mesa trace's `make_continents`
+    /// segment ([`mesa_part`]) opens on a Mesa file's 7805 seed and is, word
+    /// for word, the four the port draws — every site inside
+    /// `MapSouthwestMesa::make_continents`, none of Great Sahara's.
+    #[test]
+    fn southwest_mesa_s_mask_is_the_traced_stream() {
+        let Some(all) = archive() else {
+            eprintln!("skipped: no kept dumps on this machine");
+            return;
+        };
+        let runs = mesa_at_7807(all);
+        let run_of = |n: &str| {
+            n.strip_prefix("gamelog-")
+                .and_then(|r| r.split('-').next())
+                .map(str::to_string)
+        };
+        let mut walked = 0;
+        let mut parted = Vec::new();
+        for (name, seed, _, _, words) in &runs {
+            let Some(run) = run_of(name) else { continue };
+            let trace = format!("rontrace-{run}.log");
+            let Some(path) = crate::testenv::dump(&trace) else {
+                parted.push(format!("{name}: no {trace} on disk"));
+                continue;
+            };
+            let setup = setup_draws(Path::new(&path))
+                .expect("a readable trace")
+                .expect("a trace");
+            let seg = mesa_part(&setup);
+            let theirs: Vec<u32> = seg.iter().map(|&(_, w)| w).collect();
+            if seg.first().map(|x| x.1) != Some(*seed) || &theirs != words {
+                parted.push(format!(
+                    "{trace}: ours {:x?} from 7805's {seed:#x}, theirs {seg:x?}",
+                    words
+                ));
+            }
+            walked += 1;
+            eprintln!(
+                "{trace}: {} mask draws, sites {:x?}",
+                seg.len(),
+                seg.iter().map(|x| x.0).collect::<Vec<_>>()
+            );
+        }
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            walked >= MESA_TRACES,
+            "the stream check walked {walked} traces"
+        );
+    }
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
