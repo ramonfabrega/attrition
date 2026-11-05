@@ -2310,13 +2310,59 @@ reads the mouse only when `no_mouse` is 0.
   `TerrainOut::check_for_tendrils@00859eb0` that §19.3 did not walk. Its
   return decides (A)'s 7 (`mark_trans_flags`, `iVar6 == 0`), and its
   three-neighbour arm (`local_14 + local_10 + local_c + local_18 == 3`)
-  returns 1 after writing 5s. Which branch fired is not read: the
-  eight-slot map from `move_x/move_y` to its flags was not walked.
+  returns 1 after writing 5s. ~~Which branch fired is not read.~~ The
+  three-neighbour arm, on the S flank, printed (item 3874, below).
 - **The instrument that names it.** Every edge write in
   `mark_trans_flags` and `check_for_tendrils` is a `Log::say` at
   `GLOG_TERRAIN`, detail 0x28. No dump on disk prints `TERRAIN` at 40, so
   a retake of this line that prints `TERRAIN` at 40 on 620 prints the
-  re-mark write by write. That retake is the next booking (parked 3871a).
+  re-mark write by write. ~~That retake is the next booking (parked
+  3871a).~~ Taken as run1495 (item 3874, below).
+
+**The printed retake (item 3874, run1495).** `check_for_tendrils`'
+eight slots are `move_x/move_y[1..8]` (`world::MOVE_49`'s compass ring),
+stored through `local_50` as NW `local_24`, N `local_18`, NE `local_28`,
+E `local_c`, SE `local_30`, S `local_10`, SW `local_2c`, W `local_14`.
+A slot is 1 when neighbour → cell is 1. The three-neighbour arm tests
+only the four orthogonals. A `say` outside the two dumps runs at
+`current_mode` 0 (`begin_frame@00932a70` and `end_frame@009329d0` set it
+back), so it is read against `[Misc Logging]`'s row, which the console's
+`loglevel` (row 3) cannot reach. The new tracer line `@logdetail 0 28 40`
+(`I_LOGDETAIL` 34) writes that one byte, `game_log` +0xc0 + 0x1c, at
+620's top, and `@logdetail 0 28 0` clears it at 621's. Every write then
+prints, and the print agrees with the walk:
+- **W flank F1 = (41, 41)**: E (C) and S (P) are one up, and NE (42, 40)
+  `SANDY` is one up too, but the arm counts orthogonals only, so the sum
+  is 2. (A) with M = C, then `check_for_tendrils` returns 0, then
+  `Set edge x (42,41) with flags 7`: C's W field is 7 at shift 6.
+- **C = (42, 41)**: the (B) batch, then `x (42,41) 1` and `y (42,42) 4`
+  (§19.3's SW corner), then two raw 1s.
+- **S flank F2 = (42, 42)**: N (C), E (43, 42) `SANDY` and W (P) are one
+  up, so the sum is 3. (A) with M = C, then the three-neighbour arm's
+  `local_10 == 0` branch: `y (42,43) 5`, then `|2` and two `0x38`s, and it
+  returns 1. No 7 reaches C's S field, which stays 4, and `check_blocks`
+  leaves a non-full field with F2 → C not 1. 3871a's killer (both flanks
+  7) did not fire. The gate is that arm.
+- **The predicate grows.** On an `OCEAN` flank, the SW contact needs each
+  flank's other two orthogonals not one up: (x − 1, y − 1) and (x − 2, y)
+  for F1, and (x + 1, y + 1) and (x, y + 2) for F2. (16, 45) fails on F2's
+  E (18, 45) `SANDY` (3871b, killed). A search of block 621's grid finds
+  no `SANDY` cell with an `OCEAN` SW, both `OCEAN` flanks and both flanks
+  at sum 2 (scratch count, seven candidates, none passing). So no single
+  `weather` plant on Great Lakes' golden start reaches the arm (parked
+  3874a).
+- **The (B) batch writes the vertical field four times.** Its four
+  `orl $0x38` stores (0x862984, 0x862a45, 0x862afa, 0x862bbb) all go
+  through `+0x499c`, at (x, y), (x + 1, y), (x, y) and (x, y + 1). They
+  print as such (run1495's lines for (40, 41) and C), and none reaches
+  the N or S field at `+0x49a0`. That is the listing, not a misprint. A
+  port copies the order, not the symmetry.
+- **Twin.** Against run1130, `rngcmp.py` finds 641 identical and
+  `samegame.py --from 620` the same game before 620. Against run1494,
+  `rngcmp.py` finds 641 identical. 620 parts on the printed lines, and 622
+  parts on 9 lines (`turn_control` and the `COMMANDMANAGER` package),
+  both after F = 620. 6,728 functions were entered, and
+  `check_for_diagonal` and `is_valid` were not, so the run is not pinned.
 - **Twin.** run1130, run1129's `cover=0` twin: `rngcmp.py` finds 641 in
   common, 641 identical, 0 differing. `samegame.py --from 620` finds 40
   in common and the same game before 620. It parts on 621 and 622, the
@@ -2328,7 +2374,8 @@ reads the mouse only when `no_mouse` is 0.
 **Verdict: the plant is not a contact.** §19.3's south-west shape is not
 sufficient on the original. The predicate keeps the arm out of a single
 plant, and the arm and `is_valid` stay open. The row is not `RESIDUE`
-while the console can plant. (16, 45) is the same shape on the same
-grid and is not worth a take until the gate is named. 3870a (the
+while the console can plant. ~~(16, 45) is the same shape on the same
+grid and is not worth a take until the gate is named.~~ The gate is named,
+and (16, 45) fails it (item 3874, above). 3870a (the
 start's leak, 0xee1224) stays parked, because the trace does not print
 it.

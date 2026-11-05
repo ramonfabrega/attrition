@@ -216,6 +216,8 @@ enum {
     I_HOLD_ASKED = 32, /* the first held `GetKeyState` answer of a frame (`hold.h`) */
     I_AIM = 33, /* an `@aim` line: a = frame, b = line index | refusal << 16 (0 stored; 1 no
                  * console_win; 5 the text did not parse), c = cx | cy << 16, d = the stored x, e = y */
+    I_LOGDETAIL = 34, /* an `@logdetail` line: a = frame, b = line index | refusal << 16 (0 stored; 5 the
+                       * text did not parse), c = mode | type << 8, d = the byte before, e = the byte stored */
 };
 
 typedef struct {
@@ -518,6 +520,9 @@ static i32 g_stride = 0, g_stride_lo = -1, g_stride_hi = -1, g_stride_read = 0;
  * `end_frame@009329d0` pass to `full_dump` on every logged frame: non-zero
  * takes `dump_all`, the whole state, `HOTKEYGROUPS` among it (item 3445). */
 #define RVA_LOG_DUMP_ALL 0xab13b4u
+/* game_log.details[5][0x24] (+0xc0): `check_accept@009309a0` reads
+ * `details[current_mode][current_type]`, mode at +0x44 and type at +0x48. */
+#define RVA_LOG_DETAILS 0xab1420u
 static i32 g_loop_want; /* a command line is `@after`: install the Game::loop hook */
 static i32 g_dumpall_until = -1; /* the frame `@dumpall`'s flag is cleared at, or -1 */
 static i32 g_dumpall_saved;
@@ -662,6 +667,9 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@aim <cx> <cy>`                      not an issuer: the console's cursor
  *                                         stored on a land cell, for the next
  *                                         `!` line (item 3871)
+ *   `@logdetail <mode> <type> <level>`    not an issuer: one `gamelog.ini`
+ *                                         threshold set from this frame's top
+ *                                         (item 3874)
  *   `@key <vk>`, `@char <c>`              not an issuer: a key pressed and
  *                                         released, or its `WM_CHAR`,
  *                                         through the game's own handler
@@ -1138,6 +1146,25 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
             *(i32 *)(console + 0x51c) = sy;
         }
         emit(K_INFO, I_AIM, (u32)frame, idx | ((u32)why << 16), (u32)cx | (u32)cy << 16, (u32)sx, (u32)sy);
+        return;
+    }
+    if (issue_verb(&t, "logdetail ")) {
+        /* `@logdetail <mode> <type> <level>`: `game_log.details[mode][type]` =
+         * level, from the top of this frame's `do_frame` until a later line
+         * sets it again (item 3874, `docs/MAPGEN.md` §20). A `say` outside the
+         * two dumps runs at `current_mode` 0 (`begin_frame` and `end_frame`
+         * reset it), so mode 0 is `[Misc Logging]`'s row, the one no console
+         * `loglevel` reaches (it writes row 3), and a `.cmd` line's `say`s are
+         * read against it. `type` is the `GameLogType` (`GLOG_TERRAIN` 0x1c). */
+        i32 mode = 0, type = 0, level = 0, why = 0;
+        if (!issue_int(&t, &mode) || !issue_int(&t, &type) || !issue_int(&t, &level) || mode < 0 || mode > 4 ||
+            type < 0 || type >= 0x24 || level < 0 || level > 255)
+            why = 5;
+        u8 *cell = (u8 *)(g_base + RVA_LOG_DETAILS) + (why ? 0 : mode * 0x24 + type);
+        u32 was = *cell;
+        if (!why) *cell = (u8)level;
+        emit(K_INFO, I_LOGDETAIL, (u32)frame, idx | ((u32)why << 16), (u32)mode | (u32)type << 8, was,
+             why ? was : (u32)level);
         return;
     }
     if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }

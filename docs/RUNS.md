@@ -34593,6 +34593,47 @@ SHA-256 `18877232c075d2e5f0f36e5be79ddd366e78f8b19cabbf2b84ee02f0775de6d0`.
 families; rounds read 1015 against 1015, one parting on `ammo[3].ox` and `whom` (the Armored Car `1/35`'s round at a
 dead Citizen, parked 3867a); three German Barracks queuing 124 from block 4528.
 
+## run1495 — run1494's line printed: `TERRAIN` at detail 40 on 620 alone, by `@logdetail`; the gate is `check_for_tendrils`' three-neighbour arm on the S flank (2026-11-05, item 3874, `att-3874`)
+
+**What the disk could not answer**: which branch of `TerrainOut::check_for_tendrils@00859eb0` withholds C's flank
+when `weather` plants `BASELAND` 3 at (41, 42) (`docs/MAPGEN.md` §20; parked 3871a). Every edge write in
+`mark_trans_flags@008625a0`, `check_for_tendrils` and `set_edge_x/y` is a `Log::say` at `GLOG_TERRAIN` 0x28, and no
+dump on disk prints that level. A mid-frame `say` is read against `details[0]` (`[Misc Logging]`), which `loglevel`
+cannot reach and which `misc:TERRAIN=40` would open for the whole game, `Terrain::init`'s full-map pass included. So
+the take adds `@logdetail <mode> <type> <level>` to the tracer (`tools/trace/tracer.c`, `I_LOGDETAIL` 34). It
+writes `game_log` +0xc0 + 36·mode + type at the top of the line's `do_frame`. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1495 --map 14 --no-ffwd --end-frame 640 --log-window 600 640 --timeout
+3600 --cmd-file tools/gamelog/coverage/weather3874-printed.cmd --cover cover=1 --cursor 1400,1000 --console-log 0
+--hover`, which is run1494's line with `620 @logdetail 0 28 40` before the aim and `621 @logdetail 0 28 0` added.
+138 GiB free before.
+- Pool lane 1 (`~/wine-ron`). Launched 13:55:01, exited 13:56:09: **67.7 s launch to exit**. `success`, lifecycle
+  verified, `map_verified`, map style 14, 641 frames, `last_frame` 640, seed 12345, PLAYER records who 0 (flags 7,
+  tribe 4) and who 1 (flags 1, tribe 11). DLL `a15f3bf0…`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0. Minutes waited
+  on another lane: none.
+- `I_LOGDETAIL` on 620 (line 1): mode 0, type 0x1c, byte 0 → 0x28. On 621 (line 4): 0x28 → 0. `I_AIM` on 620:
+  cell 41 | 42 << 16, stores 0x7c80 and 0x7f80. `INFO cmd` on 620, line 3, `parse_cmd` returned 1.
+- 620's block carries 81 `Set edge` lines on one log line, with the `%s` printed empty. Segmented against the
+  listing, they are nine cells in the order (40, 41), (41, 41), (42, 41), (42, 42), (42, 43), (41, 43), (40, 43),
+  (40, 42), (41, 42). Among them: F1 (41, 41) writes `x (42,41) 7` after `check_for_tendrils` returns 0; C writes
+  `x (42,41) 1` and `y (42,42) 4`; F2 (42, 42) writes `y (42,43) 5`, `|2` and two `0x38`s (the three-neighbour arm,
+  `local_10 == 0`), and writes no 7 on `y (42,42)`.
+- **6,728 functions entered. `check_for_diagonal@008595f0` and `WorldData::is_valid@00471170` are not.**
+  `check_for_tendrils`, `mark_trans_flags`, `check_blocks` and `create_transition_renderables` are. No `NEVER` row
+  is entered, so the run is not pinned.
+- `rngcmp.py` against run1130 (the `cover=0` twin) and against run1494: **641 in common, 0 differing** each.
+  `samegame.py --from 620` against run1130: **same game before 620**. Against run1494 it parts on 620 (the printed
+  lines) and on 622 (9 of 1,237,844 lines: `turn_control` and the `COMMANDMANAGER` package's bytes), both at or
+  after F = 620.
+- Filed with `filerun.py run1495 greatlakes-weather-printed-cover1-clickfree`.
+
+Archive `gamelog-run1495-greatlakes-weather-printed-cover1-clickfree.txt`, 64,615,626 bytes,
+SHA-256 `08734037c0fceb5273bafd1ecc4b5330768aef18780562fc020cf04bc1c55489`.
+
+Archive `rontrace-run1495.log`, 17,390,976 bytes,
+SHA-256 `c1623d4dba171f9c0422d2199038c9898b96cc7f321d6164b291152c72ccc873`.
+
+**What it holds**: the gate (`docs/MAPGEN.md` §20, "The printed retake"). 3871a's killer did not fire, and 3871b is
+killed. No single plant on this grid passes (parked 3874a).
 ## run1494 — the golden start at `cover=1` on the click-free pool, `weather` aimed at (41, 42) by `@aim`, to 640: `check_for_diagonal` not entered (2026-11-05, item 3871, `att-3871`)
 
 **What the disk could not answer**: whether a console-planted `BASELAND` sub 3 at the south-west diagonal of a `SANDY`
