@@ -13718,6 +13718,10 @@ batch, `check_and_set_halfland_wcoord`, `object_placed`. That moves the row to `
 no further reading (`Blind:` open −1). What would confirm it: a late `WORLD ≥ 3` dump with a P1 pair beside a
 building. Names the `Blind:` counter.
 
+(3864b) **3864's "for the Loop"** (the journal's line, filed at its merge): a scratch count over the dump archive is
+bounded to the start dumps' first block, or capped, and prints as it goes — the archive is 17 GB, and 3864's unbounded
+multi-frame pass ran 90 minutes at full CPU with both output files empty until the commander's `STALLED` answer.
+
 ## Parked by item 3865, 2026-11-05 — the four lines a seat must train itself
 
 (3865a) **A third computer seat on the click-free lane is not known to work.** `docs/GOLDEN.md` §154.3's Proposal A
