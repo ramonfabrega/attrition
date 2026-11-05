@@ -34795,4 +34795,35 @@ SHA-256 `093747cc51622b012a49826cfd06111a50a87ad3464d0fe91baa758657889b5e`.
 Archive `rontrace-run1497.log`, 20,913,088 bytes,
 SHA-256 `dc28a70fe1c67db119897d29ab4fd3c4e23aa2254214f5fd1d0351e4f02bf05a`.
 
-**What it holds**: the diagonal arm's entry (`docs/MAPGEN.md` §20, "The take (i)"). `Blind:` open 41 → 40.
+**What it holds**: the diagonal arm's entry (`docs/MAPGEN.md` §20, "The take (i)"). `Blind:` open 40 → 39, after 3881's run1498.
+## run1498 — chapter fifteen's lobby with a General in the selection, `cover=1` on the click-free pool to 1000 (2026-11-05, item 3881, `att-3881`)
+
+**What the disk could not answer**: no trace enters `GroupData::get_max_range@00711080`. Its two calls are
+`Unit::do_attack:121`/`:124`, behind `:119`'s gate: an unarmed type (`attack == 0`) in a group (`+0x80 ≥ 0`)
+stepping an `ATTACK`. Chapter fifteen's selection holds only Hoplites, and run1356's stand-offs are a computer's
+(`docs/AI.md` §348.3, §382.4).
+
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1498`: `--map 14 --end-frame 1000 --log-window
+605 1000 --timeout 3600`, run215's detail, `--cmd-file tools/gamelog/coverage/maxrange3881-ch15.cmd --cover cover=1`.
+The lines are run215's with `611 add general who=0 14,84` between the squads and every selection widened to `6 9 10`.
+
+- Pool lane 1, seed 12345. Launched 15:40:00, exited 15:41:06: **66.5 s launch to exit**. `success`, lifecycle
+  verified, 1,001 frames. DLL `d9c907b0…`. `df -g ~` 139 GB free before. No minutes waited.
+- The cast on 612: Hoplites `0/6`..`0/8`, the General `0/9` (TI 54), the second squad `0/10`..`0/12`.
+  `process_attack 6 1 0 2 735` closes block 735.
+- **6,564 functions entered**. One is a `NEVER` row: **`get_max_range` on 735** (trace frame, block 736).
+- `U3` read beside it: on 736 the six Hoplites hold `ATTACKORDER ox 6 whom 1`, as in run215. The General `0/9`, at
+  (3168, 14138), holds one `MOVEORDER` to **(3192, 12888)**, `group 1`. That is 480 from the Chariot `1/6` at
+  (3192, 12408), on the far side from its own approach. On 735 it still held the 620 `GroupMoveOrder`.
+- `rngcmp.py` against run215's trace (`~/ron-golden/ch15`): **1001 in common, 617 identical, 384 differing, the first
+  612 (harness word 611)**, the `add` line. `samegame.py --from 611` against run215's gamelog: **396 in common
+  (1..999), 388 differing, the first 612; same game before 611**.
+- Filed with `filerun.py run1498 ch15-general-maxrange-cover1-clickfree`.
+
+Archive `gamelog-run1498-ch15-general-maxrange-cover1-clickfree.txt`, 171,566,321 bytes,
+SHA-256 `5e0c9819d70bc0b41b3aea008956946f51c7b590822b619dab42b326c519d0a3`.
+
+Archive `rontrace-run1498.log`, 10,467,232 bytes,
+SHA-256 `f80745dcede2d2d68fa0da18b0764ebd01d40a796202241fb5b88f141c024407`.
+
+**What it holds**: `blind::TRACES`' run1498 (item 3881), the first player-grouped unarmed member's stand-off.

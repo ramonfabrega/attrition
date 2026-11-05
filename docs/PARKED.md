@@ -3784,6 +3784,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 (3880) **A melee that closes whole is red at the booking gate on its audit row, never at its lane gate** (the sixty-seventh's commander, 3873): `diff::audit::every_whole_scoreboard_word_is_audited` holds every whole word on an audited line to an `audited!` row or an `OWED` line, and a melee's lane gate filters (`airbase_melee:: sea_melee:: … first_parting battery_floors blind:: coverage::`) never run `diff::audit::`, so 3873's lane gate was green on the fifth melee closing whole and the scoped booking gate on `f9eb0373e` was red on it alone — a second commit (`6eaeec7e2`) and a re-gate, 12.5 release minutes, exactly as the fourth melee's closing did at 3862 (`f28d7fbe5`). Twice running is the shape. **The fix**: `brief.py` adds `diff::audit::` to every lane gate whose `--tests` names a word's module (a melee, a pair, a battery word), or the audit guard reads the lane's branch for a closing `*_MELEE_CLOSING_OFF` of 0 and names the row owed. Yours.
 
+(3883) **A killer on an arm that rewrites its own order names the order it outputs, never the one it takes** (the sixty-seventh's commander, 3881's "for the Loop"): 3877b's first killer read "the General's head on 736 is not an `ATTACKORDER`", but `do_attack`'s grouped arm swaps the head for its stand-off `MOVEORDER` inside the same call, so on 736 the General shows `MOVEORDER` (3192, 12888) whether the arm ran or not — framed one step late, the killer could not fire either way, and the `HIT` alone carried the take. **The fix**: a row of the brief checklist (`docs/audit/README.md`, "The brief checklist") and its frame clause — a killer on an order-rewriting arm is written on the arm's output order and the frame it is read on. Yours.
+
 ## Loop, filed 2026-11-05 — the sixty-sixth tranche's
 
 **3852** (a piece is named by the order it was `add`ed in, not by the type its record prints; 3849's "for the Loop") — **a clause** by the sixty-sixth pass, its text kept in `docs/audit/2026-11-05-fable-pass-66.md` ("The built rows' text, kept"): 3849's draft journal named `1/20` the Minutemen from its position in the `add` order, and the dump's own `type` field (332, the Fluyt) said otherwise in one `awk`; the second session caught it. The brief checklist's row 1267 ("name each unit a booking names by `TypeIndex` and domain") covers units a booking names, not pieces a lane names to itself. Candidate: the frame's row reads "every unit and piece a journal names", or `rubric.py`/the stand-up's staging walk prints each `add` line beside the `type` its first record carries. Names no score; the loop's.
@@ -13054,7 +13056,10 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   `adjust_for_blocking`'s water-edge 0x2000 arm, `compute_val`'s water count and its two water factors, the
   region-size factors (every Great Sahara cell is in one 3,600-cell region), the 0x1000 centre tile, and
   `Cliffs::set_edge_flags`. Ported from the listings and never run. A style with water reaches them at 7937 and
-  7945 once its mask is ported (3734a). Names no score.
+  7945 once its mask is ported (3734a). Names no score. (Amended by item 3882: on Southwest Mesa, the first grid
+  with cliffs, `Cliffs::set_edge_flags` has nothing to walk at 7937, because `cliff_mining_data` is filled only by
+  `Cliffs::init`, after 7945, so the port has no cliffs' pass; Mesa has no 0x1000 tile and one region, so those
+  arms stay unexercised; 3882a.)
 - **3807b. Which `Region.flags` 0x40 `adjust_for_blocking` releases** (`World::adjust_for_blocking@006b3230`):
   no writer of `Region.flags` (+0x8) was found in the export, and no trace in `blind::TRACES` enters
   `Region::release` (at 0x680560), so no traced game has released one. `Regions` holds no flags, so the port
@@ -13932,10 +13937,11 @@ score.
   §382.1–§382.2). Nothing makes a `GroupAttackOrder` except as a copy or a load: no `get_obj` site pushes 0x14, and the
   constructor's one call is inside `get_new_order`. An `AwaitBoardOrder`'s one maker is `add_await_board_order`, which
   is `RESIDUE`. Each moves on a second reading's agreement over §382.6's four points. **Score**: `Blind:` open 41 → 39.
-- **3877b. `get_max_range`'s golden-start take** (`docs/AI.md` §382.4): chapter fifteen's lines with `add general who=0`
+- ~~**3877b. `get_max_range`'s golden-start take** (`docs/AI.md` §382.4): chapter fifteen's lines with `add general who=0`
   in the selection range. A `cover=1` trace should enter `GroupData::get_max_range@00711080` on 735–736, through
   `do_attack:119`'s unarmed, grouped arm. Two killers: the General's head on 736 is not an `ATTACKORDER`, or there is
-  no `HIT` while it is one. **Score**: `Blind:` open 41 → 40.
+  no `HIT` while it is one. **Score**: `Blind:` open 41 → 40.~~ Taken by item 3881: run1498 enters it on 735
+  (`docs/AI.md` §382.4), and `Blind:` open is 41 → 40.
 - **3877c. `Group::kill_group_order@00710aa0`'s second caller is dead**: `do_group_attack:67` (`5e76c4`) is under
   3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
   The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
@@ -13968,21 +13974,32 @@ does not enter `WorldData::is_valid@00471170`; `plant.py` stops at the entry, an
 Killed by a reading of the body that needs `is_valid` on a SW-shaped C with P `BASELAND`. Names no score: the
 `Blind:` row `is_valid@00471170`, whose route is now this body.
 
-## Parked by the next landing, slot ZW — reserved
+## Parked by item 3881, 2026-11-05 — `get_max_range` entered on the golden start
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3881a. The General's stand-off point on run1498, unchecked against `do_attack.rs`** (`docs/AI.md` §382.4): on
+  block 736 the General `0/9` holds a `MOVEORDER` to (3192, 12888), 480 from the Chariot `1/6` at (3192, 12408), on
+  its own side. The crate's `grouped` arm projects `(R + 1) × 0xc0 + 0xc0` for a melee group (`R` 0) and then calls
+  `find_nearby_spot`. Neither the Hoplites' `max_range` nor the snap is read off the dump. A sim run of chapter
+  fifteen's staging with the General, compared on block 736, settles it. **Score**: none until a word or a golden
+  case reaches the lobby; it names no floor.
 
-## Parked by the next landing, slot ZX — reserved
+## Parked by item 3882, 2026-11-05 — Southwest Mesa's values, 7937 and 7945
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3882a. The five value mutants Mesa cannot part** (`docs/MAPGEN.md` §9, §13; `sim::map_values`;
+  `southwest_mesa_s_values_are_the_traced_stream_and_7937_and_7945`): of 18 mutants on `1ceb95bb1`, 13 hold. Five
+  fail nothing, and the test measures why on the 7937 grid. `Mountains::set_edge_flags`' pass dropped: Mesa places
+  no mountain range (0 ranges). `eliminate_dead_mount_spots` dropped: 0 dead spots. The `÷10` water factor: 0 wet
+  cells. The food bit's `> 4` as `> 5`: the fewest food slots a cell counts is 10. A filled cliff list (the 0x40
+  cells' tiles marked): none of their 4,672 tiles has a gather mask at 7937. The last is the cliffs' 0x8000 arm,
+  which stays reading-only. `Cliffs::set_edge_flags@008a85e0` walks `cliff_mining_data` (+0x40, per the listing
+  0x8a85f0..0x8a85fd), which only `Cliffs::init@008a8020` fills, in `Terrain::init` after 7945. Only a second game in
+  one process, whose list still holds the first game's cliffs at 7937 if nothing closes it between games, could part
+  on it. That is a reading, not measured. Names no score.
+- **3882b. Mesa's step 6 is `Terrain::init` without heights, 734..5012, on run1493.** That is the `sea_map` write at
+  734 and the half-land gate on the 7945 grid that now agrees (MAPGEN §10, §15 step 6). An all-land mask opens the
+  gate on no cell, Great Sahara's case, and `Cliffs::init` (step 7, 815 → 894) is where the eleven queued cliffs are
+  placed. Whether run1493's file carries 734..5012 is the first thing to count. The refill of the map lane is the
+  commander's to book.
 
 ## Parked by the next landing, slot ZY — reserved
 
