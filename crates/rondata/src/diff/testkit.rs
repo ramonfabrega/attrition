@@ -11124,12 +11124,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 2001..2340; run1487's window 1975..2001 is its value diff.
     // Item 3860 moved it to 2598 (the spiral's centre on a started
     // building), widened over 2501..2600; run1487's 1986, where the French
-    // Citizens' order lists no longer part, is its value diff.
+    // Citizens' order lists no longer part, is its value diff. Item 3862
+    // closes the game at 2600 (a sunk transport's rider closes with it),
+    // widened over 2501..2601; the closing block 2601, where `1/56` links
+    // and `1/0` is gone on both sides, is its value diff.
     (
         "SEA_MELEE_WORD",
         crate::diff::sea_melee::SEA_MELEE_WORD,
         Some("sea_melee_run1483_s_word_window_is_widened_whole"),
-        3860,
+        3862,
         Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
     ),
     // **The Russians at a held Information age** (item 3721): East Indies
@@ -13991,7 +13994,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::sea_melee::SEA_MELEE_WORD,
         length: 2_600,
         endpoint: Some("sea_melee_run1483_s_closing_state"),
-        window: Some("sea_melee_word_window"),
+        window: Some("sea_melee_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

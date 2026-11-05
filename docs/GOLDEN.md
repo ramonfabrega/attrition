@@ -16843,10 +16843,53 @@ Guy::inc_time+0x271` where theirs spends `Guy::init_real+0x52`, a birth in their
 parting: the Aegis Cruiser `2/48`'s `ez` 47 against 41). **The close** (block 2601): 157 → **2** off, 136 units
 compared. One unit unlinked, `1/56` (theirs alone), and one extra, `1/0` (ours alone).
 
-**What is not established**: who is born on 2598 in theirs, and whether it is `1/56`, the close's one unlinked
-unit. The disk holds run1483's 2501 and the closing 2601 round it. The cell flag is one bit: `Wall::close` clears
+**What is not established**: ~~who is born on 2598 in theirs, and whether it is `1/56`, the close's one unlinked
+unit.~~ Answered in §153.6: it is `1/56`, and it waited on the sunk Freighter's rider. The disk holds run1483's 2501 and the closing 2601 round it. The cell flag is one bit: `Wall::close` clears
 it even when another started building's centre stands in the same cell, which this crate's reading keeps set
 (parked 3860a). No capture on file reaches that case.
+
+## 153.6 A sunk transport takes its rider — the fourth melee 2598 → 2600, whole (item 3862)
+
+**The booking**: frame 2598, ours 10 draws against theirs' 12, at index 4 ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` where theirs spends `Guy::init_real+0x52` — a birth in theirs; 3860's hypothesis `1/56`, the
+close's one unit theirs holds alone, and `1/0` ours holds extra.
+
+**The cast either side of the word, off the disk.** run1483's 2501 and 2601 (`births.py`): between them theirs
+gains `1/52` (uid 101, a new unit in a freed number) and **`1/56` (uid 102, `TI` 77, Elite Special Forces, land)** at
+(22145, 41970), 130 hits, group 68, a move order; and loses `1/0` (uid 7, `TI` 77, group 68), the Freighter `1/52`
+(uid 97) and **the Freighter `1/54` (uid 99, `TI` 322)**. On 2501 `1/0` is aboard `1/54` (`inside_up 54`; `1/54`
+`inside_down 0`), the boat bound west at (13235, 30386). Ours (`RON_DEBUG_UNIT`): `1/54` takes the same blows (130 →
+34 by 2565, 10 on 2581) and closes on 2584; `1/0` stood on, `in (1, 54)`, alive, to the close — the extra unit —
+and ours never bore `1/56`. The rider is the first act, the birth its consequence: the word's frame was right and
+its unit was the one after.
+
+**The original's close.** `Object::close@00647160` on an object still on the map (vslot `+0xbc`) holding anything
+(`num_inside(1) != 0`) ejects its contents only when `!can_carry(AIR) && vslot +0x18 == 0`; a `Unit`'s `+0x18` is
+the folded `Buffer::is_pending_load@0041e0e0`, `return 1`. So a unit never ejects: it calls
+`Object::kill_contents@00645550`, which for each head of `inside_down` calls `Unit::come_out(p, 0)` and
+`Unit::die_uber(p, 0)` — `Object::die(p, 0, −1, 0)` over the rider's squad, `dtype` 0, so no death draw (the draw
+stream agreed through 2584 with ours' rider alive). A boat off the map — inside an oil platform — takes the
+`remove_from_inside` arm instead (§165 of `docs/AI.md`, `Sim::boat_dies_into`).
+
+**Built**: `sim::fight`'s `kill_contents`, called beside `close_unit` on the combat death, attrition, the Sniper's
+kill and the quiet death (`resign.rs`'s `die_quietly`, now the riders' death too). Test:
+`a_unit_killed_on_the_map_takes_its_rider_with_it` (one death draw, the boat's; the rider dead, its slot held 30
+frames).
+
+**The value diff after.** Ours closes `1/0` with `1/54` on 2584 and bears `1/56` on 2598 at (22104, 41976);
+run1483's 2601 has `1/56` at (22145, 41970), and the close compares it whole. **The word: 2598 → 2600, the game
+whole**, count and sequence. **The close** (block 2601): 2 → **0** off, 137 units compared, none unlinked or extra.
+The word window is the block before the word and the closing block, 2501..2601
+(`sea_melee_run1483_s_word_window_is_widened_whole`: 2 blocks, 192 keys, 160 on 2501 as before; 2601's 32 are the
+idle human's citizens `0/1`..`0/7` holding a one-step order where theirs' are idle — 3788b's shape, as on the third
+melee's close — and four Russian sites read `build:extra`, parked 3862b); rounds read (8, 8), the 4 parting
+2501's `2/48` `ez` 47 against 41 (parked 3855b's family). The leaders: 4 → 3 parted keys (parked 3862a). The
+rubric's unit types: 285 → 292 of 302 with the melee's dumps in the lockstep set (`rubric.py --tables 3`, 281
+dumps).
+
+**What is not established**: which of `1/0`'s holdings `1/56`'s birth waited on — a count, its group's slot, the
+army's want — since ours bears it on the same frame once the rider closes, no draw parts to say. `come_out(p, 0)`'s
+own effects on the rider before its death are not modelled; none reaches a dump, the rider being dead on the frame.
 
 ## 154. Reserved for the next item on the rules track
 
