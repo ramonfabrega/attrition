@@ -1552,7 +1552,11 @@ needs P1 (orthogonal neighbours mutually unacceptable) or P2 (an orthogonal
 `BASELAND`–`OCEAN` pair). Every claim of §19.1–§19.3 is a reading. §19.4's
 counts (0 P1, 0 P2 on 86 start grids and on the four ported pre-beach grids)
 come from a scratch port, which is not pinned. The predicate is owed a blind
-second reading before the row is called `RESIDUE`.
+second reading before the row is called `RESIDUE`. **Item 3876** (§20, "The offline search"): a model of
+one plant's re-mark, `tools/gamelog/plant.py`, reproduces run1495's 81
+printed writes. That is the one diff-backed claim. Its passes (62 single
+plants on 18 of 68 grids, East Indies (2, 17) first) are reading-only until
+a take enters `008595f0`.
 
 ## 14. What is not established
 
@@ -2344,7 +2348,8 @@ prints, and the print agrees with the walk:
   leaves a non-full field with F2 → C not 1. 3871a's killer (both flanks
   7) did not fire. The gate is that arm.
 - **The predicate grows.** On an `OCEAN` flank, the SW contact needs each
-  flank's other two orthogonals not one up: (x − 1, y − 1) and (x − 2, y)
+  flank's other two orthogonals ~~not one up~~ both not one up or both one
+  up (item 3876, below): (x − 1, y − 1) and (x − 2, y)
   for F1, and (x + 1, y + 1) and (x, y + 2) for F2. (16, 45) fails on F2's
   E (18, 45) `SANDY` (3871b, killed). A search of block 621's grid finds
   no `SANDY` cell with an `OCEAN` SW, both `OCEAN` flanks and both flanks
@@ -2373,9 +2378,71 @@ prints, and the print agrees with the walk:
 
 **Verdict: the plant is not a contact.** §19.3's south-west shape is not
 sufficient on the original. The predicate keeps the arm out of a single
-plant, and the arm and `is_valid` stay open. The row is not `RESIDUE`
+plant on Great Lakes' golden start (~~a single plant~~: East Indies holds
+five that pass, item 3876, below), and the arm and `is_valid` stay open. The row is not `RESIDUE`
 while the console can plant. ~~(16, 45) is the same shape on the same
 grid and is not worth a take until the gate is named.~~ The gate is named,
 and (16, 45) fails it (item 3874, above). 3870a (the
 start's leak, 0xee1224) stays parked, because the trace does not print
 it.
+
+**The offline search (item 3876).** The model is `tools/gamelog/plant.py`,
+the chain as read: `ConsoleWin::run_cmd@007d6a70` case 99, then
+`Terrain::spot_update_land@0084fa50` (land 0, sub 3),
+`TerrainOut::add_update_wcoord@008738a0` (`move[0..8]`, P first),
+`Terrain::verify_land@0084d8a0`, the four-edge reset, `mark_trans_flags`
+per listed cell (`TerrainOut::set_edge_x@00859500`,
+`TerrainOut::set_edge_y@00859410`, `TerrainOut::neighbor_count@0085bb30`),
+and `check_blocks`' empty word. It is a reading tool, never a source, and
+it logs each edge write as the `TERRAIN` 40 print does.
+- **It reproduces both of 3874's verdicts.** On run1495's grid with (41, 42)
+  set back to `OCEAN` 0, the plant predicts run1495's 81 `Set edge` writes in
+  order and equal (`plant.py cell … 41,42 --set 41,42,2,0 --printed …`),
+  C's word after `check_blocks` is N 0 · E 0 · S 4 · W 0, and (16, 45)
+  fails the same way.
+- **`check_for_tendrils`' return is three arms.** It returns 1 when the
+  one-up orthogonals are exactly N and S, exactly E and W, or any three
+  (`local_14 + local_10 + local_c + local_18 == 3`). Otherwise it returns 0.
+  A SW flank's set always holds C and P, an L. So (A)'s 7 is written when
+  the flank's other two are both not up (sum 2) or both up (sum 4). On the
+  East Indies melee grid, (40, 24) passes at sum 4: F2's E (42, 24) and S
+  (41, 25) are `SANDY`. 3874a's "a second plant cannot lower a sum" holds,
+  but a plant can raise a 3 to 4.
+- **The count.** 1,134 gamelogs, of which 595 carry a `WORLD` block with
+  cells. Their first blocks are 68 distinct grids, and 516 traced start
+  heads are 45 of them. (§19.4 counts 86 and §19.6 43; that difference is
+  not read.) Every cell is planted under `COAST_BASE` 3 and 0. **62 plants
+  pass, on 18 grids**, the same under both values. None pass on the other
+  50 grids, including all 25 Great Sahara grids, all 19 Great Lakes grids,
+  Southwest Mesa and Himalayas. Every pass is §19.3's south-west shape,
+  C = P + (1, −1).
+- **East Indies.** The two-player grid holds 17 SW sites (C `SANDY`, with
+  P and both flanks `OCEAN`) where §19.6's model found 13. Five pass:
+  (2, 17), (27, 38), (29, 40), (14, 57) and (26, 59). (43, 17) fails. The
+  five hold on every two-player East Indies grid on disk, at the start and
+  in the dumps at 2040, 8955 and 17145. The three-player melee grid passes
+  (36, 21), (40, 24), (36, 57) and (16, 59).
+- **The take (i).** East Indies, `--map 18`, map size 2, two players, seed
+  12345 (run1156's lobby). Use run1494's line with `620 @aim 2 17`, `620
+  !weather`, `621 @dumpall`, and 3874's `@logdetail 0 28 40` / `0 28 0`.
+  The plant predicts 80 writes. Write 19 is F1 (2, 16)'s `x (3,16) 7`, and
+  write 38 is F2 (3, 17)'s `y (3,17) 7`. C = (3, 16)'s own SW tendrils OR
+  their 1 and 4 into those two fields, so both are full, `check_blocks`
+  empties them (`SANDY` → `OCEAN` is 1), and N and E are 0. So
+  `check_for_diagonal@008595f0` is entered at (3, 16). *Falsifier*: that
+  take at `cover=1` with the `@dumpall` showing (2, 17) `OCEAN` 0 →
+  `BASELAND` 3 alone, and no `HIT` for 008595f0, kills the model.
+  `plant.py cell … 2,17 --printed <the take>` names the first write that
+  parts.
+- **On the golden line, two plants.** On Great Lakes' golden grid, `weather`
+  at (42, 43) and then at (41, 42) lifts F2 = (42, 42) from sum 3 to 4 and
+  enters at C = (42, 41). (17, 46) then (16, 45) enters at (17, 44).
+  (41, 42) then (42, 43) does not, because the second re-mark does not
+  list C.
+- **Not established.** That the take's frame-620 grid equals the start's
+  around (2, 17) (the `@dumpall` settles it). `verify_land`'s `depth`
+  (3870a) does not matter here: its walk rewrites nothing around
+  (2, 17), so an early return changes nothing. And
+  everything past the entry: `check_for_diagonal`'s body and
+  `WorldData::is_valid@00471170` are not modelled. Every claim here is
+  reading-only except the 81 writes.

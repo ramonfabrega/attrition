@@ -288,3 +288,16 @@ in `docs/ORACLE.md`, "Traps that cost a run each".
 `rd.sh <Class/method@addr> [from] [to]` prints a function from the Ghidra
 export at `~/ghidra-projects/decomp/funcs/` with the `String` constructor
 boilerplate stripped, which is most of the noise in this binary.
+
+## The diagonal-transition arm
+
+    plant.py scan [--style N]                       every grid on disk, every single `weather` plant
+    plant.py cell FILE X,Y [X,Y ...] [--set X,Y,LAND,SUB] [--printed FILE]
+
+A model of one console `weather` plant's re-mark (`docs/MAPGEN.md` §20,
+item 3876): `spot_update_land`, `verify_land`, `mark_trans_flags` with
+`check_for_tendrils`, and `check_blocks`' empty-word test that enters
+`TerrainOut::check_for_diagonal@008595f0`. It logs every edge write as the
+`TERRAIN` 40 print does, so `--printed` diffs a take write for write
+(run1495: 81 of 81 with `--set 41,42,2,0` and `41,42`). A reading tool, as
+the decompile is: a take, not this, is what backs a claim.
