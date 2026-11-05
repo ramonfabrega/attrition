@@ -13606,13 +13606,28 @@ Cruiser at itself. The loaded `TypeData +0x3c` chain on run1487's packet is 330 
 Fluyt's root too. Anything that reads a lineage off the XML by hand (a probe, a census) should read the loader's
 chain (`tech::TypeDef::from`) or a packet instead. Names no score.
 
-## Parked by the next landing, slot YZ — reserved
+## Parked by item 3856, 2026-11-05 — map generation's never-entered seven, read
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3856a) **Five of `blind::NEVER`'s 256 row are entered by archived traces outside `TRACES`.** `rontrace-run1118.log`
+(Southwest Mesa, style 10, `cover=1`, seed 12345) enters `Cliffs::position_cliff@008a8bc0`,
+`Cliffs::verify_defensive_position@008a8680`, `Cliffs::place_cliff@008a7ea0` and `TerrainOut::has_plus_slope@00869790`.
+`rontrace-run1122.log` (Warring States, style 15) enters `MapFairness::calc_distances@0068a1c0`. The scan ran over
+every `rontrace-*.log` under `~/ron-data`, and no other trace enters any of the seven. Joining the two to `TRACES` moves
+`blind::` with **no capture**. The same two also clear three of 263's seven rows: run1118 enters `verify_placement` and
+`add_cliff`, and run1122 enters `MapWarringStates::make_continents`. That is ten rows in all, plus whatever else they
+enter, still to be measured. The take is a coverage item (MAPGEN §13's verdict table).
+
+(3856b) **The cliff chain has no value diff.** The one shipped style with a live cliff group is Southwest Mesa
+(`mapstyles/SOUTHWESTMESA.xml`: five `type="cliffs"` entries, two of them `pattern="player"`). run1118 carries a start
+dump and no checksum trace. A Mesa lobby at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start `WORLD` dump
+falsifies `position_cliff`'s template draw at 7859 and `place_cliff`'s height offsets and the slope test at 894 (part 5/6,
+the 0x40 count). It is a fourth map chain's first capture, which names a score only once the chain is booked
+(MAPGEN §18.3, §18.4).
+
+(3856c) **Two `RESIDUE` candidates, one reading each.** `Map::make_continents@00694ab0`: only `MapScenario` keeps the
+base +0x40, and `MapScenario::make@0068c8f0` never dispatches it. `Map::force_continent_spacing@0068e6a0`: its one caller
+is `ScenarioEditor::import_image@009a3f30`, and the editor is cut. Each needs the blind second reading before it is a
+`RESIDUE` row (MAPGEN §18.1).
 
 ## Parked by the next landing, slot ZA — reserved
 
