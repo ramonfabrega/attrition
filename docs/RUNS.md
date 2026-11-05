@@ -34827,3 +34827,35 @@ Archive `rontrace-run1498.log`, 10,467,232 bytes,
 SHA-256 `f80745dcede2d2d68fa0da18b0764ebd01d40a796202241fb5b88f141c024407`.
 
 **What it holds**: `blind::TRACES`' run1498 (item 3881), the first player-grouped unarmed member's stand-off.
+
+## run1499 — the golden start at `cover=1` on the click-free pool, the console's `river grow` ×3 by `@aim` and `river calc`, to 640: `River::calculate` entered (2026-11-05, item 3889, `att-3889`)
+
+**What the disk could not answer**: whether the console's `river` arm enters `River::calculate@008858e0` (`docs/MAPGEN.md`
+§19.4, §21). No trace on disk enters it: every capture's rivers come from map generation, whose
+`RiversOut::calculate_all@00888820` does `calculate`'s work inline and never calls this address, and no staged `.cmd` line has said `river`. Launched through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1499 --map 14 --no-ffwd --end-frame 640 --log-window 600
+640 --timeout 3600 --cmd-file tools/gamelog/coverage/river3889-start.cmd --cover cover=1 --cursor 1400,1000
+--console-log 0 --hover`, run1494's line with `@aim` + `!river grow` at (32, 28), (33, 28) and (34, 28) on 620–622,
+`!river calc` on 623 and `@dumpall` on 624. 134 GiB free before.
+- Pool lane 1 (`~/wine-ron`). Launched 18:44:14, exited 18:46:03: **108.4 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 641 frames, `last_frame` 640, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11). DLL `6e470adc…`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0.
+  Minutes waited on another lane: none.
+- `I_AIM` on 620, 621, 622: cells (32, 28), (33, 28), (34, 28), stores 0x6180/0x6480/0x6780 and 0x5580.
+  `cmdsran.py`: 10 parsed, 5 ran, all returning 1 (the three `grow` lines, `calc` on 623, `quit` on 640).
+- **6,730 functions entered; `River::calculate@008858e0` first on 623.** No other `NEVER` row is entered
+  (1 of 266). Its callees (`start_river`, `add_spline_point`, `ensure_ocean_end`, `calc_spline`,
+  `create_sections`, `spot_update_land_batch`) are all first entered on −1, at map generation.
+- Block 624's `WORLD` grid against run1030's golden start: **0 cells differ** in land or sub (parked 3889a).
+- `rngcmp.py` against run1130 (run1129's `cover=0` twin): **641 in common, 0 differing, 641 identical**.
+  `samegame.py --from 620`: 40 in common (600..639), **same game before 620**. It parts on 624 and 625, the
+  `@dumpall` block and the next opening dump, by construction; 620..623 agree.
+- Filed with `filerun.py run1499 greatlakes-river-aimed-cover1-clickfree`.
+
+Archive `gamelog-run1499-greatlakes-river-aimed-cover1-clickfree.txt`, 64,613,714 bytes,
+SHA-256 `8740148a1f1d228794fc1a34431a59ad7c8a1f5d42562872a8f878f52244a03e`.
+
+Archive `rontrace-run1499.log`, 14,991,936 bytes,
+SHA-256 `9cb4f364c97c37721209fa71bfdbf56310b4312766625ffb0e3256fdbd45820c`.
+
+**What it holds**: `blind::TRACES`' run1499 (item 3889). `Blind:` never 266 → 265, open 28 → 27.
