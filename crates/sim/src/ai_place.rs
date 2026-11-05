@@ -780,6 +780,12 @@ impl Sim {
                     }
                     score = (score + plenty) * w1;
                 }
+                if std::env::var("RON_PROBE_PLACE").is_ok() && is_dock {
+                    eprintln!(
+                        "PLACECAND f{frame} who={who} rec={rec} idx={idx} cell=({},{}) d={d} score={score} best={best} cand={cand:?}",
+                        cell.x, cell.y
+                    );
+                }
                 if score < best {
                     break 'cand;
                 }
