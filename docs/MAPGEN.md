@@ -1444,8 +1444,9 @@ Of the territory's 198 open or layout-only functions under the nine stems
   arm and the beach's write are not reached (3843a);
 - §10's `make_rivers` on Great Sahara: `make_riverbeds`' sources and the
   three clears, with seed and parts 2, 5, 6 and 10–13 at every record from
-  5012 to 5118 on 105 files (item 3811). The square's water and oil arms,
-  the start-city radius and `find_all`'s relabel are unit-tested only;
+  5012 to 5118 on 105 files (item 3811), and on East Indies' 202 (1,010
+  records, item 3846), where the start-city test is held by the walk; the square's water and oil arms, the radius's `− 1`
+  and `find_all`'s relabel are unit-tested only (3846a);
   `make_riverlist` and `astar_river` are not built (3811a);
 - §10's heights on Great Sahara: `generate_land`, the oil cells'
   terraform and `adjust_for_mountains`, on every vertex of 47 start
@@ -1585,6 +1586,11 @@ step is checked by §3 at its own checkpoint before the next begins:
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
    at 5116) and draws nothing, since `SAHARA.xml`'s `RIVERLIST` is empty.
+   **East Indies built** (item 3846; its seventh phase): `EASTINDIES.xml`'s
+   `<RIVERLIST/>` is empty too, so the same height-free phase — 21 and 23
+   sources, seed and parts 2, 5, 6 and 10–13 at every record from 5012 to
+   5118 on all 202 files (1,010 records; all 202 carry all five lines),
+   first run, no sim change (`east_indies_s_rivers_are_5012_to_5118`).
    `make_riverlist` and `astar_river`, which Great Lakes' 173 draws need,
    remain.
 
