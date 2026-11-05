@@ -6531,6 +6531,31 @@ mod tests {
                     ));
                 }
             };
+            // `check_player_forest`'s count: each start's city disc, rings 0
+            // to `city_center_radius / 4 − 1`, in FOREST cells — three or
+            // more and the start takes no patch.
+            let t = sim::scout::circle::table();
+            let k = (sim::tuning::Tuning::RON.city_center_radius / 4 - 1) as usize;
+            let discs: Vec<usize> = (0..grid.starts[0].list.len())
+                .map(|s| {
+                    let (x0, y0) = (grid.starts[0].list[s], grid.starts[1].list[s]);
+                    (t.radius[0]..t.radius[k])
+                        .map(|i| {
+                            (
+                                x0 + i32::from(t.x[i as usize]),
+                                y0 + i32::from(t.y[i as usize]),
+                            )
+                        })
+                        .filter(|&(x, y)| {
+                            x >= 0
+                                && y >= 0
+                                && x < grid.xs
+                                && y < grid.ys
+                                && grid.cells[(y * grid.xs + x) as usize].flags & 0x20 != 0
+                        })
+                        .count()
+                })
+                .collect();
             let forest = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count();
             check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
             let patched = grid.cells.iter().filter(|c| c.flags & 0x20 != 0).count() - forest;
@@ -6540,6 +6565,7 @@ mod tests {
             change_bases(&mut grid, &mut d, &ts);
             check(&grid, &d, 2, 7870);
             let tail = d.log.len() - from;
+            eprintln!("{name}: the starts' city discs hold {discs:?} FOREST cells at 7859");
             // What the tail's and the resources' inert arms would decide on
             // (item 3878's mutants): the cliff cells and how many of them
             // are unblocked, `land` 2, 0x1000, ocean, COAST, and class-1
