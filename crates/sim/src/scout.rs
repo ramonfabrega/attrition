@@ -858,6 +858,16 @@ impl Sim {
             scan.score = score;
             scan.tile = tile;
         }
+        if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
+            eprintln!("PROBE scout u{u} who{who} ti{} region{region} n{n} stride{stride} start{start} here{:?} best{} tile{:?}", self.units[u].type_index, here, scan.score, scan.tile);
+            for c in self.world.region_coords_strided(region, start, stride) {
+                let seen = self.was_really_seen(c, who);
+                let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
+                let inv = self.invalid_loc(u, tile, false, false, false, false, false);
+                let oc = self.world.is_ocean(c);
+                eprintln!("PROBE  c{},{} seen{} inv{} ocean{}", c.x, c.y, seen as u8, inv, oc as u8);
+            }
+        }
     }
 
     /// §9 — the one-member group and its `EXPLORE_TO` move. `push_group` is
