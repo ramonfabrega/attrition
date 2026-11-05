@@ -14007,10 +14007,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZZ — reserved
+## Parked by item 3885, 2026-11-05 — Southwest Mesa's `Terrain::init` without heights
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3885a. The five step-6 mutants Mesa cannot part** (`docs/MAPGEN.md` §10, §13; `sim::terrain_init`;
+  `southwest_mesa_s_terrain_init_without_heights_is_734_to_5012`). Of 12 mutants on `21665bb7f`, 7 hold. The test
+  measures why the other five fail nothing, on the 7945 grid. The grid has lands `{0}` only, no 0x4 or `NONE` cell
+  and no wet cell, so:
+  - the wet pass's `& 0xffef` mask has no tile to write;
+  - `check_and_set_coastal` has no wet tile, whether the wet test is inverted or the 0x400 is changed to 0x800;
+  - the `BASELAND` 0x20 ring has no shore cell to find;
+  - the `OCEAN` 5×5 ring narrowed to 3×3 has no `OCEAN` cell.
+
+  Great Lakes and East Indies hold these arms (3832b, 3843a). Names no score.
+- **3885b. Mesa's step 7 is `Cliffs::init` and the heights, 815 → 894, on run1493.** On the file, 894 moves parts 5
+  and 6, and 5014 and 5116 each move part 5. `SOUTHWESTMESA.xml`'s `<RIVERLIST/>` is empty, so step 8 (5012..5118)
+  is Great Sahara's height-free phase and can precede step 7 there, as it did on Great Sahara. Two counts come
+  first: whether run1493's start dump prints `master_land_heights`, and how many of the 292 cliff cells' tiles
+  `has_plus_slope` is handed. The refill of the map lane is the commander's to book.
