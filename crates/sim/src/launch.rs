@@ -413,6 +413,46 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 125, the Royal Kushite Archers** (unit type 175; item 3849,
+    // `docs/GOLDEN.md` §153.1): run1484's packet holds the piece's three
+    // attack `AttachPos` rows, node 0 at frame 15 of `CHAR_ATTACK1`,
+    // `CHAR_ATTACK2` and `CHAR_ATTACK3`, `RData +0x88` 1.0, and `fit_bay.py`
+    // fits each sweep (386, 495 and 3512 lattice points, 361 of 361
+    // headings; the centroid is kept). run1485's arrows of 801 leave
+    // (12, 66) and 101 up (`0/15`, `0/17`, `CHAR_ATTACK2`) and (−71, 85)
+    // and 116 up (`0/16`, `CHAR_ATTACK1`) — where ours left the archers'
+    // squares, and `0/17`'s flew 21 frames against 20 and punctured the
+    // ground on 821 against the original's 820.
+    (
+        125,
+        crate::anim::ATTACK1,
+        15,
+        Bay {
+            right: 102_456,
+            fwd: 44_072,
+            dz: 116,
+        },
+    ),
+    (
+        125,
+        crate::anim::ATTACK2,
+        15,
+        Bay {
+            right: 23_036,
+            fwd: 63_394,
+            dz: 101,
+        },
+    ),
+    (
+        125,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 38_786,
+            fwd: 60_881,
+            dz: 153,
+        },
+    ),
     // **Piece 282** (unit type 332; item 3849, `docs/GOLDEN.md` §153.1):
     // run1484's packet holds the piece's two `AttachPos` rows, `RData
     // +0x88` 0.65 — node 0 at frame 7 of `CHAR_ATTACK1` and of

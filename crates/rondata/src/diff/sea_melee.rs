@@ -133,9 +133,13 @@ pub(crate) const SEA_MELEE: Melee = Melee {
     // pieces' release rows (280, 289, 300) and the cruisers' and the
     // battleship's turret seats moved it. On 820 theirs spends 16 against
     // ours' 14: at index 4 theirs spends `Ammo::do_damage+0xc59` where
-    // ours spends `Farms::inc_time+0x1ae` — theirs acted (§153.1).
-    count: 820,
-    sequence: 820,
+    // ours spends `Farms::inc_time+0x1ae` — theirs acted (§153.1): the
+    // Royal Kushite Archer `0/17`'s arrow of 801 punctures the ground a
+    // frame sooner (run1485). **820 → 1233** with piece 125's bays: ours
+    // 15 against 14, at index 5 ours spends `Unit::close+0xcb6` where
+    // theirs spends `Farms::inc_time+0x1ae` — ours acted.
+    count: 1233,
+    sequence: 1233,
 };
 
 /// **The melee's closing state, as the `Melee:` line says it** (Loop
@@ -149,8 +153,9 @@ pub(crate) const SEA_MELEE: Melee = Melee {
 /// Item 3849: 448 → 474, with the personalities on their own seats
 /// ([`crate::diff::setup::leader_visit_order`]) — a game parted at 677
 /// plays on differently once the computers' personalities are right; then
-/// 474 → 466 with the word at 820, and back to 474 with piece 282's bays.
-pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 474;
+/// 474 → 466 with the word at 820, back to 474 with piece 282's bays, and
+/// 352 with piece 125's (the word at 1233).
+pub(crate) const SEA_MELEE_CLOSING_OFF: usize = 352;
 
 /// The melee's word: the lower of the two partings.
 pub(crate) const SEA_MELEE_WORD: i64 = if SEA_MELEE.count < SEA_MELEE.sequence {
@@ -237,9 +242,9 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 131, "run1483's word window");
-    pin_eq!(w.rounds_read, (15, 17), "the rounds read");
-    pin_eq!(w.rounds.len(), 14, "the rounds that part");
+    pin_eq!(w.firsts.len(), 103, "run1483's word window");
+    pin_eq!(w.rounds_read, (15, 15), "the rounds read");
+    pin_eq!(w.rounds.len(), 8, "the rounds that part");
 }
 
 /// run1484: run1483's game with a window at every frame of 660..680 and
@@ -344,8 +349,8 @@ fn sea_melee_s_leaders_are_compared_on_every_seat() {
     // who 2 first, the human last — and the brackets are now handed out
     // in that order ([`crate::diff::setup::leader_visit_order`]). The
     // standing family is 12, 10 and 7; the 203 are the closing dump's.
-    pin_eq!(w.standing(), vec![12, 10, 6], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 207, "the keys that part, by seat");
+    pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
+    pin_eq!(w.rest().len(), 158, "the keys that part, by seat");
     pin_eq!(
         w.rest()
             .iter()
@@ -408,8 +413,8 @@ fn sea_melee_run1483_s_closing_state() {
     // personalities on their own seats: 130 compared, 474 off — 115 units
     // off, 7 unlinked, 2 extra (who 1's `0` and `54`), 6 buildings
     // unlinked and 310 diverged, 34 cities diverged.
-    pin_eq!(e.compared, 135, "units compared");
-    pin_eq!(e.counts(), [120, 2, 5, 4, 308, 0, 35], "the closing counts");
+    pin_eq!(e.compared, 137, "units compared");
+    pin_eq!(e.counts(), [121, 0, 7, 5, 188, 0, 31], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         SEA_MELEE_CLOSING_OFF,
@@ -417,7 +422,7 @@ fn sea_melee_run1483_s_closing_state() {
     );
     pin_eq!(
         e.extra.clone(),
-        vec![(1, 0), (1, 54), (1, 58), (1, 57), (1, 59)],
+        vec![(1, 0), (2, 68), (2, 69), (2, 70), (2, 72), (2, 71), (1, 54)],
         "the closing extras"
     );
 }
