@@ -13624,13 +13624,16 @@ base +0x40, and `MapScenario::make@0068c8f0` never dispatches it. `Map::force_co
 is `ScenarioEditor::import_image@009a3f30`, and the editor is cut. Each needs the blind second reading before it is a
 `RESIDUE` row (MAPGEN §18.1).
 
-## Parked by the next landing, slot ZA — reserved
+## Parked by item 3858, 2026-11-05 — run1118 and run1122 join the blind list
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3858a) **run1118 and run1122 joined `blind::TRACES` with no `cover=0` twin.** Item 3493's style sweep took none, and
+none is on disk for either lobby: no other run in `docs/RUNS.md` is Southwest Mesa or Warring States. The two still
+qualify as entry evidence. Each is `success`, `map_verified`, `cover=1`, run to its `--end-frame` 36, and each of the
+eight rows it takes off `NEVER` is entered on −1, inside the map script, before the first frame a twin's `rngcmp.py`
+compares. run316's map-script entry joined the same way (item 935). What a twin would add is a lockstep check of
+frames 0–36. The capture that does it is `--cover cover=0` on run1117's line at `--map 10` and at `--map 15`, followed
+by `rngcmp.py` against run1118 and run1122. Neither moves a score: the rubric reads no `TRACES` comment that lacks
+`run<N>'s game on every frame`, and these two have none. So it is filed here and not booked.
 
 ## Parked by the next landing, slot ZB — reserved
 
