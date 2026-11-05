@@ -34593,6 +34593,49 @@ SHA-256 `18877232c075d2e5f0f36e5be79ddd366e78f8b19cabbf2b84ee02f0775de6d0`.
 families; rounds read 1015 against 1015, one parting on `ammo[3].ox` and `whom` (the Armored Car `1/35`'s round at a
 dead Citizen, parked 3867a); three German Barracks queuing 124 from block 4528.
 
+## run1492 — the fifth melee, the fourth's lobby with an Airbase a computer: the staged script to 2600 (2026-11-05, item 3868, `att-3868`)
+
+`docs/GOLDEN.md` §156. **What the disk could not answer**: no capture on disk holds a computer training from an
+Airbase `add`ed inside its city, or a French or Russian computer's own aircraft inside a melee's 2,600 frames
+(GOLDEN §154.2's table: every melee's Airbase queue empty at 2601). run1483's line with `--cmd-file
+tools/gamelog/golden/melee-airbase.cmd`, through `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1492`; the start is run1482's, shared.
+- Pool lane 1. Launched 12:51:53, exited 12:53:20 (87.1 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. Seats who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13); map style
+  18, seed 12345. DLL `fda8a5ec…`. `rngcmp.py` against run1482: 37 identical. `cmdsran.py`: 26 parsed and 26 ran,
+  every one returning 1 (the two `add airbase` lines on 603 and 605 among them). Filed with `filerun.py run1492
+  eastindies-airbase-melee-trace`. `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1492-eastindies-airbase-melee-trace.txt`, 25,582,331 bytes,
+SHA-256 `a048b5e0d735a30604216099eece5fd44673a9a5df617de83e881c52e61e9c8d`.
+
+Archive `rontrace-run1492.log`, 58,393,888 bytes,
+SHA-256 `65ee74c26c1285ba96eab376b3aed72a28513c63cea78838f79fd78dc49202df`.
+
+**What it holds**: the fifth melee's first try, **1817 of 2600** (`airbase_melee_first_parting`; the count 2184).
+Strategic Bombers (305) on both computers at block 1101, the Attack Helicopter (`HIND`, 312) on who 2 from 1501 and
+the Jet Fighter (`MIRAGE`, 296) on who 1 from 1601. Its stride 1801..2067 is the word's widening
+(`airbase_melee_run1492_s_word_window_is_widened_whole`).
+
+## run1492b — the fifth melee: the `cover=1` twin (2026-11-05, item 3868, `att-3868`)
+
+`docs/GOLDEN.md` §156. **What the disk could not answer**: no coverage trace holds a computer's own aircraft at
+Information. run1492's line with `--cover cover=1`.
+- Pool lane 1. Launched 12:54:01, exited 12:55:12 (71.0 s launch to exit). `success`, 2601 frames, `page_faults` 0,
+  no `relaunches`. `rngcmp.py` against run1492: 2601 identical. `samegame.py`: 26 blocks in common (1..2501), 0
+  differing. DLL `7e9ae93e…`. Filed with `filerun.py run1492b eastindies-airbase-melee-trace-cover`. `df -g ~` read
+  143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1492b-eastindies-airbase-melee-trace-cover.txt`, 25,582,287 bytes,
+SHA-256 `e39b39c36817acc13cd06aecd78fceea6e05ae469ed3de73619dd4ce6c5fe834`.
+
+Archive `rontrace-run1492b.log`, 58,903,360 bytes,
+SHA-256 `d8f770007984ae40e71757988345b9d1251ccd4262fec531900af6ed9e29555d`.
+
+**What it holds**: pinned in `blind::TRACES`; the rubric's unit types (296 and 312 enter the ledger once the melee
+runs whole).
 ## run1493 — Southwest Mesa (style 10), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-05, item 3869, `att-3869`)
 
 `docs/MAPGEN.md` §15 step 1, §18.3. The first checksum trace of the one style with a live cliff group, through

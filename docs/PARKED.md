@@ -13781,13 +13781,17 @@ read, would lack one unit. Names no score until a Spanish lobby's start is simul
   unread. **Score**: none; both pairs are whole. It is a reading for whoever stages a German line in a melee
   (GOLDEN §154's Proposal B).
 
-## Parked by the next landing, slot ZK — reserved
+## Parked by item 3868, 2026-11-05 — the fifth melee stood up, first try 1817 of 2600
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3868a. The Russian Missile Cruiser `2/16`'s rounds part on `ez` and on a dead target** (run1492's blocks 1501,
+  1701 and 1901; `airbase_melee_run1492_s_stride_before_the_word_is_widened_whole`). On 1501 three rounds read
+  `ox` −1 and `whom` −1 in ours against `ox` 17 and `whom` 0 in theirs (3714a's and 3867a's family, a round keeping
+  its dead target), and one `ez` 16 against 17. On 1701 and 1901, `ez` is one apart on four and five rounds (3855b's
+  family). No draw parts on any of them to 1817. **Score**: none until a landing or a draw on a word's frame reads one.
+- **3868b. The Attack Helicopter `2/19`'s `mirror` reads 1 in ours against 0 on block 1501**, its first block (TI
+  312, air, group 131, born 1402..1501). Nothing else of it parts there or on 1601. It is a figure flag on the one
+  helicopter this crate has flown from its own Airbase. **Score**: none while the draws agree; the first read if a
+  word lands on `2/19`'s turn (`Unit::set_angle`'s callers, parked 2234's check).
 
 ## Parked by item 3869, 2026-11-05 — Southwest Mesa's first capture and mask
 
