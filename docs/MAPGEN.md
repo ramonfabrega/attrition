@@ -2633,7 +2633,7 @@ enters it through the first of the two arms.
   0x6180/0x6480/0x6780 and 0x5580. `rngcmp.py` against run1130 gives 641
   identical frames, and `samegame.py --from 620` gives the same game
   through 623; it parts only on the `@dumpall` block 624 and on 625. No
-  other `NEVER` row is entered. `TerrainMap::river_stop@009b5d20` is
+  other `NEVER` row is entered. `TerrainMap::river_stop` is
   called only by `TerrainMap::on_left_down` and
   `ScenarioEditor::modify_terrain_map`, the editor's UI.
   `World::set_orig_coast@006b1b80` has no caller in the export.
