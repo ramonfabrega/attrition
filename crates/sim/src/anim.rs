@@ -2069,7 +2069,7 @@ impl Sim {
                     // so it holds a round on every pivot piece — the
                     // Battery's among them, whose `get_position` entries
                     // `pivot::RELEASES` has not measured.
-                    let pivot = crate::pivot::release(guy.gpiece, guy.anim, start);
+                    let pivot = crate::pivot::release_node(guy.gpiece, guy.anim, start, node);
                     let pivots = self.units[u]
                         .ty
                         .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))

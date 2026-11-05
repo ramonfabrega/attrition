@@ -11116,12 +11116,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The fourth melee** (item 3847): East Indies, three seats, a held
     // Information age, a sea fight across the strait — first try 677 of
     // 2600, widened on run1483's stride over 601..927, the rounds
-    // compared.
+    // compared. Item 3849 moved it to 1233 (the ships' and the archers'
+    // release tables), widened over 1201..1483.
     (
         "SEA_MELEE_WORD",
         crate::diff::sea_melee::SEA_MELEE_WORD,
         Some("sea_melee_run1483_s_word_window_is_widened_whole"),
-        3847,
+        3849,
         Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
     ),
     // **The Russians at a held Information age** (item 3721): East Indies

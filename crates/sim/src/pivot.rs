@@ -169,6 +169,62 @@ pub struct Node {
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
 const NODES: &[(i32, i32, Node)] = &[
+    // **The Missile Cruiser's four turrets, piece 280** (item 3849,
+    // `docs/GOLDEN.md` §153.1): run1484's packet, each node's `(n, 0, 0)`
+    // entry — 4 and 5 forward at (0.02, 100.24), 6 and 7 aft at (0.02,
+    // −77.14). Bearing from the hull's square, ours turned all four alike;
+    // run1484's `1/14` on 666 reads −739,115,008 forward and −1,335,033,856
+    // aft.
+    (
+        280,
+        4,
+        Node {
+            px: 20_000,
+            py: 100_240_005,
+        },
+    ),
+    (
+        280,
+        5,
+        Node {
+            px: 20_000,
+            py: 100_240_005,
+        },
+    ),
+    (
+        280,
+        6,
+        Node {
+            px: 20_000,
+            py: -77_139_999,
+        },
+    ),
+    (
+        280,
+        7,
+        Node {
+            px: 20_000,
+            py: -77_139_999,
+        },
+    ),
+    // **The Advanced Battleship's turrets, piece 300** (item 3849): the
+    // packet's `(4, 0, 0)` (0.02, −151.34) and `(5, 0, 0)` (0.0557, −176.23).
+    (
+        300,
+        4,
+        Node {
+            px: 20_000,
+            py: -151_339_996,
+        },
+    ),
+    (
+        300,
+        5,
+        Node {
+            px: 55_683,
+            py: -176_234_314,
+        },
+    ),
     (
         145,
         4,
@@ -516,6 +572,8 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (143, (9, 10)),
     (141, (9, 10)),
     (201, (4, 5)),
+    (280, (9, 10)),
+    (300, (4, 5)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -1172,6 +1230,34 @@ const FLOAT_LANDS_297_N1: &[(i32, i32, i32, i32)] = &[];
 /// pieces 141 and 143, the Mameluke's line, the machine-gun ships). A packet
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
+/// Piece 280's [`Release::float_lands`], one list per `(anim, node)` row
+/// (item 3849, run1484's packet).
+const FLOAT_LANDS_280_A10_N0: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A10_N1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A10_N2: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A10_N3: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A11_N0: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A11_N1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A11_N2: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A11_N3: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A12_N0: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A12_N1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A12_N2: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_280_A12_N3: &[(i32, i32, i32, i32)] = &[];
+/// Piece 300's [`Release::float_lands`], one list per `(anim, node)` row
+/// (item 3849, run1484's packet).
+const FLOAT_LANDS_300_A11_N0: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A11_N1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A11_N2: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A11_N3: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A11_N8: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A11_N9: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A12_N0: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A12_N1: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A12_N2: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A12_N3: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A12_N8: &[(i32, i32, i32, i32)] = &[];
+const FLOAT_LANDS_300_A12_N9: &[(i32, i32, i32, i32)] = &[];
 const RELEASES: &[(i32, i8, u32, Release)] = &[
     // **The Light Tank, piece 189** (unit type 239; item 3529, `docs/AI.md`
     // §303): run1169's packet holds the piece's seven entries — the turret
@@ -3859,6 +3945,318 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: FLOAT_LANDS_298_A12_N1,
         },
     ),
+    // **The Missile Cruiser, piece 280** (`AEGISCRUISER`, unit type 330;
+    // item 3849, `docs/GOLDEN.md` §153.1): run1484's `RON_STATE_FRAME=676`
+    // packet on the fourth melee's lobby holds the piece's 64 entries,
+    // `RData +0x88` 0.9 — four turrets, nodes 4 and 5 forward (y 100.1)
+    // and 6 and 7 aft (−76.9), some 20.4 up, and two launch cells a
+    // turret, the event's nodes 0 and 1 at frame 10 and 2 and 3 at frame
+    // 14 of anims 10, 11 and 12, each 7.7 to a side of its turret. Two
+    // nodes release on one frame, so a row is found by its node too
+    // ([`release_node`]). From the hull's own square at the water's 0, ours'
+    // `1/14` missiles re-planned to 6 and 6 and closed on `2/15` on 677;
+    // the original's leave (28521, 30127, 102) and (28486, 30184, 104),
+    // re-plan to 7 and 4, and close on 678.
+    (
+        280,
+        10,
+        10,
+        Release {
+            piece: 280,
+            node: 0,
+            pivot: [-296_077, 100_137_749, 20_446_144],
+            at: [7_727_216, -1_302_498, 3_747_517],
+            float_lands: FLOAT_LANDS_280_A10_N0,
+        },
+    ),
+    (
+        280,
+        10,
+        10,
+        Release {
+            piece: 280,
+            node: 1,
+            pivot: [-302_371, 100_138_992, 21_074_867],
+            at: [-7_752_890, -1_303_741, 2_870_945],
+            float_lands: FLOAT_LANDS_280_A10_N1,
+        },
+    ),
+    (
+        280,
+        10,
+        14,
+        Release {
+            piece: 280,
+            node: 2,
+            pivot: [110_616, -76_929_840, 19_816_257],
+            at: [-7_779_023, -2_321_671, 3_494_957],
+            float_lands: FLOAT_LANDS_280_A10_N2,
+        },
+    ),
+    (
+        280,
+        10,
+        14,
+        Release {
+            piece: 280,
+            node: 3,
+            pivot: [106_620, -76_929_047, 20_215_446],
+            at: [7_742_033, -2_322_464, 3_343_988],
+            float_lands: FLOAT_LANDS_280_A10_N3,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK1,
+        10,
+        Release {
+            piece: 280,
+            node: 0,
+            pivot: [-311_503, 100_148_033, 20_618_393],
+            at: [7_727_217, -1_302_498, 3_747_517],
+            float_lands: FLOAT_LANDS_280_A11_N0,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK1,
+        10,
+        Release {
+            piece: 280,
+            node: 1,
+            pivot: [-317_796, 100_149_277, 21_247_116],
+            at: [-7_752_890, -1_303_741, 2_870_945],
+            float_lands: FLOAT_LANDS_280_A11_N1,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK1,
+        14,
+        Release {
+            piece: 280,
+            node: 2,
+            pivot: [72_743, -76_772_446, 20_328_693],
+            at: [-7_786_291, -2_293_282, 3_497_929],
+            float_lands: FLOAT_LANDS_280_A11_N2,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK1,
+        14,
+        Release {
+            piece: 280,
+            node: 3,
+            pivot: [67_948, -76_768_471, 20_727_873],
+            at: [7_735_579, -2_296_265, 3_377_615],
+            float_lands: FLOAT_LANDS_280_A11_N3,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK2,
+        10,
+        Release {
+            piece: 280,
+            node: 0,
+            pivot: [-296_077, 100_137_749, 20_446_144],
+            at: [7_727_216, -1_302_498, 3_747_517],
+            float_lands: FLOAT_LANDS_280_A12_N0,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK2,
+        10,
+        Release {
+            piece: 280,
+            node: 1,
+            pivot: [-302_371, 100_138_992, 21_074_867],
+            at: [-7_752_890, -1_303_741, 2_870_945],
+            float_lands: FLOAT_LANDS_280_A12_N1,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK2,
+        14,
+        Release {
+            piece: 280,
+            node: 2,
+            pivot: [110_616, -76_929_840, 19_816_257],
+            at: [-7_779_023, -2_321_671, 3_494_957],
+            float_lands: FLOAT_LANDS_280_A12_N2,
+        },
+    ),
+    (
+        280,
+        crate::anim::ATTACK2,
+        14,
+        Release {
+            piece: 280,
+            node: 3,
+            pivot: [106_620, -76_929_047, 20_215_446],
+            at: [7_742_033, -2_322_464, 3_343_988],
+            float_lands: FLOAT_LANDS_280_A12_N3,
+        },
+    ),
+    // **The Advanced Battleship, piece 300** (`ADVANCEDBATTLESHIP`, unit
+    // type 350; item 3849, `docs/GOLDEN.md` §153.1): run1484's packet holds
+    // the piece's 38 entries, `RData +0x88` 0.8 — the turrets 4 (y −149.8,
+    // 25 up) and 5 (−174.5, 40 up), and six release nodes on each of
+    // `CHAR_ATTACK1` and `CHAR_ATTACK2`, one a frame (19..23 and 26..31),
+    // nodes 2 and 9 together on 23. The type carries one restriction, so
+    // nodes 0 and 8 (`& 3 == 0`) turn on turret 4 and nodes 1, 2, 3 and 9
+    // are their own entries alone ([`release_point`]); the pivot of a node
+    // with no `(node & 3) + 4` entry is zero. The rounds leave 172 up off a
+    // turret and 20 off the hull's low guns, run1484's `2/16` `sz` 171–177
+    // and 18–20; ours left the hull's square at 0, and `1/16` was struck
+    // on 654 where the original's was on 652.
+    (
+        300,
+        crate::anim::ATTACK1,
+        19,
+        Release {
+            piece: 300,
+            node: 0,
+            pivot: [571_737, -149_793_243, 24_929_735],
+            at: [-18_225_920, 99_009_468, 19_860_529],
+            float_lands: FLOAT_LANDS_300_A11_N0,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK1,
+        20,
+        Release {
+            piece: 300,
+            node: 3,
+            pivot: [0, 0, 0],
+            at: [18_775_419, -50_747_276, 44_384_666],
+            float_lands: FLOAT_LANDS_300_A11_N3,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK1,
+        21,
+        Release {
+            piece: 300,
+            node: 1,
+            pivot: [1_068_248, -174_586_807, 39_508_366],
+            at: [-18_311_508, 97_502_579, 5_313_362],
+            float_lands: FLOAT_LANDS_300_A11_N1,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK1,
+        22,
+        Release {
+            piece: 300,
+            node: 8,
+            pivot: [761_789, -149_731_522, 24_445_127],
+            at: [18_419_985, 72_731_796, 19_904_051],
+            float_lands: FLOAT_LANDS_300_A11_N8,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK1,
+        23,
+        Release {
+            piece: 300,
+            node: 2,
+            pivot: [0, 0, 0],
+            at: [-17_190_834, -103_420_090, 45_343_250],
+            float_lands: FLOAT_LANDS_300_A11_N2,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK1,
+        23,
+        Release {
+            piece: 300,
+            node: 9,
+            pivot: [1_068_248, -174_414_276, 39_870_686],
+            at: [18_165_951, 70_992_447, 4_818_855],
+            float_lands: FLOAT_LANDS_300_A11_N9,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK2,
+        26,
+        Release {
+            piece: 300,
+            node: 0,
+            pivot: [-73_290, -149_060_257, 25_461_151],
+            at: [-18_755_333, 98_966_965, 19_601_112],
+            float_lands: FLOAT_LANDS_300_A12_N0,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK2,
+        27,
+        Release {
+            piece: 300,
+            node: 3,
+            pivot: [0, 0, 0],
+            at: [17_962_345, -50_244_362, 45_542_000],
+            float_lands: FLOAT_LANDS_300_A12_N3,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK2,
+        28,
+        Release {
+            piece: 300,
+            node: 1,
+            pivot: [364_993, -174_101_746, 40_694_000],
+            at: [-18_415_348, 97_501_938, 4_889_656],
+            float_lands: FLOAT_LANDS_300_A12_N1,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK2,
+        29,
+        Release {
+            piece: 300,
+            node: 8,
+            pivot: [531_288, -149_501_785, 25_405_689],
+            at: [18_205_505, 72_739_967, 20_055_214],
+            float_lands: FLOAT_LANDS_300_A12_N8,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK2,
+        30,
+        Release {
+            piece: 300,
+            node: 2,
+            pivot: [0, 0, 0],
+            at: [-17_281_055, -103_435_577, 46_056_293],
+            float_lands: FLOAT_LANDS_300_A12_N2,
+        },
+    ),
+    (
+        300,
+        crate::anim::ATTACK2,
+        31,
+        Release {
+            piece: 300,
+            node: 9,
+            pivot: [1_078_248, -174_673_279, 40_683_582],
+            at: [18_165_951, 70_992_447, 4_818_851],
+            float_lands: FLOAT_LANDS_300_A12_N9,
+        },
+    ),
 ];
 
 /// The release row for `(piece, anim, starttime frame)`, if the piece
@@ -3868,6 +4266,24 @@ pub fn release(piece: i32, anim: i8, time: u32) -> Option<Release> {
     RELEASES
         .iter()
         .find(|(p, a, t, _)| (*p, *a, *t) == (piece, anim, time))
+        .map(|&(_, _, _, r)| r)
+}
+
+/// [`release`] for the event's own `node`: a piece that releases two
+/// nodes on one frame (the Missile Cruiser's launch cells, item 3849)
+/// keeps a row a node, and the row whose node is the event's is the one
+/// `get_position` reads; a piece with one row a frame answers it whatever
+/// the node.
+pub fn release_node(piece: i32, anim: i8, time: u32, node: i8) -> Option<Release> {
+    let piece = rows_of(piece);
+    let rows = || {
+        RELEASES
+            .iter()
+            .filter(move |(p, a, t, _)| (*p, *a, *t) == (piece, anim, time))
+    };
+    rows()
+        .find(|(_, _, _, r)| r.node == i32::from(node))
+        .or_else(|| rows().next())
         .map(|&(_, _, _, r)| r)
 }
 

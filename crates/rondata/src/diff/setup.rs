@@ -782,8 +782,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             notes.push(format!("the opening scripts did not compile: {e}"));
         }
     }
+    // The leaders are visited in `Setup::build_game`'s start permutation,
+    // not seat order (item 3849): the brackets are handed out in that
+    // order, and a seat order that differs puts each roll on another seat.
     let mut brackets = personality_brackets(&init.checksums).into_iter();
-    for who in 0..players {
+    let order = match leader_visit_order(&init.checksums) {
+        Some(o) => o.into_iter().filter(|&w| w < players).collect(),
+        None => (0..players).collect::<Vec<_>>(),
+    };
+    for who in order {
         if sim.nation[who].human {
             continue;
         }
@@ -1196,6 +1203,41 @@ pub fn personality_brackets(checksums: &[crate::gamelog::Checksum<'_>]) -> Vec<(
         })
         .map(|w| (w[0].seed, w[1].seed))
         .collect()
+}
+
+/// `Setup::build_game@005ac190`'s checkpoint just before each
+/// `Leader::init` visit (`setup.cpp` 955, `0x3bb`).
+pub(crate) const LEADER_VISIT: (&str, i64) = ("setup.cpp", 955);
+
+/// **The order `Setup::build_game` visits the leaders in** (item 3849,
+/// `docs/GOLDEN.md` §153.1): the start permutation. The loop before the
+/// visits fills the eight slots of `game->info.player[..] − 0x44` with
+/// `Random::get(0, 0xffff) & 7`, a draw per try, a slot taken once,
+/// until all eight are filled; the visits then walk that array. Replayed
+/// from the setup trace's checkpoint before the first visit, it must land
+/// on the first visit's own state — the draws between the two are the
+/// permutation's and nothing else's — or this answers `None` (no trace,
+/// or a draw this does not model). A trace whose two states agree drew no
+/// permutation, and the order is the seats'.
+pub fn leader_visit_order(checksums: &[crate::gamelog::Checksum<'_>]) -> Option<Vec<usize>> {
+    let i = checksums
+        .iter()
+        .position(|c| (c.file, c.line) == LEADER_VISIT)?;
+    let (from, to) = (checksums.get(i.checked_sub(1)?)?.seed, checksums[i].seed);
+    if from == to {
+        return Some((0..8).collect());
+    }
+    let mut rng = sim::combat::Rng { seed: from };
+    let mut taken = [false; 8];
+    let mut order = Vec::with_capacity(8);
+    while order.len() < 8 {
+        let slot = (rng.roll() & 7) as usize;
+        if !taken[slot] {
+            taken[slot] = true;
+            order.push(slot);
+        }
+    }
+    (rng.seed == to).then_some(order)
 }
 
 /// `TypeIndex` values the start-of-game rule names (`docs/ORDERS.md` §9.2).
@@ -2172,6 +2214,38 @@ mod tests {
     use sim::ai::{MAKE_SLOTS, MakeObject};
 
     use crate::testenv::{dump, install};
+
+    /// **The start permutation is replayed onto the first visit's state**
+    /// (item 3849, `docs/GOLDEN.md` §153.1): run1482's setup trace holds
+    /// 1,332,463,473 at `setup.cpp` 884 and 3,862,369,593 at the first
+    /// `setup.cpp` 955, eight draws apart; the permutation they make is
+    /// 3, 2, 5, 4, 7, 6, 1, 0, so who 2 is visited before who 1 and the
+    /// human who 0 last — the order its `leaders.cpp` 13383/13457 brackets
+    /// show (the third visit draws nothing). A state the replay misses is
+    /// `None`, and two equal states drew no permutation.
+    #[test]
+    fn the_leaders_are_visited_in_the_start_permutation() {
+        use crate::gamelog::Checksum;
+        let ck = |file, line, seed| Checksum {
+            n: 0,
+            file,
+            line,
+            seed,
+        };
+        let run1482 = [
+            ck("setup.cpp", 884, 1_332_463_473),
+            ck("setup.cpp", 955, 3_862_369_593),
+        ];
+        assert_eq!(
+            leader_visit_order(&run1482),
+            Some(vec![3, 2, 5, 4, 7, 6, 1, 0])
+        );
+        let missed = [run1482[0], ck("setup.cpp", 955, 3_862_369_594)];
+        assert_eq!(leader_visit_order(&missed), None);
+        let still = [run1482[0], ck("setup.cpp", 955, 1_332_463_473)];
+        assert_eq!(leader_visit_order(&still), Some((0..8).collect()));
+        assert_eq!(leader_visit_order(&run1482[..1]), None, "no visit");
+    }
 
     /// **A sibling's per-frame words are borrowed only from the same lobby**
     /// (item 979, `docs/AI.md` §81). The setup stream does not read the

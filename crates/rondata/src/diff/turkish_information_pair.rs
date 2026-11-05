@@ -359,7 +359,7 @@ fn turkish_information_pair_run1452_s_word_frame_is_widened_whole() {
     // — no draw reads them, and the fleet that now agrees fires more
     // rounds from them (parked 3782a).
     pin_eq!(w.rounds_read, (360, 360), "the rounds read");
-    pin_eq!(w.rounds.len(), 174, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1454: the pair's last blocks, 4781..5037 at run1452's detail, through
@@ -428,7 +428,7 @@ fn turkish_information_pair_run1454_s_closing_frame_is_widened_whole() {
     // 4830, are the Advanced Battleships' launch points — `sx`/`sy`/`sz`,
     // `v1z`, `ex`/`ey` on `1/49`, `1/50`, `1/51`, `1/63` and `1/67`
     // (parked 3782a).
-    pin_eq!(w.rounds.len(), 174, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3772): run1446's closing block 5037,

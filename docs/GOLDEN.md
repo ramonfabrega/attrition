@@ -16609,6 +16609,46 @@ Archer 192 and the Camel Corps 194 — wait on the melee running whole.
 `RON_DEBUG_UNIT` and `RON_DEBUG_AMMO` on both submarines over 670..678); whether the swapped personalities reach the
 draw stream before 677; why a carrier holding an attack never closes.
 
+## 153.1 The ships and the archers leave from their muzzles — the fourth melee 677 → 1233 (item 3849, run1484–run1485)
+
+**The booking**: frame 677, ours 13 draws against 12, `Unit::close+0xcb6` at index 4 — the Russian Attack Submarine
+`2/15` dying a frame early. **3847a first, ruled in and fixed; the word unmoved.** `Setup::build_game@005ac190`
+visits `Leader::init` in a start permutation: eight slots filled by `Random::get(0, 0xffff) & 7`, a draw a try, then
+walked (`setup.cpp` 955/957 around each visit). run1482's trace replays it exactly, order 3, 2, 5, 4, 7, 6, 1, 0 —
+who 2 first, the human last. `setup::leader_visit_order` replays it and `build_sim` hands the personality brackets
+out in that order (`the_leaders_are_visited_in_the_start_permutation`): the 26 keys close, 677 stays.
+
+**The value diff on 677** (run1484, `--log-window 660 680`, packet 676): the submarine's `damage` agrees; theirs'
+Missile Cruiser `1/14` rounds leave (28521, 30127, 102) and (28486, 30184, 104) and close on 678, where ours' left the
+hull's square at height 0 and closed on 677. A guided round draws nothing after `Ammo::init`, so the stream agreed
+while the flight did not.
+
+**What moved it**, each a release table off run1484's packet (`get_position.py … entries`, `fit_bay.py` on the
+sweeps):
+
+| tree | word |
+|---|---|
+| base, and 3847a fixed | 677, ours 13 against 12 |
+| + piece 280's (Missile Cruiser) 12 `pivot::RELEASES` rows, `release_node`; 289's (Attack Submarine) two `GUNS`; 300's (Advanced Battleship) 12 rows | 690 |
+| + the turret seats in `pivot::NODES` (280's four, 300's two) | 820, ours 14 against 16 |
+| + piece 282's (Fluyt, `TI` 332) two `BAYS` | 820 (block 701 clean but the pools) |
+| + piece 125's (Royal Kushite Archers, `TI` 175) three `BAYS` | **1233**, ours 15 against 14 |
+
+**On 820 theirs acted**: `Ammo::do_damage+0xc59/+0xc7e`, a round that hit nothing puncturing the ground. run1485
+(`--log-window 795 822`, `AMMO=5`; the disk held only 801 and 901) names it: the archer `0/17`'s arrow of 801 leaves
+(28980, 27594, 118) and flies 20 frames. Ours left the archer's square at 17 and flew 21. The archers' rows put all
+three arrows of 801 on run1485's 802 whole — `sx sy sz`, `ex ey`, `total_time` (23, 21, 20).
+
+**The close** (block 2601): 474 → **352** off.
+
+**What is not established**: the Camel Corps `0/14`'s launch point, which no node of piece 144 reaches (parked
+3849b); a guided round keeping a dead target (3849a); the 24 pivot rows' `float_lands` (3849c). **The next word,
+1233**: ours 15 against 14, at index 5 ours spends `Unit::close+0xcb6` where theirs spends `Farms::inc_time+0x1ae` —
+ours acted, a unit dying a frame early; run1483's blocks 1201 and 1301 bracket it. Its widening
+(`sea_melee_run1483_s_word_window_is_widened_whole`, 1201..1483, 3 blocks, 326 keys, 14 rounds parting): on 1201
+both Aircraft Carriers carry 23 more damage in ours (`1/18` 545 against 522, 55 hit points left against 78; `2/18`
+341 against 318), and `1/17`'s `damage_frame` still reads 802 against 801 — the Camel Corps' round (3849b).
+
 ## 154. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
