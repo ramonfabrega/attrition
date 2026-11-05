@@ -331,6 +331,86 @@ mod tests {
         );
     }
 
+    /// **An Aircraft Carrier repairs a point every 20 frames, anywhere; a
+    /// Citrus holder's ships do too** (item 3854, `docs/GOLDEN.md` §153.2):
+    /// `process_healing`'s sea arm, phased on `(o + frame) %
+    /// UNIT_HEAL_RATE[0]`. A Destroyer heals only under Citrus, a
+    /// transport never, and a carrier under Citrus takes two points on its
+    /// phase. run1485's carriers `1/18` and `2/18` (`o` 18) healed a point
+    /// each on game frame 802, the cell nobody's.
+    #[test]
+    fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
+        use crate::ai_load::{UnitCols, uflags};
+        use crate::attrition::{Domain, UnitKind};
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let ty = |sim: &mut crate::Sim, type_index: i32, unit_flags: u32| {
+            sim.add_unit_type(crate::UnitType {
+                hits: 600,
+                type_index,
+                kind: UnitKind {
+                    domain: Domain::Sea,
+                    ..UnitKind::default()
+                },
+                cols: UnitCols {
+                    unit_flags,
+                    ..UnitCols::default()
+                },
+                combat: crate::combat::Profile {
+                    uber_size: 1,
+                    ..crate::combat::Profile::default()
+                },
+                ..crate::UnitType::default()
+            })
+        };
+        let carrier = ty(&mut sim, 0x15f, 0);
+        let destroyer = ty(&mut sim, 328, 0);
+        let freighter = ty(&mut sim, 322, uflags::TRANSPORT);
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        // `o` 18, 38 and 58: one phase of 20 for all three.
+        let put = |sim: &mut crate::Sim, t: usize, o: i16| {
+            let mut u = crate::Unit::new(1, o, at, 600);
+            u.ty = Some(t);
+            u.type_index = sim.unit_types[t].type_index;
+            u.on_map = true;
+            u.captain = true;
+            u.kind = sim.unit_types[t].kind;
+            let i = sim.add_unit(u);
+            sim.units[i].health = 600 - 10;
+            sim.units[i].damage_frac = 7;
+            i
+        };
+        let ships = [
+            put(&mut sim, carrier, 18),
+            put(&mut sim, destroyer, 38),
+            put(&mut sim, freighter, 58),
+        ];
+        let due = 820 - 18;
+        let state =
+            |sim: &crate::Sim| ships.map(|i| (sim.units[i].health, sim.units[i].damage_frac));
+        for &i in &ships {
+            sim.ship_heal(i, due - 1);
+        }
+        assert_eq!(state(&sim), [(590, 7); 3], "off the phase, nothing");
+        for &i in &ships {
+            sim.ship_heal(i, due);
+        }
+        assert_eq!(
+            state(&sim),
+            [(591, 0), (590, 7), (590, 7)],
+            "on the phase, the carrier alone: a point and the fraction"
+        );
+        sim.ledgers[1].rare |= 1 << (crate::economy::CITRUS - crate::economy::BASE_RARE);
+        for &i in &ships {
+            sim.ship_heal(i, due + 20);
+        }
+        assert_eq!(
+            state(&sim),
+            [(593, 0), (591, 0), (590, 7)],
+            "under Citrus: the carrier two, the destroyer one, the transport none"
+        );
+    }
+
     /// **A CEO heals its army abroad, a point every 20 frames, down the
     /// squad** (item 3686, `docs/AI.md` §348.1): `process_healing`'s third
     /// economic-patriot arm runs on the captain, phased on the captain's
