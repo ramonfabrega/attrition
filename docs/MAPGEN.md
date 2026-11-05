@@ -1421,6 +1421,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   280 traces, and seed and parts 2, 5 and 6 at 7861, 7865, 7870, 7877, 7880
   and 7927 on 105 files (item 3805). Slot reuse, patterns 1 and 3, the
   Whales and the `Goods`/`Items` lines are reading-only (3805a–c);
+- §7's tail and §8's `place_resources` on Southwest Mesa: draw for draw on
+  run1493's trace (916 draws), and seed and parts 2, 5 and 6 at 7861,
+  7865, 7870, 7877, 7880 and 7927 on its one file (item 3878), the first
+  grid with cliffs. The player predicate's cliff refusal is held by a pair
+  mutant with the goody box's `0x70`, which covers it alone; the nonplayer
+  side's, the class-5 reading's and the water arms stay inert (3878a);
 - §8's `place_resources` on Great Lakes: draw for draw on 222 traces, both
   lobbies, and seed and parts 2, 5 and 6 at 7877, 7880 and 7927 on 185
   files (item 3826). `find_avail_regions`' draw, the water region list,
@@ -1634,13 +1640,42 @@ step is checked by §3 at its own checkpoint before the next begins:
    the next player's ring (0x6a42de), as booked. Ported, run1493's 1,645
    draws are whole and 7859's seed 2248721384, part 2 292424319 and part 5
    1583465931 are both sides', first run: eleven cliffs (six at size 4,
-   three at 3, two at 1), 292 cells 0x40. The tail 7861..7870 is step 4's;
+   three at 3, two at 1), 292 cells 0x40. **The tail built** (item 3878,
+   no `sim` change, with step 4): `check_player_forest`, `nubify_forest`
+   and the base passes with `fix_transitions` on the first grid with
+   cliffs; the seed and parts 2, 5 and 6 at 7861, 7865 and 7870 agree on
+   run1493's one file, first run (7870: seed 2562479304, part 5
+   403494480), and its 864 draws are the trace's;
 4. resources (§8, 7927) — **Great Sahara built** (item 3805,
    `sim::map_resources`; the `Mapgen:` line's fourth phase); **Great Lakes
    built** (item 3826, the same port on its 7870 grid, the water arms'
    first diff; its fourth phase); **East Indies built** (item 3831, the
    same port on its 7870 grid, the Whales' and `nonplayer`'s first diff;
-   its fourth phase);
+   its fourth phase); **Southwest Mesa built** (item 3878, no `sim`
+   change; its fourth phase): on the 7870 grid above, the seed and parts
+   2, 5 and 6 at 7877, 7880 and 7927 agree on run1493's one file, and
+   the 916 draws from the tail's first to the first `compute_val` (864 of
+   the tail, 52 of the resources) are the trace's, site and word, first
+   run (`southwest_mesa_s_tail_and_resources_are_the_traced_stream_and_7861_to_7927`;
+   7927: seed 3871037036, part 5 2072961574, part 6 724224914; 29
+   objects). The six records 7861..7927 are all the file carries in the
+   window. **The cliff cells are refused twice**: of the 796 cliff-cell
+   tests the predicates make (a probe, reverted whole), 121 are the player
+   predicate's, every one a goody box (543), which the `0x1878` mask and
+   the box's own `0x70` both refuse; the other 675 are the nonplayer
+   predicate's (goody boxes, and types 18 and 14 three times), and each
+   also fails `bounds_ok` or the spacing. So each of the four cliff
+   refusals (the two masks, `get_land(…, 1)`'s 0x40 as class 5, the box's
+   `0x70`) is inert alone; the player pair together (`0x1878` and `0x70`)
+   holds — one box lands on a cliff cell and part 5 at 7927 parts
+   (256434726 against 2072961574); the nonplayer three together stay
+   inert (3878a). Of 20 single mutants on `7c56b3734`, 6 hold
+   (`change_base`'s `<`, `step_down`'s keep list, `nubify_transitions`'
+   `% 3 − 1` and its run of five, `nubify_forest`'s two-sided run,
+   `has_south_forest`'s FOREST bit), and the other 14 have nothing to decide on
+   this map, each measured on the 7870 grid: no ocean, COAST, `land` 2,
+   0x1000 cell or class-1 tile, one land region, and city discs of 7 and
+   5 FOREST cells, so `check_player_forest` never patches (3878a);
 5. values (§9, 7937 and 7945) — **Great Sahara built** (item 3807,
    `sim::map_values`; the `Mapgen:` line's fifth phase); **Great Lakes
    built** (item 3830, the same port on its 7927 grid, the water count's
