@@ -1003,6 +1003,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// caller and of the style writers outside the skirmish lobby (no capture joins [`TRACES`]):
 /// `MapConquest::make_continents@0068dba0`, `GameSpy::UpdateLobbyFromDTO@00962c70` and
 /// `ScenarioRead::import@009b1430`.
+/// **261** with item 3861's cite of the storm's registrations and the parameter window's
+/// scroll handler (no capture joins [`TRACES`]): `Storm::registration@00842060`,
+/// `StormOut::registration@00842070` and `ParamRegisterWindow::on_scroll@009343b0`.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1025,9 +1028,9 @@ pub const NEVER: &[u32] = &[
     0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_0aa0, 0x0071_1080, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_ec90, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
-    0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
+    0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
-    0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
+    0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
     0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_1430, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
@@ -1765,6 +1768,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
          fiftieth pass)",
     ),
     (
+        0x0067_7590,
+        "ItemOut::draw_overlays: live only as Item::vftable +0x5c (ItemOut::vftable \
+         is Item::Item's transient vptr); an Item lives in items and the \
+         objects +0x2dc tree alone, whose dispatchers call +0x58 and +0x60, and \
+         ObjectsOut::draw_overlays's +0x5c sites take the per-team object table \
+         and goods, which hold no Item (two readings, item 3861)",
+    ),
+    (
         0x0067_7df0,
         "ItemTypeData::snap_center: the out-of-line copy of a function the \
          compiler inlined at every use, or one nothing calls; no reference in \
@@ -2161,6 +2172,24 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "IFaceMarket::setup_selected: interface only, the Market window's Buy \
          and Sell buttons through vslot +0x4f8; writes no sim state \
          (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x0084_2050,
+        "Storm::on_field_change: live in no object: Storm::vftable +0xc, a vtable \
+         written only by Storm's two destructors, of a class nothing constructs \
+         (no Storm::Storm), and StormOut::registration, its one registration \
+         with the parameter window, has no reference (two readings, item 3861)",
+    ),
+    (
+        0x0084_2060,
+        "Storm::registration: live in no object: Storm::vftable +0x8, written \
+         only by Storm's two destructors, of a class nothing constructs (two \
+         readings, item 3861)",
+    ),
+    (
+        0x0084_2070,
+        "StormOut::registration: the storm's one registration with the parameter \
+         window; no reference in the executable (two readings, item 3861)",
     ),
     (
         0x0084_b8d0,
@@ -2630,6 +2659,24 @@ mod tests {
             vec![0x00b4_54dc, 0x00b4_5da8],
             "Map::make_continents's two vtable slots, MapScenario's and Map's \
              +0x40, and no call (item 3859)"
+        );
+        assert_eq!(
+            pe.references(0x0067_7590),
+            vec![0x00b4_4ed0, 0x00b4_4f90],
+            "ItemOut::draw_overlays's two vtable slots, ItemOut's and Item's \
+             +0x5c, and no call (item 3861)"
+        );
+        assert_eq!(
+            pe.references(0x0084_2050),
+            vec![0x00b5_3f1c],
+            "Storm::on_field_change's one vtable slot, Storm's +0xc, and no call \
+             (item 3861)"
+        );
+        assert_eq!(
+            pe.references(0x0084_2070),
+            Vec::<u32>::new(),
+            "StormOut::registration, the storm's one registration with the \
+             parameter window, is referenced nowhere (item 3861)"
         );
         let mut failures = Vec::new();
         for (a, why) in RESIDUE {
