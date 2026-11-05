@@ -2483,8 +2483,15 @@ it logs each edge write as the `TERRAIN` 40 print does.
   `check_for_diagonal@008595f0` is entered at (3, 16). *Falsifier*: that
   take at `cover=1` with the `@dumpall` showing (2, 17) `OCEAN` 0 →
   `BASELAND` 3 alone, and no `HIT` for 008595f0, kills the model.
-  `plant.py cell … 2,17 --printed <the take>` names the first write that
-  parts.
+  ~~`plant.py cell … 2,17 --printed <the take>` names the first write that
+  parts.~~ **Taken (item 3879, run1497): entered.** `check_for_diagonal`
+  is first entered on 620; `--printed` reads 80 writes, equal to the
+  model's in order; block 621's grid against run1157's start changes
+  (2, 17)'s land alone (`OCEAN` 0 → `BASELAND` 3), plus three `BASELAND`
+  sub-indices at (48..50, 47..48), 46 cells off and outside the re-mark.
+  `WorldData::is_valid@00471170` is not entered, so the arm's body
+  reaches no `is_valid` call on this cell (not read). The model is
+  diff-backed on this take.
 - **On the golden line, two plants.** On Great Lakes' golden grid, `weather`
   at (42, 43) and then at (41, 42) lifts F2 = (42, 42) from sum 3 to 4 and
   enters at C = (42, 41). (17, 46) then (16, 45) enters at (17, 44).
