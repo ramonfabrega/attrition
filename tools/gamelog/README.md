@@ -299,5 +299,9 @@ item 3876): `spot_update_land`, `verify_land`, `mark_trans_flags` with
 `check_for_tendrils`, and `check_blocks`' empty-word test that enters
 `TerrainOut::check_for_diagonal@008595f0`. It logs every edge write as the
 `TERRAIN` 40 print does, so `--printed` diffs a take write for write
-(run1495: 81 of 81 with `--set 41,42,2,0` and `41,42`). A reading tool, as
+(run1495: 81 of 81 with `--set 41,42,2,0` and `41,42`). Past the entry
+(item 3886) it models the arm's body, its four pair tests and the
+fall-through to `WorldData::is_valid@00471170`, and diffs the arm's own
+`Found … corner` prints (run1497: `Found bl corner at (3,16)`, equal); `scan`
+names the plants that reach `is_valid`. A reading tool, as
 the decompile is: a take, not this, is what backs a claim.

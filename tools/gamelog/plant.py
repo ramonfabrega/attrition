@@ -18,6 +18,12 @@ is (`TERRAIN` at detail 40), so a `--printed` file's first `Set edge` line is
 compared write for write: run1495's 81 agree (`--set 41,42,2,0` reverts its
 plant, then `41,42`).
 
+Past the entry (item 3886), `Remark.diagonal` is the arm's body: four pair
+tests on the orthogonals, and the fall-through to `WorldData::is_valid@00471170`
+when none fires. Its `Found … corner` prints (`TERRAIN` at detail 0x24) are
+compared too: run1497's one, `Found bl corner at (3,16)`, agrees. `scan`
+reports the plants that reach `is_valid`.
+
 `scan` reads each gamelog's first `WORLD` block that carries cells, dedupes
 the grids, and plants every cell under `COAST_BASE` 3 and 0 (the shipped
 tilesets: four `BASELAND` bases, one `SANDY`, one `OCEAN`). `cell` plants in
@@ -322,6 +328,53 @@ class Remark:
                 hits.append((x, y))
         return hits
 
+    # -- check_for_diagonal@008595f0 -------------------------------------
+    def nb0(self, x, y):
+        """An orthogonal read with the arm's zeroed default off the map."""
+        return self.at(x, y) if self.inb(x, y) else (0, 0)
+
+    def diagonal(self, x, y, fill=0):
+        """The arm's body (item 3886): (prints, reaches_is_valid, block, fill).
+
+        Four pair tests on the orthogonals, each `land, sub` equal and not
+        C's: N=E "tr", N=W "tl", S=E "br", S=W "bl" (0x859776..0x859a47);
+        all four is "ISLAND" (block 0, fill restored, return at 0x859b05);
+        tr alone or with others returns; none of tl/br/bl without tr falls to
+        0x859b08, whose four `WorldData::is_valid@00471170` calls test the
+        diagonals NW NE SW SE for diag -> C one up.
+        """
+        C = self.at(x, y)
+        N, E, S, W = (self.nb0(x, y - 1), self.nb0(x + 1, y),
+                      self.nb0(x, y + 1), self.nb0(x - 1, y))
+        block, f0 = 0, fill
+        prints = []
+        tests = [("tr", N, E, 0xFC0, 0xC), ("tl", N, W, 0xE07, 0x60),
+                 ("br", S, E, 0x1F8, 0x801), ("bl", S, W, 0x3F, 0x300)]
+        hit = {}
+        for name, a, b, bw, fo in tests:
+            hit[name] = a == b and a != C
+            if hit[name]:
+                prints.append(f"Found {name} corner at ({x},{y})  "
+                              f"(t={N[0]},r={E[0]},b={S[0]},l={W[0]})")
+                block, fill = bw, fill | fo
+        if hit["tr"]:
+            if all(hit.values()):
+                prints.append(f"ISLAND: Found island at ({x},{y})")
+                return prints, False, 0, f0
+            return prints, False, block, fill
+        if hit["tl"] or hit["br"] or hit["bl"]:
+            return prints, False, block, fill
+        for name, (dx, dy), bw, fo in (("tl", (-1, -1), 0x801, 0x1FC), ("tr", (1, -1), 0x300, 0x3F),
+                                       ("bl", (-1, 1), 0xC, 0xFC0), ("br", (1, 1), 0x60, 0xE07)):
+            if self.inb(x + dx, y + dy) and self.cmb(self.at(x + dx, y + dy), C) == 1:
+                prints.append(f"CORNER: Found {name} corner at ({x},{y})")
+                block, fill = bw, fill | fo
+        return prints, True, block, fill
+
+    def reaches_is_valid(self):
+        """The entered cells whose arm falls through to the is_valid calls."""
+        return [c for c in self.entered() if self.diagonal(*c)[1]]
+
 
 # -- the reader --------------------------------------------------
 
@@ -405,7 +458,7 @@ def _plant_all(args):
             for x in range(xs):
                 r = Remark(cells, xs, ys, Combo(cb))
                 if r.spot_update_land(x, y, BASELAND, 3) and r.entered():
-                    hits.append(((x, y), r.entered()))
+                    hits.append(((x, y), r.entered(), r.reaches_is_valid()))
         out[cb] = hits
     return key, out
 
@@ -422,16 +475,20 @@ def scan(style=None):
         by.setdefault(h, [g, []])[1].append((name, info))
     with Pool(4) as pool:
         res = pool.map(_plant_all, [(h, *v[0]) for h, v in by.items()])
-    total = 0
+    total = reach = 0
     for h, out in sorted(res, key=lambda r: by[r[0]][1][0][1].get("MAP_STYLE", "")):
         (xs, ys, _), files = by[h]
         info = files[0][1]
-        hits = sorted(p for p, _ in out[3])
+        hits = sorted(p for p, _, _ in out[3])
+        valid = sorted((p, iv) for p, _, iv in out[3] + out[0] if iv)
         total += len(hits)
-        same = "" if hits == sorted(p for p, _ in out[0]) else f" (COAST_BASE 0: {sorted(p for p, _ in out[0])})"
+        reach += len(valid)
+        same = "" if hits == sorted(p for p, _, _ in out[0]) else f" (COAST_BASE 0: {sorted(p for p, _, _ in out[0])})"
         print(f"{h} style {info.get('MAP_STYLE')} players {info['players']} {xs}x{ys} "
-              f"files {len(files)} ({files[0][0]}): {len(hits)} passing {hits}{same}")
-    print(f"{len(by)} distinct grids over {sum(len(v[1]) for v in by.values())} files; {total} passing plants")
+              f"files {len(files)} ({files[0][0]}): {len(hits)} passing {hits}{same}; "
+              f"reaching is_valid {valid}")
+    print(f"{len(by)} distinct grids over {sum(len(v[1]) for v in by.values())} files; {total} passing plants; "
+          f"{reach} reaching is_valid")
 
 
 def printed_writes(path):
@@ -442,6 +499,18 @@ def printed_writes(path):
             if "Set edge" in s:
                 return [(m[0], int(m[1]), int(m[2]), int(m[3])) for m in
                         re.findall(r"Set edge (\w) \((\d+),(\d+)\) with flags (\d+)", s)]
+    return []
+
+
+def printed_corners(path):
+    """check_for_diagonal's own prints (TERRAIN detail 0x24), in order."""
+    import re
+    with open(path, "rb") as f:
+        for raw in f:
+            s = raw.decode("latin-1")
+            if "Set edge" in s:
+                return [m.strip() for m in re.findall(
+                    r"((?:CORNER: |ISLAND: )?Found \w+ (?:corner|island) at \(\d+,\d+\)(?:  \(t=\d+,r=\d+,b=\d+,l=\d+\))?)", s)]
     return []
 
 
@@ -465,6 +534,10 @@ def cell(path, plants, sets, printed=None):
             w = r.word_after_blocks(i % xs, i // xs)
             print(f"  listed ({i % xs}, {i // xs}) N E S W after check_blocks {w}")
         print(f"  enters check_for_diagonal at {r.entered()}; {len(r.log)} Set edge writes")
+        for c in r.entered():
+            prints, iv, block, fill = r.diagonal(*c)
+            print(f"  arm at {c}: {prints}; is_valid {'reached' if iv else 'not reached'}; "
+                  f"block {block:#x}, fill |= {fill:#x}")
     if printed:
         want = printed_writes(printed)
         same = want == r.log
@@ -473,7 +546,10 @@ def cell(path, plants, sets, printed=None):
             if a != b:
                 print(f"  first difference at write {i + 1}: predicted {a}, printed {b}")
                 break
-        sys.exit(0 if same else 1)
+        got = [p.strip() for c in r.entered() for p in r.diagonal(*c)[0]]
+        have = printed_corners(printed)
+        print(f"printed corners {have}, predicted {got}: {'equal' if have == got else 'DIFFER'}")
+        sys.exit(0 if same and have == got else 1)
 
 
 if __name__ == "__main__":
