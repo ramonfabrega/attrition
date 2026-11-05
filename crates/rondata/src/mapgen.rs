@@ -11,7 +11,7 @@
 use crate::gamelog::{CellDump, Log, WorldChecksum, world_cells};
 use sim::map_resources::{Footprint, GOODY, Inputs as ResourceInputs, NO_TYPE, Row};
 use sim::mapgen::{Adler32, WCell};
-use sim::terrain_groups::{Group, Inputs, Template, TilesetGroups};
+use sim::terrain_groups::{CliffTemplate, Group, Inputs, Template, TilesetGroups};
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
@@ -473,6 +473,13 @@ pub fn terrain_groups(
             corner_max: scaled("corner_stay_near")?.min(0x40),
             min_oil,
             max_oil,
+            // `init_terrain_data@006a6540`: a cliff group's `cliff_face`,
+            // −1 (absent) read as 0.
+            cliff_face: if kind == 8 {
+                num("cliff_face").max(0)
+            } else {
+                0
+            },
         });
     }
     Some(out)
@@ -754,9 +761,80 @@ pub fn place_all_inputs_of(
     Some(Inputs {
         groups: terrain_groups(root, style_file, xs, ys, 1)?,
         templates,
+        cliffs: cliff_templates(root)?,
         tileset: tileset_groups(root, tileset)?,
         map_style,
     })
+}
+
+/// A TGA's width and its pixels as `[byte 0, alpha]`, **top row first**:
+/// the uncompressed (2) and run-length (10) true-colour kinds at 32 bits,
+/// which are all `terrain art/cliffs/` holds, each row flipped when the
+/// descriptor's origin is the bottom (bit 5 clear). `None` for any other.
+pub fn tga_rows(bytes: &[u8]) -> Option<(i32, Vec<[u8; 2]>)> {
+    let head = bytes.get(..18)?;
+    let (kind, bpp, desc) = (head[2], head[16], head[17]);
+    let w = usize::from(u16::from_le_bytes([head[12], head[13]]));
+    let h = usize::from(u16::from_le_bytes([head[14], head[15]]));
+    if bpp != 32 || !(kind == 2 || kind == 10) || head[1] != 0 {
+        return None;
+    }
+    let mut at = 18 + usize::from(head[0]);
+    let mut px = Vec::with_capacity(w * h);
+    let texel = |at: &mut usize| -> Option<[u8; 2]> {
+        let t = bytes.get(*at..*at + 4)?;
+        *at += 4;
+        Some([t[0], t[3]])
+    };
+    while px.len() < w * h {
+        if kind == 2 {
+            px.push(texel(&mut at)?);
+            continue;
+        }
+        let c = *bytes.get(at)?;
+        at += 1;
+        let run = usize::from(c & 0x7f) + 1;
+        if c & 0x80 != 0 {
+            let t = texel(&mut at)?;
+            px.extend(std::iter::repeat_n(t, run));
+        } else {
+            for _ in 0..run {
+                px.push(texel(&mut at)?);
+            }
+        }
+    }
+    px.truncate(w * h);
+    if desc & 0x20 == 0 {
+        px = px.chunks(w).rev().flatten().copied().collect();
+    }
+    Some((w as i32, px))
+}
+
+/// **`CliffsOut::init_templates@008a71a0`**'s templates: every
+/// `Data/Cliffs.xml` `CLIFFS/CLIFF` in document order, its `path` texture's
+/// width the size index and its cell mask [`sim::terrain_groups::cliff_cells`],
+/// its `orientation` the facing (`docs/MAPGEN.md` §18.3).
+pub fn cliff_templates(root: &Path) -> Option<Vec<CliffTemplate>> {
+    let text = std::fs::read_to_string(root.join("Data/Cliffs.xml")).ok()?;
+    let doc = roxmltree::Document::parse(&text).ok()?;
+    let mut out = Vec::new();
+    for e in doc
+        .root_element()
+        .children()
+        .filter(|n| n.has_tag_name("CLIFFS"))
+        .flat_map(|n| n.children())
+        .filter(|n| n.has_tag_name("CLIFF"))
+    {
+        let path = e.attribute("path")?;
+        let bytes = std::fs::read(root.join(path.trim_start_matches("./"))).ok()?;
+        let (w, px) = tga_rows(&bytes)?;
+        out.push(CliffTemplate {
+            size: sim::terrain_groups::cliff_size_index(w),
+            facing: e.attribute("orientation").map_or(-1, leading_int),
+            cells: sim::terrain_groups::cliff_cells(w, &px),
+        });
+    }
+    Some(out)
 }
 
 /// The draws of `Map::make` in a draw-site trace from `place_all` on: from
@@ -6119,9 +6197,10 @@ mod tests {
     const MESA_FILES: usize = 1;
     const MESA_TRACES: usize = 1;
 
-    /// The §15 phases this module checks on Southwest Mesa: the mask (7807)
-    /// and the zero-draw passes (7835..7854, item 3872).
-    const SOUTHWEST_MESA_CHECKED: i64 = 2;
+    /// The §15 phases this module checks on Southwest Mesa: the mask (7807),
+    /// the zero-draw passes (7835..7854, item 3872) and `place_all` with
+    /// the cliffs (7859, item 3875).
+    const SOUTHWEST_MESA_CHECKED: i64 = 3;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -6298,6 +6377,106 @@ mod tests {
             walk.carried.iter().all(|&n| n >= MESA_FILES),
             "the checkpoints reached {:?} files",
             walk.carried
+        );
+    }
+
+    /// Each Southwest Mesa file's grid and stream through `place_all`
+    /// (7859), from the port's 7854 grid (3872's walk: the mask on 7805's
+    /// seed, the zero-draw passes, `fill_fertile` under `SW_desert`).
+    fn southwest_mesa_at_7859(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
+        let before = g.at("map.cpp", 7805)?;
+        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
+        let mut grid = MapGrid::new(g.xs, g.ys);
+        let mut rng = Rng::new(before.2);
+        sim::mapgen::southwest_mesa_make_continents(&mut grid, g.nations, &mut rng);
+        let mut regions = Regions::default();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        grid.fix_diag_land();
+        grid.make_coastlines();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
+        grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
+        let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
+            .expect("Southwest Mesa's place_all inputs");
+        let mut d = Draws::new(rng.seed);
+        place_all(&mut grid, &mut d, &inputs);
+        Some((grid, d))
+    }
+
+    /// **`place_all` on Southwest Mesa, draw for draw** (`docs/MAPGEN.md`
+    /// §7, §15 step 3, §18.3, item 3875): the port's tagged stream against
+    /// run1493's `place_all` segment ([`place_all_part`] of [`make_draws`]),
+    /// site and word, then seed, part 2 and part 5 at 7859 — the first
+    /// chain whose groups hold cliffs.
+    #[test]
+    fn southwest_mesa_s_place_all_is_the_traced_stream_and_7859() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let run_of = |n: &str| {
+            n.strip_prefix("gamelog-")
+                .and_then(|r| r.split('-').next())
+                .map(str::to_string)
+        };
+        let (mut walked, mut files) = (0, 0);
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let Some((grid, d)) = southwest_mesa_at_7859(root, g) else {
+                continue;
+            };
+            if let Some(trace) = run_of(name).map(|r| format!("rontrace-{r}.log"))
+                && let Some(path) = crate::testenv::dump(&trace)
+                && let Some(seg) = make_draws(Path::new(&path)).expect("a readable trace")
+            {
+                let seg = place_all_part(&seg);
+                walked += 1;
+                if let Some(at) = first_parting(&d.log, seg) {
+                    let say = |v: &[SetupDraw]| {
+                        v.get(at.saturating_sub(2)..(at + 3).min(v.len()))
+                            .map(|w| format!("{w:x?}"))
+                    };
+                    parted.push(format!(
+                        "{trace}: draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
+                        d.log.len(),
+                        seg.len(),
+                        say(&d.log),
+                        say(seg)
+                    ));
+                }
+            }
+            eprintln!(
+                "{name}: {} draws, cliffs (x, y, size, template) {:?}, cliff cells {}",
+                d.log.len(),
+                grid.cliffs,
+                grid.cells.iter().filter(|c| c.flags & 0x40 != 0).count()
+            );
+            if let Some((_, _, seed, p)) = g.at("map.cpp", 7859) {
+                files += 1;
+                let ours = (d.rng.seed, grid.start_part(), grid.cell_part());
+                let theirs = (*seed, p[2], p[5]);
+                eprintln!("{name}: 7859 (seed, part 2, part 5) ours {ours:?}, theirs {theirs:?}");
+                if ours != theirs {
+                    parted.push(format!(
+                        "{name}: 7859 (seed, part 2, part 5) ours {ours:?} against theirs \
+                         {theirs:?}"
+                    ));
+                }
+            }
+        }
+        eprintln!("Southwest Mesa place_all: {walked} traces, 7859 on {files} files");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            walked >= MESA_TRACES && files >= MESA_FILES,
+            "the place_all check walked {walked} traces and {files} files"
         );
     }
 
