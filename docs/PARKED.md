@@ -3780,6 +3780,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 (3799) **The emu row cache stores what it could recompute, and it is 16 GiB** (the sixty-third pass, from Loop 3777's build): the 273 over-cap sweeps' rows are 41.9 GB raw and gzip packs them only 3.05x (three of the largest 1.75x), so the cache that took the five binaries 683.5 → 41.8 s cost 13 GiB of the 147 free, and every change to `tools/emu/` or the executable's key rewrites it. The test needs the original's rows only to compare the port's against them. Candidate: store a digest of the original's rows (SHA-256 over the canonical row text) beside the receipt, hash the port's rows the same way, and re-run the emulator only on a disagreement to find the row — a cache of kilobytes, the slow path paid once by the one sweep that broke, `RON_VERIFY_EMU` unchanged. Measured first: the cache's size and rewrite count over the sixty-fourth; taken when either shows up in a drain's table rather than in a hunch. **The sixty-fourth pass, measured**: the cache 16 GiB unmoved and `tools/emu/` untouched over the tranche, so 0 rewrites; the disk's fall (134 → 102 GiB over the tranche) was the integration tree's debug profile — `cargo clean --profile dev` removed 180,851 files, 74.2 GiB, and the pass now cleans it as a first act (DECISIONS 104 §6) — not the cache. Not taken: neither number is in a table yet. Stays filed. **The sixty-fifth pass, measured**: the cache 16 GiB (2,344 files) and 0 files rewritten since the base, `tools/emu/` untouched; the disk 114 → 125 on `afsctool` and the debug profile's clean. Stays filed.
  **The sixty-sixth pass, measured**: the cache 16 GiB (2,344 files), 0 files rewritten since the base, `tools/emu/` untouched; the disk 141 → 147 on `afsctool` alone (the debug profile's clean skipped at 141, over the last pass's 125; DECISIONS 104 §6). Stays filed.
 
+## Loop, filed 2026-11-05 — the sixty-seventh tranche's
+
+(3880) **A melee that closes whole is red at the booking gate on its audit row, never at its lane gate** (the sixty-seventh's commander, 3873): `diff::audit::every_whole_scoreboard_word_is_audited` holds every whole word on an audited line to an `audited!` row or an `OWED` line, and a melee's lane gate filters (`airbase_melee:: sea_melee:: … first_parting battery_floors blind:: coverage::`) never run `diff::audit::`, so 3873's lane gate was green on the fifth melee closing whole and the scoped booking gate on `f9eb0373e` was red on it alone — a second commit (`6eaeec7e2`) and a re-gate, 12.5 release minutes, exactly as the fourth melee's closing did at 3862 (`f28d7fbe5`). Twice running is the shape. **The fix**: `brief.py` adds `diff::audit::` to every lane gate whose `--tests` names a word's module (a melee, a pair, a battery word), or the audit guard reads the lane's branch for a closing `*_MELEE_CLOSING_OFF` of 0 and names the row owed. Yours.
+
 ## Loop, filed 2026-11-05 — the sixty-sixth tranche's
 
 **3852** (a piece is named by the order it was `add`ed in, not by the type its record prints; 3849's "for the Loop") — **a clause** by the sixty-sixth pass, its text kept in `docs/audit/2026-11-05-fable-pass-66.md` ("The built rows' text, kept"): 3849's draft journal named `1/20` the Minutemen from its position in the `add` order, and the dump's own `type` field (332, the Fluyt) said otherwise in one `awk`; the second session caught it. The brief checklist's row 1267 ("name each unit a booking names by `TypeIndex` and domain") covers units a booking names, not pieces a lane names to itself. Candidate: the frame's row reads "every unit and piece a journal names", or `rubric.py`/the stand-up's staging walk prints each `add` line beside the `type` its first record carries. Names no score; the loop's.
@@ -13947,6 +13951,30 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot ZW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ZZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ZZ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
