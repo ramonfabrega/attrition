@@ -1512,7 +1512,9 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// `TerrainOut::generate_transitions@00861960`, cited by `docs/MAPGEN.md`
 /// §19 (item 3864's cite) — the byte before it is the preceding function's
 /// own `ret`, so no fall-through (DECISIONS 106 §3).
-const UNREFERENCED: usize = 148 + 1 + 1;
+/// **151** with item 3887's `UnitData::uber_size@0060a800` (`docs/AI.md` §383.4;
+/// the `+0x308` read is inlined at every use, the address nowhere in the image).
+const UNREFERENCED: usize = 148 + 1 + 1 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1551,6 +1553,10 @@ const DEAD_CITED: &[(&str, u32)] = &[
     // one a top-level document cites — TECH's reading already says nothing
     // falls through into it; the live copy is `Wonders::close_wonder`.
     ("TECH.md", 0x0073c5d0),
+    // Item 3887's one: `UnitData::uber_size`, cited by AI §383.4 as the
+    // out-of-line copy no instruction refers to — the claim is that the game
+    // never runs it, and `heal.rs`'s `+0x308` SEAM reads the inlined copies.
+    ("AI.md", 0x0060a800),
     ("AI.md", 0x006b46b0),
     ("ARMY.md", 0x006ec170),
     ("CARAVAN.md", 0x0073e000),
