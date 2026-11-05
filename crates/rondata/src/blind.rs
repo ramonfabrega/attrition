@@ -999,6 +999,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Cliffs::verify_defensive_position` and `Cliffs::position_cliff`; run1122 (Warring States)
 /// `MapFairness::calc_distances` and `MapWarringStates::make_continents` — five of 256's
 /// rows and three of 263's.
+/// **258** with item 3859's cite of the second route to `force_continent_spacing`'s one
+/// caller and of the style writers outside the skirmish lobby (no capture joins [`TRACES`]):
+/// `MapConquest::make_continents@0068dba0`, `GameSpy::UpdateLobbyFromDTO@00962c70` and
+/// `ScenarioRead::import@009b1430`.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1015,7 +1019,7 @@ pub const NEVER: &[u32] = &[
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
-    0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
+    0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_0aa0, 0x0071_1080, 0x0071_37f0, 0x0071_3bb0,
@@ -1024,8 +1028,8 @@ pub const NEVER: &[u32] = &[
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
-    0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
+    0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
+    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_1430, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -1827,6 +1831,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0069_4ab0,
+        "Map::make_continents: live only as MapScenario::vftable +0x40 (style \
+         0x1a; Map::vftable is the ctor's and dtor's transient vptr), and a \
+         MapScenario's +0x64 is MapScenario::make, which dispatches no +0x40, \
+         while the other +0x40 dispatcher, Map::run_map_script at +0x68, has no \
+         dispatch site on a map in the listing (two readings, item 3859)",
+    ),
+    (
         0x0069_5050,
         "MapGrass::make_continents: map style 23 (BLANK_MAP), which only \
          ScenarioEditor::generate_map asks Map::new_map for; the lobby's styles \
@@ -2612,6 +2624,12 @@ mod tests {
             pe.references(0x0069_5050),
             vec![0x00b4_5634],
             "MapGrass::make_continents's vtable slot"
+        );
+        assert_eq!(
+            pe.references(0x0069_4ab0),
+            vec![0x00b4_54dc, 0x00b4_5da8],
+            "Map::make_continents's two vtable slots, MapScenario's and Map's \
+             +0x40, and no call (item 3859)"
         );
         let mut failures = Vec::new();
         for (a, why) in RESIDUE {
