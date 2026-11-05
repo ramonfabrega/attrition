@@ -7039,6 +7039,170 @@ mod tests {
     /// (23 on 2026-11-05, item 3885).
     const MESA_TERRAIN_RECORDS: usize = 23;
 
+    /// **Rivers on Southwest Mesa** (`docs/MAPGEN.md` §10, §15 step 8, item
+    /// 3888): Great Sahara's check (3811) on the first river phase run over
+    /// cliff cells. From the port's 5012 grid ([`southwest_mesa_at_7945`],
+    /// then step 6's `terrain_init_without_heights`), `Map::make_rivers`
+    /// under `default.xml`'s threshold and `SOUTHWESTMESA.xml`'s empty
+    /// `RIVERLIST` — seed and parts 2, 5, 6 and 10–13 at every record from
+    /// 5012 to 5118 on run1493's file, the records being exactly the lines
+    /// the port prints, part 4 held. The test prints what the walk sees:
+    /// the forest cells it may start from, the cliff cells among them and
+    /// beside the sources, and the sources. No draw: the seed holds.
+    #[test]
+    fn southwest_mesa_s_rivers_are_5012_to_5118() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let sea = sea_map(root, "SOUTHWESTMESA.xml").expect("SOUTHWESTMESA.xml's SEA_MAP");
+        let thresh = river_thresh(root, "SOUTHWESTMESA.xml").expect("RIVER_THRESHOLD");
+        let rivers = river_list(root, "SOUTHWESTMESA.xml").expect("a RIVERLIST");
+        let standard = standard_map_size(root).expect("the Standard map size");
+        assert_eq!(
+            (thresh, rivers.len()),
+            (8, 0),
+            "default.xml's threshold, SOUTHWESTMESA.xml's empty list"
+        );
+        let city_radius = sim::tuning::Tuning::RON.city_center_radius;
+        let (mut files, mut records, mut parted) = (0, 0, Vec::new());
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let carried: Vec<i64> = [5012, 5014, 5076, 5116, 5118]
+                .into_iter()
+                .filter(|&l| g.at("map.cpp", l).is_some())
+                .collect();
+            eprintln!("{name}: make_rivers lines on the file {carried:?}");
+            let Some((mut grid, mut d)) = southwest_mesa_at_7945(root, g) else {
+                continue;
+            };
+            let (_, _, half) = terrain_init_without_heights(&mut grid, sea)
+                .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
+            let parts = half.parts().expect("empty half-land lists");
+            let cliff = |c: &sim::mapgen::WCell| c.flags & 0x40 != 0;
+            let forest = grid.cells.iter().filter(|c| c.flags & 0x21 == 0x20);
+            eprintln!(
+                "{name}: forest cells {}, cliff among them {}, cliff cells {}, rock {}",
+                forest.clone().count(),
+                forest.filter(|c| cliff(c)).count(),
+                grid.cells.iter().filter(|c| cliff(c)).count(),
+                grid.cells.iter().filter(|c| c.flags & 0x8 != 0).count()
+            );
+            let (xs, ys) = (grid.xs, grid.ys);
+            let mountain = |x: i32, y: i32| {
+                (0..16).any(|j| {
+                    let (tx, ty) = (4 * x + (j & 3), 4 * y + (j >> 2));
+                    grid.tiles[(ty * 4 * xs + tx) as usize] & 3 == 2
+                })
+            };
+            let cells = (0..ys).flat_map(|y| (0..xs).map(move |x| (x, y)));
+            let at = |x: i32, y: i32| &grid.cells[(y * xs + x) as usize];
+            let touching = cells
+                .clone()
+                .filter(|&(x, y)| {
+                    at(x, y).flags & 0x21 == 0x20
+                        && (-1..=1).any(|dy| {
+                            (-1..=1).any(|dx| {
+                                let (u, v) = (x + dx, y + dy);
+                                u >= 0 && v >= 0 && u < xs && v < ys && cliff(at(u, v))
+                            })
+                        })
+                })
+                .count();
+            eprintln!(
+                "{name}: cliff cells with a mountain tile {}, forest cells with a cliff in \
+                 their eight {touching}",
+                cells
+                    .filter(|&(x, y)| cliff(at(x, y)) && mountain(x, y))
+                    .count()
+            );
+            let mut regions = regions_of(&grid);
+            let mut ours = Vec::new();
+            let phase = Phase {
+                thresh,
+                city_radius,
+                rivers: &rivers,
+                standard,
+                seed: g.seed as u32,
+                nations: g.nations,
+            };
+            let beds = make_rivers(&mut grid, &mut regions, &phase, &mut d, |l, g, d| {
+                ours.push((
+                    l,
+                    (
+                        d.rng.seed,
+                        g.start_part(),
+                        g.cell_part(),
+                        g.tile_part(),
+                        parts,
+                    ),
+                ))
+            });
+            let cliff_within = |r: i32| {
+                beds.iter()
+                    .filter(|&&(x, y)| {
+                        (-r..=r).any(|dy| {
+                            (-r..=r).any(|dx| {
+                                let (u, v) = (x + dx, y + dy);
+                                u >= 0
+                                    && v >= 0
+                                    && u < grid.xs
+                                    && v < grid.ys
+                                    && cliff(&grid.cells[(v * grid.xs + u) as usize])
+                            })
+                        })
+                    })
+                    .count()
+            };
+            eprintln!(
+                "{name}: {} river sources, {} with a cliff cell in their eight, {} in their 7×7 \
+                 {beds:?}",
+                beds.len(),
+                cliff_within(1),
+                cliff_within(3)
+            );
+            for (l, o) in &ours {
+                eprintln!("{name}: ours at {l}: {o:?}");
+            }
+            let reached = river_records(g);
+            eprintln!(
+                "{name}: 5012..5118 carries {} records: {:?}",
+                reached.len(),
+                reached.iter().map(|r| r.1).collect::<Vec<_>>()
+            );
+            assert!(!reached.is_empty(), "{name}: a file without 5012..5118");
+            let lines: Vec<i64> = reached.iter().map(|r| r.1).collect();
+            let printed: Vec<i64> = ours.iter().map(|o| o.0).collect();
+            assert_eq!(lines, printed, "{name}: the records make_rivers prints");
+            for ((f, l, seed, p), (_, o)) in reached.iter().zip(&ours) {
+                let theirs = (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
+                if *o != theirs || p[4] != reached[0].3[4] {
+                    parted.push(format!(
+                        "{name} at {f} {l}: (seed, parts 2, 5, 6, 10–13) ours {o:?} against \
+                         theirs {theirs:?}, part 4 {:#x} against 5012's {:#x}",
+                        p[4], reached[0].3[4]
+                    ));
+                }
+                records += 1;
+            }
+            files += 1;
+        }
+        eprintln!("Southwest Mesa rivers: 5012..5118 on {files} files, {records} records");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            files >= MESA_FILES && records >= MESA_RIVER_RECORDS,
+            "5012..5118 reached {files} Southwest Mesa files, {records} records"
+        );
+    }
+
+    /// run1493's records from `map.cpp` 5012 to 5118: a floor (item 3888).
+    const MESA_RIVER_RECORDS: usize = 5;
+
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
     /// 7861..7870), the resources (7927), the values (7937, 7945) and
