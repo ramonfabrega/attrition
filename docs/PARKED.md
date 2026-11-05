@@ -14049,13 +14049,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AB — reserved
+## Parked by item 3887, 2026-11-05 — the fifteen candidates' blind second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3887a** — **the board-ship chain's only test is a take.** Rows
+  `do_await_board`, `add_await_board_order`, `add_board_order` and
+  `action_board_ship` all rest on no site writing command 0x0f
+  (`docs/audit/2026-11-05-item-3887.md`, part 2, point 3). The blind reader
+  named the cheapest falsifier: a `cover=1` trace of a Modern-age game with an
+  Aircraft Carrier and land units ordered aboard. Names no score; a coverage
+  lane books it only if a scan of `CommandManager`'s issuers finds a 0x0f.
 
 ## Parked by item 3888, 2026-11-05 — Southwest Mesa's rivers, 5012..5118
 
