@@ -13872,8 +13872,9 @@ retake"). Run1495 printed the re-mark at `TERRAIN` 40 through the new `@logdetai
 `check_for_tendrils`' three-neighbour arm on the S flank F2 = (42, 42): N (C), E (43, 42) `SANDY` and W (P) are one
 up, so it returns 1 and (A)'s 7 never reaches C's S field. On `OCEAN` flanks, the SW contact needs each flank's
 other two orthogonals not one up: (x − 1, y − 1) and (x − 2, y) for F1, and (x + 1, y + 1) and (x, y + 2) for F2. A
-plant only adds land, so a second plant cannot lower a sum. A scratch search of block 621's grid finds seven
-candidates and none passing. **The next route** is that search over the 86 start grids on disk (MAPGEN §19.4) and
+plant only adds land, so a second plant cannot lower a sum (~~so no route~~: it can raise a 3 to 4, which passes,
+item 3876 below). A scratch search of block 621's grid finds seven
+candidates and none passing. ~~**The next route** is that search~~ Searched (item 3876, 3876a) over the 86 start grids on disk (MAPGEN §19.4) and
 East Indies' 13 sites. A grid that holds a passing cell is a `weather` take at it, and the commander books the run.
 Killed by: a cell passing that search whose take prints both of C's flank fields at 7 and still does not enter
 `008595f0`; or no grid on disk passing, which leaves the arm to the multi-cell routes (3870a). Names no score: the
@@ -13898,13 +13899,25 @@ the commander's to book. `place_cliff`'s heights stay step 7's (894).
 and 1 below size 5 measure an `acos` in single and double precision. No shipped style reaches it: Mesa's one
 player cliff below size 5 is `FACE_ANY`. Names no score until a style or a scenario does.
 
-## Parked by the next landing, slot ZS — reserved
+## Parked by item 3876, 2026-11-05 — the diagonal arm's contact, searched
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3876a) **A single `weather` plant on East Indies passes every gate in front of `check_for_diagonal@008595f0`**
+(`docs/MAPGEN.md` §20, "The offline search"). `tools/gamelog/plant.py` models the re-mark and reproduces run1495's
+81 printed writes. It plants every cell of the 68 distinct grids on disk and finds 62 passing plants on 18 grids,
+all §19.3's south-west shape and none on Great Sahara or Great Lakes. `check_for_tendrils` returns 0 at a flank sum
+of 2 or 4. **The take**: East Indies, `--map 18`, map size 2, two players, seed 12345 (run1156's lobby). It is
+run1494's line with `620 @aim 2 17`, `620 !weather`, `621 @dumpall` and 3874's `@logdetail 0 28 40` / `0 28 0`,
+at `cover=1`. The model predicts 80 writes: write 19 `x (3,16) 7` from F1 (2, 16), write 38 `y (3,17) 7` from F2
+(3, 17), and an empty word at C = (3, 16). The other passes are (27, 38), (29, 40), (14, 57) and (26, 59). Killed by
+the take's trace holding no `HIT` for 008595f0 while its `@dumpall` shows (2, 17) alone changed. `plant.py cell …
+2,17 --printed <the take>` then names the write that parts. Names no score: the `Blind:` row's route (008595f0, and
+`WorldData::is_valid@00471170` if the arm reaches it).
+
+(3876b) **On the golden line, two plants pass.** On Great Lakes' golden grid, `weather` at (42, 43) and then at
+(41, 42) lifts F2 = (42, 42) from sum 3 to 4 and enters at C = (42, 41). (17, 46) then (16, 45) enters at (17, 44).
+That is run1495's own line with `620 @aim 42 43` and `620 !weather` ahead of its pair, and run1130 stays its twin.
+It is the fallback if 3876a's lobby will not take the line. Killed by that take not entering 008595f0. Names no
+score.
 
 ## Parked by the next landing, slot ZT — reserved
 
