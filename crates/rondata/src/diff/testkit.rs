@@ -11113,6 +11113,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3797,
         Some(crate::diff::information_melee::WIDENING_INFORMATION_MELEE),
     ),
+    // **The fourth melee** (item 3847): East Indies, three seats, a held
+    // Information age, a sea fight across the strait — first try 677 of
+    // 2600, widened on run1483's stride over 601..927, the rounds
+    // compared.
+    (
+        "SEA_MELEE_WORD",
+        crate::diff::sea_melee::SEA_MELEE_WORD,
+        Some("sea_melee_run1483_s_word_window_is_widened_whole"),
+        3847,
+        Some(crate::diff::sea_melee::WIDENING_SEA_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -12266,6 +12277,10 @@ pub(crate) const AI_CLOSINGS: &[(&str, usize)] = &[
     (
         "GreatSaharaInformationMelee",
         crate::diff::information_melee::INFORMATION_MELEE_CLOSING_OFF,
+    ),
+    (
+        "EastIndiesInformationMelee",
+        crate::diff::sea_melee::SEA_MELEE_CLOSING_OFF,
     ),
 ];
 
@@ -13952,6 +13967,23 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 2_600,
         endpoint: Some("information_melee_run1468_s_closing_state"),
         window: Some("information_melee_closing_window"),
+    },
+    // **The fourth melee** (item 3847, `docs/GOLDEN.md` §153, §155): East
+    // Indies with three seats at a held Information age — the map the
+    // lever moved — the French and the Russians granted 100,000 a good
+    // and seven ships a side from 610 across the strait between their
+    // islands, `Fluyt` and the Aircraft Carrier among them
+    // (`tools/gamelog/golden/melee-sea.cmd`). First try 677 of 2600;
+    // run1483's word window over 601..927, the rounds compared; the
+    // closing state run1483's block 2601.
+    AiWord {
+        line: "Melee",
+        map: "EastIndiesInformationMelee",
+        named: "East Indies (the melee, Information)",
+        word: crate::diff::sea_melee::SEA_MELEE_WORD,
+        length: 2_600,
+        endpoint: Some("sea_melee_run1483_s_closing_state"),
+        window: Some("sea_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
