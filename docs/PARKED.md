@@ -14001,13 +14001,27 @@ Killed by a reading of the body that needs `is_valid` on a SW-shaped C with P `B
   placed. Whether run1493's file carries 734..5012 is the first thing to count. The refill of the map lane is the
   commander's to book.
 
-## Parked by the next landing, slot ZY — reserved
+## Parked by item 3884, 2026-11-05 — the data-accessor overloads' nine blind rows, read
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3884a. All nine data-accessor rows are `RESIDUE` candidates, under four predicates** (`docs/AI.md` §383).
+  (1) The three `support_cost`s (`0063fa30`, `006452f0`, `0060fde0`): slot `+0x140` has no dispatcher on an object;
+  its six sites are Window, `graphsys`, and `UnitType`'s draw. (2) `WallData::hits`, `WallData::construct_time` and
+  `ObjectData::max_range` through Wall's tables: only a wall piece reaches them, and `Wall::Wall` is `RESIDUE`.
+  (3) `ObjectData::hits`, `los` and `max_range` through Object's tables: `Object::Object`'s only callers are the three
+  subclass constructors, whose table windows are call-free. (4) `UnitData::uber_size@0060a800`: no reference in the
+  executable. **No take lights any of them.** Each moves on a second reading's agreement over §383.7's six points.
+  **Score**: `Blind:` open 43 → 34 (the nine, counted after 3884b's four).
+- **3884b. Four destructors joined `NEVER` with §383's cite, and they are `RESIDUE` candidates too** (`docs/AI.md`
+  §383.6): `WallData::~WallData@00472cc0`, `WallOut::~WallOut@00472d10`, `Wall::~Wall@0063e440` and
+  `Object::~Object@00646f50`. Every live destructor path inlines them: `~Wall`'s and `~BuildData`'s bodies are the
+  table stores themselves. Their only out-of-line callers are exception-unwind funclets, which run when a constructor
+  or destructor throws, and `Wall::~Wall`'s five immediates sit in the wall-range vector constructors that `Wall::Wall`'s
+  `RESIDUE` row already names. **Score**: `Blind:` never 262 → 266, open 39 → 43; a second reading moves them back to 39.
+- **3884c. `vtables.txt` omits the multiple-inheritance tables.** `UnitType`'s `vftable_for_Type_` and
+  `vftable_for_SoundType_` (`0xb41d24`, `0xb41e7c`, `0xb41fd4`, from `UnitType::UnitType@0061d270`) are not in the
+  export. A slot question asked of `vtables.txt` alone therefore misses the type hierarchy's dispatch: the `unittypes`
+  call at `+0x140` looked like `support_cost` until the bytes were read. The export's vtable pass wants the
+  `` `vftable'{for ...} `` symbols. **Score**: none; tooling.
 
 ## Parked by the next landing, slot ZZ — reserved
 
