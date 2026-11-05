@@ -221,8 +221,10 @@ fn has_gather_access(g: &MapGrid, tx: i32, ty: i32) -> bool {
 /// **`World::set_edge_flags@006b0240`**: the gather bit 0x8000 on every
 /// tile with gather access, first over each placed range's tiles
 /// (`Mountains::set_edge_flags@0089c1a0`, in placement and template
-/// order), then the cliffs' (`Cliffs::set_edge_flags@008a85e0`; no corpus
-/// map places one, §13), then every forest cell's 16 tiles, y outer.
+/// order), then the cliffs' (`Cliffs::set_edge_flags@008a85e0`, over
+/// `cliff_mining_data`, which only `Cliffs::init` fills, inside
+/// `Terrain::init` after 7945: nothing to walk here, §9), then every
+/// forest cell's 16 tiles, y outer.
 fn set_edge_flags(g: &mut MapGrid, templates: &[Template]) {
     let mark = |g: &mut MapGrid, tx: i32, ty: i32| {
         if has_gather_access(g, tx, ty) {

@@ -13056,7 +13056,10 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   `adjust_for_blocking`'s water-edge 0x2000 arm, `compute_val`'s water count and its two water factors, the
   region-size factors (every Great Sahara cell is in one 3,600-cell region), the 0x1000 centre tile, and
   `Cliffs::set_edge_flags`. Ported from the listings and never run. A style with water reaches them at 7937 and
-  7945 once its mask is ported (3734a). Names no score.
+  7945 once its mask is ported (3734a). Names no score. (Amended by item 3882: on Southwest Mesa, the first grid
+  with cliffs, `Cliffs::set_edge_flags` has nothing to walk at 7937, because `cliff_mining_data` is filled only by
+  `Cliffs::init`, after 7945, so the port has no cliffs' pass; Mesa has no 0x1000 tile and one region, so those
+  arms stay unexercised; 3882a.)
 - **3807b. Which `Region.flags` 0x40 `adjust_for_blocking` releases** (`World::adjust_for_blocking@006b3230`):
   no writer of `Region.flags` (+0x8) was found in the export, and no trace in `blind::TRACES` enters
   `Region::release` (at 0x680560), so no traced game has released one. `Regions` holds no flags, so the port
@@ -13978,13 +13981,23 @@ words and edits nothing here; a refill lands when two remain.
   fifteen's staging with the General, compared on block 736, settles it. **Score**: none until a word or a golden
   case reaches the lobby; it names no floor.
 
-## Parked by the next landing, slot ZX — reserved
+## Parked by item 3882, 2026-11-05 — Southwest Mesa's values, 7937 and 7945
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3882a. The five value mutants Mesa cannot part** (`docs/MAPGEN.md` §9, §13; `sim::map_values`;
+  `southwest_mesa_s_values_are_the_traced_stream_and_7937_and_7945`): of 18 mutants on `1ceb95bb1`, 13 hold. Five
+  fail nothing, and the test measures why on the 7937 grid. `Mountains::set_edge_flags`' pass dropped: Mesa places
+  no mountain range (0 ranges). `eliminate_dead_mount_spots` dropped: 0 dead spots. The `÷10` water factor: 0 wet
+  cells. The food bit's `> 4` as `> 5`: the fewest food slots a cell counts is 10. A filled cliff list (the 0x40
+  cells' tiles marked): none of their 4,672 tiles has a gather mask at 7937. The last is the cliffs' 0x8000 arm,
+  which stays reading-only. `Cliffs::set_edge_flags@008a85e0` walks `cliff_mining_data` (+0x40, per the listing
+  0x8a85f0..0x8a85fd), which only `Cliffs::init@008a8020` fills, in `Terrain::init` after 7945. Only a second game in
+  one process, whose list still holds the first game's cliffs at 7937 if nothing closes it between games, could part
+  on it. That is a reading, not measured. Names no score.
+- **3882b. Mesa's step 6 is `Terrain::init` without heights, 734..5012, on run1493.** That is the `sea_map` write at
+  734 and the half-land gate on the 7945 grid that now agrees (MAPGEN §10, §15 step 6). An all-land mask opens the
+  gate on no cell, Great Sahara's case, and `Cliffs::init` (step 7, 815 → 894) is where the eleven queued cliffs are
+  placed. Whether run1493's file carries 734..5012 is the first thing to count. The refill of the map lane is the
+  commander's to book.
 
 ## Parked by the next landing, slot ZY — reserved
 
