@@ -488,7 +488,6 @@ fn mark(g: &mut MapGrid, (x, y): (i32, i32), valley: i32) {
 /// stretches `wide`/`med` cut it into, whose union is the path; a border
 /// end marks its last cell again. The walk ends when the count is spent or
 /// after its second wrap.
-#[allow(clippy::too_many_arguments)]
 pub fn make_riverlist(
     g: &mut MapGrid,
     beds: &[(i32, i32)],
