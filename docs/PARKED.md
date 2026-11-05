@@ -13087,7 +13087,8 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   `SAHARA.xml`'s. Great Lakes' mask and steps 2–7 come first. The bank clear
   at 5076 is not falsifiable without them: one mutant of 23 failed nothing for that reason. `make_riverbeds`'
   water and oil arms, the start-city radius and `find_all`'s relabel at 5118 are unit-tested only. Names no
-  score. *(The start-city test is held by East Indies' walk: 3846a.)*
+  score. *(The start-city test is held by East Indies' walk: 3846a. `make_riverlist`, `astar_river` and the
+  bank clear are built and held on Great Lakes, item 3845; their unreached arms are 3845a.)*
 
 ## Parked by item 3812, 2026-11-03 — heights on Great Sahara
 
@@ -13453,13 +13454,20 @@ cell does not move while the game parts (3733b's shape). Which function it is wa
   HALFLAND `region2`, oil's third ring, the relabel's swap and the first touch's `land_sub` fail nothing here too
   and stay unit-tested (`tools/mutate.py --batch`, 2 held, 5 failed nothing).
 
-## Parked by the next landing, slot YQ — reserved
+## Parked by item 3845, 2026-11-05 — Great Lakes' rivers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3845a. The river arms Great Lakes' walk cannot part** (`docs/MAPGEN.md` §10, §13, §15 step 8;
+  `sim::map_rivers`): of 47 mutants scored by `great_lakes_s_rivers_are_5012_to_5118` (`tools/mutate.py --batch`
+  on `65212a017`, none hung), 26 held and 21 failed nothing. Four cannot fail by construction: the pull's `+ 1`
+  in each of its three cases is added to every priced sibling and never meets a value-0 terminal, and flag 2
+  standing for flag 1 on a water end is still in `GREATLAKES.xml`'s 11. The other seventeen are arms no
+  Great Lakes river reaches: the source's orthogonal precheck, the end test's `max_len` gate (no short end is
+  popped), a short end left open rather than closed, the child's and its neighbours' ancestor tests, the bank
+  refusal, the terminal's join test, rock in the search, the near case's `2·(d/2)`, the nation balance (both
+  the source pass and the end count), the third wrap, `min_length` and `length / (wraps + 1)`, the second wrap's
+  stop, the border end's second mark, `river_min_length`'s scaling and the short-river (`len < 7`) arm. Each
+  keeps a unit test or the reading in its doc comment; flag 4 (an inland end), `twist == 0` and a negative land
+  class are not entered by any stock style's list on these lobbies. Names no score.
 
 ## Parked by item 3846, 2026-11-04 — East Indies' rivers
 
