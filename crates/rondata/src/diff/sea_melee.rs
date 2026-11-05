@@ -236,6 +236,70 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     pin_eq!(w.rounds.len(), 28, "the rounds that part");
 }
 
+/// run1484: run1483's game with a window at every frame of 660..680 and
+/// a packet at 676 (item 3849, `docs/GOLDEN.md` §153.1): the rounds of
+/// the word's frame, both submarines and both cruisers frame by frame.
+pub(crate) const MELEE_WINDOW: (&str, &str) = (
+    "gamelog-run1484-eastindies-information-melee-window-660-680.txt",
+    "rontrace-run1484.log",
+);
+
+/// run1484's window, every block.
+pub(crate) const WIDENING_SEA_MELEE_WINDOW: (i64, i64) = (660, 680);
+
+/// run1484's window widened whole, the rounds compared — the coverage
+/// driver's slice too.
+pub(crate) fn sea_melee_run1484_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(melee_script(), || {
+        harness::tests::widen_on_siblings_with_rounds(
+            &[MELEE_START],
+            true,
+            MELEE_LONG,
+            "run1484",
+            &[(MELEE_WINDOW.0, WIDENING_SEA_MELEE_WINDOW.0)],
+            WIDENING_SEA_MELEE_WINDOW,
+            1,
+            &[],
+            true,
+        )
+    })
+}
+
+/// **run1484's window, widened whole** (item 3849): every dumped record
+/// on every block of [`WIDENING_SEA_MELEE_WINDOW`], both directions, the
+/// rounds too — the word 677's value diff. `RON_FIRSTS=1` prints every
+/// row.
+#[test]
+fn sea_melee_run1484_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = sea_melee_run1484_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(w.blocks, 21, "every block in the window");
+    pin_eq!(w.firsts.len(), 0, "run1484's window");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
 /// **Every seat's leader on the start dump's frames** (item 3847, the
 /// shape item 3791 gave the first two, `docs/GOLDEN.md` §151): run1482's frames 1 and 37 print all three
 /// seats' `LEADERDATA` whole. run1483's only other leader records are its

@@ -2069,7 +2069,7 @@ impl Sim {
                     // so it holds a round on every pivot piece — the
                     // Battery's among them, whose `get_position` entries
                     // `pivot::RELEASES` has not measured.
-                    let pivot = crate::pivot::release(guy.gpiece, guy.anim, start);
+                    let pivot = crate::pivot::release_node(guy.gpiece, guy.anim, start, node);
                     let pivots = self.units[u]
                         .ty
                         .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))
@@ -2147,7 +2147,10 @@ impl Sim {
                             for row in spec.split(';') {
                                 let v: Vec<i64> =
                                     row.split(':').filter_map(|x| x.parse().ok()).collect();
-                                if v.len() == 5 && v[0] == i64::from(guy.gpiece) && v[1] == i64::from(node) {
+                                if v.len() == 5
+                                    && v[0] == i64::from(guy.gpiece)
+                                    && v[1] == i64::from(node)
+                                {
                                     let b = crate::launch::Bay {
                                         right: v[2],
                                         fwd: v[3],

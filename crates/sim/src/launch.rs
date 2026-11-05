@@ -5052,6 +5052,35 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
 /// the left gun and node 1 the right; both leave one unit over the
 /// figure.
 const GUNS: &[(i32, i8, i8, Bay)] = &[
+    // **Piece 289, the Attack Submarine's two tubes** (`ATTACKSUB`, unit
+    // type 339; item 3849, `docs/GOLDEN.md` §153.1): run1484's packet
+    // holds the piece's two `AttachPos` entries, `RData +0x88` 0.9 — node
+    // 1 at frame 1 and node 2 at frame 4 of `CHAR_ATTACK2`, (∓5.33,
+    // −80.29, −43.63) — and `fit_bay.py` fits each sweep (478 lattice
+    // points, 361 of 361 headings; the centroid is kept). The torpedo
+    // leaves 347 ahead and 23 to a side, **188 under the water**:
+    // run1484's `2/15` rounds of 669 and 672 print `sz` −188, where ours
+    // left from the hull's square at 0.
+    (
+        289,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 23_033,
+            fwd: 346_844,
+            dz: -188,
+        },
+    ),
+    (
+        289,
+        crate::anim::ATTACK2,
+        2,
+        Bay {
+            right: -23_033,
+            fwd: 346_844,
+            dz: -188,
+        },
+    ),
     (
         239,
         crate::anim::ATTACK2,
