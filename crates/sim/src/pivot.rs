@@ -570,6 +570,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (199, (4, 5)),
     (204, (3, 4)),
     (143, (9, 10)),
+    (144, (9, 10)),
     (141, (9, 10)),
     (201, (4, 5)),
     (280, (9, 10)),
@@ -687,6 +688,20 @@ const fn cos_deg(d: i32) -> i64 {
 /// `0/10` from the hull's square (6120, 10968, 22) here, where the
 /// original's left the muzzle at (6098, 10851, 200), and `0/10` was struck
 /// on 4943 in theirs alone.
+///
+/// **Piece 144, the Nubian Camel Raider of the later ages** (unit type 194,
+/// `ECAMELRAIDER`; item 3855, `docs/GOLDEN.md` §153.3): run1484's packet
+/// (logger frame 676 of the fourth melee's lobby) holds its nine entries,
+/// `pos_start` 240, `RData +0x88` 0.9, and every float is piece 143's off
+/// run1440, bit for bit — the `(4, 0, 0)` pivot `(0.0, −3.32, 49.24)` and
+/// the four `<RELEASEEVENT>`s' pivot and release rows (node 0; 12 of
+/// `CHAR_ATTACKWALK` and `CHAR_ATTACK1`, 13 of `2`, 18 of `3`).
+/// `<RESTRICTION name="CAMELRAIDER" node="4">` makes it a pivot piece. The
+/// Nubian `0/14` loosed its `CHAR_ATTACK2` round of 1430 from its own square
+/// (30456, 27384, 17) here and flew 7 frames, where the original's left from
+/// (30461, 27533, 298) — the pivot's 48.57 and the release node's 16.68
+/// over the figure — flew 6, and struck the Aircraft Carrier `2/18` on 1434
+/// in theirs alone.
 const SAME_AS: &[(i32, i32)] = &[
     (1195, 139),
     (842, 138),
@@ -694,6 +709,7 @@ const SAME_AS: &[(i32, i32)] = &[
     (154, 153),
     (193, 189),
     (195, 194),
+    (144, 143),
 ];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
@@ -4938,6 +4954,39 @@ mod tests {
                 "anim {a} height"
             );
         }
+    }
+
+    /// **The later Camel Raider's rounds leave from its pivot** (item
+    /// 3855, `docs/GOLDEN.md` §153.3): piece 144 reads piece 143's rows
+    /// ([`SAME_AS`]), and the two `0/14` `CHAR_ATTACK2` rounds the fourth
+    /// melee's windows print from their first block — run1485's 798 and
+    /// run1486's 1430 — leave, beside the figure's `GUY` pose on the block
+    /// before ((30456, 27384), `angle` −2023030784, `z` 17), from the
+    /// dump's point at the dump's own turret step and no other. Made to
+    /// fail with the row out: both leave the figure's own square.
+    #[test]
+    fn the_later_camel_raider_s_rounds_leave_from_its_pivot() {
+        use crate::anim::ATTACK2;
+        let (x, y, z, f) = (30456, 27384, 17, -2_023_030_784);
+        for (turret, sx, sy) in [(-262_144, 30400, 27516), (-347_799_552, 30461, 27533)] {
+            let r = release(144, ATTACK2, 13).expect("piece 144 reads piece 143's rows");
+            assert_eq!(r, release(143, ATTACK2, 13).unwrap());
+            let fits: Vec<i32> = (-128..128)
+                .filter(|i| {
+                    let (dx, dy, _) = release_offset(&r, Angle(f), i << 24);
+                    (x + dx, y + dy) == (sx, sy)
+                })
+                .collect();
+            assert!(fits.contains(&(turret >> 24)), "turret {turret}: {fits:?}");
+            assert!(fits.len() <= 2, "turret {turret}: {fits:?}");
+            assert_eq!(
+                z + release_offset(&r, Angle(f), turret).2,
+                298,
+                "the dump's height"
+            );
+        }
+        assert_eq!(node(144, 4), node(143, 4));
+        assert_eq!(scale(144), scale(143));
     }
 
     /// **The Camel Archer's rounds leave from its pivot** (item 3785,
