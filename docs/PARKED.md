@@ -13929,10 +13929,11 @@ score.
   §382.1–§382.2). Nothing makes a `GroupAttackOrder` except as a copy or a load: no `get_obj` site pushes 0x14, and the
   constructor's one call is inside `get_new_order`. An `AwaitBoardOrder`'s one maker is `add_await_board_order`, which
   is `RESIDUE`. Each moves on a second reading's agreement over §382.6's four points. **Score**: `Blind:` open 41 → 39.
-- **3877b. `get_max_range`'s golden-start take** (`docs/AI.md` §382.4): chapter fifteen's lines with `add general who=0`
+- ~~**3877b. `get_max_range`'s golden-start take** (`docs/AI.md` §382.4): chapter fifteen's lines with `add general who=0`
   in the selection range. A `cover=1` trace should enter `GroupData::get_max_range@00711080` on 735–736, through
   `do_attack:119`'s unarmed, grouped arm. Two killers: the General's head on 736 is not an `ATTACKORDER`, or there is
-  no `HIT` while it is one. **Score**: `Blind:` open 41 → 40.
+  no `HIT` while it is one. **Score**: `Blind:` open 41 → 40.~~ Taken by item 3881: run1498 enters it on 735
+  (`docs/AI.md` §382.4), and `Blind:` open is 41 → 40.
 - **3877c. `Group::kill_group_order@00710aa0`'s second caller is dead**: `do_group_attack:67` (`5e76c4`) is under
   3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
   The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
@@ -13966,13 +13967,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ZW — reserved
+## Parked by item 3881, 2026-11-05 — `get_max_range` entered on the golden start
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ZW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3881a. The General's stand-off point on run1498, unchecked against `do_attack.rs`** (`docs/AI.md` §382.4): on
+  block 736 the General `0/9` holds a `MOVEORDER` to (3192, 12888), 480 from the Chariot `1/6` at (3192, 12408), on
+  its own side. The crate's `grouped` arm projects `(R + 1) × 0xc0 + 0xc0` for a melee group (`R` 0) and then calls
+  `find_nearby_spot`. Neither the Hoplites' `max_range` nor the snap is read off the dump. A sim run of chapter
+  fifteen's staging with the General, compared on block 736, settles it. **Score**: none until a word or a golden
+  case reaches the lobby; it names no floor.
 
 ## Parked by the next landing, slot ZX — reserved
 
