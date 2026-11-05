@@ -13994,7 +13994,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::sea_melee::SEA_MELEE_WORD,
         length: 2_600,
         endpoint: Some("sea_melee_run1483_s_closing_state"),
-        window: Some("sea_melee_word_window"),
+        window: Some("sea_melee_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

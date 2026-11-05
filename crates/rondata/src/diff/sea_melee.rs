@@ -243,7 +243,7 @@ pub(crate) const WIDENING_SEA_MELEE: (i64, i64) = (2501, 2601);
 
 /// The word's window, widened whole on run1483's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
-pub(crate) fn sea_melee_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn sea_melee_closing_window() -> Option<harness::tests::Widened> {
     crate::diff::setup::with_staged_script(melee_script(), || {
         harness::tests::widen_on_siblings_with_rounds(
             &[MELEE_START],
@@ -266,7 +266,7 @@ pub(crate) fn sea_melee_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn sea_melee_run1483_s_word_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = sea_melee_word_window() else {
+    let Some(w) = sea_melee_closing_window() else {
         return;
     };
     if std::env::var("RON_FIRSTS").is_ok() {
