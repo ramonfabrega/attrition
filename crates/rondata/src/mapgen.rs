@@ -4691,6 +4691,40 @@ mod tests {
                 count(coord::SHALLOW),
                 gated.len()
             );
+            // 3832b's arms on the archipelago: the cells' own `land` 1 and
+            // 3, world 0x4 without 0x400 and the reverse, and the shallow
+            // cells only the 5×5 ring's outer sixteen reach.
+            let lands = |l: i8| grid.cells.iter().filter(|c| c.land == l).count();
+            let only = |a: u16, b: u16| {
+                grid.cells
+                    .iter()
+                    .filter(|c| c.flags & a != 0 && c.flags & b == 0)
+                    .count()
+            };
+            let outer = (0..grid.cells.len())
+                .filter(|&i| {
+                    let (x, y) = (i as i32 % grid.xs, i as i32 / grid.xs);
+                    let shore = |dx: i32, dy: i32| {
+                        let (u, v) = (x + dx, y + dy);
+                        u >= 0 && v >= 0 && u < grid.xs && v < grid.ys && {
+                            let c = &grid.cells[(v * grid.xs + u) as usize];
+                            c.flags & 0x4 != 0 || c.land == 3
+                        }
+                    };
+                    coord[i] & coord::SHALLOW != 0
+                        && !sim::world::MOVE_49[1..9]
+                            .iter()
+                            .any(|&(dx, dy)| shore(dx, dy))
+                })
+                .count();
+            eprintln!(
+                "{run:?}: land 1 {}, land 3 {}; world 0x4 without 0x400 {}, 0x400 without 0x4 {}; \
+                 shallow by the outer ring alone {outer}",
+                lands(1),
+                lands(3),
+                only(0x4, 0x400),
+                only(0x400, 0x4)
+            );
             let parts = HalfLand::default().parts().expect("the lists start empty");
             let ours = (
                 d.rng.seed,
