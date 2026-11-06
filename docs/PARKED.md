@@ -14398,13 +14398,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AW — reserved
+## Parked by item 3909, 2026-11-06 — the rest of the implicit residue, ruled on scope
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3909a. A mine against a cliff** (a `coverage` staging; AI §393.1 row 1). It enters
+  `CliffsData::gather_size@008a8f80`, which `BuildTypeData::calc_gather`'s mine arm takes when a scary cliff is
+  nearer than any mountain and within `gather_radius × 0xc0`.
+  - Staging: a `--dump-all-start` lobby on a style that lays `OBJECT_CLIFF` tiles. 3908's styles may name one,
+    and neither scored map has any. Then `add mine who=0 <x>,<y>` beside a cliff with no mountain nearer.
+  - Killer: no `gather_size` hit on the `add`'s frame, or a `NO_MOUNTAIN 0xc` refusal.
+  - **Score**: `Blind:` open −1, and ECONOMY's "The cliff arm" falsifier, which this crate's empty list for a
+    mine beside a cliff would meet.
+- **3909b. A unit created by the console's `eval`, on land** (a `chapter` staging; AI §393.1 row 2). It enters
+  `Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0`.
+  - Staging: `620 !eval create_unit(1, <x>, <y>, "Hoplite", 2)` on a land tile, beside §391.2 row 10's ocean
+    staging on the same lobby. `ScenarioFuncSet::add_unit@009e2220` (already `NEVER`) forms the pair and then
+    snaps it to its slots.
+  - Killer: on 621, the Hoplites still at their placement points holding `CHANGE_FORM`.
+  - **Score**: `Blind:` open −2, and −1 more with `add_unit`. It shares a lobby with 3906c's transport staging.
+- **3909c. The queue's count of 3909 was 32; the stems it named are 44.** **Score**: none. It is a count to read
+  off `census.py` rather than add by hand.
 
 ## Parked by the next landing, slot AX — reserved
 
