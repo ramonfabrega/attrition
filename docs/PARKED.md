@@ -14283,6 +14283,8 @@ Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). T
   `(group.id + frame*10)*100 + order_num`, which is unique within a group between `Group::clear`s but can collide
   across two groups, so a unit regrouped with its old move still queued could hold two with the same id. Not read to
   a producer. **Score**: none until 3902a's take is read; then it is the remaining route.
+  *Read by item 3904 (`docs/AI.md` §390): the ids meet across two slots of one player, and a regroup keeps the old
+  move; the list has a producer, but the entry does not (3904a).*
 
 ## Parked by item 3903, 2026-11-06 — route 1 to the `kill_group_order` pair, read shut with no take
 
@@ -14300,14 +14302,27 @@ Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). T
   Read to a producer: a regroup that keeps the old group's move queued (`Group::clear`, `add_group_move_order`'s
   `QUEUE_NEW` clear, `finish_insert`), and whether two groups' ids can meet on one frame. **Score**: the two `NEVER`
   rows; a take if a producer is found, `RESIDUE` with 3903a if none is.
+  *Read by item 3904 (`docs/AI.md` §390): the falsifier fails and the list has a human producer; no entry into
+  `find_new_target` was found for it, so neither a take nor `RESIDUE`; parks 3904a–b.*
 
-## Parked by the next landing, slot AR — reserved
+## Parked by item 3904, 2026-11-06 — route 2 to the `kill_group_order` pair: the duplicate has a producer, the entry does not
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3904a. The entry into `find_new_target` for route 2's list** (`docs/AI.md` §390.4). The list
+  `[GM_form X][ATTACK t][GROUP_PATROL][GM_B X]` has a human producer (§390.3: a formation change, a shift-attack and
+  a shift-patrol on frame f, then a second set's shift-move from the slot ten below on f+1). What is missing is a
+  caller that runs `find_new_target` on it. Read, each to its predicate:
+  - `Unit::do_group_move`'s non-leader arm on a `do_move` return of 0, and whether a non-leader keeps a stash
+    (`+0x104`) into `do_move:105`;
+  - `Unit::target_opportunity:393`'s make-way move (idle or worker gate) as a plain move without bit 4 on top of the
+    formation move, which opens `resolve_unit_collision:233` and `check_target_path:180`;
+  - `GroupData::get_form` = 9 as a source of a plain top move.
+
+  A leader U is ruled out: `do_group_move`'s 32-frame `kill_group_move` takes the list first.
+  **Score**: the two `NEVER` rows. A caller read to its predicate books one take of §390.3's five commands plus
+  that caller's staging. None, together with 3903a's verdict, makes the pair `RESIDUE`.
+- **3904b. A blind second reading of §390.1–§390.3.** One reading: the list's orientation, the walk's
+  k-from-the-head kill, the slot arithmetic of `get_open_slot`, and bit 4 on human moves.
+  **Score**: none until 3904a finds an entry; then it gates the take's booking.
 
 ## Parked by item 3905, 2026-11-06 — AI §389 read a second time, blind: route 1 stays shut
 

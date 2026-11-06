@@ -1110,6 +1110,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// city, any other target leaves the unit an `ATTACK`, and `fight`'s second-call gate is shut
 /// for a land building besides; the pair stays here pending a blind second reading (park 3903a)
 /// and route 2 (3903b); open 2, unmoved.
+/// **267** unmoved by item 3904 (`docs/AI.md` §390), which reads route 2 half-open: a regroup
+/// keeps the old group's move queued and two slots' group-move ids meet, so the duplicate list
+/// has a human producer, but no entry into `find_new_target` was found for that list: with a
+/// group move current only `do_move:105` admits it, behind a stash; neither a take nor
+/// `RESIDUE`, the entry parked as 3904a; open 2.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
