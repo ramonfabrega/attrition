@@ -1099,6 +1099,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **267** unmoved by item 3899's blind second reading (`docs/audit/2026-11-06-item-3899.md`),
 /// which agrees with `docs/AI.md` §386 that no v1 game reaches `GoodTypeData::is_flat`, and
 /// moves it to [`RESIDUE`]; residue 264 → 265, open 3 → 2 on the tree merged with 3897 and 3898.
+/// **267** unmoved by item 3902's blind second reading (`docs/audit/2026-11-06-item-3902.md`),
+/// which disagrees with `docs/AI.md` §388 on the `kill_group_order` pair: `fight`'s second
+/// `find_new_target` (`5fe25f`) after `Group::action_attack(QUEUE_FIRST)` can meet a re-issued
+/// `GROUP_PATROL`, so `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0`
+/// stay here, the take that settles them parked as 3902a; open 2, unmoved, on the tree merged
+/// with 3899.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
