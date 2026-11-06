@@ -190,6 +190,100 @@ impl Sim {
         self.add_air_patrol_order(u, at, Some(b), true);
     }
 
+    /// **`Group::action_recall@006fa7e0`'s building arm** (item 3912,
+    /// `docs/GOLDEN.md` §159): `OPTION_AIRBASE_RECALL` on a selection of
+    /// buildings, `CommandPackage::process_recall@00947bd0` (byte 0x23).
+    /// A group whose leader is domain 2 takes `action_return` instead, the
+    /// unit arm (item 3911's).
+    ///
+    /// - Each member that is active (`+0xc`, `SubObjectData::is_active`) and
+    ///   a building (`+0x20`, `Buffer::is_pending_load`, 1) is cleared:
+    ///   [`Sim::clear_gather`] (`6fa8f0`..`6fa96f`), whose hangar half
+    ///   already sends every homed plane on the map home and empties every
+    ///   one inside.
+    /// - Then every live unit of the player, in index order, that is a
+    ///   fixed-wing plane (`is_plane`, no `+0x2b4 & 0x20`) and no missile
+    ///   (`type +0x1e4 & 0x8000000`): **on the map**, when its front air
+    ///   order's home is a member, the order's `returning` is set, its
+    ///   `cruising_alt` and `sharp_turn` kept, and the plane is given
+    ///   `add_strafe_order(−1, −1, home, 0, QUEUE_NEW, 0)` with those two
+    ///   heights; **inside** a member, `clear_orders` and out of the host's
+    ///   `launching` (`+0x44`).
+    ///
+    /// The walk repeats what `clear_gather` has just done for any plane both
+    /// reach, so on an Airbase the recall is its Clear's hangar half.
+    ///
+    /// SEAM: `home_base`'s order-`0x19` arm — the walk reads the order behind
+    /// a head of type `0x19`; no plane here holds one.
+    pub fn group_action_recall_buildings(&mut self, who: Player, buildings: &[usize]) {
+        for &b in buildings {
+            if self.buildings[b].alive && self.active(Obj::Building(b)) {
+                self.clear_gather(b);
+            }
+        }
+        let mut units: Vec<usize> = (0..self.units.len())
+            .filter(|&u| self.units[u].owner == who)
+            .collect();
+        units.sort_by_key(|&u| self.units[u].index);
+        for u in units {
+            if !self.units[u].alive()
+                || !self.is_air_unit(u)
+                || self.is_helicopter(u)
+                || self.is_missile(u)
+            {
+                continue;
+            }
+            match self.units[u].inside {
+                None => {
+                    let Some(home) = self.current_air(u).and_then(|a| a.home) else {
+                        continue;
+                    };
+                    if !buildings.contains(&home) {
+                        continue;
+                    }
+                    let heights = self.air_order_heights(u);
+                    self.add_strafe_order(u, None, Some(home), false, QueuePos::New, false);
+                    if let Some((alt, sharp)) = heights {
+                        self.set_cruising_alt(u, alt);
+                        self.set_sharp_turn(u, sharp);
+                    }
+                }
+                Some(host) if buildings.contains(&host) => {
+                    self.clear_orders(u);
+                    self.buildings[host].launching.retain(|&x| x != u);
+                }
+                Some(_) => {}
+            }
+        }
+    }
+
+    /// **`Group::action_scramble@007111c0`** (item 3912, `docs/GOLDEN.md`
+    /// §159): `OPTION_AIRBASE_SCRAMBLE`, `CommandPackage::process_scramble@
+    /// 00947ae0` (byte 0x24). Down each member's `inside_down` chain
+    /// (`+0x28`/`+0x3e`), every passenger that is a unit (`+0x18`), domain
+    /// 2, not busy (`UnitData::is_busy@0060a370`), no missile and **full**
+    /// (`mana_burn`, `+0x96`, 0) goes up over its host's own point:
+    ///
+    /// - a fixed-wing plane, `add_air_patrol_order(host.x, host.y, host, 1)`
+    ///   (`7114dc`..`7114fa`) — the action bit; the queue argument the
+    ///   listing pushes is the host's `y`, which the fixed-wing arm never
+    ///   reads;
+    /// - a helicopter (`+0x2b4 & 0x20`), a `MOVE_TO` built in place to the
+    ///   host's cell centre with the action bit: [`Sim::launch_one`]'s
+    ///   helicopter arm. Read only: no capture holds a helicopter here.
+    ///
+    /// SEAM: `is_busy`, as in [`Sim::group_action_launch_patrol`] — a plane
+    /// inside holds no craft order and is never entering or exiting here.
+    pub fn group_action_scramble(&mut self, buildings: &[usize]) {
+        for (b, u) in self.planes_inside(buildings) {
+            if !self.is_air_unit(u) || self.units[u].mana_burn != 0 || self.is_missile(u) {
+                continue;
+            }
+            let at = self.buildings[b].pos;
+            self.launch_one(u, at, b);
+        }
+    }
+
     /// **`Build::train@0062f9b0`'s block at `62fc47`** (item 1019,
     /// `docs/PRODUCTION.md` "The Helicopter and the missile under a
     /// point"): a missile or a helicopter trained under a gather point reads
