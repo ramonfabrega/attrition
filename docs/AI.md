@@ -38883,8 +38883,8 @@ table). `:65` kills it, and `5ff78f` is not reached.
   `GROUP_ATTACK_TO` answer, through `+0x14`; `GROUP_PATROL` does not, so it is the activity, type 0x16. Without
   it, a `GROUP_ATTACK_TO` left last is answered as 0x15. With neither, the list after `repath` is empty and
   `:63` reads a null head, so the route needs the patrol, and the patrol keeps the unit on duty.
-- **Entrenched** (`UnitData::is_entrenched@0060a810(1)`: `unit_masks & 0x2000000` without `unit_masks2 &
-  0x20000`). The only writer of the first bit, `Unit::check_idle@006032c0:40` (the Marines' trench), sets the
+- **Entrenched** (`unit_masks & 0x2000000` without `unit_masks2 & 0x20000`, read inline; the shape
+  `UnitData::is_entrenched(1)` names, which nothing calls). The only writer of the first bit, `Unit::check_idle@006032c0:40` (the Marines' trench), sets the
   second with it. `Unit::move_step@005faf30:60-62` and `Unit::close@0060ee50:71-73` clear both together. So it is
   never true.
 - **`find_attack_pos` fails.** `Unit::find_attack_pos@00601280`, for a land attacker and a land building:
