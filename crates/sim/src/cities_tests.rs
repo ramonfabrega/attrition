@@ -8288,6 +8288,70 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     assert!(sim.buildings[b].garrison.is_empty());
 }
 
+/// **A peasant alarm sends each selected Citizen to the nearest building
+/// it can garrison, however far** (item 3916, `docs/GOLDEN.md` §163;
+/// `Group::action_alarm_peasant@006fd980`, run1510c): the search's range is
+/// −1, so a Citizen thirty tiles off still takes a `GARRISONORDER`, at the
+/// head, `search` 1, the action bit; a walk it holds stays behind; a
+/// Militia is not a `0x32`/`0x33` and takes nothing; a second press drops
+/// the garrison it already holds as its action (`0x1a`) and lays one; each
+/// order marks the economy dirty.
+///
+/// Made to fail with the search bounded at `0x200`, with the drop loop on
+/// `GATHER`, and with the order at `QUEUE_LAST`.
+#[test]
+fn a_peasant_alarm_sends_each_citizen_to_the_nearest_garrison_however_far() {
+    use crate::orders::{Body, MoveKind, QueuePos, index};
+    let (mut sim, t, citizen, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let far = sim.init_unit(0, citizen, tile_pos(62, 62));
+    let walker = sim.init_unit(0, citizen, tile_pos(40, 32));
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.add_move_order(
+        walker,
+        tile_pos(44, 36),
+        MoveKind::MoveTo,
+        QueuePos::New,
+        true,
+    );
+    sim.ledgers[0].dirty = false;
+    let mut g = crate::group::Group::stack(0);
+    for u in [far, walker, m] {
+        sim.group_add(&mut g, u);
+    }
+    assert!(sim.push_group(&mut g, true));
+    sim.action_alarm_peasant(&g);
+    for u in [far, walker] {
+        assert!(
+            matches!(
+                sim.units[u].orders.front().map(|o| (o.flags & crate::orders::flag::ACTION != 0, o.body)),
+                Some((true, Body::Garrison { building, search: true })) if building == b
+            ),
+            "{u}: {:?}",
+            sim.units[u].orders
+        );
+    }
+    let kinds: Vec<u8> = sim.units[walker].orders.iter().map(|o| o.index()).collect();
+    assert!(kinds.contains(&index::MOVE_TO), "the walk kept: {kinds:?}");
+    assert!(sim.units[m].orders.is_empty(), "a Militia takes nothing");
+    assert!(sim.ledgers[0].dirty, "the order marks the economy dirty");
+
+    let mut again = crate::group::Group::stack(0);
+    sim.group_add(&mut again, far);
+    assert!(sim.push_group(&mut again, true));
+    sim.action_alarm_peasant(&again);
+    let n = sim.units[far]
+        .orders
+        .iter()
+        .filter(|o| o.index() == index::GARRISON)
+        .count();
+    assert_eq!(
+        n, 1,
+        "the held garrison dropped: {:?}",
+        sim.units[far].orders
+    );
+}
+
 /// **`come_out`'s tail, as `0x617c10` has it** (twenty-fourth pass, group
 /// 15; A9 rows 24 and 29): a computer's captain runs the same wipe a member
 /// does — its queued orders go — where a human's keeps them; and the city

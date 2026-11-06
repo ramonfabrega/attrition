@@ -813,6 +813,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch109 = golden_dump("ch109");
     let ch110 = golden_dump("ch110");
     let ch111 = golden_dump("ch111");
+    let ch113 = golden_dump("ch113c");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2936,6 +2937,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and eleven carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirteen, on run1510c** (item 3916): the
+    // third `OPTION_PEASANT_ALARM`, on a Citizen already walking to
+    // garrison; `process_alarm` on 681 and the replaced order on 682.
+    if let Some(p) = &ch113 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTEEN;
+        let n = drive_capture(p, 679, 683, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and thirteen carries five blocks in the window"
         );
         frames += n;
     }

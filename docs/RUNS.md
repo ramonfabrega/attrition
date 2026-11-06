@@ -35045,6 +35045,39 @@ run1507b: `rontrace.log` 20,088,704 bytes, SHA-256 `f762e277e51d2201483c78907efc
 `chapter_one_hundred_and_ten_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 769..773 is in the
 coverage driver's slice. run1507b is in `blind::TRACES`, and the three rows are off `NEVER`.
 
+## run1510 to run1510d — chapter one hundred and thirteen: a peasant alarm, `OPTION_PEASANT_ALARM` on chapter thirty-nine's Citizen (2026-11-06, item 3916, `att-3916`)
+
+`docs/GOLDEN.md` §163. **What the disk could not answer**: `Group::action_alarm_peasant@006fd980` and its writer
+`Options::do_alarm@0071c3f0` were never entered by any trace (`docs/AI.md` §391.2 row 9). Recipe
+`tools/gamelog/golden/chapter113.cmd`: chapter thirty-nine's lobby (`600 library who=0 1`, `606 add citizen who=0
+30,150`), then `620 select 6`, `622 @key 124`, `640 select 1`, `642 @key 124`, and on the retake `678 select 6`, `680
+@key 124`. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch113 --map 14 --end-frame 900
+--log-window 605 900 --timeout 3600`, with chapter one hundred and ten's `end:`/`start:` sets, `misc:COMMANDMANAGER=1`
+and `--bindkey OPTION_PEASANT_ALARM=124`. Each twin is the same line at `--cover cover=1 --no-ffwd`. 116 GiB free
+before. All four ran on pool lane 1 with no relaunch, `success`, 901 frames, `last_frame` 900, and no minutes waited on
+another lane. `~/ron-golden/run1510`..`run1510d` link to `ch113`..`ch113d`.
+- run1510 (`ch113`, `cover=0`): 06:55:57–06:56:39, 41.5 s. The first take, without the 680 press. Its falsifier 4
+  fired: `0/1` keeps its `GATHERORDER` on 644.
+- run1510b (`ch113b`, `cover=1`): 06:57:24–06:59:13, 109.3 s. The first take's twin.
+- run1510c (`ch113c`, `cover=0`): 07:00:32–07:02:12, 100.4 s. The retake, with the 680 press, and the word's.
+- run1510d (`ch113d`, `cover=1`): 07:02:51–07:04:25, 94.0 s. Filed by `filerun.py run1510d ch113-peasantalarm-cover`.
+- `process_alarm 623`, `643` and `681` on the `CM` channel.
+  - On 624 `0/6` holds `GARRISONORDER search=1` on `0/2000` under a `MOVEORDER` to (3816, 30456).
+  - On 644 `0/1` holds `[GATHERORDER 2001, GARRISONORDER 2000, MOVEORDER]`.
+  - On 682 `0/6` holds one `GARRISONORDER` and a `MOVEORDER` to (3864, 30648).
+  - Inside `2000`: `0/1` on 720, `0/6` on 746.
+- The twin enters `do_alarm`, `process_alarm`, `action_alarm`, `action_alarm_peasant`, `find_building`,
+  `UnitData::can_garrison` and `UnitTypeData::can_garrison` on trace frame 622.
+- `rngcmp`: run1510c against run1510d, 901 of 901 identical; run1510 against run1510c, 901 of 901 identical.
+
+run1510c: `gamelog.txt` 122,382,205 bytes, SHA-256 `89c1b0471c1347c3199a0d74875cfc74ae693322c42d525ab54dce7ea02181f7`.
+`rontrace.log` 9,742,016 bytes, SHA-256 `2cd74227ea19e9181fc4623b64ad4c57a7edfce2bc21cd14e3abd708354401ca`.
+run1510d: `rontrace.log` 16,183,616 bytes, SHA-256 `4d02aefd711e4ee8256dc65f437ccbba8f14ab73cd20fa6b3373a413ee37b8fc`.
+run1510: `rontrace.log` 9,985,536 bytes, SHA-256 `5d91c615b4c5f5ae1751e82316d5a7e648236eeeeece17ba24def47d2409007c`.
+
+**What it holds**: `golden::chapter_one_hundred_and_thirteen_holds_to_the_golden_word` (900, closed) and
+`chapter_one_hundred_and_thirteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1510c. Its
+window 679..683 is in the coverage driver's slice. run1510d is in `blind::TRACES`, and its two rows are off `NEVER`.
 ## run1508 and run1508b — chapter one hundred and eleven: a disband, `OPTION_DISBAND` on chapter nine's Chariot (2026-11-06, item 3914, `att-3914`)
 
 `docs/GOLDEN.md` §161. **What the disk could not answer**: no trace had entered `Group::action_disband@0070e260`, its
