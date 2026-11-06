@@ -1380,6 +1380,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **332** with item 3934's run1519b joining [`TRACES`] (`docs/GOLDEN.md` §169): a `DISBAND` at a
 /// Temple in city 0 enters `CityData::is_disbanding@007380a0` on 840 — the Temple's type is
 /// `jam`, without `NO_CITY`, so `is_castable`'s city arm asks it (parked 3930a); open 4 → 3.
+/// **332** unmoved by item 3935's blind second reading of `docs/AI.md` §391.3 (§397,
+/// `docs/audit/2026-11-06-item-3935.md`): `show_interface`, `dbg_pack_or_unpack` and
+/// `process_transport` stay [`RESIDUE`], ratified; `Group::is_moving_to@00713bd0` stays here as a
+/// staging — a FORM's bit-4-clear group move heads the leader's list over a shift-queued `ATTACK`,
+/// and `update_action` skips the move (parked 3935a); open 3, unmoved.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -2783,9 +2788,10 @@ pub const RESIDUE: &[(u32, &str)] = &[
         0x0070_7b50,
         "Group::dbg_pack_or_unpack: its one caller, Options::target_spell, \
          takes it only under gamec->semaphore bit 11, which ConsoleWin::run_cmd \
-         sets when it opens the in-game scenario editor; it casts a pack or \
-         unpack outside the command stream, and the editor is cut from v1 \
-         (DECISIONS 107 §3; docs/AI.md §391.3, item 3906)",
+         sets when it opens the in-game scenario editor (and Game::run_editor, \
+         ScenarioEditor::end_test and a save load's Game::walk_data); it casts a \
+         pack or unpack outside the command stream, and the editor is cut from v1 \
+         (DECISIONS 107 §3; docs/AI.md §391.3, §397, items 3906, 3935)",
     ),
     (
         0x0070_ce70,

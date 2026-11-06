@@ -14689,13 +14689,21 @@ words and edits nothing here; a refill lands when two remain.
   it. The `NO_CITY` skip inside `is_disbanding` is unit-tested only. Names no score: chapter 119 is closed whole, and
   the row has left `NEVER`.
 
-## Parked by the next landing, slot BO — reserved
+## Parked by item 3935, 2026-11-06 — a group head over an attack
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3935a. The chapter that enters `Group::is_moving_to@00713bd0`** (`docs/AI.md` §397,
+  `docs/audit/2026-11-06-item-3935.md` row 6). The setup and commands:
+  - two or more of the human's land units in one group;
+  - a formation button, so that `CM` prints `process_form`, `Group::action_form` lays a `GROUP_MOVE` with bit 4
+    clear, and `GROUPS` shows the group's `form`;
+  - then, while the formation marches, a shift-attack on an enemy non-wall building well out of range of the
+    formation's destination, so that `CM` prints `process_attack` with the queue `LAST`.
+
+  The trace carries `005e22d0`, `00713bd0` and the call site `005e25ee`, with `RON_DEBUG_UNIT` on the leader (the
+  group order's `oxx`). Write the falsifier first: the leader's list `[GROUP_MOVE][ATTACK]`, with the move's bit 4
+  clear and the target out of range of the move's destination, yet `00713bd0` not entered on any of the leader's
+  sixteenth frames. A take that enters it pins the row into `blind::TRACES`. A refusal names which of
+  `check_target_path:78-141`'s steps shut it. **Score**: `Blind:` never and open, one row.
 
 ## Parked by the next landing, slot BP — reserved
 
