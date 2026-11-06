@@ -255,7 +255,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 | sim::combat::umask2::MARINES
                 | sim::combat::umask2::MARINE
                 | sim::combat::umask2::MARINE_TRENCH;
-            let rows: [(&'static str, i64, Option<i64>); 6] = [
+            let rows: [(&'static str, i64, Option<i64>); 7] = [
                 ("recharging", i64::from(un.combat.recharging), u.recharging),
                 // **`unit_masks2 & 0x10`** — the frozen frame's mark
                 // (item 502, `docs/COMBAT.md` §43.2). The word is printed
@@ -287,6 +287,17 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     "unit_masks",
                     i64::from(un.combat.entrenched),
                     u.unit_masks.map(|m| i64::from(m & 0x200_0000 != 0)),
+                ),
+                // **The trench's facing** (`+0x5c`, item 3919): written
+                // beside the trench bit by `cast_entrench` and the marines'
+                // dig-in, and read only while a side holds the bit — an
+                // unentrenched unit's stale angle is no one's state.
+                (
+                    "trench_angle",
+                    i64::from(un.combat.trench_angle.0),
+                    u.trench_angle.filter(|_| {
+                        un.combat.entrenched || u.unit_masks.is_some_and(|m| m & 0x200_0000 != 0)
+                    }),
                 ),
                 ("damage_frame", un.combat.damage_frame, u.damage_frame),
                 (
@@ -2370,6 +2381,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
             ("UnitDump", "unit_masks")
         }
         "dest_angle" => ("UnitDump", "dest_angle"),
+        "trench_angle" => ("UnitDump", "trench_angle"),
         "orders_x" => ("UnitDump", "orders_x"),
         "orders_y" => ("UnitDump", "orders_y"),
         "tolerance" => ("UnitDump", "tolerance"),

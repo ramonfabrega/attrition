@@ -156,7 +156,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -280,7 +280,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
