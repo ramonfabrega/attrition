@@ -628,6 +628,18 @@ pub const TRACES: &[&str] = &[
     // §391.2 row 6, `docs/GOLDEN.md` §160); run1507's game on every frame
     // (rngcmp 901 identical, 0 differing).
     "rontrace-run1507b.log",
+    // Item 3911: chapter seventeen's air group actions at `cover=1` on the
+    // click-free pool (`docs/RUNS.md` run1505, run1505b;
+    // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and
+    // `chapter17-airground.cmd` to 1060). run1505's `@patrol` on the
+    // flying Fighter enters `Group::action_air_patrol` on 680 and its
+    // `OPTION_RETURN` `Options::recall_aircraft`, `Group::action_recall`
+    // and `Group::action_return` on 852; run1505b's `@attackground` enters
+    // `Group::action_air_attack_ground` on 680 and its right-click with the
+    // Airbase selected `GroupData::is_in_air_range` on 806
+    // (`docs/GOLDEN.md` §158).
+    "rontrace-run1505.log",
+    "rontrace-run1505b.log",
     // Item 3915: golden chapter one hundred and twelve (`chapter112.cmd`,
     // the golden City selected and `610 @key 124` with
     // `--bindkey OPTION_VILLAGE_GATHER_ALL=124`) at `cover=1` on the
@@ -1220,11 +1232,17 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Options::scramble_aircraft`, `CommandPackage::process_scramble` and `Group::action_scramble`
 /// on 2312; open 34 → 28 (§391.2 rows 4 and 5) on the tree merged
 /// with item 3913.
-/// **353** with item 3915's run1509b (`docs/GOLDEN.md` §162), the `cover=1` twin of chapter one
+/// **353** with item 3911's run1505 and run1505b joining [`TRACES`] (`docs/GOLDEN.md` §158,
+/// `docs/AI.md` §391.2 rows 1–3 and 11): `Group::action_air_patrol@007029d0`,
+/// `Group::action_air_attack_ground@00703d80`, `Group::action_return@006fad40` and
+/// `GroupData::is_in_air_range@0070b6b0` are entered (`action_recall`, `recall_aircraft` and
+/// `process_recall`, which run1505 enters too, left with item 3912); open 28 → 24 on the tree
+/// merged with item 3912.
+/// **349** with item 3915's run1509b (`docs/GOLDEN.md` §162), the `cover=1` twin of chapter one
 /// hundred and twelve: `select 2000` and `OPTION_VILLAGE_GATHER_ALL` enter
 /// `Options::do_city_gather` and `GroupOut::issue_city_gather` on 610 and, at the pump,
-/// `CommandPackage::process_city_gather` and `Group::action_city_gather`; open 28 → 24 (§391.2
-/// row 8).
+/// `CommandPackage::process_city_gather` and `Group::action_city_gather`; open 24 → 20 (§391.2
+/// row 8) on the tree merged with item 3911.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1246,7 +1264,7 @@ pub const NEVER: &[u32] = &[
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
-    0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x006f_ad40, 0x006f_d980, 0x0070_0010, 0x0070_20c0, 0x0070_2620, 0x0070_29d0, 0x0070_3d80, 0x0070_7a00, 0x0070_7aa0, 0x0070_7b50, 0x0070_a4a0, 0x0070_b6b0, 0x0070_ce70, 0x0070_e260, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
+    0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x006f_d980, 0x0070_0010, 0x0070_20c0, 0x0070_2620, 0x0070_7a00, 0x0070_7aa0, 0x0070_7b50, 0x0070_a4a0, 0x0070_ce70, 0x0070_e260, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
     0x0071_3bd0, 0x0071_c3f0, 0x0071_df20, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7200, 0x0079_7c40, 0x0079_8880, 0x0079_99e0, 0x0079_ea80, 0x007a_a400, 0x007a_a560, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,

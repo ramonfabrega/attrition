@@ -2006,6 +2006,20 @@ impl Sim {
         // at `+0x8/+0xc/+0x10`. A strafe home has none, and is refused.
         let (ground, ordered) = match self.current_order(u).map(|o| o.body) {
             Some(crate::orders::Body::AttackGround(g)) => (Some(g), None),
+            // **And an air attack on the ground** (kind `0x18`, the same
+            // arm as `0x17`: `005d9b0e`), its `ATTACKGROUNDORDER` base's
+            // point — `+0xc` and `attack_unit` written 0 by
+            // `add_air_attack_ground_order`. run1505b's Bomber `0/7`'s
+            // `CHAR_ATTACK2` from 846 bombs the Barracks' point from 863
+            // (item 3911).
+            Some(crate::orders::Body::AirAttackGround(a)) => (
+                Some(crate::orders::AttackGroundOrder {
+                    at: a.at,
+                    sea: false,
+                    attack_unit: 0,
+                }),
+                None,
+            ),
             Some(crate::orders::Body::Attack(_)) => (None, self.units[u].combat.target),
             Some(crate::orders::Body::Strafe(s)) => (None, s.target),
             // **No attack in front: the fire on the move's own pair.**

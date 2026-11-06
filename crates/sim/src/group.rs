@@ -2293,7 +2293,7 @@ impl Sim {
     /// helicopter", carried by exactly three types — `Helicopter` and the
     /// two `Attack Helicopter`s, all of them `<DOMAIN>Air` — so a
     /// **helicopter is not a plane** and is ordered like a ground unit.
-    pub(crate) fn is_plane(&self, u: usize) -> bool {
+    pub fn is_plane(&self, u: usize) -> bool {
         self.group_domain(u) == Domain::Air
             && !self.units[u]
                 .ty
@@ -3513,6 +3513,7 @@ impl Sim {
             return;
         };
         if self.is_plane(leader) || g.list.iter().any(|&m| self.group_domain(m) == Domain::Air) {
+            self.group_action_air_patrol(g, to, queue);
             return;
         }
         let from = if queue == QueuePos::Last {
@@ -3535,6 +3536,192 @@ impl Sim {
             self.add_patrol_order(m, (from, to), id, i, leader, queue);
         }
         self.bump_order_num(g);
+    }
+
+    /// **`Group::action_air_patrol(x, y, queue)@007029d0`** (item 3911,
+    /// `docs/GOLDEN.md` §158), which [`Self::group_action_patrol`] hands a
+    /// group with a plane leader or an air member. The point is clamped
+    /// into the world, and every member that is a plane (`is_plane`: domain
+    /// 2, not a helicopter), not busy and not a missile (`type +0x1e4 &
+    /// 0x8000000`) takes `add_air_patrol_order(x, y, home, 1)`: the home is
+    /// the front air order's (a `STRAFE`, `AIR_PATROL` or
+    /// `AIR_ATTACK_GROUND`, `+4`/`+8`), else `get_inside`, and a plane with
+    /// neither takes nothing. The adder's queue argument is the constant 1,
+    /// not the command's. run1505's Fighter `0/6`, flying home on its strafe:
+    /// one `AIRPATROLORDER` over (7680, 11520), home `0/2007`, on 682.
+    ///
+    /// SEAMS, none of which run1505 reaches: a group with members that are
+    /// not planes is split, the planes recurse and the rest take
+    /// `action_move_to(MOVE_TO)`, here the others take nothing; a plane
+    /// already on an `AIR_PATROL` under `QUEUE_LAST` appends the point to
+    /// its arrays (see [`crate::orders::PATROL_POINTS`]), here it is given
+    /// a new patrol; the empty-tank feedback is the interface's alone; the
+    /// scenario's `ignore_orders` filter.
+    pub fn group_action_air_patrol(&mut self, g: &Group, to: Pos, _queue: QueuePos) {
+        let to = self.restrict_pos(to);
+        for &m in &g.list {
+            if !self.units[m].alive() || !self.is_plane(m) {
+                continue;
+            }
+            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            if busy || self.profile(Obj::Unit(m)).has(crate::combat::mask::MISSILE) {
+                continue;
+            }
+            let home = match self.current_air(m) {
+                Some(a) => a.home,
+                None => self.units[m].inside,
+            };
+            if home.is_some() {
+                self.add_air_patrol_order(m, to, home, true);
+            }
+        }
+    }
+
+    /// **`GroupData::is_in_air_range(o, whom)@0070b6b0`** (item 3911,
+    /// `docs/GOLDEN.md` §158): `Console::execute_at_cursor@007c6630:3116`'s
+    /// test for a right-click on an enemy with a selection that carries
+    /// planes. Whether the target object is within `mana × get_speed(·, 1)`
+    /// of a plane, the listing's arithmetic (`0070b6b0`–`0070b9d0`):
+    ///
+    /// - **a building selection** (`+0x49`): each live member that
+    ///   `can_carry(AIR)` measures `vector_dist(target − member)` once, and
+    ///   any plane in its `inside_down` chain whose `UnitData::mana` times
+    ///   its speed at its own point (vslot `+0x17c`, flag 1) reaches it
+    ///   answers 1;
+    /// - **a unit selection**: each live member that is off the map and a
+    ///   fixed-wing plane measures from the host `get_inside` names.
+    ///
+    /// run1505b's Airbase `0/2007` with the Fighter `0/6` inside, on
+    /// `1/2006`: 1, and the click issued the launch on 807.
+    ///
+    /// SEAM: `can_carry(AIR)` is [`Self::is_hangar`] here (an Airbase or a
+    /// Missile Silo); a carrier selected is the unit arm's host, not
+    /// reached.
+    pub fn is_in_air_range(&self, buildings: &[usize], units: &[usize], target: Obj) -> bool {
+        let at = self.pos_of(target);
+        let reach = |u: usize| self.unit_mana(u) * self.get_speed(u, 1);
+        for &b in buildings {
+            let bd = &self.buildings[b];
+            if !bd.alive || !bd.ty.is_some_and(|t| self.is_hangar(t)) {
+                continue;
+            }
+            let d = crate::world::vector_dist(at.x - bd.pos.x, at.y - bd.pos.y);
+            if bd.garrison.iter().any(|&u| d <= reach(u)) {
+                return true;
+            }
+        }
+        for &u in units {
+            let un = &self.units[u];
+            if !un.alive() || un.on_map || !self.is_plane(u) {
+                continue;
+            }
+            let Some(host) = un.inside else {
+                continue;
+            };
+            let h = self.buildings[host].pos;
+            if crate::world::vector_dist(at.x - h.x, at.y - h.y) <= reach(u) {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// **`Group::action_air_attack_ground(x, y, queue)@00703d80`** (item
+    /// 3911, `docs/GOLDEN.md` §158), which `Group::action_attack_ground@
+    /// 00704520:119-168` hands a group whose leader is a plane or carries
+    /// `AIR`. The point is clamped into the world, and each live member that
+    /// is a plane and not busy takes `add_air_attack_ground_order(x, y,
+    /// home, queue, 1)`: the home is the front air order's (a `STRAFE`,
+    /// `AIR_PATROL` or `AIR_ATTACK_GROUND`), else `get_inside`, and a plane
+    /// with neither takes nothing. run1505b's Bomber `0/7`, on its patrol
+    /// over the Barracks' point: one `AIRATTACKGROUNDORDER` there, home
+    /// `0/2007`, on 682.
+    ///
+    /// SEAMS, none of which run1505b reaches: the missile arms — a missile
+    /// still in its silo's `launching` list is skipped, the first missile
+    /// ends the search for others (`local_28`), and a missile's strike asks
+    /// `war_allowed` and the target tile's ocean; a group holding type
+    /// `0x13b` asks each member its type's slot `+0x60`; the empty-tank
+    /// feedback is the interface's; the scenario's `ignore_orders` filter.
+    pub fn group_action_air_attack_ground(&mut self, g: &Group, at: Pos, queue: QueuePos) {
+        let at = self.restrict_pos(at);
+        for &m in &g.list {
+            if !self.units[m].alive() || !self.is_plane(m) {
+                continue;
+            }
+            if self.profile(Obj::Unit(m)).has(crate::combat::mask::MISSILE) {
+                continue;
+            }
+            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            if busy {
+                continue;
+            }
+            let home = match self.current_air(m) {
+                Some(a) => a.home,
+                None => self.units[m].inside,
+            };
+            if home.is_some() {
+                self.add_air_attack_ground_order(m, at, home, queue, true);
+            }
+        }
+    }
+
+    /// **`Group::action_recall@006fa7e0`**, the `recall` command's (byte
+    /// 0x23, `CommandPackage::process_recall@00947bd0`) group action: a
+    /// leader whose type is domain 2 hands the call to
+    /// [`Self::group_action_return`] (item 3911, `docs/GOLDEN.md` §158).
+    ///
+    /// The building arm is [`Self::group_action_recall_buildings`] (item
+    /// 3912), which the harness reaches on a building selection.
+    pub fn group_action_recall(&mut self, g: &Group) {
+        let Some(leader) = self.group_find_leader(g) else {
+            return;
+        };
+        if self.group_domain(leader) == Domain::Air {
+            self.group_action_return(g);
+        }
+    }
+
+    /// **`Group::action_return@006fad40`** (item 3911, `docs/GOLDEN.md`
+    /// §158): each member that is not a missile and stands on the map takes
+    /// its front air order's home: the order's `cruising_alt` and
+    /// `sharp_turn` are kept, its orders are closed (`unit_masks &=
+    /// ~0x4000000`, the path emptied, `close_orders`, `clear_partial_path`,
+    /// `update_action`), and `add_strafe_order(-1, -1, home, 0, QUEUE_NEW,
+    /// 0)` lays a strafe home, which takes `returning` 1 for having no
+    /// target; the two kept fields are written back into it. run1505's
+    /// Bomber `0/8`, on its strafe at `1/2006`: on 854 one `STRAFEORDER`,
+    /// target −1, `mandatory 0`, home `0/2007`, `cruising_alt` 1600,
+    /// `returning 1`, the patrol behind it gone.
+    ///
+    /// SEAMS, none of which run1505 reaches: a helicopter (`+0x2b4 & 0x20`)
+    /// on the map is closed and given a strafe with no home, flying home;
+    /// a plane inside a host is closed and cut from the host's
+    /// `launching` list (`+0x44`), which this crate does not carry; a front
+    /// `SPECIALANIMORDER` (a landing) gives its own air order; the
+    /// scenario's filter of units that ignore orders.
+    pub fn group_action_return(&mut self, g: &Group) {
+        for &m in &g.list {
+            if !self.units[m].alive() || !self.is_plane(m) {
+                continue;
+            }
+            if self.profile(Obj::Unit(m)).has(crate::combat::mask::MISSILE) {
+                continue;
+            }
+            if self.units[m].inside.is_some() {
+                continue;
+            }
+            let Some(air) = self.current_air(m) else {
+                continue;
+            };
+            self.units[m].path.clear();
+            self.close_orders(m);
+            self.clear_partial_path(m);
+            self.update_action(m);
+            self.add_strafe_order(m, None, air.home, false, QueuePos::New, false);
+            self.set_cruising_alt(m, air.cruising_alt);
+            self.set_sharp_turn(m, air.sharp_turn);
+        }
     }
 
     /// `Group::redo_patrol_order@00706d90`, `finish_insert`'s case `0x16`

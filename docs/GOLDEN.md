@@ -17348,12 +17348,92 @@ combat (AI §387.3). An unbuilt fort's close fixing nothing is a reading alone.
 **Coverage.** Diff-backed: the Fort's claim and its return, cell for cell, on 23 blocks; draws, orders and every
 dumped value to 760. Reading only: the `active` gate on an unbuilt fort.
 
-## 158. Reserved for the next item on the rules track
+## 158. Chapter seventeen's air group actions — patrol, return, attack-ground and the air-range click; closed at 1100 and 1060 (item 3911, run1505–run1505b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (AI §391.2 rows 1–3 and 11): four group rows the census had never entered, and `sim` had none of
+them. `group_action_patrol` returned at once on a plane, `@attackground` was skipped by name in the harness,
+`action_return` and `is_in_air_range` appeared nowhere, and the harness had no arm for `@key` or `@rclick`.
+
+**Row 3's staging as §391.2 writes it found no plane in flight.** "Chapter seventeen's lines to 620 (the Bombers'
+strike)": run223's strike from the ground took nothing (§25), so on 630 both Bombers stand on their pads. They are
+flying from 660 (home) and on their patrol over the Barracks from 665, so every arm here is placed after that.
+
+**Two stagings, four arms**, each keeping `chapter17.cmd`'s eleven lines verbatim, so to 680 both are run223's game,
+which `sim` holds whole to 1400:
+
+- `tools/gamelog/golden/chapter17-air.cmd` (run1505, `--bindkey OPTION_RETURN=124`, to 1100): `680 @patrol 0 7680
+  11520 6` on the Fighter flying home (row 1); `780 camera 110,86`, `786 select 7 who=0`, `792 @rclick 960 445` on
+  `1/2006` with the Bomber `0/7` selected (row 11); `850 select 8 who=0`, `852 @key 124` (row 3).
+- `tools/gamelog/golden/chapter17-airground.cmd` (run1505b, to 1060): `680 @attackground 0 21120 16512 7` on `0/7`
+  over the Barracks' point (row 2); and row 11 again from the Airbase, `780 camera 110,86`, `800 select 2007
+  who=0`, `806 @rclick 960 445 2006 1`, with the Fighter inside since 722.
+
+**Falsifiers, written before the take** (the cmd files' headers): no `process_patrol` on 681, or `0/6` with a
+`PATROLORDER` on 682; no `process_attack_ground` on 681, or no `AIRATTACKGROUNDORDER` on `0/7` on 682; no `HIT` on
+`GroupData::is_in_air_range` on the click's frame; `INFO 22` on `KEYMAP_NONE`, no `process_recall` on 853, or `0/8`
+still on its strike on 854.
+
+**What the takes settle** (`docs/RUNS.md`). One falsifier fired: run1505's right-click with a flying Bomber
+selected never enters `is_in_air_range`. `Console::execute_at_cursor:2835` sends a selected flying plane straight to
+`issue_flight(ATTACK)`, and the click re-points `0/7`'s strike with `mandatory 1` (`process_flight` on 793). The
+call at `:3116` is the arm for a selected building carrying planes (`COUNT_GARRISON_WITH_TYPE` 0x1bf or 0x208),
+which run1505b takes from the Airbase: `is_in_air_range`, `execute_at_cursor` and `Group::action_launch_flight` on
+806, `process_flight` on 807. The others held. On 682 `0/6` holds one `AIRPATROLORDER` over (7680, 11520), home
+`0/2007`. On 854 `0/8` holds one `STRAFEORDER`, target −1, `mandatory 0`, home 2007, `cruising_alt` 1600 kept and
+`returning 1`, with the patrol behind it closed. The console's `select` takes a building on the lane.
+
+**Built** (`crates/sim/src/group.rs`): `group_action_air_patrol` (`group_action_patrol` hands it a plane leader or
+an air member); `group_action_recall`, which sends a domain-2 leader to `group_action_return` (the building arm is
+item 3912's `group_action_recall_buildings`, §159); `group_action_return`; `group_action_air_attack_ground`; and
+`is_in_air_range`, `vector_dist(target − building)` against `UnitData::mana × get_speed(own point, 1)` of any plane
+inside. The harness (`crates/rondata/src/golden.rs`) spells `@key <vk>` bound to `OPTION_RETURN` as the
+harness-only `@recall` on the console's selection, and `@rclick` as `@strike` on a unit selection or as
+`@launchstrike` after `is_in_air_range` on a building selection; the trailing words of an `@rclick` are the
+harness's, and the DLL ignores them.
+
+**ch17ag's first word was 846, and it named the attack-ground's release.** On 846 the original draws `Guy::set_anim
+< Unit::set_anim` and on 847 `0/7` reads `cur_anim` 12, `recharging` 31: the Bomber released at (21120, 16512)
+from (20198, 16533), 922 off it. `Unit::do_air_attack_ground@005ea420` had only its missile arm here. Its other
+arm, now built (`crates/sim/src/air.rs`):
+
+- `ObjectData::is_in_range@0064e4a0` of the point. For a unit, vtable slot `+0x18` is a folded `return 1`
+  (`Buffer::is_pending_load@0041e0e0`), so the distance is taken less the unit's own `big_radius` (type `+0x244`),
+  never under 0. Then `min_range × 0xc0 − 6 ≤ d ≤ max_range × 0xc0 + 6` (`Sim::point_in_range`). Measured without
+  the radius, the Bomber is still out of range on 846, 863 off the point.
+- The facing test, as `do_strafe`'s: 15° off the heading, 60° for the `0x127` line.
+- `set_attack(−1, −1)`, `CHAR_ATTACK2` (`5ea56a`), and `recharge() + 1`.
+
+A word fix showed the rest: `1/2006`'s `damage` parted on 863, ours 285.10 against theirs 289.14, the bombs
+missing. `Guy::execute_events@005d99c0` takes an order of kind `0x18` down the same arm as `0x17`, `ox = whom = −1`
+with the point read off the order. `guy_release_events` now gives an `AirAttackGround` order's point to
+`fire_ammo_ground` (`crates/sim/src/anim.rs`), the base's `+0xc` and `attack_unit` written 0.
+
+**What this crate agrees with.** `ch17air` (run1505's `cover=0` twin) to its end, **1100**, and `ch17ag` (run1505b's)
+to its end, **1060**, no value part on either (`chapter_seventeen_air_holds_to_the_golden_word`,
+`chapter_seventeen_airground_holds_to_the_golden_word`). Both windows, (605, 1101) and (605, 1061), part on the eleven
+standing `form` rows and nothing else (`WANT_CH17AIR`, `WANT_CH17AG`). That covers the three arms' orders, the
+flights after them, the Airbase's launch, the Bomber's release and its bombs on the Barracks from 863. The
+attack-ground's bombs read four ground corners more: `GROUND_INEXACT` 27 on ch17ag, 23 on ch17air.
+
+**Mutations** (`tools/mutate.py --batch`, all on chapter seventeen's air tests). Held: dropping
+the air-patrol hand-off, the return's `STRAFEORDER`, the attack-ground's order, the `big_radius` term, the
+`CHAR_ATTACK2`, the release walk's `0x18` arm (fenced to a returning order), and inverting `is_in_air_range`'s
+comparison. Three failed nothing, and each says what no take bounds. Halving the air range does not matter, because
+the Barracks sits deep inside it. Widening the facing limit from 15° to 60° does not matter, because the Bomber flies
+straight at the point. Moving the order's point 768 east does not move the bombs, so a Bomber's round does not take
+its landing from the order's point (park 3911a).
+
+**Not established.** A non-missile, non-Bomber plane's `fire_ammo` arm in `do_air_attack_ground`, and the Bomber's `BOMBING_MANA_COST`
+(0 in the shipped rules), both SEAMs. `is_in_air_range`'s refusal, since no take clicked out of range.
+`ObjectData::is_in_range@0064e4a0` is excluded from the trace's instrumentation (a branch target inside the
+displaced range), so its entry is seen only through its effect.
+
+**Coverage.** Diff-backed: all four arms' orders and every dumped value to 1100 and 1060, the release and its bombs
+on 846..880. Four rows leave `blind::NEVER` with run1505 and run1505b in `TRACES`: `action_air_patrol`,
+`action_air_attack_ground`, `action_return` and `is_in_air_range`. run1505 enters `action_recall`,
+`Options::recall_aircraft` and `CommandPackage::process_recall` too, which item 3912's run1506b had already taken
+off. Reading only: the range test's refusal arm, the facing test's bound and the `0x127` line's wider one, and how
+far `is_in_air_range`'s reach extends.
 
 ## 159. Chapter one hundred and nine — the Airbase's recall and scramble; closed at 2600 (item 3912, run1506)
 
