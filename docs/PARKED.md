@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3931) **A lane's armed clear is held by its own `blocked` row** (the sixty-ninth commander's, 2026-11-06): lane-3919 ended its draft turn with tempo `blocked`, `needs` "arm the clear…" and `suggestedReply` "continue item 3919 from the journal"; the waiter armed `ccc clear d17ea7ec --then` at once, and it stood armed 26 minutes and more with the row `idle` and the worktree clean — the suggested reply sits in the prompt box, which ccc reads as a person's unsent draft. Lanes 3911, 3917 and 3918 ended their drafts the same day without one and cleared within minutes. Candidate: the brief's draft clause says to end the draft turn with no question and no suggested reply, or `lanewait` reads `suggestedReply` and says so instead of `ENDED … blocked`. Names no score; the loop's.
+
 (3929) **A `--batch` break that leaves a second guard of the same refusal standing reads as "failed nothing"** (3917's "for the Loop"): the barge refusal's `t == TRANSPORTBARGE || tech_tree.is(t, TRANSPORTBARGE)` survived a break of its first half, exactly as a blind test does. Nothing to build in the item; the remedy is to break the condition whole. Candidate: `mutate.py` names a mutant that held on a disjunction or conjunction and offers the whole-condition break beside it. Names no score; the loop's.
 
 (3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, 3915's "for the Loop"). So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
@@ -14554,13 +14556,19 @@ no score.
   the barge's order list after `action_form`. **Score**: the chapter's widening (seven rows); the word is closed at
   900 either way.
 
-## Parked by the next landing, slot BF — reserved
+## Parked by item 3918, 2026-11-06 — a Disband queued at a Barracks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3918a. A Disband in a city** (`docs/GOLDEN.md` §165, `Sim::disband_castable`). `is_castable`'s city arm
+  (`CityData::is_disbanding` against the third argument) and whether the finish counts its own entry are
+  unit-tested only. run1512's second Barracks sat in city 0, but the group's research arm refused its presses first,
+  so the twin never entered `is_disbanding`. A press at a city building after 832, when no entry stands, would reach
+  it. The time's city, Senate and Lakota scalings and a city's own disband are unreached with it. Names no score.
+- **3918b. A Disband entry behind a stuck head, and its readers** (`Sim::advance_slot_with`, `Item::disband`). The
+  original's `get_next_non_unit` takes the first entry behind a refused head that is not a unit type, which 666 is
+  not; this crate's `Queue::next_research` asks `tech` or the type's research answer, and a disband entry's
+  type has never been put to it.
+  Nothing captured puts one behind a stuck head. The AI's readers of a queue entry's type (its build-order and
+  research checks) never see 666 in a capture. Names no score.
 
 ## Parked by the next landing, slot BG — reserved
 

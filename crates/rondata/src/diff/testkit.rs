@@ -6843,6 +6843,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN: i64 = 900;
 /// run1511.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FOURTEEN: (i64, i64) = (604, 901);
 
+/// **Chapter one hundred and fifteen** (item 3918, `docs/GOLDEN.md` §165,
+/// run1512): `DISBAND` queued at two Barracks, cast by `Build::finished`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIFTEEN: i64 = 1100;
+
+/// `chapter_one_hundred_and_fifteen_s_window_is_widened_whole`'s window:
+/// run1512.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FIFTEEN: (i64, i64) = (604, 1101);
 /// **Chapter one hundred and seventeen** (item 3920, `docs/GOLDEN.md` §167,
 /// run1514): a Scout's Counterintelligence on an enemy Spy, the Spy dead
 /// with `dtype` 2 on 658.

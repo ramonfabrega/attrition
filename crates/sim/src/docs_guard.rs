@@ -2441,8 +2441,15 @@ fn loop_line_of(text: &str) -> Option<String> {
             .trim_end()
             .to_string()
     };
-    let mut lines = text.lines();
-    let line = lines.find(|l| l.to_lowercase().contains(PHRASE))?;
+    // A line that opens with the phrase (a heading or `For the Loop: …`)
+    // wins over one that only quotes it (item 3918's journal).
+    let opens = |l: &str| trim(l).to_lowercase().starts_with(PHRASE);
+    let at_line = text
+        .lines()
+        .position(opens)
+        .or_else(|| text.lines().position(|l| l.to_lowercase().contains(PHRASE)))?;
+    let mut lines = text.lines().skip(at_line);
+    let line = lines.next()?;
     let at = (0..line.len()).find(|&i| {
         line.get(i..i + PHRASE.len())
             .is_some_and(|s| s.eq_ignore_ascii_case(PHRASE))
@@ -2478,6 +2485,15 @@ fn a_loop_line_under_its_own_heading_is_read_off_the_next_line() {
         Some("none.")
     );
     assert_eq!(loop_line_of("No such line.\n"), None);
+    // Item 3918's journal quoted the phrase mid-sentence above its own
+    // `For the Loop: none.`; the line that opens with it is the one.
+    assert_eq!(
+        loop_line_of(
+            "item 3917's unfiled \"for the Loop\" line, and more.\n\nFor the Loop: none.\n"
+        )
+        .as_deref(),
+        Some("none.")
+    );
     // And the two journals of the incident, read off the tree.
     for name in ["2026-10-20-item-3370.md", "2026-10-20-item-3384.md"] {
         let text = std::fs::read_to_string(docs().join("journal").join(name)).expect("read");

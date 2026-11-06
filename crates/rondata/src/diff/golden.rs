@@ -6319,20 +6319,51 @@ fn chapter_one_hundred_and_fourteen_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_fourteen_holds_to_the_golden_word();
 }
 
+/// **run1512 whole, both directions** (item 3918, `docs/GOLDEN.md` §165).
+#[test]
+fn chapter_one_hundred_and_fifteen_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_fifteen_s_window_is_widened_whole();
+}
+
+/// What parts in run1512's window, blocks 605–1100 (item 3918): the eleven
+/// standing `form` rows, and nothing else — not `0/2007`'s queue on 622..831
+/// nor its close on 832, nor `0/2008`'s empty queue after its two refused
+/// presses.
+const WANT_CH115: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and fifteen holds to its golden word (item 3918,
+/// run1512).
+#[test]
+fn chapter_one_hundred_and_fifteen_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_fifteen_holds_to_the_golden_word();
+}
+
 /// Chapter one hundred and seventeen holds to its golden word (item 3920,
-/// run1514): a Scout's Counterintelligence kills an enemy Spy.
+/// run1514c): a Scout's Counterintelligence kills an enemy Spy.
 #[test]
 fn chapter_one_hundred_and_seventeen_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_seventeen_holds_to_the_golden_word();
 }
 
-/// run1514 whole, both directions (item 3920, `docs/GOLDEN.md` §167).
+/// run1514c whole, both directions (item 3920, `docs/GOLDEN.md` §167).
 #[test]
 fn chapter_one_hundred_and_seventeen_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_seventeen_s_window_is_widened_whole();
 }
 
-/// What parts in run1514's window: the eleven standing `form` rows of the
+/// What parts in run1514c's window: the eleven standing `form` rows of the
 /// lobby (chapter ninety-one's, `WANT_CH91`).
 const WANT_CH117: &[&str] = &[
     "605 0/0 form",

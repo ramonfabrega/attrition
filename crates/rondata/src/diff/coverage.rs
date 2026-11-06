@@ -819,6 +819,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch112 = golden_dump("ch112");
     let ch113 = golden_dump("ch113c");
     let ch114 = golden_dump("ch114");
+    let ch115 = golden_dump("ch115");
     let ch117 = golden_dump("ch117c");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
@@ -2986,6 +2987,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and fourteen carries five blocks in its land window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and fifteen, on run1512** (item 3918): the
+    // `DISBAND` entry at `0/2007` reaches 21000 on 831 and `Build::finished`
+    // casts it on 832, the Barracks gone from `BUILDS`.
+    if let Some(p) = &ch115 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIFTEEN;
+        let n = drive_capture(p, 829, 833, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and fifteen carries five blocks in the window"
         );
         frames += n;
     }

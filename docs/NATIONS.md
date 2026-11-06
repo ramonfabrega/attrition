@@ -130,7 +130,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Indians | a building's support ramp zeroed, halved rounding up for a wonder or a defence | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_ramp` |
 | Indians | an elephant-line unit costs 15% less, the last step | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_elephant` |
-| Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | not modelled | `lakota_raze_speed` |
+| Lakota | raze speed (train_time's tail) | `ObjectData::train_time@006508c0` | modelled at queue_disband.rs | `lakota_raze_speed` |
 | Mongols | stable units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `mongol_stable_speed` |
 | British | ships, archers and anti-air train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `british_ship_speed` |
 
@@ -335,7 +335,7 @@ left out; a constant with no reader in the export is dead there too.
 | `IROQUOIS_SPEAR_SPEED` | [1, ...] | UnitData::speed | modelled at cast.rs | `iroquois_spear_speed` |
 | `LAKOTA_FOOD` | 4 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at economy.rs | `lakota_food` |
 | `LAKOTA_HERBAL_LORE` | 1 | no reader in the export | not carried | `lakota_herbal_lore` |
-| `LAKOTA_RAZE_SPEED` | 100 | ObjectData::train_time | not carried | `lakota_raze_speed` |
+| `LAKOTA_RAZE_SPEED` | 100 | ObjectData::train_time | modelled at queue_disband.rs | `lakota_raze_speed` |
 | `LAKOTA_RAZE_PRICE` | 0 | Build::plunder, Object::disband | modelled at disband.rs | `lakota_raze_price` |
 | `LAKOTA_CAV_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `lakota_cav_upgrades` |
 | `LAKOTA_CAV_DMG_BONUS` | 1/3 | Object::do_damage | not carried | `lakota_cav_dmg_bonus` |

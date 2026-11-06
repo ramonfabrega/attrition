@@ -167,6 +167,7 @@ pub mod place;
 pub mod place_roads_view;
 pub mod plunder;
 pub mod production;
+pub mod queue_disband;
 pub mod rally;
 pub mod rares;
 pub mod redo_patrol_view;
@@ -4147,6 +4148,9 @@ impl Sim {
         if let Some(t) = item.tech {
             return self.tech_time(who, t);
         }
+        if item.disband {
+            return self.disband_time(at);
+        }
         let muster = &self.muster[who as usize];
         let researched = muster.researched[item.ty];
         // **The Kremlin's Spy** (`train_time@006508c0:344`–`354`), the
@@ -4667,6 +4671,12 @@ impl Sim {
             let accel = production::accel(&self.tuning, production::Job::Research, 1);
             return Some((self.tech_time(who, t), accel));
         }
+        // A `DISBAND` entry is not a unit type: `do_queue` takes the
+        // research accelerator, 100 a frame on run1512's `0/2007`.
+        if item.disband {
+            let accel = production::accel(&self.tuning, production::Job::Research, 1);
+            return Some((self.disband_time(at), accel));
+        }
         let ty = item.ty;
         let researched = self.muster[who as usize].researched[ty];
         // **A silo with a missile inside holds its clock**
@@ -4709,6 +4719,26 @@ impl Sim {
             self.gain_tech(who, t);
             self.economy_changed(who);
             self.senate_gov_hero(at);
+            return Advanced::Researched;
+        }
+        if self.buildings[at].queue.items[slot].disband {
+            // `Build::finished`'s spell arm, then `do_queue`'s unqueue of
+            // the entry — which the disband's close has already emptied.
+            let done =
+                production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
+            if !done {
+                return Advanced::Pending;
+            }
+            self.finish_disband(at);
+            if self.buildings[at]
+                .queue
+                .items
+                .get(slot)
+                .is_some_and(|i| i.disband)
+            {
+                let mut ledger = economy::Ledger::default();
+                self.buildings[at].queue.unqueue(slot, false, &mut ledger);
+            }
             return Advanced::Researched;
         }
         let ty = self.buildings[at].queue.items[slot].ty;

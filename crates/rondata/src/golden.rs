@@ -2531,6 +2531,10 @@ mod tests {
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).
         ("chapter113.cmd", &[]),
         ("chapter114.cmd", &[]),
+        // Chapter one hundred and fifteen: chapter thirteen's cast, a second
+        // Barracks, and three `@queueup` presses of `DISBAND` (666) (item
+        // 3918, `docs/GOLDEN.md` §165).
+        ("chapter115.cmd", &[]),
         // Chapter one hundred and seventeen: chapter ninety-one's lobby, a
         // Scout's Counterintelligence on an enemy Spy (item 3920,
         // `docs/GOLDEN.md` §167).

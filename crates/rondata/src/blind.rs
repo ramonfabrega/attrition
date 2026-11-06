@@ -638,6 +638,16 @@ pub const TRACES: &[&str] = &[
     // `docs/GOLDEN.md` §163); run1510c's game on every frame (rngcmp 901
     // identical, 0 differing).
     "rontrace-run1510d.log",
+    // Item 3918: golden chapter one hundred and fifteen (`chapter115.cmd`,
+    // chapter thirteen's cast, a second Barracks in the City's city and three
+    // `@queueup 0 666 1 <b>` presses of `DISBAND`) at `cover=1` on the
+    // click-free pool, to 1100 (`docs/RUNS.md` run1512b): `0/2007`'s entry
+    // completes and `Build::finished` → `SpellType::cast` →
+    // `SpellType::cast_disband@00671ed0` → `Build::plunder` →
+    // `Object::disband` on trace frame 831 (`docs/AI.md` §392.3,
+    // `docs/GOLDEN.md` §165); run1512's game on every frame (rngcmp 1101
+    // identical, 0 differing).
+    "rontrace-run1512b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and
@@ -1297,6 +1307,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// formed group `Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0`, all
 /// on 620 (`docs/AI.md` §391.2 row 10, §393.1 row 2); open 14 → 9 on the tree merged with items
 /// 3915 and 3916.
+/// **337** with item 3918's run1512b joining [`TRACES`] (`docs/GOLDEN.md` §165, `docs/AI.md`
+/// §392.3): `DISBAND` queued at a Barracks completes, and `Build::finished` casts it through
+/// `SpellType::cast` into `SpellType::cast_disband@00671ed0` on trace frame 831. **338** again with
+/// `CityData::is_disbanding@007380a0` on: §165 cites it, and the research arm refused run1512's
+/// city press before `is_castable` asked it (parked 3918a, the staging).
 /// **337** with item 3920's run1514b (`docs/GOLDEN.md` §167), the `cover=1` twin of chapter one
 /// hundred and seventeen: a Scout's `@spell 0 631` on a who=1 Spy two tiles off enters
 /// `SpellType::cast_counterintel@00673740` on 658 (`docs/AI.md` §392.3); open 9 → 8.
@@ -1315,14 +1330,14 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_3d00, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
-    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80, 0x0067_2820, 0x0067_3e80,
+    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1f80, 0x0067_2820, 0x0067_3e80,
     0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870,
     0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_7aa0, 0x0070_7b50, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
-    0x0071_3bd0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
+    0x0071_3bd0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_80a0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7200, 0x0079_7c40, 0x0079_8880, 0x0079_99e0, 0x0079_ea80, 0x007a_a400, 0x007a_a560, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,
