@@ -40,6 +40,92 @@ impl Sim {
         crate::alarm_view::action_alarm_steps(&mut view);
     }
 
+    /// `Group::action_alarm_peasant@006fd980`: `Group::action_alarm`'s arm
+    /// for a group of units (`+0x49` clear), the key bound to
+    /// `OPTION_PEASANT_ALARM` on a selection of Citizens (item 3916,
+    /// `docs/GOLDEN.md` §163).
+    ///
+    /// ```text
+    /// for each member of type 0x32 or 0x33 (the TypeIndex, not the lineage):
+    ///   b = find_building(pos, SEARCH_FRIENDLY, who, -1, 0x200,
+    ///                     FILTER_CAN_GARRISON, o, who)   # the whole map
+    ///   b < 0: next
+    ///   while the action is a GARRISONORDER (0x1a): repath,
+    ///     kill_current_order(0)
+    ///   add_garrison_order(b, who, 1, QUEUE_FIRST, 1), inline
+    ///   the leader's 0x2000000
+    /// ```
+    ///
+    /// The range is −1 and `0x200` the flags word (the listing's pushes at
+    /// `6fda58`..`6fda6e`), so the search is [`Sim::nearest_garrison_for`]'s
+    /// list walk over the whole map, gated on the Citizen's region. The
+    /// loop's `0x1a` is `GARRISON`, not `GATHER` (7): run1510's `0/1` keeps
+    /// its `GATHERORDER` under the new order on 644, and a second press on a
+    /// Citizen already walking to garrison replaces its order.
+    ///
+    /// SEAMS: the group's slot `+0x14` and the scenario's ignore-orders
+    /// sweep, as [`Sim::action_alarm`]'s; an ally's building, whose order
+    /// the original lays with the group's `who` beside the ally's object
+    /// number (`+0xc` is `bVar2`, not `find_who`).
+    pub fn action_alarm_peasant(&mut self, g: &Group) {
+        let who = g.who;
+        for &u in &g.list {
+            if !matches!(self.units[u].type_index, 0x32 | 0x33) {
+                continue;
+            }
+            let Some(b) = self.nearest_garrison_for(u, who) else {
+                continue;
+            };
+            while self
+                .action_of(u)
+                .is_some_and(|a| self.units[u].orders[a].index() == index::GARRISON)
+            {
+                self.repath(u);
+                self.kill_current_order(u);
+            }
+            self.add_garrison_order(u, b, true, QueuePos::First, true);
+            self.economy_changed(who);
+        }
+    }
+
+    /// `ObjectsData::find_building@0065d260(pos, SEARCH_FRIENDLY, who, -1,
+    /// 0x200, FILTER_CAN_GARRISON, u, who)`: the list walk (a negative
+    /// range), every player that is `who` or an ally in object order, each
+    /// building in the unit's cell region that is alive and active, whose
+    /// type the unit `can_garrison`, and with room for its population
+    /// (`Search::valid_filter`'s arm 20, `0067e44d`: `num_inside(0)` +
+    /// `control_cost` `<=` the garrison limit). Nearest by
+    /// [`vector_dist`](crate::world::vector_dist) of the tile deltas, ties
+    /// to the later (`<=`).
+    pub(crate) fn nearest_garrison_for(&self, u: usize, who: Player) -> Option<usize> {
+        let at = self.units[u].pos;
+        let region = self.world.region_of(at.cell());
+        let ut = self.units[u].ty?;
+        let pop = self.control_cost(u);
+        let mut cands: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| {
+                let bd = &self.buildings[b];
+                bd.alive
+                    && bd.active
+                    && (bd.owner == who || self.is_ally(who, bd.owner))
+                    && self.world.region_of(bd.pos.cell()) == region
+                    && bd.ty.is_some_and(|bt| self.can_garrison(ut, bt))
+                    && self.num_inside(b) + pop <= self.garrison_limit(b)
+            })
+            .collect();
+        cands.sort_by_key(|&b| (self.buildings[b].owner, self.buildings[b].index));
+        let (t, mut best, mut found) = (at.tile(), i32::MAX, None);
+        for b in cands {
+            let bt = self.buildings[b].pos.tile();
+            let d = crate::world::vector_dist(bt.x - t.x, bt.y - t.y);
+            if d <= best {
+                best = d;
+                found = Some(b);
+            }
+        }
+        found
+    }
+
     /// `ObjectData::is(ti, 0)` on a unit, `ti` a `TypeIndex`: its lineage
     /// holds the type's tree node.
     pub(crate) fn unit_is_index(&self, u: usize, ti: i32) -> bool {
