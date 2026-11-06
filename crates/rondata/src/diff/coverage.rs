@@ -797,6 +797,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch105 = golden_dump("ch105");
     let ch106 = golden_dump("ch106");
     let ch107 = golden_dump("ch107");
+    let ch109 = golden_dump("ch109");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2866,6 +2867,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "chapter one hundred and seven carries four blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and nine, on run1506** (item 3912): the
+    // Airbase's recall on 2292 and the blocks after it — each plane's strafe
+    // home, `returning` 1 — closed at 2600.
+    if let Some(p) = &ch109 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE;
+        let n = drive_capture(p, 2292, 2296, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and nine carries five blocks in the window"
         );
         frames += n;
     }

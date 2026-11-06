@@ -589,6 +589,15 @@ pub const TRACES: &[&str] = &[
     // which enters `Forts::close_fort@0073ec90` on 622 (`docs/AI.md` §387);
     // run1130's game on every frame (rngcmp 641 identical, 0 differing).
     "rontrace-run1502.log",
+    // Item 3912: golden chapter one hundred and nine (`chapter109.cmd`,
+    // chapter thirty-three's lines to its 2280 launch patrol) at `cover=1` on
+    // the click-free pool to 2600 (`docs/RUNS.md` run1506b): `select 2007
+    // who=0` on 2290, then `@key 124` (OPTION_AIRBASE_RECALL) on 2292 and
+    // `@key 125` (OPTION_AIRBASE_SCRAMBLE) on 2312 with `--bindkey`, entering
+    // `Options::recall_aircraft`, `process_recall` and `Group::action_recall`
+    // on 2292, and `Options::scramble_aircraft`, `process_scramble` and
+    // `Group::action_scramble` on 2312 (`docs/GOLDEN.md` §159).
+    "rontrace-run1506b.log",
     // Item 3908: eleven more of items 3480's and 3493's click-free style
     // takes (`docs/RUNS.md` run1098, run1099, run1117, run1119–run1121,
     // run1123–run1126, run1128), item 3858's shape: the default lobby at

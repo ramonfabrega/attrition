@@ -217,7 +217,7 @@ impl Sim {
     /// a head of type `0x19`; no plane here holds one.
     pub fn group_action_recall_buildings(&mut self, who: Player, buildings: &[usize]) {
         for &b in buildings {
-            if self.buildings[b].alive && self.active(Obj::Building(b)) {
+            if self.buildings[b].alive && self.buildings[b].active {
                 self.clear_gather(b);
             }
         }
@@ -836,6 +836,73 @@ mod tests {
             },
             None => None,
         }
+    }
+
+    /// **The scramble** (item 3912, `Group::action_scramble@007111c0`,
+    /// `docs/GOLDEN.md` §159): every full plane inside goes up over the
+    /// base's own point with the action bit; one still refuelling stays,
+    /// and a plane on the map is not a passenger. Made to fail with the
+    /// tank gate dropped and with the point taken off the plane.
+    #[test]
+    fn the_scramble_sends_every_full_plane_inside_up_over_its_base() {
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 7, 0, 0]);
+        s.come_out(f9);
+        let base = s.buildings[b].pos;
+        s.group_action_scramble(&[b]);
+        for u in [b8, f6] {
+            assert_eq!(
+                patrol_of(&s, u),
+                Some((base, crate::orders::flag::ACTION)),
+                "0/{}",
+                s.units[u].index
+            );
+            assert_eq!(s.units[u].orders.len(), 1);
+        }
+        assert!(s.units[b7].orders.is_empty(), "refuelling: passed over");
+        assert!(s.units[f9].orders.is_empty(), "on the map: not inside");
+    }
+
+    /// **The recall on an Airbase** (item 3912, `Group::action_recall@
+    /// 006fa7e0`'s building arm, `docs/GOLDEN.md` §159): every homed plane
+    /// in flight — on a strike or a patrol — is sent home, one strafe with
+    /// no target, `returning`, `mandatory` 0, no action bit, at the strafe's
+    /// own heights; a plane inside loses its orders; a plane homed at
+    /// another base is not touched. Made to fail with the arm dropped.
+    #[test]
+    fn the_recall_sends_every_plane_homed_at_the_base_home() {
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 0, 0]);
+        let other = second_base(&mut s, b, Pos::new(8544, 13920));
+        let target = enemy_barracks(&mut s, Pos::new(13824, 14976));
+        s.come_out(b8);
+        s.add_strafe_order(
+            b8,
+            Some(Obj::Building(target)),
+            Some(b),
+            true,
+            QueuePos::New,
+            true,
+        );
+        s.come_out(f9);
+        s.add_air_patrol_order(f9, Pos::new(13440, 9600), Some(b), true);
+        s.set_cruising_alt(f9, 1800);
+        s.come_out(f6);
+        s.add_air_patrol_order(f6, Pos::new(13440, 9600), Some(other), true);
+        s.add_air_patrol_order(b7, Pos::new(13440, 9600), Some(b), true);
+        s.group_action_recall_buildings(0, &[b]);
+        for u in [b8, f9] {
+            assert_eq!(
+                strike_of(&s, u),
+                Some((None, 0, false)),
+                "0/{}",
+                s.units[u].index
+            );
+            let a = s.current_air(u).expect("an air order");
+            assert_eq!((a.home, a.returning), (Some(b), true));
+            assert_eq!(a.cruising_alt, 0x640, "the strafe home's own heights");
+            assert_eq!(s.units[u].orders.len(), 1);
+        }
+        assert!(s.units[b7].orders.is_empty(), "inside: cleared");
+        assert!(patrol_of(&s, f6).is_some(), "homed at another base");
     }
 
     /// **The launch strike's choice** (`docs/GOLDEN.md` §42, the

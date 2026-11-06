@@ -912,6 +912,49 @@ pub(super) fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
     );
 }
 
+pub(super) fn chapter_one_hundred_and_nine_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch109",
+        "chapter109",
+        (605, 2600),
+        0,
+        0,
+        (2293, 2315),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch109 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch109: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH109.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch109: what parts in the window moved");
+}
+
+pub(super) fn chapter_one_hundred_and_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch109", "chapter109", 109, 22, 2600) else {
+        return;
+    };
+    eprintln!(
+        "chapter one hundred and nine: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE,
+        "chapter one hundred and nine's golden word moved; re-pin it here and say \
+         so in docs/GOLDEN.md §159"
+    );
+}
+
 /// The cells that part, and who=1's cell count by dumped block.
 type Ch107Borders = (Vec<String>, Vec<(i64, usize)>);
 
