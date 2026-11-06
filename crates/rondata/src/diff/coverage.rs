@@ -367,13 +367,16 @@ const UNREAD: &[(&str, &str)] = &[
     // (`golden::Script`), and no field of the simulation reads it.
     // **Item 2165's run835 windows `process_stance`** (`stance frame`), the
     // first player's stance button; what it writes is read off the units'
-    // `stance` and stacks. **Item 3913's run1507 windows
+    // `stance` and stacks. **Item 3912's run1506 windows `process_recall`**
+    // (`frame`), the Airbase's recall; what it lays is read off the planes'
+    // stacks (`returning` and the strafe home).
+    // **Item 3913's run1507 windows
     // `process_stop_spell`** (`frame`), the first player's stop of a cast;
     // what it closes is read off the Spy's stack and `spell_time`.
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -799,6 +802,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch105 = golden_dump("ch105");
     let ch106 = golden_dump("ch106");
     let ch107 = golden_dump("ch107");
+    let ch109 = golden_dump("ch109");
     let ch110 = golden_dump("ch110");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
@@ -2869,6 +2873,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "chapter one hundred and seven carries four blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and nine, on run1506** (item 3912): the
+    // Airbase's recall on 2292 and the blocks after it — each plane's strafe
+    // home, `returning` 1 — closed at 2600.
+    if let Some(p) = &ch109 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE;
+        let n = drive_capture(p, 2292, 2296, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and nine carries five blocks in the window"
         );
         frames += n;
     }

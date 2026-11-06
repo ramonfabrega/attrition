@@ -34914,6 +34914,50 @@ with chapter 106's `end:`/`start:` sets and `misc:COMMANDMANAGER=1`, at `cover=0
 `chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell` (23 `WORLD` blocks, every cell's
 `(who, who2)`); its window 756..760 is in the coverage driver's slice.
 
+## run1506 — chapter one hundred and nine: the Airbase's recall and scramble (2026-11-06, item 3912, `att-3912`)
+
+`docs/GOLDEN.md` §159. **What the disk could not answer**: no capture had pressed either of the Airbase's buttons,
+so `Group::action_recall@006fa7e0` and `Group::action_scramble@007111c0` were on the blind list with their stagings
+written (`docs/AI.md` §391.2 rows 4 and 5). Recipe `tools/gamelog/golden/chapter109.cmd`: chapter thirty-three's
+lines to `2280 @launchpatrol 0 13440 9600 2007`, then `2290 select 2007 who=0`, `2292 @key 124`, `2312 @key 125`
+and `2600 !quit`, with `--bindkey OPTION_AIRBASE_RECALL=124 OPTION_AIRBASE_SCRAMBLE=125`, at `cover=0`, the log
+window 605..2600 and chapter thirty-three's `end:`/`start:` sets with `misc:COMMANDMANAGER=1`.
+- Pool lane 1, kept in `~/ron-golden/ch109/map-14/`. Launched 04:58:24, exited 04:59:49: **84.7 s launch to exit**,
+  no relaunch, no page fault. `success`, lifecycle verified, `map_verified`, map style 14, 2,601 frames, `last_frame`
+  2600, seed 12345, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11).
+- `process_group … 2293`, `process_recall 2293`, `process_scramble 2313`. On 2294, 0/8 and 0/9 each hold one
+  `STRAFEORDER xx=-1 yy=-1 mandatory=0 oxx=2007 cruising_alt=1600 returning=1`; on 2314, 0/7 and 0/6 each hold one
+  `AIRPATROLORDER` over (11616, 13920).
+
+`gamelog.txt` 802,407,526 bytes, SHA-256 `d9369776ccf228522c3580917caa9fde9669bc00cc875884f10d89b96eda6edf`.
+`rontrace.log` 14,392,032 bytes, SHA-256 `0edbf0fc2024687586262e102c4ca5e3344e55cd7222ba7acbe156999d0f2055`.
+
+**What it holds**: `golden::chapter_one_hundred_and_nine_holds_to_the_golden_word` (2600, closed) and
+`chapter_one_hundred_and_nine_s_window_is_widened_whole` (the eleven standing `form` rows); its window 2292..2296
+is in the coverage driver's slice.
+
+## run1506b — chapter one hundred and nine's `cover=1` twin on the click-free pool: both buttons entered (2026-11-06, item 3912, `att-3912`)
+
+The same recipe at `cover=1`. **Take 1 is dead** (pool lane 2, kept in `~/ron-golden/run1506b-dead-take1/`): the
+game was not the staged lobby — who=0 held eight buildings and seventeen units and no Airbase or plane — the recall
+key faulted natively at `0x6fac09`, and the receipt refused with `extra lifecycle or fault records` (parked 3912a,
+3912b). Its dump and trace were filed and then moved aside by the retake's `--force` as
+`gamelog-run1506b-chapter109-cover.txt.replaced-1793960418` and `rontrace-run1506b.log.replaced-1793960418`, not
+deleted.
+- **The retake**: pool lane 1, kept in `~/ron-golden/run1506b/map-14/`. Launched 05:09:59, exited 05:13:39 (220.0 s
+  launch to exit). `success`, `map_verified`, 2,601 frames, `last_frame` 2600, seed 12345, the same two PLAYER
+  records. `process_recall 2293`, `process_scramble 2313`.
+- `Options::recall_aircraft`, `CommandPackage::process_recall` and `Group::action_recall` are entered on 2292;
+  `Options::scramble_aircraft`, `CommandPackage::process_scramble` and `Group::action_scramble` on 2312.
+- Filed with `filerun.py run1506b chapter109-cover --force`.
+
+Archive `gamelog-run1506b-chapter109-cover.txt`, 30,743,604 bytes,
+SHA-256 `b37bbb0674666ee8721f6f86dc72cd01f1ad2b16b3ea1a861b4f006e80e17505`.
+
+Archive `rontrace-run1506b.log`, 42,898,976 bytes,
+SHA-256 `9dc05b0b038c1f69ac47d04b313dd405b3a72ee0f2ab150ccf1a438a4720d834`.
+
+**What it holds**: `blind::TRACES`' run1506b (item 3912). `Blind:` never 363 → 357, open 34 → 28 on the tree merged with item 3913.
 ## run1507 and run1507b — chapter one hundred and ten: a spell stopped mid-hold, `OPTION_QUEUE` on chapter nineteen's Spy (2026-11-06, item 3913, `att-3913`)
 
 `docs/GOLDEN.md` §160. **What the disk could not answer**: `Group::action_stop_spell@006fd7a0`, its writer

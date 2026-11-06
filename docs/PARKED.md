@@ -14472,13 +14472,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AZ — reserved
+## Parked by item 3912, 2026-11-06 — the Airbase's recall and scramble
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3912a. Pool lane 2 ran an unstaged game under a staged `cover=1` take** (run1506b take 1, `docs/GOLDEN.md`
+  §159, the trace kept in the archive as `rontrace-run1506b.log.replaced-1793960418`). The take was
+  `chapter109.cmd` at `cover=1`; the game on lane 2 held, for who=0, eight buildings and seventeen units and no
+  Airbase or plane, so none of the console's `add` lines had run. The `@key 124` then faulted natively (3912b) and
+  the receipt refused with `extra lifecycle or fault records`. Nothing the lane printed says why the staging did not
+  land; the retake on lane 1 was clean. **Score**: none of the headline's — a Loop row: a dead take costs one capture
+  and, unnoticed, would read as a chapter. Booked when a second pool take on lane 2 comes back unstaged, with the
+  two takes' `rontrace.cmd` and `wine.log` side by side. This row is 3912's "for the Loop".
+- **3912b. `Group::action_recall`'s walk reads through a null current order in the original** (`0x6fac09`). In the
+  dead take, a who=0 unit on the map with no order made `update_order()` answer 0, and the walk dereferenced it.
+  `Sim::group_action_recall_buildings` skips a unit with no current air order. A fact about the original, not about
+  this crate: no lockstep game reaches it, since the original crashes there. **Score**: none. Recorded so a later
+  reader of the walk does not book the crash as a branch to port.
 
 ## Parked by item 3913, 2026-11-06 — a spell stopped mid-hold
 
