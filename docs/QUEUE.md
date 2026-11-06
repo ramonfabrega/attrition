@@ -41,7 +41,7 @@ Rubric: ported 544 · replaced by design 318 · open 1291 of 3611 · lockstep by
 Held-out: 8 of 8 whole · shortest 6147
 
 
-**Opener: the sixty-ninth tranche (commander, Opus), continued after the seam at ten — three Opus 5.5 lanes at `--effort medium`, counted from `02f72df7d`; read "Where things stand", `docs/LOOP.md`'s chain and the job's `tmp/t69/commander-owes.md`; re-arm `tools/lanewait.py` on the live lanes, merge and book each landing, refill from the queue's order (3917–3921, 3923, 3924) as lanes free, and book at the merge every chapter or take a landing parks against a `NEVER` row (run numbers minted at booking); the whole gate every third widened merge (scoped base `1d2d985e1` until the next whole); count landings from that commit, stop at twenty, `lore index` and write the handoff from the tables, whole gate, push, and clear the steer with the opener as the last act.**
+**Opener: the sixty-ninth tranche (commander, Opus), continued after the seam at ten — three Opus 5.5 lanes at `--effort medium`, counted from `02f72df7d`; read "Where things stand", `docs/LOOP.md`'s chain and the job's `tmp/t69/commander-owes.md`; re-arm `tools/lanewait.py` on the live lanes, merge and book each landing, refill from the queue's order (3918–3921, 3923, 3924) as lanes free, and book at the merge every chapter or take a landing parks against a `NEVER` row (run numbers minted at booking); the whole gate every third widened merge (scoped base `53e93ef40` until the next whole; one widened merge since, 3914's; 3915 and 3916 re-land on conflicts); count landings from that commit, stop at twenty, `lore index` and write the handoff from the tables, whole gate, push, and clear the steer with the opener as the last act.**
 
 ## The queue
 
