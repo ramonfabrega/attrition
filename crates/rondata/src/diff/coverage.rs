@@ -797,6 +797,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch105 = golden_dump("ch105");
     let ch106 = golden_dump("ch106");
     let ch107 = golden_dump("ch107");
+    let ch110 = golden_dump("ch110");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2866,6 +2867,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "chapter one hundred and seven carries four blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and ten, on run1507** (item 3913): chapter
+    // nineteen's Spy stopped mid-hold by `OPTION_QUEUE`; closed at 900, the
+    // window takes the stop, `process_stop_spell` on 771 and the empty
+    // stack on 772.
+    if let Some(p) = &ch110 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN;
+        let n = drive_capture(p, 769, 773, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and ten carries five blocks in the window"
         );
         frames += n;
     }

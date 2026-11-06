@@ -630,6 +630,36 @@ impl Sim {
         laid
     }
 
+    /// `Group::action_stop_spell@006fd7a0` (item 3913, `docs/GOLDEN.md`
+    /// §160): `OPTION_QUEUE` on a selected caster with nothing queued. Each
+    /// member that is alive and on the map and whose action
+    /// (`UnitData::get_action`) is a `CASTORDER` (type 0xe) has its orders
+    /// cleared, the listing's inlined `Unit::clear_orders` ([`Sim::clear_orders`])
+    /// and `spell_time` (`+0x98`) set to 0. Returns the casts stopped.
+    ///
+    /// SEAM: the scenario's ignore-orders sweep and `action_begin`, as for
+    /// [`crate::halt_view::SimHalt`]; and the Merchant, Dutch Merchant and Fur
+    /// Trapper arm (`0x3d`, `0x3e`, 400: `recalc_builds` and
+    /// `update_gpiece`), which no capture reaches.
+    pub fn group_action_stop_spell(&mut self, g: &Group) -> usize {
+        let mut stopped = 0;
+        for &u in &g.list {
+            if !self.units[u].alive() || !self.units[u].on_map {
+                continue;
+            }
+            let Some(a) = self.action_of(u) else {
+                continue;
+            };
+            if !matches!(self.units[u].orders[a].body, Body::Cast(_)) {
+                continue;
+            }
+            self.clear_orders(u);
+            self.units[u].spell_time = 0;
+            stopped += 1;
+        }
+        stopped
+    }
+
     /// `UnitData::is_casting(spell)`: the unit's head order is a cast of
     /// that craft.
     pub(crate) fn is_casting(&self, u: usize, s: i32) -> bool {
@@ -1781,6 +1811,36 @@ mod tests {
         assert_eq!(bits(&s, filler), (false, false));
         s.units[filler].orders.clear();
         assert!(s.unit_is_cloaked(filler), "idle, it is");
+    }
+
+    /// **A stop takes a held cast and nothing else** (item 3913,
+    /// `Group::action_stop_spell@006fd7a0`, `docs/GOLDEN.md` §160): a
+    /// member whose action is a `CASTORDER` loses its orders and its
+    /// `spell_time`; one whose action is a move keeps both, as run1507's
+    /// Spy would during its walk to the ring. Made to fail with the cast
+    /// test dropped, and with the `spell_time` write dropped.
+    #[test]
+    fn a_stop_takes_a_held_cast_and_nothing_else() {
+        use crate::orders::{MoveKind, QueuePos, spell};
+        let (mut s, [general, spy, _, _]) = casters(Tuning::RON);
+        s.add_cast_order(spy, spell::INFORMER);
+        s.units[spy].spell_time = 15;
+        s.add_move_order(
+            general,
+            Pos::new(768, 768),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            true,
+        );
+        s.units[general].spell_time = 7;
+        let mut g = crate::group::Group::stack(1);
+        s.group_add(&mut g, spy);
+        s.group_add(&mut g, general);
+        assert_eq!(s.group_action_stop_spell(&g), 1);
+        assert!(s.units[spy].orders.is_empty(), "the cast is closed");
+        assert_eq!(s.units[spy].spell_time, 0);
+        assert_eq!(s.units[general].orders.len(), 1, "a move is not a cast");
+        assert_eq!(s.units[general].spell_time, 7);
     }
 
     /// **Bribe's target arm** (`SpellTypeData::is_valid_target@006763c0`,

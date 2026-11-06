@@ -185,6 +185,12 @@ pub struct Script {
     /// The console's selection, `(who, o)` pairs, which `select` sets and
     /// `finish` reads (item 2474).
     selected: Vec<(i32, i16)>,
+    /// **The keys the lane's profile binds** (item 3912, `docs/GOLDEN.md`
+    /// §159): `(vk, action)` off a chapter's `# bindkey ACTION=VK` comment
+    /// lines, the `--bindkey` its capture recipe passes
+    /// (`unattended_capture.py`, item 3442). An `@key` names a key, and the
+    /// action is the profile's.
+    binds: Vec<(i32, String)>,
 }
 
 impl Script {
@@ -192,7 +198,17 @@ impl Script {
     /// tracer drops them; the frame is clamped upward to its predecessor's.
     pub fn parse(text: &str) -> Script {
         let mut lines: Vec<Staged> = Vec::new();
+        let mut binds: Vec<(i32, String)> = Vec::new();
         for raw in text.lines() {
+            if let Some((action, vk)) = raw
+                .trim_start()
+                .strip_prefix('#')
+                .and_then(|c| c.trim_start().strip_prefix("bindkey "))
+                .and_then(|b| b.trim().split_once('='))
+                && let Ok(vk) = vk.trim().parse::<i32>()
+            {
+                binds.push((vk, action.trim().to_string()));
+            }
             let line = raw.split('#').next().unwrap_or("").trim();
             if line.is_empty() {
                 continue;
@@ -224,6 +240,7 @@ impl Script {
             pending: Vec::new(),
             seat: CONSOLE_WHO,
             selected: Vec::new(),
+            binds,
         }
     }
 
@@ -407,6 +424,10 @@ impl Script {
         while self.next < self.lines.len() && self.lines[self.next].frame == frame {
             let line = self.lines[self.next].clone();
             self.next += 1;
+            if let Some(vk) = line.text.strip_prefix("@key ") {
+                self.key(frame, vk, &mut done);
+                continue;
+            }
             if line.text.starts_with('@') {
                 // The DLL's refusal 1: the line's player is not the
                 // console's (`console->play`), and nothing is issued.
@@ -437,6 +458,53 @@ impl Script {
 }
 
 impl Script {
+    /// **`@key <vk>`** (`tools/trace/key.h`, item 3442): the tracer calls
+    /// `SysMessageHandler::OnKey` on the line's frame, and
+    /// `KeyMap::lookup` → `Console::exec_keymap` → `Options::exec` runs the
+    /// bound option on the console's selection (`docs/GOLDEN.md` §146). The
+    /// two this interpreter acts on are the Airbase's (item 3912, §159):
+    /// `Options::recall_aircraft@0071c670` and `scramble_aircraft@0071c5d0`
+    /// add a `group` of the selection and a one-byte `recall` (0x23) or
+    /// `scramble` (0x24), so the pump processes it on the next frame, as an
+    /// issuer line's. The line is carried to the pump as `@key <action>
+    /// <who> <o>…`, the selection read on the key's own frame.
+    ///
+    /// SEAM: `Group::can_activate(selection, 0, −1)` and the entry's
+    /// selection test in `KeyMap::lookup`, which the capture's `INFO 22`
+    /// answers; a key bound to nothing is `KEYMAP_NONE`.
+    fn key(&mut self, frame: i64, vk: &str, done: &mut Applied) {
+        let action = vk
+            .trim()
+            .parse::<i32>()
+            .ok()
+            .and_then(|vk| self.binds.iter().find(|(k, _)| *k == vk))
+            .map(|(_, a)| a.clone());
+        let Some(action) = action else {
+            done.skip("@key", "a key the chapter binds to nothing (KEYMAP_NONE)");
+            return;
+        };
+        let seat = self.seat;
+        let objects: Vec<String> = self
+            .selected
+            .iter()
+            .filter(|(w, _)| *w == seat)
+            .map(|(_, o)| o.to_string())
+            .collect();
+        if objects.is_empty() {
+            done.skip("@key", "no selection of the seat's");
+            return;
+        }
+        let text = format!("@key {action} {seat} {}", objects.join(" "));
+        self.pending.push((
+            frame + 1,
+            Staged {
+                frame,
+                console: false,
+                text,
+            },
+        ));
+    }
+
     /// **`be [who]`**, chat table case 43 (`ConsoleWin::run_cmd@007d6a70`,
     /// the arm that writes `console->who` and `console->play`): the
     /// argument is `parse_who(·, console->who)`, so a bare number is a
@@ -1219,6 +1287,28 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
 /// `move_to`, and [`crate::input::group_move_to`] is its entry.
 fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let word = command_word(&line.text);
+    if let Some(rest) = line.text.strip_prefix("@key ") {
+        let mut tok = rest.split_whitespace();
+        let action = tok.next().unwrap_or("");
+        let who: i32 = tok
+            .next()
+            .and_then(|t| t.parse().ok())
+            .unwrap_or(CONSOLE_WHO);
+        let objects: Vec<i16> = tok.filter_map(|t| t.parse().ok()).collect();
+        let n = match action {
+            "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
+            _ => {
+                done.skip(&word, "a bound option this interpreter does not act on");
+                return;
+            }
+        };
+        if n == 0 {
+            done.skip(&word, "no selected object of who's is live");
+            return;
+        }
+        done.ran += 1;
+        return;
+    }
     if parse_issuer(&line.text).is_some_and(|i| refused_object(built, &i).is_some()) {
         done.skip(
             &word,
@@ -2212,6 +2302,10 @@ mod tests {
         // console's `die`, which the interpreter acts on (item 3901,
         // `docs/GOLDEN.md` §157).
         ("chapter107.cmd", &[]),
+        // Chapter one hundred and ten: chapter nineteen's cast, the Spy
+        // selected by `select` mid-hold and the key bound to `OPTION_QUEUE`,
+        // `@key` (item 3913, `docs/GOLDEN.md` §160).
+        ("chapter110.cmd", &[]),
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),
