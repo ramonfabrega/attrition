@@ -1011,6 +1011,43 @@ pub fn group_scramble(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
     list.len()
 }
 
+/// **`CommandPackage::process_stop_spell@00947cc0`** on the player's own
+/// units: `OPTION_QUEUE` with a caster selected (item 3913,
+/// `docs/GOLDEN.md` §160). `Options::exec@007188c0`'s 0xa6 arm walks the
+/// selection and, for each member that is a unit with `num_queued`
+/// (`+0xa0`) 0, calls `GroupOut::issue_stop_spell@00708a20` on the whole
+/// selection: a `group` and a one-byte `stop_spell` (0x1d) apiece, each
+/// processed as [`sim::Sim::group_action_stop_spell`].
+///
+/// SEAM: a unit's own queue (a carrier's `num_queued`), whose member takes
+/// `UnitOut::issue_unqueue` instead; no unit this crate stages has one.
+///
+/// Returns the number of commands processed.
+pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    let n = g.list.len();
+    for _ in 0..n {
+        let mut once = g.clone();
+        if !built.sim.push_group(&mut once, true) {
+            return 0;
+        }
+        built.sim.group_action_stop_spell(&once);
+    }
+    n
+}
+
 /// **`CommandPackage::process_flight@00947db0`** on the player's own
 /// buildings: an Airbase's right-click on an enemy, or on another base of
 /// its own, `issue_flight` on the building group itself, whose

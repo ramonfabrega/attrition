@@ -6783,6 +6783,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE: i64 = 2600;
 /// run1506 whole.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE: (i64, i64) = (605, 2601);
 
+/// **Chapter one hundred and ten** (item 3913, `docs/GOLDEN.md` §160,
+/// run1507): chapter nineteen's Spy stopped mid-hold by `OPTION_QUEUE`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN: i64 = 900;
+
+/// `chapter_one_hundred_and_ten_s_window_is_widened_whole`'s window:
+/// run1507.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TEN: (i64, i64) = (604, 901);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

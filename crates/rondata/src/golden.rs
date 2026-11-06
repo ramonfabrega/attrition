@@ -1298,13 +1298,14 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         let n = match action {
             "OPTION_AIRBASE_RECALL" => crate::input::group_recall(built, who, &objects),
             "OPTION_AIRBASE_SCRAMBLE" => crate::input::group_scramble(built, who, &objects),
+            "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
             _ => {
                 done.skip(&word, "a bound option this interpreter does not act on");
                 return;
             }
         };
         if n == 0 {
-            done.skip(&word, "no selected object is a live building of who's");
+            done.skip(&word, "no selected object of who's is live");
             return;
         }
         done.ran += 1;
@@ -2310,6 +2311,10 @@ mod tests {
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),
+        // Chapter one hundred and ten: chapter nineteen's cast, the Spy
+        // selected by `select` mid-hold and the key bound to `OPTION_QUEUE`,
+        // `@key` (item 3913, `docs/GOLDEN.md` §160).
+        ("chapter110.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
@@ -2636,15 +2641,10 @@ mod tests {
                     assert!(!line.console, "{name}: `@dumpall` is a DLL line");
                     continue;
                 }
-                // `@key <vk>` is the DLL's key line (`tools/trace/key.h`, item
-                // 3442): it presses a key, and the harness resolves it through
-                // the chapter's `# bindkey` lines (item 3912), not `parse_issuer`.
-                if let Some(vk) = line.text.strip_prefix("@key ") {
+                // `@key <vk>` is the DLL's keystroke (`tools/trace/key.h`,
+                // item 3442), the bound option's issuer (items 3912, 3913).
+                if line.text.starts_with("@key ") {
                     assert!(!line.console, "{name}: `@key` is a DLL line");
-                    assert!(
-                        vk.trim().parse::<u32>().is_ok(),
-                        "{name}: `@key {vk}` names no key"
-                    );
                     continue;
                 }
                 if line.text.starts_with('@') {

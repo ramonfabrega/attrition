@@ -34957,4 +34957,31 @@ SHA-256 `b37bbb0674666ee8721f6f86dc72cd01f1ad2b16b3ea1a861b4f006e80e17505`.
 Archive `rontrace-run1506b.log`, 42,898,976 bytes,
 SHA-256 `9dc05b0b038c1f69ac47d04b313dd405b3a72ee0f2ab150ccf1a438a4720d834`.
 
-**What it holds**: `blind::TRACES`' run1506b (item 3912). `Blind:` never 366 → 360, open 37 → 31 on the tree merged with item 3909.
+**What it holds**: `blind::TRACES`' run1506b (item 3912). `Blind:` never 363 → 357, open 34 → 28 on the tree merged with item 3913.
+## run1507 and run1507b — chapter one hundred and ten: a spell stopped mid-hold, `OPTION_QUEUE` on chapter nineteen's Spy (2026-11-06, item 3913, `att-3913`)
+
+`docs/GOLDEN.md` §160. **What the disk could not answer**: `Group::action_stop_spell@006fd7a0`, its writer
+`GroupOut::issue_stop_spell@00708a20` and its arm `CommandPackage::process_stop_spell@00947cc0` were never entered by any
+trace (`docs/AI.md` §391.2 row 6). Recipe `tools/gamelog/golden/chapter110.cmd`: chapter nineteen's six lines, then `766
+select 6 who=0` and `770 @key 124`. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch110
+--map 14 --end-frame 900 --log-window 605 900 --timeout 3600` with chapter nineteen's `end:`/`start:` sets,
+`misc:COMMANDMANAGER=1` and `--bindkey OPTION_QUEUE=124`, at `cover=0`. The twin is the same line at `--cover cover=1
+--no-ffwd` into `~/ron-golden/ch110b`. 135 GiB free before.
+- run1507: pool lane 1, launched 05:01:06, exited 05:01:41, **35.1 s launch to exit**, one relaunch on a page fault at
+  4.4 s. `success`, lifecycle verified, `map_verified`, map style 14, 901 frames, `last_frame` 900, seed 12345, PLAYER
+  records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes waited on another lane.
+- run1507b: pool lane 3, no relaunch, `success`, 901 frames. Filed by `filerun.py run1507b ch110-stopspell-cover`
+  (`~/ron-golden/run1507b` links to `ch110b`).
+- `process_stop_spell 771` on the `CM` channel. `0/6` holds its `CASTORDER` through 771 (`spell_time` 16) and on 772 an
+  empty stack, `spell_time` 0, `flags` 9 (129 before). `1/2006` is never infiltrated. The twin enters `Options::exec`,
+  `Console::exec_keymap`, `issue_stop_spell` and `action_stop_spell` on trace frame 770.
+- `rngcmp`: run1507 against run245, 773 identical, the first differing 772; run1507 against run1507b, 901 of 901
+  identical.
+
+run1507: `gamelog.txt` 123,949,125 bytes, SHA-256 `b05f030e8f04cf134f36bcc979b6d3f7fb5d7e8007a0af60c1cda2c8b41d1680`.
+`rontrace.log` 9,872,096 bytes, SHA-256 `5426abbb8101cc14507e7b70189d15dabbee870513a55d12e2f2d01caaed1b1f`.
+run1507b: `rontrace.log` 20,088,704 bytes, SHA-256 `f762e277e51d2201483c78907efcb04ffd805bb3e2abe88a5897e55e7dc82232`.
+
+**What it holds**: `golden::chapter_one_hundred_and_ten_holds_to_the_golden_word` (900, closed) and
+`chapter_one_hundred_and_ten_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 769..773 is in the
+coverage driver's slice. run1507b is in `blind::TRACES`, and the three rows are off `NEVER`.

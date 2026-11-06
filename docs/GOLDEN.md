@@ -17401,7 +17401,7 @@ parts in the window, so there is no value diff to report. The widening is run150
 `WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE` (605, 2601), and parts on the eleven standing `form` rows on 605 alone,
 nothing on 2293, 2313 or after (`chapter_one_hundred_and_nine_s_window_is_widened_whole`, `WANT_CH109`). run1506b,
 the `cover=1` twin, enters the three functions of each button on 2292 and 2312 and takes six rows off the blind list
-(`blind::NEVER` 366 → 360 on the tree merged with item 3909).
+(`blind::NEVER` 363 → 357 on the tree merged with item 3913).
 
 **Mutations** (`tools/mutate.py --batch`, on the committed tree, against the chapter's two tests):
 
@@ -17430,12 +17430,56 @@ staged: who=0 held eight buildings and seventeen units and no Airbase or plane. 
 receipt raised `extra lifecycle or fault records`. Why lane 2 ran an unstaged game is not established; the retake on
 lane 1 is run1506b.
 
-## 160. Reserved for the next item on the rules track
+## 160. Chapter one hundred and ten — a spell stopped mid-hold; closed at 900 on the first take (item 3913, run1507, run1507b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 row 6, parked 3906c): `Group::action_stop_spell@006fd7a0` was `NEVER`, with its
+writer `GroupOut::issue_stop_spell@00708a20` and its arm `CommandPackage::process_stop_spell@00947cc0`. No `@` verb
+reaches it, so it is entered as §146 entered the formation keys: the key bound to `OPTION_QUEUE` in the lane's profile,
+pressed with the caster selected.
+
+**What the reading says.** `Options::exec@007188c0`'s 0xa6 arm, after `Group::can_activate`, walks the selection. For
+each member that is a unit, not an active building, it calls `UnitOut::issue_unqueue` when the unit's own queue
+(`num_queued`, `+0xa0`) is not empty, and otherwise `issue_stop_spell` on the whole selection: a `group` and a one-byte
+`stop_spell` (0x1d). The pump runs `action_stop_spell`. After the ignore-orders sweep and `action_begin`, it walks a unit
+group. Each member that is alive (vslot `+8`) and on the map (`+0xbc`), and whose `UnitData::get_action` answers type
+0xe, a `CASTORDER`, takes the inlined `Unit::clear_orders` — `+0x68 &= ~0x4000000`, `+0xc0 = 0`, `close_orders(0)`,
+`clear_partial_path`, `update_action` — and `spell_time` (`+0x98`) 0. A Merchant, Dutch Merchant or Fur Trapper (0x3d,
+0x3e, 400) also sets `recalc_builds` and `update_gpiece`.
+
+**Staging** (`tools/gamelog/golden/chapter110.cmd`): chapter nineteen's six lines (§27, run245), then `766 select 6
+who=0` and `770 @key 124`, with `--bindkey OPTION_QUEUE=124`. run245 had the Spy on its ring on 755 and `spell_time` 1..39
+on 756..794, so the disk answered the staging's one predicate: on 770 the action is the `CASTORDER` at the ring.
+Falsifiers, written before the take (the journal has them): `KEYMAP_NONE` on 770; no `process_stop_spell 771`; the
+`CASTORDER` or a non-zero `spell_time` on 772; `1/2006` infiltrated anywhere; no `HIT` on the two addresses in the twin.
+
+**What the original does** (run1507 `cover=0`, run1507b `cover=1`; `docs/RUNS.md`). No falsifier fired.
+`process_stop_spell 771` is on the `CM` channel. `0/6` holds the `CASTORDER` (paid, spell 639, on `2006`/1) through 771
+with `spell_time` 16. On 772 its stack is empty, `spell_time` is 0, `flags` reads 9 where it read 129 (the in-range 0x80
+gone), `idle` 1, and its figure starts a 60-frame idle animation. `1/2006` is never infiltrated. The twin enters
+`Options::exec`, `Console::exec_keymap`, `issue_stop_spell` and `action_stop_spell` on trace frame 770, the pump's half of
+it. run1507 is run245's game to 771 (`rngcmp` first differing 772) and the twin's on all 901 frames.
+
+**What this crate does.** `Sim::group_action_stop_spell` (`crates/sim/src/cast.rs`) is the member walk. The harness's
+`@key` (`rondata::golden`) reads a chapter's `# bindkey ACTION=VK` comment, the same parser as item 3912's (§159), and
+carries the seat's selection to the pump. `OPTION_QUEUE` is `input::group_stop_spell`: one pushed group and one stop for
+each selected unit, as the 0xa6 loop issues them. The draw stream agrees to the trace's end:
+`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN` = **900**, closed
+(`chapter_one_hundred_and_ten_holds_to_the_golden_word`). The widening over 605..900
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_TEN` (604, 901), both directions, the pool too) parts on the eleven standing `form`
+rows and nothing else (`WANT_CH110`). The coverage driver drives 769..773.
+
+**Mutations** (`tools/mutate.py --batch`, all four held). Dropping the cast test fails
+`cast::tests::a_stop_takes_a_held_cast_and_nothing_else`. Dropping the `spell_time` write fails that test and **nothing
+in the diff**: `Unit::work@0060d180:285-296` zeroes the clock on the next frame whenever neither the front order nor the
+action is a cast, on both sides, and no block falls between the pump and `work`. Dropping `clear_orders` fails the unit
+test, the walk and the widening. Removing the harness's `OPTION_QUEUE` arm fails the walk and the widening.
+
+**Not established.** The Merchant arm, which no capture reaches (parked 3913a). A selection of two or more casters,
+where the 0xa6 loop issues one stop per member. A unit with a queue of its own, which takes `issue_unqueue` instead. The
+`+0x68 & 0x4000000` and `+0xc0` writes, which this crate does not carry, as for `halt` (`crate::halt_view`).
+
+**Coverage.** Diff-backed: the key's reach, the command's frame, the closed cast, the Spy's state on every block to 900,
+and the draws. Reading only: the `spell_time` write (masked, as above), the Merchant arm, the multi-member loop.
 
 ## 161. Reserved for the next item on the rules track
 

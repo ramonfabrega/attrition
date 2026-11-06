@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3925) **A `DEEP` answer that never says the journal's head must read `draft` leaves the arm unfired** (the sixty-ninth's commander, lane-3911): `lanewait.py --arm-after-push` arms only a push whose journal's head says `draft` (Loop 3833); the commander's `DEEP 303k` answer said "write the journal as a draft", lane-3911 pushed `c65c92769` with a "Left to do" heading and no `draft` in the head, and the waiter printed `PUSHED … progress, not a landing` then `ENDED lane-3911 done` and armed nothing — armed by hand, as was lane-3912's (`0c23067bc`) when its row idled before the held arm's threshold. Candidate: the `DEEP` answer's line in `docs/LOOP.md` names the word ("the journal's head reads `draft`"), or the waiter also reads a `Left to do` heading on a DEEP lane's push as a draft. Names no score; the loop's.
+
 (3922) **`census.py --implicit` reads only joined traces** (3908's "for the Loop"): DECISIONS 108 §2 booked eleven style takes whose `cover=1` sweeps (runs 1098–1128, items 3480 and 3493) had been on disk fifteen days, unjoined; 3908 joined them with no capture. CLAUDE.md's "grep the disk before booking a capture" says this already; the gap is that a pass trusting `--implicit`'s list cannot see an unjoined run. Candidate: `--implicit --archive`, scanning every unjoined trace under `Logs` and printing the rows it would enter; and (parked 3908c) a join of `ScenarioFuncSet::init_funcs`' registered functions against `NEVER`'s callers, since the census files `game\script\` outside the territory. Names no score; the loop's.
 
 ## Loop, filed 2026-11-05 — the sixty-eighth tranche's
@@ -14486,13 +14488,12 @@ words and edits nothing here; a refill lands when two remain.
   this crate: no lockstep game reaches it, since the original crashes there. **Score**: none. Recorded so a later
   reader of the walk does not book the crash as a branch to port.
 
-## Parked by the next landing, slot BA — reserved
+## Parked by item 3913, 2026-11-06 — a spell stopped mid-hold
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3913a. `action_stop_spell`'s Merchant arm** (`docs/GOLDEN.md` §160): a Merchant, Dutch Merchant or Fur Trapper
+  (0x3d, 0x3e, 400) whose action is a cast also sets `recalc_builds` and `update_gpiece`. Such a cast
+  would be a pack or unpack (`Unit::unpack_merchant` lays one, `crate::merchant` §3). It is not built, and no capture stops one. The staging would be
+  `OPTION_QUEUE` on a Merchant mid-unpack. **Score**: none named — a `SEAM` in `Sim::group_action_stop_spell`.
 
 ## Parked by the next landing, slot BB — reserved
 
