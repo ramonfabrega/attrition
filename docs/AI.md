@@ -38557,8 +38557,9 @@ greps are the disk's answer and need no reader. The section cites by address
 only functions that are entered or already on `NEVER`. The unentered helpers
 (`cpuspeed`, `start_cannon_time`, `issue_cannon_time`, `process_cannon_time`,
 `GetRDTSCCpuSpeed`, `GetBSFCpuSpeed`, `check_80286`, `check_IDProc`) are named
-without an address, so the triple stays at never 268 · residue 252 · open 16.
-On agreement, open moves 16 → 12 (parked 3894a).
+without an address, so no row moves: never 268 · residue 252 · open 16 on the
+item's base, never 268 · residue 260 · open 8 on the tree merged with item 3893.
+On agreement, open moves 8 → 4 (parked 3894a).
 
 ## 386. Reserved for the next item on the AI track
 

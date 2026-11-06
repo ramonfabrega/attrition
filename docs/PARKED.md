@@ -14158,7 +14158,7 @@ words and edits nothing here; a refill lands when two remain.
   which only `Game::run_gamespy` sets. It reads `wincpuid`, `wincpufeatures` and `check_80386`
   as candidates on reach: the tracer is armed before the exe's entry, and `cpunormspeed` answers
   from the registry without calling `cpuspeed`. `check_80386` also needs a processor without CPUID.
-  §385.3 lists what a blind reader re-derives. **Score**: open 16 → 12 on agreement.
+  §385.3 lists what a blind reader re-derives. **Score**: open 8 → 4 on agreement (the tree merged with 3893).
 
 ## Parked by the next landing, slot AJ — reserved
 
