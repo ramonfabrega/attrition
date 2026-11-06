@@ -2636,6 +2636,17 @@ mod tests {
                     assert!(!line.console, "{name}: `@dumpall` is a DLL line");
                     continue;
                 }
+                // `@key <vk>` is the DLL's key line (`tools/trace/key.h`, item
+                // 3442): it presses a key, and the harness resolves it through
+                // the chapter's `# bindkey` lines (item 3912), not `parse_issuer`.
+                if let Some(vk) = line.text.strip_prefix("@key ") {
+                    assert!(!line.console, "{name}: `@key` is a DLL line");
+                    assert!(
+                        vk.trim().parse::<u32>().is_ok(),
+                        "{name}: `@key {vk}` names no key"
+                    );
+                    continue;
+                }
                 if line.text.starts_with('@') {
                     assert!(
                         !line.console && parse_issuer(&line.text).is_some(),
