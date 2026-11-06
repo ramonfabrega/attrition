@@ -32,6 +32,7 @@
 //! The corner test reads the heights as [`Single`]s and compares them
 //! as integers; no float.
 
+use crate::map_resources::{Footprint, close_good, place_good};
 use crate::mapgen::MapGrid;
 use crate::single::Single;
 use crate::terrain_groups::{OIL_GOOD, tile_at};
@@ -112,6 +113,11 @@ pub struct Pass<'a> {
     queue: Vec<i32>,
     goody: Vec<(i32, i32)>,
     unread: Option<usize>,
+    /// The good types' footprints, per type, for `move_goody`'s good arm;
+    /// without them the arm refuses ([`Unported::Goody`]).
+    goods: Option<&'a [Footprint]>,
+    /// The goods the good arm moved, from and to.
+    pub moved_goods: Vec<((i32, i32), (i32, i32))>,
 }
 
 impl<'a> Pass<'a> {
@@ -126,7 +132,16 @@ impl<'a> Pass<'a> {
             queue: Vec::new(),
             goody: Vec::new(),
             unread: None,
+            goods: None,
+            moved_goods: Vec::new(),
         }
+    }
+
+    /// The good types' footprints `move_goody`'s good arm closes and
+    /// reopens a good by.
+    pub fn with_goods(mut self, goods: &'a [Footprint]) -> Self {
+        self.goods = Some(goods);
+        self
     }
 
     /// `verify_land`'s `depth` as an earlier pass left it.
@@ -340,6 +355,41 @@ impl<'a> Pass<'a> {
         self.refusals().map(|()| to)
     }
 
+    /// **`move_goody`'s good arm** (0x84a6b3..0x84a844): the good in `slot`
+    /// on `(x, y)` is closed ([`close_good`], vtable +0x90), and the first
+    /// of `move[9..25]` that the box's arm would take — entry land 0, off
+    /// the map's edge, dry `BASELAND` free of 0x100, 0x10, 0x28, 0x800,
+    /// 0x1000, 0x40 and 0x8000, holding no good, not blocked, `CoordInfo`
+    /// without 0x4, no forest south of it — takes a new good of its type at
+    /// `snap_center` ([`place_good`]). No such cell leaves it closed.
+    fn move_good(&mut self, x: i32, y: i32, slot: usize, lands: &[i32], fps: &[Footprint]) {
+        let Some((ty, _, _)) = self.g.goods[slot] else {
+            return;
+        };
+        let fp = fps[ty as usize];
+        close_good(self.g, fp, slot);
+        let edge = |nx: i32, ny: i32, xs: i32| nx == 0 || ny == 0 || nx == xs - 1 || ny == xs - 1;
+        for k in 9..25 {
+            let (nx, ny) = (x + MOVE[k].0, y + MOVE[k].1);
+            if lands[k] != 0 || edge(nx, ny, self.g.xs) {
+                continue;
+            }
+            let n = self.at(nx, ny);
+            let u = self.g.cells[n].flags;
+            if u & (0x100 | 0x10 | 0x28 | 0x800 | 0x1000 | 0x40 | 0x8000) != 0
+                || self.find_good_at(nx, ny) >= 0
+                || self.g.cells[n].blocked != 0
+                || self.coord[n] & coord::HALF != 0
+                || self.has_south_forest(nx, ny)
+            {
+                continue;
+            }
+            place_good(self.g, fp, ty, nx, ny);
+            self.moved_goods.push(((x, y), (nx, ny)));
+            break;
+        }
+    }
+
     fn move_any(&mut self, x: i32, y: i32, rocky: bool) -> Option<(i32, i32)> {
         let c = self.g.cells[self.at(x, y)];
         let wet = c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2);
@@ -392,7 +442,10 @@ impl<'a> Pass<'a> {
             }
         }
         if good >= 0 {
-            self.goody.push((x, y));
+            match self.goods {
+                Some(fps) if rocky => self.move_good(x, y, good as usize, &lands, fps),
+                _ => self.goody.push((x, y)),
+            }
         }
         if oil {
             self.set_oil_at(x, y, false);

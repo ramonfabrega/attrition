@@ -767,10 +767,15 @@ pub fn place_all_inputs_of(
     })
 }
 
-/// A TGA's width and its pixels as `[byte 0, alpha]`, **top row first**:
-/// the uncompressed (2) and run-length (10) true-colour kinds at 32 bits,
-/// which are all `terrain art/cliffs/` holds, each row flipped when the
-/// descriptor's origin is the bottom (bit 5 clear). `None` for any other.
+/// A TGA's width and its pixels as `[byte 0, alpha]` of the engine's texel,
+/// **top row first**: the uncompressed (2) and run-length (10) true-colour
+/// kinds at 32 bits, which are all `terrain art/cliffs/` holds, each row
+/// flipped when the descriptor's origin is the bottom (bit 5 clear). `None`
+/// for any other. The engine's `PF_32` texel is RGBA, so the byte
+/// `init_templates` reads first is the file's red, its byte 2 (BGRA): read
+/// as byte 0, the blue, 4,365 of run1493's 58,081 start heights part by
+/// one or two steps of 480/255, and as byte 2 none does (item 3890,
+/// `docs/MAPGEN.md` §18.3).
 pub fn tga_rows(bytes: &[u8]) -> Option<(i32, Vec<[u8; 2]>)> {
     let head = bytes.get(..18)?;
     let (kind, bpp, desc) = (head[2], head[16], head[17]);
@@ -784,7 +789,7 @@ pub fn tga_rows(bytes: &[u8]) -> Option<(i32, Vec<[u8; 2]>)> {
     let texel = |at: &mut usize| -> Option<[u8; 2]> {
         let t = bytes.get(*at..*at + 4)?;
         *at += 4;
-        Some([t[0], t[3]])
+        Some([t[2], t[3]])
     };
     while px.len() < w * h {
         if kind == 2 {
@@ -832,6 +837,7 @@ pub fn cliff_templates(root: &Path) -> Option<Vec<CliffTemplate>> {
             size: sim::terrain_groups::cliff_size_index(w),
             facing: e.attribute("orientation").map_or(-1, leading_int),
             cells: sim::terrain_groups::cliff_cells(w, &px),
+            heights: sim::cliffs::template_heights(&px),
         });
     }
     Some(out)
@@ -7204,6 +7210,140 @@ mod tests {
     /// run1493's records from `map.cpp` 5012 to 5118: a floor (5 on
     /// 2026-11-05, item 3888).
     const MESA_RIVER_RECORDS: usize = 5;
+
+    /// [`southwest_mesa_at_894`]'s answer: the grid, the heights, the
+    /// stream, parts 10–13 and what `Cliffs::init` did.
+    type MesaAt894 = (
+        MapGrid,
+        Vec<sim::single::Single>,
+        Draws,
+        [u32; 4],
+        sim::cliffs::CliffsInit,
+    );
+
+    /// One Southwest Mesa run carried to `Terrain.cpp` 894 (item 3890):
+    /// step 8's 5118 grid ([`southwest_mesa_s_rivers_are_5012_to_5118`]'s
+    /// walk), then the heights in `Terrain::init`'s order — `generate_land`
+    /// and the coastal pass (706), the oil cells' terraform (738), the
+    /// troughs (`RIVERLIST` empty: nothing to calculate) and
+    /// `adjust_for_mountains` — and `Cliffs::init` (`sim::cliffs`).
+    fn southwest_mesa_at_894(root: &Path, g: &StartGrid) -> Option<MesaAt894> {
+        let install = crate::Install::new(root);
+        let meshes = crate::mountains::meshes(&install);
+        let sea = sea_map(root, "SOUTHWESTMESA.xml").expect("SOUTHWESTMESA.xml's SEA_MAP");
+        let thresh = river_thresh(root, "SOUTHWESTMESA.xml").expect("RIVER_THRESHOLD");
+        let rivers = river_list(root, "SOUTHWESTMESA.xml").expect("a RIVERLIST");
+        let standard = standard_map_size(root).expect("the Standard map size");
+        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
+        let ts = tileset_groups(root, &fert.tileset).expect("SW_desert's groups");
+        let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
+            .expect("Southwest Mesa's place_all inputs");
+        let (mut grid, mut d) = southwest_mesa_at_7945(root, g)?;
+        let (_, mut coord, half) = terrain_init_without_heights(&mut grid, sea)
+            .unwrap_or_else(|u| panic!("an unported arm: {u:?}"));
+        let p = half.parts().expect("empty half-land lists");
+        let mut regions = regions_of(&grid);
+        let phase = Phase {
+            thresh,
+            city_radius: sim::tuning::Tuning::RON.city_center_radius,
+            rivers: &rivers,
+            standard,
+            seed: g.seed as u32,
+            nations: g.nations,
+        };
+        make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
+        let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+        sim::map_heights::create_doobers(&grid, &mut z);
+        let combo = sim::halfland::Combo {
+            coast_base: ts.coast_base,
+            num_tiles: [
+                Some(ts.base_tiles),
+                Some(ts.coastal_tiles),
+                Some(ts.ocean_tiles),
+                None,
+            ],
+        };
+        let troughs =
+            sim::map_troughs::calculate_all(&mut grid, &mut coord, &mut z, ts.riverbase, combo, 0)
+                .unwrap_or_else(|e| panic!("the troughs: {e:?}"));
+        assert!(troughs.sections.is_empty(), "a trough on Southwest Mesa");
+        sim::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
+        let goods = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
+            .expect("Southwest Mesa's rows")
+            .goods;
+        let cliffs =
+            sim::cliffs::init(&mut grid, &mut coord, &mut z, &inputs.cliffs, &goods, combo)
+                .unwrap_or_else(|e| panic!("Cliffs::init: {e:?}"));
+        Some((grid, z, d, [p[0], p[1], p[2], p[3]], cliffs))
+    }
+
+    /// **`Cliffs::init` on Southwest Mesa** (`docs/MAPGEN.md` §10, §15 step
+    /// 7, §18.3, §18.4, item 3890): from the port's 5118 grid, the heights
+    /// and the cliffs ([`southwest_mesa_at_894`]) — seed and parts 2, 5, 6
+    /// and 10–13 at `Terrain.cpp` 894 on run1493's file, part 4 held from
+    /// 5118. The test prints what the slope arm was handed and passed, the
+    /// 0x40 cells it cleared, the goods it moved and the edge bits.
+    #[test]
+    fn southwest_mesa_s_cliffs_are_894() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let (mut files, mut parted) = (0, Vec::new());
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let Some((grid, _, d, lists, c)) = southwest_mesa_at_894(root, g) else {
+                continue;
+            };
+            let blocked: usize = grid.cells.iter().map(|c| usize::from(c.blocked)).sum();
+            eprintln!(
+                "{name}: {} cliffs queued; slope arm handed {} tiles, passed {}; 0x40 cells \
+                 cleared {}, left {}; move_goody called {} times, oil moved {:?}, goods moved {:?}; \
+                 mining tiles {}, 0x8000 given {}; blocked tiles {blocked}",
+                grid.cliffs.len(),
+                c.handed,
+                c.slope.len(),
+                c.cleared.len(),
+                grid.cells.iter().filter(|c| c.flags & 0x40 != 0).count(),
+                c.goody_calls,
+                c.moved,
+                c.goods,
+                c.mining.iter().map(Vec::len).sum::<usize>(),
+                c.edge
+            );
+            let (Some(at), Some(before)) = (g.at("Terrain.cpp", 894), g.at("map.cpp", 5118))
+            else {
+                continue;
+            };
+            let ours = (
+                d.rng.seed,
+                grid.start_part(),
+                grid.cell_part(),
+                grid.tile_part(),
+                lists,
+            );
+            let p = at.3;
+            let theirs = (at.2, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
+            if ours != theirs || p[4] != before.3[4] {
+                parted.push(format!(
+                    "{name} at 894: (seed, parts 2, 5, 6, 10–13) ours {ours:?} against theirs \
+                     {theirs:?}, part 4 {:#x} against 5118's {:#x}",
+                    p[4], before.3[4]
+                ));
+            }
+            files += 1;
+        }
+        eprintln!("Southwest Mesa cliffs: 894 on {files} files");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(files >= MESA_FILES, "894 reached {files} Southwest Mesa files");
+    }
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
