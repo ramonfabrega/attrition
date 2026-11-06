@@ -103,6 +103,14 @@ pub enum Cheat {
     /// `finish` (case `0x4f`, item 2543): the same arms paid 500000
     /// ([`sim::Sim::cheat_finish_all`]).
     FinishAll,
+    /// `die [o[,who] | select]` (`run_cmd`'s `die` arm, `007dde60`–
+    /// `007ddf1d`): the object's vslot `+0x158` with `(0, −1, 0)` — a
+    /// building's `Wall::die` → `Object::die`, which is `close` and the
+    /// hold ([`sim::Sim::die_building`]; item 3901, `docs/GOLDEN.md` §157).
+    /// `who` is `parse_who(·, console->who)`, so a bare number is a
+    /// player. `None` is the `select` form (and the bare `die`): every
+    /// selected object.
+    Die(Option<(i32, i16)>),
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -1681,6 +1689,20 @@ fn parse(text: &str) -> Cheat {
             None => Cheat::Unmapped(word),
         },
         "be" => Cheat::Be(rest.first().and_then(|t| parse_who(t, true))),
+        "die" => match rest.first() {
+            None | Some(&"select") => Cheat::Die(None),
+            Some(t) => {
+                let (o, who) = t.split_once(',').unwrap_or((t, ""));
+                let who = match who {
+                    "" => Some(CONSOLE_WHO),
+                    w => parse_who(w, true),
+                };
+                match (o.parse::<i16>().ok(), who) {
+                    (Some(o), Some(who)) => Cheat::Die(Some((who, o))),
+                    _ => Cheat::Unmapped(word),
+                }
+            }
+        },
         "resource" => {
             // The token walk is `run_cmd`'s (`7dd73f`..`7dd7e8`): an optional
             // `parse_who(·, −1)`, so only `who=`; then the good by
@@ -1930,6 +1952,25 @@ fn run(
             built.sim.cheat_resource(who as sim::Player, good, amount);
             done.ran += 1;
         }
+        Cheat::Die(target) => {
+            let targets = match target {
+                Some(t) => vec![t],
+                None => selected.clone(),
+            };
+            // `(*(byte *)(obj + 8) & 1) != 0`: only a live object dies.
+            let mut any = false;
+            for (who, o) in targets {
+                if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
+                    built.sim.die_building(b);
+                    any = true;
+                }
+            }
+            if any {
+                done.ran += 1;
+            } else {
+                done.skip(&word, "no live building (the unit arm is not modelled)");
+            }
+        }
         Cheat::Unmapped(w) => done.skip(&w, "not in the interpreter's cheat set"),
     }
 }
@@ -2167,6 +2208,10 @@ mod tests {
         ("chapter104.cmd", &[]),
         ("chapter105.cmd", &[]),
         ("chapter106.cmd", &[]),
+        // Chapter one hundred and seven: a Fort added and killed by the
+        // console's `die`, which the interpreter acts on (item 3901,
+        // `docs/GOLDEN.md` §157).
+        ("chapter107.cmd", &[]),
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),
@@ -3215,6 +3260,11 @@ mod tests {
         );
         assert_eq!(parse("select 2006"), Cheat::Select { who: 0, o: 2006 });
         assert_eq!(parse("select hoplite"), Cheat::Unmapped("select".into()));
+        // Item 3901: `die o,who`, the bare `o`, and the selection.
+        assert_eq!(parse("die 2006,1"), Cheat::Die(Some((1, 2006))));
+        assert_eq!(parse("die 2006"), Cheat::Die(Some((0, 2006))));
+        assert_eq!(parse("die select"), Cheat::Die(None));
+        assert_eq!(parse("die x,1"), Cheat::Unmapped("die".into()));
     }
 
     /// `parse_coord`'s three arms. The bare number is a **tile** on this
