@@ -1105,6 +1105,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `GROUP_PATROL`, so `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0`
 /// stay here, the take that settles them parked as 3902a; open 2, unmoved, on the tree merged
 /// with 3899.
+/// **267** unmoved by item 3903 (`docs/AI.md` §389), which reads 3902a's route shut with no take:
+/// its cast is the Machine Gun line, `Object::valid_target` refuses that line a capture-eligible
+/// city, any other target leaves the unit an `ATTACK`, and `fight`'s second-call gate is shut
+/// for a land building besides; the pair stays here pending a blind second reading (park 3903a)
+/// and route 2 (3903b); open 2, unmoved.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -3324,5 +3329,47 @@ mod tests {
             vec![0x0059_1ef0, 0x0060_0000]
         );
         assert!(entered(b"not a trace, not at all, no..........").is_none());
+    }
+
+    /// Item 3903 (`docs/AI.md` §389): route 1 to the `kill_group_order` pair
+    /// (`docs/audit/2026-11-06-item-3902.md`) reaches `fight`'s first
+    /// `find_new_target` (`5fe113`) only on a type that packs
+    /// (`unit_flags2 & 4`) and is not `is_siege` (`unit_flags & 0x20000`),
+    /// and reaches `Group::action_attack`'s capture arm only if
+    /// `find_nearby_target` hands it a capture-eligible city, which
+    /// `Object::valid_target@00648ba0` refuses to a type without the MISSILE
+    /// mask (`obj_masks & 1 << 27`) unless it carries VEHICLE and WAR_MACHINE
+    /// under a mandatory `ATTACK` on that city. Every armed type of the first
+    /// set is the Machine Gun line, MG42 with it, and none carries either.
+    #[test]
+    fn route_one_s_cast_is_refused_a_capture_eligible_city() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        const MISSILE: u32 = 1 << 27;
+        const VEHICLE_AND_WAR_MACHINE: u32 = (1 << 21) | (1 << 19);
+        let cast: Vec<usize> = (0..loaded.unit_types.len())
+            .filter(|&t| {
+                let c = &loaded.unit_types[t].cols;
+                c.unit_flags2 & 4 != 0
+                    && c.unit_flags & 0x20000 == 0
+                    && c.is(sim::ai_load::role::MILITARY)
+            })
+            .collect();
+        // Machine Gun ×2, Heavy ×2, Advanced ×3 and the German MG42; each
+        // carries `FGT` (0x80060), WAR_MACHINE without VEHICLE.
+        assert_eq!(cast.len(), 8, "the Machine Gun line's eight records");
+        for &t in &cast {
+            let u = &loaded.unit_types[t];
+            let name = &loaded.unit_names[t];
+            assert!(u.rel.machinegun, "{name} packs, is armed and is not siege");
+            assert_eq!(u.rel.masks & MISSILE, 0, "{name}");
+            assert_ne!(
+                u.rel.masks & VEHICLE_AND_WAR_MACHINE,
+                VEHICLE_AND_WAR_MACHINE,
+                "{name}"
+            );
+        }
     }
 }
