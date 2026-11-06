@@ -14117,13 +14117,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AG — reserved
+## Parked by item 3892, 2026-11-05 — the eight sweep-cited slot rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3892a. The eight slot rows' blind second reading.** AI §384 reads all eight
+  (`ObjectData::support`, `WallData::can_make`, `GatherPoint::walk_data`,
+  `SpecialAnimOrder::walk_data`, `ObjectsData::find_town_at`, `TargetOrder::get_target`,
+  `SubObjectOut::is_on_screen`, `ObjectTypeOut::draw`) as `RESIDUE` candidates with no route.
+  §384.9 lists what a blind reader re-derives. 3505a's appender is found:
+  `GraphicPieces::emit_destroy_particle`, fed by `Wall::close` (buildings) and `Unit::close`
+  (the two merchants and the fur trapper). **Score**: open 20 → 12 on agreement.
+- **3892b. The slot scanner is reached for the third time** (3884, 3887 and 3892 each wrote
+  one). This item's was a scratch script, not kept. Its shape is the four-byte copies named by
+  the map's `??_7` symbols (which include the `6B<base>@@` tables), rel32 callers,
+  `[reg+disp]` and `mov`+`call` dispatches, plus a guard classifier: a function-pointer
+  compare or a table-identity compare near the site. By the conventions it graduates into
+  `tools/` (beside `report.py <exe> refs`, which names slots from `vtables.txt` and so misses
+  the MI tables). **Score**: none directly; it is the next slot reading's cost.
 
 ## Parked by the next landing, slot AH — reserved
 

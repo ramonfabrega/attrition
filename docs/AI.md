@@ -38212,12 +38212,204 @@ call-site table and the absent address copies are scans of the image. This
 reading moves no row to `RESIDUE`. Its cite of 383.6's four destructors adds
 them to `blind::NEVER`: never 262 → 266, open 39 → 43 (on run1497's 262 and 39).
 
-## 384. Reserved for the next item on the AI track
+## 384. The eight sweep-cited slot rows, read: eight residue candidates, no route (item 3892)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3892, 2026-11-05, Opus 5.5. A reading by §383's method: no capture, no
+sim change. The eight rows are `blind::NEVER` entries the emulator sweeps
+cited (items 1840, 1851, 1866, 1916, 1921, 3134). Each slot is read off
+`.rdata`'s bytes, its tables named by the linker map's `??_7` symbols, which
+include the `6B<base>@@` tables `vtables.txt` omits (parked 3884c). Every
+call site is scanned in `.text` in §383's three forms, and every four-byte
+copy of a row's address in `.text` is read as a guard. The scanner was first
+run on `UnitData::curr_uber_size@0060a760` and found its ten callers. "Entered"
+means a `HIT` in any of the 144 traces `blind::TRACES` pins. The eight are
+hooked: none is in `rontrace.funcs.excluded.txt`.*
+
+| row | tables (four-byte copies in `.rdata`) | `.text` copies | rel32 callers |
+|---|---|---|---|
+| `ObjectData::support@0046cef0` | `+0x13c` of all 15 object tables (Object, Wall, Build, Unit, Animal triples) | 0 | 0 |
+| `WallData::can_make@00472cb0` | `+0x190` and `+0x198` of the Wall triple (6); `IncrementalLoad` `+0x18` (1) | 0 | 0 |
+| `GatherPoint::walk_data@00470f30` | `GatherPoint` `+0x0` (1) | 0 (two copies of the table, guards) | 0 |
+| `SpecialAnimOrder::walk_data@004849a0` | `SpecialAnimOrder` `+0x8` (1) | 0 | 0 |
+| `ObjectsData::find_town_at@00658190` | none | 0 | 2 |
+| `TargetOrder::get_target@0072ff60` | `+0x0` of all 14 `6BTargetOrder@@` tables | 6 (guards) | 0 |
+| `SubObjectOut::is_on_screen@00662670` | `+0x70` of 22 tables: the five object triples, `SubObject`, and the Good and Item triples | 19 (guards) | 0 |
+| `ObjectTypeOut::draw@004703f0` | `+0x140` of 12 `6BType@@` tables: `UnitTypeData`, and the BuildType, ObjectType, GoodType and ItemType levels | 0 | 0 |
+
+The booking counted twenty-four tables for `is_on_screen`; the image's bytes hold
+twenty-two copies.
+
+### 384.1 `ObjectData::support`: slot `+0x13c` has no object dispatcher
+
+The body returns the type's `+0x268 + 4i`. The scan finds two `[reg+0x13c]`
+sites: `Window::on_middle_click` (`41c1ec`) and `Window::on_window_middle_click`
+(`41c548`). Both dispatch on `this`, a `Window`, whose `+0x13c` is a window
+handler. There is no `mov`+`call` form. **`RESIDUE` candidate**: *no
+instruction dispatches slot `+0x13c` on an `Object`-derived receiver*. This is
+§383.1's shape one slot lower. **Killer**: a `cover=1` trace that enters
+`0046cef0`.
+
+### 384.2 `WallData::can_make`: a Wall's slot, and a bare `IncrementalLoad`'s
+
+The body is `return 0` (`ret 8`), and the linker folded two more bodies onto it.
+`Build` overrides both of the Wall slots: `+0x190` is `BuildData::count_queue`,
+`+0x198` is `BuildData::can_make`. So the Wall copies are reached only by a live
+`Wall`, which no game builds (§383.2, `Wall::Wall@0063e390`'s `RESIDUE` row).
+The seventh copy is `IncrementalLoad::post_load`'s base, at `IncrementalLoad`'s
+`+0x18`. `IncrementalLoad::process@00a42340` dispatches that slot (line 117) over
+its pending list. That table's six `.text` copies are table stores: the out-of-line
+`~IncrementalLoad`, `~AnimFileLoader` and their deleting destructors,
+`AnimMgr::~AnimMgr`, and `AnimMgr::AnimMgr@0053a560` at `53a6d9`. That last store is followed by five
+data stores and `AnimFileLoader`'s table at `53a70a`, with no call between. It
+is on `animmgr.anim_file_loader`, the only instance. On the way down,
+`AnimMgr::~AnimMgr` stores the base table (`53a9b6`) and then calls only
+`is_pending` (guarded), `Array<IncrementalLoad*>::remove` and `String::close`.
+**`RESIDUE` candidate**: *no live object's most-derived class is `Wall`, and
+no `IncrementalLoad` dispatches `+0x18` while it holds the base table*.
+**Killer**: a trace that enters `Wall::Wall`, or `00472cb0` from
+`IncrementalLoad::process`.
+
+### 384.3 `GatherPoint::walk_data`: inlined behind a table-identity guard
+
+`GatherPoint`'s table is installed only by `GatherPointList::get_new_data`
+(`470ec4`) and `Build::add_gather_point@00622e70` (`622ebd`). Its only `.text`
+copies are two guards in `PtrLinkListAbstract<GatherPoint,unsigned_char>::walk_data@004708a0`,
+one on the write walk (`47097f`) and one on the read walk (`470a0c`). Each does
+`cmp [elt], 0xb42168` and then runs the body inline (the walker's callback on
+`+0x4`/`+0xd`). The `call [eax]` fallback (`470a5c`) runs only for an element
+whose table is not `GatherPoint`'s, and the list holds nothing else. The walk is
+entered and the out-of-line body is not, which is consistent with this reading.
+**`RESIDUE` candidate**: *every element of the gather-point list is a
+`GatherPoint`, so the guard always takes the inline arm*. **Killer**: a trace
+that enters `00470f30`. A save or load with gather points set does not do it,
+because both walks are guarded.
+
+### 384.4 `SpecialAnimOrder::walk_data`: no walk sees the order
+
+The only dispatcher of an order's `+0x8` that this reading found is
+`OrderList::walk_data@00730270`. It is entered, and it reads and writes every
+order in a unit's list. `SpecialAnimOrder::SpecialAnimOrder@00484f10` has one
+caller, `get_new_order@00730550` (order type 25). Its one adder is
+`Unit::add_spec_anim_order@005e4160`, and `Unit::do_spec_anim@005e5880` kills each
+order in the same call that adds it (GOLDEN §30). So no list holds one when a walk
+runs, a save writes none, and a load reads none. **`RESIDUE` candidate**: *the
+order lives only inside one call, and no walk runs inside it*. **Killer**: a
+trace that enters `004849a0`, or a `UnitsSync` dump that prints an order of
+type 25.
+
+### 384.5 `ObjectsData::find_town_at`: the `l` build flag, which no shipped row carries
+
+Its two rel32 callers are `BuildTypeData::get_town@00639b90` (`639cb3`) and
+`ObjectsData::find_town` (`658e6e`). The second has no reference at all: no
+rel32, and no copy. `get_town` takes `find_town_at` only when `build_flags &
+0x10` is clear and `& 0x800` is set (`e` clear, `l` set; CITIES §5.2). Every
+other building goes to `find_city_at`. None of the 129 `BUILD_FLAGS` strings
+in the shipped `buildingrules.xml` contains `l` (a `grep` of the install), and
+this crate's `NEEDS_TOWN` is documented unused. **`RESIDUE` candidate**: *no
+shipped building type carries `l`, and the console cannot write a type's
+flags*. **Killer**: a trace that enters `00658190`, or a rules row with `l`,
+which would be a mod.
+
+### 384.6 `TargetOrder::get_target`: every dispatch found is a guard that always inlines
+
+All fourteen `TargetOrder` sub-tables hold `get_target` at `+0x0`. The six
+`.text` copies are the `cmp reg, 0x72ff60` guards of profile-guided call
+promotion. On equality each guard reads `objects[whom][ox]` inline, and only on
+inequality does it `call reg`. The guards are in `Unit::pitch_aircraft@005e8de0`
+(`5e90ce`), `Unit::check_build_order@00603470` (`6035e9`, `60362f`),
+`Unit::detect_unit_collision@00617060` (`61724e`) and
+`Leader::produce_building@006e1400` (`6e294c`, `6e2a12`). Every table holds the
+compared value, so the inequality arm is dead. Code reaches a `TargetOrder` through
+the order's `+0x3c`/`+0xb4` (`get_target_order`) and `+0xcc` (`get_air_order`)
+slots. A scan of every call through those three slots, 64 bytes on, finds the six
+guards and no unguarded `call [reg]` on an order. The four unguarded hits are on
+object or `netsys` receivers. No `TargetOrder` method dispatches its own slot 0.
+**`RESIDUE` candidate**: *every `TargetOrder` dispatch is guarded, and every
+table satisfies the guard*. **Killer**: a trace that enters `0072ff60`.
+Attack, gather and build orders are in every game, so this is the
+falsifier with the most opportunity of the eight.
+
+### 384.7 `SubObjectOut::is_on_screen`: twenty-seven guards, read site by site
+
+The scan finds 108 `+0x70` dispatches, and three kinds of site:
+
+- **Function-pointer guards**, the nineteen `.text` copies (`mov r,[vt+0x70];
+  cmp r,0x662670`). They are in `GuyOut::graph_inc_frame` (2), `Unit::process`,
+  `WallOut` and `ItemOut`'s `around_`/`distance_to_bounding_volume` (4),
+  `Object::eject_contents`, `ObjectsOut::pop_all_zoomed_in@00655e70`,
+  `SpellType::cast_transport`, `HotKeyGroupOut::display_name`,
+  `Options::do_filter_onscreen`, `Console::find_good`, `Console::on_left_up`,
+  `Camera::check_scroll`, `Scene::draw_overlays`,
+  `ParticleEmitter::bounding_box_is_visible`, and `GraphicEventsOut`'s
+  `draw_entrench` and `draw_ambience`. Each reads `+0x1c` inline. All 22
+  holding tables hold the compared value, so the `call` arm is dead.
+- **Table-identity guards** (`cmp vt, &X::vftable`, then the inline `+0x1c`,
+  else `call [vt+0x70]`). `Build`'s table is checked three times in
+  `Build::process@0061edf0` (`61f827`, `61f9f5`, `61fc73`). `Good`'s is checked in
+  `Options::exec@007188c0` (`71b508`), `Console::find_good@007c54c0` (`7c5539`, its
+  `call` split cold to `7c5792`) and `Console::on_left_up@007cde90` (`7cebbc`).
+  `Item`'s is checked in `Console::on_left_up` (`7cea94`) and
+  `Console::find_item@007c5300` (`7c5379`). Their receivers are `this` in a `Build`
+  method, the goods array and the items array. Every other `.text` copy of the
+  three tables is a store in the class's own constructor or destructors, or
+  another identity compare. So no subclass installs a later table, and the
+  `else` arm needs a receiver caught inside its constructor's table window.
+- **Plain dispatches**, every other site, are on receivers whose `+0x70` is
+  another method. These are windows (the GameSpy, Buddy, Options and report windows,
+  `GraphicWinXML`, `MPDropWin`), orders (`copy_order`, `Group::finish_insert`,
+  `Unit::add_repair_order`, `Unit::do_repair`: an order's `+0x70`), types
+  (`ObjectData::train_time`, on `types.list`), terrain streams, the D3D device
+  (`SpriteMethod::execute`) and Steam.
+
+**`RESIDUE` candidate**: *every object dispatch of `+0x70` is guarded, and the
+guard always holds*. **Killer**: a trace that enters `00662670`. The cheapest
+attempt is a console `find` on a good or an item while one is being built.
+
+### 384.8 `ObjectTypeOut::draw`: the falling list holds only build and unit types (3505a)
+
+`UnitType::UnitType@0061d270` installs `UnitTypeData`'s table and then
+`UnitType`'s, whose `+0x140` is `UnitTypeOut::draw`, with no call between. So
+the row is reached only by a BuildType, GoodType, ItemType or ObjectType
+receiver. `+0x140` has two type dispatchers (§383.1).
+`Options::draw_cursor_follows@00723c00` (`723e7a`) is the scenario editor's unit
+page and is gated on `is_unit_type`. `ObjectsOut::pop_all_zoomed_in@00655e70`
+(`65614b`) runs for a falling entry whose type fails `is_build_type`. It
+dispatches through `unittypes[t]`, which `Types::init` sizes for every index
+and fills only for units, so a non-unit `t` would hold no type there. **The
+appender** that 3505a asked for is
+`GraphicPieces::emit_destroy_particle@00908d50`. Its inlined `SimpleArray<int>`
+add on `+0x7e4` stores the dying object's `type->+4`, its `TypeIndex`. It has
+two rel32 callers. `Wall::close@0063f6e0` (`63f740`) passes every building
+except `FARM`, all within `BASE_BUILDTYPES`..`SPACEPROGRAM` (414–542), the
+range the inline test accepts. `Unit::close@0060ee50` (`60f1e6`) passes only
+`MERCHANT` (61), `MERCHANTDUTCH` (62) and `FURTRAPPER` (400), and only when the
+unit is not packing and `+0x68 & 0x80000` is clear. Those are UnitTypes, which
+take `UnitTypeOut::draw`. **`RESIDUE` candidate**: *every `TypeIndex` appended
+to `falling_build_type` is a build type in range or a UnitType*. **Killer**: a
+trace that enters `004703f0`. The dying merchant is the arm nearest to it,
+and it lands on the override.
+
+### 384.9 No route, and what a second reading must re-derive
+
+None of the eight has a take: no lobby and no console command reaches one. To
+move them to `RESIDUE`, a blind reader re-derives:
+1. Each slot's tables from the bytes, the `.text` copy counts and the rel32
+   callers in the table above.
+2. For 384.1, every `[reg+0x13c]` dispatch and its receiver.
+3. For 384.2, `Build`'s overrides at `+0x190`/`+0x198`, and the `IncrementalLoad`
+   table's installers and their call-free windows.
+4. For 384.3 and 384.6, each guard's compared value, and that every holding
+   table equals it. For 384.6, also that no unguarded dispatch of a
+   `TargetOrder`'s slot 0 exists.
+5. For 384.4, that a `SpecialAnimOrder` is killed in the call that adds it.
+6. For 384.5, that `get_town`'s predicate needs `l`, and that no shipped row has it.
+7. For 384.7, all three kinds of site, and that `Build`, `Good` and `Item` have no subclass.
+8. For 384.8, `emit_destroy_particle`'s two callers and the types each passes.
+
+**Coverage.** Every claim in this section is reading-only. The tables, the
+copies and the call sites are scans of the image. "Entered" is the 144 pinned
+traces. The section cites no function that is outside `NEVER` and that no
+trace enters, so the triple stays at never 266 · residue 246 · open 20.
 
 ## 385. Reserved for the next item on the AI track
 
