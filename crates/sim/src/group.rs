@@ -2293,7 +2293,7 @@ impl Sim {
     /// helicopter", carried by exactly three types — `Helicopter` and the
     /// two `Attack Helicopter`s, all of them `<DOMAIN>Air` — so a
     /// **helicopter is not a plane** and is ordered like a ground unit.
-    pub(crate) fn is_plane(&self, u: usize) -> bool {
+    pub fn is_plane(&self, u: usize) -> bool {
         self.group_domain(u) == Domain::Air
             && !self.units[u]
                 .ty
@@ -3573,6 +3573,95 @@ impl Sim {
             };
             if home.is_some() {
                 self.add_air_patrol_order(m, to, home, true);
+            }
+        }
+    }
+
+    /// **`GroupData::is_in_air_range(o, whom)@0070b6b0`** (item 3911,
+    /// `docs/GOLDEN.md` §158): `Console::execute_at_cursor@007c6630:3116`'s
+    /// test for a right-click on an enemy with a selection that carries
+    /// planes. Whether the target object is within `mana × get_speed(·, 1)`
+    /// of a plane, the listing's arithmetic (`0070b6b0`–`0070b9d0`):
+    ///
+    /// - **a building selection** (`+0x49`): each live member that
+    ///   `can_carry(AIR)` measures `vector_dist(target − member)` once, and
+    ///   any plane in its `inside_down` chain whose `UnitData::mana` times
+    ///   its speed at its own point (vslot `+0x17c`, flag 1) reaches it
+    ///   answers 1;
+    /// - **a unit selection**: each live member that is off the map and a
+    ///   fixed-wing plane measures from the host `get_inside` names.
+    ///
+    /// run1505b's Airbase `0/2007` with the Fighter `0/6` inside, on
+    /// `1/2006`: 1, and the click issued the launch on 807.
+    ///
+    /// SEAM: `can_carry(AIR)` is [`Self::is_hangar`] here (an Airbase or a
+    /// Missile Silo); a carrier selected is the unit arm's host, not
+    /// reached.
+    pub fn is_in_air_range(&self, buildings: &[usize], units: &[usize], target: Obj) -> bool {
+        let at = self.pos_of(target);
+        let reach = |u: usize| self.unit_mana(u) * self.get_speed(u, 1);
+        for &b in buildings {
+            let bd = &self.buildings[b];
+            if !bd.alive || !bd.ty.is_some_and(|t| self.is_hangar(t)) {
+                continue;
+            }
+            let d = crate::world::vector_dist(at.x - bd.pos.x, at.y - bd.pos.y);
+            if bd.garrison.iter().any(|&u| d <= reach(u)) {
+                return true;
+            }
+        }
+        for &u in units {
+            let un = &self.units[u];
+            if !un.alive() || un.on_map || !self.is_plane(u) {
+                continue;
+            }
+            let Some(host) = un.inside else {
+                continue;
+            };
+            let h = self.buildings[host].pos;
+            if crate::world::vector_dist(at.x - h.x, at.y - h.y) <= reach(u) {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// **`Group::action_air_attack_ground(x, y, queue)@00703d80`** (item
+    /// 3911, `docs/GOLDEN.md` §158), which `Group::action_attack_ground@
+    /// 00704520:119-168` hands a group whose leader is a plane or carries
+    /// `AIR`. The point is clamped into the world, and each live member that
+    /// is a plane and not busy takes `add_air_attack_ground_order(x, y,
+    /// home, queue, 1)`: the home is the front air order's (a `STRAFE`,
+    /// `AIR_PATROL` or `AIR_ATTACK_GROUND`), else `get_inside`, and a plane
+    /// with neither takes nothing. run1505b's Bomber `0/7`, on its patrol
+    /// over the Barracks' point: one `AIRATTACKGROUNDORDER` there, home
+    /// `0/2007`, on 682.
+    ///
+    /// SEAMS, none of which run1505b reaches: the missile arms — a missile
+    /// still in its silo's `launching` list is skipped, the first missile
+    /// ends the search for others (`local_28`), and a missile's strike asks
+    /// `war_allowed` and the target tile's ocean; a group holding type
+    /// `0x13b` asks each member its type's slot `+0x60`; the empty-tank
+    /// feedback is the interface's; the scenario's `ignore_orders` filter.
+    pub fn group_action_air_attack_ground(&mut self, g: &Group, at: Pos, queue: QueuePos) {
+        let at = self.restrict_pos(at);
+        for &m in &g.list {
+            if !self.units[m].alive() || !self.is_plane(m) {
+                continue;
+            }
+            if self.profile(Obj::Unit(m)).has(crate::combat::mask::MISSILE) {
+                continue;
+            }
+            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            if busy {
+                continue;
+            }
+            let home = match self.current_air(m) {
+                Some(a) => a.home,
+                None => self.units[m].inside,
+            };
+            if home.is_some() {
+                self.add_air_attack_ground_order(m, at, home, queue, true);
             }
         }
     }

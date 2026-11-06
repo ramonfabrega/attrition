@@ -407,6 +407,17 @@ impl Script {
         while self.next < self.lines.len() && self.lines[self.next].frame == frame {
             let line = self.lines[self.next].clone();
             self.next += 1;
+            // `@key` and `@rclick` are input, not issuers: the command they
+            // make is the selection's (item 3911), so they are spelt here
+            // as the issuer line they become, or skipped.
+            let line = match self.input_line(&line, built) {
+                Ok(Some(l)) => l,
+                Ok(None) => line,
+                Err(why) => {
+                    done.skip(&command_word(&line.text), why);
+                    continue;
+                }
+            };
             if line.text.starts_with('@') {
                 // The DLL's refusal 1: the line's player is not the
                 // console's (`console->play`), and nothing is issued.
@@ -437,6 +448,82 @@ impl Script {
 }
 
 impl Script {
+    /// **`@key <vk> <ACTION>` and `@rclick <x> <y> <o> <who>`, spelt as the
+    /// issuer each becomes** (item 3911, `docs/GOLDEN.md` §158). The DLL
+    /// reads the key or the screen point and ignores the trailing words;
+    /// those are this harness's: the action the lane's `--bindkey` gave the
+    /// key, and the object under the cursor, which no harness can compute
+    /// from a screen point.
+    ///
+    /// - `OPTION_RETURN` on a selection of units is
+    ///   `Options::recall_aircraft@0071c670`'s `recall` (byte 0x23) on it.
+    /// - A right-click on an enemy's object with a selection of units is
+    ///   `Console::execute_at_cursor@007c6630:2835`'s
+    ///   `GroupOut::issue_flight(ATTACK)` on the selection's aircraft
+    ///   (`group_air`): run1505's `0/7` on `1/2006`.
+    ///
+    /// - The same click with a selection of the player's buildings is the
+    ///   arm at `:3116`: `GroupData::is_in_air_range`
+    ///   ([`sim::Sim::is_in_air_range`]) passes, and the selection's
+    ///   `issue_flight(ATTACK)` is `@launchstrike`'s; refused, the cursor
+    ///   pings and nothing is issued (run1505b's `0/2007` on `1/2006`).
+    ///
+    /// `Ok(None)` for any other line. SEAM: every other key, and a
+    /// right-click on a friend or on the ground — refused here, by name.
+    fn input_line(&self, line: &Staged, built: &Built) -> Result<Option<Staged>, &'static str> {
+        let mut tok = line.text.split_whitespace();
+        let verb = tok.next().unwrap_or("");
+        if verb != "@key" && verb != "@rclick" {
+            return Ok(None);
+        }
+        let rest: Vec<&str> = tok.collect();
+        let units: Vec<String> = self
+            .selected
+            .iter()
+            .filter(|&&(w, o)| w == self.seat && o < 2000)
+            .map(|&(_, o)| o.to_string())
+            .collect();
+        let text = match (verb, rest.as_slice()) {
+            ("@key", [_, "OPTION_RETURN"]) if !units.is_empty() => {
+                format!("@recall {} {}", self.seat, units.join(" "))
+            }
+            ("@rclick", [_, _, o, whom]) if !units.is_empty() && whom.parse() != Ok(self.seat) => {
+                format!("@strike {} {o} {whom} {}", self.seat, units.join(" "))
+            }
+            ("@rclick", [_, _, o, whom]) if whom.parse() != Ok(self.seat) => {
+                let seat = self.seat as sim::Player;
+                let bs: Vec<(i16, usize)> = self
+                    .selected
+                    .iter()
+                    .filter(|&&(w, o)| w == self.seat && o >= 2000)
+                    .filter_map(|&(_, o)| built.sim.building_by_o(seat, o).map(|b| (o, b)))
+                    .collect();
+                let (Ok(to), Ok(tw)) = (o.parse::<i16>(), whom.parse::<sim::Player>()) else {
+                    return Err("an input line this harness does not spell (item 3911)");
+                };
+                let target = if to >= 2000 {
+                    built.sim.building_by_o(tw, to).map(sim::combat::Obj::Building)
+                } else {
+                    built.sim.unit_by_o(tw, to).map(sim::combat::Obj::Unit)
+                };
+                let (Some(target), false) = (target, bs.is_empty()) else {
+                    return Err("an input line this harness does not spell (item 3911)");
+                };
+                let list: Vec<usize> = bs.iter().map(|&(_, b)| b).collect();
+                if !built.sim.is_in_air_range(&list, &[], target) {
+                    return Err("out of air range: the cursor pings (is_in_air_range 0)");
+                }
+                let names: Vec<String> = bs.iter().map(|&(o, _)| o.to_string()).collect();
+                format!("@launchstrike {} {o} {whom} {}", self.seat, names.join(" "))
+            }
+            _ => return Err("an input line this harness does not spell (item 3911)"),
+        };
+        Ok(Some(Staged {
+            text,
+            ..line.clone()
+        }))
+    }
+
     /// **`be [who]`**, chat table case 43 (`ConsoleWin::run_cmd@007d6a70`,
     /// the arm that writes `console->who` and `console->play`): the
     /// argument is `parse_who(·, console->who)`, so a bare number is a
@@ -671,6 +758,11 @@ pub enum Issued {
     /// `group`: the unit panel's button, whose `UnitOut::issue_come_out@
     /// 00607be0` is the manager's twin (item 3425, `docs/GOLDEN.md` §145).
     ComeOut { who: i32, objects: Vec<i16> },
+    /// **Not a DLL verb**: the harness's own spelling of an `@key` bound to
+    /// `OPTION_RETURN` on the console's selection (item 3911,
+    /// `docs/GOLDEN.md` §158) — `Options::recall_aircraft@0071c670`'s
+    /// `group` and byte-0x23 `recall`, `@comeout`'s shape.
+    Recall { who: i32, objects: Vec<i16> },
     /// `@buildmask <who> <mask> <b>…` — `issue_buildmask@00941f80(group,
     /// mask, 1)` on a group of the player's own buildings: the repeat
     /// button's 0x80 (`Options::set_air_repeat@0071c740`), item 867,
@@ -776,7 +868,8 @@ impl Issued {
             | Issued::Gather { who, objects, .. }
             | Issued::Stance { who, objects, .. }
             | Issued::AttackGround { who, objects, .. }
-            | Issued::ComeOut { who, objects } => (*who, objects, false),
+            | Issued::ComeOut { who, objects }
+            | Issued::Recall { who, objects } => (*who, objects, false),
             Issued::Eject { who, buildings }
             | Issued::Alarm { who, buildings }
             | Issued::Buildmask { who, buildings, .. }
@@ -885,6 +978,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "stance"
             | "attackground"
             | "comeout"
+            | "recall"
     ) {
         return None;
     }
@@ -936,7 +1030,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
     }
     // `@comeout` has no number but `who`, and its objects are units, each
     // its own command.
-    if verb == "comeout" {
+    if verb == "comeout" || verb == "recall" {
         let [who, ref objects @ ..] = nums[..] else {
             return None;
         };
@@ -948,7 +1042,11 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
         if objects.is_empty() || !(0..8).contains(&who) {
             return None;
         }
-        return Some(Issued::ComeOut { who, objects });
+        return Some(if verb == "recall" {
+            Issued::Recall { who, objects }
+        } else {
+            Issued::ComeOut { who, objects }
+        });
     }
     // `@stance`'s one number is the option.
     if verb == "stance" {
@@ -1380,6 +1478,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `Group::action_attack_ground@00704520`'s ground arm is walked
         // (`sim::attack_ground_view`) and not wired, and
         // `Unit::action_come_out@005e20b0` has no port (parked 3425a).
+        // `recall` is the harness's spelling of `OPTION_RETURN`'s key (item
+        // 3911): `process_recall@00947bd0` → `Group::action_recall`.
+        Some(Issued::Recall { who, objects }) => crate::input::group_recall(built, who, &objects),
+        // A plane leader's `@attackground` is the air arm (item 3911).
+        Some(Issued::AttackGround { who, to, objects })
+            if crate::input::group_air_attack_ground(built, who, &objects, to, 2).is_some() =>
+        {
+            objects.len()
+        }
         Some(Issued::AttackGround { .. } | Issued::ComeOut { .. }) => {
             done.skip(&word, "an issuer this crate does not act on (parked 3425a)");
             return;

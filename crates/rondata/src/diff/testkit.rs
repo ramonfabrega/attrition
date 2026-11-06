@@ -6774,6 +6774,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SEVEN: i64 = 760;
 /// run1504.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_SEVEN: (i64, i64) = (604, 761);
 
+/// **Chapter seventeen's air group actions** (item 3911, `docs/GOLDEN.md`
+/// §158, run1505's `cover=0` twin `ch17air`): `@patrol` on the Fighter in
+/// flight (680), a right-click of a Bomber on `1/2006` (792) and
+/// `OPTION_RETURN` on the other (852).
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN_AIR: i64 = 1100;
+
+/// `chapter_seventeen_air_s_window_is_widened_whole`'s window: the twin
+/// whole.
+pub(crate) const WIDENING_CHAPTER_SEVENTEEN_AIR: (i64, i64) = (605, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -7740,6 +7750,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_forty_one_holds_to_the_golden_word", 2),
     ("chapter_forty_one_s_word_frame_is_widened_whole", 2),
     ("chapter_seventeen_holds_to_the_golden_word", 34),
+    // Item 3911: run1505's twin, chapter seventeen's lobby to 1100.
+    ("chapter_seventeen_air_holds_to_the_golden_word", 23),
+    ("chapter_seventeen_air_s_window_is_widened_whole", 23),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
     // Chapter twenty-two is chapter seventeen's game with the Fighter

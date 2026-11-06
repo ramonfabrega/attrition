@@ -202,6 +202,71 @@ pub fn group_patrol(built: &mut Built, who: i32, objects: &[i16], to: Pos, queue
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `attack_ground` behind it, for a group
+/// whose leader is a plane (item 3911, `docs/GOLDEN.md` §158):
+/// `CommandPackage::process_attack_ground@009494a0` →
+/// `Group::action_attack_ground`'s air arm,
+/// [`sim::Sim::group_action_air_attack_ground`]. `None` for any other
+/// group: the ground arm is walked (`sim::attack_ground_view`) and not
+/// wired (parked 3425a).
+pub fn group_air_attack_ground(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    to: Pos,
+    queued: i32,
+) -> Option<usize> {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    let leader = built.sim.group_find_leader(&g)?;
+    if !built.sim.is_plane(leader) {
+        return None;
+    }
+    if !built.sim.push_group(&mut g, true) {
+        return Some(0);
+    }
+    built
+        .sim
+        .group_action_air_attack_ground(&g, to, queue_pos(queued));
+    Some(g.list.len())
+}
+
+/// A `group` command (0x00) and the `recall` (0x23) behind it (item 3911,
+/// `docs/GOLDEN.md` §158): [`group_patrol`]'s group, then
+/// `CommandPackage::process_recall@00947bd0`'s one call,
+/// `Group::action_recall`.
+pub fn group_recall(built: &mut Built, who: i32, objects: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    built.sim.group_action_recall(&g);
+    g.list.len()
+}
+
 /// A `group` command (0x00) and the `guard` (0x1f) behind it, into the
 /// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
 /// `docs/GOLDEN.md` §19) — [`group_move_to`]'s group, then

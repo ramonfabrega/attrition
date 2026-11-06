@@ -6077,6 +6077,37 @@ fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_seven_holds_to_the_golden_word();
 }
 
+/// Chapter seventeen's lobby with three air group actions holds to its
+/// golden word (item 3911, `docs/GOLDEN.md` §158, run1505's twin).
+#[test]
+fn chapter_seventeen_air_holds_to_the_golden_word() {
+    cases_80_89::chapter_seventeen_air_holds_to_the_golden_word();
+}
+
+/// **run1505's twin whole, both directions** (item 3911, `docs/GOLDEN.md`
+/// §158), with who=0's group pool.
+#[test]
+fn chapter_seventeen_air_s_window_is_widened_whole() {
+    cases_80_89::chapter_seventeen_air_s_window_is_widened_whole();
+}
+
+/// What parts in `ch17air`'s window, blocks 605–1100 (item 3911): the
+/// eleven standing `form` rows every golden chapter carries, and nothing
+/// else — the three arms' orders, the flights after them and the pool.
+const WANT_CH17AIR: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// **A fort's death gives its claim back at the border pass's pace**
 /// (item 3901, `docs/GOLDEN.md` §157, run1504): every cell's `(who, who2)`
 /// on all twenty-three `@dumpall` blocks is the original's, and the
