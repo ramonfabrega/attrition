@@ -14466,13 +14466,17 @@ registered functions against `NEVER`'s callers would list them. This row names n
   moves both to `RESIDUE` (`Blind:` open 34 → 32 on the tree merged with 3908). A disagreement that names an entry books one take
   of §390.3's five commands plus that entry's staging.
 
-## Parked by the next landing, slot AY — reserved
+## Parked by item 3911, 2026-11-06 — chapter seventeen's air group actions; where a Bomber's ground round lands
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Chapter seventeen's air arms closed at 1100 and 1060 (`docs/GOLDEN.md` §158, run1505–run1505b). The row below names
+no score.
+
+- **3911a. A Bomber's round under an air attack-ground does not take its landing from the order's point.**
+  `guy_release_events` hands `fire_ammo_ground` the `AIRATTACKGROUNDORDER`'s point, and a mutation moving that
+  point 768 east left ch17ag's bombs on `1/2006` from 863, and its widening, unchanged. So `Ammo::init`'s strafer
+  arm, or the release node's offset, decides the landing for a Bomber, and the point `sim` passes is not read on
+  this path. Names no score until a word's frame parts on a ground round's landing; the first read is
+  `Ammo::init@0067bbf0`'s arm for a shooter whose order is kind `0x18` and is not a missile.
 
 ## Parked by item 3912, 2026-11-06 — the Airbase's recall and scramble
 
