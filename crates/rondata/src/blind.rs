@@ -2508,16 +2508,16 @@ pub const RESIDUE: &[(u32, &str)] = &[
     ),
     (0x006f_0230, "Tribe::init: no reference in the executable"),
     (
-        0x0070_0010,
-        "Group::action_board_ship: the board-ship command's action, whose \
-         command no site issues (type 0x0f), and the one maker of the \
-         BoardOrder (docs/GOLDEN.md §144.4; the forty-eighth pass)",
-    ),
-    (
         0x006f_a090,
         "Army::find_waiting_unit: the out-of-line copy of a function the \
          compiler inlined at every use, or one nothing calls; no reference in \
          the executable (docs/AI.md §393.2, item 3909)",
+    ),
+    (
+        0x0070_0010,
+        "Group::action_board_ship: the board-ship command's action, whose \
+         command no site issues (type 0x0f), and the one maker of the \
+         BoardOrder (docs/GOLDEN.md §144.4; the forty-eighth pass)",
     ),
     (
         0x0070_20c0,
