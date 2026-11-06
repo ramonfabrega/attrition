@@ -1555,6 +1555,11 @@ mod tests {
             WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY,
         ),
         (
+            "ch121",
+            GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE,
+            WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE,
+        ),
+        (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             WIDENING_CHAPTER_THREE_RESTAGE,

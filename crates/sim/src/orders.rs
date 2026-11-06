@@ -4120,16 +4120,22 @@ impl Sim {
     /// as [`Self::pack_before_move`] (item 1370): run544's Bombard `1/132`
     /// packs under its army's march on 15868.
     ///
-    /// SEAM — the head-order conjunct `head->vt+0x2c() == 0 ||
-    /// head->vt+0x94()` names *me*: a group move's head is reviewed only
-    /// by the member the order belongs to. This crate asks only
-    /// `group.is_none()`, which is the same answer for every capture on
-    /// file — all four of run112's reviews fire on a plain `MOVE_TO`.
+    /// ~~SEAM — the head-order conjunct `head->vt+0x2c() == 0 ||
+    /// head->vt+0x94()` names *me*.~~ Built (item 3939, `docs/GOLDEN.md`
+    /// §171): a group move's head is reviewed only by the member its
+    /// `+0x94` record names, [`GroupMove::leader`]. run1522's Catapult
+    /// leader reviews `[GROUP_MOVE][MOVE_TO][ATTACK]` on 714 and enters
+    /// `Group::is_moving_to`; a follower never does.
     fn check_target_path_review(&mut self, u: usize, frame: i64) {
         let Some(Body::Move(m)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
-        if m.group.is_some() || self.units[u].phase(frame).rem_euclid(16) != 0 {
+        // `Unit::work:187-195`: a group order's head is reviewed only by the
+        // member its `+0x94` record names, the group's leader (item 3939,
+        // `docs/GOLDEN.md` §171).
+        if m.group.is_some_and(|gm| gm.leader != u)
+            || self.units[u].phase(frame).rem_euclid(16) != 0
+        {
             return;
         }
         // `action->vt+0x20() != 0` is "this order can be an action", which
@@ -12698,10 +12704,12 @@ pub fn check_target_path_steps<V: CheckTargetView>(v: &mut V) -> bool {
 /// (an `ATTACK` on the unit's combat target, a `CAST` on its spell's target
 /// object, a `GARRISON` on its building).
 ///
-/// SEAM: the group arm (`5e25d1`–`5e26e9`) needs a group head, and
-/// [`Sim::check_target_path_review`] reviews no group head, so the group
-/// questions answer "no group order"; the `BUILD_AT` arm (type `0xb`) is
-/// not routed here. A **building** target answers `is_on_map` yes, as this
+/// The group arm (`5e25d1`–`5e26e9`) is reached by the leader of a group
+/// move ([`Sim::check_target_path_review`], item 3939, `docs/GOLDEN.md`
+/// §171): `is_moving_to`, `kill_next_order` and `action_attack` are the
+/// group's own. SEAM: the `BUILD_AT` arm (type `0xb`) is not routed here;
+/// `head_vslot_14` answers 0, so the standing-group pop
+/// (`is_moving_to == 0`) kills nothing (no capture reaches it). A **building** target answers `is_on_map` yes, as this
 /// crate always has.
 struct SimCheckTarget<'a> {
     s: &'a mut Sim,
@@ -12818,7 +12826,20 @@ impl CheckTargetView for SimCheckTarget<'_> {
         }
     }
     fn group_moving(&mut self) -> bool {
-        false
+        // `Group::is_moving_to@00713bd0` (item 3939, `docs/GOLDEN.md` §171):
+        // `normalize`, then every member alive and on the map with an order
+        // must head a `MOVE_TO` (1) or a `GROUP_MOVE` (`0x13`); a member with
+        // none, or any other head, answers 0.
+        let Some(g) = self.s.group_of(self.u) else {
+            return false;
+        };
+        self.s.group_set_speed(&g);
+        g.list.iter().all(|&m| {
+            !self.s.units[m].alive()
+                || !self.s.units[m].on_map
+                || self.s.units[m].orders.is_empty()
+                || matches!(self.s.order_type(m), index::MOVE_TO | index::GROUP_MOVE)
+        })
     }
     fn site_mandatory(&mut self) -> bool {
         self.s.units[self.u].combat.mandatory
@@ -12836,16 +12857,42 @@ impl CheckTargetView for SimCheckTarget<'_> {
         }
     }
     fn site(&mut self) -> (i32, i32) {
-        (-1, -1)
+        // The action's record `+0x8`/`+0xc`: the attack's own target.
+        self.target
+            .map_or((-1, -1), |t| crate::attack_view::obj_key(self.s, t))
     }
     fn order_flag4(&mut self) -> bool {
         self.action().is_some_and(|o| o.flags & 4 != 0)
     }
     fn map_unit(&mut self, _ox: i32, _whom: i32) -> bool {
-        false
+        // `ObjectData::is_map_unit@0046ffa0` of the record's object, which is
+        // the target `site` named: vslot `+0x8` (a live unit) and `+0xbc`.
+        matches!(self.target, Some(Obj::Unit(t)) if self.s.units[t].alive() && self.s.units[t].on_map)
     }
-    fn kill_next_order(&mut self) {}
-    fn action_attack(&mut self, _ox: i32, _whom: i32) {}
+    fn kill_next_order(&mut self) {
+        // `Group::kill_next_order@00713d90`: `normalize`, then
+        // `kill_current_order(0)` on every member alive and on the map.
+        let Some(g) = self.s.group_of(self.u) else {
+            return;
+        };
+        group_member_walk(
+            self.s,
+            g.list.len(),
+            |s| s.group_set_speed(&g),
+            |_, k| g.list[k],
+            |s, u| s.units[u].alive(),
+            |s, u| s.units[u].on_map,
+            |s, u| s.kill_current_order(u),
+        );
+    }
+    fn action_attack(&mut self, _ox: i32, _whom: i32) {
+        // `Group::action_attack(ox, whom, 1, QUEUE_FIRST, 0)` on the target
+        // `site` named.
+        let (Some(g), Some(t)) = (self.s.group_of(self.u), self.target) else {
+            return;
+        };
+        self.s.group_action_attack(&g, t, true, QueuePos::First, 0);
+    }
     fn find_attack_pos(&mut self) -> Option<(i32, i32)> {
         let here = self.s.units[self.u].pos;
         self.s
