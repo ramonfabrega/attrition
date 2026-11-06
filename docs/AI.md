@@ -39189,12 +39189,108 @@ listing or the PDB. These were not read whole: `validate_disband`'s arm for a un
 and ocean tile, and whether the console's `select` takes a building on the lane. Each staging's first killer is the
 `CM` line, which no capture yet holds.
 
-## 392. Reserved for the next item on the AI track
+## 392. The spells no capture ever cast: five have no caster line, three have a staging (item 3907, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3907 read the implicit residue's `spelltype` stem off the decompile export and `craftrules.xml`. The stem is the
+eight cast bodies no pinned trace enters and no document cited. Each was read three ways: to its craft row through the
+loader, to the caster line the row names, and to the dispatch that reaches it. **Five have no caster line**: Go Melee,
+Go Ranged, Move Capital Here, Assimilate and Paradrop. The caster test refuses every caster, so no game in this install
+casts them, and they are `RESIDUE` (392.2). **Three are live**: Disband, Entrench and Counterintelligence. Each is
+written as a staging with its falsifier first (392.3). No run was reserved or taken.
+
+### 392.1 The row, the line and the dispatch
+
+- **The row.** `SpellType::init@00674a80` loads `craftrules.xml`'s 55 `CRAFT` records in file order at `TypeIndex`
+  `0x275 + i` (`docs/ORDERS.md` §6.9). The PDB's `TypeIndex` enum names the eight: `IMMORTAL_HINF` 0x298 (664,
+  `Go Melee`), `IMMORTAL_ARCH` 0x297 (663, `Go Ranged`), `MOVE_CAPITAL_HERE` 0x287 (647), `ASSIMILATE` 0x278 (632),
+  `DISBAND` 0x29a (666), `PARADROP` 0x284 (644), `ENTRENCH` 0x27d (637) and `COUNTERINTEL` 0x277 (631). The install
+  has one craft table. No file under `conquest/`, `scenario/` or `mods/` holds a `CRAFT` record.
+- **The line.** `init` resolves `FROM` and `FROM2` through `Types::object_key` into `+0x3c` and `+0x1dc`, and
+  `None` gives −1 (parked 8587). `init` is the only writer of `+0x1dc` in the export.
+- **The caster test.** `SpellTypeData::is_castable@00675bc0`'s head asks the caster `is(FROM)`, then `is(FROM2)`,
+  then `is` of the tribe's substitute for `FROM` (skipped when `FROM < 0`), then `is(get_graft(FROM2))`. Each is
+  `ObjectTypeData::is@0065f7d0`, which answers 0 for a negative type, since no object's own type is −1.
+  `LeaderData::get_graft@0047df40` returns a negative argument unchanged. So a row with `FROM` and `FROM2` both −1
+  fails all four, and the head returns 0 for every craft but `0x29a` and `0x28a`.
+- **The dispatch.** All eight are reached only through `SpellType::cast@00676ce0`'s switch, which runs only when
+  `is_castable(idx, who, 1)` answers 3. `cast` has three callers: `Unit::do_cast@005ebfe0`'s last frame
+  (`docs/ORDERS.md` §6.9 step 5), `Group::action_spell@006fe1a0`'s in-place building cast (job time 0), and
+  `Build::finished@00628490` for a spell type finished in a queue behind `LeaderData::has_spell@006e0bc0`. The one
+  other direct caller of any of the eight is the editor's `ScenarioEditor::make_city_capital@009a1380`, which calls
+  `cast_move_capital`.
+
+### 392.2 The five with no caster line: `RESIDUE`
+
+| row | `FROM` / `FROM2`, `PREQ0` | why nothing casts it |
+| --- | --- | --- |
+| `SpellType::cast_immortal_hinf@00670600` | `none` / `None`, `None` | the head refuses every caster. The body would turn an `IMMORTALARCHERS` (0xb8) into `current_upgrade(IMMORTALS)` and scale `hits_left` |
+| `SpellType::cast_immortal_arch@00670740` | `none` / `None`, `None` | the head refuses every caster. It is the reverse body: `IMMORTALS` (0xa2) into `IMMORTALARCHERS`. `Immortal Bowmen`'s `TRIBE_MASK` is all zero, so no tribe trains that line either |
+| `SpellType::cast_move_capital@00671760` | `None` / `None`, `disable` | the head refuses every caster. Its one other caller is the scenario editor's `make_city_capital` |
+| `SpellType::cast_assimilate@00671820` | `None` / `None`, `Disable` | the head refuses every caster |
+| `SpellType::cast_paradrop@00671f80` | `None` / `None`, `disable` | the head refuses every caster |
+
+**Falsifier**, for all five: a trace that enters one of them, or a writer of `+0x3c` besides `init` that puts a type
+of 0 or more there. No capture can reach the first while the install is unchanged. The second was ruled out for
+`+0x1dc` by a grep. For `+0x3c` it rests on `init` alone, because the offset is too common to grep.
+This is the reason the fiftieth pass gave for `cast_supplies` and `cast_pilfer` (parked 3462a). Run1081 asked both
+crafts and nothing was spent. `ScenarioEditor::make_city_capital` is the editor, cut from v1, and joins `RESIDUE` with them.
+
+### 392.3 The three live rows, each a staging with its falsifier first
+
+**Disband (`SpellType::cast_disband@00671ed0`).** The head exempts `0x29a`. `is_castable`'s `0x29a` case then needs
+the caster's vslot `+0x20`, a building, and the city's disband rules. `cast_disband` takes `Build::plunder@00623660`
+for an active building (`+8 & 1`, vslots `+0x20` and `+0x4c`), plays `S_ALERT_BUILDING_RAZED` to the console, and
+ends in `Object::disband@006455c0`. The DLL's `@spell` names units only (`tracer.c`: "A unit verb names live captains,
+from `units`"), so the press cannot carry a building. `DISBAND` is a queue entry instead: `BuildTypeData::queue_here`
+answers 1 for it (`docs/TECH.md`), `Build::queue_up@00620f40` exempts it from the library forward, and
+`Build::finished` casts it. Its train time is the building's own (`ObjectData::train_time@006508c0:51`).
+
+- **Staging**: `add barracks who=0 <x>,<y>` on the golden start, then `@queueup 0 666 1 <b>` with `b` the Barracks'
+  id. Run it long enough for the Barracks' own train time.
+- **Falsifiers, before the run**: the Barracks' `queued` must read 1 two frames after the press, or `queue_up` (or
+  `Group::action_queue_up@006fdbb0`'s gate) refused `DISBAND`, which this reading did not follow to its end. The
+  Barracks must be gone from `BUILDS` when the job completes, or `has_spell(666)` or `is_castable`'s city arm refused.
+  The trace must enter `cast_disband`.
+
+**Entrench (`SpellType::cast_entrench@00672820`).** `FROM General`, `FLAGS lm`, `MANA` 1000, `JOB_TIME` 120 (before
+`Sim::cast_job_time`'s French and Antipater arms). This is the untargeted arm of `do_cast`. The body finds friendly
+units within the General's `HeroData::get_radius × 0xc0`. It takes each idle captain of objmask `F` (0x20) with type
+`+0x1e8` nonzero and `+0x2c8 & 0x10000`, and no `FILTER_COMBAT` enemy within 0x600. Outside a hostile tile, unless
+the General is `ANTIPATER` (0x169), it kills that unit's orders, keeps an `ATTACK` target, and sets
+`unit_masks |= 0x2000000` along the squad chain (`+0x90`).
+
+- **Staging**: chapter fifty's Forced March press with the craft changed (`docs/GOLDEN.md` §59). `add general who=0
+  <x>,<y>`, a Hoplite squad of who=0 two tiles off, then `@spell 0 637 -1 -1 0 0 <general>`.
+- **Falsifiers, before the run**: a `CASTORDER` on the General two frames after the press, and `mana_burn` +1000.
+  `spell_time` must climb to 120. If not, the press was refused, and the refusal is the row. On the cast frame the
+  trace must enter `cast_entrench`. That is the row's whole claim. The squad's `unit_masks` gaining `0x2000000` is
+  the body's claim, and it is conditional on the Hoplite type passing the three type tests above, which this reading
+  did not check against `unitrules.xml`.
+
+**Counterintelligence (`SpellType::cast_counterintel@00673740`).** `FROM Spy`, `FROM2 Scout`, `FLAGS febchm`,
+`MANA` 500, `JOB_TIME` 38, range 10. `cast` asks `SpellTypeData::is_valid_target@006763c0` again before the body.
+That test's enemy arm wants a `SPY` the caster's player sees (`docs/GOLDEN.md` §115). Run894 refused a Spy caster
+on issue there, because a Spy is `CLOAKED` and is seen only through `seen3`, which a `DETECT` (`Z`) object writes
+(`docs/GOLDEN.md` §101). The Scout is both: `FROM2` and objmask `FRPZC`. On an enemy, the body kills the target
+through vslot `+0x158(2, −1, 0)`. For a single-figure captain it also counts `+0x80c` and adds cost / 5 to `+0x44`.
+
+- **Staging**: chapter ninety-one's arm 2 with the caster changed. `add scout who=0 <x>,<y>`, `add spy who=1` within
+  the Scout's sight, then `@spell 0 631 <spy> 1 <x·192> <y·192> <scout>`.
+- **Falsifiers, before the run**: if the Scout gets no `CASTORDER`, the detection premise is false, and the arm parks
+  with the frame. Otherwise `mana_burn` +500, `spell_time` to 38, and who=1's Spy dead with `dtype` 2, entering
+  `cast_counterintel`. A Spy that walks off first is the staging's error, not a refusal.
+
+**What is not established.**
+- `Group::action_queue_up`'s gate and `type_avail(DISBAND, 1)` for the Disband queue.
+- Whether `is_disbanding` counts the finished entry.
+- The Hoplite's three type tests for Entrench.
+- Whether a human Scout auto-explores away from the Spy before the press.
+- `cast`'s argument order for `0x277`, which the decompile prints shifted. The body's reads were taken as the
+  `(idx, who, ox, whom)` of the other arms.
+
+Everything in this section rests on a reading alone. No assertion was added, since no predicate here is pure without
+the world. **Coverage**: all eight rows and `make_city_capital` are reading-only. The three stagings are what would
+make them diff-backed, and the commander books each one as a chapter.
 
 ## 393. The rest of the implicit residue: forty-two on scope, two owed a staging (item 3909, 2026-11-06)
 
