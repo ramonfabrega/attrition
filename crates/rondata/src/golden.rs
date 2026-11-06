@@ -2582,6 +2582,10 @@ mod tests {
         // `@attackadd` behind it on an enemy Barracks (item 3936,
         // `docs/GOLDEN.md` §170).
         ("chapter120.cmd", &[]),
+        // Chapter one hundred and twenty-one: chapter one hundred and
+        // twenty's Envelop with the `@attackadd` on a who=1 Citizen walked
+        // north by `be 1` (item 3939, `docs/GOLDEN.md` §171).
+        ("chapter121.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

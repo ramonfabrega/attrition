@@ -18289,12 +18289,87 @@ Reading only: which of steps 1–4 shut it. The PE's two vtable slots and the ra
 watching `check_target_path` on 714 would see it directly. `Group::is_moving_to` stays `NEVER` in `blind::`, with the
 refusal named.
 
-## 171. Reserved for the next item on the rules track
+## 171. Chapter one hundred and twenty-one — a formation's move with a shift-attack on a fleeing unit behind it; `is_moving_to` entered, closed at 1000 (item 3939, run1522, run1522b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3936a; §170; `docs/AI.md` §397): `Group::is_moving_to@00713bd0`, which
+`Unit::check_target_path@005e22d0` reaches past `:138-141` only for a unit target, and past the unit block's early
+return only for a fleeing one.
+
+**What the reading settles before the take** (the listing, `5e23ee`–`5e24e2`).
+- **The unit block.** For a live `Unit` target (vslot `+0x8`), `find_angle(target − unit)` is the bearing from the
+  shooter to the target. Then `e = target.heading − (bearing − 0x80000000)` is the target's heading measured from the
+  line back to the shooter.
+- **The early return.** It is taken when `e < 0x2aaaaaaa` (tested inline at `5e2499`), or when `flanking(e)` is 0
+  (above `0xd5555555`), or when vslot `+0xd8` (`is_moving`) is 0. A target in plain reach is then `repath`ed;
+  anything else answers 0.
+- **So "fleeing" is moving with the heading at least 60° off straight at the shooter, on either side.** Past that,
+  §170's steps follow, and `Unit`'s vslot `+0x1c` is `0041bff0`, `xor eax,eax`.
+- **This crate before the item.** `check_target_path_steps` carried every step and the group arm.
+  `check_target_path_review` returned on any group head, and `SimCheckTarget` answered the group questions "no".
+
+**Staging** (`tools/gamelog/golden/chapter121.cmd`, walked on run1520's start, `RON_STAGE=ch120:chapter121:740`).
+- **The cast.** §170's two Catapults `0/6`, `0/7` and its who=0 Scout, moved to 19,60. A who=1 Citizen `1/6` stands
+  at 16,66. No Barracks.
+- **The birth.** Born on 616, the Citizen takes an auto-gather to who=1's camp and walks 9 tiles east by 690. Born on
+  686, it is moved before it leaves.
+- **The issuer.** `688 be 1`, `688 @move 1 3168 8832 6`, `689 be 0`, as chapters 61 and 62 walk a who=1 unit
+  (`@move` refuses another seat). The Citizen walks due north along x=3192.
+- **The orders.** `697 @form 0 2 0 6 7` and `697 @attackadd 0 6 1 6 7`, one package.
+
+**What the original does** (run1522 `cover=0`, its twin run1522b `cover=1 --no-ffwd --twin`, both `--ai-tribe 11` and
+the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical; `docs/RUNS.md`).
+- `process_move_to 3168 8832` and later `process_form 2 0 2 698` and `process_attack 6 1 0 1 698` on the `CM`
+  channel.
+- **The list on 714.** `0/6` (leader, `oxx 6`) holds `[GroupMoveOrder in_group=0 id 698100, (2328, 16392)]
+  [MOVEORDER (3192, 12552) flags 0][ATTACKORDER mandatory 1 on 1/6]`, with `orders_at` (3192, 12552). `action_attack`
+  laid the chase leg between the two, and `update_action` skips both moves.
+- **The target on 714.** `1/6` stands at (3192, 12167) under a `MOVEORDER` to (3192, 8856), `flags 5`, heading
+  north: about 4,330 from `0/6` at (2347, 16381).
+- **The killer did not fire.** On 714, the leader's sixteenth frame (`(714 + 6) & 15 == 0`), the twin first enters
+  `Group::is_moving_to@00713bd0`, `Unit::repath` → `Unit::kill_group_move` → `Group::kill_group_move`,
+  `Group::kill_next_order` and `Unit::find_attack_pos`. `kill_next_order` is reached only past `is_moving_to == 1`,
+  `mandatory` and `is_map_unit`, so the arm ran whole.
+- **The product, on 715.** Both Catapults' group moves are gone. `0/6` holds `[MOVEORDER (2664, 7128) flags
+  1][ATTACKORDER on 1/6]` from (2328, 16392), and `0/7` holds `[MOVEORDER (3384, 7320) flags 1][ATTACKORDER]` from
+  (3528, 16392). These are `Group::action_attack(6, 1, 1, QUEUE_FIRST, 0)`'s legs.
+- **Why `:116-120` did not shut it.** The chase leg's point (3192, 12552) stands about 385 from the Citizen, inside a
+  Catapult's three-tile minimum range, so `is_in_range` from `orders_x/y` answers 0.
+
+**What this crate does** (built, `orders.rs`):
+- `check_target_path_review` now reviews a group head when the unit is the head's leader
+  (`GroupMove::leader`, the `+0x94` record `Unit::work:187-195` asks), and still skips it for every follower.
+- `SimCheckTarget` answers the group arm from the group's own functions:
+  - `group_moving` is `Group::is_moving_to`: `normalize`, then every live, on-map member with orders heads a
+    `MOVE_TO` or a `GROUP_MOVE`;
+  - `site` is the attack's target, and `map_unit` is `is_map_unit` of it;
+  - `kill_next_order` pops each live, on-map member's head;
+  - `action_attack` is `group_action_attack(.., true, QueuePos::First, 0)`.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE` = **1000**, the trace's end, closed
+  (`chapter_one_hundred_and_twenty_one_holds_to_the_golden_word`).
+- **The widening.** Over 605..1000 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE` (604, 1001), both directions, the
+  pool too), it parts on the eleven standing `form` rows and nothing else (`WANT_CH121`).
+- **The value diff on the word's frame.** On 715 both sides read `0/6` at (2328, 16392) under the leg to (2664, 7128)
+  and `0/7` at (3528, 16392) under the leg to (3384, 7320), each over the attack on `1/6`. On 716 both read the legs'
+  first waypoints, (2664, 15576) and (3384, 15768).
+- **Coverage.** The driver drives 714..720.
+
+**Mutations**: the journal's (`docs/journal/2026-11-06-item-3939.md`), on the committed tree.
+
+**Not established.**
+- The standing-group pop: `is_moving_to` answering 0 kills the head down to the order answering vslot `+0x14`.
+  `head_vslot_14` answers 0 here, so ours pops nothing. No capture reaches it.
+- `is_moving_to`'s `MOVE_TO` (type 1) arm for a member: on this staging every member heads a `GROUP_MOVE`.
+- A follower's head is never reviewed, by reading only. The twin's coverage cannot tell whose review entered.
+- `Group::action_attack`'s 714 entry is not seen directly, because the trace's coverage lists first entries and it
+  was first entered on 697. Its legs are the evidence.
+
+**Coverage.** Diff-backed:
+- the leader's review of a group head over a fleeing unit target;
+- `is_moving_to`'s 1;
+- the group arm's `repath`, `kill_next_order` and `QUEUE_FIRST` attack, on both members' lists, whole on every
+  block.
+
+`Group::is_moving_to` leaves `NEVER` in `blind::` (run1522b joins `TRACES`).
 
 ## 172. Reserved for the next item on the rules track
 

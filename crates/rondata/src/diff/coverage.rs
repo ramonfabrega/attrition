@@ -825,6 +825,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch118 = golden_dump("ch118");
     let ch119 = golden_dump("ch119");
     let ch120 = golden_dump("ch120");
+    let ch121 = golden_dump("ch121");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3067,6 +3068,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter one hundred and twenty carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-one, on run1522** (item 3939): the
+    // leader's sixteenth frame 714 inside the list, where the group arm
+    // rewrites both Catapults' lists, and the legs that follow.
+    if let Some(p) = &ch121 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE;
+        let n = drive_capture(p, 714, 720, &mut paths);
+        assert_eq!(
+            n, 7,
+            "chapter one hundred and twenty-one carries seven blocks in the window"
         );
         frames += n;
     }

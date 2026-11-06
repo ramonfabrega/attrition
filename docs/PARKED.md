@@ -14753,13 +14753,16 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   (§398.1; it answers half of 3932b). In recon3937-1, `{U, V}`'s move from `@attack 0 9 1 6 9` went to (2568,
   19896), and a shift-formation's `get_loc_to` aims there. The maker was not read. **Score**: none.
 
-## Parked by the next landing, slot BR — reserved
+## Parked by item 3939, 2026-11-06 — a formation's move with a shift-attack on a fleeing unit behind it
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3939a. `check_target_path`'s standing-group pop, `is_moving_to == 0`** (`docs/GOLDEN.md` §171, `docs/AI.md`
+  §397). Chapter 121 entered the group arm with every member heading its `GROUP_MOVE`, so `Group::is_moving_to`
+  answered 1. When a member heads something else (an order of its own, or none), the arm instead kills the leader's
+  head orders down to the one answering vslot `+0x14` (`check_target_path:194-205`). This crate's `head_vslot_14`
+  answers 0, so its pop kills nothing. The staging: §171's, with the follower `0/7` given an order of its own between
+  698 and 714, so that its head is neither a `MOVE_TO` nor a `GROUP_MOVE` on the leader's sixteenth frame. Write the
+  killer first: `00713bd0` entered on 714 with no `Group::kill_next_order`, and the leader's list on 715 unchanged.
+  **Score**: none on the scoreboard (the row left `NEVER` with §171); a sub-arm of a built review.
 
 ## Parked by item 3940, 2026-11-06 — a mutual touch under the ungroup's copy searches without suspending; the `kill_group_order` pair is `RESIDUE`
 
