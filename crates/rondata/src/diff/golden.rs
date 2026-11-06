@@ -6215,6 +6215,48 @@ fn chapter_one_hundred_and_eleven_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_eleven_holds_to_the_golden_word();
 }
 
+/// **run1511 whole, both directions** (item 3917, `docs/GOLDEN.md` §164).
+#[test]
+fn chapter_one_hundred_and_fourteen_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_fourteen_s_window_is_widened_whole();
+}
+
+/// What parts in run1511's window, blocks 605–900 (item 3917): the eleven
+/// standing `form` rows, and **the barge's snap point, a regression this
+/// item names** (`docs/GOLDEN.md` §164). `add_unit` swaps each passenger
+/// for its host in the local group, so `action_form` forms the barge `0/9`
+/// once per passenger, and that is what made its `form` 0 and `form_mod`
+/// 50 agree; with three copies it takes three moves, and
+/// `dbg_jump_to_action` pops them to the third slot, (11880, 35544), where
+/// run1511 keeps it on its own point, (12024, 35304). Which slot the last
+/// copy draws is parked 3917a.
+const WANT_CH114: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "621 0/9 g.des_x[0]",
+    "621 0/9 g.des_y[0]",
+    "621 0/9 g.x[0]",
+    "621 0/9 g.y[0]",
+    "621 0/9 orders_x",
+    "621 0/9 orders_y",
+    "621 0/9 pos",
+];
+
+/// Chapter one hundred and fourteen holds to its golden word (item 3917, run1511).
+#[test]
+fn chapter_one_hundred_and_fourteen_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_fourteen_holds_to_the_golden_word();
+}
+
 /// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
 #[test]
 fn chapter_one_hundred_s_window_is_widened_whole() {
