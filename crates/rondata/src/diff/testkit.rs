@@ -6885,6 +6885,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINETEEN: i64 = 1200;
 /// run1519.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_NINETEEN: (i64, i64) = (604, 1201);
 
+/// **Chapter one hundred and twenty** (item 3936, `docs/GOLDEN.md` §170,
+/// run1520): two Catapults re-formed in Envelop with a shift-attack on an
+/// enemy Barracks queued behind the formation's move.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY: i64 = 1000;
+
+/// `chapter_one_hundred_and_twenty_s_window_is_widened_whole`'s window:
+/// run1520.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY: (i64, i64) = (604, 1001);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

@@ -39760,10 +39760,14 @@ row, and the verdicts are in `docs/audit/2026-11-06-item-3935.md`.
 
   `Unit::work:187-197` admits only the group order's leader (`oxx`/`whose`), and only on every sixteenth frame.
   `check_target_path:78-141` asks for a target that is not in range of the move's destination (`orders_x/y`) and
-  is not a wall (`is_wallbuild`, vslot 28). A non-unit target passes; a unit target must be moving, flanked and
+  ~~is not a wall (`is_wallbuild`, vslot 28). A non-unit target passes~~ answers vslot 28 with 0, which `Build`'s
+  vtable never does: it is a folded `return 1` on every building (item 3936, `docs/GOLDEN.md` §170, from the PE), so
+  only a unit target reaches the arm; a unit target must be moving, flanked and
   facing away. The path must not be one long, unless the type's `+0x1fc` is set. Parked 3935a is the chapter.
   Falsifier: on that take, the leader's list `[GROUP_MOVE][ATTACK]` with bit 4 clear on the move and the target out
-  of range, and `00713bd0` not entered from `0x5e25ee`.
+  of range, and `00713bd0` not entered from `0x5e25ee`. **It fired on a building target** (item 3936, run1520b,
+  `docs/GOLDEN.md` §170): `check_target_path:138-141` shuts on `Build`'s vslot 28; parked 3936a is the fleeing unit
+  target.
 
 **What is not established.** Nothing here is diff-backed. Every claim rests on two readings of the decompile, the
 listing and the PDB. The stand-off of a target building from the formation's destination was not computed. Nor

@@ -18202,12 +18202,92 @@ finish, and `is_castable`'s city arm asking `is_disbanding` (the twin's entry). 
 `type_avail`'s answers for a Temple (each settled at its head by the listing). `CityData::is_disbanding` leaves `NEVER`
 in `blind::`.
 
-## 170. Reserved for the next item on the rules track
+## 170. Chapter one hundred and twenty — a formation's move with a shift-attack behind it; closed at 1000, and `is_moving_to` refused (item 3936, run1520, run1520b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3935a; `docs/AI.md` §397, `docs/audit/2026-11-06-item-3935.md` row 6):
+`Group::is_moving_to@00713bd0`, which `Unit::check_target_path@005e22d0` asks at `:190-193` when the leader's head is
+a group order and its action an attack. The shape: a FORM's group move with bit 4 clear, then a shift-queued
+`ATTACK`, so that the leader's list is `[GROUP_MOVE][ATTACK]`.
+
+**What the reading settles before the take.**
+- **"Bit 4" is the value 4, the action bit.** `Unit::update_action@0060a870:22-35` skips each `is_move` order whose
+  `flags & 4` is clear, and `add_group_move_order@005e4710:61-68` clears that bit for a zero thirteenth argument.
+- **Only the standing re-form lays one.** The DLL's `@form` is `QUEUE_NEW`, and only the standing re-form's
+  `action_move_to(get_loc_to, QUEUE_LAST, .., action 0, ..)` passes 0. A walking group's replay passes 1 (§22,
+  `flags 5`). So the "march" is the members' walk to their Envelop slots.
+- **The review.** `Unit::work@0060d180:158-197` reviews on `(frame + o) & 15 == 0`, ahead of the dispatch. It runs
+  only when the action answers vslot `+0x20`, and when the head is not a group order or its `+0x94` record names
+  this unit (the leader).
+
+**Staging** (`tools/gamelog/golden/chapter120.cmd`, walked on run1519's start before the take).
+- **The cast.** Two Catapults, `0/6` and `0/7`, at 12,84 and 18,84.
+  - A Slinger cannot attack a building, so the shift-attack degrades to a `MOVE_TO`.
+  - A melee leader would meet `check_target_path`'s one-node refusal.
+- **The spotter.** The enemy Barracks `1/2006` stands at 16,56, with a Scout of who=0 at 17,60. Seven tiles off, the
+  Barracks' `ever_seen` held only its owner, and `Group::action_attack`'s `goes` arm laid a move. Beside it, the
+  Barracks reads `0x3`.
+- **The orders.** `697 @form 0 2 0 6 7` (Envelop, standing) and `697 @attackadd 0 2006 1 6 7`, one package.
+  `@attackadd`, the DLL's verb 7 at `QUEUE_LAST` (item 3448), had no parse in `rondata::golden`. It is now
+  `Issued::AttackAdd`.
+
+**What the original does** (run1520 `cover=0`, its twin run1520b `cover=1 --no-ffwd --twin`, both `--ai-tribe 11` and
+the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical; `docs/RUNS.md`).
+- `process_form 2 0 2` and `process_attack 2006 1 0 1` (queue 1, `LAST`) land on 698, after that block's dump.
+- **The list stands from 699 to 715.** On 699, `0/6` holds `GroupMoveOrder in_group=0 oxx 6 id 698100`, point (2328,
+  16392), over `ATTACKORDER mandatory 1` on `1/2006`. `0/7` holds the same under `in_group=1`, point (2520, 16104).
+  `0/6`'s path is one node and its `unit_masks` 524302 carries `0x80000`, so the packable lineage takes the review.
+- **The leader's review frames.** 714 is its sixteenth frame inside the list (`(714 + 6) & 15 == 0`), and 698 is the
+  frame the orders are laid. `0/6` arrives on its own: on 718 it holds the `ATTACK` alone, and on 719 a chase leg to
+  (1848, 13800). On 718 `0/7` loses its leader and ungroups to a `MOVEORDER`.
+- **The killer fired.** The twin never enters `Group::is_moving_to@00713bd0`, nor `Unit::repath` nor
+  `Group::kill_group_move`, on any frame.
+
+**Which step shut it: `check_target_path:138-141`.** For a building target:
+1. The unit block is skipped: `Build`'s vtable slot `+0x8` is `Window::get_button`, `xor eax,eax`.
+2. The range test from `orders_x/y` is out of range: (2328, 16392) stands about 5,690 from the Barracks. The
+   original's own firing point on 719 stands about 3,300 from it.
+3. The attack-shaped order passes, and the one-node test passes on `max_range` 15.
+4. **Then the target's vslot `+0x1c` must answer 0, and `Build`'s answers 1.** In the PE, `Build::vftable@00b42174`
+   slot `+0x1c` (`00b42190`) points to `0041e0e0`, `mov eax,1; ret`, the folded `Buffer::is_pending_load`. `Unit`'s
+   slot is `0041bff0`, `xor eax,eax; ret`.
+
+The PDB names the slot `is_wallbuild`, and §397 and the audit's row 4 read it as "not a wall". But on a live `Build`
+it is 1 for every building. So the group arm is reached only by a unit target. Step 4 lets a unit target through only
+when it is fleeing: moving, past a sixth of the circle off the bearing, and with `flanking` nonzero. This crate's
+port asks `target_is_building()` at that step, which is the original's answer on both classes. Parked 3936a is the
+unit-target staging.
+
+**What this crate does.** It walks the same game. Its review skips any group head (`check_target_path_review`,
+`m.group.is_some()`), and the original's shuts at step 4 on this staging, so the two agree.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY` = **1000**, the trace's end, closed
+  (`chapter_one_hundred_and_twenty_holds_to_the_golden_word`).
+- **The widening.** Over 605..1000 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY` (604, 1001), both directions, the pool
+  too), it parts on the eleven standing `form` rows and nothing else (`WANT_CH120`).
+- **The value diff.** The Catapults' records agree whole on every block: on 699 the group move's id 698100, the
+  point, `in_group` and the attack's `mandatory 1`; on 714 both lists still standing; on 718 and 719 the arrival and
+  the chase leg.
+- **Coverage.** The driver drives 714..720.
+
+**Mutations** (`tools/mutate.py --batch`, on the committed tree, scored on `one_hundred_and_twenty`):
+- `@attackadd` at `QUEUE_NEW` (2) for `QUEUE_LAST` **holds**: the word parts at 698 (value part 699), with 436
+  widening rows. The attack replaces the formation's move, and the Catapults no longer walk their slots first.
+- The verb's parse dropped (`"attackaddx"`) **holds**: both tests fail, and the attack is never laid.
+
+**Not established.** The arm itself, `is_moving_to`'s answer and the group arm's `repath` → `Group::kill_group_move`:
+none is reached on this staging. A fleeing unit target out of range of the move's point is the staging that would
+reach them (parked 3936a). This crate's review of a group head, gated on the leader, is not built. No capture
+disagrees with its absence.
+
+**Coverage.** Diff-backed:
+- the standing re-form's group move under a shift-queued attack;
+- the leader's list from 699 to 715, and its arrival into the attack;
+- the follower's ungroup on 718;
+- `check_target_path`'s refusal of a building target before the group arm (the twin's absence of `00713bd0`,
+  `repath` and `kill_group_move`).
+
+Reading only: which of steps 1–4 shut it. The PE's two vtable slots and the range arithmetic name step 4. A packet
+watching `check_target_path` on 714 would see it directly. `Group::is_moving_to` stays `NEVER` in `blind::`, with the
+refusal named.
 
 ## 171. Reserved for the next item on the rules track
 
