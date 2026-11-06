@@ -2311,8 +2311,7 @@ stays open and item 3870 takes 3863a's bound first, the console-planted
 contact second. `TerrainOut::generate_transitions@00861960` is referenced
 nowhere in the image (the pass's scan; the byte before it is the
 preceding function's own `ret`) and is a `RESIDUE` row; `River::calculate`
-stays open, entered by the console's two river arms and
-`TerrainMap::river_stop`.
+was entered by the console's `river calc` (run1499, §21).
 
 ### 19.5 What would kill it, and what is not established
 
@@ -2615,3 +2614,51 @@ it logs each edge write as the `TERRAIN` 40 print does.
   everything past the entry: `check_for_diagonal`'s body and
   `WorldData::is_valid@00471170` are not modelled. Every claim here is
   reading-only except the 81 writes.
+
+## 21. The console's river arm, taken (item 3889)
+
+`River::calculate@008858e0` is an open `blind::NEVER` row (§19.4: the
+console's two river arms and `TerrainMap::river_stop` reach it). This take
+enters it through the first of the two arms.
+
+- **The words.** `ConsoleWin::run_cmd@007d6a70` case 0x65 is `river`
+  (`console.py table` index 101, console-only). Its words are
+  `loc_str_array_orig` entries, which `Main::init_string_tables@00595a10`
+  loads from `Data/translated_strings.xml` at stride 0x14. Read
+  positionally (as `console.py` reads `internal_strings.xml`): +0x43d0 is
+  868 `start`, +0x45ec 895 `grow`, +0x4600 896 `calc`, +0x4614 897 `path`,
+  +0x4628 898 `flow`. The `start` arm's message, +0x45d8, is 894 `New
+  river started`, which checks the read. Each test is `String::ignore(arg,
+  word, -1)`, a whole-string `_wcsicmp` of the first argument token, so a
+  line carries one word.
+- **The arms.** `grow` calls `RiversOut::start_river` when the global
+  `cur_river` is null, then `RiverOut::add_spline_point` at
+  `div_3_table[mouse_coord >> 8]`, which is cell c for `@aim`'s 768 c +
+  384. `calc` calls `River::calculate(cur_river, …, 0, 0, 0)` when
+  `cur_river` is non-null. `path` runs `PathFinder::astar_river` from the
+  cursor; on a path it starts a river, adds the path's points and calls
+  `calculate`, the second arm.
+- **The staging** (`tools/gamelog/coverage/river3889-start.cmd`, run1494's
+  golden-start line): `@aim` with `!river grow` at (32, 28), (33, 28) and
+  (34, 28) on 620–622, then `!river calc` on 623. The staging uses three
+  points, not one: `RiverOut::ensure_ocean_end` runs only past two points,
+  and `Spline::calc_spline` sets the order to `count − 1`, which is 0 for
+  one point. The 11×11 around (33, 28) is `BASELAND`, so
+  `ensure_ocean_end`'s 7×7 holds no `OCEAN` and no off-map cell.
+- **Taken (run1499): entered.** `River::calculate` is first entered on
+  623. All five console lines return 1, and `I_AIM` stores
+  768 c + 384 for each of the three cells. `rngcmp.py` against run1130 gives 641
+  identical frames, and `samegame.py --from 620` gives the same game
+  through 623; it parts only on the `@dumpall` block 624 and on 625. No
+  other `NEVER` row is entered. `TerrainMap::river_stop` is
+  called only by `TerrainMap::on_left_down` and
+  `ScenarioEditor::modify_terrain_map`, the editor's UI.
+  `World::set_orig_coast@006b1b80` has no caller in the export.
+- **Not established.** What `calculate`'s body did on 623. The 624 grid
+  equals the start grid in every cell's land and sub, so its
+  `spot_update_land_batch` at `riverbase` changed no cell this dump
+  prints, or ran on an empty list. The coverage records only a
+  function's first entry (every callee was first entered on −1, at map
+  generation), so the trace cannot say which (parked 3889a). The `path`
+  arm is not taken. Every claim here is reading-only, except the entry
+  and the unchanged grid.

@@ -14074,13 +14074,14 @@ words and edits nothing here; a refill lands when two remain.
   chain (3885b). It counts first whether the start dump prints `master_land_heights`, and how many cliff-cell
   tiles `has_plus_slope` is handed. The 5118 grid it starts from is the test's.
 
-## Parked by the next landing, slot AD — reserved
+## Parked by item 3889, 2026-11-05 — `River::calculate` entered by the console
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3889a) **What `River::calculate`'s body did on run1499's 623 is not read.** The console's `river grow` at
+(32..34, 28) and `river calc` enter it (MAPGEN §21), yet the 624 grid equals the start in every cell's land and
+sub. Coverage keeps first entries only, and every callee was first entered on −1, so the trace cannot say whether
+`create_sections` filled the `+0x284` list that `spot_update_land_batch` paints at `riverbase`. Killed by a reading
+of `create_sections`' list fill, or by a packet at `RON_STATE_FRAME=623` that reads the river's `+0x288` count. Names
+no score: no port carries a console river, and no `NEVER` row is left on the route.
 
 ## Parked by the next landing, slot AE — reserved
 
