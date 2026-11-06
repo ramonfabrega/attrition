@@ -38626,9 +38626,10 @@ functions that touch `goodtypes`, the export has three other `+0x94` sites:
   A different slot table.
 
 So this section is a **`RESIDUE` candidate with no route**: no AI request reaches the one good-receiver site, and the
-others are building receivers or the editor's. It has **one reading**. By the rule that moved §384's rows, a blind
-second reading must agree before the row leaves `NEVER` (park 3896b). That reader must re-derive, without this
-section:
+others are building receivers or the editor's. ~~It has **one reading**. By the rule that moved §384's rows, a blind
+second reading must agree before the row leaves `NEVER` (park 3896b).~~ **Settled by item 3899's blind second
+reading (`docs/audit/2026-11-06-item-3899.md`): all five points agree, and `004780c0` is `blind::RESIDUE`.** That
+reader re-derived, without this section:
 
 1. that gate 1 rejoins before the gather arm;
 2. the set of `g`-flagged types;
@@ -38636,9 +38637,13 @@ section:
 4. `create_buildings`' water-domain skip;
 5. that no other `+0x94` site can hold a good-type receiver in play.
 
-**What is not established.** The `drop_type` of `draw_cursor_follows` in play is read from its neighbouring
-`buildtypes` access, not from its writers. `capture_city`'s receivers are named by slot shape only. No capture was
-run, so nothing here is diff-backed except the make-list census in §386.2.
+**What is not established.** ~~The `drop_type` of `draw_cursor_follows` in play is read from its neighbouring
+`buildtypes` access, not from its writers.~~ Moot (item 3899's audit): the call's `+0x90` gate at `724230` precedes
+it, and GoodType's `+0x90` (`0041bff0`) returns 0, so no good reaches it whatever `drop_type` holds. ~~`capture_city`'s
+receivers are named by slot shape only.~~ Two readings now (item 3899's audit): a map object's table, never a type.
+`ConquestGame::build_cities`'s types are unread (Conquer the World, cut). No capture was run, so nothing here is
+diff-backed except the make-list census in §386.2. **Coverage**: reading-only, on two readings (§386.1–§386.3);
+diff-backed, the census.
 
 ## 387. `Forts::close_fort` entered: a who=1 Fort added and killed by console (item 3898)
 
