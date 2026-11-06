@@ -316,6 +316,80 @@ class RunnerTest(unittest.TestCase):
             log.write_text(bad)
             with self.assertRaisesRegex(ValueError,'player'):runner.verify_game(log,18,36,12345,ai_tribe=10)
 
+    def test_a_twin_pins_its_sibling_s_tribe_and_lobby_from_the_read_back(self):
+        # Loop 3928 (the sixty-ninth pass): run1508b and run1509b seated
+        # who=1 as tribe 2 where their siblings drew 11, and run1515b took
+        # the pool lane's stale lobby (DIFFICULTY 5 … against run1512's
+        # 0, 1, 0, 7) — a twin given nothing inherits the lane's last take.
+        # `--twin` pins both from the sibling's own read-back, never from
+        # what the sibling was asked for.
+        sib = self.root/'ch118'
+        (sib/'map-14').mkdir(parents=True)
+        (sib/'map-14'/'gamelog.txt').write_text(
+            'BEGIN GAME INFO\n Player\n WHO =  0\n BEGIN GAMEINFO\n  TEAM_STYLE 1\n  MAP_STYLE 14\n  PLAYERS 1\n'
+            '  DIFFICULTY 0\n  STARTING_RESOURCES 1\n  STARTING_RESOURCES2 1\n  STARTING_TECHNOLOGY 0\n'
+            '  STARTING_TECHNOLOGY2 1\n  ENDING_TECHNOLOGY 7\n'
+            '  BEGIN PLAYER\n   flags 7\n   tribe 4\n   who 0\n  BEGIN PLAYER\n   flags 1\n   tribe 11\n   who 1\n'
+            'BEGIN GAME\n  DIFFICULTY 5\n')
+        report = {'success': True, 'map_style': 14, 'gamelog': 'gamelog.txt', 'ai_tribe_requested': None,
+                  'lobby': [], 'players': [{'who': 0, 'tribe': 4, 'flags': 7}, {'who': 1, 'tribe': 11, 'flags': 1}]}
+        (sib/'receipt.json').write_text(json.dumps([report]))
+        self.assertEqual(runner.twin_pins(sib), (11, {'DIFFICULTY': 0, 'STARTING_RESOURCES': 1,
+                                                      'STARTING_TECHNOLOGY': 0, 'ENDING_TECHNOLOGY': 7}))
+        # The pins fill what the take did not pass, and never override what it did.
+        args = SimpleNamespace(ai_tribe=None, lobby=['DIFFICULTY=5'], twin=sib)
+        runner.apply_twin(args)
+        self.assertEqual(args.ai_tribe, 11)
+        self.assertEqual(args.lobby, ['DIFFICULTY=5', 'STARTING_RESOURCES=1', 'STARTING_TECHNOLOGY=0',
+                                      'ENDING_TECHNOLOGY=7'])
+        args = SimpleNamespace(ai_tribe=3, lobby=None, twin=sib)
+        runner.apply_twin(args)
+        self.assertEqual((args.ai_tribe, len(args.lobby)), (3, 4))
+        # A sibling with no successful take, no computer slot, or a gamelog
+        # short of a field is refused by name.
+        (sib/'receipt.json').write_text(json.dumps([dict(report, success=False)]))
+        with self.assertRaisesRegex(ValueError, 'successful'): runner.twin_pins(sib)
+        (sib/'receipt.json').write_text(json.dumps([dict(report, players=report['players'][:1])]))
+        with self.assertRaisesRegex(ValueError, 'slot 1'): runner.twin_pins(sib)
+        (sib/'receipt.json').write_text(json.dumps([report]))
+        (sib/'map-14'/'gamelog.txt').write_text('BEGIN GAMEINFO\n  DIFFICULTY 0\nBEGIN GAME\n')
+        with self.assertRaisesRegex(ValueError, 'STARTING_RESOURCES'): runner.twin_pins(sib)
+        with self.assertRaisesRegex(ValueError, 'receipt'): runner.twin_pins(self.root/'nowhere')
+
+    def test_a_lobby_pair_is_read_back_from_the_gamelog(self):
+        # Loop 3928: a take that asked for a lobby field verifies the
+        # gamelog's own GAMEINFO value, as it does the tribe (item 3774);
+        # a key outside the four read-back fields (a melee's PLAYERS=2
+        # reads back as PLAYERS 1) is not asked.
+        log = self.root/'game.log'
+        head = ' BEGIN GAMEINFO\n  PLAYERS 1\n  DIFFICULTY 0\n  STARTING_RESOURCES 1\n  STARTING_TECHNOLOGY 0\n  ENDING_TECHNOLOGY 7\n'
+        tail = 'BEGIN GAME\n MAP_STYLE 18\n (int)seed 12345\n  DIFFICULTY 5\nBEGIN FRAME 37\n GameInfo closing\n'
+        log.write_text(head + tail)
+        good = ['DIFFICULTY=0', 'ENDING_TECHNOLOGY=7', 'PLAYERS=2']
+        self.assertEqual(runner.verify_game(log, 18, 36, 12345, lobby=good)['lobby_read'],
+                         {'DIFFICULTY': 0, 'ENDING_TECHNOLOGY': 7})
+        with self.assertRaisesRegex(ValueError, 'lobby'):
+            runner.verify_game(log, 18, 36, 12345, lobby=['DIFFICULTY=5'])
+        with self.assertRaisesRegex(ValueError, 'lobby'):
+            runner.verify_game(log, 18, 36, 12345, lobby=['STARTING_RESOURCES=7'])
+        log.write_text(tail)
+        with self.assertRaisesRegex(ValueError, 'lobby'):
+            runner.verify_game(log, 18, 36, 12345, lobby=['DIFFICULTY=0'])
+        self.assertEqual(runner.verify_game(log, 18, 36, 12345, lobby=['PLAYERS=2'])['lobby_read'], {})
+
+    def test_a_full_start_with_a_later_window_is_refused_with_the_remedy(self):
+        # Loop 3933: `live_session.stage` bounds `--dump-all-start` to log
+        # window 0 2, and run1516's first launch died on a later window
+        # with a traceback and no receipt; a start dump beside a later
+        # window is `--detail start:…` (run1515's line).
+        why = runner.refused_full_start(True, (605, 1200))
+        self.assertIn('--detail start:', why)
+        self.assertIn('0 2', why)
+        self.assertIn('3933', why)
+        self.assertIsNone(runner.refused_full_start(True, (0, 2)))
+        self.assertIsNone(runner.refused_full_start(True, None))
+        self.assertIsNone(runner.refused_full_start(False, (605, 1200)))
+
     def test_a_stall_is_no_gamelog_at_all(self):
         # Parked 762: the two stalls on record had no gamelog.txt; a game
         # past the device has bytes there and is the timeout's to judge.

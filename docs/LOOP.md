@@ -260,7 +260,13 @@ lane's own line, each a whole-context turn that learned nothing (parked
 line to the lane — journal as a draft, commit, push, end the turn, **or,
 if the item is finished, land instead** (Loop 3833: four of thirteen
 `DEEP` lanes over three tranches were past their status and pushed the
-landing, every one with its lane gate still running) — and
+landing, every one with its lane gate still running) — **and the draft
+turn ends done, on "this session is done", never `blocked` and never
+with a reply suggested** (Loop 3931, the sixty-ninth pass: lane-3919's
+armed clear stood forty minutes on its own `blocked` row and suggested
+reply, which ccc reads as a person's unsent draft and never submits;
+the waiter exits `HELD <lane> blocked` with that remedy, where it said
+`ENDED`) — and
 the waiter re-armed with `--arm-after-push <lane>`, which arms `ccc
 clear <lane> --then "continue item <N> from the journal"` at that lane's
 next push and prints `ARMED` or `ARM-REFUSED` — **a push on a lane whose
@@ -433,7 +439,22 @@ stand for the sixty-ninth**, read at its drain against the same two
 lines, the door 540.0 s and the whole gates 48.5–51.1; **a tranche that
 drains for want of items is read at its count** — thirteen, two slots
 idle from landing 10 — and its supply is the pass's to fill, never the
-rule's to answer: the implicit residue (108 §2) is the pool; a
+rule's to answer: the implicit residue (108 §2) is the pool — **and the
+sixty-ninth read 42.1 waiting and 15.2 gate a session on three lanes**
+(DECISIONS 109 §1; the drain's 42.8 and 15.1 were read on 24 sessions,
+the pass's on 25): the gate under 15.3, the waiting past the 31.6 that
+takes the lane, **so the rule's letter takes the third lane away for the
+seventieth**, two Opus lanes at medium. What it cost was the chains, not
+the door: eight merges backed out on row-list conflicts (3909 with
+3910, 3915 with 3916, 3920 with 3923 and once more, 3924) and re-landed,
+each a lane gate of 12–46 minutes and a message wait — three chapter
+lanes landing on the same four row lists conflict pairwise, a
+three-lane cost by construction — and one clear held forty minutes by
+its own `blocked` row (Loop 3931, built); admission 3,419.3 s and the
+whole gates 46.3–52.6 held. The lane returns when a two-lane tranche
+reads waiting under 26.3 and the gate under 15.3, or on Ramon's word;
+the seventieth's supply is three items and what they park (109 §2), so
+the third lane's absence costs one wave; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

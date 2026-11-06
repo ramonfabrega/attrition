@@ -18,6 +18,10 @@ session. A lane is named as `ccc list` names it. The exits:
                                              its done line (Loop 3853)
     3  ENDED <lane> <state> — <detail>       the row left `working` and stayed out;
                                              the row's own status line follows
+    3  HELD <lane> blocked — … — <detail>    the row left `working` as `blocked` under
+                                             an armed clear, which will not fire on
+                                             it (Loop 3931): tell the lane to end its
+                                             turn on "this session is done"
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
     5  DEEP <lane> <ctx>k                    a lane's next turn would carry --deep k
                                              tokens or more (lore's `ctx`), once a lane
@@ -284,6 +288,7 @@ import sys
 import time
 
 WORKING = 'working'
+BLOCKED = 'blocked'
 # Polls a row must stay out of `working` before it is called ended: a
 # background task's exit re-invokes a session, and one poll can fall in
 # the gap between the turn that ended and the turn that follows.
@@ -418,6 +423,16 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
             seen.pop('gating', None)
             detail = (details or {}).get(lane)
             tail = f" — {detail}" if detail else ''
+            # Loop 3931 (the sixty-ninth pass): a row that ended its draft
+            # turn `blocked`, with a suggested reply in its prompt box,
+            # holds its own armed clear — ccc reads the reply as a person's
+            # unsent draft and fires on nothing; lane-3919's stood 40
+            # minutes as `ENDED … blocked`, the line that asks for an arm,
+            # and fired three seconds after the lane ended a turn on
+            # "this session is done". So the held shape is named.
+            if state == BLOCKED and armed is not None and armed(lane):
+                return 3, (f"HELD {lane} blocked — its armed clear will not fire on a blocked row (Loop 3931): "
+                           f"tell the lane to end its turn on 'this session is done', no reply suggested{tail}")
             return 3, f"ENDED {lane} {state or 'gone'}{tail}"
     if minutes >= quiet_after:
         return 4, f"QUIET {' '.join(watch)} {int(minutes)}"

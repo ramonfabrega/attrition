@@ -418,6 +418,31 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
         self.assertEqual(lanewait.event(watch, states, tips, 6, 100, details=details),
                          (3, 'ENDED a blocked — reply `go` to merge tip a22bdbef'))
 
+    def test_a_blocked_row_under_an_armed_clear_is_held_not_ended(self):
+        # Loop 3931 (the sixty-ninth pass): lane-3919 ended its draft turn
+        # `blocked`, "awaiting commander clear", with a suggested reply in
+        # its prompt box, and the armed clear stood 40 minutes — ccc reads
+        # the reply as a person's unsent draft and fires on nothing. The
+        # waiter said `ENDED … blocked`, the line the commander reads as a
+        # row to arm, and it was armed already; it fired three seconds
+        # after the lane ended a turn on "this session is done".
+        watch = watching(a='1' * 40)
+        states, tips = {'a': 'blocked'}, {'a': '1' * 40}
+        details = {'a': 'awaiting commander clear'}
+        armed = lambda lane: lane == 'a'
+        self.assertIsNone(lanewait.event(watch, states, tips, 5, 100, details=details, armed=armed))
+        code, line = lanewait.event(watch, states, tips, 6, 100, details=details, armed=armed)
+        self.assertEqual(code, 3)
+        self.assertTrue(line.startswith('HELD a blocked — '), line)
+        self.assertIn('this session is done', line)
+        self.assertIn('3931', line)
+        self.assertTrue(line.endswith(' — awaiting commander clear'), line)
+        # No clear armed, or a row out of `working` on another word: ENDED as before.
+        self.assertEqual(lanewait.event(watch, states, tips, 6, 100, details=details, armed=lambda lane: False),
+                         (3, 'ENDED a blocked — awaiting commander clear'))
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, tips, 6, 100, details=details, armed=armed),
+                         (3, 'ENDED a done — awaiting commander clear'))
+
 
 class TheDeepAnswersArmGoesInAfterItsPush(unittest.TestCase):
     """Loop 3526 (the fifty-second pass): twice in one tranche (items 3523,

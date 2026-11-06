@@ -21860,3 +21860,36 @@ flag with three tests. The backlog 10 → 9. The sixty-ninth is launched on
 three Opus lanes at medium: route 2 to the pair (3904), §389's blind second
 reading (3905) and the group actions' reading (3906), with 3907–3909
 behind them. **DECISIONS 108.** `docs/audit/2026-11-06-fable-pass-68.md`.
+
+**2026-11-06 — the sixty-ninth steering pass (steer, Fable).** The
+sixty-ninth tranche measured: twenty landings on three Opus 5.5 lanes at
+medium in 8 h 38 from `02f72df7d`; the implicit residue of DECISIONS 29 §2
+cited to zero (3906–3909: fourteen group actions, eight spells, eleven map
+styles and 32 rows on scope into `blind::`), and its stagings taken —
+eleven golden chapters (3911–3920, and 3930 landed unmerged at the drain:
+the air actions, recall and scramble, queue, disband, village-gather-all,
+peasant alarm, the `!eval create_unit` pair, a Disband queued, an Entrench
+in 60 frames where the reading said 120, a Counterintelligence, a Disband
+at a Barracks whose `NO_CITY` kept `is_disbanding` unasked) and three
+takes (3908's eleven style sweeps joined from the archive, 3921's
+`check_starting_loc`, 3924's `CliffsData::gather_size` on Southwest Mesa)
+— so `Blind:` reads never 333 · residue 329 · open 4, Golden 111 closed;
+the `kill_group_order` pair stayed open through 3904, 3905, 3910 and
+3923's blind second reading, which named route 2's entry; 189.09 USD for
+the workers, 9.45 a landing, waiting 42.1 a landing against 26.3 and the
+gate class 15.2 against 15.3 — the waiting past the 31.6 that takes the
+lane, on eight row-list conflict re-lands and one clear held forty
+minutes, so the rule's letter takes the third lane away (DECISIONS 109
+§1); eleven `DEEP`, no red gate, the rubric unmoved. The pass scanned the
+four open rows (none dead; `is_disbanding`'s second caller is the
+interface's), ruled the seventieth the tranche that reaches entry 29's
+three counters — 3932 the pair's take, 3934 a Temple's Disband from
+chapter 118's killer, 3935 the blind second reading that rules
+`is_moving_to` — and drains on supply after them, what opens next being
+Ramon's (109 §2). Built under the pass, red first: the waiter's `HELD`
+exit for a `blocked` row under an armed clear (3931), the runner's
+`--twin` pins and lobby read-back (3928), and the full-start refusal with
+its remedy (3933). The backlog 17 → 14. The seventieth is launched on two
+Opus lanes at medium: 3932 and 3934 first, 3935 at the first landing, with
+`lane-3930`'s merge the first act. **DECISIONS 109.**
+`docs/audit/2026-11-06-fable-pass-69.md`.

@@ -422,7 +422,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 - **Your journal is `docs/journal/<the day you land>-item-{item}.md`**,
   yours alone, before the gate (3089): the modules touched; a "for the
   Loop" line: `none`, or a finding I file; **at 300 k, one line to me** (1637,
-  1638): draft, commit, end the turn.
+  1638): draft, commit, end the turn **done**: a `blocked` row or a
+  suggested reply holds the clear (3931).
 - **Documents and journal by the file tool, never in a backgrounded `&&`
   chain (1781); commit, then gate, no suite first (2409, 2415).** Parks:
   your park heading (1812). The gate: `python3
@@ -430,8 +431,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   --lane --item {item} --tests {tests}{widen}` (1567, 1623, 3313), to a
   file, backgrounded; read its exit; quote `Lane verdict:`, `Gate
   steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
-  **A red on the journal-quote or Loop-line guard alone is forgiven**:
-  quote them; the Loop line is mine (3277, 3328).
+  **A red on the journal-quote or Loop-line guard alone is forgiven**
+  (3277, 3328).
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
   moved:` past the paperwork and row lists is an update and a second
@@ -445,8 +446,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   `repin.py --write` rewrites (1767, 2071).
 - **Constants and widenings are yours to pin; the queue's lines mine**: say what books and parks, the next word by frame and delta.
 - **Done and pushed: one line to me** (1412; 3503) —
-  `SendMessage` (via `ToolSearch`) to `commander`: your origin tip SHA,
-  a non-empty `git log <base>..<branch>`, `Lane verdict:` and `Gate
+  `SendMessage` to `commander`: your origin tip SHA,
+  `git log <base>..<branch>`, `Lane verdict:` and `Gate
   steps:` (1406); **then end the turn done, needing no input**: a
   `blocked` row never takes the clear (1671); at ninety minutes
-  unlanded: your step and what runs.
+  unlanded: your step.

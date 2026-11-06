@@ -218,6 +218,82 @@ def set_seat_tribes(profile, pairs):
     path.write_bytes(text.encode('utf-8'))
 
 
+# Loop 3928 (the sixty-ninth pass): the lobby fields a take reads back from
+# the gamelog's GAMEINFO block, and a `cover=1` twin pins from its sibling.
+# run1508b and run1509b seated who=1 as tribe 2 where their siblings drew
+# 11, and run1515b took the pool lane's stale lobby (DIFFICULTY 5,
+# STARTING_RESOURCES 7, STARTING_TECHNOLOGY 4, ENDING_TECHNOLOGY 4 against
+# run1512's 0, 1, 0, 7), each differing from frame 0: a field `--profile`
+# does not name keeps the lane's last value, as the rise keys did before
+# Loop 3488. These four echo their profile value exactly (run1517b: 0, 1,
+# 0, 7 asked and read); a melee's `PLAYERS=2` reads back `PLAYERS 1`, so
+# the read-back is these alone.
+TWIN_LOBBY = ('DIFFICULTY', 'STARTING_RESOURCES', 'STARTING_TECHNOLOGY', 'ENDING_TECHNOLOGY')
+
+
+def lobby_readback(path, keys=TWIN_LOBBY):
+    """The header's GAMEINFO scalars named in `keys`, first value each;
+    stops before the game dump, as `initial_players` does."""
+    found = {}
+    with path.open(errors='replace') as stream:
+        for line in stream:
+            text = line.strip()
+            if text == 'BEGIN GAME':
+                break
+            m = re.fullmatch(r'([A-Z_0-9]+) (-?\d+)', text)
+            if m and m[1] in keys and m[1] not in found:
+                found[m[1]] = int(m[2])
+    return found
+
+
+def twin_pins(twin):
+    """What a `--twin` take pins from its sibling's own read-back: slot 1's
+    tribe from the receipt's PLAYER records and the four lobby fields from
+    its gamelog's GAMEINFO — never from what the sibling was asked for,
+    which run1508b's sibling was not asked either."""
+    twin = Path(twin)
+    try:
+        reports = json.loads((twin / 'receipt.json').read_text())
+    except (OSError, ValueError) as exc:
+        raise ValueError(f'--twin {twin} has no readable receipt.json: {exc}')
+    reports = reports if isinstance(reports, list) else [reports]
+    report = next((r for r in reports if r.get('success')), None)
+    if report is None:
+        raise ValueError(f'--twin {twin}: no successful take in its receipt')
+    by_who = {p.get('who'): p for p in report.get('players') or []}
+    if 'tribe' not in by_who.get(1, {}):
+        raise ValueError(f'--twin {twin}: its receipt read back no computer slot 1 ({report.get("players")})')
+    style = report.get('map_style') or report.get('map_requested')
+    gamelog = twin / f'map-{style}' / (report.get('gamelog') or 'gamelog.txt')
+    lobby = lobby_readback(gamelog) if gamelog.is_file() else {}
+    missing = [k for k in TWIN_LOBBY if k not in lobby]
+    if missing:
+        raise ValueError(f'--twin {twin}: {gamelog} reads back no {", ".join(missing)}')
+    return by_who[1]['tribe'], lobby
+
+
+def apply_twin(args):
+    """Fill `--ai-tribe` and the four lobby pairs from the sibling, keeping
+    every one the take passed itself."""
+    tribe, lobby = twin_pins(args.twin)
+    if args.ai_tribe is None:
+        args.ai_tribe = tribe
+    given = {p.split('=')[0] for p in args.lobby or []}
+    args.lobby = list(args.lobby or []) + [f'{k}={v}' for k, v in lobby.items() if k not in given]
+
+
+def refused_full_start(dump_all_start, log_window):
+    """Why `--dump-all-start` is refused before anything is staged, or None
+    (Loop 3933): `live_session.stage` bounds the full start to log window
+    0 2, and run1516's first launch died on a later window with a traceback
+    and no receipt; a start dump beside a later window is `--detail start:…`."""
+    if not dump_all_start or not log_window or tuple(log_window) == (0, 2):
+        return None
+    lo, hi = log_window
+    return (f'--dump-all-start is bounded to --log-window 0 2 (live_session.stage); a start dump beside '
+            f"--log-window {lo} {hi} is --detail start:… instead (run1515's line in docs/RUNS.md; Loop 3933)")
+
+
 def initial_players(path):
     """Read the header's PLAYER scalars; stop before the potentially huge game dump."""
     players, current, depth = [], None, None
@@ -492,7 +568,7 @@ def lane_prefix():
 
 
 def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None, seat_tribes=(),
-                allow_early_end=False):
+                allow_early_end=False, lobby=()):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
@@ -549,9 +625,17 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
         by_who = {p.get('who'): p for p in players}
         if any(by_who.get(slot, {}).get('tribe') != tribe for slot, tribe in seat_tribes):
             raise ValueError(f'seat tribe read-back mismatch: {players} for {list(seat_tribes)}')
+    # Loop 3928: a lobby field the take asked for is read back from the
+    # header, as the tribe is — a twin on a stale lane differed from frame 0
+    # and nothing the lane printed said why.
+    asked = {k: int(v) for k, v in (p.split('=') for p in lobby or ()) if k in TWIN_LOBBY}
+    lobby_read = lobby_readback(path, tuple(asked)) if asked else {}
+    if any(lobby_read.get(k) != v for k, v in asked.items()):
+        raise ValueError(f'lobby read-back mismatch: asked {asked}, read {lobby_read} (Loop 3928)')
     return {'map_style': style, 'closing_frame': closing_frame, 'ended_early': closing_frame != end + 1,
             'seed_observed': sorted(seeds),
-            'groupdata_blocks': groupdata, 'groupdata_frames': sorted(group_frames), 'players': players}
+            'groupdata_blocks': groupdata, 'groupdata_frames': sorted(group_frames), 'players': players,
+            'lobby_read': lobby_read}
 
 
 def verify_restored(output, profile):
@@ -687,6 +771,7 @@ def capture(args, output, style, run=None):
         set_map(args.profile, style)
         mute(args.profile)
         report['lobby'] = getattr(args, 'lobby', None) or []
+        report['twin'] = str(args.twin) if getattr(args, 'twin', None) else None
         set_lobby(args.profile, report['lobby'])
         report['ai_tribe_requested'] = getattr(args, 'ai_tribe', None)
         set_ai_tribe(args.profile, report['ai_tribe_requested'])
@@ -868,7 +953,7 @@ def capture(args, output, style, run=None):
                                   ai_tribe=report['ai_tribe_requested'],
                                   seat_tribes=report['seat_tribes_requested'],
                                   log_window=None if getattr(args, 'stride', None) else getattr(args, 'log_window', None),
-                                  allow_early_end=early))
+                                  allow_early_end=early, lobby=report['lobby']))
         if playback and sha(recording) != report['recording']['sha256']:
             raise ValueError('recording changed during playback')
         report['map_verified'] = True
@@ -1196,6 +1281,10 @@ def parser():
                     type=lambda v: tuple(int(x) for x in v.split('=')),
                     help='explicit nation for computer slot SLOT (1..7), repeatable; read back from '
                          'the receipt\'s PLAYER records (item 3774)')
+    ap.add_argument('--twin', type=Path, metavar='DIR',
+                    help="a sibling take's output directory: pins --ai-tribe from its receipt's PLAYER read-back "
+                         "and the four golden-start lobby fields from its gamelog's GAMEINFO, each unless given "
+                         "(Loop 3928)")
     ap.add_argument('--profile', action='append', dest='lobby', metavar='KEY=N',
                     help="a lobby field in the profile's <SOLO>/<MULTI> blocks, repeatable "
                          "(the queue lane's `profile:` key; e.g. DIFFICULTY=5)")
@@ -1210,6 +1299,12 @@ def main():
     args=ap.parse_args()
     if any(not re.fullmatch(r'[A-Z_0-9]+=-?\d+', p) for p in args.lobby or []):
         ap.error('--profile takes KEY=N')
+    if args.twin is not None:
+        # Loop 3928: the sibling's read-back, before anything is staged.
+        try:
+            apply_twin(args)
+        except ValueError as exc:
+            ap.error(str(exc))
     if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) or p.split('=')[0] not in RISE_DEFAULTS
            for p in args.rise or []):
         ap.error(f'--rise takes KEY=N, KEY one of {", ".join(RISE_DEFAULTS)}')
@@ -1258,7 +1353,8 @@ def main():
         except ValueError as exc:
             ap.error(f'{exc} — raise --end-frame past every staged line, or drop the line')
     why = (refused_detail(args.detail) or refused_tracer_defs(getattr(args, 'tracer_defs', None))
-           or refused_window(getattr(args, 'log_window', None), args.detail))
+           or refused_window(getattr(args, 'log_window', None), args.detail)
+           or refused_full_start(getattr(args, 'dump_all_start', False), getattr(args, 'log_window', None)))
     if why:
         ap.error(why)
     # **The pool** (parked 1139; items 1568, 1569): `-` for the install and
