@@ -513,8 +513,11 @@ impl Sim {
     ///   `spot`, a lone unit, re-seated again from the bearing to `spot`,
     ///   through `add_move_facing_order` to `spot`.
     ///
-    /// SEAM: an enemy found at the point (the attack arms), a waypoint
-    /// with `action` ≠ 0, and a caravan's trade arm; no capture sets one.
+    /// A waypoint with `action` ≠ 0 takes [`Sim::gather_waypoint`]'s verdict
+    /// first (item 3915, run1509).
+    ///
+    /// SEAM: an enemy found at the point (the attack arms) and a caravan's
+    /// trade arm; no capture sets one.
     pub(crate) fn gather_route(
         &mut self,
         captain: usize,

@@ -14505,13 +14505,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BC — reserved
+## Parked by item 3915, 2026-11-06 — a city's gather-all
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3915a. Pool lane 2 seats who=1 as another nation.** run1509b's first take ran on lane 2 with its lines staged
+  (`INFO 22` on 610, the four functions entered) but who=1 at tribe 2, where lanes 1 and 3 seat tribe 11 on the same
+  recipe (run1507, run1507b, run1509, run1509b take 2): `rngcmp` differs on every frame, so it is another game, and
+  was retaken on lane 1. The same lane ran 3912a's unstaged take (Loop 3926). **Score**: none directly — each `cover=1`
+  twin on lane 2 costs a retake; for the Loop, beside 3926.
+- **3915b. The waypoint arm's other verdicts.** `Sim::gather_waypoint` (GOLDEN §162) is diffed on one arm, a
+  Citizen's gather end at a camp with room. A pass on a full camp, a garrison end with and without room, an unfinished
+  or damaged building, and action 2 on an enemy are read, not captured. A staging: a City's gather-all with six
+  Citizens queued, so the camp's five slots fill and the sixth passes over to the first Farm. **Score**: none named —
+  no word or floor parts on it.
 
 ## Parked by the next landing, slot BD — reserved
 
