@@ -813,6 +813,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch109 = golden_dump("ch109");
     let ch110 = golden_dump("ch110");
     let ch111 = golden_dump("ch111");
+    let ch114 = golden_dump("ch114");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2936,6 +2937,25 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and eleven carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and fourteen, on run1511** (item 3917): the
+    // console's `eval create_unit` on the lake (620: the squad and its
+    // barge born on 621) and on land (640: two squads snapped to their
+    // formation on 641).
+    if let Some(p) = &ch114 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN;
+        let n = drive_capture(p, 619, 623, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and fourteen carries five blocks in its lake window"
+        );
+        frames += n;
+        let n = drive_capture(p, 639, 643, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and fourteen carries five blocks in its land window"
         );
         frames += n;
     }

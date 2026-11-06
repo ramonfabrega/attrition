@@ -2516,6 +2516,7 @@ mod tests {
         // `select` and the key bound to `OPTION_DISBAND`, `@key` (item 3914,
         // `docs/GOLDEN.md` §161).
         ("chapter111.cmd", &[]),
+        ("chapter114.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
@@ -2867,8 +2868,10 @@ mod tests {
                     continue;
                 }
                 let word = command_word(&line.text);
-                let console_only =
-                    matches!(word.as_str(), "ai" | "quit" | "go" | "break" | "restart");
+                let console_only = matches!(
+                    word.as_str(),
+                    "ai" | "quit" | "go" | "break" | "restart" | "eval"
+                );
                 assert_eq!(
                     line.console, console_only,
                     "{name}: `{}` is on the wrong half of run_cmd's two switches",
