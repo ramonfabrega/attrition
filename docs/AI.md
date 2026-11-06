@@ -38811,12 +38811,105 @@ not matter, because type 18 is skipped by `get_action` and killed by `repath` (w
 No capture was run, so nothing here is diff-backed. The only behavioural corroboration is 3504's five takes, all
 of which took `:65`.
 
-## 389. Reserved for the next item on the AI track
+## 389. Route 1 to the `kill_group_order` pair: no cast meets the capture arm, and `fight`'s second call never meets a group head (item 3903, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3903 was booked as a coverage take on parked 3902a's staging: route 1 of item 3902's blind second reading
+(`docs/audit/2026-11-06-item-3902.md`, disagreement 3), a grouped "melee line" on a group attack-move with a
+shift-queued patrol, engaging beside an enemy building at capture hit points. The brief asked for three readings
+before staging: `fight`'s second-call gate at `5fe25f`, the capture arm's predicate, and which unit lines the
+route admits. They close the route at two independent steps, so **no take was run, and runs 1505 and 1505b are
+unused.**
+
+### 389.1 The cast is the Machine Gun line, and only its captains search
+
+- **`+0x2b8 & 4` is the packing bit, not a melee bit.** It is `unit_flags2`'s `needs_packing`
+  (`docs/DATALAYER.md` §2: `CATAPULT`, `FLAMINGARROW`, `MACHINEGUN`, `FISHERMEN`, `KATYUSHA` and the three trader
+  ids). The route's second predicate, the type's vslot `+0x10c`, is `UnitTypeData::is_siege@00470460`
+  (`unit_flags & 0x20000`, the `r` letter). The armed packers that are not siege are the Machine Gun line's eight
+  records: Machine Gun ×2, Heavy ×2, Advanced ×3 and the German MG42. `blind::tests::route_one_s_cast_is_refused_a_capture_eligible_city`
+  pins the eight on the install; it failed first at seven, on MG42.
+- **The first call.** `Unit::fight@005fd4d0:485-500`: with `param_5 = 0` and the target out of range, an unpacked
+  packer that was once in range kills its `ATTACK` and returns. A packed one (`unit_masks & 0x80000`), or one never
+  in range, falls through to `:1050`, where a non-mandatory packer calls `find_new_target` (`5fe113`). That is
+  every frame such a unit spends out of range, before the chase.
+- **Only a captain reaches `find_nearby_target`.** `Unit::find_melee_target@005ff9c0:25-62`: a squad member that
+  is not the captain (`o_up ≥ 0`) with `param_3 = 0` takes its captain's `ATTACK`, or returns −1 at `:38-44` when the
+  captain has none.
+- **The search mask.** On `ATTACK_TO` or `GROUP_ATTACK_TO`, a non-siege, non-cargo searcher gets `0x20010`
+  (`:120-140`). In `Object::find_nearby_target@00648da0`'s scan, `0x20000` admits a building only if
+  `BuildData::attack@0062e610` is non-zero, and `0x10` halves a non-unit's score.
+
+### 389.2 `valid_target` refuses a capture-eligible city to the whole cast
+
+`BuildData::check_capture_eligible@0062d1d0` holds for an active `is_city` building (the type's vslot `+0x64`, or
+`is(0x19e)`) whose `ObjectData::health_level@006534b0` is above 4: hit points under a tenth of the maximum and
+at least 1 (level 5), or exactly 0 (level 6). With `field_0x8 & 0x20` set it needs level 6.
+
+`Object::valid_target@00648ba0` asks the same predicate of every candidate, and refuses a capture-eligible city
+to an attacker whose type lacks `obj_masks & 0x8000000`, the digit `2`, `mask::MISSILE` (listing `648c62
+testl $0x8000000, 0x1e4(%eax)`). Its one exception needs the attacker to hold VEHICLE (`0x200000`) and WAR_MACHINE
+(`0x80000`) and a mandatory type-10 order on that city (`648cbc`–`648d3f`). Only the four missiles carry the
+`2`. The Machine Gun line carries `FGT` (0x80060): WAR_MACHINE without VEHICLE. And at the first call the unit's
+`ATTACK` has just been killed, so its current order is the `GROUP_ATTACK_TO`.
+
+`find_nearby_target`'s scan calls `valid_target` first on every candidate. **So it never hands the cast a
+capture-eligible city**, and `Group::action_attack@00712490`'s capture arm (`:253-279`) is unreachable from
+route 1. 3902a's step 4 does not happen.
+
+### 389.3 Any other target leaves the unit an `ATTACK` above the re-issued group orders
+
+`find_nearby_target:551-580` sends every other target to `Group::action_attack(QUEUE_FIRST, 4)` as 3902 read it.
+`GroupData::is_on_map@0070c450` holds, because this unit is an alive captain on the map. The arm's `action_halt`
+empties this unit's list, and `action_attack(QUEUE_NEW)`'s member loop gives the unit one of these:
+- an `ATTACK` (`:461`, a unit target);
+- an `ATTACK` at `LAB_007130b4` (a building target, `local_24 = 0`);
+- a `PACK` (0x28b) or `UNPACK` (0x28c) cast, then the `ATTACK` at `QUEUE_LAST` (a packer mid-pack under
+  `QUEUE_NEW`).
+
+The plain-move branch needs `local_24 = !is_seen(owner, 0)` (the target's vslot `+0x48`). But
+`ObjectData::valid_target_const@006472c0:26` already refused every target that answers 0 to the same question for
+the same owner, inside the same call. `finish_insert` then lays the copies (`GROUP_ATTACK_TO`, `GROUP_PATROL`) at
+`QUEUE_LAST`, under the `ATTACK`.
+
+At `fight`'s second call, `repath` stops on the `ATTACK` or the cast, neither of which answers `+0x2c` (§388.2's
+table). `:65` kills it, and `5ff78f` is not reached.
+
+### 389.4 `fight`'s second-call gate is shut for the route's own target in any case
+
+`:1053-1059`: the second call needs `param_4 = 0` and one of three things.
+- **STAND_GROUND and off duty.** `Unit::on_duty@005fff70` holds for a combat-role type (the cast has
+  `0x10000`) whose `UnitData::get_activity@00608370` is one of types 2, 0xc, 0x16, 5, 0x15. `get_activity` walks
+  from the current order past every order whose `UnitOrder::is_move_attack@0047ff00` answers. `GROUP_MOVE` and
+  `GROUP_ATTACK_TO` answer, through `+0x14`; `GROUP_PATROL` does not, so it is the activity, type 0x16. Without
+  it, a `GROUP_ATTACK_TO` left last is answered as 0x15. With neither, the list after `repath` is empty and
+  `:63` reads a null head, so the route needs the patrol, and the patrol keeps the unit on duty.
+- **Entrenched** (`UnitData::is_entrenched@0060a810(1)`: `unit_masks & 0x2000000` without `unit_masks2 &
+  0x20000`). The only writer of the first bit, `Unit::check_idle@006032c0:40` (the Marines' trench), sets the
+  second with it. `Unit::move_step@005faf30:60-62` and `Unit::close@0060ee50:71-73` clear both together. So it is
+  never true.
+- **`find_attack_pos` fails.** `Unit::find_attack_pos@00601280`, for a land attacker and a land building:
+  - it returns 1 in range;
+  - it returns 1 from the search when it finds a cell;
+  - otherwise it falls to the target's own position and returns 1.
+
+  Its zero returns are three: a sea attacker; a land attacker against a sea-domain target (the Dock, Shipyard,
+  Anchorage and Oil Platform are the only buildings with `build_flags & 2`, by `Types::init@00669cc0:671-677`, and
+  none is a city); and the `local_38` arm, which needs the current order to be `ATTACK` at entry.
+
+So even if 389.2 fell, the capture arm's city would not open the gate.
+
+### 389.5 What this leaves of the pair
+
+**Route 1 is closed by two independent readings in this section** (389.2 with 389.3, and 389.4), for every
+target `find_nearby_target` can return. **Route 2** (park 3902b, a duplicate group-move id under an `ATTACK`) is
+now the open one. The rest of 3902's sweep stands: `do_group_attack`'s site is dead, and its argument that
+`find_new_target`'s other callers establish an `ATTACK` or a `STRAFE` is not reopened here. **Both rows stay `NEVER`**, pending a blind second reading
+of this section (park 3903a) and a reading of route 2 to a producer (park 3903b).
+
+**What is not established.** `ObjectData::has_objmask` was read as the type's `obj_masks`, by its use; its body
+was not read. `GroupAttackToOrder`'s `+0x14` (`StrafeOrder::is_air`, folded) was read as answering 1 because the
+§388.2 table has it so; the activity argument does not need it, since 0x15 is on duty too. Nothing here is
+diff-backed. The one assertion is the install test on the cast and its masks.
 
 ## 390. Reserved for the next item on the AI track
 

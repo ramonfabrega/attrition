@@ -14285,19 +14285,32 @@ words and edits nothing here; a refill lands when two remain.
   **The killer:** `00712490` entered from `00648da0`, with the same unit entering `find_new_target` twice on that
   frame and no `HIT` on `00710aa0`. That kills route 1 for the staging. **Score**: two `NEVER` rows (entered on a
   `HIT`; `RESIDUE` with the audit if a killed staging and a reading of `fight`'s second-call gate close it).
+  *Read by item 3903 (`docs/AI.md` §389), no take: `+0x2b8 & 4` is the packing bit, so the cast is the Machine Gun
+  line; `valid_target` refuses it a capture-eligible city (no `MISSILE`, no VEHICLE), so step 4 never happens; any
+  other target leaves it an `ATTACK`; and `fight`'s second-call gate is shut for a land building anyway. Route 1 is
+  closed on one reading; parks 3903a–b.*
 - **3902b. A duplicate group-move id in one list would let `repath` kill the `ATTACK`.**
   `Unit::kill_group_move@005e3400` removes the tail on a deeper match. The id is
   `(group.id + frame*10)*100 + order_num`, which is unique within a group between `Group::clear`s but can collide
   across two groups, so a unit regrouped with its old move still queued could hold two with the same id. Not read to
   a producer. **Score**: none until 3902a's take is read; then it is the remaining route.
 
-## Parked by the next landing, slot AQ — reserved
+## Parked by item 3903, 2026-11-06 — route 1 to the `kill_group_order` pair, read shut with no take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3903a. A blind second reading of AI §389.** The reader re-derives, without §389 or this park:
+  - which unit types reach `fight`'s first `find_new_target` (`5fe113`);
+  - whether `Object::valid_target@00648ba0` refuses those types a capture-eligible city;
+  - what `Group::action_attack@00712490`'s `QUEUE_NEW` member loop gives one such member, for a target
+    `find_nearby_target@00648da0` returned;
+  - each of `fight`'s three second-call disjuncts (`5fe25f`).
+
+  §389 has one reading, and its install test pins only the cast's masks. **Score**: the two `NEVER` rows, toward
+  `RESIDUE` with 3903b.
+- **3903b. Route 2 (3902b) is the open route to the pair.** A unit holding two group moves with one id, and an
+  `ATTACK` between them, so that `Unit::kill_group_move@005e3400`'s tail kill takes the `ATTACK` inside `repath`.
+  Read to a producer: a regroup that keeps the old group's move queued (`Group::clear`, `add_group_move_order`'s
+  `QUEUE_NEW` clear, `finish_insert`), and whether two groups' ids can meet on one frame. **Score**: the two `NEVER`
+  rows; a take if a producer is found, `RESIDUE` with 3903a if none is.
 
 ## Parked by the next landing, slot AR — reserved
 
