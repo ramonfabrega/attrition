@@ -14138,13 +14138,18 @@ words and edits nothing here; a refill lands when two remain.
   `tools/` (beside `report.py <exe> refs`, which names slots from `vtables.txt` and so misses
   the MI tables). **Score**: none directly; it is the next slot reading's cost.
 
-## Parked by the next landing, slot AH — reserved
+## Parked by item 3893, 2026-11-05 — the eight slot rows' blind second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3893a** — **every turn's checksum walk is a free oracle for order lifetimes.**
+  The blind reader traced `CommandManager::process_turn` → `CheckSums::check_all`
+  (flags −1 at `936593`) → `check_units` → `Unit::walk_data` (flags & 4) →
+  `OrderList::walk_data` → each order's `+0x8`, unguarded, once per turn in
+  every game (`docs/audit/2026-11-05-item-3893.md`, row 4). So an order type
+  whose `walk_data` no trace enters is an order that never outlives the call
+  that made it, and one that a trace enters has outlived it at least once. A scan
+  of `blind::NEVER` for order-class `walk_data` rows, set against each type's
+  adders, would turn that into a single predicate. Names no score; it is the next order-row
+  reading's cost.
 
 ## Parked by the next landing, slot AI — reserved
 
