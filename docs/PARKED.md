@@ -14324,21 +14324,63 @@ Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). T
   k-from-the-head kill, the slot arithmetic of `get_open_slot`, and bit 4 on human moves.
   **Score**: none until 3904a finds an entry; then it gates the take's booking.
 
-## Parked by the next landing, slot AS — reserved
+## Parked by item 3905, 2026-11-06 — AI §389 read a second time, blind: route 1 stays shut
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+*Every row of the second reading agreed with §389 on what the code does
+(`docs/audit/2026-11-06-item-3905.md`). The three-disjunct gate guards the call
+at `5fe3fe`, not `5fe25f`, which the listing settles. `5fe25f` is the stance-1
+leash, and a packer's combat stance is always 2. Both rows stay `NEVER`.*
 
-## Parked by the next landing, slot AT — reserved
+- **3905a. A siege member skipped by `action_halt(4)` may get `finish_insert`'s
+  group re-issue under its own `ATTACK`.** `Group::action_attack(QUEUE_FIRST, 4)`
+  halts and re-attacks only the non-siege members. Its `finish_insert` re-issues
+  the leader's group orders at `QUEUE_LAST` through `Group::action_move_near@00704990`.
+  If that re-issue reaches a siege member that kept an `ATTACK`, the member holds a
+  group move queued under the `ATTACK`, the shape route 2 asks a producer for. Not
+  read: whether `action_move_near` filters siege members, and whether the two moves'
+  ids can meet. **Score**: route 2's (3904, AI §390); a lead for that reading, no
+  item of its own.
+- **3905b. A packer's combat stance is always `COMBAT_STAND_GROUND`.**
+  `UnitData::get_combat_stance@00610a30` asks `has_stance_type(0)`, and
+  `UnitTypeData::get_stance_type@0061d350` answers `STANCE_PACKER` for a combat-role
+  type with `unit_flags2 & 4`. So `610a5c` returns 2 whatever `stance` holds. Not
+  asserted: `sim` carries no `role` bit under that name. **Score**: none; a test
+  when a mechanic reads stance.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3906, 2026-11-06 — the group actions no capture ever issued, read to their issuers
+
+- **3906a. `docs/ARMY.md` §5 calls `semaphore[1] & 8` "the AI-off bit".** Its writers are
+  `ConsoleWin::run_cmd@007d6a70:1570` (reset) and `:1639` (set), and the set arm opens the in-game scenario editor
+  (AI §391.3). `docs/CITIES.md` and GOLDEN §144 already read it as the editor's bit. ARMY §5's and ORDERS §2.1's
+  gates on it are the editor's, not the console's `ai off`. **Score**: none. It is a label on two specifications,
+  amended in place when either is next touched.
+- **3906b. A blind second reading of AI §391.3.** The reader re-derives, without §391 or this park:
+  - whether `GroupData::show_interface@0070ce70` writes any simulation state;
+  - whether any caller other than `Options::target_spell@0071dda0` reaches `Group::dbg_pack_or_unpack@00707b50`,
+    and who sets `semaphore` bit 11;
+  - whether any site writes command byte 0x0d;
+  - which head orders and actions open `Unit::check_target_path@005e22d0`'s `Group::is_moving_to@00713bd0` arm
+    (`:190-193`). In particular, can a group head stand over an attack action behind it?
+
+  **Score**: `Blind:` open, the three `RESIDUE` rows ratified and `is_moving_to` ruled a staging or `RESIDUE`.
+- **3906c. The eleven stagings of AI §391.2, for the commander to book.**
+  - Row 1, `@patrol` on chapter seventeen's Fighter: `action_air_patrol`.
+  - Row 2, `@attackground` on its Bomber: `action_air_attack_ground`.
+  - Row 3, `OPTION_RETURN` on the Bombers in flight: `action_return`.
+  - Row 4, `OPTION_AIRBASE_RECALL` after chapter thirty-three's 2280 launch: `action_recall`.
+  - Row 5, `OPTION_AIRBASE_SCRAMBLE` on its Airbase with a plane inside: `action_scramble`.
+  - Row 6, `OPTION_QUEUE` on chapter nineteen's Spy mid-hold: `action_stop_spell`.
+  - Row 7, `OPTION_DISBAND` on chapter nine's Chariot: `action_disband`.
+  - Row 8, `OPTION_VILLAGE_GATHER_ALL` on the golden City: `action_city_gather`.
+  - Row 9, `OPTION_PEASANT_ALARM` on chapter thirty-nine's Citizen: `action_alarm_peasant`.
+  - Row 10, `!eval create_unit` on an ocean tile in chapter twenty's lobby: `action_transport`, `add_unit`,
+    `create_unit`.
+  - Row 11, `@rclick` of chapter seventeen's Bomber on `1/2006`: `is_in_air_range`.
+
+  Rows 1–9 and 11 also enter their `Options`/`GroupOut` writer and `CommandPackage` arm, which §391.1 names.
+  Rows 1, 2, 3, 11 and 4, 5 share two lobbies, so two or three chapters can take them. Each needs a run number and
+  a GOLDEN section from §158–§163. **Score**: `Blind:` never and open, 27 rows; each staging names its `CM`
+  killer.
 
 ## Parked by item 3907, 2026-11-06 — the spells no capture ever cast
 
@@ -14425,6 +14467,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot BD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

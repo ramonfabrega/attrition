@@ -38819,7 +38819,7 @@ of which took `:65`.
 Item 3903 was booked as a coverage take on parked 3902a's staging: route 1 of item 3902's blind second reading
 (`docs/audit/2026-11-06-item-3902.md`, disagreement 3), a grouped "melee line" on a group attack-move with a
 shift-queued patrol, engaging beside an enemy building at capture hit points. The brief asked for three readings
-before staging: `fight`'s second-call gate at `5fe25f`, the capture arm's predicate, and which unit lines the
+before staging: `fight`'s second-call gate at `5fe25f` (the gate's call is `5fe3fe`, by the listing; `5fe25f` is the stance-1 leash, which no packer reaches: `docs/audit/2026-11-06-item-3905.md` row 4a), the capture arm's predicate, and which unit lines the
 route admits. They close the route at two independent steps, so **no take was run, and runs 1505 and 1505b are
 unused.**
 
@@ -38906,8 +38906,8 @@ So even if 389.2 fell, the capture arm's city would not open the gate.
 **Route 1 is closed by two independent readings in this section** (389.2 with 389.3, and 389.4), for every
 target `find_nearby_target` can return. **Route 2** (park 3902b, a duplicate group-move id under an `ATTACK`) is
 now the open one. The rest of 3902's sweep stands: `do_group_attack`'s site is dead, and its argument that
-`find_new_target`'s other callers establish an `ATTACK` or a `STRAFE` is not reopened here. **Both rows stay `NEVER`**, pending a blind second reading
-of this section (park 3903a) and a reading of route 2 to a producer (park 3903b).
+`find_new_target`'s other callers establish an `ATTACK` or a `STRAFE` is not reopened here. **Both rows stay `NEVER`**, pending ~~a blind second reading
+of this section (park 3903a)~~ (read by item 3905: every row agrees, `docs/audit/2026-11-06-item-3905.md`) and a reading of route 2 to a producer (park 3903b).
 
 **What is not established.** `ObjectData::has_objmask` was read as the type's `obj_masks`, by its use; its body
 was not read. `GroupAttackToOrder`'s `+0x14` (`StrafeOrder::is_air`, folded) was read as answering 1 because the
@@ -39027,12 +39027,167 @@ Nothing here is diff-backed, and no assertion was added: every claim is a contro
 counter and the slot index were not found in a dump: one 16,754-frame gamelog on disk (run 583) prints only
 `synced_control_groups_*` counts, and no wider search was made.
 
-## 391. Reserved for the next item on the AI track
+## 391. The group actions no capture ever issued: eleven stagings, two on scope, one owed a second reading (item 3906, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The implicit residue's `groups` stem (DECISIONS 108 §2; `census.py --territory --pin --implicit`) is fourteen
+functions no pinned trace entered and no document cited. Each is read here to its issuer and its command byte
+(`docs/COMMANDS.md` §3). The result is either the click-free staging that enters it, with the killer that would show
+it did not, or `RESIDUE` on scope. Nothing here was run.
+
+### 391.1 The issuers: six bytes, and the keys that reach them
+
+Byte 0x0d (`transport`) is the exception: no `add_command` site writes it. The listing of all 102 functions that
+call `add_command` holds no `mov byte […], 0xd`, so `CommandPackage::process_transport@00949050` →
+`Group::action_transport@00702620` is reached by no command. The other five bytes each have a UI writer and
+a `CommandPackage` arm, and every arm prints a `CM` line (`process_<verb> … game.frame`). That line on F+1 is
+each staging's first killer.
+
+| byte | writer (the UI's) | arm → action | option, and the `KeyMapType` that binds it |
+|---|---|---|---|
+| 0x23 `recall` | `Options::recall_aircraft@0071c670`, inline | `process_recall@00947bd0` → `action_recall` (→ `action_return`) | 0x2e `OPTION_RECALL`: `OPTION_AIRBASE_RECALL` (324), `OPTION_CARRIER_RECALL` (165); 0x2d `OPTION_RETURN`: `OPTION_RETURN` (162) |
+| 0x24 `scramble` | `Options::scramble_aircraft@0071c5d0`, inline | `process_scramble@00947ae0` → `action_scramble` | 0x2b `OPTION_SCRAMBLE`: `OPTION_AIRBASE_SCRAMBLE` (329) |
+| 0x1d `stop_spell` | `GroupOut::issue_stop_spell@00708a20`, from `Options::exec@007188c0`'s 0xa6 arm on a unit with `num_queued` 0 | `process_stop_spell@00947cc0` → `action_stop_spell` | 0xa6 `OPTION_QUEUE`: `OPTION_QUEUE` (190) |
+| 0x15 `disband` | `Options::do_disband@0071df20`, after `GroupOut::validate_disband@0070a4a0` | `process_disband@00948660` → `action_disband(all)` | 0xf `OPTION_DISBAND`: `OPTION_DISBAND` (147) |
+| 0x12 `city_gather` | `GroupOut::issue_city_gather@0070ac70`, from `Options::do_city_gather@0071cdb0` | `process_city_gather@00948a10` → `action_city_gather` | 0x35–0x38: `OPTION_VILLAGE_GATHER_FARM`/`_WOOD`/`_MINE`/`_ALL` (277–280), types 0x1a1, 0x1a2, 0x1a3, −1 |
+| 0x1b `alarm` | `Options::do_alarm@0071c3f0`, inline | `CommandPackage::process_alarm@00947ef0` → `Group::action_alarm@0070ec30` → `action_alarm_peasant` | 0x1b `OPTION_ALARM_PEASANT`: `OPTION_PEASANT_ALARM` (393) |
+
+- **Reading the bytes.** The decompile leaves each command byte as an uninitialised local, so they come from
+  the listing: `GroupOut::issue_recall` and `issue_scramble` write 0x23 and 0x24, and nothing calls either. The
+  `Options` handlers repeat each body inline.
+- **Reading the keys.** The option-to-key column is `keymap_options`: file offset 0x6e5f70 (RVA 0x6e7770), 463
+  rows of `(option, param)` shorts, named by the PDB's `OptionIndex` and `KeyMapType`. Rows 171–175 read
+  `(0x13, 0..4)`, GOLDEN §146's formation rows, which confirms the offset.
+- **The staging shape.** None of these bytes has an `@` verb in `rontrace.dll`. Each is entered as GOLDEN §146
+  entered the formation keys: `unattended_capture.py --bindkey ACTION=VK` (an F13–F16 key, VK 124–127), the console's
+  `select` of the actor, then `@key VK` on F. `KeyMap::lookup@007d4780` runs before the press and prints `INFO 22`
+  with what the key reaches. A `KEYMAP_NONE` there is the earliest killer, and it means the entry's selection test
+  refused the `select`. The command is processed before the tick of F+1: `CM` on F+1, the order on F+2.
+- **The one existing verb.** The DLL's `@alarm` would reach `action_alarm`'s unit arm, but it refuses a unit
+  (refusal 3, "not a building"). This item builds no verb.
+
+### 391.2 The rows, each with its staging
+
+The lobbies are the golden chapters' own lines. Chapter seventeen's and thirty-three's (§25, §42) give an
+Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enemy Barracks `1/2006`.
+
+1. **`Group::action_air_patrol@007029d0`.** `Group::action_patrol@007030c0:54-75` hands a unit group whose
+   leader is a plane (`is_plane`, or type `+0x218` domain 2 without the helicopter's `+0x2b4 & 0x20`) to it.
+   It lays `Unit::add_air_patrol_order`.
+   - Staging: chapter seventeen's lines to 616, then `620 @patrol 0 7680 11520 6`.
+   - Killer: no `process_patrol` on 621, or `0/6` holding a `PATROLORDER` rather than an `AIRPATROLORDER` on 622.
+2. **`Group::action_air_attack_ground@00703d80`.** `Group::action_attack_ground@00704520:119-168` hands it a
+   group whose leader can carry `AIR` or is a plane, and a group of buildings through the planes inside them.
+   It lays `Unit::add_air_attack_ground_order`.
+   - Staging: the same lines, then `620 @attackground 0 7680 11520 7`.
+   - Killer: `0/7` with no `AIRATTACKGROUNDORDER` on 622.
+3. **`Group::action_return@006fad40`.** `action_recall`'s first branch, taken when the leader's type is domain 2.
+   - For a plane in flight: `close_orders`, then a `STRAFEORDER` to the home in its order's `+0x84` block
+     (`+4`, `+8`).
+   - For a plane inside a host: it is cut from the host's `launching` list (`+0x44`).
+   - For a helicopter on the map: a `STRAFEORDER` home with `returning` 1.
+   - Staging: chapter seventeen's lines to 620 (the Bombers' strike), then `630 select 7 who=0` and `632 @key 124`
+     with `--bindkey OPTION_RETURN=124`.
+   - Killer: no `process_recall 633`, or `0/7`'s order on 634 still the strike.
+4. **`Group::action_recall@006fa7e0`.** On a building group (the leader not domain 2), it first calls
+   `Build::clear_gather` on each member. Then it walks every unit of `who`. A fixed-wing plane in flight
+   (`get_inside` < 0, `+0x1e4 & 0x8000000` clear) whose `+0x84` home is a member takes `returning` 1 and a
+   `STRAFEORDER` home.
+   - Staging: chapter thirty-three's lines to 2280 (`@launchpatrol` from `0/2007`), then `2290 select 2007 who=0`
+     and `2292 @key 124` with `--bindkey OPTION_AIRBASE_RECALL=124`.
+   - Killer: no `process_recall 2293`, or the launched planes still on their `AIRPATROLORDER` on 2294.
+5. **`Group::action_scramble@007111c0`.** It walks each member's `inside_down` chain (`+0x28`, `+0x3e`). Every
+   air passenger that is idle (`UnitData::is_busy` 0), has `+0x1e4 & 0x8000000` clear and has `+0x96` at 0 is sent
+   up: a fixed-wing plane gets an `AIRPATROLORDER` over the host's point, and a helicopter a `MOVEORDER` to it.
+   - Staging: chapter thirty-three's lines to 1850, so the queued plane from 1540 is inside, then
+     `2250 select 2007 who=0` and `2252 @key 125` with `--bindkey OPTION_AIRBASE_SCRAMBLE=125`.
+   - Killer: no `process_scramble 2253`, or no `AIRPATROLORDER` at `0/2007`'s point on 2254.
+   - Second route: `Unit::do_patrol@005f1910:87-102` calls it on every step of a patrolling `AIRCRAFTCARRIER`
+     (0x15f) with a passenger (`inside_down` ≥ 0). That is `@patrol` on GOLDEN §147's carrier once its planes
+     are aboard.
+6. **`Group::action_stop_spell@006fd7a0`.** On a unit group, each member whose action is a `CASTORDER` (type 0xe)
+   is closed: `close_orders`, `spell_time` (`+0x98`) 0. A Merchant, Dutch Merchant or Fur Trapper (0x3d, 0x3e,
+   400) also sets `recalc_builds`.
+   - Staging: chapter nineteen's lines (`620 @spell 0 639 2006 1 …`, the Spy's Informer). On a frame of the
+     forty-frame hold, while the Spy's action is the `CASTORDER` at its ring: `select 6 who=0` and
+     `@key 124` with `--bindkey OPTION_QUEUE=124`.
+   - Killer: no `process_stop_spell` on F+1, or the cast still held on F+2.
+   - The walk to the ring is a `MOVEORDER` action, and a stop sent during it finds no cast.
+7. **`Group::action_disband@0070e260`.** `validate_disband` first. Then, from the last member, a unit or an
+   unfinished building is sent to `Object::disband(o, 0)`, and with `all` 0 only one goes. A finished, active
+   building instead queues `DISBAND`.
+   - Staging: chapter nine's lines to 610, then `620 select 6 who=0` and `622 @key 124` with
+     `--bindkey OPTION_DISBAND=124`.
+   - Killer: no `process_disband all: 0 … 623`, or the Chariot `0/6` alive on 624.
+   - Second caller: `Leader::check_orphaned_buildings@006c9f20:116,221`, for a computer leader's building with
+     the `+0x60 & 1` flag. No staging is named for that one.
+8. **`Group::action_city_gather@00701780`.** For each member that is a city holding the `+8 & 4` bit, it calls
+   `Build::clear_gather`. Then, down the city's building chain (`+0x74`), it calls `add_gather_point(…, 1,
+   QUEUE_LAST)` on each active building of the asked type. With −1 it takes any building that answers type vslot
+   `+0x60` with 0.
+   - The gate is `do_city_gather`'s: a building selection, a gather point among it, and a `VILLAGE` (0x19e) by
+     `GroupData::count(COUNT_TYPE)`.
+   - Staging: the golden start's City, `select <city> who=0` and `@key 124` with
+     `--bindkey OPTION_VILLAGE_GATHER_ALL=124`.
+   - Killer: no `process_city_gather -1` on F+1. That also kills the assumption that a capital counts as
+     `VILLAGE`.
+9. **`Group::action_alarm_peasant@006fd980`.** `action_alarm`'s arm for a unit group (`+0x49` 0, `:547`). Each
+   Citizen (0x32, 0x33) finds a friendly building with `FILTER_CAN_GARRISON` within `0x200`. It drops any
+   `GATHERORDER` (0x1a) at its head, takes a `GARRISONORDER` with the action bit, and sets the leader's `0x2000000`.
+   - Staging: chapter thirty-nine's lobby (§48, the Citizen `0/6` beside the City). `select 6 who=0` and
+     `@key 124` with `--bindkey OPTION_PEASANT_ALARM=124`.
+   - Killer: `process_alarm` on F+1 with `0/6` holding no `GARRISONORDER` on F+2. That would mean `0x200`
+     refused the City, and the Citizen is staged nearer it.
+10. **`Group::action_transport@00702620`.** For each land captain that is not busy, it builds the leader's
+    current `TRANSPORTBARGE` (or `MERCHANTFLEET` for a caravan) at the captain's point. It sets it at the
+    nearest spot and calls `Unit::go_inside`; when `find_nearby_spot` fails and the argument is 0, it kills the
+    boat.
+    - Its only live caller is `ScenarioFuncSet::add_unit@009e2220:130` (argument 1), for a land type placed on
+      an ocean tile by a leader whose `can_transport` is not none. The console's `eval` reaches it through
+      `ScenarioFuncSet::create_unit@009f4c50`, the script's `create_unit(who, x, y, type, num)`: `who` is
+      1-based, and `x`, `y` are in `add`'s quarter-tile units.
+    - Staging: chapter twenty's lines to 604 (`library who=0 1`, the Dock), then
+      `620 !eval create_unit(1, <x>, <y>, "Hoplite", 1)` on a tile `WorldData::is_ocean` answers for. The
+      commander picks it off that chapter's start dump.
+    - Killer: no who=0 barge holding a Hoplite in the next block. A `-1` return would mean the type name
+      or the tile was refused.
+11. **`GroupData::is_in_air_range@0070b6b0`.** `Console::execute_at_cursor@007c6630:3116` asks it for an air
+    selection pointed at an enemy: is the target within `mana × range` of a selected fixed-wing plane, or of any
+    plane inside a selected building that carries `AIR`?
+    - Staging: chapter seventeen's lines to 616, then `618 select 7 who=0` and `620 @rclick <x> <y>` on
+      `1/2006`'s screen point, taken off a screenshot of the lobby as item 3437's points were.
+    - Killer: no `process_flight 2006 1 …` on 621. Out of range, the click is refused at the cursor and lays
+      nothing.
+
+### 391.3 On scope, and the one left open
+
+- **`GroupData::show_interface@0070ce70` is `RESIDUE` on scope (interface).** Its callers are
+  `IFaceMainBase::update_visibility@00811d40:106` (whether the selection panel opens) and
+  `Scene::render_mouseover_text@008bda80:205`. It reads the selection, the console and the leaders' diplomacy,
+  and writes nothing.
+- **`Group::dbg_pack_or_unpack@00707b50` is `RESIDUE` on scope (the editor).** Its one caller is
+  `Options::target_spell@0071dda0:20-34`, under `gamec->semaphore` bit 11 (`ptr[1] & 8`). There, a pack or
+  unpack craft calls `SpellType::cast_pack` or `cast_unpack` directly on the selection, outside the command
+  stream. Bit 11's writers are `ConsoleWin::run_cmd@007d6a70:1570` (reset) and `:1639` (set), and the set arm is
+  the one that opens the in-game scenario editor. The editor is cut from v1 (DECISIONS 107 §3). `docs/ARMY.md`
+  §5 calls this bit "the AI-off bit" (park AT-a).
+- **`CommandPackage::process_transport@00949050` is `RESIDUE` (a verb no site issues).** No writer of byte 0x0d
+  exists in the 102 functions (§391.1), as GOLDEN §144.4 found for `process_repair`'s 0x10.
+- **`Group::is_moving_to@00713bd0` stays `NEVER` with no staging.** `Unit::check_target_path@005e22d0:190-193`
+  calls it under these conditions:
+  - the unit's action is an attack (vslot `+0x18`, `is_attack`, PDB `LF_ONEMETHOD` offset 24) on an active,
+    non-building target out of range;
+  - the type's `+0x1fc` is non-zero or the path is longer than one;
+  - its head order (`update_order`) answers vslot `+0x2c` (`is_group`, offset 44), and the unit is in a group.
+
+  An order that answers both is a `GroupAttackOrder`, and none is constructed (`docs/ORDERS.md` §7.9). Whether a
+  group head can stand over an attack action behind it was not settled (park AT-b). Every pinned trace's AI armies
+  march under `GROUP_ATTACK_TO` and never enter it.
+
+**What is not established.** Nothing in this section is diff-backed. Every claim is a reading of the decompile, the
+listing or the PDB. These were not read whole: `validate_disband`'s arm for a unit selection (taken to return 0),
+`KeyMap::lookup`'s selection test for each bound entry (the `INFO 22` line answers it), the lobbies' screen points
+and ocean tile, and whether the console's `select` takes a building on the lane. Each staging's first killer is the
+`CM` line, which no capture yet holds.
 
 ## 392. The spells no capture ever cast: five have no caster line, three have a staging (item 3907, 2026-11-06)
 
