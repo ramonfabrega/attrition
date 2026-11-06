@@ -1192,9 +1192,10 @@ mine lands at `(41088, 25920)`, which is the original's own position for
   10583 gather list agrees on all 80 rows.
 - **The cliff arm.** `CliffsData::find_nearest` runs beside the mountain one
   and wins when a scary cliff is nearer, with its own `gather_size`. Neither
-  scored map has a single `OBJECT_CLIFF` tile, so nothing here is refused by
-  a capture; a mine beside a cliff still gets an empty list. The falsifier is
-  a map with cliff tiles and a mine on one.
+  scored map has an `OBJECT_CLIFF` tile; a mine beside a cliff still gets an
+  empty list here. ~~The falsifier is a map with cliff tiles and a mine on
+  one.~~ Met: run1516's mine on Southwest Mesa reads `cliff 7`, `length 189`
+  (`docs/AI.md` §395); the build is parked 3924a.
 - ~~**The tie-break in `find_nearest`.** The original's order is the placed-
   mountain array's and then each range's own tile order; this crate's is
   row-major. Two ranges the same distance away would seed different

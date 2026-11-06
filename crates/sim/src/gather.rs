@@ -460,8 +460,9 @@ impl Sim {
     /// **The cliff arm is not modelled.** `CliffsData::find_nearest` runs
     /// beside the mountain one and wins when a scary cliff is nearer; no
     /// capture on either map has a cliff tile at all, so a mine sited on one
-    /// still gets nothing here. The falsifier is a map with `OBJECT_CLIFF`
-    /// tiles and a mine beside them.
+    /// still gets nothing here. The falsifier is met: run1516's mine beside
+    /// a cliff on Southwest Mesa lists 189 cells (`docs/AI.md` §395); the
+    /// build is parked 3924a.
     pub fn gather_tcoords(&self, ty: usize, who: Player, corner: Pos) -> Vec<Pos> {
         let t = &self.build_types[ty];
         let Some(good) = gather_good(t.ident) else {

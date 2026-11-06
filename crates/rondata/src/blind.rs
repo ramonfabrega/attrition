@@ -707,6 +707,13 @@ pub const TRACES: &[&str] = &[
     // `MapConquest::check_starting_loc@0068d7e0` on 620; run1515c's game on
     // every frame (rngcmp 641 identical, 0 differing).
     "rontrace-run1515.log",
+    // Item 3924: Southwest Mesa (`--map 10`, run1493's default lobby) at
+    // `cover=1` on the click-free pool with one line, `100 add mine who=0
+    // 10,43`, beside who=0's cliff on a style with no mountain, to 200
+    // (`docs/RUNS.md` run1516, `docs/AI.md` §395): `calc_gather`'s mine arm
+    // enters `CliffsData::find_nearest@008a8da0` and
+    // `CliffsData::gather_size@008a8f80` on 100.
+    "rontrace-run1516.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -1326,6 +1333,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **335** with item 3919's run1513b (`docs/GOLDEN.md` §166), the `cover=1` twin of chapter one
 /// hundred and sixteen: a General's `@spell 0 637` enters `SpellType::cast_entrench@00672820` on
 /// 680 (`docs/AI.md` §392.3); open 7 → 6 on the tree merged with items 3917, 3918 and 3921.
+/// **334** with item 3924's run1516 joining [`TRACES`] (`docs/AI.md` §395, §393.1 row 1): a
+/// Mine added beside a cliff on Southwest Mesa enters `CliffsData::gather_size@008a8f80` on 100;
+/// open 6 → 5.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1352,7 +1362,7 @@ pub const NEVER: &[u32] = &[
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7200, 0x0079_7c40, 0x0079_8880, 0x0079_99e0, 0x0079_ea80, 0x007a_a400, 0x007a_a560, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,
-    0x0089_8cf0, 0x0089_8f10, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x0089_ddc0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008a_60e0, 0x008a_8f80,
+    0x0089_8cf0, 0x0089_8f10, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x0089_ddc0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008a_60e0,
     0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7810, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0,
     0x0093_a140, 0x0093_a150, 0x0093_e9e0, 0x0093_ee70, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00,
     0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
