@@ -614,6 +614,42 @@ fn a_footprint_more_than_half_unseen_is_refused_seen() {
     assert_ne!(sim.blocked_site(Some(0), dock, pos, None), Blocked::Seen);
 }
 
+/// **A fort's close fixes the borders only once it is built** (item 3901,
+/// `docs/GOLDEN.md` §157): `Build::close@00628980:211`–`:222` reaches
+/// `Forts::close_fort` — and its `Region::fix_borders` — only for a fort
+/// index `Build::activate` has set; an unbuilt site's close is
+/// `UnbuiltForts::remove_unbuilt_fort` alone. A fix restarts the border
+/// pass and zeroes `reg_known_rares` on the next `check_borders`.
+#[test]
+fn a_fort_s_close_fixes_the_borders_only_once_it_is_built() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 20, 20);
+    sim.settle_borders();
+    sim.in_play = true;
+    let site = sim
+        .place_building(0, t.fort, tile_pos(40, 40))
+        .expect("a fort site");
+    assert!(!sim.buildings[site].active, "a placed site is unbuilt");
+    sim.settle_borders();
+    sim.close_building(site, false);
+    assert!(
+        sim.border_pass.is_none() && !sim.borders_fixed,
+        "an unbuilt fort's close fixes nothing"
+    );
+    let fort = sim
+        .place_building(0, t.fort, tile_pos(44, 20))
+        .expect("a second fort site");
+    finish(&mut sim, fort);
+    sim.settle_borders();
+    sim.borders_fixed = false;
+    sim.close_building(fort, false);
+    assert!(
+        sim.border_pass.is_some() && sim.borders_fixed,
+        "a built fort's close fixes the borders"
+    );
+}
+
 /// **`was_seen`'s allied-owner arm tests forts as well as cities** (group 12;
 /// A8 row 38, `WorldData::was_seen@006b53f0`: `reg_cities[region]` **or**
 /// `reg_forts[region]`), and a cell with no region is not ruins (row 40).

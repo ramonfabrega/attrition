@@ -874,6 +874,102 @@ pub(super) fn chapter_one_hundred_and_six_holds_to_the_golden_word() {
     );
 }
 
+pub(super) fn chapter_one_hundred_and_seven_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch107",
+        "chapter107",
+        (605, 760),
+        0,
+        0,
+        (606, 760),
+        false,
+        92,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch107 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch107: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH107.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch107: what parts in the window moved");
+}
+
+pub(super) fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch107", "chapter107", 107, 19, 760) else {
+        return;
+    };
+    eprintln!(
+        "chapter one hundred and seven: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+}
+
+/// The cells that part, and who=1's cell count by dumped block.
+type Ch107Borders = (Vec<String>, Vec<(i64, usize)>);
+
+/// Every cell's `(who, who2)` on every block of run1504 that dumps the
+/// `WORLD` (the `@dumpall` blocks), ours against the original's, with each
+/// block's who=1 count: what parts, and the count by block.
+fn chapter_one_hundred_and_seven_borders() -> Option<Ch107Borders> {
+    let mut s = stage_script("ch107", "chapter107")?;
+    let mut parted: Vec<String> = Vec::new();
+    let mut held: Vec<(i64, usize)> = Vec::new();
+    let width = s.built.sim.world.width();
+    for f in 0..760 - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let log = Log::parse_eager(&raw);
+        let Some((_, block)) = log.frames().into_iter().find(|(k, _)| *k == n) else {
+            continue;
+        };
+        // The first `WORLD` with cells: `dump_deaths`' two print none.
+        let Some(cells) = std::iter::once(block)
+            .chain(block.kid("FULL DUMP"))
+            .flat_map(|b| b.kids("WORLD"))
+            .map(|w| crate::gamelog::world_cells(&w.fields().to_vec()))
+            .find(|c| c.len() == 3600)
+        else {
+            continue;
+        };
+        let owner = |w: i64| match w {
+            -1 => sim::world::Owner::None,
+            -2 => sim::world::Owner::Ambiguous,
+            p => sim::world::Owner::Player(p as u8),
+        };
+        let mut ones = 0;
+        let owners = s.built.sim.world.owners();
+        for (i, c) in cells.iter().enumerate() {
+            let cell = sim::world::Cell::new(i as i32 % width, i as i32 / width);
+            let ours = owners[i];
+            let theirs = (owner(c.who), owner(c.who2));
+            if c.who == 1 {
+                ones += 1;
+            }
+            if ours != theirs {
+                parted.push(format!(
+                    "{n} ({}, {}) ours {ours:?} theirs {theirs:?}",
+                    cell.x, cell.y
+                ));
+            }
+        }
+        held.push((n, ones));
+    }
+    Some((parted, held))
+}
+
 pub(super) fn chapter_one_hundred_and_one_s_window_is_widened_whole() {
     let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
@@ -967,3 +1063,47 @@ pub(super) fn chapter_eighty_seven_s_window_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch87: what parts in the window moved");
 }
+
+/// The border walk's assertion (item 3901, `docs/GOLDEN.md` §157).
+pub(super) fn chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell() {
+    let Some((parted, held)) = chapter_one_hundred_and_seven_borders() else {
+        return;
+    };
+    eprintln!("ch107: {} WORLD blocks compared", held.len());
+    for row in parted.iter().take(40) {
+        eprintln!("  ch107 border {row}");
+    }
+    assert!(
+        parted.is_empty(),
+        "{} cell(s) part from run1504's WORLD blocks",
+        parted.len()
+    );
+    assert_eq!(held, CH107_WHO1_CELLS, "who=1's cells by dumped block");
+}
+
+/// who=1's owned cells on each of run1504's `WORLD` blocks (item 3901).
+const CH107_WHO1_CELLS: &[(i64, usize)] = &[
+    (619, 261),
+    (620, 261),
+    (622, 261),
+    (623, 261),
+    (624, 261),
+    (625, 270),
+    (626, 314),
+    (627, 381),
+    (628, 442),
+    (629, 442),
+    (699, 442),
+    (700, 442),
+    (701, 442),
+    (702, 442),
+    (703, 442),
+    (704, 442),
+    (705, 433),
+    (706, 389),
+    (707, 322),
+    (708, 261),
+    (709, 261),
+    (716, 261),
+    (717, 261),
+];

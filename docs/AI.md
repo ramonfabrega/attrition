@@ -38699,8 +38699,10 @@ re-pin is owed: the take dumps no `GUYS` and is not a pair's twin.
   trace on disk has a fort reach zero hits by combat. The reading says the arm is the same.
 - **Fort-list membership in `sim`.** `fort_at`'s `alive && active` still stands in for the list
   (§358.3's "the list's other exits"). Now that there is no capture arm, that stand-in is
-  exact for a fort's exit. The `fix_borders` call inside `close_fort` is not compared: the
-  Fort stood outside every territory, and nothing in the 623 dump was diffed for it.
+  exact for a fort's exit. ~~The `fix_borders` call inside `close_fort` is not compared: the
+  Fort stood outside every territory, and nothing in the 623 dump was diffed for it.~~ Compared by
+  item 3901 (`docs/GOLDEN.md` §157, run1504): a Fort inside who=1's territory gives its claim back
+  over 705..708, every cell's `(who, who2)` the original's.
 
 ## 388. The two `kill_group_order`s: `find_new_target` strips the group head before it tests it (item 3900, 2026-11-06)
 
