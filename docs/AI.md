@@ -38543,23 +38543,25 @@ environmental route would still miss it. No tracer change is owed for any of the
 
 ### 385.3 What a blind second reading must re-derive
 
-1. `check_cannon_time`'s predicate, its 15-frame gate in `do_frame`, and
+**Done: item 3897's blind second reading agreed on all four rows** (`docs/audit/2026-11-05-item-3897.md`), and they are `RESIDUE`. The reader also proposed a loaded multiplayer save as a route to semaphore bit 2. The audit closes it: a bit-2 game writes `RoNMultiSave`, and every solo load refuses that header. `Blind:` never 268 · residue 264 · open 4. The brief and coverage as item 3894 left them:
+
+~~1. `check_cannon_time`'s predicate, its 15-frame gate in `do_frame`, and
    `cannon_time_who`'s four writers.
 2. That command `0x4d`'s one issuer is gated on `semaphore` bit 2, that bit 2's
    one setter is `run_gamespy`, and that no AI path issues the command.
 3. That `rontrace.dll` attaches as an import, before the executable's entry
    point.
 4. `cpunormspeed`'s registry gate, `cpuspeed`'s single caller, and
-   `check_80386`'s ID-bit arm.
+   `check_80386`'s ID-bit arm.~~
 
-**Coverage.** Every claim here is reading-only. The trace counts and the dump
+~~**Coverage.** Every claim here is reading-only. The trace counts and the dump
 greps are the disk's answer and need no reader. The section cites by address
 only functions that are entered or already on `NEVER`. The unentered helpers
 (`cpuspeed`, `start_cannon_time`, `issue_cannon_time`, `process_cannon_time`,
 `GetRDTSCCpuSpeed`, `GetBSFCpuSpeed`, `check_80286`, `check_IDProc`) are named
 without an address, so no row moves: never 268 · residue 252 · open 16 on the
 item's base, never 268 · residue 260 · open 8 on the tree merged with item 3893.
-On agreement, open moves 8 → 4 (parked 3894a).
+On agreement, open moves 8 → 4 (parked 3894a).~~
 
 ## 386. Reserved for the next item on the AI track
 

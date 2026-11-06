@@ -1082,6 +1082,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// disagreement, settled to `do_spec_anim`'s same-call kill), `ObjectsData::find_town_at`,
 /// `TargetOrder::get_target`, `SubObjectOut::is_on_screen` and `ObjectTypeOut::draw` — and
 /// moves them to [`RESIDUE`]; residue 252 → 260, open 16 → 8.
+/// **268** unmoved by item 3897's blind second reading (`docs/audit/2026-11-05-item-3897.md`),
+/// which agrees on all four of `docs/AI.md` §385's rows — `TurnControl::end_cannon_time` on
+/// scope, `wincpuid`, `wincpufeatures` and `check_80386` on reach — and moves them to
+/// [`RESIDUE`]; residue 260 → 264, open 8 → 4.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1363,6 +1367,29 @@ pub const RESIDUE: &[(u32, &str)] = &[
          and call its +0xc; the window tunes renderer objects and is out of v1 with \
          the renderer it tunes (two readings, item 3861; the sixty-sixth pass, \
          DECISIONS 106)",
+    ),
+    (
+        0x0054_cea0,
+        "wincpuid: once at startup, bighuge_init_real -> cpunormspeed -> \
+         cpuspeed, and cpuspeed runs only when the registry's \
+         CentralProcessor\\0 ~MHz/~Mhz/~mhz all fail, which the prefix \
+         answers; the tracer arms before the exe's entry and records \
+         cpunormspeed at frame -1 on every traced launch; out on reach, \
+         the host's registry and not a lobby (two readings, item 3897, \
+         docs/audit/2026-11-05-item-3897.md)",
+    ),
+    (
+        0x0054_cf90,
+        "wincpufeatures: cpuspeed's second unconditional call, behind the \
+         same registry gate as wincpuid; out on reach (two readings, item \
+         3897, docs/audit/2026-11-05-item-3897.md)",
+    ),
+    (
+        0x0054_d100,
+        "check_80386: wincpuid's one call, taken only when EFLAGS.ID cannot \
+         be toggled (a processor without CPUID), behind cpuspeed's registry \
+         gate; out on reach twice over (two readings, item 3897, \
+         docs/audit/2026-11-05-item-3897.md)",
     ),
     (
         0x0058_3380,
@@ -2700,6 +2727,16 @@ pub const RESIDUE: &[(u32, &str)] = &[
          compiler inlined at every use, or one nothing calls; no reference in \
          the executable (the fiftieth pass's scan over the 192 open rows, \
          2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0095_6470,
+        "TurnControl::end_cannon_time: check_cannon_time's one call, gated on \
+         cannon_time_who >= 0, whose one non-negative writer is \
+         start_cannon_time <- command 0x4d <- issue_cannon_time, refused \
+         unless semaphore bit 2, set only by Game::run_gamespy; a save \
+         carrying bit 2 is headed RoNMultiSave, which every solo load \
+         refuses; out on scope (two readings, item 3897, \
+         docs/audit/2026-11-05-item-3897.md)",
     ),
     (
         0x0095_6ac0,
