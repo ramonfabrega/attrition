@@ -39775,12 +39775,57 @@ was the formation's path length on the leader's sixteenth frame. Whether `GROUP_
 rally, the AI) ever stands over an appended attack is open: no producer was found. **Coverage**: all four rows are
 reading-only, on two readings.
 
-## 398. Reserved for the next item on the AI track
+## 398. 3932a's re-timing refuses in its recon: a grouped leader's first touch ungroups it with no search (item 3937, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3932a is the one ordering §396.3 left: U walks a slot-*a* group move `GM X` as leader, collides and
+suspends on frame S, and is ungrouped into a `MOVE_TO` copy without `0x04`. Then `GM Y` and the regroup land
+inside the four-frame beat. The falsifier went into the journal first: no `start_dist` on a grouped leader under
+`do_group_move`, or `GM Y` laid under a current plain move is not its next order. **The first clause holds**, in
+the second of two `cover=0` recons (`recon3937-1`, `-2`, unfiled). No take was run, and run 1521 is unused.
+Neither `kill_group_order` is entered, and the pair goes back to a `RESIDUE` candidate.
+
+### 398.1 What the recons read
+
+- **`start_dist` is not the stash.** `astar_path` stamps `+0x130` on a suspend (§388.1), and nothing clears it.
+  run1518's U shows `816` from 805 to 879. The stash (`+0x104`) is not dumped, so a stamp dates a suspend and never
+  says the stash is held.
+- **The suspend is gated.** For a mover, `resolve_unit_collision:388-405` return 1 without a search
+  (`unit_masks |= 0x40`) unless the collider is an enemy, either unit's `collide` has reached `0x20` (`0x80` once
+  `repaths > 3`), or the collider is colliding back with this unit. Only then is the search at `:482` reached.
+  run1518's U was stamped at `collide` 1, so it took the mutual arm.
+- **An attack on an unseen unit is not a far move.** recon3937-1 kept run1518's lines to 642 and laid nothing
+  after. `{U, V}`'s plain move from `640 @attack 0 9 1 6 9` goes to (2568, 19896), a few cells off, not to `e`. So
+  `GM X` (`644101`, U leading) aims there too. It became current on 652 and was ungrouped into `MOVEORDER flags 1`
+  the same frame, with `collide` 0, and U was idle on 653. That is 3932b's nine frames: the plain move arrives.
+- **`@gather` gives the far group move.** In recon3937-2, `640 @gather 0 2001 6 9` (the Woodcutter's Camp, (4224,
+  28608), run1070's verb) lays `GroupMoveOrder 640900 flags 1` in slot 11 on both units, with **V `0/9` the
+  leader** (`oxx 9`). Twenty idle who=0 hoplites stood at cells (13..17, 114..117).
+
+### 398.2 The refusal
+
+V walks the group move from 642. **On 768 it touches the idle `0/73`** (`collide_o 73`, `collide_who 0`, `collide`
+1). On 769 `GroupMoveOrder 640900` is replaced in place by `MOVEORDER flags 1` with the same destination (4008,
+22488). That is `ungroup_move_order`'s copy (`do_group_move:108-147` → `LAB_005e7c6c`: no `ATTACK` action, so the
+kill arm is shut). `group` stays 11. `start_dist` reads 0 on every frame to 1000, and `collide` never passes 1.
+
+So the leader's suspend that 3932a's S needs does not come. The collision that ends the leader's walk is the
+first friendly touch, which returns 1 with no search. `do_move` returns 0, and the arm ungroups that frame. By the
+time the gate at `:388` could open (a mutual touch, or `collide` ≥ `0x20`), the unit is no longer a leader under
+`do_group_move`. This is the same "a collision ungroups the leader" 3504a saw (§388.1), and 3504 never stamped a
+leader for the same reason. The second clause was never reached.
+
+**What the recon leaves open, and the lane did not take.** The copy outlives the ungroup. V holds `MOVEORDER
+flags 1`, `group` 11, as its only order from 769 to past 960, so a later mutual touch under the copy would stamp a
+stash on a grouped unit under a plain move without `0x04`. That is 3923's step 3 reached by another road, not
+3932a's ordering. It is parked (3937a), not built.
+
+**What is not established.**
+- Whether a mutual touch under the copy, with `group ≥ 0` and a stash held four frames, can be staged at all. No
+  recon tried it.
+- `get_open_slot` and the counter for a `@gather` slot were read off the dump (slot 11, counter 0), and not in the
+  decompile.
+- Nothing here is diff-backed beyond the dump's order lists, `collide` and `start_dist`. No trace was taken, so
+  `kill_group_order`'s absence is the dump's reading, and `blind::NEVER` is unmoved.
 
 ## 399. Reserved for the next item on the AI track
 
