@@ -14729,13 +14729,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BQ — reserved
+## Parked by item 3937, 2026-11-06 — 3932a's re-timing refused: a grouped leader's first touch ungroups it with no search
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3937a. A stash under the ungroup's copy, the one road 3932a's refusal leaves** (`docs/AI.md` §398.2). In
+  recon3937-2, `640 @gather 0 2001 6 9` gave `{U, V}` `GroupMoveOrder 640900 flags 1` in slot 11, V leading. V's
+  first touch, on 768 with the idle `0/73`, ungrouped it into `MOVEORDER flags 1` with no search (`start_dist` 0 to
+  1000). That is 3932a's falsifier. The copy then stood as V's only order with `group` 11 from 769 to past 960. A
+  mutual touch under it (`resolve_unit_collision:388-405`'s gate) would stash a grouped unit under a plain move
+  without `0x04`, then `GM Y` and the regroup are laid in the beat after. **Falsifier, first**: no mutual touch, or
+  no `start_dist` stamp, on V under the copy, or a stamp with `collide_frame` re-stamped inside the four frames.
+  **Score**: the two `NEVER` rows. It is the commander's to book or to rule `RESIDUE`, and it is a sixth ordering
+  only if booked as one.
+- **3937b. An attack on an unseen unit lays its plain move to a point a few cells off, not at the target**
+  (§398.1; it answers half of 3932b). In recon3937-1, `{U, V}`'s move from `@attack 0 9 1 6 9` went to (2568,
+  19896), and a shift-formation's `get_loc_to` aims there. The maker was not read. **Score**: none.
 
 ## Parked by the next landing, slot BR — reserved
 
