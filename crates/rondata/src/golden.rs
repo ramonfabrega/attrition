@@ -720,6 +720,15 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@attackadd <who> <ox> <whom> <o> [<o> …]`: `@attack` at
+    /// `QUEUE_LAST`, the shift-click on an enemy (`tracer.c`'s verb 7 with
+    /// `queue_add`, item 3448; item 3936, `docs/GOLDEN.md` §170).
+    AttackAdd {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
     /// `@amove <who> <x> <y> <o> [<o> …]`: `@move`'s fields through the
     /// same `issue_move_to@00941720`, with `ATTACK_TO` for `MOVE_TO` — a
     /// ctrl+right-click on the ground, the attack-move (item 731).
@@ -944,6 +953,7 @@ impl Issued {
             | Issued::Garrison { who, objects, .. }
             | Issued::Form { who, objects, .. }
             | Issued::Attack { who, objects, .. }
+            | Issued::AttackAdd { who, objects, .. }
             | Issued::AttackMove { who, objects, .. }
             | Issued::Explore { who, objects, .. }
             | Issued::Flee { who, objects, .. }
@@ -1039,6 +1049,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "eject"
             | "form"
             | "attack"
+            | "attackadd"
             | "amove"
             | "explore"
             | "flee"
@@ -1359,6 +1370,12 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             whom: y,
             objects,
         },
+        "attackadd" => Issued::AttackAdd {
+            who,
+            ox: x,
+            whom: y,
+            objects,
+        },
         "amove" => Issued::AttackMove { who, to, objects },
         "attackground" => Issued::AttackGround { who, to, objects },
         "moveadd" => Issued::MoveAdd { who, to, objects },
@@ -1525,6 +1542,14 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_attack(built, who, &objects, ox, whom, 0, 2),
+        // `@attackadd` is the same call at `QUEUE_LAST` (1), the
+        // shift-click (item 3936, `docs/GOLDEN.md` §170).
+        Some(Issued::AttackAdd {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_attack(built, who, &objects, ox, whom, 0, 1),
         // `@flight` and `@strike` are `issue_flight@00941d40` with
         // `MOVE_TO` (1) and `ATTACK` (10), a `group` and a `flight`, whose
         // entry is [`crate::input::group_flight`] (item 746,
