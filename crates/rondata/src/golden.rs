@@ -2538,6 +2538,10 @@ mod tests {
         // Chapter one hundred and sixteen: a General and a Hoplite squad, and
         // the General's Entrench, `@spell` (item 3919, `docs/GOLDEN.md` §166).
         ("chapter116.cmd", &[]),
+        // Chapter one hundred and seventeen: chapter ninety-one's lobby, a
+        // Scout's Counterintelligence on an enemy Spy (item 3920,
+        // `docs/GOLDEN.md` §167).
+        ("chapter117.cmd", &[]),
         // Chapter one hundred and eighteen: chapter one hundred and
         // fifteen's staging and a fourth `@queueup` of `DISBAND` at the
         // Barracks in city 0 (item 3930, `docs/GOLDEN.md` §168).

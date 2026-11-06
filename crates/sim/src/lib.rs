@@ -7662,8 +7662,10 @@ impl Sim {
     /// the two teleporting callers carry it —
     /// `Unit::set_new_location(…, 1, …)`, which is `Unit::init`'s seating
     /// and `resolve_unit_collision`'s cell-centre snap
-    /// (`docs/COLLISION.md` §6 step 6). `Unit::set_angle`'s call and
-    /// `Guy::move`'s both pass zero.
+    /// (`docs/COLLISION.md` §6 step 6) — and `Unit::set_angle(…, 1)`,
+    /// which `Unit::do_cast`'s turn to its target is (item 3920,
+    /// [`Sim::unit_set_angle_as`]). Every other `Unit::set_angle` call this
+    /// crate makes, and `Guy::move`'s, pass zero.
     fn crew_des(&mut self, u: usize, from: Pos, angle: movement::Angle, snap: bool) {
         let bound = Pos::new(
             self.world.width() * world::UNITS_PER_CELL,

@@ -14581,13 +14581,19 @@ no score.
   `ATTACK`, and a French caster's `FRENCH_ENTRENCH` scale. The unit test pins them, but the word is closed and no run
   reaches them. Names no score.
 
-## Parked by the next landing, slot BH — reserved
+## Parked by item 3920, 2026-11-06 — a Scout's Counterintelligence
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3920a. The other `Unit::set_angle(…, 1)` callers** (`docs/GOLDEN.md` §167). `Guy::set_angle@005d9010`'s crew
+  loop puts each tracked figure on its point when its `param_2` is set. Item 3920 built that for `do_cast`'s turn
+  alone (`Sim::unit_set_angle_as`). The decompile names four more callers that pass 1: `Unit::do_move@005f7b30:361`,
+  `Unit::do_spec_anim@005e5880:74` and `:141`, `Unit::go_inside@0061a2e0:86`, and `Unit::dbg_jump_to_action@00602ea0:74`
+  (and `ScenarioRead::load_unit_chunk`, the editor's). Wherever this crate reaches one of those through the
+  non-snapping `unit_set_angle`, a crew figure walks where the original puts it. The decompile hides the argument
+  where it is a register (do_cast's was), so the listing is the count. **Score**: none names one; a crewed unit's
+  draw word on one of those paths would.
+- **3920b. Counterintelligence's leader counters** (`docs/GOLDEN.md` §167): `units_killed` (`LeaderData +0x80c`) += 1
+  and `score_combat` (`+0x44`) += cost / 5 on a single-figure enemy captain. This crate carries neither, and
+  `LEADERS=2` prints neither. Names no score.
 
 ## Parked by item 3921, 2026-11-06 — the `!eval` take that enters `check_starting_loc`
 

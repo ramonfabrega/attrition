@@ -6850,6 +6850,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIFTEEN: i64 = 1100;
 /// `chapter_one_hundred_and_fifteen_s_window_is_widened_whole`'s window:
 /// run1512.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FIFTEEN: (i64, i64) = (604, 1101);
+/// **Chapter one hundred and seventeen** (item 3920, `docs/GOLDEN.md` §167,
+/// run1514): a Scout's Counterintelligence on an enemy Spy, the Spy dead
+/// with `dtype` 2 on 658.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SEVENTEEN: i64 = 900;
+
+/// `chapter_one_hundred_and_seventeen_s_window_is_widened_whole`'s window:
+/// run1514.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_SEVENTEEN: (i64, i64) = (604, 901);
 
 /// **Chapter one hundred and sixteen** (item 3919, `docs/GOLDEN.md` §166,
 /// run1513): a General's Entrench beside a Hoplite squad.
