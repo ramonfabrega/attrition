@@ -34102,8 +34102,9 @@ the one extra (`GROUND_INEXACT` stays 3).
 - ~~**Why ours' fisherman goes where it does on 3131.** Theirs spends a `Guy::init_real` (a birth) at the index where
   ours runs `think_fish`; that is the next item's.~~ Answered by item 3709 (§362.1): a bird headed the fish cell's
   chain in ours, and owner 9 is never threaded; the word moves 3130 → 4842 (§358.4).
-- **The list's other exits.** `close_fort` is read and not modelled: it covers a fort's death, which `alive` stands
-  for, and its capture, which no capture on disk holds.
+- ~~**The list's other exits.** `close_fort` is read and not modelled: it covers a fort's death, which `alive` stands
+  for, and its capture, which no capture on disk holds.~~ Answered by item 3898 (§387): `close_fort`'s one caller is
+  `Build::close`, a fort has no capture arm, and run1502 enters it on a console `die`.
 - **The `Region.coords` seam is closed for one sweep**, region 8 and region 12 on run1385p, not for every map.
 
 **The rubric** does not move: the word does not close.
@@ -38543,23 +38544,25 @@ environmental route would still miss it. No tracer change is owed for any of the
 
 ### 385.3 What a blind second reading must re-derive
 
-1. `check_cannon_time`'s predicate, its 15-frame gate in `do_frame`, and
+**Done: item 3897's blind second reading agreed on all four rows** (`docs/audit/2026-11-05-item-3897.md`), and they are `RESIDUE`. The reader also proposed a loaded multiplayer save as a route to semaphore bit 2. The audit closes it: a bit-2 game writes `RoNMultiSave`, and every solo load refuses that header. `Blind:` never 268 · residue 264 · open 4. The brief and coverage as item 3894 left them:
+
+~~1. `check_cannon_time`'s predicate, its 15-frame gate in `do_frame`, and
    `cannon_time_who`'s four writers.
 2. That command `0x4d`'s one issuer is gated on `semaphore` bit 2, that bit 2's
    one setter is `run_gamespy`, and that no AI path issues the command.
 3. That `rontrace.dll` attaches as an import, before the executable's entry
    point.
 4. `cpunormspeed`'s registry gate, `cpuspeed`'s single caller, and
-   `check_80386`'s ID-bit arm.
+   `check_80386`'s ID-bit arm.~~
 
-**Coverage.** Every claim here is reading-only. The trace counts and the dump
+~~**Coverage.** Every claim here is reading-only. The trace counts and the dump
 greps are the disk's answer and need no reader. The section cites by address
 only functions that are entered or already on `NEVER`. The unentered helpers
 (`cpuspeed`, `start_cannon_time`, `issue_cannon_time`, `process_cannon_time`,
 `GetRDTSCCpuSpeed`, `GetBSFCpuSpeed`, `check_80286`, `check_IDProc`) are named
 without an address, so no row moves: never 268 · residue 252 · open 16 on the
 item's base, never 268 · residue 260 · open 8 on the tree merged with item 3893.
-On agreement, open moves 8 → 4 (parked 3894a).
+On agreement, open moves 8 → 4 (parked 3894a).~~
 
 ## 386. `GoodTypeData::is_flat`: the site that calls it is the gather arm, and no AI request reaches it (item 3896, 2026-11-05)
 
@@ -38642,12 +38645,62 @@ receivers are named by slot shape only.~~ Two readings now (item 3899's audit): 
 diff-backed except the make-list census in §386.2. **Coverage**: reading-only, on two readings (§386.1–§386.3);
 diff-backed, the census.
 
-## 387. Reserved for the next item on the AI track
+## 387. `Forts::close_fort` entered: a who=1 Fort added and killed by console (item 3898)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3898, 2026-11-05, Opus 5.5. A `coverage` item (DECISIONS 87, 107 §2; parked 3708b). Run 1502.*
+
+### 387.1 The callers, read
+
+`Forts::close_fort@0073ec90` has one caller, a `call rel32` from `Build::close@00628980`
+(`report.py <exe> refs`: no other call, jump or copy of the address anywhere in the image, and
+the byte before the entry is padding). `Build::close` calls it for an **alive** building
+whose type answers the fort slot of `BuildTypeData`'s vtable and whose fort index is not −1.
+The same arm calls `UnbuiltForts::remove_unbuilt_fort` when its caller passes 0. The index is
+written in one place, `Build::activate@00623e20`, from `Forts::init_fort@0073ed70`'s return,
+on the same type test. `close_fort` fixes the borders when the fort's cell has a region, runs
+`Fort::close`, and trims the leader's fort count past the trailing inactive slots.
+
+**There is no capture arm.** CITIES §8's city capture swaps an active military trainer in one
+of the taker's cities and `die(3)`s every other building, and the fort line is excluded from
+the swap by name. A fort therefore leaves its list only by dying, and every death runs
+`Object::die` → `close` → `Build::close`. The cheaper staging is the death. Console `die
+o,who` reaches it in one line with no fight, where a siege would need an army, an age and
+time. `add fort` without `NEW` completes the building at once, so `activate` runs and the
+fort index is set (ORACLE's `add` table; chapter 106 stood a who=1 Fort the same way).
+
+### 387.2 The take: run1502
+
+`tools/gamelog/coverage/fort3898-start.cmd` is run1494's line, the golden start (`--map 14`,
+seed 12345), with `620 add fort who=1 54,25`, `@dumpall` on 621 and 623, and `die 2007,1` and
+`die 2008,1` on 622. who=1's buildings on run1499's block 624 are 2000..2006, so `2008` covered
+an AI site laid first. **The killer**, written before the take: no `HIT` for 0073ec90 while
+block 623 no longer holds a who=1 Fort.
+
+- **Entered.** `report.py … functions`: `Forts::init_fort` first on 620, `Build::close`,
+  `Fort::close` and `Forts::close_fort` first on 622. The killer did not fire.
+- **The dump.** Block 621's `BUILDDATA` holds `1/2007`, type 443 (the Fort), 2000 hits, flags
+  7. Block 623's holds who=1's 2000..2006 and no 2007. `cmdsran.py`: the `add` on 620 and both
+  `die` lines on 622 returned 1.
+- **The point was tiles.** The `.cmd`'s `add` placed the Fort at tile (54, 25), internal
+  54 × 192 + 96. ORACLE's calibration (one unit is four tiles) is for the chat console's
+  `cheat add`. So the Fort stood in the open, not in who=1's base. `close_fort`'s gate
+  does not read where a fort stands.
+- **One `NEVER` row of 268** is entered: 0073ec90.
+- **Twin.** `rngcmp.py` against run1130: 641 in common, 0 differing. `samegame.py --from 620`:
+  the same game before 620. It parts on 621..624, the `@dumpall` blocks and the Fort, by
+  construction, and agrees again from 625.
+
+`Blind:` never 268 → 267 · residue 260 · open 8 → 7 on this base. No word moves. No rubric
+re-pin is owed: the take dumps no `GUYS` and is not a pair's twin.
+
+### 387.3 What this has not established
+
+- **That a siege's kill takes the same route.** Damage to zero runs `Object::die` too, but no
+  trace on disk has a fort reach zero hits by combat. The reading says the arm is the same.
+- **Fort-list membership in `sim`.** `fort_at`'s `alive && active` still stands in for the list
+  (§358.3's "the list's other exits"). Now that there is no capture arm, that stand-in is
+  exact for a fort's exit. The `fix_borders` call inside `close_fort` is not compared: the
+  Fort stood outside every territory, and nothing in the 623 dump was diffed for it.
 
 ## 388. Reserved for the next item on the AI track
 
@@ -38664,6 +38717,48 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 390. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 391. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 392. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 393. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 394. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 395. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 396. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
