@@ -14679,13 +14679,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BN — reserved
+## Parked by item 3934, 2026-11-06 — a Disband at a Temple in a city
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3934a. The city arm's refusal of a second entry in one city** (`docs/GOLDEN.md` §169, `Sim::disband_castable`,
+  `CityData::is_disbanding@007380a0`). run1519's Temple queues at `0 > 0` and closes at `1 > 1`, so both readings of
+  the city arm answer castable, and the diff sees only breaks that make it refuse. A refusal needs a second
+  `DISBAND` in the same city while one stands. `Group::action_queue_up`'s research arm refuses any such press first,
+  so only a path that queues without the group (none this crate or the DLL's `@` lines is known to have) could reach
+  it. The `NO_CITY` skip inside `is_disbanding` is unit-tested only. Names no score: chapter 119 is closed whole, and
+  the row has left `NEVER`.
 
 ## Parked by the next landing, slot BO — reserved
 

@@ -17938,10 +17938,10 @@ drives 829..833.
   press before `queue_up` asks. The city test now calls `queue_disband` twice on one building, and the break fails it.
 
 **Not established.** A Disband in a city: `is_disbanding` and the finish's `> 1` (parked 3918a, taken by §168 for a
-Barracks, which skips the arm; a Temple's is parked 3930a; two unit-tested, never
-captured). An entry behind a unit at the head, and the AI's readers of an entry's type (3918b). A city's own disband
+Barracks, which skips the arm; ~~a Temple's is parked 3930a; two unit-tested, never
+captured~~ a Temple's is §169, which enters `is_disbanding` and closes). An entry behind a unit at the head, and the AI's readers of an entry's type (3918b). A city's own disband
 (`cities[c] + 4 & 0x10`, other players' claims), a wall (vslot `0x20`), and the city, Senate and Lakota scalings of the
-time. `type_avail(DISBAND, 1)` and `queue_here` answered yes for a Barracks; no other building type was asked.
+time. `type_avail(DISBAND, 1)` and `queue_here` answered yes for a Barracks; ~~no other building type was asked~~ and for a Temple (§169).
 
 **Coverage.** Diff-backed: the research arm's refusal, the entry, its time and clock, the close on the finish, and the
 pool's prune. Reading only: `is_castable`'s own-queue and city arms (unit-tested), the time's scalings, and `cast_disband`'s
@@ -18130,8 +18130,9 @@ queue and 1 at the finish.
   the skip dropped from `city_disbanding`, and `no_city` answering no. Scored on chapter 118, the gate dropped fails
   nothing. The diff is blind to it here, and the unit test is the assertion.
 
-**Not established.** `is_disbanding` itself, the finish's `1 > 1` and the refusal at the queue (`0 > 0`), for a city
-building without `e`: parked 3930a, a Temple in city 0. The group's research arm refuses any second press while one
+**Not established.** ~~`is_disbanding` itself, the finish's `1 > 1` and the refusal at the queue (`0 > 0`), for a city
+building without `e`: parked 3930a, a Temple in city 0.~~ Taken by §169: a Temple in city 0 enters it at the press,
+queues at `0 > 0` and closes at `1 > 1`. The group's research arm refuses any second press while one
 entry stands, so the queue's `> 0` refusal is reachable only through a building the arm does not count. A city's own
 arm (`+8 & 0x20`: `cities[c] + 4 & 0x10`, and other players' claims at `+0x68`) is unreached, as in §165.
 
@@ -18140,12 +18141,66 @@ finish, and the Barracks' skip of `is_disbanding` (the twin's absence). Reading 
 `NO_CITY` gate's other side, `is_disbanding`'s count and its type skip. `CityData::is_disbanding` stays `NEVER` in
 `blind::`, with this arm named.
 
-## 169. Reserved for the next item on the rules track
+## 169. Chapter one hundred and nineteen — a Disband at a Temple in a city; closed at 1200 on the first take (item 3934, run1519, run1519b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3930a; §165, §168): `CityData::is_disbanding@007380a0`, `is_castable`'s city arm. Chapter
+118's Barracks skips that arm because its type carries `NO_CITY` (`e`). A city building without `e`, pressed once no
+entry stands, was to make `is_castable` ask the city.
+
+**What the reading settles before the take.** The booking named three arms that could refuse a Temple, and the
+listing settles two of them.
+- `BuildTypeData::queue_here@00639d10` returns 1 at its head for `DISBAND`, before it reads the building's type.
+- `BuildData::can_make@0062db10` asks `LeaderData::type_avail` of the craft (0x29a) on the owner's leader, and never
+  of the building. run1517 answered it yes for the same player.
+
+That leaves the city arm, which is the row itself. A Temple's `BUILD_FLAGS` are `jam`, with no `e`, and its `JOB_TIME`
+is 420, the Barracks' own. So the prediction was §168's frames, with the city asked.
+
+**Staging** (`tools/gamelog/golden/chapter119.cmd`): chapter 118's nine lines with `616 add temple who=0 28,160`
+(chapter four's Temple tile) in place of the second Barracks. The journal has the five killers, written before the
+take. The first was the booking's: no `is_disbanding` entered on the press's frame.
+
+**What the original does** (run1519 `cover=0`, its twin run1519b `cover=1 --no-ffwd --twin`; both `--ai-tribe 11`
+and the golden start's four lobby fields, read back; `docs/RUNS.md`). `process_queue_up 666 1` lands on 621, 641, 661
+and 841.
+- Up to 832 it is §165's game. `0/2007`'s entry stands from 622 to 831, and the Temple `0/2008` (`orig_type` 437,
+  `city 0`) is refused on 641 and 661 by the research arm.
+- **The Temple holds the entry from 842**: `queued 1`, `queue[scan].type 666`, and `job_counter` from 100 on 842 at
+  100 a frame to 21000 on 1051. Block 1051 is its last, and it is gone from `BUILDS` on 1052. So killers 2 to 5 held:
+  `can_make` passes a Temple, the time is unscaled, and the finish's count allows the Temple's own entry.
+- **The killer did not fire.** The twin enters `CityData::is_disbanding@007380a0` on trace frame 840, the press's,
+  together with `BuildData::count_queue` (its vslot `400` call, `(1, 0x29a)`, on each active building of the city
+  without `+0x2c0 & 0x10`). The city arm is asked of a type without `NO_CITY`.
+- run1519 and run1519b are one game on all 1201 frames (`rngcmp`). Against run1517 they first differ at 617, the
+  Temple's placement.
+
+**What this crate does.** Nothing was built: 3930's `NO_CITY` gate in `Sim::disband_castable` and `city_disbanding`
+already sends a Temple through the city arm. The draw stream agrees to the trace's end:
+`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINETEEN` = **1200**, closed
+(`chapter_one_hundred_and_nineteen_holds_to_the_golden_word`). The widening over 605..1200
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_NINETEEN` (604, 1201), both directions, the pool too) parts on the eleven standing
+`form` rows and nothing else (`WANT_CH119`). So the Temple's `queued`, its entry's type and `job_counter` agree on every
+block from 842 to 1051, and so does its absence from 1052. The coverage driver drives 1050..1054.
+
+**Mutations** (`tools/mutate.py --batch`, on `7b35244b9`).
+- Scored on chapter 119, four breaks that make the city arm refuse the Temple fail the word and the widening: the
+  refusal whole (`>=`), the queue-only half (`|| !finishing`), the finish-only half (`|| finishing`) and
+  `city_disbanding`'s count + 1. The first, second and fourth part at `842 0/2008 queue:queued`; the third part at the
+  close, `1052 0/2008 build:extra`.
+- The type test inverted in `disband_castable` (`no_city` asked the other way) and dropped from `city_disbanding` fail
+  nothing on the chapter, because the arm answers castable on this staging either way. Scored on
+  `a_no_city_building_skips_the_city_s_disband_count`, both fail it.
+
+**Not established.** A refusal by the city arm: on this staging the counts are 0 at the queue and 1 at the finish, so
+both readings answer castable. The queue's `> 0` refusal needs a second entry in the city, which the group's research
+arm refuses while one stands. Only a building the arm does not count could lay it. The `NO_CITY` skip inside
+`is_disbanding` is unit-tested only (`a_no_city_building_skips_the_city_s_disband_count`). A city's own arm
+(`+8 & 0x20`) and the city, Senate and Lakota scalings of the time are unreached, as in §165.
+
+**Coverage.** Diff-backed: the Temple's press after the close, its entry in a city, its unscaled time, its close on the
+finish, and `is_castable`'s city arm asking `is_disbanding` (the twin's entry). Reading only: `queue_here`'s and
+`type_avail`'s answers for a Temple (each settled at its head by the listing). `CityData::is_disbanding` leaves `NEVER`
+in `blind::`.
 
 ## 170. Reserved for the next item on the rules track
 
