@@ -14332,13 +14332,40 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AT — reserved
+## Parked by item 3906, 2026-11-06 — the group actions no capture ever issued, read to their issuers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3906a. `docs/ARMY.md` §5 calls `semaphore[1] & 8` "the AI-off bit".** Its writers are
+  `ConsoleWin::run_cmd@007d6a70:1570` (reset) and `:1639` (set), and the set arm opens the in-game scenario editor
+  (AI §391.3). `docs/CITIES.md` and GOLDEN §144 already read it as the editor's bit. ARMY §5's and ORDERS §2.1's
+  gates on it are the editor's, not the console's `ai off`. **Score**: none. It is a label on two specifications,
+  amended in place when either is next touched.
+- **3906b. A blind second reading of AI §391.3.** The reader re-derives, without §391 or this park:
+  - whether `GroupData::show_interface@0070ce70` writes any simulation state;
+  - whether any caller other than `Options::target_spell@0071dda0` reaches `Group::dbg_pack_or_unpack@00707b50`,
+    and who sets `semaphore` bit 11;
+  - whether any site writes command byte 0x0d;
+  - which head orders and actions open `Unit::check_target_path@005e22d0`'s `Group::is_moving_to@00713bd0` arm
+    (`:190-193`). In particular, can a group head stand over an attack action behind it?
+
+  **Score**: `Blind:` open, the three `RESIDUE` rows ratified and `is_moving_to` ruled a staging or `RESIDUE`.
+- **3906c. The eleven stagings of AI §391.2, for the commander to book.**
+  - Row 1, `@patrol` on chapter seventeen's Fighter: `action_air_patrol`.
+  - Row 2, `@attackground` on its Bomber: `action_air_attack_ground`.
+  - Row 3, `OPTION_RETURN` on the Bombers in flight: `action_return`.
+  - Row 4, `OPTION_AIRBASE_RECALL` after chapter thirty-three's 2280 launch: `action_recall`.
+  - Row 5, `OPTION_AIRBASE_SCRAMBLE` on its Airbase with a plane inside: `action_scramble`.
+  - Row 6, `OPTION_QUEUE` on chapter nineteen's Spy mid-hold: `action_stop_spell`.
+  - Row 7, `OPTION_DISBAND` on chapter nine's Chariot: `action_disband`.
+  - Row 8, `OPTION_VILLAGE_GATHER_ALL` on the golden City: `action_city_gather`.
+  - Row 9, `OPTION_PEASANT_ALARM` on chapter thirty-nine's Citizen: `action_alarm_peasant`.
+  - Row 10, `!eval create_unit` on an ocean tile in chapter twenty's lobby: `action_transport`, `add_unit`,
+    `create_unit`.
+  - Row 11, `@rclick` of chapter seventeen's Bomber on `1/2006`: `is_in_air_range`.
+
+  Rows 1–9 and 11 also enter their `Options`/`GroupOut` writer and `CommandPackage` arm, which §391.1 names.
+  Rows 1, 2, 3, 11 and 4, 5 share two lobbies, so two or three chapters can take them. Each needs a run number and
+  a GOLDEN section from §158–§163. **Score**: `Blind:` never and open, 27 rows; each staging names its `CM`
+  killer.
 
 ## Parked by the next landing, slot AU — reserved
 

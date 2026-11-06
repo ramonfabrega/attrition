@@ -1115,6 +1115,16 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// has a human producer, but no entry into `find_new_target` was found for that list: with a
 /// group move current only `do_move:105` admits it, behind a stash; neither a take nor
 /// `RESIDUE`, the entry parked as 3904a; open 2.
+/// **297** with item 3906's cite of the implicit residue's `groups` stem (`docs/AI.md` §391; no
+/// capture joins [`TRACES`]): the fourteen group rows and the sixteen issuer-chain functions
+/// their stagings enter — `Options::recall_aircraft`, `scramble_aircraft`, `do_alarm`,
+/// `do_city_gather`, `do_disband`, `GroupOut::issue_stop_spell`, `issue_city_gather`,
+/// `validate_disband`, six `CommandPackage::process_*` arms, `ScenarioFuncSet::create_unit` and
+/// `add_unit`; eleven rows take a staging (§391.2: nine `@key` with `--bindkey`, one `@rclick`,
+/// one `!eval create_unit`), `Group::is_moving_to` stays open with none (park AT-b), and
+/// `GroupData::show_interface`, `Group::dbg_pack_or_unpack` and
+/// `CommandPackage::process_transport` go to [`RESIDUE`] on scope (§391.3); residue 265 → 268,
+/// open 2 → 29.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1134,14 +1144,14 @@ pub const NEVER: &[u32] = &[
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
-    0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
-    0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
+    0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x006f_a7e0, 0x006f_ad40, 0x006f_d7a0, 0x006f_d980, 0x0070_0010, 0x0070_1780, 0x0070_20c0, 0x0070_2620, 0x0070_29d0, 0x0070_3d80, 0x0070_7b50, 0x0070_8a20, 0x0070_a4a0, 0x0070_ac70, 0x0070_b6b0, 0x0070_ce70, 0x0070_e260, 0x0070_f8a0, 0x0071_0aa0, 0x0071_11c0, 0x0071_37f0, 0x0071_3bb0,
+    0x0071_3bd0, 0x0071_c3f0, 0x0071_c5d0, 0x0071_c670, 0x0071_cdb0, 0x0071_df20, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
-    0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
+    0x0094_7ae0, 0x0094_7bd0, 0x0094_7cc0, 0x0094_8660, 0x0094_8a10, 0x0094_8cb0, 0x0094_8e00, 0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
+    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x009e_2220, 0x009f_4c50, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -2343,6 +2353,21 @@ pub const RESIDUE: &[(u32, &str)] = &[
          forty-eighth pass)",
     ),
     (
+        0x0070_7b50,
+        "Group::dbg_pack_or_unpack: its one caller, Options::target_spell, \
+         takes it only under gamec->semaphore bit 11, which ConsoleWin::run_cmd \
+         sets when it opens the in-game scenario editor; it casts a pack or \
+         unpack outside the command stream, and the editor is cut from v1 \
+         (DECISIONS 107 §3; docs/AI.md §391.3, item 3906)",
+    ),
+    (
+        0x0070_ce70,
+        "GroupData::show_interface: an interface body — whether the selection \
+         panel opens (IFaceMainBase::update_visibility) and the mouseover text \
+         (Scene::render_mouseover_text); it reads the selection, the console and \
+         the diplomacy and writes nothing (docs/AI.md §391.3, item 3906)",
+    ),
+    (
         0x0070_f8a0,
         "GroupData::get_speed: the out-of-line copy of a function the compiler \
          inlined at every use, or one nothing calls; no reference in the \
@@ -2746,6 +2771,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "CommandPackage::process_board_ship: no add_command site in the image \
          writes type 0x0f; its sync line is mislabelled process_set_transport \
          (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0094_9050,
+        "CommandPackage::process_transport: no add_command site in the image \
+         writes type 0x0d (102 sites read); Group::action_transport's live \
+         caller is ScenarioFuncSet::add_unit, which the console's eval reaches \
+         (docs/AI.md §391.1, §391.3, item 3906)",
     ),
     (
         0x0094_95c0,
