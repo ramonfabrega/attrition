@@ -460,3 +460,39 @@ class TheBackedList(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TheImplicitResidue(unittest.TestCase):
+    """DECISIONS 29 §2 counts the blind list — cited functions no run
+    entered — and the sixty-eighth pass measured what it cannot hold: the
+    simulation functions no pinned trace entered and no document cites.
+    `implicit()` is that join on `territory()`'s rows."""
+    FUNCS = [
+        (0x10, 'Group::action_recall', 'groups', 'open', None),
+        (0x20, 'Group::action_stop', 'groups', 'open', None),
+        (0x30, 'Unit::think', 'unit', 'port', None),
+        (0x40, 'Map::find_region_centroid', 'map', 'open', None),
+        (0x50, 'TerrainMap::remove_cliff', 'terrainmap', 'ui', None),
+        (0x60, 'Group::~Group', 'groups', 'dead', None),
+        (0x70, 'Roads::add_line', 'roads', 'name', None),
+    ]
+
+    def test_only_the_uncited_never_entered_open_rows_are_listed(self):
+        rows, kinds = census.implicit(self.FUNCS, entered={0x20, 0x30}, cited={0x40})
+        self.assertEqual(rows, [('groups', 0x10, 'Group::action_recall'),
+                                ('roads', 0x70, 'Roads::add_line')])
+        # the excluded kinds are counted, never listed: residue on the mark
+        self.assertEqual(dict(kinds), {'open': 1, 'ui': 1, 'dead': 1, 'name': 1})
+
+    def test_the_line_counts_the_listed_and_the_never_entered(self):
+        rows, kinds = census.implicit(self.FUNCS, entered={0x20, 0x30}, cited={0x40})
+        line = census.implicit_line(rows, kinds)
+        self.assertTrue(line.startswith('Implicit: 2 never entered and uncited (open 1 · name 1) of 4 never entered'), line)
+        self.assertIn('dead 1', line)
+        self.assertIn('ui 1', line)
+
+    def test_a_cited_or_entered_function_is_never_implicit(self):
+        rows, kinds = census.implicit(self.FUNCS, entered={f[0] for f in self.FUNCS}, cited=set())
+        self.assertEqual((rows, dict(kinds)), ([], {}))
+        rows, kinds = census.implicit(self.FUNCS, entered=set(), cited={f[0] for f in self.FUNCS})
+        self.assertEqual((rows, dict(kinds)), ([], {}))

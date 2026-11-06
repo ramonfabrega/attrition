@@ -1429,6 +1429,18 @@ before-reading section:
   field's offset, its grep spellings and the slot's address off the
   export (`tools/pdb_layout.py`).
 
+One row of the brief, from the sixty-eighth tranche
+(`docs/audit/2026-11-06-fable-pass-68.md`):
+
+- **A blind reader on a row behind an order, a list or a container is
+  asked for every producer's lifetime against the dispatcher's frame,
+  never the dispatcher alone** (3895, from 3893's "for the Loop"):
+  3893's reader called `SpecialAnimOrder::walk_data` reached on a correct
+  chain to the checksum walk, and the row is unreached because
+  `come_out` and `land_plane` add the order and `do_spec_anim` ends it
+  inside the same call — a walk that reaches a slot proves nothing about
+  an object that never outlives its creating call.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

@@ -424,7 +424,16 @@ three lanes** (DECISIONS 107 §1): over the 26.3 it was returned on, under
 the 31.6 that takes it away, and 21.4 without one lane's 93-minute
 unguarded `multiprocessing` respawn (3886), the gate under 15.3, **so
 three lanes stand for the sixty-eighth**, read at its drain against the
-same two lines; the door 2,982.5 s and the whole gates 45.1–54.7; a
+same two lines; the door 2,982.5 s and the whole gates 45.1–54.7 —
+**and the sixty-eighth read 18.9 waiting and 7.5 gate a session on
+three lanes** (DECISIONS 108 §1; the drain's "14.1 a gate" was the
+booking gates' mean length, never the rule's figure, which is
+`tranche.py`'s gate class a session), both under, **so three lanes
+stand for the sixty-ninth**, read at its drain against the same two
+lines, the door 540.0 s and the whole gates 48.5–51.1; **a tranche that
+drains for want of items is read at its count** — thirteen, two slots
+idle from landing 10 — and its supply is the pass's to fill, never the
+rule's to answer: the implicit residue (108 §2) is the pool; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

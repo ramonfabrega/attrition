@@ -21829,3 +21829,34 @@ booked on three Opus lanes: Mesa's last step (3890), MAPGEN's blind second
 reading on four candidates (3891) and the eight sweep-cited slot rows
 (3892); a fifth map style held out is put to Ramon (3888c). **DECISIONS
 107.** `docs/audit/2026-11-05-fable-pass-67.md`.
+
+**2026-11-06 — the sixty-eighth steering pass (steer, Fable).** The
+sixty-eighth tranche measured: thirteen landings on three Opus 5.5 lanes at
+medium in 3 h 51 from `e9bb2ec8b`, drained early because every pool was
+spent — no word open, every map chain whole (3890 closed Southwest Mesa,
+`Cliffs::init` and the heights in `sim::cliffs`), no fieldable line
+never-seen, and the readings pool down to the `kill_group_order` pair:
+three blind second readings agreed whole (3891, 3893, 3897), 3899's agreed
+on `is_flat`, 3898 entered `close_fort` on a console `die`, 3900 read the
+pair shut, 3902's second reading disagreed and 3903 shut route 1 with no
+take, so `Blind:` reads never 267 · residue 265 · open 2; 3901 closed
+chapter 107 (a Fort dying inside its owner's territory, the borders cell
+for cell), Golden 100 closed; 75.03 USD for the workers, 5.77 a landing,
+waiting 18.9 a landing against 26.3 and the gate class 7.5 against 15.3 —
+both under, so three lanes stand (DECISIONS 108 §1); the rubric unmoved.
+The pass measured what the blind list cannot hold — the implicit residue
+of DECISIONS 29 §2, 81 simulation functions no pinned trace entered and no
+document cites (`census.py --territory --pin --implicit`, built here):
+fourteen group actions no capture ever issued, eight spells never cast,
+eleven map styles' continent builders no chain runs, and 32 editor,
+harness, debug, CtW and sync rows — and made them the readings pool,
+3906–3909, their stagings the next golden chapters and coverage takes
+(108 §2); the next golden chapter and the census's open count ruled out
+as fillers, the fifth held-out style put to Ramon again, and whether
+phase 4 opens on entry 29's three counters or on the territory named as
+his. Built under the pass: 3895 as a row of the brief checklist and a
+clause of the frame's `reading-item` section; the census's `--implicit`
+flag with three tests. The backlog 10 → 9. The sixty-ninth is launched on
+three Opus lanes at medium: route 2 to the pair (3904), §389's blind second
+reading (3905) and the group actions' reading (3906), with 3907–3909
+behind them. **DECISIONS 108.** `docs/audit/2026-11-06-fable-pass-68.md`.

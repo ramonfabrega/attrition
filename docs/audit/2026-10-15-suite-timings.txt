@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-05, tools/suite_timings.py (tree 5691dbc4).
+# Every rondata release test timed alone, 2026-11-06, tools/suite_timings.py (tree 365e9ffc).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 4,714 s over 1988 tests; --stale-only merged. Top 10 = 501 s, top 30 = 840, top 100 = 1403; 762 tests under 1 s.
-# By module: golden 907 s / 281 tests, harness 471 s / 92 tests, audit 252 s / 122 tests, second 246 s / 35 tests, mapgen 233 s / 47 tests.
+# Sum 4,726 s over 1994 tests; --stale-only merged. Top 10 = 501 s, top 30 = 840, top 100 = 1403; 764 tests under 1 s.
+# By module: golden 913 s / 284 tests, harness 471 s / 92 tests, audit 252 s / 122 tests, second 246 s / 35 tests, mapgen 239 s / 49 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
 50.94	diff::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did
@@ -395,6 +395,7 @@
 3.46	diff::indian_sahara_word::run1007_s_word_frame_is_widened_whole
 3.46	diff::golden::chapter_twenty_holds_to_the_golden_word
 3.46	diff::inca_sahara_word::run1011_s_word_frame_is_widened_whole
+3.45	mapgen::tests::southwest_mesa_s_heights_at_894_are_the_start_dump_s_grid
 3.45	diff::golden::chapter_sixteen_holds_to_the_golden_word
 3.45	diff::bantu_ancient_pair::bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole
 3.45	diff::roman_medieval_pair::roman_medieval_pair_run1293b_s_word_frame_is_widened_whole
@@ -418,6 +419,7 @@
 3.39	diff::russian_modern_pair::russian_modern_pair_run1170_s_word_frame_is_widened_whole
 3.39	diff::inca_classical_pair::inca_classical_pair_run1260b_s_word_frame_is_widened_whole
 3.39	diff::inca_industrial_pair::inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole
+3.38	mapgen::tests::southwest_mesa_s_cliffs_are_894
 3.38	diff::russian_information_pair::russian_information_pair_run1401_s_closing_state
 3.38	diff::second::tests::run396_s_word_frame_is_widened_whole
 3.38	diff::spanish_industrial_pair::spanish_industrial_pair_run1382b_s_closing_frame_is_widened_whole
@@ -769,6 +771,7 @@
 2.16	diff::american_industrial_pair::american_industrial_pair_run1356_s_word_frame_is_widened_whole
 2.16	diff::audit::german_alltech_pair_corrections_change_nothing
 2.15	diff::third_pair::run629_s_word_frame_is_widened_whole
+2.15	diff::golden::chapter_one_hundred_and_seven_s_window_is_widened_whole
 2.14	diff::harness::tests::run94_s_window_clocks_are_the_original_s
 2.13	diff::audit::aztec_alltech_pair_corrections_change_nothing
 2.13	diff::american_industrial_pair::american_industrial_pair_first_parting
@@ -781,6 +784,7 @@
 2.10	diff::iroquois_enlightenment_pair::iroquois_enlightenment_pair_run1291_s_closing_state
 2.10	diff::german_alltech_pair::german_alltech_pair_first_parting
 2.10	diff::lakota_word::run980_s_word_frame_is_widened_whole
+2.09	diff::golden::chapter_one_hundred_and_seven_holds_to_the_golden_word
 2.09	diff::iroquois_word::run940_s_word_frame_is_widened_whole
 2.08	diff::chinese_gunpowder_pair::chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole
 2.08	diff::iroquois_enlightenment_pair::iroquois_enlightenment_pair_first_parting
@@ -1245,6 +1249,7 @@
 0.96	diff::british_modern_pair::british_modern_pair_first_parting
 0.96	diff::sea_melee::sea_melee_run1486_s_window_is_widened_whole
 0.96	diff::airbase_melee::airbase_melee_run1492_s_closing_state
+0.96	diff::golden::chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell
 0.95	diff::persian_classical_pair::persian_classical_pair_captures_say_their_lobby
 0.95	diff::golden::chapter_ninety_six_s_window_is_widened_whole
 0.95	diff::golden::chapter_eighty_nine_s_window_is_widened_whole
@@ -1415,6 +1420,7 @@
 0.55	diff::gunpowder_melee::gunpowder_melee_s_strike_meets_before_the_census
 0.55	diff::gunpowder_melee::gunpowder_melee_s_captain_scores_the_bombard_in_an_int
 0.54	diff::korean_classical_pair::korean_classical_pair_captures_say_their_lobby
+0.54	blind::tests::route_one_s_cast_is_refused_a_capture_eligible_city
 0.53	diff::sea_melee::sea_melee_run1484_s_window_is_widened_whole
 0.53	diff::sea_melee::sea_melee_staging_walk
 0.53	diff::gunpowder_melee::gunpowder_melee_s_inti_macemen_walk_home_to_their_posts

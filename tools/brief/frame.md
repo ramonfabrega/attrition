@@ -269,17 +269,18 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 - **Claims go in the document's own section**, amended in place, and
   each is listed reading-only in its coverage section; a new section is
   named to me first.
-- **No capture, no packet, no emulator run, and no mechanism built from
-  a reading alone**: the decompiler is a reading tool. A `#[test]` only
-  where a claim is a pure predicate pinned without the box.
+- **No capture, no packet, no emulator run, no mechanism built from a
+  reading alone**; a `#[test]` only for a pure predicate pinned without
+  the box.
 - **A function you cite that no trace enters joins `blind::NEVER`**:
   its address in order, a doc-comment line `**N** with item {item}'s
   cite of …`; the gate's `blind::` is what moves it.
-- **CLAUDE.md's blind-reading rules hold**: grep the writers of every
-  field you call frozen and the callers of every function you call
-  once-only; a name is settled by the type record; read the loaders,
-  not only the consumers; a local that cannot be right is read off the
-  listing (`llvm-objdump`).
+- **CLAUDE.md's blind-reading rules hold**: the writers of every frozen
+  field, the callers of every once-only function, the type record for a
+  name, the loaders before the consumers, the listing for a local that
+  cannot be right. **A row behind an order, a list or a container asks
+  for every producer's lifetime** against the dispatcher's frame, never
+  the dispatcher alone (3895).
 - **Your gate is `--tests blind:: --no-widen`**, the line under Landing:
   no widening, no `first_parting`. You move no word: a draw delta and
   a value diff are a word lane's rows.

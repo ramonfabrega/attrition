@@ -1275,6 +1275,45 @@ def territory(index, docs, sim_src, pdb):
     return rows, funcs, totals, groups
 
 
+def implicit(funcs, entered, cited):
+    """The implicit residue (DECISIONS 29 §2, the sixty-eighth pass): every
+    simulation function no pinned trace entered and no document cites —
+    the rows the blind list cannot hold, because it holds cited functions
+    only. `funcs` is `territory()`'s, `entered` and `cited` sets of
+    addresses; returns `(rows, kinds)` — `rows` the `open` and `name` kind
+    as `(stem, va, name)` sorted by stem then address, `kinds` a Counter of
+    every never-entered uncited function by its territory kind (the
+    excluded kinds are counted and not listed: a dead-weight or editor
+    body is residue on the census's own mark)."""
+    kinds, rows = Counter(), []
+    for va, name, stem, kind, _group in funcs:
+        if va in entered or va in cited:
+            continue
+        kinds[kind] += 1
+        if kind in ("open", "name"):
+            rows.append((stem, va, name))
+    return sorted(rows), kinds
+
+
+def implicit_line(rows, kinds):
+    never = sum(kinds.values())
+    return (f"Implicit: {len(rows)} never entered and uncited (open {kinds.get('open', 0)} · "
+            f"name {kinds.get('name', 0)}) of {never} never entered"
+            + "".join(f" · {k} {kinds[k]}" for k in TERRITORY_KINDS if k not in ("open", "name") and kinds.get(k)))
+
+
+def print_implicit(rows, kinds):
+    by_stem = {}
+    for stem, va, name in rows:
+        by_stem.setdefault(stem, []).append((va, name))
+    print("# the implicit residue: simulation functions no pinned trace entered and no document cites, "
+          "by stem (DECISIONS 29 §2; `--territory --pin --implicit`)")
+    for stem, lst in sorted(by_stem.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        print(f"{stem:20} {len(lst):3}  " + ", ".join(f"{n}@{va:08x}" for va, n in lst))
+    print()
+    print(implicit_line(rows, kinds))
+
+
 def territory_line(totals):
     """`Territory: simulation ported P · replaced by design R · open O of N`
     — `open` is every function neither ported, replaced nor excluded
@@ -1328,6 +1367,10 @@ def main():
                     help="the territory map (Loop 3727): simulation functions by source stem as ported, "
                          "replaced by design, layout-only, name-only, open, or dead/ui/operator/cut; "
                          "--json for the same as JSON, --top N for the first N stems")
+    ap.add_argument("--implicit", action="store_true",
+                    help="with --territory and traces (--pin or logs): the implicit residue — every simulation "
+                         "function no pinned trace entered and no document cites, by stem, ending on an "
+                         "`Implicit:` line (DECISIONS 29 §2; the sixty-eighth pass)")
     ap.add_argument("--layers", action="store_true",
                     help="the census by layer with the backed column and the byte-weighted one, and the "
                          "board's number (item 1467) with its `Census bytes:` twin")
@@ -1362,8 +1405,18 @@ def main():
         ap.error("--write goes with --backed-list")
     if a.cites and not a.never:
         ap.error("--cites goes with --never")
+    if a.implicit and not a.territory:
+        ap.error("--implicit goes with --territory")
     if a.territory:
-        rows, _funcs, totals, groups = territory(a.index, a.docs, a.sim_src, a.pdb)
+        rows, funcs, totals, groups = territory(a.index, a.docs, a.sim_src, a.pdb)
+        if a.implicit:
+            logs = (pinned_logs() if a.pin else []) + a.logs
+            if not logs:
+                ap.error("--implicit needs traces: --pin, or logs")
+            seen = entered_in(logs, a.index) | hooked_in(logs, a.index)
+            irows, kinds = implicit(funcs, seen, cited_in(a.docs))
+            print_implicit(irows, kinds)
+            return
         print_territory(rows, totals, groups, None if a.top == 40 else a.top, a.json)
         return
     if a.layers:

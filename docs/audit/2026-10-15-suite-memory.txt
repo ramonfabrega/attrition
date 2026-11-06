@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-05, tools/suite_timings.py (tree 5691dbc4).
+# Every rondata release test's peak resident set alone, 2026-11-06, tools/suite_timings.py (tree 365e9ffc).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 1489	diff::persian_classical_pair::persian_classical_pair_run1318_s_closing_state
 1337	diff::persian_classical_pair::persian_classical_pair_first_parting
@@ -212,6 +212,7 @@
 603	diff::roman_classical_pair::roman_classical_pair_run1194b_s_word_frame_is_widened_whole
 602	diff::mongol_gunpowder_pair::mongol_gunpowder_pair_run1292c_walks_back_from_4499
 602	diff::russian_gunpowder_pair::russian_gunpowder_pair_run1357b_s_closing_window_is_widened_whole
+602	diff::golden::chapter_one_hundred_and_seven_holds_to_the_golden_word
 601	diff::lakota_medieval_pair::lakota_medieval_pair_first_parting
 600	diff::chinese_modern_pair::chinese_modern_pair_run1431_s_closing_state
 600	diff::russian_gunpowder_pair::russian_gunpowder_pair_run1340_s_closing_state
@@ -465,6 +466,7 @@
 465	diff::audit::spanish_word_corrections_change_nothing
 464	diff::airbase_melee::airbase_melee_first_parting
 464	diff::japanese_word::japanese_word_first_parting
+463	diff::golden::chapter_one_hundred_and_seven_s_window_is_widened_whole
 462	diff::german_modern_pair::german_modern_pair_run1422_s_closing_frame_is_widened_whole
 461	diff::spanish_word::run958_s_word_frame_is_widened_whole
 461	diff::spanish_word::run958d_s_word_frame_is_widened_whole
@@ -485,6 +487,7 @@
 457	diff::audit::french_medieval_pair_corrections_change_nothing
 456	diff::egyptian_word::run967g_s_word_frame_is_widened_whole
 455	diff::iroquois_sahara_word::run994b_iroquois_sahara_closing_state
+455	diff::golden::chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell
 454	mapgen::tests::east_indies_s_group_tail_is_the_traced_stream_and_7861_to_7870
 454	diff::egyptian_information_pair::egyptian_information_pair_run1399b_s_word_frame_is_widened_whole
 453	diff::iroquois_sahara_word::iroquois_sahara_word_first_parting
@@ -569,6 +572,7 @@
 420	diff::audit::greek_enlightenment_pair_corrections_change_nothing
 418	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_first_parting
 418	diff::gunpowder_melee::gunpowder_melee_run1413_s_closing_state
+417	mapgen::tests::southwest_mesa_s_heights_at_894_are_the_start_dump_s_grid
 417	diff::audit::american_industrial_pair_corrections_change_nothing
 417	diff::audit::iroquois_enlightenment_pair_corrections_change_nothing
 417	diff::audit::lakota_medieval_pair_corrections_change_nothing
@@ -938,6 +942,7 @@
 283	diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole
 282	diff::japanese_industrial_pair::japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier
 280	diff::gunpowder_melee::gunpowder_melee_s_farms_stand_in_the_dump_s_order
+279	mapgen::tests::southwest_mesa_s_cliffs_are_894
 278	diff::american_information_pair::american_information_pair_an_american_aircraft_costs_a_fifth_less
 276	diff::american_modern_pair::american_modern_pair_an_american_airbase_pays_a_bomber_in_the_modern_age
 276	diff::british_industrial_pair::british_industrial_pair_a_british_aa_gun_costs_a_quarter_less
@@ -992,6 +997,7 @@
 91	diff::chinese_medieval_pair::chinese_medieval_pair_is_no_other_lobby
 90	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_is_no_other_lobby
 72	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_is_no_other_lobby
+48	blind::tests::route_one_s_cast_is_refused_a_capture_eligible_city
 47	load::tests::an_elephant_counts_toward_a_horse_archer_s_ramp
 47	load::tests::the_wonder_gated_free_tech_blocks_are_loaded
 47	load::tests::the_russian_and_chinese_free_tech_blocks_are_loaded
