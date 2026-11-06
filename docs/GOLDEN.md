@@ -17794,12 +17794,84 @@ region. A tie at equal distance. The group's slot `+0x14` and the scenario's ign
 gate, the filter's capacity and ally arms, the tie, and the economy bit (`Sim::economy_changed`, which no field on
 these frames reads apart).
 
-## 164. Reserved for the next item on the rules track
+## 164. Chapter one hundred and fourteen — units the console creates, on the lake and on land; closed at 900 on the first take (item 3917, run1511, run1511b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 row 10, §393.1 row 2): `Group::action_transport@00702620`,
+`Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0` were `NEVER`, with their caller
+`ScenarioFuncSet::add_unit@009e2220` and its one front, `ScenarioFuncSet::create_unit@009f4c50`, the script's
+`create_unit(who, x, y, type, num)`. No `@` verb reaches them. The console's `eval` runs one script line, so the
+chapter enters them as `!eval` lines.
+
+**What the reading says.** `create_unit` is `add_unit(…, 0)` and nothing else. `add_unit` takes `who` 1-based (alive
+and playing), `num` ≤ 2000 and the type by its name (`get_type_index@00a03480` compares the type's own string, so the
+booking's `"Hoplite"` would have returned −1; it is `"Hoplites"`). It refuses a `TRANSPORTBARGE`, puts the point at
+`(x · 0xc0 + 0x60, y · 0xc0 + 0x60)` (quarter cells), and splits on the type's domain against
+`WorldData::is_ocean`:
+- a land type on the ocean, its leader able to transport: `num × init_unit` at the point, each `Group::add`ed;
+  `push_group`; `action_transport(1)`, which puts each land captain in a barge of its leader's `TRANSPORTBARGE`
+  born at its point and set at the nearest water within `unit_board_distance`. Then (`009e2611`..) each member of
+  the **local** group's `GroupData::list` (`+0x8cc`, `num` at `+0xc`) that is inside something is overwritten with its
+  host;
+- a sea type on the ocean, a land type on land, an air type anywhere: `num ×` `find_nearby_spot(0, 0xc00, bearing
+  0x55555555)` and `init_unit` there; an air type returns; `push_group`;
+- a sea type on land, or a land type on the ocean with no transport: return.
+
+Then `action_form(0, 0, QUEUE_NEW)` and `dbg_jump_to_action` on the local group, not the pushed slot. The jump's
+move arm pops every leading move-family order, the unit taking each one's angle, and sets the unit at the last one's
+point, or at `find_nearby_spot(0xc0, 0x600)` round it when that point is invalid.
+
+**Staging** (`tools/gamelog/golden/chapter114.cmd`): chapter twenty's lobby to 604 (§28, run249), `0 !ai off`, `600
+library who=0 1`, `604 add dock who=0 53,153` (the dock is what gives who=0 a transport level). Then `620 !eval
+create_unit(1, 62, 182, "Hoplites", 1)` on tile 62,182, cell (15, 45), `OCEAN` with flags 0 on run249's start
+`WORLD`; and `640 !eval create_unit(1, 34, 181, "Hoplites", 2)` on cell (8, 45), `BASELAND`. The falsifiers, written
+before the take (the journal has them): no `HIT` on the five functions in the twin on 620 and 640; no barge holding
+the Hoplites on 621; the land pair at their placement points with a `CHANGE_FORM` on 641; any `CM` line but `!ai
+off`'s.
+
+**What the original does** (run1511 `cover=0`, run1511b `cover=1`; `docs/RUNS.md`). No falsifier fired. The twin
+enters `create_unit`, `add_unit`, `get_type_index`, `action_transport`, `action_form` and both `dbg_jump_to_action`s
+first on trace frame 620. Block 621: the Hoplites `0/6`–`0/8` at (12024, 35064) inside barge `0/9` (`inside_down 6`,
+the chain 6 → 7 → 8), and the barge at (12024, 35304), 240 south, `form 0`, `form_mod 50`, its `orders_x/y` on its
+own point. Block 641: Hoplites `0/10`–`0/15` with no orders, at their slots. No `CM` line but `!ai off`'s. The twin
+is run1511's game on all 901 frames (`rngcmp`).
+
+**What this crate does.** `Sim::scenario_add_unit`, `group_action_transport`, `group_dbg_jump_to_action` and
+`unit_dbg_jump_to_action` (`crates/sim/src/scenario_add.rs`). The harness's console takes `eval create_unit(…)` as
+`Cheat::CreateUnit` (`crates/rondata/src/golden.rs`), and `eval` joins the console-only words. The draw stream agrees
+to the trace's end, by value and by site: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN` = **900**, closed
+(`chapter_one_hundred_and_fourteen_holds_to_the_golden_word`). Two findings were built on the way. The host swap
+writes the local group, so the barge is what is formed: its `form` 0 and `form_mod` 50 parted until it was. And the
+formation runs on the local group, not the pushed slot: slot 0 on 641 parted on 13 fields while it ran on the slot,
+and agrees now (`form` −1, `form_num` 0, `ox`/`oy` 0). The widening over 605..900
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_FOURTEEN` (604, 901), both directions; units, figures, buildings, leaders and the
+pool, one take, since `GROUPS=1` sits beside no `DEATHS`) parts on the eleven standing `form` rows and on seven
+`621 0/9` rows (`WANT_CH114`). The coverage driver drives 619..623 and 639..643.
+
+**The value diff, block 621.** Barge `0/9`: run1511 (12024, 35304), `orders_x/y` (12024, 35304); ours (11880, 35544)
+on `pos`, `orders_x/y`, `g.x/y[0]` and `g.des_x/y[0]`. The barge is listed three times, once per Hoplite figure,
+and takes three formation moves; the jump lands it on the third slot. The original's list holds it three times as
+well (`+0x8cc` is `GroupData::list`, so "listed once" is not the answer). Parked as 3917a.
+
+**Mutations** (`tools/mutate.py --batch` against `scenario_add::tests`): ten breaks, all held. Dropping
+`action_transport` or the host swap fails `a_soldier_at_sea_with_a_dock_goes_aboard_a_barge`. Dropping the group's
+jump fails `a_land_squad_on_land_is_formed_and_snapped_to_its_slots`. Running the pop loop once fails
+`the_jump_takes_every_leading_move_and_lands_on_the_last`, and dropping the `invalid_loc` test fails
+`a_jump_into_the_sea_lands_on_the_nearest_shore`. Folding the sea-on-land arm into the placement arm, or dropping the
+no-transport return, fails `a_ship_on_land_and_a_soldier_at_sea_without_docks_place_nothing`. Dropping the barge
+refusal, the `num` bound or the map bound fails `add_unit_refuses_the_barge_a_stranger_and_a_point_off_the_map`. The
+first batch held seven. The host swap and the sea arm survived it because their tests could not see them: the barge
+test now asserts the barge is formed, and the ship stands within `0xc00` of the water. The barge refusal's first break
+left the lineage test standing, so it was retaken with the whole guard off.
+
+**Not established.** Where the original's barge formation goes (3917a). The air arm (its `STRAFEORDER`, its
+height, and an Aircraft Carrier's planes), a sea type placed on the ocean, the script's named groups
+(`clear_group`, `add_to_group`), `action_transport`'s scenario `ignore_orders` sweep and its `is_busy`, the
+caravan's `MERCHANTFLEET`, a boat with nowhere to go (killed with argument 0), and the jump's `GARRISON` and
+`GATHER` arms: each a `SEAM` in the module, none captured.
+
+**Coverage.** Diff-backed: the type's name, the land/ocean split, the barge's birth point and boarding, the land
+pair's slots, the local group, and the draws to 900. Reading only: the refusals, the air and sea arms, the
+no-transport return, the jump's invalid-point search (unit-tested), and its other two arms.
 
 ## 165. Chapter one hundred and fifteen — a Disband queued at a Barracks; closed at 1100 on the first take (item 3918, run1512, run1512b)
 

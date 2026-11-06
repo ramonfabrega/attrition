@@ -14540,13 +14540,17 @@ no score.
   place. 3906b, the blind second reading of §391, should read row 9 against GOLDEN §163 and not against the struck
   text. Names no score.
 
-## Parked by the next landing, slot BE — reserved
+## Parked by item 3917, 2026-11-06 — units the console creates
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3917a. The barge's formation on 621** (`docs/GOLDEN.md` §164): run1511 keeps barge `0/9` at (12024, 35304), its
+  `orders_x/y` on that point; ours lands it on (11880, 35544), seven rows in `WANT_CH114` (`pos`, `orders_x/y`,
+  `g.x/y[0]`, `g.des_x/y[0]`). The barge is listed three times, once per Hoplite figure, after `add_unit`'s host swap
+  (`009e2611`..), and takes three formation moves; the jump lands it on the last. **Killed**: "the original lists it
+  once" — `+0x8cc` is `GroupData::list` and the count is `num`, so the original's list holds it three times too. Left:
+  how `Group::action_form` treats a member listed more than once, and whether the jump's last point is invalid for the
+  barge and `find_nearby_spot(0xc0, 0x600)` finds nothing. The cheapest answer is a packet inside `add_unit` at 620:
+  the barge's order list after `action_form`. **Score**: the chapter's widening (seven rows); the word is closed at
+  900 either way.
 
 ## Parked by item 3918, 2026-11-06 — a Disband queued at a Barracks
 

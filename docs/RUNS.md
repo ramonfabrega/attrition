@@ -35172,3 +35172,32 @@ run1512b: `rontrace.log` 20,271,392 bytes, SHA-256 `4f66d6f2e118d3b430bed59d2154
 `chapter_one_hundred_and_fifteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1512. Its
 window 829..833 is in the coverage driver's slice. run1512b is in `blind::TRACES`, and `cast_disband` is off `NEVER`; `CityData::is_disbanding`, which it never
 enters, is on it.
+## run1511 and run1511b — chapter one hundred and fourteen: units the console creates, on the lake and on land (2026-11-06, item 3917, `att-3917`)
+
+`docs/GOLDEN.md` §164. **What the disk could not answer**: no trace had entered `ScenarioFuncSet::create_unit@009f4c50`,
+`add_unit@009e2220`, `Group::action_transport@00702620`, `Group::dbg_jump_to_action@00707a00` or
+`Unit::dbg_jump_to_action@00602ea0` (`docs/AI.md` §391.2 row 10, §393.1 row 2). Recipe
+`tools/gamelog/golden/chapter114.cmd`: chapter twenty's lobby to 604, `0 !ai off`, `600 library who=0 1`, `604 add
+dock who=0 53,153`, then `620 !eval create_unit(1, 62, 182, "Hoplites", 1)` and `640 !eval create_unit(1, 34, 181,
+"Hoplites", 2)`. Map 14, `--end-frame 900`, `--log-window 605 900`, with `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1` and
+`misc:COMMANDMANAGER=1`, at `cover=0` into `~/ron-golden/ch114`. The twin is the same line with `--ai-tribe 11 --cover
+cover=1 --no-ffwd`, into `~/ron-golden/ch114b`. 107 GiB free before.
+- run1511: pool lane 1, launched 07:48:35, exited 07:50:30, **114.9 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 901 frames, `last_frame` 900, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes waited on another lane.
+- run1511b: pool lane 1, launched 07:51:48, 134.4 s launch to exit, `success`, 901 frames, who 1 tribe 11. Filed by
+  `filerun.py run1511b ch114-create-unit-cover` (`~/ron-golden/run1511b` links to `ch114b`).
+- Block 621: Hoplites `0/6`–`0/8` at (12024, 35064) inside barge `0/9` at (12024, 35304). Block 641: Hoplites
+  `0/10`–`0/15` at their slots with no orders. No `CM` line but `!ai off`'s. The twin enters all five functions first
+  on trace frame 620.
+- `rngcmp`: run1511 against run1511b, 901 of 901 identical.
+
+run1511: `gamelog.txt` 131,863,024 bytes, SHA-256 `a800c3a5c19a032c483e3b37de0aedbea440e6cb7defc7ec4fa2b4b47635c45b`.
+`rontrace.log` 9,822,752 bytes, SHA-256 `ed99c829ad0291f7ffcc0cf9aa7192fc66f64be090c87a11c985c5d2d646ece9`.
+run1511b: `rontrace.log` 12,141,504 bytes, SHA-256 `c70ec5610a24426a58eadf3fdee6ad4d3e84cf1e549d824f1b69a99d1e4ecad8`.
+
+**What it holds**: `golden::chapter_one_hundred_and_fourteen_holds_to_the_golden_word` (900, closed) and
+`chapter_one_hundred_and_fourteen_s_window_is_widened_whole` (18 rows: the eleven standing `form` and the barge's seven
+on 621, parked 3917a). Its windows 619..623 and 639..643 are in the coverage driver's slice. run1511b is in
+`blind::TRACES`, and the five rows are off `NEVER`.

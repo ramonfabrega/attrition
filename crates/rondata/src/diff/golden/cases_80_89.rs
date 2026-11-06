@@ -1523,3 +1523,60 @@ pub(super) fn chapter_one_hundred_and_twelve_holds_to_the_golden_word() {
         "chapter one hundred and twelve's golden word moved; re-pin it and say so in docs/GOLDEN.md §162"
     );
 }
+
+pub(super) fn chapter_one_hundred_and_fourteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch114", "chapter114", 114, 5, 900) else {
+        return;
+    };
+    eprintln!(
+        "chapter one hundred and fourteen: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN,
+        "chapter one hundred and fourteen's golden word moved; re-pin it and say so in docs/GOLDEN.md §164"
+    );
+    pin_eq!(
+        w.sequence,
+        GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN,
+        "chapter one hundred and fourteen's draw sites part before its word"
+    );
+}
+
+/// run1511 whole, both directions: its units, figures, buildings, leaders
+/// and pool (`GROUPS=1` beside no `DEATHS`, so one take prints both).
+pub(super) fn chapter_one_hundred_and_fourteen_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch114",
+        "chapter114",
+        (605, 900),
+        0,
+        0,
+        (619, 643),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch114 f{f} {w}/{o} {what}: {row}");
+    }
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch114 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .chain(
+            pool.iter()
+                .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}")),
+        )
+        .collect();
+    got.sort();
+    eprintln!("ch114: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH114.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch114: what parts in the window moved");
+}

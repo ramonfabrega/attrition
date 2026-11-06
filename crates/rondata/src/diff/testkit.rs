@@ -6834,6 +6834,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTEEN: i64 = 900;
 /// run1510c.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTEEN: (i64, i64) = (604, 901);
 
+/// **Chapter one hundred and fourteen** (item 3917, `docs/GOLDEN.md` §164,
+/// run1511): units the console's `eval create_unit` makes, a Hoplites squad
+/// on the lake and two on land.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN: i64 = 900;
+
+/// `chapter_one_hundred_and_fourteen_s_window_is_widened_whole`'s window:
+/// run1511.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_FOURTEEN: (i64, i64) = (604, 901);
+
 /// **Chapter one hundred and fifteen** (item 3918, `docs/GOLDEN.md` §165,
 /// run1512): `DISBAND` queued at two Barracks, cast by `Build::finished`.
 pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIFTEEN: i64 = 1100;

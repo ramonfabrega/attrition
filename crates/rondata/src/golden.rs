@@ -111,6 +111,18 @@ pub enum Cheat {
     /// player. `None` is the `select` form (and the bare `die`): every
     /// selected object.
     Die(Option<(i32, i16)>),
+    /// `eval create_unit(who, x, y, "type", num)` — `run_cmd`'s console-only
+    /// `eval` (case 0x15) through the script's
+    /// `ScenarioFuncSet::create_unit@009f4c50`, which is `add_unit(…, 0)`
+    /// ([`sim::Sim::scenario_add_unit`]; item 3917, `docs/GOLDEN.md` §164).
+    /// `who` is the script's 1-based player, kept as written; `at` is in
+    /// quarter cells. Any other `eval` body is [`Cheat::Unmapped`].
+    CreateUnit {
+        who: i32,
+        at: (i32, i32),
+        name: String,
+        num: i32,
+    },
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -1691,6 +1703,27 @@ fn reached_line(word: &str, changed: &[String]) -> String {
     }
 }
 
+/// `create_unit(who, x, y, "type", num)`, the one `eval` body this
+/// interpreter acts on: five arguments, the fourth a quoted name.
+fn parse_create_unit(body: &str) -> Option<Cheat> {
+    let args = body
+        .trim()
+        .strip_prefix("create_unit")?
+        .trim()
+        .strip_prefix('(')?
+        .strip_suffix(')')?;
+    let parts: Vec<&str> = args.split(',').map(str::trim).collect();
+    let [who, x, y, name, num] = parts[..] else {
+        return None;
+    };
+    Some(Cheat::CreateUnit {
+        who: who.parse().ok()?,
+        at: (x.parse().ok()?, y.parse().ok()?),
+        name: name.strip_prefix('"')?.strip_suffix('"')?.to_string(),
+        num: num.parse().ok()?,
+    })
+}
+
 fn command_word(text: &str) -> String {
     text.split_whitespace()
         .next()
@@ -1842,6 +1875,10 @@ fn parse(text: &str) -> Cheat {
                 .and_then(|t| parse_who(t, true))
                 .unwrap_or(CONSOLE_WHO),
             human: word == "human",
+        },
+        "eval" => match parse_create_unit(&rest.join(" ")) {
+            Some(c) => c,
+            None => Cheat::Unmapped(word),
         },
         "add" | "insert" => {
             // `[#] typename [who=RED] [x,y]` — the leading count is a count
@@ -2010,7 +2047,10 @@ fn run(
     // `run_cmd`'s two switches are disjoint: 56 console-only commands and
     // 45 chat-reachable ones (`docs/ORACLE.md`). A script that puts a chat
     // command behind `!`, or the reverse, reaches a case that is not there.
-    let console_only = matches!(word.as_str(), "ai" | "quit" | "go" | "break" | "restart");
+    let console_only = matches!(
+        word.as_str(),
+        "ai" | "quit" | "go" | "break" | "restart" | "eval"
+    );
     if line.console != console_only {
         done.skip(&word, "the wrong half of run_cmd's two switches");
         return;
@@ -2104,6 +2144,42 @@ fn run(
             }
         }
         Cheat::Add { num, name, who, at } => add(&word, num, &name, who, at, built, loaded, done),
+        Cheat::CreateUnit { who, at, name, num } => {
+            // `ScenarioFuncSet::get_type_index@00a03480`: the type's name
+            // string, compared whole — the record's `NAME`, then its
+            // `TYPENAME` — and `add_unit`'s own gates: a 1-based player
+            // that is alive and playing (`leaders[who-1] & 3`).
+            let ty = loaded
+                .unit_names
+                .iter()
+                .position(|n| *n == name)
+                .or_else(|| loaded.unit_type_names.iter().position(|n| *n == name));
+            let Some(ty) = ty else {
+                done.skip(&word, "create_unit: no unit type of that name (-1)");
+                return;
+            };
+            match built
+                .sim
+                .scenario_add_unit((who - 1) as sim::Player, ty, at, num)
+            {
+                Some(made) => {
+                    for &u in &made {
+                        let unit = &built.sim.units[u];
+                        done.landed.push(format!(
+                            "create_unit {name} who={}: {}/{} at ({},{})",
+                            who - 1,
+                            unit.owner,
+                            unit.index,
+                            unit.pos.x,
+                            unit.pos.y
+                        ));
+                    }
+                    done.units += made.len();
+                    done.ran += 1;
+                }
+                None => done.skip(&word, "create_unit returned -1"),
+            }
+        }
         // `Script::apply` takes `be` before `run` is reached: the seat is
         // the script's, not the simulation's.
         Cheat::Be(_) => done.skip(&word, "the seat is the script's (Script::apply)"),
@@ -2454,6 +2530,7 @@ mod tests {
         // Citizens selected by `select` and the key bound to
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).
         ("chapter113.cmd", &[]),
+        ("chapter114.cmd", &[]),
         // Chapter one hundred and fifteen: chapter thirteen's cast, a second
         // Barracks, and three `@queueup` presses of `DISBAND` (666) (item
         // 3918, `docs/GOLDEN.md` §165).
@@ -2809,8 +2886,10 @@ mod tests {
                     continue;
                 }
                 let word = command_word(&line.text);
-                let console_only =
-                    matches!(word.as_str(), "ai" | "quit" | "go" | "break" | "restart");
+                let console_only = matches!(
+                    word.as_str(),
+                    "ai" | "quit" | "go" | "break" | "restart" | "eval"
+                );
                 assert_eq!(
                     line.console, console_only,
                     "{name}: `{}` is on the wrong half of run_cmd's two switches",
