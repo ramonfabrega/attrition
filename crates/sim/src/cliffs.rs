@@ -66,6 +66,37 @@ pub struct CliffsInit {
     pub mining: Vec<Vec<(i32, i32)>>,
     /// The tiles `set_edge_flags` gave 0x8000.
     pub edge: usize,
+    /// What the arms that decided nothing on a grid had to decide on.
+    pub inert: Inert,
+}
+
+/// **What each guard of `Cliffs::init` was handed to refuse** (item 3890):
+/// an arm that a mutant leaves unbroken is inert by its grid, and these
+/// are the counts that say so. Each counts the guard's own condition,
+/// whatever the guards before it decided.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Inert {
+    /// `place_cliff`'s on-map box vertices carrying 0x10, dry-skipped,
+    /// carrying 0x1000, and on a `CoordInfo` 0x4 cell.
+    pub box_skips: [usize; 4],
+    /// The 0x40 cells' tiles `assess_wcoord` refused as COAST or `land` 1
+    /// or 2, and as a mountain's.
+    pub refused: [usize; 2],
+    /// The handed tiles' least distance, in ulps, of the span from
+    /// [`SLOPE`]; 0 is a tile the strict `>` decides.
+    pub nearest_ulps: u32,
+    /// The handed tiles with a corner past ±10000, which the clamp
+    /// decides.
+    pub past_clamp: usize,
+    /// The tiles blocked whose mask carried 0x2 at the rewrite.
+    pub bit1_rewritten: usize,
+    /// The closing `move_goody` calls that moved anything.
+    pub closing_moves: usize,
+    /// The marked cells under a cliff index whose count was 0 with marked
+    /// tiles: what `n != 0` refuses.
+    pub zero_count_cells: usize,
+    /// The good arm's candidates refused for a forest south of them alone.
+    pub south_forest: usize,
 }
 
 /// An arm `Cliffs::init` can enter that is not built.
@@ -159,6 +190,15 @@ impl Init<'_> {
                     let ci = (cy * self.g.xs + cx) as usize;
                     let c = &self.g.cells[ci];
                     let dry = c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2);
+                    let skips = [
+                        c.flags & 0x10 != 0,
+                        dry,
+                        c.flags & 0x1000 != 0,
+                        self.coord[ci] & coord::HALF != 0,
+                    ];
+                    for (n, hit) in self.out.inert.box_skips.iter_mut().zip(skips) {
+                        *n += usize::from(hit);
+                    }
                     if c.flags & 0x10 == 0
                         && !dry
                         && c.flags & 0x1000 == 0
@@ -179,9 +219,10 @@ impl Init<'_> {
     /// the troughs' does (`crate::map_troughs`).
     fn move_goody(&mut self, x: i32, y: i32) {
         self.out.goody_calls += 1;
-        let mut pass = Pass::new(&mut *self.g, &mut *self.coord, &*self.z, self.combo)
-            .with_goods(self.goods);
+        let mut pass =
+            Pass::new(&mut *self.g, &mut *self.coord, &*self.z, self.combo).with_goods(self.goods);
         let to = pass.move_goody(x, y);
+        self.out.inert.south_forest += pass.south_forest_refusals;
         self.out.goods.append(&mut pass.moved_goods);
         match to {
             Ok(Some((nx, ny))) => {
@@ -199,7 +240,35 @@ impl Init<'_> {
     fn block(&mut self, tx: i32, ty: i32) {
         set_blocked_at(self.g, tx, ty, true);
         let i = tile_at(self.g, tx, ty);
+        self.out.inert.bit1_rewritten += usize::from(self.g.tiles[i] & 2 != 0);
         self.g.tiles[i] = (self.g.tiles[i] & 0xfffd) | 1;
+    }
+
+    /// [`Inert`]'s two measures of a handed tile: its span's distance from
+    /// [`SLOPE`] and a corner past the clamp.
+    fn measure(&mut self, tx: i32, ty: i32) {
+        let w = self.stride();
+        let at = |x: i32, y: i32| self.z[(y * w + x) as usize];
+        let vs = [
+            at(tx, ty),
+            at(tx + 1, ty),
+            at(tx, ty + 1),
+            at(tx + 1, ty + 1),
+        ];
+        let (mut lo, mut hi) = (vs[0], vs[0]);
+        for &v in &vs[1..] {
+            (lo, hi) = (minss(v, lo), maxss(v, hi));
+        }
+        let span = hi.subss(lo);
+        let d = (i64::from(span.0) - i64::from(SLOPE.0)).unsigned_abs();
+        let d = u32::try_from(d).unwrap_or(u32::MAX);
+        let i = &mut self.out.inert;
+        i.nearest_ulps = if self.out.handed == 1 {
+            d
+        } else {
+            i.nearest_ulps.min(d)
+        };
+        i.past_clamp += usize::from(vs.iter().any(|&v| v.gt(CLAMP) || CLAMP_NEG.gt(v)));
     }
 
     /// **`Cliffs::assess_wcoord@008a6a40`** on cell `(x, y)`.
@@ -214,13 +283,15 @@ impl Init<'_> {
         for ty in 4 * y..4 * y + 4 {
             for tx in 4 * x..4 * x + 4 {
                 let c = &self.g.cells[ci];
-                if c.flags & COAST != 0 || c.land == 2 || c.land == 1 {
-                    continue;
-                }
-                if self.g.tiles[tile_at(self.g, tx, ty)] & 3 == 2 {
+                let coastal = c.flags & COAST != 0 || c.land == 2 || c.land == 1;
+                let mountain = self.g.tiles[tile_at(self.g, tx, ty)] & 3 == 2;
+                self.out.inert.refused[0] += usize::from(coastal);
+                self.out.inert.refused[1] += usize::from(mountain);
+                if coastal || mountain {
                     continue;
                 }
                 self.out.handed += 1;
+                self.measure(tx, ty);
                 if !has_plus_slope(self.z, w, tx, ty) {
                     continue;
                 }
@@ -246,7 +317,10 @@ impl Init<'_> {
             }
         }
         if count != 0 {
+            let before = self.out.moved.len() + self.out.goods.len();
             self.move_goody(x, y);
+            let after = self.out.moved.len() + self.out.goods.len();
+            self.out.inert.closing_moves += usize::from(after != before);
         } else {
             self.g.cells[ci].flags &= 0xffbf;
             self.out.cleared.push((x, y));
@@ -283,6 +357,8 @@ impl Init<'_> {
                     }
                 }
                 let k = self.group[ci];
+                self.out.inert.zero_count_cells +=
+                    usize::from(k >= 0 && n == 0 && !tiles.is_empty());
                 if k >= 0 && n != 0 {
                     self.out.mining[k as usize].extend(tiles);
                 }
@@ -386,13 +462,26 @@ mod tests {
         let w = 2;
         let flat = |a: Single, b: Single| vec![a, b, Single::ZERO, Single::ZERO];
         assert!(!has_plus_slope(&flat(SLOPE, Single::ZERO), w, 0, 0));
-        assert!(has_plus_slope(&flat(Single(SLOPE.0 + 1), Single::ZERO), w, 0, 0));
-        assert!(has_plus_slope(&flat(Single::ZERO, Single(SLOPE.0 + 1)), w, 0, 0));
+        assert!(has_plus_slope(
+            &flat(Single(SLOPE.0 + 1), Single::ZERO),
+            w,
+            0,
+            0
+        ));
+        assert!(has_plus_slope(
+            &flat(Single::ZERO, Single(SLOPE.0 + 1)),
+            w,
+            0,
+            0
+        ));
         for n in [20000, -20000] {
             let v = Single::from_i32(n);
             assert!(has_plus_slope(&[v; 4], w, 0, 0), "a flat tile at {n}");
         }
         let v = Single::from_i32(9000);
-        assert!(!has_plus_slope(&[v; 4], w, 0, 0), "a flat tile inside the clamp");
+        assert!(
+            !has_plus_slope(&[v; 4], w, 0, 0),
+            "a flat tile inside the clamp"
+        );
     }
 }

@@ -118,6 +118,10 @@ pub struct Pass<'a> {
     goods: Option<&'a [Footprint]>,
     /// The goods the good arm moved, from and to.
     pub moved_goods: Vec<((i32, i32), (i32, i32))>,
+    /// The good arm's candidates that passed every test but the forest
+    /// south of them, before the one it took: what the south-forest test
+    /// decided (item 3890's measure of that arm).
+    pub south_forest_refusals: usize,
 }
 
 impl<'a> Pass<'a> {
@@ -134,6 +138,7 @@ impl<'a> Pass<'a> {
             unread: None,
             goods: None,
             moved_goods: Vec::new(),
+            south_forest_refusals: 0,
         }
     }
 
@@ -339,7 +344,8 @@ impl<'a> Pass<'a> {
     ///   `move[9..49]` of the cell's land class (water counts `SANDY` and
     ///   `OCEAN` alike), not HALFLAND, [`Self::is_clear_land`] and with no
     ///   forest south of it gains oil and 0x8.
-    /// - A good: not reached on Great Lakes ([`Unported::Goody`]).
+    /// - A good: refused here ([`Unported::Goody`]); `move_goody` under the
+    ///   types' footprints ([`Self::with_goods`]) moves it.
     fn move_ocean_goody(&mut self, x: i32, y: i32) {
         self.move_any(x, y, false);
     }
@@ -380,8 +386,11 @@ impl<'a> Pass<'a> {
                 || self.find_good_at(nx, ny) >= 0
                 || self.g.cells[n].blocked != 0
                 || self.coord[n] & coord::HALF != 0
-                || self.has_south_forest(nx, ny)
             {
+                continue;
+            }
+            if self.has_south_forest(nx, ny) {
+                self.south_forest_refusals += 1;
                 continue;
             }
             place_good(self.g, fp, ty, nx, ny);

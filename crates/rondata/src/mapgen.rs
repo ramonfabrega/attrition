@@ -7314,8 +7314,36 @@ mod tests {
                 c.mining.iter().map(Vec::len).sum::<usize>(),
                 c.edge
             );
-            let (Some(at), Some(before)) = (g.at("Terrain.cpp", 894), g.at("map.cpp", 5118))
-            else {
+            // The arms its mutants leave standing (item 3890), each with
+            // what it was handed to decide: all nought on run1493.
+            let i = &c.inert;
+            eprintln!(
+                "{name}: inert by the grid — place_cliff's box vertices with 0x10, dry, 0x1000, \
+                 CoordInfo 0x4: {:?}; assess's tiles refused as COAST/land 1–2 and as a \
+                 mountain's: {:?}; nearest span to the threshold {} ulps; corners past ±10000 on \
+                 {} tiles; masks carrying 0x2 at the rewrite {}; closing move_goody calls that \
+                 moved anything {}; zero-count cliff cells {}; good-arm cells refused for south \
+                 forest alone {}",
+                i.box_skips,
+                i.refused,
+                i.nearest_ulps,
+                i.past_clamp,
+                i.bit1_rewritten,
+                i.closing_moves,
+                i.zero_count_cells,
+                i.south_forest
+            );
+            // A grid that hands one of them something makes its mutant
+            // scorable: this fails so that the next file says which.
+            let decided = sim::cliffs::Inert {
+                nearest_ulps: i.nearest_ulps,
+                ..Default::default()
+            };
+            assert!(
+                *i == decided && i.nearest_ulps > 1,
+                "{name}: an inert arm of Cliffs::init is handed a case: {i:?}"
+            );
+            let (Some(at), Some(before)) = (g.at("Terrain.cpp", 894), g.at("map.cpp", 5118)) else {
                 continue;
             };
             let ours = (
@@ -7343,7 +7371,10 @@ mod tests {
             parted.len(),
             say_partings(&parted)
         );
-        assert!(files >= MESA_FILES, "894 reached {files} Southwest Mesa files");
+        assert!(
+            files >= MESA_FILES,
+            "894 reached {files} Southwest Mesa files"
+        );
     }
 
     /// **The heights on Southwest Mesa at 894, every vertex** (`docs/MAPGEN.md`
@@ -7438,14 +7469,19 @@ mod tests {
             );
             files += 1;
         }
-        eprintln!("heights: Southwest Mesa start grids at 894 on {files} files, {vertices} vertices");
+        eprintln!(
+            "heights: Southwest Mesa start grids at 894 on {files} files, {vertices} vertices"
+        );
         assert!(
             parted.is_empty(),
             "{} part:\n{}",
             parted.len(),
             say_partings(&parted)
         );
-        assert!(files >= MESA_FILES, "the heights reached {files} Southwest Mesa files");
+        assert!(
+            files >= MESA_FILES,
+            "the heights reached {files} Southwest Mesa files"
+        );
     }
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
