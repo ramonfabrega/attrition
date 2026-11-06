@@ -1299,6 +1299,9 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             "OPTION_AIRBASE_RECALL" => crate::input::group_recall(built, who, &objects),
             "OPTION_AIRBASE_SCRAMBLE" => crate::input::group_scramble(built, who, &objects),
             "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
+            "OPTION_VILLAGE_GATHER_ALL" => {
+                crate::input::group_city_gather(built, who, &objects, -1)
+            }
             _ => {
                 done.skip(&word, "a bound option this interpreter does not act on");
                 return;
@@ -2315,6 +2318,10 @@ mod tests {
         // selected by `select` mid-hold and the key bound to `OPTION_QUEUE`,
         // `@key` (item 3913, `docs/GOLDEN.md` §160).
         ("chapter110.cmd", &[]),
+        // Chapter one hundred and twelve: the golden City selected and the
+        // key bound to `OPTION_VILLAGE_GATHER_ALL`, `@key`, then two Citizens
+        // (item 3915, `docs/GOLDEN.md` §162).
+        ("chapter112.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),

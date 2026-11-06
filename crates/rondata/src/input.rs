@@ -1011,6 +1011,29 @@ pub fn group_scramble(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
     list.len()
 }
 
+/// **`CommandPackage::process_city_gather@00948a10`** on the player's own
+/// buildings: a City panel's gather button, `OPTION_VILLAGE_GATHER_ALL`
+/// with `kind` −1 (item 3915, `docs/GOLDEN.md` §162). `Options::
+/// do_city_gather@0071cdb0` issues it when the selection is of buildings,
+/// one of them takes a gather point (`COUNT_GATHER_POINT`) and one is a
+/// `VILLAGE` (`COUNT_TYPE` 0x19e); its entry is [`sim::Sim::
+/// group_action_city_gather`].
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_city_gather(built: &mut Built, who: i32, buildings: &[i16], kind: i32) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built.sim.group_action_city_gather(&list, kind);
+    list.len()
+}
+
 /// **`CommandPackage::process_stop_spell@00947cc0`** on the player's own
 /// units: `OPTION_QUEUE` with a caster selected (item 3913,
 /// `docs/GOLDEN.md` §160). `Options::exec@007188c0`'s 0xa6 arm walks the

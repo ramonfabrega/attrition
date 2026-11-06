@@ -276,6 +276,62 @@ impl Sim {
         }
     }
 
+    /// **`Group::action_city_gather(kind, queue)@00701780`** (item 3915,
+    /// `docs/GOLDEN.md` §162): the City panel's four gather buttons,
+    /// `OPTION_VILLAGE_GATHER_FARM`/`_WOOD`/`_MINE`/`_ALL`, reached through
+    /// `Options::do_city_gather@0071cdb0` → `GroupOut::issue_city_gather@
+    /// 0070ac70` → `CommandPackage::process_city_gather@00948a10` (byte
+    /// 0x12). `kind` is the button's type, 0x1a1, 0x1a2, 0x1a3, or −1.
+    ///
+    /// Each member that is in use (`+8 & 1`), a building (slot `+0x20`), a
+    /// city centre (`+8 & 0x20`) and finished (`+8 & 4`, `WallData::
+    /// is_active`) has its list cleared (`Build::clear_gather`), and then
+    /// the chain from the centre itself down `city_down` (`+0x74`) is
+    /// walked: every building in use whose type answers `is(kind, 0)` —
+    /// with −1, `is(0x1a1) || is(0x1a2) || is(0x1a3)`, the listing's three
+    /// pushes at `7019b6`..`701a3d` — gives the centre a point at its own
+    /// position, action 1, `QUEUE_LAST` (`701a41`..`701a88`).
+    ///
+    /// SEAM: the console's half — when no point was laid and the group is
+    /// the console's, the last member is cleared again, with the red
+    /// feedback and a sound off the sound generator's own `Random`; this
+    /// crate keeps no console, as [`crate::gather_view::SimGather`].
+    pub fn group_action_city_gather(&mut self, buildings: &[usize], kind: i32) {
+        for &m in buildings {
+            let b = &self.buildings[m];
+            let Some(c) = b.city else {
+                continue;
+            };
+            if !b.alive || !b.active || self.cities[c].building != m {
+                continue;
+            }
+            self.clear_gather(m);
+            let chain: Vec<usize> = std::iter::once(m)
+                .chain(self.cities[c].members.iter().copied())
+                .collect();
+            for k in chain {
+                if !self.buildings[k].alive {
+                    continue;
+                }
+                let Some(t) = self.buildings[k].ty else {
+                    continue;
+                };
+                let is = |ident| build::is(&self.build_types, t, ident);
+                let takes = match kind {
+                    crate::gather_view::FARM => is(Ident::Farm),
+                    crate::gather_view::WOODCUTTER => is(Ident::Woodcutter),
+                    crate::gather_view::MINE => is(Ident::Mine),
+                    _ if kind < 0 => is(Ident::Farm) || is(Ident::Woodcutter) || is(Ident::Mine),
+                    _ => false,
+                };
+                if takes {
+                    let pos = self.buildings[k].pos;
+                    self.add_gather_point(m, GatherPoint { pos, action: 1 }, false);
+                }
+            }
+        }
+    }
+
     /// `build_masks & 8` and `is(0x1bf)`: the hangar arm's gate in
     /// `add_gather_point` and `clear_gather` — an Airbase, and not a
     /// Missile Silo.
