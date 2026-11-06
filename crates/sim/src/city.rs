@@ -2611,7 +2611,9 @@ impl Sim {
         {
             let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
             while !self.buildings[b].queue.items.is_empty() {
-                if let Some(item) = self.buildings[b].queue.unqueue(0, !silent, &mut ledger) {
+                if let Some(item) = self.buildings[b].queue.unqueue(0, !silent, &mut ledger)
+                    && !item.disband
+                {
                     self.untrack_queued(who, item.ty);
                 }
             }

@@ -3782,6 +3782,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3931) **A lane's armed clear is held by its own `blocked` row** (the sixty-ninth commander's, 2026-11-06): lane-3919 ended its draft turn with tempo `blocked`, `needs` "arm the clear…" and `suggestedReply` "continue item 3919 from the journal"; the waiter armed `ccc clear d17ea7ec --then` at once, and it stood armed 26 minutes and more with the row `idle` and the worktree clean — the suggested reply sits in the prompt box, which ccc reads as a person's unsent draft. Lanes 3911, 3917 and 3918 ended their drafts the same day without one and cleared within minutes. Candidate: the brief's draft clause says to end the draft turn with no question and no suggested reply, or `lanewait` reads `suggestedReply` and says so instead of `ENDED … blocked`. Names no score; the loop's.
+
+(3929) **A `--batch` break that leaves a second guard of the same refusal standing reads as "failed nothing"** (3917's "for the Loop"): the barge refusal's `t == TRANSPORTBARGE || tech_tree.is(t, TRANSPORTBARGE)` survived a break of its first half, exactly as a blind test does. Nothing to build in the item; the remedy is to break the condition whole. Candidate: `mutate.py` names a mutant that held on a disjunction or conjunction and offers the whole-condition break beside it. Names no score; the loop's.
+
 (3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, 3915's "for the Loop"). So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
 
 (3927) **`mutate.py --batch` times a mutant from the warm un-mutated run** (3911's "for the Loop"): the baseline ran in 2.0 s warm, so a mutant got 60 s with its compile included; every mutant of 3911's first batch compiled inside it, but a slower box or a cold cache would count a compile as a hang and score it caught. The second batch passed `--timeout 900`. Candidate: time the baseline cold, or add the measured compile to the mutant's budget, or refuse a batch whose timeout is under one cold build. Names no score; the loop's.
@@ -14540,21 +14544,31 @@ no score.
   place. 3906b, the blind second reading of §391, should read row 9 against GOLDEN §163 and not against the struck
   text. Names no score.
 
-## Parked by the next landing, slot BE — reserved
+## Parked by item 3917, 2026-11-06 — units the console creates
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3917a. The barge's formation on 621** (`docs/GOLDEN.md` §164): run1511 keeps barge `0/9` at (12024, 35304), its
+  `orders_x/y` on that point; ours lands it on (11880, 35544), seven rows in `WANT_CH114` (`pos`, `orders_x/y`,
+  `g.x/y[0]`, `g.des_x/y[0]`). The barge is listed three times, once per Hoplite figure, after `add_unit`'s host swap
+  (`009e2611`..), and takes three formation moves; the jump lands it on the last. **Killed**: "the original lists it
+  once" — `+0x8cc` is `GroupData::list` and the count is `num`, so the original's list holds it three times too. Left:
+  how `Group::action_form` treats a member listed more than once, and whether the jump's last point is invalid for the
+  barge and `find_nearby_spot(0xc0, 0x600)` finds nothing. The cheapest answer is a packet inside `add_unit` at 620:
+  the barge's order list after `action_form`. **Score**: the chapter's widening (seven rows); the word is closed at
+  900 either way.
 
-## Parked by the next landing, slot BF — reserved
+## Parked by item 3918, 2026-11-06 — a Disband queued at a Barracks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3918a. A Disband in a city** (`docs/GOLDEN.md` §165, `Sim::disband_castable`). `is_castable`'s city arm
+  (`CityData::is_disbanding` against the third argument) and whether the finish counts its own entry are
+  unit-tested only. run1512's second Barracks sat in city 0, but the group's research arm refused its presses first,
+  so the twin never entered `is_disbanding`. A press at a city building after 832, when no entry stands, would reach
+  it. The time's city, Senate and Lakota scalings and a city's own disband are unreached with it. Names no score.
+- **3918b. A Disband entry behind a stuck head, and its readers** (`Sim::advance_slot_with`, `Item::disband`). The
+  original's `get_next_non_unit` takes the first entry behind a refused head that is not a unit type, which 666 is
+  not; this crate's `Queue::next_research` asks `tech` or the type's research answer, and a disband entry's
+  type has never been put to it.
+  Nothing captured puts one behind a stuck head. The AI's readers of a queue entry's type (its build-order and
+  research checks) never see 666 in a capture. Names no score.
 
 ## Parked by item 3919, 2026-11-06 — an Entrench
 
@@ -14575,13 +14589,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BI — reserved
+## Parked by item 3921, 2026-11-06 — the `!eval` take that enters `check_starting_loc`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3921a. A pool lane's lobby is not pinned unless `--profile` names each field** (beside 3928, which is the who=1
+  tribe). run1515b, a `cover=0` twin, passed `--ai-tribe 11` and no `--profile`. On pool lane 2 it seated `DIFFICULTY 5`,
+  `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`, where the golden start is 0, 1, 0 and 7, and it
+  differed from its `cover=1` sibling at frame 0 (`docs/RUNS.md` run1515). `set_lobby` writes only the pairs it is handed,
+  so a lane's `Player.dat` keeps whatever lobby the last `--profile` take left there, and the staged restore puts back
+  that same stale value. The retake, run1515c, pinned all four fields and matched on 641 of 641 frames. Two candidates:
+  the runner writes a default for every lobby field a take does not name, the same rule `RISE_DEFAULTS` follows (Loop
+  3488); or the receipt refuses a twin whose `GAME INFO` lobby differs from its sibling's. This row names no score and
+  is the Loop's.
+- **3921b. What `find_extra_starting_loc` appended** (MAPGEN §23, "not established"). The take shows that both
+  functions are entered and that `game_random` is drawn on 620. It does not show which cell was accepted, what
+  `ScenarioData::extra_starting_locs` holds, or how many cells `check_starting_loc` was called on. A packet at
+  `RON_STATE_FRAME=620` would read all three. No sim reader carries `extra_starting_locs`, and Conquer the World is cut
+  from v1, so this row names no score.
 
 ## Parked by the next landing, slot BJ — reserved
 

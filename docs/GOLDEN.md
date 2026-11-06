@@ -17794,19 +17794,156 @@ region. A tie at equal distance. The group's slot `+0x14` and the scenario's ign
 gate, the filter's capacity and ally arms, the tie, and the economy bit (`Sim::economy_changed`, which no field on
 these frames reads apart).
 
-## 164. Reserved for the next item on the rules track
+## 164. Chapter one hundred and fourteen — units the console creates, on the lake and on land; closed at 900 on the first take (item 3917, run1511, run1511b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 row 10, §393.1 row 2): `Group::action_transport@00702620`,
+`Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0` were `NEVER`, with their caller
+`ScenarioFuncSet::add_unit@009e2220` and its one front, `ScenarioFuncSet::create_unit@009f4c50`, the script's
+`create_unit(who, x, y, type, num)`. No `@` verb reaches them. The console's `eval` runs one script line, so the
+chapter enters them as `!eval` lines.
 
-## 165. Reserved for the next item on the rules track
+**What the reading says.** `create_unit` is `add_unit(…, 0)` and nothing else. `add_unit` takes `who` 1-based (alive
+and playing), `num` ≤ 2000 and the type by its name (`get_type_index@00a03480` compares the type's own string, so the
+booking's `"Hoplite"` would have returned −1; it is `"Hoplites"`). It refuses a `TRANSPORTBARGE`, puts the point at
+`(x · 0xc0 + 0x60, y · 0xc0 + 0x60)` (quarter cells), and splits on the type's domain against
+`WorldData::is_ocean`:
+- a land type on the ocean, its leader able to transport: `num × init_unit` at the point, each `Group::add`ed;
+  `push_group`; `action_transport(1)`, which puts each land captain in a barge of its leader's `TRANSPORTBARGE`
+  born at its point and set at the nearest water within `unit_board_distance`. Then (`009e2611`..) each member of
+  the **local** group's `GroupData::list` (`+0x8cc`, `num` at `+0xc`) that is inside something is overwritten with its
+  host;
+- a sea type on the ocean, a land type on land, an air type anywhere: `num ×` `find_nearby_spot(0, 0xc00, bearing
+  0x55555555)` and `init_unit` there; an air type returns; `push_group`;
+- a sea type on land, or a land type on the ocean with no transport: return.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Then `action_form(0, 0, QUEUE_NEW)` and `dbg_jump_to_action` on the local group, not the pushed slot. The jump's
+move arm pops every leading move-family order, the unit taking each one's angle, and sets the unit at the last one's
+point, or at `find_nearby_spot(0xc0, 0x600)` round it when that point is invalid.
+
+**Staging** (`tools/gamelog/golden/chapter114.cmd`): chapter twenty's lobby to 604 (§28, run249), `0 !ai off`, `600
+library who=0 1`, `604 add dock who=0 53,153` (the dock is what gives who=0 a transport level). Then `620 !eval
+create_unit(1, 62, 182, "Hoplites", 1)` on tile 62,182, cell (15, 45), `OCEAN` with flags 0 on run249's start
+`WORLD`; and `640 !eval create_unit(1, 34, 181, "Hoplites", 2)` on cell (8, 45), `BASELAND`. The falsifiers, written
+before the take (the journal has them): no `HIT` on the five functions in the twin on 620 and 640; no barge holding
+the Hoplites on 621; the land pair at their placement points with a `CHANGE_FORM` on 641; any `CM` line but `!ai
+off`'s.
+
+**What the original does** (run1511 `cover=0`, run1511b `cover=1`; `docs/RUNS.md`). No falsifier fired. The twin
+enters `create_unit`, `add_unit`, `get_type_index`, `action_transport`, `action_form` and both `dbg_jump_to_action`s
+first on trace frame 620. Block 621: the Hoplites `0/6`–`0/8` at (12024, 35064) inside barge `0/9` (`inside_down 6`,
+the chain 6 → 7 → 8), and the barge at (12024, 35304), 240 south, `form 0`, `form_mod 50`, its `orders_x/y` on its
+own point. Block 641: Hoplites `0/10`–`0/15` with no orders, at their slots. No `CM` line but `!ai off`'s. The twin
+is run1511's game on all 901 frames (`rngcmp`).
+
+**What this crate does.** `Sim::scenario_add_unit`, `group_action_transport`, `group_dbg_jump_to_action` and
+`unit_dbg_jump_to_action` (`crates/sim/src/scenario_add.rs`). The harness's console takes `eval create_unit(…)` as
+`Cheat::CreateUnit` (`crates/rondata/src/golden.rs`), and `eval` joins the console-only words. The draw stream agrees
+to the trace's end, by value and by site: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN` = **900**, closed
+(`chapter_one_hundred_and_fourteen_holds_to_the_golden_word`). Two findings were built on the way. The host swap
+writes the local group, so the barge is what is formed: its `form` 0 and `form_mod` 50 parted until it was. And the
+formation runs on the local group, not the pushed slot: slot 0 on 641 parted on 13 fields while it ran on the slot,
+and agrees now (`form` −1, `form_num` 0, `ox`/`oy` 0). The widening over 605..900
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_FOURTEEN` (604, 901), both directions; units, figures, buildings, leaders and the
+pool, one take, since `GROUPS=1` sits beside no `DEATHS`) parts on the eleven standing `form` rows and on seven
+`621 0/9` rows (`WANT_CH114`). The coverage driver drives 619..623 and 639..643.
+
+**The value diff, block 621.** Barge `0/9`: run1511 (12024, 35304), `orders_x/y` (12024, 35304); ours (11880, 35544)
+on `pos`, `orders_x/y`, `g.x/y[0]` and `g.des_x/y[0]`. The barge is listed three times, once per Hoplite figure,
+and takes three formation moves; the jump lands it on the third slot. The original's list holds it three times as
+well (`+0x8cc` is `GroupData::list`, so "listed once" is not the answer). Parked as 3917a.
+
+**Mutations** (`tools/mutate.py --batch` against `scenario_add::tests`): ten breaks, all held. Dropping
+`action_transport` or the host swap fails `a_soldier_at_sea_with_a_dock_goes_aboard_a_barge`. Dropping the group's
+jump fails `a_land_squad_on_land_is_formed_and_snapped_to_its_slots`. Running the pop loop once fails
+`the_jump_takes_every_leading_move_and_lands_on_the_last`, and dropping the `invalid_loc` test fails
+`a_jump_into_the_sea_lands_on_the_nearest_shore`. Folding the sea-on-land arm into the placement arm, or dropping the
+no-transport return, fails `a_ship_on_land_and_a_soldier_at_sea_without_docks_place_nothing`. Dropping the barge
+refusal, the `num` bound or the map bound fails `add_unit_refuses_the_barge_a_stranger_and_a_point_off_the_map`. The
+first batch held seven. The host swap and the sea arm survived it because their tests could not see them: the barge
+test now asserts the barge is formed, and the ship stands within `0xc00` of the water. The barge refusal's first break
+left the lineage test standing, so it was retaken with the whole guard off.
+
+**Not established.** Where the original's barge formation goes (3917a). The air arm (its `STRAFEORDER`, its
+height, and an Aircraft Carrier's planes), a sea type placed on the ocean, the script's named groups
+(`clear_group`, `add_to_group`), `action_transport`'s scenario `ignore_orders` sweep and its `is_busy`, the
+caravan's `MERCHANTFLEET`, a boat with nowhere to go (killed with argument 0), and the jump's `GARRISON` and
+`GATHER` arms: each a `SEAM` in the module, none captured.
+
+**Coverage.** Diff-backed: the type's name, the land/ocean split, the barge's birth point and boarding, the land
+pair's slots, the local group, and the draws to 900. Reading only: the refusals, the air and sea arms, the
+no-transport return, the jump's invalid-point search (unit-tested), and its other two arms.
+
+## 165. Chapter one hundred and fifteen — a Disband queued at a Barracks; closed at 1100 on the first take (item 3918, run1512, run1512b)
+
+**The booking** (`docs/AI.md` §392.3, the Disband row): `SpellType::cast_disband@00671ed0` was `NEVER`. The DLL's
+`@spell` names units only, so the craft is entered as §392.3 staged it: a `@queueup` of `DISBAND` (666, 0x29a) at a
+Barracks, which `Build::finished` casts when the entry's job completes.
+
+**What the reading says.** `CommandPackage::process_queue_up` → `Group::action_queue_up@006fdbb0(0x29a, 1)`. A craft
+takes the group's research arm: `LeaderData::researching@006db510(0x29a, −1, 0, 0)` over every active building of the
+player, and a `DISBAND` entry standing anywhere refuses the command whole. Otherwise two passes over the members (the
+first only members holding nothing) offer `Build::queue_up@00620f40(0x29a, 1)`. There is no library forward (`param_1
+!= DISBAND`), and `BuildData::could_queue` → `can_make` asks the building active, `queue_here`, `type_avail` and
+`has_spell(0x29a)` → `SpellTypeData::is_castable@00675bc0(o, who, 0)`. That case's head exempts the craft. A building
+already holding a `DISBAND` refuses (`researching(.., o, 1, 0)`, its own queue). A non-city building in a city refuses
+while `CityData::is_disbanding@007380a0` exceeds the third argument. The entry costs nothing. Its time is
+`ObjectData::train_time@006508c0:51`: the building's own type's (`JOB_TIME × 100`), scaled for a city, a Senate and a
+Lakota owner, then halved. `Build::finished@00628490`'s spell arm calls `SpellType::cast@00676ce0(o, who, 0, 0)`, which
+asks `is_castable(o, who, 1)` (so at the finish the entry's own count is allowed). `cast_disband` then plunders an
+active building for its owner (`Build::plunder@00623660`) and closes it with `Object::disband(o, 0)`.
+
+**Staging** (`tools/gamelog/golden/chapter115.cmd`): chapter thirteen's cast to 614, whose Barracks `0/2007` at 14,74
+reads `city -1` on run285. Then `616 add barracks who=0 28,160`, at the tile where chapter four's Temple reads `city 0`,
+which is `0/2008`. Then `620 @queueup 0 666 1 2007`, `640 @queueup 0 666 1 2008` and `660 @queueup 0 666 1 2008`. The
+Barracks' `JOB_TIME` 420 × 100 / 2 = 21000, about 210 frames at the research pace, so the take runs to 1100. The journal
+has the five falsifiers, written before the take.
+
+**What the original does** (run1512 `cover=0`, run1512b `cover=1 --ai-tribe 11`; `docs/RUNS.md`). `process_queue_up
+666 1` lands on 621, 641 and 661 on the `CM` channel.
+- **`0/2007` holds the entry from 622**: `queued 1`, `queue[scan].type 666`, `job_counter` 100 on 622, rising 100 a
+  frame to 21000 on 831. Block 831 is its last, and it is gone from `BUILDS` on 832.
+- **`0/2008` never queues** (falsifier 1 fired for it). The research arm reads `0/2007`'s standing entry on 641 and
+  661 and refuses each command whole, before `queue_up`. This is the gate §392.3 left unestablished. So the city arm
+  (falsifier 3) is not reached: the twin never enters `CityData::is_disbanding`.
+- The twin enters `Build::finished`, `SpellType::cast`, `SpellType::cast_disband`, `Build::plunder`,
+  `Object::disband`, `Build::clean_queue` and `Build::unqueue` on trace frame 831.
+- The pool's slot 1, the pushed group `[2007]`, is dropped on block 834: `833 mod 64` is the slot's turn after the close.
+- run1512 and run1512b are one game on all 1101 frames (`rngcmp`).
+
+**What this crate does.** `crates/sim/src/queue_disband.rs`: `Sim::action_queue_disband` (the group, through
+`queue_group`'s new `Queued::Disband`), `researching_disband` (both of `researching`'s forms), `disband_castable`
+(`is_castable`'s 0x29a case), `queue_disband` (`Build::queue_up`), `disband_time` (`train_time:51`) and
+`finish_disband` (the spell arm into `cast_disband`, which reuses `Sim::plunder_kill` and §161's
+`Sim::disband_building`). A queue entry carries `Item::disband`. `advance_slot_with` times it at the research
+accelerator and spends it through `finish_disband`. `Sim::groups_process` now prunes a pushed group's closed buildings
+(`(+8 & 1) == 0`) on the slot's turn: before it, the widening parted on pool slot 1 `held`, ours `[2007]` and theirs
+none, on 834. `input::group_queue_up` routes 666.
+
+The draw stream agrees to the trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIFTEEN` = **1100**, closed
+(`chapter_one_hundred_and_fifteen_holds_to_the_golden_word`). **The walk alone is blind to the mechanism**: a building's
+disband spends no draw, and with `queue_disband` broken the walk still closed. The widening is the assertion: over
+605..1100 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_FIFTEEN` (604, 1101), both directions, the pool too) it parts on the eleven
+standing `form` rows and nothing else (`WANT_CH115`), so `0/2007`'s `queued`, its entry's type and `job_counter` agree
+on every block from 622 to 831, and its absence from 832 and the pool's slot 1 from 834 agree. The coverage driver
+drives 829..833.
+
+**Mutations** (`tools/mutate.py --batch`, seven breaks, then one `--edit`; all held in the end).
+- The group's research arm answering no fails the word and the widening: `0/2008` queues on 641 and closes inside the
+  window.
+- The city arm's `> finishing` as `> 0` fails `a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish`.
+- The time unhalved, the close dropped from `finish_disband`, the pool prune dropped, and the input route dropped
+  each fail the widening alone. The draws agree in every case.
+- `is_castable`'s own-queue refusal dropped **failed nothing** in the batch, because the research arm refuses a second
+  press before `queue_up` asks. The city test now calls `queue_disband` twice on one building, and the break fails it.
+
+**Not established.** A Disband in a city: `is_disbanding` and the finish's `> 1` (parked 3918a; two unit-tested, never
+captured). An entry behind a unit at the head, and the AI's readers of an entry's type (3918b). A city's own disband
+(`cities[c] + 4 & 0x10`, other players' claims), a wall (vslot `0x20`), and the city, Senate and Lakota scalings of the
+time. `type_avail(DISBAND, 1)` and `queue_here` answered yes for a Barracks; no other building type was asked.
+
+**Coverage.** Diff-backed: the research arm's refusal, the entry, its time and clock, the close on the finish, and the
+pool's prune. Reading only: `is_castable`'s own-queue and city arms (unit-tested), the time's scalings, and `cast_disband`'s
+plunder beyond the two leader keys the widening reads.
 
 ## 166. Chapter one hundred and sixteen — an Entrench; closed at 1000 (item 3919, run1513, run1513b)
 

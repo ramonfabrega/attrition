@@ -1755,6 +1755,14 @@ impl Sim {
                     let p = &mut self.pushed[i];
                     Self::seat_remove_at(&mut p.list, &mut p.state, k);
                 }
+                // A building group's members take the same test's first
+                // half (`(+8 & 1) == 0`, the object no longer in use): a
+                // building closed under the group leaves it on the slot's
+                // turn, and an emptied slot is the dump's no longer.
+                // run1512's `[2007]`, disbanded on 832, leaves slot 1 on
+                // 833, `833 mod 64` (item 3918, `docs/GOLDEN.md` §165).
+                let buildings = &self.buildings;
+                self.pushed[i].builds.retain(|&b| buildings[b].alive);
                 let g = crate::group::Group {
                     who,
                     army: None,

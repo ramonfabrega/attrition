@@ -35170,3 +35170,105 @@ run1508b: `rontrace.log` 12,290,208 bytes, SHA-256 `6f50172f590d09fb88c6d29c91b4
 too) and `chapter_one_hundred_and_eleven_s_window_is_widened_whole` (11 rows, the standing `form`; the pool off
 run1508b). Its window 621..625 is in the coverage driver's slice. run1508b is in `blind::TRACES`, and the four rows are
 off `NEVER`.
+
+## run1512 and run1512b — chapter one hundred and fifteen: a Disband queued at a Barracks, `@queueup 0 666 1` (2026-11-06, item 3918, `att-3918`)
+
+`docs/GOLDEN.md` §165. **What the disk could not answer**: `SpellType::cast_disband@00671ed0` was never entered by any
+trace, and no capture had queued `DISBAND` (`docs/AI.md` §392.3). Recipe `tools/gamelog/golden/chapter115.cmd`:
+chapter thirteen's cast to 614 (the Barracks `0/2007` at 14,74, `city -1`), `616 add barracks who=0 28,160` (`0/2008`,
+`city 0`), then `620 @queueup 0 666 1 2007`, `640 @queueup 0 666 1 2008` and `660 @queueup 0 666 1 2008`. Launched
+as run1510c's line (above) at `--end-frame 1100 --log-window 605 1100`; the receipt's staged detail is
+`end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`, chapter one hundred and ten's `start:` set and
+`misc:COMMANDMANAGER=1`. The twin is the same line at
+`--cover cover=1 --no-ffwd --ai-tribe 11`. 108 GiB free before. Both ran on pool lane 1 with no relaunch, `success`,
+1101 frames, `last_frame` 1100, who=1 tribe 11, and no minutes waited on another lane. `~/ron-golden/run1512` and
+`run1512b` link to `ch115` and `ch115b`.
+- run1512 (`ch115`, `cover=0`): 08:05:57–08:07:29, 92.0 s.
+- run1512b (`ch115b`, `cover=1`): 08:08:17–08:10:05, 108.4 s. Filed by `filerun.py run1512b ch115-disband-cover`.
+- `process_queue_up 666 1` on 621, 641 and 661 on the `CM` channel.
+  - `0/2007`: `queued 1`, `queue[scan].type 666`, `job_counter` 100 on 622 to 21000 on 831; block 831 is its last.
+  - `0/2008`: `queued 0` throughout; the research arm refused both presses.
+  - The pool's slot 1 (`[2007]`) is gone on block 834.
+- The twin enters `Build::finished`, `SpellType::cast`, `SpellType::cast_disband`, `Build::plunder`,
+  `Object::disband`, `Build::clean_queue` and `Build::unqueue` on trace frame 831, and never `CityData::is_disbanding`.
+- `rngcmp`: run1512 against run1512b, 1101 of 1101 identical.
+
+run1512: `gamelog.txt` 208,111,673 bytes, SHA-256 `42472178fac42c11dc469a58d2375e4f8a3638db955761dbeb57f5a56ca4aa9f`.
+`rontrace.log` 10,381,664 bytes, SHA-256 `3d20f455046612f88f26d0af67c570e10fc5627d622bbfed63495e7a0efa25b1`.
+run1512b: `rontrace.log` 20,271,392 bytes, SHA-256 `4f66d6f2e118d3b430bed59d2154f24de8d77e28f8ce7462b6cf779197081a3a`.
+
+**What it holds**: `golden::chapter_one_hundred_and_fifteen_holds_to_the_golden_word` (1100, closed) and
+`chapter_one_hundred_and_fifteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1512. Its
+window 829..833 is in the coverage driver's slice. run1512b is in `blind::TRACES`, and `cast_disband` is off `NEVER`; `CityData::is_disbanding`, which it never
+enters, is on it.
+## run1511 and run1511b — chapter one hundred and fourteen: units the console creates, on the lake and on land (2026-11-06, item 3917, `att-3917`)
+
+`docs/GOLDEN.md` §164. **What the disk could not answer**: no trace had entered `ScenarioFuncSet::create_unit@009f4c50`,
+`add_unit@009e2220`, `Group::action_transport@00702620`, `Group::dbg_jump_to_action@00707a00` or
+`Unit::dbg_jump_to_action@00602ea0` (`docs/AI.md` §391.2 row 10, §393.1 row 2). Recipe
+`tools/gamelog/golden/chapter114.cmd`: chapter twenty's lobby to 604, `0 !ai off`, `600 library who=0 1`, `604 add
+dock who=0 53,153`, then `620 !eval create_unit(1, 62, 182, "Hoplites", 1)` and `640 !eval create_unit(1, 34, 181,
+"Hoplites", 2)`. Map 14, `--end-frame 900`, `--log-window 605 900`, with `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1` and
+`misc:COMMANDMANAGER=1`, at `cover=0` into `~/ron-golden/ch114`. The twin is the same line with `--ai-tribe 11 --cover
+cover=1 --no-ffwd`, into `~/ron-golden/ch114b`. 107 GiB free before.
+- run1511: pool lane 1, launched 07:48:35, exited 07:50:30, **114.9 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 901 frames, `last_frame` 900, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes waited on another lane.
+- run1511b: pool lane 1, launched 07:51:48, 134.4 s launch to exit, `success`, 901 frames, who 1 tribe 11. Filed by
+  `filerun.py run1511b ch114-create-unit-cover` (`~/ron-golden/run1511b` links to `ch114b`).
+- Block 621: Hoplites `0/6`–`0/8` at (12024, 35064) inside barge `0/9` at (12024, 35304). Block 641: Hoplites
+  `0/10`–`0/15` at their slots with no orders. No `CM` line but `!ai off`'s. The twin enters all five functions first
+  on trace frame 620.
+- `rngcmp`: run1511 against run1511b, 901 of 901 identical.
+
+run1511: `gamelog.txt` 131,863,024 bytes, SHA-256 `a800c3a5c19a032c483e3b37de0aedbea440e6cb7defc7ec4fa2b4b47635c45b`.
+`rontrace.log` 9,822,752 bytes, SHA-256 `ed99c829ad0291f7ffcc0cf9aa7192fc66f64be090c87a11c985c5d2d646ece9`.
+run1511b: `rontrace.log` 12,141,504 bytes, SHA-256 `c70ec5610a24426a58eadf3fdee6ad4d3e84cf1e549d824f1b69a99d1e4ecad8`.
+
+**What it holds**: `golden::chapter_one_hundred_and_fourteen_holds_to_the_golden_word` (900, closed) and
+`chapter_one_hundred_and_fourteen_s_window_is_widened_whole` (18 rows: the eleven standing `form` and the barge's seven
+on 621, parked 3917a). Its windows 619..623 and 639..643 are in the coverage driver's slice. run1511b is in
+`blind::TRACES`, and the five rows are off `NEVER`.
+
+## run1515, run1515b and run1515c — the golden start at `cover=1`: `!eval find_extra_starting_loc` enters `check_starting_loc`, to 640 (2026-11-06, item 3921, `att-3921`)
+
+`docs/MAPGEN.md` §23. **What the disk could not answer**: no trace on disk enters
+`ScenarioFuncSet::find_extra_starting_loc@009e5070` or `MapConquest::check_starting_loc@0068d7e0` (§22.3, parked 3908a).
+No line on disk sends that script function, and run1092's seventeen `!eval` lines never named it. Recipe
+`tools/gamelog/coverage/startloc3921-start.cmd`, one line: `620 !eval find_extra_starting_loc(4, 4, 1)`. Launched through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1515 --map 14 --ai-tribe 11 --end-frame 640 --log-window
+600 640 --timeout 3600 --detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/startloc3921-start.cmd --cover cover=1 --cursor 1400,1000`. 100 GiB free before.
+- **run1515** (`cover=1`): pool lane 1 (`~/wine-ron`). The first launch stalled; the runner relaunched after 300.4 s
+  (`wine-stalled.log`, `wineserver_k` 0). The relaunch ran 09:43:50 to 09:44:21, **30.8 s launch to exit**, and the whole
+  take took 340.2 s. `success`, lifecycle verified, `map_verified`, map style 14, 641 frames, `last_frame` 640, seed
+  12345, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). DLL `cfad757b…`, `-DRON_AUTOSTART`. No
+  minutes waited on another lane.
+- **Entered on trace frame 620**: `MapConquest::check_starting_loc@0068d7e0` and
+  `ScenarioFuncSet::find_extra_starting_loc@009e5070`. `MapConquest::add_additional_players@0068d260` was not entered.
+- **Against run1129 and run1130** (the same lobby, no `!eval`): `rngcmp` 641 in common, 621 identical, the first
+  differing at 621, harness word 620. That frame is the `!eval`'s `game_random` draw.
+- **run1515b** (`cover=0`, same line at `--cover cover=0`): pool lane 2 (`~/wine-ron-2`), 09:38:55 to 09:39:19, 24.0 s,
+  `success`, 641 frames, who 1 tribe 11. **It is not the golden start's game.** Its `GAME INFO` reads `DIFFICULTY 5`,
+  `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`, where run1515 and run1130 read 0, 1, 0 and 7.
+  `rngcmp` against run1515: 641 in common, 0 identical, the first differing at 0. The take passed no `--profile`, so the
+  runner wrote no lobby field, and lane 2's `Player.dat` still held another take's lobby (parked 3921a). Filed for the
+  record and pinned nowhere.
+- **run1515c** (`cover=0`, the twin retaken with the golden start's four fields pinned: `--profile DIFFICULTY=0 --profile
+  STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`): pool lane 1, 09:49:09 to
+  09:49:59, **49.3 s launch to exit**, `success`, 641 frames, `last_frame` 640, who 1 tribe 11, DLL `b99973de…`. Against
+  run1515: `rngcmp` **641 in common, 641 identical, 0 differing**; `samegame` **40 in common (600..639), 0 differing**.
+  Both send the line, so there is no `--from`.
+- Filed with `filerun.py run1515 golden-startloc-eval-cover1-clickfree`, `filerun.py run1515c
+  golden-startloc-eval-cover0-clickfree` and `filerun.py run1515b lane2-lobby-leak-cover0-clickfree`.
+
+Archive `gamelog-run1515-golden-startloc-eval-cover1-clickfree.txt`, 16,199,348 bytes,
+SHA-256 `aeec0aec5abb4e01261e252d9b5afa67591a202c02db0a9867a1d0c10c37b36c`.
+Archive `rontrace-run1515.log`, 9,941,152 bytes,
+SHA-256 `ea5b693e26be87667f4f31e7cd8ec7d02ccebaf17a71f0364078336682b1324c`.
+Archive `rontrace-run1515c.log`, 9,564,384 bytes,
+SHA-256 `4556334fdf9dacb654ec4f29e8f5662db558d69badff2b38ab58ba1272e42ac7`.
+
+**What it holds**: `blind::TRACES`' run1515 (item 3921). `NEVER` 338 → 336, open 9 → 7.

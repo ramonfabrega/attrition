@@ -638,6 +638,16 @@ pub const TRACES: &[&str] = &[
     // `docs/GOLDEN.md` §163); run1510c's game on every frame (rngcmp 901
     // identical, 0 differing).
     "rontrace-run1510d.log",
+    // Item 3918: golden chapter one hundred and fifteen (`chapter115.cmd`,
+    // chapter thirteen's cast, a second Barracks in the City's city and three
+    // `@queueup 0 666 1 <b>` presses of `DISBAND`) at `cover=1` on the
+    // click-free pool, to 1100 (`docs/RUNS.md` run1512b): `0/2007`'s entry
+    // completes and `Build::finished` → `SpellType::cast` →
+    // `SpellType::cast_disband@00671ed0` → `Build::plunder` →
+    // `Object::disband` on trace frame 831 (`docs/AI.md` §392.3,
+    // `docs/GOLDEN.md` §165); run1512's game on every frame (rngcmp 1101
+    // identical, 0 differing).
+    "rontrace-run1512b.log",
     // Item 3919: golden chapter one hundred and sixteen (`chapter116.cmd`, a
     // who=0 General and a Hoplite squad two tiles off, then `@spell 0 637 -1
     // -1 0 0 6`) at `cover=1` on the click-free pool, to 1000 (`docs/RUNS.md`
@@ -679,6 +689,24 @@ pub const TRACES: &[&str] = &[
     // `docs/GOLDEN.md` §162); run1509's game on every frame (rngcmp 1301
     // identical, 0 differing).
     "rontrace-run1509b.log",
+    // Item 3917: golden chapter one hundred and fourteen (`chapter114.cmd`,
+    // chapter twenty's lobby to 604 with `620 !eval create_unit(1, 62, 182,
+    // "Hoplites", 1)` on the lake and `640 !eval create_unit(1, 34, 181,
+    // "Hoplites", 2)` on land) at `cover=1` on the click-free pool, to 900
+    // (`docs/RUNS.md` run1511b): the console's `eval` enters
+    // `ScenarioFuncSet::create_unit@009f4c50`, `add_unit@009e2220`,
+    // `Group::action_transport@00702620`, `Group::dbg_jump_to_action@00707a00`
+    // and `Unit::dbg_jump_to_action@00602ea0` on 620 (`docs/AI.md` §391.2
+    // row 10, §393.1 row 2; `docs/GOLDEN.md` §164).
+    "rontrace-run1511b.log",
+    // Item 3921: the golden start (`--map 14`, run1129's lobby) at `cover=1`
+    // on the click-free pool with one line, `620 !eval
+    // find_extra_starting_loc(4, 4, 1)`, to 640 (`docs/RUNS.md` run1515,
+    // `docs/MAPGEN.md` §23): the console's `eval` enters
+    // `ScenarioFuncSet::find_extra_starting_loc@009e5070` and
+    // `MapConquest::check_starting_loc@0068d7e0` on 620; run1515c's game on
+    // every frame (rngcmp 641 identical, 0 differing).
+    "rontrace-run1515.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -1280,9 +1308,24 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Options::do_city_gather` and `GroupOut::issue_city_gather` on 610 and, at the pump,
 /// `CommandPackage::process_city_gather` and `Group::action_city_gather`; open 18 → 14 (§391.2
 /// row 8) on the tree merged with items 3911, 3914 and 3916.
-/// **342** with item 3919's run1513b (`docs/GOLDEN.md` §166), the `cover=1` twin of chapter one
+/// **338** with item 3917's run1511b (`docs/GOLDEN.md` §164), the `cover=1` twin of chapter one
+/// hundred and fourteen: the console's `eval create_unit` enters `ScenarioFuncSet::create_unit@009f4c50`
+/// and `add_unit@009e2220`, a land type on the lake `Group::action_transport@00702620`, and the
+/// formed group `Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0`, all
+/// on 620 (`docs/AI.md` §391.2 row 10, §393.1 row 2); open 14 → 9 on the tree merged with items
+/// 3915 and 3916.
+/// **337** with item 3918's run1512b joining [`TRACES`] (`docs/GOLDEN.md` §165, `docs/AI.md`
+/// §392.3): `DISBAND` queued at a Barracks completes, and `Build::finished` casts it through
+/// `SpellType::cast` into `SpellType::cast_disband@00671ed0` on trace frame 831. **338** again with
+/// `CityData::is_disbanding@007380a0` on: §165 cites it, and the research arm refused run1512's
+/// city press before `is_castable` asked it (parked 3918a, the staging).
+/// **336** with item 3921's run1515 joining [`TRACES`] (`docs/MAPGEN.md` §23, §22.3's staging):
+/// the console's `eval find_extra_starting_loc(4, 4, 1)` on the golden start enters
+/// `ScenarioFuncSet::find_extra_starting_loc@009e5070` and `MapConquest::check_starting_loc@0068d7e0`
+/// on 620; open 9 → 7.
+/// **335** with item 3919's run1513b (`docs/GOLDEN.md` §166), the `cover=1` twin of chapter one
 /// hundred and sixteen: a General's `@spell 0 637` enters `SpellType::cast_entrench@00672820` on
-/// 680 (`docs/AI.md` §392.3); open 14 → 13.
+/// 680 (`docs/AI.md` §392.3); open 7 → 6 on the tree merged with items 3917, 3918 and 3921.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1292,20 +1335,20 @@ pub const NEVER: &[u32] = &[
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0, 0x0058_5cb0, 0x0058_5e90,
     0x0058_60c0, 0x0058_6440, 0x0058_6790, 0x0058_69e0, 0x0058_7060, 0x0058_8560, 0x0058_8f00, 0x0058_90b0, 0x0059_30c0, 0x0059_3f70, 0x0059_4080, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
     0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_2bb0, 0x005e_3310,
-    0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_2ea0, 0x0060_3130, 0x0060_4550,
+    0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_3130, 0x0060_4550,
     0x0060_8850, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_3d00, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
-    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80, 0x0067_3740, 0x0067_3e80,
+    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1f80, 0x0067_3740, 0x0067_3e80,
     0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870,
-    0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
+    0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
-    0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_2620, 0x0070_7a00, 0x0070_7aa0, 0x0070_7b50, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
-    0x0071_3bd0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
+    0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_7aa0, 0x0070_7b50, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
+    0x0071_3bd0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_80a0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7200, 0x0079_7c40, 0x0079_8880, 0x0079_99e0, 0x0079_ea80, 0x007a_a400, 0x007a_a560, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,
@@ -1315,7 +1358,7 @@ pub const NEVER: &[u32] = &[
     0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
     0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009a_df40, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_3340, 0x009b_3590,
     0x009b_37a0, 0x009b_39e0, 0x009b_4820, 0x009b_4930, 0x009b_4da0, 0x009b_59f0, 0x009b_5d20, 0x009b_5e00, 0x009b_5ec0, 0x009b_5f20, 0x009b_6de0, 0x009b_6fa0,
-    0x009b_7060, 0x009b_71c0, 0x009b_7d30, 0x009b_7de0, 0x009b_8ac0, 0x009e_2220, 0x009e_5070, 0x009f_4c50, 0x009f_b2d0, 0x00a4_69f0,
+    0x009b_7060, 0x009b_71c0, 0x009b_7d30, 0x009b_7de0, 0x009b_8ac0, 0x009f_b2d0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
