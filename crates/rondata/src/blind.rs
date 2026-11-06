@@ -1284,8 +1284,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// row 8) on the tree merged with items 3911, 3914 and 3916.
 /// **342** with item 3918's run1512b joining [`TRACES`] (`docs/GOLDEN.md` §165, `docs/AI.md`
 /// §392.3): `DISBAND` queued at a Barracks completes, and `Build::finished` casts it through
-/// `SpellType::cast` into `SpellType::cast_disband@00671ed0` on trace frame 831; open 14 → 13 on the
-/// tree merged with item 3915.
+/// `SpellType::cast` into `SpellType::cast_disband@00671ed0` on trace frame 831. **343** again with
+/// `CityData::is_disbanding@007380a0` on: §165 cites it, and the research arm refused run1512's
+/// city press before `is_castable` asked it (parked 3918a, the staging).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1308,7 +1309,7 @@ pub const NEVER: &[u32] = &[
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_de80, 0x006e_fb20, 0x006e_fb50, 0x006e_fda0, 0x006e_ff70, 0x006f_0230, 0x006f_a090, 0x0070_0010, 0x0070_20c0, 0x0070_2620, 0x0070_7a00, 0x0070_7aa0, 0x0070_7b50, 0x0070_ce70, 0x0070_f8a0, 0x0071_0aa0, 0x0071_37f0, 0x0071_3bb0,
-    0x0071_3bd0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
+    0x0071_3bd0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_80a0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7200, 0x0079_7c40, 0x0079_8880, 0x0079_99e0, 0x0079_ea80, 0x007a_a400, 0x007a_a560, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,
     0x0084_2060, 0x0084_2070, 0x0084_b8d0, 0x0086_1960, 0x0089_0060, 0x0089_4060, 0x0089_41b0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_8920,

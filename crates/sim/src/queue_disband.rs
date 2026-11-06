@@ -66,7 +66,10 @@ impl Sim {
     /// active buildings hold.
     ///
     /// SEAM: the walk skips a type whose `+0x2c0 & 0x10` is set, a flag
-    /// this crate does not carry; no capture disbands in a city.
+    /// this crate does not carry; no capture disbands in a city
+    /// (scan: `grep -lF 'queue[scan].type 666' gamelog-run*.txt` over the
+    /// 1,143 kept dumps on 2026-11-06: run1512b alone, its one entry at the
+    /// Barracks `0/2007`, city −1).
     fn city_disbanding(&self, c: usize) -> i32 {
         self.buildings
             .iter()
@@ -88,7 +91,9 @@ impl Sim {
     /// SEAM: the vslot `0x20` test (a wall answers 0 — this crate's
     /// buildings are not walls), and a city's own arm (`cities[c] + 4 &
     /// 0x10`, and the `+0x68` byte of other players' claims), which no
-    /// capture reaches; it answers castable.
+    /// capture reaches (scan: `grep -lF 'queue[scan].type 666'
+    /// gamelog-run*.txt` over the 1,143 kept dumps on 2026-11-06: run1512b
+    /// alone, a Barracks outside any city); it answers castable.
     pub(crate) fn disband_castable(&self, b: usize, finishing: bool) -> bool {
         let who = self.buildings[b].owner;
         if !finishing && self.researching_disband(who, Some(b)) {

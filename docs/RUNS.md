@@ -35170,4 +35170,5 @@ run1512b: `rontrace.log` 20,271,392 bytes, SHA-256 `4f66d6f2e118d3b430bed59d2154
 
 **What it holds**: `golden::chapter_one_hundred_and_fifteen_holds_to_the_golden_word` (1100, closed) and
 `chapter_one_hundred_and_fifteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1512. Its
-window 829..833 is in the coverage driver's slice. run1512b is in `blind::TRACES`, and `cast_disband` is off `NEVER`.
+window 829..833 is in the coverage driver's slice. run1512b is in `blind::TRACES`, and `cast_disband` is off `NEVER`; `CityData::is_disbanding`, which it never
+enters, is on it.
