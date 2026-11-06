@@ -35044,3 +35044,35 @@ run1507b: `rontrace.log` 20,088,704 bytes, SHA-256 `f762e277e51d2201483c78907efc
 **What it holds**: `golden::chapter_one_hundred_and_ten_holds_to_the_golden_word` (900, closed) and
 `chapter_one_hundred_and_ten_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 769..773 is in the
 coverage driver's slice. run1507b is in `blind::TRACES`, and the three rows are off `NEVER`.
+
+## run1508 and run1508b — chapter one hundred and eleven: a disband, `OPTION_DISBAND` on chapter nine's Chariot (2026-11-06, item 3914, `att-3914`)
+
+`docs/GOLDEN.md` §161. **What the disk could not answer**: no trace had entered `Group::action_disband@0070e260`, its
+writer `Options::do_disband@0071df20`, its gate `GroupOut::validate_disband@0070a4a0` or its arm
+`CommandPackage::process_disband@00948660` (`docs/AI.md` §391.2 row 7). Recipe `tools/gamelog/golden/chapter111.cmd`:
+chapter nine's lines to 610, then `620 select 6 who=0` and `622 @key 124`. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/ch111 --map 14 --end-frame 900 --log-window 605 900 --timeout 3600` with
+`end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,DEATHS=1`, chapter nineteen's `start:` set, `misc:COMMANDMANAGER=1` and `--bindkey
+OPTION_DISBAND=124`, at `cover=0`. The twin is the same line with `GROUPS=1` in `DEATHS=1`'s place (the two at one section
+print no `GROUPDATA`, and the runner refused the first launch of both for it), `--ai-tribe 11 --cover cover=1 --no-ffwd`,
+into `~/ron-golden/ch111b`. 123 GiB free before.
+- run1508: pool lane 1, launched 06:04:42, exited 06:05:14, **31.9 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 901 frames, `last_frame` 900, seed 12345, PLAYER records who 0 (flags
+  7, tribe 4) and who 1 (flags 1, tribe 11). No minutes waited on another lane.
+- run1508b: pool lane 1, `success`, 901 frames, who 1 tribe 11. Filed by `filerun.py run1508b ch111-disband-cover`
+  (`~/ron-golden/run1508b` links to `ch111b`). An earlier twin without `--ai-tribe` drew who 1 as tribe 2 and differed
+  from frame 0. It is kept aside, unfiled, as `~/ron-golden/ch111b-tribe2`.
+- `process_group, new 0 1 623` and `process_disband 623` are on the `CM` channel. `0/6` is on block 623 and gone on
+  624, and block 624 carries two `DEATH_OBJS` (`first_frame 623`, `cur_anim 16`). The pump's two game draws on trace
+  frame 622 are `Object::disband+0x415` and `Unit::close+0xcb6`. The twin enters `do_disband`, `validate_disband`,
+  `issue_disband`, `process_disband`, `action_disband` and `Object::disband` on trace frame 622.
+- `rngcmp`: run1508 against run1508b, 901 of 901 identical.
+
+run1508: `gamelog.txt` 79,524,573 bytes, SHA-256 `e2c048f1976842505863f6c86a362dbb12b261227187930ee92ef9f19b9768b7`.
+`rontrace.log` 9,861,312 bytes, SHA-256 `7381353e849ac34216e98fdbff0c77d3478a4cf49e9ae02129a8876dea037ac4`.
+run1508b: `rontrace.log` 12,290,208 bytes, SHA-256 `6f50172f590d09fb88c6d29c91b414da19fcbd2171d753b6980346b79a5f0856`.
+
+**What it holds**: `golden::chapter_one_hundred_and_eleven_holds_to_the_golden_word` (900, closed, the site sequence
+too) and `chapter_one_hundred_and_eleven_s_window_is_widened_whole` (11 rows, the standing `form`; the pool off
+run1508b). Its window 621..625 is in the coverage driver's slice. run1508b is in `blind::TRACES`, and the four rows are
+off `NEVER`.
