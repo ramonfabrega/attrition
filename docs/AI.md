@@ -39141,12 +39141,17 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
    - Killer: no `process_city_gather -1` on F+1. That also kills the assumption that a capital counts as
      `VILLAGE`.
 9. **`Group::action_alarm_peasant@006fd980`.** `action_alarm`'s arm for a unit group (`+0x49` 0, `:547`). Each
-   Citizen (0x32, 0x33) finds a friendly building with `FILTER_CAN_GARRISON` within `0x200`. It drops any
-   `GATHERORDER` (0x1a) at its head, takes a `GARRISONORDER` with the action bit, and sets the leader's `0x2000000`.
+   Citizen (0x32, 0x33) finds a friendly building with `FILTER_CAN_GARRISON` ~~within `0x200`~~ **anywhere on the
+   map, in its own region** (range −1; `0x200` is the flags word; `docs/GOLDEN.md` §163). It drops any
+   ~~`GATHERORDER`~~ **`GARRISONORDER`** (0x1a; `GATHER` is 7) held as its action, takes a `GARRISONORDER` with the
+   action bit, and sets the leader's `0x2000000`.
    - Staging: chapter thirty-nine's lobby (§48, the Citizen `0/6` beside the City). `select 6 who=0` and
      `@key 124` with `--bindkey OPTION_PEASANT_ALARM=124`.
    - Killer: `process_alarm` on F+1 with `0/6` holding no `GARRISONORDER` on F+2. That would mean `0x200`
      refused the City, and the Citizen is staged nearer it.
+   - **Entered** on run1510d, 622, and diffed on run1510c (`docs/GOLDEN.md` §163, item 3916). The killer did not
+     fire, with the City 15 tiles off. A gathering Citizen keeps its `GATHERORDER` under the new order (run1510's
+     falsifier 4).
 10. **`Group::action_transport@00702620`.** For each land captain that is not busy, it builds the leader's
     current `TRANSPORTBARGE` (or `MERCHANTFLEET` for a caravan) at the captain's point. It sets it at the
     nearest spot and calls `Unit::go_inside`; when `find_nearby_spot` fails and the argument is 0, it kills the

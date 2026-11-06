@@ -33,8 +33,9 @@ impl Sim {
     ///
     /// The walk is `crate::alarm_view::action_alarm_steps`, swept against the
     /// original (item 3364); the SEAMs are `SimAlarm`'s: the scenario's
-    /// `ignore_orders` sweep; the two sounds; `action_alarm_peasant@006fd980`,
-    /// a group of units' alarm; a building on a cell's chain.
+    /// `ignore_orders` sweep; the two sounds; a building on a cell's chain.
+    /// A group of units' alarm is [`Sim::action_alarm_peasant`], which the
+    /// harness calls directly (item 3916).
     pub fn action_alarm(&mut self, who: Player, list: &[usize]) {
         let mut view = crate::alarm_view::SimAlarm::new(self, who, list);
         crate::alarm_view::action_alarm_steps(&mut view);

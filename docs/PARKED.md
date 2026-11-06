@@ -14519,13 +14519,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BD — reserved
+## Parked by item 3916, 2026-11-06 — a peasant alarm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3916a. The peasant alarm's unstaged arms** (`docs/GOLDEN.md` §163, `Sim::action_alarm_peasant`). These are an
+  ally's building (the original lays the order with the group's `who` beside the ally's object number), a full
+  building (the filter's population sum), a building in another region, and a tie at equal distance. No capture
+  reaches them, and the word is closed. Names no score.
+- **3916b. Two of AI §391.2 row 9's readings were wrong, and only the take showed it.** The search's `0x200` is the
+  flags word, not the range (the range is −1), and the loop's 0x1a is `GARRISON`, not `GATHER`. Both are struck in
+  place. 3906b, the blind second reading of §391, should read row 9 against GOLDEN §163 and not against the struck
+  text. Names no score.
 
 ## Parked by the next landing, slot BE — reserved
 
