@@ -821,6 +821,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch114 = golden_dump("ch114");
     let ch115 = golden_dump("ch115");
     let ch116 = golden_dump("ch116");
+    let ch117 = golden_dump("ch117c");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3011,6 +3012,24 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and sixteen carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and seventeen, on run1514c** (item 3920): a
+    // Scout's Counterintelligence — the cast's first frame (621..623, the
+    // crew put on its point) and the Spy's death (657..661, `dtype` 2).
+    if let Some(p) = &ch117 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SEVENTEEN;
+        let n = drive_capture(p, 621, 623, &mut paths);
+        assert_eq!(
+            n, 3,
+            "chapter one hundred and seventeen carries three blocks in its cast window"
+        );
+        frames += n;
+        let n = drive_capture(p, 657, 661, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and seventeen carries five blocks in its death window"
         );
         frames += n;
     }

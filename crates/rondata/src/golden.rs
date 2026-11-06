@@ -2538,6 +2538,10 @@ mod tests {
         // Chapter one hundred and sixteen: a General and a Hoplite squad, and
         // the General's Entrench, `@spell` (item 3919, `docs/GOLDEN.md` §166).
         ("chapter116.cmd", &[]),
+        // Chapter one hundred and seventeen: chapter ninety-one's lobby, a
+        // Scout's Counterintelligence on an enemy Spy (item 3920,
+        // `docs/GOLDEN.md` §167).
+        ("chapter117.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),

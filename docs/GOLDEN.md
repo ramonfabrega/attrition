@@ -18013,12 +18013,68 @@ the three Hoplites' trench bit and angle, the General's refusal, and the draws. 
 arms, the cell test's ally and Antipater arms, the enemy radius, `clear_orders` and the kept `ATTACK`, and the French
 scale. The unit test pins all of these.
 
-## 167. Reserved for the next item on the rules track
+## 167. Chapter one hundred and seventeen — a Scout's Counterintelligence on an enemy Spy; closed at 900 (item 3920, run1514–run1514c)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §392.3, parked 3907a): `SpellType::cast_counterintel@00673740` was `NEVER`. Chapter
+ninety-one (§115) had a Spy cast it on an enemy Spy and the cast was refused on issue: a Spy is `CLOAKED`, seen by
+its enemy only through `seen3`, which a `DETECT` (`Z`) object writes (§101). The craft's `FROM2` is the Scout, which
+is `DETECT` itself. So a Scout standing by an enemy Spy lights it with its own disc and should pass
+`is_valid_target`'s enemy arm (`is(SPY)` and seen by the caster's player).
+
+**What the reading says.** `cast@00676ce0`'s `0x277` case asks `is_valid_target(p2, p3, p4)` again, then calls
+`cast_counterintel` with `ecx` set to the caster's player and the target's id and player as its arguments. The body
+swaps a non-captain target for its captain (vslots `+0xe8`, `+0xe4`). On an enemy target (not the caster's player,
+not its `+0x8`, and not allied both ways) it adds 1 to the caster's `units_killed` (`LeaderData +0x80c`) and the
+type's cost (vslot `+0x80`) / 5 to `score_combat` (`+0x44`), for a single-figure captain without `+0x68 & 1` only. It
+then kills the target through vslot `+0x158(2, −1, 0)`, `Unit::die` with `dtype` 2. Otherwise (one's own target, or
+an ally's), each human console leader whose bit is in the target's `infiltrated` gets a message, and `infiltrated`
+(`+0x3a`) is cleared. `do_cast`'s animation for a Scout-line caster on a Spy target is `CHAR_ATTACK2` (0xc) with
+`set_anim`'s third argument 0 (listing `5ec6e7`–`5ec6ce`: `is(0x45)`, not `0x280` or `0x281`, then the target's
+`is(0x3a)`). Its turn to the target is `Unit::set_angle(angle, target, 1)`: `5ec619` pushes the 1.
+
+**Staging** (`tools/gamelog/golden/chapter117.cmd`, six lines): chapter ninety-one's lobby (run894's), `0 !ai off`,
+`600 library who=0 2`, `602 library who=1 2`, then `606 add scout who=0 132,130`, `616 add spy who=1 134,130` and
+`620 @spell 0 631 6 1 25728 24960 6`. The staging walk (`RON_STAGE=ch76:chapter117:700`) issued the `CASTORDER` and
+closed the cast on 658 with the Spy alive, because this crate had no body. The falsifiers, written before the take
+(the journal has them): no `CASTORDER` on `0/6` on 622, which would make the `DETECT` premise false; no `mana_burn`
+500; the Spy not dead with `dtype` 2; the twin not entering `cast_counterintel`.
+
+**What the original does** (run1514 `cover=0`, run1514b `cover=1`, run1514c `GUYS=4`; `docs/RUNS.md`). No falsifier
+fired. Block 622: the Scout `0/6` holds `CASTORDER x=25728 y=24960 paid=1 spell=631 targetorder.ox=6
+targetorder.whom=1`, `mana_burn` 500. The Spy `1/6` walks its `EXPLORETOORDER` throughout and the Scout's angle
+tracks it, frame for frame, with ours. The Spy is gone from 659: a death object `who 1 o 6`, `first_frame 658`,
+`cur_anim 17`, which is `death_anim(2, 0)`. `dtype` 4 also gives 17, but it is the burning round's. The twin enters
+`SpellType::cast` and `cast_counterintel` first on 658, `Unit::do_cast` on 621. All three takes are one game on all
+901 frames (`rngcmp`).
+
+**What this crate does.** `Sim::cast_counterintel` (`crates/sim/src/cast.rs`) is the body without the leader
+counters, and `cast_on`'s `0x277` arm calls it behind `counterintel_valid_target`. **The first word was 661** (ours
+10 draws, theirs 9): one extra `Guy::set_anim+0x97a < Unit::do_idle+0x7d` on the Scout. run1514c's figures say why.
+On 622, theirs' crew figure (guy 1, piece 13043, track (−96, 48)) stands on its rotated track point, `stopped` 1, and
+plays `ATTACK2` with guy 0 (`end_time` 40, `queued_attack` 12 from 623). Ours walked it there (`last_speed` 46,
+`stopped` 0), deferred the attack into `pending_attack`, and left it a different clock after the cast. The cause is
+`Guy::set_angle@005d9010`'s crew loop: with its `param_2` set, it puts each tracked figure on its point
+(`set_angle(crew, des_angle, 1)`, `set_new_location(crew, des, 1)`). `do_cast` is a caller that sets it, and this
+crate's `unit_set_angle` never did. That call is now `Sim::unit_set_angle_as(u, angle, true)`. The word is
+**900** on the first walk after it, the sites too (`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SEVENTEEN`,
+`chapter_one_hundred_and_seventeen_holds_to_the_golden_word`, on run1514c). The widening over 605..900
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_SEVENTEEN` (604, 901), both directions; units, figures, buildings, leaders,
+deaths; 323,059 record rows) parts on the eleven standing `form` rows only (`WANT_CH117`). The coverage driver drives
+621..623 and 657..661.
+
+**The value diff.** On the word's frame, 661, Scout `0/6`, run1514c against ours before the snap: guy 1 `cur_anim` 0
+`cur_time` 1 `end_time` 61 against ours `anim` 7 (`SLOG`) `end_time` 15. The state first parted on 622: guy 1
+`stopped` 1 `end_time` 40 `queued_attack` 0 against ours `stopped` 0 `end_time` 15 `pending_attack` 12. After the
+snap, both agree on every frame of the window.
+
+**Mutations** (`tools/mutate.py --batch --timeout 900`, against `counterintelligence` in `sim` and the chapter's two
+golden tests): six breaks, all held. Dropping the kill, killing with `dtype` 0, inverting the alliance test and dropping the `infiltrated` clear each fail `cast::tests::counterintelligence_kills_an_enemy_spy_and_clears_a_friend`. Breaking `cast_on`'s `0x277` arm whole (`if false && …`) and passing `false` to the cast's `unit_set_angle_as` each fail both `chapter_one_hundred_and_seventeen_*` tests. The second `is_valid_target` ask is held by no walk: the staged target is valid on both asks.
+
+**Not established**: the caster's `units_killed` and `score_combat` (this crate carries neither, and `LEADERS=2`
+prints neither); the friendly and allied arms (an infiltrated target needs the other seat to cast the Informer, and
+the console's seat is player 0); the captain swap on a squad target (a Spy is one figure); a building target
+(`febchm`'s `c`); the message and the sounds. The other `Unit::set_angle(…, 1)` callers this crate reaches through
+the non-snapping `unit_set_angle` are parked as 3920a.
 
 ## 168. Reserved for the next item on the rules track
 
