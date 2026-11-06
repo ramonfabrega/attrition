@@ -2302,13 +2302,13 @@ mod tests {
         // console's `die`, which the interpreter acts on (item 3901,
         // `docs/GOLDEN.md` §157).
         ("chapter107.cmd", &[]),
+        // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
+        // line (item 696, `docs/GOLDEN.md` §19).
+        ("chapter11.cmd", &[]),
         // Chapter one hundred and ten: chapter nineteen's cast, the Spy
         // selected by `select` mid-hold and the key bound to `OPTION_QUEUE`,
         // `@key` (item 3913, `docs/GOLDEN.md` §160).
         ("chapter110.cmd", &[]),
-        // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
-        // line (item 696, `docs/GOLDEN.md` §19).
-        ("chapter11.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
@@ -2633,6 +2633,12 @@ mod tests {
                 // command (`tools/trace/tracer.c`, `I_DUMPALL`; item 3901).
                 if line.text.trim() == "@dumpall" {
                     assert!(!line.console, "{name}: `@dumpall` is a DLL line");
+                    continue;
+                }
+                // `@key <vk>` is the DLL's keystroke (`tools/trace/key.h`,
+                // item 3442), the bound option's issuer (items 3912, 3913).
+                if line.text.starts_with("@key ") {
+                    assert!(!line.console, "{name}: `@key` is a DLL line");
                     continue;
                 }
                 if line.text.starts_with('@') {

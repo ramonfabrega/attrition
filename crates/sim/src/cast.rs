@@ -640,7 +640,9 @@ impl Sim {
     /// SEAM: the scenario's ignore-orders sweep and `action_begin`, as for
     /// [`crate::halt_view::SimHalt`]; and the Merchant, Dutch Merchant and Fur
     /// Trapper arm (`0x3d`, `0x3e`, 400: `recalc_builds` and
-    /// `update_gpiece`), which no capture reaches.
+    /// `update_gpiece`), which no capture reaches (scan: `grep -lac
+    /// process_stop_spell gamelog-*.txt` over the archive's 1,140 dumps:
+    /// run1507b's alone, whose caster is a Spy; parked 3913a).
     pub fn group_action_stop_spell(&mut self, g: &Group) -> usize {
         let mut stopped = 0;
         for &u in &g.list {
