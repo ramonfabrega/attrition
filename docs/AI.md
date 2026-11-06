@@ -38818,7 +38818,7 @@ of which took `:65`.
 Item 3903 was booked as a coverage take on parked 3902a's staging: route 1 of item 3902's blind second reading
 (`docs/audit/2026-11-06-item-3902.md`, disagreement 3), a grouped "melee line" on a group attack-move with a
 shift-queued patrol, engaging beside an enemy building at capture hit points. The brief asked for three readings
-before staging: `fight`'s second-call gate at `5fe25f`, the capture arm's predicate, and which unit lines the
+before staging: `fight`'s second-call gate at `5fe25f` (the gate's call is `5fe3fe`, by the listing; `5fe25f` is the stance-1 leash, which no packer reaches: `docs/audit/2026-11-06-item-3905.md` row 4a), the capture arm's predicate, and which unit lines the
 route admits. They close the route at two independent steps, so **no take was run, and runs 1505 and 1505b are
 unused.**
 
@@ -38905,8 +38905,8 @@ So even if 389.2 fell, the capture arm's city would not open the gate.
 **Route 1 is closed by two independent readings in this section** (389.2 with 389.3, and 389.4), for every
 target `find_nearby_target` can return. **Route 2** (park 3902b, a duplicate group-move id under an `ATTACK`) is
 now the open one. The rest of 3902's sweep stands: `do_group_attack`'s site is dead, and its argument that
-`find_new_target`'s other callers establish an `ATTACK` or a `STRAFE` is not reopened here. **Both rows stay `NEVER`**, pending a blind second reading
-of this section (park 3903a) and a reading of route 2 to a producer (park 3903b).
+`find_new_target`'s other callers establish an `ATTACK` or a `STRAFE` is not reopened here. **Both rows stay `NEVER`**, pending ~~a blind second reading
+of this section (park 3903a)~~ (read by item 3905: every row agrees, `docs/audit/2026-11-06-item-3905.md`) and a reading of route 2 to a producer (park 3903b).
 
 **What is not established.** `ObjectData::has_objmask` was read as the type's `obj_masks`, by its use; its body
 was not read. `GroupAttackToOrder`'s `+0x14` (`StrafeOrder::is_air`, folded) was read as answering 1 because the
