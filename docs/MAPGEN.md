@@ -1607,8 +1607,15 @@ whose falsifiers are 7859 and 894 (§18.3, §18.4). **Taken: run1493**
 (site 0x8a8d2f) in `place_all`'s segment. **Diffed by item 3875**:
 `position_cliff`, `verify_placement`, `add_cliff`, `is_clear_land` at masks
 2 and 0x22, the template masks and both callers' arms are diff-backed by
-run1493's 1,645 `place_all` draws and 7859's part 5; `place_cliff` (894)
-and `verify_defensive_position`'s angle stay reading-only.
+run1493's 1,645 `place_all` draws and 7859's part 5;
+`verify_defensive_position`'s angle stays reading-only. **Diffed by item
+3890**: `place_cliff`, `assess_wcoord`, `has_plus_slope` (its threshold
+pinned by a native-`f32` oracle), the mining sweep, `set_edge_flags` and
+`move_goody`'s good arm, by 894's parts 5 and 6 and every vertex of
+run1493's start grid; `place_cliff`'s four skips, `assess_wcoord`'s two
+refusals, the clamp, the strict `>`, the `& 0xfffd`, the closing
+`move_goody`, the `n != 0` and the good arm's south-forest test are
+handed nothing there and rest on the reading (§15 step 7, 3890a).
 
 **Item 3863's verdict, reading-only** (§19): `TerrainOut::check_for_diagonal@008595f0`
 and `WorldData::is_valid@00471170` are kept out by a predicate. The arm
@@ -1788,7 +1795,23 @@ step is checked by §3 at its own checkpoint before the next begins:
    205 files (`east_indies_s_tail_is_894`) and every vertex of the 57
    start grids (3,310,617; `east_indies_s_heights_at_894_are_the_start_dump_s_grid`),
    first run. No river, so no trough; no start dump carries a 0x1000 or
-   0x40 cell, and the slope arm is handed no tile;
+   0x40 cell, and the slope arm is handed no tile. **Southwest Mesa
+   built** (item 3890, `sim::cliffs`; its eighth phase, the last arm no
+   chain had run): step 8's grid, the heights in `Terrain::init`'s order
+   (no river, so no trough) and `Cliffs::init` (§18.3, §18.4). On
+   run1493's one file the seed and parts 2, 5, 6 and 10–13 at 894 agree,
+   part 4 held from 5118 (`southwest_mesa_s_cliffs_are_894`), and every
+   vertex of its start grid (58,081), its 253 0x40 cells and the moved
+   goods' cells agree
+   (`southwest_mesa_s_heights_at_894_are_the_start_dump_s_grid`). Eleven
+   cliffs placed; 4,672 tiles handed to the slope test, 1,827 passed; 39
+   cells cleared of 0x40; 14,869 `move_goody` calls moving oil (33, 34) →
+   (32, 32) and two goods, one twice (`move_goody`'s good arm, first
+   reached); 3,758 mining tiles, 1,435 given 0x8000. The first run parted
+   parts 5 and 6: the templates' height byte is the TGA's **red** byte,
+   not its byte 0 (§18.3). 18 of 31 mutants hold; the other 13 arms are
+   handed nothing on this grid, each count printed and asserted nought
+   (`sim::cliffs::Inert`; 3890a);
 8. rivers (5012–5118) — **Great Sahara built** before step 7 (item 3811,
    `sim::map_rivers`; the `Mapgen:` line's seventh phase): there the
    phase is height-free (`make_riverbeds` at 5014, the 0x2000/0x2 clear
@@ -2097,7 +2120,8 @@ run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
   is the width (64 → 4, 32 → 3, 16 → 2, 8 → 1, else 0), not the `size`
   attribute; the facing is `orientation`. A texture with any zero alpha
   covers the cells holding one. Otherwise a cell is covered when the heights
-  `byte0 · (1/255) · 480` (two `mulss`) over its 6 × 6 pixel window
+  `red · (1/255) · 480` (the engine's `PF_32` texel byte 0 is the TGA's
+  byte 2, red; item 3890, by every vertex at 894) (two `mulss`) over its 6 × 6 pixel window
   (`4c − 1 ..= 4c + 4`, 0 off the texture) span more than 192, in single
   precision (`cliff_cells`, by `Single`). Box offsets `offtable@00af2fb0` =
   `[0, −1, −2, −4, −8]`. Row order, the transposition and the alpha arm are
@@ -2148,6 +2172,9 @@ run1122's at `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start
   or 2). On a cell with no 0x1000 and tile mask bit 4 clear, it adds the
   template's float offset to the height vertex. **No draw.** `Cliffs::init`
   then stamps the cliff's index into each footprint cell's tile +0x6a.
+  **Diff-backed** (item 3890, 894 on run1493): the skip on tile mask bit 4
+  is `CoordInfo::flags & 4` (`terrain+0x6ab0`, +0x1c), and the template's
+  index counts skipped vertices too (listing 0x8a7fe7).
 - **What would kill these claims.** run1118's function list already holds
   `008a8bc0`, `008a8680` and `008a7ea0`. A Southwest Mesa lobby at
   `CHECKSUM` detail 1 with `check_all_level ≥ 14` and a start `WORLD`
@@ -2167,6 +2194,13 @@ cells (zero on all three closed maps' 205 files) whose `blocked` cells
 or part 5/6 at 894 part from a port that applies this test. The port's
 `place_all` marks 292 cells 0x40 on run1493 at 7859 (item 3875), so
 Southwest Mesa's step 7 is the first to hand this test a tile.
+**Diff-backed** (item 3890): it is handed 4,672 tiles there and passes
+1,827, and 894's parts 5 and 6 agree. As built: the angle is 25
+(`[0xb69658]`), so the threshold is 89.531075 (`0x42b30fe9`); only the
+first corner is clamped, each way once (low against 10000, high against
+−10000), and the test is strict. No span comes within 70,139 ulps of the
+threshold and no corner passes ±10000, so the clamp and the strictness
+rest on the listing (0x8697ce..0x86984e).
 
 ## 19. The diagonal-transition arm: the predicate that keeps it out
 
