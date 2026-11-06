@@ -267,6 +267,31 @@ pub fn group_recall_units(built: &mut Built, who: i32, objects: &[i16]) -> usize
     g.list.len()
 }
 
+/// **`Options::do_alarm@0071c3f0`** on a selection of units: one `group`
+/// and one `alarm` (0x1b), so the pump's `CommandPackage::process_alarm
+/// @00947ef0` → `Group::action_alarm@0070ec30` takes its unit arm,
+/// [`sim::Sim::action_alarm_peasant`] (item 3916, `docs/GOLDEN.md` §163).
+pub fn group_alarm_peasant(built: &mut Built, who: i32, objects: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    built.sim.action_alarm_peasant(&g);
+    g.list.len()
+}
+
 /// A `group` command (0x00) and the `guard` (0x1f) behind it, into the
 /// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
 /// `docs/GOLDEN.md` §19) — [`group_move_to`]'s group, then
@@ -1073,6 +1098,29 @@ pub fn group_scramble(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
     }
     built.sim.push_command_buildings(player, &list);
     built.sim.group_action_scramble(&list);
+    list.len()
+}
+
+/// **`CommandPackage::process_city_gather@00948a10`** on the player's own
+/// buildings: a City panel's gather button, `OPTION_VILLAGE_GATHER_ALL`
+/// with `kind` −1 (item 3915, `docs/GOLDEN.md` §162). `Options::
+/// do_city_gather@0071cdb0` issues it when the selection is of buildings,
+/// one of them takes a gather point (`COUNT_GATHER_POINT`) and one is a
+/// `VILLAGE` (`COUNT_TYPE` 0x19e); its entry is [`sim::Sim::
+/// group_action_city_gather`].
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_city_gather(built: &mut Built, who: i32, buildings: &[i16], kind: i32) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built.sim.group_action_city_gather(&list, kind);
     list.len()
 }
 

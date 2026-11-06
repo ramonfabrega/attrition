@@ -6209,10 +6209,72 @@ const WANT_CH111: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **run1510c whole, both directions** (item 3916, `docs/GOLDEN.md` §163).
+#[test]
+fn chapter_one_hundred_and_thirteen_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirteen_s_window_is_widened_whole();
+}
+
+/// What parts in run1510c's window, blocks 605–900 (item 3916): the eleven
+/// standing `form` rows, and nothing else — not the three Citizens'
+/// stacks on 624, 644 and 682, the frames after each `process_alarm`.
+const WANT_CH113: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// Chapter one hundred and eleven holds to its golden word (item 3914, run1508).
 #[test]
 fn chapter_one_hundred_and_eleven_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_eleven_holds_to_the_golden_word();
+}
+
+/// **run1509 whole, both directions** (item 3915, `docs/GOLDEN.md` §162).
+#[test]
+fn chapter_one_hundred_and_twelve_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_twelve_s_window_is_widened_whole();
+}
+
+/// What parts in run1509's window, blocks 605–1300 (item 3915): the eleven
+/// standing `form` rows every golden chapter carries, and nothing else —
+/// not the City's four points on 611, nor the two Citizens born under them
+/// (716, 822), each sent to gather at the Woodcutter's Camp by the head
+/// point's waypoint arm, nor the pool.
+const WANT_CH112: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and twelve holds to its golden word (item 3915,
+/// run1509).
+#[test]
+fn chapter_one_hundred_and_twelve_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_twelve_holds_to_the_golden_word();
+}
+
+/// Chapter one hundred and thirteen holds to its golden word (item 3916,
+/// run1510c).
+#[test]
+fn chapter_one_hundred_and_thirteen_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirteen_holds_to_the_golden_word();
 }
 
 /// **run1511 whole, both directions** (item 3917, `docs/GOLDEN.md` §164).

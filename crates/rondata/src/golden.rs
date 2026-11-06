@@ -1417,10 +1417,16 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             "OPTION_AIRBASE_RECALL" => crate::input::group_recall(built, who, &objects),
             "OPTION_AIRBASE_SCRAMBLE" => crate::input::group_scramble(built, who, &objects),
             "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
+            // `Options::do_alarm@0071c3f0` on a selection of Citizens (item
+            // 3916, `docs/GOLDEN.md` §163).
+            "OPTION_PEASANT_ALARM" => crate::input::group_alarm_peasant(built, who, &objects),
             // `Options::recall_aircraft@0071c670`'s `recall` (byte 0x23) on
             // a selection of units (item 3911, `docs/GOLDEN.md` §158).
             "OPTION_RETURN" => crate::input::group_recall_units(built, who, &objects),
             "OPTION_DISBAND" => crate::input::group_disband(built, who, &objects, false),
+            "OPTION_VILLAGE_GATHER_ALL" => {
+                crate::input::group_city_gather(built, who, &objects, -1)
+            }
             _ => {
                 done.skip(&word, "a bound option this interpreter does not act on");
                 return;
@@ -2516,6 +2522,14 @@ mod tests {
         // `select` and the key bound to `OPTION_DISBAND`, `@key` (item 3914,
         // `docs/GOLDEN.md` §161).
         ("chapter111.cmd", &[]),
+        // Chapter one hundred and twelve: the golden City selected and the
+        // key bound to `OPTION_VILLAGE_GATHER_ALL`, `@key`, then two Citizens
+        // (item 3915, `docs/GOLDEN.md` §162).
+        ("chapter112.cmd", &[]),
+        // Chapter one hundred and thirteen: chapter thirty-nine's lobby, three
+        // Citizens selected by `select` and the key bound to
+        // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).
+        ("chapter113.cmd", &[]),
         ("chapter114.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).

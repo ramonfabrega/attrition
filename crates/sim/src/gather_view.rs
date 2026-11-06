@@ -28,6 +28,8 @@ pub(crate) const IS_WONDER_A: i32 = 0x211;
 pub(crate) const IS_WONDER_B: i32 = 0x21a;
 /// The City centre `GroupData::count(COUNT_TYPE, …)` and the snap ask for.
 pub(crate) const VILLAGE: i32 = 0x19e;
+/// The Farm a City's gather button asks for (`Group::action_city_gather`).
+pub(crate) const FARM: i32 = 0x1a1;
 /// The Woodcutter the snap asks for on a forest tile.
 pub(crate) const WOODCUTTER: i32 = 0x1a2;
 /// The Mine the snap asks for on a mountain tile.

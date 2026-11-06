@@ -7,6 +7,17 @@
 
 use crate::world::Pos;
 
+/// [`Sim::gather_waypoint`]'s verdict on a point before the last.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Waypoint {
+    /// The walk ends here, as at the last point.
+    End,
+    /// The point is passed over.
+    Pass,
+    /// The captain moves through it.
+    Move,
+}
+
 /// `GatherPoint`: `x`, `y` and `action`, the record the dump prints as
 /// `GATHERPOINT`. `action` 0 is a point on the ground, 1 a friendly
 /// object's point, 2 an enemy's, 3 an object named by `(o, who)` in
@@ -276,6 +287,62 @@ impl Sim {
         }
     }
 
+    /// **`Group::action_city_gather(kind, queue)@00701780`** (item 3915,
+    /// `docs/GOLDEN.md` §162): the City panel's four gather buttons,
+    /// `OPTION_VILLAGE_GATHER_FARM`/`_WOOD`/`_MINE`/`_ALL`, reached through
+    /// `Options::do_city_gather@0071cdb0` → `GroupOut::issue_city_gather@
+    /// 0070ac70` → `CommandPackage::process_city_gather@00948a10` (byte
+    /// 0x12). `kind` is the button's type, 0x1a1, 0x1a2, 0x1a3, or −1.
+    ///
+    /// Each member that is in use (`+8 & 1`), a building (slot `+0x20`), a
+    /// city centre (`+8 & 0x20`) and finished (`+8 & 4`, `WallData::
+    /// is_active`) has its list cleared (`Build::clear_gather`), and then
+    /// the chain from the centre itself down `city_down` (`+0x74`) is
+    /// walked: every building in use whose type answers `is(kind, 0)` —
+    /// with −1, `is(0x1a1) || is(0x1a2) || is(0x1a3)`, the listing's three
+    /// pushes at `7019b6`..`701a3d` — gives the centre a point at its own
+    /// position, action 1, `QUEUE_LAST` (`701a41`..`701a88`).
+    ///
+    /// SEAM: the console's half — when no point was laid and the group is
+    /// the console's, the last member is cleared again, with the red
+    /// feedback and a sound off the sound generator's own `Random`; this
+    /// crate keeps no console, as [`crate::gather_view::SimGather`].
+    pub fn group_action_city_gather(&mut self, buildings: &[usize], kind: i32) {
+        for &m in buildings {
+            let b = &self.buildings[m];
+            let Some(c) = b.city else {
+                continue;
+            };
+            if !b.alive || !b.active || self.cities[c].building != m {
+                continue;
+            }
+            self.clear_gather(m);
+            let chain: Vec<usize> = std::iter::once(m)
+                .chain(self.cities[c].members.iter().copied())
+                .collect();
+            for k in chain {
+                if !self.buildings[k].alive {
+                    continue;
+                }
+                let Some(t) = self.buildings[k].ty else {
+                    continue;
+                };
+                let is = |ident| build::is(&self.build_types, t, ident);
+                let takes = match kind {
+                    crate::gather_view::FARM => is(Ident::Farm),
+                    crate::gather_view::WOODCUTTER => is(Ident::Woodcutter),
+                    crate::gather_view::MINE => is(Ident::Mine),
+                    _ if kind < 0 => is(Ident::Farm) || is(Ident::Woodcutter) || is(Ident::Mine),
+                    _ => false,
+                };
+                if takes {
+                    let pos = self.buildings[k].pos;
+                    self.add_gather_point(m, GatherPoint { pos, action: 1 }, false);
+                }
+            }
+        }
+    }
+
     /// `build_masks & 8` and `is(0x1bf)`: the hangar arm's gate in
     /// `add_gather_point` and `clear_gather` — an Airbase, and not a
     /// Missile Silo.
@@ -446,8 +513,11 @@ impl Sim {
     ///   `spot`, a lone unit, re-seated again from the bearing to `spot`,
     ///   through `add_move_facing_order` to `spot`.
     ///
-    /// SEAM: an enemy found at the point (the attack arms), a waypoint
-    /// with `action` ≠ 0, and a caravan's trade arm; no capture sets one.
+    /// A waypoint with `action` ≠ 0 takes [`Sim::gather_waypoint`]'s verdict
+    /// first (item 3915, run1509).
+    ///
+    /// SEAM: an enemy found at the point (the attack arms) and a caravan's
+    /// trade arm; no capture sets one.
     pub(crate) fn gather_route(
         &mut self,
         captain: usize,
@@ -484,10 +554,20 @@ impl Sim {
                 self.gather_route_last(captain, b, *p, target, prev, group);
                 return;
             }
-            // A waypoint (`618ca6`..`61912e`). SEAM: its `action` ≠ 0 arms
-            // (a citizen's gather building, a garrison with room, an enemy
-            // under action 2), which end the walk early or pass the point
-            // over; no capture sets one.
+            // A waypoint (`618ca6`..`61912e`): with `action` ≠ 0 its own
+            // verdict first (item 3915, [`Sim::gather_waypoint`]) — the
+            // walk ends at it, as at the last point (`LAB_00618ff1`), or
+            // passes it over (`LAB_00619142`), or moves through it.
+            if p.action != 0 {
+                match self.gather_waypoint(captain, *p) {
+                    Waypoint::End => {
+                        self.gather_route_last(captain, b, *p, target, prev, group);
+                        return;
+                    }
+                    Waypoint::Pass => continue,
+                    Waypoint::Move => {}
+                }
+            }
             match group {
                 Some(g) if squad => {
                     let t = self
@@ -521,6 +601,91 @@ impl Sim {
                     prev = target;
                 }
             }
+        }
+    }
+
+    /// **A waypoint's verdict** (`Unit::come_out@00617c10`, `618cae`..
+    /// `618ff1`; item 3915, `docs/GOLDEN.md` §162), for a point before the
+    /// last whose `action` is not 0. `ObjectsData::find_any_building_at`
+    /// on the point's tile (`FILTER_SEEN`):
+    ///
+    /// - none: an armed (`+0x1e8`) non-worker under action 2 passes the
+    ///   point over; anything else moves through it;
+    /// - a Citizen (`is_peasant`) under action 1, on a building of its own:
+    ///   unfinished (vslot `+0x4c`) or damaged (`+0x24`) ends the walk
+    ///   there; finished and whole, a gathering type (`+0x90`) that is not
+    ///   a University (`is(0x1a4)`) and alive (vslot `+0xc`) with
+    ///   `num_gatherers(0, 0)` under `gather_max` (`+0x80`) ends it, and
+    ///   any other passes it over;
+    /// - then a finished building of an ally with a garrison limit the
+    ///   type can garrison, under action 1: room for the unit's
+    ///   `control_cost` beside `num_inside(0)` ends the walk, none passes
+    ///   the point over;
+    /// - an armed non-worker under action 2 on an enemy's building ends it.
+    ///
+    /// A pass wins over an end, as the listing tests `local_a08` first.
+    /// run1509's head point is action 1 on the golden City's Woodcutter's
+    /// Camp, two of its five slots taken: the Citizen gathers there.
+    fn gather_waypoint(&self, captain: usize, p: GatherPoint) -> Waypoint {
+        let who = self.units[captain].owner;
+        let armed =
+            self.profile(crate::combat::Obj::Unit(captain)).attack != 0 && !self.is_worker(captain);
+        let Some(tb) = self.building_at_tile(p.pos.tile()) else {
+            return if armed && p.action == 2 {
+                Waypoint::Pass
+            } else {
+                Waypoint::Move
+            };
+        };
+        let (mut end, mut pass) = (false, false);
+        let owner = self.buildings[tb].owner;
+        let building = &self.buildings[tb];
+        if matches!(self.units[captain].type_index, 0x32 | 0x33) && p.action == 1 && owner == who {
+            if !building.active || building.damage != 0 {
+                end = true;
+            } else {
+                let gathers = building
+                    .ty
+                    .is_some_and(|t| self.build_types[t].has(build::flags::GATHER));
+                if building.alive
+                    && gathers
+                    && self.building_ident(tb) != Ident::University
+                    && building
+                        .gather_max
+                        .is_none_or(|m| self.num_gatherers(tb, false, false) < m)
+                {
+                    end = true;
+                } else {
+                    pass = true;
+                }
+            }
+        }
+        if building.alive
+            && building.active
+            && (owner == who || self.is_ally(who, owner))
+            && self.garrison_limit(tb) != 0
+            && building.ty.is_some_and(|bt| {
+                self.units[captain]
+                    .ty
+                    .is_some_and(|t| self.can_garrison(t, bt))
+            })
+            && p.action == 1
+        {
+            if self.garrison_limit(tb) < self.num_inside(tb) + self.control_cost(captain) {
+                pass = true;
+            } else {
+                end = true;
+            }
+        }
+        if armed && p.action == 2 && self.is_enemy(who, owner) {
+            end = true;
+        }
+        if pass {
+            Waypoint::Pass
+        } else if end {
+            Waypoint::End
+        } else {
+            Waypoint::Move
         }
     }
 

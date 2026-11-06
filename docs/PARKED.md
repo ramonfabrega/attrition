@@ -3782,7 +3782,7 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
-(3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, when it merges). So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
+(3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, 3915's "for the Loop"). So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
 
 (3927) **`mutate.py --batch` times a mutant from the warm un-mutated run** (3911's "for the Loop"): the baseline ran in 2.0 s warm, so a mutant got 60 s with its compile included; every mutant of 3911's first batch compiled inside it, but a slower box or a cold cache would count a compile as a hang and score it caught. The second batch passed `--timeout 900`. Candidate: time the baseline cold, or add the measured compile to the mutant's budget, or refuse a batch whose timeout is under one cold build. Names no score; the loop's.
 
@@ -14516,21 +14516,29 @@ no score.
   passenger loop are unit-tested, never captured. Two units selected under `OPTION_DISBAND_ALL=124` would show the
   order in the draws, two `Object::disband+0x415` pairs. **Score**: none named.
 
-## Parked by the next landing, slot BC — reserved
+## Parked by item 3915, 2026-11-06 — a city's gather-all
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3915a. Pool lane 2 seats who=1 as another nation.** run1509b's first take ran on lane 2 with its lines staged
+  (`INFO 22` on 610, the four functions entered) but who=1 at tribe 2, where lanes 1 and 3 seat tribe 11 on the same
+  recipe (run1507, run1507b, run1509, run1509b take 2): `rngcmp` differs on every frame, so it is another game, and
+  was retaken on lane 1. The same lane ran 3912a's unstaged take (Loop 3926). **Score**: none directly — each `cover=1`
+  twin on lane 2 costs a retake; for the Loop, beside 3926.
+- **3915b. The waypoint arm's other verdicts.** `Sim::gather_waypoint` (GOLDEN §162) is diffed on one arm, a
+  Citizen's gather end at a camp with room. A pass on a full camp, a garrison end with and without room, an unfinished
+  or damaged building, and action 2 on an enemy are read, not captured. A staging: a City's gather-all with six
+  Citizens queued, so the camp's five slots fill and the sixth passes over to the first Farm. **Score**: none named —
+  no word or floor parts on it.
 
-## Parked by the next landing, slot BD — reserved
+## Parked by item 3916, 2026-11-06 — a peasant alarm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3916a. The peasant alarm's unstaged arms** (`docs/GOLDEN.md` §163, `Sim::action_alarm_peasant`). These are an
+  ally's building (the original lays the order with the group's `who` beside the ally's object number), a full
+  building (the filter's population sum), a building in another region, and a tie at equal distance. No capture
+  reaches them, and the word is closed. Names no score.
+- **3916b. Two of AI §391.2 row 9's readings were wrong, and only the take showed it.** The search's `0x200` is the
+  flags word, not the range (the range is −1), and the loop's 0x1a is `GARRISON`, not `GATHER`. Both are struck in
+  place. 3906b, the blind second reading of §391, should read row 9 against GOLDEN §163 and not against the struck
+  text. Names no score.
 
 ## Parked by item 3917, 2026-11-06 — units the console creates
 

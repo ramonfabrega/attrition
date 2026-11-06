@@ -35045,6 +35045,71 @@ run1507b: `rontrace.log` 20,088,704 bytes, SHA-256 `f762e277e51d2201483c78907efc
 `chapter_one_hundred_and_ten_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 769..773 is in the
 coverage driver's slice. run1507b is in `blind::TRACES`, and the three rows are off `NEVER`.
 
+## run1509 and run1509b — chapter one hundred and twelve: a city's gather-all, `OPTION_VILLAGE_GATHER_ALL` on the golden City (2026-11-06, item 3915, `att-3915`)
+
+`docs/GOLDEN.md` §162. **What the disk could not answer**: `Group::action_city_gather@00701780`, its issuer
+`Options::do_city_gather@0071cdb0` → `GroupOut::issue_city_gather@0070ac70` and its arm
+`CommandPackage::process_city_gather@00948a10` were never entered by any trace (`docs/AI.md` §391.2 row 8). Recipe
+`tools/gamelog/golden/chapter112.cmd`: `0 !ai off`, `606 select 2000 who=0`, `610 @key 124`, `616 @queueup 0 50 2
+2000`. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch112 --map 14 --end-frame 1300
+--log-window 605 1300 --timeout 3600` with chapter nineteen's `end:`/`start:` sets, `misc:COMMANDMANAGER=1` and
+`--bindkey OPTION_VILLAGE_GATHER_ALL=124`, at `cover=0`. The twin is the same line at `--cover cover=1 --no-ffwd`.
+118 GiB free before.
+- run1509: pool lane 1, launched 06:33:52, exited 06:35:16, **84.5 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 1301 frames, `last_frame` 1300, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes waited on another lane.
+- run1509b take 1 (`~/ron-golden/ch112b`, not filed): pool lane 2, 164.3 s, `success`, staged (`INFO 22` on 610 names
+  option 280, and it enters the four functions on 610). **But who=1 is tribe 2**, so `rngcmp` against run1509 differs
+  on all 1301 frames: another game. Lane 2 is the lane of 3912a's unstaged take (Loop 3926); parked 3915a.
+- run1509b take 2 (`~/ron-golden/ch112c`, `~/ron-golden/run1509b` links to it): pool lane 1, 133.2 s, no relaunch,
+  `success`, 1301 frames, who=1 tribe 11. Filed by `filerun.py run1509b ch112-citygather-cover`.
+- `INFO 22` on 610: line 3, VK 124, option 280. `process_city_gather -1 2 611` on the `CM` channel. `0/2000`'s list on
+  the next block: (4224, 28608), (2688, 32064), (1920, 32064), (2112, 31296), each action 1; the Library `0/2005` and
+  the Market `0/2006` take none. Citizens `0/6` (716) and `0/7` (822) are born at (3864, 30168), each with a
+  `GATHERORDER` on `0/2001` (`build_type` 418). The twin enters `Console::exec_keymap`, `do_city_gather`,
+  `issue_city_gather`, `process_city_gather` and `action_city_gather` on trace frame 610.
+- `rngcmp`: run1509 against run1507, 614 identical, the first differing 611; run1509 against run1509b (take 2), 1301
+  of 1301 identical.
+
+run1509: `gamelog.txt` 275,240,433 bytes, SHA-256 `a78badd8df234538b757f7bb0dec31d7bfe99caf541d7d565154644a6dfe6c7d`. `rontrace.log` 10,597,824 bytes, SHA-256 `1701f47cd640cc32725dea2df4f49f5de88e21945ee0e0477e1c46cdfb84b417`.
+run1509b: `rontrace.log` 19,390,048 bytes, SHA-256 `6047dbe11b09e8ac0d9936a9e43ec73e4f8699146a916afb02b3801350d729c8`.
+
+**What it holds**: `golden::chapter_one_hundred_and_twelve_holds_to_the_golden_word` (1300, closed) and
+`chapter_one_hundred_and_twelve_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 609..613 is in the
+coverage driver. run1509b is in `blind::TRACES`; four rows leave `NEVER` (347 → 343 on the tree merged with items 3911, 3914 and 3916).
+## run1510 to run1510d — chapter one hundred and thirteen: a peasant alarm, `OPTION_PEASANT_ALARM` on chapter thirty-nine's Citizen (2026-11-06, item 3916, `att-3916`)
+
+`docs/GOLDEN.md` §163. **What the disk could not answer**: `Group::action_alarm_peasant@006fd980` and its writer
+`Options::do_alarm@0071c3f0` were never entered by any trace (`docs/AI.md` §391.2 row 9). Recipe
+`tools/gamelog/golden/chapter113.cmd`: chapter thirty-nine's lobby (`600 library who=0 1`, `606 add citizen who=0
+30,150`), then `620 select 6`, `622 @key 124`, `640 select 1`, `642 @key 124`, and on the retake `678 select 6`, `680
+@key 124`. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch113 --map 14 --end-frame 900
+--log-window 605 900 --timeout 3600`, with chapter one hundred and ten's `end:`/`start:` sets, `misc:COMMANDMANAGER=1`
+and `--bindkey OPTION_PEASANT_ALARM=124`. Each twin is the same line at `--cover cover=1 --no-ffwd`. 116 GiB free
+before. All four ran on pool lane 1 with no relaunch, `success`, 901 frames, `last_frame` 900, and no minutes waited on
+another lane. `~/ron-golden/run1510`..`run1510d` link to `ch113`..`ch113d`.
+- run1510 (`ch113`, `cover=0`): 06:55:57–06:56:39, 41.5 s. The first take, without the 680 press. Its falsifier 4
+  fired: `0/1` keeps its `GATHERORDER` on 644.
+- run1510b (`ch113b`, `cover=1`): 06:57:24–06:59:13, 109.3 s. The first take's twin.
+- run1510c (`ch113c`, `cover=0`): 07:00:32–07:02:12, 100.4 s. The retake, with the 680 press, and the word's.
+- run1510d (`ch113d`, `cover=1`): 07:02:51–07:04:25, 94.0 s. Filed by `filerun.py run1510d ch113-peasantalarm-cover`.
+- `process_alarm 623`, `643` and `681` on the `CM` channel.
+  - On 624 `0/6` holds `GARRISONORDER search=1` on `0/2000` under a `MOVEORDER` to (3816, 30456).
+  - On 644 `0/1` holds `[GATHERORDER 2001, GARRISONORDER 2000, MOVEORDER]`.
+  - On 682 `0/6` holds one `GARRISONORDER` and a `MOVEORDER` to (3864, 30648).
+  - Inside `2000`: `0/1` on 720, `0/6` on 746.
+- The twin enters `do_alarm`, `process_alarm`, `action_alarm`, `action_alarm_peasant`, `find_building`,
+  `UnitData::can_garrison` and `UnitTypeData::can_garrison` on trace frame 622.
+- `rngcmp`: run1510c against run1510d, 901 of 901 identical; run1510 against run1510c, 901 of 901 identical.
+
+run1510c: `gamelog.txt` 122,382,205 bytes, SHA-256 `89c1b0471c1347c3199a0d74875cfc74ae693322c42d525ab54dce7ea02181f7`.
+`rontrace.log` 9,742,016 bytes, SHA-256 `2cd74227ea19e9181fc4623b64ad4c57a7edfce2bc21cd14e3abd708354401ca`.
+run1510d: `rontrace.log` 16,183,616 bytes, SHA-256 `4d02aefd711e4ee8256dc65f437ccbba8f14ab73cd20fa6b3373a413ee37b8fc`.
+run1510: `rontrace.log` 9,985,536 bytes, SHA-256 `5d91c615b4c5f5ae1751e82316d5a7e648236eeeeece17ba24def47d2409007c`.
+
+**What it holds**: `golden::chapter_one_hundred_and_thirteen_holds_to_the_golden_word` (900, closed) and
+`chapter_one_hundred_and_thirteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1510c. Its
+window 679..683 is in the coverage driver's slice. run1510d is in `blind::TRACES`, and its two rows are off `NEVER`.
 ## run1508 and run1508b — chapter one hundred and eleven: a disband, `OPTION_DISBAND` on chapter nine's Chariot (2026-11-06, item 3914, `att-3914`)
 
 `docs/GOLDEN.md` §161. **What the disk could not answer**: no trace had entered `Group::action_disband@0070e260`, its
