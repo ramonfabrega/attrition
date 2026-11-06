@@ -89,38 +89,39 @@ is append-only and amended in place, as it always was.
 - 75 standing — Astra's test-suite branch is fast-forwarded whole, adapted at four points, and tried for one tranche with a kill switch and two numbers
 - 76 standing — The thirty-eighth tranche is scored under host admission, the admission and the fourth lane stay, the census subtracts a sweep's stubbed callees, and twenty Loop items become tools, rows or closes
 - 77 standing — The thirty-ninth tranche is scored at the loop's fastest, the fourth lane holds while the fifth goes to a steer, the sweep lanes get a claim mark, and thirteen Loop items become tools, rows or closes
-- 78 standing — The fortieth tranche is scored on five lanes, the booking gate is named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, and nine Loop items become tools, rows or closes
+- 78 standing — The fortieth tranche: five lanes, the booking gate named the chain's bottleneck and its scope stops widening on the blind residue, the waiter reads a finished log under another lane's runner, nine Loop items become tools, rows or closes
 - 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
-- 80 standing — The forty-second tranche is scored on four lanes at the loop's price, the lane gate is named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, and twenty-one Loop items become tools, rows, closes or Ramon's
+- 80 standing — The forty-second tranche: four lanes at the loop's price, the lane gate named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, twenty-one Loop items become tools, rows, closes or Ramon's
 - 81 standing — The forty-third tranche: four lanes at less and slower, the sweep lanes' fan-outs read as their own, the lane gate two to four runs a landing and its quote guarded, a regen keeps every hand item, twenty-two Loop items ruled
 - 83 standing — The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
 - 84 standing — The forty-fifth tranche: three lanes at three times the price a landing, the lane gate reads how far its base moved, the Loop-line guard is forgiven on a lane, the click-free lane refuses a windowless launch, the held-out unit is the lobby
 - 85 standing — The forty-sixth tranche: four lanes at less a landing, the held-out battery six of eight whole, the sim lib's cap follows the thread count, a push under a clear is a draft, the oracle cache is a directory a gc removes
 - 82 standing — The forty-fourth tranche: four lanes at more and slower, the lane gate's first red was the guard asking for its own quote, a hung mutant and a compile failure get verdicts, cleanup is by ownership, an unread field the sim carries is owed by name
-- 86 standing — The forty-seventh tranche: four lanes at the loop's cheapest landing, the held-out battery eight of eight whole and the battery track stops, the forty-eighth booked on the blind list, the lane gate gates past the commander's paperwork, nineteen Loop items ruled
-- 91 standing — The fifty-second tranche: two Opus lanes, twenty landings in 11 h 25 on six late-age pairs, four whole, ages 8 of 8, unit types 152 of 302, the drain's clear its last act, the lane rule's trip a recommendation
-- 93 standing — The fifty-fourth tranche: three Opus lanes, twenty landings in 9 h 55, five pairs stand, the Persian word closes, the third lane taken away, age 0 an Ancient start capped at Classical
-- 94 standing — The fifty-fifth tranche: two Opus lanes, twenty landings in 11 h 19, thirteen pairs stand and twelve run whole, the Mongol word closes, unit types 179 of 302, two lanes held on the gate, row-list edits stop widening the lane gate
-- 95 standing — The fifty-sixth tranche: two Opus lanes, twenty landings in 11 h 45, eleven pairs stand, the Maya word closes, unit types 189 of 302, Loop 3608 measured at zero, the fifty-seventh booked on the Roman word and seven pairs
-- 96 standing — The fifty-seventh tranche: two Opus lanes, twenty landings in 13 h 22, six pairs stand, the Roman word closes, the lane gate's floor is the sim crate's suite and is cut from a lane that touches no sim path, the fifty-eighth booked on the two open words
-- 97 standing — The fifty-eighth tranche: two Opus lanes, twenty landings in 12 h 34, nine pairs stand, unit types 205 of 302, the cut read on the branch's paths alone, the third lane returns, the fifty-ninth booked on the Korean word and nine pairs
-- 98 standing — The fifty-ninth tranche: three Opus lanes, twenty landings in 11 h 34, nine words close, unit types 220 of 302, waiting 57.3 on lane gates re-run after `Base moved:`, the third lane goes, the sixtieth booked on ten pairs
-- 99 standing — The sixtieth tranche: two Opus lanes, twenty landings in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next
+- 86 standing — The forty-seventh tranche: four lanes at the loop's cheapest landing, the held-out battery eight of eight whole so the battery track stops, the forty-eighth booked on the blind list, the lane gate past the commander's paperwork, nineteen Loop items ruled
+- 91 standing — The fifty-second tranche: two Opus lanes, twenty in 11 h 25 on six late-age pairs, four whole, ages 8 of 8, unit types 152 of 302, the drain's clear its last act, the lane rule's trip a recommendation
+- 93 standing — The fifty-fourth tranche: three Opus lanes, twenty in 9 h 55, five pairs stand, the Persian word closes, the third lane taken away, age 0 an Ancient start capped at Classical
+- 94 standing — The fifty-fifth tranche: two Opus lanes, twenty in 11 h 19, thirteen pairs stand and twelve run whole, the Mongol word closes, unit types 179 of 302, two lanes held on the gate, row-list edits stop widening the lane gate
+- 95 standing — The fifty-sixth tranche: two Opus lanes, twenty in 11 h 45, eleven pairs stand, the Maya word closes, unit types 189 of 302, Loop 3608 measured at zero, the fifty-seventh booked on the Roman word and seven pairs
+- 96 standing — The fifty-seventh tranche: two Opus lanes, twenty in 13 h 22, six pairs stand, the Roman word closes, the lane gate's floor is the sim crate's suite and is cut from a lane that touches no sim path, the fifty-eighth booked on the two open words
+- 97 standing — The fifty-eighth tranche: two Opus lanes, twenty in 12 h 34, nine pairs stand, unit types 205 of 302, the cut read on the branch's paths alone, the third lane returns, the fifty-ninth booked on the Korean word and nine pairs
+- 98 standing — The fifty-ninth tranche: three Opus lanes, twenty in 11 h 34, nine words close, unit types 220 of 302, waiting 57.3 on lane gates re-run after `Base moved:`, the third lane goes, the sixtieth booked on ten pairs
+- 99 standing — The sixtieth tranche: two Opus lanes, twenty in 10 h 46, six words close, unit types 229 of 302, waiting 37.4 on fifteen row-list re-gates, Loop 3694's lever built, the Modern and Information ages next
 - 100 standing — The sixtieth pass's sequel: the territory map, five layers replaced by design, the audit at zero on seventy replays, the melee booked, map generation in scope, Astra retired
-- 101 extended by 102 — The sixty-first tranche: two Opus lanes with the lever, twenty landings in 12 h 41, eight words close, seven late-age pairs stand, unit types 250 of 302, waiting 44.6 so the third lane stays out
-- 102 extended by 103 — The sixty-second tranche: two Opus lanes, twenty landings in 13 h 07, every late-age word whole, the first melee 182 → 863, map generation read, unit types 261 of 302, waiting 42.3 and the gate 26.8 so the third lane stays out
-- 103 extended by 104 — The sixty-third tranche: two Opus lanes, twenty landings in 13 h 07, both melees and every queued word whole, unit types 263 of 302, waiting 42.0 and the gate 26.2 so two lanes stay, the sim crate's gate minutes cached away
-- 104 extended by 105 — The sixty-fourth tranche: two Opus lanes, twenty landings in 11 h 39, the third melee stands up at 623 and reads 718 on a regression ruled a word that moved, Great Sahara's map generation whole, the territory 529 → 541, waiting 26.3 and the gate 15.3 so the third lane returns
+- 101 extended by 102 — The sixty-first tranche: two Opus lanes with the lever, twenty in 12 h 41, eight words close, seven late-age pairs stand, unit types 250 of 302, waiting 44.6 so the third lane stays out
+- 102 extended by 103 — The sixty-second tranche: two Opus lanes, twenty in 13 h 07, every late-age word whole, the first melee 182 → 863, map generation read, unit types 261 of 302, waiting 42.3 and the gate 26.8 so the third lane stays out
+- 103 extended by 104 — The sixty-third tranche: two Opus lanes, twenty in 13 h 07, both melees and every queued word whole, unit types 263 of 302, waiting 42.0 and the gate 26.2 so two lanes stay, the sim crate's gate minutes cached away
+- 104 extended by 105 — The sixty-fourth tranche: two Opus lanes, twenty in 11 h 39, the third melee at 623 then 718 on a regression ruled a word that moved, Great Sahara's map whole, the territory 529 → 541, 26.3 and 15.3 so the third lane returns
 - 105 extended by 106 — The sixty-fifth tranche: three Opus lanes, twenty in 9 h 04, the third melee whole, both map chains 6 of 8, waiting 43.0 and the gate 21.3 so the third lane goes, the fourth melee booked at sea
 - 106 extended by 107 — The sixty-sixth tranche: two Opus lanes, twenty in 11 h 12, the fourth melee whole at sea, every map chain whole, two pairs whole first try, the third lane returns, ten blind rows residue
 - 107 extended by 108 — The sixty-seventh tranche: three Opus lanes, twenty in 7 h 51, the fifth melee whole, Mesa 1 → 7 of 8, three lanes stand, eight blind rows residue
 - 108 extended by 109 — The sixty-eighth tranche: three Opus lanes, thirteen in 3 h 51 on supply, blind open 2, Mesa whole, three lanes stand; the implicit residue 81, the pool
-- 109 standing — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4, waiting 42.1 so the third lane goes; the seventieth on the four open rows' three items
-- 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty landings in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
+- 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4, 42.1 waiting so the third lane goes; the seventieth on the four open rows
+- 110 standing — The seventieth tranche: two Opus lanes, seven in 3 h 10 on supply, blind open 0 so entry 29's counters stand; the pair residue on exhaustion; the loop rests on Ramon's word
+- 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
-- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked against what a capture can still enter
-- 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained early on a pit stop, the blind list 300 → 240 open, the click layer moves to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled's
-- 87 standing — The forty-eighth tranche: five readings and two sweeps at the loop's cheapest landing, forty-five residue rows ratified and the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, the queue carries a pinned `Blind:` line, eleven Loop items ruled's
+- 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
+- 88 amended by 90 — The forty-ninth tranche: two Opus lanes, sixteen `cover=1` landings drained on a pit stop, the blind list 300 → 240 open, the click layer to the pool, two residue rows ratified, the oracle cache key reads the parser and codec only, sixteen Loop items ruled
+- 87 standing — The forty-eighth tranche: five readings and two sweeps at the loop's cheapest landing, forty-five residue rows ratified, the blind list 345 → 300, the forty-ninth booked as `cover=1` captures under a fifth brief kind, a pinned `Blind:` line, eleven Loop items ruled
 
 ## 1. Fidelity before divergence
 
@@ -10997,3 +10998,102 @@ against 15.2 on three lanes, the next figure a two-lane one; the
 admission against 3,419.3 s; red gates against none; items past 300 k
 against eleven; the backlog against 14; the disk against the figure
 `afsctool` leaves (93 after the clean).
+
+## 110. The seventieth tranche is scored on two Opus lanes at seven landings in 3 h 10, drained on supply with the blind list at open 0 so entry 29's three counters stand, the `kill_group_order` pair is ratified `RESIDUE` on exhaustion with its road named, the lane rule's letter returns the third lane to a supply nobody has booked, three Loop items are built — the runner's end-frame exit, the waiter's `Left to do` word, the batch's rebuild — and the counters are put to Ramon with the loop at rest
+
+*2026-11-06, the seventieth pass (the `steer` session, Fable), started by
+the drain's own `ccc clear steer --then`, which fired at 17:11 −05:00, a
+minute after the drain's push (the push came after its whole gate, 47
+minutes past the commit). The record is
+`docs/audit/2026-11-06-fable-pass-70.md`; this entry carries the
+decisions. Extends entry 109; amends the lane clause and the `DEEP` line
+of `docs/LOOP.md`.*
+
+**What was measured.** Seven landings on two Opus 5.5 lanes at `--effort
+medium` in **3 h 10** from the base (`3cce22c2c`, 13:09 on 11-06) to the
+drain's commit (`970ff7cab`, 16:23), drained on supply: the second lane
+stood empty from 3940's landing, two of the last three bookings having
+refilled nothing. **The blind list 333 · 329 · 4 → 331 · 331 · 0**: 3934
+entered `CityData::is_disbanding` with a Temple in city 0 (GOLDEN §169),
+3935's blind second reading ratified three `RESIDUE` rows and ruled
+`Group::is_moving_to` a staging (AI §397), 3939's chapter 121 entered it
+on a fleeing Citizen (§171) and built the leader-gated group-head review,
+3940 ruled the `kill_group_order` pair `RESIDUE` on six refusals (§399).
+The implicit residue 0 of 679. **Golden 112 → 115 closed.** No word
+moved; the rubric unmoved (unit types 296 of 302, ages 8 of 8, lockstep
+bytes 78.1 %, the territory ported 544 · replaced 318 · open 1291). **The
+price: 46.77 USD list for the workers over 7 sessions, 6.68 a landing.
+Waiting 26.1 minutes a landing**: the gate class 10.6 a session, capture
+9.1 (3932's hour on run1518, Loop 3938), other 3.4, message 2.4; four
+captures; **one `DEEP`** (3936 at 338 k). Eight gates with the drain's —
+two whole at 45.3–47.2 release minutes, six scoped at 2.0–11.0 (five
+widened) — **none red**, 163.0 minutes; admission 508.3 s summed, longest
+20.7; no merge backed out, no clear held, no message between the rows.
+109 `origin/worktree-att-*` stand merged. The disk 104 GiB, under 112, so
+both first acts. The last pass's own price 18.58 USD.
+
+**What it means.**
+
+1. **The `kill_group_order` pair is `RESIDUE`, ratified, and its kind is
+   named: residue on exhaustion.** `Group::kill_group_order@00710aa0`'s
+   two call sites — `do_group_attack+0x124` under an order nothing makes
+   (§382.1) and `find_new_target+0xef`, which needs a group order at the
+   head after `repath` — were refused a staging six times by six Opus
+   sessions (3903 ratified by 3905, 3904, 3910, 3932, 3937, 3940), each
+   naming the step that shut it, with 3923's blind second reading the one
+   that disagreed and named the entry the last three refused; `Unit::
+   kill_group_order@005e3310`'s one caller is that function. Every other
+   `RESIDUE` row is on scope or on a kill the dump showed; this pair is
+   accepted because six stagings each shut one step and the seventh
+   (parked 3940a: a crowd dense enough to suspend a search under the
+   ungroup's plain copy) is a seventh ordering the brief ruled out as a
+   take. That is entry 29 §2's deliberate acceptance, function by
+   function, and it is not a proof: the pin fails on any capture that
+   enters either row, and 3940a stands with its falsifier for whoever
+   wants to run it. `Blind:` reads never 331 · residue 331 · open 0.
+2. **The lane rule's letter returns the third lane, and the count follows
+   the supply.** Entry 109 §1 returned the lane on a two-lane tranche
+   under 26.3 waiting and 15.3 gate. The seventieth read **26.1 and
+   10.6** — both under, on seven landings rather than twenty, the tranche
+   drained for want of items. The letter is applied: three Opus 5.5
+   lanes at medium for the seventy-first **when its first wave is three
+   items or more**, two otherwise; and the supply is not the rule's to
+   answer — it is Ramon's (§3). The rule's two lines stand unchanged for
+   the next reading.
+3. **Entry 29's three counters stand, and what opens is Ramon's; the loop
+   rests until he says.** The long captures: 24,000 of 24,000 on both
+   maps and every pair, battery game, melee and held-out game whole. The
+   blind list: open 0, the uncited half 0 of 679. The widening ledger: by
+   construction. By the entry's letter phase 4 opens. The pass books
+   nothing and arms no commander: the next tranche's supply — the held-out
+   style (3888c), the eleven chain takes (3908b), the territory's open
+   1291, or phase 4's first item — is the user's choice, and the pass's
+   recommendation (the record's "For Ramon") is phase 4 on the counters
+   with the held-out style run beside it as the map track's last number,
+   a cliff style first because 3924a's cliff arm is the one unbuilt arm no
+   scored lobby reaches, and the chain takes queued behind it as the map
+   lane's supply. The queue's opener names what the next pass books on
+   each answer.
+4. **Three Loop items built, the backlog 15 → 12.** **3938**: the runner
+   reads the trace's frame against `--end-frame` on every turn of its
+   wait loop and ends a game still standing at the end frame 120 s later
+   (`END_FRAME_GRACE`), the receipt's `ended_by_runner` naming the frame
+   and the seconds, where run1518 held pool lane 1 for the 3600 s
+   timeout. **3925**: the waiter reads a `Left to do` heading anywhere in
+   a pushed journal as the draft's word, beside `draft` in its head, and
+   the `DEEP` line names both. **3927**: a mutation batch touches every
+   file its breaks name before the un-mutated run, so the baseline that
+   sets `timeout_for` pays the rebuild every mutant pays. Each red first;
+   49, 89 and 21 tests in their files. 3848 not retried (109 branches);
+   3821 measured (the arm fired a minute after the push, a sixth time);
+   the ten standing rows stay.
+5. **The pass's first acts, measured.** The disk 104, under 112, so both:
+   `cargo clean --profile dev` (15,750 files, 9.7 GiB; 109 after) and
+   `afsctool` over both archives; the rubric's record; no lane row to
+   reap; no subagent; no scan owed with the open rows at none.
+
+**Against entry 109's estimate**: the three items go as read and the
+list reads open 0 — **met** (3934 and 3935 as read; 3932 refused and
+spawned 3937 and 3940, which closed the pair on the sixth refusal; 3936
+and 3939 were the chapters booked from what the three parked); the
+tranche drains on supply — **met**, at seven.

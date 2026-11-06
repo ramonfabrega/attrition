@@ -60,6 +60,21 @@ class RunnerTest(unittest.TestCase):
             trace.write_bytes(b''.join(rows) + b'\x00' * 7)
             self.assertEqual(runner.trace_frames_so_far(trace), 6, 'a torn tail is read up to its last whole record')
 
+    def test_a_take_held_past_its_end_frame_is_ended_by_the_runner(self):
+        # Loop 3938 (3932's line, parked 3932c): run1518, a `cover=1` take to
+        # 1100, wrote blocks 615-1099 whole and then held pool lane 1 until
+        # the runner's 3600 s `TimeoutExpired`, an hour no other lane could
+        # capture in. The runner reads the trace's frame against the end
+        # frame and ends the game itself once a grace has passed.
+        v = runner.end_frame_verdict
+        self.assertEqual(v(None, 1100, None, 10.0), (None, None), 'no trace yet')
+        self.assertEqual(v(1099, 1100, None, 10.0), (None, None), 'short of the end frame')
+        self.assertEqual(v(1100, 0, None, 10.0), (None, None), 'no end frame asked')
+        self.assertEqual(v(1100, 1100, None, 10.0), (10.0, None), 'the end frame first seen: the clock starts')
+        self.assertEqual(v(1100, 1100, 10.0, 10.0 + runner.END_FRAME_GRACE - 1), (10.0, None), 'inside the grace')
+        self.assertEqual(v(1103, 1100, 10.0, 10.0 + runner.END_FRAME_GRACE), (10.0, 'end'), 'held past the grace')
+        self.assertEqual(runner.END_FRAME_GRACE, 120)
+
     def test_a_default_timeout_extends_to_the_pace_lines_estimate(self):
         # Loop 3401b (item 3393): run1014's first detail take printed a pace
         # line past the default 180 s and was killed at it, and the leftover

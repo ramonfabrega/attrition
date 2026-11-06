@@ -312,7 +312,15 @@ def batch(root, path, sep, command, out=sys.stdout, timeout=None):
     before = dirty(root)
     if before:
         raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
-    print(f'batch: the un-mutated tree first; running: {" ".join(command)}', file=out, flush=True)
+    # The batch's files are touched first (Loop 3927): a mutant's edit
+    # rebuilds its crate, and a baseline that ran warm in 2.0 s gave the
+    # mutant a minute to hold a compile too. Touched, the un-mutated run
+    # pays the rebuild every mutant pays, and `timeout_for` reads it.
+    touched = sorted({file for file, _, _, _ in breaks})
+    for file in touched:
+        os.utime(os.path.join(root, file), None)
+    print(f'batch: the un-mutated tree first, its {len(touched)} file(s) touched first (Loop 3927); '
+          f'running: {" ".join(command)}', file=out, flush=True)
     began = time.monotonic()
     code, _ = run_command(command, root, timeout=timeout, out=out)
     took = time.monotonic() - began

@@ -257,6 +257,24 @@ class Mutate(unittest.TestCase):
         self.assertIn('1 held (1 hung, 1 with survivors)', text)
         self.assertEqual(code, 0)
 
+    def test_the_batch_s_baseline_pays_the_rebuild_a_mutant_pays(self):
+        # Loop 3927 (3911's line): the baseline ran warm in 2.0 s, so a
+        # mutant's 60 s budget had to hold its crate's compile too; the
+        # batch touches its files before the un-mutated run, so that run
+        # rebuilds what every mutant rebuilds.
+        d = repo()
+        src = Path(d) / 'src.rs'
+        os.utime(src, (0, 0))
+        walk = [sys.executable, '-c',
+                'import os; open("mtimes.txt", "a").write(str(os.stat("src.rs").st_mtime_ns) + "\\n")']
+        batch = Path(d) / 'breaks.tsv'
+        batch.write_text('src.rs\tlet x = 1;\tlet x = 2;\n')
+        out = StringIO()
+        mutate.batch(d, str(batch), '\t', walk, out=out)
+        first = int((Path(d) / 'mtimes.txt').read_text().splitlines()[0])
+        self.assertGreater(first, 0, 'the un-mutated run saw src.rs touched, so cargo would rebuild its crate')
+        self.assertIn('its 1 file(s) touched first', out.getvalue())
+
     def test_the_batch_s_default_timeout_is_a_multiple_of_the_unmutated_run(self):
         self.assertEqual(mutate.timeout_for(2.0), 60.0)
         self.assertEqual(mutate.timeout_for(30.0), 150.0)

@@ -257,7 +257,9 @@ lane's draft journal, pushed for its `DEEP` answer, exited the waiter
 sixteen of the twenty-ninth tranche's `LANDED` exits came after the
 lane's own line, each a whole-context turn that learned nothing (parked
 1695). **And a `DEEP <lane> <ctx>k` exit is answered in its turn**: one
-line to the lane — journal as a draft, commit, push, end the turn, **or,
+line to the lane — journal as a draft (its head says `draft`, or a
+`Left to do` heading stands anywhere in it: the waiter reads both, Loop
+3925), commit, push, end the turn, **or,
 if the item is finished, land instead** (Loop 3833: four of thirteen
 `DEEP` lanes over three tranches were past their status and pushed the
 landing, every one with its lane gate still running) — **and the draft
@@ -454,7 +456,12 @@ its own `blocked` row (Loop 3931, built); admission 3,419.3 s and the
 whole gates 46.3–52.6 held. The lane returns when a two-lane tranche
 reads waiting under 26.3 and the gate under 15.3, or on Ramon's word;
 the seventieth's supply is three items and what they park (109 §2), so
-the third lane's absence costs one wave; a
+the third lane's absence costs one wave — **and the seventieth read
+26.1 waiting and 10.6 gate a session on two lanes** (DECISIONS 110 §2;
+seven landings, drained on supply): both under, **so the letter returns
+the third lane, and the count follows the supply** — three Opus lanes
+when the next tranche's first wave is three items or more, two
+otherwise, and the supply is Ramon's, never the rule's to answer; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

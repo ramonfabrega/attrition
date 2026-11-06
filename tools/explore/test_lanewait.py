@@ -1510,6 +1510,28 @@ class AProgressPushIsNotALanding(unittest.TestCase):
         self.assertEqual(lanewait.event(watch, {'a': 'idle'}, {'a': '3' * 40}, 8, 100, quoted=quoted),
                          (0, 'LANDED a worktree-a 22222222..33333333'))
 
+    def test_a_journal_with_a_left_to_do_heading_is_a_draft(self):
+        # Loop 3925 (the sixty-ninth's commander, lane-3911): a `DEEP` lane
+        # pushed its journal with a "Left to do" heading and no `draft` in
+        # its head, and the waiter armed nothing. The heading is the word.
+        import subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            def git(*args):
+                return subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', *args], cwd=tmp,
+                                      capture_output=True, text=True, check=True).stdout.strip()
+            git('init', '-q', '-b', 'main')
+            journal = Path(tmp) / 'docs' / 'journal' / '2026-11-06-item-3911.md'
+            journal.parent.mkdir(parents=True)
+            journal.write_text('# Item 3911: the air patrol (2026-11-06, `att-3911`, Opus 5.5)\n\n'
+                               'A lane of the tranche.\n\n## The capture\n\nrun1500.\n\n## Left to do\n\n- the gate\n')
+            git('add', '-A')
+            git('commit', '-q', '-m', 'Item 3911: handed over')
+            self.assertIs(lanewait.journal_is_draft(tmp, git('rev-parse', 'HEAD'), '3911'), True)
+            journal.write_text('# Item 3911: the air patrol (2026-11-06, `att-3911`, Opus 5.5)\n\n'
+                               'A landing.\n\n## The gate\n\nLane verdict: green.\n')
+            git('commit', '-q', '-am', 'Item 3911: landed')
+            self.assertIs(lanewait.journal_is_draft(tmp, git('rev-parse', 'HEAD'), '3911'), False)
+
     def test_an_arm_after_push_journal_that_is_no_draft_and_quotes_no_gate_is_progress(self):
         # Loop 3833's no-draft journal is not armed; with no quote it is no
         # landing either, and the lane leaves the arm for event()'s watch.

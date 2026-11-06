@@ -1167,14 +1167,19 @@ def gate_quote_of(cwd, tip, item, run=subprocess.run):
 # of the four landings pushed on a DEEP answer (Loop 3833).
 DRAFT_HEAD = re.compile(r'\bdraft\b', re.I)
 HEAD_LINES = 6
+# A `Left to do` heading anywhere in the journal is a draft's word too
+# (Loop 3925): lane-3911's DEEP push carried one and no `draft` in its
+# head, and the waiter armed nothing.
+LEFT_TO_DO = re.compile(r'^#+\s*left to do\b', re.I | re.M)
 
 
 def journal_is_draft(cwd, tip, item, run=subprocess.run):
     """Whether `docs/journal/*-item-<item>.md` on `tip` says `draft` in
     its head (its first HEAD_LINES lines: the title and the paragraph
-    under it), or None when the tip carries no such journal, or the tree,
-    the ref or git fails (Loop 3833). The newest by name when there are
-    several (the date leads the name)."""
+    under it) or carries a `Left to do` heading anywhere (Loop 3925), or
+    None when the tip carries no such journal, or the tree, the ref or git
+    fails (Loop 3833). The newest by name when there are several (the date
+    leads the name)."""
     if not cwd or not tip or not os.path.isdir(cwd):
         return None
     try:
@@ -1189,7 +1194,8 @@ def journal_is_draft(cwd, tip, item, run=subprocess.run):
         return None
     if shown.returncode != 0:
         return None
-    return bool(DRAFT_HEAD.search('\n'.join(shown.stdout.splitlines()[:HEAD_LINES])))
+    return bool(DRAFT_HEAD.search('\n'.join(shown.stdout.splitlines()[:HEAD_LINES]))
+                or LEFT_TO_DO.search(shown.stdout))
 
 
 def origin_tip(cwd, branch):

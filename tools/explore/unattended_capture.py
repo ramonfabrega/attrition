@@ -350,6 +350,27 @@ def trace_frames_so_far(trace):
 
 
 DEFAULT_TIMEOUT = 180
+# Seconds a take may stand at its end frame before the runner ends it
+# (Loop 3938): run1518, a `cover=1` take to 1100, wrote blocks 615-1099
+# whole and held pool lane 1 until the 3600 s timeout. A take that ends
+# itself does so in seconds.
+END_FRAME_GRACE = 120
+
+
+def end_frame_verdict(frames, end_frame, seen_at, now, grace=END_FRAME_GRACE):
+    """`(seen_at, verdict)` for the wait loop (Loop 3938): `seen_at` is the
+    clock when the trace first read `--end-frame` (None before), and the
+    verdict is `'end'` once the game has stood there `grace` seconds
+    without exiting — the runner then ends it, with the receipt saying so,
+    instead of holding the lane to the timeout. No end frame, no trace or
+    a trace short of it: nothing."""
+    if not end_frame or frames is None or frames < end_frame:
+        return None, None
+    if seen_at is None:
+        return now, None
+    if now - seen_at >= grace:
+        return seen_at, 'end'
+    return seen_at, None
 
 
 def settle_timeout(args):
@@ -860,6 +881,7 @@ def capture(args, output, style, run=None):
         stall = getattr(args, 'stall_seconds', 0) or 0
         timeout = args.timeout
         deadline = launch + timeout
+        end_seen = None
         while True:
             try:
                 report['exit_code'] = process.wait(timeout=5)
@@ -940,6 +962,20 @@ def capture(args, output, style, run=None):
                 report['stalled_twice_after_seconds'] = now - launch
                 raise RuntimeError(f'stalled before frame 0 twice, {stall} s each; '
                                    'a permission prompt or a dead device — see wine-stalled-2.log')
+            # A take that reached its end frame and did not exit is ended
+            # by the runner after a grace (Loop 3938), the receipt naming it.
+            end_seen, ended = end_frame_verdict(trace_frames_so_far(output/'rontrace.log'),
+                                                args.end_frame, end_seen, now)
+            if ended == 'end':
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=10)
+                report['exit_code'] = process.returncode
+                report['ended_by_runner_after_seconds'] = now - launch
+                report['ended_by_runner'] = (f'the trace reached --end-frame {args.end_frame} at '
+                                             f'{end_seen - launch:.0f} s and the game had not exited '
+                                             f'{END_FRAME_GRACE} s later; ended by the runner (Loop 3938)')
+                print(report['ended_by_runner'], flush=True)
+                break
             if now >= deadline:
                 raise subprocess.TimeoutExpired(LAUNCH, timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
