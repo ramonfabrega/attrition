@@ -14253,13 +14253,34 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AP — reserved
+## Parked by item 3902, 2026-11-06 — the `kill_group_order` pair, a blind second reading that disagrees
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3902a. `fight`'s second `find_new_target` after a group attack-move meets a capture-eligible building.** The
+  blind second reading (`docs/audit/2026-11-06-item-3902.md`) found eight `E8` callers of
+  `Unit::find_new_target@005ff6a0`, and AI §388 closed one of them (`do_move`, `5f7c66`). Route 1, read to the
+  function, runs like this:
+  - `do_attack`, then `fight:1052` (`5fe113`), kills the tail `ATTACK` above a `GROUP_ATTACK_TO`;
+  - `find_nearby_target:577` calls `Group::action_attack(QUEUE_FIRST, 4)`, whose `action_halt` empties this unit's
+    list;
+  - `QUEUE_NEW`'s capture arm (`:253-279`) gives the unit only a group move;
+  - `finish_insert` re-issues the leader's `GROUP_PATROL`, which always carries flag 4
+    (`add_patrol_order:75`);
+  - `fight:1061` (`5fe25f`) runs `repath` down to the patrol, and `5ff78f` calls `Group::kill_group_order`.
+
+  **The staging** (not 3900b's, which tests the agreed-closed `do_move:105`):
+  - a grouped melee line with `+0x2b8 & 4` and `+0x10c` = 0;
+  - a group attack-move, then a shift-queued patrol;
+  - the line engages a defender beside an enemy building at capture HP;
+  - trace at `cover=1` on `005ff78f`, `00710aa0`, `00712490` and `005e3310`.
+
+  **The killer:** `00712490` entered from `00648da0`, with the same unit entering `find_new_target` twice on that
+  frame and no `HIT` on `00710aa0`. That kills route 1 for the staging. **Score**: two `NEVER` rows (entered on a
+  `HIT`; `RESIDUE` with the audit if a killed staging and a reading of `fight`'s second-call gate close it).
+- **3902b. A duplicate group-move id in one list would let `repath` kill the `ATTACK`.**
+  `Unit::kill_group_move@005e3400` removes the tail on a deeper match. The id is
+  `(group.id + frame*10)*100 + order_num`, which is unique within a group between `Group::clear`s but can collide
+  across two groups, so a unit regrouped with its old move still queued could hold two with the same id. Not read to
+  a producer. **Score**: none until 3902a's take is read; then it is the remaining route.
 
 ## Parked by the next landing, slot AQ — reserved
 

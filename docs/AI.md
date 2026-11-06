@@ -38743,13 +38743,15 @@ frame arithmetic stands too: `Unit::init:553` sets `collide_frame` to −1, so a
 above the call either reaches it (`5ff6e6`, `5ff6f2`) or leaves to an out-of-line block that returns to it
 (`5ff9a9 → 5ff6e4`, `5ff9b0 → 5ff6ef`). `repath` loops on the head:
 
-- types 1, 2, 3, 4, 19 and 21 are killed, and so is type 18 when it lacks the action bit (`flags & 4`). Type 19
+- types 1, 2, 3, 4, 19 and 21 are killed, and so is type 18 ~~when it lacks the action bit (`flags & 4`)~~ *whatever its flags — item 3902 (`docs/audit/2026-11-06-item-3902.md`, disagreement 1): `5e2a2a` jumps on 0x12 inside the first kill set, and the flag re-test is unreachable*. Type 19
   (`GROUP_MOVE`) with `group ≥ 0` goes through `Group::kill_group_move`, and everything else through
   `kill_current_order`;
 - the loop stops at the first head of any other type.
 
-`Unit::kill_group_move@005e3400` kills only move orders whose group view (`+0x94`) carries the id, and never type
-21. So `repath` adds nothing to the list.
+~~`Unit::kill_group_move@005e3400` kills only move orders whose group view (`+0x94`) carries the id, and never type
+21.~~ *Struck by item 3902 (`docs/audit/2026-11-06-item-3902.md`, disagreement 2): on a match it calls
+`kill_current_order`, which removes the tail whatever node matched, so a deeper same-id group move kills the current
+order.* So `repath` adds nothing to the list.
 
 `do_move:91-104` reaches `:105` only when `UnitData::get_action@00608450` returns an `ATTACK` (10).
 `get_action` walks down from the head and skips an order whose `+0x14` (`is_move`) answers non-zero without
@@ -38782,7 +38784,11 @@ whether or not the unit was grouped.
 `Group::kill_group_order` has two call sites (`report.py <exe> refs`): `find_new_target+0xef` (`5ff78f`), closed
 by 388.2, and `Unit::do_group_attack+0x124` (`5e76c4`), which is `blind::RESIDUE` on §382.1 (no maker of a
 `GroupAttackOrder`; item 3887 agreed). `Unit::kill_group_order`'s one call site is `Group::kill_group_order+0x7e`
-(`00710b1e`). **Both rows are `RESIDUE` candidates with no route.** This section has one reading, so the rows
+(`00710b1e`). ~~**Both rows are `RESIDUE` candidates with no route.**~~ *Struck by item 3902's blind second reading
+(`docs/audit/2026-11-06-item-3902.md`): this section read one of `find_new_target`'s eight callers. `fight`'s second
+call (`5fe25f`) after `find_nearby_target`'s `Group::action_attack(QUEUE_FIRST)` can meet a re-issued `GROUP_PATROL`
+when the target is capture-eligible, and neither reading closes it; both rows stay `NEVER`, and the take that settles
+it is park 3902a.* This section has one reading, so the rows
 stay in `NEVER` until a blind second reading agrees (park 3900a). That reader must re-derive, without this
 section:
 
