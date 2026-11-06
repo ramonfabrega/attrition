@@ -14738,13 +14738,20 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   into `blind::TRACES`, and this crate's group-head review, gated on the leader, is built and made to fail.
   **Score**: `Blind:` never and open, one row.
 
-## Parked by the next landing, slot BQ — reserved
+## Parked by item 3937, 2026-11-06 — 3932a's re-timing refused: a grouped leader's first touch ungroups it with no search
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3937a. A stash under the ungroup's copy, the one road 3932a's refusal leaves** (`docs/AI.md` §398.2). In
+  recon3937-2, `640 @gather 0 2001 6 9` gave `{U, V}` `GroupMoveOrder 640900 flags 1` in slot 11, V leading. V's
+  first touch, on 768 with the idle `0/73`, ungrouped it into `MOVEORDER flags 1` with no search (`start_dist` 0 to
+  1000). That is 3932a's falsifier. The copy then stood as V's only order with `group` 11 from 769 to past 960. A
+  mutual touch under it (`resolve_unit_collision:388-405`'s gate) would stash a grouped unit under a plain move
+  without `0x04`, then `GM Y` and the regroup are laid in the beat after. **Falsifier, first**: no mutual touch, or
+  no `start_dist` stamp, on V under the copy, or a stamp with `collide_frame` re-stamped inside the four frames.
+  **Score**: the two `NEVER` rows. It is the commander's to book or to rule `RESIDUE`, and it is a sixth ordering
+  only if booked as one.
+- **3937b. An attack on an unseen unit lays its plain move to a point a few cells off, not at the target**
+  (§398.1; it answers half of 3932b). In recon3937-1, `{U, V}`'s move from `@attack 0 9 1 6 9` went to (2568,
+  19896), and a shift-formation's `get_loc_to` aims there. The maker was not read. **Score**: none.
 
 ## Parked by item 3939, 2026-11-06 — a formation's move with a shift-attack on a fleeing unit behind it
 
@@ -14757,13 +14764,17 @@ words and edits nothing here; a refill lands when two remain.
   killer first: `00713bd0` entered on 714 with no `Group::kill_next_order`, and the leader's list on 715 unchanged.
   **Score**: none on the scoreboard (the row left `NEVER` with §171); a sub-arm of a built review.
 
-## Parked by the next landing, slot BS — reserved
+## Parked by item 3940, 2026-11-06 — a mutual touch under the ungroup's copy searches without suspending; the `kill_group_order` pair is `RESIDUE`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3940a. A crowd around V under the plain copy, a seventh ordering** (`docs/AI.md` §399.2). recon3940-1's walker
+  met V head-on under `ungroup_move_order`'s `MOVEORDER flags 1` (`group` 11). The touch was mutual in block 895,
+  and V side-stepped with `start_dist` 0, because a search on open ground does not outrun its budget. A crowd dense
+  enough to suspend it (run1518's twenty squads) under the copy, with `[GM Y][ATTACK][GM Y'][GP]` laid below before
+  the touch, is the road left. The brief ruled out a seventh ordering as a take, and the pair is `RESIDUE` on six
+  refusals. A capture that enters either row fails the pin. **Score**: none.
+- **3940b. Whether V's search ran is read off the side-step, not a hook** (§399, "What is not established"). A trace
+  hooked on `005fa802` (`resolve_unit_collision`'s `find_upath` call) on recon3940-1's staging would show it.
+  **Score**: none.
 
 ## Parked by the next landing, slot BT — reserved
 
