@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3933) **`--dump-all-start` refuses any `--log-window` but `0 2`** (3924's "for the Loop"; parked 3924b): `live_session.stage` says "full start requires log window 0 2", so run1516's first launch died before the game started, with a traceback and no receipt; a take that wants a start dump and a later window passes `--detail start:…`, as run1515 did. The brief's wording ("a `--dump-all-start` lobby … beside" a later `add`) asked for the refused pair. Candidate: `brief.py` or the queue's coverage shape says `--detail start:` where a start dump rides beside a later window, or the runner refuses the pair before launch with the remedy named. Names no score; the loop's.
+
 (3931) **A lane's armed clear is held by its own `blocked` row** (the sixty-ninth commander's, 2026-11-06): lane-3919 ended its draft turn with tempo `blocked`, `needs` "arm the clear…" and `suggestedReply` "continue item 3919 from the journal"; the waiter armed `ccc clear d17ea7ec --then` at once, and it stood armed 26 minutes and more with the row `idle` and the worktree clean — the suggested reply sits in the prompt box, which ccc reads as a person's unsent draft. Lanes 3911, 3917 and 3918 ended their drafts the same day without one and cleared within minutes. Clearing the suggested reply did not fire it, nor did a cancel and re-arm; it fired three seconds after the lane ended a turn on "Draft pushed at aa8ea49c8; this session is done." — the `blocked` tempo was its own "awaiting commander clear". Candidate: the brief's draft clause says to end the draft turn on "this session is done", never on waiting or a question, or `lanewait` reads the tempo and says `HELD` instead of `ENDED … blocked`. Names no score; the loop's.
 
 (3929) **A `--batch` break that leaves a second guard of the same refusal standing reads as "failed nothing"** (3917's "for the Loop"): the barge refusal's `t == TRANSPORTBARGE || tech_tree.is(t, TRANSPORTBARGE)` survived a break of its first half, exactly as a blind test does. Nothing to build in the item; the remedy is to break the condition whole. Candidate: `mutate.py` names a mutant that held on a disjunction or conjunction and offers the whole-condition break beside it. Names no score; the loop's.
@@ -14634,13 +14636,19 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   **Score**: the two `NEVER` rows. Entered, both stay off the list. Refused on any falsifier, the pair goes back to
   a `RESIDUE` candidate with that falsifier's reading.
 
-## Parked by the next landing, slot BK — reserved
+## Parked by item 3924, 2026-11-06 — a mine against a cliff: `CliffsData::gather_size` entered on Southwest Mesa
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3924a. The cliff arm of `calc_gather`'s mine arm, built** (ECONOMY "The cliff arm"; `docs/AI.md` §395). run1516's
+  mine at cell (10, 43) on Southwest Mesa reads `mtn -1`, `cliff 7`, `length 189` and `size 320` on 100. This crate's
+  `gather` gives the same mine an empty list. The build would cover `CliffsData::find_nearest`, the `is_gathered_from`
+  walk over the cliff's tiles, and `gather_size`'s count and band. A widening of run1516's BUILDDATA on 100 is the diff.
+  **Score**: none today, because no scored map lays a cliff. It books when a scored lobby or the held-out style
+  (3888c) is a cliff style.
+- **3924b. `--dump-all-start` refuses any `--log-window` but `0 2`** (`live_session.stage`: "full start requires log
+  window 0 2"). The first launch of run1516 died before the game started, with a traceback and no receipt (1503's dead
+  take). A take that wants a start dump and a window later passes `--detail start:…`, as run1515 did. The brief's
+  wording ("a `--dump-all-start` lobby … beside" a later `add`) asks for the refused pair. **Score**: none. This is
+  the Loop's.
 
 ## Parked by item 3930, 2026-11-06 — a Disband in a city
 
