@@ -14570,13 +14570,16 @@ no score.
   Nothing captured puts one behind a stuck head. The AI's readers of a queue entry's type (its build-order and
   research checks) never see 666 in a capture. Names no score.
 
-## Parked by the next landing, slot BG — reserved
+## Parked by item 3919, 2026-11-06 — an Entrench
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3919a. Antipater's trench** (`docs/GOLDEN.md` §166, `Sim::cast_entrench`). Under Antipater (0x169) the body skips
+  the cell test and writes `+0x6c |= 0x1000` (`umask2::ANTIPATER_TRENCH`). The crate writes the bit, but
+  `get_damage`'s reader of it is not wired. No capture stages Antipater. Names no score.
+- **3919b. The semaphore's waiver.** When the game semaphore's `[2] & 0x10` is set, `cast_entrench` skips the cell
+  test. The crate reads it as clear, a scenario's setting cut from v1. Names no score.
+- **3919c. Entrench's unstaged arms.** These are an ally's cell, a unit with an enemy inside 0x600, a busy unit, a kept
+  `ATTACK`, and a French caster's `FRENCH_ENTRENCH` scale. The unit test pins them, but the word is closed and no run
+  reaches them. Names no score.
 
 ## Parked by the next landing, slot BH — reserved
 

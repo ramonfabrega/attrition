@@ -1237,6 +1237,79 @@ impl Sim {
         cast_ambush_steps(&mut view);
     }
 
+    /// `SpellType::cast_entrench@00672820` — Entrench on a General (item
+    /// 3919, `docs/GOLDEN.md` §166). The friendly search
+    /// (`Objects::find_units(SEARCH_FRIENDLY, who, get_radius × 0xc0, 0x200,
+    /// FILTER_ALL)`, [`Sim::find_units_friendly`]) round the caster, and
+    /// each unit it finds that
+    ///
+    /// 1. has a type of objmask `F` (0x20), a non-zero `attack` (`+0x1e8`)
+    ///    and `role & 0x10000`;
+    /// 2. is a captain, inside the radius by `attack_dist`, and idle;
+    /// 3. has no `FILTER_COMBAT` enemy within 0x600
+    ///    ([`Sim::nearest_enemy_attacker`]);
+    /// 4. unless the caster is Antipater (0x169), stands on a cell its owner
+    ///    or an ally owns — an unowned cell refuses
+    ///
+    /// has each live, on-map unit of its squad chain (`+0x90`) lose its
+    /// orders (`+0x68 &= ~0x4000000`, `+0xc0 = 0`, `close_orders(0)`,
+    /// `clear_partial_path`, `update_action`: [`Sim::clear_orders`]),
+    /// re-take an `ATTACK` it held at `QUEUE_NEW`, and take `unit_masks |=
+    /// 0x2000000` with the trench's facing from its angle (`+0x5c = +0x50`)
+    /// — and, under Antipater, `unit_masks2 |= 0x1000`.
+    ///
+    /// SEAM: the game semaphore's `[2] & 0x10`, which waives the cell test,
+    /// is read as clear (a scenario's); the graphic event
+    /// (`GraphicEvents::add_entrench`) is not state.
+    pub(crate) fn cast_entrench(&mut self, g: usize) {
+        let r = self.hero_radius(g) * 0xc0;
+        let antipater = self.units[g].type_index == 0x169;
+        for u in self.find_units_friendly(g, r) {
+            let p = self.profile(Obj::Unit(u));
+            if p.obj_masks & 0x20 == 0 || p.attack == 0 || !p.combat_role {
+                continue;
+            }
+            if !self.units[u].captain
+                || self.attack_dist(Obj::Unit(g), Obj::Unit(u)) > r
+                || !self.is_idle(u)
+            {
+                continue;
+            }
+            let who = self.units[u].owner;
+            let at = self.units[u].pos;
+            if self.nearest_enemy_attacker(who, at, 0x600).is_some() {
+                continue;
+            }
+            if !antipater {
+                match self.world.owner_at(at) {
+                    crate::world::Owner::Player(p) if p == who || self.is_ally(who, p) => {}
+                    _ => continue,
+                }
+            }
+            let mut next = Some(u);
+            while let Some(m) = next {
+                if !self.units[m].alive() || !self.units[m].on_map {
+                    break;
+                }
+                next = self.units[m].o_down;
+                let keep = self
+                    .action_of(m)
+                    .filter(|&k| matches!(self.units[m].orders[k].body, Body::Attack(_)))
+                    .and_then(|_| self.units[m].combat.target);
+                self.clear_orders(m);
+                if let Some(t) = keep {
+                    self.add_attack_order(m, t, QueuePos::New, false, false);
+                }
+                let unit = &mut self.units[m];
+                unit.combat.entrenched = true;
+                if antipater {
+                    unit.unit_masks2 |= crate::combat::umask2::ANTIPATER_TRENCH;
+                }
+                unit.combat.trench_angle = unit.movement.heading;
+            }
+        }
+    }
+
     /// `Caster::process_spells(o, who, 0)@00739ad0` on a hero, from the
     /// head of `Unit::process`: a spell whose end frame has passed is
     /// removed, and a Forced March's takes `unit_masks & 0x8000` with it;

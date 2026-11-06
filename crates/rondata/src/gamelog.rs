@@ -2225,6 +2225,10 @@ pub struct UnitDump {
     /// casts. Read since item 1608: an MLRS's unpack counts to 19 and casts
     /// on its twentieth frame (`docs/AI.md` §170).
     pub spell_time: Option<i64>,
+    /// `UnitData +0x5c trench_angle` — the trench's facing, the unit's angle
+    /// when it dug in (`cast_entrench`, `check_idle`'s marines). Read since
+    /// item 3919, compared while a side holds `unit_masks & 0x2000000`.
+    pub trench_angle: Option<i64>,
     /// `UnitData::mana_burn` — the craft spent and not yet recovered, which
     /// `think_hero` reads "with the mana". Read since item 3306 (Loop 3310):
     /// it stood unread while The Despot's parted on every block of run943.
@@ -3531,6 +3535,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         safe: b.int("safe"),
         start_dist: b.int("start_dist"),
         spell_time: b.int("spell_time"),
+        trench_angle: b.int("trench_angle"),
         mana_burn: b.int("mana_burn"),
         full: b.int("full"),
         waiting: b.int("waiting"),

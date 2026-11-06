@@ -39282,16 +39282,20 @@ answers 1 for it (`docs/TECH.md`), `Build::queue_up@00620f40` exempts it from th
   The trace must enter `cast_disband`.
 
 **Entrench (`SpellType::cast_entrench@00672820`).** `FROM General`, `FLAGS lm`, `MANA` 1000, `JOB_TIME` 120 (before
-`Sim::cast_job_time`'s French and Antipater arms). This is the untargeted arm of `do_cast`. The body finds friendly
+`Sim::cast_job_time`'s French and Antipater arms; ~~120~~ **60 for every caster**: the Antipater rate's 1/2 is not
+gated on Antipater, `docs/GOLDEN.md` §166). This is the untargeted arm of `do_cast`. The body finds friendly
 units within the General's `HeroData::get_radius × 0xc0`. It takes each idle captain of objmask `F` (0x20) with type
-`+0x1e8` nonzero and `+0x2c8 & 0x10000`, and no `FILTER_COMBAT` enemy within 0x600. Outside a hostile tile, unless
+`+0x1e8` nonzero and `+0x2c8 & 0x10000`, and no `FILTER_COMBAT` enemy within 0x600. ~~Outside a hostile tile~~ **On a cell its owner or an ally owns** (an
+unowned cell refuses; §166), unless
 the General is `ANTIPATER` (0x169), it kills that unit's orders, keeps an `ATTACK` target, and sets
 `unit_masks |= 0x2000000` along the squad chain (`+0x90`).
 
 - **Staging**: chapter fifty's Forced March press with the craft changed (`docs/GOLDEN.md` §59). `add general who=0
   <x>,<y>`, a Hoplite squad of who=0 two tiles off, then `@spell 0 637 -1 -1 0 0 <general>`.
+- ~~Staged~~ **Taken**: item 3919, run1513 and run1513b, `docs/GOLDEN.md` §166 — the cast on block 681, sixty
+  frames after the press, and the three Hoplites' trench; chapter one hundred and sixteen closed at 1000.
 - **Falsifiers, before the run**: a `CASTORDER` on the General two frames after the press, and `mana_burn` +1000.
-  `spell_time` must climb to 120. If not, the press was refused, and the refusal is the row. On the cast frame the
+  `spell_time` must climb to ~~120~~ 60 (§166). If not, the press was refused, and the refusal is the row. On the cast frame the
   trace must enter `cast_entrench`. That is the row's whole claim. The squad's `unit_masks` gaining `0x2000000` is
   the body's claim, and it is conditional on the Hoplite type passing the three type tests above, which this reading
   did not check against `unitrules.xml`.
@@ -39314,7 +39318,8 @@ through vslot `+0x158(2, −1, 0)`. For a single-figure captain it also counts `
   (`docs/GOLDEN.md` §165): the research arm, and `type_avail` answering yes for a Barracks.
 - Whether `is_disbanding` counts the finished entry. Not reached by run1512, whose second press the research arm
   refused (parked 3918a).
-- The Hoplite's three type tests for Entrench.
+- ~~The Hoplite's three type tests for Entrench.~~ Answered by run1513: the Hoplites pass them and the General does
+  not (`docs/GOLDEN.md` §166).
 - Whether a human Scout auto-explores away from the Spy before the press.
 - `cast`'s argument order for `0x277`, which the decompile prints shifted. The body's reads were taken as the
   `(idx, who, ox, whom)` of the other arms.
