@@ -38295,7 +38295,10 @@ order in the same call that adds it (GOLDEN §30). So no list holds one when a w
 runs, a save writes none, and a load reads none. **`RESIDUE` candidate**: *the
 order lives only inside one call, and no walk runs inside it*. **Killer**: a
 trace that enters `004849a0`, or a `UnitsSync` dump that prints an order of
-type 25.
+type 25. `land_plane`'s order dies the same way: its tail is `Unit::work`
+(vslot `+0x188`), whose early returns all spare a flag-4 order, and that reaches
+`do_job` → `do_spec_anim` in mode 0, which kills it on every branch (item 3893's
+adjudication).
 
 ### 384.5 `ObjectsData::find_town_at`: the `l` build flag, which no shipped row carries
 
@@ -38391,8 +38394,13 @@ and it lands on the override.
 
 ### 384.9 No route, and what a second reading must re-derive
 
-None of the eight has a take: no lobby and no console command reaches one. To
-move them to `RESIDUE`, a blind reader re-derives:
+None of the eight has a take: no lobby and no console command reaches one.
+~~To move them to `RESIDUE`, a blind reader re-derives:~~ **Re-derived by item
+3893's blind second reading (`docs/audit/2026-11-05-item-3893.md`): seven rows
+agreed outright, and one disagreement (the reader's `REACHED` on 384.4, through
+`CheckSums::check_all`'s per-turn walk) was settled to `do_spec_anim`'s same-call
+kill on both adders. All eight are `RESIDUE`, and the list below is kept as the
+brief it was.**
 1. Each slot's tables from the bytes, the `.text` copy counts and the rel32
    callers in the table above.
 2. For 384.1, every `[reg+0x13c]` dispatch and its receiver.
@@ -38410,6 +38418,8 @@ move them to `RESIDUE`, a blind reader re-derives:
 copies and the call sites are scans of the image. "Entered" is the 144 pinned
 traces. The section cites no function that is outside `NEVER` and that no
 trace enters, so the triple stays at never 266 · residue 246 · open 20.
+~~Every claim … reading-only~~: two readings now (item 3893), and the triple is
+never 266 · residue 254 · open 12.
 
 ## 385. Reserved for the next item on the AI track
 
