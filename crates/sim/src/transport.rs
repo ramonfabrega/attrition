@@ -852,6 +852,7 @@ impl Sim {
                 | spell::CREATE_DECOY
                 | spell::FORCED_MARCH
                 | spell::AMBUSH
+                | spell::ENTRENCH
         ) && self.spell_castable(s, u)
         {
             match s {
@@ -859,6 +860,8 @@ impl Sim {
                 spell::CIVILIAN => self.cast_civilian(u),
                 spell::FORCED_MARCH => self.cast_march(u),
                 spell::AMBUSH => self.cast_ambush(u),
+                // …and its Entrench (`cast_entrench`, item 3919).
+                spell::ENTRENCH => self.cast_entrench(u),
                 _ => self.cast_create_decoy(u),
             }
         }

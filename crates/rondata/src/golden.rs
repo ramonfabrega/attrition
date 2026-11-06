@@ -2535,6 +2535,9 @@ mod tests {
         // Barracks, and three `@queueup` presses of `DISBAND` (666) (item
         // 3918, `docs/GOLDEN.md` §165).
         ("chapter115.cmd", &[]),
+        // Chapter one hundred and sixteen: a General and a Hoplite squad, and
+        // the General's Entrench, `@spell` (item 3919, `docs/GOLDEN.md` §166).
+        ("chapter116.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),

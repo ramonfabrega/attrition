@@ -69,6 +69,7 @@ record!(UnitDump {
     safe: Option<i64>,
     start_dist: Option<i64>,
     spell_time: Option<i64>,
+    trench_angle: Option<i64>,
     mana_burn: Option<i64>,
     full: Option<i64>,
     waiting: Option<i64>,

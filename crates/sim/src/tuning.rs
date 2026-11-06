@@ -232,6 +232,15 @@ pub struct Tuning {
     /// French General's pool is `(this + 100) × MANA / 100`
     /// (`UnitData::mana@00609a50`). It ships as `0% bonus`.
     pub french_special_craft: i32,
+    /// `FRENCH_ENTRENCH`, a percentage read plain: a French caster's
+    /// Entrench job time is `time × this / 100`
+    /// (`SpellTypeData::get_job_time@00675800`). It ships as `100% of usual
+    /// time.`
+    pub french_entrench: i32,
+    /// `ANTIPATER_ENTRENCH_RATE`, `1/2` loaded as 8.8: every live caster's
+    /// Entrench job time is `rate × time >> 8`, toward zero — the listing
+    /// drops the `is(0x169)` answer it asks first (`006758b9`, item 3919).
+    pub antipater_entrench_rate: i32,
     /// `MEMNON_REGEN_RATE`, `2/1` loaded as 8.8 (`get_fraction(…, 0x100)`):
     /// Memnon's craft rate is `rate × r >> 8`, rounded toward zero
     /// (`Unit::process@00610bc0`, `611006`). No capture has him.
@@ -1422,6 +1431,8 @@ impl Tuning {
         supply_heal_rate: 0,
         french_supply_heal_rate: 20,
         french_special_craft: 0,
+        french_entrench: 100,
+        antipater_entrench_rate: 128,
         memnon_regen_rate: 512,
         porus_decoys: 512,
         kutosov_decoys: 300,
@@ -1960,6 +1971,11 @@ impl Tuning {
                 Slot::Value(T.french_supply_heal_rate),
             ),
             ("FRENCH_SPECIAL_CRAFT", Slot::Value(T.french_special_craft)),
+            ("FRENCH_ENTRENCH", Slot::Value(T.french_entrench)),
+            (
+                "ANTIPATER_ENTRENCH_RATE",
+                Slot::Ratio256(T.antipater_entrench_rate),
+            ),
             ("MEMNON_REGEN_RATE", Slot::Ratio256(T.memnon_regen_rate)),
             ("PORUS_DECOYS", Slot::Ratio256(T.porus_decoys)),
             ("KUTOSOV_DECOYS", Slot::Value(T.kutosov_decoys)),

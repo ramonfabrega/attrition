@@ -182,6 +182,9 @@ pub mod spell {
     /// not carried.
     pub const AMBUSH: i32 = 0x27b;
     pub const FORCED_MARCH: i32 = 0x27c;
+    /// `Entrench`, the General's third untargeted craft
+    /// (`SpellType::cast_entrench@00672820`, `docs/GOLDEN.md` §166).
+    pub const ENTRENCH: i32 = 0x27d;
     /// `Rally!`, the row before `CREATE_DECOY` — the third craft
     /// `Unit::do_cast` plays a hero's attack slot for.
     pub const RALLY: i32 = 0x279;
