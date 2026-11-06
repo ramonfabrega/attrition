@@ -2216,9 +2216,8 @@ Its closing ORs only spread bits that survived. Here "A → B is 1" is
 read as "B stands one step above A". From the body, that holds when the
 land is the same and B's sub is A's + 1; when A is `BASELAND` at
 `COAST_BASE` and B is `SANDY`; and when B is `OCEAN` and A is any land.
-The body has one more case: A's land is lower than B's, B's sub is 0, and
-A's sub is `num_tiles[A] − 1`. It never answers 1 on the three shipped lands,
-because each such pair is answered earlier (item 3891's audit, row 1).
+Its one other 1 (a lower land beside sub 0) needs no shipped land (item
+3891's audit, row 1).
 It is never 1 both ways. **The arm is entered only when each side's field
 is 0 with M → C not 1, or is 7 with C → M 1.**
 
