@@ -6141,6 +6141,36 @@ fn chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell() {
     cases_80_89::chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell();
 }
 
+/// **run1507 whole, both directions** (item 3913, `docs/GOLDEN.md` §160).
+#[test]
+fn chapter_one_hundred_and_ten_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_ten_s_window_is_widened_whole();
+}
+
+/// What parts in run1507's window, blocks 605–900 (item 3913): the eleven
+/// standing `form` rows every golden chapter carries, and nothing else —
+/// not the Spy's stack, `spell_time` or `flags` on 772, the frame after
+/// `process_stop_spell`, nor the pool.
+const WANT_CH110: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and ten holds to its golden word (item 3913, run1507).
+#[test]
+fn chapter_one_hundred_and_ten_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_ten_holds_to_the_golden_word();
+}
+
 /// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
 #[test]
 fn chapter_one_hundred_s_window_is_widened_whole() {

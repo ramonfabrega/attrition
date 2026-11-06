@@ -28,8 +28,12 @@
 #       --detail misc:COMMANDMANAGER=1 --no-ffwd --bindkey OPTION_RETURN=124 \
 #       --cmd-file tools/gamelog/golden/chapter17-air.cmd [--cover cover=1]
 #
-# The trailing words of the `@rclick` and `@key` lines are the harness's
-# (the target under the cursor, the bound action); the DLL ignores them.
+# The trailing words of the `@rclick` line are the harness's (the target
+# under the cursor); the DLL ignores them. The take's `@key` line read
+# `852 @key 124 OPTION_RETURN`; the binding is now the `bindkey` line below,
+# the harness's reading of `--bindkey` (item 3912's parser).
+#
+# bindkey OPTION_RETURN=124
 #
 # WHAT WOULD FALSIFY IT, read before the run (the journal has it whole).
 # (1) No `process_patrol` on 681, or `0/6` holding a `PATROLORDER` rather
@@ -53,4 +57,4 @@
 786 select 7 who=0
 792 @rclick 960 445 2006 1
 850 select 8 who=0
-852 @key 124 OPTION_RETURN
+852 @key 124

@@ -185,6 +185,12 @@ pub struct Script {
     /// The console's selection, `(who, o)` pairs, which `select` sets and
     /// `finish` reads (item 2474).
     selected: Vec<(i32, i16)>,
+    /// **The keys the lane's profile binds** (item 3912, `docs/GOLDEN.md`
+    /// §159): `(vk, action)` off a chapter's `# bindkey ACTION=VK` comment
+    /// lines, the `--bindkey` its capture recipe passes
+    /// (`unattended_capture.py`, item 3442). An `@key` names a key, and the
+    /// action is the profile's.
+    binds: Vec<(i32, String)>,
 }
 
 impl Script {
@@ -192,7 +198,17 @@ impl Script {
     /// tracer drops them; the frame is clamped upward to its predecessor's.
     pub fn parse(text: &str) -> Script {
         let mut lines: Vec<Staged> = Vec::new();
+        let mut binds: Vec<(i32, String)> = Vec::new();
         for raw in text.lines() {
+            if let Some((action, vk)) = raw
+                .trim_start()
+                .strip_prefix('#')
+                .and_then(|c| c.trim_start().strip_prefix("bindkey "))
+                .and_then(|b| b.trim().split_once('='))
+                && let Ok(vk) = vk.trim().parse::<i32>()
+            {
+                binds.push((vk, action.trim().to_string()));
+            }
             let line = raw.split('#').next().unwrap_or("").trim();
             if line.is_empty() {
                 continue;
@@ -224,6 +240,7 @@ impl Script {
             pending: Vec::new(),
             seat: CONSOLE_WHO,
             selected: Vec::new(),
+            binds,
         }
     }
 
@@ -407,9 +424,13 @@ impl Script {
         while self.next < self.lines.len() && self.lines[self.next].frame == frame {
             let line = self.lines[self.next].clone();
             self.next += 1;
-            // `@key` and `@rclick` are input, not issuers: the command they
-            // make is the selection's (item 3911), so they are spelt here
-            // as the issuer line they become, or skipped.
+            if let Some(vk) = line.text.strip_prefix("@key ") {
+                self.key(frame, vk, &mut done);
+                continue;
+            }
+            // `@rclick` is input, not an issuer: the command it makes is
+            // the selection's (item 3911), so it is spelt here as the
+            // issuer line it becomes, or skipped.
             let line = match self.input_line(&line, built) {
                 Ok(Some(l)) => l,
                 Ok(None) => line,
@@ -448,15 +469,11 @@ impl Script {
 }
 
 impl Script {
-    /// **`@key <vk> <ACTION>` and `@rclick <x> <y> <o> <who>`, spelt as the
-    /// issuer each becomes** (item 3911, `docs/GOLDEN.md` §158). The DLL
-    /// reads the key or the screen point and ignores the trailing words;
-    /// those are this harness's: the action the lane's `--bindkey` gave the
-    /// key, and the object under the cursor, which no harness can compute
-    /// from a screen point.
+    /// **`@rclick <x> <y> <o> <who>`, spelt as the issuer it becomes**
+    /// (item 3911, `docs/GOLDEN.md` §158). The DLL reads the screen point
+    /// and ignores the trailing words; those are this harness's: the object
+    /// under the cursor, which no harness can compute from a screen point.
     ///
-    /// - `OPTION_RETURN` on a selection of units is
-    ///   `Options::recall_aircraft@0071c670`'s `recall` (byte 0x23) on it.
     /// - A right-click on an enemy's object with a selection of units is
     ///   `Console::execute_at_cursor@007c6630:2835`'s
     ///   `GroupOut::issue_flight(ATTACK)` on the selection's aircraft
@@ -468,12 +485,12 @@ impl Script {
     ///   `issue_flight(ATTACK)` is `@launchstrike`'s; refused, the cursor
     ///   pings and nothing is issued (run1505b's `0/2007` on `1/2006`).
     ///
-    /// `Ok(None)` for any other line. SEAM: every other key, and a
-    /// right-click on a friend or on the ground — refused here, by name.
+    /// `Ok(None)` for any other line. SEAM: a right-click on a friend or on
+    /// the ground — refused here, by name.
     fn input_line(&self, line: &Staged, built: &Built) -> Result<Option<Staged>, &'static str> {
         let mut tok = line.text.split_whitespace();
         let verb = tok.next().unwrap_or("");
-        if verb != "@key" && verb != "@rclick" {
+        if verb != "@rclick" {
             return Ok(None);
         }
         let rest: Vec<&str> = tok.collect();
@@ -484,9 +501,6 @@ impl Script {
             .map(|&(_, o)| o.to_string())
             .collect();
         let text = match (verb, rest.as_slice()) {
-            ("@key", [_, "OPTION_RETURN"]) if !units.is_empty() => {
-                format!("@recall {} {}", self.seat, units.join(" "))
-            }
             ("@rclick", [_, _, o, whom]) if !units.is_empty() && whom.parse() != Ok(self.seat) => {
                 format!("@strike {} {o} {whom} {}", self.seat, units.join(" "))
             }
@@ -525,6 +539,53 @@ impl Script {
             text,
             ..line.clone()
         }))
+    }
+
+    /// **`@key <vk>`** (`tools/trace/key.h`, item 3442): the tracer calls
+    /// `SysMessageHandler::OnKey` on the line's frame, and
+    /// `KeyMap::lookup` → `Console::exec_keymap` → `Options::exec` runs the
+    /// bound option on the console's selection (`docs/GOLDEN.md` §146). The
+    /// two this interpreter acts on are the Airbase's (item 3912, §159):
+    /// `Options::recall_aircraft@0071c670` and `scramble_aircraft@0071c5d0`
+    /// add a `group` of the selection and a one-byte `recall` (0x23) or
+    /// `scramble` (0x24), so the pump processes it on the next frame, as an
+    /// issuer line's. The line is carried to the pump as `@key <action>
+    /// <who> <o>…`, the selection read on the key's own frame.
+    ///
+    /// SEAM: `Group::can_activate(selection, 0, −1)` and the entry's
+    /// selection test in `KeyMap::lookup`, which the capture's `INFO 22`
+    /// answers; a key bound to nothing is `KEYMAP_NONE`.
+    fn key(&mut self, frame: i64, vk: &str, done: &mut Applied) {
+        let action = vk
+            .trim()
+            .parse::<i32>()
+            .ok()
+            .and_then(|vk| self.binds.iter().find(|(k, _)| *k == vk))
+            .map(|(_, a)| a.clone());
+        let Some(action) = action else {
+            done.skip("@key", "a key the chapter binds to nothing (KEYMAP_NONE)");
+            return;
+        };
+        let seat = self.seat;
+        let objects: Vec<String> = self
+            .selected
+            .iter()
+            .filter(|(w, _)| *w == seat)
+            .map(|(_, o)| o.to_string())
+            .collect();
+        if objects.is_empty() {
+            done.skip("@key", "no selection of the seat's");
+            return;
+        }
+        let text = format!("@key {action} {seat} {}", objects.join(" "));
+        self.pending.push((
+            frame + 1,
+            Staged {
+                frame,
+                console: false,
+                text,
+            },
+        ));
     }
 
     /// **`be [who]`**, chat table case 43 (`ConsoleWin::run_cmd@007d6a70`,
@@ -1320,6 +1381,31 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
 /// `move_to`, and [`crate::input::group_move_to`] is its entry.
 fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let word = command_word(&line.text);
+    if let Some(rest) = line.text.strip_prefix("@key ") {
+        let mut tok = rest.split_whitespace();
+        let action = tok.next().unwrap_or("");
+        let who: i32 = tok
+            .next()
+            .and_then(|t| t.parse().ok())
+            .unwrap_or(CONSOLE_WHO);
+        let objects: Vec<i16> = tok.filter_map(|t| t.parse().ok()).collect();
+        let n = match action {
+            "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
+            // `Options::recall_aircraft@0071c670`'s `recall` (byte 0x23) on
+            // a selection of units (item 3911, `docs/GOLDEN.md` §158).
+            "OPTION_RETURN" => crate::input::group_recall(built, who, &objects),
+            _ => {
+                done.skip(&word, "a bound option this interpreter does not act on");
+                return;
+            }
+        };
+        if n == 0 {
+            done.skip(&word, "no selected object of who's is live");
+            return;
+        }
+        done.ran += 1;
+        return;
+    }
     if parse_issuer(&line.text).is_some_and(|i| refused_object(built, &i).is_some()) {
         done.skip(
             &word,
@@ -2325,6 +2411,10 @@ mod tests {
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),
+        // Chapter one hundred and ten: chapter nineteen's cast, the Spy
+        // selected by `select` mid-hold and the key bound to `OPTION_QUEUE`,
+        // `@key` (item 3913, `docs/GOLDEN.md` §160).
+        ("chapter110.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
