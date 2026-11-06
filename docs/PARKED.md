@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3927) **`mutate.py --batch` times a mutant from the warm un-mutated run** (3911's "for the Loop"): the baseline ran in 2.0 s warm, so a mutant got 60 s with its compile included; every mutant of 3911's first batch compiled inside it, but a slower box or a cold cache would count a compile as a hang and score it caught. The second batch passed `--timeout 900`. Candidate: time the baseline cold, or add the measured compile to the mutant's budget, or refuse a batch whose timeout is under one cold build. Names no score; the loop's.
+
 (3926) **A pool lane ran an unstaged game under a staged `cover=1` golden take** (3912's "for the Loop"; parked 3912a): run1506b's first take on pool lane 2 held none of `chapter109.cmd`'s `add` lines, the `@key 124` then faulted natively at `0x6fac09` (3912b) and the receipt refused with `extra lifecycle or fault records`; nothing the lane printed said why, and the retake on lane 1 was clean. A dead take costs one capture and, unnoticed, would read as a chapter. Candidate: the click-free runner checks the staged `add` lines' units on the first dumped frame and refuses the take by name; booked further when a second lane-2 take comes back unstaged, the two takes' `rontrace.cmd` and `wine.log` side by side. Names no score; the loop's.
 
 (3925) **A `DEEP` answer that never says the journal's head must read `draft` leaves the arm unfired** (the sixty-ninth's commander, lane-3911): `lanewait.py --arm-after-push` arms only a push whose journal's head says `draft` (Loop 3833); the commander's `DEEP 303k` answer said "write the journal as a draft", lane-3911 pushed `c65c92769` with a "Left to do" heading and no `draft` in the head, and the waiter printed `PUSHED … progress, not a landing` then `ENDED lane-3911 done` and armed nothing — armed by hand, as was lane-3912's (`0c23067bc`) when its row idled before the held arm's threshold. Candidate: the `DEEP` answer's line in `docs/LOOP.md` names the word ("the journal's head reads `draft`"), or the waiter also reads a `Left to do` heading on a DEEP lane's push as a draft. Names no score; the loop's.
@@ -14466,13 +14468,17 @@ registered functions against `NEVER`'s callers would list them. This row names n
   moves both to `RESIDUE` (`Blind:` open 34 → 32 on the tree merged with 3908). A disagreement that names an entry books one take
   of §390.3's five commands plus that entry's staging.
 
-## Parked by the next landing, slot AY — reserved
+## Parked by item 3911, 2026-11-06 — chapter seventeen's air group actions; where a Bomber's ground round lands
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Chapter seventeen's air arms closed at 1100 and 1060 (`docs/GOLDEN.md` §158, run1505–run1505b). The row below names
+no score.
+
+- **3911a. A Bomber's round under an air attack-ground does not take its landing from the order's point.**
+  `guy_release_events` hands `fire_ammo_ground` the `AIRATTACKGROUNDORDER`'s point, and a mutation moving that
+  point 768 east left ch17ag's bombs on `1/2006` from 863, and its widening, unchanged. So `Ammo::init`'s strafer
+  arm, or the release node's offset, decides the landing for a Bomber, and the point `sim` passes is not read on
+  this path. Names no score until a word's frame parts on a ground round's landing; the first read is
+  `Ammo::init@0067bbf0`'s arm for a shooter whose order is kind `0x18` and is not a missile.
 
 ## Parked by item 3912, 2026-11-06 — the Airbase's recall and scramble
 

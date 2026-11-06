@@ -1695,25 +1695,27 @@ impl Sim {
         self.work(u, frame);
     }
 
-    /// **`Unit::do_air_attack_ground@005ea420`** (item 1050), for the one
-    /// unit that takes the order here, a missile:
+    /// **`Unit::do_air_attack_ground@005ea420`** (items 1050, 3911):
     /// - `do_air_physics` flies the frame's step at the point
     ///   ([`Sim::plane_air_physics`]); a 0 return ends the call;
     /// - the unit's own `recharging` (`+0xae`) not 0, or the order's
     ///   `returning` (`+0x2c`), ends it;
-    /// - `ObjectData::is_in_range@0064e4a0` of the point: a missile that is
-    ///   not inside skips the whole test and is in range, so there is no
-    ///   reach here;
-    /// - the facing test is a non-missile's, and is passed over;
-    /// - `set_attack(−1, −1)`, and a type neither strafing nor of the
-    ///   Bomber line with an ammo piece fires at once, `fire_ammo(−1, −1)`
-    ///   — [`Sim::missile_round`];
-    /// - and a missile then dies ([`Sim::missile_dies`]).
+    /// - `ObjectData::is_in_range@0064e4a0` of the point
+    ///   ([`Sim::point_in_range`]): a missile that is not inside skips the
+    ///   whole test and is in range;
+    /// - a non-missile releases within 15° of its heading, 60° for the
+    ///   `0x127` line (`5ea4a9`..`5ea4f2`), as `do_strafe` does;
+    /// - `set_attack(−1, −1)`, and a type without `0x400000`, not of the
+    ///   Bomber line, with an ammo piece fires at once, `fire_ammo(−1, −1)`
+    ///   — for a missile [`Sim::missile_round`]; every other plays
+    ///   `CHAR_ATTACK2` (`5ea56a`), run1505b's Bomber `0/7` on 846;
+    /// - a non-missile reloads `recharge() + 1` (`5ea585`), and a missile
+    ///   dies ([`Sim::missile_dies`]).
     ///
-    /// SEAM: every non-missile arm — the facing test's `is(0x127)`, the
-    /// `CHAR_ATTACK2` release, the reload and the Bomber's mana cost. This
-    /// crate lays the order on a missile alone
-    /// ([`Sim::add_strafe_order`]'s head).
+    /// SEAM: the immediate shot of a non-missile plane off the Bomber line
+    /// with an ammo piece (no such plane takes the order here), and the
+    /// Bomber's `BOMBING_MANA_COST` (0 in the shipped rules, and the tank
+    /// is not carried — the strike's same seam).
     pub(crate) fn do_air_attack_ground(&mut self, u: usize, frame: i64) {
         let Some(crate::orders::Body::AirAttackGround(g)) = self.current_order(u).map(|o| o.body)
         else {
@@ -1726,19 +1728,57 @@ impl Sim {
             self.flock_air_physics(u, g.at, frame);
             return;
         }
-        if matches!(self.plane_air_physics(u, Some(g.at), frame), Flew::Done) {
+        let flew = self.plane_air_physics(u, Some(g.at), frame);
+        if matches!(flew, Flew::Done) {
             return;
         }
         if self.units[u].combat.recharging != 0 || g.returning {
             return;
         }
         let me = crate::combat::Obj::Unit(u);
-        if !self.profile(me).has(crate::combat::mask::MISSILE) {
+        let missile = self.profile(me).has(crate::combat::mask::MISSILE);
+        if !missile && !self.point_in_range(u, g.at) {
+            return;
+        }
+        if !missile {
+            let here = self.units[u].pos;
+            let bearing = crate::movement::find_angle(g.at.x - here.x, g.at.y - here.y);
+            let d = (self.units[u].movement.heading.0 as u32).wrapping_sub(bearing.0 as u32);
+            let off = if d > 0x8000_0000 { !d } else { d };
+            if off >= 0x0aaa_aaaa && (!self.is_fighter_line(u) || off > 0x2aaa_aaaa) {
+                return;
+            }
+        }
+        if !missile && !self.is_bomber(u) {
+            // SEAM: a non-missile, non-Bomber plane's `fire_ammo` arm.
             return;
         }
         self.clear_attack(u);
-        self.missile_round(u, g.at);
-        self.missile_dies(u);
+        if missile {
+            self.missile_round(u, g.at);
+            self.missile_dies(u);
+            return;
+        }
+        self.set_anim(u, crate::anim::ATTACK2, false, true);
+        self.units[u].combat.recharging = self.reload_frames(u) + 1;
+    }
+
+    /// **`ObjectData::is_in_range@0064e4a0`, a unit's arm**, of a point:
+    /// the unit's `vector_dist` to it less its own type's `big_radius`
+    /// (`+0x244`, never under 0) — slot `+0x18` on `Unit`'s vtable is a
+    /// folded `return 1` (`Buffer::is_pending_load@0041e0e0`), which takes
+    /// that arm — within `0x66` for a type with no `max_range` (`+0x1fc`),
+    /// else within `[min_range × 0xc0 − 6, max_range × 0xc0 + 6]`.
+    /// run1505b's Bomber releases from 922 off the point on 846.
+    pub(crate) fn point_in_range(&self, u: usize, at: Pos) -> bool {
+        let me = crate::combat::Obj::Unit(u);
+        let p = self.profile(me);
+        let here = self.units[u].pos;
+        let d = (vector_dist(at.x - here.x, at.y - here.y) - p.big_radius).max(0);
+        if p.max_range == 0 {
+            return d <= 0x66;
+        }
+        d >= p.min_range * 0xc0 - 6 && d <= self.max_range_of(me) * 0xc0 + 6
     }
 
     /// **`Ammo::init@0067bbf0`'s missile arm** (item 1050): the round of a

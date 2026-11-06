@@ -372,14 +372,17 @@ const UNREAD: &[(&str, &str)] = &[
     // stacks (`returning` and the strafe home).
     // **Item 3913's run1507 windows
     // `process_stop_spell`** (`frame`), the first player's stop of a cast;
-    // what it closes is read off the Spy's stack and `spell_time`.
+    // what it closes is read off the Spy's stack and `spell_time`. **Item
+    // 3911's ch17ag windows `process_attack_ground`** (`21120 16512 2` on
+    // 681), the first player's air attack on the ground; what it lays is
+    // read off `0/7`'s `AIRATTACKGROUNDORDER`.
     // **Item 3914's run1508 windows `process_disband`** (`frame`), the
     // first player's disband; what it kills is read off the Chariot's
     // record and its `DEATH_OBJS`.
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_disband process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_attack_ground process_build process_buildmask process_disband process_eject_all process_flight process_follow process_form process_garrison process_gather process_gather_point process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -805,6 +808,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch105 = golden_dump("ch105");
     let ch106 = golden_dump("ch106");
     let ch107 = golden_dump("ch107");
+    let ch17air = golden_dump("ch17air");
+    let ch17ag = golden_dump("ch17ag");
     let ch109 = golden_dump("ch109");
     let ch110 = golden_dump("ch110");
     let ch111 = golden_dump("ch111");
@@ -2878,6 +2883,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             n, 4,
             "chapter one hundred and seven carries four blocks in the window"
         );
+        frames += n;
+    }
+    // **Chapter seventeen's air group actions, on run1505's and run1505b's
+    // twins** (item 3911): the windows take `0/6`'s `AIRPATROLORDER` laid
+    // on 681 and `0/7`'s `AIRATTACKGROUNDORDER` on 681, the records the
+    // arms print first.
+    if let Some(p) = &ch17air {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN_AIR;
+        let n = drive_capture(p, 680, 684, &mut paths);
+        assert_eq!(n, 5, "ch17air carries five blocks in the window");
+        frames += n;
+    }
+    if let Some(p) = &ch17ag {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN_AIRGROUND;
+        let n = drive_capture(p, 680, 684, &mut paths);
+        assert_eq!(n, 5, "ch17ag carries five blocks in the window");
         frames += n;
     }
     // **Chapter one hundred and nine, on run1506** (item 3912): the
