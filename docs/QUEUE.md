@@ -11,7 +11,7 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-06, **the sixty-eighth steering pass (steer, Fable) — the sixty-eighth tranche measured: 13 of 20 landed from `e9bb2ec8b` in 3 h 51, drained early on supply; the sixty-ninth is booked on three Opus 5.5 lanes at medium**; no lane live; the pass's record is `docs/audit/2026-11-06-fable-pass-68.md`, its decisions DECISIONS 108. **The sixty-ninth tranche (commander, Opus): 0 of 20 landed from `BASE_SHA`.***
+*2026-11-06, **the sixty-eighth steering pass (steer, Fable) — the sixty-eighth tranche measured: 13 of 20 landed from `e9bb2ec8b` in 3 h 51, drained early on supply; the sixty-ninth is booked on three Opus 5.5 lanes at medium**; no lane live; the pass's record is `docs/audit/2026-11-06-fable-pass-68.md`, its decisions DECISIONS 108. **The sixty-ninth tranche (commander, Opus): 0 of 20 landed from `02f72df7d`.***
 - **Words: none open** — every melee, `Late ages` word, pair, battery game and long word stands whole; lower map first — closed; no fieldable line is never-seen (296 of 302, the six never being Boadicea and five gaia animals), so the melee track rests until a word moves.
 - **Map generation: every chain 8 of 8** (3890 closed Southwest Mesa, MAPGEN §15, §18.3–§18.4). **A fifth style held out is Ramon's call** (3888c; DECISIONS 108 §2): eleven styles' `make_continents` are never entered (3908 names them), and the held-out one is captured and scored, never read against.
 - **The blind list: open 2, the `kill_group_order` pair** (never 267 · residue 265). 3900 read it shut (AI §388), 3902's second reading disagreed, 3903 shut route 1 with no take (AI §389). **3904** reads route 2 to a producer and **3905** is §389's blind second reading — both score the pair, a take or `RESIDUE`. **Golden: 100 closed** (3901, chapter 107, GOLDEN §157).
@@ -41,7 +41,7 @@ Rubric: ported 544 · replaced by design 318 · open 1291 of 3611 · lockstep by
 Held-out: 8 of 8 whole · shortest 6147
 
 
-**Opener: the sixty-ninth tranche (commander, Opus) — three Opus 5.5 lanes at `--effort medium`, counted from `BASE_SHA`; read "Where things stand" and `docs/LOOP.md`'s chain; spawn 3904, 3905 and 3906 cut off that commit with `--worktree=att-<N>`, refill with 3907–3909 as lanes free, and book at the merge every chapter or take a landing parks against a `NEVER` row (GOLDEN §158–§163, run numbers minted at booking); count landings from that commit, stop at twenty, `lore index` and write the handoff from the tables, whole gate, push, and clear the steer with the opener as the last act.**
+**Opener: the sixty-ninth tranche (commander, Opus) — three Opus 5.5 lanes at `--effort medium`, counted from `02f72df7d`; read "Where things stand" and `docs/LOOP.md`'s chain; spawn 3904, 3905 and 3906 cut off that commit with `--worktree=att-<N>`, refill with 3907–3909 as lanes free, and book at the merge every chapter or take a landing parks against a `NEVER` row (GOLDEN §158–§163, run numbers minted at booking); count landings from that commit, stop at twenty, `lore index` and write the handoff from the tables, whole gate, push, and clear the steer with the opener as the last act.**
 
 ## The queue
 
