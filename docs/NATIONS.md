@@ -234,7 +234,7 @@ left out; a constant with no reader in the export is dead there too.
 | `FRENCH_SIEGE_MOVE` | 20 | Unit::update_speed | modelled at rares.rs | `french_siege_move` |
 | `FRENCH_FREE_GENERAL` | 1 | Build::activate | modelled at nations.rs | `french_free_general` |
 | `FRENCH_FREE_SUPPLY` | 1 | Build::activate | modelled at nations.rs | `french_free_supply` |
-| `FRENCH_ENTRENCH` | 100 | SpellTypeData::get_job_time | not carried | `french_entrench` |
+| `FRENCH_ENTRENCH` | 100 | SpellTypeData::get_job_time | modelled at lib.rs | `french_entrench` |
 | `FRENCH_LUMBERMILL_EARLY` | 2 | LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `french_lumbermill_early` |
 | `FRENCH_LUMBERMILL_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `french_lumbermill_upgrades` |
 | `FRENCH_WOODIES` | 1 | BuildTypeData::calc_gather | modelled at gather.rs | `french_woodies` |
