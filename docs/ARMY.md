@@ -1353,8 +1353,11 @@ unit under attack drags its army onto the attacker.
 
 **`set_stance(s)@006f8750`**: §6. **`find_waiting_unit(·, ·, filter, ·,
 ·)@006fa090`**: the first unit of the first group that is active, passes
-`Search::valid_filter`, and has **no action or one of type 0**; no caller
-in the export outside `Leader::action_attack`.
+`Search::valid_filter`, and has **no action or one of type 0**; ~~no caller
+in the export outside `Leader::action_attack`~~ no caller at all: the image
+holds no call, jump or pointer to it, and `Leader::action_attack`
+is a diplomacy setter that never reaches it (`docs/AI.md` §393.2, item
+3909).
 
 **`use_generals@006f4c30` / `use_spies@006f4af0` / `use_scouts@006f49a0`**:
 walk every unit of every group; the first active hero

@@ -1519,7 +1519,9 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// cite) — no call and no vtable slot; the one four-byte match of its RVA is the
 /// rel32 of `AmmoOut::draw`'s call at 0x67b5ab, which the scan excludes
 /// (DECISIONS 107 §3).
-const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1;
+/// **153** with item 3909's `Army::find_waiting_unit@006fa090` (`docs/AI.md` §393.2;
+/// no call, no jump, no pointer to it).
+const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1599,6 +1601,11 @@ const DEAD_CITED: &[(&str, u32)] = &[
     ("TECH.md", 0x0073c5e0),
     ("TRANSPORT.md", 0x0065cfd0),
     ("TRANSPORT.md", 0x006d5230),
+    // Item 3909's one (`docs/AI.md` §393.2): `Army::find_waiting_unit`, ruled
+    // `RESIDUE` with no reference in the image; ARMY §15's cite is struck
+    // through to it.
+    ("AI.md", 0x006fa090),
+    ("ARMY.md", 0x006fa090),
 ];
 
 /// The rows of `rondata::blind::RESIDUE` that say "no reference in the

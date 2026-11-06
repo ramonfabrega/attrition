@@ -39012,16 +39012,17 @@ run with an `ATTACK` or a `STRAFE` current, and with those current `repath` kill
 
 `do_group_move`'s leader arm also calls `Group::kill_group_move` itself, on a 32-frame beat with the target within
 0x900. On the list in 390.3 that kills `GM_form` and the `ATTACK` without entering `find_new_target`, so a leader
-U consumes the list before any entry. That is one more reason the entry must be found before a take is booked.
+U consumes the list before any entry *(amended by item 3910, §394.1: only on that beat; the leader is ruled out by
+its stash instead)*. That is one more reason the entry must be found before a take is booked.
 
 **Amended**: §388.1's "clears the stash only on `QUEUE_NEW` (`:19-23`)". `add_group_move_order` also calls
 `clear_partial_path` on `QUEUE_FIRST`, after the add. §388.1's conclusion does not depend on it.
 
 **What is not established.**
-- `do_group_move`'s non-leader arm.
-- `target_opportunity:393`'s gate against a unit holding the list.
+- ~~`do_group_move`'s non-leader arm.~~ *Read by item 3910, §394.1: it never calls `do_move`.*
+- ~~`target_opportunity:393`'s gate against a unit holding the list.~~ *§394.4: shut by `is_move` and by the `ATTACK`'s block.*
 - Whether a formation move to the group's own location lasts a frame.
-- `GroupData::get_form`'s value 9 (members given plain moves) as a second source of a top move.
+- ~~`GroupData::get_form`'s value 9 (members given plain moves) as a second source of a top move.~~ *§394.4: a top move only under `QUEUE_FIRST`, which keeps no list under it.*
 
 Nothing here is diff-backed, and no assertion was added: every claim is a control-flow reading. The order
 counter and the slot index were not found in a dump: one 16,754-frame gamelog on disk (run 583) prints only
@@ -39300,19 +39301,302 @@ Everything in this section rests on a reading alone. No assertion was added, sin
 the world. **Coverage**: all eight rows and `make_city_capital` are reading-only. The three stagings are what would
 make them diff-backed, and the commander books each one as a chapter.
 
-## 393. Reserved for the next item on the AI track
+## 393. The rest of the implicit residue: forty-two on scope, two owed a staging (item 3909, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The implicit residue's last stems (DECISIONS 108 §2; `census.py --territory --pin --implicit`, run on the base
+`a6c60560`) hold **44** rows outside `map` and `spelltype`. The queue counted 32; the stems it named add up to
+44. Each row is read here to its callers, and each caller to the predicate that admits it. Callers come from the
+decompile export and, where it misses one, from `tools/trace/report.py <exe> refs`, which scans the image's bytes.
+A row is `RESIDUE` when every caller chain ends in a scope cut from v1. It stays `NEVER` with a staging when a
+chain reaches play. Nothing here was run.
 
-## 394. Reserved for the next item on the AI track
+### 393.1 The two that reach play
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+1. **`CliffsData::gather_size@008a8f80`**, a mine's tile count against a cliff. Its one call is
+   `BuildTypeData::calc_gather@00639e40:680` (`+0xec1`), in the mine arm that ECONOMY's "The cliff arm"
+   describes. The predicate:
+   - no mining list is passed in, or the list's `mtn` and `cliff` are both negative;
+   - `CliffsData::find_nearest` returns a cliff, and either no mountain is found or the cliff is nearer
+     (`local_88 < local_90` clears the mountain);
+   - the cliff is within `gather_radius × 0xc0`;
+   - no tile of the cliff is gathered from by another leader's building (`WorldData::is_gathered_from`, which
+     sets −2).
+
+   Neither scored map has an `OBJECT_CLIFF` tile, so no trace reaches it.
+   - Staging: a `--dump-all-start` lobby on a style that lays cliffs, then `add mine who=0 <x>,<y>` beside a
+     cliff with no mountain nearer, at a point the commander picks off that start dump.
+   - Killer: no `CliffsData::gather_size` hit on the `add`'s frame. A `NO_MOUNTAIN 0xc` refusal would mean
+     the cliff lay past `gather_radius × 0xc0` or a mountain was nearer.
+2. **`Unit::dbg_jump_to_action@00602ea0`**, which snaps a unit to where its action is going.
+   `Group::dbg_jump_to_action@00707a00` calls it for each member that answers `SubObjectData::is_active` (vslot
+   `+0x8`) and `UnitData::is_on_map` (vslot `+0xbc`), and only when `game->semaphore.ptr[0] & 4` is clear.
+   No pinned trace enters the group function either. It joins `NEVER` here and takes the same staging.
+   - The group function's callers: `ScenarioFuncSet::add_unit@009e2220:244` (after `action_form`, for a group
+     of new units that are not planes), `ScenarioFuncSet::group_jump_move@009fb2d0`,
+     `ScenarioEditor::add_unit@0099c750:310`, `Options::do_formation@007215b0:41` (only under semaphore bit 11,
+     the open editor), `UnitBalance::next@009b8ac0:1002` and `ConquestGame::build_units@00797200:195`.
+   - `ConquestGame::build_cities` calls the unit function directly (`+0xfdc`).
+   - The function itself has three arms:
+     - a `GATHERORDER` (0x1a) action: `insert_inside`, `repath` and `kill_current_order`;
+     - an action of type 7: `set_new_location` at the action's target;
+     - a move-class order (`MOVE_TO`, `ATTACK_TO`, `EXPLORE_TO`, `FLEE_TO`, `CHANGE_FORM`, `GROUP_MOVE`,
+       `GROUP_ATTACK_TO`): it pops the leading orders of types 1–4, 0x12, 0x13 and 0x15, then
+       `set_new_location` at the last one's point, or at `find_nearby_spot` when that point is invalid.
+   - Staging: §391.2 row 10's console `eval`, on land: `620 !eval create_unit(1, <x>, <y>, "Hoplite", 2)` on
+     a land tile. `add_unit` forms the pair, and `action_form` gives each a `CHANGE_FORM` order.
+   - Killer: on 621, the two Hoplites still at their placement points with a `CHANGE_FORM` order. Snapped,
+     they stand at their formation slots with none.
+
+### 393.2 On scope
+
+Each caller below was grepped in the export and scanned in the image. A row's scope is the scope of the last
+non-library caller on every chain.
+
+- **The unit-balance harness.** `game->semaphore` bit 9 (`ptr[1] & 2`) is set by `Game::run_unit_balance@00586790:73`
+  alone. `Main::run_game_loop@00595f40` calls that function on `GAME_UNIT_BALANCE`, a game type no menu
+  offers.
+  - `UnitBalance::check_for_timeout@009b7d30` and `UnitBalance::write_results@009b7de0` are called from
+    `Game::check_victory@005926b0:55,90` under bit 9.
+  - `UnitBalance::write_screen_details@009b6de0`, `write_sub_header@009b6fa0`, `write_header@009b7060` and
+    `valid_combat@009b71c0` are called from `UnitBalance::next@009b8ac0` alone. `next`'s three callers
+    (`check_victory:102`, `Setup::build_empire`, `TurnControl::toggle_pause`) all run inside the harness.
+- **The front end's game types** (interface). `Main::run_game_loop` dispatches on `game_type`:
+  - `Game::run_skilltest@00585cb0` on `GAME_SKILLTEST`;
+  - `Game::run_campaign@00585e90` on `GAME_SCENARIO` and `GAME_TUTORIAL`, the scripted campaigns, which ride the
+    trigger system cut from v1;
+  - `Game::run_unit_balance` on `GAME_UNIT_BALANCE`, as above;
+  - `Game::learn_as_you_play_popup@00588560` only while `player_profile.played_game == 0`. It is a popup that
+    offers the tutorial, then sets `played_game` 1 and saves the profile.
+- **Multiplayer and sync recovery.**
+  - `Game::run_oos_recovery@005869e0` is called from `Game::run@00584590:1110` once semaphore bit 27 is set.
+    Its setters are `CommandManager::recover_from_oos@0093e9e0:216` (a sync file received) and
+    `CommandPackage::end_process@0094c800:348`. The second runs after `checksum_fail_count` reaches the game's
+    `checksum_failure_threshold`.
+  - `Player::drop@006ede80` is called from `DropControl::on_player_timed_out@00959110` and
+    `process_drop@00959500`.
+  - `SyncPoint::process_sync_signal@0093a150` is called from `NetDaemon::process@00950f30`.
+  - The `std::pair<wstring,wstring>::pair@00452730` constructor is built for crossplay. Its callers are
+    `ConnectionData::send_player`, `GameSpy::UpdateLobbyFromDTO`, `LobbyManager::ConvertToPlatformLobby`, and
+    an `unordered_map<wstring,wstring>` insert. Walked up, that insert ends in `Crossplay::Lobby::DTO::LobbyDTO`,
+    `LobbyManager::refresh_lobbies`, `Tick`, `RefreshKeysFromDto` and `GameSpy::OnLobbyJoined`.
+- **Conquer the World.** Semaphore bit 17 (`ptr[2] & 2`) is set by `Game::run_solo@00587830:279` only while
+  `conquest_game->initialized` is set.
+  - `ReinforcementArmy::place_army@007aa560` is called from `ConquestGame::place_reinforcements@00798880`, which
+    `Game::do_frame@00591ef0:155` calls under bit 17.
+  - `ReinforcementArmy::check_edge@007aa400` is called from `place_army` alone (`+0x132`).
+  - `Tribe::set_barbarian@006eff70` and `Tribe::set_substitute_tribe@006efda0` are called from
+    `ConquestGame::setup_scenario@007999e0` alone (`+0x657`, `+0x6eb`).
+  - `Game::restore_rules_data@005890b0` is called from `ConquestGame::setup_scenario:41` and
+    `SetupWin::exec@005c67f0:138`, both under `game->reload_rules`. Its one writer,
+    `Game::end_game_close@00594aa0:13`, sets it after a game closes, and the next setup reloads the rules before
+    the first frame.
+- **The scenario editor.**
+  - `TerrainMap` is the editor's terrain window. `IFaceEditorTerrainMap` builds and redraws it.
+    - `TerrainMap::on_redraw@009b4da0` is called from `IFaceEditorTerrainMap::on_redraw` (vtable `+0xb8`).
+    - `TerrainMap::map_change@009b59f0` and `TerrainMap::synch_mountain_data@009b5f20` are called from
+      `ScenarioEditor::generate_map`, `modify_terrain_map`, `reset_terrain_map`, `load_file` and
+      `add_random_features`.
+    - `TerrainMap::erase_highlight@009b5e00` is called from `ScenarioEditor::modify_terrain_map`.
+    - `TerrainMap::remove_cliff@009b3340`, `remove_river@009b3590` and `remove_mountain@009b37a0` are called
+      from `TerrainMap::remove_feature@009b39e0`, whose callers are `TerrainMap::draw` and `on_left_down`.
+  - `Mountains::remove_mountain@00898f10` is called from `TerrainMap::remove_mountain` alone.
+  - `Cliffs::delete_cliff@008a60e0` is called from `ScenarioEditor::modify_terrain_map` and
+    `TerrainMap::remove_cliff`.
+  - `World::revert_coast@006b1d60` is called from `ScenarioEditor::add_random_terrain`.
+  - `Objects::remove_good@00653d00` is called from `ScenarioEditor::delete_good`. Its callers in turn are
+    `Options::exec_editor` and `Options::picked_spot`.
+  - `Mountains::verify_template@00898cf0` is `Mountains::add_mountain@0089c2e0`'s case 1 (`+0x67`).
+- **A mode no caller passes.** `Mountains::sliding_verify@00898920` is `add_mountain`'s case 3 (`+0x8b`).
+  `add_mountain` has four callers, and none passes 3:
+  - `TerrainGroup::drop_tile@006a2ab0:69` passes 4;
+  - `TerrainGroup::place_player_group@006a4190:422` passes 5;
+  - `ScenarioEditor::modify_terrain_map:226` passes 1;
+  - `ScenarioRead::load_mountains_chunk@009adf40:105` passes 0, no verify.
+
+  So map generation verifies by 4 and 5 only.
+- **Debug verbs.**
+  - `World::repair_world@006b0180` is `ConsoleWin::run_cmd@007d6a70`'s case 0x18. It is the console-only
+    `repair` command, which the command table describes as "rebuilds some world data"
+    (`tools/gamelog/console.py table`).
+  - `Unit::dbg_jump_to_waypoint@00603130` is called from `Group::dbg_jump_to_waypoint@00707aa0`. That
+    function's callers are `Console::exec_keymap:190`'s case 0x19, which requires `cheat_keys` with semaphore
+    bit 2 clear, and `ScenarioEditor::inc_selected_health`.
+  - `add_single_line@00894060` and `add_line@008941b0` are called from `RoadsOut::render_debug@00890060`.
+    `RoadsOut::render:157` calls that under a non-zero `+0x5d8`. The flag is taken to be one of `RoadsOut`'s
+    debug fields (`debug_on`, `debug_data`); the base offset was not settled, but the function is the renderer
+    in any case. (`StatWin::add_line@007f0660` is a different function.)
+- **Interface.**
+  - `Game::action_screen_shot@00588f00` is called from `ScenarioFuncSet::take_screenshot`.
+  - `Game::record_results@00594080` is called from `Game::run:1130`, after the game ends, under a `prefs_get`
+    pref that defaults to 0. It writes a results log of the players' names and nations, and no game
+    state.
+  - `Tribe::sub_nation_name@006efb50` is called from `Scene::set_help_type@008be140`, whose callers are
+    `Options::describe` and `Scene::add_info_last`: help text.
+  - `Surf::on_field_change@0089ddc0` is `Surf::vftable +0xc`, beside `get_name` and `registration`. It
+    re-phases the shore waves in floats.
+  - `WorldMap::on_extra_up@008c7810`'s address stands once in `.rdata` (`00b54b44`). It is the minimap's
+    extra-button release: it counts a click and calls `Console::map_click`.
+- **No reference.** `Army::find_waiting_unit@006fa090` has no reference in the executable: no call, jump or
+  pointer to it.
+- **The callers this section cites, which no trace enters either.** Each joins `NEVER` here, with the scope of
+  the row it calls:
+  - `ConquestGame::setup_scenario@007999e0`, `place_reinforcements@00798880` and `build_units@00797200`:
+    Conquer the World.
+  - `ScenarioEditor::add_unit@0099c750`, whose callers are `Options::picked_spot` (the editor) and
+    `ConquestGame::build_units`: the editor and Conquer the World.
+  - `TerrainMap::remove_feature@009b39e0`: the editor.
+  - `ScenarioRead::load_mountains_chunk@009adf40`, called from `ScenarioRead::load_terrain_chunk`, which is
+    called from `ScenarioRead::import`: a scenario file's import, which no random-map game takes.
+  - `ScenarioFuncSet::group_jump_move@009fb2d0`, called from its overload at `009fa710`. That overload looks
+    up a named `ScenarioGroup` in `ScenarioData::scenario_groups`, so it belongs to the trigger system, cut
+    from v1.
+  - `CommandManager::recover_from_oos@0093e9e0`, called from `CommandManager::process_turn`, and
+    `DropControl::on_player_timed_out@00959110` and `process_drop@00959500`: multiplayer and sync recovery.
+  - `Group::dbg_jump_to_waypoint@00707aa0`: the cheat key and the editor.
+  - `RoadsOut::render_debug@00890060`: the renderer's debug pass.
+  - `Group::dbg_jump_to_action@00707a00` stays open with its unit row (§393.1).
+
+**What is not established.** Nothing here is diff-backed; every claim is a reading of the decompile, the listing or
+the image scan.
+
+These were not read whole:
+- what semaphore bit 2 means, which both `dbg_jump` gates read;
+- `RoadsOut::render`'s `+0x5d8` against the PDB layout;
+- the name of the pref `record_results` waits on;
+- which styles lay `OBJECT_CLIFF` tiles. 3908's map styles may answer the last.
+
+The two `NEVER` stagings are parked, AW-a and AW-b.
+
+## 394. Route 2's entry: no caller runs `find_new_target` with the list's group move current (item 3910, 2026-11-06)
+
+Item 3910 read the entry 3904a parked (§390.4): a caller that runs `find_new_target@005ff6a0` on route 2's list
+`[GM_form X][ATTACK t][GROUP_PATROL][GM_B X]`, so that `repath`'s group walk kills `GM_form` and the `ATTACK` and
+`:63` meets the `GROUP_PATROL`. It read each candidate to its predicate, off the decompile and the listing. 3905a's
+re-issue was read as well. The falsifier went into the journal first: no caller runs `find_new_target` with a group
+move current over the list. **It holds.** No caller was found (394.1–394.5). With §389 (ratified by item 3905), that
+makes the pair a `RESIDUE` candidate (394.6). No run was reserved or taken.
+
+What any entry needs: `find_new_target` calls `repath` first (§388.2), so the head at that call must be `GM_form X`
+with `group ≥ 0`. Every other head is consumed differently. A plain move on top, killed by `repath` through
+`kill_current_order`, would leave `GM_form X` next and also open the walk, so 394.3–394.4 read the makers of such a
+move. The callers are the eight of item 3902 (`report.py <exe> refs 005ff6a0`): `check_target_path:180`,
+`do_move:105`, `resolve_unit_collision:233`, and five in `fight`.
+
+### 394.1 `do_move:105` is entered with a group move current only from the leader arm, and its stash cannot be there
+
+- **One caller holds a group move current.** `do_move@005f7b30` has seven callers. `Unit::do_job@00617a10`
+  dispatches it for `MOVE_TO` and `FLEE_TO`; `do_attack_to`, `do_explore_to`, `do_flee_to`, `do_guard` and
+  `do_follow` run their own order types. `Unit::do_group_move@005e79a0` calls it once, at `+0x143` (`5e7ae3`).
+  The listing puts that call inside the leader compare: `5e79ec`/`5e79f9` jump a non-leader (`+0x54` or `+0x58` not
+  this unit) to `5e7d5b`, and no jump from `5e7d5b` onwards re-enters `5e79ff`–`5e7ae8`. **The non-leader arm
+  never calls `do_move`.** It reads cleanly (decompile `:149-445`, not the "straight to `ungroup_move_order`" §390.4
+  saw). It walks the slot for its own index, builds its offset target, and steps with `move_step` (`:408`). So
+  whether a non-leader keeps a stash has no bearing on `:105`.
+- **The leader's stash dies the frame it is made.** A stash (`+0x104`) is made only by
+  `resolve_unit_collision:482` (§388.1). That path returns 1 without adding an order, and `move_step:291-292`
+  returns 0 after it, so `do_move` returns 0 to the leader arm with `update_order == param_1`. The arm (`:108-147`)
+  then either calls `Group::kill_group_move` and `distribute_attack`, or reaches `LAB_005e7c6c` and calls
+  `ungroup_move_order`. `kill_group_move` removes orders through `kill_current_order`, which clears the stash
+  (§388.1). `Unit::ungroup_move_order@005fd140` replaces in place the first order whose group view holds the id (the
+  current `GM_form`) with a `MOVE_TO` copy, and keeps the leader's stash. The list becomes
+  `[MV][ATTACK][GROUP_PATROL][GM_B X]`, and a later `do_move:105` on the `MV` has `repath` kill the `MV` and stop at
+  the `ATTACK` (`:65`). **`GM_form X` is gone before any entry.**
+- **No stash is carried into a group move made current later.** A group move added `QUEUE_NEW` or `QUEUE_FIRST`
+  clears the stash (§390.4, amended). One queued below becomes current only when what is above it leaves. The
+  removers of a unit's current order (every caller of the order list's `remove_current`) are these:
+  - `kill_current_order`, which clears the stash;
+  - `action_move_near`, which follows with `clear_orders`;
+  - `ungroup_move_order` and `work`'s `MOVE_TO` arm, which swap a node in place;
+  - `eject_contents` and `cast_transport`, which move the whole list onto another unit;
+  - `finish_insert`, which works on its copy list;
+  - `do_group_attack`, a `RESIDUE` handler (§382.1).
+
+  None exposes a deeper group move with a stash kept.
+
+**Amended**: §390.4's "a leader U is ruled out: `do_group_move`'s 32-frame `kill_group_move` takes the list first".
+That kill fires only on the beat `(frame + id) % 32 == 0` with the `ATTACK`'s target within `0x900`. On every other
+frame the leader calls `do_move`. The leader is ruled out by the stash, as above.
+
+### 394.2 `cavarch_fight` calls `fight` with a group move current, and `fight` never reaches `find_new_target` on that call
+
+Neither 3902's sweep nor §390 named this caller. `Unit::cavarch_fight@005ff4b0` is called from `do_group_move+0xbc8`
+(the non-leader arm, `:392-405`) and `do_move+0x9f`, both with the group move current. It is a `v` type
+(`unit_flags & 0x200000`, §134.3) that holds an `ATTACK` action only with `0x400`. It calls `fight(o, who,
+unit_masks2 & 0x100, 0, 1)`.
+
+`fight@005fd4d0` loads `param_5` into `esi` at `5fdc84`, and `esi` is not written again before the sites:
+- `5fdc32` sits under `param_5 == 0` (decompile `:212`);
+- `5fdeea` is reached by fall-through after `5fdec6` `test esi; jne`, and from `5fdf50` `test esi; je`;
+- `5fe113`, `5fe25f` and `5fe3fe` lie in `5fe0f9`–`5fe511`. The only jumps into that range from outside it are
+  `5fe087` (after `test esi; je`) and three from `5fe0ca`–`5fe0e3`, a block reached only by `5fe077` after `5fe055`
+  `test esi; jne` fell through.
+
+With `param_5 = 1`, out of range goes to `find_melee_target` and returns (`5fe089`–`5fe0c5`), and in range goes to
+`5fe511`. **§134.3's "the `param_5` path never touches the order list" holds for `find_new_target` by the listing.**
+`fight`'s other callers run an `ATTACK` (`do_attack`) or a `GROUP_ATTACK` (`do_group_attack`, `RESIDUE`).
+
+### 394.3 `check_target_path:180` and `resolve_unit_collision:233` need a non-group current order
+
+- **`check_target_path`** is called from `Unit::work@0060d180:197` with the action's `TargetOrder`. The current
+  order must be non-group, or a group order whose group view names this unit as leader. So a leader holding the list
+  reaches it. Before `:142`, its `repath` calls (`:64`, `:97`, `LAB_005e2529`) walk `GM_form X` and leave
+  `[GROUP_PATROL][GM_B X]`, which is the walk without the entry. The arm holding `:180` then reads
+  `update_order +0x2c == 0 || group < 0`, and a current `GROUP_PATROL` with `group ≥ 0` shuts it. An ungrouped
+  holder (`group < 0`, left by `Group::kill`, §390.2) has `repath` kill type 19 through `kill_current_order`, and it
+  stops at the `ATTACK`.
+- **`resolve_unit_collision:233`** reads the action through `update_action` (the `ATTACK`, with `GM_form` lacking
+  bit 4). It needs the current order's `+0x2c` to be 0, an enemy collider and a captain, so a current group move
+  shuts it.
+
+Both open only under a plain move on top of `GM_form`, which 394.4 rules out.
+
+### 394.4 No maker lays a plain move without bit 4 over the list
+
+- **`Unit::target_opportunity@005fffc0:393`** is shut twice. `600175`–`60017e` call `is_move@0046f050` on
+  `order_type`, which answers 1 for types 1–4, 18, 19 and 21, and that writes `local_c = 1` (`-0x8(%ebp)`); the
+  make-way arm needs `local_c == 0` (`:256`). Separately, with the list held, `update_action` answers the `ATTACK`.
+  The block at `:139-239` then returns, or does `repath`, `kill_current_order` and jumps to `LAB_00600877` (`:403`),
+  past `:393`. The opening loop also hands a grouped member with `param_3 = 0` to `Group::target_opportunity`.
+- **`GroupData::get_form` = 9 is a formation index, not a plain-move flag.** Its callers are
+  `action_move_near+0x75b`, the console and the editor. In `Group::action_move_near@00704990`, `param_9` of 9 or −1
+  takes the group's own formation (`:346-354`). Formation 9 sends a member to `add_move_facing_order`, a plain move,
+  at the call's own `QueuePos` and `param_8` (`:773`, `LAB_00705f61`). So it is a top move only under `QUEUE_FIRST`.
+- **`QUEUE_FIRST` through `action_move_near` keeps no list under a top move.** With `buildings` (`+0x49`, by the
+  type record) clear, `:255-290` run `set_up_insert`, `action_halt(0)`, the call again at `QUEUE_NEW`, and
+  `finish_insert`. `action_halt(0)` skips only some planes and units entering or exiting a building. A member the
+  inner call gives a move gets it at `QUEUE_NEW`, which closes its orders first. A member it skips gets nothing on
+  top. `finish_insert` appends at `QUEUE_LAST`, with bit 4 set (`param_8 = 1` at all eight sites). With `buildings`
+  set, the group is a building selection.
+- **The callers.** The direct callers with `param_8 = 0` (`do_guard`, `think_civilian_transport`, `action_gather`,
+  `Build::init`) pass `QUEUE_NEW`, and the scenario functions pass `QUEUE_NEW` or `QUEUE_LAST`.
+  `Group::action_move_to@0070fba0`'s 34 callers forward their own `QueuePos`. The `QUEUE_FIRST` ones with bit 4
+  clear (`do_patrol`, `get_goody_box`, `target_opportunity:449`, `action_air_patrol`'s pass-through) all go through
+  the arm above.
+
+### 394.5 3905a's re-issue gives a siege member another copy of the list, not an entry
+
+`Group::action_attack(QUEUE_FIRST, 4)` halts only the non-siege members. Its `finish_insert` re-issues at
+`QUEUE_LAST` through `action_move_near`, with bit 4 set. A siege member that kept its list gets the re-issued group
+move appended. If that list is itself `[GM X][ATTACK]…`, the appended move is a second producer of route 2's
+shape. One slot's re-issue cannot meet that slot's own earlier id (§390.2). Whatever the ids, the member then holds
+a group move current over the list, and 394.1–394.4 shut every entry for that state. **3905a is a producer
+lead, and it closes with the entry.**
+
+### 394.6 What this leaves of the pair
+
+`Group::kill_group_order@00710aa0` has two call sites. `find_new_target+0xef` is shut on route 1 (§389, ratified by
+3905) and on route 2's entry (here). `do_group_attack+0x124` is `RESIDUE` (§382.1). `Unit::kill_group_order@005e3310`
+has one caller, `Group::kill_group_order+0x7e`. **Both rows are `RESIDUE` candidates.** They stay in `blind::NEVER`
+until a blind second reading agrees: 3904b, widened to §390 and this section (park 3910a). No take is booked.
+
+**What is not established.**
+- `action_halt(0)`'s two skips (some planes; entering or exiting) and `action_move_near`'s inner member loop were
+  read to the members they give a move. A member skipped by both keeps its list with nothing on top, and that
+  argument does not need the skip set.
+- `ungroup_move_order`'s copy was read as `MoveOrder::operator=` on the move fields. Whether bit 4 survives does not
+  matter: the copy is type 1, which `repath` kills, and the `ATTACK` stops it.
+- Nothing here is diff-backed, and no assertion was added: every claim is a control-flow reading of named
+  functions and listing addresses. `blind::NEVER`'s two rows are the score.
 
 ## 395. Reserved for the next item on the AI track
 

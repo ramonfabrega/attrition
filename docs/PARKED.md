@@ -14324,9 +14324,11 @@ Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). T
   A leader U is ruled out: `do_group_move`'s 32-frame `kill_group_move` takes the list first.
   **Score**: the two `NEVER` rows. A caller read to its predicate books one take of §390.3's five commands plus
   that caller's staging. None, together with 3903a's verdict, makes the pair `RESIDUE`.
+  *Read by item 3910 (`docs/AI.md` §394): no caller found; the pair is a `RESIDUE` candidate, gated by 3910a.*
 - **3904b. A blind second reading of §390.1–§390.3.** One reading: the list's orientation, the walk's
   k-from-the-head kill, the slot arithmetic of `get_open_slot`, and bit 4 on human moves.
   **Score**: none until 3904a finds an entry; then it gates the take's booking.
+  *Widened by item 3910 into 3910a: with no entry found, the second reading gates the move to `RESIDUE`.*
 
 ## Parked by item 3905, 2026-11-06 — AI §389 read a second time, blind: route 1 stays shut
 
@@ -14344,6 +14346,7 @@ leash, and a packer's combat stance is always 2. Both rows stay `NEVER`.*
   read: whether `action_move_near` filters siege members, and whether the two moves'
   ids can meet. **Score**: route 2's (3904, AI §390); a lead for that reading, no
   item of its own.
+  *Read by item 3910 (`docs/AI.md` §394.5): a second producer of the shape, not an entry.*
 - **3905b. A packer's combat stance is always `COMBAT_STAND_GROUND`.**
   `UnitData::get_combat_stance@00610a30` asks `has_stance_type(0)`, and
   `UnitTypeData::get_stance_type@0061d350` answers `STANCE_PACKER` for a combat-role
@@ -14425,21 +14428,39 @@ one non-Conquer-the-World caller of a simulation function, `check_starting_loc`.
 into simulation rows may exist that `--implicit` does not show. A join of `ScenarioFuncSet::init_funcs`'
 registered functions against `NEVER`'s callers would list them. This row names no score.
 
-## Parked by the next landing, slot AW — reserved
+## Parked by item 3909, 2026-11-06 — the rest of the implicit residue, ruled on scope
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3909a. A mine against a cliff** (a `coverage` staging; AI §393.1 row 1). It enters
+  `CliffsData::gather_size@008a8f80`, which `BuildTypeData::calc_gather`'s mine arm takes when a scary cliff is
+  nearer than any mountain and within `gather_radius × 0xc0`.
+  - Staging: a `--dump-all-start` lobby on a style that lays `OBJECT_CLIFF` tiles. 3908's styles may name one,
+    and neither scored map has any. Then `add mine who=0 <x>,<y>` beside a cliff with no mountain nearer.
+  - Killer: no `gather_size` hit on the `add`'s frame, or a `NO_MOUNTAIN 0xc` refusal.
+  - **Score**: `Blind:` open −1, and ECONOMY's "The cliff arm" falsifier, which this crate's empty list for a
+    mine beside a cliff would meet.
+- **3909b. A unit created by the console's `eval`, on land** (a `chapter` staging; AI §393.1 row 2). It enters
+  `Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0`.
+  - Staging: `620 !eval create_unit(1, <x>, <y>, "Hoplite", 2)` on a land tile, beside §391.2 row 10's ocean
+    staging on the same lobby. `ScenarioFuncSet::add_unit@009e2220` (already `NEVER`) forms the pair and then
+    snaps it to its slots.
+  - Killer: on 621, the Hoplites still at their placement points holding `CHANGE_FORM`.
+  - **Score**: `Blind:` open −2, and −1 more with `add_unit`. It shares a lobby with 3906c's transport staging.
+- **3909c. The queue's count of 3909 was 32; the stems it named are 44.** **Score**: none. It is a count to read
+  off `census.py` rather than add by hand.
 
-## Parked by the next landing, slot AX — reserved
+## Parked by item 3910, 2026-11-06 — route 2's entry is shut: the `kill_group_order` pair is a `RESIDUE` candidate
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3910a. A blind second reading of AI §390 and §394, on route 2 to the `kill_group_order` pair** (widening
+  3904b). One reading each. §390: the list's orientation, the walk's k-from-the-head kill, `get_open_slot`'s slot
+  arithmetic, bit 4 on human moves. §394: that `do_move` is entered with a group move current only from
+  `do_group_move`'s leader arm (`5e7ae3`), and that its stash is ungrouped or group-killed the frame it is made; that
+  `fight(…, 1)` reaches no `find_new_target` (every site keyed on `esi = param_5` being 0); that
+  `target_opportunity:393` is shut by `is_move` and by the `ATTACK`'s block; that no `action_move_near` path lays a
+  plain move over a list it keeps; and the list of `remove_current` callers. The reader re-derives these without
+  §390 or §394, and is briefed with what each claim would need to be false.
+  **Score**: the two `NEVER` rows (`Unit::kill_group_order@005e3310`, `Group::kill_group_order@00710aa0`). Agreement
+  moves both to `RESIDUE` (`Blind:` open 34 → 32 on the tree merged with 3908). A disagreement that names an entry books one take
+  of §390.3's five commands plus that entry's staging.
 
 ## Parked by item 3911, 2026-11-06 — chapter seventeen's air group actions; where a Bomber's ground round lands
 
