@@ -1570,6 +1570,7 @@ mod tests {
             job_counter: 0,
             ty: v2,
             tech: None,
+            disband: false,
             good: [-1; 3],
             cost: [0; 3],
         });
@@ -1602,6 +1603,7 @@ mod tests {
             job_counter: 0,
             ty: v2,
             tech: None,
+            disband: false,
             good: [-1; 3],
             cost: [0; 3],
         });
@@ -1625,6 +1627,7 @@ mod tests {
             job_counter: 0,
             ty: v2,
             tech: None,
+            disband: false,
             good: [-1; 3],
             cost: [0; 3],
         });

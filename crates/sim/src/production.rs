@@ -63,6 +63,11 @@ pub struct Item {
     /// which it holds. A tech entry is a research job in every sense
     /// `docs/PRODUCTION.md` gives the word.
     pub tech: Option<usize>,
+    /// **A `DISBAND` entry** (`TypeIndex` 0x29a, [`crate::queue_disband::DISBAND`];
+    /// item 3918, `docs/GOLDEN.md` §165): a spell the building casts on itself when
+    /// the job completes (`Build::finished@00628490`'s spell arm). `ty` and `tech`
+    /// are unused when it is set.
+    pub disband: bool,
     /// Resource indices of what was paid, `NO_GOOD` for an empty pair.
     pub good: [i16; PAIRS],
     /// Amounts paid, aligned with `good`.
@@ -80,6 +85,7 @@ impl Item {
             job_counter: 0,
             ty,
             tech: None,
+            disband: false,
             good: [NO_GOOD; PAIRS],
             cost: [0; PAIRS],
         };
@@ -187,6 +193,21 @@ impl Queue {
     }
 
     /// Appends a technology entry for tree id `t` and returns its slot.
+    /// A `DISBAND` entry, which costs nothing (`craftrules.xml`'s `COST` and
+    /// `COST2` are empty) — `BuildQueue::set_queue` for 0x29a.
+    pub fn push_disband(&mut self) -> usize {
+        let mut item = Item::queued(0, &[0; RESOURCES]);
+        item.disband = true;
+        self.items.push(item);
+        self.items.len() - 1
+    }
+
+    /// How many entries are `DISBAND` — `BuildData::count_queue(1, 0x29a)`
+    /// (vslot `400`), as `CityData::is_disbanding` asks it.
+    pub fn count_disband(&self) -> i32 {
+        self.items.iter().filter(|i| i.disband).count() as i32
+    }
+
     pub fn push_tech(&mut self, t: usize, charges: &[i32; RESOURCES]) -> usize {
         self.items.push(Item::tech_queued(t, charges));
         self.items.len() - 1
@@ -774,7 +795,7 @@ impl crate::Sim {
         self.queue_group(buildings, crate::group_queue_up::Queued::Tech(t), 0, 0)
     }
 
-    fn queue_group(
+    pub(crate) fn queue_group(
         &mut self,
         buildings: &[usize],
         what: crate::group_queue_up::Queued,
@@ -1262,6 +1283,73 @@ mod infinite_tests {
         sim.ledgers[0].bucket = [10_000; RESOURCES];
         sim.holdings[0].available = [true; RESOURCES];
         (sim, b, rec)
+    }
+
+    /// **A Disband queued at a Barracks** (item 3918, `docs/GOLDEN.md`
+    /// §165): run1512's `0/2007` takes the entry, holds it 21000 (`JOB_TIME`
+    /// 420 × 100 / 2) at 100 a frame and is gone on the frame after it
+    /// reaches the end; a second Barracks' press is refused whole while the
+    /// first holds one (`Group::action_queue_up`'s research arm, run1512's
+    /// 641 and 661).
+    #[test]
+    fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
+        let (mut s, b, _) = barracks(true);
+        let bt = s.buildings[b].ty.unwrap();
+        s.build_types[bt].job_time = 420;
+        let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
+        s.buildings[b2].ty = Some(bt);
+        assert_eq!(s.action_queue_disband(&[b]), 1);
+        assert_eq!(s.buildings[b].queue.items.len(), 1);
+        assert!(s.buildings[b].queue.items[0].disband);
+        assert_eq!(s.disband_time(b), 21000);
+        assert_eq!(s.queue_target(b, 0), 21000);
+        assert_eq!(s.action_queue_disband(&[b2]), 0, "the research arm refuses");
+        assert!(s.buildings[b2].queue.items.is_empty());
+        assert_eq!(s.action_queue_disband(&[b]), 0, "one is held");
+        assert_eq!(s.buildings[b].queue.items.len(), 1);
+        let bucket = s.ledgers[0].bucket;
+        let mut out = Vec::new();
+        for _ in 0..210 {
+            s.process_queue(b, &mut out);
+        }
+        assert!(s.buildings[b].alive, "at 21000 and not yet finished");
+        assert_eq!(s.buildings[b].queue.items[0].job_counter, 21000);
+        s.process_queue(b, &mut out);
+        assert!(!s.buildings[b].alive, "Build::finished cast it");
+        assert!(s.buildings[b].queue.items.is_empty());
+        assert!(out.is_empty(), "no unit");
+        assert_eq!(s.ledgers[0].bucket, bucket, "a Barracks plunders nothing");
+        assert_eq!(s.action_queue_disband(&[b2]), 1, "the second may go now");
+    }
+
+    /// **`is_castable`'s city arm** (`CityData::is_disbanding`): in a city,
+    /// a building may not queue a Disband while another of the city's
+    /// holds one, and at the finish its own entry is allowed (1 > 1 is
+    /// false). No capture disbands in a city (parked 3918a).
+    #[test]
+    fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
+        let (mut s, b, _) = barracks(true);
+        let bt = s.buildings[b].ty.unwrap();
+        let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
+        s.buildings[b2].ty = Some(bt);
+        s.buildings[b].city = Some(0);
+        s.buildings[b2].city = Some(0);
+        s.buildings[b2].queue.push_disband();
+        assert!(!s.disband_castable(b, false), "the city holds one");
+        assert!(s.disband_castable(b2, true), "its own entry at the finish");
+        s.buildings[b].queue.push_disband();
+        assert!(!s.disband_castable(b2, true), "two in the city");
+        s.buildings[b].city = None;
+        s.buildings[b].queue.items.clear();
+        assert!(s.disband_castable(b, false), "outside any city");
+        // `researching(.., o, 1, 0)`, the building's own queue: the group's
+        // research arm refuses a second press first, so only a direct
+        // `Build::queue_up` reaches it.
+        assert!(s.queue_disband(b));
+        assert!(!s.disband_castable(b, false), "its own entry stands");
+        assert!(s.disband_castable(b, true), "and is allowed at the finish");
+        assert!(!s.queue_disband(b));
+        assert_eq!(s.buildings[b].queue.count_disband(), 1);
     }
 
     #[test]

@@ -160,6 +160,8 @@ pub(crate) enum Queued {
     Unit(usize),
     /// A technology.
     Tech(crate::tech::TypeId),
+    /// `DISBAND` (0x29a), a spell type: the research arm (item 3918).
+    Disband,
 }
 
 /// The crate's [`Sim`] as the view: `o` is a building's index, the group's
@@ -215,7 +217,7 @@ impl QueueUpView for SimQueueUp<'_> {
     fn type_avail(&mut self, _ty: i32) -> bool {
         match self.what {
             Queued::Unit(t) => self.sim.muster[self.who as usize].researched[t],
-            Queued::Tech(_) => false,
+            Queued::Tech(_) | Queued::Disband => false,
         }
     }
     fn type_is_build(&mut self, _ty: i32) -> bool {
@@ -230,7 +232,7 @@ impl QueueUpView for SimQueueUp<'_> {
     fn can_carry(&mut self, o: i32, _ty: i32) -> bool {
         match self.what {
             Queued::Unit(t) => self.sim.silo_takes(o as usize, t),
-            Queued::Tech(_) => false,
+            Queued::Tech(_) | Queued::Disband => false,
         }
     }
     /// `Build::queue_up(ty, 1)`: the literal is the **escrow flag**, which
@@ -242,12 +244,14 @@ impl QueueUpView for SimQueueUp<'_> {
         match self.what {
             Queued::Unit(t) => self.sim.queue_up_with(o as usize, t, true).is_ok(),
             Queued::Tech(t) => self.sim.queue_tech_with(o as usize, t, true).is_ok(),
+            Queued::Disband => self.sim.queue_disband(o as usize),
         }
     }
     fn researching(&mut self, _ty: i32) -> bool {
         match self.what {
             Queued::Unit(t) => self.sim.researching_unit(self.who, t),
             Queued::Tech(t) => self.sim.researching(self.who, t),
+            Queued::Disband => self.sim.researching_disband(self.who, None),
         }
     }
     fn is_console(&mut self) -> bool {

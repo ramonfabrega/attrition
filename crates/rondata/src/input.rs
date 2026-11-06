@@ -969,6 +969,15 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
         .iter()
         .filter_map(|&o| built.sim.building_by_o(player, o))
         .collect();
+    // `DISBAND`, a craft: the research arm on its own entry (item 3918,
+    // `docs/GOLDEN.md` §165).
+    if ty == sim::queue_disband::DISBAND {
+        if list.is_empty() {
+            return 0;
+        }
+        built.sim.push_command_buildings(player, &list);
+        return built.sim.action_queue_disband(&list);
+    }
     let unit = (0..built.unit_tree.len())
         .find(|&t| built.type_index.get(built.unit_tree[t]).copied() == Some(ty));
     let tech = (0..built.type_index.len()).find(|&t| {

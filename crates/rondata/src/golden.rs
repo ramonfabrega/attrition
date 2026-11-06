@@ -2531,6 +2531,10 @@ mod tests {
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).
         ("chapter113.cmd", &[]),
         ("chapter114.cmd", &[]),
+        // Chapter one hundred and fifteen: chapter thirteen's cast, a second
+        // Barracks, and three `@queueup` presses of `DISBAND` (666) (item
+        // 3918, `docs/GOLDEN.md` §165).
+        ("chapter115.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
