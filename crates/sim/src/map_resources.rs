@@ -356,24 +356,10 @@ impl Pass<'_> {
             return;
         }
         let fp = self.inp.goods[ty as usize];
-        let off = if fp.x_size & 1 != 0 { 0x120 } else { 0x180 };
-        let (gx, gy) = (x * 0x300 + off, y * 0x300 + off);
-        let n = self.g.init_good(ty, x, y) as i16;
-        if ty != OIL {
-            let (tx0, ty0) = (gx / 0xc0 - fp.x_size / 2, gy / 0xc0 - fp.y_size / 2);
-            for tx in tx0..tx0 + fp.x_size {
-                for tyy in ty0..ty0 + fp.y_size {
-                    let w = self.g.xs * 4;
-                    self.g.tiles[(tyy * w + tx) as usize] |= 0x200;
-                    if fp.block {
-                        set_blocked_at(self.g, tx, tyy, true);
-                    }
-                }
-            }
-            let c = &mut self.g.cells[i];
-            c.flags |= 1;
-            c.down = -2;
-            c.down_who = n;
+        if ty == OIL {
+            self.g.init_good(ty, x, y);
+        } else {
+            place_good(self.g, fp, ty, x, y);
         }
     }
 
@@ -740,4 +726,67 @@ impl Pass<'_> {
         }
         true
     }
+}
+
+/// A good's footprint's first tile: its centre (`GoodTypeData::snap_center@0066fcb0`,
+/// the cell centre for an even `X_SIZE`, a tile up-left of it for an odd)
+/// over 192, less half the size each way.
+fn footprint_corner(fp: Footprint, x: i32, y: i32) -> (i32, i32) {
+    let off = if fp.x_size & 1 != 0 { 0x120 } else { 0x180 };
+    let (gx, gy) = (x * 0x300 + off, y * 0x300 + off);
+    (gx / 0xc0 - fp.x_size / 2, gy / 0xc0 - fp.y_size / 2)
+}
+
+/// **`Objects::init_good@00653f30`** of a good other than oil at cell
+/// `(x, y)`: the footprint's tile mask 0x200, then `set_blocked_at` where
+/// the type blocks, tile by tile, x outer; then the cell's flag 1 and its
+/// `down`/`down_who`. Returns the slot.
+pub(crate) fn place_good(g: &mut MapGrid, fp: Footprint, ty: i32, x: i32, y: i32) -> usize {
+    let i = (y * g.xs + x) as usize;
+    let n = g.init_good(ty, x, y);
+    let (tx0, ty0) = footprint_corner(fp, x, y);
+    let w = g.xs * 4;
+    for tx in tx0..tx0 + fp.x_size {
+        for tyy in ty0..ty0 + fp.y_size {
+            g.tiles[(tyy * w + tx) as usize] |= 0x200;
+            if fp.block {
+                set_blocked_at(g, tx, tyy, true);
+            }
+        }
+    }
+    let c = &mut g.cells[i];
+    c.flags |= 1;
+    c.down = -2;
+    c.down_who = n as i16;
+    n
+}
+
+/// **`Good::close@0066d860`** of the good in `slot`: the footprint's tile
+/// 0x200 cleared and, where the type blocks, `set_blocked_at(.., 0)`, x
+/// outer; flag 1 off the cell of the footprint's first tile; then
+/// `World::clear_down@006b3ad0` on the centre's cell, whose `down` and
+/// `down_who` go to −1 when no object chain hangs there. A herd type's
+/// `Herd::close` is not reached: no herd exists inside `Terrain::init`.
+pub(crate) fn close_good(g: &mut MapGrid, fp: Footprint, slot: usize) {
+    let Some((_, x, y)) = g.goods[slot] else {
+        return;
+    };
+    let (tx0, ty0) = footprint_corner(fp, x, y);
+    let w = g.xs * 4;
+    for tx in tx0..tx0 + fp.x_size {
+        for tyy in ty0..ty0 + fp.y_size {
+            g.tiles[(tyy * w + tx) as usize] &= 0xfdff;
+            if fp.block {
+                set_blocked_at(g, tx, tyy, false);
+            }
+        }
+    }
+    let corner = ((ty0 >> 2) * g.xs + (tx0 >> 2)) as usize;
+    g.cells[corner].flags &= 0xfffe;
+    let c = &mut g.cells[(y * g.xs + x) as usize];
+    if c.down < 0 {
+        c.down = -1;
+        c.down_who = -1;
+    }
+    g.goods[slot] = None;
 }

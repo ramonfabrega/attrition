@@ -92,6 +92,7 @@ pub mod cavarch;
 pub mod check_build_view;
 pub mod city;
 pub mod civ_transport;
+pub mod cliffs;
 pub mod collide;
 pub mod combat;
 pub mod come_out_view;

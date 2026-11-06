@@ -191,12 +191,14 @@ pub struct TilesetGroups {
 /// §18.3): the size index its texture's width gives
 /// ([`cliff_size_index`]), its `orientation` (1 NW, 2 NE, 3 SE, 4 SW), and
 /// the cells of its `n × n` box it covers ([`cliff_cells`]), y outer and x
-/// inner, relative to the box's corner.
+/// inner, relative to the box's corner; and the per-pixel heights
+/// `Cliffs::place_cliff` adds ([`crate::cliffs::template_heights`]).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CliffTemplate {
     pub size: usize,
     pub facing: i32,
     pub cells: Vec<(i32, i32)>,
+    pub heights: Vec<crate::single::Single>,
 }
 
 /// `init_templates`' size index from a texture's width: 64 → 4, 32 → 3,

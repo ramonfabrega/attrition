@@ -96,7 +96,9 @@ recipe `/tmp/run-attrition-safe-hooks.py`, comparison
 A linear byte sweep alone is not an execution trace. Disassembly and the
 function index identify POPFD in the original CPU-detection functions
 `wincpuid@0054cea0`, `wincpufeatures@0054cf90`, and `check_80386@0054d100`.
-Whether those sites execute before a failing launch is not established here.
+~~Whether those sites execute before a failing launch is not established here.~~
+Answered (item 3894, `docs/AI.md` §385.2): on no traced launch; `cpunormspeed` reads
+the registry's `~MHz` first and never calls `cpuspeed` while the key answers.
 A targeted startup witness is needed before changing that path. Do not patch
 CPU detection merely because it contains an instruction from the historical
 reproducer.
