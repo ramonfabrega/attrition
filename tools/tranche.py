@@ -185,7 +185,9 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
     }
 
 
-BOOK = re.compile(r"^Book (\d+(?:(?:, | and )\d+)*)\b")
+# A `, 19 of 20` after the items is the landing count, never an item (the
+# sixty-ninth tranche's bookings).
+BOOK = re.compile(r"^Book (\d+(?:(?:, | and )\d+(?! of\b))*)\b(?! of\b)")
 
 
 def booked_items(subjects: list[str]) -> list[int]:

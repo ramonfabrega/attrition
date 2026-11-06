@@ -173,6 +173,17 @@ class TheHandoff(unittest.TestCase):
                     'Book 3702 and 3709: the Mongols part at 2595']
         self.assertEqual(tranche.booked_items(subjects), [3702, 3709, 3712, 3714])
 
+    def test_a_booking_s_landing_count_is_not_an_item(self):
+        # The sixty-ninth tranche titled its bookings `Book 3920, 19 of 20
+        # from 02f72df7d: …`, and the list read `3920, 19` as two items:
+        # the drain's table summed items 1 to 19's wells and read 38
+        # landings over 399 sessions where 19 had landed.
+        subjects = ['Book 3920, 19 of 20 from 02f72df7d: chapter 117 closed at 900',
+                    'Merge worktree-att-3920 (9 commits)',
+                    'Book 3923, 18 of 20 from 02f72df7d: the blind second reading',
+                    'Book 3674 and 3690, 7 of 20 from 1234abcd: two co-booked lanes']
+        self.assertEqual(tranche.booked_items(subjects), [3674, 3690, 3923, 3920])
+
     def test_the_line_counts_landings_deep_lanes_waiting_and_price(self):
         rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
                 {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},
