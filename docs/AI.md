@@ -37899,7 +37899,10 @@ itself is live: `Unit::do_guard` and `think_civilian_transport` call it
 directly, which is why it is entered while this is not. **Not a new
 candidate**: this is parked 3505d's row exactly ("forged bytes", a hand-edited
 `.rec` played back), and DECISIONS 106 ruled the console in but did not rule
-on recorded-game playback. **Killer**: an `add_command` site, or a console
+on recorded-game playback. **Ruled by the sixty-seventh pass (DECISIONS 107
+§3)**: a hand-edited recording is not play — the sim's input is what the
+game's own sites emit — so the row is `blind::RESIDUE`, reopened by the
+killer. **Killer**: an `add_command` site, or a console
 verb, that writes byte 8. A `misc:COMMANDMANAGER=1` capture would print
 `process_move_near`'s two `say`s on the frame after it.
 

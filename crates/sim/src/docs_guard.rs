@@ -121,7 +121,7 @@ const OVER: &[(&str, &str, usize)] = &[
     // twenty-second pass). Paired within the section, §15 is 26,923 live
     // and §99 51,545; both are pinned below at that size and may only
     // shrink.
-    ("AI.md", "2. The production AI — read", 71_072),
+    ("AI.md", "2. The production AI — read", 70_933),
     (
         "AI.md",
         "15. The behavioural run — run18, 2026-08-25",
@@ -130,7 +130,7 @@ const OVER: &[(&str, &str, usize)] = &[
     (
         "AI.md",
         "99. Great Sahara at Toughest: the closed map in the second pair's lobby, and its first word 5376 (2026-09-30, item 1221)",
-        51_545,
+        51_530,
     ),
     ("CITIES.md", "3. Construction", 16_280),
     // The three rows below were lowered by the tenth pass (2026-09-22)
@@ -139,22 +139,22 @@ const OVER: &[(&str, &str, usize)] = &[
     (
         "DATALAYER.md",
         "2. The loader — the tables into the sim's types",
-        20_155,
+        20_130,
     ),
     (
         "GROUPS.md",
         "6. The move — `Group::action_move_near@00704990`",
-        44_686,
+        44_660,
     ),
     // Lowered 37_601 -> 37_590 by item 405: §4.4 step 4 gains the ATTACK
     // arm's `max_range` gate and loses a gloss `docs/COLLISION.md` §5.1
     // already carries; 37_590 -> 37_584 by the tenth pass, the strike
     // item 475 paid for with a reflow.
-    ("ORDERS.md", "4. The move order", 37_584),
+    ("ORDERS.md", "4. The move order", 37_583),
     (
         "ORDERS.md",
         "5. Build, repair, garrison — and what a citizen does next",
-        16_088,
+        16_056,
     ),
 ];
 
@@ -1514,7 +1514,12 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// own `ret`, so no fall-through (DECISIONS 106 §3).
 /// **151** with item 3887's `UnitData::uber_size@0060a800` (`docs/AI.md` §383.4;
 /// the `+0x308` read is inlined at every use, the address nowhere in the image).
-const UNREFERENCED: usize = 148 + 1 + 1 + 1;
+/// **152** with the sixty-seventh pass's scan of all 27 open rows:
+/// `World::set_orig_coast@006b1b80`, cited by `docs/MAPGEN.md` §21 (item 3889's
+/// cite) — no call and no vtable slot; the one four-byte match of its RVA is the
+/// rel32 of `AmmoOut::draw`'s call at 0x67b5ab, which the scan excludes
+/// (DECISIONS 107 §3).
+const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1576,6 +1581,10 @@ const DEAD_CITED: &[(&str, u32)] = &[
     ("GROUPS.md", 0x00713bb0),
     ("INPUT.md", 0x005930c0),
     ("MAPGEN.md", 0x00861960),
+    // The sixty-seventh pass's one (DECISIONS 107 §3): `World::set_orig_coast`,
+    // cited by MAPGEN §21 as the row item 3889's take left unentered, read
+    // dead by the scan.
+    ("MAPGEN.md", 0x006b1b80),
     ("MOVEMENT.md", 0x00a469f0),
     ("ORDERS.md", 0x00622ce0),
     ("ORDERS.md", 0x00683730),

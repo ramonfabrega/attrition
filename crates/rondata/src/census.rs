@@ -396,8 +396,9 @@ pub const RUBRIC_TERRITORY_OPEN: usize = 1291;
 /// 2,247 -> 2,255 of 3,611 functions, 77.45 % -> 77.57 %; the Gunpowder
 /// `unit` cell 106 -> 52 (the 54 parked 3733c measured), Classical's 51
 /// unchanged (3774b). The sixty-fifth pass: 2,255 -> 2,258, 77.5 -> 77.6 %
-/// (the third melee's twin joined).
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 777;
+/// (the third melee's twin joined). The sixty-seventh: 2,263 -> 2,278,
+/// 77.7 -> 78.1 % (the fifth melee's twin run1492b, 288 dumps).
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 781;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->

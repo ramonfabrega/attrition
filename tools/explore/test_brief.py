@@ -75,6 +75,19 @@ class TheAlwaysSet(unittest.TestCase):
         self.assertEqual(brief.filters('reading', []), ['blind::'])
         self.assertNotIn('first_parting', brief.filters('reading', []))
 
+    def test_a_word_lane_s_gate_runs_the_audited_guard(self):
+        # Loop 3880: a melee or pair word that closes whole is held to an
+        # `audited!` row or an `OWED` line, and 3862's and 3873's lane gates
+        # never ran the guard, so each took a second commit and a re-gate at
+        # the booking gate. The guard alone, never the module: `diff::audit::`
+        # also reads the long words' dumps.
+        guard = 'audit::every_whole_scoreboard_word_is_audited'
+        for kind in ('residue', 'chapter'):
+            self.assertIn(guard, brief.filters(kind, ['airbase_melee::']), kind)
+            self.assertNotIn('diff::audit::', brief.ALWAYS_TESTS[kind], kind)
+        for kind in ('reading', 'coverage', 'sweep'):
+            self.assertNotIn(guard, brief.filters(kind, []), kind)
+
 
 class TheFrameHoldsTheChecklist(unittest.TestCase):
     def test_every_row_of_the_checklist_is_in_a_section_of_the_frame(self):
@@ -247,7 +260,8 @@ class ABriefIsComposed(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '--tests'):
             self.compose(1133, tests=[])
         self.assertEqual(brief.filters('residue', ['coverage::', 'x::']),
-                         ['coverage::', 'x::', 'first_parting', 'battery_floors', 'blind::'])
+                         ['coverage::', 'x::', 'first_parting', 'battery_floors', 'blind::',
+                          'audit::every_whole_scoreboard_word_is_audited'])
 
     def test_every_lobby_s_first_parting_is_among_a_word_s_filters(self):
         # Parked 1910 and 2000 (the thirty-first pass): 1937's fix moved
@@ -261,7 +275,8 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('first_parting', brief.filters('sweep', []))
         # And the held-out battery's floors (DECISIONS 77): a word lane's change can lower an unseen lobby.
         self.assertEqual(brief.filters('residue', ['first_parting', 'coverage::']),
-                         ['first_parting', 'coverage::', 'battery_floors', 'blind::'])
+                         ['first_parting', 'coverage::', 'battery_floors', 'blind::',
+                          'audit::every_whole_scoreboard_word_is_audited'])
         self.assertIn('first_parting', self.compose(1133))
 
     def test_a_sweep_brief_has_its_section_and_no_booking(self):

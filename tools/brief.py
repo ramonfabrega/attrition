@@ -77,8 +77,14 @@ TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the
 # when a document or a sweep cites a function no trace enters, and 2976's
 # lane gate (`--tests nations::`) left its re-pin to the booking gate; the
 # pin is 0.4 s.
-ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'blind::'),
-                'chapter': ('coverage::', 'first_parting', 'battery_floors', 'blind::'),
+# And the audited guard in every word lane (Loop 3880): a melee or pair word
+# that closes whole wants an `audited!` row or an `OWED` line, and 3862's and
+# 3873's lane gates never ran it; the test alone, since `diff::audit::` also
+# reads the long words' dumps and would add minutes.
+ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'blind::',
+                            'audit::every_whole_scoreboard_word_is_audited'),
+                'chapter': ('coverage::', 'first_parting', 'battery_floors', 'blind::',
+                            'audit::every_whole_scoreboard_word_is_audited'),
                 'sweep': ('sweep::', 'blind::'),
                 # A reading moves no word and no sweep; its one pin is the
                 # blind list it re-pins when it cites a never-entered

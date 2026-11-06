@@ -2708,10 +2708,18 @@ enters it through the first of the two arms.
   768 c + 384 for each of the three cells. `rngcmp.py` against run1130 gives 641
   identical frames, and `samegame.py --from 620` gives the same game
   through 623; it parts only on the `@dumpall` block 624 and on 625. No
-  other `NEVER` row is entered. `TerrainMap::river_stop` is
+  other `NEVER` row is entered. `TerrainMap::river_stop@009b5d20` is
   called only by `TerrainMap::on_left_down` and
-  `ScenarioEditor::modify_terrain_map`, the editor's UI.
-  `World::set_orig_coast@006b1b80` has no caller in the export.
+  `ScenarioEditor::modify_terrain_map`, the editor's UI — `TerrainMap`
+  is built by `IFaceEditorMain::init` alone — so it is `blind::RESIDUE`
+  on the editor's cut, with the editor's three other open rows (the
+  sixty-seventh pass, DECISIONS 107 §3).
+  `World::set_orig_coast@006b1b80` has no caller in the export, and the
+  pass's scan of the image finds no call and no vtable slot: the one
+  four-byte match of its RVA, at 0x67b5ac, is the rel32 of
+  `AmmoOut::draw`'s call at 0x67b5ab, which `pe.references` excludes
+  (`every_unreferenced_row_is_unreferenced_in_the_image` asserts none);
+  `RESIDUE`, dead, on the guard's dead list.
 - **Not established.** What `calculate`'s body did on 623. The 624 grid
   equals the start grid in every cell's land and sub, so its
   `spot_update_land_batch` at `riverbase` changed no cell this dump

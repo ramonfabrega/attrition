@@ -21801,3 +21801,31 @@ gate quote or the row's done line (3853); 3852 a clause in the brief's
 frame. The backlog 11 → 9. The sixty-seventh is launched on three Opus
 lanes at medium. **DECISIONS 106.**
 `docs/audit/2026-11-05-fable-pass-66.md`.
+
+**2026-11-05 — the sixty-seventh steering pass (steer, Fable).** The
+sixty-seventh tranche measured: twenty landings on three Opus 5.5 lanes at
+medium in 7 h 51 from `5affd1cb2`; the fifth melee stood up at 1817 (3868,
+the fourth's lobby with two `add`ed Airbases) and closed whole at 2,600 on
+one item (3873: `death_objs_inc_time` after `process_projectiles`), its
+close 0 off, so unit types read 296 of 302 and no fieldable line is
+never-seen; Southwest Mesa's chain 1 → 7 of 8 (3869, 3872, 3875 the cliff
+chain ported, 3878, 3882, 3885, 3888), every step after the port agreeing
+first run; three takes (3879, 3881, 3889) and five readings moved the blind
+list's open rows 41 → 27; 100.60 USD for the workers, 5.03 a landing,
+waiting 27.3 a landing against 26.3 and the gate class 13.3 against 15.3 —
+over the keep line and under the take-away line, 21.4 without one lane's
+93-minute unguarded pool script — so three lanes stand (DECISIONS 107 §1);
+lockstep bytes 77.7 → 78.1. The pass ratified eight open blind rows
+residue, seven on scope (the editor's five with `TerrainMap::river_stop`
+newly cited, Conquer the World's `check_sea_map`, and a hand-edited
+recording ruled not play for `process_move_near`) and one dead
+(`World::set_orig_coast`, its RVA's one match a call's rel32), so `Blind:`
+reads never 266 · residue 246 · open 20 (107 §3); the park letters cycle
+past `ZZ` (107 §4). Built under the pass: `brief.py`'s word-lane gates run
+the audited guard (3880, an Opus 5.5 subagent, red first); the brief
+checklist and the frame carry the order-rewriting killer row (3883) and
+the `__main__` guard clause. The backlog 11 → 9. The sixty-eighth is
+booked on three Opus lanes: Mesa's last step (3890), MAPGEN's blind second
+reading on four candidates (3891) and the eight sweep-cited slot rows
+(3892); a fifth map style held out is put to Ramon (3888c). **DECISIONS
+107.** `docs/audit/2026-11-05-fable-pass-67.md`.

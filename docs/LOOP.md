@@ -213,7 +213,12 @@ park heading** — one of the parked file's pool, `## Parked by the next
 landing, slot <A> — reserved`, landed six deep at the file's end,
 assigned by letter, renamed by the lane, held at two by `docs_guard` —
 because every lane appended its heading at one tail and three merges of
-one tranche backed out there (parked 1812, DECISIONS 67). **A pinned
+one tranche backed out there (parked 1812, DECISIONS 67). **The letters
+are two capitals and cycle**: `ZZ` is followed by `AA` (the sixty-seventh
+tranche's commander wrapped there, DECISIONS 107 §4), and a pair is free
+when no heading in the file carries it and no open item assigns it — a
+landed heading is renamed to its item, so a pair comes round free; the
+guard reads two capitals and never a third. **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
 those lines has done its half — **which its gate says, under `--lane`,
@@ -413,7 +418,13 @@ sixty-sixth read 25.0 waiting and 12.3 gate a session on two lanes**
 sixty-seventh**, three Opus lanes at medium, read at its drain against
 26.3 waiting — a fifth above, 31.6, takes it away — and 15.3 gate, and
 watched on the door (1,669.2 s on two lanes against 6,234.8 on the last
-three) and on the whole gates' length (46.3–48.8 release minutes); a
+three) and on the whole gates' length (46.3–48.8 release minutes) —
+**and the sixty-seventh read 27.3 waiting and 13.3 gate a session on
+three lanes** (DECISIONS 107 §1): over the 26.3 it was returned on, under
+the 31.6 that takes it away, and 21.4 without one lane's 93-minute
+unguarded `multiprocessing` respawn (3886), the gate under 15.3, **so
+three lanes stand for the sixty-eighth**, read at its drain against the
+same two lines; the door 2,982.5 s and the whole gates 45.1–54.7; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
@@ -533,7 +544,8 @@ cleaned beside it** (`cargo clean --profile dev`: 180,851 files and 74.2
 GiB on 2026-11-04, the disk 108 → 144; the reflex rebuilds it in minutes)
 **when `df -g ~` reads under the last pass's figure** (DECISIONS 104 §6;
 the sixty-fifth read 114 at its start, 125 after both; the sixty-sixth
-141, over 125, so the archives alone, 147 after)
+141, over 125, so the archives alone, 147 after; the sixty-seventh 138,
+under 147, so both: 48,997 files and 24.9 GiB cleaned, 151 after)
 — **and its table of the tranche's gates is
 `python3 tools/gates.py <the commander's job tmp> --since <the last
 pass's gate log>`** (DECISIONS 80), **and its rubric is `python3

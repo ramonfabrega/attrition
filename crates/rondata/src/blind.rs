@@ -1061,6 +1061,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// destructors — and moves them to [`RESIDUE`]; residue 223 → 238, open 43 → 28.
 /// **265** with run1499 (item 3889: the console's `river grow` ×3 and `river calc` on the
 /// golden start): `River::calculate@008858e0` entered on 623; open 28 → 27.
+/// **266** with the sixty-seventh pass (DECISIONS 107 §3): `TerrainMap::river_stop@009b5d20`
+/// is cited (`docs/MAPGEN.md` §21, parked 3889a) and ratified [`RESIDUE`] on scope with seven
+/// open rows — the editor's four (`TerrainMap::on_left_up`, `on_right_up`,
+/// `ScenarioEditor::set_transport`, `TypeData::is_item_type`), Conquer the World's
+/// `MapConquest::check_sea_map`, a recording's forged byte 8 (`process_move_near`, 3505d) and
+/// the scan's one dead row (`World::set_orig_coast`, its RVA's one match a call's rel32);
+/// residue 238 → 246, open 27 → 20. The scan over all 27 open rows: 0 dead but that one,
+/// which `report.py` called "pointer only" on the rel32 and `pe.references` excludes.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1087,7 +1095,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_1430, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
+    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_1430, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -1153,6 +1161,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
          overridden; its one guard, in LeaderData::type_avail, always takes the \
          inline arm, and no unguarded +0x30 dispatch has a type receiver (two \
          readings, item 3505)",
+    ),
+    (
+        0x0047_0760,
+        "TypeData::is_item_type: the scenario editor's resources page only — \
+         Options::draw_cursor_follows and mouse_move call slot +0x20 on \
+         scenario_editor->cur_rare, and Type::lookup_display_name guards the \
+         slot against this body (parked 3505c); the editor is cut from v1 \
+         (DECISIONS 107 §3)",
     ),
     (
         0x0047_07a0,
@@ -2002,6 +2018,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0068_d1a0,
+        "MapConquest::check_sea_map: called only from \
+         MapConquest::make_continents+0x994, itself residue on Conquer the \
+         World's cut (DECISIONS 106 §3, 107 §3)",
+    ),
+    (
         0x0068_dba0,
         "MapConquest::make_continents: the mask of map styles 0x18/0x19, which only \
          ConquestGame::build_conquest_game mints (Conquer the World, cut from v1); \
@@ -2030,6 +2052,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "MapGrass::make_continents: map style 23 (BLANK_MAP), which only \
          ScenarioEditor::generate_map asks Map::new_map for; the lobby's styles \
          stop at 22",
+    ),
+    (
+        0x006b_1b80,
+        "World::set_orig_coast: no reference in the executable — no call, no \
+         vtable slot; the one four-byte match of its RVA, 0x67b5ac, is the rel32 \
+         of AmmoOut::draw's call at 0x67b5ab, which the scan excludes (the \
+         sixty-seventh pass, DECISIONS 107 §3; MAPGEN §21)",
     ),
     (
         0x006b_1ba0,
@@ -2560,6 +2589,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
          (docs/GOLDEN.md §144.4; the forty-eighth pass)",
     ),
     (
+        0x0094_95c0,
+        "CommandPackage::process_move_near: command byte 8 has no emitter \
+         (COMMANDS §3, §6; AI §382.3) and process dispatches only what a \
+         recording carries — a hand-edited .rec is not play (parked 3505d, \
+         ruled DECISIONS 107 §3); reopened by any add_command site or console \
+         verb that writes byte 8",
+    ),
+    (
         0x0094_c1c0,
         "CommandPackage::clear: no reference in the executable",
     ),
@@ -2588,6 +2625,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "ScenarioData::issue_order: a scenario file's initial orders, applied \
          once at ScenarioRead::import, not the trigger system; no capture loads \
          a scenario (docs/GOLDEN.md §144.2, §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0099_bc20,
+        "ScenarioEditor::set_transport: called only from \
+         IFaceEditorNations::on_combobox_select+0x23e, the editor's nations \
+         page; the editor is cut from v1 (DECISIONS 107 §3)",
     ),
     (
         0x009a_0950,
@@ -2619,6 +2662,24 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "TerrainMap::start_river: a terrain-side getter or builder inlined at \
          every use, or one nothing calls; no reference in the executable (the \
          fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x009b_4820,
+        "TerrainMap::on_right_up: a mouse handler of the editor's TerrainMap, \
+         which IFaceEditorMain::init alone builds; its vtable pointer only; \
+         the editor is cut from v1 (DECISIONS 107 §3)",
+    ),
+    (
+        0x009b_4930,
+        "TerrainMap::on_left_up: a mouse handler of the editor's TerrainMap, \
+         which IFaceEditorMain::init alone builds; its vtable pointer only; \
+         the editor is cut from v1 (DECISIONS 107 §3)",
+    ),
+    (
+        0x009b_5d20,
+        "TerrainMap::river_stop: called only by TerrainMap::on_left_down and \
+         ScenarioEditor::modify_terrain_map, the editor's UI (MAPGEN §21, \
+         parked 3889a); the editor is cut from v1 (DECISIONS 107 §3)",
     ),
     (
         0x009b_5ec0,
@@ -2898,6 +2959,13 @@ mod tests {
             Vec::<u32>::new(),
             "StormOut::registration, the storm's one registration with the \
              parameter window, is referenced nowhere (item 3861)"
+        );
+        assert_eq!(
+            pe.references(0x006b_1b80),
+            Vec::<u32>::new(),
+            "World::set_orig_coast: no call and no vtable slot; the one four-byte match \
+             of its RVA, 0x67b5ac, is the rel32 of AmmoOut::draw's call at 0x67b5ab, \
+             which this scan excludes (the sixty-seventh pass, DECISIONS 107 §3)"
         );
         let mut failures = Vec::new();
         for (a, why) in RESIDUE {

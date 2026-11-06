@@ -176,6 +176,13 @@ tranche's "for the Loop" lines and two measurements of its own.
 - **A capture stanza with `@` lines is run on a DLL built from the
   brief's own tree**, and the brief says so: `longtrace.sh` refuses
   otherwise (936), and the rebuild is one line.
+- **A killer on an arm that rewrites its own order is written on the
+  order the arm outputs, on the frame it is read** (3883, from 3881's
+  "for the Loop"): 3877b's killer read "the General's head on 736 is
+  not an `ATTACKORDER`", but `do_attack`'s grouped arm swaps the head
+  for its stand-off `MOVEORDER` inside the same call, so the head read
+  `MOVEORDER` whether the arm ran or not, and the `HIT` alone carried
+  the take.
 
 ## The brief checklist, from the eighteenth pass
 
