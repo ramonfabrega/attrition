@@ -648,6 +648,14 @@ pub const TRACES: &[&str] = &[
     // `docs/GOLDEN.md` §165); run1512's game on every frame (rngcmp 1101
     // identical, 0 differing).
     "rontrace-run1512b.log",
+    // Item 3919: golden chapter one hundred and sixteen (`chapter116.cmd`, a
+    // who=0 General and a Hoplite squad two tiles off, then `@spell 0 637 -1
+    // -1 0 0 6`) at `cover=1` on the click-free pool, to 1000 (`docs/RUNS.md`
+    // run1513b): the cast lands on 680, its sixtieth frame, and enters
+    // `SpellType::cast_entrench@00672820` (`docs/AI.md` §392.3,
+    // `docs/GOLDEN.md` §166); run1513's game on every frame (rngcmp 1001
+    // identical, 0 differing).
+    "rontrace-run1513b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and
@@ -691,6 +699,14 @@ pub const TRACES: &[&str] = &[
     // and `Unit::dbg_jump_to_action@00602ea0` on 620 (`docs/AI.md` §391.2
     // row 10, §393.1 row 2; `docs/GOLDEN.md` §164).
     "rontrace-run1511b.log",
+    // Item 3921: the golden start (`--map 14`, run1129's lobby) at `cover=1`
+    // on the click-free pool with one line, `620 !eval
+    // find_extra_starting_loc(4, 4, 1)`, to 640 (`docs/RUNS.md` run1515,
+    // `docs/MAPGEN.md` §23): the console's `eval` enters
+    // `ScenarioFuncSet::find_extra_starting_loc@009e5070` and
+    // `MapConquest::check_starting_loc@0068d7e0` on 620; run1515c's game on
+    // every frame (rngcmp 641 identical, 0 differing).
+    "rontrace-run1515.log",
     // Item 3920: golden chapter one hundred and seventeen (`chapter117.cmd`,
     // chapter ninety-one's lobby with `606 add scout who=0`, `616 add spy
     // who=1` two tiles off and `620 @spell 0 631 6 1 25728 24960 6`) at
@@ -1312,9 +1328,17 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `SpellType::cast` into `SpellType::cast_disband@00671ed0` on trace frame 831. **338** again with
 /// `CityData::is_disbanding@007380a0` on: §165 cites it, and the research arm refused run1512's
 /// city press before `is_castable` asked it (parked 3918a, the staging).
-/// **337** with item 3920's run1514b (`docs/GOLDEN.md` §167), the `cover=1` twin of chapter one
+/// **336** with item 3921's run1515 joining [`TRACES`] (`docs/MAPGEN.md` §23, §22.3's staging):
+/// the console's `eval find_extra_starting_loc(4, 4, 1)` on the golden start enters
+/// `ScenarioFuncSet::find_extra_starting_loc@009e5070` and `MapConquest::check_starting_loc@0068d7e0`
+/// on 620; open 9 → 7.
+/// **335** with item 3919's run1513b (`docs/GOLDEN.md` §166), the `cover=1` twin of chapter one
+/// hundred and sixteen: a General's `@spell 0 637` enters `SpellType::cast_entrench@00672820` on
+/// 680 (`docs/AI.md` §392.3); open 7 → 6 on the tree merged with items 3917, 3918 and 3921.
+/// **334** with item 3920's run1514b (`docs/GOLDEN.md` §167), the `cover=1` twin of chapter one
 /// hundred and seventeen: a Scout's `@spell 0 631` on a who=1 Spy two tiles off enters
-/// `SpellType::cast_counterintel@00673740` on 658 (`docs/AI.md` §392.3); open 9 → 8.
+/// `SpellType::cast_counterintel@00673740` on 658 (`docs/AI.md` §392.3); open 6 → 5 on the tree
+/// merged with items 3919 and 3921.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1330,9 +1354,9 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_3d00, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
-    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1f80, 0x0067_2820, 0x0067_3e80,
+    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1f80, 0x0067_3e80,
     0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870,
-    0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
+    0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
@@ -1347,7 +1371,7 @@ pub const NEVER: &[u32] = &[
     0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0095_9110, 0x0095_9500, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20, 0x0099_c750,
     0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009a_df40, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_3340, 0x009b_3590,
     0x009b_37a0, 0x009b_39e0, 0x009b_4820, 0x009b_4930, 0x009b_4da0, 0x009b_59f0, 0x009b_5d20, 0x009b_5e00, 0x009b_5ec0, 0x009b_5f20, 0x009b_6de0, 0x009b_6fa0,
-    0x009b_7060, 0x009b_71c0, 0x009b_7d30, 0x009b_7de0, 0x009b_8ac0, 0x009e_5070, 0x009f_b2d0, 0x00a4_69f0,
+    0x009b_7060, 0x009b_71c0, 0x009b_7d30, 0x009b_7de0, 0x009b_8ac0, 0x009f_b2d0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no

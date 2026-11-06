@@ -2920,7 +2920,8 @@ enters either function.
   calls `check_starting_loc` when the third argument `v` satisfies
   `v − 1 < 8` and `leaders.list[v − 1] & 1` is set. It appends the first
   accepted cell to `ScenarioData::extra_starting_locs`.
-- **The staging**, written and not run: the golden start (`--map 14`,
+- **The staging**, written here and run by item 3921 (§23: both functions
+  entered on 620, so the falsifier did not fire): the golden start (`--map 14`,
   run1129's lobby) at `cover=1` with one line, `620 !eval
   find_extra_starting_loc(4, 4, 1)`, where `v` is 1 for the human's seat. The
   draw parts the twin on the `!eval` frame, so the twin is compared to 619.
@@ -2940,19 +2941,53 @@ from the eleven traces and pinned by
 established:
 
 - the `set_map` table;
-- whether region 1's list is non-empty on the golden start's map (it is
+- ~~whether region 1's list is non-empty on the golden start's map (it is
   for any map with a land region 1, which this item did not check on
-  run1129's dump);
+  run1129's dump);~~ it is non-empty: run1515 enters `check_starting_loc`
+  (§23);
 - §5's sentence that Amazon, Himalayas and Old World "read the same" as
   Great Sahara. That sentence predates this item, and this item did not
   re-read it because of 3888c.
 
-## 23. Reserved for the next item on the map track
+## 23. The `!eval` take: `find_extra_starting_loc` enters `check_starting_loc` (item 3921)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+§22.3's staging, run as written. The golden start (`--map 14`, run1129's
+lobby) at `cover=1` on the click-free pool, with one line, `620 !eval
+find_extra_starting_loc(4, 4, 1)`
+(`tools/gamelog/coverage/startloc3921-start.cmd`), to 640. This is run1515.
+Its `cover=0` twin, run1515c, sends the same input, so no `--from` is
+needed (`docs/RUNS.md`).
+
+- **Entered, both on trace frame 620** (`report.py rontrace-run1515.log
+  functions`): `ScenarioFuncSet::find_extra_starting_loc@009e5070` and
+  `MapConquest::check_starting_loc@0068d7e0`. The falsifier written
+  before the take (`009e5070` entered, `0068d7e0` not) did not fire.
+  So region 1's `coords` list is non-empty on this map, and the
+  argument order §22.3 read from `add_param` is the order `!eval`
+  passes. Both rows leave `blind::NEVER` with run1515 in
+  `blind::TRACES`.
+- **`MapConquest::add_additional_players@0068d260` is not entered**, which
+  agrees with §22.3's `RESIDUE` ruling. The script route reaches
+  `check_starting_loc` directly, never through it.
+- **The draw.** run1515's `game_random` word agrees with run1129's and
+  run1130's (the same lobby with no `!eval`) on every frame through 620,
+  and parts from both on trace frame 621, harness word 620 (`rngcmp.py`).
+  That is §22.3's `Random::get(0, 0xffff) % count`, made on the `!eval`
+  frame. A word compares the stream's state and not its count, so the
+  take shows that a draw happened on 620. It does not show that exactly
+  one did.
+- **Against the twin**: run1515c, `rngcmp` 641 in common, 641 identical, 0
+  differing; `samegame` 40 in common (600..639), 0 differing. Both send
+  the `!eval` line, so the two agree after 620 too.
+
+**Not established.** Which cell was accepted, and what
+`ScenarioData::extra_starting_locs` holds after the call, because no
+category in this take's detail prints either. How many cells the walk
+passed to `check_starting_loc` before one was accepted, because a
+coverage trace marks entry and does not count calls. And what
+`check_starting_loc` accepts (§22.3's "Not read" still holds). None of
+these moves a score. A packet at `RON_STATE_FRAME=620`, reading
+`extra_starting_locs`, would settle the first two (parked 3921b).
 
 ## 24. Reserved for the next item on the map track
 

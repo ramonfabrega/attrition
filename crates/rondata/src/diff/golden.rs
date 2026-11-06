@@ -6350,6 +6350,36 @@ fn chapter_one_hundred_and_fifteen_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_fifteen_holds_to_the_golden_word();
 }
 
+/// **run1513 whole, both directions** (item 3919, `docs/GOLDEN.md` §166).
+#[test]
+fn chapter_one_hundred_and_sixteen_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_sixteen_s_window_is_widened_whole();
+}
+
+/// What parts in run1513's window, blocks 605–1000 (item 3919): the eleven
+/// standing `form` rows, and nothing else — not the General's cast clock,
+/// nor the three Hoplites' trench on 681.
+const WANT_CH116: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and sixteen holds to its golden word (item 3919,
+/// run1513).
+#[test]
+fn chapter_one_hundred_and_sixteen_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_sixteen_holds_to_the_golden_word();
+}
+
 /// Chapter one hundred and seventeen holds to its golden word (item 3920,
 /// run1514c): a Scout's Counterintelligence kills an enemy Spy.
 #[test]

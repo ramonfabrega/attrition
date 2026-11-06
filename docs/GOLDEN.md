@@ -17945,12 +17945,73 @@ time. `type_avail(DISBAND, 1)` and `queue_here` answered yes for a Barracks; no 
 pool's prune. Reading only: `is_castable`'s own-queue and city arms (unit-tested), the time's scalings, and `cast_disband`'s
 plunder beyond the two leader keys the widening reads.
 
-## 166. Reserved for the next item on the rules track
+## 166. Chapter one hundred and sixteen — an Entrench; closed at 1000 (item 3919, run1513, run1513b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §392.3, parked 3907a): `SpellType::cast_entrench@00672820` was `NEVER`. The crate
+carried the trench (`combat.entrenched`, `unit_masks & 0x2000000`; `combat.trench_angle`, `+0x5c`) and read it in
+damage, collision and animation, but its one writer was the Marines' idle dig-in (`check_idle`, item 3661). The
+Entrench craft (`0x27d`, 637) was loaded and issued: the staging walk put a `CASTORDER` on the General and burned its
+1000, and nothing cast it.
+
+**What the reading says.** `cast_entrench` calls `find_units(SEARCH_FRIENDLY, get_radius × 0xc0)` round the caster.
+Each unit found must pass all of these:
+- its type has objmask 0x20, a non-zero `attack` (`+0x1e8`) and `role & 0x10000`;
+- it is a captain, inside the radius by `attack_dist`, and idle;
+- no `FILTER_COMBAT` enemy is within 0x600;
+- unless the caster is Antipater (0x169) or the game semaphore's `[2] & 0x10` is set, it stands on a cell its owner or
+  an ally owns. §392.3 wrote this as "outside a hostile tile", but an unowned cell refuses too.
+
+Each unit on its squad chain (`+0x90`) then loses its orders (`+0x68 &= ~0x4000000`, `+0xc0 = 0`, `close_orders`) and
+keeps an `ATTACK` target. It takes `unit_masks |= 0x2000000` and `+0x5c = +0x50`, the trench's facing from its angle.
+Under Antipater it also takes `+0x6c |= 0x1000`.
+
+**The job time.** `SpellTypeData::get_job_time@00675800`'s `0x27d` arm scales a French caster's leader
+(`has_tribe_bonus(10)`) by `FRENCH_ENTRENCH` percent. Then, at `006758b9`–`006758d1` in the listing, it multiplies by
+`ANTIPATER_ENTRENCH_RATE` (128 in 8.8, so 1/2) for every live caster. The `is(0x169, 0)` it calls first (`00675890`)
+is never tested. The dropped answer is the original's, so every General casts Entrench in 60 frames, not the row's
+120.
+
+**Staging** (`tools/gamelog/golden/chapter116.cmd`), on the golden start: `0 !ai off`, `612 add general who=0 40,180`,
+`614 add hoplites who=0 42,180`, `620 @spell 0 637 -1 -1 0 0 6`. The General is `0/6` at (7800, 34680) and the
+Hoplites are `0/7..9`, 384 to 528 away. All four stand on cell (10, 45), which who=0 owns. No who=1 unit is within
+0x600. The journal has the six falsifiers, written before the take.
+
+**What the original does** (run1513 `cover=0`, its twin run1513b `cover=1`; `docs/RUNS.md`).
+- `process_spell 637 0 0 621` is on the `CM` channel. On block 622 `0/6` holds one `CASTORDER` (`spell=637`,
+  `paid=1`), and `mana_burn` reads 1000.
+- `spell_time` climbs 1..59 on 622..680. The cast lands on block 681, its sixtieth frame, so falsifier 3 fired and
+  the 1/2 above is the reason.
+- The twin enters `cast_entrench` and `GraphicEvents::add_entrench` on trace frame 680.
+- On block 681 `0/7`, `0/8` and `0/9` take `unit_masks` 0x2000000 and `trench_angle` 1431655765, their own angle.
+  The General's `unit_masks` stays 0, because its type fails the `attack` or role test.
+- run1513 and run1513b are one game on all 1001 frames (`rngcmp`).
+
+**What this crate does.** `Sim::cast_entrench` (`crates/sim/src/cast.rs`) is the body, called from `do_cast_effect`'s
+`ENTRENCH` arm. `Sim::entrench_job_time` (`crates/sim/src/lib.rs`) is `cast_job_time`'s `0x27d` arm, with
+`tuning.french_entrench` (100) and `tuning.antipater_entrench_rate` (128). `umask2::ANTIPATER_TRENCH` is the
+Antipater bit. The draw stream agrees to the trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIXTEEN` = **1000**,
+closed (`chapter_one_hundred_and_sixteen_holds_to_the_golden_word`). The widening over 605..1000
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_SIXTEEN` (604, 1001), both directions) parts on the eleven standing `form` rows
+and nothing else (`WANT_CH116`). The coverage driver drives 679..683. The widening now reads `trench_angle`
+(`gamelog::UnitDump`, the oracle codec, the harness's unit row) while either side holds the trench bit, so the key
+is off the coverage pin's unread list.
+
+**Mutations** (all eleven held). On the unit test (`an_entrench_digs_in_each_idle_armed_captain_on_friendly_ground`),
+seven fail: the idle gate, the attack test, the 0x600 radius, the cell test, the trench's angle, `clear_orders` and
+the chain walk (`o_down`). On the diff, three fail both the word and the widening: the 1/2 rate dropped, the trench
+bit dropped, and the `ENTRENCH` arm emptied. `clear_orders` fails nothing on the diff, because the staging's units
+are idle. The unit test's busy follower holds it.
+
+**Not established.**
+- The Antipater arm: `+0x6c |= 0x1000` is written, but `get_damage`'s reader is not wired (parked 3919a).
+- The semaphore's `[2] & 0x10` waiver is read as clear (parked 3919b).
+- An ally's cell, a unit with an enemy inside 0x600, a busy unit, a kept `ATTACK`, and a French caster. No staging
+  reaches any of them.
+
+**Coverage.** Diff-backed: the press, the `CASTORDER`, the mana, the 60-frame job time and its 1/2, the cast frame,
+the three Hoplites' trench bit and angle, the General's refusal, and the draws. Reading only: the type tests' other
+arms, the cell test's ally and Antipater arms, the enemy radius, `clear_orders` and the kept `ATTACK`, and the French
+scale. The unit test pins all of these.
 
 ## 167. Chapter one hundred and seventeen — a Scout's Counterintelligence on an enemy Spy; closed at 900 (item 3920, run1514–run1514c)
 

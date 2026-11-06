@@ -156,7 +156,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -280,7 +280,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
@@ -820,6 +820,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch113 = golden_dump("ch113c");
     let ch114 = golden_dump("ch114");
     let ch115 = golden_dump("ch115");
+    let ch116 = golden_dump("ch116");
     let ch117 = golden_dump("ch117c");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
@@ -2999,6 +3000,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and fifteen carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and sixteen, on run1513** (item 3919): the
+    // General's Entrench lands on 681, its sixtieth frame, and the three
+    // Hoplites take the trench.
+    if let Some(p) = &ch116 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIXTEEN;
+        let n = drive_capture(p, 679, 683, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and sixteen carries five blocks in the window"
         );
         frames += n;
     }

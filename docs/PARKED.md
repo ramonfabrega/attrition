@@ -3782,11 +3782,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
-(3931) **A lane's armed clear is held by its own `blocked` row** (the sixty-ninth commander's, 2026-11-06): lane-3919 ended its draft turn with tempo `blocked`, `needs` "arm the clear…" and `suggestedReply` "continue item 3919 from the journal"; the waiter armed `ccc clear d17ea7ec --then` at once, and it stood armed 26 minutes and more with the row `idle` and the worktree clean — the suggested reply sits in the prompt box, which ccc reads as a person's unsent draft. Lanes 3911, 3917 and 3918 ended their drafts the same day without one and cleared within minutes. Candidate: the brief's draft clause says to end the draft turn with no question and no suggested reply, or `lanewait` reads `suggestedReply` and says so instead of `ENDED … blocked`. Names no score; the loop's.
+(3931) **A lane's armed clear is held by its own `blocked` row** (the sixty-ninth commander's, 2026-11-06): lane-3919 ended its draft turn with tempo `blocked`, `needs` "arm the clear…" and `suggestedReply` "continue item 3919 from the journal"; the waiter armed `ccc clear d17ea7ec --then` at once, and it stood armed 26 minutes and more with the row `idle` and the worktree clean — the suggested reply sits in the prompt box, which ccc reads as a person's unsent draft. Lanes 3911, 3917 and 3918 ended their drafts the same day without one and cleared within minutes. Clearing the suggested reply did not fire it, nor did a cancel and re-arm; it fired three seconds after the lane ended a turn on "Draft pushed at aa8ea49c8; this session is done." — the `blocked` tempo was its own "awaiting commander clear". Candidate: the brief's draft clause says to end the draft turn on "this session is done", never on waiting or a question, or `lanewait` reads the tempo and says `HELD` instead of `ENDED … blocked`. Names no score; the loop's.
 
 (3929) **A `--batch` break that leaves a second guard of the same refusal standing reads as "failed nothing"** (3917's "for the Loop"): the barge refusal's `t == TRANSPORTBARGE || tech_tree.is(t, TRANSPORTBARGE)` survived a break of its first half, exactly as a blind test does. Nothing to build in the item; the remedy is to break the condition whole. Candidate: `mutate.py` names a mutant that held on a disjunction or conjunction and offers the whole-condition break beside it. Names no score; the loop's.
 
-(3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, 3915's "for the Loop"). So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
+(3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, 3915's "for the Loop"). And the tribe is half of it (parked 3921a, 3921's "for the Loop"): run1515b, a `cover=0` twin given `--ai-tribe 11` and no `--profile`, took another take's stale lobby on pool lane 2 (`DIFFICULTY 5`, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`) and differed from frame 0; run1515c, with all four pinned, matched 641 of 641. So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
 
 (3927) **`mutate.py --batch` times a mutant from the warm un-mutated run** (3911's "for the Loop"): the baseline ran in 2.0 s warm, so a mutant got 60 s with its compile included; every mutant of 3911's first batch compiled inside it, but a slower box or a cold cache would count a compile as a hang and score it caught. The second batch passed `--timeout 900`. Candidate: time the baseline cold, or add the measured compile to the mutant's budget, or refuse a batch whose timeout is under one cold build. Names no score; the loop's.
 
@@ -14570,13 +14570,16 @@ no score.
   Nothing captured puts one behind a stuck head. The AI's readers of a queue entry's type (its build-order and
   research checks) never see 666 in a capture. Names no score.
 
-## Parked by the next landing, slot BG — reserved
+## Parked by item 3919, 2026-11-06 — an Entrench
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3919a. Antipater's trench** (`docs/GOLDEN.md` §166, `Sim::cast_entrench`). Under Antipater (0x169) the body skips
+  the cell test and writes `+0x6c |= 0x1000` (`umask2::ANTIPATER_TRENCH`). The crate writes the bit, but
+  `get_damage`'s reader of it is not wired. No capture stages Antipater. Names no score.
+- **3919b. The semaphore's waiver.** When the game semaphore's `[2] & 0x10` is set, `cast_entrench` skips the cell
+  test. The crate reads it as clear, a scenario's setting cut from v1. Names no score.
+- **3919c. Entrench's unstaged arms.** These are an ally's cell, a unit with an enemy inside 0x600, a busy unit, a kept
+  `ATTACK`, and a French caster's `FRENCH_ENTRENCH` scale. The unit test pins them, but the word is closed and no run
+  reaches them. Names no score.
 
 ## Parked by item 3920, 2026-11-06 — a Scout's Counterintelligence
 
@@ -14592,13 +14595,22 @@ words and edits nothing here; a refill lands when two remain.
   and `score_combat` (`+0x44`) += cost / 5 on a single-figure enemy captain. This crate carries neither, and
   `LEADERS=2` prints neither. Names no score.
 
-## Parked by the next landing, slot BI — reserved
+## Parked by item 3921, 2026-11-06 — the `!eval` take that enters `check_starting_loc`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3921a. A pool lane's lobby is not pinned unless `--profile` names each field** (beside 3928, which is the who=1
+  tribe). run1515b, a `cover=0` twin, passed `--ai-tribe 11` and no `--profile`. On pool lane 2 it seated `DIFFICULTY 5`,
+  `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`, where the golden start is 0, 1, 0 and 7, and it
+  differed from its `cover=1` sibling at frame 0 (`docs/RUNS.md` run1515). `set_lobby` writes only the pairs it is handed,
+  so a lane's `Player.dat` keeps whatever lobby the last `--profile` take left there, and the staged restore puts back
+  that same stale value. The retake, run1515c, pinned all four fields and matched on 641 of 641 frames. Two candidates:
+  the runner writes a default for every lobby field a take does not name, the same rule `RISE_DEFAULTS` follows (Loop
+  3488); or the receipt refuses a twin whose `GAME INFO` lobby differs from its sibling's. This row names no score and
+  is the Loop's.
+- **3921b. What `find_extra_starting_loc` appended** (MAPGEN §23, "not established"). The take shows that both
+  functions are entered and that `game_random` is drawn on 620. It does not show which cell was accepted, what
+  `ScenarioData::extra_starting_locs` holds, or how many cells `check_starting_loc` was called on. A packet at
+  `RON_STATE_FRAME=620` would read all three. No sim reader carries `extra_starting_locs`, and Conquer the World is cut
+  from v1, so this row names no score.
 
 ## Parked by the next landing, slot BJ — reserved
 
