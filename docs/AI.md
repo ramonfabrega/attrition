@@ -38933,9 +38933,12 @@ reserved or taken.
 - **The walk.** `Unit::kill_group_move` starts at the current order and steps through `prev`, in execution order.
   On each node that is a move, not type 21, and whose group view (`+0x94`) holds the id at `+0xc`, it calls
   `kill_current_order(this, 0)`, which removes the current order whatever node matched (item 3902, disagreement 2).
-  With k matching nodes, the walk kills the first k orders of the list. **The `ATTACK` dies if any match lies at
+  ~~With k matching nodes, the walk kills the first k orders of the list. **The `ATTACK` dies if any match lies at
   or below it**, not only one between it and the head: `[GM X][ATTACK][GROUP_PATROL][GM X]` loses the group move
-  and the `ATTACK`. The id compare ignores the group: `piVar3[3] == param_1` only.
+  and the `ATTACK`.~~ *Struck by item 3923's blind second reading (`docs/audit/2026-11-06-item-3923.md`, verdict 2): `kill_current_order` ends in
+  `update_action`, which re-seats the cursor on the action, and the walk stops only at the tail, so a matching node is
+  met again. That list ends `[GM X]`, `repath` walks again, and `find_new_target` faults on the empty list at
+  `5ff752`. `[GM Y][ATTACK][GM Y][GP]` ends `[GP]`.* The id compare ignores the group: `piVar3[3] == param_1` only.
 - **Which group is walked.** `repath@005e29b0` passes the unit's *current* group (`field_0x80`, the slot index) and
   the head's id to `Group::kill_group_move@007123f0`, which walks every member of that slot.
 - **The id.** `add_group_move_order` stores `param_4` at the view's `+0xc` (`piVar3[0x17]`).
@@ -39525,8 +39528,9 @@ move. The callers are the eight of item 3902 (`report.py <exe> refs 005ff6a0`): 
   returns 0 after it, so `do_move` returns 0 to the leader arm with `update_order == param_1`. The arm (`:108-147`)
   then either calls `Group::kill_group_move` and `distribute_attack`, or reaches `LAB_005e7c6c` and calls
   `ungroup_move_order`. `kill_group_move` removes orders through `kill_current_order`, which clears the stash
-  (§388.1). `Unit::ungroup_move_order@005fd140` replaces in place the first order whose group view holds the id (the
-  current `GM_form`) with a `MOVE_TO` copy, and keeps the leader's stash. The list becomes
+  (§388.1). `Unit::ungroup_move_order@005fd140` replaces ~~in place the first order whose group view holds the id (the
+  current `GM_form`)~~ *the newest order with that id, scanning from `head` along `next`, and adds the copy as
+  current (item 3923, `docs/audit/2026-11-06-item-3923.md`, verdict 8)* with a `MOVE_TO` copy, and keeps the leader's stash. The list becomes
   `[MV][ATTACK][GROUP_PATROL][GM_B X]`, and a later `do_move:105` on the `MV` has `repath` kill the `MV` and stop at
   the `ATTACK` (`:65`). **`GM_form X` is gone before any entry.**
 - **No stash is carried into a group move made current later.** A group move added `QUEUE_NEW` or `QUEUE_FIRST`
@@ -39580,6 +39584,9 @@ Both open only under a plain move on top of `GM_form`, which 394.4 rules out.
 
 ### 394.4 No maker lays a plain move without bit 4 over the list
 
+- ~~No maker~~ *One maker this section missed: `ungroup_move_order` lays a `MOVE_TO` over the leader's list, keeps the
+  stash, and copies the leader's flags, so it lacks `0x04` under a formation move. Below a single `GM X`, a
+  duplicate pair of another id gives `do_move:105` an entry (item 3923, `docs/audit/2026-11-06-item-3923.md`, verdict 9; park 3923a).*
 - **`Unit::target_opportunity@005fffc0:393`** is shut twice. `600175`–`60017e` call `is_move@0046f050` on
   `order_type`, which answers 1 for types 1–4, 18, 19 and 21, and that writes `local_c = 1` (`-0x8(%ebp)`); the
   make-way arm needs `local_c == 0` (`:256`). Separately, with the list held, `update_action` answers the `ATTACK`.
@@ -39614,7 +39621,10 @@ lead, and it closes with the entry.**
 
 `Group::kill_group_order@00710aa0` has two call sites. `find_new_target+0xef` is shut on route 1 (§389, ratified by
 3905) and on route 2's entry (here). `do_group_attack+0x124` is `RESIDUE` (§382.1). `Unit::kill_group_order@005e3310`
-has one caller, `Group::kill_group_order+0x7e`. **Both rows are `RESIDUE` candidates.** They stay in `blind::NEVER`
+has one caller, `Group::kill_group_order+0x7e`. ~~**Both rows are `RESIDUE` candidates.**~~ *Struck by item 3923's
+blind second reading (`docs/audit/2026-11-06-item-3923.md`): route 2's own list never reaches `5ff78f` (verdict 2). But `ungroup_move_order`'s plain move
+over a leader's list that holds another id's duplicate pair, `[GM X][GM Y][ATTACK][GM Y'][GP]`, enters through
+`do_move:105` (verdict 9). Both rows stay `NEVER`, and the take is park 3923a.* They stay in `blind::NEVER`
 until a blind second reading agrees: 3904b, widened to §390 and this section (park 3910a). No take is booked.
 
 **What is not established.**
