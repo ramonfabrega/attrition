@@ -12709,7 +12709,7 @@ pub fn check_target_path_steps<V: CheckTargetView>(v: &mut V) -> bool {
 /// §171): `is_moving_to`, `kill_next_order` and `action_attack` are the
 /// group's own. SEAM: the `BUILD_AT` arm (type `0xb`) is not routed here;
 /// `head_vslot_14` answers 0, so the standing-group pop
-/// (`is_moving_to == 0`) kills nothing (no capture reaches it). A **building** target answers `is_on_map` yes, as this
+/// (`is_moving_to == 0`) kills nothing; its staging is parked 3939a. A **building** target answers `is_on_map` yes, as this
 /// crate always has.
 struct SimCheckTarget<'a> {
     s: &'a mut Sim,
