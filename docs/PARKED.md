@@ -14324,13 +14324,28 @@ Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). T
   k-from-the-head kill, the slot arithmetic of `get_open_slot`, and bit 4 on human moves.
   **Score**: none until 3904a finds an entry; then it gates the take's booking.
 
-## Parked by the next landing, slot AS — reserved
+## Parked by item 3905, 2026-11-06 — AI §389 read a second time, blind: route 1 stays shut
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+*Every row of the second reading agreed with §389 on what the code does
+(`docs/audit/2026-11-06-item-3905.md`). The three-disjunct gate guards the call
+at `5fe3fe`, not `5fe25f`, which the listing settles. `5fe25f` is the stance-1
+leash, and a packer's combat stance is always 2. Both rows stay `NEVER`.*
+
+- **3905a. A siege member skipped by `action_halt(4)` may get `finish_insert`'s
+  group re-issue under its own `ATTACK`.** `Group::action_attack(QUEUE_FIRST, 4)`
+  halts and re-attacks only the non-siege members. Its `finish_insert` re-issues
+  the leader's group orders at `QUEUE_LAST` through `Group::action_move_near@00704990`.
+  If that re-issue reaches a siege member that kept an `ATTACK`, the member holds a
+  group move queued under the `ATTACK`, the shape route 2 asks a producer for. Not
+  read: whether `action_move_near` filters siege members, and whether the two moves'
+  ids can meet. **Score**: route 2's (3904, AI §390); a lead for that reading, no
+  item of its own.
+- **3905b. A packer's combat stance is always `COMBAT_STAND_GROUND`.**
+  `UnitData::get_combat_stance@00610a30` asks `has_stance_type(0)`, and
+  `UnitTypeData::get_stance_type@0061d350` answers `STANCE_PACKER` for a combat-role
+  type with `unit_flags2 & 4`. So `610a5c` returns 2 whatever `stance` holds. Not
+  asserted: `sim` carries no `role` bit under that name. **Score**: none; a test
+  when a mechanic reads stance.
 
 ## Parked by item 3906, 2026-11-06 — the group actions no capture ever issued, read to their issuers
 
