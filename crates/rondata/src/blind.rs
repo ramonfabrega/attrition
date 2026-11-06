@@ -589,6 +589,27 @@ pub const TRACES: &[&str] = &[
     // which enters `Forts::close_fort@0073ec90` on 622 (`docs/AI.md` §387);
     // run1130's game on every frame (rngcmp 641 identical, 0 differing).
     "rontrace-run1502.log",
+    // Item 3908: eleven more of items 3480's and 3493's click-free style
+    // takes (`docs/RUNS.md` run1098, run1099, run1117, run1119–run1121,
+    // run1123–run1126, run1128), item 3858's shape: the default lobby at
+    // `--map 21, 8, 6, 11, 12, 13, 16, 17, 19, 20, 9` under `cover=1` on the
+    // click-free pool, to their `--end-frame` 36, seed 12345, no twin taken.
+    // Each enters its style's `make_continents` on −1, inside `Map::make`'s
+    // +0x40 dispatch before any frame a twin compares, and run1098, run1125
+    // and run1126 `Map::eliminate_edge_canals`, run1125
+    // `Map::find_region_centroid` (`docs/MAPGEN.md` §22). No `NEVER` row is
+    // entered by any of them.
+    "rontrace-run1098.log",
+    "rontrace-run1099.log",
+    "rontrace-run1117.log",
+    "rontrace-run1119.log",
+    "rontrace-run1120.log",
+    "rontrace-run1121.log",
+    "rontrace-run1123.log",
+    "rontrace-run1124.log",
+    "rontrace-run1125.log",
+    "rontrace-run1126.log",
+    "rontrace-run1128.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -1134,6 +1155,15 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// staged General) and `cast_counterintel@00673740` (`@spell 0 631` from a staged Scout, a
 /// `DETECT` caster, on a who=1 Spy) stay open with their stagings named; residue 268 → 274,
 /// open 29 → 32 on the tree merged with item 3906.
+/// **309** with item 3908's cite of the implicit residue's `map` stem (`docs/MAPGEN.md` §22), and
+/// eleven of items 3480's and 3493's archived style takes joined to [`TRACES`] with no capture
+/// (run1098, run1099, run1117, run1119–run1121, run1123–run1126, run1128): the eleven styles'
+/// `make_continents`, `Map::find_region_centroid` and `Map::eliminate_edge_canals` are entered
+/// on −1 and stay off; `MapConquest::check_starting_loc@0068d7e0` and its script caller
+/// `ScenarioFuncSet::find_extra_starting_loc@009e5070` join with the `!eval` staging that enters
+/// both (§22.3), and `MapConquest::add_additional_players@0068d260` joins as [`RESIDUE`] on
+/// Conquer the World's scope; residue 274 → 275, open 32 → 34 on the
+/// tree merged with item 3907.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1151,7 +1181,7 @@ pub const NEVER: &[u32] = &[
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
     0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80,
     0x0067_2820, 0x0067_3740, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
-    0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
+    0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x006f_a7e0, 0x006f_ad40, 0x006f_d7a0, 0x006f_d980, 0x0070_0010, 0x0070_1780, 0x0070_20c0, 0x0070_2620, 0x0070_29d0, 0x0070_3d80, 0x0070_7b50, 0x0070_8a20, 0x0070_a4a0, 0x0070_ac70, 0x0070_b6b0, 0x0070_ce70, 0x0070_e260, 0x0070_f8a0, 0x0071_0aa0, 0x0071_11c0, 0x0071_37f0, 0x0071_3bb0,
@@ -1161,7 +1191,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_7ae0, 0x0094_7bd0, 0x0094_7cc0, 0x0094_8660, 0x0094_8a10, 0x0094_8cb0, 0x0094_8e00, 0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x009e_2220, 0x009f_4c50, 0x00a4_69f0,
+    0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x009e_2220, 0x009e_5070, 0x009f_4c50, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -2240,6 +2270,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "MapConquest::check_sea_map: called only from \
          MapConquest::make_continents+0x994, itself residue on Conquer the \
          World's cut (DECISIONS 106 §3, 107 §3)",
+    ),
+    (
+        0x0068_d260,
+        "MapConquest::add_additional_players: its two callers are \
+         MapScenario::make+0x550 (style 0x1a) and MapConquest::make_continents+0x986 \
+         (styles 0x18/0x19), both residue on Conquer the World's and the editor's \
+         cut; no lobby, console command or script reaches either (docs/MAPGEN.md \
+         §22.3, item 3908)",
     ),
     (
         0x0068_dba0,

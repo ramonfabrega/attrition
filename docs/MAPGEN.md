@@ -1629,6 +1629,12 @@ printed writes. That is the one diff-backed claim. Its passes (62 single
 plants on 18 of 68 grids, East Indies (2, 17) first) are reading-only until
 a take enters `008595f0`.
 
+**Item 3908's** (§22): the eleven styles' `make_continents`,
+`Map::eliminate_edge_canals` and `Map::find_region_centroid` are entered on
+eleven joined traces (measured, `blind::TRACES`); the lobby ids, the callers,
+the `set_map` table and the `!eval` route to `check_starting_loc` are
+reading-only, the route's falsifier a `cover=1` take §22.3 writes.
+
 ## 14. What is not established
 
 - That map generation holds §19's P1 and P2 before `Terrain::init`'s
@@ -2780,12 +2786,166 @@ enters it through the first of the two arms.
   arm is not taken. Every claim here is reading-only, except the entry
   and the unchanged grid.
 
-## 22. Reserved for the next item on the map track
+## 22. The map styles no chain runs, read to their lobby (item 3908)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3908 took the implicit residue's `map` stem: fifteen functions that no
+pinned trace entered and no document cited (`python3 tools/census.py
+--territory --pin --implicit`). The item read each style to its lobby id and
+each `Map` row to its callers, from the decompile and the listing. **It took
+no capture, and the styles' bodies are unread on purpose**: Ramon has not
+named the held-out style (3888c, DECISIONS 108 §2), and the held-out style
+is captured and scored, never read against. So this section reads the
+dispatch, the lobby and the callers, and nothing inside a `make_continents`
+past its entry.
+
+### 22.1 The dispatch: a lobby id is a `new_map` case
+
+`Map::new_map@006a0950` switches on the style. Each case 6..0x1a installs
+one class's vtable, and each class's `make_continents` is that vtable's
++0x40 entry, which `Map::make@0068bc90` dispatches (§1). A style below 6
+first goes through `Map::set_map@006a1340`, which turns it into a concrete
+style before the switch. `set_map` draws `r % 17 + 6` until a 19-byte stack
+table accepts it: styles 0 and 3 accept any non-zero byte, 1 and 4 accept the
+land byte 2, and 2 and 5 accept the water byte 1. Some arms also turn down
+16, 17 and, under team style 2, 15. The table and arms are reading-only.
+They come from the decompiler's stack layout, and no traced lobby has used a
+random style. The click-free lane's `--map N` writes the profile's
+`<MAP_STYLE>` (`tools/explore/unattended_capture.py`, `set_map`), and
+`verify_game` refuses a game whose dumped style is not `N`. So a capture's
+`--map N` is `new_map`'s case `N`:
+
+| `--map` | class | `make_continents` | entered by |
+|---|---|---|---|
+| 6 | Old World | `MapOldWorld::make_continents@0069c0e0` | run1117 |
+| 8 | Amazon Basin (the lobby's "Amazon Rainforest") | `MapAmazonBasin::make_continents@0069be00` | run1099 |
+| 9 | Himalayas | `MapHimalayas::make_continents@0069bc90` | run1128 |
+| 11 | African Watering Hole | `MapAfricanWateringHole::make_continents@0069b650` | run1119 |
+| 12 | Mediterranean | `MapMediterranean::make_continents@0069add0` | run1120 |
+| 13 | Australian Outback | `MapAustralianOutback::make_continents@0069a650` | run1121 |
+| 16 | New World | `MapNewWorld::make_continents@006984d0` | run1123 |
+| 17 | Colonial Powers | `MapColonialPowers::make_continents@00697dd0` | run1124 |
+| 19 | East Meets West | `MapEastMeetsWest::make_continents@00696640` | run1125 |
+| 20 | (Atlantic) Sea Power | `MapSeaPower::make_continents@00696080` | run1126 |
+| 21 | Nile Delta | `MapNileDelta::make_continents@00695bf0` | run1098 |
+
+`report.py <exe> refs` reads each of the eleven as "pointer only": one
+`.rdata` copy, at its class's vftable +0x40 (Nile Delta's at 0xb45714,
+Amazon Basin's at 0xb45d38). The other cases are corpus or chain styles
+already read: 7 Great Sahara, 10 Southwest Mesa, 14 Great Lakes, 15 Warring
+States and 18 East Indies. Case 22 is British Isles (run1127), 23 is
+`MapGrass`, the blank map, 0x18 and 0x19 are `MapConquest`, and 0x1a is
+`MapScenario` (§18.1).
+
+### 22.2 The takes were on disk: eleven traces joined, no capture
+
+**The disk already answered the question the booking put.** Item 3480
+(runs 1098 and 1099) and item 3493 (runs 1117–1128) swept the styles at
+`cover=1` on the click-free pool, with `--end-frame 36`, seed 12345 and the
+default lobby, looking for `check_for_diagonal`. They filed the traces and
+pinned none. Item 3858 joined two of them, run1118 and run1122. The census's
+"no pinned trace entered" therefore meant that nobody had joined the traces,
+not that no trace existed. A scan of every `rontrace-run*.log` in the
+archive's `Logs` (the record kind and `HIT` address that `blind::entered`
+reads) finds the following:
+
+- each of the eleven `make_continents` above is entered on −1 by the run in
+  its row, inside the map script and before any frame a twin compares;
+- **`Map::eliminate_edge_canals@0068b360`** is entered by run1098, run1125
+  and run1126. `refs` names exactly three callers: Nile Delta's
+  `make_continents+0x444`, Sea Power's `+0x591` and East Meets West's
+  `+0x6cf`. It runs in the mask phase (§5) of styles 21, 20 and 19, and in
+  no other style;
+- **`Map::find_region_centroid@0068ae50`** is entered by run1125. Its one
+  caller is East Meets West's `make_continents+0x642`, so it runs in style
+  19's mask phase alone;
+- none of the eleven traces enters a `blind::NEVER` row.
+
+Item 3908 joined the eleven to `blind::TRACES` the way item 3858 did, with
+no twin (parked 3858a gives that shape's reason). So thirteen of the
+fifteen rows leave the implicit residue entered, and none joins `NEVER`.
+Run1127 (British Isles) enters none of the fifteen and was not joined.
+
+**What the entry does not give.** These are coverage traces. They are not
+setup traces: none carries `check_all_level` 14 or a `CHECKSUM` line, so no
+checkpoint 7805..7945 for these styles is on disk, and nothing here backs a
+value. **A style's chain take** is still one run with run1493's line at its
+own `--map`, written here and not run:
+
+```
+viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run<N> --map <style> \
+  --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0
+```
+
+That take is what a port of a style's chain needs (its falsifiers are 7807's
+seed, part 2 and part 5, then §2's checkpoints). The commander books it as a
+`coverage` item per style only once Ramon has named the held-out style. That
+style's take is scored and never read against. The other ten are read from
+their own setup traces when a chain is booked. The blind list does not need
+any of them.
+
+### 22.3 The two `MapConquest` rows: one on scope, one with a script route
+
+**`MapConquest::add_additional_players@0068d260`: `RESIDUE` on Conquer the
+World's scope.** `refs` names two callers, `MapScenario::make+0x550`
+(0x68ce40) and `MapConquest::make_continents+0x986` (0x68e526). The second
+is the mask of styles 0x18 and 0x19, which only
+`ConquestGame::build_conquest_game` mints. The first is style 0x1a, which
+only that function and the editor reach (§18.1, DECISIONS 106 §3). Both
+callers are `blind::RESIDUE` rows already. The function sits after a `ret`
+(byte before 0xc3), so `refs` cannot exclude a fall-through into it. The
+listing is what settles the entry. What would kill the claim: a `cover=1`
+trace of a skirmish lobby that enters `0068d260`.
+
+**`MapConquest::check_starting_loc@0068d7e0` is not on scope: it has a
+third caller.** `refs` names `add_additional_players+0x169` and `+0x3b4`,
+and also **`ScenarioFuncSet::find_extra_starting_loc+0xec`** (0x9e515c).
+That caller,
+`ScenarioFuncSet::find_extra_starting_loc@009e5070`, is a BHS script
+function. `ScenarioFuncSet::init_funcs` registers it as
+`find_extra_starting_loc` with three parameters (`num_nation_space`,
+`num_land_space`, `bool_only_check_player`), and its only reference is that
+registration's pointer at 0x9c8363. The console's `!eval` runs a BHS
+expression against every registered set (`docs/AI.md`, Loop 3473; run1092
+entered seventeen `ScenarioFuncSet` rows this way). So the pair has a
+skirmish route, and both rows join `blind::NEVER` as live. No pinned trace
+enters either function.
+
+- **The predicate**, read at 0x9e5070. The list the function walks is
+  `Regions.list`'s region 1's `coords` (`Region` +0x6c, count at +0x70,
+  data at +0x7c; `types.txt`). `Regions::rebuild_coords` fills it in every
+  skirmish (`docs/SYNC.md` §3.20). The function returns 0 without a call
+  when that count is 0 or the second argument is negative. Otherwise it
+  makes one `game_random` draw, `Random::get(0, 0xffff) % count`, when the
+  count is above 1. It walks the list from that index, and for each cell it
+  calls `check_starting_loc` when the third argument `v` satisfies
+  `v − 1 < 8` and `leaders.list[v − 1] & 1` is set. It appends the first
+  accepted cell to `ScenarioData::extra_starting_locs`.
+- **The staging**, written and not run: the golden start (`--map 14`,
+  run1129's lobby) at `cover=1` with one line, `620 !eval
+  find_extra_starting_loc(4, 4, 1)`, where `v` is 1 for the human's seat. The
+  draw parts the twin on the `!eval` frame, so the twin is compared to 619.
+  What would kill the claim: that trace with `009e5070` entered and
+  `0068d7e0` not. That would mean region 1's list was empty, or that the
+  decompiler's argument order is wrong. The argument order is read from
+  `add_param`'s order and the dereferences alone.
+- **Not read**: `check_starting_loc`'s body past its bounds test. Its
+  register arguments (`in_ECX`, `in_EDX`) make the decompiled signature
+  unreliable, and nothing here depends on what it accepts.
+
+### 22.4 What a capture would change, and what is not established
+
+Every claim in §22.1 and §22.3 is a reading. §22.2's entries are measured
+from the eleven traces and pinned by
+`blind::tests::the_blind_list_is_the_pinned_residue`. Three things are not
+established:
+
+- the `set_map` table;
+- whether region 1's list is non-empty on the golden start's map (it is
+  for any map with a land region 1, which this item did not check on
+  run1129's dump);
+- §5's sentence that Amazon, Himalayas and Old World "read the same" as
+  Great Sahara. That sentence predates this item, and this item did not
+  re-read it because of 3888c.
 
 ## 23. Reserved for the next item on the map track
 
