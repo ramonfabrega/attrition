@@ -35303,3 +35303,40 @@ Archive `rontrace-run1515c.log`, 9,564,384 bytes,
 SHA-256 `4556334fdf9dacb654ec4f29e8f5662db558d69badff2b38ab58ba1272e42ac7`.
 
 **What it holds**: `blind::TRACES`' run1515 (item 3921). `NEVER` 338 → 336, open 9 → 7.
+## run1516 and run1516b — Southwest Mesa (style 10) at `cover=1`: a Mine added beside a cliff enters `CliffsData::gather_size`, to 200 (2026-11-06, item 3924, `att-3924`)
+
+`docs/AI.md` §395, §393.1 row 1. **What the disk could not answer**: no trace on disk enters
+`CliffsData::gather_size@008a8f80`. Neither scored map lays a cliff, and run1118 and run1493 (style 10) place no mine.
+run1493's start `WORLD` gave the site: `mountain_size 0`, and who=0's cliff at cells (11..13, 41..45). Recipe
+`tools/gamelog/coverage/cliffmine3924-mesa.cmd`, one line: `100 add mine who=0 10,43`. Launched through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1516 --map 10 --ai-tribe 11 --profile DIFFICULTY=0
+--profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7 --end-frame 200
+--log-window 95 200 --timeout 3600 --detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/cliffmine3924-mesa.cmd --cover cover=1 --cursor 1400,1000`. `df -g ~` read 84 GiB
+free before it.
+- **The first launch was refused before the game started.** It also passed `--dump-all-start`, and the runner refused
+  with "full start requires log window 0 2" (parked 3924b). No frames were taken and there is no receipt.
+- **run1516** (`cover=1`): pool lane 1 (`~/wine-ron`), 10:59:56 to 11:01:38, **102.1 s launch to exit**, `success`,
+  lifecycle verified, `map_verified`, map style 10, 201 frames, `last_frame` 200, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11), `relaunches: []`. No minutes waited on another lane.
+- **Entered on trace frame 100**: `MountainsData::find_nearest@0089cd30`, `CliffsData::find_nearest@008a8da0` and
+  `CliffsData::gather_size@008a8f80`. The mine's BUILDDATA (`o 2007`, `orig_type 419`) on 100 reads `mtn -1`,
+  `cliff 7`, `length 189` and `size 320`.
+- **run1516b** (`cover=0`, the same line and lobby): pool lane 1, 11:02:43 to 11:03:32, **48.8 s launch to exit**,
+  `success`, 201 frames, who 1 tribe 11. Against run1516: `rngcmp` **201 in common, 201 identical, 0 differing**, and
+  `samegame` **105 in common (95..199), 0 differing**. Its dump holds the same `cliff 7` on every block. Both send the
+  line, so there is no `--from`.
+- Filed with `filerun.py run1516 southwestmesa-cliffmine-cover1-clickfree` and `filerun.py run1516b
+  southwestmesa-cliffmine-cover0-clickfree`.
+
+Archive `gamelog-run1516-southwestmesa-cliffmine-cover1-clickfree.txt`, 20,714,919 bytes,
+SHA-256 `698a16a50457dca8f8ebc763e4b8325e9c6883ebd17c7c9c857b486ecf0931f2`.
+Archive `rontrace-run1516.log`, 8,767,648 bytes,
+SHA-256 `a51114a14632c40d60954e12c4805f9b25bb2839440ce7c988dbcb1ac948bb5b`.
+Archive `gamelog-run1516b-southwestmesa-cliffmine-cover0-clickfree.txt`, 20,714,919 bytes,
+SHA-256 `83db4a210cab9dadf724a8618939622e62f5cd89889d0a5b715085be56958a2c`.
+Archive `rontrace-run1516b.log`, 8,819,456 bytes,
+SHA-256 `106e6b861132b9ca312043d9e7e5e17af64af73ae91cf82c3a14042f85e6fb74`.
+
+**What it holds**: `blind::TRACES`' run1516 (item 3924). `NEVER` 335 → 334, open 6 → 5; on the tree merged with item 3920, 334 → 333, open 5 → 4.

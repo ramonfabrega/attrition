@@ -39356,6 +39356,7 @@ chain reaches play. Nothing here was run.
      cliff with no mountain nearer, at a point the commander picks off that start dump.
    - Killer: no `CliffsData::gather_size` hit on the `add`'s frame. A `NO_MOUNTAIN 0xc` refusal would mean
      the cliff lay past `gather_radius × 0xc0` or a mountain was nearer.
+   - **Taken by item 3924** (§395, run1516): entered on the `add`'s frame on Southwest Mesa.
 2. **`Unit::dbg_jump_to_action@00602ea0`**, which snaps a unit to where its action is going.
    `Group::dbg_jump_to_action@00707a00` calls it for each member that answers `SubObjectData::is_active` (vslot
    `+0x8`) and `UnitData::is_on_map` (vslot `+0xbc`), and only when `game->semaphore.ptr[0] & 4` is clear.
@@ -39637,12 +39638,28 @@ until a blind second reading agrees: 3904b, widened to §390 and this section (p
 - Nothing here is diff-backed, and no assertion was added: every claim is a control-flow reading of named
   functions and listing addresses. `blind::NEVER`'s two rows are the score.
 
-## 395. Reserved for the next item on the AI track
+## 395. A mine against a cliff: `CliffsData::gather_size` entered on Southwest Mesa (item 3924)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+§393.1 row 1's staging, taken. Coverage, not a reading: one take and its twin, no `sim` code.
+
+- **The site came off the disk.** run1493 (style 10, the default lobby) holds a start `WORLD=6` dump. It prints
+  `mountain_size 0`, so on this style `MountainsData::find_nearest` finds no range, and any scary cliff within
+  `gather_radius × 0xc0` = 1152 wins `calc_gather`'s mine arm. Of the 3600 cell records (60 × 60), 253 carry
+  `CLIFF`. who=0's territory holds one at cells (11..13, 41..45). The staging is `100 add mine who=0 10,43`
+  (`tools/gamelog/coverage/cliffmine3924-mesa.cmd`).
+- **Entered on 100** (run1516, `cover=1`, `report.py … functions`): `MountainsData::find_nearest@0089cd30`,
+  `CliffsData::find_nearest@008a8da0` and `CliffsData::gather_size@008a8f80`, all on the `add`'s frame. There is
+  no `NO_MOUNTAIN 0xc` refusal, so the falsifier did not fire.
+- **The value.** The mine (`o 2007`, `orig_type 419`, `x_internal 1920`, `y_internal 8256`) dumps its mining list
+  on 100 as `mtn -1`, `cliff 7`, `length 189` and `size 320`. That is 189 `tx`/`ty` pairs, tx 11..27 and ty
+  43..70. The cliff arm handed the mine cliff 7's tiles, where this crate's `gather` gives a mine beside a cliff an
+  empty list (ECONOMY, "The cliff arm"). That is the falsifier ECONOMY names, and it is met. Building the arm
+  is parked (3924a), because no scored map lays a cliff.
+- **The twin.** run1516b (`cover=0`, the same line and the same lobby pinned by `--profile`): `rngcmp` 201 of
+  201 identical, `samegame` 105 of 105 (95..199), 0 differing. Both send the line, so there is no `--from`.
+- **Not established.** Which of the mining list's 189 cells `gather_size` counted into `size 320` (that is a
+  `mtn_*_gather` band times the counted share). Whether the `is_gathered_from` walk (−2) refuses a second mine on
+  the same cliff. Neither has a take, and both belong to the arm's build (3924a).
 
 ## 396. Reserved for the next item on the AI track
 

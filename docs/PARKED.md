@@ -14634,13 +14634,19 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   **Score**: the two `NEVER` rows. Entered, both stay off the list. Refused on any falsifier, the pair goes back to
   a `RESIDUE` candidate with that falsifier's reading.
 
-## Parked by the next landing, slot BK — reserved
+## Parked by item 3924, 2026-11-06 — a mine against a cliff: `CliffsData::gather_size` entered on Southwest Mesa
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3924a. The cliff arm of `calc_gather`'s mine arm, built** (ECONOMY "The cliff arm"; `docs/AI.md` §395). run1516's
+  mine at cell (10, 43) on Southwest Mesa reads `mtn -1`, `cliff 7`, `length 189` and `size 320` on 100. This crate's
+  `gather` gives the same mine an empty list. The build would cover `CliffsData::find_nearest`, the `is_gathered_from`
+  walk over the cliff's tiles, and `gather_size`'s count and band. A widening of run1516's BUILDDATA on 100 is the diff.
+  **Score**: none today, because no scored map lays a cliff. It books when a scored lobby or the held-out style
+  (3888c) is a cliff style.
+- **3924b. `--dump-all-start` refuses any `--log-window` but `0 2`** (`live_session.stage`: "full start requires log
+  window 0 2"). The first launch of run1516 died before the game started, with a traceback and no receipt (1503's dead
+  take). A take that wants a start dump and a window later passes `--detail start:…`, as run1515 did. The brief's
+  wording ("a `--dump-all-start` lobby … beside" a later `add`) asks for the refused pair. **Score**: none. This is
+  the Loop's.
 
 ## Parked by the next landing, slot BL — reserved
 
