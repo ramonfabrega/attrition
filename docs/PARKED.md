@@ -10063,7 +10063,7 @@ hand stage follows the pool is a pass's call.
 
 ## Parked by item 3504, 2026-10-22 — `Unit::kill_group_order`: reachable but unstaged
 
-(3504a) **`Unit::kill_group_order@005e3310` is reachable but unstaged** (item 3504; runs 1138–1142, and the unfiled
+(3504a) ~~**`Unit::kill_group_order@005e3310` is reachable but unstaged**~~ *Amended by item 3900 (`docs/AI.md` §388): no stash reaches `:63` with a group head, because `find_new_target` calls `repath` at `005ff70f` first and `repath` strips every head that `get_action` can skip over. Every take below took `:65` because `:65` is the only arm. The pair is a `RESIDUE` candidate (park 3900a). The row is kept as written:* (item 3504; runs 1138–1142, and the unfiled
 sweeps the journal names). The only route is `Group::kill_group_order@00710aa0` ← `Unit::find_new_target@005ff6a0:71`
 ← `Unit::do_move@005f7b30:105` ← `Unit::do_group_move@005e79a0:85`, the leader arm. **The predicate, as the takes
 narrowed it**: the leader's head is a group order (`find_new_target:63`, `+0x2c`, and `group ≥ 0`; otherwise `:65`
@@ -13951,7 +13951,7 @@ score.
   (`docs/AI.md` §382.4), and `Blind:` open is 41 → 40.
 - **3877c. `Group::kill_group_order@00710aa0`'s second caller is dead**: `do_group_attack:67` (`5e76c4`) is under
   3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
-  The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
+  ~~The pair is not `RESIDUE`.~~ *Amended by item 3900: `5ff78f` is closed too (`docs/AI.md` §388.2), so the pair is a `RESIDUE` candidate (park 3900a).* **Score**: `NEVER` 2 rows when 3504a is staged.
 
 ## Parked by item 3878, 2026-11-05 — Southwest Mesa's tail and resources, 7861..7927
 
@@ -14223,13 +14223,27 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AN — reserved
+## Parked by item 3900, 2026-11-06 — the `kill_group_order` pair, read shut
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3900a. A blind second reading of AI §388, to move `Unit::kill_group_order@005e3310` and
+  `Group::kill_group_order@00710aa0` to `RESIDUE`.** Re-derive the five points in §388.3 without reading §388:
+  - `repath` runs unconditionally at `find_new_target+0x6f`, before the `:63` head test;
+  - `repath`'s kill set (types 1–4, 19 and 21; type 18 without the action bit), and that `kill_group_move`
+    adds no order;
+  - `get_action`'s skip set (a move without the action bit; type 18);
+  - every order vftable's `+0x14` and `+0x2c`;
+  - that `do_group_attack`'s site (`5e76c4`) stays dead, as §382.1 has it.
+
+  **Score**: two open blind rows (open 4 → 2, residue 264 → 266).
+- **3900b. 3504a's staging would have held the stash, and only `repath` closes it.** A collision's suspend
+  (`resolve_unit_collision:482`) survives `ungroup_move_order`, which kills no path on the leader. A
+  `QUEUE_FIRST` `add_group_move_order` keeps the stash (`:19-23`). So a leader regrouped by `@repairins`
+  before its beat would reach `do_move:105` with a group head. If 3900a disagrees on §388.2, this is the
+  staging: a collision with a suspend on the swarm's own leader `0/6` (its `start_dist` stamped, which no
+  3504 take produced), then `@repairins` processed on the frame `collide_frame + 4k`, with `repaths[0]` from
+  3 to 7 (at 8 and above, `resolve_unit_collision` throttles its search). The killer is the one AI §388.2
+  predicts: `find_new_target` entered on that frame with no `HIT` for `00710aa0`. **Score**: none unless
+  3900a disagrees.
 
 ## Parked by the next landing, slot AO — reserved
 
