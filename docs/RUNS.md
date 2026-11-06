@@ -35077,6 +35077,42 @@ run1509b: `rontrace.log` 19,390,048 bytes, SHA-256 `6047dbe11b09e8ac0d9936a9e43e
 **What it holds**: `golden::chapter_one_hundred_and_twelve_holds_to_the_golden_word` (1300, closed) and
 `chapter_one_hundred_and_twelve_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 609..613 is in the
 coverage driver. run1509b is in `blind::TRACES`; four rows leave `NEVER` (347 → 343 on the tree merged with items 3911, 3914 and 3916).
+## run1517 and run1517b — chapter one hundred and eighteen: a Disband at a Barracks in a city, `@queueup 0 666 1 2008` after the first entry's close (2026-11-06, item 3930, `att-3930`)
+
+`docs/GOLDEN.md` §168. **What the disk could not answer**: no trace had entered `CityData::is_disbanding@007380a0`.
+run1512b's city press was refused by the research arm before `is_castable` (parked 3918a), and `grep -lF
+'queue[scan].type 666'` over the kept dumps finds run1512b alone. Recipe `tools/gamelog/golden/chapter118.cmd`:
+chapter one hundred and fifteen's eight lines, then `840 @queueup 0 666 1 2008`. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/ch118 --map 14 --end-frame 1200 --log-window 605 1200 --timeout 3600`.
+The detail is run1512's three sets, `--ai-tribe 11` and `--profile DIFFICULTY=0 --profile STARTING_RESOURCES=1
+--profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`, the golden start's lobby as run1512's `GAME INFO`
+reads it. The twin is the same line at `--cover cover=1 --no-ffwd`, into `~/ron-golden/ch118b`. 85 GiB free before.
+Both ran on pool lane 1, `success`, lifecycle verified, `map_verified`, map style 14, 1201 frames, `last_frame` 1200,
+seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes were waited on another
+lane. `~/ron-golden/run1517` links to `ch118` and `run1517b` to `ch118b`.
+- run1517 (`ch118`, `cover=0`): 11:21:20–11:22:14 on its third launch, 54.2 s launch to exit. The pool relaunched it
+  twice: `exit_before_frame_zero` after 6.4 s, then a `stall` after 300.4 s. The word's.
+- run1517b (`ch118b`, `cover=1`): 11:22:51–11:24:55, 124.3 s, no relaunch. Filed by `filerun.py run1517b
+  ch118-disband-city-cover`.
+- `process_queue_up 666 1` on 621, 641, 661 and 841, on the `CM` channel.
+  - `0/2007`: §165's entry, 622 to 831, and gone on 832.
+  - `0/2008` (`flags 7`, `city 0`): `queued 1`, `queue[scan].type 666`, `job_counter` 100 on 842 to 21000 on 1051.
+    Block 1051 is its last.
+- The twin enters `Build::queue_up`, `BuildData::could_queue`, `LeaderData::has_spell`, `Build::finished`,
+  `SpellType::cast_disband`, `Build::plunder` and `Object::disband`. It never enters `CityData::is_disbanding`
+  (hookable: not on `rontrace.funcs.excluded.txt`), because the Barracks' type carries `NO_CITY` (`e`).
+- `rngcmp`: run1517 against run1517b, 1201 of 1201 identical. Against run1512, 1067 of 1101 identical, the first
+  differing at 1067.
+
+run1517: `gamelog.txt` 247,038,670 bytes, SHA-256 `d9969834e3c9bc93f9faeb2f8be43fcb4ecdd4dca1e86e3891e655a4bf4e7921`.
+`rontrace.log` 10,799,552 bytes, SHA-256 `48e040e37c3dd0fbad085127b385e834c2f7c3ba37fe6c00b1fbf6755704c42f`.
+run1517b: `rontrace.log` 17,496,320 bytes, SHA-256 `acfa9f29341dcc9738a2968d9e6d2b704201fec2bca4a752d8ea4740b33f8797`.
+
+**What it holds**: `golden::chapter_one_hundred_and_eighteen_holds_to_the_golden_word` (1200, closed) and
+`chapter_one_hundred_and_eighteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1517. Its
+window 1050..1054 is in the coverage driver's slice. run1517b is in `blind::TRACES`, and `CityData::is_disbanding`
+stays on `NEVER` with the arm that skips it named (parked 3930a).
+
 ## run1513 and run1513b — chapter one hundred and sixteen: an Entrench, `@spell 0 637` on a General beside a Hoplite squad (2026-11-06, item 3919, `att-3919`)
 
 `docs/GOLDEN.md` §166. **What the disk could not answer**: no trace had entered `SpellType::cast_entrench@00672820`

@@ -656,6 +656,15 @@ pub const TRACES: &[&str] = &[
     // `docs/GOLDEN.md` §166); run1513's game on every frame (rngcmp 1001
     // identical, 0 differing).
     "rontrace-run1513b.log",
+    // Item 3930: golden chapter one hundred and eighteen (`chapter118.cmd`,
+    // chapter one hundred and fifteen's staging and `840 @queueup 0 666 1
+    // 2008` at the Barracks in city 0) at `cover=1` on the click-free pool,
+    // to 1200 (`docs/RUNS.md` run1517b): the entry is laid on 841 and closes
+    // the Barracks on 1051, and `CityData::is_disbanding@007380a0` is never
+    // entered — `is_castable`'s city arm skips a `NO_CITY` type
+    // (`docs/GOLDEN.md` §168, parked 3930a); run1517's game on every frame
+    // (rngcmp 1201 identical, 0 differing).
+    "rontrace-run1517b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and
@@ -1326,6 +1335,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **335** with item 3919's run1513b (`docs/GOLDEN.md` §166), the `cover=1` twin of chapter one
 /// hundred and sixteen: a General's `@spell 0 637` enters `SpellType::cast_entrench@00672820` on
 /// 680 (`docs/AI.md` §392.3); open 7 → 6 on the tree merged with items 3917, 3918 and 3921.
+/// **335** unmoved by item 3930's run1517b joining [`TRACES`] (`docs/GOLDEN.md` §168): a `DISBAND` at the
+/// Barracks in city 0 queues and closes, and `CityData::is_disbanding@007380a0` stays `NEVER` —
+/// `is_castable`'s city arm skips a `NO_CITY` type (parked 3930a, a Temple's staging).
 /// **335** unmoved by item 3923's blind second reading of `docs/AI.md` §390 and §394
 /// (`docs/audit/2026-11-06-item-3923.md`), which disagrees and names an entry: `kill_group_move`'s
 /// walk meets a matching node again, so route 2's own list empties and faults at `5ff752`; but
