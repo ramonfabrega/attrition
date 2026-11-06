@@ -39142,6 +39142,9 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
      `--bindkey OPTION_VILLAGE_GATHER_ALL=124`.
    - Killer: no `process_city_gather -1` on F+1. That also kills the assumption that a capital counts as
      `VILLAGE`.
+   - **Taken**: item 3915, run1509 and run1509b, `docs/GOLDEN.md` §162 — `process_city_gather -1 2 611`, four
+     points on the City, the four rows off `NEVER`. ~~With −1 it takes any building that answers type vslot `+0x60`
+     with 0~~: the listing pushes 0x1a1, 0x1a2 and 0x1a3, so a Farm, Woodcutter or Mine (§162).
 9. **`Group::action_alarm_peasant@006fd980`.** `action_alarm`'s arm for a unit group (`+0x49` 0, `:547`). Each
    Citizen (0x32, 0x33) finds a friendly building with `FILTER_CAN_GARRISON` ~~within `0x200`~~ **anywhere on the
    map, in its own region** (range −1; `0x200` is the flags word; `docs/GOLDEN.md` §163). It drops any

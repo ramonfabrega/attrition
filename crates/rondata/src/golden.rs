@@ -1412,6 +1412,9 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             // a selection of units (item 3911, `docs/GOLDEN.md` §158).
             "OPTION_RETURN" => crate::input::group_recall_units(built, who, &objects),
             "OPTION_DISBAND" => crate::input::group_disband(built, who, &objects, false),
+            "OPTION_VILLAGE_GATHER_ALL" => {
+                crate::input::group_city_gather(built, who, &objects, -1)
+            }
             _ => {
                 done.skip(&word, "a bound option this interpreter does not act on");
                 return;
@@ -2443,6 +2446,10 @@ mod tests {
         // `select` and the key bound to `OPTION_DISBAND`, `@key` (item 3914,
         // `docs/GOLDEN.md` §161).
         ("chapter111.cmd", &[]),
+        // Chapter one hundred and twelve: the golden City selected and the
+        // key bound to `OPTION_VILLAGE_GATHER_ALL`, `@key`, then two Citizens
+        // (item 3915, `docs/GOLDEN.md` §162).
+        ("chapter112.cmd", &[]),
         // Chapter one hundred and thirteen: chapter thirty-nine's lobby, three
         // Citizens selected by `select` and the key bound to
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).

@@ -6238,6 +6238,38 @@ fn chapter_one_hundred_and_eleven_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_eleven_holds_to_the_golden_word();
 }
 
+/// **run1509 whole, both directions** (item 3915, `docs/GOLDEN.md` §162).
+#[test]
+fn chapter_one_hundred_and_twelve_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_twelve_s_window_is_widened_whole();
+}
+
+/// What parts in run1509's window, blocks 605–1300 (item 3915): the eleven
+/// standing `form` rows every golden chapter carries, and nothing else —
+/// not the City's four points on 611, nor the two Citizens born under them
+/// (716, 822), each sent to gather at the Woodcutter's Camp by the head
+/// point's waypoint arm, nor the pool.
+const WANT_CH112: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and twelve holds to its golden word (item 3915,
+/// run1509).
+#[test]
+fn chapter_one_hundred_and_twelve_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_twelve_holds_to_the_golden_word();
+}
+
 /// Chapter one hundred and thirteen holds to its golden word (item 3916,
 /// run1510c).
 #[test]

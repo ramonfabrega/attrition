@@ -1220,8 +1220,10 @@ and `do_air_patrol`; five tests in `air::launch_tests`.
 - ~~a list of more than one point: the waypoints before the last, and
   whether `gather_inside` and `come_out` read the head or the tail after
   a `QUEUE_LAST` (`add_gather_point` moves `+0xcc` back to the old tail)~~:
-  "The other arms" above (item 955, run338); a waypoint with `action` ≠ 0
-  stays reading only;
+  "The other arms" above (item 955, run338); ~~a waypoint with `action` ≠ 0
+  stays reading only~~: its verdict is built (`Sim::gather_waypoint`,
+  `docs/GOLDEN.md` §162, item 3915), and run1509 diffs one arm of it — a
+  Citizen's gather end at a camp with room; the others are read only;
 - ~~action 3 (the Airbase's strike: `action_gather_point`'s own loop, then
   `Group::action_flight` → `Group::action_launch_flight@006fbfb0` for the
   building group)~~ ~~and the Airbase's arm of `add_gather_point` /

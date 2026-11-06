@@ -35045,6 +35045,38 @@ run1507b: `rontrace.log` 20,088,704 bytes, SHA-256 `f762e277e51d2201483c78907efc
 `chapter_one_hundred_and_ten_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 769..773 is in the
 coverage driver's slice. run1507b is in `blind::TRACES`, and the three rows are off `NEVER`.
 
+## run1509 and run1509b — chapter one hundred and twelve: a city's gather-all, `OPTION_VILLAGE_GATHER_ALL` on the golden City (2026-11-06, item 3915, `att-3915`)
+
+`docs/GOLDEN.md` §162. **What the disk could not answer**: `Group::action_city_gather@00701780`, its issuer
+`Options::do_city_gather@0071cdb0` → `GroupOut::issue_city_gather@0070ac70` and its arm
+`CommandPackage::process_city_gather@00948a10` were never entered by any trace (`docs/AI.md` §391.2 row 8). Recipe
+`tools/gamelog/golden/chapter112.cmd`: `0 !ai off`, `606 select 2000 who=0`, `610 @key 124`, `616 @queueup 0 50 2
+2000`. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch112 --map 14 --end-frame 1300
+--log-window 605 1300 --timeout 3600` with chapter nineteen's `end:`/`start:` sets, `misc:COMMANDMANAGER=1` and
+`--bindkey OPTION_VILLAGE_GATHER_ALL=124`, at `cover=0`. The twin is the same line at `--cover cover=1 --no-ffwd`.
+118 GiB free before.
+- run1509: pool lane 1, launched 06:33:52, exited 06:35:16, **84.5 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 1301 frames, `last_frame` 1300, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes waited on another lane.
+- run1509b take 1 (`~/ron-golden/ch112b`, not filed): pool lane 2, 164.3 s, `success`, staged (`INFO 22` on 610 names
+  option 280, and it enters the four functions on 610). **But who=1 is tribe 2**, so `rngcmp` against run1509 differs
+  on all 1301 frames: another game. Lane 2 is the lane of 3912a's unstaged take (Loop 3926); parked 3915a.
+- run1509b take 2 (`~/ron-golden/ch112c`, `~/ron-golden/run1509b` links to it): pool lane 1, 133.2 s, no relaunch,
+  `success`, 1301 frames, who=1 tribe 11. Filed by `filerun.py run1509b ch112-citygather-cover`.
+- `INFO 22` on 610: line 3, VK 124, option 280. `process_city_gather -1 2 611` on the `CM` channel. `0/2000`'s list on
+  the next block: (4224, 28608), (2688, 32064), (1920, 32064), (2112, 31296), each action 1; the Library `0/2005` and
+  the Market `0/2006` take none. Citizens `0/6` (716) and `0/7` (822) are born at (3864, 30168), each with a
+  `GATHERORDER` on `0/2001` (`build_type` 418). The twin enters `Console::exec_keymap`, `do_city_gather`,
+  `issue_city_gather`, `process_city_gather` and `action_city_gather` on trace frame 610.
+- `rngcmp`: run1509 against run1507, 614 identical, the first differing 611; run1509 against run1509b (take 2), 1301
+  of 1301 identical.
+
+run1509: `gamelog.txt` 275,240,433 bytes, SHA-256 `a78badd8df234538b757f7bb0dec31d7bfe99caf541d7d565154644a6dfe6c7d`. `rontrace.log` 10,597,824 bytes, SHA-256 `1701f47cd640cc32725dea2df4f49f5de88e21945ee0e0477e1c46cdfb84b417`.
+run1509b: `rontrace.log` 19,390,048 bytes, SHA-256 `6047dbe11b09e8ac0d9936a9e43ec73e4f8699146a916afb02b3801350d729c8`.
+
+**What it holds**: `golden::chapter_one_hundred_and_twelve_holds_to_the_golden_word` (1300, closed) and
+`chapter_one_hundred_and_twelve_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 609..613 is in the
+coverage driver. run1509b is in `blind::TRACES`; four rows leave `NEVER` (347 → 343 on the tree merged with items 3911, 3914 and 3916).
 ## run1510 to run1510d — chapter one hundred and thirteen: a peasant alarm, `OPTION_PEASANT_ALARM` on chapter thirty-nine's Citizen (2026-11-06, item 3916, `att-3916`)
 
 `docs/GOLDEN.md` §163. **What the disk could not answer**: `Group::action_alarm_peasant@006fd980` and its writer
