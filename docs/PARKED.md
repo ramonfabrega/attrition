@@ -14390,13 +14390,27 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AV — reserved
+## Parked by item 3908, 2026-11-06 — the map styles' takes were on disk
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3908a) **The `!eval` staging that enters `MapConquest::check_starting_loc@0068d7e0`.**
+`docs/MAPGEN.md` §22.3 writes it out: the golden start (`--map 14`, run1129's lobby) at `cover=1` with
+`620 !eval find_extra_starting_loc(4, 4, 1)`, compared to its twin through 619. It would take two `NEVER`
+rows off, the function and its script caller `ScenarioFuncSet::find_extra_starting_loc@009e5070`. It
+names a `NEVER` row, so the commander books it as a `coverage` item at the merge. Its falsifier is that
+trace showing `009e5070` entered and `0068d7e0` not entered.
+
+(3908b) **Each style's chain take, held for 3888c.** §22.2 writes run1493's line at each style's `--map`
+(6, 8, 9, 11, 12, 13, 16, 17, 19, 20, 21). The blind list does not need these takes, because the eleven
+joined `cover=1` traces already enter every `make_continents`. A port of a style's chain does need its
+take: a setup trace with 7805..7945. Once Ramon names the held-out style, the commander books one per
+style. The held-out style's take is scored and never read against. Until then this row names no score.
+
+(3908c) **The census leaves `ScenarioFuncSet::find_extra_starting_loc` outside the territory.** No trace
+entered it and no document cited it before this item. It was not on `--implicit`'s list, because the
+census files `game\script\` sources under the AI layer, outside the simulation territory. Yet it is the
+one non-Conquer-the-World caller of a simulation function, `check_starting_loc`. Other script-only routes
+into simulation rows may exist that `--implicit` does not show. A join of `ScenarioFuncSet::init_funcs`'
+registered functions against `NEVER`'s callers would list them. This row names no score.
 
 ## Parked by the next landing, slot AW — reserved
 
