@@ -223,7 +223,7 @@ impl Init<'_> {
             Pass::new(&mut *self.g, &mut *self.coord, &*self.z, self.combo).with_goods(self.goods);
         let to = pass.move_goody(x, y);
         self.out.inert.south_forest += pass.south_forest_refusals;
-        self.out.goods.append(&mut pass.moved_goods);
+        self.out.goods.extend(pass.moved_goods.iter().copied());
         match to {
             Ok(Some((nx, ny))) => {
                 self.out.moved.push(((x, y), (nx, ny)));
