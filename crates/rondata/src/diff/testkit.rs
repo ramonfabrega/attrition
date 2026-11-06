@@ -6859,6 +6859,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SIXTEEN: i64 = 1000;
 /// run1513.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_SIXTEEN: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and eighteen** (item 3930, `docs/GOLDEN.md` §168,
+/// run1517): chapter one hundred and fifteen's staging and a fourth
+/// `DISBAND` press at the Barracks in city 0, after the first entry's close.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN: i64 = 1200;
+
+/// `chapter_one_hundred_and_eighteen_s_window_is_widened_whole`'s window:
+/// run1517.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN: (i64, i64) = (604, 1201);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
