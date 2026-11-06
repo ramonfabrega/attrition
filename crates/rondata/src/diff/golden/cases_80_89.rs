@@ -912,10 +912,13 @@ pub(super) fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
     );
 }
 
+/// The cells that part, and who=1's cell count by dumped block.
+type Ch107Borders = (Vec<String>, Vec<(i64, usize)>);
+
 /// Every cell's `(who, who2)` on every block of run1504 that dumps the
 /// `WORLD` (the `@dumpall` blocks), ours against the original's, with each
 /// block's who=1 count: what parts, and the count by block.
-fn chapter_one_hundred_and_seven_borders() -> Option<(Vec<String>, Vec<(i64, usize)>)> {
+fn chapter_one_hundred_and_seven_borders() -> Option<Ch107Borders> {
     let mut s = stage_script("ch107", "chapter107")?;
     let mut parted: Vec<String> = Vec::new();
     let mut held: Vec<(i64, usize)> = Vec::new();
