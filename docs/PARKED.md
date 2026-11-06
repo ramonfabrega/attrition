@@ -14586,13 +14586,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BI — reserved
+## Parked by item 3921, 2026-11-06 — the `!eval` take that enters `check_starting_loc`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3921a. A pool lane's lobby is not pinned unless `--profile` names each field** (beside 3928, which is the who=1
+  tribe). run1515b, a `cover=0` twin, passed `--ai-tribe 11` and no `--profile`. On pool lane 2 it seated `DIFFICULTY 5`,
+  `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`, where the golden start is 0, 1, 0 and 7, and it
+  differed from its `cover=1` sibling at frame 0 (`docs/RUNS.md` run1515). `set_lobby` writes only the pairs it is handed,
+  so a lane's `Player.dat` keeps whatever lobby the last `--profile` take left there, and the staged restore puts back
+  that same stale value. The retake, run1515c, pinned all four fields and matched on 641 of 641 frames. Two candidates:
+  the runner writes a default for every lobby field a take does not name, the same rule `RISE_DEFAULTS` follows (Loop
+  3488); or the receipt refuses a twin whose `GAME INFO` lobby differs from its sibling's. This row names no score and
+  is the Loop's.
+- **3921b. What `find_extra_starting_loc` appended** (MAPGEN §23, "not established"). The take shows that both
+  functions are entered and that `game_random` is drawn on 620. It does not show which cell was accepted, what
+  `ScenarioData::extra_starting_locs` holds, or how many cells `check_starting_loc` was called on. A packet at
+  `RON_STATE_FRAME=620` would read all three. No sim reader carries `extra_starting_locs`, and Conquer the World is cut
+  from v1, so this row names no score.
 
 ## Parked by the next landing, slot BJ — reserved
 
