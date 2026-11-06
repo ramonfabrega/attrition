@@ -38421,12 +38421,145 @@ trace enters, so the triple stays at never 266 · residue 246 · open 20.
 ~~Every claim … reading-only~~: two readings now (item 3893), and the triple is
 never 268 · residue 260 · open 8 on the tree merged with item 3891.
 
-## 385. Reserved for the next item on the AI track
+## 385. `TurnControl::end_cannon_time` and the startup trio, read: four residue candidates, one census reason corrected, no take (item 3894)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3894, 2026-11-05, Opus 5.5. A reading: no capture, no packet, no
+emulator run, no sim change. Two rows of the pool (DECISIONS 107 §2), each read
+off the export, `report.py <exe> refs` and the tracer's source. "Entered" means
+a `HIT` in any of the 139 trace files `blind::TRACES` names, each read with
+`report.py <log> functions`. All four functions are hooked: none is in
+`rontrace.funcs.excluded.txt`.*
+
+| row | its only callers (rel32, `refs`) | entered by the traces |
+|---|---|---|
+| `TurnControl::end_cannon_time@00956470` | `TurnControl::check_cannon_time@009579e0` | no; `check_cannon_time` 137 of 139 |
+| `wincpuid@0054cea0` | `cpuspeed+0x7` | no; `cpunormspeed@0054b150` 139 of 139, `cpuspeed` 0 |
+| `wincpufeatures@0054cf90` | `cpuspeed+0xf` | no |
+| `check_80386@0054d100` | `wincpuid+0xb9` | no |
+
+### 385.1 The cannon time: what starts one, what ends one
+
+**What ends it.** `Game::do_frame:296–298` calls `check_cannon_time` on every
+frame divisible by 15, the same frame that `tick` steps. That function reads
+the `GameAccess::turn_control` global, not its `this`, which `do_frame` passes
+as `0xf`. It ends a cannon time when `cannon_time_who >= 0` **and**
+`frame - cannon_time_stamp > 0x4a` (`check_cannon_time@009579e0`). So the end
+lands on the first multiple of 15 at least 75 frames after the start: 75 to 89
+frames later. `end_cannon_time` sets `cannon_time_who = -1`. If `speed` is not
+`cannon_saved_speed`, it puts `speed` back, calls `set_new_target_time` with
+`timings[saved]`, posts the game-speed message and plays `S_GAME_SPEED_CHANGE`.
+Then it zeroes `cannon_saved_speed`. `check_cannon_time` adds its own message,
+`S_CANNON_TIME_DEACTIVATED`, and a notice under `notify_flags[2] & 0x10`.
+
+**What starts it.** `cannon_time_who` has four writers. `TurnControl::TurnControl`
+and `TurnControl::close` set it to `-1`, `end_cannon_time` sets `-1`, and
+`start_cannon_time` sets the leader. `walk_data` neither saves nor loads it, so
+a loaded game cannot hold a live cannon time. `start_cannon_time` refuses when
+one is already running, or when the leader's `LeaderData::cannon_time` (`+0x48`,
+named by the type record) is 0. Otherwise it decrements that count and sets
+`who`, `stamp = frame`, `saved = speed` and `cannon_time_start = tick`. If
+`speed` is not already 0, it sets 0 and a target time of 200. A cannon time is
+the slowest speed for 75 to 89 frames, and the lobby's count is how many each
+leader may call.
+
+**Why no v1 game reaches it.** `start_cannon_time` has one caller,
+`CommandPackage::process_cannon_time` (command `0x4d`, `COMMANDS.md`). The only
+issuer of that command is `CommandManager::issue_cannon_time`, and its only
+caller is `Options::exec`'s `OPTION_CANNON_TIME` (`refs` and the export agree).
+The issuer refuses with a message unless `Game::semaphore[0] & 4` is set (bit
+2), and `update_visibility` hides the cannon button under the same test. ATTRITION's
+handicap bullet (item 3414) finds bit 2 set in exactly one function,
+`Game::run_gamespy@00587060`: run_solo, run_scenario, run_editor and playback
+all clear it. No computer player issues a command `0x4d`: the AI has no caller
+of the issuer. The count is seeded in every game:
+`Leader::init` writes `cannon_times.list[info.cannon_times].DATA`. All 612
+gamelog headers on disk print `CANNON_TIMES 0`. In the 176 dumps that print the
+`TurnControl` block (`log_data@00956cc0`), `cannon_time_start` is 0 on every
+frame, and the crate parses no such key. A solo lobby with a nonzero count still
+cannot start one, because the issuer's gate is the semaphore and not the count.
+
+**Verdict: a `RESIDUE` candidate on scope.** No v1 game reaches it: only the
+multiplayer lobby that "Cut from v1" names can issue the command, the same scope
+as `run_gamespy`'s residue row. Outside v1 there are two routes, and neither is
+play here. One is a GameSpy game with Cannon Times above None. The other is the
+playback of a recording made in one (`RecordGame::read_package` replays command
+`0x4d` through `process_cannon_time`). A tracer line that added a hand-built
+`0x4d` package past the issuer's gate would also enter it, but that is a forged
+command, ruled not play by `CommandPackage::process_move_near`'s precedent
+(DECISIONS 107 §3).
+
+| claim | read at | kills it |
+|---|---|---|
+| the end predicate is `who >= 0 && frame - stamp > 74`, checked on frames divisible by 15 | `check_cannon_time@009579e0`; `do_frame:296` | a multiplayer whole dump whose `TurnControl` `speed` returns before 75 frames, or off a multiple of 15 |
+| no v1 game starts one | `issue_cannon_time:22`, bit 2's one setter | any solo trace entering `start_cannon_time`, or `cannon_time_start` nonzero in a solo dump |
+| a load cannot restore one | `TurnControl::walk_data` names no cannon field | a saved game whose `TurnControl` block shows `who >= 0` after the load |
+
+### 385.2 The startup trio: the hooks are live, and the registry answers first
+
+**The instrument is live at engine init.** `patch_exe.py` adds `rontrace.dll` to
+the copy's import table. The loader therefore runs its `DllMain`
+(`tracer.c`, `DLL_PROCESS_ATTACH`) before the executable's entry point.
+`DllMain` calls `install_hooks` and, under `cover=1`, `arm_all` before it
+returns. That is before `WinMainCRTStartup`, `WinMain`, `bighuge_init` and
+`bighuge_init_real@00539630`. The traces confirm it: run906 records all four,
+and `cpunormspeed@0054b150`, at frame `-1`, and all 139 pinned traces record
+`cpunormspeed`. **CENSUS's row 11 reason ("the CRT runs them before the DLL
+attaches") is wrong** and is struck there with a pointer here. It is not the
+instrument.
+
+**Reach.** `bighuge_init_real:55` calls `cpunormspeed`, the chain's only
+entry, and stores its answer in `graphsys->system_info.cpu_speed`, which
+`GameLog::begin_game` prints as `CPU speed`. `cpunormspeed` opens
+`HKLM\HARDWARE\DESCRIPTION\System\CentralProcessor\0` and queries `~MHz`,
+`~Mhz` and `~mhz` in turn. It returns the first value it finds, and calls
+`cpuspeed` only when the open fails or all three queries fail. `cpuspeed` is
+`wincpuid`'s and `wincpufeatures`' only caller. `check_80386`'s one call sits
+inside `wincpuid`'s first arm, which runs only when EFLAGS bit 21 (ID) cannot be
+toggled: a processor without CPUID, older than every machine this executable
+runs on. The traces show `cpuspeed` entered 0 times in 139 while its caller is
+entered in all 139, so the registry answered on every traced launch. The
+gamelogs' `CPU speed` values on disk (999 in 117 headers, 1000 in 57, 2400 in 1)
+are consistent with that.
+
+This also answers the lab's open question (`docs/lab/2026-09-09-hook-restore-migration.md`,
+"What remains open"). The trio's `POPFD` sites execute on no traced launch.
+Nothing on the gate varies by launch except the prefix's registry, so they are
+not the pre-menu fault's site on any launch where the key answers.
+
+**Verdicts.** `wincpuid` and `wincpufeatures` are `RESIDUE` candidates on reach.
+No v1 game reaches them, because the chain is gated on the host's registry, not on
+a lobby. Their only route is environmental, not a game: a prefix with the
+`CentralProcessor\0` key's three values removed before launch, which `cpuspeed`
+would then enter with no tracer change. `check_80386` is a `RESIDUE` candidate
+twice over. It sits behind the same gate and also behind a CPUID-less processor,
+which Rosetta does not emulate: the lab's ID-flag trials toggle bit 21, so the
+environmental route would still miss it. No tracer change is owed for any of the three.
+
+| claim | read at | kills it |
+|---|---|---|
+| hooks are armed before the exe's entry | `tracer.c` `DllMain`; `patch_exe.py`'s import descriptor | a `cover=1` trace with no frame `-1` entry of `WinMainCRTStartup` |
+| `cpuspeed` runs only when all three registry reads fail | `cpunormspeed@0054b150` | a trace entering `cpuspeed` with the key present |
+| `check_80386` needs a processor that cannot toggle the ID bit | `wincpuid@0054cea0` | a trace entering it on a CPUID processor |
+
+### 385.3 What a blind second reading must re-derive
+
+1. `check_cannon_time`'s predicate, its 15-frame gate in `do_frame`, and
+   `cannon_time_who`'s four writers.
+2. That command `0x4d`'s one issuer is gated on `semaphore` bit 2, that bit 2's
+   one setter is `run_gamespy`, and that no AI path issues the command.
+3. That `rontrace.dll` attaches as an import, before the executable's entry
+   point.
+4. `cpunormspeed`'s registry gate, `cpuspeed`'s single caller, and
+   `check_80386`'s ID-bit arm.
+
+**Coverage.** Every claim here is reading-only. The trace counts and the dump
+greps are the disk's answer and need no reader. The section cites by address
+only functions that are entered or already on `NEVER`. The unentered helpers
+(`cpuspeed`, `start_cannon_time`, `issue_cannon_time`, `process_cannon_time`,
+`GetRDTSCCpuSpeed`, `GetBSFCpuSpeed`, `check_80286`, `check_IDProc`) are named
+without an address, so no row moves: never 268 · residue 252 · open 16 on the
+item's base, never 268 · residue 260 · open 8 on the tree merged with item 3893.
+On agreement, open moves 8 → 4 (parked 3894a).
 
 ## 386. Reserved for the next item on the AI track
 
