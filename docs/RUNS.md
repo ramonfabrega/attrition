@@ -35077,6 +35077,40 @@ run1509b: `rontrace.log` 19,390,048 bytes, SHA-256 `6047dbe11b09e8ac0d9936a9e43e
 **What it holds**: `golden::chapter_one_hundred_and_twelve_holds_to_the_golden_word` (1300, closed) and
 `chapter_one_hundred_and_twelve_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 609..613 is in the
 coverage driver. run1509b is in `blind::TRACES`; four rows leave `NEVER` (347 → 343 on the tree merged with items 3911, 3914 and 3916).
+## run1520 and run1520b — chapter one hundred and twenty: a standing Envelop and a shift-attack behind it, `@form 0 2 0 6 7` and `@attackadd 0 2006 1 6 7` on 697 (2026-11-06, item 3936, `att-3936`)
+
+`docs/GOLDEN.md` §170. **What the disk could not answer**: no trace in `blind::TRACES` had entered
+`Group::is_moving_to@00713bd0` (a `NEVER` row), and no golden staging had queued an `@attackadd` behind a standing
+re-form. Recipe
+`tools/gamelog/golden/chapter120.cmd`: two Catapults at 12,84 and 18,84, an enemy Barracks at 16,56, a who=0 Scout
+beside it at 17,60, then the pair on 697. Launched through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/ch120 --map 14 --end-frame 1000 --log-window 605 1000 --timeout 3600`, with run1519's three detail sets,
+`--ai-tribe 11` and `--profile DIFFICULTY=0 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=7`. The twin is the same line at `--cover cover=1 --no-ffwd --twin ~/ron-golden/ch120`, into
+`~/ron-golden/ch120b`. 105 GiB free before. Both `success`, lifecycle verified, `map_verified`, map style 14, 1001
+frames, `last_frame` 1000, seed 12345, the lobby read back as pinned. PLAYER records: who 0 (flags 7, tribe 4) and
+who 1 (flags 1, tribe 11). No minutes were waited on another lane. `~/ron-golden/run1520` links to `ch120` and
+`run1520b` to `ch120b`.
+- run1520 (`ch120`, `cover=0`, pool lane 2): 14:30:39–14:31:05, 25.3 s launch to exit, no relaunch. The word's.
+- run1520b (`ch120b`, `cover=1`): 91.7 s launch to exit, no relaunch. Filed by `filerun.py run1520b
+  ch120-form-attackadd-cover`.
+- `process_form 2 0 2 698` and `process_attack 2006 1 0 1 698` on the `CM` channel.
+  - `0/6` (leader, `oxx 6`): `[GroupMoveOrder in_group=0 id 698100, (2328, 16392)][ATTACKORDER mandatory 1 on
+    1/2006]` from 699 to 715; the `ATTACK` alone on 718; a chase leg to (1848, 13800) on 719.
+  - `0/7`: the same under `in_group=1`, to (2520, 16104); ungrouped to a `MOVEORDER` on 718.
+- The twin enters no `Group::is_moving_to@00713bd0`, `Unit::repath` or `Group::kill_group_move` on any frame.
+  `TargetOrder::is_targeted` and `ObjectData::is_in_range@00648d70` are first entered on 698.
+- `rngcmp`: run1520 against run1520b, 1001 of 1001 identical.
+
+run1520: `gamelog.txt` 168,634,612 bytes, SHA-256 `c042b8da23dadaf98a2e486e75e92554a590f3ccb7ef319e96b32c04201db7c7`.
+`rontrace.log` 10,358,176 bytes, SHA-256 `7934a71419013e6fe927367b2c451633dbce6891dd4f8dce703a2378c41280fb`.
+run1520b: `rontrace.log` 20,656,864 bytes, SHA-256 `e9e09b3d7825a7f97525f14b33c44933a3888ea25c69fadbbe0b58f590a7f43c`.
+
+**What it holds**: `golden::chapter_one_hundred_and_twenty_holds_to_the_golden_word` (1000, closed) and
+`chapter_one_hundred_and_twenty_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1520. Its
+window 714..720 is in the coverage driver's slice. run1520b enters no `NEVER` row and is not in `blind::TRACES`;
+`Group::is_moving_to` stays `NEVER` with `check_target_path:138-141` named.
+
 ## run1519 and run1519b — chapter one hundred and nineteen: a Disband at a Temple in a city, `@queueup 0 666 1 2008` after the first entry's close (2026-11-06, item 3934, `att-3934`)
 
 `docs/GOLDEN.md` §169. **What the disk could not answer**: no trace had entered `CityData::is_disbanding@007380a0`.

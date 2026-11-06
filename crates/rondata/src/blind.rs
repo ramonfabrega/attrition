@@ -1385,6 +1385,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `process_transport` stay [`RESIDUE`], ratified; `Group::is_moving_to@00713bd0` stays here as a
 /// staging — a FORM's bit-4-clear group move heads the leader's list over a shift-queued `ATTACK`,
 /// and `update_action` skips the move (parked 3935a); open 3, unmoved.
+/// **332** unmoved by item 3936's chapter one hundred and twenty (`docs/GOLDEN.md` §170, run1520,
+/// run1520b): two Catapults' leader holds `[GROUP_MOVE flags 1][ATTACK]` on an enemy Barracks
+/// on its sixteenth frames 698 and 714, and `Group::is_moving_to@00713bd0` is not entered —
+/// `check_target_path:138-141` asks the target's vslot `+0x1c`, which `Build`'s vtable answers 1
+/// for every building (`00b42190` → `0041e0e0`, `mov eax,1`; `Unit`'s is `0041bff0`,
+/// `xor eax,eax`), so only a unit target reaches the arm, and only a fleeing one (parked 3936a).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,

@@ -14721,13 +14721,22 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   sixteenth frames. A take that enters it pins the row into `blind::TRACES`. A refusal names which of
   `check_target_path:78-141`'s steps shut it. **Score**: `Blind:` never and open, one row.
 
-## Parked by the next landing, slot BP — reserved
+## Parked by item 3936, 2026-11-06 — a formation's move with a shift-attack behind it
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3936a. The fleeing unit target that reaches `Group::is_moving_to@00713bd0`** (`docs/GOLDEN.md` §170,
+  `docs/AI.md` §397). Chapter 120 held the leader's `[GROUP_MOVE][ATTACK]` over a sixteenth frame. Its target was a
+  Barracks, and `check_target_path:138-141` shuts on any `Build`: the target's vslot `+0x1c` is a folded `return 1`.
+  A unit target passes that step, but `check_target_path`'s unit block first returns, in or out of plain reach,
+  unless the target is fleeing. That means `UnitData::is_moving`, and `target.heading − bearing + 0x80000000` at or
+  past `0x2aaaaaaa` with `flanking` nonzero: it walks away from the leader.
+
+  The staging: chapter 120's standing Envelop with the shift-attack on a who=1 unit. That unit must be walking away
+  from the Catapults, out of range of the move's point and seen, on the leader's sixteenth frame while the list
+  stands; which issuer can walk a who=1 unit is the staging's first question (`@move` refuses another seat, so `be 1`
+  or a gatherer). A Catapult's `max_range` 15 keeps the one-node test open. Write the killer first: the list
+  standing, the target fleeing and out of range, and no `00713bd0` on the twin. A take that enters it pins the row
+  into `blind::TRACES`, and this crate's group-head review, gated on the leader, is built and made to fail.
+  **Score**: `Blind:` never and open, one row.
 
 ## Parked by the next landing, slot BQ — reserved
 
