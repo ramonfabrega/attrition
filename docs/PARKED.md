@@ -14192,13 +14192,17 @@ question stays filed.
   Code's bundled binary, and `command rg` finds none. A probe shape for `tools/` if it recurs. **Score**: none
   (tooling).
 
-## Parked by the next landing, slot AK — reserved
+## Parked by item 3897, 2026-11-05 — AI §385's four rows' blind second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3897a**: **one `cover=1` log on disk has no `cpunormspeed` hit.** The
+  blind reader swept 167 `cover=1` traces, a wider set than the 139 that
+  `blind::TRACES` pins. It found `cpunormspeed@0054b150` at frame −1 in 166 of
+  them, and it did not name or open the odd one
+  (`docs/audit/2026-11-05-item-3897.md`). No trace enters `cpuspeed`, so the
+  log cannot carry a row. It is either a launch that died before
+  `bighuge_init_real` or a tracer arm that came up late. If it is the second, it
+  would undercut every "seen if run" answer for startup functions. Names no
+  score. To settle it, find the log and read its frame −1 entries.
 
 ## Parked by the next landing, slot AL — reserved
 
