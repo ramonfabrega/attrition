@@ -14543,13 +14543,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BF — reserved
+## Parked by item 3918, 2026-11-06 — a Disband queued at a Barracks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3918a. A Disband in a city** (`docs/GOLDEN.md` §165, `Sim::disband_castable`). `is_castable`'s city arm
+  (`CityData::is_disbanding` against the third argument) and whether the finish counts its own entry are
+  unit-tested only. run1512's second Barracks sat in city 0, but the group's research arm refused its presses first,
+  so the twin never entered `is_disbanding`. A press at a city building after 832, when no entry stands, would reach
+  it. The time's city, Senate and Lakota scalings and a city's own disband are unreached with it. Names no score.
+- **3918b. A Disband entry behind a stuck head, and its readers** (`Sim::advance_slot_with`, `Item::disband`). The
+  original's `get_next_non_unit` takes the first entry behind a refused head that is not a unit type, which 666 is
+  not; this crate's `Queue::next_research` asks `tech` or the type's research answer, and a disband entry's
+  type has never been put to it.
+  Nothing captured puts one behind a stuck head. The AI's readers of a queue entry's type (its build-order and
+  research checks) never see 666 in a capture. Names no score.
 
 ## Parked by the next landing, slot BG — reserved
 

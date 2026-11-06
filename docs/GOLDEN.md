@@ -17707,12 +17707,77 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 165. Reserved for the next item on the rules track
+## 165. Chapter one hundred and fifteen — a Disband queued at a Barracks; closed at 1100 on the first take (item 3918, run1512, run1512b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §392.3, the Disband row): `SpellType::cast_disband@00671ed0` was `NEVER`. The DLL's
+`@spell` names units only, so the craft is entered as §392.3 staged it: a `@queueup` of `DISBAND` (666, 0x29a) at a
+Barracks, which `Build::finished` casts when the entry's job completes.
+
+**What the reading says.** `CommandPackage::process_queue_up` → `Group::action_queue_up@006fdbb0(0x29a, 1)`. A craft
+takes the group's research arm: `LeaderData::researching@006db510(0x29a, −1, 0, 0)` over every active building of the
+player, and a `DISBAND` entry standing anywhere refuses the command whole. Otherwise two passes over the members (the
+first only members holding nothing) offer `Build::queue_up@00620f40(0x29a, 1)`. There is no library forward (`param_1
+!= DISBAND`), and `BuildData::could_queue` → `can_make` asks the building active, `queue_here`, `type_avail` and
+`has_spell(0x29a)` → `SpellTypeData::is_castable@00675bc0(o, who, 0)`. That case's head exempts the craft. A building
+already holding a `DISBAND` refuses (`researching(.., o, 1, 0)`, its own queue). A non-city building in a city refuses
+while `CityData::is_disbanding@007380a0` exceeds the third argument. The entry costs nothing. Its time is
+`ObjectData::train_time@006508c0:51`: the building's own type's (`JOB_TIME × 100`), scaled for a city, a Senate and a
+Lakota owner, then halved. `Build::finished@00628490`'s spell arm calls `SpellType::cast@00676ce0(o, who, 0, 0)`, which
+asks `is_castable(o, who, 1)` (so at the finish the entry's own count is allowed). `cast_disband` then plunders an
+active building for its owner (`Build::plunder@00623660`) and closes it with `Object::disband(o, 0)`.
+
+**Staging** (`tools/gamelog/golden/chapter115.cmd`): chapter thirteen's cast to 614, whose Barracks `0/2007` at 14,74
+reads `city -1` on run285. Then `616 add barracks who=0 28,160`, at the tile where chapter four's Temple reads `city 0`,
+which is `0/2008`. Then `620 @queueup 0 666 1 2007`, `640 @queueup 0 666 1 2008` and `660 @queueup 0 666 1 2008`. The
+Barracks' `JOB_TIME` 420 × 100 / 2 = 21000, about 210 frames at the research pace, so the take runs to 1100. The journal
+has the five falsifiers, written before the take.
+
+**What the original does** (run1512 `cover=0`, run1512b `cover=1 --ai-tribe 11`; `docs/RUNS.md`). `process_queue_up
+666 1` lands on 621, 641 and 661 on the `CM` channel.
+- **`0/2007` holds the entry from 622**: `queued 1`, `queue[scan].type 666`, `job_counter` 100 on 622, rising 100 a
+  frame to 21000 on 831. Block 831 is its last, and it is gone from `BUILDS` on 832.
+- **`0/2008` never queues** (falsifier 1 fired for it). The research arm reads `0/2007`'s standing entry on 641 and
+  661 and refuses each command whole, before `queue_up`. This is the gate §392.3 left unestablished. So the city arm
+  (falsifier 3) is not reached: the twin never enters `CityData::is_disbanding`.
+- The twin enters `Build::finished`, `SpellType::cast`, `SpellType::cast_disband`, `Build::plunder`,
+  `Object::disband`, `Build::clean_queue` and `Build::unqueue` on trace frame 831.
+- The pool's slot 1, the pushed group `[2007]`, is dropped on block 834: `833 mod 64` is the slot's turn after the close.
+- run1512 and run1512b are one game on all 1101 frames (`rngcmp`).
+
+**What this crate does.** `crates/sim/src/queue_disband.rs`: `Sim::action_queue_disband` (the group, through
+`queue_group`'s new `Queued::Disband`), `researching_disband` (both of `researching`'s forms), `disband_castable`
+(`is_castable`'s 0x29a case), `queue_disband` (`Build::queue_up`), `disband_time` (`train_time:51`) and
+`finish_disband` (the spell arm into `cast_disband`, which reuses `Sim::plunder_kill` and §161's
+`Sim::disband_building`). A queue entry carries `Item::disband`. `advance_slot_with` times it at the research
+accelerator and spends it through `finish_disband`. `Sim::groups_process` now prunes a pushed group's closed buildings
+(`(+8 & 1) == 0`) on the slot's turn: before it, the widening parted on pool slot 1 `held`, ours `[2007]` and theirs
+none, on 834. `input::group_queue_up` routes 666.
+
+The draw stream agrees to the trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FIFTEEN` = **1100**, closed
+(`chapter_one_hundred_and_fifteen_holds_to_the_golden_word`). **The walk alone is blind to the mechanism**: a building's
+disband spends no draw, and with `queue_disband` broken the walk still closed. The widening is the assertion: over
+605..1100 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_FIFTEEN` (604, 1101), both directions, the pool too) it parts on the eleven
+standing `form` rows and nothing else (`WANT_CH115`), so `0/2007`'s `queued`, its entry's type and `job_counter` agree
+on every block from 622 to 831, and its absence from 832 and the pool's slot 1 from 834 agree. The coverage driver
+drives 829..833.
+
+**Mutations** (`tools/mutate.py --batch`, seven breaks, then one `--edit`; all held in the end).
+- The group's research arm answering no fails the word and the widening: `0/2008` queues on 641 and closes inside the
+  window.
+- The city arm's `> finishing` as `> 0` fails `a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish`.
+- The time unhalved, the close dropped from `finish_disband`, the pool prune dropped, and the input route dropped
+  each fail the widening alone. The draws agree in every case.
+- `is_castable`'s own-queue refusal dropped **failed nothing** in the batch, because the research arm refuses a second
+  press before `queue_up` asks. The city test now calls `queue_disband` twice on one building, and the break fails it.
+
+**Not established.** A Disband in a city: `is_disbanding` and the finish's `> 1` (parked 3918a; two unit-tested, never
+captured). An entry behind a unit at the head, and the AI's readers of an entry's type (3918b). A city's own disband
+(`cities[c] + 4 & 0x10`, other players' claims), a wall (vslot `0x20`), and the city, Senate and Lakota scalings of the
+time. `type_avail(DISBAND, 1)` and `queue_here` answered yes for a Barracks; no other building type was asked.
+
+**Coverage.** Diff-backed: the research arm's refusal, the entry, its time and clock, the close on the finish, and the
+pool's prune. Reading only: `is_castable`'s own-queue and city arms (unit-tested), the time's scalings, and `cast_disband`'s
+plunder beyond the two leader keys the widening reads.
 
 ## 166. Reserved for the next item on the rules track
 

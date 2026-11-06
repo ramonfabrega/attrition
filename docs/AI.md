@@ -39268,7 +39268,9 @@ answers 1 for it (`docs/TECH.md`), `Build::queue_up@00620f40` exempts it from th
 - **Staging**: `add barracks who=0 <x>,<y>` on the golden start, then `@queueup 0 666 1 <b>` with `b` the Barracks'
   id. Run it long enough for the Barracks' own train time.
 - **Falsifiers, before the run**: the Barracks' `queued` must read 1 two frames after the press, or `queue_up` (or
-  `Group::action_queue_up@006fdbb0`'s gate) refused `DISBAND`, which this reading did not follow to its end. The
+  `Group::action_queue_up@006fdbb0`'s gate) refused `DISBAND`, ~~which this reading did not follow to its end~~.
+  Held for the first Barracks on run1512; the gate is the group's research arm, which refuses a second building's
+  press whole while any entry stands (`docs/GOLDEN.md` §165). The
   Barracks must be gone from `BUILDS` when the job completes, or `has_spell(666)` or `is_castable`'s city arm refused.
   The trace must enter `cast_disband`.
 
@@ -39301,8 +39303,10 @@ through vslot `+0x158(2, −1, 0)`. For a single-figure captain it also counts `
   `cast_counterintel`. A Spy that walks off first is the staging's error, not a refusal.
 
 **What is not established.**
-- `Group::action_queue_up`'s gate and `type_avail(DISBAND, 1)` for the Disband queue.
-- Whether `is_disbanding` counts the finished entry.
+- ~~`Group::action_queue_up`'s gate and `type_avail(DISBAND, 1)` for the Disband queue.~~ Settled by run1512
+  (`docs/GOLDEN.md` §165): the research arm, and `type_avail` answering yes for a Barracks.
+- Whether `is_disbanding` counts the finished entry. Not reached by run1512, whose second press the research arm
+  refused (parked 3918a).
 - The Hoplite's three type tests for Entrench.
 - Whether a human Scout auto-explores away from the Spy before the press.
 - `cast`'s argument order for `0x277`, which the decompile prints shifted. The body's reads were taken as the
@@ -39310,7 +39314,7 @@ through vslot `+0x158(2, −1, 0)`. For a single-figure captain it also counts `
 
 Everything in this section rests on a reading alone. No assertion was added, since no predicate here is pure without
 the world. **Coverage**: all eight rows and `make_city_capital` are reading-only. The three stagings are what would
-make them diff-backed, and the commander books each one as a chapter.
+make them diff-backed, and the commander books each one as a chapter. Disband's is diff-backed now (`docs/GOLDEN.md` §165, run1512).
 
 ## 393. The rest of the implicit residue: forty-two on scope, two owed a staging (item 3909, 2026-11-06)
 
