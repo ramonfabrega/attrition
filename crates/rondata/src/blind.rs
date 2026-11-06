@@ -1082,6 +1082,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// disagreement, settled to `do_spec_anim`'s same-call kill), `ObjectsData::find_town_at`,
 /// `TargetOrder::get_target`, `SubObjectOut::is_on_screen` and `ObjectTypeOut::draw` — and
 /// moves them to [`RESIDUE`]; residue 252 → 260, open 16 → 8.
+/// **268** unmoved by item 3899's blind second reading (`docs/audit/2026-11-06-item-3899.md`),
+/// which agrees with `docs/AI.md` §386 that no v1 game reaches `GoodTypeData::is_flat`, and
+/// moves it to [`RESIDUE`]; residue +1, open −1.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1294,6 +1297,15 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "TypeData::avail: +0x8c of the tech, bonus and spell types (the object \
          types override it), and every +0x8c dispatch is on an order, an animal, \
          a texture or the lobby, never a type (two readings, item 3505)",
+    ),
+    (
+        0x0047_80c0,
+        "GoodTypeData::is_flat: +0x94 of the three good-type tables only; the one \
+         good-receiver dispatch is Leader::produce_building's gather arm \
+         (6e2312), which only a direct Oil Platform request reaches, and no v1 \
+         caller makes one (create_buildings skips water non-docks; the Setup \
+         types are fixed; the rest are Conquer the World and the scenario VM); \
+         two readings, item 3899 (docs/audit/2026-11-06-item-3899.md)",
     ),
     (
         0x0047_df90,
