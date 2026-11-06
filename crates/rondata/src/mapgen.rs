@@ -6207,9 +6207,10 @@ mod tests {
     /// the zero-draw passes (7835..7854, item 3872), `place_all` with
     /// the cliffs (7859, item 3875), and its tail and the resources
     /// (7861..7927, item 3878), the values (7937, 7945, item 3882), and
-    /// `Terrain::init` without heights (734..5012, item 3885), and the
-    /// rivers (5012..5118, item 3888).
-    const SOUTHWEST_MESA_CHECKED: i64 = 7;
+    /// `Terrain::init` without heights (734..5012, item 3885), the rivers
+    /// (5012..5118, item 3888), and the heights with `Cliffs::init` (894,
+    /// item 3890).
+    const SOUTHWEST_MESA_CHECKED: i64 = 8;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -7343,6 +7344,108 @@ mod tests {
             say_partings(&parted)
         );
         assert!(files >= MESA_FILES, "894 reached {files} Southwest Mesa files");
+    }
+
+    /// **The heights on Southwest Mesa at 894, every vertex** (`docs/MAPGEN.md`
+    /// §10, §15 step 7, §18.3, item 3890): [`southwest_mesa_at_894`]'s
+    /// heights — `place_cliff`'s template offsets among them — with run1493's
+    /// own roster stood on them, against its start dump's grid; the 0x40
+    /// cells `assess_wcoord` left, and the cells the goods it moved now
+    /// hold (`down` −2 and the slot), against the start dump's cells.
+    #[test]
+    fn southwest_mesa_s_heights_at_894_are_the_start_dump_s_grid() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let install = crate::Install::new(root);
+        let loaded = crate::load::load(&install).expect("the install's tables");
+        let (mut files, mut vertices, mut parted) = (0, 0, Vec::new());
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let Some((grid, z, _, _, c)) = southwest_mesa_at_894(root, g) else {
+                continue;
+            };
+            let Some(cells) = &g.cells else {
+                continue;
+            };
+            let flagged = |cs: &[WCell], f: u16| -> Vec<usize> {
+                (0..cs.len()).filter(|&i| cs[i].flags & f != 0).collect()
+            };
+            for f in [0x40, 0x1000] {
+                if flagged(&grid.cells, f) != flagged(cells, f) {
+                    parted.push(format!(
+                        "{name}: the {f:#x} cells, ours {} theirs {}",
+                        flagged(&grid.cells, f).len(),
+                        flagged(cells, f).len()
+                    ));
+                }
+            }
+            for &(_, (x, y)) in &c.goods {
+                let i = (y * grid.xs + x) as usize;
+                let (o, t) = (&grid.cells[i], &cells[i]);
+                if (o.down, o.down_who, o.flags & 1) != (t.down, t.down_who, t.flags & 1) {
+                    parted.push(format!(
+                        "{name}: the good moved to ({x}, {y}): (down, down_who, flag 1) ours \
+                         {:?} theirs {:?}",
+                        (o.down, o.down_who, o.flags & 1),
+                        (t.down, t.down_who, t.flags & 1)
+                    ));
+                }
+            }
+            let Some(prefix) = crate::testenv::dump(name).and_then(|p| start_prefix(Path::new(&p)))
+            else {
+                continue;
+            };
+            let log = crate::gamelog::Log::parse(&prefix);
+            let Some(init) = log.initial() else {
+                continue;
+            };
+            if init.heights.is_empty() {
+                continue;
+            }
+            crate::diff::PRE_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(z.clone()));
+            drop(crate::diff::build_sim(
+                &loaded,
+                &init,
+                sim::tuning::Tuning::RON,
+            ));
+            let ours = crate::diff::POST_ROSTER_HEIGHTS
+                .with(|h| h.borrow_mut().take())
+                .expect("the roster stood on the generated grid");
+            assert_eq!(ours.len(), init.heights.len(), "{name}: the grid's size");
+            let w = 4 * grid.xs + 1;
+            let bad: Vec<usize> = (0..ours.len())
+                .filter(|&i| !ours[i].prints_as(init.heights[i]))
+                .collect();
+            vertices += ours.len();
+            if let Some(&i) = bad.first() {
+                parted.push(format!(
+                    "{name}: {} of {} vertices part, the first ({}, {}) ours {:#x} against {}",
+                    bad.len(),
+                    ours.len(),
+                    i as i32 % w,
+                    i as i32 / w,
+                    ours[i].0,
+                    init.heights[i]
+                ));
+            }
+            eprintln!(
+                "{name}: {} 0x40 cells, {} goods moved {:?}",
+                flagged(cells, 0x40).len(),
+                c.goods.len(),
+                c.goods
+            );
+            files += 1;
+        }
+        eprintln!("heights: Southwest Mesa start grids at 894 on {files} files, {vertices} vertices");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(files >= MESA_FILES, "the heights reached {files} Southwest Mesa files");
     }
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
