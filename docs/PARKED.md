@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3925) **A `DEEP` answer that never says the journal's head must read `draft` leaves the arm unfired** (the sixty-ninth's commander, lane-3911): `lanewait.py --arm-after-push` arms only a push whose journal's head says `draft` (Loop 3833); the commander's `DEEP 303k` answer said "write the journal as a draft", lane-3911 pushed `c65c92769` with a "Left to do" heading and no `draft` in the head, and the waiter printed `PUSHED … progress, not a landing` then `ENDED lane-3911 done` and armed nothing — armed by hand, as was lane-3912's (`0c23067bc`) when its row idled before the held arm's threshold. Candidate: the `DEEP` answer's line in `docs/LOOP.md` names the word ("the journal's head reads `draft`"), or the waiter also reads a `Left to do` heading on a DEEP lane's push as a draft. Names no score; the loop's.
+
 (3922) **`census.py --implicit` reads only joined traces** (3908's "for the Loop"): DECISIONS 108 §2 booked eleven style takes whose `cover=1` sweeps (runs 1098–1128, items 3480 and 3493) had been on disk fifteen days, unjoined; 3908 joined them with no capture. CLAUDE.md's "grep the disk before booking a capture" says this already; the gap is that a pass trusting `--implicit`'s list cannot see an unjoined run. Candidate: `--implicit --archive`, scanning every unjoined trace under `Logs` and printing the rows it would enter; and (parked 3908c) a join of `ScenarioFuncSet::init_funcs`' registered functions against `NEVER`'s callers, since the census files `game\script\` outside the territory. Names no score; the loop's.
 
 ## Loop, filed 2026-11-05 — the sixty-eighth tranche's
