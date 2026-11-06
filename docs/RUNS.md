@@ -35376,3 +35376,31 @@ Archive `rontrace-run1516b.log`, 8,819,456 bytes,
 SHA-256 `106e6b861132b9ca312043d9e7e5e17af64af73ae91cf82c3a14042f85e6fb74`.
 
 **What it holds**: `blind::TRACES`' run1516 (item 3924). `NEVER` 335 → 334, open 6 → 5; on the tree merged with item 3920, 334 → 333, open 5 → 4.
+
+## run1518 — the golden start (map 14) at `cover=1`: AI §390.3's commands under a plain move; the regroup ungroups `GM Y` into `GM Y'`'s copy, and neither `kill_group_order` row is entered, to 1099 (2026-11-06, item 3932, `att-3932`)
+
+`docs/AI.md` §396. **What the disk could not answer**: no trace enters `Group::kill_group_order@00710aa0` or
+`Unit::kill_group_order@005e3310`. No dump holds a unit with two group moves of one id from two slots under a plain
+move (3504's takes held one slot's moves, under a group attack). Recipe `tools/gamelog/coverage/killgroup3932.cmd`,
+launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1518 --map 14 --ai-tribe 11
+--profile DIFFICULTY=0 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7
+--end-frame 1100 --log-window 615 1100 --timeout 3600 --detail end:UNITS=3 --cmd-file
+tools/gamelog/coverage/killgroup3932.cmd --cover cover=1`, with `df -g ~` at 108 GiB free.
+- Pool lane 1, launched 13:31:39. **The game did not exit.** The runner timed it out after 3600 s (`TimeoutExpired`,
+  `success: false`, parked 3932c). The gamelog holds blocks 615–1099 whole, seed 12345 on the golden start. DLL
+  `87fd4bb1…`, which carries `@formadd` and `@patroladd`.
+- On 645 U (`0/6`, slot 1) holds `[MOVEORDER flags 1][GroupMoveOrder 644101][MOVEORDER][ATTACKORDER ox 6 whom 1
+  flags 4][GroupMoveOrder 644101 flags 5][GroupPatrolOrder 644102]`, current first. On 652 the plain move is gone. On
+  653 `MOVEORDER flags 5` is current over `[MOVEORDER][ATTACK][GROUP_PATROL]`. `start_dist` is stamped 816 on 805.
+  Neither `kill_group_order` is entered (`report.py … functions`).
+- No `cover=0` twin was taken, because nothing is pinned. Run 1518b is unused. Two `cover=0` recons
+  (`~/ron-golden/recon3932-1`, `-2`; 34.6 s and 22.7 s, lane 1) are unfiled. No minutes waited on another lane.
+- Filed with `filerun.py run1518 killgroup3932-plainmove-cover1`.
+
+Archive `gamelog-run1518-killgroup3932-plainmove-cover1.txt`, 107,181,933 bytes,
+SHA-256 `9f42addf08cc7490c62a64d05a3a41b228554ac306bc7057f6fb3116b833d503`.
+Archive `rontrace-run1518.log`, 379,827,104 bytes,
+SHA-256 `390f6dfcd629013eac03a673f5e96e4c07490e1425c09f5b14c92d1c7f441c71`.
+
+**What it holds**: no `blind::TRACES` row. `NEVER` is unmoved. AI §396's order lists.
+

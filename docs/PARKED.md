@@ -14671,13 +14671,25 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   arm and the `NO_CITY` skip are unit-tested only (`a_no_city_building_skips_the_city_s_disband_count`). Names no
   score: chapter 118 is closed whole either way.
 
-## Parked by the next landing, slot BM — reserved
+## Parked by item 3932, 2026-11-06 — the take on 3923a's entry refused: the regroup ungroups the move it needs
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3932a. 3923a's entry re-timed: the collision first, then `GM Y` and the regroup inside the beat** (`docs/AI.md`
+  §396.3). run1518 built the list `[MOVE flags 1][GM Y 644101][MOVE][ATTACK][GM Y' 644101][GROUP_PATROL]` on 645, but
+  the plain move ended on 652, and `GM Y`, a slot-11 move on a unit in slot 1, was ungrouped on 653 into `GM Y'`'s
+  `0x04` copy. The one ordering not taken: U walks a slot-*a* formation move `GM X` as leader (a far destination needs a
+  move queued first, §396.1), collides and suspends on frame S (read off a prior take, since the game is
+  deterministic), and is ungrouped into a plain `MOVE_TO` copy without `0x04`. Then `GM Y` is laid on S+1 and the
+  regroup, the shift-attack, `GM Y'` and the shift-patrol on S+2. The list must be whole by S+4. **Falsifier,
+  first**: no `start_dist` on a grouped leader under `do_group_move` (3504 never stamped one), or `GM Y` laid
+  under a current plain move is not its next order. **Score**: the two `NEVER` rows. This is a hypothesis this take
+  did not build, and it is the commander's to book or to rule `RESIDUE`.
+- **3932b. The first `@formadd` after an attack adds no move, and an attack on an unseen unit's plain move ends after
+  nine frames** (§396.1, §396.3). Both read in recon3932-1, recon3932-2 and run1518, and neither was read in the
+  decompile. **Score**: none. They bear on 3932a's staging only.
+- **3932c. run1518 timed out at 3600 s after its last dumped frame** (receipt `success: false`, `TimeoutExpired`). The
+  gamelog holds blocks 615–1099 whole, and `900 !quit` was replaced by the 1100 end. The game did not exit at
+  `--end-frame 1100` under `cover=1`, with a 380 MB trace, and it held pool lane 1 for an hour. **Score**: none. This
+  is the Loop's.
 
 ## Parked by the next landing, slot BN — reserved
 
