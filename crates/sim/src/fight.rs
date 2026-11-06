@@ -3511,6 +3511,14 @@ impl Sim {
     /// and the score `+0x44 += cost / 5` for a squad captain, and the
     /// message and sound.
     pub(crate) fn cast_sniper_unit(&mut self, v: usize, dtype: i32) {
+        self.die_with(v, dtype);
+    }
+
+    /// `Object::die(o, dtype, −1, 0)` on a unit, through `Unit::die`
+    /// (vslot `+0x158`): the combat death's tail without a wound — the
+    /// Sniper's kill ([`Sim::cast_sniper_unit`]) and a disband
+    /// ([`Sim::disband_unit`], item 3914).
+    pub(crate) fn die_with(&mut self, v: usize, dtype: i32) {
         let frame = self.frame;
         self.units[v].health = 0;
         self.close_count(v);

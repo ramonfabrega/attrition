@@ -6188,6 +6188,33 @@ fn chapter_one_hundred_and_ten_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_ten_holds_to_the_golden_word();
 }
 
+/// **run1508 whole, both directions** (item 3914, `docs/GOLDEN.md` §161).
+#[test]
+fn chapter_one_hundred_and_eleven_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_eleven_s_window_is_widened_whole();
+}
+
+/// What parts in run1508's window, blocks 605–900 (item 3914).
+const WANT_CH111: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and eleven holds to its golden word (item 3914, run1508).
+#[test]
+fn chapter_one_hundred_and_eleven_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_eleven_holds_to_the_golden_word();
+}
+
 /// **run1509 whole, both directions** (item 3915, `docs/GOLDEN.md` §162).
 #[test]
 fn chapter_one_hundred_and_twelve_s_window_is_widened_whole() {

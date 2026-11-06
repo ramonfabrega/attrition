@@ -6811,6 +6811,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN: i64 = 900;
 /// run1507.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TEN: (i64, i64) = (604, 901);
 
+/// **Chapter one hundred and eleven** (item 3914, `docs/GOLDEN.md` §161,
+/// run1508): chapter nine's Chariot disbanded by `OPTION_DISBAND`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ELEVEN: i64 = 900;
+
+/// `chapter_one_hundred_and_eleven_s_window_is_widened_whole`'s window:
+/// run1508.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_ELEVEN: (i64, i64) = (604, 901);
 /// Chapter one hundred and twelve's golden word (item 3915, `docs/GOLDEN.md`
 /// §162, run1509): the golden City's gather-all, `OPTION_VILLAGE_GATHER_ALL`.
 pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWELVE: i64 = 1300;
