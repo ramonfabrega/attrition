@@ -14064,21 +14064,29 @@ Killed by a reading of the body that needs `is_valid` on a SW-shaped C with P `B
   Aircraft Carrier and land units ordered aboard. Names no score; a coverage
   lane books it only if a scan of `CommandManager`'s issuers finds a 0x0f.
 
-## Parked by the next landing, slot AC — reserved
+## Parked by item 3888, 2026-11-05 — Southwest Mesa's rivers, 5012..5118
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3888a. Thirteen `make_rivers` arms have nothing to decide on Southwest Mesa.** Of 18 single mutants of
+  `sim::map_rivers` on `1c209a37d`, scored by `southwest_mesa_s_rivers_are_5012_to_5118`, 5 held: the 5076 clear
+  keeping 0x2000, the start-city refusal (44 sources), the square's 0x2000 refusal (190), a planted 0x40 refusal in
+  the square (25 — the cliff reading's killer), and the threshold's `<=`. The 13 that failed nothing each left the
+  print's 40 sources unchanged: the 0x1000 clear and the entry clears of 0x2000 and 0x2 (no such cell at 5012); the
+  cell's 0x1 and its mountain tile; the eight's mountain tile, rock and a planted 0x40 (no forest cell has a cliff
+  cell in its eight, no cliff cell a mountain tile); the square's class 2 and `get_land`'s 0x50 narrowed to 0x10 (an
+  all-land mask, so a cliff cell is not class 2 either way); the count widened to the 48; the radius's `− 1`; and
+  `find_all` dropped (one region). Great Lakes and East Indies hold the water and radius arms (3845a, 3846a).
+- **3888b. Mesa's step 7 is `Cliffs::init` and the heights, 815 → 894, on run1493**, now the last phase of the
+  chain (3885b). It counts first whether the start dump prints `master_land_heights`, and how many cliff-cell
+  tiles `has_plus_slope` is handed. The 5118 grid it starts from is the test's.
 
-## Parked by the next landing, slot AD — reserved
+## Parked by item 3889, 2026-11-05 — `River::calculate` entered by the console
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3889a) **What `River::calculate`'s body did on run1499's 623 is not read.** The console's `river grow` at
+(32..34, 28) and `river calc` enter it (MAPGEN §21), yet the 624 grid equals the start in every cell's land and
+sub. Coverage keeps first entries only, and every callee was first entered on −1, so the trace cannot say whether
+`create_sections` filled the `+0x284` list that `spot_update_land_batch` paints at `riverbase`. Killed by a reading
+of `create_sections`' list fill, or by a packet at `RON_STATE_FRAME=623` that reads the river's `+0x288` count. Names
+no score: no port carries a console river, and no `NEVER` row is left on the route.
 
 ## Parked by the next landing, slot AE — reserved
 

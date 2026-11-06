@@ -1526,7 +1526,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   and `astar_river` on Great Lakes (item 3845): draw for draw on all 222
   traces (173 on 209, 62 on 13) and every record from 5012 to 5118 on 185
   files (925), the 5076 bank clear included; 26 of 47 mutants held, the
-  21 that failed nothing are 3845a;
+  21 that failed nothing are 3845a; on Southwest Mesa's
+  cliff grid, run1493's five records with 40 sources (item 3888): the
+  cliff cells pass the square's class-2 refusal as class 5, held by a
+  planted 0x40 refusal; the entry and 0x1000 clears, the cell's mountain
+  tile and 0x1, the eight's mountain and rock, class 2, the radius's
+  `− 1` and `find_all` have nothing to decide there (3888a);
 - §10's heights on Great Sahara: `generate_land`, the oil cells'
   terraform and `adjust_for_mountains`, on every vertex of 47 start
   dumps through each file's roster (item 3812). Mutations that drop an
@@ -1798,7 +1803,19 @@ step is checked by §3 at its own checkpoint before the next begins:
    draws whole on all 222 traces (173 at 2 nations, 62 at 3), and seed
    and parts 2, 5, 6 and 10–13 at every record from 5012 to 5118 on all
    185 files (925 records), first run
-   (`great_lakes_s_rivers_are_5012_to_5118`).
+   (`great_lakes_s_rivers_are_5012_to_5118`). **Southwest Mesa built**
+   before step 7 (item 3888, no `sim` change; its seventh phase):
+   `<RIVERLIST/>` empty, so Great Sahara's height-free phase on step 6's
+   grid. run1493's one file carries all five lines; 40 sources, and seed
+   and parts 2, 5, 6 and 10–13 at all five records agree, first run
+   (`southwest_mesa_s_rivers_are_5012_to_5118`; part 5 3822669751 →
+   2939507895 at 5014 and 5076, back at 5116 and 5118). **The cliff bit
+   reaches one arm**: `get_land(…, 1)`'s 0x40 as class 5 in the 7×7
+   refusal, where 22 sources have a cliff cell and class 5 is not 2. No
+   forest cell has a cliff cell in its eight and no cliff cell a mountain
+   tile, so the threshold count never meets one. A planted refusal of
+   0x40 in the 7×7 leaves 25 sources and parts 5014, so the original does
+   not refuse there. 5 of 18 mutants held (3888a).
 
 ## 16. Great Lakes' half-land: `_wcoord`'s body, 720 → 5012
 
@@ -2294,8 +2311,7 @@ stays open and item 3870 takes 3863a's bound first, the console-planted
 contact second. `TerrainOut::generate_transitions@00861960` is referenced
 nowhere in the image (the pass's scan; the byte before it is the
 preceding function's own `ret`) and is a `RESIDUE` row; `River::calculate`
-stays open, entered by the console's two river arms and
-`TerrainMap::river_stop`.
+was entered by the console's `river calc` (run1499, §21).
 
 ### 19.5 What would kill it, and what is not established
 
@@ -2656,3 +2672,51 @@ shift-0 fill word with 0xc, 0x60, 0x801 or 0x300
   sequence on disk is read to reach that. *Falsifier*: a `cover=1` take
   that prints `CORNER: Found` (`TERRAIN` 0x24 by `@logdetail 0 28 40`), or
   that has a `HIT` on 00471170, with no P1 pair around C in its `@dumpall`.
+
+## 21. The console's river arm, taken (item 3889)
+
+`River::calculate@008858e0` is an open `blind::NEVER` row (§19.4: the
+console's two river arms and `TerrainMap::river_stop` reach it). This take
+enters it through the first of the two arms.
+
+- **The words.** `ConsoleWin::run_cmd@007d6a70` case 0x65 is `river`
+  (`console.py table` index 101, console-only). Its words are
+  `loc_str_array_orig` entries, which `Main::init_string_tables@00595a10`
+  loads from `Data/translated_strings.xml` at stride 0x14. Read
+  positionally (as `console.py` reads `internal_strings.xml`): +0x43d0 is
+  868 `start`, +0x45ec 895 `grow`, +0x4600 896 `calc`, +0x4614 897 `path`,
+  +0x4628 898 `flow`. The `start` arm's message, +0x45d8, is 894 `New
+  river started`, which checks the read. Each test is `String::ignore(arg,
+  word, -1)`, a whole-string `_wcsicmp` of the first argument token, so a
+  line carries one word.
+- **The arms.** `grow` calls `RiversOut::start_river` when the global
+  `cur_river` is null, then `RiverOut::add_spline_point` at
+  `div_3_table[mouse_coord >> 8]`, which is cell c for `@aim`'s 768 c +
+  384. `calc` calls `River::calculate(cur_river, …, 0, 0, 0)` when
+  `cur_river` is non-null. `path` runs `PathFinder::astar_river` from the
+  cursor; on a path it starts a river, adds the path's points and calls
+  `calculate`, the second arm.
+- **The staging** (`tools/gamelog/coverage/river3889-start.cmd`, run1494's
+  golden-start line): `@aim` with `!river grow` at (32, 28), (33, 28) and
+  (34, 28) on 620–622, then `!river calc` on 623. The staging uses three
+  points, not one: `RiverOut::ensure_ocean_end` runs only past two points,
+  and `Spline::calc_spline` sets the order to `count − 1`, which is 0 for
+  one point. The 11×11 around (33, 28) is `BASELAND`, so
+  `ensure_ocean_end`'s 7×7 holds no `OCEAN` and no off-map cell.
+- **Taken (run1499): entered.** `River::calculate` is first entered on
+  623. All five console lines return 1, and `I_AIM` stores
+  768 c + 384 for each of the three cells. `rngcmp.py` against run1130 gives 641
+  identical frames, and `samegame.py --from 620` gives the same game
+  through 623; it parts only on the `@dumpall` block 624 and on 625. No
+  other `NEVER` row is entered. `TerrainMap::river_stop` is
+  called only by `TerrainMap::on_left_down` and
+  `ScenarioEditor::modify_terrain_map`, the editor's UI.
+  `World::set_orig_coast@006b1b80` has no caller in the export.
+- **Not established.** What `calculate`'s body did on 623. The 624 grid
+  equals the start grid in every cell's land and sub, so its
+  `spot_update_land_batch` at `riverbase` changed no cell this dump
+  prints, or ran on an empty list. The coverage records only a
+  function's first entry (every callee was first entered on −1, at map
+  generation), so the trace cannot say which (parked 3889a). The `path`
+  arm is not taken. Every claim here is reading-only, except the entry
+  and the unchanged grid.
