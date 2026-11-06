@@ -14210,10 +14210,11 @@ question stays filed.
 run1502 enters `Forts::close_fort@0073ec90` on 622 (`docs/AI.md` §387). `Blind:` never 268 → 267, open 8 → 7. No
 word moved. The row below names no score.
 
-- **3898a. `close_fort`'s border arm is not compared.** `close_fort` calls `Region::fix_borders` when the fort's
+- ~~**3898a. `close_fort`'s border arm is not compared.** `close_fort` calls `Region::fix_borders` when the fort's
   cell has a region. run1502's Fort stood at tile (54, 25), outside who=1's base, and block 623 was not diffed for
   a border change. A fort that dies inside its owner's territory, with `TERRITORY` dumped either side of the death,
-  would read the arm. It names no score until `sim` models a fort's death beyond `alive`.
+  would read the arm. It names no score until `sim` models a fort's death beyond `alive`.~~ Answered by item 3901
+  (`docs/GOLDEN.md` §157, run1504): the claim is given back over 705..708, cell for cell with the original.
 
 ## Parked by the next landing, slot AM — reserved
 
@@ -14231,13 +14232,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AO — reserved
+## Parked by item 3901, 2026-11-06 — a Fort dies inside its owner's territory; a gaia good's `ever_seen` on a whole dump
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). The row below names no score.
+
+- **3901a. A gaia Oil good's `ever_seen` parts on run1504's first whole dump.** On block 619 the good `255/0` reads
+  `ever_seen` 2 in ours and 0 in theirs. Its `o 0` header prints on no `LEADERS=2` block, so only a whole dump
+  (`@dumpall`) compares it. It sits in `WANT_CH107`. Names no score
+  until a word's frame parts on a good's `ever_seen`; the first read is the writers of the field in `sim` against
+  `GoodData`'s.
 
 ## Parked by the next landing, slot AP — reserved
 

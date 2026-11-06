@@ -17296,12 +17296,57 @@ computers train from them); 305, 299, 312 and 296 standing on the frames of the 
 game's end and the close, 0 off; the death record's last frame (run1496's window) and the dead Carrier's hold at
 1539 (its packet). **Reading only**: the ammo walk's per-round bump order (§156.1). The rubric reads 296 of 302.
 
-## 157. Reserved for the next item on the rules track
+## 157. Chapter one hundred and seven — a Fort dies inside its owner's territory; closed at 760, borders cell for cell (item 3901, run1504)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3898a): `Forts::close_fort@0073ec90` calls `Region::fix_borders` when the fort's cell has a
+region, and run1502's Fort stood outside every territory, so the arm was entered and never compared. The booking's
+hypothesis, that `sim` models a fort's death no further than `alive`, was wrong: `Sim::close_building` already
+re-synced territory for a fort, and `border_pass.rs` paces the result 256 cells a frame as
+`GameDaemon::check_borders` does. What no diff had shown is that the cells and the pace are the original's.
+
+**What the reading settles.** `Region::fix_borders@00680f60` ignores its `this`: it zeroes the resume index of all 64
+regions, the same loop as `Regions::fix_all_borders@0067f7d0`. A fort's death restarts the whole map's border pass,
+as `sim` does. The gate is the fort index: `Build::close@00628980:211`–`:222` calls `close_fort` only when the type
+answers the fort slot (`+0xfc`) and `+0x78 > -1`, and `Build::activate`'s `init_fort` is that index's one writer. An
+unbuilt site takes `remove_unbuilt_fort` and fixes nothing. `sim` had re-synced on any fort's close; now only an
+`active` one (`crates/sim/src/city.rs`; `cities_tests::a_fort_s_close_fixes_the_borders_only_once_it_is_built`, a
+reading alone, since no capture closes an unbuilt fort). The console's `die` (`run_cmd`, `007dde60`–`007ddf1d`) calls
+vslot `+0x158` with `(0, -1, 0)`, which for a building is `Wall::die` → `Object::die`: `close` through `+0x150`,
+then the hold. The interpreter now acts on it (`golden::Cheat::Die` → `Sim::die_building`).
+
+**Staging** (`tools/gamelog/golden/chapter107.cmd`, `RON_STAGE=ch106:chapter107:760`): `0 !ai off`, `620 add fort
+who=1 193,113`, `700 die 2006,1`, and `@dumpall` on 619, 622, 624, 626, 628, 699..708 and 716. The Fort lands as
+`1/2006` at (37152, 21792), cell (48, 28), inside who=1's frame-0 territory one cell from its south-west edge
+(`stage_walk`'s new `RON_STAGE_OWNERS=1` prints the owners). **Falsifiers, written before the take**: block 708
+still holding the Fort's cells as who=1; any cell outside x 37..58, y 17..38 changing `who` or `who2` across
+699..716. A third, `fix_borders` not reached, was settled from disk: run1502's `cover=1` trace enters it first on
+622, its `die` frame, beside `close_fort`.
+
+**What the original does and this crate agrees with** (run1504, `docs/RUNS.md`). No falsifier fired. who=1's cells
+on the `WORLD` blocks are 261 through 624; the claim reaches the map over 625..628 (270, 314, 381, 442) and holds to
+704; after `die` on 700 it is given back over 705..708 (433, 389, 322, 261). Every changed cell is inside the claim's
+box. `chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell` compares every cell's
+`(who, who2)` on all 23 `WORLD` blocks and pins the count by block (`CH107_WHO1_CELLS`). The golden word is the
+trace's end, **760** (`chapter_one_hundred_and_seven_holds_to_the_golden_word`). The window 605..760
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_SEVEN` (604, 761)) parts on 30 rows: the eleven standing `form` rows, and three
+fields only the whole dumps print — `SITE[i].reg` and `aggression[·]` on 620 (parked 2385's family), and on 619 a
+gaia Oil good's `ever_seen` (ours 2, theirs 0; parked 3901a). Nothing parts on the Fort, its death or the border.
+
+**Two harness fixes the take needed.** `Log::initial` took `GAME`'s first `FULL DUMP`, and an `@dumpall` writes the
+next frame's opening dump there after the frames begin; run1504's start `WORLD` was frame 620's. Only a `FULL DUMP`
+before the first `FRAME` is the start's now (`crates/rondata/src/gamelog.rs`). Reverting it parts hundreds of value
+rows from 605 in the widening. And whole-dump blocks (an `@dumpall` line's F and F + 1) print every leader key, so
+`widen_civilians_walk` counts their leader rows apart from the `LEADERS=2` check.
+
+**Mutations** (`tools/mutate.py --batch`, all four held): dropping the `active` gate fails the unit test; dropping
+`die_building` from the `die` arm fails the border and widening tests; reverting the `Initial` pick fails the
+widening (the word walk still reaches 760); emptying the whole-block set fails the widening's leader count.
+
+**Not established.** That a siege's kill gives the claim back the same way: no trace has a fort reach zero hits by
+combat (AI §387.3). An unbuilt fort's close fixing nothing is a reading alone.
+
+**Coverage.** Diff-backed: the Fort's claim and its return, cell for cell, on 23 blocks; draws, orders and every
+dumped value to 760. Reading only: the `active` gate on an unbuilt fort.
 
 ## 158. Reserved for the next item on the rules track
 

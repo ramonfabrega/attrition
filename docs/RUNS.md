@@ -34889,3 +34889,27 @@ Archive `rontrace-run1502.log`, 12,993,472 bytes,
 SHA-256 `618f23d8ce82d82e99965e192d680fdefdd16e190a2ce608a872a9da3397d4b0`.
 
 **What it holds**: `blind::TRACES`' run1502 (item 3898). `Blind:` never 268 → 267, open 8 → 7.
+
+## run1504 — chapter one hundred and seven: a Fort dies inside its owner's territory (2026-11-06, item 3901, `att-3901`)
+
+`docs/GOLDEN.md` §157. **What the disk could not answer**: whether a fort's death gives its claim back to the map,
+and at what pace (parked 3898a). run1502's Fort stood outside every territory, and no block of it was diffed for a
+border. Recipe `tools/gamelog/golden/chapter107.cmd`: `0 !ai off`, `620 add fort who=1 193,113`, `700 die 2006,1`,
+and `@dumpall` on 619, 622, 624, 626, 628, 699..708 and 716. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/ch107 --map 14 --end-frame 760 --log-window 605 760 --timeout 5400`
+with chapter 106's `end:`/`start:` sets and `misc:COMMANDMANAGER=1`, at `cover=0`. 138 GiB free before.
+- Pool lane 1, kept in `~/ron-golden/ch107/map-14/`. Launched 00:17:34, exited 00:18:38: **64.2 s launch to exit**,
+  no relaunch, no page fault. `success`, lifecycle verified, `map_verified`, map style 14, 761 frames, `last_frame`
+  760, seed 12345, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). Minutes waited on another
+  lane: none.
+- The Fort is `1/2006` at (37152, 21792), cell (48, 28), inside who=1's frame-0 territory. who=1's cells on the
+  `WORLD` blocks: 261 through 624; 270, 314, 381, 442 on 625..628; 442 to 704; 433, 389, 322, 261 on 705..708.
+  Every changed cell is inside x 37..58, y 17..38.
+
+`gamelog.txt` 1,009,298,165 bytes, SHA-256 `3322491584bfeea5347fca64af9368ed0aef59f47cc9e9981c8b0efe8c0a4034`.
+`rontrace.log` 9,646,144 bytes, SHA-256 `77909ad32f0c8c415fed247639365dc8f206dbe61ddc69d95acbdbf78698e7ff`.
+
+**What it holds**: `golden::chapter_one_hundred_and_seven_holds_to_the_golden_word` (760, closed),
+`chapter_one_hundred_and_seven_s_window_is_widened_whole` (30 rows) and
+`chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell` (23 `WORLD` blocks, every cell's
+`(who, who2)`); its window 756..760 is in the coverage driver's slice.
