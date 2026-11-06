@@ -1146,14 +1146,24 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `GroupData::show_interface`, `Group::dbg_pack_or_unpack` and
 /// `CommandPackage::process_transport` go to [`RESIDUE`] on scope (§391.3); residue 265 → 268,
 /// open 2 → 29.
-/// **300** with item 3908's cite of the implicit residue's `map` stem (`docs/MAPGEN.md` §22), and
+/// **306** with item 3907's cite of the eight spells no capture ever cast and the editor's
+/// capital (`docs/AI.md` §392; no capture joins [`TRACES`]): `SpellType::cast_immortal_hinf`,
+/// `cast_immortal_arch`, `cast_move_capital`, `cast_assimilate` and `cast_paradrop` — their
+/// `craftrules.xml` rows are `FROM`/`FROM2` `None`, so `is_castable`'s head refuses every caster —
+/// and `ScenarioEditor::make_city_capital@009a1380` go to [`RESIDUE`]; `cast_disband@00671ed0`
+/// (`@queueup 0 666 1 <b>` on a who=0 Barracks), `cast_entrench@00672820` (`@spell 0 637` from a
+/// staged General) and `cast_counterintel@00673740` (`@spell 0 631` from a staged Scout, a
+/// `DETECT` caster, on a who=1 Spy) stay open with their stagings named; residue 268 → 274,
+/// open 29 → 32 on the tree merged with item 3906.
+/// **309** with item 3908's cite of the implicit residue's `map` stem (`docs/MAPGEN.md` §22), and
 /// eleven of items 3480's and 3493's archived style takes joined to [`TRACES`] with no capture
 /// (run1098, run1099, run1117, run1119–run1121, run1123–run1126, run1128): the eleven styles'
 /// `make_continents`, `Map::find_region_centroid` and `Map::eliminate_edge_canals` are entered
 /// on −1 and stay off; `MapConquest::check_starting_loc@0068d7e0` and its script caller
 /// `ScenarioFuncSet::find_extra_starting_loc@009e5070` join with the `!eval` staging that enters
 /// both (§22.3), and `MapConquest::add_additional_players@0068d260` joins as [`RESIDUE`] on
-/// Conquer the World's scope; residue 268 → 269, open 29 → 31.
+/// Conquer the World's scope; residue 274 → 275, open 32 → 34 on the
+/// tree merged with item 3907.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1169,7 +1179,8 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
-    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
+    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80,
+    0x0067_2820, 0x0067_3740, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870, 0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
@@ -1180,7 +1191,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_7ae0, 0x0094_7bd0, 0x0094_7cc0, 0x0094_8660, 0x0094_8a10, 0x0094_8cb0, 0x0094_8e00, 0x0094_9050, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x009e_2220, 0x009e_5070, 0x009f_4c50, 0x00a4_69f0,
+    0x009a_0950, 0x009a_1380, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x009e_2220, 0x009e_5070, 0x009f_4c50, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -2088,6 +2099,24 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0067_0600,
+        "SpellType::cast_immortal_hinf: Go Melee (craftrules.xml row 664 is FROM \
+         none and FROM2 None, so SpellTypeData::is_castable@00675bc0's head \
+         answers 0 for every caster (is(-1) and get_graft(-1) both fail) and \
+         SpellType::cast@00676ce0, the arm's only caller, never reaches its \
+         switch; cast_supplies' and cast_pilfer's reason (parked 3462a), one \
+         reading, item 3907 (docs/AI.md §392))",
+    ),
+    (
+        0x0067_0740,
+        "SpellType::cast_immortal_arch: Go Ranged (craftrules.xml row 663 is FROM \
+         none and FROM2 None, so SpellTypeData::is_castable@00675bc0's head \
+         answers 0 for every caster (is(-1) and get_graft(-1) both fail) and \
+         SpellType::cast@00676ce0, the arm's only caller, never reaches its \
+         switch; cast_supplies' and cast_pilfer's reason (parked 3462a), one \
+         reading, item 3907 (docs/AI.md §392))",
+    ),
+    (
         0x0067_14c0,
         "SpellType::cast_supplies: Restock Supplies (638) is FROM None and \
          FROM2 None in craftrules.xml, so SpellTypeData::is_castable@00675bc0 \
@@ -2109,6 +2138,34 @@ pub const RESIDUE: &[(u32, &str)] = &[
          inlined at every use, or one nothing calls; no reference in the \
          executable (the fiftieth pass's scan over the 192 open rows, \
          2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0067_1760,
+        "SpellType::cast_move_capital: Move Capital Here (craftrules.xml row 647 \
+         is FROM None and FROM2 None, so SpellTypeData::is_castable@00675bc0's \
+         head answers 0 for every caster (is(-1) and get_graft(-1) both fail) and \
+         SpellType::cast@00676ce0, the arm's only caller, never reaches its \
+         switch; cast_supplies' and cast_pilfer's reason (parked 3462a), one \
+         reading, item 3907 (docs/AI.md §392)); its one other caller is the \
+         scenario editor's make_city_capital",
+    ),
+    (
+        0x0067_1820,
+        "SpellType::cast_assimilate: Assimilate (craftrules.xml row 632 is FROM \
+         None and FROM2 None, so SpellTypeData::is_castable@00675bc0's head \
+         answers 0 for every caster (is(-1) and get_graft(-1) both fail) and \
+         SpellType::cast@00676ce0, the arm's only caller, never reaches its \
+         switch; cast_supplies' and cast_pilfer's reason (parked 3462a), one \
+         reading, item 3907 (docs/AI.md §392))",
+    ),
+    (
+        0x0067_1f80,
+        "SpellType::cast_paradrop: Paradrop (craftrules.xml row 644 is FROM None \
+         and FROM2 None, so SpellTypeData::is_castable@00675bc0's head answers 0 \
+         for every caster (is(-1) and get_graft(-1) both fail) and \
+         SpellType::cast@00676ce0, the arm's only caller, never reaches its \
+         switch; cast_supplies' and cast_pilfer's reason (parked 3462a), one \
+         reading, item 3907 (docs/AI.md §392))",
     ),
     (
         0x0067_3e80,
@@ -2874,6 +2931,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
         0x009a_0950,
         "ScenarioEditor::generate_map: the scenario editor, cut from v1; its two \
          callers are Options::exec_editor's (item 3859; the sixty-sixth pass)",
+    ),
+    (
+        0x009a_1380,
+        "ScenarioEditor::make_city_capital: the scenario editor, cut from v1; it \
+         calls SpellType::cast_move_capital directly, the one caller of that body \
+         outside SpellType::cast (item 3907, docs/AI.md §392)",
     ),
     (
         0x009a_3f30,

@@ -14382,13 +14382,22 @@ leash, and a packer's combat stance is always 2. Both rows stay `NEVER`.*
   a GOLDEN section from §158–§163. **Score**: `Blind:` never and open, 27 rows; each staging names its `CM`
   killer.
 
-## Parked by the next landing, slot AU — reserved
+## Parked by item 3907, 2026-11-06 — the spells no capture ever cast
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3907a. Three spell stagings for the commander to book as chapters** (`docs/AI.md` §392.3). Each falsifier was
+  written before any run:
+  - Disband: `add barracks who=0`, then `@queueup 0 666 1 <b>`. Its `queued` must read 1 two frames on, and the
+    Barracks must be gone when its own train time completes.
+  - Entrench: `add general who=0` with a who=0 Hoplite squad two tiles off, then `@spell 0 637 -1 -1 0 0 <general>`.
+    Expect a `CASTORDER`, `mana_burn` +1000 and `spell_time` to 120.
+  - Counterintelligence: `add scout who=0` with a who=1 Spy within its sight, then
+    `@spell 0 631 <spy> 1 <x> <y> <scout>`. Expect a `CASTORDER`, `mana_burn` +500, and the Spy dead with `dtype` 2.
+    No `CASTORDER` means the `DETECT` premise is false.
+
+  Each one taken moves its row off `blind::NEVER`.
+- **3907b. The writers of a craft's `FROM` (`+0x3c`)** besides `SpellType::init@00674a80`. The offset is too common
+  to grep, and §392.2's five `RESIDUE` rows hold only while no writer puts a type there. A second reading of §392.2
+  would grep it by the listing's `[reg+0x3c]` stores into a `SpellType`. Names no score.
 
 ## Parked by item 3908, 2026-11-06 — the map styles' takes were on disk
 
@@ -14520,6 +14529,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot BJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BP renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
