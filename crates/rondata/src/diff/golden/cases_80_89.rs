@@ -1222,4 +1222,11 @@ pub(super) fn chapter_one_hundred_and_eleven_holds_to_the_golden_word() {
         GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ELEVEN,
         "chapter one hundred and eleven's golden word moved; re-pin it and say so in docs/GOLDEN.md §161"
     );
+    // The draws by site name too: `Object::disband+0x415` is a row of
+    // `trace::SITES` only this chapter reads (item 3914).
+    pin_eq!(
+        w.sequence,
+        GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ELEVEN,
+        "chapter one hundred and eleven's draw sites part before its word"
+    );
 }
