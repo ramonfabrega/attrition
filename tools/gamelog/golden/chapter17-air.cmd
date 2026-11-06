@@ -28,6 +28,9 @@
 #       --detail misc:COMMANDMANAGER=1 --no-ffwd --bindkey OPTION_RETURN=124 \
 #       --cmd-file tools/gamelog/golden/chapter17-air.cmd [--cover cover=1]
 #
+# The trailing words of the `@rclick` and `@key` lines are the harness's
+# (the target under the cursor, the bound action); the DLL ignores them.
+#
 # WHAT WOULD FALSIFY IT, read before the run (the journal has it whole).
 # (1) No `process_patrol` on 681, or `0/6` holding a `PATROLORDER` rather
 # than an `AIRPATROLORDER` on 682. (2) No `HIT` on `is_in_air_range` on 792;
@@ -48,6 +51,6 @@
 680 @patrol 0 7680 11520 6
 780 camera 110,86
 786 select 7 who=0
-792 @rclick 960 445
+792 @rclick 960 445 2006 1
 850 select 8 who=0
-852 @key 124
+852 @key 124 OPTION_RETURN
