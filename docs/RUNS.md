@@ -34957,4 +34957,4 @@ SHA-256 `b37bbb0674666ee8721f6f86dc72cd01f1ad2b16b3ea1a861b4f006e80e17505`.
 Archive `rontrace-run1506b.log`, 42,898,976 bytes,
 SHA-256 `9dc05b0b038c1f69ac47d04b313dd405b3a72ee0f2ab150ccf1a438a4720d834`.
 
-**What it holds**: `blind::TRACES`' run1506b (item 3912). `Blind:` never 309 → 303, open 34 → 28.
+**What it holds**: `blind::TRACES`' run1506b (item 3912). `Blind:` never 366 → 360, open 37 → 31 on the tree merged with item 3909.

@@ -17401,7 +17401,7 @@ parts in the window, so there is no value diff to report. The widening is run150
 `WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE` (605, 2601), and parts on the eleven standing `form` rows on 605 alone,
 nothing on 2293, 2313 or after (`chapter_one_hundred_and_nine_s_window_is_widened_whole`, `WANT_CH109`). run1506b,
 the `cover=1` twin, enters the three functions of each button on 2292 and 2312 and takes six rows off the blind list
-(`blind::NEVER` 309 → 303).
+(`blind::NEVER` 366 → 360 on the tree merged with item 3909).
 
 **Mutations** (`tools/mutate.py --batch`, on the committed tree, against the chapter's two tests):
 
