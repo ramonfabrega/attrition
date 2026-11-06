@@ -2454,6 +2454,9 @@ mod tests {
         // Citizens selected by `select` and the key bound to
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).
         ("chapter113.cmd", &[]),
+        // Chapter one hundred and sixteen: a General and a Hoplite squad, and
+        // the General's Entrench, `@spell` (item 3919, `docs/GOLDEN.md` §166).
+        ("chapter116.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),

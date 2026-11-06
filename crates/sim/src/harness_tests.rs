@@ -4533,6 +4533,63 @@ fn salmon_prices_a_sea_unit_and_maize_halves_the_ramp() {
     assert!(halved[f] < plain[f], "{halved:?} < {plain:?}");
 }
 
+/// **An Entrench digs in each idle, armed captain on friendly ground** (item
+/// 3919, `SpellType::cast_entrench@00672820`, `docs/GOLDEN.md` §166): of
+/// five units inside the caster's radius only the idle combat captain on a
+/// cell its owner holds takes the trench, with its heading as the trench's
+/// angle; an unarmed one, a busy one, one on an unowned cell and one with an
+/// enemy attacker within 0x600 do not — and the caster's own type, which
+/// has no attack, never does.
+#[test]
+fn an_entrench_digs_in_each_idle_armed_captain_on_friendly_ground() {
+    let mut sim = arena();
+    for y in 0..16 {
+        for x in 0..16 {
+            sim.world
+                .set_owner(Cell::new(x, y), Owner::Player(0), Owner::None);
+        }
+    }
+    // Cell (1, 3) is no one's.
+    sim.world
+        .set_owner(Cell::new(1, 3), Owner::None, Owner::None);
+    let hop = sim.add_unit_type(hoplite_type());
+    let unarmed = sim.add_unit_type(UnitType {
+        combat: combat::Profile {
+            attack: 0,
+            ..hoplite_type().combat
+        },
+        ..hoplite_type()
+    });
+    let n = movement::Angle::NORTH;
+    let g = combatant(&mut sim, 0, unarmed, Pos::new(2000, 2000), n);
+    let dug = combatant(&mut sim, 0, hop, Pos::new(2384, 2000), n);
+    let busy = combatant(&mut sim, 0, hop, Pos::new(2000, 2384), n);
+    let bare = combatant(&mut sim, 0, unarmed, Pos::new(1616, 2000), n);
+    let wild = combatant(&mut sim, 0, hop, Pos::new(1000, 2400), n);
+    let near = combatant(&mut sim, 0, hop, Pos::new(3400, 2000), n);
+    let _foe = combatant(&mut sim, 1, hop, Pos::new(4400, 2000), n);
+    sim.order_move(busy, Pos::new(2000, 6000));
+    assert_eq!(sim.world.owner_at(sim.units[wild].pos), Owner::None);
+    sim.cast_entrench(g);
+    let unit = &sim.units[dug];
+    assert!(unit.combat.entrenched, "the idle armed captain digs in");
+    assert_eq!(unit.combat.trench_angle, unit.movement.heading);
+    assert_eq!(unit.unit_masks2 & combat::umask2::ANTIPATER_TRENCH, 0);
+    for (u, why) in [
+        (g, "the caster's type has no attack"),
+        (busy, "a unit with an order is not idle"),
+        (bare, "no attack, no trench"),
+        (wild, "an unowned cell refuses"),
+        (near, "an enemy attacker within 0x600 refuses"),
+    ] {
+        assert!(!sim.units[u].combat.entrenched, "{why}");
+    }
+    assert!(
+        !sim.is_idle(busy),
+        "the trench leaves a refused unit's orders"
+    );
+}
+
 /// **The marines dig in at idle 7, and a step leaves the trench** (item
 /// 3661, `check_idle@006032c0:33`–`41`, `move_step@005faf30:60`–`65`): a
 /// unit carrying `unit_masks2 & 0x800` takes the trench on the frame its
