@@ -445,7 +445,7 @@ impl Sim {
         }
         self.mark(SITE_DISBAND_DIE);
         let r = self.rng.roll();
-        self.die_with(u, (r % 3) as i32 + 1);
+        self.die_with(u, r % 3 + 1);
     }
 }
 
