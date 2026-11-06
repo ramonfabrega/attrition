@@ -796,6 +796,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch104 = golden_dump("ch104");
     let ch105 = golden_dump("ch105");
     let ch106 = golden_dump("ch106");
+    let ch107 = golden_dump("ch107");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2853,6 +2854,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "chapter one hundred and six carries four blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and seven, on run1504** (item 3901): a Fort
+    // dies inside its owner's territory; closed at 760, the window is its
+    // last blocks, clear of the `@dumpall` blocks the border test reads.
+    if let Some(p) = &ch107 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_SEVEN;
+        let n = drive_capture(p, 756, 760, &mut paths);
+        assert_eq!(
+            n, 4,
+            "chapter one hundred and seven carries four blocks in the window"
         );
         frames += n;
     }

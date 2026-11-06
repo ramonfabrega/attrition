@@ -2249,6 +2249,18 @@ fn widen_civilians_walk(
     let mut unread_goods = 0usize;
     let mut ammo_rows = 0usize;
     let mut no_goods = 0usize;
+    // **A whole dump's blocks** (item 3901): an `@dumpall` line on frame F
+    // makes block F and F + 1's opening dump whole, so their `LEADERDATA`
+    // prints every key and not `LEADERS=2`'s; their leader rows are counted
+    // apart, and the per-block count below holds on every other block.
+    let whole: BTreeSet<i64> = s
+        .script
+        .lines()
+        .iter()
+        .filter(|l| l.text.trim() == "@dumpall")
+        .flat_map(|l| [l.frame, l.frame + 1])
+        .collect();
+    let (mut whole_blocks, mut whole_leader_rows) = (0usize, 0usize);
     for f in 0..last - 1 {
         s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
         s.built.tick();
@@ -2563,13 +2575,20 @@ fn widen_civilians_walk(
                     missing.insert(k);
                     continue;
                 };
-                leader_rows += 1;
+                if whole.contains(&n) {
+                    whole_leader_rows += 1;
+                } else {
+                    leader_rows += 1;
+                }
                 if v != y {
                     firsts
                         .entry((who as i64, -1, format!("leader:{k}")))
                         .or_insert((n, format!("ours {v} theirs {y}")));
                 }
             }
+        }
+        if whole.contains(&n) {
+            whole_blocks += 1;
         }
         // **The `GOOD` list, both directions**, keyed on the good's own
         // `o`, which is its index in this crate's `World::goods`
@@ -2743,9 +2762,13 @@ fn widen_civilians_walk(
     );
     assert_eq!(
         leader_rows,
-        2 * leader_keys * blocks,
+        2 * leader_keys * (blocks - whole_blocks),
         "{run}: the leader rows the dump prints are not compared on every block \
          ({leader_keys} a leader: {LEADERS_TWO_KEYS} at LEADERS=2)"
+    );
+    assert!(
+        whole_leader_rows >= 2 * leader_keys * whole_blocks,
+        "{run}: a whole dump's block compares fewer leader rows than LEADERS=2's"
     );
     assert!(
         good_rows > 0 || no_goods == blocks,
@@ -6001,6 +6024,109 @@ const WANT_CH106: &[&str] = &[
 fn chapter_one_hundred_and_six_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_six_holds_to_the_golden_word();
 }
+
+/// **run1504 whole, both directions** (item 3901, `docs/GOLDEN.md` §157).
+#[test]
+fn chapter_one_hundred_and_seven_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_seven_s_window_is_widened_whole();
+}
+
+/// What parts in run1504's window, blocks 605–760 (item 3901): the
+/// eleven standing `form` rows every golden chapter carries, and on the
+/// first whole dumps (`@dumpall`, every key printed) three standing fields
+/// `LEADERS=2` never prints — the leaders' `SITE[i].reg` and
+/// `aggression[·]` (parked 2385's family), and a gaia Oil good's
+/// `ever_seen`, whose `o 0` header no other block prints (parked 3901a).
+/// Nothing parts on the Fort, its death or the border.
+const WANT_CH107: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "619 255/0 good:ever_seen",
+    "620 0/-1 leader:SITE[0].reg",
+    "620 0/-1 leader:SITE[1].reg",
+    "620 0/-1 leader:SITE[2].reg",
+    "620 0/-1 leader:SITE[3].reg",
+    "620 0/-1 leader:SITE[4].reg",
+    "620 0/-1 leader:SITE[5].reg",
+    "620 0/-1 leader:SITE[6].reg",
+    "620 0/-1 leader:SITE[7].reg",
+    "620 0/-1 leader:SITE[8].reg",
+    "620 0/-1 leader:SITE[9].reg",
+    "620 0/-1 leader:aggression[1]",
+    "620 1/-1 leader:SITE[0].reg",
+    "620 1/-1 leader:SITE[1].reg",
+    "620 1/-1 leader:SITE[2].reg",
+    "620 1/-1 leader:SITE[3].reg",
+    "620 1/-1 leader:SITE[4].reg",
+    "620 1/-1 leader:SITE[5].reg",
+    "620 1/-1 leader:aggression[0]",
+];
+
+/// Chapter one hundred and seven holds to its golden word (item 3901, run1504).
+#[test]
+fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_seven_holds_to_the_golden_word();
+}
+
+/// **A fort's death gives its claim back at the border pass's pace**
+/// (item 3901, `docs/GOLDEN.md` §157, run1504): every cell's `(who, who2)`
+/// on all twenty-three `@dumpall` blocks is the original's, and the
+/// original's who=1 count is the walk's — 261 before the Fort, its claim
+/// spread over 624..628 to 442, and given back over 704..708 after the
+/// console's `die` on 700 (`Build::close` → `Forts::close_fort` →
+/// `Region::fix_borders`).
+#[test]
+fn chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell() {
+    let Some((parted, held)) = cases_80_89::chapter_one_hundred_and_seven_borders() else {
+        return;
+    };
+    eprintln!("ch107: {} WORLD blocks compared", held.len());
+    for row in parted.iter().take(40) {
+        eprintln!("  ch107 border {row}");
+    }
+    assert!(
+        parted.is_empty(),
+        "{} cell(s) part from run1504's WORLD blocks",
+        parted.len()
+    );
+    assert_eq!(held, CH107_WHO1_CELLS, "who=1's cells by dumped block");
+}
+
+/// who=1's owned cells on each of run1504's `WORLD` blocks (item 3901).
+const CH107_WHO1_CELLS: &[(i64, usize)] = &[
+    (619, 261),
+    (620, 261),
+    (622, 261),
+    (623, 261),
+    (624, 261),
+    (625, 270),
+    (626, 314),
+    (627, 381),
+    (628, 442),
+    (629, 442),
+    (699, 442),
+    (700, 442),
+    (701, 442),
+    (702, 442),
+    (703, 442),
+    (704, 442),
+    (705, 433),
+    (706, 389),
+    (707, 322),
+    (708, 261),
+    (709, 261),
+    (716, 261),
+    (717, 261),
+];
 
 /// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
 #[test]

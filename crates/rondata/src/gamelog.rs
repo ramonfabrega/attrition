@@ -4084,7 +4084,26 @@ impl<'a> Log<'a> {
         // object lists from the same place). Its `WorldData::log_data` runs
         // at the override detail, so the cells and tiles are there whatever
         // `[Start Game] WORLD` said — run20 is read this way.
-        let body = game.kid("FULL DUMP").unwrap_or(game);
+        //
+        // **Only a `FULL DUMP` ahead of the first frame is the start's**
+        // (item 3901). An `@dumpall` line writes the next frame's opening
+        // dump as a `FULL DUMP` at `FRAME`'s own indent, a child of `GAME`
+        // after the frames begin; run1504's first was frame 620's, and its
+        // `WORLD` — the Fort's claim, every cell's fog — stood in for the
+        // start's until frame 0's scouts and farms drew from it. A dump whose
+        // `GAME` carries its own start `WORLD` before the frames reads that;
+        // one with neither keeps the old reach.
+        let pre: Vec<_> = game
+            .children()
+            .take_while(|b| !b.name().starts_with("FRAME"))
+            .collect();
+        let body = pre
+            .iter()
+            .find(|b| b.name() == "FULL DUMP")
+            .copied()
+            .or_else(|| pre.iter().any(|b| b.name() == "WORLD").then_some(game))
+            .or_else(|| game.kid("FULL DUMP"))
+            .unwrap_or(game);
         if let Some(w) = body.kid("WORLD") {
             init.world = w.fields().to_vec();
         }
