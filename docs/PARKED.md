@@ -13969,7 +13969,8 @@ it with no capture. The refill of the map lane, the commander's to book.
 
 ## Parked by item 3879, 2026-11-05 — the diagonal arm entered
 
-(3879a) **`check_for_diagonal@008595f0`'s body on (3, 16) is entered and unread.** Run1497 enters it on 620 and
+(3879a) ~~**`check_for_diagonal@008595f0`'s body on (3, 16) is entered and unread.**~~ Read (item 3886, MAPGEN §20,
+"The arm's body"; parked 3886a): run1497's `Found bl corner at (3,16)` fires before the `is_valid` calls. Run1497 enters it on 620 and
 does not enter `WorldData::is_valid@00471170`; `plant.py` stops at the entry, and no dump prints what the arm writes.
 Killed by a reading of the body that needs `is_valid` on a SW-shaped C with P `BASELAND`. Names no score: the
 `Blind:` row `is_valid@00471170`, whose route is now this body.
@@ -14041,13 +14042,17 @@ Killed by a reading of the body that needs `is_valid` on a SW-shaped C with P `B
   first: whether run1493's start dump prints `master_land_heights`, and how many of the 292 cliff cells' tiles
   `has_plus_slope` is handed. The refill of the map lane is the commander's to book.
 
-## Parked by the next landing, slot AA — reserved
+## Parked by item 3886, 2026-11-05 — the diagonal arm's body, read
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3886a. `WorldData::is_valid@00471170` is a `blind::RESIDUE` candidate** (`docs/MAPGEN.md` §20, "The arm's body").
+  The arm reaches its four `is_valid` calls only when none of its four orthogonal pair tests fires. An entered cell's
+  corner fires its own test unless its two one-up flanks differ, and distinct flanks need §19.3's P1 pair
+  (`halfland::tests::the_diagonal_arm_reaches_is_valid_only_past_a_p1_pair`). `plant.py scan`: 66 single plants enter
+  the arm on 69 grids, and 0 reach `is_valid`. The two-plant search (Chebyshev 3, `COAST_BASE` 3) gives
+  8,201,021 pairs, 2,152 entries and 0 reaching `is_valid`. The row moves on a second reading that re-derives the pair tests and the fall-through
+  (0x859776..0x859b1e), C → F 1 on both flanks of an entered corner, `SANDY`'s one one-up land, and distinct flanks
+  ⇒ P1. Reopened only by a P1 pair that survives `verify_land` (the depth leak, 3863a). It is a `Blind:` row
+  (open 39 → 38 when it moves); the second reading is the commander's to book.
 
 ## Parked by item 3887, 2026-11-05 — the fifteen candidates' blind second reading
 
