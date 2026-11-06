@@ -1342,6 +1342,14 @@ mod infinite_tests {
         s.buildings[b].city = None;
         s.buildings[b].queue.items.clear();
         assert!(s.disband_castable(b, false), "outside any city");
+        // `researching(.., o, 1, 0)`, the building's own queue: the group's
+        // research arm refuses a second press first, so only a direct
+        // `Build::queue_up` reaches it.
+        assert!(s.queue_disband(b));
+        assert!(!s.disband_castable(b, false), "its own entry stands");
+        assert!(s.disband_castable(b, true), "and is allowed at the finish");
+        assert!(!s.queue_disband(b));
+        assert_eq!(s.buildings[b].queue.count_disband(), 1);
     }
 
     #[test]
