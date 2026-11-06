@@ -8321,7 +8321,6 @@ fn a_peasant_alarm_sends_each_citizen_to_the_nearest_garrison_however_far() {
     }
     assert!(sim.push_group(&mut g, true));
     sim.action_alarm_peasant(&g);
-    assert!(sim.ledgers[0].dirty, "the order marks the economy dirty");
     for u in [far, walker] {
         assert!(
             matches!(
@@ -8335,6 +8334,7 @@ fn a_peasant_alarm_sends_each_citizen_to_the_nearest_garrison_however_far() {
     let kinds: Vec<u8> = sim.units[walker].orders.iter().map(|o| o.index()).collect();
     assert!(kinds.contains(&index::MOVE_TO), "the walk kept: {kinds:?}");
     assert!(sim.units[m].orders.is_empty(), "a Militia takes nothing");
+    assert!(sim.ledgers[0].dirty, "the order marks the economy dirty");
 
     let mut again = crate::group::Group::stack(0);
     sim.group_add(&mut again, far);
