@@ -246,7 +246,7 @@ pub fn group_air_attack_ground(
 /// `docs/GOLDEN.md` §158): [`group_patrol`]'s group, then
 /// `CommandPackage::process_recall@00947bd0`'s one call,
 /// `Group::action_recall`.
-pub fn group_recall(built: &mut Built, who: i32, objects: &[i16]) -> usize {
+pub fn group_recall_units(built: &mut Built, who: i32, objects: &[i16]) -> usize {
     let player = who as sim::Player;
     let mut g = sim::group::Group::stack(player);
     for &o in objects {
@@ -1032,6 +1032,47 @@ pub fn group_launch_patrol(
     };
     let keys = sim::airbase::Keys { shift: all, ..keys };
     built.sim.group_action_launch_patrol(&list, at, queue, keys);
+    list.len()
+}
+
+/// **`CommandPackage::process_recall@00947bd0`** on the player's own
+/// buildings: `OPTION_AIRBASE_RECALL` with an Airbase selected, the
+/// selection's `group` and a `recall` (0x23), whose `Group::action_recall`
+/// building arm is [`sim::Sim::group_action_recall_buildings`] (item 3912,
+/// `docs/GOLDEN.md` §159).
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_recall(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built.sim.group_action_recall_buildings(player, &list);
+    list.len()
+}
+
+/// **`CommandPackage::process_scramble@00947ae0`** on the player's own
+/// buildings: `OPTION_AIRBASE_SCRAMBLE`, a `scramble` (0x24), whose entry
+/// is [`sim::Sim::group_action_scramble`] (item 3912, `docs/GOLDEN.md`
+/// §159).
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_scramble(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built.sim.group_action_scramble(&list);
     list.len()
 }
 

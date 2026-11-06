@@ -3671,9 +3671,8 @@ impl Sim {
     /// leader whose type is domain 2 hands the call to
     /// [`Self::group_action_return`] (item 3911, `docs/GOLDEN.md` §158).
     ///
-    /// SEAM: the building arm — each member's gather point cleared, then
-    /// every fixed-wing plane of the player in flight homed on a member
-    /// sent home on a strafe (AI §391.2 row 4) — is not built here.
+    /// The building arm is [`Self::group_action_recall_buildings`] (item
+    /// 3912), which the harness reaches on a building selection.
     pub fn group_action_recall(&mut self, g: &Group) {
         let Some(leader) = self.group_find_leader(g) else {
             return;

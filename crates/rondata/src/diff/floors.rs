@@ -1495,6 +1495,11 @@ mod tests {
             WIDENING_CHAPTER_SEVENTEEN_AIRGROUND,
         ),
         (
+            "ch109",
+            GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE,
+            WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE,
+        ),
+        (
             "ch110",
             GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN,
             WIDENING_CHAPTER_ONE_HUNDRED_AND_TEN,

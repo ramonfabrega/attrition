@@ -39099,14 +39099,16 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
    - Staging: chapter thirty-three's lines to 2280 (`@launchpatrol` from `0/2007`), then `2290 select 2007 who=0`
      and `2292 @key 124` with `--bindkey OPTION_AIRBASE_RECALL=124`.
    - Killer: no `process_recall 2293`, or the launched planes still on their `AIRPATROLORDER` on 2294.
-   - The function is entered by run1505 on 852 through its first branch, a domain-2 leader (row 3; GOLDEN §158),
-     so it is off `blind::NEVER`. This arm, a building group, is still not entered by any take.
+   - **Entered** on run1506b, 2292, and diffed on run1506 (`docs/GOLDEN.md` §159, item 3912): no killer fired.
+     Its first branch, a domain-2 leader, is entered by run1505 on 852 (row 3; GOLDEN §158, item 3911).
 5. **`Group::action_scramble@007111c0`.** It walks each member's `inside_down` chain (`+0x28`, `+0x3e`). Every
    air passenger that is idle (`UnitData::is_busy` 0), has `+0x1e4 & 0x8000000` clear and has `+0x96` at 0 is sent
    up: a fixed-wing plane gets an `AIRPATROLORDER` over the host's point, and a helicopter a `MOVEORDER` to it.
    - Staging: chapter thirty-three's lines to 1850, so the queued plane from 1540 is inside, then
      `2250 select 2007 who=0` and `2252 @key 125` with `--bindkey OPTION_AIRBASE_SCRAMBLE=125`.
    - Killer: no `process_scramble 2253`, or no `AIRPATROLORDER` at `0/2007`'s point on 2254.
+   - **Entered** on run1506b, staged at 2312 after the recall (`2312 @key 125`), and diffed on run1506
+     (`docs/GOLDEN.md` §159, item 3912): no killer fired. The carrier route stays unstaged.
    - Second route: `Unit::do_patrol@005f1910:87-102` calls it on every step of a patrolling `AIRCRAFTCARRIER`
      (0x15f) with a passenger (`inside_down` ≥ 0). That is `@patrol` on GOLDEN §147's carrier once its planes
      are aboard.

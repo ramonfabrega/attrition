@@ -1390,10 +1390,12 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             .unwrap_or(CONSOLE_WHO);
         let objects: Vec<i16> = tok.filter_map(|t| t.parse().ok()).collect();
         let n = match action {
+            "OPTION_AIRBASE_RECALL" => crate::input::group_recall(built, who, &objects),
+            "OPTION_AIRBASE_SCRAMBLE" => crate::input::group_scramble(built, who, &objects),
             "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
             // `Options::recall_aircraft@0071c670`'s `recall` (byte 0x23) on
             // a selection of units (item 3911, `docs/GOLDEN.md` §158).
-            "OPTION_RETURN" => crate::input::group_recall(built, who, &objects),
+            "OPTION_RETURN" => crate::input::group_recall_units(built, who, &objects),
             _ => {
                 done.skip(&word, "a bound option this interpreter does not act on");
                 return;
@@ -1569,7 +1571,9 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `Unit::action_come_out@005e20b0` has no port (parked 3425a).
         // `recall` is the harness's spelling of `OPTION_RETURN`'s key (item
         // 3911): `process_recall@00947bd0` → `Group::action_recall`.
-        Some(Issued::Recall { who, objects }) => crate::input::group_recall(built, who, &objects),
+        Some(Issued::Recall { who, objects }) => {
+            crate::input::group_recall_units(built, who, &objects)
+        }
         // A plane leader's `@attackground` is the air arm (item 3911).
         Some(Issued::AttackGround { who, to, objects })
             if crate::input::group_air_attack_ground(built, who, &objects, to, 2).is_some() =>
@@ -2408,6 +2412,10 @@ mod tests {
         // console's `die`, which the interpreter acts on (item 3901,
         // `docs/GOLDEN.md` §157).
         ("chapter107.cmd", &[]),
+        // Chapter one hundred and nine: chapter thirty-three's lobby, the
+        // Airbase selected by `select` and two bound keys, `@key`, which the
+        // interpreter acts on (item 3912, `docs/GOLDEN.md` §159).
+        ("chapter109.cmd", &[]),
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),

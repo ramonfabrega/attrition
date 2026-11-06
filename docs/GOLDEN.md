@@ -17383,8 +17383,8 @@ which run1505b takes from the Airbase: `is_in_air_range`, `execute_at_cursor` an
 `returning 1`, with the patrol behind it closed. The console's `select` takes a building on the lane.
 
 **Built** (`crates/sim/src/group.rs`): `group_action_air_patrol` (`group_action_patrol` hands it a plane leader or
-an air member); `group_action_recall`, which sends a domain-2 leader to `group_action_return` (the building arm is a
-SEAM, lane 3912's `group_action_recall_buildings`); `group_action_return`; `group_action_air_attack_ground`; and
+an air member); `group_action_recall`, which sends a domain-2 leader to `group_action_return` (the building arm is
+item 3912's `group_action_recall_buildings`, §159); `group_action_return`; `group_action_air_attack_ground`; and
 `is_in_air_range`, `vector_dist(target − building)` against `UnitData::mana × get_speed(own point, 1)` of any plane
 inside. The harness (`crates/rondata/src/golden.rs`) spells `@key <vk>` bound to `OPTION_RETURN` as the
 harness-only `@recall` on the console's selection, and `@rclick` as `@strike` on a unit selection or as
@@ -17423,24 +17423,92 @@ the Barracks sits deep inside it. Widening the facing limit from 15° to 60° do
 straight at the point. Moving the order's point 768 east does not move the bombs, so a Bomber's round does not take
 its landing from the order's point (park 3911a).
 
-**Not established.** The recall's building arm (`action_recall` on a selected Airbase), which is lane 3912's. A
-non-missile, non-Bomber plane's `fire_ammo` arm in `do_air_attack_ground`, and the Bomber's `BOMBING_MANA_COST`
+**Not established.** A non-missile, non-Bomber plane's `fire_ammo` arm in `do_air_attack_ground`, and the Bomber's `BOMBING_MANA_COST`
 (0 in the shipped rules), both SEAMs. `is_in_air_range`'s refusal, since no take clicked out of range.
 `ObjectData::is_in_range@0064e4a0` is excluded from the trace's instrumentation (a branch target inside the
 displaced range), so its entry is seen only through its effect.
 
 **Coverage.** Diff-backed: all four arms' orders and every dumped value to 1100 and 1060, the release and its bombs
-on 846..880. Seven rows leave `blind::NEVER` with run1505 and run1505b in `TRACES`: `action_air_patrol`,
-`action_air_attack_ground`, `action_recall`, `action_return`, `is_in_air_range`, `Options::recall_aircraft` and
-`CommandPackage::process_recall`. Reading only: the range test's refusal arm, the facing test's bound and the `0x127` line's wider one, and how far
-`is_in_air_range`'s reach extends.
+on 846..880. Four rows leave `blind::NEVER` with run1505 and run1505b in `TRACES`: `action_air_patrol`,
+`action_air_attack_ground`, `action_return` and `is_in_air_range`. run1505 enters `action_recall`,
+`Options::recall_aircraft` and `CommandPackage::process_recall` too, which item 3912's run1506b had already taken
+off. Reading only: the range test's refusal arm, the facing test's bound and the `0x127` line's wider one, and how
+far `is_in_air_range`'s reach extends.
 
-## 159. Reserved for the next item on the rules track
+## 159. Chapter one hundred and nine — the Airbase's recall and scramble; closed at 2600 (item 3912, run1506)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 rows 4 and 5): `Group::action_recall@006fa7e0` and
+`Group::action_scramble@007111c0` were on the blind list with their stagings written and no capture. Both are
+reached from the Airbase's two buttons, `OPTION_AIRBASE_RECALL` and `OPTION_AIRBASE_SCRAMBLE`, through
+`Options::recall_aircraft@0071c670` and `scramble_aircraft@0071c5d0` and the command bytes 0x23 and 0x24
+(`CommandPackage::process_recall@00947bd0`, `process_scramble@00947ae0`).
+
+**What the reading settles.**
+
+- `action_recall`'s building arm (the leader not domain 2; a domain-2 leader takes `action_return`, item 3911's
+  `group_action_recall`): `Build::clear_gather` on every member that is active (`+0xc`, `SubObjectData::is_active`,
+  `flags & 1`) and a building (`+0x20`, `Buffer::is_pending_load`, which answers 1). That call already sends every
+  homed plane home. Then it walks every unit of `who` in index order: a fixed-wing plane on the map whose air order's
+  home is a member is closed and re-given `add_strafe_order(−1, −1, home, 0, QUEUE_NEW, 0)`, carrying the
+  `cruising_alt` and `sharp_turn` of the order it replaces; one inside a member takes `clear_orders` and leaves the
+  host's `launching` (`+0x44`). On an Airbase the walk repeats the Clear's hangar half.
+- `action_scramble`: down each member's `inside_down` chain (`+0x28`/`+0x3e`), every domain-2 passenger that is not
+  busy, not a missile and full (`mana_burn`, `+0x96`, 0) goes up: `add_air_patrol_order(host.x, host.y, host, 1)`.
+  The listing (`7114dc`..`7114fa`) pushes the host's `y` as the `QueuePos`, which the fixed-wing arm never reads. A
+  helicopter instead takes a built `MOVE_TO` to the host's cell centre (reading only; no capture holds one).
+
+Built in `crates/sim/src/airbase.rs`: `Sim::group_action_recall_buildings` and `Sim::group_action_scramble`, with
+`airbase::tests::the_recall_sends_every_plane_homed_at_the_base_home` and
+`the_scramble_sends_every_full_plane_inside_up_over_its_base`. The harness's `@key <vk>` resolves through the
+chapter's `# bindkey` lines against the console's selection on the key's frame and reaches the pump on F + 1
+(`rondata::golden`); `rondata::input` carries `group_recall` and `group_scramble`.
+
+**Staging** (`tools/gamelog/golden/chapter109.cmd`): chapter thirty-three's lines to its 2280 launch patrol, then
+`2290 select 2007 who=0`, `2292 @key 124` (recall) and `2312 @key 125` (scramble), with `--bindkey` on the capture.
+§391.2's row 5 staged the scramble at 2252; it moved after the recall so one take holds both. **Falsifiers, written
+before the take**: `KEYMAP_NONE` on either key (the console's `select` of a building refused); no
+`process_recall 2293` or no `process_scramble 2313`; on 2294, 0/8 or 0/9 not holding exactly one `STRAFEORDER` with
+no target, home 0/2007, `returning` 1, `mandatory` 0; on 2314, 0/7 or 0/6 not holding one `AIRPATROLORDER` over
+0/2007's own point; and `action_recall` or `action_scramble` not entered on the `cover=1` twin.
+
+**What the original does and this crate agrees with** (run1506 and run1506b, `docs/RUNS.md`). No falsifier fired.
+On 2294, 0/8 (a strike on `1/2006` before) and 0/9 (a patrol over P1 at `cruising_alt` 1800) each hold one
+`STRAFEORDER xx=-1 yy=-1 mandatory=0 oxx=2007 cruising_alt=1600 returning=1`. 0/9's height moving 1800 → 1600 is
+the reading's order: the Clear runs first, and the walk then copies the Clear's strafe, not the patrol it replaced.
+On 2314, 0/7 and 0/6 each hold one `AIRPATROLORDER` over (11616, 13920), the Airbase's point. The golden word is the
+trace's end, **2600, closed** on the first walk (`chapter_one_hundred_and_nine_holds_to_the_golden_word`): no value
+parts in the window, so there is no value diff to report. The widening is run1506 whole,
+`WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE` (605, 2601), and parts on the eleven standing `form` rows on 605 alone,
+nothing on 2293, 2313 or after (`chapter_one_hundred_and_nine_s_window_is_widened_whole`, `WANT_CH109`). run1506b,
+the `cover=1` twin, enters the three functions of each button on 2292 and 2312 and takes six rows off the blind list
+(`blind::NEVER` 363 → 357 on the tree merged with item 3913).
+
+**Mutations** (`tools/mutate.py --batch`, on the committed tree, against the chapter's two tests):
+
+- **The scramble's gate on a full tank dropped** (`mana_burn != 0`): **fails nothing.** Both planes inside on 2312,
+  0/7 and 0/6, are full, so no capture yet holds the gate's refusal; it stands on the reading.
+- **The scramble's point taken off the host** (the plane's own position for the host's): held, on 2314's
+  `order:air.x_pos[0]` and `y_pos[0]` for 0/6 and 0/7.
+- **The scramble's launch dropped**: held; the word falls to 2330 and the widening parts on 2314 (0/6's
+  `orders.len`, 0/7's `dest_angle`).
+- **The recall dropped whole** (the Clear and the walk): held; the word falls to 2351 and the widening parts on 2294,
+  0/8's `order:air.returning`, `mandatory`, `xx`, `yy` and 0/9's `order:kind` among them.
+- **The Clear dropped, the walk kept**: held, on one row, `2294 0/9 order:air.cruising_alt`. The walk alone keeps
+  the patrol's 1800; only the Clear's strafe carries 1600 into the walk's copy, the order the reading names.
+- **The walk dropped, the Clear kept**: **fails nothing.** On an Airbase the Clear's hangar half already sends every
+  homed plane home with the heights run1506 holds, so the walk's re-issue is unobservable here; it stands on the
+  reading, as does its inside arm.
+
+**What is not established.** The helicopter arm of the scramble and the inside arm of the recall (a plane in the
+host's `launching` list when the key lands) are read, not diffed: no plane of run1506 is inside on 2292, and none is
+a helicopter. The recall's walk on a unit with no current order faults in the original (below); this crate's walk
+skips such a unit, which no capture distinguishes.
+
+**The dead take** (run1506b take 1, parked 3912a). Pool lane 2 ran a `cover=1` game whose console lines never
+staged: who=0 held eight buildings and seventeen units and no Airbase or plane. `@key 124` then faulted natively at
+`0x6fac09` — `update_order()` answered 0 for a who=0 unit on the map and `action_recall` read through it — and the
+receipt raised `extra lifecycle or fault records`. Why lane 2 ran an unstaged game is not established; the retake on
+lane 1 is run1506b.
 
 ## 160. Chapter one hundred and ten — a spell stopped mid-hold; closed at 900 on the first take (item 3913, run1507, run1507b)
 

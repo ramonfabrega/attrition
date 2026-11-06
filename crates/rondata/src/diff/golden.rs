@@ -6115,7 +6115,18 @@ const WANT_CH17AG: &[&str] = WANT_CH17AIR;
 /// What parts in `ch17air`'s window, blocks 605–1100 (item 3911): the
 /// eleven standing `form` rows every golden chapter carries, and nothing
 /// else — the three arms' orders, the flights after them and the pool.
-const WANT_CH17AIR: &[&str] = &[
+const WANT_CH17AIR: &[&str] = WANT_CH109;
+
+/// **run1506 whole, both directions** (item 3912, `docs/GOLDEN.md` §159).
+#[test]
+fn chapter_one_hundred_and_nine_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_nine_s_window_is_widened_whole();
+}
+
+/// What parts in run1506's window, blocks 605–2600 (item 3912): the
+/// eleven standing `form` rows every golden chapter carries. Nothing parts
+/// on the recall (2293), the scramble (2313) or any flight after.
+const WANT_CH109: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
@@ -6128,6 +6139,12 @@ const WANT_CH17AIR: &[&str] = &[
     "605 1/4 form",
     "605 1/5 form",
 ];
+
+/// Chapter one hundred and nine holds to its golden word (item 3912, run1506).
+#[test]
+fn chapter_one_hundred_and_nine_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_nine_holds_to_the_golden_word();
+}
 
 /// **A fort's death gives its claim back at the border pass's pace**
 /// (item 3901, `docs/GOLDEN.md` §157, run1504): every cell's `(who, who2)`

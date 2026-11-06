@@ -6794,6 +6794,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN_AIRGROUND: i64 = 1060;
 /// twin whole.
 pub(crate) const WIDENING_CHAPTER_SEVENTEEN_AIRGROUND: (i64, i64) = (605, 1061);
 
+/// **Chapter one hundred and nine** (item 3912, `docs/GOLDEN.md` §159,
+/// run1506): chapter thirty-three's Airbase recalls its planes in flight
+/// and scrambles the full ones inside, two bound keys.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE: i64 = 2600;
+
+/// `chapter_one_hundred_and_nine_s_window_is_widened_whole`'s window:
+/// run1506 whole.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE: (i64, i64) = (605, 2601);
+
 /// **Chapter one hundred and ten** (item 3913, `docs/GOLDEN.md` §160,
 /// run1507): chapter nineteen's Spy stopped mid-hold by `OPTION_QUEUE`.
 pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN: i64 = 900;
@@ -7805,6 +7814,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // and the built arms 43 (pinned at 42, it fails).
     ("chapter_thirty_three_holds_to_the_golden_word", 43),
     ("chapter_thirty_three_s_word_frame_is_widened_whole", 43),
+    // Chapter one hundred and nine is chapter thirty-three's game to its
+    // 2280 launch patrol, then a recall and a scramble on the Airbase
+    // (item 3912): the walk reads 34 (pinned at 33, it fails).
+    ("chapter_one_hundred_and_nine_holds_to_the_golden_word", 34),
+    ("chapter_one_hundred_and_nine_s_window_is_widened_whole", 34),
     // Chapter thirty-four is chapter thirty-three's game to its Barracks
     // and nine presses after it (item 1009): the first walk reads 43, and
     // the built arms 43 (pinned at 42, it fails).
@@ -12138,6 +12152,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole"),
         3514,
         Some(crate::diff::aztec_alltech_pair::WIDENING_AZTEC_ALLTECH_FRAME_4382),
+    ),
+    // Item 3912: run1506, chapter one hundred and nine, the Airbase's
+    // recall and scramble. The widening is run1506 whole; closed at 2600,
+    // the trace's end, on the first take.
+    (
+        "GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE",
+        GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINE,
+        Some("chapter_one_hundred_and_nine_s_window_is_widened_whole"),
+        3912,
+        Some(WIDENING_CHAPTER_ONE_HUNDRED_AND_NINE),
     ),
 ];
 
