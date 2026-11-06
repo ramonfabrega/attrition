@@ -2575,13 +2575,13 @@ mod tests {
         // eighteen's staging with a Temple in city 0 in place of the second
         // Barracks (item 3934, `docs/GOLDEN.md` §169).
         ("chapter119.cmd", &[]),
+        // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
+        // follow line (item 714, `docs/GOLDEN.md` §20).
+        ("chapter12.cmd", &[]),
         // Chapter one hundred and twenty: a standing Envelop and an
         // `@attackadd` behind it on an enemy Barracks (item 3936,
         // `docs/GOLDEN.md` §170).
         ("chapter120.cmd", &[]),
-        // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
-        // follow line (item 714, `docs/GOLDEN.md` §20).
-        ("chapter12.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),
