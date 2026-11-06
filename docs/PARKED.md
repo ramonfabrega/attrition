@@ -3780,6 +3780,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 (3799) **The emu row cache stores what it could recompute, and it is 16 GiB** (the sixty-third pass, from Loop 3777's build): the 273 over-cap sweeps' rows are 41.9 GB raw and gzip packs them only 3.05x (three of the largest 1.75x), so the cache that took the five binaries 683.5 → 41.8 s cost 13 GiB of the 147 free, and every change to `tools/emu/` or the executable's key rewrites it. The test needs the original's rows only to compare the port's against them. Candidate: store a digest of the original's rows (SHA-256 over the canonical row text) beside the receipt, hash the port's rows the same way, and re-run the emulator only on a disagreement to find the row — a cache of kilobytes, the slow path paid once by the one sweep that broke, `RON_VERIFY_EMU` unchanged. Measured first: the cache's size and rewrite count over the sixty-fourth; taken when either shows up in a drain's table rather than in a hunch. **The sixty-fourth pass, measured**: the cache 16 GiB unmoved and `tools/emu/` untouched over the tranche, so 0 rewrites; the disk's fall (134 → 102 GiB over the tranche) was the integration tree's debug profile — `cargo clean --profile dev` removed 180,851 files, 74.2 GiB, and the pass now cleans it as a first act (DECISIONS 104 §6) — not the cache. Not taken: neither number is in a table yet. Stays filed. **The sixty-fifth pass, measured**: the cache 16 GiB (2,344 files) and 0 files rewritten since the base, `tools/emu/` untouched; the disk 114 → 125 on `afsctool` and the debug profile's clean. Stays filed. **The sixty-seventh pass, measured**: the cache 16 GiB, `tools/emu/` untouched over the tranche; the disk 138 → 151 on `afsctool` and the debug profile's clean (48,997 files, 24.9 GiB). Stays filed. **The sixty-eighth pass, measured**: the cache 16 GiB (2,344 files), 0 rewritten since the base, `tools/emu/` untouched; the disk 134 → 144 on `afsctool` and the debug profile's clean (17,446 files, 11.3 GiB). Stays filed.
  **The sixty-sixth pass, measured**: the cache 16 GiB (2,344 files), 0 files rewritten since the base, `tools/emu/` untouched; the disk 141 → 147 on `afsctool` alone (the debug profile's clean skipped at 141, over the last pass's 125; DECISIONS 104 §6). Stays filed.
 
+## Loop, filed 2026-11-06 — the sixty-ninth tranche's
+
+(3922) **`census.py --implicit` reads only joined traces** (3908's "for the Loop"): DECISIONS 108 §2 booked eleven style takes whose `cover=1` sweeps (runs 1098–1128, items 3480 and 3493) had been on disk fifteen days, unjoined; 3908 joined them with no capture. CLAUDE.md's "grep the disk before booking a capture" says this already; the gap is that a pass trusting `--implicit`'s list cannot see an unjoined run. Candidate: `--implicit --archive`, scanning every unjoined trace under `Logs` and printing the rows it would enter; and (parked 3908c) a join of `ScenarioFuncSet::init_funcs`' registered functions against `NEVER`'s callers, since the census files `game\script\` outside the territory. Names no score; the loop's.
+
 ## Loop, filed 2026-11-05 — the sixty-eighth tranche's
 
 ## Loop, filed 2026-11-05 — the sixty-seventh tranche's
@@ -14399,13 +14403,27 @@ leash, and a packer's combat stance is always 2. Both rows stay `NEVER`.*
   to grep, and §392.2's five `RESIDUE` rows hold only while no writer puts a type there. A second reading of §392.2
   would grep it by the listing's `[reg+0x3c]` stores into a `SpellType`. Names no score.
 
-## Parked by the next landing, slot AV — reserved
+## Parked by item 3908, 2026-11-06 — the map styles' takes were on disk
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3908a) **The `!eval` staging that enters `MapConquest::check_starting_loc@0068d7e0`.**
+`docs/MAPGEN.md` §22.3 writes it out: the golden start (`--map 14`, run1129's lobby) at `cover=1` with
+`620 !eval find_extra_starting_loc(4, 4, 1)`, compared to its twin through 619. It would take two `NEVER`
+rows off, the function and its script caller `ScenarioFuncSet::find_extra_starting_loc@009e5070`. It
+names a `NEVER` row, so the commander books it as a `coverage` item at the merge. Its falsifier is that
+trace showing `009e5070` entered and `0068d7e0` not entered.
+
+(3908b) **Each style's chain take, held for 3888c.** §22.2 writes run1493's line at each style's `--map`
+(6, 8, 9, 11, 12, 13, 16, 17, 19, 20, 21). The blind list does not need these takes, because the eleven
+joined `cover=1` traces already enter every `make_continents`. A port of a style's chain does need its
+take: a setup trace with 7805..7945. Once Ramon names the held-out style, the commander books one per
+style. The held-out style's take is scored and never read against. Until then this row names no score.
+
+(3908c) **The census leaves `ScenarioFuncSet::find_extra_starting_loc` outside the territory.** No trace
+entered it and no document cited it before this item. It was not on `--implicit`'s list, because the
+census files `game\script\` sources under the AI layer, outside the simulation territory. Yet it is the
+one non-Conquer-the-World caller of a simulation function, `check_starting_loc`. Other script-only routes
+into simulation rows may exist that `--implicit` does not show. A join of `ScenarioFuncSet::init_funcs`'
+registered functions against `NEVER`'s callers would list them. This row names no score.
 
 ## Parked by item 3909, 2026-11-06 — the rest of the implicit residue, ruled on scope
 
