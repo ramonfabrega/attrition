@@ -681,6 +681,15 @@ pub const TRACES: &[&str] = &[
     // and `Unit::dbg_jump_to_action@00602ea0` on 620 (`docs/AI.md` §391.2
     // row 10, §393.1 row 2; `docs/GOLDEN.md` §164).
     "rontrace-run1511b.log",
+    // Item 3920: golden chapter one hundred and seventeen (`chapter117.cmd`,
+    // chapter ninety-one's lobby with `606 add scout who=0`, `616 add spy
+    // who=1` two tiles off and `620 @spell 0 631 6 1 25728 24960 6`) at
+    // `cover=1` on the click-free pool, to 900 (`docs/RUNS.md` run1514b): the
+    // Scout's own `DETECT` disc lights the Spy, the cast is issued, and
+    // `SpellType::cast_counterintel@00673740` is entered on 658 (`docs/AI.md`
+    // §392.3, `docs/GOLDEN.md` §167); run1514's game on every frame (rngcmp
+    // 901 identical, 0 differing).
+    "rontrace-run1514b.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -1288,6 +1297,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// formed group `Group::dbg_jump_to_action@00707a00` and `Unit::dbg_jump_to_action@00602ea0`, all
 /// on 620 (`docs/AI.md` §391.2 row 10, §393.1 row 2); open 14 → 9 on the tree merged with items
 /// 3915 and 3916.
+/// **337** with item 3920's run1514b (`docs/GOLDEN.md` §167), the `cover=1` twin of chapter one
+/// hundred and seventeen: a Scout's `@spell 0 631` on a who=1 Spy two tiles off enters
+/// `SpellType::cast_counterintel@00673740` on 658 (`docs/AI.md` §392.3); open 9 → 8.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1303,7 +1315,7 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_3d00, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
-    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80, 0x0067_2820, 0x0067_3740, 0x0067_3e80,
+    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80, 0x0067_2820, 0x0067_3e80,
     0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870,
     0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,

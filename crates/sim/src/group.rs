@@ -4208,6 +4208,18 @@ impl Sim {
     /// crew's second `Unit::move_step+0x823` draw, and the difference is
     /// 720,896 of a turn, one unit on each axis of a (−48, −192) track.
     pub fn unit_set_angle(&mut self, u: usize, angle: Angle) {
+        self.unit_set_angle_as(u, angle, false);
+    }
+
+    /// `Unit::set_angle(angle, target, param_3)` with its third argument
+    /// set — `Unit::do_cast@005ebfe0`'s turn to its target (`5ec619`
+    /// pushes 1; item 3920, `docs/GOLDEN.md` §167). `Guy::set_angle@005d9010`
+    /// hands `param_3` to its crew loop, which then **puts** each tracked
+    /// figure on its point (`set_angle(crew, des_angle, 1)`,
+    /// `set_new_location(crew, des, 1)`) rather than telling it the point:
+    /// run1514c's Scout crew stands on its rotated track the cast's first
+    /// frame, `stopped` 1, and plays the cast's `ATTACK2` with guy 0.
+    pub(crate) fn unit_set_angle_as(&mut self, u: usize, angle: Angle, snap: bool) {
         let turned = reversing(Angle(
             angle.0.wrapping_sub(self.units[u].movement.heading.0),
         ));
@@ -4218,7 +4230,7 @@ impl Sim {
             self.units[u].movement.mirror = !self.units[u].movement.mirror;
         }
         let from = self.units[u].movement.body.pos;
-        self.crew_des(u, from, angle, false);
+        self.crew_des(u, from, angle, snap);
         if turned {
             self.toggle_leader_facing(u);
         }
