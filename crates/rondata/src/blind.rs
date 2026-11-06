@@ -1069,6 +1069,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// the scan's one dead row (`World::set_orig_coast`, its RVA's one match a call's rel32);
 /// residue 238 → 246, open 27 → 20. The scan over all 27 open rows: 0 dead but that one,
 /// which `report.py` called "pointer only" on the rel32 and `pe.references` excludes.
+/// **266** unmoved by item 3891's blind second reading (`docs/audit/2026-11-05-item-3891.md`),
+/// which agrees on `docs/MAPGEN.md` §18.1's and §20's four candidates —
+/// `WorldData::is_valid`, `MapScenario::make`, `Map::run_map_script` and
+/// `ScenarioRead::load_unit_chunk` — and moves them to [`RESIDUE`]; residue 246 → 250,
+/// open 20 → 16.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1190,6 +1195,15 @@ pub const RESIDUE: &[(u32, &str)] = &[
          slot, +0x1ac of Build, BuildOut, BuildData and Wall, that no \
          instruction dispatches; the image's one call or jmp through +0x1ac is \
          a Window thunk",
+    ),
+    (
+        0x0047_1170,
+        "WorldData::is_valid: called only from MapScenario::make (Conquer the \
+         World) and TerrainOut::check_for_diagonal's four calls, which run only \
+         when no orthogonal pair test fires; an entered cell's corner fires its \
+         own test unless its one-up flanks differ, and distinct flanks need a \
+         mutually unacceptable orthogonal pair no grid or plant on disk holds; \
+         two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
     ),
     (
         0x0047_22f0,
@@ -2018,6 +2032,21 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0068_c870,
+        "Map::run_map_script: slot +0x68 of all 22 Map-family vtables and no \
+         rel32 caller; none of the image's +0x68 dispatches (393 call, 1 jmp, \
+         the mov+call forms) has a Map receiver; two readings, item 3891 \
+         (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
+        0x0068_c8f0,
+        "MapScenario::make: MapScenario::vftable +0x64 alone, installed by \
+         Map::new_map only for style 0x1a, which only \
+         ConquestGame::build_conquest_game mints (a custom-map Conquer the World) \
+         and the editor's generate_map reaches; the lobby's and the console's \
+         style stops at 22; two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
         0x0068_d1a0,
         "MapConquest::check_sea_map: called only from \
          MapConquest::make_continents+0x994, itself residue on Conquer the \
@@ -2642,6 +2671,15 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "ScenarioEditor::import_image: the editor's image import and the Conquer \
          the World mask's (MapConquest::make_continents), both cut from v1 (item \
          3859; the sixty-sixth pass)",
+    ),
+    (
+        0x009a_adc0,
+        "ScenarioRead::load_unit_chunk: called only from load_objects_chunk, \
+         called only from ScenarioRead::import, whose callers are scenario play \
+         (build_game's is_scenario arm, load_scenario_screen), the editor and \
+         MapScenario::make; a saved game loads through WalkDataGame::walk_data and \
+         the console calls build_game with 0, 0, 0; two readings, item 3891 \
+         (docs/audit/2026-11-05-item-3891.md)",
     ),
     (
         0x009b_1430,

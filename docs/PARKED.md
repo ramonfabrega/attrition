@@ -14109,13 +14109,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AF — reserved
+## Parked by item 3891, 2026-11-05 — MAPGEN's four candidates, a blind second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3891a** — **`is_valid`'s one residual is a P1 pair that survives
+  `verify_land`.** Both readings of `WorldData::is_valid@00471170`
+  (`docs/audit/2026-11-05-item-3891.md`, row 1) keep it out on the grid
+  predicate. The only route that reopens it is 3863a's depth leak past
+  500 leaving two mutually unacceptable orthogonal neighbours around a
+  (B) cell. No plant sequence on disk is known to do that. The cheapest
+  falsifier is a `plant.py` search for a sequence whose `verify_land` walk
+  exceeds the depth, followed by a `cover=1` take with `TERRAIN` 0x24.
+  It names no score. A map lane books it only if 3863a's bound fails.
 
 ## Parked by the next landing, slot AG — reserved
 

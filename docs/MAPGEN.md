@@ -2001,11 +2001,20 @@ builds one class per style 6–0x1a. Every random-map class overrides +0x40;
 vtables, `Map::vftable` (no `new_map` case leaves it installed) and
 `MapScenario::vftable` (style 0x1a). `MapScenario` overrides +0x64 with
 `MapScenario::make@0068c8f0`, which makes no indirect call through +0x40,
-+0x64 or +0x68 (listing 0x68c8f0..0x68d1a0). The one dispatcher of +0x64 on
++0x64 or +0x68 (listing 0x68c8f0..0x68d1a0). ~~The one dispatcher of +0x64 on
 `game_map` is `Setup::build_game@005ac190` (line 271), alongside
-`ScenarioEditor::generate_map@009a0950`. The other route to +0x40,
+`ScenarioEditor::generate_map@009a0950`.~~ **Corrected by item 3891**
+(`docs/audit/2026-11-05-item-3891.md`, row 2): line 271 runs only when
+`param_2` (`is_scenario`) is 0, on `new_map(World::map)`, which the lobby and the
+console never set to 0x1a. Style 0x1a is minted by
+`ConquestGame::build_conquest_game` (line 75, `(map_style == 8) * 2 + 0x18`)
+and dispatched there at 0x797e7d, so `MapScenario::make` is reached by a
+custom-map Conquer the World and by the editor. Both are cut from v1, and the
+function is a `blind::RESIDUE` row. The other route to +0x40,
 `Map::run_map_script@0068c870` (slot +0x68), has no dispatch on `game_map`
-in the export. So the base body is a **`blind::RESIDUE` candidate**, kept
+in the export. ~~It is an open row.~~ **Two readings agree, item 3891** (row 3):
+none of the image's +0x68 dispatches has a Map receiver, and it is a
+`blind::RESIDUE` row. So the base body is a **`blind::RESIDUE` candidate**, kept
 out by the predicate "every `new_map` class but `MapScenario` overrides
 +0x40, and `MapScenario::make` never dispatches it". What would kill the
 claim: a `cover=1` trace of any lobby whose function list holds
@@ -2207,6 +2216,9 @@ Its closing ORs only spread bits that survived. Here "A → B is 1" is
 read as "B stands one step above A". From the body, that holds when the
 land is the same and B's sub is A's + 1; when A is `BASELAND` at
 `COAST_BASE` and B is `SANDY`; and when B is `OCEAN` and A is any land.
+The body has one more case: A's land is lower than B's, B's sub is 0, and
+A's sub is `num_tiles[A] − 1`. It never answers 1 on the three shipped lands,
+because each such pair is answered earlier (item 3891's audit, row 1).
 It is never 1 both ways. **The arm is entered only when each side's field
 is 0 with M → C not 1, or is 7 with C → M 1.**
 
@@ -2660,8 +2672,14 @@ shift-0 fill word with 0xc, 0x60, 0x801 or 0x300
   search, with the second plant within Chebyshev 3 of the first, at
   `COAST_BASE` 3, gives 8,201,021 plant pairs on the 69 grids, 2,152 entering the arm (on 41 grids), and 0 reaching `is_valid`.
 - **Verdict: (ii), none.** `WorldData::is_valid@00471170` is a
-  `blind::RESIDUE` candidate, moved only on a second reading's agreement.
-  That reading must re-derive four things:
+  ~~`blind::RESIDUE` candidate, moved only on a second reading's agreement.~~
+  **`blind::RESIDUE` row: two readings agree, item 3891**
+  (`docs/audit/2026-11-05-item-3891.md`, row 1). The blind reader re-derived
+  the pair tests and the fall-through. Its UNSURE rested on a shape that
+  `check_for_tendrils`' own shift-6 writes on C's flank edges close. The
+  adjudicator re-derived the other three steps on the crate's
+  `is_combo_acceptable`, compared branch by branch with the body.
+  ~~That reading must re-derive four things:~~
   - the four pair tests and the fall-through (0x859776..0x859b1e);
   - that C → F 1 holds on both flanks of an entered corner (§19.2–§19.3);
   - `SANDY`'s single one-up land;
