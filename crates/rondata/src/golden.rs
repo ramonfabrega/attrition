@@ -2531,6 +2531,10 @@ mod tests {
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).
         ("chapter113.cmd", &[]),
         ("chapter114.cmd", &[]),
+        // Chapter one hundred and seventeen: chapter ninety-one's lobby, a
+        // Scout's Counterintelligence on an enemy Spy (item 3920,
+        // `docs/GOLDEN.md` §167).
+        ("chapter117.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
