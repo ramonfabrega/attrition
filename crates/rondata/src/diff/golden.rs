@@ -6086,47 +6086,8 @@ fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
 /// `Region::fix_borders`).
 #[test]
 fn chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell() {
-    let Some((parted, held)) = cases_80_89::chapter_one_hundred_and_seven_borders() else {
-        return;
-    };
-    eprintln!("ch107: {} WORLD blocks compared", held.len());
-    for row in parted.iter().take(40) {
-        eprintln!("  ch107 border {row}");
-    }
-    assert!(
-        parted.is_empty(),
-        "{} cell(s) part from run1504's WORLD blocks",
-        parted.len()
-    );
-    assert_eq!(held, CH107_WHO1_CELLS, "who=1's cells by dumped block");
+    cases_80_89::chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell();
 }
-
-/// who=1's owned cells on each of run1504's `WORLD` blocks (item 3901).
-const CH107_WHO1_CELLS: &[(i64, usize)] = &[
-    (619, 261),
-    (620, 261),
-    (622, 261),
-    (623, 261),
-    (624, 261),
-    (625, 270),
-    (626, 314),
-    (627, 381),
-    (628, 442),
-    (629, 442),
-    (699, 442),
-    (700, 442),
-    (701, 442),
-    (702, 442),
-    (703, 442),
-    (704, 442),
-    (705, 433),
-    (706, 389),
-    (707, 322),
-    (708, 261),
-    (709, 261),
-    (716, 261),
-    (717, 261),
-];
 
 /// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
 #[test]

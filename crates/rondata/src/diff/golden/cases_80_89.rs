@@ -915,7 +915,7 @@ pub(super) fn chapter_one_hundred_and_seven_holds_to_the_golden_word() {
 /// Every cell's `(who, who2)` on every block of run1504 that dumps the
 /// `WORLD` (the `@dumpall` blocks), ours against the original's, with each
 /// block's who=1 count: what parts, and the count by block.
-pub(super) fn chapter_one_hundred_and_seven_borders() -> Option<(Vec<String>, Vec<(i64, usize)>)> {
+fn chapter_one_hundred_and_seven_borders() -> Option<(Vec<String>, Vec<(i64, usize)>)> {
     let mut s = stage_script("ch107", "chapter107")?;
     let mut parted: Vec<String> = Vec::new();
     let mut held: Vec<(i64, usize)> = Vec::new();
@@ -1060,3 +1060,47 @@ pub(super) fn chapter_eighty_seven_s_window_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch87: what parts in the window moved");
 }
+
+/// The border walk's assertion (item 3901, `docs/GOLDEN.md` §157).
+pub(super) fn chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell() {
+    let Some((parted, held)) = chapter_one_hundred_and_seven_borders() else {
+        return;
+    };
+    eprintln!("ch107: {} WORLD blocks compared", held.len());
+    for row in parted.iter().take(40) {
+        eprintln!("  ch107 border {row}");
+    }
+    assert!(
+        parted.is_empty(),
+        "{} cell(s) part from run1504's WORLD blocks",
+        parted.len()
+    );
+    assert_eq!(held, CH107_WHO1_CELLS, "who=1's cells by dumped block");
+}
+
+/// who=1's owned cells on each of run1504's `WORLD` blocks (item 3901).
+const CH107_WHO1_CELLS: &[(i64, usize)] = &[
+    (619, 261),
+    (620, 261),
+    (622, 261),
+    (623, 261),
+    (624, 261),
+    (625, 270),
+    (626, 314),
+    (627, 381),
+    (628, 442),
+    (629, 442),
+    (699, 442),
+    (700, 442),
+    (701, 442),
+    (702, 442),
+    (703, 442),
+    (704, 442),
+    (705, 433),
+    (706, 389),
+    (707, 322),
+    (708, 261),
+    (709, 261),
+    (716, 261),
+    (717, 261),
+];
