@@ -39767,7 +39767,9 @@ row, and the verdicts are in `docs/audit/2026-11-06-item-3935.md`.
   Falsifier: on that take, the leader's list `[GROUP_MOVE][ATTACK]` with bit 4 clear on the move and the target out
   of range, and `00713bd0` not entered from `0x5e25ee`. **It fired on a building target** (item 3936, run1520b,
   `docs/GOLDEN.md` §170): `check_target_path:138-141` shuts on `Build`'s vslot 28; parked 3936a is the fleeing unit
-  target.
+  target. **Entered on a fleeing unit target** (item 3939, run1522b, `docs/GOLDEN.md` §171): a who=1 Citizen walking
+  away from the Catapults, out of reach of the move's point, takes the leader's review on 714 into
+  `is_moving_to`, which answers 1, and the group arm re-issues the attack at `QUEUE_FIRST`; diff-backed, and built.
 
 **What is not established.** Nothing here is diff-backed. Every claim rests on two readings of the decompile, the
 listing and the PDB. The stand-off of a target building from the formation's destination was not computed. Nor
