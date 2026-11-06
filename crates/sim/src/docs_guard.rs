@@ -1798,6 +1798,12 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// caravan's `1056`) and three honest inline spellings a later item may
 /// name as constants to bank again (`0x2710` `ai_build.rs`'s `10000`,
 /// `0x31f` `gaia.rs`'s `799`, `0x384` `target_score.rs`'s `900`).
+///
+/// **Item 3886 pinned MAPGEN at 4**: `0x1c0`, `0x801`, `0xe07` and `0xfc0`
+/// are `TerrainOut::check_for_diagonal@008595f0`'s block and fill words and
+/// the caller's 0x1c0 test (`docs/MAPGEN.md` §20, "The arm's body"), read
+/// off a reading item that builds no arm; `tools/gamelog/plant.py` models
+/// them, and a port of the transitions banks them.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 14),
     ("ANIM.md", 2),
@@ -1810,6 +1816,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 3),
+    ("MAPGEN.md", 4),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 6),
     ("PRODUCTION.md", 4),
