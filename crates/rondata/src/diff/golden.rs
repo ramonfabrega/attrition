@@ -6091,6 +6091,27 @@ fn chapter_seventeen_air_s_window_is_widened_whole() {
     cases_80_89::chapter_seventeen_air_s_window_is_widened_whole();
 }
 
+/// Chapter seventeen's lobby with an air attack-ground and a launch from
+/// the Airbase holds to its golden word (item 3911, `docs/GOLDEN.md` §158,
+/// run1505b's twin).
+#[test]
+fn chapter_seventeen_airground_holds_to_the_golden_word() {
+    cases_80_89::chapter_seventeen_airground_holds_to_the_golden_word();
+}
+
+/// **run1505b's twin whole, both directions** (item 3911, `docs/GOLDEN.md`
+/// §158), with who=0's group pool.
+#[test]
+fn chapter_seventeen_airground_s_window_is_widened_whole() {
+    cases_80_89::chapter_seventeen_airground_s_window_is_widened_whole();
+}
+
+/// What parts in `ch17ag`'s window, blocks 605–1060 (item 3911): the
+/// eleven standing `form` rows, and nothing else — the attack-ground's
+/// order, the Bomber's release on 846 and its bombs on `1/2006` from 863,
+/// and the Airbase's launch on 806.
+const WANT_CH17AG: &[&str] = WANT_CH17AIR;
+
 /// What parts in `ch17air`'s window, blocks 605–1100 (item 3911): the
 /// eleven standing `form` rows every golden chapter carries, and nothing
 /// else — the three arms' orders, the flights after them and the pool.

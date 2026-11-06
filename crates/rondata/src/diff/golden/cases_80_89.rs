@@ -1157,3 +1157,53 @@ pub(super) fn chapter_seventeen_air_s_window_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch17air: what parts in the window moved");
 }
+
+pub(super) fn chapter_seventeen_airground_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch17ag", "chapter17-airground", 17, 15, 1059) else {
+        return;
+    };
+    eprintln!(
+        "chapter seventeen's air attack-ground: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SEVENTEEN_AIRGROUND,
+        "chapter seventeen's air attack-ground' golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §158"
+    );
+}
+
+pub(super) fn chapter_seventeen_airground_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch17ag",
+        "chapter17-airground",
+        WIDENING_CHAPTER_SEVENTEEN_AIRGROUND,
+        1059,
+        0,
+        (680, 684),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch17ag f{f} {w}/{o} {what}: {row}");
+    }
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch17ag pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .chain(
+            pool.iter()
+                .map(|((slot, key), (f, _))| format!("{f} pool {slot} {key}")),
+        )
+        .collect();
+    got.sort();
+    eprintln!("ch17ag: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH17AG.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch17ag: what parts in the window moved");
+}

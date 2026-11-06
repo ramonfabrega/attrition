@@ -502,7 +502,10 @@ impl Script {
                     return Err("an input line this harness does not spell (item 3911)");
                 };
                 let target = if to >= 2000 {
-                    built.sim.building_by_o(tw, to).map(sim::combat::Obj::Building)
+                    built
+                        .sim
+                        .building_by_o(tw, to)
+                        .map(sim::combat::Obj::Building)
                 } else {
                     built.sim.unit_by_o(tw, to).map(sim::combat::Obj::Unit)
                 };
