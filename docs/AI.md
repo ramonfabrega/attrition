@@ -39196,18 +39196,21 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
   unpack craft calls `SpellType::cast_pack` or `cast_unpack` directly on the selection, outside the command
   stream. Bit 11's writers are `ConsoleWin::run_cmd@007d6a70:1570` (reset) and `:1639` (set), and the set arm is
   the one that opens the in-game scenario editor. The editor is cut from v1 (DECISIONS 107 §3). `docs/ARMY.md`
-  §5 calls this bit "the AI-off bit" (park AT-a).
+  §5 calls this bit "the AI-off bit" (park AT-a). ~~Bit 11's writers are `run_cmd`'s two~~: there are five more,
+  all the editor's or a save load's (§397).
 - **`CommandPackage::process_transport@00949050` is `RESIDUE` (a verb no site issues).** No writer of byte 0x0d
   exists in the 102 functions (§391.1), as GOLDEN §144.4 found for `process_repair`'s 0x10.
-- **`Group::is_moving_to@00713bd0` stays `NEVER` with no staging.** `Unit::check_target_path@005e22d0:190-193`
+- **`Group::is_moving_to@00713bd0` stays `NEVER` ~~with no staging~~ (a staging since §397).** `Unit::check_target_path@005e22d0:190-193`
   calls it under these conditions:
   - the unit's action is an attack (vslot `+0x18`, `is_attack`, PDB `LF_ONEMETHOD` offset 24) on an active,
     non-building target out of range;
   - the type's `+0x1fc` is non-zero or the path is longer than one;
   - its head order (`update_order`) answers vslot `+0x2c` (`is_group`, offset 44), and the unit is in a group.
 
-  An order that answers both is a `GroupAttackOrder`, and none is constructed (`docs/ORDERS.md` §7.9). Whether a
-  group head can stand over an attack action behind it was not settled (park AT-b). Every pinned trace's AI armies
+  ~~An order that answers both is a `GroupAttackOrder`, and none is constructed (`docs/ORDERS.md` §7.9). Whether a
+  group head can stand over an attack action behind it was not settled (park AT-b).~~ The head and the action are
+  two orders. A FORM's group move with bit 4 clear, followed by a shift-queued `ATTACK`, opens the arm, so it is a
+  staging (§397, parked 3935a). Every pinned trace's AI armies
   march under `GROUP_ATTACK_TO` and never enter it.
 
 **What is not established.** Nothing in this section is diff-backed. Every claim is a reading of the decompile, the
@@ -39672,12 +39675,49 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 397. Reserved for the next item on the AI track
+## 397. §391.3 read again blind: three rows ratified, and `is_moving_to` is a staging (item 3935, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+One Opus reader, without §391, re-derived §391.3's four questions from the decompile. The lane adjudicated each
+row, and the verdicts are in `docs/audit/2026-11-06-item-3935.md`.
+
+- **`GroupData::show_interface@0070ce70`: `RESIDUE` ratified.** It writes nothing, and its two callers are
+  interface code. Falsifier: none a capture reaches. A store in its body would be read, not run.
+- **`Group::dbg_pack_or_unpack@00707b50`: `RESIDUE` ratified, with more writers.** `Options::target_spell` is its
+  only caller (one rel32, no pointer refs), and that caller requires bit 11 (`semaphore.ptr[1] & 8`). §391.3 named
+  only `ConsoleWin::run_cmd:1570` and `:1639` as writers. The bit also has these:
+  - `Game::run_editor:67` and `ScenarioEditor::end_test:41`, which set it;
+  - `ScenarioEditor::run_test:149` and `Game::Game:29`, which clear it;
+  - `Game::walk_data:17-19`, which restores the whole semaphore from a save or replay header.
+
+  Every one belongs to the editor or to a save load. Falsifier: `dbg_pack_or_unpack` entered on a skirmish that
+  neither opens the editor nor loads a save.
+- **`CommandPackage::process_transport@00949050`: `RESIDUE` ratified.** Two readings found no producer of byte
+  0x0d. Command bytes enter a package only through `add_command` (102 sites, read from the listing), `add_group`
+  (00), `add_spline` (33) and `add_chat` (44). Falsifier: a `CM` line naming `process_transport` on any capture.
+- **`Group::is_moving_to@00713bd0`: a staging, not `RESIDUE`.** §391.3's "an order that answers both is a
+  `GroupAttackOrder`" conflated two orders:
+  - the head is `Unit::update_order@006179d0` (`tail->next`), which must answer `is_group` (vslot 44);
+  - the action is `Unit::update_action@0060a870`, which must answer `is_attack` (vslot 24);
+  - `update_action:22-35` skips every `is_move` order whose flag bit 4 is clear, and every `CHANGE_FORM`.
+
+  So the arm opens under a `GROUP_MOVE` (or `GROUP_ATTACK_TO`) head with bit 4 clear and an `ATTACK` behind it. The
+  shape has a player producer:
+  - a FORM (`process_form:42` → `Group::action_form@00707220:155`, insert flag 0, so `add_group_move_order:61-68`
+    clears bit 4, for a group of two or more);
+  - then a shift-queued ATTACK (`process_attack:51` → `action_attack:562`, `QUEUE_LAST`).
+
+  `Unit::work:187-197` admits only the group order's leader (`oxx`/`whose`), and only on every sixteenth frame.
+  `check_target_path:78-141` asks for a target that is not in range of the move's destination (`orders_x/y`) and
+  is not a wall (`is_wallbuild`, vslot 28). A non-unit target passes; a unit target must be moving, flanked and
+  facing away. The path must not be one long, unless the type's `+0x1fc` is set. Parked 3935a is the chapter.
+  Falsifier: on that take, the leader's list `[GROUP_MOVE][ATTACK]` with bit 4 clear on the move and the target out
+  of range, and `00713bd0` not entered from `0x5e25ee`.
+
+**What is not established.** Nothing here is diff-backed. Every claim rests on two readings of the decompile, the
+listing and the PDB. The stand-off of a target building from the formation's destination was not computed. Nor
+was the formation's path length on the leader's sixteenth frame. Whether `GROUP_ATTACK_TO` (`Build::init:181`'s
+rally, the AI) ever stands over an appended attack is open: no producer was found. **Coverage**: all four rows are
+reading-only, on two readings.
 
 ## 398. Reserved for the next item on the AI track
 
