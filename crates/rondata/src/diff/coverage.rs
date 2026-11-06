@@ -367,11 +367,13 @@ const UNREAD: &[(&str, &str)] = &[
     // (`golden::Script`), and no field of the simulation reads it.
     // **Item 2165's run835 windows `process_stance`** (`stance frame`), the
     // first player's stance button; what it writes is read off the units'
-    // `stance` and stacks.
+    // `stance` and stacks. **Item 3912's run1506 windows `process_recall`**
+    // (`frame`), the Airbase's recall; what it lays is read off the planes'
+    // stacks (`returning` and the strafe home).
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_stance process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
