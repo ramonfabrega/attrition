@@ -67,8 +67,10 @@ impl Sim {
     /// (`NO_CITY`, flag `e`: the Barracks, run1517's `0/2008`; item 3930,
     /// `docs/GOLDEN.md` §168).
     ///
-    /// No capture enters it: the twin run1517b's `is_castable` skips the
-    /// city arm for its one city building, a Barracks.
+    /// The twin run1517b's `is_castable` skips the city arm for its one city
+    /// building, a Barracks; run1519b's Temple (`jam`) in city 0 enters it on
+    /// 840, the press, and its entry closes the Temple on 1051 (item 3934,
+    /// `docs/GOLDEN.md` §169).
     fn city_disbanding(&self, c: usize) -> i32 {
         self.buildings
             .iter()
@@ -90,7 +92,8 @@ impl Sim {
     /// - the city arm is asked only of a type without `NO_CITY` (`+0x2c0 &
     ///   0x10` clear) or a city (`+8 & 0x20`): a Barracks (`e`) skips it,
     ///   and run1517b's press at the Barracks `0/2008` in city 0 enters no
-    ///   `is_disbanding` (item 3930, `docs/GOLDEN.md` §168);
+    ///   `is_disbanding` (item 3930, `docs/GOLDEN.md` §168), while run1519b's
+    ///   at a Temple does (item 3934, §169);
     /// - a building that is not a city in a city refuses while the city's
     ///   `is_disbanding` exceeds `finishing` — so at the finish its own
     ///   entry, still standing (`do_queue` unqueues after `finished`), is

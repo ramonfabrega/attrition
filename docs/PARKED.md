@@ -14691,26 +14691,84 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   `--end-frame 1100` under `cover=1`, with a 380 MB trace, and it held pool lane 1 for an hour. **Score**: none. This
   is the Loop's.
 
-## Parked by the next landing, slot BN — reserved
+## Parked by item 3934, 2026-11-06 — a Disband at a Temple in a city
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3934a. The city arm's refusal of a second entry in one city** (`docs/GOLDEN.md` §169, `Sim::disband_castable`,
+  `CityData::is_disbanding@007380a0`). run1519's Temple queues at `0 > 0` and closes at `1 > 1`, so both readings of
+  the city arm answer castable, and the diff sees only breaks that make it refuse. A refusal needs a second
+  `DISBAND` in the same city while one stands. `Group::action_queue_up`'s research arm refuses any such press first,
+  so only a path that queues without the group (none this crate or the DLL's `@` lines is known to have) could reach
+  it. The `NO_CITY` skip inside `is_disbanding` is unit-tested only. Names no score: chapter 119 is closed whole, and
+  the row has left `NEVER`.
 
-## Parked by the next landing, slot BO — reserved
+## Parked by item 3935, 2026-11-06 — a group head over an attack
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3935a. The chapter that enters `Group::is_moving_to@00713bd0`** (`docs/AI.md` §397,
+  `docs/audit/2026-11-06-item-3935.md` row 6). The setup and commands:
+  - two or more of the human's land units in one group;
+  - a formation button, so that `CM` prints `process_form`, `Group::action_form` lays a `GROUP_MOVE` with bit 4
+    clear, and `GROUPS` shows the group's `form`;
+  - then, while the formation marches, a shift-attack on an enemy non-wall building well out of range of the
+    formation's destination, so that `CM` prints `process_attack` with the queue `LAST`.
+
+  The trace carries `005e22d0`, `00713bd0` and the call site `005e25ee`, with `RON_DEBUG_UNIT` on the leader (the
+  group order's `oxx`). Write the falsifier first: the leader's list `[GROUP_MOVE][ATTACK]`, with the move's bit 4
+  clear and the target out of range of the move's destination, yet `00713bd0` not entered on any of the leader's
+  sixteenth frames. A take that enters it pins the row into `blind::TRACES`. A refusal names which of
+  `check_target_path:78-141`'s steps shut it. **Score**: `Blind:` never and open, one row.
 
 ## Parked by the next landing, slot BP — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot BP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot BV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot BV renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

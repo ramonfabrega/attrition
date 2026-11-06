@@ -35077,6 +35077,39 @@ run1509b: `rontrace.log` 19,390,048 bytes, SHA-256 `6047dbe11b09e8ac0d9936a9e43e
 **What it holds**: `golden::chapter_one_hundred_and_twelve_holds_to_the_golden_word` (1300, closed) and
 `chapter_one_hundred_and_twelve_s_window_is_widened_whole` (11 rows, the standing `form`). Its window 609..613 is in the
 coverage driver. run1509b is in `blind::TRACES`; four rows leave `NEVER` (347 → 343 on the tree merged with items 3911, 3914 and 3916).
+## run1519 and run1519b — chapter one hundred and nineteen: a Disband at a Temple in a city, `@queueup 0 666 1 2008` after the first entry's close (2026-11-06, item 3934, `att-3934`)
+
+`docs/GOLDEN.md` §169. **What the disk could not answer**: no trace had entered `CityData::is_disbanding@007380a0`.
+run1517b's one city building was a Barracks, whose `NO_CITY` (`e`) skips `is_castable`'s city arm (parked 3930a).
+Recipe `tools/gamelog/golden/chapter119.cmd`: chapter one hundred and eighteen's nine lines with `616 add temple who=0
+28,160` in place of the second Barracks. Launched through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/ch119 --map 14 --end-frame 1200 --log-window 605 1200 --timeout 3600`, with run1517's three detail sets,
+`--ai-tribe 11` and `--profile DIFFICULTY=0 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=7`. The twin is the same line at `--cover cover=1 --no-ffwd --twin ~/ron-golden/ch119`, into
+`~/ron-golden/ch119b`. 108 GiB free before. Both ran on pool lane 1, `success`, lifecycle verified, `map_verified`, map
+style 14, 1201 frames, `last_frame` 1200, seed 12345, the lobby read back as pinned. PLAYER records: who 0 (flags 7,
+tribe 4) and who 1 (flags 1, tribe 11). No minutes were waited on another lane. `~/ron-golden/run1519` links to `ch119`
+and `run1519b` to `ch119b`.
+- run1519 (`ch119`, `cover=0`): 13:13:49–13:14:19, 29.8 s launch to exit, no relaunch. The word's.
+- run1519b (`ch119b`, `cover=1`): 13:15:08–13:17:00, 111.2 s launch to exit, no relaunch. Filed by `filerun.py run1519b
+  ch119-disband-temple-cover`.
+- `process_queue_up 666 1` on 621, 641, 661 and 841, on the `CM` channel.
+  - `0/2007`: §165's entry, 622 to 831, and gone on 832.
+  - The Temple `0/2008` (`orig_type` 437, `city 0`): `queued 1`, `queue[scan].type 666`, `job_counter` 100 on 842 to
+    21000 on 1051. Block 1051 is its last.
+- The twin enters `CityData::is_disbanding` and `BuildData::count_queue` on trace frame 840, the press's.
+- `rngcmp`: run1519 against run1519b, 1201 of 1201 identical. Against run1517, 617 identical, the first differing at
+  617 (the Temple's placement).
+
+run1519: `gamelog.txt` 245,193,201 bytes, SHA-256 `be9bfef2821d8cf8e73b648e6bc8c3c323f095d7c97c69f444f4d1ee21ae6872`.
+`rontrace.log` 10,981,600 bytes, SHA-256 `3b105dc7e3e0e654a4baf3f9c22dd99d4e43cd42e3654620d8b6c1a26ad97acb`.
+run1519b: `rontrace.log` 22,418,464 bytes, SHA-256 `5d1a0fa1760f7ed22fdea91a7b35d5884c02b65145e06635b822474e14bf7e1a`.
+
+**What it holds**: `golden::chapter_one_hundred_and_nineteen_holds_to_the_golden_word` (1200, closed) and
+`chapter_one_hundred_and_nineteen_s_window_is_widened_whole` (11 rows, the standing `form`), both on run1519. Its
+window 1050..1054 is in the coverage driver's slice. run1519b is in `blind::TRACES`, and `CityData::is_disbanding`
+leaves `NEVER`.
+
 ## run1517 and run1517b — chapter one hundred and eighteen: a Disband at a Barracks in a city, `@queueup 0 666 1 2008` after the first entry's close (2026-11-06, item 3930, `att-3930`)
 
 `docs/GOLDEN.md` §168. **What the disk could not answer**: no trace had entered `CityData::is_disbanding@007380a0`.
