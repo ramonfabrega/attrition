@@ -3671,10 +3671,9 @@ impl Sim {
     /// leader whose type is domain 2 hands the call to
     /// [`Self::group_action_return`] (item 3911, `docs/GOLDEN.md` §158).
     ///
-    /// SEAM: the building arm — `Build::clear_gather` on each member, then
+    /// SEAM: the building arm — each member's gather point cleared, then
     /// every fixed-wing plane of the player in flight homed on a member
-    /// takes `returning` 1 and a strafe home (AI §391.2 row 4) — is not
-    /// built here.
+    /// sent home on a strafe (AI §391.2 row 4) — is not built here.
     pub fn group_action_recall(&mut self, g: &Group) {
         let Some(leader) = self.group_find_leader(g) else {
             return;
@@ -3697,11 +3696,11 @@ impl Sim {
     /// `returning 1`, the patrol behind it gone.
     ///
     /// SEAMS, none of which run1505 reaches: a helicopter (`+0x2b4 & 0x20`)
-    /// on the map is closed and given a strafe with no home and `returning`
-    /// 1; a plane inside a host is closed and cut from the host's
+    /// on the map is closed and given a strafe with no home, flying home;
+    /// a plane inside a host is closed and cut from the host's
     /// `launching` list (`+0x44`), which this crate does not carry; a front
     /// `SPECIALANIMORDER` (a landing) gives its own air order; the
-    /// scenario's `ignore_orders` filter.
+    /// scenario's filter of units that ignore orders.
     pub fn group_action_return(&mut self, g: &Group) {
         for &m in &g.list {
             if !self.units[m].alive() || !self.is_plane(m) {

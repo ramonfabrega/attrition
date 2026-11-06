@@ -1712,10 +1712,10 @@ impl Sim {
     /// - a non-missile reloads `recharge() + 1` (`5ea585`), and a missile
     ///   dies ([`Sim::missile_dies`]).
     ///
-    /// SEAM: a non-missile's `fire_ammo` (no plane but the missile both
-    /// carries an ammo piece and is off the Bomber line here), and the
+    /// SEAM: the immediate shot of a non-missile plane off the Bomber line
+    /// with an ammo piece (no such plane takes the order here), and the
     /// Bomber's `BOMBING_MANA_COST` (0 in the shipped rules, and the tank
-    /// is not carried — `strafe_attack`'s same seam).
+    /// is not carried — the strike's same seam).
     pub(crate) fn do_air_attack_ground(&mut self, u: usize, frame: i64) {
         let Some(crate::orders::Body::AirAttackGround(g)) = self.current_order(u).map(|o| o.body)
         else {
