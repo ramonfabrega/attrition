@@ -1096,11 +1096,15 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **267** with run1502 (item 3898: a who=1 Fort added and killed by console `die` on the
 /// golden start): `Forts::close_fort@0073ec90` entered on 622; open 4 → 3 on the tree merged
 /// with item 3897.
+/// **267** unmoved by item 3899's blind second reading (`docs/audit/2026-11-06-item-3899.md`),
+/// which agrees with `docs/AI.md` §386 that no v1 game reaches `GoodTypeData::is_flat`, and
+/// moves it to [`RESIDUE`]; residue 264 → 265, open 3 → 2 on the tree merged with 3897 and 3898.
 /// **267** unmoved by item 3902's blind second reading (`docs/audit/2026-11-06-item-3902.md`),
 /// which disagrees with `docs/AI.md` §388 on the `kill_group_order` pair: `fight`'s second
 /// `find_new_target` (`5fe25f`) after `Group::action_attack(QUEUE_FIRST)` can meet a re-issued
 /// `GROUP_PATROL`, so `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0`
-/// stay here, the take that settles them parked as 3902a; open 3, unmoved.
+/// stay here, the take that settles them parked as 3902a; open 2, unmoved, on the tree merged
+/// with 3899.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1313,6 +1317,15 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "TypeData::avail: +0x8c of the tech, bonus and spell types (the object \
          types override it), and every +0x8c dispatch is on an order, an animal, \
          a texture or the lobby, never a type (two readings, item 3505)",
+    ),
+    (
+        0x0047_80c0,
+        "GoodTypeData::is_flat: +0x94 of the three good-type tables only; the one \
+         good-receiver dispatch is Leader::produce_building's gather arm \
+         (6e2312), which only a direct Oil Platform request reaches, and no v1 \
+         caller makes one (create_buildings skips water non-docks; the Setup \
+         types are fixed; the rest are Conquer the World and the scenario VM); \
+         two readings, item 3899 (docs/audit/2026-11-06-item-3899.md)",
     ),
     (
         0x0047_df90,

@@ -14184,7 +14184,8 @@ question stays filed.
   happens, because `create_buildings` skips water non-docks (`6c1f96`). The disk: 114 dumps offer `t 421` and
   none offers `t 422`. A take would have had a fixed outcome; the killer would have fired. AI §386.
   **Score**: none of its own. It is why 3896 moved no row.
-- **3896b. A blind second reading of AI §386, to move `004780c0` to `RESIDUE`.** Re-derive the five points §386.3
+- ~~**3896b. A blind second reading of AI §386, to move `004780c0` to `RESIDUE`.**~~ **Done by item 3899**
+  (`docs/audit/2026-11-06-item-3899.md`): all five points agree, and the row is `RESIDUE`. Re-derive the five points §386.3
   lists, without §386: the fort test's rejoin, the `g` set, the Oil Well's exit past the spiral, the water-domain
   skip, and the other `+0x94` sites' receivers (`draw_cursor_follows`' `drop_type` in play, `capture_city`'s
   slot shape). **Score**: one open blind row (open 8 → 7, residue 260 → 261).
@@ -14215,13 +14216,21 @@ word moved. The row below names no score.
   a border change. A fort that dies inside its owner's territory, with `TERRITORY` dumped either side of the death,
   would read the arm. It names no score until `sim` models a fort's death beyond `alive`.
 
-## Parked by the next landing, slot AM — reserved
+## Parked by item 3899, 2026-11-06 — `GoodTypeData::is_flat`'s blind second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3899a** — **a slot's `+0x90` gate settles a `+0x94` receiver without its writers.**
+  `Options::draw_cursor_follows` tests `objecttypes[i]->+0x90` (`is_gather_type`) at `724230`
+  before it calls `+0x94`. Every non-building type's `+0x90` is a folded `return 0` (GoodType's
+  `0041bff0`), so the `+0x94` call is dead for those types whatever the index holds. §386 had left
+  this open as "`drop_type` read from its neighbour, not its writers". The same shape, a cheap
+  slot gate in front of the slot under question, may settle other open-receiver rows in one read.
+  The blind reader found it unprompted (`docs/audit/2026-11-06-item-3899.md`). **Score**: none of
+  its own; a reading shortcut for the open blind rows.
+- **3899b** — **the shipped `.bhs` outside `game/ai/scripts/` name "Oil Platform" only in
+  scope-excluded or dead text.** The ColdWar setups belong to Conquer the World.
+  `scenario/Custom/skirmish/skirmish.bhs:329` is a custom scenario, and the call sits inside a
+  `/* … */` block (lines 309–331). AI §386.2's grep searched `ai/scripts` only. This widens it,
+  and the verdict stands. **Score**: none.
 
 ## Parked by item 3900, 2026-11-06 — the `kill_group_order` pair, read shut
 
