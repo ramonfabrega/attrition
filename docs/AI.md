@@ -39113,6 +39113,8 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
      `@key 124` with `--bindkey OPTION_QUEUE=124`.
    - Killer: no `process_stop_spell` on F+1, or the cast still held on F+2.
    - The walk to the ring is a `MOVEORDER` action, and a stop sent during it finds no cast.
+   - ~~Staged~~ **Taken**: item 3913, run1507 and run1507b, `docs/GOLDEN.md` §160 — `process_stop_spell 771`, the stack
+     empty on 772, the three rows off `NEVER`.
 7. **`Group::action_disband@0070e260`.** `validate_disband` first. Then, from the last member, a unit or an
    unfinished building is sent to `Object::disband(o, 0)`, and with `all` 0 only one goes. A finished, active
    building instead queues `DISBAND`.

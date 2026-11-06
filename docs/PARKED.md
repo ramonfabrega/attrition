@@ -14480,13 +14480,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BA — reserved
+## Parked by item 3913, 2026-11-06 — a spell stopped mid-hold
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3913a. `action_stop_spell`'s Merchant arm** (`docs/GOLDEN.md` §160): a Merchant, Dutch Merchant or Fur Trapper
+  (0x3d, 0x3e, 400) whose action is a cast also sets `recalc_builds` and `update_gpiece`. Such a cast
+  would be a pack or unpack (`Unit::unpack_merchant` lays one, `crate::merchant` §3). It is not built, and no capture stops one. The staging would be
+  `OPTION_QUEUE` on a Merchant mid-unpack. **Score**: none named — a `SEAM` in `Sim::group_action_stop_spell`.
 
 ## Parked by the next landing, slot BB — reserved
 
