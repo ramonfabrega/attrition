@@ -1513,7 +1513,11 @@ Of the territory's 198 open or layout-only functions under the nine stems
   720 and every record to 5012 as the original's on all 185 files (item
   3843, §16): the scan's break and last `region2`, the 0x4 spread's break,
   oil's third ring and the relabel's swap are unit-tested only, the good
-  arm and the beach's write are not reached (3843a);
+  arm and the beach's write are not reached (3843a). On Southwest Mesa,
+  the first all-land grid with cliff cells: no cell gated, seed and parts
+  2, 5, 6 and 10–13 at all 23 records from 734 to 5012 on its one file,
+  part 4 at 734 its `SEA_MAP` 0 (item 3885); the wet pass's mask, the
+  coast's 0x400, the 0x20 and 5×5 rings stay inert there (3885a);
 - §10's `make_rivers` on Great Sahara: `make_riverbeds`' sources and the
   three clears, with seed and parts 2, 5, 6 and 10–13 at every record from
   5012 to 5118 on 105 files (item 3811), and on East Indies' 202 (1,010
@@ -1753,7 +1757,12 @@ step is checked by §3 at its own checkpoint before the next begins:
    agree on the 202 keyed (4,646 records), `SEA_MAP` 3 at 734. The gate
    opens round every island (1,921 and 1,932 cells), and the 706 heights
    decide the start dump's `HALFLAND` cell for cell on all 202 (81,086
-   cells);
+   cells). **Southwest Mesa built** (item 3885, no `sim` change; its
+   sixth phase): Great Sahara's case on an all-land mask with 292 cliff
+   cells, so no cell is gated. On run1493's one file, part 4 at 734 is
+   `SEA_MAP` 0, and seed and parts 2, 5, 6 and 10–13 stand at 7945's
+   values through all 23 records to 5012, first run. 7 of 12 mutants
+   hold (3885a);
 7. the heights in `sim::single`, with half-land and cliffs (§10, 720–894)
    — **Great Sahara built** (item 3812, `sim::map_heights`; the `Mapgen:`
    line's eighth phase). No checksum part moves for them there, so their

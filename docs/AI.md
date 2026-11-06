@@ -38004,7 +38004,12 @@ holds. **One take does not light the family**: 382.4's take reaches no
 `find_new_target` on a grouped head. The cheapest route to this pair stays
 3504a's staging, and this reading adds only that it is the *only* route.
 
-### 382.6 What a second reading must re-derive
+### ~~382.6 What a second reading must re-derive~~ — re-derived by item 3887
+
+*Struck 2026-11-05: item 3887's blind second reading agrees on 382.1's and 382.2's
+predicates, and both rows are `blind::RESIDUE` (`docs/audit/2026-11-05-item-3887.md`;
+`action_board_ship` has a third caller, `Group::finish_insert`'s re-issue of a
+held order, which brings no new producer). The list below is kept as written.*
 
 To move 382.1 and 382.2 to `RESIDUE`:
 1. The factory: every call to `00730ac0` and `00730550`, with the type
@@ -38026,12 +38031,183 @@ run1356 diff backs. The one-call-site table and the absent address copies
 are scans of the image. This reading moved no row of `blind::NEVER`. run1498
 (item 3881, §382.4) takes `get_max_range` off the list: open 41 → 40.
 
-## 383. Reserved for the next item on the AI track
+## 383. The data-accessor overloads' nine blind rows, read: nine residue candidates, four predicates, no take (item 3884)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3884, 2026-11-05, Opus 5.5. This is a reading: no capture, no sim change.
+The nine rows are `blind::NEVER`'s per-kind data accessors. Every slot is read
+off `.rdata`'s bytes, not off `vtables.txt`'s names. Those names come from the
+symbol at each address, and the linker's folding shares one body between
+classes: `BuildData`'s `+0x128` prints `WallData::los`. Every call site is
+scanned in `.text` in three forms: `E8`/`E9` rel32, `FF /2`·`FF /4` through
+`[reg+disp32]`, and `8B` `mov reg,[reg+disp32]` followed by `call reg`
+(`FF D0+r`) within 24 bytes. Each scanner was first run on a function with
+known callers (`UnitData::curr_uber_size@0060a760`, ten sites).*
+
+**The hierarchy, settled by the constructors.** `BuildData::BuildData@0062f370`
+calls `Object::Object` and then installs `WallData`, `WallOut` and `Wall`'s
+tables in turn before its own. `Wall::Wall@0063e390` does the same up to `Wall`,
+and `UnitData::UnitData@00606670` installs its own straight after
+`Object::Object@00646e80`. So the order is `ObjectData ← ObjectOut ← Object ←
+WallData ← WallOut ← Wall ← BuildData ← BuildOut ← Build`, with `UnitData`
+under `Object` and `AnimalData` under `Unit`. Each level has its own table, and
+the tables come in triples (`X`, `XOut`, `XData`), so a slot's overload is
+whichever the instance's most-derived class installs.
+
+**The slots, read off the tables' bytes** (the table addresses are
+`vtables.txt`'s, and the entries are `xxd` reads of the PE):
+
+| row | slot | the tables that hold it (four-byte copies in the image) |
+|---|---|---|
+| `WallData::support_cost@0063fa30` | `+0x140` | Build, BuildOut, BuildData, Wall, WallOut, WallData (6) |
+| `ObjectData::support_cost@006452f0` | `+0x140` | Object, ObjectOut, ObjectData (3) |
+| `UnitData::support_cost@0060fde0` | `+0x140` | Unit, UnitOut, UnitData, Animal, AnimalOut, AnimalData (6) |
+| `WallData::hits@00642bb0` | `+0x11c` | Wall, WallOut, WallData (3); Build's is `BuildData::hits@0062e740` |
+| `WallData::construct_time@00642d90` | `+0x18c` | Wall, WallOut, WallData (3); Build's is `BuildData::construct_time@0062d5c0` |
+| `ObjectData::max_range@00646c00` | `+0x130` | Object, ObjectOut, ObjectData, **Wall, WallOut, WallData** (6); Build's is `BuildData::max_range@0062e470` |
+| `ObjectData::hits@006450c0` | `+0x11c` | Object, ObjectOut, ObjectData (3); Unit's is `UnitData::hits@00610890` |
+| `ObjectData::los@006450b0` | `+0x128` | Object, ObjectOut, ObjectData (3); Wall and Build share `WallData::los@0063fa50` |
+| `UnitData::uber_size@0060a800` | none | **no four-byte copy anywhere in the image** |
+
+None of the nine has an `E8`/`E9` caller, and no copy of any of them sits in
+`.text` (so there is no devirtualizing `cmp` guard of the `is_captain` kind).
+Each is reached only through its slot, or, for `uber_size`, not at all.
+
+### 383.1 Slot `+0x140` has no object dispatcher: the three `support_cost`s
+
+The scan finds six `call [reg+0x140]` sites and no `mov`+`call` form:
+`Window::on_middle_down`, `Window::on_window_middle_down`, `Game::init` and
+`System::init_graphics` (through `graphsys`), and `ObjectsOut::pop_all_zoomed_in`
+(`65614b`) and `Options::draw_cursor_follows` (`723e7a`). The last two go
+through `unittypes`' entries, which are `UnitType`s (`Types::init` builds them
+with `UnitType::UnitType`). `UnitType::UnitType@0061d270` installs
+`0xb41d24`/`0xb41e7c`/`0xb41fd4`, whose `+0x140` is `ObjectTypeOut::draw` and
+`UnitTypeOut::draw`. The six arguments fit a draw, and they do not fit a
+thiscall `support_cost(int)`, which pops four bytes. `vtables.txt` lists no
+`UnitType` table, which is why its names never showed this. **No site sends
+`+0x140` to an object instance**, so none of the three bodies runs in any game.
+
+**`RESIDUE` candidates**, all three, on this predicate: *no instruction
+dispatches slot `+0x140` on an `Object`-derived receiver*. The field stays live:
+`BuildTypeData::get_kill_value@00639790` reads the type's `+0x270`/`+0x274`
+inline, and this crate ports that read (`cost.rs`, `kill_value_by`). The
+emulator sweep of `ObjectData::support_cost` (`sweep/object_support_cost.rs`,
+item 1723) checks a body no game calls. **Killer**: any `cover=1` trace that
+enters `0063fa30`, `006452f0` or `0060fde0`. On the golden start, that would be
+a building's or a unit's entry on any frame. Nothing to name in an ini category,
+because the dump prints no support figure taken through the accessor.
+
+### 383.2 The Wall overloads: reached only by a wall piece, and v1 builds none
+
+`WallData::hits` (`+0x11c`), `WallData::construct_time` (`+0x18c`), and
+`ObjectData::max_range` through the Wall triple (`+0x130`) are each the
+overload a **`Wall` instance** reaches. `Build` overrides all three slots
+(table above). Their dispatchers take any object receiver: `Object::take_damage`
+and `Object::do_damage` on `+0x11c`; `Wall::do_construct`, `Wall::update_hits`,
+`Wall::process` and `Object::disband` on `+0x18c`; `Object::compare_target`,
+`Object::poor_target` and `ObjectData::is_in_range` on `+0x130`. So the
+overload is chosen by the receiver's class alone. A wall piece is a kind-2
+object, and `Wall::Wall@0063e390` is already `RESIDUE`: its only references
+are the per-kind constructor tables, and `num_def_walls` is only ever written 0
+(GOLDEN §144.4, the forty-eighth pass).
+
+**The window that is not a wall.** A `Build` carries Wall's table between
+`BuildData::BuildData`'s three stores and its own (`0062f370`, lines 18–28), and
+again from `BuildData::~BuildData@00471270`'s last store through
+`Wall::~Wall@0063e440`, `WallOut::~WallOut@00472d10` and
+`WallData::~WallData@00472cc0`. Every one of those windows holds stores only
+and **no call**, so nothing dispatches while Wall's table is installed.
+
+**`RESIDUE` candidates**, all three, on `Wall::Wall`'s predicate: *no live
+object's most-derived class is `Wall`*. **Killer**: a `UnitsSync` or
+`BuildsSync` dump that prints an object of kind 2, or any trace that enters
+`Wall::Wall`. Either kills `Wall::Wall`'s own row first.
+
+### 383.3 The bare `Object` overloads: no object is a bare `Object`
+
+`ObjectData::hits` (`+0x11c`), `ObjectData::los` (`+0x128`), and
+`ObjectData::max_range` through the Object triple (`+0x130`) are reached only
+by a receiver whose most-derived class is `Object`. `Object::Object@00646e80`
+has **three** callers (`606691` in `UnitData::UnitData`, `62f393` in
+`BuildData::BuildData`, `63e3bc` in `Wall::Wall`) and no address copy. So no
+`new Object` and no vector-constructor iterator builds a bare one, and the
+`Object` table is installed only inside those constructors and in the
+destructor chain down to `Object::~Object@00646f50`. All of those windows are
+stores only (383.2's reading, and `Object::Object` itself calls nothing). That
+covers the full `+0x128` site list, among them `Object::update_seen`,
+`Object::update_seen_ally`, `Unit::do_follow` and `BuildOut::draw_underlays`:
+none of them can find an `Object` table on a live receiver.
+
+**`RESIDUE` candidates**, all three (`max_range` on both 383.2's predicate and
+this one), on this predicate: *`Object::Object`'s only callers are the three
+subclass constructors, and their table windows are call-free*. **Killer**: any
+trace that enters `006450b0`, `006450c0` or `00646c00`. A fourth caller of
+`00646e80` in a newer build also kills it.
+
+### 383.4 `UnitData::uber_size@0060a800`: nothing refers to it
+
+It returns the type's `+0x308` (a squad's full size). It has no rel32 caller,
+no copy in any table, and no immediate. Every live reader takes `+0x308`
+inline: `Unit::repair_damage@0060de10` (lines 101 and 152) and the
+`curr_uber_size` callers. So this is the out-of-line copy of an inlined
+accessor, the same shape as `ObjectData::has_range`'s `RESIDUE` row.
+The field is this crate's `heal.rs` SEAM (parked 3686b), and that SEAM does
+not need this function. **`RESIDUE` candidate**: *no reference in the
+executable*. **Killer**: a trace that enters `0060a800`, which no image-level
+scan allows.
+
+### 383.5 No take lights the family
+
+All nine are residue candidates, under four predicates: a dead slot (383.1), a
+class v1 never builds (383.2), a class nothing builds (383.3), and no
+reference (383.4). **No lobby and no console `add` reaches any of them.** A
+console-placed wall would need `find_free` to ask for the wall range, and
+§144.4 reads that no caller does. So the next item on this lane is not a take.
+
+### 383.6 The destructors this section cites
+
+`WallData::~WallData@00472cc0`, `WallOut::~WallOut@00472d10`,
+`Wall::~Wall@0063e440` and `Object::~Object@00646f50` enter no pinned trace,
+and this section's cite adds them to `NEVER`. **Every live path inlines them**:
+`Wall::~Wall`'s and `BuildData::~BuildData`'s bodies are the table stores
+themselves. The rel32 scan finds them called only from
+`__unwindfunclet$…` thunks (`00a63493`–`00a89c34`), which run when a
+constructor or destructor of `UnitData`, `BuildData`, `Wall`, `WallOut` or
+`WallData` throws. `Wall::~Wall`'s address is also an immediate in
+`Objects::find_free`, `Objects::init`, `ObjectsArray::get_new_data` and
+`Wall::`vector_deleting_destructor'`. Those are the same wall-range vector
+constructors that `Wall::Wall`'s `RESIDUE` row names. **`RESIDUE` candidates**,
+all four: *no live path calls the out-of-line copy*. **Killer**: a trace that
+enters any of the four. A thrown constructor is the cheapest way to get one,
+and a skirmish has none.
+
+### ~~383.7 What a second reading must re-derive~~ — re-derived by item 3887
+
+*Struck 2026-11-05: item 3887's blind second reading agrees on all six points and all
+thirteen rows (383.1–383.6), and they are `blind::RESIDUE`
+(`docs/audit/2026-11-05-item-3887.md`; `Object::~Object` has nine funclet callers;
+the Wall premise is re-derived through `find_free`'s seven callers and
+`get_new_data`'s case 2). The list below is kept as written.*
+
+To move the nine to `RESIDUE`:
+1. The slot of each row, from the tables' **bytes** (not `vtables.txt`'s
+   names), and the four-byte-copy count in the table above.
+2. That `.text` holds no `E8`/`E9` call or jump to any of the nine, and no
+   immediate copy of any of them.
+3. For 383.1: every `[reg+0x140]` call or jump, in the direct and the
+   `mov`+`call` forms, with its receiver's class. Two of them are
+   `UnitType`'s draw (`0x61d580`, `0x4703f0`), the other four are Window or
+   `graphsys`, and none is an object.
+4. For 383.2 and 383.3: `Object::Object`'s three callers and the call-free
+   windows in the constructors and in the `~BuildData` → `~Object` chain,
+   plus `Wall::Wall`'s own `RESIDUE` premise.
+5. For 383.4: no reference to `0060a800`, and `+0x308`'s readers inline.
+6. For 383.6: the four destructors' callers are the unwind funclets and the
+   wall-range constructor tables, and no live path calls them.
+
+**Coverage.** Every claim in this section is reading-only. The slot table, the
+call-site table and the absent address copies are scans of the image. This
+reading moves no row to `RESIDUE`. Its cite of 383.6's four destructors adds
+them to `blind::NEVER`: never 262 → 266, open 39 → 43 (on run1497's 262 and 39).
 
 ## 384. Reserved for the next item on the AI track
 

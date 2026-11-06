@@ -1042,11 +1042,21 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **262** with run1497 (item 3879: item 3876's planted cell on East Indies, `weather` at
 /// (2, 17)): `TerrainOut::check_for_diagonal@008595f0` entered on 620 at (3, 16);
 /// `WorldData::is_valid@00471170` not, so it stays; open 40 → 39.
+/// **266** with item 3884's cite of the destructor chain whose stores-only windows keep the
+/// `Wall` and `Object` tables off every dispatch (`docs/AI.md` §383.2–§383.3; no capture joins
+/// [`TRACES`]): `WallData::~WallData@00472cc0`, `WallOut::~WallOut@00472d10`,
+/// `Wall::~Wall@0063e440` and `Object::~Object@00646f50` — inlined on every live path, their
+/// out-of-line callers only unwind funclets and the wall-range vector constructors (§383.6,
+/// [`RESIDUE`] candidates on a second reading); open 39 → 43.
+/// **266** unmoved by item 3887's blind second reading (`docs/audit/2026-11-05-item-3887.md`),
+/// which agrees on all fifteen of `docs/AI.md` §382.6's and §383.7's candidates —
+/// `Unit::do_group_attack`, `Unit::do_await_board`, the nine data accessors and the four
+/// destructors — and moves them to [`RESIDUE`]; residue 223 → 238, open 43 → 28.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
-    0x0047_2420, 0x0047_2a40, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
+    0x0047_2420, 0x0047_2a40, 0x0047_2cb0, 0x0047_2cc0, 0x0047_2d10, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
     0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
@@ -1054,7 +1064,7 @@ pub const NEVER: &[u32] = &[
     0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_4550,
     0x0060_8850, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
-    0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
+    0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
@@ -1183,6 +1193,18 @@ pub const RESIDUE: &[(u32, &str)] = &[
         0x0047_2a40,
         "BuildTypeData::is_mine: BuildType +0x98, and no +0x98 dispatch has a \
          build-type receiver (orders, windows, objects) (two readings, item 3505)",
+    ),
+    (
+        0x0047_2cc0,
+        "WallData::~WallData: inlined on every live path; its six callers are \
+         unwind funclets; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0047_2d10,
+        "WallOut::~WallOut: inlined on every live path; its five callers are \
+         unwind funclets; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
     ),
     (
         0x0047_6aa0,
@@ -1476,11 +1498,25 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x005e_75a0,
+        "Unit::do_group_attack: its one call is Unit::do_job's GROUP_ATTACK case \
+         (617b0c), and no order-factory site makes a GroupAttackOrder (type 0x14) \
+         except as a copy or a load of one that exists; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
         0x005e_8670,
         "Unit::do_form_change: do_job's CHANGE_FORM arm, run only on a \
          FormOrder, which no site in the image makes — none of get_obj's 47 \
          calls pushes 0x12 (docs/GROUPS.md §38; six register-typed calls read \
          by prefix, parked 3413c; the forty-eighth pass)",
+    ),
+    (
+        0x005e_d040,
+        "Unit::do_await_board: its one call is Unit::do_job's AWAIT_BOARD case \
+         (617a9c), and the order's one maker is Unit::add_await_board_order, \
+         already RESIDUE under the board-ship command no site writes; two \
+         readings, item 3887 (docs/audit/2026-11-05-item-3887.md)",
     ),
     (
         0x005e_d1f0,
@@ -1542,11 +1578,24 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0060_a800,
+        "UnitData::uber_size: the out-of-line copy of an accessor inlined at \
+         every use (the type's +0x308); no reference in the executable; two \
+         readings, item 3887 (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
         0x0060_a810,
         "UnitData::is_entrenched: the out-of-line copy of a function the \
          compiler inlined at every use, or one nothing calls; no reference in \
          the executable (the fiftieth pass's scan over the 192 open rows, \
          2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0060_fde0,
+        "UnitData::support_cost: slot +0x140 of the Unit and Animal triples, and \
+         the six [reg+0x140] sites dispatch on a Window, graphsys or a UnitType, \
+         never an object; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
     ),
     (
         0x0061_d740,
@@ -1646,6 +1695,56 @@ pub const RESIDUE: &[(u32, &str)] = &[
          the wall range (docs/GOLDEN.md §144.4; the forty-eighth pass)",
     ),
     (
+        0x0063_e440,
+        "Wall::~Wall: inlined on every live path; called only from unwind \
+         funclets and pushed by the wall-range constructors and Wall's vector \
+         deleting destructor, none of which a v1 game runs; two readings, item \
+         3887 (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0063_fa30,
+        "WallData::support_cost: slot +0x140 of the Build and Wall triples, and \
+         no site dispatches +0x140 on an object; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0064_2bb0,
+        "WallData::hits: slot +0x11c of the Wall triple only (Build overrides \
+         it), and no live object's most-derived class is Wall; two readings, item \
+         3887 (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0064_2d90,
+        "WallData::construct_time: slot +0x18c of the Wall triple only (Build \
+         overrides it), and no live object's most-derived class is Wall; two \
+         readings, item 3887 (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0064_50b0,
+        "ObjectData::los: slot +0x128 of the Object triple only, and \
+         Object::Object's three callers are subclass constructors whose table \
+         windows are call-free; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0064_50c0,
+        "ObjectData::hits: slot +0x11c of the Object triple only, and no object \
+         is a bare Object; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0064_52f0,
+        "ObjectData::support_cost: slot +0x140 of the Object triple only, never \
+         dispatched on an object, and no object is a bare Object; two readings, \
+         item 3887 (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
+        0x0064_6c00,
+        "ObjectData::max_range: slot +0x130 of the Object and Wall triples only \
+         (Build and Unit override it), and no live object is a bare Object or a \
+         Wall; two readings, item 3887 (docs/audit/2026-11-05-item-3887.md)",
+    ),
+    (
         0x0064_6c10,
         "ObjectData::has_range: the out-of-line copy of a function the compiler \
          inlined at every use, or one nothing calls; no reference in the \
@@ -1658,6 +1757,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          dispatches, Build::do_attack and Object::do_launch, are guarded by an \
          exact Build::vftable test on a receiver that is always a Build, and no \
          Wall receiver is dispatched (two readings, item 3505)",
+    ),
+    (
+        0x0064_6f50,
+        "Object::~Object: inlined on every live path; its nine callers are unwind \
+         funclets of the UnitData, BuildData, Wall, WallOut and WallData \
+         constructors and destructors; two readings, item 3887 \
+         (docs/audit/2026-11-05-item-3887.md)",
     ),
     (
         0x0064_7150,

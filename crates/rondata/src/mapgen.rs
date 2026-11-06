@@ -6200,8 +6200,9 @@ mod tests {
     /// The §15 phases this module checks on Southwest Mesa: the mask (7807),
     /// the zero-draw passes (7835..7854, item 3872), `place_all` with
     /// the cliffs (7859, item 3875), and its tail and the resources
-    /// (7861..7927, item 3878), and the values (7937, 7945, item 3882).
-    const SOUTHWEST_MESA_CHECKED: i64 = 5;
+    /// (7861..7927, item 3878), the values (7937, 7945, item 3882), and
+    /// `Terrain::init` without heights (734..5012, item 3885).
+    const SOUTHWEST_MESA_CHECKED: i64 = 6;
 
     /// One Southwest Mesa file at 7807: its name, 7805's seed, ours and
     /// theirs as `(seed, part 2, part 5)`, and the words our draws step from.
@@ -6908,6 +6909,135 @@ mod tests {
             "the values walked {walked} traces and {files:?} files"
         );
     }
+
+    /// Each Southwest Mesa file's grid and stream at 7945: the port's 7927
+    /// grid ([`southwest_mesa_at_7927`]), then `adjust_for_blocking` and
+    /// `compute_all_vals`, as 3882 checked them.
+    fn southwest_mesa_at_7945(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
+        let (mut grid, mut d) = southwest_mesa_at_7927(root, g)?;
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
+            .expect("Southwest Mesa's place_all inputs");
+        let mut regions = regions_of(&grid);
+        adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+        compute_all_vals(&mut grid, &mut d, &makes);
+        Some((grid, d))
+    }
+
+    /// **`Terrain::init` without heights on Southwest Mesa** (`docs/MAPGEN.md`
+    /// §10, §15 step 6, item 3885): from the port's 7945 grid
+    /// ([`southwest_mesa_at_7945`]), `Map::make`'s `sea_map` write — part 4
+    /// at 734 as `SOUTHWESTMESA.xml`'s `SEA_MAP` — then `generate_land_lists`'
+    /// flags, `check_and_set_halfland`'s height-free passes and
+    /// `convert_beach_to_sandy`, Great Sahara's port unchanged. An all-land
+    /// mask with cliffs: the test prints what each arm would enter (the
+    /// gate, the 0x20 cells, the wet and relabelled cells, the beach), and
+    /// seed and parts 2, 5, 6 and 10–13 at every record from 734 to 5012 are
+    /// ours on run1493's one file.
+    #[test]
+    fn southwest_mesa_s_terrain_init_without_heights_is_734_to_5012() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let sea = sea_map(root, "SOUTHWESTMESA.xml").expect("SOUTHWESTMESA.xml's SEA_MAP");
+        let (mut files, mut records) = (0, 0);
+        let mut parted = Vec::new();
+        for (name, g) in all.iter().filter(|(_, g)| g.style == 10 && g.xs > 0) {
+            let Some((mut grid, d)) = southwest_mesa_at_7945(root, g) else {
+                continue;
+            };
+            let (Some(before), Some(after)) = (g.at("map.cpp", 7945), g.at("setup.cpp", 734))
+            else {
+                continue;
+            };
+            let wet = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & 0x100 == 0 && (c.land == 1 || c.land == 2))
+                .count();
+            let relabel = grid
+                .cells
+                .iter()
+                .filter(|c| c.land == 0 && c.region > 0x40)
+                .count();
+            let shore = grid
+                .cells
+                .iter()
+                .filter(|c| c.flags & 0x4 != 0 || c.land == 3)
+                .count();
+            let lands: std::collections::BTreeSet<i8> = grid.cells.iter().map(|c| c.land).collect();
+            let (sea_map, coord, half) = terrain_init_without_heights(&mut grid, sea)
+                .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
+            let count = |bit: u16| coord.iter().filter(|&&f| f & bit != 0).count();
+            eprintln!(
+                "{name}: SEA_MAP {sea}, lands {lands:?}, 0x4-or-NONE cells {shore}, wet cells \
+                 {wet}, BASELAND above region 0x40 {relabel}, cliff cells {}; CoordInfo 0x20 \
+                 {}, 0x4 {}, 0x80 {}, gated (0x84) {}",
+                grid.cells.iter().filter(|c| c.flags & 0x40 != 0).count(),
+                count(coord::COASTAL),
+                count(coord::HALF),
+                count(coord::SHALLOW),
+                count(coord::GATE)
+            );
+            let parts = half.parts().expect("empty half-land lists");
+            let part4 = adler_rewrite(
+                before.3[4],
+                PART4_LEN,
+                PART4_SEA_MAP_AT,
+                &WORLD_SEA_MAP_BEFORE.to_le_bytes(),
+                &sea_map.to_le_bytes(),
+            );
+            if part4 != after.3[4] {
+                parted.push(format!(
+                    "{name}: part 4 at 734 ours {part4:#x} against theirs {:#x}",
+                    after.3[4]
+                ));
+            }
+            let reached = terrain_init_records(g);
+            eprintln!(
+                "{name}: 734..5012 carries {} records: {:?}",
+                reached.len(),
+                reached.iter().map(|r| r.1).collect::<Vec<_>>()
+            );
+            assert!(!reached.is_empty(), "{name}: a file with 734 and no 5012");
+            for (f, l, seed, p) in reached {
+                let ours = (
+                    d.rng.seed,
+                    grid.start_part(),
+                    grid.cell_part(),
+                    grid.tile_part(),
+                    parts,
+                );
+                let theirs = (*seed, p[2], p[5], p[6], [p[10], p[11], p[12], p[13]]);
+                if ours != theirs || p[4] != after.3[4] {
+                    parted.push(format!(
+                        "{name} at {f} {l}: (seed, parts 2, 5, 6, 10–13) ours {ours:?} against \
+                         theirs {theirs:?}, part 4 {:#x} against 734's {:#x}",
+                        p[4], after.3[4]
+                    ));
+                }
+                records += 1;
+            }
+            files += 1;
+        }
+        eprintln!("Southwest Mesa terrain init: 734..5012 on {files} files, {records} records");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            files >= MESA_FILES && records >= MESA_TERRAIN_RECORDS,
+            "734..5012 reached {files} Southwest Mesa files, {records} records"
+        );
+    }
+
+    /// run1493's records from `setup.cpp` 734 to `map.cpp` 5012: a floor
+    /// (23 on 2026-11-05, item 3885).
+    const MESA_TERRAIN_RECORDS: usize = 23;
 
     /// The §15 phases this module checks on Great Sahara: the mask (7807),
     /// the zero-draw passes (7835..7854), `place_all` with its tail (7859,
