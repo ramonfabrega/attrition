@@ -376,13 +376,16 @@ const UNREAD: &[(&str, &str)] = &[
     // 3911's ch17ag windows `process_attack_ground`** (`21120 16512 2` on
     // 681), the first player's air attack on the ground; what it lays is
     // read off `0/7`'s `AIRATTACKGROUNDORDER`.
+    // **Item 3915's run1509 windows `process_city_gather`** (`t queued
+    // frame`), a City's gather-all; what it lays is read off the City's
+    // `gather` list.
     // **Item 3914's run1508 windows `process_disband`** (`frame`), the
     // first player's disband; what it kills is read off the Chariot's
     // record and its `DEATH_OBJS`.
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_attack_ground process_build process_buildmask process_disband process_eject_all process_flight process_follow process_form process_garrison process_gather process_gather_point process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_attack_ground process_build process_buildmask process_city_gather process_disband process_eject_all process_flight process_follow process_form process_garrison process_gather process_gather_point process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -813,6 +816,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch109 = golden_dump("ch109");
     let ch110 = golden_dump("ch110");
     let ch111 = golden_dump("ch111");
+    let ch112 = golden_dump("ch112");
     let ch113 = golden_dump("ch113c");
     let ch115 = golden_dump("ch115");
     let ch17a = golden_dump("ch17-ammo");
@@ -2938,6 +2942,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and eleven carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twelve, on run1509** (item 3915): the golden
+    // City's gather-all, `OPTION_VILLAGE_GATHER_ALL`; the window takes the
+    // key on 610, `process_city_gather` on 611 and the City's four points.
+    if let Some(p) = &ch112 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWELVE;
+        let n = drive_capture(p, 609, 613, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and twelve carries five blocks in the window"
         );
         frames += n;
     }

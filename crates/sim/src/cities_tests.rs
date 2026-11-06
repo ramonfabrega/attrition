@@ -9869,3 +9869,54 @@ fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
         }
     }
 }
+
+/// **A City's gather-all points the City at its own Farms, Woodcutters and
+/// Mines** (item 3915, `Group::action_city_gather@00701780`, `docs/GOLDEN.md`
+/// §162): the list cleared, then one point per chain member that `is` one
+/// of the three, at that building's position, action 1, in chain order; the
+/// Library on the chain takes none, and a member that is not a city centre
+/// is no member.
+#[test]
+fn a_city_s_gather_all_points_it_at_its_own_resource_buildings() {
+    use crate::rally::GatherPoint;
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (city, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let mut farms = Vec::new();
+    for pos in [tile_pos(24, 40), tile_pos(30, 40)] {
+        let f = sim.place_building(0, t.farm, pos).expect("a farm places");
+        finish(&mut sim, f);
+        farms.push(f);
+    }
+    let lib = sim
+        .place_building(0, t.library, tile_pos(40, 26))
+        .expect("a library places");
+    finish(&mut sim, lib);
+    assert!(
+        sim.cities[c].members.contains(&lib),
+        "the Library is on the chain"
+    );
+    let stale = GatherPoint {
+        pos: tile_pos(10, 10),
+        action: 0,
+    };
+    sim.add_gather_point(city, stale, true);
+    sim.group_action_city_gather(&[city, lib], -1);
+    let want: Vec<GatherPoint> = farms
+        .iter()
+        .map(|&f| GatherPoint {
+            pos: sim.buildings[f].pos,
+            action: 1,
+        })
+        .collect();
+    assert_eq!(sim.buildings[city].gather, want);
+    assert!(
+        sim.buildings[lib].gather.is_empty(),
+        "a Library is no member"
+    );
+    sim.group_action_city_gather(&[city], crate::gather_view::WOODCUTTER);
+    assert!(
+        sim.buildings[city].gather.is_empty(),
+        "the Woodcutter button with no Woodcutter clears and lays nothing"
+    );
+}

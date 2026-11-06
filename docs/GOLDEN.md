@@ -17624,12 +17624,106 @@ The second caller, `Leader::check_orphaned_buildings`, which is the AI's.
 absent refund, and the draws to 900. Reading only: the walk's order and `all`, the passenger loop, the off-map arm, and
 the building arms.
 
-## 162. Reserved for the next item on the rules track
+## 162. Chapter one hundred and twelve — a city's gather-all; closed at 1300 (item 3915, run1509, run1509b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 row 8, parked 3906c): `Group::action_city_gather@00701780` was `NEVER`, with its
+issuer `Options::do_city_gather@0071cdb0` → `GroupOut::issue_city_gather@0070ac70` and its arm
+`CommandPackage::process_city_gather@00948a10` (byte 0x12). No `@` verb reaches it. It is entered as §146 entered the
+formation keys: the key bound to `OPTION_VILLAGE_GATHER_ALL` (280) in the lane's profile, pressed with the City
+selected.
+
+**What the reading says.**
+
+- `do_city_gather`: `can_activate`, a building selection, `COUNT_GATHER_POINT` non-zero (a member that trains,
+  garrisons or is one of the three wonders) and `COUNT_TYPE` 0x19e (`VILLAGE`) non-zero. `issue_city_gather` then
+  writes `t` (the button's type, −1 for all) and `queued` 2.
+- `action_city_gather(kind, queue)`: each member that is in use (`+8 & 1`), a building (slot `+0x20`), a city centre
+  (`+8 & 0x20`) and finished (`+8 & 4`) has its list cleared (`Build::clear_gather`). Then the chain is walked from
+  the centre itself down `city_down` (`+0x74`). Every building in use whose type answers `is(kind, 0)` gives the
+  centre a point at its own position, action 1, `QUEUE_LAST` (`701a41`..`701a88`).
+- **With −1 the listing pushes 0x1a1, 0x1a2 and 0x1a3 in turn** (`7019b6`..`701a3d`): a Farm, a Woodcutter or a Mine.
+  AI §391.2's "any building that answers type vslot `+0x60` with 0" read the decompile, which prints the three calls
+  without their arguments. run1509 settles it: the Library and the Market on the chain take no point.
+- The console's half — when nothing was laid, the last member cleared again, with the red feedback and a sound off
+  `SoundGlobal::random` — is not built: this crate keeps no console.
+
+**Staging** (`tools/gamelog/golden/chapter112.cmd`): the golden start's City `0/2000` (chain: the Woodcutter's Camp
+`0/2001`, Farms `0/2002`..`0/2004`, the Library `0/2005`, the Market `0/2006`), `606 select 2000 who=0`, `610 @key 124`
+with `--bindkey OPTION_VILLAGE_GATHER_ALL=124`, then `616 @queueup 0 50 2 2000`, two Citizens born under the points.
+111 is left to item 3914. **Falsifiers, written before the take** (the journal has them): `KEYMAP_NONE` on 610; no
+`process_city_gather t: -1` on 611; the City's list on 612 not exactly four points, the Woodcutter's first and then
+the three Farms', each action 1; no `HIT` on `action_city_gather` or `issue_city_gather` in the twin.
+
+**What the original does** (run1509 `cover=0`, run1509b `cover=1`; `docs/RUNS.md`). No falsifier fired. `INFO 22` on
+610 names option 280. `process_city_gather -1 2 611` is on the `CM` channel. The City's list on the next block is (4224,
+28608), (2688, 32064), (1920, 32064) and (2112, 31296), each action 1. The twin enters `Console::exec_keymap`,
+`do_city_gather`, `issue_city_gather`, `process_city_gather` and `action_city_gather` on trace frame 610. run1509 is
+run1507's game to 610 (`rngcmp` first differing 611), and the twin's on all 1301 frames.
+
+**The waypoint: a Citizen gathers at the head point.** The first take's word was **720**, and its value diff on 716,
+the first Citizen `0/6`'s birth, was:
+
+| field | ours | theirs |
+|---|---|---|
+| `pos` | (2280, 31224) | (3864, 30168) |
+| `orders.len` | 4 | 1 |
+| `order:kind` | 1 (a move) | 7 |
+| `orders_x`, `orders_y` | (4248, 28632) | (3864, 30168) |
+| `0/2001` `gather_down` | 2 | 6 |
+
+The original sent the Citizen straight to the Woodcutter's Camp: one order, on the camp's gatherer chain, and ejected
+on the camp's side. This crate walked all four points as moves and re-seated it toward the last Farm.
+`Sim::gather_route` held this as a `SEAM` ("a waypoint with `action` ≠ 0 … no capture sets one"). run1509 is the first
+capture to set one.
+
+`Unit::come_out@00617c10`'s waypoint arm (`618cae`..`618ff1`) runs on a point before the last whose action is not 0,
+with `find_any_building_at` on its tile (`FILTER_SEEN`). It ends the walk there, as at the last point
+(`LAB_00618ff1`), passes the point over (`LAB_00619142`), or moves through it:
+
+- **No building:** an armed (`+0x1e8`) non-worker under action 2 passes the point over. Anything else moves.
+- **A Citizen under action 1, on a building of its own:**
+  - unfinished (vslot `+0x4c`) or damaged (`+0x24`) ends the walk;
+  - finished and whole, a living gather type that is not a University, with `num_gatherers(0, 0)` under
+    `gather_max` (`+0x80`), ends it;
+  - anything else passes the point over.
+- **A finished building of an ally**, with a garrison limit the type can garrison, under action 1: room for the
+  unit's `control_cost` beside `num_inside(0)` ends the walk, and no room passes the point over.
+- **An enemy's building** with an armed non-worker under action 2 ends the walk.
+
+A pass wins over an end: the listing tests `local_a08` first. Built as `Sim::gather_waypoint` (`crates/sim/src/rally.rs`).
+With it, `0/6` on 716 and `0/7` on 822 are born where the original has them and sent to gather at `0/2001`, two of its
+five slots taken.
+
+**What this crate does.** `Sim::group_action_city_gather` (`crates/sim/src/rally.rs`) is the member walk, with
+`cities_tests::a_city_s_gather_all_points_it_at_its_own_resource_buildings`. `rondata::golden`'s `@key` reads the
+chapter's `# bindkey` line (§159's parser), and `OPTION_VILLAGE_GATHER_ALL` is `input::group_city_gather`: the
+building group pushed, then the walk with −1. The draw stream agrees to the trace's end:
+`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWELVE` = **1300**, closed (`chapter_one_hundred_and_twelve_holds_to_the_golden_word`).
+The widening over 605..1300 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWELVE` (604, 1301), both directions, the pool too)
+parts on the eleven standing `form` rows and nothing else (`WANT_CH112`). The coverage driver drives 609..613, and
+`process_city_gather` joins the `GAME` row's windowed keys.
+
+**Mutations** (`tools/mutate.py --batch`, against the unit test and the chapter's two tests): all seven held, scored by the failed tests' names.
+
+- The −1 arm without the Woodcutter: the word and the widening fail (the City's head point, and both Citizens' orders).
+- AI §391.2's reading, every chain building taking a point: the word and the widening fail.
+- The Clear dropped: fails `a_city_s_gather_all_points_it_at_its_own_resource_buildings` alone. The City's list is
+  empty on 610, so no capture holds the Clear; it stands on the unit test and the reading.
+- The city-centre test dropped: fails the unit test alone (the Library selected beside the City takes a list). Only
+  the City is selected in run1509.
+- The waypoint arm dropped (`if false`): the word and the widening fail (the word falls to 720).
+- The camp's room test inverted (`>` for `<`): the word and the widening fail; the Citizen passes the camp over.
+- The harness's `OPTION_VILLAGE_GATHER_ALL` arm renamed: the word and the widening fail.
+
+**Not established.** The three single-type buttons (`_FARM`, `_WOOD`, `_MINE`), read as `is(kind, 0)` on the same
+walk, and the console's red half: no capture presses one or lays nothing. The waypoint arm's other verdicts (a pass on a
+full camp, a garrison with or without room, an unfinished or damaged building, action 2): read, not captured. A
+selection of two cities.
+
+**Coverage.** Diff-backed: the key's reach, the command's frame, the City's four points and their order, the −1 arm's
+three types (the Library and Market refused), and the waypoint's gather end for a Citizen at a camp with room. Reading
+only: the Clear before the walk (the City's list is empty on 610), the city-centre test, the single-type buttons, and
+every other waypoint verdict.
 
 ## 163. Chapter one hundred and thirteen — a peasant alarm; closed at 900 (item 3916, run1510–run1510d)
 
