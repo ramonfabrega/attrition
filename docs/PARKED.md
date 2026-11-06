@@ -14105,13 +14105,23 @@ no score: no port carries a console river, and no `NEVER` row is left on the rou
 `TerrainMap::river_stop@009b5d20` is `RESIDUE` on the editor's cut (DECISIONS 107 §3; MAPGEN §21); the body
 question stays filed.
 
-## Parked by the next landing, slot AE — reserved
+## Parked by item 3890, 2026-11-05 — Southwest Mesa's cliffs, 815 → 894
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3890a. Thirteen `Cliffs::init` arms have nothing to decide on run1493.** Of 31 single mutants on `48a3900ea`
+  and `68cc0d29e`, scored by `southwest_mesa_s_`, 18 hold. The 13 that fail nothing each have their case counted
+  in `sim::cliffs::Inert`, printed and asserted nought by `southwest_mesa_s_cliffs_are_894`: `place_cliff`'s 0x10,
+  dry, 0x1000 and `CoordInfo` 4 skips (no box vertex has one); `assess_wcoord`'s COAST/`land` 1–2 refusal and its
+  mountain-tile skip (no cliff cell is either); the threshold ±1 ulp and the strict `>` (the nearest span is
+  70,139 ulps off); the first corner's clamp (no corner past ±10000); the rewrite's `& 0xfffd` (no blocked mask
+  carries 0x2); the cell's closing `move_goody` (the neighbours' calls have already emptied it); the mining
+  count's `n != 0` (no marked cell under a cliff index counts 0); and the good arm's south-forest test (no
+  candidate refused for it alone). The assertion fails on the first grid that hands one of these arms a case.
+  Names no score: Mesa's chain is whole.
+- **3890b. `Goods`' checksum line is not ported, and no herd exists inside `Terrain::init`.** At 894 the file's
+  `Goods` moves (2513456421 → 2840415933) and no test compares it; the moved goods' cells (`down`, `down_who`,
+  flag 1) stand in for it. `move_goody`'s herd arm (`Herd::close`) is not built, on the reading that no herd is
+  placed before `Terrain::init` ends. Killed by a port of the `Goods` line, or by a grid whose cliffs touch a
+  herd's cell. Names no score.
 
 ## Parked by item 3891, 2026-11-05 — MAPGEN's four candidates, a blind second reading
 

@@ -204,7 +204,7 @@ fn eliminate_dead_mount_spots(g: &mut MapGrid) {
 /// (`-1, 0, 1`): a forest (0x30), mountain-art (2) or 1 tile with an
 /// in-bound orthogonal neighbour that is neither plain forest
 /// (`& 0x30 == 0x20`) nor blocked.
-fn has_gather_access(g: &MapGrid, tx: i32, ty: i32) -> bool {
+pub(crate) fn has_gather_access(g: &MapGrid, tx: i32, ty: i32) -> bool {
     let m = g.tiles[tile_at(g, tx, ty)];
     if !(m & 0x30 == 0x30 || m & 3 == 2 || m & 3 == 1) {
         return false;
