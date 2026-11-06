@@ -4126,14 +4126,6 @@ impl Sim {
     /// `group.is_none()`, which is the same answer for every capture on
     /// file — all four of run112's reviews fire on a plain `MOVE_TO`.
     fn check_target_path_review(&mut self, u: usize, frame: i64) {
-        if std::env::var_os("RON_PROBE_CTP").is_some() && self.units[u].orders.len() > 1 {
-            let list: Vec<(u8, u8)> = self.units[u].orders.iter().map(|o| (o.index(), o.flags)).collect();
-            eprintln!(
-                "CTP {frame} u{u} ph{} list {list:?} action {:?}",
-                self.units[u].phase(frame).rem_euclid(16),
-                self.action_of(u)
-            );
-        }
         let Some(Body::Move(m)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
