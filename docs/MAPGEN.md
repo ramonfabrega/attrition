@@ -2630,7 +2630,7 @@ enters it through the first of the two arms.
   `ensure_ocean_end`'s 7×7 holds no `OCEAN` and no off-map cell.
 - **Taken (run1499): entered.** `River::calculate` is first entered on
   623. All five console lines return 1, and `I_AIM` stores
-  0x6180/0x6480/0x6780 and 0x5580. `rngcmp.py` against run1130 gives 641
+  768 c + 384 for each of the three cells. `rngcmp.py` against run1130 gives 641
   identical frames, and `samegame.py --from 620` gives the same game
   through 623; it parts only on the `@dumpall` block 624 and on 625. No
   other `NEVER` row is entered. `TerrainMap::river_stop` is
