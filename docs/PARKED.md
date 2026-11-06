@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3926) **A pool lane ran an unstaged game under a staged `cover=1` golden take** (3912's "for the Loop"; parked 3912a): run1506b's first take on pool lane 2 held none of `chapter109.cmd`'s `add` lines, the `@key 124` then faulted natively at `0x6fac09` (3912b) and the receipt refused with `extra lifecycle or fault records`; nothing the lane printed said why, and the retake on lane 1 was clean. A dead take costs one capture and, unnoticed, would read as a chapter. Candidate: the click-free runner checks the staged `add` lines' units on the first dumped frame and refuses the take by name; booked further when a second lane-2 take comes back unstaged, the two takes' `rontrace.cmd` and `wine.log` side by side. Names no score; the loop's.
+
 (3925) **A `DEEP` answer that never says the journal's head must read `draft` leaves the arm unfired** (the sixty-ninth's commander, lane-3911): `lanewait.py --arm-after-push` arms only a push whose journal's head says `draft` (Loop 3833); the commander's `DEEP 303k` answer said "write the journal as a draft", lane-3911 pushed `c65c92769` with a "Left to do" heading and no `draft` in the head, and the waiter printed `PUSHED … progress, not a landing` then `ENDED lane-3911 done` and armed nothing — armed by hand, as was lane-3912's (`0c23067bc`) when its row idled before the held arm's threshold. Candidate: the `DEEP` answer's line in `docs/LOOP.md` names the word ("the journal's head reads `draft`"), or the waiter also reads a `Left to do` heading on a DEEP lane's push as a draft. Names no score; the loop's.
 
 (3922) **`census.py --implicit` reads only joined traces** (3908's "for the Loop"): DECISIONS 108 §2 booked eleven style takes whose `cover=1` sweeps (runs 1098–1128, items 3480 and 3493) had been on disk fifteen days, unjoined; 3908 joined them with no capture. CLAUDE.md's "grep the disk before booking a capture" says this already; the gap is that a pass trusting `--implicit`'s list cannot see an unjoined run. Candidate: `--implicit --archive`, scanning every unjoined trace under `Logs` and printing the rows it would enter; and (parked 3908c) a join of `ScenarioFuncSet::init_funcs`' registered functions against `NEVER`'s callers, since the census files `game\script\` outside the territory. Names no score; the loop's.
@@ -14472,13 +14474,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AZ — reserved
+## Parked by item 3912, 2026-11-06 — the Airbase's recall and scramble
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3912a. Pool lane 2 ran an unstaged game under a staged `cover=1` take** (run1506b take 1, `docs/GOLDEN.md`
+  §159, the trace kept in the archive as `rontrace-run1506b.log.replaced-1793960418`). The take was
+  `chapter109.cmd` at `cover=1`; the game on lane 2 held, for who=0, eight buildings and seventeen units and no
+  Airbase or plane, so none of the console's `add` lines had run. The `@key 124` then faulted natively (3912b) and
+  the receipt refused with `extra lifecycle or fault records`. Nothing the lane printed says why the staging did not
+  land; the retake on lane 1 was clean. **Score**: none of the headline's — a Loop row: a dead take costs one capture
+  and, unnoticed, would read as a chapter. Booked when a second pool take on lane 2 comes back unstaged, with the
+  two takes' `rontrace.cmd` and `wine.log` side by side. This row is 3912's "for the Loop".
+- **3912b. `Group::action_recall`'s walk reads through a null current order in the original** (`0x6fac09`). In the
+  dead take, a who=0 unit on the map with no order made `update_order()` answer 0, and the walk dereferenced it.
+  `Sim::group_action_recall_buildings` skips a unit with no current air order. A fact about the original, not about
+  this crate: no lockstep game reaches it, since the original crashes there. **Score**: none. Recorded so a later
+  reader of the walk does not book the crash as a branch to port.
 
 ## Parked by item 3913, 2026-11-06 — a spell stopped mid-hold
 

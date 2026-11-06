@@ -1308,6 +1308,8 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             .unwrap_or(CONSOLE_WHO);
         let objects: Vec<i16> = tok.filter_map(|t| t.parse().ok()).collect();
         let n = match action {
+            "OPTION_AIRBASE_RECALL" => crate::input::group_recall(built, who, &objects),
+            "OPTION_AIRBASE_SCRAMBLE" => crate::input::group_scramble(built, who, &objects),
             "OPTION_QUEUE" => crate::input::group_stop_spell(built, who, &objects),
             "OPTION_DISBAND" => crate::input::group_disband(built, who, &objects, false),
             _ => {
@@ -2315,6 +2317,10 @@ mod tests {
         // console's `die`, which the interpreter acts on (item 3901,
         // `docs/GOLDEN.md` §157).
         ("chapter107.cmd", &[]),
+        // Chapter one hundred and nine: chapter thirty-three's lobby, the
+        // Airbase selected by `select` and two bound keys, `@key`, which the
+        // interpreter acts on (item 3912, `docs/GOLDEN.md` §159).
+        ("chapter109.cmd", &[]),
         // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
         // line (item 696, `docs/GOLDEN.md` §19).
         ("chapter11.cmd", &[]),
