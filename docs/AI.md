@@ -39012,16 +39012,17 @@ run with an `ATTACK` or a `STRAFE` current, and with those current `repath` kill
 
 `do_group_move`'s leader arm also calls `Group::kill_group_move` itself, on a 32-frame beat with the target within
 0x900. On the list in 390.3 that kills `GM_form` and the `ATTACK` without entering `find_new_target`, so a leader
-U consumes the list before any entry. That is one more reason the entry must be found before a take is booked.
+U consumes the list before any entry *(amended by item 3910, §394.1: only on that beat; the leader is ruled out by
+its stash instead)*. That is one more reason the entry must be found before a take is booked.
 
 **Amended**: §388.1's "clears the stash only on `QUEUE_NEW` (`:19-23`)". `add_group_move_order` also calls
 `clear_partial_path` on `QUEUE_FIRST`, after the add. §388.1's conclusion does not depend on it.
 
 **What is not established.**
-- `do_group_move`'s non-leader arm.
-- `target_opportunity:393`'s gate against a unit holding the list.
+- ~~`do_group_move`'s non-leader arm.~~ *Read by item 3910, §394.1: it never calls `do_move`.*
+- ~~`target_opportunity:393`'s gate against a unit holding the list.~~ *§394.4: shut by `is_move` and by the `ATTACK`'s block.*
 - Whether a formation move to the group's own location lasts a frame.
-- `GroupData::get_form`'s value 9 (members given plain moves) as a second source of a top move.
+- ~~`GroupData::get_form`'s value 9 (members given plain moves) as a second source of a top move.~~ *§394.4: a top move only under `QUEUE_FIRST`, which keeps no list under it.*
 
 Nothing here is diff-backed, and no assertion was added: every claim is a control-flow reading. The order
 counter and the slot index were not found in a dump: one 16,754-frame gamelog on disk (run 583) prints only
@@ -39458,12 +39459,136 @@ These were not read whole:
 
 The two `NEVER` stagings are parked, AW-a and AW-b.
 
-## 394. Reserved for the next item on the AI track
+## 394. Route 2's entry: no caller runs `find_new_target` with the list's group move current (item 3910, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3910 read the entry 3904a parked (§390.4): a caller that runs `find_new_target@005ff6a0` on route 2's list
+`[GM_form X][ATTACK t][GROUP_PATROL][GM_B X]`, so that `repath`'s group walk kills `GM_form` and the `ATTACK` and
+`:63` meets the `GROUP_PATROL`. It read each candidate to its predicate, off the decompile and the listing. 3905a's
+re-issue was read as well. The falsifier went into the journal first: no caller runs `find_new_target` with a group
+move current over the list. **It holds.** No caller was found (394.1–394.5). With §389 (ratified by item 3905), that
+makes the pair a `RESIDUE` candidate (394.6). No run was reserved or taken.
+
+What any entry needs: `find_new_target` calls `repath` first (§388.2), so the head at that call must be `GM_form X`
+with `group ≥ 0`. Every other head is consumed differently. A plain move on top, killed by `repath` through
+`kill_current_order`, would leave `GM_form X` next and also open the walk, so 394.3–394.4 read the makers of such a
+move. The callers are the eight of item 3902 (`report.py <exe> refs 005ff6a0`): `check_target_path:180`,
+`do_move:105`, `resolve_unit_collision:233`, and five in `fight`.
+
+### 394.1 `do_move:105` is entered with a group move current only from the leader arm, and its stash cannot be there
+
+- **One caller holds a group move current.** `do_move@005f7b30` has seven callers. `Unit::do_job@00617a10`
+  dispatches it for `MOVE_TO` and `FLEE_TO`; `do_attack_to`, `do_explore_to`, `do_flee_to`, `do_guard` and
+  `do_follow` run their own order types. `Unit::do_group_move@005e79a0` calls it once, at `+0x143` (`5e7ae3`).
+  The listing puts that call inside the leader compare: `5e79ec`/`5e79f9` jump a non-leader (`+0x54` or `+0x58` not
+  this unit) to `5e7d5b`, and no jump from `5e7d5b` onwards re-enters `5e79ff`–`5e7ae8`. **The non-leader arm
+  never calls `do_move`.** It reads cleanly (decompile `:149-445`, not the "straight to `ungroup_move_order`" §390.4
+  saw). It walks the slot for its own index, builds its offset target, and steps with `move_step` (`:408`). So
+  whether a non-leader keeps a stash has no bearing on `:105`.
+- **The leader's stash dies the frame it is made.** A stash (`+0x104`) is made only by
+  `resolve_unit_collision:482` (§388.1). That path returns 1 without adding an order, and `move_step:291-292`
+  returns 0 after it, so `do_move` returns 0 to the leader arm with `update_order == param_1`. The arm (`:108-147`)
+  then either calls `Group::kill_group_move` and `distribute_attack`, or reaches `LAB_005e7c6c` and calls
+  `ungroup_move_order`. `kill_group_move` removes orders through `kill_current_order`, which clears the stash
+  (§388.1). `Unit::ungroup_move_order@005fd140` replaces in place the first order whose group view holds the id (the
+  current `GM_form`) with a `MOVE_TO` copy, and keeps the leader's stash. The list becomes
+  `[MV][ATTACK][GROUP_PATROL][GM_B X]`, and a later `do_move:105` on the `MV` has `repath` kill the `MV` and stop at
+  the `ATTACK` (`:65`). **`GM_form X` is gone before any entry.**
+- **No stash is carried into a group move made current later.** A group move added `QUEUE_NEW` or `QUEUE_FIRST`
+  clears the stash (§390.4, amended). One queued below becomes current only when what is above it leaves. The
+  removers of a unit's current order (every caller of the order list's `remove_current`) are these:
+  - `kill_current_order`, which clears the stash;
+  - `action_move_near`, which follows with `clear_orders`;
+  - `ungroup_move_order` and `work`'s `MOVE_TO` arm, which swap a node in place;
+  - `eject_contents` and `cast_transport`, which move the whole list onto another unit;
+  - `finish_insert`, which works on its copy list;
+  - `do_group_attack`, a `RESIDUE` handler (§382.1).
+
+  None exposes a deeper group move with a stash kept.
+
+**Amended**: §390.4's "a leader U is ruled out: `do_group_move`'s 32-frame `kill_group_move` takes the list first".
+That kill fires only on the beat `(frame + id) % 32 == 0` with the `ATTACK`'s target within `0x900`. On every other
+frame the leader calls `do_move`. The leader is ruled out by the stash, as above.
+
+### 394.2 `cavarch_fight` calls `fight` with a group move current, and `fight` never reaches `find_new_target` on that call
+
+Neither 3902's sweep nor §390 named this caller. `Unit::cavarch_fight@005ff4b0` is called from `do_group_move+0xbc8`
+(the non-leader arm, `:392-405`) and `do_move+0x9f`, both with the group move current. It is a `v` type
+(`unit_flags & 0x200000`, §134.3) that holds an `ATTACK` action only with `0x400`. It calls `fight(o, who,
+unit_masks2 & 0x100, 0, 1)`.
+
+`fight@005fd4d0` loads `param_5` into `esi` at `5fdc84`, and `esi` is not written again before the sites:
+- `5fdc32` sits under `param_5 == 0` (decompile `:212`);
+- `5fdeea` is reached by fall-through after `5fdec6` `test esi; jne`, and from `5fdf50` `test esi; je`;
+- `5fe113`, `5fe25f` and `5fe3fe` lie in `5fe0f9`–`5fe511`. The only jumps into that range from outside it are
+  `5fe087` (after `test esi; je`) and three from `5fe0ca`–`5fe0e3`, a block reached only by `5fe077` after `5fe055`
+  `test esi; jne` fell through.
+
+With `param_5 = 1`, out of range goes to `find_melee_target` and returns (`5fe089`–`5fe0c5`), and in range goes to
+`5fe511`. **§134.3's "the `param_5` path never touches the order list" holds for `find_new_target` by the listing.**
+`fight`'s other callers run an `ATTACK` (`do_attack`) or a `GROUP_ATTACK` (`do_group_attack`, `RESIDUE`).
+
+### 394.3 `check_target_path:180` and `resolve_unit_collision:233` need a non-group current order
+
+- **`check_target_path`** is called from `Unit::work@0060d180:197` with the action's `TargetOrder`. The current
+  order must be non-group, or a group order whose group view names this unit as leader. So a leader holding the list
+  reaches it. Before `:142`, its `repath` calls (`:64`, `:97`, `LAB_005e2529`) walk `GM_form X` and leave
+  `[GROUP_PATROL][GM_B X]`, which is the walk without the entry. The arm holding `:180` then reads
+  `update_order +0x2c == 0 || group < 0`, and a current `GROUP_PATROL` with `group ≥ 0` shuts it. An ungrouped
+  holder (`group < 0`, left by `Group::kill`, §390.2) has `repath` kill type 19 through `kill_current_order`, and it
+  stops at the `ATTACK`.
+- **`resolve_unit_collision:233`** reads the action through `update_action` (the `ATTACK`, with `GM_form` lacking
+  bit 4). It needs the current order's `+0x2c` to be 0, an enemy collider and a captain, so a current group move
+  shuts it.
+
+Both open only under a plain move on top of `GM_form`, which 394.4 rules out.
+
+### 394.4 No maker lays a plain move without bit 4 over the list
+
+- **`Unit::target_opportunity@005fffc0:393`** is shut twice. `600175`–`60017e` call `is_move@0046f050` on
+  `order_type`, which answers 1 for types 1–4, 18, 19 and 21, and that writes `local_c = 1` (`-0x8(%ebp)`); the
+  make-way arm needs `local_c == 0` (`:256`). Separately, with the list held, `update_action` answers the `ATTACK`.
+  The block at `:139-239` then returns, or does `repath`, `kill_current_order` and jumps to `LAB_00600877` (`:403`),
+  past `:393`. The opening loop also hands a grouped member with `param_3 = 0` to `Group::target_opportunity`.
+- **`GroupData::get_form` = 9 is a formation index, not a plain-move flag.** Its callers are
+  `action_move_near+0x75b`, the console and the editor. In `Group::action_move_near@00704990`, `param_9` of 9 or −1
+  takes the group's own formation (`:346-354`). Formation 9 sends a member to `add_move_facing_order`, a plain move,
+  at the call's own `QueuePos` and `param_8` (`:773`, `LAB_00705f61`). So it is a top move only under `QUEUE_FIRST`.
+- **`QUEUE_FIRST` through `action_move_near` keeps no list under a top move.** With `buildings` (`+0x49`, by the
+  type record) clear, `:255-290` run `set_up_insert`, `action_halt(0)`, the call again at `QUEUE_NEW`, and
+  `finish_insert`. `action_halt(0)` skips only some planes and units entering or exiting a building. A member the
+  inner call gives a move gets it at `QUEUE_NEW`, which closes its orders first. A member it skips gets nothing on
+  top. `finish_insert` appends at `QUEUE_LAST`, with bit 4 set (`param_8 = 1` at all eight sites). With `buildings`
+  set, the group is a building selection.
+- **The callers.** The direct callers with `param_8 = 0` (`do_guard`, `think_civilian_transport`, `action_gather`,
+  `Build::init`) pass `QUEUE_NEW`, and the scenario functions pass `QUEUE_NEW` or `QUEUE_LAST`.
+  `Group::action_move_to@0070fba0`'s 34 callers forward their own `QueuePos`. The `QUEUE_FIRST` ones with bit 4
+  clear (`do_patrol`, `get_goody_box`, `target_opportunity:449`, `action_air_patrol`'s pass-through) all go through
+  the arm above.
+
+### 394.5 3905a's re-issue gives a siege member another copy of the list, not an entry
+
+`Group::action_attack(QUEUE_FIRST, 4)` halts only the non-siege members. Its `finish_insert` re-issues at
+`QUEUE_LAST` through `action_move_near`, with bit 4 set. A siege member that kept its list gets the re-issued group
+move appended. If that list is itself `[GM X][ATTACK]…`, the appended move is a second producer of route 2's
+shape. One slot's re-issue cannot meet that slot's own earlier id (§390.2). Whatever the ids, the member then holds
+a group move current over the list, and 394.1–394.4 shut every entry for that state. **3905a is a producer
+lead, and it closes with the entry.**
+
+### 394.6 What this leaves of the pair
+
+`Group::kill_group_order@00710aa0` has two call sites. `find_new_target+0xef` is shut on route 1 (§389, ratified by
+3905) and on route 2's entry (here). `do_group_attack+0x124` is `RESIDUE` (§382.1). `Unit::kill_group_order@005e3310`
+has one caller, `Group::kill_group_order+0x7e`. **Both rows are `RESIDUE` candidates.** They stay in `blind::NEVER`
+until a blind second reading agrees: 3904b, widened to §390 and this section (park 3910a). No take is booked.
+
+**What is not established.**
+- `action_halt(0)`'s two skips (some planes; entering or exiting) and `action_move_near`'s inner member loop were
+  read to the members they give a move. A member skipped by both keeps its list with nothing on top, and that
+  argument does not need the skip set.
+- `ungroup_move_order`'s copy was read as `MoveOrder::operator=` on the move fields. Whether bit 4 survives does not
+  matter: the copy is type 1, which `repath` kills, and the `ATTACK` stops it.
+- Nothing here is diff-backed, and no assertion was added: every claim is a control-flow reading of named
+  functions and listing addresses. `blind::NEVER`'s two rows are the score.
 
 ## 395. Reserved for the next item on the AI track
 

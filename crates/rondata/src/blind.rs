@@ -1164,6 +1164,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// both (§22.3), and `MapConquest::add_additional_players@0068d260` joins as [`RESIDUE`] on
 /// Conquer the World's scope; residue 274 → 275, open 32 → 34 on the
 /// tree merged with item 3907.
+/// **309** unmoved by item 3910 (`docs/AI.md` §394), which reads route 2's entry shut: no caller
+/// runs `find_new_target` with a group move current over the list. `do_move` is entered with one
+/// current only from `do_group_move`'s leader arm, whose stash is ungrouped or group-killed the
+/// frame it is made. `cavarch_fight`'s `fight(…, 1)` never reaches a `find_new_target` (the
+/// listing keys every site on `param_5 = 0`). `target_opportunity:393` is behind `is_move` and
+/// the `ATTACK`'s block, and no `action_move_near` path lays a plain move over a list it keeps.
+/// The pair is a [`RESIDUE`] candidate and stays here until park 3910a's blind second reading of
+/// §390 and §394 agrees; open 34, unmoved, on the tree merged with item 3908.
 /// **366** with item 3909's cite of the implicit residue's last stems (`docs/AI.md` §393; no
 /// capture joins [`TRACES`]): the forty-four rows outside `map` and `spelltype` and thirteen
 /// callers §393 cites; `CliffsData::gather_size`, `Unit::dbg_jump_to_action` and
@@ -1171,7 +1179,7 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// fifty-four go to [`RESIDUE`] on scope — the editor, Conquer the World, the unit-balance
 /// harness, multiplayer and sync recovery, debug verbs, the renderer and the interface, one
 /// `add_mountain` mode no caller passes, and one with no reference (§393.2); residue 275 → 329,
-/// open 34 → 37 on the tree merged with items 3907 and 3908.
+/// open 34 → 37 on the tree merged with items 3907, 3908 and 3910.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
