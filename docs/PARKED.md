@@ -14487,13 +14487,16 @@ words and edits nothing here; a refill lands when two remain.
   would be a pack or unpack (`Unit::unpack_merchant` lays one, `crate::merchant` §3). It is not built, and no capture stops one. The staging would be
   `OPTION_QUEUE` on a Merchant mid-unpack. **Score**: none named — a `SEAM` in `Sim::group_action_stop_spell`.
 
-## Parked by the next landing, slot BB — reserved
+## Parked by item 3914, 2026-11-06 — a disband
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3914a. `action_disband`'s building arms** (`docs/GOLDEN.md` §161): through the group, an unfinished building
+  goes to `Object::disband(o, 0)` and a finished, active one queues `DISBAND` (`Build::queue_up`, behind vslot `0xac`'s
+  `+400`). `validate_disband`'s five refusals sit under `+0x49`. `Sim::group_action_disband` walks units only (a
+  `SEAM`). The staging would be `OPTION_DISBAND` on a selected who=0 building, a site and a finished one. **Score**: none
+  named. The four functions are entered now, so this is fidelity on a path no word reads.
+- **3914b. `OPTION_DISBAND_ALL` on two units, and a holder with passengers.** The walk's order, its `all` and the
+  passenger loop are unit-tested, never captured. Two units selected under `OPTION_DISBAND_ALL=124` would show the
+  order in the draws, two `Object::disband+0x415` pairs. **Score**: none named.
 
 ## Parked by the next landing, slot BC — reserved
 

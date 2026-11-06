@@ -17413,12 +17413,68 @@ where the 0xa6 loop issues one stop per member. A unit with a queue of its own, 
 **Coverage.** Diff-backed: the key's reach, the command's frame, the closed cast, the Spy's state on every block to 900,
 and the draws. Reading only: the `spell_time` write (masked, as above), the Merchant arm, the multi-member loop.
 
-## 161. Reserved for the next item on the rules track
+## 161. Chapter one hundred and eleven — a Chariot disbanded; closed at 900 on the first take (item 3914, run1508, run1508b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 row 7, parked 3906c): `Group::action_disband@0070e260` was `NEVER`, with its writer
+`Options::do_disband@0071df20`, its gate `GroupOut::validate_disband@0070a4a0` and its arm
+`CommandPackage::process_disband@00948660`. No `@` verb reaches it, so it is entered as §160 entered the stop: the key
+bound to `OPTION_DISBAND` in the lane's profile, pressed with the unit selected.
+
+**What the reading says.** `Options::exec@007188c0`'s case 0xf calls `do_disband(0)` (case 0x10, `OPTION_DISBAND_ALL`,
+passes 1), which issues one `group` and one `disband` (0x15) on the whole selection when `validate_disband` answers 0. It
+does for a unit group: every refusal sits under `+0x49`, the building-group byte. The pump's `action_disband(all)` walks
+the members from the last. A member that is not a plain building (vslot `0x20`), or one not yet active (`0x4c`), goes to
+`Object::disband(o, 0)`, and with `all` 0 the walk stops there. A finished, active building instead queues `DISBAND`.
+In `Object::disband@006455c0`, a unit's vslot `0xc` is the folded `Window::get_button` (0) in the export's
+`Unit::vftable`, so the builders' loop, the refund (`local_14`) and `last_razed` are all skipped. Its `0x1c` is 0 too, so
+there is no Lakota raze. Not a plain building and on the map, it disbands each passenger on its `+0x28` chain, then calls
+`Random::get(0, 0xffff)` and `die((r % 3) + 1, −1, 0)`. `Unit::close` spends the death animation's draw after it,
+`dtype` being non-zero.
+
+**Staging** (`tools/gamelog/golden/chapter111.cmd`): chapter nine's lines to 610 (§17, run180), `0 !ai off` and `610
+add chariot who=0 16,36`. Then `620 select 6 who=0` and `622 @key 124`, with `--bindkey OPTION_DISBAND=124`. run180 has
+the Chariot `0/6` live and idle on 620, so the disk answers the staging's one predicate. Falsifiers, written before the
+take (the journal has them): `KEYMAP_NONE` on 622; no `process_disband … 623`; `0/6` alive on 624; a who=0 refund on
+624; no `HIT` on the three addresses in the twin; anything but two draws at the pump.
+
+**What the original does** (run1508 `cover=0` with `DEATHS`, run1508b `cover=1` with `GROUPS`, since the two at one
+section print no `GROUPDATA`; `docs/RUNS.md`). No falsifier fired. `process_group, new 0 1 623` and `process_disband 623`
+are on the `CM` channel. `0/6` is on block 623 and gone on 624. Block 624 carries two `DEATH_OBJS`, `who 0`, `o 6`,
+`first_frame 623`, `cur_anim 16`, one for each of the Chariot's two figures. The pump spends exactly two game draws on
+trace frame 622: `Object::disband+0x415` = 12714 (`% 3` = 0, `dtype` 1), then `Unit::close+0xcb6` = 39693, with
+`cur_anim = 1·2 + 0xd + 39693 % 2 = 16`. No stockpile moves beyond the frame's income. The twin enters `Options::exec`,
+`Console::exec_keymap`, `do_disband`, `validate_disband`, `CommandManager::issue_disband`, `process_disband`,
+`action_disband` and `Object::disband` on trace frame 622, and is run1508's game on all 901 frames (`rngcmp`). A first
+twin, whose who=1 came up tribe 2 rather than 11 (`ai_tribe_requested` null), differed from frame 0. It was retaken with
+`--ai-tribe 11`, and the first is kept aside as `~/ron-golden/ch111b-tribe2`.
+
+**What this crate does.** `Sim::group_action_disband` and `Sim::disband_unit` (`crates/sim/src/disband.rs`) are the walk
+and `Object::disband`'s unit arm. The death is `Sim::die_with`, `cast_sniper_unit`'s body (§115) made the shared
+`Object::die(o, dtype)`. The harness's `@key` adds an `OPTION_DISBAND` arm, `input::group_disband`: one pushed group and
+one `disband`, `all` 0. `trace::SITES` names `0x6459d5` as `sim::disband::SITE_DISBAND_DIE`. The walk's reach line now
+also names a unit the line killed (`@key: reached 1 unit(s): 0/6 died`). The draw stream agrees to the trace's end, by
+value and by site: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ELEVEN` = **900**, closed
+(`chapter_one_hundred_and_eleven_holds_to_the_golden_word`, which pins the site sequence too). The widening over 605..900
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_ELEVEN` (604, 901), both directions; units, leaders and death objects on run1508, the
+pool on run1508b) parts on the eleven standing `form` rows and nothing else (`WANT_CH111`). The death objects, the
+leaders and the pool all agree. The coverage driver drives 621..625, and `process_disband` is read in its `GAME` row.
+
+**Mutations** (`tools/mutate.py`, nine breaks, all held). Walking the group forwards, or dropping the `all` break,
+fails `disband::tests::a_disband_takes_the_last_member_and_all_takes_every_one`. Dropping the passenger loop fails
+`a_disbanded_holder_disbands_its_rider_first`. On the diff: dropping the draw fails the walk and the widening. A `dtype`
+off by one (`+ 2`) fails the widening alone, on the death objects' `cur_anim`. Removing the harness's arm, or the group's
+call to `disband_unit`, fails both. Moving the `SITES` address failed nothing until the walk pinned its site sequence;
+it fails the walk now.
+
+**Not established.** The building arms: an unfinished building disbanded through the group, a finished one queued
+`DISBAND` (item 3918's Barracks is a `@queueup`, not this path), and `validate_disband`'s refusals. `OPTION_DISBAND_ALL` and a
+selection of two or more units: the walk is unit-tested, never captured. A unit holding passengers, and a unit off the
+map (`die(1, …)`, no draw). The captain's plunder arm (`+0x68 & 0x4000`), which a unit its owner disbands never carries.
+The second caller, `Leader::check_orphaned_buildings`, which is the AI's.
+
+**Coverage.** Diff-backed: the key's reach, the command's frame, the unit arm's draw and `dtype`, the death objects, the
+absent refund, and the draws to 900. Reading only: the walk's order and `all`, the passenger loop, the off-map arm, and
+the building arms.
 
 ## 162. Reserved for the next item on the rules track
 
