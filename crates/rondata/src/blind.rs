@@ -1076,6 +1076,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `load_unit_chunk`'s route adds `ScenarioRead::load_objects_chunk@009ab9c0` and
 /// `ScenarioRead::load_scenario_screen@009b2e40`, scenario-only on both readings and
 /// [`RESIDUE`] with them; residue 246 → 252, open 20 → 16.
+/// **268** unmoved by item 3893's blind second reading (`docs/audit/2026-11-05-item-3893.md`),
+/// which agrees on all eight of `docs/AI.md` §384's slot rows — `ObjectData::support`,
+/// `WallData::can_make`, `GatherPoint::walk_data`, `SpecialAnimOrder::walk_data` (the one
+/// disagreement, settled to `do_spec_anim`'s same-call kill), `ObjectsData::find_town_at`,
+/// `TargetOrder::get_target`, `SubObjectOut::is_on_screen` and `ObjectTypeOut::draw` — and
+/// moves them to [`RESIDUE`]; residue 252 → 260, open 16 → 8.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1131,6 +1137,13 @@ pub const NEVER: &[u32] = &[
 /// 2026-09-27, item 940").
 pub const RESIDUE: &[(u32, &str)] = &[
     (
+        0x0046_cef0,
+        "ObjectData::support: +0x13c of all fifteen object tables, and the only \
+         [reg+0x13c] dispatches are Window::on_middle_click and \
+         on_window_middle_click on a Window; two readings, item 3893 \
+         (docs/audit/2026-11-05-item-3893.md)",
+    ),
+    (
         0x0046_ed60,
         "OrderList::get_new_data: its one home is OrderList::vftable +0x4, and \
          nothing dispatches through a list's own vptr; the save and load walker \
@@ -1149,6 +1162,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          City::find_buildings, Cities::capture_city, the bribe and assimilate \
          spells, the scenario functions) draws its receiver from the per-player \
          lists, which hold no Good or Item (two readings, item 3505)",
+    ),
+    (
+        0x0047_03f0,
+        "ObjectTypeOut::draw: type +0x140 of twelve tables; its two type \
+         dispatchers go through unittypes[i], where a live UnitType holds \
+         UnitTypeOut::draw; two readings, item 3893 \
+         (docs/audit/2026-11-05-item-3893.md)",
     ),
     (
         0x0047_0430,
@@ -1199,6 +1219,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          a Window thunk",
     ),
     (
+        0x0047_0f30,
+        "GatherPoint::walk_data: GatherPoint's own +0x0, and both walks in \
+         PtrLinkListAbstract<GatherPoint>::walk_data guard on its table and \
+         inline the body; GatherPoint has no subclass; two readings, item 3893 \
+         (docs/audit/2026-11-05-item-3893.md)",
+    ),
+    (
         0x0047_1170,
         "WorldData::is_valid: called only from MapScenario::make (Conquer the \
          World) and TerrainOut::check_for_diagonal's four calls, which run only \
@@ -1234,6 +1261,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
         0x0047_2a40,
         "BuildTypeData::is_mine: BuildType +0x98, and no +0x98 dispatch has a \
          build-type receiver (orders, windows, objects) (two readings, item 3505)",
+    ),
+    (
+        0x0047_2cb0,
+        "WallData::can_make: a folded return 0 at the Wall triple's \
+         +0x190/+0x198, which Build overrides and no live Wall reaches, and \
+         IncrementalLoad's +0x18, whose base table AnimMgr::AnimMgr replaces with \
+         no call between; two readings, item 3893 \
+         (docs/audit/2026-11-05-item-3893.md)",
     ),
     (
         0x0047_2cc0,
@@ -1277,6 +1312,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          +0x5c is another thunk, and neither its constructor nor its \
          destructor dispatches; a held-Shift draw_orders on a player's patrol \
          asks GroupPatrolOrder's (item 3495)",
+    ),
+    (
+        0x0048_49a0,
+        "SpecialAnimOrder::walk_data: the order's +0x8, but come_out and \
+         land_plane (through work and do_job) run do_spec_anim, which kills the \
+         order in the call that added it, so no walk or save sees one; two \
+         readings, adjudicated, item 3893 (docs/audit/2026-11-05-item-3893.md)",
     ),
     (
         0x0048_5140,
@@ -1828,6 +1870,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          on 2701 fires only past its answer (item 1182)",
     ),
     (
+        0x0065_8190,
+        "ObjectsData::find_town_at: called by BuildTypeData::get_town only for \
+         the l build flag (0x800) with e clear, and no shipped buildingrules.xml \
+         row has l; find_town, its other caller, is unreferenced; two readings, \
+         item 3893 (docs/audit/2026-11-05-item-3893.md)",
+    ),
+    (
         0x0065_b850,
         "Objects::remove_item: the out-of-line copy of a function the compiler \
          inlined at every use, or one nothing calls; no reference in the \
@@ -1850,6 +1899,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          +0x11c dispatch is on an object (the hit-points slot) or a window; the \
          22 blocked_site calls are BuildTypeData::blocked_site's, direct (two \
          readings, item 3505)",
+    ),
+    (
+        0x0066_2670,
+        "SubObjectOut::is_on_screen: +0x70 of twenty-two tables; its nineteen \
+         .text copies are guards every table satisfies, and the Build, Good and \
+         Item table-identity guards always hold; two readings, item 3893 \
+         (docs/audit/2026-11-05-item-3893.md)",
     ),
     (
         0x0066_3b60,
@@ -2236,6 +2292,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0071_3bb0,
         "Group::report_speed: no reference in the executable",
+    ),
+    (
+        0x0072_ff60,
+        "TargetOrder::get_target: slot 0 of all fourteen TargetOrder tables, and \
+         each of its six .text copies is a guard that inlines the read on \
+         equality, which every table satisfies; two readings, item 3893 \
+         (docs/audit/2026-11-05-item-3893.md)",
     ),
     (
         0x0073_6470,
