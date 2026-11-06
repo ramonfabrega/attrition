@@ -381,3 +381,129 @@ impl DisbandView for SimDisband<'_> {
     fn message_good(&mut self, _good: i32, _amount: i32, _first: bool) {}
     fn message_end(&mut self) {}
 }
+
+/// `Object::disband+0x415`: the unit arm's one `Random::get(0, 0xffff)`,
+/// read `% 3` for the `dtype` of the `die` after it.
+pub const SITE_DISBAND_DIE: &str = "Object::disband+0x415";
+
+impl Sim {
+    /// `Group::action_disband@0070e260` on a group of units (item 3914,
+    /// `docs/GOLDEN.md` §161): `OPTION_DISBAND` (`all` 0) or
+    /// `OPTION_DISBAND_ALL` (`all` 1) with the seat's units selected.
+    /// `GroupOut::validate_disband@0070a4a0` answers 0 for a unit group
+    /// (`+0x49` clear), so the walk runs from the last member down: a live
+    /// unit (vslot `0x20`, a plain building, answers 0) goes to
+    /// `Object::disband(o, 0)` ([`Sim::disband_unit`]), and with `all` 0
+    /// the walk stops after the first. Returns the units disbanded.
+    ///
+    /// SEAM: the building arms — an unfinished building disbanded the same
+    /// way, a finished one queued `DISBAND` (`Build::queue_up`, vslot
+    /// `0xac`'s `+400` gate) — which this crate's unit [`Group`] never
+    /// lists; `validate_disband`'s building refusals; the scenario's
+    /// ignore-orders sweep; and the "already given" feedback, the user
+    /// interface's.
+    pub fn group_action_disband(&mut self, g: &crate::group::Group, all: bool) -> usize {
+        let mut n = 0;
+        for &u in g.list.iter().rev() {
+            if !self.units[u].alive() {
+                continue;
+            }
+            self.disband_unit(u);
+            n += 1;
+            if !all {
+                break;
+            }
+        }
+        n
+    }
+
+    /// `Object::disband(o, 0)@006455c0` on a unit. The export's
+    /// `Unit::vftable` folds vslot `0xc` to `Window::get_button` (0), so
+    /// a unit skips the builders' loop, the refund and `last_razed`; it is
+    /// not a structure (`0x1c`, 0), so no Lakota raze; it is not a plain
+    /// building (`0x20`, 0), so on the map it disbands what it holds and
+    /// then `die`s with `dtype` `(Random::get(0, 0xffff) % 3) + 1`
+    /// ([`Sim::die_with`]) — whose `Unit::close` spends the death
+    /// animation's draw after this one.
+    ///
+    /// SEAM: the captain's plunder (`+0x68 & 0x4000`, the killer at
+    /// `+0xa9`), which a living unit disbanded by its owner never carries
+    /// in any capture; and a unit off the map, which takes `die(1, …)`
+    /// with no draw.
+    pub(crate) fn disband_unit(&mut self, u: usize) {
+        if !self.units[u].on_map {
+            self.die_with(u, 1);
+            return;
+        }
+        // `garrison_count(0)`, then `disband` on the chain's head until it
+        // is empty.
+        while let Some(r) = (0..self.units.len())
+            .find(|&r| self.units[r].inside_unit == Some(u) && self.units[r].alive())
+        {
+            self.units[r].inside_unit = None;
+            self.disband_unit(r);
+        }
+        self.mark(SITE_DISBAND_DIE);
+        let r = self.rng.roll();
+        self.die_with(u, (r % 3) as i32 + 1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::world::{Cell, Terrain, World};
+    use crate::{Pos, Sim, Tuning, Unit, UnitType};
+
+    /// Three of who=1's units, each of its own type, on an 8×8 land map.
+    fn three() -> (Sim, [usize; 3]) {
+        let mut world = World::new(8, 8);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let mut s = Sim::new(Tuning::RON, world, 2);
+        let units = [0, 1, 2].map(|k| {
+            let ty = s.add_unit_type(UnitType::default());
+            let mut u = Unit::new(1, k, Pos::new((2 + i32::from(k)) * 768, 3 * 768), 20);
+            u.ty = Some(ty);
+            s.add_unit(u)
+        });
+        (s, units)
+    }
+
+    /// **`Group::action_disband`'s walk** (item 3914, `docs/GOLDEN.md`
+    /// §161): from the last member, and with `all` 0 only the first it
+    /// reaches; each disband spends `Object::disband`'s draw before the
+    /// death's own. Made to fail with the `all` break dropped and with
+    /// the walk run forwards.
+    #[test]
+    fn a_disband_takes_the_last_member_and_all_takes_every_one() {
+        let (mut s, [a, b, c]) = three();
+        let mut g = crate::group::Group::stack(1);
+        for u in [a, b, c] {
+            s.group_add(&mut g, u);
+        }
+        let last = *g.list.last().unwrap();
+        assert_eq!(s.group_action_disband(&g, false), 1);
+        assert!(!s.units[last].alive(), "the last member is disbanded");
+        let left: Vec<usize> = g
+            .list
+            .iter()
+            .copied()
+            .filter(|&u| s.units[u].alive())
+            .collect();
+        assert_eq!(left.len(), 2, "with all 0, only one goes");
+        assert_eq!(s.group_action_disband(&g, true), 2);
+        assert!([a, b, c].iter().all(|&u| !s.units[u].alive()));
+    }
+
+    /// **A disbanded unit disbands what it holds first** (`Object::disband`'s
+    /// `garrison_count` loop): the rider dies with it, and spends its own
+    /// draw ahead of the holder's. Made to fail with the loop dropped.
+    #[test]
+    fn a_disbanded_holder_disbands_its_rider_first() {
+        let (mut s, [holder, rider, other]) = three();
+        s.units[rider].inside_unit = Some(holder);
+        s.disband_unit(holder);
+        assert!(!s.units[holder].alive());
+        assert!(!s.units[rider].alive(), "the rider is disbanded with it");
+        assert!(s.units[other].alive());
+    }
+}

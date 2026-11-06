@@ -11,10 +11,11 @@
 # `process_disband all: 0 ... 623` on the CM channel; (3) `0/6` alive on block 624; (4) a who=0 stockpile that moves on
 # 624 (a refund this reading says a unit never takes); (5) the cover=1 twin: no HIT on `Group::action_disband@0070e260`,
 # `Options::do_disband@0071df20` or `CommandPackage::process_disband@00948660`.
-#   run1508 (cover=0), run1508b (cover=1, `--cover cover=1 --no-ffwd`):
+#   run1508 (cover=0, the death list), run1508b (cover=1, `--cover cover=1 --no-ffwd`, with GROUPS=1 in DEATHS=1's place:
+#   the two at one section print no GROUPDATA, parked 1885, 1931):
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch111 \
 #       --map 14 --end-frame 900 --log-window 605 900 --timeout 3600 \
-#       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,DEATHS=1 \
+#       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,DEATHS=1 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1 --bindkey OPTION_DISBAND=124 \
 #       --cmd-file tools/gamelog/golden/chapter111.cmd
