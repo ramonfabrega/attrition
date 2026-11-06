@@ -38739,7 +38739,8 @@ returns 0 after it, so `do_move:750` returns 0, and `do_group_move`'s leader arm
 group move that same frame (`:107-147`). That is 3504a's observation that "a collision ungroups the leader".
 
 **Not what kills the pair.** The leader id in a group move is written only by `Unit::add_group_move_order:52`
-(`piVar3[0x15]`), and that function clears the stash only on `QUEUE_NEW` (`:19-23`). So a stash made by a
+(`piVar3[0x15]`), and that function clears the stash ~~only on `QUEUE_NEW` (`:19-23`)~~ *on `QUEUE_NEW`
+(`:19-23`) and on `QUEUE_FIRST` after the add — item 3904, §390.4*. So a stash made by a
 collision can outlive the ungroup and ride into a `QUEUE_FIRST` group move, such as `@repairins`. 3504a's own
 frame arithmetic stands too: `Unit::init:553` sets `collide_frame` to −1, so a never-collided unit's beat is
 `S ≡ 2 mod 4`. These would have been the staging, except for 388.2.
@@ -38913,12 +38914,118 @@ was not read. `GroupAttackToOrder`'s `+0x14` (`StrafeOrder::is_air`, folded) was
 §388.2 table has it so; the activity argument does not need it, since 0x15 is on duty too. Nothing here is
 diff-backed. The one assertion is the install test on the cast and its masks.
 
-## 390. Reserved for the next item on the AI track
+## 390. Route 2 to the `kill_group_order` pair: the duplicate id has a producer, the entry does not (item 3904, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3904 read route 2 (parks 3902b, 3903b) to a producer, off the decompile export. Route 2 is a unit holding two
+group moves with one id and an `ATTACK` between them, so that `Unit::kill_group_move@005e3400`'s tail kill takes
+the `ATTACK` inside `repath`. The falsifier was written into the journal first: there is no producer if every regroup
+clears the old group's move before the new id lands. **The falsifier fails** (390.1–390.2), and the duplicate list
+has a producer in human commands (390.3). **No entry was found** that calls `find_new_target@005ff6a0` on that
+list (390.4). So the pair is neither a take nor a `RESIDUE` candidate; the entry is parked (3904a). No run was
+reserved or taken.
+
+### 390.1 What `repath`'s group kill removes, and in what order
+
+- **The order list.** `LinkListBase::add@0046d5a0` inserts before `head_node` and makes the new node the head.
+  The current order is `head_node->prev`, the oldest. `add_group_move_order`'s `QUEUE_FIRST` re-seats the head one
+  node on, which makes the new node current. So the list runs current first, in execution order, and a
+  `QUEUE_LAST` add is executed last.
+- **The walk.** `Unit::kill_group_move` starts at the current order and steps through `prev`, in execution order.
+  On each node that is a move, not type 21, and whose group view (`+0x94`) holds the id at `+0xc`, it calls
+  `kill_current_order(this, 0)`, which removes the current order whatever node matched (item 3902, disagreement 2).
+  With k matching nodes, the walk kills the first k orders of the list. **The `ATTACK` dies if any match lies at
+  or below it**, not only one between it and the head: `[GM X][ATTACK][GROUP_PATROL][GM X]` loses the group move
+  and the `ATTACK`. The id compare ignores the group: `piVar3[3] == param_1` only.
+- **Which group is walked.** `repath@005e29b0` passes the unit's *current* group (`field_0x80`, the slot index) and
+  the head's id to `Group::kill_group_move@007123f0`, which walks every member of that slot.
+- **The id.** `add_group_move_order` stores `param_4` at the view's `+0xc` (`piVar3[0x17]`).
+  `Group::action_move_near:780` passes `(field_0x4 + frame*10)*100 + field_0x2c`. `field_0x4` is the slot index
+  (`action_move_near:718` copies it into the member's `field_0x80`), and `field_0x2c` the order counter (`:1410`).
+
+### 390.2 A regroup keeps the old move, and two slots' ids meet
+
+- **The slots.** `Groups::get_open_slot@006fa460` gives player p the slots `64p` to `64p+45`. It takes the first
+  one, in index order, that is empty (`get_num` 0) or has `field_0x49` set and is not the player's current group.
+  Failing that, it takes the oldest single-member group. `Groups::push_group@0070f9e0` keeps the current slot when
+  the new set equals it (`Group::equals_group`). Otherwise it opens a slot, `copy_group`s the set in, and calls the
+  old slot's `Group::kill@00714110` for each member that had another slot.
+- **`Group::kill` leaves the unit's orders alone.** It drops the member, writes `field_0x80 = -1`, and on the last
+  member calls `Group::clear(this, -1)`, which zeroes the order counter `field_0x2c` and keeps `field_0x4`. Neither
+  it nor `push_group` touches the order list. `copy_group` does not reset `field_0x2c`, so a slot reused through the
+  oldest-singleton arm keeps its count.
+- **Only `QUEUE_NEW` clears.** `action_move_near`'s first member loop (`clear_orders`) and `add_group_move_order`'s
+  `close_orders` run only on `QUEUE_NEW`. A `QUEUE_LAST` group move lands on a list that still holds the old
+  slot's move. `QUEUE_FIRST` goes through `set_up_insert`, `action_halt` and `finish_insert`, which re-issue fresh ids.
+- **Two slots meet** when `gA + 10·fA = gB + 10·fB` and `nA = nB`. Within one player that needs `gA − gB` to be
+  10, 20, 30 or 40, the issue frames to differ by a tenth of that the other way, and equal counters. A slot that
+  emptied and a slot never used both count from 0. **So a unit regrouped onto a `QUEUE_LAST` move one frame after
+  its old slot's move can hold two moves with one id**, and the falsifier fails. One slot cannot meet itself: that
+  needs `n1 = n2 + 1000·Δf`, a thousand actions between `clear`s.
+
+### 390.3 A human producer of the list
+
+The `ATTACK` survives `repath` unless a duplicate kills it (§388.2). Each of the entries (390.4) needs
+`get_action@00608450` (or `update_action`, which walks the same way) to answer that `ATTACK`. Both skip a move
+only while its flag byte lacks bit 4, so **every order above the `ATTACK` must be a move without bit 4**.
+
+- **A human move carries bit 4.** `CommandPackage::process_move_near@009495c0` calls `action_move_near` with
+  `param_8 = 1`. `action_move_near` hands that to `add_group_move_order`'s `param_13`, which sets bit 4.
+  `finish_insert` re-issues with 1 as well. So no human group move, plain or queued, can sit above the `ATTACK`.
+- **A formation change does not carry it.** `Group::action_form@00707220`, reached from
+  `CommandPackage::process_form@00949d90`, issues `action_move_to(…, QUEUE_LAST, …, MOVE_TO, 0, …)`. Without
+  shift, it runs `set_up_insert`, `action_halt` and the recursive form first, so on an emptied list the formation
+  move is current and carries no bit 4. The other makers with `param_8 = 0` are `do_guard`,
+  `think_civilian_transport` and `action_gather` (all `QUEUE_NEW`). `Build::init`'s is `ATTACK_TO`, which mints
+  type 21, a type the walk never matches.
+
+The list `[GM_form X][ATTACK t][GROUP_PATROL][GM_B X]` then comes from five commands, slots counted from `64p`:
+
+1. Slots 0–9 are held by ten unit sets, unit U alone in slot 0, so slot 10 is the first open one.
+2. On frame f, `{U, V}` gets a formation button. That opens slot 10 (counter 0), and U and V get `GM_form` with id
+   `(10 + 10f)·100`.
+3. On frame f, a shift-attack on t and a shift-patrol on the same group append the `ATTACK` and the `GROUP_PATROL`.
+4. On frame f+1, `{U, W}` gets a shift-move. U left slot 0 at step 2, so slot 0 emptied, was cleared, and is now
+   the first open slot. U and W get `GM_B` with id `(0 + 10(f+1))·100 = (10 + 10f)·100`, appended last.
+
+Step 2 has its own risk: a formation move to positions the group already holds may finish within frames, so it is
+not current for long.
+
+### 390.4 No entry was found for that list
+
+Three of `find_new_target`'s eight callers (item 3902) run while a move is current. 3902 argued that the other five
+run with an `ATTACK` or a `STRAFE` current, and with those current `repath` kills nothing.
+
+- **`Unit::check_target_path@005e22d0:180`** (from `Unit::work`) is in the arm `(update_order +0x2c == 0) ||
+  group < 0`. **`Unit::resolve_unit_collision@005f9d30:233`** needs `update_order`'s `+0x2c` to be 0 as well.
+  Both shut when the current order is a group move. An ungrouped unit opens the first one, but `repath` then kills
+  type 19 through `kill_current_order`, and no walk runs.
+- **`Unit::do_move@005f7b30:105`** admits a group move as the current order. Its conditions are a suspended search
+  stashed at `+0x104`, `get_action` answering the `ATTACK`, `(frame − field_0x48) ≡ 0 mod 4`, the player's
+  `repaths` set, and `+0xcc`'s `+0x1c` clear. §388.1 has the stash's one maker, `resolve_unit_collision:482`,
+  followed in the same frame by `do_group_move`'s leader arm, which ungroups or kills. `Unit::do_group_move@005e79a0`'s
+  non-leader arm did not read cleanly: the decompile prints `ungroup_move_order` straight after the leader block.
+- **A plain move without bit 4 on top of the formation move** would open the other two entries. The `QUEUE_FIRST`
+  plain-move makers (`report.py`-style grep, ten functions) all run in the handlers of other current orders:
+  `do_attack`, `fight`, `do_cast`, `do_garrison`, `do_gather`, `do_non_flat_gather`, `do_trade`,
+  `check_meet_ship` and `check_target_path`. The one exception is `Unit::target_opportunity@005fffc0:393`, a
+  make-way move behind an idle-or-worker gate, which was read no further.
+
+`do_group_move`'s leader arm also calls `Group::kill_group_move` itself, on a 32-frame beat with the target within
+0x900. On the list in 390.3 that kills `GM_form` and the `ATTACK` without entering `find_new_target`, so a leader
+U consumes the list before any entry. That is one more reason the entry must be found before a take is booked.
+
+**Amended**: §388.1's "clears the stash only on `QUEUE_NEW` (`:19-23`)". `add_group_move_order` also calls
+`clear_partial_path` on `QUEUE_FIRST`, after the add. §388.1's conclusion does not depend on it.
+
+**What is not established.**
+- `do_group_move`'s non-leader arm.
+- `target_opportunity:393`'s gate against a unit holding the list.
+- Whether a formation move to the group's own location lasts a frame.
+- `GroupData::get_form`'s value 9 (members given plain moves) as a second source of a top move.
+
+Nothing here is diff-backed, and no assertion was added: every claim is a control-flow reading. The order
+counter and the slot index were not found in a dump: one 16,754-frame gamelog on disk (run 583) prints only
+`synced_control_groups_*` counts, and no wider search was made.
 
 ## 391. The group actions no capture ever issued: eleven stagings, two on scope, one owed a second reading (item 3906, 2026-11-06)
 
@@ -39111,6 +39218,48 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 396. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 397. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 398. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 399. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 400. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 401. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 402. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

@@ -11,14 +11,14 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-06, **the sixty-eighth steering pass (steer, Fable) — the sixty-eighth tranche measured: 13 of 20 landed from `e9bb2ec8b` in 3 h 51, drained early on supply; the sixty-ninth is booked on three Opus 5.5 lanes at medium**; no lane live; the pass's record is `docs/audit/2026-11-06-fable-pass-68.md`, its decisions DECISIONS 108. **The sixty-ninth tranche (commander, Opus): 0 of 20 landed from `02f72df7d`.***
+*2026-11-06, **the sixty-eighth steering pass (steer, Fable) — the sixty-eighth tranche measured: 13 of 20 landed from `e9bb2ec8b` in 3 h 51, drained early on supply; the sixty-ninth is booked on three Opus 5.5 lanes at medium**; no lane live; the pass's record is `docs/audit/2026-11-06-fable-pass-68.md`, its decisions DECISIONS 108. **The sixty-ninth tranche (commander, Opus): 1 of 20 landed from `02f72df7d`.***
 - **Words: none open** — every melee, `Late ages` word, pair, battery game and long word stands whole; lower map first — closed; no fieldable line is never-seen (296 of 302, the six never being Boadicea and five gaia animals), so the melee track rests until a word moves.
 - **Map generation: every chain 8 of 8** (3890 closed Southwest Mesa, MAPGEN §15, §18.3–§18.4). **A fifth style held out is Ramon's call** (3888c; DECISIONS 108 §2): eleven styles' `make_continents` are never entered (3908 names them), and the held-out one is captured and scored, never read against.
-- **The blind list: open 2, the `kill_group_order` pair** (never 267 · residue 265). 3900 read it shut (AI §388), 3902's second reading disagreed, 3903 shut route 1 with no take (AI §389). **3904** reads route 2 to a producer and **3905** is §389's blind second reading — both score the pair, a take or `RESIDUE`. **Golden: 100 closed** (3901, chapter 107, GOLDEN §157).
+- **The blind list: open 2, the `kill_group_order` pair** (never 267 · residue 265). 3900 read it shut (AI §388), 3902's second reading disagreed, 3903 shut route 1 with no take (AI §389). **3904 read route 2** (AI §390): the falsifier fails — a regroup keeps the old move and two slots' ids meet, so the duplicate list has a human producer — but no entry into `find_new_target` was found; **3910** reads that entry (3904a), **3905** is §389's blind second reading; 3904b (a second reading of §390.1–§390.3) waits on 3910. **Golden: 100 closed** (3901, chapter 107, GOLDEN §157).
 - **The implicit residue: 81** (DECISIONS 108 §2; `python3 tools/census.py --territory --pin --implicit`) — the simulation functions no pinned trace entered and no document cites, which the blind list cannot hold: fourteen group actions no capture ever issued, eight spells never cast, eleven map styles' `make_continents` no chain runs with four `Map` rows, and 32 editor, harness, debug, CtW and sync rows. **3906–3909 read them a family each** into `blind::NEVER` with the staging that enters each or `RESIDUE` on scope — so `Blind:` rises as they are cited, and falls as the stagings are taken: a group action's as a golden chapter (GOLDEN §158–§163), a spell's as chapter nineteen's `@spell` shape, a style's as one `--dump-all-start` capture. **A landing that parks a staging naming a `NEVER` row is booked at the merge** as a `chapter` or a `coverage` item.
-- **The finish line** (DECISIONS 29, for Ramon): the long captures stand, the widening ledger stands by construction, and the blind list's cited half closes with 3904–3905; the 81 are its uncited half, enumerated now so none is left implicit. Whether phase 4 opens on the three counters or on the territory (ported 544 · replaced by design 318 · open 1291 of 3611, unmoved; `rubric.py --record "the sixty-eighth pass"`, 288 dumps, lockstep bytes 78.1 %) is his.
+- **The finish line** (DECISIONS 29, for Ramon): the long captures stand, the widening ledger stands by construction, and the blind list's cited half closes with 3905 and 3910; the 81 are its uncited half, enumerated now so none is left implicit. Whether phase 4 opens on the three counters or on the territory (ported 544 · replaced by design 318 · open 1291 of 3611, unmoved; `rubric.py --record "the sixty-eighth pass"`, 288 dumps, lockstep bytes 78.1 %) is his.
 - **For the pass** (`tranche.py --base <this base>` and `gates.py <t69> --since …/d388900a/tmp/t68p/gate-pass68.log`, after `lore index`): the sixty-eighth read 75.03 USD over fifteen sessions, 5.77 a landing, 18.9 minutes waiting, the gate class 7.5 a session (`tranche.py`'s, never the booking gates' mean), two `DEEP`, ten booking gates none red, admission 540.0 s. **The lane rule** (108 §1): 18.9 under 26.3 and 7.5 under 15.3, so three lanes stand, read at the drain against the same two lines.
-- **Lanes: three Opus 5.5 at `--effort medium`** (DECISIONS 108 §1); **spawn 3904, 3905 and 3906 first, 3907–3909 as lanes free**, then the chapters and takes their landings park. Next 3910, run 1505 (3903's unused). Pools: AI §394–396 (three; 3904 takes §390, 3906 §391, 3907 §392, 3909 §393); MAPGEN §23–§27 (3908 takes §22); GOLDEN §158–§163 (six, for the chapters 3906–3907 name); park AX, AY–BD free (3904 AR, 3905 AS, 3906 AT, 3907 AU, 3908 AV, 3909 AW). 81 merged `worktree-att-*` stay on origin (the remote delete is the classifier-refused class).
+- **Lanes: three Opus 5.5 at `--effort medium`** (DECISIONS 108 §1) — live `lane-3905`, `lane-3906`, `lane-3907`; 3908, 3909 and 3910 refill as lanes free, then the chapters and takes their landings park. Next 3911, run 1505 (3903's unused). Pools: AI §395–402 (eight; 3905 none, 3906 §391, 3907 §392, 3909 §393, 3910 §394); MAPGEN §23–§27 (3908 takes §22); GOLDEN §158–§163 (six, for the chapters 3906–3907 name); park AY–BD free (3905 AS, 3906 AT, 3907 AU, 3908 AV, 3909 AW, 3910 AX). 82 merged `worktree-att-*` stay on origin (the remote delete is the classifier-refused class).
 - **Fable backlog: 9 Loop items** (3848; 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118 — each with the sixty-eighth's numbers in the parked file); no `FABLE:` row open.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -50,13 +50,6 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84–93). Three shapes
 the nation `rubric.py --tables 3` prints in braces, `diff::<name>_pair` at its first parting, a scoreboard line; no twin for a pair varying only
 age and nation, 93 §2); **a melee** (`gunpowder_melee.rs`'s shape, GOLDEN §155, its own `Melee:` row). **The refill is the next nation and age off
 the braces, one never-seen line a lobby, its triple read on `tools/refill.py` first** (101 §4, 102 §3).
-
-3904. **Route 2 to the `kill_group_order` pair: 3903b's reading** (a `coverage` item, DECISIONS 87, 107 §2; parked 3903b, 3902b; AI §389 as 3903 left it):
-read to a producer a unit holding two group moves with one id and an `ATTACK` between them, so that `Unit::kill_group_move@005e3400`'s tail kill takes the
-`ATTACK` inside `repath` — a regroup that keeps the old group's move queued (`Group::clear`, `add_group_move_order`'s `QUEUE_NEW` clear, `finish_insert`),
-and whether two groups' ids `(group.id + frame*10)*100 + order_num` can meet on one list; the falsifier written first (no producer: every regroup clears the
-old move before the new id lands); a producer found books one take with its staging named, never in this item; none found is a `RESIDUE` candidate beside
-3905; the reading is AI §390, off the decompile and the dumps on disk; gate `--tests blind:: --no-widen`; park AR.
 
 3905. **The blind second reading of AI §389** (a `reading` item; parked 3903a): one Opus reader, without §389, 3903's journal or parks 3902a–3903b,
 re-derives which unit types reach `fight`'s first `find_new_target` (`5fe113`), whether `Object::valid_target@00648ba0` refuses them an enemy city
@@ -98,6 +91,14 @@ Himalayas, Amazon Basin and Old World (`MapNileDelta::make_continents` to `MapOl
 `Objects::remove_good`, `Player::drop`, `Surf::on_field_change`, `SyncPoint::process_sync_signal`,
 `WorldMap::on_extra_up` — the list is `census.py --territory --pin --implicit`; each read to its callers and ruled `RESIDUE` with its scope
 reason (editor, debug verb, the unit-balance harness, CtW, multiplayer, interface) or `NEVER` with the run that would enter it; AI §393; park AW.
+
+3910. **The entry into `find_new_target` for route 2's list** (a `coverage` item read off the decompile, no run; parked 3904a; AI §390.4): the list
+`[GM_form X][ATTACK t][GROUP_PATROL][GM_B X]` has a human producer (§390.3); read each candidate caller to its predicate — `Unit::do_group_move`'s
+non-leader arm on a `do_move` return of 0 and whether a non-leader keeps a stash into `do_move:105`, `Unit::target_opportunity:393`'s make-way move as
+a plain move over the formation move (opening `resolve_unit_collision:233` and `check_target_path:180`), `GroupData::get_form` = 9 as a plain top move;
+the falsifier first (no caller runs `find_new_target` with a group move current); a caller found names one take of §390.3's five commands plus its
+staging, booked at the merge and never run here; none, with 3905's verdict on §389, makes the pair a `RESIDUE` candidate; AI §394; gate `--tests blind::
+--no-widen`; park AX.
 
 ## How to maintain this file
 
