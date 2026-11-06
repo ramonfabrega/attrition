@@ -2343,6 +2343,12 @@ mod tests {
         // Chapter sixteen: two `@explore` and two `@flee` issuer lines, the
         // move issuer's trailing selector (item 738, `docs/GOLDEN.md` §24).
         ("chapter16.cmd", &[]),
+        // Chapter seventeen's lobby and three air group actions, and its
+        // lobby and an air attack-ground with a launch from the Airbase
+        // (item 3911, `docs/GOLDEN.md` §158): the console's `camera` only
+        // places the view the `@rclick` lands in.
+        ("chapter17-air.cmd", &["camera"]),
+        ("chapter17-airground.cmd", &["camera"]),
         // Chapter seventeen: two `@flight` and two `@strike` issuer lines,
         // the flight line (item 746, `docs/GOLDEN.md` §25).
         ("chapter17.cmd", &[]),
@@ -2649,6 +2655,16 @@ mod tests {
                 // command (`tools/trace/tracer.c`, `I_DUMPALL`; item 3901).
                 if line.text.trim() == "@dumpall" {
                     assert!(!line.console, "{name}: `@dumpall` is a DLL line");
+                    continue;
+                }
+                // And the DLL's input lines, which press a key or click the
+                // mouse rather than issue (`issue_line`'s head in
+                // `tools/trace/tracer.c`; item 3911's `@rclick` and `@key`).
+                let input = [
+                    "@click ", "@rclick ", "@cursor ", "@key ", "@char ", "@hold ",
+                ];
+                if input.iter().any(|v| line.text.starts_with(v)) {
+                    assert!(!line.console, "{name}: `{}` is a DLL line", line.text);
                     continue;
                 }
                 if line.text.starts_with('@') {

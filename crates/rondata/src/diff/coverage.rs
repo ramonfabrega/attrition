@@ -367,11 +367,14 @@ const UNREAD: &[(&str, &str)] = &[
     // (`golden::Script`), and no field of the simulation reads it.
     // **Item 2165's run835 windows `process_stance`** (`stance frame`), the
     // first player's stance button; what it writes is read off the units'
-    // `stance` and stacks.
+    // `stance` and stacks. **Item 3911's ch17ag windows
+    // `process_attack_ground`** (`21120 16512 2` on 681), the first player's
+    // air attack on the ground; what it lays is read off `0/7`'s
+    // `AIRATTACKGROUNDORDER`.
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_stance process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_attack_ground process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_stance process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -797,6 +800,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch105 = golden_dump("ch105");
     let ch106 = golden_dump("ch106");
     let ch107 = golden_dump("ch107");
+    let ch17air = golden_dump("ch17air");
+    let ch17ag = golden_dump("ch17ag");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2867,6 +2872,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             n, 4,
             "chapter one hundred and seven carries four blocks in the window"
         );
+        frames += n;
+    }
+    // **Chapter seventeen's air group actions, on run1505's and run1505b's
+    // twins** (item 3911): the windows take `0/6`'s `AIRPATROLORDER` laid
+    // on 681 and `0/7`'s `AIRATTACKGROUNDORDER` on 681, the records the
+    // arms print first.
+    if let Some(p) = &ch17air {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN_AIR;
+        let n = drive_capture(p, 680, 684, &mut paths);
+        assert_eq!(n, 5, "ch17air carries five blocks in the window");
+        frames += n;
+    }
+    if let Some(p) = &ch17ag {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN_AIRGROUND;
+        let n = drive_capture(p, 680, 684, &mut paths);
+        assert_eq!(n, 5, "ch17ag carries five blocks in the window");
         frames += n;
     }
     // **Chapter one hundred, on run936** (item 3236): a Tank bled by

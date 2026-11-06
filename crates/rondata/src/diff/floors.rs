@@ -1485,6 +1485,16 @@ mod tests {
             WIDENING_CHAPTER_ONE_HUNDRED_AND_SEVEN,
         ),
         (
+            "ch17air",
+            GOLDEN_WORD_CHAPTER_SEVENTEEN_AIR,
+            WIDENING_CHAPTER_SEVENTEEN_AIR,
+        ),
+        (
+            "ch17ag",
+            GOLDEN_WORD_CHAPTER_SEVENTEEN_AIRGROUND,
+            WIDENING_CHAPTER_SEVENTEEN_AIRGROUND,
+        ),
+        (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             WIDENING_CHAPTER_THREE_RESTAGE,
