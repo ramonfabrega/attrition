@@ -3782,6 +3782,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
+(3928) **A `cover=1` twin's who=1 tribe is not pinned unless `--ai-tribe` is passed** (3914's "for the Loop"; beside 3926): run1508b's first take drew tribe 2 where its `cover=0` sibling run1508 drew 11, and it differed from frame 0; 3915's run1509b first take on pool lane 2 seated who=1 as tribe 2 the same way (parked 3915a, when it merges). So 3926's "unstaged" take may be this one: the twin is another lobby, not an unstaged one. Candidate: a twin's recipe carries its sibling's `players` off the receipt, or the click-free runner refuses a `cover=1` take whose lobby differs from its `--twin`'s on the first frame. Names no score; the loop's.
+
 (3927) **`mutate.py --batch` times a mutant from the warm un-mutated run** (3911's "for the Loop"): the baseline ran in 2.0 s warm, so a mutant got 60 s with its compile included; every mutant of 3911's first batch compiled inside it, but a slower box or a cold cache would count a compile as a hang and score it caught. The second batch passed `--timeout 900`. Candidate: time the baseline cold, or add the measured compile to the mutant's budget, or refuse a batch whose timeout is under one cold build. Names no score; the loop's.
 
 (3926) **A pool lane ran an unstaged game under a staged `cover=1` golden take** (3912's "for the Loop"; parked 3912a): run1506b's first take on pool lane 2 held none of `chapter109.cmd`'s `add` lines, the `@key 124` then faulted natively at `0x6fac09` (3912b) and the receipt refused with `extra lifecycle or fault records`; nothing the lane printed said why, and the retake on lane 1 was clean. A dead take costs one capture and, unnoticed, would read as a chapter. Candidate: the click-free runner checks the staged `add` lines' units on the first dumped frame and refuses the take by name; booked further when a second lane-2 take comes back unstaged, the two takes' `rontrace.cmd` and `wine.log` side by side. Names no score; the loop's.
@@ -14503,13 +14505,16 @@ no score.
   would be a pack or unpack (`Unit::unpack_merchant` lays one, `crate::merchant` §3). It is not built, and no capture stops one. The staging would be
   `OPTION_QUEUE` on a Merchant mid-unpack. **Score**: none named — a `SEAM` in `Sim::group_action_stop_spell`.
 
-## Parked by the next landing, slot BB — reserved
+## Parked by item 3914, 2026-11-06 — a disband
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3914a. `action_disband`'s building arms** (`docs/GOLDEN.md` §161): through the group, an unfinished building
+  goes to `Object::disband(o, 0)` and a finished, active one queues `DISBAND` (`Build::queue_up`, behind vslot `0xac`'s
+  `+400`). `validate_disband`'s five refusals sit under `+0x49`. `Sim::group_action_disband` walks units only (a
+  `SEAM`). The staging would be `OPTION_DISBAND` on a selected who=0 building, a site and a finished one. **Score**: none
+  named. The four functions are entered now, so this is fidelity on a path no word reads.
+- **3914b. `OPTION_DISBAND_ALL` on two units, and a holder with passengers.** The walk's order, its `all` and the
+  passenger loop are unit-tested, never captured. Two units selected under `OPTION_DISBAND_ALL=124` would show the
+  order in the draws, two `Object::disband+0x415` pairs. **Score**: none named.
 
 ## Parked by the next landing, slot BC — reserved
 

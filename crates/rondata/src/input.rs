@@ -1138,6 +1138,35 @@ pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
     n
 }
 
+/// **`CommandPackage::process_disband@00948660`** on the player's own
+/// units: `OPTION_DISBAND` with the seat's units selected (item 3914,
+/// `docs/GOLDEN.md` §161). `Options::exec@007188c0`'s 0xf arm calls
+/// `Options::do_disband@0071df20(0)` once on the selection: after
+/// `GroupOut::validate_disband` (0 for a unit group) it issues one `group`
+/// and one `disband` (0x15, `all` 0), processed as
+/// [`sim::Sim::group_action_disband`].
+///
+/// Returns the number of units disbanded.
+pub fn group_disband(built: &mut Built, who: i32, objects: &[i16], all: bool) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    built.sim.group_action_disband(&g, all)
+}
+
 /// **`CommandPackage::process_flight@00947db0`** on the player's own
 /// buildings: an Airbase's right-click on an enemy, or on another base of
 /// its own, `issue_flight` on the building group itself, whose

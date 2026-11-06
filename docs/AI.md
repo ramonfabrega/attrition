@@ -39130,6 +39130,8 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
    - Killer: no `process_disband all: 0 … 623`, or the Chariot `0/6` alive on 624.
    - Second caller: `Leader::check_orphaned_buildings@006c9f20:116,221`, for a computer leader's building with
      the `+0x60 & 1` flag. No staging is named for that one.
+   - ~~Staged~~ **Taken**: item 3914, run1508 and run1508b, `docs/GOLDEN.md` §161 — `process_disband 623`, the
+     Chariot gone on 624 with two `DEATH_OBJS` (`dtype` 1), the four rows off `NEVER`.
 8. **`Group::action_city_gather@00701780`.** For each member that is a city holding the `+8 & 4` bit, it calls
    `Build::clear_gather`. Then, down the city's building chain (`+0x74`), it calls `add_gather_point(…, 1,
    QUEUE_LAST)` on each active building of the asked type. With −1 it takes any building that answers type vslot

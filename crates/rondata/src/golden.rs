@@ -358,23 +358,35 @@ impl Script {
                 );
             } else {
                 // The order stacks before and after, so the line says
-                // which units it reached (Loop 2654).
-                let before: Vec<usize> = built.sim.units.iter().map(|u| u.orders.len()).collect();
+                // which units it reached (Loop 2654); and a unit the line
+                // killed, whose stack may not move (a disband, item 3914).
+                let before: Vec<(usize, bool)> = built
+                    .sim
+                    .units
+                    .iter()
+                    .map(|u| (u.orders.len(), u.alive()))
+                    .collect();
                 issue(&line, built, &mut done);
                 let changed: Vec<String> = built
                     .sim
                     .units
                     .iter()
                     .enumerate()
-                    .filter(|(i, u)| before.get(*i).is_none_or(|&n| n != u.orders.len()))
-                    .map(|(i, u)| {
-                        format!(
-                            "{}/{} orders {}->{}",
-                            u.owner,
-                            u.index,
-                            before.get(i).copied().unwrap_or(0),
-                            u.orders.len()
-                        )
+                    .filter_map(|(i, u)| {
+                        let (n, alive) = before.get(i).copied().unwrap_or((0, false));
+                        if alive && !u.alive() {
+                            Some(format!("{}/{} died", u.owner, u.index))
+                        } else if n != u.orders.len() {
+                            Some(format!(
+                                "{}/{} orders {}->{}",
+                                u.owner,
+                                u.index,
+                                n,
+                                u.orders.len()
+                            ))
+                        } else {
+                            None
+                        }
                     })
                     .collect();
                 done.reached
@@ -1399,6 +1411,7 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             // `Options::recall_aircraft@0071c670`'s `recall` (byte 0x23) on
             // a selection of units (item 3911, `docs/GOLDEN.md` §158).
             "OPTION_RETURN" => crate::input::group_recall_units(built, who, &objects),
+            "OPTION_DISBAND" => crate::input::group_disband(built, who, &objects, false),
             _ => {
                 done.skip(&word, "a bound option this interpreter does not act on");
                 return;
@@ -2426,6 +2439,10 @@ mod tests {
         // selected by `select` mid-hold and the key bound to `OPTION_QUEUE`,
         // `@key` (item 3913, `docs/GOLDEN.md` §160).
         ("chapter110.cmd", &[]),
+        // Chapter one hundred and eleven: chapter nine's Chariot selected by
+        // `select` and the key bound to `OPTION_DISBAND`, `@key` (item 3914,
+        // `docs/GOLDEN.md` §161).
+        ("chapter111.cmd", &[]),
         // Chapter one hundred and thirteen: chapter thirty-nine's lobby, three
         // Citizens selected by `select` and the key bound to
         // `OPTION_PEASANT_ALARM`, `@key` (item 3916, `docs/GOLDEN.md` §163).

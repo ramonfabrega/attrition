@@ -582,6 +582,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Unit::plunder@00605b00`'s EE arm: one draw per available good
     // (`docs/AI.md` §259). The pre-EE arm's draw is not tabulated.
     (0x0060_5fe5, None, sim::fight::SITE_UNIT_PLUNDER),
+    // `Object::disband@006455c0`'s unit arm: `Random::get(0, 0xffff) % 3`,
+    // the `dtype` of its `die` (item 3914, run1508 on 622).
+    (0x0064_59d5, None, sim::disband::SITE_DISBAND_DIE),
     (0x0060_fb06, None, sim::fight::SITE_DEATH_ANIM),
     (0x0060_fb36, None, sim::fight::SITE_DEATH_ANIM_ALT),
     (0x0060_fb5a, None, sim::fight::SITE_DEATH_ANIM_FACING),

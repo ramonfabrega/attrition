@@ -6811,6 +6811,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TEN: i64 = 900;
 /// run1507.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TEN: (i64, i64) = (604, 901);
 
+/// **Chapter one hundred and eleven** (item 3914, `docs/GOLDEN.md` §161,
+/// run1508): chapter nine's Chariot disbanded by `OPTION_DISBAND`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_ELEVEN: i64 = 900;
+
+/// `chapter_one_hundred_and_eleven_s_window_is_widened_whole`'s window:
+/// run1508.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_ELEVEN: (i64, i64) = (604, 901);
+
 /// **Chapter one hundred and thirteen** (item 3916, `docs/GOLDEN.md` §163,
 /// run1510c): `OPTION_PEASANT_ALARM` on three selections of Citizens.
 pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTEEN: i64 = 900;
