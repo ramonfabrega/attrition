@@ -10063,7 +10063,7 @@ hand stage follows the pool is a pass's call.
 
 ## Parked by item 3504, 2026-10-22 — `Unit::kill_group_order`: reachable but unstaged
 
-(3504a) **`Unit::kill_group_order@005e3310` is reachable but unstaged** (item 3504; runs 1138–1142, and the unfiled
+(3504a) ~~**`Unit::kill_group_order@005e3310` is reachable but unstaged**~~ *Amended by item 3900 (`docs/AI.md` §388): no stash reaches `:63` with a group head, because `find_new_target` calls `repath` at `005ff70f` first and `repath` strips every head that `get_action` can skip over. Every take below took `:65` because `:65` is the only arm. The pair is a `RESIDUE` candidate (park 3900a). The row is kept as written:* (item 3504; runs 1138–1142, and the unfiled
 sweeps the journal names). The only route is `Group::kill_group_order@00710aa0` ← `Unit::find_new_target@005ff6a0:71`
 ← `Unit::do_move@005f7b30:105` ← `Unit::do_group_move@005e79a0:85`, the leader arm. **The predicate, as the takes
 narrowed it**: the leader's head is a group order (`find_new_target:63`, `+0x2c`, and `group ≥ 0`; otherwise `:65`
@@ -13951,7 +13951,7 @@ score.
   (`docs/AI.md` §382.4), and `Blind:` open is 41 → 40.
 - **3877c. `Group::kill_group_order@00710aa0`'s second caller is dead**: `do_group_attack:67` (`5e76c4`) is under
   3877a's order, so 3504a's `find_new_target:71` (`5ff78f`) is the pair's only live route, and 3504a's staging stands.
-  The pair is not `RESIDUE`. **Score**: `NEVER` 2 rows when 3504a is staged.
+  ~~The pair is not `RESIDUE`.~~ *Amended by item 3900: `5ff78f` is closed too (`docs/AI.md` §388.2), so the pair is a `RESIDUE` candidate (park 3900a).* **Score**: `NEVER` 2 rows when 3504a is staged.
 
 ## Parked by item 3878, 2026-11-05 — Southwest Mesa's tail and resources, 7861..7927
 
@@ -14184,7 +14184,8 @@ question stays filed.
   happens, because `create_buildings` skips water non-docks (`6c1f96`). The disk: 114 dumps offer `t 421` and
   none offers `t 422`. A take would have had a fixed outcome; the killer would have fired. AI §386.
   **Score**: none of its own. It is why 3896 moved no row.
-- **3896b. A blind second reading of AI §386, to move `004780c0` to `RESIDUE`.** Re-derive the five points §386.3
+- ~~**3896b. A blind second reading of AI §386, to move `004780c0` to `RESIDUE`.**~~ **Done by item 3899**
+  (`docs/audit/2026-11-06-item-3899.md`): all five points agree, and the row is `RESIDUE`. Re-derive the five points §386.3
   lists, without §386: the fort test's rejoin, the `g` set, the Oil Well's exit past the spiral, the water-domain
   skip, and the other `+0x94` sites' receivers (`draw_cursor_follows`' `drop_type` in play, `capture_city`'s
   slot shape). **Score**: one open blind row (open 8 → 7, residue 260 → 261).
@@ -14216,21 +14217,43 @@ word moved. The row below names no score.
   would read the arm. It names no score until `sim` models a fort's death beyond `alive`.~~ Answered by item 3901
   (`docs/GOLDEN.md` §157, run1504): the claim is given back over 705..708, cell for cell with the original.
 
-## Parked by the next landing, slot AM — reserved
+## Parked by item 3899, 2026-11-06 — `GoodTypeData::is_flat`'s blind second reading
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3899a** — **a slot's `+0x90` gate settles a `+0x94` receiver without its writers.**
+  `Options::draw_cursor_follows` tests `objecttypes[i]->+0x90` (`is_gather_type`) at `724230`
+  before it calls `+0x94`. Every non-building type's `+0x90` is a folded `return 0` (GoodType's
+  `0041bff0`), so the `+0x94` call is dead for those types whatever the index holds. §386 had left
+  this open as "`drop_type` read from its neighbour, not its writers". The same shape, a cheap
+  slot gate in front of the slot under question, may settle other open-receiver rows in one read.
+  The blind reader found it unprompted (`docs/audit/2026-11-06-item-3899.md`). **Score**: none of
+  its own; a reading shortcut for the open blind rows.
+- **3899b** — **the shipped `.bhs` outside `game/ai/scripts/` name "Oil Platform" only in
+  scope-excluded or dead text.** The ColdWar setups belong to Conquer the World.
+  `scenario/Custom/skirmish/skirmish.bhs:329` is a custom scenario, and the call sits inside a
+  `/* … */` block (lines 309–331). AI §386.2's grep searched `ai/scripts` only. This widens it,
+  and the verdict stands. **Score**: none.
 
-## Parked by the next landing, slot AN — reserved
+## Parked by item 3900, 2026-11-06 — the `kill_group_order` pair, read shut
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3900a. A blind second reading of AI §388, to move `Unit::kill_group_order@005e3310` and
+  `Group::kill_group_order@00710aa0` to `RESIDUE`.** Re-derive the five points in §388.3 without reading §388:
+  - `repath` runs unconditionally at `find_new_target+0x6f`, before the `:63` head test;
+  - `repath`'s kill set (types 1–4, 19 and 21; type 18 without the action bit), and that `kill_group_move`
+    adds no order;
+  - `get_action`'s skip set (a move without the action bit; type 18);
+  - every order vftable's `+0x14` and `+0x2c`;
+  - that `do_group_attack`'s site (`5e76c4`) stays dead, as §382.1 has it.
+
+  **Score**: two open blind rows (open 4 → 2, residue 264 → 266).
+- **3900b. 3504a's staging would have held the stash, and only `repath` closes it.** A collision's suspend
+  (`resolve_unit_collision:482`) survives `ungroup_move_order`, which kills no path on the leader. A
+  `QUEUE_FIRST` `add_group_move_order` keeps the stash (`:19-23`). So a leader regrouped by `@repairins`
+  before its beat would reach `do_move:105` with a group head. If 3900a disagrees on §388.2, this is the
+  staging: a collision with a suspend on the swarm's own leader `0/6` (its `start_dist` stamped, which no
+  3504 take produced), then `@repairins` processed on the frame `collide_frame + 4k`, with `repaths[0]` from
+  3 to 7 (at 8 and above, `resolve_unit_collision` throttles its search). The killer is the one AI §388.2
+  predicts: `find_new_target` entered on that frame with no `HIT` for `00710aa0`. **Score**: none unless
+  3900a disagrees.
 
 ## Parked by item 3901, 2026-11-06 — a Fort dies inside its owner's territory; a gaia good's `ever_seen` on a whole dump
 
@@ -14242,13 +14265,34 @@ Chapter one hundred and seven closed at 760 (`docs/GOLDEN.md` §157, run1504). T
   until a word's frame parts on a good's `ever_seen`; the first read is the writers of the field in `sim` against
   `GoodData`'s.
 
-## Parked by the next landing, slot AP — reserved
+## Parked by item 3902, 2026-11-06 — the `kill_group_order` pair, a blind second reading that disagrees
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3902a. `fight`'s second `find_new_target` after a group attack-move meets a capture-eligible building.** The
+  blind second reading (`docs/audit/2026-11-06-item-3902.md`) found eight `E8` callers of
+  `Unit::find_new_target@005ff6a0`, and AI §388 closed one of them (`do_move`, `5f7c66`). Route 1, read to the
+  function, runs like this:
+  - `do_attack`, then `fight:1052` (`5fe113`), kills the tail `ATTACK` above a `GROUP_ATTACK_TO`;
+  - `find_nearby_target:577` calls `Group::action_attack(QUEUE_FIRST, 4)`, whose `action_halt` empties this unit's
+    list;
+  - `QUEUE_NEW`'s capture arm (`:253-279`) gives the unit only a group move;
+  - `finish_insert` re-issues the leader's `GROUP_PATROL`, which always carries flag 4
+    (`add_patrol_order:75`);
+  - `fight:1061` (`5fe25f`) runs `repath` down to the patrol, and `5ff78f` calls `Group::kill_group_order`.
+
+  **The staging** (not 3900b's, which tests the agreed-closed `do_move:105`):
+  - a grouped melee line with `+0x2b8 & 4` and `+0x10c` = 0;
+  - a group attack-move, then a shift-queued patrol;
+  - the line engages a defender beside an enemy building at capture HP;
+  - trace at `cover=1` on `005ff78f`, `00710aa0`, `00712490` and `005e3310`.
+
+  **The killer:** `00712490` entered from `00648da0`, with the same unit entering `find_new_target` twice on that
+  frame and no `HIT` on `00710aa0`. That kills route 1 for the staging. **Score**: two `NEVER` rows (entered on a
+  `HIT`; `RESIDUE` with the audit if a killed staging and a reading of `fight`'s second-call gate close it).
+- **3902b. A duplicate group-move id in one list would let `repath` kill the `ATTACK`.**
+  `Unit::kill_group_move@005e3400` removes the tail on a deeper match. The id is
+  `(group.id + frame*10)*100 + order_num`, which is unique within a group between `Group::clear`s but can collide
+  across two groups, so a unit regrouped with its old move still queued could hold two with the same id. Not read to
+  a producer. **Score**: none until 3902a's take is read; then it is the remaining route.
 
 ## Parked by the next landing, slot AQ — reserved
 
@@ -14262,6 +14306,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot AR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot AX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot AX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

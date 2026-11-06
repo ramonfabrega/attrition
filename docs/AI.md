@@ -38000,7 +38000,7 @@ from the head. For each node:
 The walk stops when the list wraps (`*(+0xd4) == +0xdc`) or empties
 (`+0xd8 == 0`).
 
-With 382.1's route dead, both enter only from `find_new_target:63–71`, so
+*Amended by item 3900 (§388.2): `find_new_target` calls `repath` before `:63`, and after `repath` no head that `do_move:105` can deliver answers `+0x2c`. The pair is a `RESIDUE` candidate (park 3900a). The paragraph is kept as written:* With 382.1's route dead, both enter only from `find_new_target:63–71`, so
 the head must be a group order (`+0x2c`) with `group ≥ 0`. 3504a's walk has
 already narrowed that to a grouped leader's suspended `find_upath` on the
 4-frame collide beat. **Not `RESIDUE`**: every predicate is a state the game
@@ -38626,9 +38626,10 @@ functions that touch `goodtypes`, the export has three other `+0x94` sites:
   A different slot table.
 
 So this section is a **`RESIDUE` candidate with no route**: no AI request reaches the one good-receiver site, and the
-others are building receivers or the editor's. It has **one reading**. By the rule that moved §384's rows, a blind
-second reading must agree before the row leaves `NEVER` (park 3896b). That reader must re-derive, without this
-section:
+others are building receivers or the editor's. ~~It has **one reading**. By the rule that moved §384's rows, a blind
+second reading must agree before the row leaves `NEVER` (park 3896b).~~ **Settled by item 3899's blind second
+reading (`docs/audit/2026-11-06-item-3899.md`): all five points agree, and `004780c0` is `blind::RESIDUE`.** That
+reader re-derived, without this section:
 
 1. that gate 1 rejoins before the gather arm;
 2. the set of `g`-flagged types;
@@ -38636,9 +38637,13 @@ section:
 4. `create_buildings`' water-domain skip;
 5. that no other `+0x94` site can hold a good-type receiver in play.
 
-**What is not established.** The `drop_type` of `draw_cursor_follows` in play is read from its neighbouring
-`buildtypes` access, not from its writers. `capture_city`'s receivers are named by slot shape only. No capture was
-run, so nothing here is diff-backed except the make-list census in §386.2.
+**What is not established.** ~~The `drop_type` of `draw_cursor_follows` in play is read from its neighbouring
+`buildtypes` access, not from its writers.~~ Moot (item 3899's audit): the call's `+0x90` gate at `724230` precedes
+it, and GoodType's `+0x90` (`0041bff0`) returns 0, so no good reaches it whatever `drop_type` holds. ~~`capture_city`'s
+receivers are named by slot shape only.~~ Two readings now (item 3899's audit): a map object's table, never a type.
+`ConquestGame::build_cities`'s types are unread (Conquer the World, cut). No capture was run, so nothing here is
+diff-backed except the make-list census in §386.2. **Coverage**: reading-only, on two readings (§386.1–§386.3);
+diff-backed, the census.
 
 ## 387. `Forts::close_fort` entered: a who=1 Fort added and killed by console (item 3898)
 
@@ -38699,12 +38704,114 @@ re-pin is owed: the take dumps no `GUYS` and is not a pair's twin.
   item 3901 (`docs/GOLDEN.md` §157, run1504): a Fort inside who=1's territory gives its claim back
   over 705..708, every cell's `(who, who2)` the original's.
 
-## 388. Reserved for the next item on the AI track
+## 388. The two `kill_group_order`s: `find_new_target` strips the group head before it tests it (item 3900, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3900 was booked as a coverage take on parked 3504a's staging. The staging asks a grouped leader to enter
+`Unit::do_move@005f7b30` with a suspended search stashed (`openlist`, `UnitData +0x104`) on the collide beat, so
+that `do_move:105` calls `find_new_target(this, 0, 1)` and `find_new_target:63-71` sees a group head and calls
+`Group::kill_group_order@00710aa0`, which calls `Unit::kill_group_order@005e3310` on each member. Two readings
+came before any take: the return that follows a suspended search (3504a's question), and the whole of
+`find_new_target` above `:63`. The second one closes the route, so **no take was run, and run 1503 is unused.**
+
+### 388.1 A suspended `find_upath` at the re-plan kills the order and frees the stash
+
+3504a asked which `do_move` return follows a suspended `find_upath` at `:658`.
+
+- `astar_path@00683770:486-526` suspends by setting the pathfinder's `+0x84` (the flag `find_upath_restore`
+  sets as `saving`), moving the open list onto the unit (`+0x104`), stamping `start_dist` (`+0x130`), and
+  returning **−1**. `find_upath@00682f30:174-196` skips its pop-and-kill teardown while `+0x84` is set, and
+  returns the −1. The 4-argument wrapper `@00688eb0` zeroes `+0x84` and passes the −1 through.
+- In `do_move`, `5f8afc` `jle 5f8b0e` skips the size test, and `5f8bcf` `cmp $-1; je 5f8b5b` (`:719-720`)
+  calls `kill_current_order(this, 0)`. If the new head is an `ATTACK` (10) or `BUILD_AT` (6), `5f82a3` kills
+  that too. Either way the function returns 1.
+- `kill_current_order@005e2cb0` has one `ret`, at `5e31cd`, and calls `clear_partial_path` at `5e3170` on
+  every path. `clear_partial_path@005e3920:42` zeroes `+0x104`.
+
+So a suspend at the re-plan leaves no stash, and it kills the head it was walking. The re-plan's `find_upath`
+also needs `collide` (`UnitData +0x88`, named by the type record) to be non-zero (`:638`). The search `:653`
+takes otherwise is `find_tpath`, which cannot suspend: `astar_path`'s suspend test reads the pathfinder's
+`+0x64`, and only `find_upath` sets it (`:169`).
+
+The only other maker of a stash is `resolve_unit_collision@005f9d30:482`. `report.py <exe> refs` puts the two
+`find_upath` callers at `005f8aa0` and `005fa802`, and that function's single caller is `move_step+0x891`. It
+stamps `collide_frame` with the current frame first (`:379`), and its suspend is kept. But `move_step:291-292`
+returns 0 after it, so `do_move:750` returns 0, and `do_group_move`'s leader arm then ungroups or kills the
+group move that same frame (`:107-147`). That is 3504a's observation that "a collision ungroups the leader".
+
+**Not what kills the pair.** The leader id in a group move is written only by `Unit::add_group_move_order:52`
+(`piVar3[0x15]`), and that function clears the stash only on `QUEUE_NEW` (`:19-23`). So a stash made by a
+collision can outlive the ungroup and ride into a `QUEUE_FIRST` group move, such as `@repairins`. 3504a's own
+frame arithmetic stands too: `Unit::init:553` sets `collide_frame` to −1, so a never-collided unit's beat is
+`S ≡ 2 mod 4`. These would have been the staging, except for 388.2.
+
+### 388.2 `find_new_target` calls `repath` before its head test
+
+`find_new_target@005ff6a0` calls `Unit::repath@005e29b0` at `005ff70f` before `:63` reads the head. Every jump
+above the call either reaches it (`5ff6e6`, `5ff6f2`) or leaves to an out-of-line block that returns to it
+(`5ff9a9 → 5ff6e4`, `5ff9b0 → 5ff6ef`). `repath` loops on the head:
+
+- types 1, 2, 3, 4, 19 and 21 are killed, and so is type 18 ~~when it lacks the action bit (`flags & 4`)~~ *whatever its flags — item 3902 (`docs/audit/2026-11-06-item-3902.md`, disagreement 1): `5e2a2a` jumps on 0x12 inside the first kill set, and the flag re-test is unreachable*. Type 19
+  (`GROUP_MOVE`) with `group ≥ 0` goes through `Group::kill_group_move`, and everything else through
+  `kill_current_order`;
+- the loop stops at the first head of any other type.
+
+~~`Unit::kill_group_move@005e3400` kills only move orders whose group view (`+0x94`) carries the id, and never type
+21.~~ *Struck by item 3902 (`docs/audit/2026-11-06-item-3902.md`, disagreement 2): on a match it calls
+`kill_current_order`, which removes the tail whatever node matched, so a deeper same-id group move kills the current
+order.* So `repath` adds nothing to the list.
+
+`do_move:91-104` reaches `:105` only when `UnitData::get_action@00608450` returns an `ATTACK` (10).
+`get_action` walks down from the head and skips an order whose `+0x14` (`is_move`) answers non-zero without
+the action bit, and also any type 18. An image scan of every vftable whose `+0x10` is an order `get_type`
+(`.rdata` `00b47628`–`00b49f1c`, plus `MoveOrder`'s `00b4a12c` and `PatrolOrder`'s `00b48aec` from `vtables.txt`, whose `get_type`s are folded) reads slots `+0x14` and
+`+0x2c` (`is_group`). Folded bodies were read as their constants, through each `vtordisp` thunk:
+
+| class | type | `+0x14` move | `+0x2c` group |
+|---|---|---|---|
+| `MoveOrder`, `AttackToOrder`, `ExploreToOrder`, `FleeToOrder` | 1, 2, 3, 4 | 1 | 0 |
+| `FormOrder` | 18 | `MoveOrder::is_move` | 0 |
+| `GroupMoveOrder`, `GroupAttackToOrder` | 19, 21 | 1 | 1 |
+| `GroupAttackOrder`, `GroupPatrolOrder` | 20, 22 | 0 | 1 |
+| the other eighteen (`AttackOrder` 10 among them) | — | 0 | 0 |
+
+So every order above the `ATTACK` is a move without the action bit, or a type 18. Every move class is a
+type that `repath` kills. The one exception is a type-18 order that carries the action bit: `get_action`
+skips it and `repath` does not kill it. After `repath`, then, the head is either the `ATTACK` or a
+`FormOrder`, and both answer 0 at `+0x2c`.
+`5ff754` `call *0x2c(%eax)` / `5ff759` `je 5ff796` takes `kill_current_order`, `:65`, on every entry from
+`do_move:105`. A group order that answers `+0x2c` and survives `repath` (types 20 and 22) is not a move, so it
+would have stopped `get_action` with a type other than 10.
+
+**This is why all five of 3504's takes entered `find_new_target` and always took `:65`.** 3504a read them as
+entries by units that had already been ungrouped. In fact the `:65` arm was the only one any entry could take,
+whether or not the unit was grouped.
+
+### 388.3 What this leaves of the pair
+
+`Group::kill_group_order` has two call sites (`report.py <exe> refs`): `find_new_target+0xef` (`5ff78f`), closed
+by 388.2, and `Unit::do_group_attack+0x124` (`5e76c4`), which is `blind::RESIDUE` on §382.1 (no maker of a
+`GroupAttackOrder`; item 3887 agreed). `Unit::kill_group_order`'s one call site is `Group::kill_group_order+0x7e`
+(`00710b1e`). ~~**Both rows are `RESIDUE` candidates with no route.**~~ *Struck by item 3902's blind second reading
+(`docs/audit/2026-11-06-item-3902.md`): this section read one of `find_new_target`'s eight callers. `fight`'s second
+call (`5fe25f`) after `find_nearby_target`'s `Group::action_attack(QUEUE_FIRST)` can meet a re-issued `GROUP_PATROL`
+when the target is capture-eligible, and neither reading closes it; both rows stay `NEVER`, and the take that settles
+it is park 3902a.* This section has one reading, so the rows
+stay in `NEVER` until a blind second reading agrees (park 3900a). That reader must re-derive, without this
+section:
+
+1. that `repath` runs on every path into `find_new_target` before `:63`;
+2. `repath`'s kill set, and that `kill_group_move` adds no order;
+3. `get_action`'s skip set;
+4. the move and group answers of every order class's vftable;
+5. that `do_group_attack`'s site stays dead, as §382.1 has it.
+
+**3504a and §382.5 are amended**: their "not `RESIDUE`, every predicate is a state the game holds" read the head
+at the time of the `do_move` call and not at `:63`, after `repath`.
+
+**What is not established.** `FormOrder`'s `+0x14` is `MoveOrder::is_move` and its answer was not read. It does
+not matter, because type 18 is skipped by `get_action` and killed by `repath` (without the action bit) either way.
+No capture was run, so nothing here is diff-backed. The only behavioural corroboration is 3504's five takes, all
+of which took `:65`.
 
 ## 389. Reserved for the next item on the AI track
 
