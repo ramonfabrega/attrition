@@ -39073,21 +39073,24 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
 1. **`Group::action_air_patrol@007029d0`.** `Group::action_patrol@007030c0:54-75` hands a unit group whose
    leader is a plane (`is_plane`, or type `+0x218` domain 2 without the helicopter's `+0x2b4 & 0x20`) to it.
    It lays `Unit::add_air_patrol_order`.
-   - Staging: chapter seventeen's lines to 616, then `620 @patrol 0 7680 11520 6`.
-   - Killer: no `process_patrol` on 621, or `0/6` holding a `PATROLORDER` rather than an `AIRPATROLORDER` on 622.
+   - ~~Staging: chapter seventeen's lines to 616, then `620 @patrol 0 7680 11520 6`.~~
+   - ~~Killer: no `process_patrol` on 621, or `0/6` holding a `PATROLORDER` rather than an `AIRPATROLORDER` on 622.~~
+     Entered by run1505 on 680, on the Fighter in flight, and the killer did not fire (GOLDEN §158, item 3911).
 2. **`Group::action_air_attack_ground@00703d80`.** `Group::action_attack_ground@00704520:119-168` hands it a
    group whose leader can carry `AIR` or is a plane, and a group of buildings through the planes inside them.
    It lays `Unit::add_air_attack_ground_order`.
-   - Staging: the same lines, then `620 @attackground 0 7680 11520 7`.
-   - Killer: `0/7` with no `AIRATTACKGROUNDORDER` on 622.
+   - ~~Staging: the same lines, then `620 @attackground 0 7680 11520 7`.~~
+   - ~~Killer: `0/7` with no `AIRATTACKGROUNDORDER` on 622.~~ Entered by run1505b on 680, on `0/7` over the
+     Barracks' point, and the killer did not fire (GOLDEN §158, item 3911).
 3. **`Group::action_return@006fad40`.** `action_recall`'s first branch, taken when the leader's type is domain 2.
    - For a plane in flight: `close_orders`, then a `STRAFEORDER` to the home in its order's `+0x84` block
      (`+4`, `+8`).
    - For a plane inside a host: it is cut from the host's `launching` list (`+0x44`).
    - For a helicopter on the map: a `STRAFEORDER` home with `returning` 1.
-   - Staging: chapter seventeen's lines to 620 (the Bombers' strike), then `630 select 7 who=0` and `632 @key 124`
-     with `--bindkey OPTION_RETURN=124`.
-   - Killer: no `process_recall 633`, or `0/7`'s order on 634 still the strike.
+   - ~~Staging: chapter seventeen's lines to 620 (the Bombers' strike), then `630 select 7 who=0` and `632 @key 124`
+     with `--bindkey OPTION_RETURN=124`.~~ On 630 both Bombers stand on their pads (run223's strike took nothing).
+   - ~~Killer: no `process_recall 633`, or `0/7`'s order on 634 still the strike.~~ Entered by run1505 on 852,
+     `0/8` selected on its patrol, and the killer did not fire (GOLDEN §158, item 3911).
 4. **`Group::action_recall@006fa7e0`.** On a building group (the leader not domain 2), it first calls
    `Build::clear_gather` on each member. Then it walks every unit of `who`. A fixed-wing plane in flight
    (`get_inside` < 0, `+0x1e4 & 0x8000000` clear) whose `+0x84` home is a member takes `returning` 1 and a
@@ -39095,6 +39098,8 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
    - Staging: chapter thirty-three's lines to 2280 (`@launchpatrol` from `0/2007`), then `2290 select 2007 who=0`
      and `2292 @key 124` with `--bindkey OPTION_AIRBASE_RECALL=124`.
    - Killer: no `process_recall 2293`, or the launched planes still on their `AIRPATROLORDER` on 2294.
+   - The function is entered by run1505 on 852 through its first branch, a domain-2 leader (row 3; GOLDEN §158),
+     so it is off `blind::NEVER`. This arm, a building group, is still not entered by any take.
 5. **`Group::action_scramble@007111c0`.** It walks each member's `inside_down` chain (`+0x28`, `+0x3e`). Every
    air passenger that is idle (`UnitData::is_busy` 0), has `+0x1e4 & 0x8000000` clear and has `+0x96` at 0 is sent
    up: a fixed-wing plane gets an `AIRPATROLORDER` over the host's point, and a helicopter a `MOVEORDER` to it.
@@ -39153,10 +39158,13 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
 11. **`GroupData::is_in_air_range@0070b6b0`.** `Console::execute_at_cursor@007c6630:3116` asks it for an air
     selection pointed at an enemy: is the target within `mana × range` of a selected fixed-wing plane, or of any
     plane inside a selected building that carries `AIR`?
-    - Staging: chapter seventeen's lines to 616, then `618 select 7 who=0` and `620 @rclick <x> <y>` on
-      `1/2006`'s screen point, taken off a screenshot of the lobby as item 3437's points were.
-    - Killer: no `process_flight 2006 1 …` on 621. Out of range, the click is refused at the cursor and lays
-      nothing.
+    - ~~Staging: chapter seventeen's lines to 616, then `618 select 7 who=0` and `620 @rclick <x> <y>` on
+      `1/2006`'s screen point, taken off a screenshot of the lobby as item 3437's points were.~~ A selected
+      flying plane takes `execute_at_cursor:2835`'s direct `issue_flight` and never asks (run1505); `:3116` is
+      the arm for a selected building carrying planes.
+    - ~~Killer: no `process_flight 2006 1 …` on 621.~~ Entered by run1505b on 806 with the Airbase `0/2007`
+      selected, `process_flight` on 807 (GOLDEN §158, item 3911). Out of range, the click is refused at the
+      cursor and lays nothing; no take has clicked out of range.
 
 ### 391.3 On scope, and the one left open
 

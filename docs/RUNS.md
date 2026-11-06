@@ -34913,3 +34913,63 @@ with chapter 106's `end:`/`start:` sets and `misc:COMMANDMANAGER=1`, at `cover=0
 `chapter_one_hundred_and_seven_s_window_is_widened_whole` (30 rows) and
 `chapter_one_hundred_and_seven_s_borders_are_the_original_s_cell_for_cell` (23 `WORLD` blocks, every cell's
 `(who, who2)`); its window 756..760 is in the coverage driver's slice.
+
+## run1505 — chapter seventeen's lobby with three air group actions: `@patrol` in flight, a right-click with a Bomber selected, `OPTION_RETURN` (2026-11-06, item 3911, `att-3911`)
+
+`docs/GOLDEN.md` §158. **What the disk could not answer**: no trace entered `Group::action_air_patrol`,
+`action_return` or `is_in_air_range` (AI §391.2 rows 1, 3, 11), and no dump held a player's air patrol from a
+plane in flight or a recall. Recipe `tools/gamelog/golden/chapter17-air.cmd`: `chapter17.cmd`'s eleven lines,
+then `680 @patrol 0 7680 11520 6`, `780 camera 110,86`, `786 select 7 who=0`, `792 @rclick 960 445`,
+`850 select 8 who=0` and `852 @key 124`. Launched through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1505 --map 14 --end-frame 1100 --log-window 605 1100 --timeout 5400 --bindkey OPTION_RETURN=124
+--no-ffwd` with the `end:`/`start:` sets in the cmd file's header and `misc:COMMANDMANAGER=1`, at `cover=1`.
+131 GiB free before.
+- Pool lane 1, kept in `~/ron-golden/run1505/map-14/`. Launched 04:47:58, exited 04:49:35: **96.3 s launch to
+  exit**, no relaunch, no page fault. `success`, `map_verified`, map style 14, 1101 frames, `last_frame` 1100, seed
+  12345. Minutes waited on another lane: none.
+- `CM`: `process_patrol 7680 11520 2` on 681, `process_flight` on 793, `process_recall 853`. Entered:
+  `Group::action_patrol` and `action_air_patrol` and `process_patrol` (680); `Options::exec`,
+  `Options::recall_aircraft`, `process_recall`, `Group::action_recall` and `Group::action_return` (852). Not
+  entered: `GroupData::is_in_air_range` on 792 (the falsifier fired: `execute_at_cursor:2835`'s direct
+  `issue_flight` for a selected flying plane).
+
+`gamelog.txt` 207,529,031 bytes, SHA-256 `2eba66a025f651b2692e903a19ba86593bfae562318d35b89b85e6a50340d9c0`.
+`rontrace.log` 22,563,424 bytes, SHA-256 `ee8a3bb0fd10ab824c09ea94083df683f6b75c67bf357a6e2b3fc492dd2d7ab4`.
+Filed as `gamelog-run1505-chapter17-air-cover.txt` and `rontrace-run1505.log` (`tools/gamelog/filerun.py`).
+
+**Its twin `ch17air`** (`~/ron-golden/ch17air`, the same flags at `cover=0`): 04:51:44–04:53:11, **86.5 s**, pool
+lane 1, `success`, `last_frame` 1100, the same `CM` lines. `gamelog.txt` 207,529,032 bytes, SHA-256
+`f389c83d9d7fc28f7fa7b407719460dfd667ad704a85b48517a3fd017041c339`; `rontrace.log` 27,192,256 bytes, SHA-256
+`ed127fa2c3407b47a1113a9cad8c61d3adc2a55349c2f3f0164e5b4017f9b08b`.
+
+**What it holds**: `blind::TRACES` (run1505); `golden::chapter_seventeen_air_holds_to_the_golden_word` (1100,
+closed) and `chapter_seventeen_air_s_window_is_widened_whole` (11 rows) on the twin, whose window 680..684 is in
+the coverage driver's slice.
+
+## run1505b — chapter seventeen's lobby with an air attack-ground and a right-click from the Airbase (2026-11-06, item 3911, `att-3911`)
+
+`docs/GOLDEN.md` §158. **What the disk could not answer**: no trace entered `Group::action_air_attack_ground`
+(AI §391.2 row 2), and run1505 showed row 11's arm is a selected building's. Recipe
+`tools/gamelog/golden/chapter17-airground.cmd`: `chapter17.cmd`'s eleven lines, then `680 @attackground 0 21120
+16512 7`, `780 camera 110,86`, `800 select 2007 who=0` and `806 @rclick 960 445 2006 1`. Launched as run1505
+without `--bindkey`, to 1060, at `cover=1`.
+- Pool lane 1, kept in `~/ron-golden/run1505b/map-14/`. Launched 04:54:14, exited 04:55:47: **93.0 s launch to
+  exit**, no relaunch, no page fault. `success`, `map_verified`, map style 14, 1061 frames, `last_frame` 1060, seed
+  12345. Minutes waited on another lane: none.
+- `CM`: `process_attack_ground 21120 16512 2` on 681, `process_flight` on 807. Entered:
+  `Group::action_attack_ground` and `action_air_attack_ground`, `process_attack_ground` and
+  `Unit::add_air_attack_ground_order` (680); `GroupData::is_in_air_range`, `Console::execute_at_cursor` and
+  `Group::action_launch_flight` (806). The Bomber `0/7` releases on 846 and its bombs strike `1/2006` from 863.
+
+`gamelog.txt` 191,592,784 bytes, SHA-256 `185b8f864781ddb354cf227576c6dd5ac6a569df2c553a5ec7ea67495c97a9d0`.
+`rontrace.log` 22,887,840 bytes, SHA-256 `f7c3f39a52a1f76c63fc11774ec954831521cce9508e7d8e8a3b1870e18faa82`.
+Filed as `gamelog-run1505b-chapter17-airground-cover.txt` and `rontrace-run1505b.log`.
+
+**Its twin `ch17ag`** (`~/ron-golden/ch17ag`, `cover=0`): 05:01:57–05:03:24, **87.2 s**, pool lane 1, `success`,
+`last_frame` 1060, the same `CM` lines. `gamelog.txt` 191,592,783 bytes, SHA-256
+`d4d9628989bc5e9dabf23a4c9c388d118cef5bba4fa3ea5408ed1fd0083e704a`; `rontrace.log` 26,364,608 bytes, SHA-256
+`bbc6fcda1c6d605bf7defb1d632b918d3403a653175f211a572453d91f59311e`.
+
+**What it holds**: `blind::TRACES` (run1505b); `golden::chapter_seventeen_airground_holds_to_the_golden_word`
+(1060, closed) and `chapter_seventeen_airground_s_window_is_widened_whole` (11 rows) on the twin, whose window
+680..684 is in the coverage driver's slice.
