@@ -14146,13 +14146,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AI — reserved
+## Parked by item 3894, 2026-11-05 — the cannon time and the startup trio
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3894a. The four rows' blind second reading.** AI §385 reads `TurnControl::end_cannon_time`
+  as a `RESIDUE` candidate on scope: command `0x4d`'s one issuer is gated on `semaphore` bit 2,
+  which only `Game::run_gamespy` sets. It reads `wincpuid`, `wincpufeatures` and `check_80386`
+  as candidates on reach: the tracer is armed before the exe's entry, and `cpunormspeed` answers
+  from the registry without calling `cpuspeed`. `check_80386` also needs a processor without CPUID.
+  §385.3 lists what a blind reader re-derives. **Score**: open 16 → 12 on agreement.
 
 ## Parked by the next landing, slot AJ — reserved
 
