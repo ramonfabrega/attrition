@@ -823,6 +823,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch116 = golden_dump("ch116");
     let ch117 = golden_dump("ch117c");
     let ch118 = golden_dump("ch118");
+    let ch119 = golden_dump("ch119");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3042,6 +3043,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and eighteen carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and nineteen, on run1519** (item 3934): the
+    // Temple in city 0 holds its `DISBAND` to 21000 and closes.
+    if let Some(p) = &ch119 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINETEEN;
+        let n = drive_capture(p, 1050, 1054, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and nineteen carries five blocks in the window"
         );
         frames += n;
     }

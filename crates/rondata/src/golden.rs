@@ -2546,6 +2546,10 @@ mod tests {
         // fifteen's staging and a fourth `@queueup` of `DISBAND` at the
         // Barracks in city 0 (item 3930, `docs/GOLDEN.md` §168).
         ("chapter118.cmd", &[]),
+        // Chapter one hundred and nineteen: chapter one hundred and
+        // eighteen's staging with a Temple in city 0 in place of the second
+        // Barracks (item 3934, `docs/GOLDEN.md` §169).
+        ("chapter119.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),

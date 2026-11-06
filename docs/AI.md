@@ -39321,8 +39321,9 @@ through vslot `+0x158(2, −1, 0)`. For a single-figure captain it also counts `
 - Whether `is_disbanding` counts the finished entry. Not reached by run1512, whose second press the research arm
   refused (parked 3918a). ~~A press at a Barracks in a city, after the first entry, reaches it.~~ It does not: run1517
   queues and closes the Barracks in city 0, and its twin enters no `is_disbanding`. The city arm skips a type with
-  `NO_CITY` (`e`), and the Barracks has it (`docs/GOLDEN.md` §168). The question stands for a city building without
-  `e` (parked 3930a).
+  `NO_CITY` (`e`), and the Barracks has it (`docs/GOLDEN.md` §168). ~~The question stands for a city building without
+  `e` (parked 3930a).~~ Answered by run1519 (`docs/GOLDEN.md` §169): a Temple (`jam`) in city 0 enters
+  `is_disbanding` at the press, and its finish counts its own entry and closes it (`1 > 1` is false).
 - ~~The Hoplite's three type tests for Entrench.~~ Answered by run1513: the Hoplites pass them and the General does
   not (`docs/GOLDEN.md` §166).
 - Whether a human Scout auto-explores away from the Spy before the press.
