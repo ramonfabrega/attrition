@@ -39165,11 +39165,12 @@ Airbase `0/2007` at 60,72, a Fighter `0/6`, Bombers `0/7` and `0/8`, and an enem
       an ocean tile by a leader whose `can_transport` is not none. The console's `eval` reaches it through
       `ScenarioFuncSet::create_unit@009f4c50`, the script's `create_unit(who, x, y, type, num)`: `who` is
       1-based, and `x`, `y` are in `add`'s quarter-tile units.
-    - Staging: chapter twenty's lines to 604 (`library who=0 1`, the Dock), then
+    - ~~Staging: chapter twenty's lines to 604 (`library who=0 1`, the Dock), then
       `620 !eval create_unit(1, <x>, <y>, "Hoplite", 1)` on a tile `WorldData::is_ocean` answers for. The
-      commander picks it off that chapter's start dump.
-    - Killer: no who=0 barge holding a Hoplite in the next block. A `-1` return would mean the type name
-      or the tile was refused.
+      commander picks it off that chapter's start dump.~~ **Taken**: item 3917, run1511 and run1511b,
+      `docs/GOLDEN.md` §164, with the type's own name `"Hoplites"` (`"Hoplite"` returns −1) on tile 62,182.
+    - ~~Killer: no who=0 barge holding a Hoplite in the next block. A `-1` return would mean the type name
+      or the tile was refused.~~ Did not fire: block 621 has barge `0/9` holding `0/6`–`0/8`.
 11. **`GroupData::is_in_air_range@0070b6b0`.** `Console::execute_at_cursor@007c6630:3116` asks it for an air
     selection pointed at an enemy: is the target within `mana × range` of a selected fixed-wing plane, or of any
     plane inside a selected building that carries `AIR`?
@@ -39356,10 +39357,13 @@ chain reaches play. Nothing here was run.
      - a move-class order (`MOVE_TO`, `ATTACK_TO`, `EXPLORE_TO`, `FLEE_TO`, `CHANGE_FORM`, `GROUP_MOVE`,
        `GROUP_ATTACK_TO`): it pops the leading orders of types 1–4, 0x12, 0x13 and 0x15, then
        `set_new_location` at the last one's point, or at `find_nearby_spot` when that point is invalid.
-   - Staging: §391.2 row 10's console `eval`, on land: `620 !eval create_unit(1, <x>, <y>, "Hoplite", 2)` on
-     a land tile. `add_unit` forms the pair, and `action_form` gives each a `CHANGE_FORM` order.
-   - Killer: on 621, the two Hoplites still at their placement points with a `CHANGE_FORM` order. Snapped,
-     they stand at their formation slots with none.
+   - ~~Staging: §391.2 row 10's console `eval`, on land: `620 !eval create_unit(1, <x>, <y>, "Hoplite", 2)` on
+     a land tile. `add_unit` forms the pair, and `action_form` gives each a `CHANGE_FORM` order.~~ **Taken**:
+     item 3917, run1511 and run1511b, `docs/GOLDEN.md` §164, as `640 !eval create_unit(1, 34, 181,
+     "Hoplites", 2)`.
+   - ~~Killer: on 621, the two Hoplites still at their placement points with a `CHANGE_FORM` order. Snapped,
+     they stand at their formation slots with none.~~ Did not fire: on 641 `0/10`–`0/15` stand at their slots
+     with no orders.
 
 ### 393.2 On scope
 

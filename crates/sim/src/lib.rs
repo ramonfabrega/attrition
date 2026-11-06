@@ -176,6 +176,7 @@ pub mod repair_view;
 pub mod resign;
 pub mod roads;
 pub mod roads_view;
+pub mod scenario_add;
 pub mod scout;
 mod set_type_adapter;
 pub mod single;
