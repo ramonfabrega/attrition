@@ -2534,6 +2534,13 @@ mod tests {
             for line in script.lines() {
                 // An issuer line never reaches `parse_cmd`: it only has to
                 // be one the DLL runs (item 676).
+                // `@dumpall` is the DLL's logger directive, not an issuer: it
+                // sets the logger's dump-all flag for one block and issues no
+                // command (`tools/trace/tracer.c`, `I_DUMPALL`; item 3901).
+                if line.text.trim() == "@dumpall" {
+                    assert!(!line.console, "{name}: `@dumpall` is a DLL line");
+                    continue;
+                }
                 if line.text.starts_with('@') {
                     assert!(
                         !line.console && parse_issuer(&line.text).is_some(),
