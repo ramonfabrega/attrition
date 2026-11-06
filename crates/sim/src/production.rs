@@ -1330,6 +1330,8 @@ mod infinite_tests {
     fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
         let (mut s, b, _) = barracks(true);
         let bt = s.buildings[b].ty.unwrap();
+        // A type that needs a city (`NO_CITY` clear): the arm is asked.
+        s.build_types[bt].flags &= !crate::build::flags::NO_CITY;
         let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
         s.buildings[b2].ty = Some(bt);
         s.buildings[b].city = Some(0);
@@ -1350,6 +1352,35 @@ mod infinite_tests {
         assert!(s.disband_castable(b, true), "and is allowed at the finish");
         assert!(!s.queue_disband(b));
         assert_eq!(s.buildings[b].queue.count_disband(), 1);
+    }
+
+    /// **A `NO_CITY` building skips the city arm** (item 3930, `docs/GOLDEN.md`
+    /// §168): `is_castable`'s 0x29a case asks `is_disbanding` only of a type
+    /// with `+0x2c0 & 0x10` clear, or a city, and `is_disbanding` counts no
+    /// `NO_CITY` building. A Barracks (`e`) in a city whose other building
+    /// holds a `DISBAND` still queues; run1517b's twin enters no
+    /// `CityData::is_disbanding` on the press at the Barracks `0/2008`.
+    #[test]
+    fn a_no_city_building_skips_the_city_s_disband_count() {
+        let (mut s, b, _) = barracks(true);
+        let bt = s.buildings[b].ty.unwrap();
+        s.build_types[bt].flags |= crate::build::flags::NO_CITY;
+        let temple = s.build_types.len();
+        s.build_types.push(BuildType::default());
+        let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
+        s.buildings[b2].ty = Some(temple);
+        s.buildings[b].city = Some(0);
+        s.buildings[b2].city = Some(0);
+        s.buildings[b2].queue.push_disband();
+        assert!(s.disband_castable(b, false), "the Barracks skips the arm");
+        // And the Barracks' own entry is not the city's.
+        s.buildings[b2].queue.items.clear();
+        s.buildings[b].queue.push_disband();
+        assert!(
+            s.disband_castable(b2, false),
+            "the Barracks' entry is not counted"
+        );
+        assert!(s.disband_castable(b2, true));
     }
 
     #[test]
