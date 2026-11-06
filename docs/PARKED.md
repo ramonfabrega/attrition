@@ -14603,13 +14603,27 @@ words and edits nothing here; a refill lands when two remain.
   `RON_STATE_FRAME=620` would read all three. No sim reader carries `extra_starting_locs`, and Conquer the World is cut
   from v1, so this row names no score.
 
-## Parked by the next landing, slot BJ — reserved
+## Parked by item 3923, 2026-11-06 — the blind second reading of AI §390 and §394; an entry through `ungroup_move_order`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-3923.md`, verdicts 2, 8, 9). The
+`kill_group_order` pair stays in `blind::NEVER`.
+- **3923a. The take: `do_move:105` under `ungroup_move_order`'s plain move** (`docs/AI.md` §394.4, §394.6; the audit's
+  "The entry"). **Falsifier, written first**: `Group::kill_group_order@00710aa0` is not entered from `5ff78f`. That
+  happens if U's stash is gone by `frame − collide_frame = 4` (`find_upath_restore` completed), if `repaths[p]` is
+  zero, if the collider passes `valid_target` (the arm group-kills `GM X` and clears the stash), or if
+  `action_form`'s queued path returns at `:132` without issuing.
+  **Staging**: following AI §390.3's five commands, with U as the leader of a formation move `GM X`:
+  1. a formation button on `{U, V}`;
+  2. a shift-formation on the same set (`GM Y`, no `0x04`);
+  3. a shift-attack on a target more than `0x900` away;
+  4. U regrouped with W into the slot ten below on the next frame, then a shift-move (`GM Y'`, whose id meets Y);
+  5. a shift-patrol.
+
+  Then U must meet a friendly unit on `GM X`'s re-plan. The list is `[GM X][GM Y][ATTACK][GM Y'][GP]`.
+  **Instrument**: a trace with `005ff78f` and `005fd140`, and `RON_DEBUG_UNIT` on U for `TI` and the order list.
+  `5ff752` faulting would instead say the walk ended empty (verdict 2).
+  **Score**: the two `NEVER` rows. Entered, both stay off the list. Refused on any falsifier, the pair goes back to
+  a `RESIDUE` candidate with that falsifier's reading.
 
 ## Parked by the next landing, slot BK — reserved
 

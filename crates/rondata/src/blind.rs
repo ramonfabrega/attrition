@@ -1315,6 +1315,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// the console's `eval find_extra_starting_loc(4, 4, 1)` on the golden start enters
 /// `ScenarioFuncSet::find_extra_starting_loc@009e5070` and `MapConquest::check_starting_loc@0068d7e0`
 /// on 620; open 9 → 7.
+/// **336** unmoved by item 3923's blind second reading of `docs/AI.md` §390 and §394
+/// (`docs/audit/2026-11-06-item-3923.md`), which disagrees and names an entry: `kill_group_move`'s
+/// walk meets a matching node again, so route 2's own list empties and faults at `5ff752`; but
+/// `ungroup_move_order` lays a `MOVE_TO` without `0x04` over a leader's list and keeps its stash, and
+/// below a single `GM X` a duplicate pair of another id reaches `5ff78f` through `do_move:105`.
+/// `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0` stay here, the take
+/// parked as 3923a; open 7, unmoved.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
