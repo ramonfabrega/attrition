@@ -1526,7 +1526,12 @@ Of the territory's 198 open or layout-only functions under the nine stems
   and `astar_river` on Great Lakes (item 3845): draw for draw on all 222
   traces (173 on 209, 62 on 13) and every record from 5012 to 5118 on 185
   files (925), the 5076 bank clear included; 26 of 47 mutants held, the
-  21 that failed nothing are 3845a;
+  21 that failed nothing are 3845a; on Southwest Mesa's
+  cliff grid, run1493's five records with 40 sources (item 3888): the
+  cliff cells pass the square's class-2 refusal as class 5, held by a
+  planted 0x40 refusal; the entry and 0x1000 clears, the cell's mountain
+  tile and 0x1, the eight's mountain and rock, class 2, the radius's
+  `− 1` and `find_all` have nothing to decide there (3888a);
 - §10's heights on Great Sahara: `generate_land`, the oil cells'
   terraform and `adjust_for_mountains`, on every vertex of 47 start
   dumps through each file's roster (item 3812). Mutations that drop an
@@ -1798,7 +1803,19 @@ step is checked by §3 at its own checkpoint before the next begins:
    draws whole on all 222 traces (173 at 2 nations, 62 at 3), and seed
    and parts 2, 5, 6 and 10–13 at every record from 5012 to 5118 on all
    185 files (925 records), first run
-   (`great_lakes_s_rivers_are_5012_to_5118`).
+   (`great_lakes_s_rivers_are_5012_to_5118`). **Southwest Mesa built**
+   before step 7 (item 3888, no `sim` change; its seventh phase):
+   `<RIVERLIST/>` empty, so Great Sahara's height-free phase on step 6's
+   grid. run1493's one file carries all five lines; 40 sources, and seed
+   and parts 2, 5, 6 and 10–13 at all five records agree, first run
+   (`southwest_mesa_s_rivers_are_5012_to_5118`; part 5 3822669751 →
+   2939507895 at 5014 and 5076, back at 5116 and 5118). **The cliff bit
+   reaches one arm**: `get_land(…, 1)`'s 0x40 as class 5 in the 7×7
+   refusal, where 22 sources have a cliff cell and class 5 is not 2. No
+   forest cell has a cliff cell in its eight and no cliff cell a mountain
+   tile, so the threshold count never meets one. A planted refusal of
+   0x40 in the 7×7 leaves 25 sources and parts 5014, so the original does
+   not refuse there. 5 of 18 mutants held (3888a).
 
 ## 16. Great Lakes' half-land: `_wcoord`'s body, 720 → 5012
 
