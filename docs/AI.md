@@ -38419,7 +38419,7 @@ copies and the call sites are scans of the image. "Entered" is the 144 pinned
 traces. The section cites no function that is outside `NEVER` and that no
 trace enters, so the triple stays at never 266 · residue 246 · open 20.
 ~~Every claim … reading-only~~: two readings now (item 3893), and the triple is
-never 266 · residue 254 · open 12.
+never 268 · residue 260 · open 8 on the tree merged with item 3891.
 
 ## 385. Reserved for the next item on the AI track
 

@@ -1069,12 +1069,19 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// the scan's one dead row (`World::set_orig_coast`, its RVA's one match a call's rel32);
 /// residue 238 → 246, open 27 → 20. The scan over all 27 open rows: 0 dead but that one,
 /// which `report.py` called "pointer only" on the rel32 and `pe.references` excludes.
-/// **266** unmoved by item 3893's blind second reading (`docs/audit/2026-11-05-item-3893.md`),
+/// **268** with item 3891's blind second reading (`docs/audit/2026-11-05-item-3891.md`; no
+/// capture joins [`TRACES`]), which agrees on `docs/MAPGEN.md` §18.1's and §20's four
+/// candidates — `WorldData::is_valid`, `MapScenario::make`, `Map::run_map_script` and
+/// `ScenarioRead::load_unit_chunk` — and moves them to [`RESIDUE`], and whose cite of
+/// `load_unit_chunk`'s route adds `ScenarioRead::load_objects_chunk@009ab9c0` and
+/// `ScenarioRead::load_scenario_screen@009b2e40`, scenario-only on both readings and
+/// [`RESIDUE`] with them; residue 246 → 252, open 20 → 16.
+/// **268** unmoved by item 3893's blind second reading (`docs/audit/2026-11-05-item-3893.md`),
 /// which agrees on all eight of `docs/AI.md` §384's slot rows — `ObjectData::support`,
 /// `WallData::can_make`, `GatherPoint::walk_data`, `SpecialAnimOrder::walk_data` (the one
 /// disagreement, settled to `do_spec_anim`'s same-call kill), `ObjectsData::find_town_at`,
 /// `TargetOrder::get_target`, `SubObjectOut::is_on_screen` and `ObjectTypeOut::draw` — and
-/// moves them to [`RESIDUE`]; residue 246 → 254, open 20 → 12.
+/// moves them to [`RESIDUE`]; residue 252 → 260, open 16 → 8.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1101,7 +1108,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_1430, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
+    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -1217,6 +1224,15 @@ pub const RESIDUE: &[(u32, &str)] = &[
          PtrLinkListAbstract<GatherPoint>::walk_data guard on its table and \
          inline the body; GatherPoint has no subclass; two readings, item 3893 \
          (docs/audit/2026-11-05-item-3893.md)",
+    ),
+    (
+        0x0047_1170,
+        "WorldData::is_valid: called only from MapScenario::make (Conquer the \
+         World) and TerrainOut::check_for_diagonal's four calls, which run only \
+         when no orthogonal pair test fires; an entered cell's corner fires its \
+         own test unless its one-up flanks differ, and distinct flanks need a \
+         mutually unacceptable orthogonal pair no grid or plant on disk holds; \
+         two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
     ),
     (
         0x0047_22f0,
@@ -2074,6 +2090,21 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0068_c870,
+        "Map::run_map_script: slot +0x68 of all 22 Map-family vtables and no \
+         rel32 caller; none of the image's +0x68 dispatches (393 call, 1 jmp, \
+         the mov+call forms) has a Map receiver; two readings, item 3891 \
+         (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
+        0x0068_c8f0,
+        "MapScenario::make: MapScenario::vftable +0x64 alone, installed by \
+         Map::new_map only for style 0x1a, which only \
+         ConquestGame::build_conquest_game mints (a custom-map Conquer the World) \
+         and the editor's generate_map reaches; the lobby's and the console's \
+         style stops at 22; two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
         0x0068_d1a0,
         "MapConquest::check_sea_map: called only from \
          MapConquest::make_continents+0x994, itself residue on Conquer the \
@@ -2707,12 +2738,33 @@ pub const RESIDUE: &[(u32, &str)] = &[
          3859; the sixty-sixth pass)",
     ),
     (
+        0x009a_adc0,
+        "ScenarioRead::load_unit_chunk: called only from load_objects_chunk, \
+         called only from ScenarioRead::import, whose callers are scenario play \
+         (build_game's is_scenario arm, load_scenario_screen), the editor and \
+         MapScenario::make; a saved game loads through WalkDataGame::walk_data and \
+         the console calls build_game with 0, 0, 0; two readings, item 3891 \
+         (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
+        0x009a_b9c0,
+        "ScenarioRead::load_objects_chunk: called only from ScenarioRead::import \
+         (case 5), whose callers are scenario play, the editor and \
+         MapScenario::make; two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
         0x009b_1430,
         "ScenarioRead::import: a scenario file's load — Setup::build_game's \
          scenario arm, MapScenario::make (style 0x1a) and the editor's test and \
          load screens; scenario play is cut from v1 with the editor and the trigger \
          system (Game::run_scenario's row, the forty-eighth pass; item 3859; the \
          sixty-sixth pass, DECISIONS 106)",
+    ),
+    (
+        0x009b_2e40,
+        "ScenarioRead::load_scenario_screen: called only from Game::run_scenario \
+         and ScenarioEditor::load_file, scenario play and the editor (cut from \
+         v1); two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
     ),
     (
         0x009b_32f0,
