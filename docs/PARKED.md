@@ -14174,13 +14174,23 @@ question stays filed.
   from the registry without calling `cpuspeed`. `check_80386` also needs a processor without CPUID.
   §385.3 lists what a blind reader re-derives. **Score**: open 8 → 4 on agreement (the tree merged with 3893).
 
-## Parked by the next landing, slot AJ — reserved
+## Parked by item 3896, 2026-11-05 — `GoodTypeData::is_flat`: the booked route is a decompile nesting error
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3896a. 3505b's route does not exist for an AI, so no take was run (run 1501 unused).** `produce_building`'s
+  `is(FORTX)` test (`6e2126`) rejoins at `6e2286`, before the gather arm. The arm is `is_gather_type` (`6e2295`)
+  and not Woodcutter (`6e229e`). Of the six `g` types, Farm, University and Mine are zeroed and the Oil Well
+  skips the spiral (`6e195f` `jmp 0x6e25dc`), which leaves an Oil Platform passed in as `param_1`. That never
+  happens, because `create_buildings` skips water non-docks (`6c1f96`). The disk: 114 dumps offer `t 421` and
+  none offers `t 422`. A take would have had a fixed outcome; the killer would have fired. AI §386.
+  **Score**: none of its own. It is why 3896 moved no row.
+- **3896b. A blind second reading of AI §386, to move `004780c0` to `RESIDUE`.** Re-derive the five points §386.3
+  lists, without §386: the fort test's rejoin, the `g` set, the Oil Well's exit past the spiral, the water-domain
+  skip, and the other `+0x94` sites' receivers (`draw_cursor_follows`' `drop_type` in play, `capture_city`'s
+  slot shape). **Score**: one open blind row (open 8 → 7, residue 260 → 261).
+- **3896c. Archive greps of the dumps need `\r?\n`.** The gamelogs are CRLF, and a multiline `rg -U` anchored
+  on `\n` matched nothing, the positive control included. The shell's `rg` is a function wrapping Claude
+  Code's bundled binary, and `command rg` finds none. A probe shape for `tools/` if it recurs. **Score**: none
+  (tooling).
 
 ## Parked by the next landing, slot AK — reserved
 

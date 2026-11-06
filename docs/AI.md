@@ -38561,12 +38561,81 @@ without an address, so no row moves: never 268 · residue 252 · open 16 on the
 item's base, never 268 · residue 260 · open 8 on the tree merged with item 3893.
 On agreement, open moves 8 → 4 (parked 3894a).
 
-## 386. Reserved for the next item on the AI track
+## 386. `GoodTypeData::is_flat`: the site that calls it is the gather arm, and no AI request reaches it (item 3896, 2026-11-05)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Item 3896 was booked as a coverage take (parked 3505b). The route it named was "the AI's site scoring for a building
+of the `is(0x1bb)` class other than 0x1a2". 0x1bb is `FORTX` (`enums/TypeIndex.txt` 443), so `is(0x1bb, 0)` is
+`is_fort`: Fort, Castle, Fortress and Redoubt (`docs/CITIES.md` §1.5). 0x1a2 is `WOODCUTTER`. The listing does not
+nest the call under the fort test, so no take was run, and run 1501 is unused.
+
+### 386.1 The arm, from the listing
+
+The spiral in `Leader::produce_building@006e1400` (`6e1a37`–`6e25dc`) reads three gates in order:
+
+1. **`6e2126`, `is(FORTX, 0)`**: the fort's own term (`6e2131`–`6e2236`). Its `je 0x6e223b` takes the tower term
+   for a non-fort. **Both rejoin at `6e2286`.** The decompile nests the gather arm in this test's `else`, and that
+   nesting is wrong. This is the error the booking inherited.
+2. **`6e2295`, `cmp [ebp-0x5c], 0`**: `local_60`, the type's `is_gather_type`. That is `build_flags & 0x40`
+   (`g`), type slot `+0x90` (`docs/CITIES.md` §1.5's table). `6e170f`–`6e1724` zero it for `FARM` (0x1a1),
+   `UNIVERSITY` (0x1a4) and `MINE` (0x1a3).
+3. **`6e229e`, `param_1 == 0x1a2`**: the Woodcutter's cubed-slots term. **Every other gather type** goes to
+   `6e22d4`: `World::gather_at@006b07f0` (`6e22e9`), then, for each of the six resources `i` with a non-zero
+   amount, `goodtypes[i]->+0x94` (`6e2312`). That slot is `GoodTypeData::is_flat@004780c0`.
+
+`buildingrules.xml`'s `BUILD_FLAGS` puts `g` on exactly six shipped types: Farm `gda`, Woodcutter's Camp `egda`, Mine
+`egda`, University `gdaj`, Oil Well `gdae` and Oil Platform `igbe`. Gate 2 removes three and gate 3 one, which leaves
+the **Oil Well** (0x1a5) and the **Oil Platform** (0x1a6).
+
+- **The Oil Well never runs the spiral.** `6e172b` `cmp $0x1a5; jne 0x6e1a37` sends every other type into it. The
+  Oil Well takes the patch walk (§2 arm 4.2, `pick_oil_patch`), and the walk ends at `6e195f` `jmp 0x6e25dc`, the
+  common tail past the spiral, after an ocean patch has turned `param_1` into 0x1a6 at `6e1957`. That 0x1a6 is never
+  scored.
+- **So only an Oil Platform passed in as `param_1` reaches `6e2312`.** `produce_building`'s callers are
+  `Leader::make_this@006c94f0` (the make list's type, unchanged), `Setup`'s four city-start helpers (fixed types:
+  0x1a1, 0x1a2, 0x1a4, 0x1a7, 0x1a8, 0x1b4, 0x1b5, 0x1b6), `ConquestGame::build_cities` (Conquer the World, cut) and
+  the four `ScenarioFuncSet::place_orphan_building*` (the scenario VM, cut).
+
+### 386.2 Why the make list never holds an Oil Platform
+
+`Leader::create_buildings@006c1be0` lists each building type per city. At `6c1f96` a type with domain 1 (`+0x218`,
+water: `b` without `a`, `docs/CITIES.md` §1.5) is tested `is(DOCK, 0)` (`6c1fa8`), and a non-dock `je 0x6c3fbe`
+skips the listing. Our port says the same in `ai_build.rs`'s `building_value`: "Water types other than docks are
+never listed". The Oil Platform's flags `igbe` make it domain 1 and not a dock. No AI script names oil
+(`game/ai/scripts/*.bhs`: no match for `oil` or `platform`).
+
+**The disk agrees.** Across every `gamelog*.txt` in the archive, a `MAKEOBJECT` whose `t` is 421 (the Oil Well
+offered) appears in **114** dumps. One whose `t` is 422 appears in **none**. The instrument was
+`rg -U "BEGIN MAKEOBJECT\r?\n +t 42N\r?\n"`, with run656's 26 Oil Well slots as the positive control. The dumps
+are CRLF, so a bare `\n` anchor matched nothing, the control included.
+
+### 386.3 What this leaves of the row
+
+`is_flat@004780c0` has no direct call. `report.py <exe> refs` finds only three `.rdata` vtable pointers
+(`00b44954`, `00b44aac`, `00b44c04`), so every entry is a virtual `+0x94` on a good-type receiver. Across the
+functions that touch `goodtypes`, the export has three other `+0x94` sites:
+
+- `Options::draw_cursor_follows@00723c00` line 250 calls `objecttypes[drop_type]->+0x94` under `selecting_spot`,
+  after `+0x90`. In play `drop_type` is the building being placed, and the line beside it reads
+  `buildtypes[drop_type]+0x1e8`, so the call dispatches to `BuildTypeData::is_flat@00472b20`. A good there would be
+  the scenario editor's resource brush (3505c's page; cut).
+- `BuildTypeOut::draw_template@00634250` (lines 370, 797) calls `this->+0x94` on a `BuildTypeOut`.
+- `Cities::capture_city@00733380` (lines 197, 301, 405) calls it on an object's `+0xb0`/`+0xac` result and on a unit.
+  A different slot table.
+
+So this section is a **`RESIDUE` candidate with no route**: no AI request reaches the one good-receiver site, and the
+others are building receivers or the editor's. It has **one reading**. By the rule that moved §384's rows, a blind
+second reading must agree before the row leaves `NEVER` (park 3896b). That reader must re-derive, without this
+section:
+
+1. that gate 1 rejoins before the gather arm;
+2. the set of `g`-flagged types;
+3. that the Oil Well's patch walk exits past the spiral;
+4. `create_buildings`' water-domain skip;
+5. that no other `+0x94` site can hold a good-type receiver in play.
+
+**What is not established.** The `drop_type` of `draw_cursor_follows` in play is read from its neighbouring
+`buildtypes` access, not from its writers. `capture_city`'s receivers are named by slot shape only. No capture was
+run, so nothing here is diff-backed except the make-list census in §386.2.
 
 ## 387. Reserved for the next item on the AI track
 
