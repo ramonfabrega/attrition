@@ -638,6 +638,16 @@ pub const TRACES: &[&str] = &[
     // `docs/GOLDEN.md` §163); run1510c's game on every frame (rngcmp 901
     // identical, 0 differing).
     "rontrace-run1510d.log",
+    // Item 3918: golden chapter one hundred and fifteen (`chapter115.cmd`,
+    // chapter thirteen's cast, a second Barracks in the City's city and three
+    // `@queueup 0 666 1 <b>` presses of `DISBAND`) at `cover=1` on the
+    // click-free pool, to 1100 (`docs/RUNS.md` run1512b): `0/2007`'s entry
+    // completes and `Build::finished` → `SpellType::cast` →
+    // `SpellType::cast_disband@00671ed0` → `Build::plunder` →
+    // `Object::disband` on trace frame 831 (`docs/AI.md` §392.3,
+    // `docs/GOLDEN.md` §165); run1512's game on every frame (rngcmp 1101
+    // identical, 0 differing).
+    "rontrace-run1512b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and
@@ -1256,6 +1266,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// §391.2 row 9): `OPTION_PEASANT_ALARM` on a selected Citizen enters `Options::do_alarm@0071c3f0`
 /// on 622 and, at the pump, `Group::action_alarm_peasant@006fd980`; open 20 → 18 on the tree
 /// merged with item 3914.
+/// **346** with item 3918's run1512b joining [`TRACES`] (`docs/GOLDEN.md` §165, `docs/AI.md`
+/// §392.3): `DISBAND` queued at a Barracks completes, and `Build::finished` casts it through
+/// `SpellType::cast` into `SpellType::cast_disband@00671ed0` on trace frame 831; open 18 → 17.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1271,7 +1284,7 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_e440, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_6f50,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_3d00, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
-    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1ed0, 0x0067_1f80, 0x0067_2820, 0x0067_3740, 0x0067_3e80,
+    0x0067_0600, 0x0067_0740, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1760, 0x0067_1820, 0x0067_1f80, 0x0067_2820, 0x0067_3740, 0x0067_3e80,
     0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_c870,
     0x0068_c8f0, 0x0068_d1a0, 0x0068_d260, 0x0068_d7e0, 0x0068_dba0, 0x0068_e6a0, 0x0069_4ab0, 0x0069_5050, 0x006b_0180, 0x006b_1b80, 0x006b_1ba0, 0x006b_1d60,
     0x006b_22e0,

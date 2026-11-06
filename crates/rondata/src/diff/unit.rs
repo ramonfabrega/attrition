@@ -1205,7 +1205,11 @@ mod tests {
                 for (k, theirs) in them.queue.iter().take(q as usize).enumerate() {
                     let item = &ours.items[k];
                     let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
-                    let ty = built.type_index.get(id).copied().unwrap_or(-1);
+                    let ty = if item.disband {
+                        sim::queue_disband::DISBAND
+                    } else {
+                        built.type_index.get(id).copied().unwrap_or(-1)
+                    };
                     row(format!("queue[{k}].type"), i64::from(ty), theirs.ty);
                     row(
                         format!("queue[{k}].job_counter"),

@@ -917,7 +917,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 for (k, theirs) in b.queue.iter().take(q as usize).enumerate() {
                     let item = &ours.queue.items[k];
                     let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
-                    let ty = built.type_index.get(id).copied().unwrap_or(-1);
+                    let ty = if item.disband {
+                        sim::queue_disband::DISBAND
+                    } else {
+                        built.type_index.get(id).copied().unwrap_or(-1)
+                    };
                     compared::note("BuildDump", &["queue"]);
                     compared::note("QueueItemDump", &["ty", "job_counter", "cost", "good"]);
                     off(format!("queue[{k}].type"), i64::from(ty), theirs.ty);
@@ -2520,10 +2524,14 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             .items
             .iter()
             .map(|i| {
-                let t = i.tech.map_or_else(
-                    || built.sim.unit_types[i.ty].type_index.to_string(),
-                    |x| format!("tech{x}"),
-                );
+                let t = if i.disband {
+                    sim::queue_disband::DISBAND.to_string()
+                } else {
+                    i.tech.map_or_else(
+                        || built.sim.unit_types[i.ty].type_index.to_string(),
+                        |x| format!("tech{x}"),
+                    )
+                };
                 format!("{t}@{}", i.job_counter)
             })
             .collect();

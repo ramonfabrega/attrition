@@ -1321,6 +1321,13 @@ pub struct Tuning {
     pub decoy_time: i32,
     /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
     pub lakota_raze_price: i32,
+    /// `DISBAND_CITY_RATE`: a city's disband takes this percent of its own
+    /// train time (`ObjectData::train_time@006508c0:51`). `400%`.
+    pub disband_city_rate: i32,
+    /// `DISBAND_SENATE_RATE`: the same for a Senate. `1600%`.
+    pub disband_senate_rate: i32,
+    /// `LAKOTA_RAZE_SPEED`: the same for any Lakota disband. `100%`.
+    pub lakota_raze_speed: i32,
     /// `TIMER_REFRESH_RATIO`: every this many frames a stopped victory
     /// timer's negative stamp gains one (`Leader::process@006b88b0`). The
     /// file writes `5 seconds with timer off removes 1 second from clock`
@@ -1820,6 +1827,9 @@ impl Tuning {
         air_unit_mana_recharge: 2,
         decoy_time: 2500,
         lakota_raze_price: 0,
+        disband_city_rate: 400,
+        disband_senate_rate: 1600,
+        lakota_raze_speed: 100,
         timer_refresh_ratio: 5,
         popwin_timer: 3600,
     };
@@ -2761,6 +2771,9 @@ impl Tuning {
             ),
             ("DECOY_TIME", Slot::Value(T.decoy_time)),
             ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
+            ("DISBAND_CITY_RATE", Slot::Value(T.disband_city_rate)),
+            ("DISBAND_SENATE_RATE", Slot::Value(T.disband_senate_rate)),
+            ("LAKOTA_RAZE_SPEED", Slot::Value(T.lakota_raze_speed)),
             ("TIMER_REFRESH_RATIO", Slot::Value(T.timer_refresh_ratio)),
             ("POPWIN_TIMER", Slot::Value(T.popwin_timer)),
         ]
