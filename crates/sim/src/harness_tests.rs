@@ -4568,9 +4568,17 @@ fn an_entrench_digs_in_each_idle_armed_captain_on_friendly_ground() {
     let wild = combatant(&mut sim, 0, hop, Pos::new(1000, 2400), n);
     let near = combatant(&mut sim, 0, hop, Pos::new(3400, 2000), n);
     let _foe = combatant(&mut sim, 1, hop, Pos::new(4400, 2000), n);
+    // A walking figure down `dug`'s squad chain (`+0x90`): the chain is
+    // walked from the captain, and each figure loses its orders.
+    let follower = combatant(&mut sim, 0, hop, Pos::new(2480, 2000), n);
+    sim.units[follower].captain = false;
+    sim.units[dug].o_down = Some(follower);
+    sim.order_move(follower, Pos::new(6000, 2000));
     sim.order_move(busy, Pos::new(2000, 6000));
     assert_eq!(sim.world.owner_at(sim.units[wild].pos), Owner::None);
     sim.cast_entrench(g);
+    assert!(sim.units[follower].combat.entrenched, "the chain digs in");
+    assert!(sim.is_idle(follower), "and its figures lose their orders");
     let unit = &sim.units[dug];
     assert!(unit.combat.entrenched, "the idle armed captain digs in");
     assert_eq!(unit.combat.trench_angle, unit.movement.heading);
