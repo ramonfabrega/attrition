@@ -372,11 +372,13 @@ const UNREAD: &[(&str, &str)] = &[
     // stacks (`returning` and the strafe home).
     // **Item 3913's run1507 windows
     // `process_stop_spell`** (`frame`), the first player's stop of a cast;
-    // what it closes is read off the Spy's stack and `spell_time`.
+    // what it closes is read off the Spy's stack and `spell_time`. **Item
+    // 3915's run1509 windows `process_city_gather`** (`t queued frame`), a
+    // City's gather-all; what it lays is read off the City's `gather` list.
     (
         "GAME",
         // Item 1444: run609 prints the closing marker as GameInfo closing.
-        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
+        "GameInfo console.play process_alarm process_attack process_build process_buildmask process_city_gather process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_recall process_set_transport process_spell process_stance process_stop_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -804,6 +806,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch107 = golden_dump("ch107");
     let ch109 = golden_dump("ch109");
     let ch110 = golden_dump("ch110");
+    let ch112 = golden_dump("ch112");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -2898,6 +2901,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 5,
             "chapter one hundred and ten carries five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twelve, on run1509** (item 3915): the golden
+    // City's gather-all, `OPTION_VILLAGE_GATHER_ALL`; the window takes the
+    // key on 610, `process_city_gather` on 611 and the City's four points.
+    if let Some(p) = &ch112 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWELVE;
+        let n = drive_capture(p, 609, 613, &mut paths);
+        assert_eq!(
+            n, 5,
+            "chapter one hundred and twelve carries five blocks in the window"
         );
         frames += n;
     }
