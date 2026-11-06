@@ -3900,18 +3900,6 @@ impl Sim {
             return;
         }
         let (whom, wwho) = crate::attack_view::obj_key(self, target);
-        if std::env::var_os("RON_PROBE_CTP").is_some() {
-            if let Obj::Building(b) = target {
-                let bd = &self.buildings[b];
-                eprintln!(
-                    "ATK seen {} started {} ever_seen {:#x} visible {:#x}",
-                    self.target_seen_by(g.who, target),
-                    bd.started,
-                    bd.ever_seen,
-                    bd.visible
-                );
-            }
-        }
         let q = match queue {
             QueuePos::First => crate::attack_view::QUEUE_FIRST,
             QueuePos::Last => crate::attack_view::QUEUE_LAST,
