@@ -12025,9 +12025,10 @@ The Persian Gunpowder word moves 3020 → 3130 (`docs/AI.md` §358.3). Its next 
   that has just moved posts, `dx` −540 → 540): −1073741824 in ours against 1556283392. The mutated tree (the base's
   `fort_at`) prints the same row. run1383b's 3014 reads it quiet again, and no draw parts before 3130. It names no
   score. The first step: `unitat.py` on run1383b's block for `1/42`, then `seams.py --field dest_angle`.
-- **3708b. `Forts::close_fort@0073ec90` is read and not modelled.** `fort_at` asks `alive && active` for list
+- ~~**3708b. `Forts::close_fort@0073ec90` is read and not modelled.** `fort_at` asks `alive && active` for list
   membership. A fort's death leaves the list, and `alive` stands for that; its capture is the arm nobody holds, and
-  no capture on disk takes a fort. It names no score until one does.
+  no capture on disk takes a fort. It names no score until one does.~~ Answered by item 3898 (`docs/AI.md` §387):
+  a fort has no capture arm, so `alive` stands for every exit, and run1502 enters `close_fort` on a console `die`.
 
 ## Parked by item 3709, 2026-10-27 — owner 9 never heads a cell's chain: the Mongol Medieval word moves 2595 → 3989
 
@@ -14190,13 +14191,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot AL — reserved
+## Parked by item 3898, 2026-11-05 — `Forts::close_fort` entered on a console `die`; a fort has no capture arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot AL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+run1502 enters `Forts::close_fort@0073ec90` on 622 (`docs/AI.md` §387). `Blind:` never 268 → 267, open 8 → 7. No
+word moved. The row below names no score.
+
+- **3898a. `close_fort`'s border arm is not compared.** `close_fort` calls `Region::fix_borders` when the fort's
+  cell has a region. run1502's Fort stood at tile (54, 25), outside who=1's base, and block 623 was not diffed for
+  a border change. A fort that dies inside its owner's territory, with `TERRITORY` dumped either side of the death,
+  would read the arm. It names no score until `sim` models a fort's death beyond `alive`.
 
 ## Parked by the next landing, slot AM — reserved
 
