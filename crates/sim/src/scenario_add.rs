@@ -287,8 +287,10 @@ mod tests {
         }
     }
 
-    /// Quarter-cell (tile) coordinates of land and of the open sea.
+    /// Quarter-cell (tile) coordinates of land, of land within `0xc00` of
+    /// the sea, and of the open sea.
     const LAND: (i32, i32) = (12, 16);
+    const SHORE: (i32, i32) = (28, 16);
     const SEA: (i32, i32) = (52, 16);
 
     /// **The refusals** (`add_unit`'s `-1`s): a player out of range, `num`
@@ -307,12 +309,13 @@ mod tests {
     /// **The wrong element places nothing but is no refusal**: a ship on
     /// land, and a land unit on the ocean while its leader cannot
     /// transport, return an empty list — the original's `return` short of
-    /// `-1`. Made to fail with the `(Sea, false)` arm folded into the
-    /// placement arm.
+    /// `-1`. The ship's point is within `0xc00` of the water, so a
+    /// placement search would find it a spot. Made to fail with the
+    /// `(Sea, false)` arm folded into the placement arm.
     #[test]
     fn a_ship_on_land_and_a_soldier_at_sea_without_docks_place_nothing() {
         let mut f = fix();
-        assert_eq!(f.sim.scenario_add_unit(1, f.ship, LAND, 1), Some(vec![]));
+        assert_eq!(f.sim.scenario_add_unit(1, f.ship, SHORE, 1), Some(vec![]));
         assert_eq!(f.sim.scenario_add_unit(1, f.foot, SEA, 1), Some(vec![]));
         assert!(f.sim.units.is_empty());
     }
@@ -341,9 +344,10 @@ mod tests {
     /// **A land unit at sea, with a dock's level, goes aboard**
     /// (`action_transport(1)`): one barge per squad, of the leader's
     /// `TRANSPORTBARGE`, the passenger inside it and off the map, and the
-    /// barge on the ocean. Made to fail with `action_transport` dropped and
-    /// with the host swap dropped (the passenger, not the barge, is then
-    /// formed and jumped back onto the map).
+    /// barge on the ocean. The host swap makes the barge what is formed: it
+    /// takes the formation's width, where a boat is born with −1 (run1511's
+    /// barge `0/9`, `form_mod 50` on 621). Made to fail with
+    /// `action_transport` dropped and with the host swap dropped.
     #[test]
     fn a_soldier_at_sea_with_a_dock_goes_aboard_a_barge() {
         let mut f = fix();
@@ -356,6 +360,7 @@ mod tests {
             assert!(!f.sim.units[u].on_map, "a passenger is off the map");
             assert!(f.sim.units[host].on_map);
             assert!(f.sim.world.is_ocean(f.sim.units[host].pos.cell()));
+            assert_ne!(f.sim.units[host].form_width, -1, "the barge is formed");
         }
         let hosts: Vec<_> = made.iter().map(|&u| f.sim.units[u].inside_unit).collect();
         assert_ne!(hosts[0], hosts[1], "a barge for each squad");
