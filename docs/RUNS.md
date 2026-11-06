@@ -34859,3 +34859,33 @@ Archive `rontrace-run1499.log`, 14,991,936 bytes,
 SHA-256 `9cb4f364c97c37721209fa71bfdbf56310b4312766625ffb0e3256fdbd45820c`.
 
 **What it holds**: `blind::TRACES`' run1499 (item 3889). `Blind:` never 266 → 265, open 28 → 27.
+
+## run1502 — the golden start at `cover=1` on the click-free pool, a who=1 Fort added on 620 and killed by console `die` on 622, to 640: `Forts::close_fort` entered (2026-11-05, item 3898, `att-3898`)
+
+**What the disk could not answer**: whether a fort's death enters `Forts::close_fort@0073ec90` (`docs/AI.md` §387;
+parked 3708b). No capture on disk kills a fort: chapter 106 stands a who=1 Fort and shoots from it, and nothing
+razes it. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1502 --map 14 --no-ffwd
+--end-frame 640 --log-window 600 640 --timeout 3600 --cmd-file tools/gamelog/coverage/fort3898-start.cmd --cover
+cover=1 --cursor 1400,1000 --console-log 0 --hover`. It is run1494's line with `620 add fort who=1 54,25`, `@dumpall` on
+621 and 623, and `die 2007,1` and `die 2008,1` on 622. 141 GiB free before.
+- Pool lane 1 (`~/wine-ron`). Launched 23:10:31, exited 23:12:20: **108.6 s launch to exit**, no relaunch. `success`,
+  lifecycle verified, `map_verified`, map style 14, 641 frames, `last_frame` 640, seed 12345, PLAYER records who 0
+  (flags 7, tribe 4) and who 1 (flags 1, tribe 11). DLL `54c4781f…`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0.
+  Minutes waited on another lane: none.
+- `cmdsran.py`: 7 parsed, 4 ran, all returning 1 (the `add` on 620, both `die` lines on 622, `quit` on 640).
+- Block 621's `BUILDDATA` holds `1/2007`, type 443, 2000 hits, flags 7, at tile (54, 25): the `.cmd`'s `add`
+  coordinates are tiles. Block 623 holds who=1's 2000..2006 and no 2007.
+- **6,754 functions entered.** `Forts::init_fort` is first entered on 620; `Build::close`, `Fort::close` and
+  **`Forts::close_fort@0073ec90`** on 622. No other `NEVER` row is entered (1 of 268).
+- `rngcmp.py` against run1130 (run1129's `cover=0` twin): **641 in common, 0 differing, 641 identical**.
+  `samegame.py --from 620`: 40 in common (600..639), **same game before 620**. It parts on 621..624 (the `@dumpall`
+  blocks and the Fort), by construction.
+- Filed with `filerun.py run1502 greatlakes-fort-die-cover1-clickfree`.
+
+Archive `gamelog-run1502-greatlakes-fort-die-cover1-clickfree.txt`, 125,825,780 bytes,
+SHA-256 `d5637504ecf6769537f569ba2d8acda0c847272433f20486aa2182a3498b7de2`.
+
+Archive `rontrace-run1502.log`, 12,993,472 bytes,
+SHA-256 `618f23d8ce82d82e99965e192d680fdefdd16e190a2ce608a872a9da3397d4b0`.
+
+**What it holds**: `blind::TRACES`' run1502 (item 3898). `Blind:` never 268 → 267, open 8 → 7.
