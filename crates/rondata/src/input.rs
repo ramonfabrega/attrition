@@ -267,6 +267,31 @@ pub fn group_recall_units(built: &mut Built, who: i32, objects: &[i16]) -> usize
     g.list.len()
 }
 
+/// **`Options::do_alarm@0071c3f0`** on a selection of units: one `group`
+/// and one `alarm` (0x1b), so the pump's `CommandPackage::process_alarm
+/// @00947ef0` → `Group::action_alarm@0070ec30` takes its unit arm,
+/// [`sim::Sim::action_alarm_peasant`] (item 3916, `docs/GOLDEN.md` §163).
+pub fn group_alarm_peasant(built: &mut Built, who: i32, objects: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    built.sim.action_alarm_peasant(&g);
+    g.list.len()
+}
+
 /// A `group` command (0x00) and the `guard` (0x1f) behind it, into the
 /// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
 /// `docs/GOLDEN.md` §19) — [`group_move_to`]'s group, then

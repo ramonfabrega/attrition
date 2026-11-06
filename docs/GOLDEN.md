@@ -17725,12 +17725,74 @@ three types (the Library and Market refused), and the waypoint's gather end for 
 only: the Clear before the walk (the City's list is empty on 610), the city-centre test, the single-type buttons, and
 every other waypoint verdict.
 
-## 163. Reserved for the next item on the rules track
+## 163. Chapter one hundred and thirteen — a peasant alarm; closed at 900 (item 3916, run1510–run1510d)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (`docs/AI.md` §391.2 row 9, parked 3906c): `Group::action_alarm_peasant@006fd980` was `NEVER`, with its
+writer `Options::do_alarm@0071c3f0`. No `@` verb reaches it (the DLL's `@alarm` refuses a unit), so it is entered as
+§159 and §160 entered theirs: the key bound to `OPTION_PEASANT_ALARM` in the lane's profile, pressed with a Citizen
+selected.
+
+**What the reading says.** `Options::exec@007188c0`'s 0x1b–0x1d arm calls `do_alarm`: after `Group::can_activate`, one
+`group` and a one-byte `alarm` (0x1b). The pump runs `CommandPackage::process_alarm@00947ef0` → `Group::action_alarm
+@0070ec30`, and a group of units (`+0x49` clear) is handed to `action_alarm_peasant`. Each member whose `TypeIndex` is
+0x32 or 0x33 (the type itself, not its lineage) asks `ObjectsData::find_building@0065d260`. The listing's pushes
+(`6fda58`..`6fda6e`) are `x, y, SEARCH_FRIENDLY, who, −1, 0x200, FILTER_CAN_GARRISON (0x15), o, who`.
+- **The range is −1**, so the search is the list walk over the whole map. `0x200` is the flags word, the searcher's
+  cell region (as in `Objects::find_builds`, item 3379). §391.2 read it as a radius.
+- The filter is `Search::valid_filter`'s arm 20 (table `0067e57c`, arm `0067e44d`): `UnitData::can_garrison@006099a0` on
+  the building (`+8 & 1`, vslots `+0x20` and `+0x4c`, `UnitTypeData::can_garrison`), then `num_inside(0)` plus the
+  unit's population (0 for a decoy, else type `+0x2f0`) `<=` the building's vslot `+0x178`, the garrison limit.
+- The nearest wins, by `vector_dist` of tile deltas, and a tie goes to the later building (`<=`).
+- With a building found, the member's action is dropped while it is a **`GARRISONORDER` (0x1a)**, through `repath`
+  and `kill_current_order(0)`. §391.2 read 0x1a as a `GATHERORDER`; `GATHER` is 7.
+- Then `add_garrison_order(b, who, 1, QUEUE_FIRST, 1)`, inline: at the head, `search` 1, the action bit. Then the
+  leader's `0x2000000`.
+
+**Staging** (`tools/gamelog/golden/chapter113.cmd`): chapter thirty-nine's lobby (`600 library who=0 1`, `606 add citizen
+who=0 30,150`, the Citizen `0/6`), with `--bindkey OPTION_PEASANT_ALARM=124`. There are three presses:
+- `620 select 6`, `622 @key 124`: `0/6` idle, 15 tiles from the City `0/2000`.
+- `640 select 1`, `642 @key 124`: the start's Citizen on its `GATHERORDER`.
+- `678 select 6`, `680 @key 124`: `0/6` again, mid-walk, its action the garrison of 622.
+
+The journal has the falsifiers, written before each take.
+
+**What the original does** (run1510 `cover=0` and its twin run1510b, the first take without the 680 press; run1510c
+`cover=0` and run1510d `cover=1`, the retake; `docs/RUNS.md`). `process_alarm` lands on 623, 643 and 681.
+- On 624 `0/6` holds `GARRISONORDER search=1` on `0/2000` under its walk. The radius reading is dead.
+- **On 644 `0/1` keeps its `GATHERORDER`** under the new order, so the first take's falsifier 4 fired, and the loop's
+  0x1a is the garrison.
+- On 682 `0/6` holds one `GARRISONORDER` and a new walk, to (3864, 30648) where it was (3816, 30456).
+- `0/1` goes inside on 720 and `0/6` on 746.
+- The twin enters `Options::exec`, `Console::exec_keymap`, `do_alarm`, `process_alarm`, `action_alarm`,
+  `action_alarm_peasant`, `find_building`, `UnitData::can_garrison` and `UnitTypeData::can_garrison` on trace frame 622.
+- run1510, run1510c and run1510d are one game on all 901 frames (`rngcmp`).
+
+**What this crate does.** `Sim::action_alarm_peasant` (`crates/sim/src/alarm.rs`) is the member walk, and
+`Sim::nearest_garrison_for` is the search. The harness's `@key` arm `OPTION_PEASANT_ALARM` is
+`input::group_alarm_peasant`: one pushed group and one alarm, as `do_alarm` issues them. The draw stream agrees to the
+trace's end: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTEEN` = **900**, closed
+(`chapter_one_hundred_and_thirteen_holds_to_the_golden_word`). The widening over 605..900
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTEEN` (604, 901), both directions, the pool too) parts on the eleven standing
+`form` rows and nothing else (`WANT_CH113`). The coverage driver drives 679..683.
+
+**Mutations** (`tools/mutate.py --batch`, all seven held). On the unit test
+(`a_peasant_alarm_sends_each_citizen_to_the_nearest_garrison_however_far`):
+- the drop loop back on `GATHER` fails the held-garrison count;
+- the order at `QUEUE_LAST` fails the head check;
+- the range capped at two tiles fails the order check;
+- the economy bit dropped fails the dirty check.
+
+On the diff, the drop loop on `GATHER` fails the widening alone: on 682 `0/6` holds two garrisons, while the draws agree.
+The capped range and the harness's arm removed each fail the word and the widening.
+
+**Not established.** An ally's building: the original lays the order with the group's `who` beside the ally's object
+number, and nothing stages it. A full building, where the filter's population sum refuses. A building in another
+region. A tie at equal distance. The group's slot `+0x14` and the scenario's ignore-orders sweep, as for `action_alarm`.
+
+**Coverage.** Diff-backed: the key's reach, the three commands' frames, the unbounded range, the order's place,
+`search` and target, the gather kept, the garrison dropped and laid again, and the draws. Reading only: the region
+gate, the filter's capacity and ally arms, the tie, and the economy bit (`Sim::economy_changed`, which no field on
+these frames reads apart).
 
 ## 164. Reserved for the next item on the rules track
 
