@@ -1069,11 +1069,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// the scan's one dead row (`World::set_orig_coast`, its RVA's one match a call's rel32);
 /// residue 238 → 246, open 27 → 20. The scan over all 27 open rows: 0 dead but that one,
 /// which `report.py` called "pointer only" on the rel32 and `pe.references` excludes.
-/// **266** unmoved by item 3891's blind second reading (`docs/audit/2026-11-05-item-3891.md`),
-/// which agrees on `docs/MAPGEN.md` §18.1's and §20's four candidates —
-/// `WorldData::is_valid`, `MapScenario::make`, `Map::run_map_script` and
-/// `ScenarioRead::load_unit_chunk` — and moves them to [`RESIDUE`]; residue 246 → 250,
-/// open 20 → 16.
+/// **268** with item 3891's blind second reading (`docs/audit/2026-11-05-item-3891.md`; no
+/// capture joins [`TRACES`]), which agrees on `docs/MAPGEN.md` §18.1's and §20's four
+/// candidates — `WorldData::is_valid`, `MapScenario::make`, `Map::run_map_script` and
+/// `ScenarioRead::load_unit_chunk` — and moves them to [`RESIDUE`], and whose cite of
+/// `load_unit_chunk`'s route adds `ScenarioRead::load_objects_chunk@009ab9c0` and
+/// `ScenarioRead::load_scenario_screen@009b2e40`, scenario-only on both readings and
+/// [`RESIDUE`] with them; residue 246 → 252, open 20 → 16.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1100,7 +1102,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_43b0, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0096_2c70, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009b_1430, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
+    0x009a_0950, 0x009a_3f30, 0x009a_adc0, 0x009a_b9c0, 0x009b_1430, 0x009b_2e40, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5d20, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -2682,12 +2684,24 @@ pub const RESIDUE: &[(u32, &str)] = &[
          (docs/audit/2026-11-05-item-3891.md)",
     ),
     (
+        0x009a_b9c0,
+        "ScenarioRead::load_objects_chunk: called only from ScenarioRead::import \
+         (case 5), whose callers are scenario play, the editor and \
+         MapScenario::make; two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
+    ),
+    (
         0x009b_1430,
         "ScenarioRead::import: a scenario file's load — Setup::build_game's \
          scenario arm, MapScenario::make (style 0x1a) and the editor's test and \
          load screens; scenario play is cut from v1 with the editor and the trigger \
          system (Game::run_scenario's row, the forty-eighth pass; item 3859; the \
          sixty-sixth pass, DECISIONS 106)",
+    ),
+    (
+        0x009b_2e40,
+        "ScenarioRead::load_scenario_screen: called only from Game::run_scenario \
+         and ScenarioEditor::load_file, scenario play and the editor (cut from \
+         v1); two readings, item 3891 (docs/audit/2026-11-05-item-3891.md)",
     ),
     (
         0x009b_32f0,
