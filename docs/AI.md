@@ -38609,8 +38609,7 @@ block 623 no longer holds a who=1 Fort.
   54 × 192 + 96. ORACLE's calibration (one unit is four tiles) is for the chat console's
   `cheat add`. So the Fort stood in the open, not in who=1's base. `close_fort`'s gate
   does not read where a fort stands.
-- **One `NEVER` row of 268** is entered: 0073ec90. `Fort::walk_data@0073ebc0`, its
-  neighbour on the list, is the saved game's and is not.
+- **One `NEVER` row of 268** is entered: 0073ec90.
 - **Twin.** `rngcmp.py` against run1130: 641 in common, 0 differing. `samegame.py --from 620`:
   the same game before 620. It parts on 621..624, the `@dumpall` blocks and the Fort, by
   construction, and agrees again from 625.
