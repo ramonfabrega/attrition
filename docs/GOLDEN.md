@@ -17886,7 +17886,8 @@ first only members holding nothing) offer `Build::queue_up@00620f40(0x29a, 1)`. 
 != DISBAND`), and `BuildData::could_queue` → `can_make` asks the building active, `queue_here`, `type_avail` and
 `has_spell(0x29a)` → `SpellTypeData::is_castable@00675bc0(o, who, 0)`. That case's head exempts the craft. A building
 already holding a `DISBAND` refuses (`researching(.., o, 1, 0)`, its own queue). A non-city building in a city refuses
-while `CityData::is_disbanding@007380a0` exceeds the third argument. The entry costs nothing. Its time is
+while `CityData::is_disbanding@007380a0` exceeds the third argument (~~any such building~~: only a type without
+`NO_CITY`, `e`, is asked, and a Barracks is not; §168). The entry costs nothing. Its time is
 `ObjectData::train_time@006508c0:51`: the building's own type's (`JOB_TIME × 100`), scaled for a city, a Senate and a
 Lakota owner, then halved. `Build::finished@00628490`'s spell arm calls `SpellType::cast@00676ce0(o, who, 0, 0)`, which
 asks `is_castable(o, who, 1)` (so at the finish the entry's own count is allowed). `cast_disband` then plunders an
@@ -17936,7 +17937,8 @@ drives 829..833.
 - `is_castable`'s own-queue refusal dropped **failed nothing** in the batch, because the research arm refuses a second
   press before `queue_up` asks. The city test now calls `queue_disband` twice on one building, and the break fails it.
 
-**Not established.** A Disband in a city: `is_disbanding` and the finish's `> 1` (parked 3918a; two unit-tested, never
+**Not established.** A Disband in a city: `is_disbanding` and the finish's `> 1` (parked 3918a, taken by §168 for a
+Barracks, which skips the arm; a Temple's is parked 3930a; two unit-tested, never
 captured). An entry behind a unit at the head, and the AI's readers of an entry's type (3918b). A city's own disband
 (`cities[c] + 4 & 0x10`, other players' claims), a wall (vslot `0x20`), and the city, Senate and Lakota scalings of the
 time. `type_avail(DISBAND, 1)` and `queue_here` answered yes for a Barracks; no other building type was asked.
@@ -18076,12 +18078,67 @@ the console's seat is player 0); the captain swap on a squad target (a Spy is on
 (`febchm`'s `c`); the message and the sounds. The other `Unit::set_angle(…, 1)` callers this crate reaches through
 the non-snapping `unit_set_angle` are parked as 3920a.
 
-## 168. Reserved for the next item on the rules track
+## 168. Chapter one hundred and eighteen — a Disband at a Barracks in a city; closed at 1200 on the first take (item 3930, run1517, run1517b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3918a; §165): `CityData::is_disbanding@007380a0`, `is_castable`'s city arm. run1512's
+second Barracks `0/2008` sits in city 0, but the group's research arm refused both of its presses while `0/2007`'s
+entry stood. A press after 832, when no entry stands, was to make `is_castable` ask the city.
+
+**What the reading says**, at the listing's branch rather than §165's sentence. `SpellTypeData::is_castable@00675bc0`'s
+0x29a case takes the object's data record (vslot `0x3c`). It goes on to the city only when the record's type has
+`+0x2c0 & 0x10` clear, or the record is a city (`+8 & 0x20`). Then a building in a city (`+0x72 >= 0`) that is not a city
+refuses while `is_disbanding` exceeds `param_3 != 0`, and `is_disbanding` itself skips a type with `+0x2c0 & 0x10`.
+That bit is `BUILD_FLAGS` `e`, `NO_CITY` (`crate::build::flags`). §165's "a non-city building in a city" left the type
+test out, and so did `Sim::disband_castable`. `crate::castable::is_castable_steps`, the stepped reading, has it.
+
+**Staging** (`tools/gamelog/golden/chapter118.cmd`): chapter one hundred and fifteen's eight lines, then `840 @queueup 0
+666 1 2008`. Walked on run1512's dump first: `0/2008` reads `flags 7`, `city 0`, `queued 0` and an empty queue on every
+block from 617 to its end. The journal has the four killers, written before the take. The first was the booking's:
+no `is_disbanding` entered on the press's frame.
+
+**What the original does** (run1517 `cover=0`, its twin run1517b `cover=1 --no-ffwd`; both `--ai-tribe 11` and the
+golden start's four lobby fields; `docs/RUNS.md`). `process_queue_up 666 1` lands on 621, 641, 661 and 841.
+- Up to 832 it is §165's game. `0/2007` holds 666 from 622 to 21000 on 831 and is gone on 832. `0/2008` is refused
+  on 641 and 661.
+- **`0/2008` holds the entry from 842**: `queued 1`, `queue[scan].type 666`, `job_counter` 100 on 842, 100 a frame to
+  21000 on 1051 (killer 4 held: no city scaling). Block 1051 is its last, and it is gone from `BUILDS` on 1052
+  (killers 2 and 3 held).
+- **The killer fired.** The twin enters `Build::queue_up`, `could_queue`, `has_spell`, `Build::finished`,
+  `SpellType::cast_disband`, `Build::plunder` and `Object::disband`. It never enters `CityData::is_disbanding` in 1201
+  frames, and `007380a0` is not on its `rontrace.funcs.excluded.txt`. The Barracks' `BUILD_FLAGS` are `ean`, so the
+  city arm is skipped at the queue and again at the finish.
+- run1517 and run1517b are one game on all 1201 frames (`rngcmp`). Against run1512 they first differ at 1067, after
+  `0/2008`'s close.
+
+**What this crate does.** `Sim::disband_castable` now asks the city only of a type without `NO_CITY`
+(`Sim::no_city`), and `city_disbanding` counts no `NO_CITY` building
+(`a_no_city_building_skips_the_city_s_disband_count`). The draw stream agrees to the trace's end:
+`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN` = **1200**, closed
+(`chapter_one_hundred_and_eighteen_holds_to_the_golden_word`). The widening over 605..1200
+(`WIDENING_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN` (604, 1201), both directions, the pool too) parts on the eleven standing
+`form` rows and nothing else (`WANT_CH118`). So `0/2008`'s `queued`, its entry's type and `job_counter` agree on every
+block from 842 to 1051, and so does its absence from 1052. The coverage driver drives 1050..1054. The chapter
+closed before the gate was built: on this staging both readings answer castable, because the counts are 0 at the
+queue and 1 at the finish.
+
+**Mutations** (`tools/mutate.py --batch`).
+- On the tree before the gate, scored on chapter 118, four breaks that make the arm refuse a Barracks fail the word
+  and the widening. They are the queue-only half (`|| !finishing`), the finish-only half (`|| finishing`), the
+  refusal whole (`&& true`) and the count + 1. The arm dropped (`&& false`) and its city test flipped fail nothing.
+  That says the crate was asking an arm the original does not ask here.
+- On the built tree, scored on the unit test, all three breaks fail it: the gate dropped from `disband_castable`,
+  the skip dropped from `city_disbanding`, and `no_city` answering no. Scored on chapter 118, the gate dropped fails
+  nothing. The diff is blind to it here, and the unit test is the assertion.
+
+**Not established.** `is_disbanding` itself, the finish's `1 > 1` and the refusal at the queue (`0 > 0`), for a city
+building without `e`: parked 3930a, a Temple in city 0. The group's research arm refuses any second press while one
+entry stands, so the queue's `> 0` refusal is reachable only through a building the arm does not count. A city's own
+arm (`+8 & 0x20`: `cities[c] + 4 & 0x10`, and other players' claims at `+0x68`) is unreached, as in §165.
+
+**Coverage.** Diff-backed: the press after the close, the entry in a city, its unscaled time, the close on the
+finish, and the Barracks' skip of `is_disbanding` (the twin's absence). Reading only, and unit-tested: the
+`NO_CITY` gate's other side, `is_disbanding`'s count and its type skip. `CityData::is_disbanding` stays `NEVER` in
+`blind::`, with this arm named.
 
 ## 169. Reserved for the next item on the rules track
 

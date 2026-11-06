@@ -2542,6 +2542,10 @@ mod tests {
         // Scout's Counterintelligence on an enemy Spy (item 3920,
         // `docs/GOLDEN.md` §167).
         ("chapter117.cmd", &[]),
+        // Chapter one hundred and eighteen: chapter one hundred and
+        // fifteen's staging and a fourth `@queueup` of `DISBAND` at the
+        // Barracks in city 0 (item 3930, `docs/GOLDEN.md` §168).
+        ("chapter118.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),

@@ -14659,13 +14659,17 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   wording ("a `--dump-all-start` lobby … beside" a later `add`) asks for the refused pair. **Score**: none. This is
   the Loop's.
 
-## Parked by the next landing, slot BL — reserved
+## Parked by item 3930, 2026-11-06 — a Disband in a city
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3930a. A Disband at a city building without `NO_CITY`** (`docs/GOLDEN.md` §168, `Sim::disband_castable`,
+  `CityData::is_disbanding@007380a0`). `is_castable`'s 0x29a city arm is asked only of a type with `+0x2c0 & 0x10`
+  (`e`, `NO_CITY`) clear, or of a city. run1517's Barracks (`ean`) skips it, so its twin run1517b enters no
+  `is_disbanding`, and the row stays `NEVER`. A Temple, Granary, Market or Library (`jam`, `ja`) in city 0 would
+  reach it. The staging is chapter one hundred and fifteen's lobby with `add temple who=0 28,160` (chapter four's Temple
+  tile, `city 0`) in place of the second Barracks, and `@queueup 0 666 1 <temple>` once no entry stands. It also
+  needs `queue_here(0x29a)` and `type_avail` to answer yes for a Temple, which no capture has asked. The finish's `1 > 1`
+  arm and the `NO_CITY` skip are unit-tested only (`a_no_city_building_skips_the_city_s_disband_count`). Names no
+  score: chapter 118 is closed whole either way.
 
 ## Parked by the next landing, slot BM — reserved
 

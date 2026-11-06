@@ -1351,6 +1351,56 @@ pub(super) fn chapter_one_hundred_and_sixteen_holds_to_the_golden_word() {
     );
 }
 
+pub(super) fn chapter_one_hundred_and_eighteen_s_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch118",
+        "chapter118",
+        (605, 1200),
+        0,
+        0,
+        (1050, 1054),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch118 f{f} {w}/{o} {what}: {row}");
+    }
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch118 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .chain(
+            pool.iter()
+                .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}")),
+        )
+        .collect();
+    got.sort();
+    eprintln!("ch118: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH118.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch118: what parts in the window moved");
+}
+
+pub(super) fn chapter_one_hundred_and_eighteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch118", "chapter118", 118, 9, 1200) else {
+        return;
+    };
+    eprintln!(
+        "chapter one hundred and eighteen: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    pin_eq!(
+        w.word,
+        GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN,
+        "chapter one hundred and eighteen's golden word moved; re-pin it and say so in docs/GOLDEN.md §168"
+    );
+}
+
 pub(super) fn chapter_seventeen_air_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch17air", "chapter17-air", 17, 17, 1099) else {
         return;

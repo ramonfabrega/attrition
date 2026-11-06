@@ -63,19 +63,23 @@ impl Sim {
     }
 
     /// `CityData::is_disbanding@007380a0`: the `DISBAND` entries the city's
-    /// active buildings hold.
+    /// active buildings hold, skipping a type whose `+0x2c0 & 0x10` is set
+    /// (`NO_CITY`, flag `e`: the Barracks, run1517's `0/2008`; item 3930,
+    /// `docs/GOLDEN.md` §168).
     ///
-    /// SEAM: the walk skips a type whose `+0x2c0 & 0x10` is set, a flag
-    /// this crate does not carry; no capture disbands in a city
-    /// (scan: `grep -lF 'queue[scan].type 666' gamelog-run*.txt` over the
-    /// 1,143 kept dumps on 2026-11-06: run1512b alone, its one entry at the
-    /// Barracks `0/2007`, city −1).
+    /// No capture enters it: the twin run1517b's `is_castable` skips the
+    /// city arm for its one city building, a Barracks.
     fn city_disbanding(&self, c: usize) -> i32 {
         self.buildings
             .iter()
-            .filter(|bd| bd.alive && bd.active && bd.city == Some(c))
+            .filter(|bd| bd.alive && bd.active && bd.city == Some(c) && !self.no_city(bd.ty))
             .map(|bd| bd.queue.count_disband())
             .sum()
+    }
+
+    /// A building type's `+0x2c0 & 0x10`, `NO_CITY` (flag `e`).
+    fn no_city(&self, ty: Option<usize>) -> bool {
+        ty.is_some_and(|t| self.build_types[t].has(crate::build::flags::NO_CITY))
     }
 
     /// **`SpellTypeData::is_castable@00675bc0`'s 0x29a case** on building
@@ -83,10 +87,14 @@ impl Sim {
     /// `SpellType::cast`): the head exempts the craft, then
     ///
     /// - at the queue, a building already holding a `DISBAND` refuses;
-    /// - a building that is not a city (`+8 & 0x20` clear) in a city refuses
-    ///   while the city's `is_disbanding` exceeds `finishing` — so at the
-    ///   finish its own entry, still standing (`do_queue` unqueues after
-    ///   `finished`), is allowed and a second is not.
+    /// - the city arm is asked only of a type without `NO_CITY` (`+0x2c0 &
+    ///   0x10` clear) or a city (`+8 & 0x20`): a Barracks (`e`) skips it,
+    ///   and run1517b's press at the Barracks `0/2008` in city 0 enters no
+    ///   `is_disbanding` (item 3930, `docs/GOLDEN.md` §168);
+    /// - a building that is not a city in a city refuses while the city's
+    ///   `is_disbanding` exceeds `finishing` — so at the finish its own
+    ///   entry, still standing (`do_queue` unqueues after `finished`), is
+    ///   allowed and a second is not.
     ///
     /// SEAM: the vslot `0x20` test (a wall answers 0 — this crate's
     /// buildings are not walls), and a city's own arm (`cities[c] + 4 &
@@ -100,6 +108,7 @@ impl Sim {
             return false;
         }
         if let Some(c) = self.buildings[b].city
+            && !self.no_city(self.buildings[b].ty)
             && !self.building_is_city(b)
             && self.city_disbanding(c) > i32::from(finishing)
         {
