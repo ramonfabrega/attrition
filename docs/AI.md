@@ -39668,12 +39668,64 @@ until a blind second reading agrees: 3904b, widened to §390 and this section (p
   `mtn_*_gather` band times the counted share). Whether the `is_gathered_from` walk (−2) refuses a second mine on
   the same cliff. Neither has a take, and both belong to the arm's build (3924a).
 
-## 396. Reserved for the next item on the AI track
+## 396. The take on 3923a's entry: the regroup ungroups the move it needs, and `kill_group_order` is not entered (item 3932)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3923a's take, the last attempt on the `kill_group_order` pair: one `cover=1` take, run1518, after two
+`cover=0` recons (`recon3932-1`, `-2`, unfiled). The staging is `tools/gamelog/coverage/killgroup3932.cmd`, with two
+verbs added to the tracer, `@formadd` and `@patroladd`: the shift-click's `QUEUE_LAST` through `issue_form@00941580`
+and `issue_patrol@00941800`. **Neither `Group::kill_group_order@00710aa0` nor `Unit::kill_group_order@005e3310` is
+entered.** The take refused on none of 3923a's four causes but on a fifth (396.3).
+
+### 396.1 What the recons changed in the staging
+
+- **A formation's leader walks nowhere unless something is queued.** `action_form`'s move goes to
+  `GroupData::get_loc_to@0070c5d0`, the leader's `UnitData::get_final_loc@00608040`. That is the newest order with a
+  destination, or the leader's own spot when the list is empty, and the unshifted form's `action_halt` empties it
+  first. So the audit's `GM X` from a formation button is a walk of nothing for its leader.
+- **An attack on an unseen enemy lays a plain move without `0x04`.** `{U, V}` attacking the unseen Chariot `e`
+  (`640 @attack 0 9 1 6 9`) leaves `MOVEORDER flags 1` on both. A shift-formation then aims at `e`'s spot. That move
+  is the plain move over the list that the audit's step 2 makes through `ungroup_move_order`, so the take does not
+  need `GM X`.
+- **The first shift-formation after the attack adds no move.** In both recons, the first `@formadd` after the attack
+  left no order and no counter step. The second landed. Why was not read.
+- **Slot 0 is skipped as the player's current group.** U's first command took slot 1. Ten filler squads then took
+  slot 0 and slots 2–10, so `{U, V}` opened slot 11 and the regroup reopened slot 1, ten below. The counters meet
+  with one shift-attack: `GM Y` = (11 + 10·643)·100 + 1 and `GM Y'` = (1 + 10·644)·100 + 1, both `644101`.
+
+### 396.2 The list is built
+
+On 645 (run1518), U (`0/6`, slot 1) holds, current first, `[MOVEORDER flags 1 → e][GroupMoveOrder 644101 flags 1]
+[MOVEORDER flags 0][ATTACKORDER t flags 4 mandatory 1][GroupMoveOrder 644101 flags 5][GroupPatrolOrder 644102]`.
+That is 3923a's shape under a plain move, with a duplicate id from two slots. Twenty who=0 squads converge on U's
+walk from 715 on a 12-frame cycle. Pressure reaches 8 collisions a frame, and U's suspended search is stamped:
+`start_dist` 816 on 805 and 2208 on 880.
+
+### 396.3 The take refuses: the plain move ends, and `GM Y` is ungrouped into `GM Y'`'s copy
+
+- **On 652** the plain move to `e`'s spot is gone, with no collision and `e` alive. It lasted nine frames, in both
+  the take and recon 1. `GM Y` is current, a move of slot 11 on a unit now in slot 1.
+- **On 653** `GM Y` and `GM Y'` are both gone, and `MOVEORDER flags 5` is current over `[MOVEORDER][ATTACK]
+  [GROUP_PATROL]`. That is `ungroup_move_order`'s copy of the newest order with the id (audit verdict 8): `GM Y'`,
+  a human move that carries `0x04`. Recon 1 shows the same on its own `GM X` (644001), also a move of the slot U
+  left, which is removed the frame it becomes current (652 → 653).
+- **So the stash comes too late.** On 805 `start_dist` is stamped under a current move that carries `0x04`.
+  `get_action` answers that move, not the `ATTACK`, and `do_move:105` is shut.
+
+**The reading**: 3923a's entry needs U to hold a plain move with the slot-*a* group move directly under it until
+a collision suspends, while U already sits in slot *b* so that `GM Y'` can be laid. Any group move of slot *a* that
+becomes current on a unit regrouped into slot *b* is ungrouped at once (`GM X`, recon 1) or copied from the
+deepest same-id order (`GM Y`, run1518). The audit's step 1 (U walks `GM X` as leader after the regroup) is not
+reachable in its own order, and the plain move this take used lasts nine frames. **Under this staging the pair goes
+back to a `RESIDUE` candidate.** One ordering was not taken, and it is parked rather than built (3932a): the
+collision first, then `GM Y` and the regroup inside the four frames before `do_move:105`.
+
+**What is not established.**
+- Why the first `@formadd` after an attack adds no move, and why the plain move to an unseen target ends after
+  nine frames.
+- Whether a grouped leader's own collision suspends at all. 3504 never stamped one, and U's here came under a plain
+  move.
+- Nothing here is diff-backed beyond the dump's order lists. The trace's HITs are first-entry only, so they give
+  only that `kill_group_order` was not entered.
 
 ## 397. §391.3 read again blind: three rows ratified, and `is_moving_to` is a staging (item 3935, 2026-11-06)
 

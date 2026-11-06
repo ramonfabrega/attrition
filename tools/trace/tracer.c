@@ -1190,14 +1190,21 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* `@repairins` (item 3504): verb 16 at QUEUE_FIRST, the insert
      * `Group::action_swarm_around@0070fbe0:95-108` runs (`queue.h`). */
     i32 queue_first = 0;
+    /* `@patroladd` and `@formadd` (item 3932): verbs 1 and 6 at QUEUE_LAST,
+     * the shift-click's queue; `issue_patrol@00941800` and
+     * `issue_form@00941580` take the byte last, and `Group::action_form`'s
+     * QUEUE_LAST arm skips the insert and appends its move with bit 4 clear. */
+    i32 shift_add = 0;
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "moveadd ")  ? (move_add = 1, 0)
                : issue_verb(&t, "patrol ")   ? 1
+               : issue_verb(&t, "patroladd ") ? (shift_add = 1, 1)
                : issue_verb(&t, "guard ")    ? 2
                : issue_verb(&t, "follow ")   ? 3
                : issue_verb(&t, "garrison ") ? 4
                : issue_verb(&t, "eject ")    ? 5
                : issue_verb(&t, "form ")     ? 6
+               : issue_verb(&t, "formadd ")  ? (shift_add = 1, 6)
                : issue_verb(&t, "attack ")   ? 7
                : issue_verb(&t, "attackadd ") ? (queue_add = 1, 7)
                : issue_verb(&t, "amove ")    ? 8
@@ -1435,9 +1442,11 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         /* issue_patrol(group, x, y, queue), issue_guard(group, ox, whom,
          * queue), issue_follow(group, ox, whom, queue) and
          * issue_garrison(group, ox, whom, queue) share one shape: two ints
-         * and QUEUE_NEW. So does issue_form(group, form, rotate, queue). */
+         * and QUEUE_NEW. So does issue_form(group, form, rotate, queue).
+         * `@patroladd` and `@formadd` pass QUEUE_LAST. */
         typedef void(__thiscall *patrol_fn)(void *, void *, i32, i32, i32);
-        ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
+        ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
+                                    issue_queue(shift_add, 0));
     } else {
         typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
         /* `@move` passes MOVE_TO (1), `@amove` ATTACK_TO (2), `@explore`
