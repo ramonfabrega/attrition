@@ -14761,13 +14761,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BS — reserved
+## Parked by item 3940, 2026-11-06 — a mutual touch under the ungroup's copy searches without suspending; the `kill_group_order` pair is `RESIDUE`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3940a. A crowd around V under the plain copy, a seventh ordering** (`docs/AI.md` §399.2). recon3940-1's walker
+  met V head-on under `ungroup_move_order`'s `MOVEORDER flags 1` (`group` 11). The touch was mutual in block 895,
+  and V side-stepped with `start_dist` 0, because a search on open ground does not outrun its budget. A crowd dense
+  enough to suspend it (run1518's twenty squads) under the copy, with `[GM Y][ATTACK][GM Y'][GP]` laid below before
+  the touch, is the road left. The brief ruled out a seventh ordering as a take, and the pair is `RESIDUE` on six
+  refusals. A capture that enters either row fails the pin. **Score**: none.
+- **3940b. Whether V's search ran is read off the side-step, not a hook** (§399, "What is not established"). A trace
+  hooked on `005fa802` (`resolve_unit_collision`'s `find_upath` call) on recon3940-1's staging would show it.
+  **Score**: none.
 
 ## Parked by the next landing, slot BT — reserved
 

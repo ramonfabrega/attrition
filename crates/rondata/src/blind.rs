@@ -1255,7 +1255,7 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// which disagrees with `docs/AI.md` §388 on the `kill_group_order` pair: `fight`'s second
 /// `find_new_target` (`5fe25f`) after `Group::action_attack(QUEUE_FIRST)` can meet a re-issued
 /// `GROUP_PATROL`, so `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0`
-/// stay here, the take that settles them parked as 3902a; open 2, unmoved, on the tree merged
+/// stay here (in [`RESIDUE`] since item 3940), the take that settles them parked as 3902a; open 2, unmoved, on the tree merged
 /// with 3899.
 /// **267** unmoved by item 3903 (`docs/AI.md` §389), which reads 3902a's route shut with no take:
 /// its cast is the Machine Gun line, `Object::valid_target` refuses that line a capture-eligible
@@ -1368,8 +1368,8 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// walk meets a matching node again, so route 2's own list empties and faults at `5ff752`; but
 /// `ungroup_move_order` lays a `MOVE_TO` without `0x04` over a leader's list and keeps its stash, and
 /// below a single `GM X` a duplicate pair of another id reaches `5ff78f` through `do_move:105`.
-/// `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0` stay here, the take
-/// parked as 3923a; open 6, unmoved, on the tree merged with item 3919.
+/// `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0` stay here (in
+/// [`RESIDUE`] since item 3940, `docs/AI.md` §399), the take parked as 3923a; open 6, unmoved, on the tree merged with item 3919.
 /// **334** with item 3920's run1514b (`docs/GOLDEN.md` §167), the `cover=1` twin of chapter one
 /// hundred and seventeen: a Scout's `@spell 0 631` on a who=1 Spy two tiles off enters
 /// `SpellType::cast_counterintel@00673740` on 658 (`docs/AI.md` §392.3); open 6 → 5 on the tree
@@ -1391,6 +1391,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `check_target_path:138-141` asks the target's vslot `+0x1c`, which `Build`'s vtable answers 1
 /// for every building (`00b42190` → `0041e0e0`, `mov eax,1`; `Unit`'s is `0041bff0`,
 /// `xor eax,eax`), so only a unit target reaches the arm, and only a fleeing one (parked 3936a).
+/// **332** unmoved by item 3940's recon3940-1 (`docs/AI.md` §399): a walker meets V head-on under
+/// the ungroup's `MOVEORDER` copy (`group` 11), and the touch is mutual in block 895. V side-steps
+/// with `start_dist` 0, so the search finds a path and does not suspend. On the six refusals,
+/// `Unit::kill_group_order@005e3310` and `Group::kill_group_order@00710aa0` move to [`RESIDUE`],
+/// residue 329 → 331, open 3 → 1.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0045_2730, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -1963,6 +1968,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
          compiler inlined at every use, or one nothing calls; no reference in \
          the executable (the fiftieth pass's scan over the 192 open rows, \
          2026-10-22, Loop 3465)",
+    ),
+    (
+        0x005e_3310,
+        "Unit::kill_group_order: its one caller is Group::kill_group_order+0x7e, \
+         on the RESIDUE row 0x00710aa0 below, and that function is reached by \
+         no route a capture stages (docs/AI.md §399, item 3940)",
     ),
     (
         0x005e_4c80,
@@ -2812,6 +2823,20 @@ pub const RESIDUE: &[(u32, &str)] = &[
          inlined at every use, or one nothing calls; no reference in the \
          executable (the fiftieth pass's scan over the 192 open rows, \
          2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0071_0aa0,
+        "Group::kill_group_order: its call at do_group_attack+0x124 runs only \
+         under a GroupAttackOrder, which nothing makes (docs/AI.md §382.1), and \
+         its call at find_new_target+0xef needs a group order at the head after \
+         repath. Six attempts each shut one step: route 1's cast is refused a \
+         capture city (§389, item 3903); route 2's duplicate id has a producer and \
+         no entry (§390, 3904); no caller runs find_new_target with the group \
+         move current (§394, 3910); the regroup ungroups the move the entry \
+         needs (§396.3, 3932); a grouped leader's first friendly touch ungroups \
+         it with no search (§398, 3937); and a mutual touch under the ungroup's \
+         copy searches to a path without suspending, so no stash is held \
+         (§399, 3940)",
     ),
     (
         0x0071_37f0,

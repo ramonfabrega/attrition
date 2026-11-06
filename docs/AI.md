@@ -38797,7 +38797,8 @@ by 388.2, and `Unit::do_group_attack+0x124` (`5e76c4`), which is `blind::RESIDUE
 call (`5fe25f`) after `find_nearby_target`'s `Group::action_attack(QUEUE_FIRST)` can meet a re-issued `GROUP_PATROL`
 when the target is capture-eligible, and neither reading closes it; both rows stay `NEVER`, and the take that settles
 it is park 3902a.* This section has one reading, so the rows
-stay in `NEVER` until a blind second reading agrees (park 3900a). That reader must re-derive, without this
+stay in `NEVER` until a blind second reading agrees (park 3900a). *Both rows are `blind::RESIDUE` since item 3940
+(§399.3), on six refusals.* That reader must re-derive, without this
 section:
 
 1. that `repath` runs on every path into `find_new_target` before `:63`;
@@ -38907,7 +38908,7 @@ So even if 389.2 fell, the capture arm's city would not open the gate.
 target `find_nearby_target` can return. **Route 2** (park 3902b, a duplicate group-move id under an `ATTACK`) is
 now the open one. The rest of 3902's sweep stands: `do_group_attack`'s site is dead, and its argument that
 `find_new_target`'s other callers establish an `ATTACK` or a `STRAFE` is not reopened here. **Both rows stay `NEVER`**, pending ~~a blind second reading
-of this section (park 3903a)~~ (read by item 3905: every row agrees, `docs/audit/2026-11-06-item-3905.md`) and a reading of route 2 to a producer (park 3903b).
+of this section (park 3903a)~~ (read by item 3905: every row agrees, `docs/audit/2026-11-06-item-3905.md`) and a reading of route 2 to a producer (park 3903b). *Both rows are `blind::RESIDUE` since item 3940 (§399.3).*
 
 **What is not established.** `ObjectData::has_objmask` was read as the type's `obj_masks`, by its use; its body
 was not read. `GroupAttackToOrder`'s `+0x14` (`StrafeOrder::is_air`, folded) was read as answering 1 because the
@@ -38921,7 +38922,8 @@ group moves with one id and an `ATTACK` between them, so that `Unit::kill_group_
 the `ATTACK` inside `repath`. The falsifier was written into the journal first: there is no producer if every regroup
 clears the old group's move before the new id lands. **The falsifier fails** (390.1–390.2), and the duplicate list
 has a producer in human commands (390.3). **No entry was found** that calls `find_new_target@005ff6a0` on that
-list (390.4). So the pair is neither a take nor a `RESIDUE` candidate; the entry is parked (3904a). No run was
+list (390.4). So the pair is neither a take nor a `RESIDUE` candidate; the entry is parked (3904a). *Ruled `RESIDUE` by item
+3940, §399.3.* No run was
 reserved or taken.
 
 ### 390.1 What `repath`'s group kill removes, and in what order
@@ -39634,7 +39636,8 @@ has one caller, `Group::kill_group_order+0x7e`. ~~**Both rows are `RESIDUE` cand
 blind second reading (`docs/audit/2026-11-06-item-3923.md`): route 2's own list never reaches `5ff78f` (verdict 2). But `ungroup_move_order`'s plain move
 over a leader's list that holds another id's duplicate pair, `[GM X][GM Y][ATTACK][GM Y'][GP]`, enters through
 `do_move:105` (verdict 9). Both rows stay `NEVER`, and the take is park 3923a.* They stay in `blind::NEVER`
-until a blind second reading agrees: 3904b, widened to §390 and this section (park 3910a). No take is booked.
+until a blind second reading agrees: 3904b, widened to §390 and this section (park 3910a). No take is booked. *Both rows are `blind::RESIDUE` since item 3940
+(§399.3), on six refusals.*
 
 **What is not established.**
 - `action_halt(0)`'s two skips (some planes; entering or exiting) and `action_move_near`'s inner member loop were
@@ -39716,7 +39719,7 @@ a collision suspends, while U already sits in slot *b* so that `GM Y'` can be la
 becomes current on a unit regrouped into slot *b* is ungrouped at once (`GM X`, recon 1) or copied from the
 deepest same-id order (`GM Y`, run1518). The audit's step 1 (U walks `GM X` as leader after the regroup) is not
 reachable in its own order, and the plain move this take used lasts nine frames. **Under this staging the pair goes
-back to a `RESIDUE` candidate.** One ordering was not taken, and it is parked rather than built (3932a): the
+back to a `RESIDUE` candidate** (*ruled `RESIDUE` by item 3940, §399.3*). One ordering was not taken, and it is parked rather than built (3932a): the
 collision first, then `GM Y` and the regroup inside the four frames before `do_move:105`.
 
 **What is not established.**
@@ -39782,7 +39785,8 @@ suspends on frame S, and is ungrouped into a `MOVE_TO` copy without `0x04`. Then
 inside the four-frame beat. The falsifier went into the journal first: no `start_dist` on a grouped leader under
 `do_group_move`, or `GM Y` laid under a current plain move is not its next order. **The first clause holds**, in
 the second of two `cover=0` recons (`recon3937-1`, `-2`, unfiled). No take was run, and run 1521 is unused.
-Neither `kill_group_order` is entered, and the pair goes back to a `RESIDUE` candidate.
+Neither `kill_group_order` is entered, and the pair goes back to a `RESIDUE` candidate (*ruled `RESIDUE` by item
+3940, §399.3*).
 
 ### 398.1 What the recons read
 
@@ -39817,7 +39821,8 @@ leader for the same reason. The second clause was never reached.
 **What the recon leaves open, and the lane did not take.** The copy outlives the ungroup. V holds `MOVEORDER
 flags 1`, `group` 11, as its only order from 769 to past 960, so a later mutual touch under the copy would stamp a
 stash on a grouped unit under a plain move without `0x04`. That is 3923's step 3 reached by another road, not
-3932a's ordering. It is parked (3937a), not built.
+3932a's ordering. It is parked (3937a), not built. *Item 3940 staged it: the mutual touch comes, and the search does not suspend
+(§399).*
 
 **What is not established.**
 - Whether a mutual touch under the copy, with `group ≥ 0` and a stash held four frames, can be staged at all. No
@@ -39827,12 +39832,68 @@ stash on a grouped unit under a plain move without `0x04`. That is 3923's step 3
 - Nothing here is diff-backed beyond the dump's order lists, `collide` and `start_dist`. No trace was taken, so
   `kill_group_order`'s absence is the dump's reading, and `blind::NEVER` is unmoved.
 
-## 399. Reserved for the next item on the AI track
+## 399. A mutual touch under the ungroup's copy searches without suspending, and the `kill_group_order` pair is `RESIDUE` (item 3940, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3937a was the one road §398.2 left. V holds `ungroup_move_order`'s copy (`MOVEORDER flags 1`, `group` 11) as
+its only order from 769. A mutual touch under that copy opens `resolve_unit_collision:388-405`'s gate. The search at
+`:482` then suspends, and the stash is held on a grouped unit under a plain move without `0x04`. The falsifier went
+into the journal first: no mutual touch, or no `start_dist` stamp, on V under the copy; or a stamp with
+`collide_frame` re-stamped inside the four frames. **The second clause holds**, in one `cover=0` recon
+(`recon3940-1`, unfiled). No take was run, and runs 1523 and 1523b are unused. **Both rows move to `blind::RESIDUE`**
+on the six refusals (399.3).
+
+### 399.1 The recon
+
+The staging is `tools/gamelog/coverage/killgroup3940.cmd`: recon3937-2 whole, plus a walker. It is a who=0 hoplite
+added at cell (21, 135) and sent at 790 to (4008, 21000), straight down V's line. The disk had already answered the
+unforced case. In recon3937-2, V walks the copy up x = 4008 from 796 to past 960 with `collide` 0, and no unit
+meets it.
+
+- Up to 890, V's fields match recon3937-2's: the touch on 768, the copy on 769, and x = 4008 from 780.
+- **The touch is mutual.** From 890 V collides with the walker 0/105 (`collide_o 105`, `collide` 1 rising to 6,
+  `unit_masks 0x48`: the no-search return's `0x40`). In block 895 the walker collides back (`collide_o 9`,
+  `collide_frame 894`). V is processed before 0/105, so V's next collision sees a collider colliding back, and the
+  gate opens.
+- **No stash.** V side-steps (x 4008 → 3999 on 897, then 3990, 3981, 3973 against a second walker, 0/106, whose
+  touches are one-way). `start_dist` is 0 on V through 920, and 0 on 0/105. `astar_path` stamps `+0x130` only on a
+  suspend (§388.1). So the search found a path inside its budget on open ground and returned without one.
+- V's `collide` stays at 12 or below to 920, nowhere near the `0x20` arm.
+
+### 399.2 Why that ends the road
+
+A suspend needs a search that outruns its budget. The only stamp any capture of this pair has shown is run1518's
+U, at 805 and 880, inside twenty converging squads (§396.2). There the copy that could hold the stash was a `GM Y'`
+copy with `0x04`, which shut `do_move:105` (§396.3). Here the copy without `0x04` exists, but on open ground the
+touch costs a short search. To stage both at once, the plain copy and a crowd dense enough to suspend V, would be a
+seventh ordering. The brief rules that out as a take.
+
+### 399.3 The ruling
+
+`Group::kill_group_order@00710aa0` has two call sites:
+
+- `do_group_attack+0x124` is `RESIDUE` (§382.1).
+- `find_new_target+0xef` needs a group order at the head after `repath` (§388.2). Six attempts each shut one step
+  of the way there:
+  1. route 1's cast is refused a capture-eligible city (§389, item 3903, ratified by 3905);
+  2. route 2's duplicate id has a producer and no entry (§390, 3904);
+  3. no caller runs `find_new_target` with the group move current (§394, 3910);
+  4. the regroup ungroups the move the entry needs, and the stash came under a copy with `0x04` (§396.3, 3932);
+  5. a grouped leader's first friendly touch ungroups it with no search (§398, 3937);
+  6. a mutual touch under the plain copy searches to a path without suspending (here).
+
+`Unit::kill_group_order@005e3310`'s one caller is `Group::kill_group_order+0x7e`. **Both rows are `blind::RESIDUE`**,
+and `Blind:` goes from open 3 to open 1, with residue 329 → 331. A capture that enters either row fails the pin, as
+for any `RESIDUE` row.
+
+**What is not established.**
+- Whether a crowd around V under the plain copy would make the search suspend, and whether the stash would then
+  survive to the collide beat with `[GM Y][ATTACK][GM Y'][GP]` laid under the copy. That is 3923's verdict-9 list
+  under a seventh ordering. It is parked with no score (3940a), not booked.
+- That V's search ran is inferred from the side-step and the gate's reading, and `unit_masks` does not settle it.
+  A trace with a hook on `005fa802` (the `find_upath` call inside `resolve_unit_collision`) would say so. No
+  `cover=1` take was run.
+- Nothing here is diff-backed beyond the dump's `collide`, `collide_o`, `collide_frame`, `start_dist` and positions.
+  The ruling rests on six readings and two recons, with no trace of the entry.
 
 ## 400. Reserved for the next item on the AI track
 
