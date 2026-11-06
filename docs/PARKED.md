@@ -3782,6 +3782,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
  **The sixty-sixth pass, measured**: the cache 16 GiB (2,344 files), 0 files rewritten since the base, `tools/emu/` untouched; the disk 141 → 147 on `afsctool` alone (the debug profile's clean skipped at 141, over the last pass's 125; DECISIONS 104 §6). Stays filed.
  **The sixty-ninth pass, measured**: `tools/emu/` untouched by the tranche (no sweep ran; `git log 02f72df7d..HEAD -- tools/emu/` empty). Stays filed.
 
+## Loop, filed 2026-11-06 — the seventieth tranche's
+
+(3938) **A `cover=1` take that dumps to its end frame and never exits holds a pool lane for the runner's whole timeout** (3932's "for the Loop", parked 3932c): run1518 (`--end-frame 1100`, `cover=1`, a 380 MB trace) wrote blocks 615–1099 whole, then held pool lane 1 until the runner's 3600 s `TimeoutExpired` (receipt `success: false`), an hour no other lane could capture in. Candidate: the runner reads the gamelog's last block against `--end-frame` and ends the game itself once it is written, with a receipt that says so. Names no score; the loop's.
+
 ## Loop, filed 2026-11-06 — the sixty-ninth tranche's
 
 **3933** (`--dump-all-start` refuses any `--log-window` but `0 2`; 3924's "for the Loop", parked 3924b) — **built** by the sixty-ninth pass, red first (`AttributeError: … no attribute 'refused_full_start'`), its text kept in `docs/audit/2026-11-06-fable-pass-69.md` ("Rulings"): the runner refuses the pair before a lane is taken or a profile staged — `--dump-all-start is bounded to --log-window 0 2 (live_session.stage); a start dump beside --log-window <lo> <hi> is --detail start:… instead (run1515's line in docs/RUNS.md; Loop 3933)` — beside `refused_window`, where `live_session.stage`'s traceback killed run1516's first launch with no receipt.
