@@ -6640,6 +6640,30 @@ impl Sim {
     ///   the Advanced Machine Gun in it — takes it halved. 50 is 25: the
     ///   pair's Advanced Machine Gun `1/74` casts on 2868 and stands
     ///   unpacked on block 2894 (`docs/AI.md` §170).
+    /// `get_job_time`'s `0x27d` arm (`00675816`–`006758d1`, item 3919,
+    /// `docs/GOLDEN.md` §166): a French caster's leader
+    /// (`has_tribe_bonus(10)`) scales the time by `FRENCH_ENTRENCH` percent,
+    /// and then **every** live caster takes `ANTIPATER_ENTRENCH_RATE` in 8.8
+    /// (`cltd; and 0xff; sar 8`, toward zero). The listing calls `is(0x169,
+    /// 0)` on the caster and never tests the answer, so the 1/2 is not
+    /// Antipater's alone: run1513's General casts in 60 where the row says
+    /// 120.
+    fn entrench_job_time(&self, u: usize, t: i16) -> i16 {
+        use crate::nations::power::FRENCH;
+        let who = self.units[u].owner as usize;
+        let mut t = i32::from(t);
+        if self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[who], FRENCH)
+        {
+            t = self.tuning.french_entrench.wrapping_mul(t) / 100;
+        }
+        if self.units[u].alive() {
+            t = self.tuning.antipater_entrench_rate.wrapping_mul(t) / 256;
+        }
+        t as i16
+    }
+
     pub(crate) fn cast_job_time(&self, u: usize, spell: i32) -> i16 {
         use orders::spell;
         let t = self.spell_job_time(spell);
@@ -6655,6 +6679,7 @@ impl Sim {
             {
                 t / 2
             }
+            spell::ENTRENCH => self.entrench_job_time(u, t),
             _ => t,
         }
     }

@@ -125,6 +125,12 @@ pub mod umask2 {
     /// ([`crate::Sim::hard_trench`]); `get_damage`, the two collision
     /// refusals and `Guy::set_anim` read the trench alone.
     pub const MARINE_TRENCH: u32 = 0x20000;
+    /// **`0x1000` — Antipater's trench** (item 3919): `cast_entrench`
+    /// sets it beside `unit_masks |= 0x2000000` on each unit an Antipater
+    /// (0x169) entrenches, and `move_step` clears it with the trench
+    /// (`& 0xfffdefff`). SEAM: `get_damage`'s reader of it
+    /// (the damage target's `antipater_entrenched`) is not wired.
+    pub const ANTIPATER_TRENCH: u32 = 0x1000;
 }
 
 /// The `obj_masks` bits by the names the shipped `balance.xml` gives them
