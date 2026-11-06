@@ -6876,6 +6876,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN: i64 = 1200;
 /// run1517.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_EIGHTEEN: (i64, i64) = (604, 1201);
 
+/// **Chapter one hundred and nineteen** (item 3934, `docs/GOLDEN.md` §169,
+/// run1519): chapter one hundred and eighteen's staging with a Temple in
+/// city 0 in place of the second Barracks.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_NINETEEN: i64 = 1200;
+
+/// `chapter_one_hundred_and_nineteen_s_window_is_widened_whole`'s window:
+/// run1519.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_NINETEEN: (i64, i64) = (604, 1201);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
