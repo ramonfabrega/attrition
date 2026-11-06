@@ -2697,9 +2697,17 @@ impl Sim {
         } else {
             self.remove_from_city(b);
         }
-        if self.buildings[b]
-            .ty
-            .is_some_and(|t| build::is_fort(&self.build_types, t))
+        // `Build::close@00628980:211`–`:222`: a fort's close fixes the
+        // borders through `Forts::close_fort`, called only when its fort
+        // index (`+0x78`) is set — and `Build::activate`'s `init_fort` is
+        // that index's one writer, so an unbuilt site
+        // (`remove_unbuilt_fort`) fixes nothing (item 3901, `docs/GOLDEN.md`
+        // §157). `close_fort`'s own gate, a region under the fort's cell,
+        // is every land cell's.
+        if self.buildings[b].active
+            && self.buildings[b]
+                .ty
+                .is_some_and(|t| build::is_fort(&self.build_types, t))
         {
             self.sync_territory();
         }

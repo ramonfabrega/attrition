@@ -1447,11 +1447,42 @@ pub(super) fn stage_walk() {
             .cloned()
             .unwrap_or_default()
     };
+    // `RON_STAGE_OWNERS=1` (item 3901, `docs/GOLDEN.md` §157): on each
+    // frame the territory moves, every player's owned cells and the cells
+    // whose `(who, who2)` changed since the frame before, with their box —
+    // a border pass is walked on the staging before any capture.
+    let owners_walk = std::env::var_os("RON_STAGE_OWNERS").is_some();
+    let mut last_owners = built.sim.world.owners();
     while built.sim.frame <= to {
         let did = script.stage(built.sim.frame, &mut built, &loaded);
         applied.merge(&did);
         built.tick();
         let f = built.sim.frame - 1;
+        if owners_walk {
+            let now = built.sim.world.owners();
+            let w = built.sim.world.width();
+            let moved: Vec<(i32, i32)> = (0..now.len())
+                .filter(|&i| now[i] != last_owners[i])
+                .map(|i| (i as i32 % w, i as i32 / w))
+                .collect();
+            if !moved.is_empty() {
+                let mut held = std::collections::BTreeMap::<String, usize>::new();
+                for (o, _) in &now {
+                    *held.entry(format!("{o:?}")).or_default() += 1;
+                }
+                let xs = moved.iter().map(|c| c.0);
+                let ys = moved.iter().map(|c| c.1);
+                eprintln!(
+                    "owners f{f}: {} moved, x {}..{} y {}..{}; held {held:?}",
+                    moved.len(),
+                    xs.clone().min().unwrap(),
+                    xs.max().unwrap(),
+                    ys.clone().min().unwrap(),
+                    ys.max().unwrap()
+                );
+            }
+            last_owners = now;
+        }
         if draws {
             let ours = built.frame_sites.last().map_or(&[][..], |(_, v)| v);
             eprintln!("draws f{f} {} {}", ours.len(), ours.join(" "));
