@@ -39298,11 +39298,13 @@ on issue there, because a Spy is `CLOAKED` and is seen only through `seen3`, whi
 (`docs/GOLDEN.md` §101). The Scout is both: `FROM2` and objmask `FRPZC`. On an enemy, the body kills the target
 through vslot `+0x158(2, −1, 0)`. For a single-figure captain it also counts `+0x80c` and adds cost / 5 to `+0x44`.
 
-- **Staging**: chapter ninety-one's arm 2 with the caster changed. `add scout who=0 <x>,<y>`, `add spy who=1` within
-  the Scout's sight, then `@spell 0 631 <spy> 1 <x·192> <y·192> <scout>`.
-- **Falsifiers, before the run**: if the Scout gets no `CASTORDER`, the detection premise is false, and the arm parks
+- ~~**Staging**: chapter ninety-one's arm 2 with the caster changed. `add scout who=0 <x>,<y>`, `add spy who=1` within
+  the Scout's sight, then `@spell 0 631 <spy> 1 <x·192> <y·192> <scout>`.~~
+- ~~**Falsifiers, before the run**: if the Scout gets no `CASTORDER`, the detection premise is false, and the arm parks
   with the frame. Otherwise `mana_burn` +500, `spell_time` to 38, and who=1's Spy dead with `dtype` 2, entering
-  `cast_counterintel`. A Spy that walks off first is the staging's error, not a refusal.
+  `cast_counterintel`. A Spy that walks off first is the staging's error, not a refusal.~~ Taken by item 3920
+  (`docs/GOLDEN.md` §167, run1514–run1514c): no falsifier fired. The `CASTORDER` is on 622 with `mana_burn` 500, the
+  Spy dies on 658 (`cur_anim 17`, `dtype` 2), and the twin enters `cast_counterintel` on 658.
 
 **What is not established.**
 - `Group::action_queue_up`'s gate and `type_avail(DISBAND, 1)` for the Disband queue.

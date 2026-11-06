@@ -35171,3 +35171,35 @@ run1511b: `rontrace.log` 12,141,504 bytes, SHA-256 `c70ec5610a24426a58eadf3fdee6
 `chapter_one_hundred_and_fourteen_s_window_is_widened_whole` (18 rows: the eleven standing `form` and the barge's seven
 on 621, parked 3917a). Its windows 619..623 and 639..643 are in the coverage driver's slice. run1511b is in
 `blind::TRACES`, and the five rows are off `NEVER`.
+
+## run1514, run1514b and run1514c — chapter one hundred and seventeen: a Scout's Counterintelligence on an enemy Spy (2026-11-06, item 3920, `att-3920`)
+
+`docs/GOLDEN.md` §167. **What the disk could not answer**: no trace had entered `SpellType::cast_counterintel@00673740`
+(`docs/AI.md` §392.3). Chapter ninety-one's Spy caster was refused on issue (run894), and no dump held a
+Counterintelligence order. Recipe `tools/gamelog/golden/chapter117.cmd`: chapter ninety-one's lobby, `0 !ai off`, `600
+library who=0 2`, `602 library who=1 2`, `606 add scout who=0 132,130`, `616 add spy who=1 134,130`, `620 @spell 0 631
+6 1 25728 24960 6`. Map 14, `--end-frame 900`, `--log-window 605 900`, with `end:UNITS=3,BUILDS=7,DEATHS=1,LEADERS=2`,
+`start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1` and `misc:COMMANDMANAGER=1`,
+at `cover=0` into `~/ron-golden/ch117`. The twin is the same line with `--ai-tribe 11 --cover cover=1 --no-ffwd`, into
+`~/ron-golden/ch117b`. The detail take is the `cover=0` line with `GUYS=4` added to `end:` and `--ai-tribe 11`, into
+`~/ron-golden/ch117c`, for the figures run1514 does not print. 98 GiB free before.
+- run1514: pool lane 1, launched 09:23:26, exited 09:24:27, **60.6 s launch to exit**, no relaunch. `success`, 901
+  frames, `last_frame` 900, seed 12345, who 0 tribe 4, who 1 tribe 11. No minutes waited on another lane.
+- run1514b: pool lane 1, launched 09:27:28, 87.1 s launch to exit, `success`, 901 frames, `--ai-tribe 11`. Filed by
+  `filerun.py run1514b ch117-counterintel-cover` (`~/ron-golden/run1514b` links to `ch117b`).
+- run1514c: pool lane 1, launched 09:31:55, 24.6 s launch to exit, `success`, 901 frames, `--ai-tribe 11`.
+- Block 622: Scout `0/6` holds `CASTORDER x=25728 y=24960 paid=1 spell=631 targetorder.ox=6 targetorder.whom=1`,
+  `mana_burn` 500. The Spy `1/6` is gone from 659, with a death object `who 1 o 6 first_frame 658 cur_anim 17`. The
+  twin enters `Unit::do_cast` first on trace frame 621, and `SpellType::cast` and `cast_counterintel` on 658.
+- `rngcmp`: run1514 against run1514b, and run1514 against run1514c, 901 of 901 identical each.
+
+run1514: `gamelog.txt` 49,514,810 bytes, SHA-256 `8b7433c848d95dd296de4dea366a8751e3c5c289671e1e4920c81c7c76b154b8`.
+`rontrace.log` 9,765,888 bytes, SHA-256 `34756457f64f8cc3932b896434139d00fe4bc766070afdb76f829db878bf96e1`.
+run1514b: `rontrace.log` 17,730,688 bytes, SHA-256 `a5934c42f2c72c8520e68b19580fbf1f59ca06316366e27177395513a5dae6b3`.
+run1514c: `gamelog.txt` 81,136,507 bytes, SHA-256 `f2e9666d99cef91426621ccdc0fca400898c05767bd82b5a241cf35f26f4970a`.
+`rontrace.log` 10,236,128 bytes, SHA-256 `0deac2b153a23506173bf9fc0803241fe3aa82376ef7f32e94e505c44880b889`.
+
+**What it holds**: `golden::chapter_one_hundred_and_seventeen_holds_to_the_golden_word` (900, closed, the site sequence
+too) and `chapter_one_hundred_and_seventeen_s_window_is_widened_whole` (11 rows, the standing `form`), both on
+run1514c. Its windows 621..623 and 657..661 are in the coverage driver's slice. run1514b is in `blind::TRACES`, and
+`cast_counterintel` is off `NEVER`.
