@@ -792,7 +792,7 @@ impl Sim {
             // `angle` and `last_angle` outright — the figure faces the
             // target this frame rather than turning to it, so it stands
             // (`stopped` 1) on the first frame in range. run245's 756.
-            self.unit_set_angle(u, angle);
+            self.unit_set_angle_as(u, angle, true);
             self.units[u].movement.facing = angle;
             self.units[u].movement.frame_facing = angle;
         }
@@ -909,6 +909,18 @@ impl Sim {
             self.cast_sniper_unit(v, 2);
             return;
         }
+        if s == spell::COUNTERINTEL
+            && let Obj::Unit(v) = t
+            && self.spell_castable(s, u)
+        {
+            // `cast`'s `0x277` case asks `is_valid_target` again before
+            // the body (`00676ce0`; `spell_cast_view`'s arm).
+            let who = self.units[u].owner;
+            if self.counterintel_valid_target(who, t) {
+                self.cast_counterintel(who, v);
+            }
+            return;
+        }
         if s == 0x280 && self.spell_castable(s, u) {
             match t {
                 Obj::Unit(v) => self.cast_sniper_unit(v, 3),
@@ -923,6 +935,35 @@ impl Sim {
         match t {
             Obj::Unit(v) => self.units[v].infiltrated |= bit,
             Obj::Building(b) => self.buildings[b].infiltrated |= bit,
+        }
+    }
+
+    /// **`SpellType::cast_counterintel@00673740`** on a unit (item 3920,
+    /// `docs/GOLDEN.md` §167), entered with `ecx` the caster's player and
+    /// the target's id and player:
+    ///
+    /// ```text
+    /// not a captain (vslot +0xe8): the target is its captain (+0xe4)
+    /// whom != who, whom != leaders[who]+0x8, not allied both ways:
+    ///     a single-figure captain, +0x68 & 1 clear:
+    ///         units_killed (+0x80c) += 1; score_combat (+0x44) += cost / 5
+    ///     Unit::die(2, -1, 0)                              vslot +0x158
+    /// else: a message to each human console leader in `infiltrated`;
+    ///     infiltrated (+0x3a) = 0
+    /// ```
+    ///
+    /// SEAM: `units_killed` and `score_combat` (this crate carries neither,
+    /// and `LEADERS=2` prints neither); the sounds and the message; a
+    /// building target (`febchm`'s `c`), which no staging has cast on.
+    pub(crate) fn cast_counterintel(&mut self, who: Player, v: usize) {
+        let mut v = v;
+        while let Some(up) = self.units[v].o_up {
+            v = up;
+        }
+        if !self.is_ally(who, self.units[v].owner) {
+            self.die_with(v, 2);
+        } else {
+            self.units[v].infiltrated = 0;
         }
     }
 
@@ -2025,6 +2066,32 @@ mod tests {
             s.spell_valid_target(spell::COUNTERINTEL, 1, Obj::Unit(foe_spy)),
             "an enemy Spy"
         );
+    }
+
+    /// **Counterintelligence's body** (`SpellType::cast_counterintel@00673740`,
+    /// item 3920, `docs/GOLDEN.md` §167): an enemy's Spy dies with `dtype`
+    /// 2 and leaves a death object; one's own infiltrated unit only loses
+    /// its `infiltrated`. Made to fail with the kill dropped, with `dtype`
+    /// 0, and with the alliance test inverted.
+    #[test]
+    fn counterintelligence_kills_an_enemy_spy_and_clears_a_friend() {
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        let foe_spy = s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = s.units[spy].ty;
+            u
+        });
+        s.units[foe_spy].on_map = true;
+        s.declare_war(0, 1);
+        let deaths = s.deaths.len();
+        s.cast_counterintel(1, foe_spy);
+        assert!(!s.units[foe_spy].alive(), "the enemy Spy is dead");
+        assert_eq!(s.deaths.len(), deaths + 1, "a death object, dtype 2");
+        s.units[filler].infiltrated = 1;
+        let owner = s.units[filler].owner;
+        s.cast_counterintel(owner, filler);
+        assert!(s.units[filler].alive(), "one's own unit lives");
+        assert_eq!(s.units[filler].infiltrated, 0, "and is cleared");
     }
 
     /// **Bribe's conversion** (`SpellType::cast_bribe@00672d00`'s unit arm,
