@@ -6656,21 +6656,6 @@ impl Sim {
         self.spell(spell).map_or(0, |s| s.job_time)
     }
 
-    /// `get_job_time(o, who)@00675800` for caster `u`: [`Sim::spell_job_time`]
-    /// with the two type arms, read off the listing.
-    ///
-    /// - **The siege pair** `0x28b`/`0x28c` (`00675a10`–`00675ac1`): a
-    ///   caster whose type `is(0x10f, 1)` (Howitzer) or `is(0x116, 1)`
-    ///   (Katyusha) takes the row's `JOB_TIME` halved; otherwise one that
-    ///   `is(0x111, 1)` (MLRS) takes it quartered (`cltd; and 3; sar 2`,
-    ///   toward zero). The Catapult's 80 is 20 for an MLRS: the coverage
-    ///   pair's `1/65` casts its unpack on 2879 and stands unpacked on
-    ///   block 2900.
-    /// - **The machine gun's** `0x28d`/`0x28e` (`00675ac3`–`00675b16`): a
-    ///   caster whose type `is(0x7d, 0)` — the Heavy Machine Gun's lineage,
-    ///   the Advanced Machine Gun in it — takes it halved. 50 is 25: the
-    ///   pair's Advanced Machine Gun `1/74` casts on 2868 and stands
-    ///   unpacked on block 2894 (`docs/AI.md` §170).
     /// `get_job_time`'s `0x27d` arm (`00675816`–`006758d1`, item 3919,
     /// `docs/GOLDEN.md` §166): a French caster's leader
     /// (`has_tribe_bonus(10)`) scales the time by `FRENCH_ENTRENCH` percent,
@@ -6695,6 +6680,21 @@ impl Sim {
         t as i16
     }
 
+    /// `get_job_time(o, who)@00675800` for caster `u`: [`Sim::spell_job_time`]
+    /// with the two type arms, read off the listing.
+    ///
+    /// - **The siege pair** `0x28b`/`0x28c` (`00675a10`–`00675ac1`): a
+    ///   caster whose type `is(0x10f, 1)` (Howitzer) or `is(0x116, 1)`
+    ///   (Katyusha) takes the row's `JOB_TIME` halved; otherwise one that
+    ///   `is(0x111, 1)` (MLRS) takes it quartered (`cltd; and 3; sar 2`,
+    ///   toward zero). The Catapult's 80 is 20 for an MLRS: the coverage
+    ///   pair's `1/65` casts its unpack on 2879 and stands unpacked on
+    ///   block 2900.
+    /// - **The machine gun's** `0x28d`/`0x28e` (`00675ac3`–`00675b16`): a
+    ///   caster whose type `is(0x7d, 0)` — the Heavy Machine Gun's lineage,
+    ///   the Advanced Machine Gun in it — takes it halved. 50 is 25: the
+    ///   pair's Advanced Machine Gun `1/74` casts on 2868 and stands
+    ///   unpacked on block 2894 (`docs/AI.md` §170).
     pub(crate) fn cast_job_time(&self, u: usize, spell: i32) -> i16 {
         use orders::spell;
         let t = self.spell_job_time(spell);
