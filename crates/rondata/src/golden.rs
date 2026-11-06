@@ -2575,6 +2575,10 @@ mod tests {
         // eighteen's staging with a Temple in city 0 in place of the second
         // Barracks (item 3934, `docs/GOLDEN.md` §169).
         ("chapter119.cmd", &[]),
+        // Chapter one hundred and twenty: a standing Envelop and an
+        // `@attackadd` behind it on an enemy Barracks (item 3936,
+        // `docs/GOLDEN.md` §170).
+        ("chapter120.cmd", &[]),
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
@@ -3347,6 +3351,16 @@ mod tests {
                 ox: 6,
                 whom: 1,
                 objects: vec![6, 9],
+            })
+        );
+        // `@attackadd` (item 3936): `@attack` at `QUEUE_LAST`.
+        assert_eq!(
+            parse_issuer("@attackadd 0 2006 1 6 7"),
+            Some(Issued::AttackAdd {
+                who: 0,
+                ox: 2006,
+                whom: 1,
+                objects: vec![6, 7],
             })
         );
         assert_eq!(
