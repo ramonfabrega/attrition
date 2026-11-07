@@ -270,14 +270,16 @@ mod tests {
     }
 
     /// The walk takes the listing's start on every angle, on a pond where
-    /// most angles turn and many starts stand on the outer ring's band.
+    /// most angles turn and many starts stand on the outer ring's band;
+    /// `reach` 12 is a radius the walk's steps of 3 from 45 land on, so a
+    /// step that stops at `reach` rather than under it is caught.
     /// (On a pond of 4 with `reach` 10, angle 0 turns some 8.45 million
     /// times: 36 turns of 0x71c71c6 come 8 short of a circle, and the walk
     /// creeps until a projection rounds onto a cell near the water.)
     #[test]
     fn the_walk_in_is_the_listing_s_candidates() {
         {
-            let (radius, reach) = (6, 10);
+            let (radius, reach) = (7, 12);
             let grid = pond_of(radius);
             let mut turned = 0;
             let mut band = 0;
