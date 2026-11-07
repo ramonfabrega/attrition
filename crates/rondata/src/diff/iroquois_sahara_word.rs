@@ -170,7 +170,9 @@ fn run1001_s_word_frame_is_widened_whole() {
     // 1109 -> 35 — the standing family on 13751, `1/91`'s `g.angle[0]`
     // (parked 2995), `1/0`'s `blown` on 13825 (parked 3375a) and
     // `group:69`/`pool:69` on 13911, `1/54`'s `g.angle[0]` on 13963.
-    pin_eq!(w.firsts.len(), 35, "keys that part in the window");
+    // Item 3958: 35 → 34 — `1/0`'s `blown` on 13825 (parked 3375a) leaves:
+    // the Scout holds `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
 }
 
 /// run1001c: the word 13810's window, blocks 13755..14007 at `MISC`,
@@ -221,7 +223,8 @@ fn run1001c_s_word_frame_is_widened_whole() {
     // `g.angle[0]` standing alike, and 36 `build:extra` rows on 13755 and
     // 13983 (`UNITS=3` prints no `BUILDS` record, so every building is
     // this crate's alone). Nothing on the word's block 13811.
-    pin_eq!(w.firsts.len(), 67, "keys that part in the window");
+    // Item 3958: 67 → 66 — the Scout `1/0`'s `blown` leaves, as on run1001.
+    pin_eq!(w.firsts.len(), 66, "keys that part in the window");
 }
 
 /// The closing state's window: run994b's closing block alone, the long's

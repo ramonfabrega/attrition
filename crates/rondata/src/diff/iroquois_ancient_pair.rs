@@ -229,5 +229,14 @@ fn iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole() {
     // theirs 0; and the Javelineers `1/30` (TypeIndex 83, land, uid 55),
     // 5 against 4 from 8411, `damage_frac` 10 against 0. Theirs heals
     // both and ours does not; the closing compare reads no hits.
-    pin_eq!(w.firsts.len(), 67, "run1228b baseline");
+    //
+    // Item 3958, **67 → 65** (`docs/AI.md` §402): the cloak's three bits
+    // joined the rows (325 on their first run: `cloak_mark` 139,
+    // `land_cloak` 116, `cloak` 3, the crate holding 0), and the port of
+    // `process_cloak`'s two Iroquois arms, the birth mark and the tile
+    // step's forest test turned all three green. Its readers took two
+    // more: `1/88`'s `blown` ours 1 theirs 0 on 8165 and `1/16`'s ours 1
+    // theirs 0 on 8177 agree, since `Unit::work`'s stealth arm skips a
+    // unit holding `0x800` or `0x8000`.
+    pin_eq!(w.firsts.len(), 65, "run1228b baseline");
 }

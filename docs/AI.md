@@ -40079,12 +40079,84 @@ does not run whole.
 - **The cliff lists' tiles in a played game**, as §401.4 says.
 - **Why 15754 parts.** Held out: it is parked by frame, and it is read by nobody.
 
-## 402. Reserved for the next item on the AI track
+## 402. The Iroquois cloak: three mask bits widened and ported, run1228b's closing window 67 → 65 (item 3958, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3958, Opus 5.5. Parked T71-1 (territory adjudications 3 and 4): on the Iroquois Ancient pair's closing window
+(run1228b, 8165..8421) the Iroquois' units print three mask bits that no row compared and the crate held at 0.*
+
+### 402.1 The widening, red first
+
+`widen_block_rows` gains three rows on every on-map unit, each mapped to its parsed word for the coverage pin
+(`widened_field`): `cloak` (`unit_masks & 0x800`), `land_cloak` (`unit_masks2 & 0x8000`) and `cloak_mark`
+(`unit_masks2 & 0x80`). On their first run the window's `firsts` went **67 → 325**: `cloak_mark` 139 units,
+`land_cloak` 116, `cloak` 3, every one who=1 and ours 0 against theirs 1 from block 8165.
+
+### 402.2 The writers, from the reading
+
+- **The birth mark** (`Unit::init@00612100:341-352`): a unit of a leader with tribe bonus `0x12` whose type is land
+  (`+0x218 == 0`) and lacks objmask 4 (`CIVILIAN`; `ObjectTypeData::has_objmask@00470860` is `obj_masks & mask`)
+  takes `unit_masks2 |= 0x80`. Nothing clears it. `Sim::init_iroquois_masks`, beside the Scout's `0x4080`.
+- **The own-land cloak** (`Unit::process_cloak@005e1c20:47-58`, on the unit's sixteen-frame phase in
+  `Unit::process`, after the `targeted` decay): `unit_masks2 &= ~0x8000`, then `|= 0x8000` when `0x80` is set and
+  the cell's territory owner (`world +0x134`, `+0xf`, `>> 8` coordinates) is the unit's owner or a mutual ally.
+  `Sim::process_cloak`.
+- **The forest cloak** (`process_cloak:93-108`): an Iroquois land unit takes `unit_masks |= 0x800` on a forest tile
+  (`TData & 0x30 == 0x30`, `>> 6` coordinates) and loses it off one. The same test runs in
+  `Unit::set_new_location@005f8d20:61-82` when a step crosses a **tile inside one world cell** — a cell crossing
+  skips it. `Sim::step_cloak`, called from both. `crate::Unit::cloak` carries the bit.
+- **Two clears.** `Unit::process@00610bc0:556`'s inside arm, reached every frame a unit is inside, runs
+  `unit_masks2 &= 0xffff7f9f` and drops `0x800` from a unit without the hero's `0x2000`. `Unit::do_idle@0060dcd0:13-16,
+  34-36` lifts `0x8000` for `set_anim`, `check_idle` and `think`, and puts it back after them. Without the first,
+  run1320's units leaving a building or a boat kept a `land_cloak` theirs had dropped (27 rows).
+- **The Ambush's cloak** (`process_cloak:61-91`, `SpellType::cast_ambush@00671610`). The cast's
+  `unit_masks |= 0x2800` gives the hero both `ambushing` (`0x2000`, carried since item 3320) and `cloak`, and the
+  spell's end takes both. A unit not itself ambushing is cloaked while one of its owner's heroes, not itself,
+  ambushes unblown (`0x3000 == 0x2000`) on the map within `HeroData::get_radius × 0xc0`
+  (`Sim::in_ambush_aura`), and uncloaked otherwise. That is the arm's clear for every unit. The leader's `0x4000`
+  gate is set with the first ambushing hero and dropped by `Leader::verify_spell_flags` when none is left, so the
+  walk answers it. The Iroquois forest arm runs after the aura and overrides it for land units, so the aura shows on
+  ships.
+- **The readers** already asked `0x8000`; they now ask `0x800` too: `is_seen`'s stealth arm
+  (`unit_stealth_hides`), `is_cloaked` (`unit_is_cloaked`) and `Unit::work@0060d180:384`'s blown test
+  (`unit_stealth_type`).
+
+### 402.3 The score
+
+The rows went green with the process arms and the birth mark, but for `1/0`'s `cloak` (theirs 1 on 8197, off the
+unit's phase), which the tile step's test closed. `firsts` **67 → 65**, and the two that left are readers' rows:
+`1/88`'s `blown` ours 1 theirs 0 on 8165 and `1/16`'s ours 1 theirs 0 on 8177. Both carried `land_cloak` theirs 1
+on 8165, so `Unit::work`'s stealth arm, which skips a unit holding `0x800` or `0x8000`, no longer blows them. What
+remains of the 65: the 50 standing rows of item 3584 (`form`, `SITE[i].reg`, `aggression[1]`, groups' `held` and
+`pool`), groups 68's on 8181, six `dest_angle` rows from 8225 and the two wounds (`1/52`, `1/30`) that item 3959
+takes.
+
+**The other Iroquois windows**: the Scouts' and soldiers' `blown` rows leave wherever the unit stood cloaked:
+run918–run940 lose one each (`1/0`'s `blown`, ours 1 theirs 0 on run918's 1114), the Enlightenment pair's stride
+155 → 152 (`1/0`, `1/18`, `1/19`, parked 3114), run1001 35 → 34 and run1001c 67 → 66 (`1/0` on 13825, parked
+3375a). On run1320, the Enlightenment pair's closing window, the rows went red two ways before the clears and the aura
+were built: 27 `land_cloak` ours 1 theirs 0, and eight `cloak` theirs 1 ours 0. The second set is the President `1/15`
+(TI 355) casting Ambush on 4889 (`unit_masks` `0x84000a` → `0x84280a`), then seven Transport Galleons (TI 321, sea)
+inside its aura from 4895. Built, all of them agree, and 131 stands. **On every other lobby** the `cloak` row went
+red wherever an AI hero ambushed: the lane gate named 53 widenings (run657 +8, run1189b +26, run1250 +81, all of them
+`cloak` rows only). With the aura they stand at their old pins.
+
+**Held out, run897**: read after the port and never debugged against. Its word frame and closing state hold as they
+stood (`run897_s_word_frame_is_widened_whole`, `run897b_iroquois_closing_state` green, unchanged).
+
+### 402.4 Coverage
+
+- **Diff-backed**: all three bits on every unit and every block of run1228b's closing window. The birth mark's
+  predicate is checked on 139 units, the own-land arm on 116, and the forest arm on 3, two of them through the
+  tile step.
+- **Diff-backed too**: the Ambush's cloak and aura, on the 53 widenings above and run1320.
+- **Reading alone**: the mutual-ally term (no pinned lobby is allied); `do_idle`'s hold, which no window parts
+  without; and `Unit::find_melee_target@005ff9c0`'s cloak exit for a human's cloaked unit (`leader_flags & 4`), not
+  ported (parked 3958a).
+
+### 402.5 What is not established
+
+- **Whether any pinned game's enemy refused a cloaked Iroquois target.** The readers are live now, and every
+  lobby's `first_parting` held at the gate, but no window has been read for the moment an enemy's search skips one.
 
 ## 403. Reserved for the next item on the AI track
 

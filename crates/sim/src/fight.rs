@@ -1437,8 +1437,8 @@ impl Sim {
     /// `ally_mask(who) & seen3[pos / 0x180]`, the inner disc of a `DETECT`
     /// object ([`crate::world::World::seen3`]). The viewer is never the
     /// owner's own side here — `who == owner` is detected.
-    /// `Unit::work@0060d180:380`'s type test: `STEALTH` without `CLOAKED`
-    /// and no `unit_masks2 & 0x8000`.
+    /// `Unit::work@0060d180:380`'s type test: `STEALTH` without `CLOAKED`,
+    /// no `unit_masks & 0x800` and no `unit_masks2 & 0x8000`.
     pub(crate) fn unit_stealth_type(&self, u: usize) -> bool {
         let un = &self.units[u];
         let Some(t) = un.ty else {
@@ -1447,6 +1447,7 @@ impl Sim {
         let cols = self.unit_types[t].cols;
         cols.flag(crate::ai_load::uflags::STEALTH)
             && !cols.flag(crate::ai_load::uflags::CLOAKED)
+            && !un.cloak
             && un.unit_masks2 & 0x8000 == 0
     }
 
@@ -1456,7 +1457,8 @@ impl Sim {
             return false;
         };
         let cols = self.unit_types[t].cols;
-        let stealthy = cols.flag(crate::ai_load::uflags::CLOAKED)
+        let stealthy = un.cloak
+            || cols.flag(crate::ai_load::uflags::CLOAKED)
             || un.unit_masks2 & 0x8000 != 0
             || (cols.flag(crate::ai_load::uflags::STEALTH) && self.is_idle(u));
         // `!(unit_masks & 0x1000)`: a blown unit is seen (item 2785).

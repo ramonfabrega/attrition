@@ -83,6 +83,16 @@ pub mod umask2 {
     /// Scout `1/0` prints `unit_masks2` 49280 on block 1, these two and the
     /// cloak `0x8000` frame 0's idle adds.
     pub const IROQUOIS_SCOUT: u32 = 0x4080;
+    /// **`0x80` — an Iroquois soldier** (`Unit::init@00612100:341-352`,
+    /// item 3958, `docs/AI.md` §402): a land type without objmask
+    /// `CIVILIAN` takes it at birth; `Unit::process_cloak@005e1c20` reads
+    /// it for [`LAND_CLOAK`].
+    pub const CLOAK_MARK: u32 = 0x80;
+    /// **`0x8000` — the own-land cloak** (`Unit::process_cloak@005e1c20:
+    /// 47-58`): cleared on every pass and raised again on a
+    /// [`CLOAK_MARK`] unit standing on its owner's (or a mutual ally's)
+    /// ground. `UnitData::is_seen` and `is_cloaked` read it.
+    pub const LAND_CLOAK: u32 = 0x8000;
     pub const FOREST_WALKER: u32 = 0x4000;
     /// **`0x10` — "still ordered to attack, reload open, and not firing
     /// this frame"** (`docs/COMBAT.md` §43.2).

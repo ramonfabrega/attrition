@@ -4346,11 +4346,20 @@ impl Sim {
             return;
         }
         self.mark(crate::anim::SITE_IDLE_UNIT);
+        // **The own-land cloak is lifted for the idle step** (`do_idle@
+        // 0060dcd0:13-16`, `:34-36`; item 3958, `docs/AI.md` §402): a unit
+        // holding `unit_masks2 & 0x8000` drops it before `set_anim`,
+        // `check_idle` and `think`, and takes it back after them.
+        let land_cloak = self.units[u].unit_masks2 & combat::umask2::LAND_CLOAK;
+        self.units[u].unit_masks2 &= !land_cloak;
         self.set_default_anim(u);
         // `Unit::do_idle`'s own `collide = 0` (`docs/COLLISION.md` §6).
         self.units[u].collide = 0;
         self.check_idle(u, frame);
         self.think(u, frame);
+        if let Some(un) = self.units.get_mut(u) {
+            un.unit_masks2 |= land_cloak;
+        }
     }
 
     /// The carrying walk a gatherer plays — `unit_masks & 0x78000000`, in

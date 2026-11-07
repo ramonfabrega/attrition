@@ -14994,13 +14994,14 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   on a small map, where a continent's share runs into its neighbours'; the restart's draws would then show in the
   mask stream. Unit tests carry the shrink and the floor.
 
-## Parked by the next landing, slot CG — reserved
+## Parked by item 3958, 2026-11-07 — the Iroquois cloak
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3958a. `Unit::find_melee_target@005ff9c0`'s cloak exit** (AI §402.4; no score: no pinned window parts on it). A
+  unit of a human leader (`leader_flags & 4`) that `is_cloaked` and is not blown returns −1 when it holds
+  `unit_masks & 0x800`, and also without `0x8000` unless its type carries `+0x2b4 & 0x100000` or it `is(0x44)`. The
+  crate's `find_melee_target_as` has no such exit. With the cloak bits now carried, it would bind a human Iroquois
+  soldier standing in forest, and a human stealth unit standing idle. The score is the first window where a human
+  Iroquois unit in forest parts on its target or order list.
 
 ## Parked by the next landing, slot CH — reserved
 
