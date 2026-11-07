@@ -10693,13 +10693,13 @@ words and edits nothing here; a refill lands when two remain.
   against -718929920). No other field of the three parts, and the closing block agrees. **Score**: none
   (parked 3567a).
 
-## Parked by the next landing, slot PY — reserved
+## Parked by item 3967, 2026-11-07 — a patrol with a Helicopter in the group
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3967a. `GroupData::get_max_range` with a Helicopter member.** Item 3967 changed the crate's `group_max_range`
+  (`do_attack/live.rs`) to skip `is_plane` members only, as the original's vslot `+0xc0` does (`00711080`), so an
+  armed Helicopter's range now counts toward a group member's stand-off. No walked window reaches a `do_attack` stand-off
+  in a group with an armed Helicopter, and the change is held by no test or walk. **Score**: none; a chapter giving an
+  Attack Helicopter and a shorter-ranged unit one group's attack order would part on the stand-off's leg.
 
 ## Parked by item 3589, 2026-10-24 — the Bantu word 4185 → 5072: the lobby's type ages
 
@@ -15132,7 +15132,8 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `air.rs:1230–1246` applies all three to every plane, so a bomber sent at an unseen or out-of-reach target gets no order
   where the original lays the strafe; `docs/ORDERS.md` §38.2 misreads it the same way. `STRAFEORDER` is compared.
   **Score**: a chapter staging a bomber strike at a target beyond its reach; the first parting is the order list on the strike frame.
-- **T71-6. A patrol with a helicopter in the group issues nothing** (adjudication 2): `action_patrol` hands off to the air
+- ~~**T71-6. A patrol with a helicopter in the group issues nothing**~~ (adjudication 2; built and closed by item 3967,
+  `docs/GOLDEN.md` §173): `action_patrol` hands off to the air
   patrol on `count(COUNT_DOMAIN, 4)` = `is_plane`; the crate hands off on any Air-domain member (`group.rs:3523`) and its
   air arm orders no non-plane (`:3571`). `GroupData::get_max_range` skips `is_plane` only where `live.rs:124` skips every
   Air member. **Score**: a chapter patrolling a mixed group with a Helicopter; `PATROLORDER` is compared.

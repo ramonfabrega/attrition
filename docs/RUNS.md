@@ -35883,6 +35883,33 @@ No minutes were waited on another lane. `~/ron-golden/run1537` links to `ch122` 
   `BuildData::could_queue` on the first press's frame.
 - `rngcmp`: run1537 against run1537b, 1001 of 1001 identical.
 
+## run1538 and run1538b — chapter one hundred and twenty-three: a patrol with a Helicopter in the group, `@patrol 0 3456 11136 6 7` on 620 and `@patrol 0 11136 11904 10` on 700 (2026-11-07, item 3967, `att-3967`)
+
+`docs/GOLDEN.md` §173. **What the disk could not answer**: no captured patrol named a group holding a Helicopter.
+The golden air chapters patrol planes alone (chapter seventeen's air arm, run1505), and the long captures' AI never
+patrols a Helicopter. So no dump showed whether `action_patrol` hands a Helicopter's group to the air arm (parked
+T71-6).
+
+Recipe `tools/gamelog/golden/chapter123.cmd`: a Helicopter at 16,36 (610), a Hoplite squad at 56,40 (612), a second
+Helicopter at 30,30 (616), then the two patrols.
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch123 --map 14 --end-frame 1000
+--log-window 605 1000 --timeout 3600`, with run1537's three detail sets, `--ai-tribe 11` and `--profile DIFFICULTY=0
+--profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`. The twin is the same
+line at `--cover cover=1 --no-ffwd --twin ~/ron-golden/ch123`, into `~/ron-golden/ch123b`.
+
+22 GiB free before. Both `success`, lifecycle verified, `map_verified`, map style 14, 1001 frames, `last_frame` 1000,
+seed 12345, the lobby read back as pinned. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11).
+No minutes were waited on another lane. `~/ron-golden/run1538` links to `ch123` and `run1538b` to `ch123b`.
+- run1538 (`ch123`, `cover=0`, pool lane 1): 14:02:05–14:02:35, 29.8 s launch to exit, no relaunch. The word's.
+- run1538b (`ch123b`, `cover=1`, pool lane 1): from 14:03:21, 99.2 s launch to exit, no relaunch. Filed by
+  `filerun.py run1538b ch123-patrol-helicopter-group-cover`.
+- `process_patrol 3456 11136 2` on 621 and `process_patrol 11136 11904 2` on 701.
+- On 622, `0/6` (Helicopter, type 310) and `0/7`..`0/9` (Hoplites) each hold a `GroupPatrolOrder` over (10872, 7800)–
+  (3480, 11160), `id 621100`, `oxx 7`. On 702, `0/10` holds one over (5880, 5880)–(11160, 11928), `id 701000`.
+- The twin enters `CommandPackage::process_patrol`, `Group::action_patrol` and `Unit::add_patrol_order` first on 620,
+  and never `Group::action_air_patrol`.
+- `rngcmp`: run1538 against run1538b, 1001 of 1001 identical.
 ## run1539 and run1539b — chapter one hundred and twenty-four: a strike from inside a base on a target unseen, `@strike 0 2006 1 6` on 740 (2026-11-07, item 3968, `att-3968`)
 
 `docs/GOLDEN.md` §174. **What the disk could not answer**: no captured strike from inside a base named a target its

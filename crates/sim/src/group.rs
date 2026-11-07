@@ -3503,7 +3503,7 @@ impl Sim {
     /// own index and the leader. `order_num` steps once after the loop.
     ///
     /// SEAMS, none of which a player's command on land units reaches:
-    /// a plane leader or any air member hands the whole call to
+    /// a plane leader or any plane member hands the whole call to
     /// `action_air_patrol`, which returns here; the `QUEUE_LAST` arm reads
     /// [`Self::group_loc_to`] and appends the click to each member's
     /// existing patrol (`update_patrol_order`) instead of issuing one —
@@ -3525,7 +3525,15 @@ impl Sim {
         let Some(leader) = self.group_find_leader(g) else {
             return;
         };
-        if self.is_plane(leader) || g.list.iter().any(|&m| self.group_domain(m) == Domain::Air) {
+        // `count(COUNT_DOMAIN, 4)`: param 4 counts vslot `+0xc0`, `is_plane`,
+        // over the alive members — a Helicopter is not counted, so a group
+        // with one and no plane takes the land arm (item 3967, `docs/GOLDEN.md`
+        // §173).
+        if self.is_plane(leader)
+            || g.list
+                .iter()
+                .any(|&m| self.units[m].alive() && self.is_plane(m))
+        {
             self.group_action_air_patrol(g, to, queue);
             return;
         }
@@ -7165,6 +7173,35 @@ mod tests {
             assert_eq!((p.waypoint, p.leader, p.form_id), (0, a, i));
             assert_eq!(p.id, patrol(&s, a)[0].id);
         }
+    }
+
+    /// **A Helicopter in a patrolled group is ordered like a ground unit**
+    /// (item 3967, `docs/GOLDEN.md` §173): `Group::action_patrol@007030c0`
+    /// hands off to the air patrol on a plane leader or `count(COUNT_DOMAIN,
+    /// 4)` — vslot `+0xc0`, `is_plane` — and a Helicopter is no plane, so a
+    /// squad with one and a Helicopter alone each take the land arm, every
+    /// member a `GroupPatrolOrder`. run1538's `0/6`..`0/9` on 622 and `0/10`
+    /// on 702.
+    #[test]
+    fn a_helicopter_in_a_patrolled_group_takes_the_land_arm() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let heli = flier(&mut s, true);
+        let h = spawn(&mut s, 0, heli, Pos::new(3192, 7032));
+        let a = spawn(&mut s, 0, t, Pos::new(10872, 7800));
+        let b = spawn(&mut s, 0, t, Pos::new(11016, 7800));
+        let mut g = group_of(0, &[h, a, b]);
+        assert!(s.push_group(&mut g, true));
+        s.group_action_patrol(&g, Pos::new(3456, 11136), QueuePos::New);
+        for u in [h, a, b] {
+            assert_eq!(patrol(&s, u).len(), 1, "a patrol on {u}");
+            assert_eq!(s.order_type(u), index::GROUP_PATROL);
+        }
+        let lone = spawn(&mut s, 0, heli, Pos::new(5880, 5880));
+        let mut g = group_of(0, &[lone]);
+        assert!(s.push_group(&mut g, true));
+        s.group_action_patrol(&g, Pos::new(11136, 11904), QueuePos::New);
+        assert_eq!(patrol(&s, lone).len(), 1, "the lone Helicopter patrols");
     }
 
     /// `Unit::do_patrol@005f1910` on the leader steps the waypoint and
