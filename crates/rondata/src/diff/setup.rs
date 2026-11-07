@@ -435,6 +435,26 @@ pub fn world_from(
     // at every level (`sea_map 1` on run9's Great Lakes, 4 on run20's
     // islands). Not derivable from the cells: `World::sea_map`.
     world.set_sea_map(get("sea_map").unwrap_or(0) as i32);
+    // `world+0x38..+0x4c`, the style's six territory limits, printed with
+    // the same scalars (item 3963): `Map::make` copies them, and
+    // `compute_reg_territory` reads the player triple on a region whose
+    // flags carry bit 4 and the colonized one elsewhere. A block that
+    // prints none of the six leaves the world on the rules' triple.
+    let six = [
+        "player_territory_limit",
+        "player_territory_limit_civic",
+        "player_territory_limit_city",
+        "colonized_territory_limit",
+        "colonized_territory_limit_civic",
+        "colonized_territory_limit_city",
+    ]
+    .map(|k| get(k).map(|v| v as i32));
+    if let [Some(a), Some(b), Some(c), Some(d), Some(e), Some(f)] = six {
+        world.set_territory_limits(sim::world::TerritoryLimits {
+            player: [a, b, c],
+            colonized: [d, e, f],
+        });
+    }
     (world, region_map)
 }
 
