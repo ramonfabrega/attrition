@@ -2589,6 +2589,10 @@ mod tests {
         // Chapter one hundred and twenty-two: two `@queueup` presses on a
         // Barracks and a Stable together (item 3966, `docs/GOLDEN.md` §172).
         ("chapter122.cmd", &[]),
+        // Chapter one hundred and twenty-six: a Mayan City with a Temple, a
+        // Tower on the Militia bit with a General inside, and two Chariots
+        // at them (item 3970, `docs/GOLDEN.md` §176).
+        ("chapter126.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

@@ -6914,6 +6914,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: i64 = 1000;
 /// run1537.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and twenty-six** (item 3970, `docs/GOLDEN.md`
+/// §176, run1541): the armed building family — a Mayan City with a Temple,
+/// a Tower on the Militia bit holding a General, a Chariot at each.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX: i64 = 1100;
+
+/// `chapter_one_hundred_and_twenty_six_s_window_is_widened_whole`'s window:
+/// run1541.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX: (i64, i64) = (604, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
