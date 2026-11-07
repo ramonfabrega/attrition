@@ -3643,6 +3643,18 @@ impl Sim {
         {
             return Err(production::QueueFail::CantTrain);
         }
+        // `BuildData::can_make@0062db10:31`–`:36`: `BuildTypeData::queue_here`
+        // stands ahead of the per-kind tail and binds a unit too, so a
+        // building that does not make the type refuses it — what a press on
+        // a Barracks and a Stable together leans on (item 3966, T71-14,
+        // `docs/GOLDEN.md` §172). Only a building and a type the tree both
+        // carry can be refused by it.
+        if let Some(id) = self.unit_types[ty].tree
+            && let Some(b) = self.buildings[at].ty.and_then(|b| self.build_types[b].tree)
+            && !self.tech_tree.queue_here(b, id)
+        {
+            return Err(production::QueueFail::CantTrain);
+        }
         // `BuildData::can_make` comes before the price: a type the tree says
         // is not available is refused before anything is charged. Only a type
         // that is in the tree can be refused by it.

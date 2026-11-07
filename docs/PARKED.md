@@ -10713,13 +10713,14 @@ words and edits nothing here; a refill lands when two remain.
   `finalize_grafting` does (`0x19e..0x21f`), and no row this item walked reads one. **Score**: none until a
   building's age-dependent read parts in a lobby with `ending < 7` or `start > 0`.
 
-## Parked by the next landing, slot QA — reserved
+## Parked by item 3966, 2026-11-07 — a queue order on a mixed group
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3966a. A Stable that makes the unit beside a Barracks that does not.** Chapter one hundred and twenty-two
+  (`docs/GOLDEN.md` §172) holds `queue_here`'s refusal only with the Stable as the refuser: every Stable unit's
+  `PREQ0` is the Classical Age, and the `age` cheat sets no tech bit. The other direction is held by
+  `a_press_on_a_barracks_and_a_stable_queues_only_where_the_type_is_made` alone. **Score**: none; the predicate is one
+  `queue_here` on both sides. A staging with a `tech who=0 classical_age on` grant would reach it, once that cheat's
+  `gain_tech` on an age is walked against a capture.
 
 ## Parked by item 3566, 2026-10-23 — the Greeks keep their opening knowledge past the Ancient age
 
@@ -15178,7 +15179,8 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   race arms (CITIES §7.4); and the captures owed in order: a Blow Tread, a Depopulate, an All-Technologies Spy's Bribe from
   range, an interrupted Restock Supplies, Beaver Pelts held while a Scout trains, a struck Airbase with a fighter, a team
   lobby with an allied unit on its ally's land (`process_attrition`'s treaty exemption), a battle past 100 corpses.
-- **T71-14. A queue order on a mixed group skips `can_make`** (adjudication 5): `Group::action_queue_up` offers the order
+- ~~**T71-14. A queue order on a mixed group skips `can_make`**~~ (adjudication 5; built and closed by item 3966,
+  `docs/GOLDEN.md` §172, run1537): `Group::action_queue_up` offers the order
   to every member and relies on `can_make`'s `queue_here`; the crate's loop (`group_queue_up.rs:124`) goes through
   `queue_up_with`, which lacks the test, so a unit queued on a Barracks + Stable group is queued at the Stable here and
   refused in the original. A human reaches it with one click. **Score**: a chapter with the mixed selection; `BUILDQUEUE` is compared.

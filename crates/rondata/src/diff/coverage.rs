@@ -842,6 +842,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch119 = golden_dump("ch119");
     let ch120 = golden_dump("ch120");
     let ch121 = golden_dump("ch121");
+    let ch122 = golden_dump("ch122");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3096,6 +3097,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 7,
             "chapter one hundred and twenty-one carries seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-two, on run1537** (item 3966): the
+    // two presses on the Barracks and the Stable, 621 and 641, and the
+    // entries they lay.
+    if let Some(p) = &ch122 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO;
+        let n = drive_capture(p, 620, 644, &mut paths);
+        assert_eq!(
+            n, 25,
+            "chapter one hundred and twenty-two carries twenty-five blocks in the window"
         );
         frames += n;
     }

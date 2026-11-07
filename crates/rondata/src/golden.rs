@@ -2586,6 +2586,9 @@ mod tests {
         // twenty's Envelop with the `@attackadd` on a who=1 Citizen walked
         // north by `be 1` (item 3939, `docs/GOLDEN.md` §171).
         ("chapter121.cmd", &[]),
+        // Chapter one hundred and twenty-two: two `@queueup` presses on a
+        // Barracks and a Stable together (item 3966, `docs/GOLDEN.md` §172).
+        ("chapter122.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

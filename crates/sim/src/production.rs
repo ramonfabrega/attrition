@@ -1558,4 +1558,60 @@ mod infinite_tests {
             (1, rec, 700)
         );
     }
+
+    /// **A queue order on a mixed group** (item 3966, `docs/GOLDEN.md`
+    /// §172, T71-14): `Group::action_queue_up@006fdbb0`'s train arm offers
+    /// `Build::queue_up(ty, 1)` to every member and leaves the type to
+    /// `could_queue` → `BuildData::can_make@0062db10`, whose
+    /// `BuildTypeData::queue_here` gate (`:31`–`:36`) binds a unit too. A
+    /// Barracks and a Stable pressed for a Barracks unit lay one entry, at
+    /// the Barracks; pressed for a Stable unit twice, two at the Stable.
+    #[test]
+    fn a_press_on_a_barracks_and_a_stable_queues_only_where_the_type_is_made() {
+        let (mut s, barracks, bowmen) = barracks(true);
+        // A second tree: the first is finalized inside the helper.
+        let mut tree = tech::TechTree::new();
+        for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
+            tree.add(tech::TypeDef::good(n));
+        }
+        let bow = tree.add(tech::TypeDef::unit("Bowmen", tech::UnitTraits::default()));
+        let bar = tree.add(tech::TypeDef::building("Barracks"));
+        let horse = tree.add(tech::TypeDef::unit(
+            "Light Horse",
+            tech::UnitTraits::default(),
+        ));
+        let stab = tree.add(tech::TypeDef::building("Stable"));
+        tree.types[bow].where_ = Some(bar);
+        tree.types[horse].where_ = Some(stab);
+        tree.finalize();
+        s.set_tech_tree(tree);
+        for t in [bow, bar, horse, stab] {
+            s.tech[0].tech[t] = true;
+        }
+        let bt = s.buildings[barracks].ty.unwrap();
+        s.build_types[bt].tree = Some(bar);
+        s.unit_types[bowmen].tree = Some(bow);
+        // The tree's install clears the availability bits.
+        s.muster[0].researched[bowmen] = true;
+        let srec = s.build_types.len();
+        s.build_types.push(BuildType {
+            ident: Ident::Stable,
+            tree: Some(stab),
+            ..s.build_types[bt].clone()
+        });
+        let stable = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
+        s.buildings[stable].ty = Some(srec);
+        let mut lh = s.unit_types[bowmen].clone();
+        lh.tree = Some(horse);
+        let lhrec = s.add_unit_type(lh);
+        s.muster[0].researched[lhrec] = true;
+
+        assert_eq!(s.action_queue_up(&[barracks, stable], bowmen, 1), 1);
+        let len = |s: &Sim, b: usize| s.buildings[b].queue.items.len();
+        assert_eq!((len(&s, barracks), len(&s, stable)), (1, 0));
+        // Least queued first: the Stable is offered first, and the Barracks
+        // refuses both passes.
+        assert_eq!(s.action_queue_up(&[barracks, stable], lhrec, 2), 2);
+        assert_eq!((len(&s, barracks), len(&s, stable)), (1, 2));
+    }
 }
