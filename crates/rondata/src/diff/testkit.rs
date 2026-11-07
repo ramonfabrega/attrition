@@ -11377,6 +11377,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3868,
         Some(crate::diff::airbase_melee::WIDENING_AIRBASE_MELEE),
     ),
+    // **The sixth melee** (item 3971, `docs/GOLDEN.md` §177): the third's
+    // lobby with two massed armies, past the death pool's 100. First try
+    // 744 of 2600, widened on run1542's stride over 701..995, the rounds
+    // compared.
+    (
+        "CORPSE_MELEE_WORD",
+        crate::diff::corpse_melee::CORPSE_MELEE_WORD,
+        Some("corpse_melee_run1542_s_word_window_is_widened_whole"),
+        3971,
+        Some(crate::diff::corpse_melee::WIDENING_CORPSE_MELEE),
+    ),
     // **The Russians at a held Information age** (item 3721): East Indies
     // at difficulty 4 — first try 6153 of 6706, widened on run1401b over
     // 6095..6403, the rounds compared. Item 3744: whole at 6706 on
@@ -12571,6 +12582,10 @@ pub(crate) const AI_CLOSINGS: &[(&str, usize)] = &[
     (
         "EastIndiesAirbaseMelee",
         crate::diff::airbase_melee::AIRBASE_MELEE_CLOSING_OFF,
+    ),
+    (
+        "GreatSaharaCorpseMelee",
+        crate::diff::corpse_melee::CORPSE_MELEE_CLOSING_OFF,
     ),
 ];
 
@@ -14317,6 +14332,21 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 2_600,
         endpoint: Some("airbase_melee_run1492_s_closing_state"),
         window: Some("airbase_melee_closing_window"),
+    },
+    // **The sixth melee** (item 3971, `docs/GOLDEN.md` §177): the third's
+    // lobby, no lever moved, with two massed armies `add`ed a tile apart
+    // from 610 (`tools/gamelog/golden/melee-corpses.cmd`), so the death
+    // pool of 100 fills on both sides from 1001. First try 744 of 2600;
+    // run1542's word window over 701..995, the rounds compared; the
+    // closing state run1542's block 2601.
+    AiWord {
+        line: "Melee",
+        map: "GreatSaharaCorpseMelee",
+        named: "Great Sahara (the melee, two massed armies)",
+        word: crate::diff::corpse_melee::CORPSE_MELEE_WORD,
+        length: 2_600,
+        endpoint: Some("corpse_melee_run1542_s_closing_state"),
+        window: Some("corpse_melee_word_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
