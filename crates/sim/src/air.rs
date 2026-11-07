@@ -1229,20 +1229,22 @@ impl Sim {
     /// any of them.
     pub(crate) fn strike_from_inside(&mut self, u: usize, base: usize, target: crate::combat::Obj) {
         let me = crate::combat::Obj::Unit(u);
-        if !self.valid_target(me, target) {
-            return;
-        }
-        let whom = self.owner_of(target);
-        if self.profile(me).has(crate::combat::mask::MISSILE)
-            && whom != self.units[u].owner
-            && self.missile_defense_held(whom)
-        {
-            return;
-        }
-        let (b, t) = (self.buildings[base].pos, self.pos_of(target));
-        let reach = self.unit_mana(u) * self.get_speed(u, 1);
-        if vector_dist(b.x - t.x, b.y - t.y) > reach {
-            return;
+        // `6fbba8`: `testl $0x8000000, 0x1e4; je 6fbf6c` — a type without
+        // the missile bit jumps past all three gates to `6fbe61`'s war
+        // test (item 3968, T71-5).
+        if self.profile(me).has(crate::combat::mask::MISSILE) {
+            if !self.valid_target(me, target) {
+                return;
+            }
+            let whom = self.owner_of(target);
+            if whom != self.units[u].owner && self.missile_defense_held(whom) {
+                return;
+            }
+            let (b, t) = (self.buildings[base].pos, self.pos_of(target));
+            let reach = self.unit_mana(u) * self.get_speed(u, 1);
+            if vector_dist(b.x - t.x, b.y - t.y) > reach {
+                return;
+            }
         }
         self.add_strafe_order(
             u,
@@ -2949,16 +2951,34 @@ mod launch_tests {
         assert_eq!(s.units[u].inside, Some(base), "it waits in the base");
     }
 
-    /// **Out of reach, no strike**: `vector_dist(base − target)` 9857
-    /// against a tank of 100 at 75 a frame. Made to fail by dropping the
-    /// reach test.
+    /// **Out of reach or unseen, a plane still takes the strike; a
+    /// missile does not** (item 3968, T71-5; the listing's `6fbba8`
+    /// gives `valid_target`, the shield and the reach to the missile bit
+    /// alone): `vector_dist(base − target)` 9857 against a tank of 100 at
+    /// 75 a frame, and a target never seen. Made to fail with the three
+    /// gates on every plane (the first two assertions) and with none (the
+    /// last two).
     #[test]
-    fn a_strike_beyond_the_tank_s_reach_lays_nothing() {
-        let mut s = sim();
-        let (base, target) = base_and_target(&mut s);
-        let u = fighter_inside(&mut s, base, 100);
-        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
-        assert!(s.units[u].orders.is_empty());
+    fn a_strike_beyond_the_tank_s_reach_binds_a_missile_only() {
+        for unseen in [false, true] {
+            let mut s = sim();
+            let (base, target) = base_and_target(&mut s);
+            let u = fighter_inside(&mut s, base, if unseen { 400 } else { 100 });
+            if unseen {
+                s.buildings[target].ever_seen = 0;
+            }
+            s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+            let o = s.units[u].orders.front().copied();
+            assert!(
+                matches!(o.map(|o| o.body), Some(Body::Strafe(sf)) if sf.target == Some(Obj::Building(target))),
+                "unseen {unseen}: a plane takes the strike"
+            );
+            let ty = s.units[u].ty.unwrap();
+            s.units[u].orders.clear();
+            s.unit_types[ty].combat.obj_masks |= crate::combat::mask::MISSILE;
+            s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+            assert!(s.units[u].orders.is_empty(), "unseen {unseen}: a missile does not");
+        }
     }
 
     /// **`land_plane` under a repeating base** (`Unit::land_plane
