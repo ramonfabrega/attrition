@@ -14833,13 +14833,21 @@ words and edits nothing here; a refill lands when two remain.
   agree with the dump. One writer between `Terrain.cpp` 894 and `setup.cpp` 1240 now
   has two cells across two files to be read on. This row names no score.
 
-## Parked by the next landing, slot BY — reserved
+## Parked by item 3946, 2026-11-06 — Himalayas' chain, 8 of 8
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3946a. §22.2's "no checkpoint 7805..7945 on disk" missed the AI track's
+  Himalayas files** (MAPGEN §27.2). run348, run464 and run465 (DECISIONS 53 §4,
+  item 972) each carry 7805..894, and run464 also carries a start-dump grid. Their
+  masks are run1529's, so run1529 was not needed. Among the other nine chain styles no
+  older file carries the checkpoints, so 3945 and 3947–3953 are unaffected. The rule is
+  that a booking first runs the walk's archive filter (`style == N` with a start-head
+  grid). This row names no score.
+- **3946b. Himalayas is both a chain read against and the AI track's held-out map**
+  (MAPGEN §27.3; DECISIONS 53 §4: "it stays undebugged by rule"). The chain took no
+  fix, since nothing parted. A later parting on these four files would be the first
+  debugging against a held-out map's files. Before anyone fixes it, the commander
+  should decide whether the mapgen walk is in the held-out rule's scope. This row names
+  no score.
 
 ## Parked by the next landing, slot BZ — reserved
 

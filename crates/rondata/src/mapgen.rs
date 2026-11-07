@@ -1171,6 +1171,22 @@ pub fn amazon_basin_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Himalayas setup path: every draw
+/// whose site is `MapHimalayas::make_continents@0069bc90` (`docs/MAPGEN.md`
+/// §27, item 3946), Great Sahara's listing at another address, from the
+/// first to the first that is not.
+pub fn himalayas_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let hi = 0x0069_bc90..0x0069_be00;
+    let Some(from) = setup.iter().position(|(s, _)| hi.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !hi.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7582,6 +7598,11 @@ mod tests {
         river_records: usize,
         /// Whether a trough reaches a good, which `move_goody` moves.
         moves_a_good: bool,
+        /// Whether the style lays a river: Himalayas' `RIVERLIST` is empty,
+        /// and neither side draws in `make_rivers` (item 3946).
+        lays_rivers: bool,
+        /// The files whose start dump prints the heights: a floor.
+        height_files: usize,
         walks: OnceLock<Option<Vec<ChainWalk>>>,
     }
 
@@ -7599,6 +7620,8 @@ mod tests {
         terrain_records: 21,
         river_records: 5,
         moves_a_good: true,
+        lays_rivers: true,
+        height_files: 1,
         walks: OnceLock::new(),
     };
 
@@ -7616,6 +7639,30 @@ mod tests {
         terrain_records: 22,
         river_records: 5,
         moves_a_good: true,
+        lays_rivers: true,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
+    /// Himalayas (style 9, §27): run1529, item 3946, and the AI track's
+    /// run348, run464 and run465 of the same lobby — 84 records 734..815
+    /// and 20 records 5012..5118 (21 and 5 a file) on 2026-11-06, and the
+    /// heights on run1529's and run464's start dumps. No river, so no
+    /// trough and no good moved.
+    static HIMALAYAS: Chain = Chain {
+        label: "Himalayas",
+        map: "Himalayas",
+        style: 9,
+        xml: "HIMALAYAS.xml",
+        mask: himalayas_part,
+        files: 4,
+        traces: 4,
+        checked: 8,
+        terrain_records: 84,
+        river_records: 20,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 2,
         walks: OnceLock::new(),
     };
 
@@ -8144,6 +8191,18 @@ mod tests {
             }
         }
         assert!(parted.is_empty(), "{}", say_partings(&parted));
+        if !c.lays_rivers {
+            for w in walks {
+                assert!(
+                    w.rivers.0.is_empty() && w.rivers.1.is_empty(),
+                    "{}: river draws, ours {} theirs {}",
+                    w.name,
+                    w.rivers.0.len(),
+                    w.rivers.1.len()
+                );
+            }
+            return;
+        }
         assert!(
             walked >= c.traces,
             "the river stream walked {walked} traces"
@@ -8276,7 +8335,7 @@ mod tests {
             say_partings(&parted)
         );
         assert!(
-            files >= c.files,
+            files >= c.height_files,
             "the heights reached {files} {} files",
             c.label
         );
@@ -8317,5 +8376,17 @@ mod tests {
         amazon_basin_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         amazon_basin_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         amazon_basin_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        HIMALAYAS,
+        himalayas_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        himalayas_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        himalayas_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        himalayas_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        himalayas_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        himalayas_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        himalayas_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        himalayas_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }
