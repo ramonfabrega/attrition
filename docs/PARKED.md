@@ -15192,3 +15192,51 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   at `:2104–2120`); `city.rs:65, :109` (Global Government's flag has no writer);
   `Doober::has_doobers` always answers 0 (`div_3_table[0]`, listing `8466fb`), so parked 2635 closes as inert; parked
   3343a amended: the Aztec speed arm is inert (run1256b 8711, all 51 gatherers `myspeed 25`).
+
+## Parked by the next landing, slot CM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot CR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot CR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
