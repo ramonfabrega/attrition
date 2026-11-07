@@ -81,14 +81,14 @@ fn opening(g: &mut Grower<'_>, (sx, sy): (u32, u32)) -> (i32, i32) {
 ///
 /// The original clears `near` once a seat, not once a step, and the turning
 /// step tests the point with `edge` as the step before left it (one stack
-/// slot for every seat, so `edge` is the caller's). Neither is ever read:
-/// a step that sets `near` passes every later test and is the start, so
-/// `near` is clear on every step that reaches the refusal, the turning
-/// step's among them.
-fn walk_in(grid: &MapGrid, sea: (i32, i32), angle: i32, reach: i32, edge: &mut bool) -> (i32, i32) {
+/// slot for every seat). Neither is ever read: a step that sets `near`
+/// passes every later test and is the start, so `near` is clear on every
+/// step that reaches the refusal, the turning step's among them, and the
+/// turning step is refused whatever `edge` holds.
+fn walk_in(grid: &MapGrid, sea: (i32, i32), angle: i32, reach: i32) -> (i32, i32) {
     let (xs, ys) = (grid.xs, grid.ys);
     let far = xs * 3 / 2;
-    let (mut a, mut radius, mut near) = (angle, far, false);
+    let (mut a, mut radius, mut near, mut edge) = (angle, far, false, false);
     loop {
         let (x, y) = project(sea.0, sea.1, Angle(a), radius);
         radius -= 3;
@@ -96,15 +96,15 @@ fn walk_in(grid: &MapGrid, sea: (i32, i32), angle: i32, reach: i32, edge: &mut b
             a = a.wrapping_add(0x071c_71c6);
             radius = far;
         } else {
-            *edge = ORTHOG.iter().any(|&(dx, dy)| {
+            edge = ORTHOG.iter().any(|&(dx, dy)| {
                 let (px, py) = (x + dx, y + dy);
                 !in_bounds(grid, px, py) || px == 0 || py == 0 || px == xs - 1 || py == ys - 1
             });
-            if !*edge && !grid.cell(x, y).is_ocean() && is_near_ocean(grid, x, y, 3, 9) {
+            if !edge && !grid.cell(x, y).is_ocean() && is_near_ocean(grid, x, y, 3, 9) {
                 near = true;
             }
         }
-        if !in_bounds(grid, x, y) || grid.cell(x, y).is_ocean() || *edge || !near {
+        if !in_bounds(grid, x, y) || grid.cell(x, y).is_ocean() || edge || !near {
             continue;
         }
         return (x, y);
@@ -150,7 +150,6 @@ pub fn mediterranean_make_continents(
         },
     };
     let (mut sea_stalls, mut island_stalls) = (0, 0);
-    let mut edge = false;
     loop {
         let reach = (g.grid.xs.min(g.grid.ys) & !1) / 3;
         let size = reach * reach * 3;
@@ -181,7 +180,7 @@ pub fn mediterranean_make_continents(
         let mut starts = Vec::new();
         for _ in 0..players {
             angle = angle.wrapping_add(step);
-            let (x, y) = walk_in(g.grid, sea, angle, reach, &mut edge);
+            let (x, y) = walk_in(g.grid, sea, angle, reach);
             g.grid.add_starting_location(x, y);
             starts.push((x, y));
         }
@@ -249,14 +248,12 @@ mod tests {
         let mut turned = 0;
         for k in 0..16 {
             let angle = (k as u32).wrapping_mul(0x1000_0000) as i32;
-            let mut edge = false;
-            let (x, y) = walk_in(&grid, (15, 15), angle, 10, &mut edge);
+            let (x, y) = walk_in(&grid, (15, 15), angle, 10);
             assert!(!grid.cell(x, y).is_ocean(), "{k}: ({x}, {y}) is water");
             assert!(
                 (2..28).contains(&x) && (2..28).contains(&y),
                 "{k}: ({x}, {y})"
             );
-            assert!(!edge);
             // Each step falls by 3 from 45: the start is the first such
             // radius whose point is near the sea.
             let first = (0..)
@@ -290,13 +287,12 @@ mod tests {
     fn a_halfland_cell_is_land_to_the_walk() {
         let mut grid = pond();
         let angle = 0x4000_0000; // due east: x grows, y holds.
-        let mut edge = false;
-        let (x, y) = walk_in(&grid, (15, 15), angle, 4, &mut edge);
+        let (x, y) = walk_in(&grid, (15, 15), angle, 4);
         grid.cell_mut(x, y).flags |= 0x100;
         grid.cell_mut(x, y).land = 2;
-        assert_eq!(walk_in(&grid, (15, 15), angle, 4, &mut edge), (x, y));
+        assert_eq!(walk_in(&grid, (15, 15), angle, 4), (x, y));
         grid.cell_mut(x, y).flags &= !0x100;
-        assert_ne!(walk_in(&grid, (15, 15), angle, 4, &mut edge), (x, y));
+        assert_ne!(walk_in(&grid, (15, 15), angle, 4), (x, y));
     }
 
     /// The whole mask on a Standard two-nation map: the sea is region 1
