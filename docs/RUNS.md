@@ -35511,6 +35511,25 @@ SHA-256 `390f6dfcd629013eac03a673f5e96e4c07490e1425c09f5b14c92d1c7f441c71`.
 
 **What it holds**: no `blind::TRACES` row. `NEVER` is unmoved. AI §396's order lists.
 
+## run1524 — East Meets West (style 19), the held-out style, at `cover=0`: the start dumps to 36, scored on the first take (2026-11-06, item 3941, `att-3941`)
+
+`docs/MAPGEN.md` §24. **What the disk could not answer**: run1125 (style 19) is a `cover=1` coverage trace. It has no
+`check_all_level` 14 and no `CHECKSUM`, so the disk held no style-19 checkpoint (MAPGEN §22.2). The port (`004dbbab7`)
+was pushed before launch. Launched with `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1524 --map 19 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0`, with `df -g ~` at
+102 GiB free.
+- Pool lane 1, launched 22:28:58 −05:00, exited 22:29:20 (22.6 s). Receipt `success`, 37 frames, `map_verified`, map
+  style 19, seed 12345, players tribe 4 (flags 7) and tribe 11 (flags 1), `page_faults` 0, no relaunches. Run
+  directory `~/ron-golden/run1524/map-19`. No minutes waited on another lane.
+- Filed with `filerun.py run1524 eastmeetswest-mapgen-start`.
+
+Archive `gamelog-run1524-eastmeetswest-mapgen-start.txt`, 152,268,974 bytes,
+SHA-256 `fdf6d006a4199e71163e54191fafa0c21aa8e7431336811c98a1d692e54280bb`.
+Archive `rontrace-run1524.log`, 8,454,624 bytes,
+SHA-256 `7302876c9a6e2ee247f6c2cb2623a05de33f76aa6cac9368c61a63e8c34c71f0`.
+
+**What it holds**: `floors::MAPGEN`'s `EastMeetsWest` row, 8 of 8 phases. No `blind::TRACES` row. It is the held-out
+style's take, scored and never read against.
 
 ## run1527 — Old World (style 6), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-06, item 3944, `att-3944`)
 

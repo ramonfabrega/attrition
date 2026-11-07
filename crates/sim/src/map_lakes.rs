@@ -265,7 +265,7 @@ impl Grower<'_> {
 
     /// **`Map::scale_by_area@006a0910`** of `n`: `n` cells of the standard
     /// map, on this one, rounded, at least 1.
-    fn scale_by_area(&self, n: i32) -> i32 {
+    pub(crate) fn scale_by_area(&self, n: i32) -> i32 {
         if n < 1 {
             return 0;
         }
@@ -443,7 +443,7 @@ pub(crate) fn isqrt(n: i32) -> i32 {
 /// first-seen scan order), until one is left. Each merged region's cells
 /// take the first land region a cell of it touches; `invert_land` zeroes
 /// every `region` straight after, so only the `land` writes reach 7807.
-fn eliminate_pools(grid: &mut MapGrid) {
+pub(crate) fn eliminate_pools(grid: &mut MapGrid) {
     let mut regions = Regions::default();
     regions.clear_all(grid);
     regions.find_all(grid);
