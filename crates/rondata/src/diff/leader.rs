@@ -423,6 +423,20 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for (r, n) in m.queued_by_type.iter().enumerate().take(MUSTER_WIDTH) {
         out.push((format!("num_queued[{r}]"), i64::from(*n)));
     }
+    // **And the technologies' half of `num_queued`** (item 3969, Loop
+    // 3957): the array is 806 wide and keyed by `TypeIndex`, so a queued
+    // technology counts at its own `TypeIndex` too (`Build::clean_queue
+    // @00620b60:75`–`:77` takes it off there). This crate keeps that count
+    // in `PlayerTech::queued`, indexed by tree id, and the dump's key is
+    // re-based on `BASE_UNITTYPES` as the units' is.
+    for (id, n) in built.sim.tech[who].queued.iter().enumerate() {
+        let t = loaded.type_index(id as sim::tech::TypeId);
+        if t < crate::load::BASE_TECHTYPES {
+            continue;
+        }
+        let r = t as usize - BASE_UNITTYPES;
+        out.push((format!("num_queued[{r}]"), i64::from(*n)));
+    }
     // The ten sites, slot for slot.
     for (i, s) in a.sites.iter().enumerate() {
         for (k, v) in [
