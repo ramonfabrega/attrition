@@ -35534,3 +35534,27 @@ SHA-256 `1d0093e791519f232942703b49dade5c18321b91898629e689ce4346f796621f`.
 `place_all` through the values and 2,070 river draws (one `SPREAD`, then `astar_river`'s `PRICE`s); 894 at seed
 422556960, part 5 1499455944, part 6 1423377562. The port meets all of it (`mapgen::tests::old_world_*`). No
 `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
+
+## run1528 — Amazon Basin (style 8), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-06, item 3945, `att-3945`)
+
+`docs/MAPGEN.md` §26. The chain take §22.2 writes, at `--map 8`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1528 --map 8 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: run1099 (style 8, `cover=1`) enters
+`MapAmazonBasin::make_continents` and carries no setup trace, so no Amazon Basin checkpoint 7805..7945 was on disk.
+- Pool lane 1, the pool's pick. Launched 22:45:36, exited 22:46:08 (31.4 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 8, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60; `page_faults` 0,
+  `relaunches: []`. `df -g ~` read 92 GiB free before it. Filed with `filerun.py run1528 amazon-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1528-amazon-mapgen-start.txt`, 150,433,413 bytes,
+SHA-256 `a5d4d6852e8e71afa04822ccdad9ba339a371b1066f207a7f6e6d34096442a70`.
+
+Archive `rontrace-run1528.log`, 9,659,168 bytes,
+SHA-256 `972ed39e35096baad6cf9efc9c59f28990bdae434608f4461c9fe4eec130fe56`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118. The tileset is `tropical`, drawn from `AMAZON.xml`'s own three `TILECHANCE`s, and 7807's
+seed is 2355140353. It holds 21,411 draws from `place_all` through the values and 8,290 river draws over 78
+sources. At 894 the seed is 345508960, part 5 3390494892 and part 6 841929190. The port meets all of it on the first
+run (`mapgen::tests::amazon_basin_*`). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
+
