@@ -3889,7 +3889,7 @@ against the dump's 178.125, 165.0, 138.75 and 114.375. Each of ours is
 those four corners the border blend of player 1's type-418 building at
 (44160, 18816), box (228, 96)..(233, 101), and the original held them
 back. Instrumented at the four corners, each read `AS_BUILDING` on its
-tile (0x6300) and `good_at((57, 25))` answered none. Yet the dump's goods
+tile, and `good_at((57, 25))` answered none. Yet the dump's goods
 list has Wine (o 20) at (44160, 19584), on cell (57, 25), whose
 `down`/`down_who` read −2/20 on both sides.
 
