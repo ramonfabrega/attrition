@@ -3951,12 +3951,103 @@ Four failed nothing:
   player's 20×20 island. The guard rests on East Meets West's port and its
   unit test.
 
-## 34. Reserved for the next item on the map track
+## 34. Nile Delta's chain, 8 of 8 (item 3953)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The tenth chain take (§22.2, §25's method), and one more whose mask is
+not Great Sahara's. One take, run1536 at `--map 21` on §22.2's line
+(`docs/RUNS.md`), walked phase by phase against its own checkpoints by
+the `Chain` walk (§26) with its own mask choice
+(`rondata::mapgen::tests::NILE_DELTA`, `MaskPort::NileDelta`). Nile Delta
+is **read against**. It is not the held-out style (§24).
+
+### 34.1 The mask is its own: a continent a player on a ring
+
+`MapNileDelta::make_continents@00695bf0` runs to 0x696080, 1,168 bytes
+against Great Sahara's 368: 361 instructions in `llvm-objdump -d`
+against 144, two `Random::get@00a39d70` calls against four, and three
+unwind funclets of its own (0xa8bea1..0xa8beb1). So it is not a
+dispatch, and the port is `sim::map_nile_delta`. The decompile garbles
+the pass sum (`local_28 += avoid_edge…`); the listing settles it
+(0x695f2f `addl %ecx, %edi`, `ecx` the size at −0x10), and settles
+`project@0092d000`'s centre `(xs/2, ys/2)` in `ecx`/`edx`,
+`make_region@0069d3f0`'s `(k + 1, x, y, S)` (the struct-copy pushes;
+`x` is `project`'s first out-parameter, `S` only logged), and the last
+call, `check_player_land@0068ef00` with `ecx` 1, `edx`
+`avoid_continent` and ring −1 — East Meets West's and New World's call.
+
+1. Once: `S = max(100, scale_land_area((cells / players)·6/8))`, and
+   `avoid_continent` (+0x30) becomes `max(4, scale_land_area(it))`; the
+   angle step is `0xffffffff / players`, unsigned.
+2. Each generation: `World::wipe`, `Regions::clear_all`; the ring's
+   radius `((m/2)·3)/4`, `m` the shorter side; two draws (0x695d3b,
+   0x695d53) and the angle `(r % 0xffff) << 16 + r2 % 0xffff`.
+3. Each player steps the angle (the first a step past it), takes its
+   start on the ring about `(xs/2, ys/2)` (`add_starting_location`) and
+   opens region `k + 1` there.
+4. `n = scale_land_area(4)` passes, no floor: pass `p` grows every
+   continent by `Map::grow_region` to `S·(p + 1) / n` cells within
+   `radius / 2` of its start, `param_6` 0. A non-zero return (short of
+   its size) makes `S` `max(S·4/5, (cells / players)/4)` and starts the
+   generation again; `avoid_continent` and the step are kept.
+5. `Map::eliminate_pools(ENTIRE_WORLD)`, `Map::eliminate_edge_canals`
+   (§22.2: styles 19, 20 and 21 alone), and `check_player_land` on the
+   region lists the canals' `Regions::find_all` rebuilt
+   (`rebuild_coords`, as §24's). No `invert_land`, no `start_dist`.
+
+`NILEDELTA.xml` carries `AVOID_CONTINENT` 4, one `TILECHANCE` (so no
+tileset draw, African Watering Hole's case, §28) and an empty
+`RIVERLIST`, Himalayas' case (§27).
+
+On run1536 (2 nations, 60×60, seed 12345): one generation, a ring of
+radius 22, four passes to 1,350 cells a continent, **11,709 draws**.
+**7807 and the 11,709-draw stream agree on the first walk**, every site
+the port's: seed 1014371588, part 2 241437301, part 5 3246915321, part
+6 1792933889 on both sides.
+
+### 34.2 Every shared phase held, first walk
+
+- **The tileset**: `gs_desert`, the one entry, no draw.
+- **7835..7945** agree: 4,982 draws `place_all` through the last
+  `compute_val`, whole against the trace's, with no shared-phase change.
+- **`Terrain::init`**: 22 records 734..815 agree; 734's part 5 is
+  3308244523 on both sides.
+- **Rivers**: 22 sources and no river draw on either side (the empty
+  `RIVERLIST`); the 5 records 5012..5118 agree.
+- **894**: no trough section, no good or oil moved, `Cliffs::init`
+  inert; seed 1554454810, part 5 1018357250, part 6 4275928712, parts
+  10–13 3060031697 / 2452489542 / 4150068099 / 262145 on both sides.
+  All 58,081 start-dump vertices agree.
+
+**Made to fail**: `tools/mutate.py --batch --timeout 900` on `2eedfcebf`,
+scored by the eight `nile_delta_s_*` walks: twenty-one breaks (two first
+refused for text the tests share, re-run at `NTH` 1), fifteen held — the
+share at 5/8, the floor at 1,351, `avoid_continent`'s floor at 5, the
+step over `players + 1`, the radius at 5/8, the high half `<< 15`, the
+step taken after the start, the ring's centre a cell east and a cell
+south, the passes at `scale_land_area(3)`, the reach at a third, one pass
+at the whole size, the sum stepped by half, `eliminate_pools` dropped,
+and `eliminate_edge_canals` replaced by a bare `find_all` (so the canal
+pass does work on run1536). Six failed nothing, each unreached or
+equivalent on this take (§34.3): the size's floor at 0 (1,350 is over
+100), the low half `% 0xfffe` and `% 0x7fff` (it moves the angle under
+1/65,536 of a turn, and neither start cell moved), the restart's shrink at
+3/4 and the restart refused (one generation), and `check_player_land`
+dropped. No condition here is a disjunction.
+
+### 34.3 What is not established
+
+- One file only: 2 nations, 60×60. Other nation counts and sizes are
+  untaken.
+- **The restart arm**: run1536 grows both continents in one generation,
+  so the shrink (`S·4/5` floored at a quarter share) and the restart
+  itself fail nothing when broken (parked 3953a).
+- **The size's floor of 100**: a share's three quarters is 1,350 here.
+- **`check_player_land`**: each continent, grown from its start, already
+  covers the start city's ring 5, so dropping the call fails nothing on
+  this take (parked 3953a); the arm is East Meets West's (§24).
+- **The angle's low half**: drawn and in the stream, but under
+  `project`'s resolution on this take; breaking its modulus fails
+  nothing.
 
 ## 35. Reserved for the next item on the map track
 

@@ -35805,3 +35805,28 @@ generation); 7,249 draws from `place_all` through the values; 25 river draws (29
 good moved. At 894 the seed is 3091682547, part 5 2636052358 and part 6 816403111. The port meets all of it, and all
 70,225 start-dump vertices (`mapgen::tests::new_world_*`, MAPGEN §31). No `blind::TRACES` row: a `cover=0` setup
 trace enters only its hooks.
+
+## run1536 — Nile Delta (style 21), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3953, `att-3953`)
+
+`docs/MAPGEN.md` §34. The chain take §22.2 writes, at `--map 21`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1536 --map 21 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: §22.2's sweep entered Nile Delta's
+`make_continents` (run1098) at `cover=1` and carried no setup trace, so no Nile Delta checkpoint 7805..7945 was on disk.
+- Pool lane 1, the pool's pick. Launched 03:46:35, exited 03:47:01 (25.7 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 21, seed 12345, players tribe 4 and tribe 11, 2 nations; `page_faults` 0,
+  `relaunches: []`. `df -g ~` read 80 GiB free before it. Filed with `filerun.py run1536 nile-delta-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1536-nile-delta-mapgen-start.txt`, 151,523,741 bytes,
+SHA-256 `f310885cc1c1dcee7d0fef20f1d859bed63663cdd4ff49c04600d3513c6415be`.
+
+Archive `rontrace-run1536.log`, 8,572,800 bytes,
+SHA-256 `00ffaf37621a6b9624ad46883bdda5fc3cd3cb350ffb0e5ac5e6ab0f47f23a7e`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118, on a 60×60 map (58,081 start-dump vertices). The tileset is `gs_desert`, `NILEDELTA.xml`'s one
+`TILECHANCE`, no draw. 7807's seed is 1014371588 after the mask's 11,709 draws (two continents of 1,350 cells on a
+ring of radius 22, four passes, one generation); 4,982 draws from `place_all` through the values; 22 river sources and
+no river draw (an empty `RIVERLIST`); no trough section, no good moved. At 894 the seed is 1554454810, part 5
+1018357250 and part 6 4275928712. The port meets all of it, and all 58,081 start-dump vertices
+(`mapgen::tests::nile_delta_*`, MAPGEN §34). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
