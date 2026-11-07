@@ -229,5 +229,7 @@ fn iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole() {
     // theirs 0; and the Javelineers `1/30` (TypeIndex 83, land, uid 55),
     // 5 against 4 from 8411, `damage_frac` 10 against 0. Theirs heals
     // both and ours does not; the closing compare reads no hits.
-    pin_eq!(w.firsts.len(), 67, "run1228b baseline");
+    // Item 3961: +2, `healing` on `1/50` (8191) and `1/30` (8411), ours 0 theirs 20: the
+    // heal above, the Iroquois arm (item 3959's).
+    pin_eq!(w.firsts.len(), 69, "run1228b baseline");
 }

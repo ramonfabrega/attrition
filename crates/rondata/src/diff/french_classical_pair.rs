@@ -222,5 +222,7 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // 4739 against 4239 (3609a's shape), two idle Phalanxes' (`1/89`,
     // `1/221`, TypeIndex 133) `g.cur_anim`/`g.end_time`, and the Light
     // Horse `1/182`'s `guard.retry` 7 against 6.
-    pin_eq!(w.firsts.len(), 154, "the closing walk's baseline");
+    // Item 3961: +1, `healing` on `1/50` (5601, ours 0 theirs 10): theirs heals on the block its
+    // hits part, an arm of rate 10 ours does not take (parked 3961a).
+    pin_eq!(w.firsts.len(), 155, "the closing walk's baseline");
 }

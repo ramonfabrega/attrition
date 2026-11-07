@@ -405,7 +405,9 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // 4495's families, `1/48`'s target, group 77's `held` on 4518 and the
     // Horse Guard Grenadier `1/29`'s `damage_frac` on 4552 (TY 238; ours 5,
     // theirs 0).
-    pin_eq!(w.firsts.len(), 122, "run1344b baseline");
+    // Item 3961: +1, `healing` on `1/29` (4552, ours 0 theirs 20): the same block's heal, a
+    // rate-20 arm (the French patriots', parked 3686a; 3961a).
+    pin_eq!(w.firsts.len(), 123, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
     // parting, the first on the window's first block 4495. Item 3691: 428
     // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;
