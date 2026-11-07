@@ -35882,3 +35882,26 @@ No minutes were waited on another lane. `~/ron-golden/run1537` links to `ch122` 
 - The twin first enters `CommandPackage::process_queue_up`, `Group::action_queue_up`, `Build::queue_up` and
   `BuildData::could_queue` on the first press's frame.
 - `rngcmp`: run1537 against run1537b, 1001 of 1001 identical.
+
+## run1539 and run1539b — chapter one hundred and twenty-four: a strike from inside a base on a target unseen, `@strike 0 2006 1 6` on 740 (2026-11-07, item 3968, `att-3968`)
+
+`docs/GOLDEN.md` §174. **What the disk could not answer**: no captured strike from inside a base named a target its
+player had not seen, or one past the tank. run265's strike (766) came after `1/2006` was seen (762), so no dump
+showed whether `Group::action_flight`'s inside arm gives a plane `valid_target` (parked T71-5).
+
+Recipe `tools/gamelog/golden/chapter124.cmd`: chapter twenty-two's lines, and `@strike 0 2006 1 6` on 740.
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch124 --map 14 --end-frame 1000
+--log-window 605 1000 --timeout 3600`, with run265's three detail sets (`AMMO=5` among them) and no lobby pins, as
+chapter twenty-two's. The twin is the same line at `--cover cover=1 --no-ffwd --twin ~/ron-golden/ch124`, into
+`~/ron-golden/ch124b` (a first launch passed `cover=1` bare and the runner refused it before staging).
+
+20 GiB free before. Both `success`, lifecycle verified, `map_verified`, map style 14, 1001 frames, `last_frame` 1000,
+seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes were waited on
+another lane. `~/ron-golden/run1539` links to `ch124` and `run1539b` to `ch124b`.
+- run1539 (`ch124`, `cover=0`, pool lane 1): 14:06:09–14:06:50, 41.1 s launch to exit, no relaunch. The word's.
+- run1539b (`ch124b`, `cover=1`, pool lane 1): from 14:07:52, 93.7 s launch to exit, no relaunch. Filed by
+  `filerun.py run1539b ch124-strike-unseen-from-inside-cover`.
+- `process_flight 741`. On 742, `0/6` (inside `0/2007`) holds one `STRAFEORDER` on (21120, 16512), home 2007,
+  `mandatory 1`, `returning 0`; `1/2006` reads `ever_seen 2`.
+- `rngcmp`: run1539 against run1539b, and against run265, 1001 of 1001 identical.

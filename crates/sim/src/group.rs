@@ -3804,9 +3804,9 @@ impl Sim {
     /// arms (this crate carries no fuel, so a tank is never empty), the
     /// `FIGHTERBOMBER` `home_base` gate, a carrier as the base, the
     /// `AIR_PATROL`/`AIR_ATTACK_GROUND` home as the "inside" (no member
-    /// holds either), and **a strike from inside a base**, whose
-    /// `valid_target`, `MISSILE_DEFENSE_BONUS`, reach and war tests are
-    /// not built: such a member takes no order here.
+    /// holds either), and the war test (always allowed). A strike from
+    /// inside a base is [`Sim::strike_from_inside`]: a missile's three
+    /// gates, a plane's none (item 3968).
     pub fn group_action_flight(&mut self, g: &Group, target: Obj, kind: Flight) {
         let live = match target {
             Obj::Unit(i) => self.units.get(i).is_some_and(|u| u.alive()),
