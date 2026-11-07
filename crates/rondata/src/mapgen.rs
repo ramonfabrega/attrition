@@ -1202,6 +1202,8 @@ mod tests {
     };
     use std::sync::OnceLock;
 
+    mod east_west;
+
     /// Every kept dump's [`StartGrid`], read once for the tests below: the
     /// archive's files whose preamble carries the setup trace. `None` on a
     /// machine without the archive.
