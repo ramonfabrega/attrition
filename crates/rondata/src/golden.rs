@@ -2589,6 +2589,10 @@ mod tests {
         // Chapter one hundred and twenty-two: two `@queueup` presses on a
         // Barracks and a Stable together (item 3966, `docs/GOLDEN.md` §172).
         ("chapter122.cmd", &[]),
+        // Chapter one hundred and twenty-three: two `@patrol` presses, a
+        // Helicopter with a Hoplite squad and a Helicopter alone (item 3967,
+        // `docs/GOLDEN.md` §173).
+        ("chapter123.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

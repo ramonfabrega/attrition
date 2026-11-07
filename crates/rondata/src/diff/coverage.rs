@@ -843,6 +843,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch120 = golden_dump("ch120");
     let ch121 = golden_dump("ch121");
     let ch122 = golden_dump("ch122");
+    let ch123 = golden_dump("ch123");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3109,6 +3110,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 25,
             "chapter one hundred and twenty-two carries twenty-five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-three, on run1538** (item 3967): the
+    // two patrols, the Helicopter's group on 621 and the lone Helicopter on
+    // 701, and the orders they lay.
+    if let Some(p) = &ch123 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE;
+        let n = drive_capture(p, 620, 704, &mut paths);
+        assert_eq!(
+            n, 85,
+            "chapter one hundred and twenty-three carries eighty-five blocks in the window"
         );
         frames += n;
     }

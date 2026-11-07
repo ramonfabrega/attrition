@@ -6914,6 +6914,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: i64 = 1000;
 /// run1537.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and twenty-three** (item 3967, `docs/GOLDEN.md`
+/// §173, run1538): a patrol on a Helicopter with a Hoplite squad on 620,
+/// and on a Helicopter alone on 700 — each the land arm, the Helicopter
+/// counted as no plane by `count(COUNT_DOMAIN, 4)`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE: i64 = 1000;
+
+/// `chapter_one_hundred_and_twenty_three_s_window_is_widened_whole`'s
+/// window: run1538.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE: (i64, i64) = (604, 1001);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -7726,6 +7736,17 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // corner, in the walk and in the widening alike.
     ("chapter_seventy_nine_holds_to_the_golden_word", 1),
     ("chapter_seventy_nine_s_word_frame_is_widened_whole", 1),
+    // Item 3967: run1538, two Helicopters born and patrolled read their
+    // birth climbs and their flights' corners — fourteen in the walk to
+    // 1000, thirteen in the widening to its block 1000.
+    (
+        "chapter_one_hundred_and_twenty_three_holds_to_the_golden_word",
+        14,
+    ),
+    (
+        "chapter_one_hundred_and_twenty_three_s_window_is_widened_whole",
+        13,
+    ),
     // The coverage pair's run715 (item 1605): four reads in the replay's
     // diverged tail past the word 2969 — `coverage_pair_first_parting`,
     // which walks to the word, reads none.

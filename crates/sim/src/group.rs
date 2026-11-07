@@ -7175,6 +7175,35 @@ mod tests {
         }
     }
 
+    /// **A Helicopter in a patrolled group is ordered like a ground unit**
+    /// (item 3967, `docs/GOLDEN.md` §173): `Group::action_patrol@007030c0`
+    /// hands off to the air patrol on a plane leader or `count(COUNT_DOMAIN,
+    /// 4)` — vslot `+0xc0`, `is_plane` — and a Helicopter is no plane, so a
+    /// squad with one and a Helicopter alone each take the land arm, every
+    /// member a `GroupPatrolOrder`. run1538's `0/6`..`0/9` on 622 and `0/10`
+    /// on 702.
+    #[test]
+    fn a_helicopter_in_a_patrolled_group_takes_the_land_arm() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let heli = flier(&mut s, true);
+        let h = spawn(&mut s, 0, heli, Pos::new(3192, 7032));
+        let a = spawn(&mut s, 0, t, Pos::new(10872, 7800));
+        let b = spawn(&mut s, 0, t, Pos::new(11016, 7800));
+        let mut g = group_of(0, &[h, a, b]);
+        assert!(s.push_group(&mut g, true));
+        s.group_action_patrol(&g, Pos::new(3456, 11136), QueuePos::New);
+        for u in [h, a, b] {
+            assert_eq!(patrol(&s, u).len(), 1, "a patrol on {u}");
+            assert_eq!(s.order_type(u), index::GROUP_PATROL);
+        }
+        let lone = spawn(&mut s, 0, heli, Pos::new(5880, 5880));
+        let mut g = group_of(0, &[lone]);
+        assert!(s.push_group(&mut g, true));
+        s.group_action_patrol(&g, Pos::new(11136, 11904), QueuePos::New);
+        assert_eq!(patrol(&s, lone).len(), 1, "the lone Helicopter patrols");
+    }
+
     /// `Unit::do_patrol@005f1910` on the leader steps the waypoint and
     /// hands the group an attack-move `QUEUE_FIRST`; the group's
     /// `QUEUE_FIRST` halts the members and `redo_patrol_order@00706d90`
