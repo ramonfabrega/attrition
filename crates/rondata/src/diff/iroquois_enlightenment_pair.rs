@@ -180,7 +180,10 @@ fn iroquois_enlightenment_pair_the_long_s_stride_walks_back_from_3962() {
     // 3501), and `blown` on three of who=1's units (`1/0` from 101, `1/18` and `1/19`
     // from 1101; parked 3114). No unit's position, orders or hits part
     // through block 3901.
-    pin_eq!(w.firsts.len(), 155, "the stride's baseline");
+    // Item 3958: 155 → 152 — the three `blown` rows leave (parked 3114):
+    // each unit holds `land_cloak`, which `Unit::work`'s stealth arm skips
+    // (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 152, "the stride's baseline");
 }
 
 /// run1291b: the word 3962's window, blocks 3956..4212 at the long's
@@ -344,12 +347,27 @@ fn iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole() {
             .into_iter()
             .collect::<Vec<_>>(),
         [
+            "4889 1/15 cloak",
+            "4895 1/114 cloak",
+            "4897 1/128 cloak",
+            "4898 1/127 cloak",
+            "4900 1/125 cloak",
+            "4975 1/130 cloak",
+            "4976 1/129 cloak",
             "4983 1/2005 queue:queue[2].cost[0]",
+            "4989 1/132 cloak",
             "5064 1/2005 queue:queue[1].cost[0]",
         ],
         "the only object rows: a price"
     );
-    pin_eq!(w.firsts.len(), 131, "run1320 baseline");
+    // Item 3958: 131 → 139 — the cloak rows of `docs/AI.md` §402, eight
+    // `cloak` rows (`unit_masks & 0x800`) theirs 1 against ours 0: the
+    // President `1/15` (TI 355) casts Ambush on 4889 (`unit_masks`
+    // `0x84000a` → `0x84280a`), and from 4895 the Transport Galleons
+    // `1/114`, `1/125`, `1/127`..`1/130`, `1/132` (TI 321, sea, outside the
+    // forest arm) take the hero aura's `0x800` — `process_cloak`'s hero arm,
+    // a `SEAM` (parked 3958b). Every `land_cloak` and `cloak_mark` agrees.
+    pin_eq!(w.firsts.len(), 139, "run1320 baseline");
     // **Every round, both directions**: 940 round-blocks a side, and none
     // parts — the Musketeers' (`1/73`..`1/75`, piece 1457) among them,
     // which left the figure's own point before item 3655's bays.
