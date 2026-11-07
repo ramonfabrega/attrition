@@ -275,6 +275,19 @@ pub const MAPGEN: Mapgen = Mapgen {
             phases: 8,
         },
         MapgenStyle {
+            map: "Himalayas",
+            // 0 → 8 by item 3946 (MAPGEN §27), on run1529 and the AI
+            // track's run348, run464 and run465 (one lobby: 2 nations,
+            // 60×60, seed 12345, `Snowy` drawn from `HIMALAYAS.xml`'s own
+            // `TILESET`): the mask is Great Sahara's listing at 0x69bc90,
+            // and every checkpoint 7807..894 agrees on the first walk with
+            // no `sim` change — 90,970 draws `place_all` through the
+            // values, an empty `RIVERLIST` (no river, no trough), and at
+            // 894 seed and parts as the file's. No fix was taken.
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
             map: "AfricanWateringHole",
             // 0 → 8 by item 3947 (MAPGEN §28), on run1530's one file (2
             // nations, 60×60, seed 12345, `african_savannah`, `AFRICA.xml`'s
@@ -661,7 +674,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [

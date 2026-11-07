@@ -1171,6 +1171,22 @@ pub fn amazon_basin_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Himalayas setup path: every draw
+/// whose site is `MapHimalayas::make_continents@0069bc90` (`docs/MAPGEN.md`
+/// §27, item 3946), Great Sahara's listing at another address, from the
+/// first to the first that is not.
+pub fn himalayas_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let hi = 0x0069_bc90..0x0069_be00;
+    let Some(from) = setup.iter().position(|(s, _)| hi.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !hi.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `make_continents` segment of an African Watering Hole setup path:
 /// from its first `MapAfricanWateringHole::make_continents@0069b650` draw,
 /// every draw whose site is that function, `Map::grow_region`,
@@ -7438,6 +7454,162 @@ mod tests {
         );
     }
 
+    /// **The cliff arm of a mine, against run1516's frame 100** (item 3942,
+    /// `docs/AI.md` §400; ECONOMY, "The cliff arm"). run1516b's Mine
+    /// `0/2007`, added beside a cliff on Southwest Mesa, dumps `mtn -1`,
+    /// `cliff 7` and a list of 189 tiles. The cliffs are the port's
+    /// (`Cliffs::init` on run1493's grid, the same seed 7236 and lobby,
+    /// [`southwest_mesa_at_894`]), laid on a [`sim::Sim`] whose tile masks
+    /// are that grid's and whose owners are run1516b's start dump; the Mine
+    /// type is the install's, at the dumped position. Every mining list on
+    /// the frame is compared: the cliff, the range, the length and the tiles
+    /// as a set (the order is the placement's shuffle, off the sync stream).
+    /// The range index is not compared on a cliff list: this crate's
+    /// `MiningList` carries neither index, and the arm is named instead.
+    #[test]
+    fn run1516_s_mine_takes_cliff_7_s_tiles_on_100() {
+        let (Some(all), Some(root)) = (archive(), crate::testenv::install_root()) else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let name = "gamelog-run1516b-southwestmesa-cliffmine-cover0-clickfree.txt";
+        let Some(path) = crate::testenv::dump(name) else {
+            eprintln!("skipped: {name} is not on this machine");
+            return;
+        };
+        let root = Path::new(&root);
+        let Some((_, g)) = all
+            .iter()
+            .find(|(n, g)| n.contains("run1493") && g.style == 10)
+        else {
+            eprintln!("skipped: run1493's start grid is not on this machine");
+            return;
+        };
+        let (grid, _, _, _, cliffs) = southwest_mesa_at_894(root, g).expect("run1493 to 894");
+        let text = crate::capture::read(Path::new(&path));
+        let log = Log::parse(&text);
+        let init = log.initial().expect("run1516b's start dump");
+        let seed = init
+            .world
+            .iter()
+            .find(|(k, _)| *k == "seed")
+            .and_then(|(_, v)| v.trim().parse::<i32>().ok());
+        assert_eq!(seed, Some(g.seed), "run1516b is run1493's map");
+        let cells = world_cells(&init.world);
+        assert_eq!(
+            cells.len(),
+            (grid.xs * grid.ys) as usize,
+            "run1516b's start WORLD"
+        );
+
+        let loaded = crate::load::load(&crate::Install::new(root)).unwrap();
+        let mut w = sim::world::World::new(grid.xs, grid.ys);
+        w.fill_region(
+            sim::world::Terrain::Land,
+            sim::world::Cell::new(0, 0),
+            sim::world::Cell::new(grid.xs - 1, grid.ys - 1),
+        );
+        let mut s = sim::Sim::new(sim::tuning::Tuning::RON, w, 2);
+        for bt in &loaded.build_types {
+            s.add_build_type(bt.clone());
+        }
+        let keep = sim::world::tile::SURFACE | sim::world::tile::GATHERED_FROM | 0x8000;
+        for ty in 0..4 * grid.ys {
+            for tx in 0..4 * grid.xs {
+                let m = grid.tiles[(ty * 4 * grid.xs + tx) as usize] & keep;
+                s.world.set_tile_bits(sim::Pos::new(tx, ty), m);
+            }
+        }
+        for (i, c) in cells.iter().enumerate() {
+            if c.who >= 0 {
+                let cell = sim::world::Cell::new(i as i32 % grid.xs, i as i32 / grid.xs);
+                s.world.set_owner(
+                    cell,
+                    sim::world::Owner::Player(c.who as sim::Player),
+                    sim::world::Owner::None,
+                );
+            }
+        }
+        s.place_cliffs(&cliffs.mining);
+
+        // Block 101 (`BEGIN FRAME 101`) closes the `add`'s trace frame 100,
+        // and is the first that holds the Mine; block 100 holds 14 buildings.
+        let theirs = log.frame_builds(101);
+        assert_eq!(
+            log.frame_builds(100).iter().filter(|b| b.o == 2007).count(),
+            0
+        );
+        let mines: Vec<_> = theirs
+            .iter()
+            .filter(|b| b.mtn.is_some_and(|m| m >= 0) || b.cliff.is_some_and(|c| c >= 0))
+            .collect();
+        let mut checked = 0;
+        for b in &mines {
+            let ty = loaded
+                .build_of_type_index(b.orig_type.expect("orig_type") as i32)
+                .expect("the mine's build type");
+            let pos = sim::Pos::new(b.pos.x as i32, b.pos.y as i32);
+            let corner = s.tile_corner(ty, pos);
+            let centre = s.footprint_centre(ty, corner);
+            let arm = s.mine_arm(centre);
+            let ours = s.gather_tcoords(ty, b.who as sim::Player, corner);
+            let want: std::collections::BTreeSet<(i64, i64)> =
+                b.gather_from.iter().copied().collect();
+            let got: std::collections::BTreeSet<(i64, i64)> = ours
+                .iter()
+                .map(|p| (i64::from(p.x), i64::from(p.y)))
+                .collect();
+            eprintln!(
+                "run1516b 101: mine {}/{} orig_type {:?} at {:?}: theirs mtn {:?} cliff {:?} \
+                 length {:?} size {:?} ({} pairs); ours {arm:?}, nearest cliff {:?}, \
+                 {} tiles ({} shared), count {}",
+                b.who,
+                b.o,
+                b.orig_type,
+                b.pos,
+                b.mtn,
+                b.cliff,
+                b.mining_len,
+                b.mining_size,
+                b.gather_from.len(),
+                s.find_nearest_cliff(centre),
+                got.len(),
+                want.intersection(&got).count(),
+                s.max_gatherers_at(ty, b.who as sim::Player, corner),
+            );
+            let named = match arm {
+                sim::gather::MineArm::Cliff(k) => (-1, k as i64),
+                sim::gather::MineArm::Range => (b.mtn.unwrap_or(-1), -1),
+                sim::gather::MineArm::None => (-1, -1),
+            };
+            assert_eq!(
+                named,
+                (b.mtn.unwrap(), b.cliff.unwrap()),
+                "mine {}/{}: the arm",
+                b.who,
+                b.o
+            );
+            assert_eq!(
+                b.mining_len,
+                Some(b.gather_from.len() as i64),
+                "the dump's own length"
+            );
+            assert_eq!(got.len(), want.len(), "mine {}/{}: the length", b.who, b.o);
+            assert_eq!(got, want, "mine {}/{}: the tiles", b.who, b.o);
+            // Cliff 7 is 189 tiles and the list keeps every one, so the
+            // list's three filters decide nothing on this block (they are
+            // `sim::cliff_mine`'s tests); the count, which no dump prints, is
+            // `gather_size`'s reading: the 100..210 band, all counted.
+            assert_eq!(s.cliffs[7].tiles.len(), 189, "cliff 7's tcoords");
+            assert_eq!(s.max_gatherers_at(ty, 0, corner), 5, "the reading's count");
+            checked += 1;
+        }
+        assert_eq!(
+            checked, 1,
+            "run1516b's frame 100 holds the one mine, 0/2007"
+        );
+    }
+
     /// **The heights on Southwest Mesa at 894, every vertex** (`docs/MAPGEN.md`
     /// §10, §15 step 7, §18.3, item 3890): [`southwest_mesa_at_894`]'s
     /// heights — `place_cliff`'s template offsets among them — with run1493's
@@ -7612,6 +7784,11 @@ mod tests {
         river_records: usize,
         /// Whether a trough reaches a good, which `move_goody` moves.
         moves_a_good: bool,
+        /// Whether the style lays a river: Himalayas' `RIVERLIST` is empty,
+        /// and neither side draws in `make_rivers` (item 3946).
+        lays_rivers: bool,
+        /// The files whose start dump prints the heights: a floor.
+        height_files: usize,
         walks: OnceLock<Option<Vec<ChainWalk>>>,
     }
 
@@ -7630,6 +7807,8 @@ mod tests {
         terrain_records: 21,
         river_records: 5,
         moves_a_good: true,
+        lays_rivers: true,
+        height_files: 1,
         walks: OnceLock::new(),
     };
 
@@ -7648,6 +7827,31 @@ mod tests {
         terrain_records: 22,
         river_records: 5,
         moves_a_good: true,
+        lays_rivers: true,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
+    /// Himalayas (style 9, §27): run1529, item 3946, and the AI track's
+    /// run348, run464 and run465 of the same lobby — 84 records 734..815
+    /// and 20 records 5012..5118 (21 and 5 a file) on 2026-11-06, and the
+    /// heights on run1529's and run464's start dumps. No river, so no
+    /// trough and no good moved.
+    static HIMALAYAS: Chain = Chain {
+        label: "Himalayas",
+        map: "Himalayas",
+        style: 9,
+        xml: "HIMALAYAS.xml",
+        mask: himalayas_part,
+        port: MaskPort::GreatSahara,
+        files: 4,
+        traces: 4,
+        checked: 8,
+        terrain_records: 84,
+        river_records: 20,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 2,
         walks: OnceLock::new(),
     };
 
@@ -7667,6 +7871,7 @@ mod tests {
         terrain_records: 22,
         river_records: 5,
         moves_a_good: false,
+        lays_rivers: false,
         walks: OnceLock::new(),
     };
 
@@ -8266,15 +8471,24 @@ mod tests {
                 w.rivers.0.len(),
                 w.rivers.1.len()
             );
-            // A traced file: its mask segment is there. African Watering
-            // Hole draws no river on either side (§28), and two empty
-            // streams agree.
-            if !w.mask.1.is_empty() {
+            if !w.rivers.1.is_empty() {
                 walked += 1;
                 parted.extend(stream_parts(&w.name, "river", &w.rivers.0, &w.rivers.1));
             }
         }
         assert!(parted.is_empty(), "{}", say_partings(&parted));
+        if !c.lays_rivers {
+            for w in walks {
+                assert!(
+                    w.rivers.0.is_empty() && w.rivers.1.is_empty(),
+                    "{}: river draws, ours {} theirs {}",
+                    w.name,
+                    w.rivers.0.len(),
+                    w.rivers.1.len()
+                );
+            }
+            return;
+        }
         assert!(
             walked >= c.traces,
             "the river stream walked {walked} traces"
@@ -8407,7 +8621,7 @@ mod tests {
             say_partings(&parted)
         );
         assert!(
-            files >= c.files,
+            files >= c.height_files,
             "the heights reached {files} {} files",
             c.label
         );
@@ -8460,5 +8674,17 @@ mod tests {
         amazon_basin_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         amazon_basin_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         amazon_basin_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        HIMALAYAS,
+        himalayas_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        himalayas_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        himalayas_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        himalayas_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        himalayas_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        himalayas_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        himalayas_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        himalayas_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }

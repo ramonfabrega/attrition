@@ -14794,13 +14794,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BU — reserved
+## Parked by item 3942, 2026-11-06 — the cliff arm of a mine, built
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3942a. The rest of run1516b's block 101** (`docs/AI.md` §400.4). The Mine `0/2007`'s mining list is compared
+  field by field, but none of its other `BUILDDATA` fields are, and neither is any other building on the block:
+  both need a Southwest Mesa game built to block 101, which is 3943's lobby. **Score**: none of its own. 3943's
+  game is its first walk.
+- **3942b. `diff::setup` lays no cliffs** (`Sim::place_cliffs`; `docs/AI.md` §400.4). No dump prints
+  `cliff_mining_data`, and the port's chain to `Cliffs::init` (`mapgen`'s `southwest_mesa_at_894`) lives in a
+  test module. So a Southwest Mesa game that `build_sim` stands up has no cliffs, and its Mines take the base's
+  empty list. 3943's held-out game scores the cliff arm only if its build lays them, from the port at the game's
+  seed or from a sibling's start grid as `mountains` borrows. **Score**: 3943's, which waits on it.
+- **3942c. A sweep of `CliffsData::gather_size@008a8f80`** (`tools/emu/sweep_obj.tsv`). The count is a reading:
+  no dump prints `gather_max` on the block a Mine is placed, and `calc_gather`'s swept type view stubs this call.
+  A row that places a `CliffMiningData` with its `tcoords`, the world's owner bytes, two leaders' `diplos` and the
+  `mtn_*` constants would be its value check. **Score**: none.
 
 ## Parked by the next landing, slot BV — reserved
 
@@ -14833,13 +14841,21 @@ words and edits nothing here; a refill lands when two remain.
   agree with the dump. One writer between `Terrain.cpp` 894 and `setup.cpp` 1240 now
   has two cells across two files to be read on. This row names no score.
 
-## Parked by the next landing, slot BY — reserved
+## Parked by item 3946, 2026-11-06 — Himalayas' chain, 8 of 8
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3946a. §22.2's "no checkpoint 7805..7945 on disk" missed the AI track's
+  Himalayas files** (MAPGEN §27.2). run348, run464 and run465 (DECISIONS 53 §4,
+  item 972) each carry 7805..894, and run464 also carries a start-dump grid. Their
+  masks are run1529's, so run1529 was not needed. Among the other nine chain styles no
+  older file carries the checkpoints, so 3945 and 3947–3953 are unaffected. The rule is
+  that a booking first runs the walk's archive filter (`style == N` with a start-head
+  grid). This row names no score.
+- **3946b. Himalayas is both a chain read against and the AI track's held-out map**
+  (MAPGEN §27.3; DECISIONS 53 §4: "it stays undebugged by rule"). The chain took no
+  fix, since nothing parted. A later parting on these four files would be the first
+  debugging against a held-out map's files. Before anyone fixes it, the commander
+  should decide whether the mapgen walk is in the held-out rule's scope. This row names
+  no score.
 
 ## Parked by item 3947, 2026-11-07 — African Watering Hole's chain take
 
