@@ -2211,8 +2211,8 @@ impl Sim {
     /// counts as nothing.
     ///
     /// SEAM: the container's slot `0x20` is not modelled, nor
-    /// `insert_inside`'s `in_a_building` (every `go_inside` here is a
-    /// building).
+    /// `insert_inside`'s `in_a_building` — every caller here puts the unit in
+    /// a building.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
         use remove_inside_view::{RemoveInsideView, SimRemoveInside};
         let mut view = SimRemoveInside { sim: self, unit: u };
