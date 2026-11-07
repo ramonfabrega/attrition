@@ -746,6 +746,10 @@ pub struct Unit {
     /// `do_cast` write `0x11000` together; nothing this crate reaches
     /// clears the upper bit, so `check_idle` never drops `blown` after.
     pub fought: bool,
+    /// `unit_masks & 0x800`, the cloak `UnitData::is_seen@00607a60` and
+    /// `is_cloaked@0060a6a0` read: `Unit::process_cloak@005e1c20`'s
+    /// Iroquois forest arm writes it (`docs/AI.md` §402).
+    pub cloak: bool,
 }
 
 /// What a unit needs in order to move.
@@ -1208,6 +1212,7 @@ impl Unit {
             attacking: false,
             blown: false,
             fought: false,
+            cloak: false,
         }
     }
 

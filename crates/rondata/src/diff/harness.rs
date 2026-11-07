@@ -2182,6 +2182,27 @@ fn widen_block_rows(
                     i64::from(un.contact),
                     them.unit_masks.map(|m| i64::from(m & 0x10 != 0)),
                 ),
+                // **The Iroquois cloak's three bits** (item 3958,
+                // `docs/AI.md` §402): `unit_masks & 0x800`, the forest
+                // cloak, and `unit_masks2`'s `0x8000`, the own-land
+                // cloak `Unit::process_cloak` derives from `0x80`, the
+                // birth mark — each read by `is_seen` and compared nowhere
+                // until this row.
+                (
+                    "cloak",
+                    i64::from(un.cloak),
+                    them.unit_masks.map(|m| i64::from(m & 0x800 != 0)),
+                ),
+                (
+                    "land_cloak",
+                    i64::from(un.unit_masks2 & 0x8000 != 0),
+                    them.unit_masks2.map(|m| i64::from(m & 0x8000 != 0)),
+                ),
+                (
+                    "cloak_mark",
+                    i64::from(un.unit_masks2 & 0x80 != 0),
+                    them.unit_masks2.map(|m| i64::from(m & 0x80 != 0)),
+                ),
             ] {
                 rows.push((r.0.into(), r.1, r.2));
             }
@@ -2378,10 +2399,10 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
     Some(match base {
         "heading" => ("UnitDump", "angle"),
         "hits_left" => ("UnitDump", "damage"),
-        "sheltered" => ("UnitDump", "unit_masks2"),
+        "sheltered" | "land_cloak" | "cloak_mark" => ("UnitDump", "unit_masks2"),
         "orders.len" => ("UnitDump", "orders"),
         "guys.len" => ("UnitDump", "guys"),
-        "half_step" | "packed" | "mirror" | "blown" | "fought" | "contact" => {
+        "half_step" | "packed" | "mirror" | "blown" | "fought" | "contact" | "cloak" => {
             ("UnitDump", "unit_masks")
         }
         "dest_angle" => ("UnitDump", "dest_angle"),
