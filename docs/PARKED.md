@@ -14911,13 +14911,16 @@ of the port (40–100 cells a side, 2–8 nations, four seeds) take no pass and 
 the loop fail nothing (MAPGEN §30.3, §30.4). A take would decide the loop only on a lobby where the middle's growth
 misses a player, and none is known. Names no score.
 
-## Parked by the next landing, slot CC — reserved
+## Parked by item 3950, 2026-11-07 — New World's chain take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3950a. Four arms of New World's mask that run1533 does not reach** (MAPGEN §31.3; no score: every phase is 8 of
+  8). Of `tools/mutate.py`'s twenty-one breaks on `sim::map_new_world`, four failed nothing because the take never
+  reads them: the islands' reach (`quarter` at 5, and the reach without its divisor) — `grow_region`'s outer pick
+  needs `scale_by_area(0x200)` cells, 455 on 66×66, and an island is 250; the restart threshold at the whole pass —
+  every island grew in one generation; and `check_player_land` dropped — each island already covers its start
+  city's ring 5. The four-player angle (the second draw, 0x6986d8) and the three-player centre (`·4/10`) have unit
+  tests and no take. What would decide them: a New World take on a map size whose `scale_by_area(0x200)` is under
+  250 (a map under about 2,390 cells, against the Standard 70 — a Tiny lobby), or a lobby of three or four nations.
 
 ## Parked by the next landing, slot CD — reserved
 
