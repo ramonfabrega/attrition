@@ -202,6 +202,16 @@ Three consequences worth stating:
   fog cell only when it reaches 2.
 - `type->x_size` is the footprint in **tiles**, the same field the block
   mask is sized by, and the division is C's — toward zero.
+- **A building's `mylos` is a cache too** (item 3965, `docs/AI.md` §409):
+  `Wall::update_los` runs only beside `update_hits` at `Wall::init`,
+  `calc_wall_stats`, `Build::activate`, `capture_city` and `swap_team`, so
+  a wonder started after its placement prints 0 until its owner's next
+  `calc_wall_stats` (run718's `1/2055`, 0 to 2367, 5 from 2368), and a
+  Science epoch reaches a finished building on the leader pass after the
+  gain. A unit-type gain raises no `0x8000000` at all (`gain_tech:883`
+  leaves past the tail), so run99's Tower keeps 11 past its Militia.
+  `Building::mylos` is the cache, compared on every walked window; the fog
+  sweep still reads `build_los` live (parked 3965a).
 
 The caller is what makes this matter: **`Build::activate@00623e20`'s last
 statement is `update_seen(0)`**, the whole disc, at vtable `+0x174`, after
