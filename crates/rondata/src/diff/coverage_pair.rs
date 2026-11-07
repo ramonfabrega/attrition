@@ -2033,3 +2033,59 @@ fn run717_s_missiles_fly_their_spline_s_count() {
         "the six release frames, this crate's too"
     );
 }
+
+/// run1066, item 3446: the coverage pair's lobby with an Aircraft Carrier
+/// staged by console and `@` lines from 600 (`docs/GOLDEN.md` §147). No
+/// walk holds it — the staging adds units no harness replays.
+pub(crate) const RUN1066: &str =
+    "gamelog-run1066-eastindies-persian-alltech-carrier-window-594-1300-cover1.txt";
+
+/// **A unit's own queue, against this crate's 0** (item 3960, `docs/AI.md`
+/// §404): `widen_block` compares `num_queued` and `queue_time` with this
+/// crate's side 0, since it holds no unit queue. Every walked window
+/// prints 0 on every unit; run1066's carrier `0/14` is the only record on
+/// disk that does not, and this pins where it parts: block **614**, theirs
+/// `num_queued 1` and `queue_time 100` against 0, then 203 blocks (614..816,
+/// the FIGHTERBOMBER's 20300-tick clock) until the plane is out on 817.
+/// Killed by a port of the carrier's queue, whose landing re-pins it to 0.
+#[test]
+fn run1066_s_carrier_queue_parts_against_the_crate_s_zero() {
+    let Some(path) = dump(RUN1066) else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let at: Vec<usize> = ix
+        .frames()
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| (600..=830).contains(&f.number))
+        .map(|(i, _)| i)
+        .collect();
+    // (block, who, o, num_queued, queue_time) of every unit that parts.
+    let mut parted = Vec::new();
+    for i in at {
+        let frame = ix.frame_state(i).unwrap();
+        for u in &frame.units {
+            let (nq, qt) = (u.num_queued.unwrap(), u.queue_time.unwrap());
+            if nq != 0 || qt != 0 {
+                parted.push((frame.n, u.who, u.o, nq, qt));
+            }
+        }
+    }
+    assert_eq!(
+        parted.first(),
+        Some(&(614, 0, 14, 1, 100)),
+        "the first parting: the carrier 0/14 on block 614"
+    );
+    assert_eq!(parted.len(), 203, "614..816, one record a block");
+    assert!(
+        parted.iter().all(|&(_, who, o, _, _)| (who, o) == (0, 14)),
+        "only the carrier parts"
+    );
+    assert_eq!(
+        parted.iter().find(|r| r.0 == 622),
+        Some(&(622, 0, 14, 1, 900)),
+        "the cancel on 620 takes num_queued 2 → 1 and leaves the clock"
+    );
+    assert_eq!(parted.last(), Some(&(816, 0, 14, 1, 20300)));
+}

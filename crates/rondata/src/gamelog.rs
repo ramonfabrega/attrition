@@ -2246,6 +2246,15 @@ pub struct UnitDump {
     /// `UnitData::good_obj` (`+0x94`) — the spiral index `calc_gather` found
     /// that good at, `-1` from `Unit::init` (item 3306).
     pub good_obj: Option<i64>,
+    /// `UnitData::num_queued` (`+0xa0`) — the craft a unit's own queue
+    /// holds: an Aircraft Carrier's planes, ordered by `Group::action_spell`'s
+    /// carrier arm and cancelled by `Unit::action_unqueue(1)`. Read since
+    /// item 3960 (`docs/AI.md` §404); 0 on every unit of every dump but
+    /// run1066's carrier `0/14`.
+    pub num_queued: Option<i64>,
+    /// `UnitData::queue_time` — that queue's clock, 100 a frame while it
+    /// holds a craft and not reset by a cancel (item 3960).
+    pub queue_time: Option<i64>,
     /// `ObjectData::uid` — the **identity** behind the per-player `o`,
     /// written on the `OBJECT` level beside the cell chain. `o` is a slot
     /// and is handed back out: a unit that dies frees its number, and the
@@ -3541,6 +3550,8 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         waiting: b.int("waiting"),
         rare: b.int("rare"),
         good_obj: b.int("good_obj"),
+        num_queued: b.int("num_queued"),
+        queue_time: b.int("queue_time"),
         uid: obj.and_then(|o| o.int("uid")),
         down: obj.and_then(|o| o.int("down")),
         down_who: obj.and_then(|o| o.int("down_who")),

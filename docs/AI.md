@@ -40165,12 +40165,57 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 404. Reserved for the next item on the AI track
+## 404. A unit's own queue, `UNITDATA num_queued` and `queue_time`: compared against the crate's 0, parting on run1066's carrier at 614 (item 3960, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** Two keys of the unit record that stood on the coverage
+driver's unread pin (parked T71-9): `UnitData +0xa0 short num_queued` and
+`+0x64 int queue_time` (`types.txt`; printed by `UnitData::log_data@0060b070`).
+They are a unit's **own** training queue — an Aircraft Carrier's planes,
+ordered by `Group::action_spell`'s carrier arm (`docs/GOLDEN.md` §147:
+`num_queued < 10`, the unit's `+0xa0` incremented) and cancelled by
+`Unit::action_unqueue(1)` — and not the leader's per-type `num_queued[806]`
+(`+0x5a22`), which `diff::leader` has compared since long before.
+
+**What is compared.** `gamelog::UnitDump` reads both keys; `widen_block`
+compares them on every unit of every walked window against **0**, because
+this crate holds no unit queue: the carrier arm, the queue's tick in
+`Unit::process` and `action_unqueue(1)` are a `SEAM` at the compare
+(`diff/harness.rs`). The keys leave both `UNITDATA` paths of the unread pin
+(`coverage.rs`, the unit row and the animals' nested row), on every window
+the driver walks.
+
+**Red, and why the walked windows are green.** The item was booked "red at
+once, the crate has neither". The first half is a hypothesis the disk kills:
+every walked window prints `num_queued 0` and `queue_time 0` on every unit
+(RUNS run1066's 2026-10-22 grep: no other dump holds a unit with a queue), so
+the compare agrees everywhere it runs, and the coverage pins'
+`firsts` counts do not move. The only record on disk that parts is run1066's
+carrier `0/14`, in a console-staged window no harness replays (the `add`
+lines and `@unqueueunit` are not in `golden.rs`'s staging verbs).
+`coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero`
+pins that parting against the crate's 0:
+
+| block | `0/14` `num_queued` | `queue_time` | crate |
+|---|---|---|---|
+| 614 (first parting) | 1 | 100 | 0, 0 |
+| 616 | 2 | 300 | 0, 0 |
+| 622 (cancel on 620) | 1 | 900 | 0, 0 |
+| 816 (last) | 1 | 20300 | 0, 0 |
+
+203 blocks part, 614..816, all on `0/14`; the plane `0/15` is inside the
+carrier on 817 (§147). The clock climbs 100 a block and a cancel does not
+reset it.
+
+**What is not established.** The queue's tick and its delivery (who writes
+`+0x64` in `Unit::process`, what threshold the 20300 is, whether the clock
+resets on delivery or on the next order) are not read; nor is the unit's
+`num_queued` write in `action_spell` beyond §147's account. A port has no
+walk to be diffed on until a harness replays run1066's staging (parked
+3960a).
+
+**Coverage.** Diff-backed: the zero on every walked window (the compare),
+and run1066's values (the pinned test, read off the dump). Reading-only: the
+field offsets (`types.txt`) and which functions write them (§147).
 
 ## 405. Reserved for the next item on the AI track
 
