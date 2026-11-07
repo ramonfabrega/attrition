@@ -76,21 +76,33 @@ pub struct LakeMap {
 }
 
 /// `Regions`' 64 land records as the growers use them: each record's
-/// coordinate list (+0x7c), whose length is the record's count (+0x14).
-/// `region_flags` is 0 on every corpus style, so the adjacency masks
-/// (+0x24) `point` would keep are never written, and every record shares
-/// flag bit 1 with none.
+/// coordinate list (+0x7c), whose length is the record's count (+0x14),
+/// its flags (+8) and its adjacency mask (+0x24). `make_region` writes the
+/// map's `region_flags`, 0 on every corpus style, so only a mask that sets
+/// flag bit 1 itself — Australian Outback's (`crate::map_outback`,
+/// `docs/MAPGEN.md` §30) — makes records that share it, or has `point`
+/// keep the masks.
 pub(crate) struct Lakes {
     pub(crate) points: Vec<Vec<(i32, i32)>>,
+    pub(crate) flags: Vec<u32>,
+    pub(crate) adjacent: Vec<u32>,
 }
 
 impl Lakes {
     /// `Regions::clear_all@00680060`'s reset of the 64 records: every
-    /// coordinate list empty.
+    /// coordinate list empty, the flags (+8) and the masks (+0x24) 0.
     pub(crate) fn cleared() -> Self {
         Lakes {
             points: vec![Vec::new(); 64],
+            flags: vec![0; 64],
+            adjacent: vec![0; 64],
         }
+    }
+
+    /// `grow_valid`'s exemption: two records that both carry flag bit 1
+    /// never refuse each other.
+    fn share(&self, a: i32, b: i32) -> bool {
+        self.flags[a as usize] & self.flags[b as usize] & 1 != 0
     }
 }
 
@@ -112,15 +124,17 @@ impl Grower<'_> {
         (0..self.grid.xs).contains(&x) && (0..self.grid.ys).contains(&y)
     }
 
-    /// A region number on the grid that is neither empty nor `id`.
-    fn other(region: i16, id: i32) -> bool {
-        region != 0 && i32::from(region) != id
+    /// A region number on the grid that is neither empty, nor `id`, nor
+    /// one sharing flag bit 1 with it.
+    fn other(&self, region: i16, id: i32) -> bool {
+        region != 0 && i32::from(region) != id && !self.lakes.share(i32::from(region), id)
     }
 
     /// **`Map::grow_valid@0069d000`**: whether region `id` may take `(x,
     /// y)`. No draw unless the region tests pass: another live region and
     /// the point within `avoid_center` of the map's centre refuses; so does
     /// another region inside the disc of `avoid_continent` round the point.
+    /// A region sharing flag bit 1 with `id` is passed over by both.
     /// Then each non-zero `avoid_edge`, in slot order, takes one draw that
     /// nudges `avoid_modify` by `r % 3 − 1` (clamped to 0..4) and tests the
     /// edge `(base_edge + slot) & 3` at `avoid_edge + avoid_modify`; the
@@ -131,14 +145,16 @@ impl Grower<'_> {
             return false;
         }
         let (xs, ys) = (self.grid.xs, self.grid.ys);
-        let live = (1..64).any(|k| k != id && !self.lakes.points[k as usize].is_empty());
+        let live = (1..64).any(|k| {
+            k != id && !self.lakes.points[k as usize].is_empty() && !self.lakes.share(k, id)
+        });
         if live && vector_dist(x - xs / 2, y - ys / 2) < self.style.avoid_center {
             return false;
         }
         let t = circle::table();
         for i in 0..t.radius[ac as usize] as usize {
             let (px, py) = (x + i32::from(t.x[i]), y + i32::from(t.y[i]));
-            if self.in_bounds(px, py) && Self::other(self.grid.cell(px, py).region, id) {
+            if self.in_bounds(px, py) && self.other(self.grid.cell(px, py).region, id) {
                 return false;
             }
         }
@@ -167,7 +183,11 @@ impl Grower<'_> {
     /// `grow_valid` passes joins region `id` — `land` and `land_sub` 0 (the
     /// 16-bit store at +2), its `region`, and the record's next coordinate.
     /// Only a `grow_valid` refusal returns false: a cell off the grid or
-    /// already taken is a success that changes nothing.
+    /// already taken is a success that changes nothing. A record with flag
+    /// bit 1 then meets each other region among the cell's nine
+    /// neighbours (`move_x`/`move_y`, the cell itself first): the union of
+    /// both masks and both bits goes into both, and into every one of the
+    /// first 32 records whose mask meets it.
     fn point(&mut self, id: i32, x: i32, y: i32) -> bool {
         if !self.in_bounds(x, y) || self.grid.cell(x, y).region != 0 {
             return true;
@@ -180,6 +200,30 @@ impl Grower<'_> {
         c.land_sub = 0;
         c.region = id as i16;
         self.lakes.points[id as usize].push((x, y));
+        if self.lakes.flags[id as usize] & 1 != 0 {
+            for k in 0..9 {
+                let (nx, ny) = (x + MOVE_X[k], y + MOVE_Y[k]);
+                if !self.in_bounds(nx, ny) {
+                    continue;
+                }
+                let u = i32::from(self.grid.cell(nx, ny).region);
+                if u == 0 || u == id {
+                    continue;
+                }
+                let adj = &mut self.lakes.adjacent;
+                let joined = adj[id as usize]
+                    | adj[u as usize]
+                    | 1u32.wrapping_shl(id as u32)
+                    | 1u32.wrapping_shl(u as u32);
+                adj[id as usize] |= joined;
+                adj[u as usize] |= joined;
+                for m in adj.iter_mut().take(32) {
+                    if *m & joined != 0 {
+                        *m |= joined;
+                    }
+                }
+            }
+        }
         true
     }
 
@@ -254,13 +298,15 @@ impl Grower<'_> {
 
     /// **`Map::make_region@0069d3f0`**: record `id` opens on `(x, y)` —
     /// the cell's `land` 0 and `region` `id`, the record's first coordinate,
-    /// count 1.
+    /// count 1, and its flags the map's `region_flags` (0 on every corpus
+    /// style).
     pub(crate) fn make_region(&mut self, id: i32, x: i32, y: i32) {
         let c = self.grid.cell_mut(x, y);
         c.land = 0;
         c.land_sub = 0;
         c.region = id as i16;
         self.lakes.points[id as usize] = vec![(x, y)];
+        self.lakes.flags[id as usize] = 0;
     }
 
     /// **`Map::scale_by_area@006a0910`** of `n`: `n` cells of the standard
@@ -293,6 +339,19 @@ impl Grower<'_> {
     /// the record's count, or 1 for an empty one. Great Lakes drops it;
     /// East Indies restarts on it.
     pub(crate) fn grow_region(&mut self, id: i32, size: i32, max_dist: i32) -> bool {
+        self.grow_region_about(id, size, max_dist, None)
+    }
+
+    /// [`Self::grow_region`] with `param_4`/`param_5` given: `max_dist` is
+    /// measured from `centre`, or from the region's first cell when it is
+    /// `None` (the original's either coordinate negative).
+    pub(crate) fn grow_region_about(
+        &mut self,
+        id: i32,
+        size: i32,
+        max_dist: i32,
+        centre: Option<(i32, i32)>,
+    ) -> bool {
         let t = circle::table();
         let mut k: i32 = 2;
         if size / 4 > 12 {
@@ -312,7 +371,7 @@ impl Grower<'_> {
             return true;
         }
         let (ox, oy) = self.lakes.points[id as usize][0];
-        let (cx, cy) = (ox, oy);
+        let (cx, cy) = centre.unwrap_or((ox, oy));
         let ring_base = if count(self) < 2 {
             for i in 1..t.radius[ku].max(1) as usize {
                 let (px, py) = (ox + i32::from(t.x[i]), oy + i32::from(t.y[i]));
