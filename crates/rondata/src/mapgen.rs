@@ -1139,6 +1139,22 @@ pub fn mesa_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of an Old World setup path: every draw
+/// whose site is `MapOldWorld::make_continents@0069c0e0` (`docs/MAPGEN.md`
+/// §25, item 3944), Great Sahara's listing at another address, from the
+/// first to the first that is not.
+pub fn old_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let ow = 0x0069_c0e0..0x0069_c260;
+    let Some(from) = setup.iter().position(|(s, _)| ow.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !ow.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -4550,6 +4566,7 @@ mod tests {
             ts.riverbase,
             combo,
             depth,
+            None,
         )
         .unwrap_or_else(|e| panic!("{} nations, the troughs: {e:?}", run.1));
         sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
@@ -5989,6 +6006,7 @@ mod tests {
             ts.riverbase,
             combo,
             depth,
+            None,
         )
         .unwrap_or_else(|e| panic!("{} nations, the troughs: {e:?}", run.1));
         sim::map_heights::adjust_for_mountains(&grid, &mut z, &groups.templates, &meshes);
@@ -7266,9 +7284,16 @@ mod tests {
                 None,
             ],
         };
-        let troughs =
-            sim::map_troughs::calculate_all(&mut grid, &mut coord, &mut z, ts.riverbase, combo, 0)
-                .unwrap_or_else(|e| panic!("the troughs: {e:?}"));
+        let troughs = sim::map_troughs::calculate_all(
+            &mut grid,
+            &mut coord,
+            &mut z,
+            ts.riverbase,
+            combo,
+            0,
+            None,
+        )
+        .unwrap_or_else(|e| panic!("the troughs: {e:?}"));
         assert!(troughs.sections.is_empty(), "a trough on Southwest Mesa");
         sim::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
         let goods = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
@@ -7506,4 +7531,702 @@ mod tests {
     /// item 3844), the rivers (5012..5118, item 3846), and the heights
     /// with step 7's tail (894 and the start dump's grid, item 3851).
     const EAST_INDIES_CHECKED: i64 = 8;
+
+    /// The Old World files carrying 7805..894, and the traces whose
+    /// streams the checks walk: floors (run1527, item 3944).
+    const OLD_WORLD_FILES: usize = 1;
+    const OLD_WORLD_TRACES: usize = 1;
+
+    /// The §15 phases this module checks on Old World (item 3944, MAPGEN
+    /// §25): the mask (7807), the zero-draw passes (7835..7854),
+    /// `place_all` and its tail (7859..7870), the resources (7877..7927),
+    /// the values (7937, 7945), `Terrain::init` without heights
+    /// (734..5012), the rivers (5012..5118) and the heights with the
+    /// troughs (894 and the start dump's grid).
+    const OLD_WORLD_CHECKED: i64 = 8;
+
+    /// Old World's tileset (`docs/MAPGEN.md` §4, §25): `OLDWORLD.xml`
+    /// carries no `TILESET`, so `default.xml`'s six `TILECHANCE`s make the
+    /// one `init_map_data` draw, the last before `base_edge`'s — the word
+    /// [`tileset_before`] reads off 7805's seed, as it reads a style
+    /// file's own draw on Great Lakes.
+    fn old_world_tileset(root: &Path, seed_7805: u32) -> String {
+        let own = tile_chances(root, "OLDWORLD.xml").expect("OLDWORLD.xml");
+        assert!(own.is_empty(), "OLDWORLD.xml grew a TILECHANCE: {own:?}");
+        let chances = tile_chances(root, "default.xml").expect("default.xml's tilesets");
+        tileset_before(&chances, seed_7805).expect("default.xml draws one")
+    }
+
+    /// One checkpoint compared: the file, the line, and ours and theirs as
+    /// `(seed, part 2, part 5, part 6, parts 10–13)`.
+    type OwCheck = (
+        String,
+        i64,
+        (u32, u32, u32, u32, [u32; 4]),
+        (u32, u32, u32, u32, [u32; 4]),
+    );
+
+    /// One Old World file walked from 7805 to `Terrain.cpp` 894 (item
+    /// 3944): every checkpoint the file carries, compared as the chain
+    /// reaches it, the streams the port drew, and what the late arms did.
+    struct OwWalk {
+        name: String,
+        tileset: String,
+        checks: Vec<OwCheck>,
+        /// Part 4 at 734, ours by `SEA_MAP`, and theirs; then every record
+        /// after it whose part 4 is not 734's.
+        part4: (u32, u32, Vec<(String, i64)>),
+        /// The mask's words, and the trace's `make_continents` segment.
+        mask: (Vec<u32>, Vec<SetupDraw>),
+        /// `place_all` through the last `compute_val`, ours and the trace's.
+        make: (Vec<SetupDraw>, Vec<SetupDraw>),
+        /// `make_rivers`' draws, ours and the trace's.
+        rivers: (Vec<SetupDraw>, Vec<SetupDraw>),
+        /// The lines `make_rivers` printed, ours, and the river sources.
+        printed: Vec<i64>,
+        sources: usize,
+        troughs: sim::map_troughs::Troughs,
+        grid: MapGrid,
+        z: Vec<sim::single::Single>,
+    }
+
+    /// Every Old World file's walk, once a process.
+    fn old_world_walks() -> Option<&'static [OwWalk]> {
+        static ALL: OnceLock<Option<Vec<OwWalk>>> = OnceLock::new();
+        ALL.get_or_init(|| {
+            let all = archive()?;
+            let root = crate::testenv::install_root()?;
+            let root = Path::new(&root);
+            Some(
+                all.iter()
+                    .filter(|(_, g)| g.style == 6 && g.xs > 0)
+                    .filter_map(|(name, g)| old_world_walk(root, name, g))
+                    .collect(),
+            )
+        })
+        .as_deref()
+    }
+
+    /// [`old_world_walks`]' one file: the chain in `Map::make`'s and
+    /// `Terrain::init`'s order — Great Sahara's mask
+    /// ([`great_sahara_make_continents`], `MapOldWorld::make_continents`'
+    /// listing being 0x69bf70's), the shared passes under the drawn
+    /// tileset, Southwest Mesa's height-free `Terrain::init`, Great Lakes'
+    /// river port and the troughs with `move_goody`'s good arm.
+    fn old_world_walk(root: &Path, name: &str, g: &StartGrid) -> Option<OwWalk> {
+        let before = g.at("map.cpp", 7805)?;
+        let tileset = old_world_tileset(root, before.2);
+        let fert = fertility_of(root, "OLDWORLD.xml", &tileset).expect("its fertility");
+        let mut checks = Vec::new();
+        let mut parts = [0u32; 4];
+        let mut check = |grid: &MapGrid, d: &Draws, parts: [u32; 4], f: &str, line: i64| {
+            for (ff, l, seed, p) in g
+                .checksums
+                .iter()
+                .filter(|(ff, l, _, _)| ff == f && *l == line)
+            {
+                let late = f != "map.cpp" || line < 7800;
+                let ours = (
+                    d.rng.seed,
+                    grid.start_part(),
+                    grid.cell_part(),
+                    grid.tile_part(),
+                    if late { parts } else { [0; 4] },
+                );
+                let theirs = (
+                    *seed,
+                    p[2],
+                    p[5],
+                    p[6],
+                    if late {
+                        [p[10], p[11], p[12], p[13]]
+                    } else {
+                        [0; 4]
+                    },
+                );
+                checks.push((ff.clone(), *l, ours, theirs));
+            }
+        };
+        // Phase 1: the mask, four draws.
+        let mut grid = MapGrid::new(g.xs, g.ys);
+        let mut d = Draws::new(before.2);
+        let mut twin = Rng::new(before.2);
+        let start_dist = great_sahara_make_continents(&mut grid, g.nations, &mut d.rng);
+        assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
+        let mut words = Vec::new();
+        while twin.seed != d.rng.seed && words.len() < 64 {
+            words.push(twin.seed);
+            twin.roll();
+        }
+        check(&grid, &d, parts, "map.cpp", 7807);
+        // Phase 2: the zero-draw passes.
+        let mut regions = Regions::default();
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        grid.fix_diag_land();
+        check(&grid, &d, parts, "map.cpp", 7835);
+        grid.make_coastlines();
+        check(&grid, &d, parts, "map.cpp", 7843);
+        regions.clear_all(&mut grid);
+        regions.find_all(&mut grid);
+        check(&grid, &d, parts, "map.cpp", 7846);
+        let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
+        grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
+        check(&grid, &d, parts, "map.cpp", 7854);
+        // Phase 3: `place_all` and its tail.
+        let inputs = place_all_inputs_of(root, "OLDWORLD.xml", &tileset, g.xs, g.ys, 6)
+            .expect("Old World's place_all inputs");
+        let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
+        let mut d = Draws::new(d.rng.seed);
+        place_all(&mut grid, &mut d, &inputs);
+        check(&grid, &d, parts, "map.cpp", 7859);
+        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
+        check(&grid, &d, parts, "map.cpp", 7861);
+        nubify_forest(&mut grid, &mut d);
+        check(&grid, &d, parts, "map.cpp", 7865);
+        change_bases(&mut grid, &mut d, &ts);
+        check(&grid, &d, parts, "map.cpp", 7870);
+        // Phase 4: the resources.
+        check(&grid, &d, parts, "map.cpp", 7877);
+        check(&grid, &d, parts, "map.cpp", 7880);
+        let rows =
+            resource_inputs(root, "OLDWORLD.xml", g.xs, g.ys, g.nations).expect("Old World's rows");
+        place_resources(&mut grid, &mut d, &rows, g.nations);
+        check(&grid, &d, parts, "map.cpp", 7927);
+        // Phase 5: the values.
+        let makes = land_makes(root).expect("rules.xml's LANDS");
+        let mut regions = regions_of(&grid);
+        adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
+        check(&grid, &d, parts, "map.cpp", 7937);
+        compute_all_vals(&mut grid, &mut d, &makes);
+        check(&grid, &d, parts, "map.cpp", 7945);
+        let make_log = d.log.clone();
+        // Phase 6: `Terrain::init` without heights, part 4 at 734.
+        let sea = sea_map(root, "OLDWORLD.xml").expect("OLDWORLD.xml's SEA_MAP");
+        let (sea_map, mut coord, half) = terrain_init_without_heights(&mut grid, sea)
+            .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
+        let p = half.parts().expect("empty half-land lists");
+        parts = [p[0], p[1], p[2], p[3]];
+        let part4 = match (g.at("map.cpp", 7945), g.at("setup.cpp", 734)) {
+            (Some(b), Some(a)) => {
+                let ours = adler_rewrite(
+                    b.3[4],
+                    PART4_LEN,
+                    PART4_SEA_MAP_AT,
+                    &WORLD_SEA_MAP_BEFORE.to_le_bytes(),
+                    &sea_map.to_le_bytes(),
+                );
+                let off: Vec<(String, i64)> = g
+                    .checksums
+                    .iter()
+                    .skip_while(|(f, l, _, _)| !(f == "setup.cpp" && *l == 734))
+                    .take_while(|(f, l, _, _)| !(f == "Terrain.cpp" && *l == 894))
+                    .chain(
+                        g.checksums
+                            .iter()
+                            .filter(|(f, l, _, _)| f == "Terrain.cpp" && *l == 894),
+                    )
+                    .filter(|r| r.3[4] != a.3[4])
+                    .map(|r| (r.0.clone(), r.1))
+                    .collect();
+                (ours, a.3[4], off)
+            }
+            _ => (0, 0, Vec::new()),
+        };
+        for (f, l, _, _) in terrain_init_records(g) {
+            if !(f == "map.cpp" && *l == 5012) {
+                check(&grid, &d, parts, f, *l);
+            }
+        }
+        // Phase 7: the rivers.
+        let rivers = river_list(root, "OLDWORLD.xml").expect("a RIVERLIST");
+        let phase = Phase {
+            thresh: river_thresh(root, "OLDWORLD.xml").expect("RIVER_THRESHOLD"),
+            city_radius: sim::tuning::Tuning::RON.city_center_radius,
+            rivers: &rivers,
+            standard: standard_map_size(root).expect("the Standard map size"),
+            seed: g.seed as u32,
+            nations: g.nations,
+        };
+        let mut regions = regions_of(&grid);
+        let from = d.log.len();
+        let mut printed = Vec::new();
+        let mut at_lines = Vec::new();
+        let beds = make_rivers(&mut grid, &mut regions, &phase, &mut d, |l, gr, dd| {
+            printed.push(l);
+            at_lines.push((l, gr.clone(), dd.rng.seed));
+        });
+        for (l, gr, seed) in &at_lines {
+            let dd = Draws::new(*seed);
+            check(gr, &dd, parts, "map.cpp", *l);
+        }
+        let river_log = d.log[from..].to_vec();
+        // Phase 8: the heights, the troughs, `adjust_for_mountains` and
+        // `Cliffs::init` (no `CLIFFS` group: inert).
+        let install = crate::Install::new(root);
+        let meshes = crate::mountains::meshes(&install);
+        let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+        sim::map_heights::create_doobers(&grid, &mut z);
+        let combo = sim::halfland::Combo {
+            coast_base: ts.coast_base,
+            num_tiles: [
+                Some(ts.base_tiles),
+                Some(ts.coastal_tiles),
+                Some(ts.ocean_tiles),
+                None,
+            ],
+        };
+        let troughs = sim::map_troughs::calculate_all(
+            &mut grid,
+            &mut coord,
+            &mut z,
+            ts.riverbase,
+            combo,
+            0,
+            Some(&rows.goods),
+        )
+        .unwrap_or_else(|e| panic!("{name}: the troughs: {e:?}"));
+        sim::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
+        let cliffs = sim::cliffs::init(
+            &mut grid,
+            &mut coord,
+            &mut z,
+            &inputs.cliffs,
+            &rows.goods,
+            combo,
+        )
+        .unwrap_or_else(|e| panic!("{name}: Cliffs::init: {e:?}"));
+        eprintln!(
+            "{name}: Cliffs::init moved oil {:?}, goods {:?}",
+            cliffs.moved, cliffs.goods
+        );
+        assert!(grid.cliffs.is_empty(), "{name}: Old World lays no cliff");
+        check(&grid, &d, parts, "Terrain.cpp", 894);
+        // The traces' streams.
+        let trace = name
+            .strip_prefix("gamelog-")
+            .and_then(|r| r.split('-').next())
+            .map(|r| format!("rontrace-{r}.log"));
+        let path = trace.as_deref().and_then(crate::testenv::dump);
+        let (mut theirs_mask, mut theirs_make, mut theirs_rivers) =
+            (Vec::new(), Vec::new(), Vec::new());
+        if let Some(path) = path {
+            let setup = setup_draws(Path::new(&path))
+                .expect("a readable trace")
+                .expect("a trace");
+            theirs_mask = old_world_part(&setup).to_vec();
+            theirs_make = make_draws(Path::new(&path))
+                .expect("a readable trace")
+                .unwrap_or_default();
+            if let Some(last) = setup.iter().rposition(|x| COMPUTE_VAL.contains(&x.0)) {
+                theirs_rivers = setup[last + 1..]
+                    .iter()
+                    .take_while(|x| {
+                        x.0 == sim::map_rivers::site::SPREAD || x.0 == sim::map_rivers::site::PRICE
+                    })
+                    .copied()
+                    .collect();
+            }
+        }
+        Some(OwWalk {
+            name: name.to_string(),
+            tileset,
+            checks,
+            part4,
+            mask: (words, theirs_mask),
+            make: (make_log, theirs_make),
+            rivers: (river_log, theirs_rivers),
+            printed,
+            sources: beds.len(),
+            troughs,
+            grid,
+            z,
+        })
+    }
+
+    /// The checks of `walk` on the lines `lines` keeps, and the partings
+    /// among them; asserts each file carries at least one.
+    fn old_world_phase(lines: impl Fn(&str, i64) -> bool, what: &str) -> usize {
+        let Some(walks) = old_world_walks() else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return 0;
+        };
+        let (mut files, mut records, mut parted) = (0, 0, Vec::new());
+        for w in walks {
+            let mine: Vec<&OwCheck> = w.checks.iter().filter(|c| lines(&c.0, c.1)).collect();
+            for (f, l, ours, theirs) in &mine {
+                eprintln!(
+                    "{} on {}: {f} {l} ours {ours:?} theirs {theirs:?}",
+                    w.name, w.tileset
+                );
+                if ours != theirs {
+                    parted.push(format!(
+                        "{} at {f} {l}: (seed, parts 2, 5, 6, 10–13) ours {ours:?} against \
+                         theirs {theirs:?}",
+                        w.name
+                    ));
+                }
+            }
+            assert!(!mine.is_empty(), "{}: no {what} record", w.name);
+            records += mine.len();
+            files += 1;
+        }
+        eprintln!("Old World {what}: {files} files, {records} records");
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            files >= OLD_WORLD_FILES,
+            "{what} reached {files} Old World files"
+        );
+        records
+    }
+
+    /// A port's stream against a trace's, the first parting named.
+    fn stream_parts(
+        name: &str,
+        what: &str,
+        ours: &[SetupDraw],
+        theirs: &[SetupDraw],
+    ) -> Option<String> {
+        let at = first_parting(ours, theirs)?;
+        let say = |v: &[SetupDraw]| {
+            v.get(at.saturating_sub(2)..(at + 3).min(v.len()))
+                .map(|w| format!("{w:x?}"))
+        };
+        Some(format!(
+            "{name}: {what} draw {at} of ours {} / theirs {}: ours {:?}, theirs {:?}",
+            ours.len(),
+            theirs.len(),
+            say(ours),
+            say(theirs)
+        ))
+    }
+
+    /// **Old World's mask at 7807, draw for draw** (`docs/MAPGEN.md` §5,
+    /// §25, item 3944): `MapOldWorld::make_continents@0069c0e0` is Great
+    /// Sahara's listing at another address, so from 7805's seed the port
+    /// lands on 7807's seed and parts 2 and 5, and its four words are the
+    /// trace's `make_continents` segment ([`old_world_part`]), every site
+    /// inside 0x69c0e0..0x69c260.
+    #[test]
+    fn old_world_s_mask_is_the_traced_7807_and_stream() {
+        let Some(walks) = old_world_walks() else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        old_world_phase(|f, l| f == "map.cpp" && l == 7807, "7807");
+        let mut walked = 0;
+        for w in walks {
+            let (ours, theirs) = &w.mask;
+            if theirs.is_empty() {
+                continue;
+            }
+            walked += 1;
+            let words: Vec<u32> = theirs.iter().map(|x| x.1).collect();
+            eprintln!("{}: mask draws {theirs:x?}", w.name);
+            assert_eq!(&words, ours, "{}: the mask's words", w.name);
+        }
+        assert!(
+            walked >= OLD_WORLD_TRACES,
+            "the mask walked {walked} traces"
+        );
+        let pinned = MAPGEN
+            .styles
+            .iter()
+            .find(|s| s.map == "OldWorld")
+            .expect("MAPGEN's OldWorld row");
+        assert_eq!(
+            pinned.ported, OLD_WORLD_CHECKED,
+            "an Old World phase was ported or lost: re-pin `floors::MAPGEN` and the handoff's \
+             `Mapgen:` line"
+        );
+    }
+
+    /// **Old World's zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// §6, §25): the shared passes on the all-land mask, `fill_fertile`
+    /// under the tileset `default.xml` drew ([`old_world_tileset`]).
+    #[test]
+    fn old_world_s_zero_draw_passes_are_7835_to_7854() {
+        old_world_phase(
+            |f, l| f == "map.cpp" && (7835..=7854).contains(&l),
+            "7835..7854",
+        );
+    }
+
+    /// **Old World's `place_all` and its tail, 7859 to 7870**
+    /// (`docs/MAPGEN.md` §7, §25): the first chain whose groups carry
+    /// `grouping="1"` and chances under 100.
+    #[test]
+    fn old_world_s_place_all_and_tail_are_7859_to_7870() {
+        old_world_phase(
+            |f, l| f == "map.cpp" && (7859..=7870).contains(&l),
+            "7859..7870",
+        );
+    }
+
+    /// **Old World's resources, 7877 to 7927** (`docs/MAPGEN.md` §8, §25):
+    /// the first chain with a `GOODIES` section of its own.
+    #[test]
+    fn old_world_s_resources_are_7877_to_7927() {
+        old_world_phase(
+            |f, l| f == "map.cpp" && (7877..=7927).contains(&l),
+            "7877..7927",
+        );
+    }
+
+    /// **Old World's values, 7937 and 7945, and `Map::make`'s stream**
+    /// (`docs/MAPGEN.md` §9, §25): seed and parts at both, and every draw
+    /// from `place_all`'s first through the last `compute_val`, site and
+    /// word, against the trace's [`make_draws`].
+    #[test]
+    fn old_world_s_values_and_make_stream_are_the_trace_s() {
+        let Some(walks) = old_world_walks() else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        old_world_phase(
+            |f, l| f == "map.cpp" && (l == 7937 || l == 7945),
+            "7937, 7945",
+        );
+        let (mut walked, mut parted) = (0, Vec::new());
+        for w in walks.iter().filter(|w| !w.make.1.is_empty()) {
+            walked += 1;
+            eprintln!(
+                "{}: {} draws place_all through the values",
+                w.name,
+                w.make.1.len()
+            );
+            parted.extend(stream_parts(&w.name, "make", &w.make.0, &w.make.1));
+        }
+        assert!(parted.is_empty(), "{}", say_partings(&parted));
+        assert!(
+            walked >= OLD_WORLD_TRACES,
+            "the make stream walked {walked} traces"
+        );
+    }
+
+    /// **`Terrain::init` without heights on Old World, 734 to 5012**
+    /// (`docs/MAPGEN.md` §10, §25): Southwest Mesa's all-land case — part 4
+    /// at 734 by `OLDWORLD.xml`'s `SEA_MAP`, held to 894, and seed and parts
+    /// 2, 5, 6 and 10–13 at every record to 5012.
+    #[test]
+    fn old_world_s_terrain_init_without_heights_is_734_to_5012() {
+        let Some(walks) = old_world_walks() else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let n = old_world_phase(
+            |f, l| f == "setup.cpp" && (l == 734 || l == 745) || f == "Terrain.cpp" && l < 894,
+            "734..5012",
+        );
+        assert!(
+            n >= OLD_WORLD_TERRAIN_RECORDS,
+            "734..5012 reached {n} records"
+        );
+        for w in walks {
+            let (ours, theirs, off) = &w.part4;
+            eprintln!(
+                "{}: part 4 at 734 ours {ours:#x} theirs {theirs:#x}",
+                w.name
+            );
+            assert_eq!(ours, theirs, "{}: part 4 at 734", w.name);
+            assert!(off.is_empty(), "{}: part 4 moved at {off:?}", w.name);
+        }
+    }
+
+    /// run1527's records from `setup.cpp` 734 to `Terrain.cpp` 815: a floor
+    /// (21 on 2026-11-06, item 3944).
+    const OLD_WORLD_TERRAIN_RECORDS: usize = 21;
+
+    /// **Rivers on Old World, 5012 to 5118** (`docs/MAPGEN.md` §10, §25):
+    /// Great Lakes' river port on an all-land grid, its first rivers that
+    /// end on the map's border — the lines `make_rivers` prints are the
+    /// file's, seed and parts at each, and its draws whole against the
+    /// trace's (`SPREAD` then every `astar_river` `PRICE`).
+    #[test]
+    fn old_world_s_rivers_are_5012_to_5118() {
+        let Some(walks) = old_world_walks() else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let n = old_world_phase(
+            |f, l| f == "map.cpp" && (5012..=5118).contains(&l),
+            "5012..5118",
+        );
+        assert!(
+            n >= OLD_WORLD_RIVER_RECORDS,
+            "5012..5118 reached {n} records"
+        );
+        let (mut walked, mut parted) = (0, Vec::new());
+        for w in walks {
+            let lines: Vec<i64> = w
+                .checks
+                .iter()
+                .filter(|c| c.0 == "map.cpp" && (5012..=5118).contains(&c.1))
+                .map(|c| c.1)
+                .collect();
+            assert_eq!(
+                lines, w.printed,
+                "{}: the records make_rivers prints",
+                w.name
+            );
+            eprintln!(
+                "{}: {} sources, {} river draws, {} theirs",
+                w.name,
+                w.sources,
+                w.rivers.0.len(),
+                w.rivers.1.len()
+            );
+            if !w.rivers.1.is_empty() {
+                walked += 1;
+                parted.extend(stream_parts(&w.name, "river", &w.rivers.0, &w.rivers.1));
+            }
+        }
+        assert!(parted.is_empty(), "{}", say_partings(&parted));
+        assert!(
+            walked >= OLD_WORLD_TRACES,
+            "the river stream walked {walked} traces"
+        );
+    }
+
+    /// run1527's records from `map.cpp` 5012 to 5118: a floor (5 on
+    /// 2026-11-06, item 3944).
+    const OLD_WORLD_RIVER_RECORDS: usize = 5;
+
+    /// **The troughs on Old World at 894, and every vertex**
+    /// (`docs/MAPGEN.md` §10, §17, §25): seed and parts 2, 5, 6 and 10–13
+    /// at `Terrain.cpp` 894, and the heights with the roster stood on them
+    /// against the start dump's grid, its 0x1000 cells and the moved
+    /// good's cell. The troughs reach a good here first, and
+    /// `move_goody`'s good arm moves it.
+    #[test]
+    fn old_world_s_troughs_are_894_and_the_start_dump_s_grid() {
+        let Some(walks) = old_world_walks() else {
+            eprintln!("skipped: no kept dumps or no install on this machine");
+            return;
+        };
+        let root = crate::testenv::install_root().expect("an install");
+        let install = crate::Install::new(Path::new(&root));
+        let loaded = crate::load::load(&install).expect("the install's tables");
+        old_world_phase(|f, l| f == "Terrain.cpp" && l == 894, "894");
+        let all = archive().expect("the archive");
+        let (mut files, mut parted) = (0, Vec::new());
+        for w in walks {
+            let t = &w.troughs;
+            eprintln!(
+                "{}: sections {:?}, {} cells newly 0x1000, oil moved {:?}, goods moved {:?}",
+                w.name, t.sections, t.river_cells, t.moved, t.moved_goods
+            );
+            assert!(
+                !t.moved_goods.is_empty(),
+                "{}: no good moved off a trough",
+                w.name
+            );
+            let Some((_, g)) = all.iter().find(|(n, _)| *n == w.name) else {
+                continue;
+            };
+            let Some(cells) = &g.cells else {
+                continue;
+            };
+            let flagged = |cs: &[WCell], f: u16| -> Vec<usize> {
+                (0..cs.len()).filter(|&i| cs[i].flags & f != 0).collect()
+            };
+            if flagged(&w.grid.cells, 0x1000) != flagged(cells, 0x1000) {
+                parted.push(format!(
+                    "{}: the 0x1000 cells, ours {} theirs {}",
+                    w.name,
+                    flagged(&w.grid.cells, 0x1000).len(),
+                    flagged(cells, 0x1000).len()
+                ));
+            }
+            // The good's old cell against the start dump; its new one is
+            // part 5 at 894's (`down`/`down_who` are packed there), since a
+            // setup writer between 894 and 1240 stands something on it:
+            // run1527's (43, 18) reads `down` 3, `down_who` 8 in the dump.
+            for &(from, to) in &t.moved_goods {
+                let (x, y) = to;
+                let i = (y * w.grid.xs + x) as usize;
+                eprintln!(
+                    "{}: the good's new cell ({x}, {y}) (down, down_who) ours {:?}, the start \
+                     dump's {:?}",
+                    w.name,
+                    (w.grid.cells[i].down, w.grid.cells[i].down_who),
+                    (cells[i].down, cells[i].down_who)
+                );
+                let (cx, cy) = from;
+                let i = (cy * w.grid.xs + cx) as usize;
+                let (o, th) = (&w.grid.cells[i], &cells[i]);
+                if (o.down, o.down_who, o.flags & 1) != (th.down, th.down_who, th.flags & 1) {
+                    parted.push(format!(
+                        "{}: the good's old cell ({cx}, {cy}): (down, down_who, flag 1) ours {:?} \
+                         theirs {:?}",
+                        w.name,
+                        (o.down, o.down_who, o.flags & 1),
+                        (th.down, th.down_who, th.flags & 1)
+                    ));
+                }
+            }
+            let Some(prefix) =
+                crate::testenv::dump(&w.name).and_then(|p| start_prefix(Path::new(&p)))
+            else {
+                continue;
+            };
+            let log = crate::gamelog::Log::parse(&prefix);
+            let Some(init) = log.initial() else {
+                continue;
+            };
+            if init.heights.is_empty() {
+                continue;
+            }
+            crate::diff::PRE_ROSTER_HEIGHTS.with(|h| *h.borrow_mut() = Some(w.z.clone()));
+            drop(crate::diff::build_sim(
+                &loaded,
+                &init,
+                sim::tuning::Tuning::RON,
+            ));
+            let ours = crate::diff::POST_ROSTER_HEIGHTS
+                .with(|h| h.borrow_mut().take())
+                .expect("the roster stood on the generated grid");
+            assert_eq!(
+                ours.len(),
+                init.heights.len(),
+                "{}: the grid's size",
+                w.name
+            );
+            let wd = 4 * w.grid.xs + 1;
+            let bad: Vec<usize> = (0..ours.len())
+                .filter(|&i| !ours[i].prints_as(init.heights[i]))
+                .collect();
+            if let Some(&i) = bad.first() {
+                parted.push(format!(
+                    "{}: {} of {} vertices part, the first ({}, {}) ours {:#x} against {}",
+                    w.name,
+                    bad.len(),
+                    ours.len(),
+                    i as i32 % wd,
+                    i as i32 / wd,
+                    ours[i].0,
+                    init.heights[i]
+                ));
+            }
+            eprintln!("{}: {} vertices", w.name, ours.len());
+            files += 1;
+        }
+        assert!(
+            parted.is_empty(),
+            "{} part:\n{}",
+            parted.len(),
+            say_partings(&parted)
+        );
+        assert!(
+            files >= OLD_WORLD_FILES,
+            "the heights reached {files} Old World files"
+        );
+    }
 }
