@@ -40392,7 +40392,7 @@ ran.
   `LAB_005f761a` `:296`, `:339`).
 - `BUILDDATA stance` (`Build +0x7e`) is read by `gamelog::BuildDump::stance` and the oracle codec, and compared
   against `Sim::build_stance`. It agrees on every walk of the suite. It moves three building-field counts, each on
-  top of item 3961's `healing` (run56 558,860 → 605,173, run57 786,842 → 851,005, run58 1,075,324 → 1,164,487),
+  top of item 3961's `healing` (run56 558,860 → 605,173, run57 786,842 → 852,005, of which 1,000 past the two alone was not traced, run58 1,075,324 → 1,164,487),
   all with none wrong.
 
 ### 406.3 The row, and the tally

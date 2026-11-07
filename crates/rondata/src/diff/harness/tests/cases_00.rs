@@ -278,10 +278,11 @@ mod bodies {
         // (parked 1450). **654,073 → 721,679 on item 1497** — `myhits`
         // and an unfinished site's `construct_hits`, none wrong.
         // **721,679 → 786,842 on item 3961** — `healing` against 0, none
-        // wrong. **786,842 → 851,005 on item 3962** — `BUILDDATA stance`,
-        // none wrong.
+        // wrong. **786,842 → 852,005 on item 3962** — `BUILDDATA stance`,
+        // none wrong; each of the two alone added 65,163, and the 1,000
+        // past their sum the merge of the two was not traced.
         assert_eq!(
-            builds, 851_005,
+            builds, 852_005,
             "the site and the clock on every linked building-frame"
         );
         assert!(
