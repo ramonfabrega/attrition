@@ -35754,6 +35754,33 @@ SHA-256 `510f40938ab714746a27dd71745613110d83dc02de209c078fc8b16bf2a65fd5`.
 `battery::BATTERY` (parked 3943a). On the closing block (24001) the AI's four Mines stand on cliffs 2, 0, 10 and
 6, and our laid cliffs give the same four arms (`battery::the_mesa_game_s_closing_mines_take_our_cliffs`).
 
+
+## run1535 — Sea Power (style 20), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3952, `att-3952`)
+
+`docs/MAPGEN.md` §33. The chain take §22.2 writes, at `--map 20`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1535 --map 20 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level`
+14, `CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: the one Sea Power file on disk,
+run1126 (`atlanticseapower-cover1-clickfree-diagonal`, `cover=1`), enters `MapSeaPower::make_continents` and
+carries no setup trace, so no checkpoint 7805..7945 for style 20 was on disk.
+- Pool lane 1, the pool's pick. Launched 02:50:06, exited 02:50:35 (28.9 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 20, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60;
+  `page_faults` 0, `relaunches: []`. `df -g ~` read 80 GiB free before it. Filed with `filerun.py run1535
+  seapower-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1535-seapower-mapgen-start.txt`, 152,082,307 bytes,
+SHA-256 `4398de30e71d36b25d899d8421285054a96ef0a0cf604cebfec040186ee60b43`.
+
+Archive `rontrace-run1535.log`, 8,322,976 bytes,
+SHA-256 `76164fad355ef266e0635a0c87d874a196d81f2d8d868df820dc07823d9d063b`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..894 and
+`map.cpp` 5012..5118. The tileset is `dirty`, drawn from `SEAPOWER.xml`'s five. The mask runs to 6,363 draws (one
+generation, neither pass stalled), and 7807 is at seed 119778082. There are 5,183 draws from `place_all` through
+the values, the half-land gate opens on the islands' shores, and there is no river draw (20 sources, an empty
+`RIVERLIST`). At 894 the seed is 2387569999 and part 5 is 3351400679. The port meets all of it on its first walk
+(`mapgen::tests::sea_power_*`); the start dump's 58,081 vertices meet once the harness installs the goods before
+the roster (MAPGEN §33.3). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
 ## run1533 — New World (style 16), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3950, `att-3950`)
 
 `docs/MAPGEN.md` §31. The chain take §22.2 writes, at `--map 16`: `viadriver.sh tools/explore/golden_capture.sh
