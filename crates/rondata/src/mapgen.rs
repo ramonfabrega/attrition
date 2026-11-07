@@ -1243,6 +1243,24 @@ pub fn outback_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a New World setup path: from its
+/// first `MapNewWorld::make_continents@006984d0` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §31, item 3950), up to the first
+/// that is none.
+pub fn new_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let nw = 0x0069_84d0..0x0069_8b60;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| nw.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !nw.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `make_continents` segment of a Sea Power setup path: from its
 /// first `MapSeaPower::make_continents@00696080` draw, every draw whose
 /// site is that function, `Map::grow_region`, `Map::large_stamp` or
@@ -7699,6 +7717,9 @@ mod tests {
         /// Australian Outback's own, an island grown from the players'
         /// spots and the middle (§30).
         Outback,
+        /// New World's own, islands on a ring and a centre continent
+        /// (§31).
+        NewWorld,
         /// Sea Power's own, an island a player on a ring (§33).
         SeaPower,
     }
@@ -7858,6 +7879,25 @@ mod tests {
         river_records: 5,
         moves_a_good: false,
         lays_rivers: false,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
+    /// New World (style 16, §31): run1533, item 3950.
+    static NEW_WORLD: Chain = Chain {
+        label: "New World",
+        map: "NewWorld",
+        style: 16,
+        xml: "NEWWORLD.xml",
+        mask: new_world_part,
+        port: MaskPort::NewWorld,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: true,
         height_files: 1,
         walks: OnceLock::new(),
     };
@@ -8055,6 +8095,18 @@ mod tests {
                 // Mediterranean writes no `start_dist` (§29.1).
                 None
             }
+            MaskPort::NewWorld => {
+                let m = sim::map_new_world::new_world_make_continents(
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: the new world {m:?}");
+                // New World writes no `start_dist` (§31).
+                None
+            }
             MaskPort::SeaPower => {
                 let m = sim::map_sea_power::sea_power_make_continents(
                     &mut grid,
@@ -8078,8 +8130,9 @@ mod tests {
         if let Some((start_dist, floor)) = start {
             assert_eq!(start_dist, (g.xs / 16).max(floor), "{name}: `start_dist`");
         }
+        // New World's centre continent alone draws 102,324 (§31).
         let mut words = Vec::new();
-        while twin.seed != d.rng.seed && words.len() < 0x10000 {
+        while twin.seed != d.rng.seed && words.len() < 0x40000 {
             words.push(twin.seed);
             twin.roll();
         }
@@ -8789,6 +8842,18 @@ mod tests {
         mediterranean_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         mediterranean_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         mediterranean_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        NEW_WORLD,
+        new_world_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        new_world_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        new_world_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        new_world_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        new_world_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        new_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        new_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        new_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 
     chain_tests!(
