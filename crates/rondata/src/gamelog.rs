@@ -2401,6 +2401,10 @@ pub struct BuildDump {
     /// Stable joined Norwich on block 8734 and this crate's never did.
     pub city: Option<i64>,
     pub city_down: Option<i64>,
+    /// `BuildData::stance` (`Build +0x7e`, `log_data:126`): the stance
+    /// option a building's trainees inherit — `Build::init`'s, rewritten
+    /// by `Group::action_stance`'s building arm. Unparsed until item 3962.
+    pub stance: Option<i64>,
     /// The production queue, capacity slots and all —
     /// `BuildQueue::log_data`'s `queue[scan]` run under `BEGIN BUILDQUEUE`,
     /// one nine-line group per slot, `queue_size` of them. Only the first
@@ -3633,6 +3637,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         queued: b.int("queued"),
         city: b.int("city"),
         city_down: b.int("city_down"),
+        stance: b.int("stance"),
         queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
     })
 }

@@ -897,6 +897,26 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 }
             }
         }
+        // **The building's own stance byte** (item 3962, `docs/AI.md`
+        // §406): `Build +0x7e`, which `Build::init` writes and
+        // `Group::action_stance`'s building arm rewrites. This crate
+        // computes it ([`sim::Sim::build_stance`]); no buildings group
+        // reaches the second writer.
+        if let Some(theirs) = b.stance {
+            let mine = i64::from(built.sim.build_stance(handle));
+            r.build_compared += 1;
+            compared::note("BuildDump", &["stance"]);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field: "stance",
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         // **The production queue, whole.** `BuildQueue::log_data` writes
         // it for every building on every frame from `BUILDS=1`, and until
         // this it was compared in one test against one capture — so a
@@ -2212,6 +2232,17 @@ fn widen_block_rows(
                     i64::from(un.unit_masks2 & 0x80 != 0),
                     them.unit_masks2.map(|m| i64::from(m & 0x80 != 0)),
                 ),
+                // **`SubObjectData::flags & 0x10`** (item 3962, `docs/AI.md`
+                // §406): the bit `Unit::think`'s one-in-sixteen idle gate
+                // reads. `do_gather` raises it on a gather it cannot reach
+                // and `Group::action_stance` on every member it sets; every
+                // exit of `think` past the gate drops it. The rest of the
+                // byte is not compared.
+                (
+                    "cant_reach",
+                    i64::from(un.cant_reach),
+                    Some(i64::from(them.flags & 0x10 != 0)),
+                ),
             ] {
                 rows.push((r.0.into(), r.1, r.2));
             }
@@ -2409,6 +2440,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "heading" => ("UnitDump", "angle"),
         "hits_left" => ("UnitDump", "damage"),
         "sheltered" | "land_cloak" | "cloak_mark" => ("UnitDump", "unit_masks2"),
+        "cant_reach" => ("UnitDump", "flags"),
         "orders.len" => ("UnitDump", "orders"),
         "guys.len" => ("UnitDump", "guys"),
         "half_step" | "packed" | "mirror" | "blown" | "fought" | "contact" | "cloak" => {

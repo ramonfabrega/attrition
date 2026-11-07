@@ -187,9 +187,11 @@ const UNREAD: &[(&str, &str)] = &[
     // The points themselves are read (`GATHERPOINT`, `BuildDump::gather`).
     // **Item 1112 read `attack_ox attack_whom recharging`**: the golden
     // widening's anti-air cycle rows (`golden::cycle_rows`).
+    // **Item 3962 read `stance`**: `Build +0x7e` against
+    // `Sim::build_stance` (`docs/AI.md` §406).
     (
         "GAME/FRAME/BUILDDATA",
-        "dock flags fort founder healing increment infiltrate infiltrate2 metric oil_well stance type wonder",
+        "dock flags fort founder healing increment infiltrate infiltrate2 metric oil_well type wonder",
     ),
     ("GAME/FRAME/BUILDDATA/BUILDQUEUE", "queue_size"),
     (
@@ -3408,12 +3410,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // holds an army's group (slot 72), which 5605..5609 did not. The second
     // kind leaves this pin the day a window that reaches it is driven here.
     //
-    // `UnitDump`: `uid` is the identity behind `o` (ledger); `flags`,
-    // `infiltrated` and the container pair `up`/`up_who`/`down`/
-    // `down_who` no site compares. `damage_o`/`damage_who` are compared
+    // `UnitDump`: `uid` is the identity behind `o` (ledger); `infiltrated`
+    // and the container pair `up`/`up_who`/`down`/`down_who` no site
+    // compares. **Item 3962 read `flags`**: its bit `0x10`, the row
+    // `cant_reach` (`docs/AI.md` §406). `damage_o`/`damage_who` are compared
     // only where both sides hold a live wound window, and no unit is
     // wounded on these blocks (Great Lakes' war window compared them).
-    ("UnitDump", "down down_who flags infiltrated uid up up_who"),
+    ("UnitDump", "down down_who infiltrated uid up up_who"),
     // `Guy`: `ox`/`whom`, the figure's aim, are compared since item 1061;
     // `last_pos` is run86's widening's (item 271); `kind`, `guy_num` and
     // `guy_flags` no site compares. **The turret's four** — `node_flags`,
