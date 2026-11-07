@@ -2253,9 +2253,9 @@ mod tests {
     #[test]
     fn the_style_s_six_territory_limits_are_the_start_dump_s() {
         let rules = [
-            T.territory_limit_base,
-            T.territory_limit_civic,
-            T.territory_limit_city,
+            sim::tuning::Tuning::RON.territory_limit_base,
+            sim::tuning::Tuning::RON.territory_limit_civic,
+            sim::tuning::Tuning::RON.territory_limit_city,
         ];
         let carried = |init: &Initial<'_>| -> [i32; 6] {
             let (world, _) = world_from(&init.world, &[], &mut Vec::new());
@@ -2279,9 +2279,22 @@ mod tests {
                 get("colonized_territory_limit_city"),
             ]
         };
-        let lobby = initial();
-        assert_eq!(printed(&lobby), [44, 4, 4, 44, 4, 4], "the pinned lobby");
-        assert_eq!(carried(&lobby), [44, 4, 4, 44, 4, 4], "the pinned lobby");
+        // The pinned lobby's siblings: every one that prints the six is the
+        // rules' on both triples (448 of the 451 kept start dumps are).
+        let inert = with_sibling_initials(|inits| {
+            let mut n = 0;
+            for init in inits.iter().filter(|i| {
+                i.world
+                    .iter()
+                    .any(|(k, _)| *k == "colonized_territory_limit_city")
+            }) {
+                assert_eq!(printed(init), [44, 4, 4, 44, 4, 4], "a pinned sibling");
+                assert_eq!(carried(init), [44, 4, 4, 44, 4, 4], "a pinned sibling");
+                n += 1;
+            }
+            n
+        });
+        eprintln!("{inert} pinned siblings print the rules' six");
         let styles = [
             (
                 "gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt",
