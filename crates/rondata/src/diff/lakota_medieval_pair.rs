@@ -119,7 +119,11 @@ fn lakota_medieval_pair_is_no_other_lobby() {
         .collect();
     assert_eq!(
         lakota,
-        [("GreatSaharaLakotaTier2", 7, 2)],
+        [
+            ("GreatSaharaLakotaTier2", 7, 2),
+            // Item 3943's held-out game on Southwest Mesa.
+            ("SouthwestMesaLakotaTier2", 10, 2),
+        ],
         "the battery's Lakota games"
     );
     let other = &super::lakota_pair::LAKOTA;

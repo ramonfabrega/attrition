@@ -35602,6 +35602,45 @@ sources. At 894 the seed is 345508960, part 5 3390494892 and part 6 841929190. T
 run (`mapgen::tests::amazon_basin_*`). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
 
 
+## run1525 — Southwest Mesa (style 10), the Inca at Difficulty 2: the first held-out lobby's `DUMP_ALL` start, refused by the battery's nation fence (2026-11-07, item 3943, `att-3943`)
+
+`docs/AI.md` §401. **What the disk could not answer**: no dump holds a game in a lobby on map 10 other than the
+default `(10, 11, 0)` (run1118, run1493, run1516), and a held-out game is its own lobby's. The take was launched
+after the cliff wiring was pushed (`623b604ce`). It ran through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1525 --map 10 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 2 --profile
+DIFFICULTY=2 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`
+(`check_all_level` 14, `CHECKSUM` 2). `df -g ~` read 83 GiB free before it.
+- Pool lane 1. Launched 00:43:21 and exited 00:43:45 (24.8 s). Receipt: `success`, 37 frames, `map_verified`,
+  map style 10, seed 12345, players `(0, 4, 7)` and `(1, 2, 1)`, `lobby_read` DIFFICULTY 2, STARTING_RESOURCES 1,
+  STARTING_TECHNOLOGY 0, ENDING_TECHNOLOGY 7. `page_faults` 0, `relaunches: []`. Filed with `filerun.py run1525
+  southwestmesa-inca-diff2-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1525-southwestmesa-inca-diff2-start.txt`, 149,630,193 bytes,
+SHA-256 `d8fd9690e608615424ad8a47ba1f7b07b3abe0d06f199e3c0870955b6694846f`.
+Archive `rontrace-run1525.log`, 8,369,664 bytes,
+SHA-256 `3abb45840dab6c642b6513a57673d7461eb56ac46d67b90c3ba4e5d5b41665a1`.
+
+## run1526 — the Inca at Southwest Mesa 2: the refused lobby's draw stream to its end (2026-11-07, item 3943, `att-3943`)
+
+`docs/AI.md` §401. This is run1012b's recipe at `--map 10` with the lobby named field by field: `--end-frame 24000
+--timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --ai-tribe 2
+--profile DIFFICULTY=2 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`,
+with run643's four `--detail` lines.
+- Pool lane 2, beside run1525. Launched 00:43:49 and exited 00:48:10 (261.5 s). Receipt: `success`, 8439 frames;
+  **the game ended itself on 8438** (closing block 8439, `ended_early` true). The players and `lobby_read` are
+  as run1525's. Against run1525, `rngcmp.py` gives **37 identical, 0 differing**. Filed with `filerun.py run1526
+  southwestmesa-inca-diff2-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1526-southwestmesa-inca-diff2-24k-trace.txt`, 12,328,365 bytes,
+SHA-256 `0d2374d2f2b89e761d6dc1472c17b1777f17bd9ae83b6e84a7acb6856f037407`.
+Archive `rontrace-run1526.log`, 55,961,216 bytes,
+SHA-256 `b4c30b14fe349d33465ab2be76aceb41244a991ab5272bfd3286ad8166c60a18`.
+
+**What it holds**: the Inca at Southwest Mesa 2, **7250 / 7250** of 8438 on its first try. It is not pinned:
+the Inca pairs refuse a battery game on the Inca, so the held-out game is run1525b/run1526b's. Parked 3943c. No
+Mine stands on the closing block.
 ## run1530 — African Watering Hole (style 11), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-06, item 3947, `att-3947`)
 
 `docs/MAPGEN.md` §28. The chain take §22.2 writes, at `--map 11`: `viadriver.sh tools/explore/golden_capture.sh
@@ -35653,3 +35692,38 @@ the middle); 4,678 draws from `place_all` through the values; no river draw (21 
 trough section. At 894 the seed is 85646897, part 5 2363972222 and part 6 3983024254. The port meets all of it on
 the first walk, and all 58,081 start-dump vertices (`mapgen::tests::australian_outback_*`, MAPGEN §30). No
 `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
+## run1525b — Southwest Mesa (style 10), the Lakota at Difficulty 2: the held-out game's `DUMP_ALL` start with the setup trace (2026-11-07, item 3943, `att-3943`)
+
+`docs/AI.md` §401. **What the disk could not answer**: run1525's lobby is the Inca, which the battery's nation fence
+refuses (parked 3943c), and no dump holds the Lakota on map 10. The recipe is run1525's with `--ai-tribe 19`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1525b --map 10 --end-frame 36 --timeout 1200
+--dump-all-start --cover cover=0 --ai-tribe 19 --profile DIFFICULTY=2 --profile STARTING_RESOURCES=1 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`. `df -g ~` read 89 GiB free before it.
+- Pool lane 1. Launched 01:18:09 and exited 01:18:37 (28.4 s). Receipt: `success`, 37 frames, map style 10,
+  players `(0, 4, 7)` and `(1, 19, 1)`, `lobby_read` DIFFICULTY 2, STARTING_RESOURCES 1, STARTING_TECHNOLOGY 0,
+  ENDING_TECHNOLOGY 7. `page_faults` 0, `relaunches: []`. Filed with `filerun.py run1525b
+  southwestmesa-lakota-diff2-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1525b-southwestmesa-lakota-diff2-start.txt`, 149,510,084 bytes,
+SHA-256 `4f27cde1b154e69e3de04c9f18bf40ee6fb02098ed6228ffdc5e5dad7f53dced`.
+Archive `rontrace-run1525b.log`, 8,604,832 bytes,
+SHA-256 `f7a3f83acba336ce48e024aa7432d5dcd8f566952eeedb471e066cbeb9a2622e`.
+
+## run1526b — the Lakota at Southwest Mesa 2: the held-out game's draw stream to 24000 (2026-11-07, item 3943, `att-3943`)
+
+`docs/AI.md` §401. This is run1526's recipe with `--ai-tribe 19`.
+- Pool lane 2, beside run1525b. Launched 01:18:29 and exited 01:27:58 (569.0 s). Receipt: `success`, 24001
+  frames, the game not ended (`ended_early` false). The players and `lobby_read` are as run1525b's. Against
+  run1525b, `rngcmp.py` gives **37 identical, 0 differing**. Filed with `filerun.py run1526b
+  southwestmesa-lakota-diff2-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1526b-southwestmesa-lakota-diff2-24k-trace.txt`, 12,684,897 bytes,
+SHA-256 `76dbbfd0cee3e9bf49f0bc659e19e9d4e7c619862275e074b586c9bafa761d56`.
+Archive `rontrace-run1526b.log`, 96,585,344 bytes,
+SHA-256 `510f40938ab714746a27dd71745613110d83dc02de209c078fc8b16bf2a65fd5`.
+
+**What it holds**: the held-out `SouthwestMesaLakotaTier2`, **15754 / 15754** of 24000 on its first try, pinned in
+`battery::BATTERY` (parked 3943a). On the closing block (24001) the AI's four Mines stand on cliffs 2, 0, 10 and
+6, and our laid cliffs give the same four arms (`battery::the_mesa_game_s_closing_mines_take_our_cliffs`).

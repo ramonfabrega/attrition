@@ -3790,6 +3790,11 @@ run, in the fresh session, failed on an input it could have checked (a style fil
 Candidate: the `DEEP` draft's frame line asks for the harness's one run's exit beside the `Left to do` heading. Names no
 score; the loop's.
 
+(3955) **`tools/refill.py` prints a triple as free that the battery's nation fence refuses** (3943's "for the Loop"): the
+Inca lobby `(10, 2, 2)` was taken whole first (runs 1525/1526) and then refused by the Inca pairs' `*_is_no_other_lobby`
+fence, so the held-out game was re-taken as the Lakota (1525b/1526b), two captures for one. Candidate: `refill.py` prints
+the nation fence beside each free triple. Names no score; the loop's.
+
 ## Loop, filed 2026-11-06 — the seventieth tranche's
 
 **3938** (A `cover=1` take that dumps to its end frame and never exits holds a pool lane for the runner's whole timeout; 3932's "for the Loop", parked 3932c) — **built** by the seventieth pass, red first (`AttributeError: module 'unattended_capture' has no attribute 'end_frame_verdict'`), its text kept in `docs/audit/2026-11-06-fable-pass-70.md` ("Rulings"): the runner reads the trace's frame against `--end-frame` on every turn of its wait loop (`end_frame_verdict`), and a game still standing at the end frame `END_FRAME_GRACE` (120 s) later is ended by the runner — `SIGKILL` on the launch group, the receipt's `ended_by_runner` naming the frame and the seconds, the lifecycle check then refusing the receipt as it did the timeout's, an hour sooner. 49 tests in `test_unattended_capture.py`.
@@ -14810,13 +14815,27 @@ words and edits nothing here; a refill lands when two remain.
   A row that places a `CliffMiningData` with its `tcoords`, the world's owner bytes, two leaders' `diplos` and the
   `mtn_*` constants would be its value check. **Score**: none.
 
-## Parked by the next landing, slot BV — reserved
+## Parked by item 3943, 2026-11-07 — a held-out game on Southwest Mesa
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3943a. `SouthwestMesaLakotaTier2` parts on frame 15754** (`docs/AI.md` §401.3). This is the held-out game's
+  first try (runs 1525b and 1526b, the Lakota at Difficulty 2 on map 10). Its count and sequence are both 15754 of
+  24000. On that frame ours makes 6 draws and theirs 7, parting at index 0: ours `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. The long dumps only its setup and
+  closing blocks, so there is no record, field or value on 15754 to quote; the row is the draw stream's.
+  **Score**: none. It is a held-out game (DECISIONS 54, 61; 111 §6): parked by frame, booked by nobody, never read
+  against.
+- **3943b. The cliff lists' tiles in a played game** (`docs/AI.md` §401.4). On run1526b's closing block the AI's
+  four Mines stand on cliffs 2, 0, 10 and 6, and our laid cliffs give all four the same arm. Their tiles (451, 299,
+  50 and 199) depend on the owners when each was placed, and no block prints those. A capture windowed on a Mine's
+  placement block would carry them; that needs a `cover=0` twin of run1526b with `BUILDS=7` there, its frame found
+  by the closing block's object numbers (2009..2019). **Score**: none. It is a measurement of the held-out game, and
+  taking it must not lead to anything being built against the game.
+- **3943c. The Inca on Southwest Mesa, the lobby the battery's fence refused** (runs 1525 and 1526; `docs/AI.md`
+  §401.2). `(10, 2, 2)` was taken first. On its first try it scored 7250 of 8438 (ours 7 draws, theirs 8, at
+  index 3: `Farms::inc_time+0x1ae` against `Object::take_damage+0xe1`), and the game ended itself. The three Inca
+  pairs' `*_is_no_other_lobby` refuse any battery game on the Inca, so it is not pinned. No Mine stands on its
+  closing block. `tools/refill.py` checks triples, not the nation fence, which is how a free triple led to a
+  refused lobby. **Score**: none. It is a filed measurement.
 
 ## Parked by item 3944, 2026-11-06 — Old World's chain, 8 of 8
 

@@ -900,6 +900,38 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 24000,
         sequence: 24000,
     },
+    // The held-out game on Southwest Mesa (item 3943; DECISIONS 54, 61,
+    // 111 §1; `docs/AI.md` §401; runs 1525b and 1526b): the only style
+    // that lays cliffs (MAPGEN §18.3), so the number that scores the cliff
+    // arm of a Mine (AI §400), its cliffs laid by the generator's chain at
+    // the start's 7805 seed (`crate::mapgen::mesa`, committed `623b604ce`
+    // before any take). No lobby held map 10, and the rubric's braces named
+    // no nation (its six never-seen lines are Boadicea and the gaia
+    // animals). A battery game fields only the battery's own nations (the
+    // pairs' `*_is_no_other_lobby`), so the nation is one of them: the
+    // Lakota, the widest census reach among them (17, the rule (2) reading
+    // of item 3361). The first lobby, the Inca (runs 1525 and 1526, 7250 of
+    // 8438), was refused by that fence and is parked 3943c. Scored once and
+    // never debugged against. The game does not end itself: the long runs
+    // to 24000.
+    Lobby {
+        name: "SouthwestMesaLakotaTier2",
+        map_style: 10,
+        ai_tribe: 19,
+        difficulty: 2,
+        start: "gamelog-run1525b-southwestmesa-lakota-diff2-start.txt",
+        long: (
+            "gamelog-run1526b-southwestmesa-lakota-diff2-24k-trace.txt",
+            "rontrace-run1526b.log",
+        ),
+        length: 24000,
+        // Item 3943, the first try: count 15754, sequence 15754 of 24000 —
+        // ours 6 draws, theirs 7, at index 0 ours `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+        // Unit::move_step+0x823`. Parked (3943a), never fixed.
+        count: 15754,
+        sequence: 15754,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked
@@ -1024,4 +1056,145 @@ fn battery_captures_are_complete_and_say_their_lobby() {
             lobby.name
         );
     }
+}
+
+/// **A Southwest Mesa game lays its cliffs** (item 3943; parked 3942b;
+/// `docs/AI.md` §400, §401). run1516b — item 3924's `(10, 11, 0)` capture,
+/// a Mine added beside a cliff on frame 100 — stood up through
+/// [`build_sim`] with run1493's start (the same seed 7236 and lobby, and
+/// the setup trace run1516b lacks) as its sibling: the generator's chain
+/// runs at 7805's seed and its `Cliffs::init` mining lists are laid, so the
+/// Mine `0/2007` at (10, 43) that block 101 adds takes cliff 7's 189 tiles,
+/// as `mapgen`'s `run1516_s_mine_takes_cliff_7_s_tiles_on_100` reads them
+/// on a hand-built `Sim`. Without the wiring the game has no cliffs and
+/// the Mine's list is the base's empty one: the held-out Mesa game scores
+/// the cliff arm only through this.
+#[test]
+fn a_southwest_mesa_game_lays_its_cliffs() {
+    let Some(inst) = crate::testenv::install() else {
+        eprintln!("skipped: no install on this machine");
+        return;
+    };
+    let (Some(path), Some(sib)) = (
+        dump("gamelog-run1516b-southwestmesa-cliffmine-cover0-clickfree.txt"),
+        dump("gamelog-run1493-southwestmesa-mapgen-start.txt"),
+    ) else {
+        eprintln!("skipped: run1516b or run1493 is not on this machine");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("run1493's start dump");
+    let mut init = log.initial().expect("run1516b's start dump");
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    assert!(
+        crate::mapgen::mesa::MesaLobby::of_initial(&init).is_some(),
+        "run1516b, with run1493's setup trace, is a Southwest Mesa lobby at 7805"
+    );
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    let s = &built.sim;
+    let theirs = log.frame_builds(101);
+    let mine = theirs
+        .iter()
+        .find(|b| b.who == 0 && b.o == 2007)
+        .expect("block 101's Mine 0/2007");
+    let ty = loaded
+        .build_of_type_index(mine.orig_type.expect("orig_type") as i32)
+        .expect("the Mine's build type");
+    let pos = sim::Pos::new(mine.pos.x as i32, mine.pos.y as i32);
+    assert_eq!(
+        (pos.x, pos.y),
+        (1920, 8256),
+        "the Mine at cell (10, 43), 192 a cell"
+    );
+    let corner = s.tile_corner(ty, pos);
+    let centre = s.footprint_centre(ty, corner);
+    let arm = s.mine_arm(centre);
+    let got: std::collections::BTreeSet<(i64, i64)> = s
+        .gather_tcoords(ty, 0, corner)
+        .iter()
+        .map(|p| (i64::from(p.x), i64::from(p.y)))
+        .collect();
+    let want: std::collections::BTreeSet<(i64, i64)> = mine.gather_from.iter().copied().collect();
+    eprintln!(
+        "run1516b 101 through build_sim: {} cliffs laid; theirs mtn {:?} cliff {:?}, {} tiles; \
+         ours {arm:?}, {} tiles ({} shared)",
+        s.cliffs.len(),
+        mine.mtn,
+        mine.cliff,
+        want.len(),
+        got.len(),
+        want.intersection(&got).count()
+    );
+    assert_eq!((mine.mtn, mine.cliff), (Some(-1), Some(7)), "theirs");
+    assert_eq!(arm, sim::gather::MineArm::Cliff(7), "the arm");
+    assert_eq!(want.len(), 189, "the dump's list");
+    assert_eq!(got, want, "the Mine's tiles");
+}
+
+/// **The held-out Mesa game's Mines take our cliffs** (item 3943,
+/// `docs/AI.md` §401.4): run1526b's closing block (24001) holds the AI's
+/// four Mines, each on a cliff's list (`mtn -1`, cliffs 0, 2, 6 and 10).
+/// Each one's arm, from the cliffs [`build_sim`] lays on run1525b's start
+/// at the Mine's dumped position, is that cliff. The arm reads only the
+/// laid cliffs and the region map, which the game does not move, so this
+/// measures the setup, not the game. The list's tiles are not compared:
+/// they depend on the owners when each Mine was placed, which no dump of
+/// this game prints.
+#[test]
+fn the_mesa_game_s_closing_mines_take_our_cliffs() {
+    let Some(inst) = crate::testenv::install() else {
+        eprintln!("skipped: no install on this machine");
+        return;
+    };
+    let (Some(path), Some(sib)) = (
+        dump("gamelog-run1526b-southwestmesa-lakota-diff2-24k-trace.txt"),
+        dump("gamelog-run1525b-southwestmesa-lakota-diff2-start.txt"),
+    ) else {
+        eprintln!("skipped: run1526b or run1525b is not on this machine");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("run1525b's start dump");
+    let mut init = log.initial().expect("run1526b's start");
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    let s = &built.sim;
+    let mines: Vec<_> = log
+        .frame_builds(24001)
+        .into_iter()
+        .filter(|b| b.cliff.is_some_and(|c| c >= 0))
+        .collect();
+    let mut rows = Vec::new();
+    for b in &mines {
+        let ty = loaded
+            .build_of_type_index(b.orig_type.expect("orig_type") as i32)
+            .expect("the Mine's build type");
+        let pos = sim::Pos::new(b.pos.x as i32, b.pos.y as i32);
+        let corner = s.tile_corner(ty, pos);
+        let arm = s.mine_arm(s.footprint_centre(ty, corner));
+        let ours = match arm {
+            sim::gather::MineArm::Cliff(k) => k as i64,
+            _ => -1,
+        };
+        eprintln!(
+            "run1526b 24001: mine {}/{} at {:?}: theirs cliff {:?} ({} tiles); ours {arm:?}",
+            b.who,
+            b.o,
+            b.pos,
+            b.cliff,
+            b.gather_from.len()
+        );
+        rows.push((b.o, b.cliff.unwrap(), ours));
+    }
+    assert_eq!(mines.len(), 4, "the closing block's Mines on a cliff");
+    let parted: Vec<_> = rows.iter().filter(|(_, t, o)| t != o).collect();
+    assert!(parted.is_empty(), "(o, theirs, ours): {parted:?}");
 }
