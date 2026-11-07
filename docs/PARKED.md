@@ -3790,6 +3790,11 @@ run, in the fresh session, failed on an input it could have checked (a style fil
 Candidate: the `DEEP` draft's frame line asks for the harness's one run's exit beside the `Left to do` heading. Names no
 score; the loop's.
 
+(3955) **`tools/refill.py` prints a triple as free that the battery's nation fence refuses** (3943's "for the Loop"): the
+Inca lobby `(10, 2, 2)` was taken whole first (runs 1525/1526) and then refused by the Inca pairs' `*_is_no_other_lobby`
+fence, so the held-out game was re-taken as the Lakota (1525b/1526b), two captures for one. Candidate: `refill.py` prints
+the nation fence beside each free triple. Names no score; the loop's.
+
 ## Loop, filed 2026-11-06 — the seventieth tranche's
 
 **3938** (A `cover=1` take that dumps to its end frame and never exits holds a pool lane for the runner's whole timeout; 3932's "for the Loop", parked 3932c) — **built** by the seventieth pass, red first (`AttributeError: module 'unattended_capture' has no attribute 'end_frame_verdict'`), its text kept in `docs/audit/2026-11-06-fable-pass-70.md` ("Rulings"): the runner reads the trace's frame against `--end-frame` on every turn of its wait loop (`end_frame_verdict`), and a game still standing at the end frame `END_FRAME_GRACE` (120 s) later is ended by the runner — `SIGKILL` on the launch group, the receipt's `ended_by_runner` naming the frame and the seconds, the lifecycle check then refusing the receipt as it did the timeout's, an hour sooner. 49 tests in `test_unattended_capture.py`.
