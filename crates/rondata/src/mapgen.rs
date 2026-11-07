@@ -1261,6 +1261,24 @@ pub fn new_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Nile Delta setup path: from its
+/// first `MapNileDelta::make_continents@00695bf0` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §34, item 3953), up to the first
+/// that is none.
+pub fn nile_delta_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let nd = 0x0069_5bf0..0x0069_6080;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| nd.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !nd.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7702,6 +7720,9 @@ mod tests {
         /// New World's own, islands on a ring and a centre continent
         /// (§31).
         NewWorld,
+        /// Nile Delta's own, a continent a player on a ring, the edge
+        /// canals widened (§34).
+        NileDelta,
     }
 
     struct Chain {
@@ -7878,6 +7899,25 @@ mod tests {
         river_records: 5,
         moves_a_good: false,
         lays_rivers: true,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
+    /// Nile Delta (style 21, §34): run1536, item 3953.
+    static NILE_DELTA: Chain = Chain {
+        label: "Nile Delta",
+        map: "NileDelta",
+        style: 21,
+        xml: "NILEDELTA.xml",
+        mask: nile_delta_part,
+        port: MaskPort::NileDelta,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
         height_files: 1,
         walks: OnceLock::new(),
     };
@@ -8065,6 +8105,18 @@ mod tests {
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: the new world {m:?}");
                 // New World writes no `start_dist` (§31).
+                None
+            }
+            MaskPort::NileDelta => {
+                let m = sim::map_nile_delta::nile_delta_make_continents(
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: the nile delta {m:?}");
+                // Nile Delta writes no `start_dist` (§34).
                 None
             }
         };
@@ -8795,5 +8847,17 @@ mod tests {
         new_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         new_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         new_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        NILE_DELTA,
+        nile_delta_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        nile_delta_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        nile_delta_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        nile_delta_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        nile_delta_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        nile_delta_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        nile_delta_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        nile_delta_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }

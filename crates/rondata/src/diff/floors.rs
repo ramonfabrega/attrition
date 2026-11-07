@@ -346,6 +346,19 @@ pub const MAPGEN: Mapgen = Mapgen {
             ported: 8,
             phases: 8,
         },
+        MapgenStyle {
+            map: "NileDelta",
+            // 0 → 8 by item 3953 (MAPGEN §34), on run1536's one file (2
+            // nations, seed 12345, `gs_desert`): the mask is its own
+            // (`sim::map_nile_delta`, 0x695bf0: a continent a player on a
+            // ring of radius 22, grown in four passes to 1,350 cells, the
+            // edge canals widened, no inversion), 7807 and its stream (one
+            // generation) whole on the first walk; every later checkpoint
+            // 7835..894 agrees with no shared-phase change. No river (an
+            // empty `RIVERLIST`), so no trough and no good moved.
+            ported: 8,
+            phases: 8,
+        },
     ],
 };
 
@@ -717,7 +730,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases \u{b7} NewWorld 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases \u{b7} NewWorld 8 of 8 phases \u{b7} NileDelta 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [

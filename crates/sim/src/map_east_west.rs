@@ -232,7 +232,7 @@ pub fn eliminate_edge_canals(grid: &mut MapGrid) -> Regions {
 
 /// Region `id`'s coordinate list as `Regions::rebuild_coords@0067f800`
 /// leaves it: every cell of the region, y outer and x inner.
-fn coords(grid: &MapGrid, id: i16) -> Vec<(i32, i32)> {
+pub(crate) fn coords(grid: &MapGrid, id: i16) -> Vec<(i32, i32)> {
     (0..grid.ys)
         .flat_map(|y| (0..grid.xs).map(move |x| (x, y)))
         .filter(|&(x, y)| grid.cell(x, y).region == id)

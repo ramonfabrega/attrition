@@ -150,6 +150,7 @@ pub mod map_heights;
 pub mod map_lakes;
 pub mod map_mediterranean;
 pub mod map_new_world;
+pub mod map_nile_delta;
 pub mod map_outback;
 pub mod map_resources;
 pub mod map_rivers;
