@@ -2945,8 +2945,8 @@ established:
   for any map with a land region 1, which this item did not check on
   run1129's dump);~~ it is non-empty: run1515 enters `check_starting_loc`
   (§23);
-- §5's sentence that Amazon, Himalayas and ~~Old World~~ "read the same" as
-  Great Sahara (Old World's listing is Great Sahara's: §25.1). That sentence predates this item, and this item did not
+- §5's sentence that ~~Amazon~~, Himalayas and ~~Old World~~ "read the same" as
+  Great Sahara (Old World's listing is Great Sahara's: §25.1; Amazon Basin's: §26.1). That sentence predates this item, and this item did not
   re-read it because of 3888c.
 
 ## 23. The `!eval` take: `find_extra_starting_loc` enters `check_starting_loc` (item 3921)
@@ -3134,7 +3134,7 @@ and 107 sections), and two oil moves ((4, 49) → (5, 51) → (7, 50)).
 back; no footprints for the troughs; the pre-search skip at `>=`; the kept
 river counted at its source rather than its end; flag 2 refused. The sixth
 break, ties to the last in `nearest_start`, has nothing to decide on
-run1527 (parked 3944a).
+run1527 (parked 3944a). run1528 decides it: ties go to the first (§26.2).
 
 ### 25.4 What is not established
 
@@ -3149,12 +3149,77 @@ run1527 (parked 3944a).
   (parked 3944b). That is harmless while none of their troughs reaches a
   good.
 
-## 26. Reserved for the next item on the map track
+## 26. Amazon Basin's chain, 8 of 8 (item 3945)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The second chain take (§22.2, §25's method). One take, run1528 at `--map 8`
+on §22.2's line (`docs/RUNS.md`), walked phase by phase against its own
+checkpoints by the walk §25 built, which is now one `Chain` row per style
+(`rondata::mapgen::tests::AMAZON_BASIN`, `chain_tests!`). Amazon Basin is
+**read against**. It is not the held-out style (§24).
+
+### 26.1 The mask is Great Sahara's listing
+
+`MapAmazonBasin::make_continents@0069be00` decompiles to Great Sahara's
+body. `llvm-objdump -d --no-show-raw-insn` from 0x69be00 to 0x69bf70 and
+from 0x69bf70 to 0x69c0e0, with addresses stripped, gives 144 lines each.
+They differ in four lines, the four relative jumps (`jns` 0x69beb1,
+`jns` 0x69bee2, `jle` 0x69bf5a, `jne` 0x69bf20), and each targets the same
+instruction 0x170 further on. So the port is
+`great_sahara_make_continents`, as it is for Old World (§25.1). Its four
+draws are the trace's `make_continents` segment, at sites 0x69be74,
+0x69be8c, 0x69bea2 and 0x69bed3 (`rondata::mapgen::amazon_basin_part`).
+7807's seed 2355140353 and parts 2 and 5 agree. What makes Amazon Basin
+Amazon Basin is `AMAZON.xml`, read from §4 on:
+
+- **A `TILESET` of its own**: `jungle`, `tropical` and `tropical_wet`, each
+  at 100. The one `init_map_data` draw is the style file's, as on Great
+  Lakes (§4). On run1528 it gives `tropical`, and 7854 agreeing backs it.
+- More goodies than Old World's `GOODIES` (3, 2, 6 and 6 SCALE by player,
+  and two a corner), and one `RIVER` at `start_range` 4, `end_range` 6
+  (Old World's is 2 and 4). The groups match Old World's in shape.
+
+### 26.2 Every phase held, first run, with no `sim` change
+
+Every checkpoint agrees on the first run with no `sim` change: from 7805's
+seed through 5014, then 5012..5118 and 894. That covers 21,411 draws from
+`place_all` through the last `compute_val`, and 8,290 river draws (one
+`SPREAD`, then `astar_river`'s `PRICE`s) over 78 sources. Part 4 at 734 is
+0x1e5405db on both sides and is held to 894. There are 22 records from 734
+to 815 and 5 from 5012 to 5118. At 894, seed 345508960, part 5 3390494892
+and part 6 841929190 agree, as do parts 10–13 at 262145 ×4 and all 58,081
+start-dump vertices. The troughs (116, 167 and 101 sections, 220 cells
+newly 0x1000) make four oil moves and six good moves. One good is walked
+four times, (41, 36) → (41, 34) → (42, 32) → (41, 30) → (40, 28): each
+cell it lands on is terraformed by a later section. `calculate_all` is
+handed `Some(&rows.goods)`, as Old World's is (§25.3). Without the goods
+it would refuse with `Goody`. `Cliffs::init` is inert.
+
+**3944a is decided.** `make_riverlist`'s nearest start breaks ties to the
+*first* start. The mutant `d <= best.0` in `sim::map_rivers::nearest_start`
+fails `amazon_basin_s_rivers_are_5012_to_5118` and
+`amazon_basin_s_troughs_are_894_and_the_start_dump_s_grid` on run1528,
+where it failed nothing on run1527.
+
+**Made to fail** (`tools/mutate.py --batch --timeout 900` on `ada08dd63`,
+seven breaks, six held): the mask segment at Old World's range; the
+tileset always from `default.xml`, and never from it (the two halves of
+`chain_tileset`'s branch: the first reddens Amazon, the second Old World);
+`AMAZON.xml` replaced by `OLDWORLD.xml`; the style row at 6; Old World's
+mask segment. The seventh break passes style 6 in place of 8 to
+`place_all_inputs_of`, and it failed nothing. That argument's only reader
+is `terrain_groups`' `inputs.map_style != 9` (Himalayas skips
+`treeify_mountains`), so 6 and 8 are the same game by construction. The
+break to 9 reddens six of the eight checks.
+
+### 26.3 What is not established
+
+- One file only: 2 nations, 60×60, `tropical`. The `jungle` and
+  `tropical_wet` draws and other nation counts are untaken.
+- The first moved good's new cell (10, 28) reads `down` 3, `down_who` 8 in
+  the start dump, against ours (−2, 17), the same pair as Old World's
+  (43, 18) (parked 3944c). The four later cells agree with the dump.
+  3944c's writer is still unnamed. It now has two cells to be read on
+  (parked 3945a).
 
 ## 27. Reserved for the next item on the map track
 

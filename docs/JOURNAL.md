@@ -21920,3 +21920,37 @@ recommending phase 4 on the counters and the held-out style beside it
 The backlog 15 → 12. No tranche booked; the commander's row not armed;
 the loop rests on Ramon's word. **DECISIONS 110.**
 `docs/audit/2026-11-06-fable-pass-70.md`.
+
+**2026-11-06 — the seventy-first steering pass (steer, Fable).** Ramon,
+after a `/clear` with the loop at rest on entry 110 §3: nine hours of
+token surplus, what to do with it, and whether to spend it condensing the
+documents. The pass measured first — the seventieth's workers read the
+documents by `grep` and range, never whole, so a shorter `AI.md` saves a
+landing nothing, and the only per-request text is `CLAUDE.md` — and
+answered: the map track as the seventy-first's supply, a renderer proposal
+for the morning, and the surplus on the one work the loop never books,
+reading. He said go. The seventy-first booked thirteen items on three Opus
+lanes — the held-out style East Meets West (3941, scored on its first try
+and never read against), the cliff arm on run1516's widening (3942), a
+held-out game on Southwest Mesa as the cliff number (3943; only Mesa lays
+cliffs, so "a cliff style held out" is a game, not a chain), the ten chain
+takes (3944–3953) — the commander armed at 22:0x and 3944 landed at 22:55,
+Old World 8 of 8 on its first take. The booking's gate was red first on the
+blind list (332: the readers' working files cite never-entered functions),
+green after the walker learned to skip a territory report (111 §3).
+`docs/RENDERER.md` drafted by one Opus session: a replay viewer first,
+`Sim::observe` the integer snapshot, `world_to_screen` under unicorn the
+visual oracle, "pieces in register, K of M" the recommended counter. The
+territory read by name: 26 Opus readers over 1,291 functions (twin 340 ·
+ui 219 · dead 183 · absorbed 137 · twin-differs 93 · saveload 83 · replaced
+71 · unmodelled 66 · editor 37 · debug 16 · network 16 · ctw 13 · cut 11 ·
+sound 2), 8 blind second readers over the 157 rows that matter, 6
+adjudicators over 84 rows — confirmed 55, already parting 2, uncompared
+10, refuted 2, the first reader right on 14 of 18 disagreements. The two
+tooling defects that hold a third of the territory open measured on a copy:
+marks before backing and the widened port spelling take ported 544 → 804
+and open 1291 → 946, Ramon's to accept (111 §4). Fourteen rows parked with
+their scores, cheapest first — three widenings red at once on dumps on
+disk, the Iroquois heal whose value diff is pinned, the style territory
+limits, the `clean_queue` technology bug, the building family's chapter.
+**DECISIONS 111.** `docs/audit/2026-11-06-fable-pass-71.md`.

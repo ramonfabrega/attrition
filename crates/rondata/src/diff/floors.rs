@@ -261,6 +261,19 @@ pub const MAPGEN: Mapgen = Mapgen {
             ported: 8,
             phases: 8,
         },
+        MapgenStyle {
+            map: "AmazonBasin",
+            // 0 → 8 by item 3945 (MAPGEN §26), on run1528's one file (2
+            // nations, 60×60, seed 12345, `tropical` drawn from
+            // `AMAZON.xml`'s own three `TILECHANCE`s): the mask is Great
+            // Sahara's listing at 0x69be00, and every phase holds on the
+            // first run with no `sim` change — 21,411 draws `place_all`
+            // through the values, 8,290 river draws (78 sources), and at
+            // 894 the troughs move four oils and six goods (one good walked
+            // four times, (41, 36) → (40, 28)).
+            ported: 8,
+            phases: 8,
+        },
     ],
 };
 
@@ -632,7 +645,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
