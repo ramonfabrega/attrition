@@ -2279,7 +2279,9 @@ mod tests {
         ];
         let carried = |init: &Initial<'_>| -> [i32; 6] {
             let (world, _) = world_from(&init.world, &[], &mut Vec::new());
-            let l = world.territory_limits().map_or([rules, rules], |l| [l.player, l.colonized]);
+            let l = world
+                .territory_limits()
+                .map_or([rules, rules], |l| [l.player, l.colonized]);
             [l[0][0], l[0][1], l[0][2], l[1][0], l[1][1], l[1][2]]
         };
         let printed = |init: &Initial<'_>| -> [i32; 6] {

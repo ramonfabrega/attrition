@@ -286,6 +286,38 @@ fn a_finished_city_projects_territory_and_the_radius_mask() {
     );
 }
 
+/// **A region a starting city stands in is a player region** (item 3963,
+/// `docs/AI.md` §407): `World::analyze_map@006b58b0` sets `Region.flags & 4`
+/// on every land region an active leader has a city in, once, at setup, and
+/// `compute_reg_territory:114–123` gives that region the style's player
+/// limits — 16 tiles here, where the colonized 32 would have reached two
+/// cells further. A city founded in play flags nothing.
+#[test]
+fn a_starting_city_s_region_is_a_player_region_and_takes_the_player_limits() {
+    let mut w = World::new(16, 16);
+    let west = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 15));
+    let east = w.fill_region(Terrain::Land, Cell::new(8, 0), Cell::new(15, 15));
+    w.set_territory_limits(crate::world::TerritoryLimits {
+        player: [16, 4, 4],
+        colonized: [32, 4, 4],
+    });
+    let mut sim = Sim::new(Tuning::RON, w, 2);
+    for l in &mut sim.ledgers {
+        l.bucket = [10_000; economy::RESOURCES];
+    }
+    let t = install_types(&mut sim);
+    city_at(&mut sim, &t, 0, 8, 32);
+    assert_eq!(sim.world.region_flags(west), crate::world::REGION_PLAYER);
+    assert_eq!(sim.world.region_flags(east), 0);
+    // Tile 8 to cell 5's centre tile (22) is 14; to cell 6's (26), 18.
+    assert_eq!(sim.world.owner(Cell::new(5, 8)), Owner::Player(0));
+    assert_eq!(sim.world.owner(Cell::new(6, 8)), Owner::None);
+
+    sim.in_play = true;
+    city_at(&mut sim, &t, 1, 48, 32);
+    assert_eq!(sim.world.region_flags(east), 0, "analyze_map is setup's");
+}
+
 /// **A city finished in play counts in its region at once and reaches its
 /// ground at the border pass's pace** (item 1106, `docs/AI.md` §84): its
 /// `City::init` raises `reg_cities` on the frame it is made, and the fix it
