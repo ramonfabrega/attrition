@@ -2354,6 +2354,21 @@ fn widen_block_rows(
         };
         for (index, (name, ours, theirs)) in rows.into_iter().enumerate() {
             let Some(theirs) = theirs else { continue };
+            // **`cant_reach` is tallied apart** (item 3962): compared on
+            // every unit of every block, its partings kept out of
+            // `firsts` and pinned per test (`diff::cant_reach`).
+            if name.0 == "cant_reach" {
+                compared::note("UnitDump", &["flags"]);
+                if ours != theirs {
+                    crate::diff::cant_reach::note(
+                        them.who,
+                        them.o,
+                        n,
+                        format!("ours {ours} theirs {theirs}"),
+                    );
+                }
+                continue;
+            }
             compared += 1;
             if let Some((record, field)) =
                 widened_field(if eager { &eager_names[index] } else { name.0 })
