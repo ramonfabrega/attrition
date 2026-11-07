@@ -35627,3 +35627,29 @@ and inverted, the island grown, neither stalled), and 7807 is at seed 1732231724
 `RIVERLIST`). At 894 the seed is 1290649423 and part 5 is 1780631313. The port meets all of it on its first walk
 (`mapgen::tests::mediterranean_*`). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
 
+
+## run1530 — African Watering Hole (style 11), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-06, item 3947, `att-3947`)
+
+`docs/MAPGEN.md` §28. The chain take §22.2 writes, at `--map 11`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1530 --map 11 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: run1119 (style 11, `cover=1`) enters
+`MapAfricanWateringHole::make_continents` and carries no setup trace, so no African Watering Hole checkpoint
+7805..7945 was on disk.
+- Pool lane 1, the pool's pick. Launched 23:31:45, exited 23:32:11 (26.9 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 11, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60; `page_faults` 0,
+  `relaunches: []`. `df -g ~` read 93 GiB free before it. Filed with `filerun.py run1530 awh-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1530-awh-mapgen-start.txt`, 149,746,777 bytes,
+SHA-256 `53344e09baebb4c6c4d0d5e9689d69fb8da95b31030266fa0082dce7913a6e4b`.
+
+Archive `rontrace-run1530.log`, 8,130,656 bytes,
+SHA-256 `e1690d2e22af68ad83fc827632eff84469fd71b727bd72058404316551b915ff`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118. The tileset is `african_savannah`, `AFRICA.xml`'s one `TILECHANCE` (no draw). 7807's seed is
+3818626210 after the mask's 91 draws (a 180-cell lake in one generation); 6,044 draws from `place_all` through the
+values; no river draw (19 sources); no trough section. At 894 the seed is 3198682286, part 5 2740768386 and part 6
+3430941390. The port meets all of it, and all 58,081 start-dump vertices once the mountain mesh reads the texel's
+red (`mapgen::tests::african_watering_hole_*`, MAPGEN §28.3). No `blind::TRACES` row: a `cover=0` setup trace
+enters only its hooks.

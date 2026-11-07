@@ -103,6 +103,9 @@
 //!   `docs/AI.md` §60) it is that range. Without them
 //!   [`Sim::mountain_range`] rebuilds one as the connected component of
 //!   mountain cells. The *arithmetic* on top of it is the original's.
+//! - **The cliffs, without a caller to lay them.** A mine's cliff arm
+//!   (`cliff_mine.rs`) reads [`Sim::cliffs`], which no dump prints; with none
+//!   laid a mine beside a cliff gets the empty list it always had.
 //! - **The remaining nation and wonder layer.** `taj_farms`,
 //!   `kremlin_farms`, `german_miners` and the Iroquois food bonus all add to
 //!   the count and are not modelled. French timber capacity is implemented
@@ -357,6 +360,18 @@ impl Sim {
         }
     }
 
+    /// [`Sim::gather_slots_raw`] on a standing building's own list.
+    #[cfg(test)]
+    pub(crate) fn gather_slots_for_list(
+        &self,
+        ty: usize,
+        who: Player,
+        corner: Pos,
+        list: &[Pos],
+    ) -> i32 {
+        self.gather_slots_raw(ty, who, corner, &Source::List(list))
+    }
+
     /// The count out-parameter of `calc_gather`, before the clamp
     /// [`max_gatherers_steps`] applies: [`Sim::site_gather_count`] and
     /// [`Sim::max_gatherers`] are its two readers.
@@ -457,19 +472,23 @@ impl Sim {
     /// here holds 244, and the 37 it drops are exactly the forest-surfaced
     /// ones (`docs/ECONOMY.md`, "The mine's range").
     ///
-    /// **The cliff arm is not modelled.** `CliffsData::find_nearest` runs
-    /// beside the mountain one and wins when a scary cliff is nearer; no
-    /// capture on either map has a cliff tile at all, so a mine sited on one
-    /// still gets nothing here. The falsifier is met: run1516's mine beside
-    /// a cliff on Southwest Mesa lists 189 cells (`docs/AI.md` §395); the
-    /// build is parked 3924a.
+    /// **A cliff nearer than any range** takes the cliff branch instead
+    /// ([`Sim::mine_arm`], [`Sim::cliff_gather_tcoords`]): run1516's mine
+    /// beside a cliff on Southwest Mesa lists cliff 7's 189 tiles
+    /// (`docs/AI.md` §395, §400).
     pub fn gather_tcoords(&self, ty: usize, who: Player, corner: Pos) -> Vec<Pos> {
         let t = &self.build_types[ty];
         let Some(good) = gather_good(t.ident) else {
             return Vec::new();
         };
         if good == Resource::Metal.index() {
-            let Some(range) = self.mountain_range(self.footprint_centre(ty, corner)) else {
+            let centre = self.footprint_centre(ty, corner);
+            match self.mine_arm(centre) {
+                MineArm::Cliff(k) => return self.cliff_gather_tcoords(k, who),
+                MineArm::None => return Vec::new(),
+                MineArm::Range => {}
+            }
+            let Some(range) = self.mountain_range(centre) else {
                 return Vec::new();
             };
             return range
@@ -784,7 +803,25 @@ impl Sim {
     /// mountain and one in an enemy's cell, and answers **−1** at the first
     /// that is `is_gathered_from`. `blocked_location` reads that as
     /// `MountainTaken`, so a second Mine on the range is refused.
+    ///
+    /// **A cliff nearer than any range** takes the cliff arm
+    /// ([`Sim::mine_arm`]): the same −1 walk over the cliff's tiles
+    /// ([`Sim::cliff_taken`]), then [`Sim::cliff_gather_size`].
     fn mine_slots(&self, centre: Pos, who: Player, from: &Source) -> i32 {
+        match self.mine_arm(centre) {
+            MineArm::Cliff(k) => {
+                let list = match from {
+                    Source::List(l) => Some(*l),
+                    Source::Survey => None,
+                };
+                if list.is_none() && self.cliff_taken(k, who) {
+                    return -1;
+                }
+                return self.cliff_gather_size(k, who, list);
+            }
+            MineArm::None => return 0,
+            MineArm::Range => {}
+        }
         let Some(range) = self.mountain_range(centre) else {
             return 0;
         };
@@ -833,6 +870,37 @@ impl Sim {
             base = 1;
         }
         base
+    }
+
+    /// **Which of `calc_gather`'s two mine arms a site takes**
+    /// (`63a555…`; `find_gather_tcoords`' metal branch the same): the
+    /// nearest range ([`Sim::find_nearest_mountain`], or the stand-in's
+    /// [`Sim::nearest_mountain_cell`]) unless a cliff
+    /// ([`Sim::find_nearest_cliff`]) is **strictly** nearer, and then
+    /// whichever won only inside `gather_radius · 0xc0`. A range that wins
+    /// and is out of reach leaves the site nothing; the cliff is not asked
+    /// again.
+    pub fn mine_arm(&self, centre: Pos) -> MineArm {
+        let reach = MINE_RADIUS * UNITS_PER_TILE;
+        let mtn = if self.mountains.is_empty() {
+            self.nearest_mountain_cell(centre).map(|(d, _)| d)
+        } else {
+            self.find_nearest_mountain(centre).map(|(d, _, _)| d)
+        };
+        let cliff = self.find_nearest_cliff(centre);
+        if let Some(dm) = mtn
+            && cliff.is_none_or(|(dc, _)| dm <= dc)
+        {
+            return if dm <= reach {
+                MineArm::Range
+            } else {
+                MineArm::None
+            };
+        }
+        match cliff {
+            Some((dc, k)) if dc <= reach => MineArm::Cliff(k),
+            _ => MineArm::None,
+        }
     }
 
     /// `MountainsData::find_nearest@0089cd30`, for the one question every
@@ -1052,6 +1120,18 @@ impl Sim {
         }
         Some(MountainRange { tiles, cells })
     }
+}
+
+/// The arm [`Sim::mine_arm`] names.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MineArm {
+    /// The nearest mountain range, inside the reach.
+    Range,
+    /// This cliff of [`Sim::cliffs`], strictly nearer than any range and
+    /// inside the reach.
+    Cliff(usize),
+    /// Neither: whichever was nearest is out of reach, or there is none.
+    None,
 }
 
 /// `vector_dist` in world units from a site to a cell's centre,

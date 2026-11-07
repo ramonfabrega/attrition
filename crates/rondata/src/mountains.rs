@@ -182,9 +182,12 @@ pub fn templates(install: &Install) -> Vec<MountainTemplate> {
 /// image: from `((w/2) % 16, (h/2) % 16)`, every fourth row while under the
 /// width and every fourth column while under the height (the listing
 /// bounds them so; the templates are square), each pixel whose alpha is
-/// not zero as `(x, y, its first byte)` — the blue of `[b, g, r, a]`, which
-/// is the 32-bit texel's lowest byte (`movzx … byte ptr [ecx + 4*eax]`,
-/// 0x899d90).
+/// not zero as `(x, y, its red)` — the 32-bit texel's lowest byte
+/// (`movzx … byte ptr [ecx + 4*eax]`, 0x899d90) as the loader leaves it in
+/// memory, which is the file's `[b, g, r, a]` read as red. Measured, not
+/// read: `h4_disp_0.tga` is the one template whose channels disagree (314
+/// pixels by a step or two), and on run1530 red meets all 58,081 start-dump
+/// vertices where blue and green part 15 (`docs/MAPGEN.md` §28.3).
 pub fn mesh_pixels(t: &Tga) -> Vec<(i32, i32, u8)> {
     let (w, h) = (t.width as i32, t.height as i32);
     let (x0, y0) = ((w / 2) % 16, (h / 2) % 16);
@@ -196,7 +199,7 @@ pub fn mesh_pixels(t: &Tga) -> Vec<(i32, i32, u8)> {
             if x < w && y < h {
                 let p = t.pixels[(y * w + x) as usize];
                 if p[3] != 0 {
-                    out.push((x, y, p[0]));
+                    out.push((x, y, p[2]));
                 }
             }
             x += 4;
