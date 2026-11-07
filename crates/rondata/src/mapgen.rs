@@ -15,6 +15,8 @@ use sim::terrain_groups::{CliffTemplate, Group, Inputs, Template, TilesetGroups}
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
+pub mod mesa;
+
 /// `land_key[]`, the names a cell's level-2 line prints, in index order.
 pub const LAND_KEY: [&str; 4] = ["BASELAND", "SANDY", "OCEAN", "NONE"];
 
@@ -1201,6 +1203,7 @@ pub fn place_all_part(seg: &[SetupDraw]) -> &[SetupDraw] {
 
 #[cfg(test)]
 mod tests {
+    use super::mesa::{MesaAt894, MesaLobby, regions_of};
     use super::*;
     use crate::diff::MAPGEN;
     use sim::combat::Rng;
@@ -1219,6 +1222,33 @@ mod tests {
     use std::sync::OnceLock;
 
     mod east_west;
+
+    /// [`super::mesa`]'s chain on a kept file: `None` when its setup trace
+    /// does not reach 7805.
+    fn southwest_mesa_at_7859(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
+        Some(super::mesa::southwest_mesa_at_7859(
+            root,
+            &MesaLobby::of(g)?,
+        ))
+    }
+
+    fn southwest_mesa_at_7927(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
+        Some(super::mesa::southwest_mesa_at_7927(
+            root,
+            &MesaLobby::of(g)?,
+        ))
+    }
+
+    fn southwest_mesa_at_7945(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
+        Some(super::mesa::southwest_mesa_at_7945(
+            root,
+            &MesaLobby::of(g)?,
+        ))
+    }
+
+    fn southwest_mesa_at_894(root: &Path, g: &StartGrid) -> Option<MesaAt894> {
+        Some(super::mesa::southwest_mesa_at_894(root, &MesaLobby::of(g)?))
+    }
 
     /// Every kept dump's [`StartGrid`], read once for the tests below: the
     /// archive's files whose preamble carries the setup trace. `None` on a
@@ -2127,21 +2157,6 @@ mod tests {
         let inputs = resource_inputs(root, "SAHARA.xml", run.2, run.3, run.1).expect("the rows");
         place_resources(&mut grid, &mut d, &inputs, run.1);
         (grid, d)
-    }
-
-    /// The region records as the labelling leaves them: each label's cell
-    /// count, and the sea counter at its highest label. `adjust_for_blocking`
-    /// re-runs `find_all` on these; on Great Sahara, with no region
-    /// released and every cell labelled, it writes nothing.
-    fn regions_of(grid: &MapGrid) -> Regions {
-        let mut r = Regions::default();
-        for c in &grid.cells {
-            r.count[c.region as usize] += 1;
-            if c.region >= 0x40 {
-                r.sea = r.sea.max(c.region);
-            }
-        }
-        r
     }
 
     /// **Values on Great Sahara** (`docs/MAPGEN.md` §9, §15 step 5, item
@@ -6442,31 +6457,6 @@ mod tests {
         );
     }
 
-    /// Each Southwest Mesa file's grid and stream through `place_all`
-    /// (7859), from the port's 7854 grid (3872's walk: the mask on 7805's
-    /// seed, the zero-draw passes, `fill_fertile` under `SW_desert`).
-    fn southwest_mesa_at_7859(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
-        let before = g.at("map.cpp", 7805)?;
-        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
-        let mut grid = MapGrid::new(g.xs, g.ys);
-        let mut rng = Rng::new(before.2);
-        sim::mapgen::southwest_mesa_make_continents(&mut grid, g.nations, &mut rng);
-        let mut regions = Regions::default();
-        regions.clear_all(&mut grid);
-        regions.find_all(&mut grid);
-        grid.fix_diag_land();
-        grid.make_coastlines();
-        regions.clear_all(&mut grid);
-        regions.find_all(&mut grid);
-        let fractal = Fractal::init(g.xs, g.ys, fert.clump_factor, 0, g.seed as u32);
-        grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
-        let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
-            .expect("Southwest Mesa's place_all inputs");
-        let mut d = Draws::new(rng.seed);
-        place_all(&mut grid, &mut d, &inputs);
-        Some((grid, d))
-    }
-
     /// **`place_all` on Southwest Mesa, draw for draw** (`docs/MAPGEN.md`
     /// §7, §15 step 3, §18.3, item 3875): the port's tagged stream against
     /// run1493's `place_all` segment ([`place_all_part`] of [`make_draws`]),
@@ -6704,22 +6694,6 @@ mod tests {
             walked >= MESA_TRACES && files.iter().all(|&n| n >= MESA_FILES),
             "the tail walked {walked} traces and {files:?} files"
         );
-    }
-
-    /// Each Southwest Mesa file's grid and stream at 7927: 3878's chain from
-    /// [`southwest_mesa_at_7859`] — `check_player_forest`, `nubify_forest`,
-    /// the base passes and `place_resources` — in its order.
-    fn southwest_mesa_at_7927(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
-        let (mut grid, mut d) = southwest_mesa_at_7859(root, g)?;
-        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
-        let ts = tileset_groups(root, &fert.tileset).expect("SW_desert's groups");
-        check_player_forest(&mut grid, sim::tuning::Tuning::RON.city_center_radius);
-        nubify_forest(&mut grid, &mut d);
-        change_bases(&mut grid, &mut d, &ts);
-        let inputs = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
-            .expect("Southwest Mesa's rows");
-        place_resources(&mut grid, &mut d, &inputs, g.nations);
-        Some((grid, d))
     }
 
     /// **Values on Southwest Mesa** (`docs/MAPGEN.md` §9, §15 step 5, item
@@ -6968,20 +6942,6 @@ mod tests {
             walked >= MESA_TRACES && files.iter().all(|&n| n >= MESA_FILES),
             "the values walked {walked} traces and {files:?} files"
         );
-    }
-
-    /// Each Southwest Mesa file's grid and stream at 7945: the port's 7927
-    /// grid ([`southwest_mesa_at_7927`]), then `adjust_for_blocking` and
-    /// `compute_all_vals`, as 3882 checked them.
-    fn southwest_mesa_at_7945(root: &Path, g: &StartGrid) -> Option<(MapGrid, Draws)> {
-        let (mut grid, mut d) = southwest_mesa_at_7927(root, g)?;
-        let makes = land_makes(root).expect("rules.xml's LANDS");
-        let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
-            .expect("Southwest Mesa's place_all inputs");
-        let mut regions = regions_of(&grid);
-        adjust_for_blocking(&mut grid, &mut regions, &inputs.templates);
-        compute_all_vals(&mut grid, &mut d, &makes);
-        Some((grid, d))
     }
 
     /// **`Terrain::init` without heights on Southwest Mesa** (`docs/MAPGEN.md`
@@ -7263,81 +7223,6 @@ mod tests {
     /// run1493's records from `map.cpp` 5012 to 5118: a floor (5 on
     /// 2026-11-05, item 3888).
     const MESA_RIVER_RECORDS: usize = 5;
-
-    /// [`southwest_mesa_at_894`]'s answer: the grid, the heights, the
-    /// stream, parts 10–13 and what `Cliffs::init` did.
-    type MesaAt894 = (
-        MapGrid,
-        Vec<sim::single::Single>,
-        Draws,
-        [u32; 4],
-        sim::cliffs::CliffsInit,
-    );
-
-    /// One Southwest Mesa run carried to `Terrain.cpp` 894 (item 3890):
-    /// step 8's 5118 grid ([`southwest_mesa_s_rivers_are_5012_to_5118`]'s
-    /// walk), then the heights in `Terrain::init`'s order — `generate_land`
-    /// and the coastal pass (706), the oil cells' terraform (738), the
-    /// troughs (`RIVERLIST` empty: nothing to calculate) and
-    /// `adjust_for_mountains` — and `Cliffs::init` (`sim::cliffs`).
-    fn southwest_mesa_at_894(root: &Path, g: &StartGrid) -> Option<MesaAt894> {
-        let install = crate::Install::new(root);
-        let meshes = crate::mountains::meshes(&install);
-        let sea = sea_map(root, "SOUTHWESTMESA.xml").expect("SOUTHWESTMESA.xml's SEA_MAP");
-        let thresh = river_thresh(root, "SOUTHWESTMESA.xml").expect("RIVER_THRESHOLD");
-        let rivers = river_list(root, "SOUTHWESTMESA.xml").expect("a RIVERLIST");
-        let standard = standard_map_size(root).expect("the Standard map size");
-        let fert = fertility(root, "SOUTHWESTMESA.xml").expect("its fertility");
-        let ts = tileset_groups(root, &fert.tileset).expect("SW_desert's groups");
-        let inputs = place_all_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, 10)
-            .expect("Southwest Mesa's place_all inputs");
-        let (mut grid, mut d) = southwest_mesa_at_7945(root, g)?;
-        let (_, mut coord, half) = terrain_init_without_heights(&mut grid, sea)
-            .unwrap_or_else(|u| panic!("an unported arm: {u:?}"));
-        let p = half.parts().expect("empty half-land lists");
-        let mut regions = regions_of(&grid);
-        let phase = Phase {
-            thresh,
-            city_radius: sim::tuning::Tuning::RON.city_center_radius,
-            rivers: &rivers,
-            standard,
-            seed: g.seed as u32,
-            nations: g.nations,
-        };
-        make_rivers(&mut grid, &mut regions, &phase, &mut d, |_, _, _| {});
-        let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
-        sim::map_heights::create_doobers(&grid, &mut z);
-        let combo = sim::halfland::Combo {
-            coast_base: ts.coast_base,
-            num_tiles: [
-                Some(ts.base_tiles),
-                Some(ts.coastal_tiles),
-                Some(ts.ocean_tiles),
-                None,
-            ],
-        };
-        let troughs = sim::map_troughs::calculate_all(
-            &mut grid,
-            &mut coord,
-            &mut z,
-            ts.riverbase,
-            combo,
-            0,
-            None,
-        )
-        .unwrap_or_else(|e| panic!("the troughs: {e:?}"));
-        assert!(troughs.sections.is_empty(), "a trough on Southwest Mesa");
-        sim::map_heights::adjust_for_mountains(&grid, &mut z, &inputs.templates, &meshes);
-        let goods = resource_inputs(root, "SOUTHWESTMESA.xml", g.xs, g.ys, g.nations)
-            .expect("Southwest Mesa's rows")
-            .goods;
-        let cliffs =
-            sim::cliffs::init(&mut grid, &mut coord, &mut z, &inputs.cliffs, &goods, combo)
-                .unwrap_or_else(|e| panic!("Cliffs::init: {e:?}"));
-        Some((grid, z, d, [p[0], p[1], p[2], p[3]], cliffs))
-    }
 
     /// **`Cliffs::init` on Southwest Mesa** (`docs/MAPGEN.md` §10, §15 step
     /// 7, §18.3, §18.4, item 3890): from the port's 5118 grid, the heights

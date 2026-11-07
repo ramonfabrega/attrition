@@ -1025,3 +1025,80 @@ fn battery_captures_are_complete_and_say_their_lobby() {
         );
     }
 }
+
+/// **A Southwest Mesa game lays its cliffs** (item 3943; parked 3942b;
+/// `docs/AI.md` §400, §401). run1516b — item 3924's `(10, 11, 0)` capture,
+/// a Mine added beside a cliff on frame 100 — stood up through
+/// [`build_sim`] with run1493's start (the same seed 7236 and lobby, and
+/// the setup trace run1516b lacks) as its sibling: the generator's chain
+/// runs at 7805's seed and its `Cliffs::init` mining lists are laid, so the
+/// Mine `0/2007` at (10, 43) that block 101 adds takes cliff 7's 189 tiles,
+/// as `mapgen`'s `run1516_s_mine_takes_cliff_7_s_tiles_on_100` reads them
+/// on a hand-built `Sim`. Without the wiring the game has no cliffs and
+/// the Mine's list is the base's empty one: the held-out Mesa game scores
+/// the cliff arm only through this.
+#[test]
+fn a_southwest_mesa_game_lays_its_cliffs() {
+    let Some(inst) = crate::testenv::install() else {
+        eprintln!("skipped: no install on this machine");
+        return;
+    };
+    let (Some(path), Some(sib)) = (
+        dump("gamelog-run1516b-southwestmesa-cliffmine-cover0-clickfree.txt"),
+        dump("gamelog-run1493-southwestmesa-mapgen-start.txt"),
+    ) else {
+        eprintln!("skipped: run1516b or run1493 is not on this machine");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("run1493's start dump");
+    let mut init = log.initial().expect("run1516b's start dump");
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    assert!(
+        crate::mapgen::mesa::MesaLobby::of_initial(&init).is_some(),
+        "run1516b, with run1493's setup trace, is a Southwest Mesa lobby at 7805"
+    );
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    let s = &built.sim;
+    let theirs = log.frame_builds(101);
+    let mine = theirs
+        .iter()
+        .find(|b| b.who == 0 && b.o == 2007)
+        .expect("block 101's Mine 0/2007");
+    let ty = loaded
+        .build_of_type_index(mine.orig_type.expect("orig_type") as i32)
+        .expect("the Mine's build type");
+    let pos = sim::Pos::new(mine.pos.x as i32, mine.pos.y as i32);
+    assert_eq!(
+        (pos.x, pos.y),
+        (1920, 8256),
+        "the Mine at cell (10, 43), 192 a cell"
+    );
+    let corner = s.tile_corner(ty, pos);
+    let centre = s.footprint_centre(ty, corner);
+    let arm = s.mine_arm(centre);
+    let got: std::collections::BTreeSet<(i64, i64)> = s
+        .gather_tcoords(ty, 0, corner)
+        .iter()
+        .map(|p| (i64::from(p.x), i64::from(p.y)))
+        .collect();
+    let want: std::collections::BTreeSet<(i64, i64)> = mine.gather_from.iter().copied().collect();
+    eprintln!(
+        "run1516b 101 through build_sim: {} cliffs laid; theirs mtn {:?} cliff {:?}, {} tiles; \
+         ours {arm:?}, {} tiles ({} shared)",
+        s.cliffs.len(),
+        mine.mtn,
+        mine.cliff,
+        want.len(),
+        got.len(),
+        want.intersection(&got).count()
+    );
+    assert_eq!((mine.mtn, mine.cliff), (Some(-1), Some(7)), "theirs");
+    assert_eq!(arm, sim::gather::MineArm::Cliff(7), "the arm");
+    assert_eq!(want.len(), 189, "the dump's list");
+    assert_eq!(got, want, "the Mine's tiles");
+}
