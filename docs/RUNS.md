@@ -35511,3 +35511,26 @@ SHA-256 `390f6dfcd629013eac03a673f5e96e4c07490e1425c09f5b14c92d1c7f441c71`.
 
 **What it holds**: no `blind::TRACES` row. `NEVER` is unmoved. AI §396's order lists.
 
+
+## run1527 — Old World (style 6), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-06, item 3944, `att-3944`)
+
+`docs/MAPGEN.md` §25. The chain take §22.2 writes, at `--map 6`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1527 --map 6 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: run1117 (style 6, `cover=1`) enters
+`MapOldWorld::make_continents` and carries no setup trace, so no Old World checkpoint 7805..7945 was on disk.
+- Pool lane 1, the pool's pick. Launched 22:13:23, exited 22:13:51 (27.5 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 6, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60; `page_faults` 0,
+  `relaunches: []`. `df -g ~` read 110 GiB free before it. Filed with `filerun.py run1527 oldworld-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1527-oldworld-mapgen-start.txt`, 149,403,566 bytes,
+SHA-256 `af838920ec001621e2f983449778414e90ba86b4f3c87e5eb5aac8d5595dfd56`.
+
+Archive `rontrace-run1527.log`, 8,504,032 bytes,
+SHA-256 `1d0093e791519f232942703b49dade5c18321b91898629e689ce4346f796621f`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118. 7805's seed 2129828778 (the tileset `jungle`, drawn from `default.xml`); 5,552 draws from
+`place_all` through the values and 2,070 river draws (one `SPREAD`, then `astar_river`'s `PRICE`s); 894 at seed
+422556960, part 5 1499455944, part 6 1423377562. The port meets all of it (`mapgen::tests::old_world_*`). No
+`blind::TRACES` row: a `cover=0` setup trace enters only its hooks.

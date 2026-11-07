@@ -8159,18 +8159,17 @@ mod tests {
                     (w.grid.cells[i].down, w.grid.cells[i].down_who),
                     (cells[i].down, cells[i].down_who)
                 );
-                for (cx, cy) in [from] {
-                    let i = (cy * w.grid.xs + cx) as usize;
-                    let (o, th) = (&w.grid.cells[i], &cells[i]);
-                    if (o.down, o.down_who, o.flags & 1) != (th.down, th.down_who, th.flags & 1) {
-                        parted.push(format!(
-                            "{}: the good's cell ({cx}, {cy}): (down, down_who, flag 1) ours \
-                             {:?} theirs {:?}",
-                            w.name,
-                            (o.down, o.down_who, o.flags & 1),
-                            (th.down, th.down_who, th.flags & 1)
-                        ));
-                    }
+                let (cx, cy) = from;
+                let i = (cy * w.grid.xs + cx) as usize;
+                let (o, th) = (&w.grid.cells[i], &cells[i]);
+                if (o.down, o.down_who, o.flags & 1) != (th.down, th.down_who, th.flags & 1) {
+                    parted.push(format!(
+                        "{}: the good's old cell ({cx}, {cy}): (down, down_who, flag 1) ours {:?} \
+                         theirs {:?}",
+                        w.name,
+                        (o.down, o.down_who, o.flags & 1),
+                        (th.down, th.down_who, th.flags & 1)
+                    ));
                 }
             }
             let Some(prefix) =
