@@ -12286,6 +12286,7 @@ pub(crate) mod pins {
         pub(crate) fn hold() -> Pins {
             let was = HELD.with(|h| h.borrow_mut().replace(Vec::new()));
             assert!(was.is_none(), "a second `Pins::hold()` on one thread");
+            crate::diff::cant_reach::clear();
             Pins(())
         }
     }
@@ -12306,7 +12307,9 @@ pub(crate) mod pins {
 
     impl Drop for Pins {
         fn drop(&mut self) {
-            let moved = HELD.with(|h| h.borrow_mut().take()).unwrap_or_default();
+            let mut moved = HELD.with(|h| h.borrow_mut().take()).unwrap_or_default();
+            // The `cant_reach` tally's own pin (item 3962).
+            moved.extend(crate::diff::cant_reach::check());
             if moved.is_empty() {
                 return;
             }

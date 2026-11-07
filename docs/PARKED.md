@@ -15047,13 +15047,20 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   (the 2026-11-07 scan, every record-level non-zero `healing` a unit's). **Score**: none until a capture holds a patriot
   beside a damaged building; the compare reds at once when one does.
 
-## Parked by the next landing, slot CK — reserved
+## Parked by item 3962, 2026-11-07 — the two `cant_reach` writers this crate lacks
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Both are scored by `diff::cant_reach::PINNED` (`docs/AI.md` §406.3). Every row the table counts is ours 0 / theirs 1.
+An item that ports one of them folds its rows into `firsts` and re-pins the table.
+
+- **3962a. A General's decoy squads are born with `0x10` on their non-captain members.** On run547, twenty decoys are
+  born on frame 10363 (1/90..1/109, army 1/1). The ten non-captain members (`o_up ≥ 0`: 1/93 94 97 98 101 102 104
+  105 108 109) print `flags` 25, and the captains and single decoys print 9. Ours has all twenty at `cant_reach` 0.
+  The writer has not been found. These were read and none of them is it: `cast_create_decoy`, `Objects::init_unit`,
+  `Unit::init`, `SubObject::init` (`flags = 1`), `Group::add`, `Army::add_unit`, `Unit::set_stance`. **Score**:
+  run547's tally (its decoy rows), and every walk past a decoy cast.
+- **3962b. `Object::take_damage:349` raises `0x10` on the struck unit's captain** (vslot `+0xe4`) when the damage
+  passes one figure's share (`+0x24 < local_c`). On run989d, who 1's Cataphracts 1/72 and 1/74 on 17388, and 1/79 on
+  17397, are in melee and read ours 0 / theirs 1. **Score**: run989d's tally, and every melee walk's.
 
 ## Parked by the next landing, slot CL — reserved
 

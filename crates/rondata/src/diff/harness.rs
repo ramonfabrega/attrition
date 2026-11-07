@@ -904,6 +904,26 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 }
             }
         }
+        // **The building's own stance byte** (item 3962, `docs/AI.md`
+        // §406): `Build +0x7e`, which `Build::init` writes and
+        // `Group::action_stance`'s building arm rewrites. This crate
+        // computes it ([`sim::Sim::build_stance`]); no buildings group
+        // reaches the second writer.
+        if let Some(theirs) = b.stance {
+            let mine = i64::from(built.sim.build_stance(handle));
+            r.build_compared += 1;
+            compared::note("BuildDump", &["stance"]);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field: "stance",
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         // **The production queue, whole.** `BuildQueue::log_data` writes
         // it for every building on every frame from `BUILDS=1`, and until
         // this it was compared in one test against one capture — so a
@@ -2223,6 +2243,17 @@ fn widen_block_rows(
                     i64::from(un.unit_masks2 & 0x80 != 0),
                     them.unit_masks2.map(|m| i64::from(m & 0x80 != 0)),
                 ),
+                // **`SubObjectData::flags & 0x10`** (item 3962, `docs/AI.md`
+                // §406): the bit `Unit::think`'s one-in-sixteen idle gate
+                // reads. `do_gather` raises it on a gather it cannot reach
+                // and `Group::action_stance` on every member it sets; every
+                // exit of `think` past the gate drops it. The rest of the
+                // byte is not compared.
+                (
+                    "cant_reach",
+                    i64::from(un.cant_reach),
+                    Some(i64::from(them.flags & 0x10 != 0)),
+                ),
             ] {
                 rows.push((r.0.into(), r.1, r.2));
             }
@@ -2334,6 +2365,21 @@ fn widen_block_rows(
         };
         for (index, (name, ours, theirs)) in rows.into_iter().enumerate() {
             let Some(theirs) = theirs else { continue };
+            // **`cant_reach` is tallied apart** (item 3962): compared on
+            // every unit of every block, its partings kept out of
+            // `firsts` and pinned per test (`diff::cant_reach`).
+            if name.0 == "cant_reach" {
+                compared::note("UnitDump", &["flags"]);
+                if ours != theirs {
+                    crate::diff::cant_reach::note(
+                        them.who,
+                        them.o,
+                        n,
+                        format!("ours {ours} theirs {theirs}"),
+                    );
+                }
+                continue;
+            }
             compared += 1;
             if let Some((record, field)) =
                 widened_field(if eager { &eager_names[index] } else { name.0 })
@@ -2420,6 +2466,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "heading" => ("UnitDump", "angle"),
         "hits_left" => ("UnitDump", "damage"),
         "sheltered" | "land_cloak" | "cloak_mark" => ("UnitDump", "unit_masks2"),
+        "cant_reach" => ("UnitDump", "flags"),
         "orders.len" => ("UnitDump", "orders"),
         "guys.len" => ("UnitDump", "guys"),
         "half_step" | "packed" | "mirror" | "blown" | "fought" | "contact" | "cloak" => {
@@ -8276,7 +8323,8 @@ pub(crate) mod tests {
     /// `ever_seen_completed` (parked 1450); nothing here is wrong on either.
     /// **894,314 → 986,161 on item 1497**, `myhits` and `construct_hits`.
     /// **986,161 → 1,075,324 on item 3961**, `healing` against 0; none wrong.
-    const RUN58_BUILD_FIELDS: usize = 1_075_324;
+    /// **1,075,324 → 1,164,487 on item 3962**, `BUILDDATA stance`, none wrong.
+    const RUN58_BUILD_FIELDS: usize = 1_164_487;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

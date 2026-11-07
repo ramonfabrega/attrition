@@ -4483,13 +4483,32 @@ impl Sim {
         // The global cadence gate (`Unit::think@005f6e40:87`, found by the
         // second reading — `docs/audit/2026-08-21-orders.md` R1): once a unit
         // has been idle for more than two frames it thinks only one frame in
-        // sixteen, phased by `o`. The "could not reach" bit exempts it, so a
-        // unit that has just failed to reach something keeps searching every
-        // frame.
+        // sixteen, phased by `o`. `SubObjectData::flags & 0x10` exempts it —
+        // raised by a gather that could not reach (`do_gather`) and by a
+        // stance press (`Group::action_stance`), so either thinks on its
+        // next frame.
         if !unit.cant_reach && unit.idle > 2 && phase % 16 != 0 {
             return;
         }
+        self.think_past_gate(u, frame, phase);
+        // **Every exit past the gate drops the bit** (item 3962,
+        // `docs/AI.md` §406): `think:130`, `LAB_005f761a` (`:296`) and the
+        // tail (`:339`) each write `flags &= 0xef`, and every `return 1` of
+        // an arm is a `goto LAB_005f761a`. The three exits that keep it —
+        // `:98` (the leader's `+4 & 2`), `:101` (`unit_masks & 0x1000000`)
+        // and `:155` (a leader without `leader_flags & 2`) — this crate
+        // does not model, and no walked game reaches one: every seated
+        // leader carries `& 2`.
+        if let Some(unit) = self.units.get_mut(u) {
+            unit.cant_reach = false;
+        }
+    }
+
+    /// [`Sim::think`] past its cadence gate, whose every exit the caller
+    /// follows with the bit's clear.
+    fn think_past_gate(&mut self, u: usize, frame: i64, phase: i64) {
         let me = Obj::Unit(u);
+        let unit = &self.units[u];
         // **The off-phase `near_o` arm** (`think@005f6e40:104`–`135`,
         // `5f7017`–`5f70fc`; `docs/AI.md` §205, `docs/COMBAT.md` §37.5):
         // on the thirty-one frames in thirty-two that are not the search's,

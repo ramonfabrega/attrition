@@ -521,9 +521,11 @@ mod tests {
         // (parked 1450). **464,682 → 512,547 on item 1497**: `myhits` on
         // every building and `construct_hits` on an unfinished site.
         // **512,547 → 558,860 on item 3961**: `healing` against this
-        // crate's 0 on every building, and `bad` stays empty.
+        // crate's 0 on every building, and `bad` stays empty. **558,860 →
+        // 605,173 on item 3962**: `BUILDDATA stance` on every building,
+        // and `bad` stays empty.
         assert_eq!(
-            seen, 558_860,
+            seen, 605_173,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

@@ -112,6 +112,7 @@ record!(BuildDump {
     queued: Option<i64>,
     city: Option<i64>,
     city_down: Option<i64>,
+    stance: Option<i64>,
     queue: Vec<QueueItemDump>,
 });
 record!(CityDump {

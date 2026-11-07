@@ -2515,6 +2515,11 @@ impl Sim {
             // half until item 530 — so a hoplite the army set to
             // `action_stance(1)` read `stance 0` against the dump's 1.
             self.units[u].stance = s.clamp(0, 255) as u8;
+            // `0070d440:100`: `SubObjectData::flags |= 0x10` on every
+            // member set, whatever the panel — the bit `Unit::think`'s
+            // idle gate reads, so the member thinks on its next frame
+            // (item 3962, `docs/AI.md` §406).
+            self.units[u].cant_reach = true;
             if ty != StanceType::Combat {
                 // The worker/caster/packer stances live elsewhere in the
                 // simulation (`Unit::stance`); only the write is modelled.
@@ -7344,6 +7349,36 @@ mod tests {
         s.group_action_stance(&g, stance_option(Stance::HoldFire));
         s.group_action_stance(&g, -1);
         assert_eq!(s.units[a].combat.stance, Stance::Aggressive);
+    }
+
+    /// **A stance press is a think on the next frame** (item 3962,
+    /// `docs/AI.md` §406): `action_stance` raises `flags & 0x10` on every
+    /// member, so an idle member off its one-in-sixteen phase passes
+    /// `Unit::think`'s gate, and the think's exit drops the bit again.
+    #[test]
+    fn a_stance_press_lets_an_idle_member_past_the_think_gate() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let g = group_of(1, &[a, b]);
+        for u in [a, b] {
+            s.units[u].idle = 6;
+        }
+        s.group_action_stance(&g, stance_option(Stance::Defensive));
+        assert!(
+            s.units[a].cant_reach && s.units[b].cant_reach,
+            "every member takes the bit"
+        );
+        // Off phase: `(frame + o) % 16 != 0`.
+        let frame = 17 - i64::from(s.units[a].index);
+        s.think(a, frame);
+        assert!(!s.units[a].cant_reach, "the think ran, and dropped it");
+        // Without the press the gate holds, and the bit stays as it was.
+        s.units[b].cant_reach = false;
+        let frame = 17 - i64::from(s.units[b].index);
+        s.think(b, frame);
+        assert!(!s.units[b].cant_reach);
     }
 
     #[test]
