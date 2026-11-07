@@ -690,6 +690,20 @@ pub const TRACES: &[&str] = &[
     // and `Build::queue_up` → `could_queue`, and only the Barracks lays an
     // entry (`docs/GOLDEN.md` §172); run1537's game on every frame.
     "rontrace-run1537b.log",
+    // Item 3967: golden chapter one hundred and twenty-three
+    // (`chapter123.cmd`, a Helicopter patrolled with a Hoplite squad on 620
+    // and a Helicopter alone on 700) at `cover=1` on the click-free pool, to
+    // 1000 (`docs/RUNS.md` run1538b): `Group::action_patrol` takes the land
+    // arm, `Group::action_air_patrol` never entered (`docs/GOLDEN.md` §173);
+    // run1538's game on every frame.
+    "rontrace-run1538b.log",
+    // Item 3968: golden chapter one hundred and twenty-four (`chapter124.cmd`,
+    // chapter twenty-two's game and an `@strike` on 740 from the Fighter
+    // inside its Airbase on a Barracks who=0 has not seen) at `cover=1` on
+    // the click-free pool, to 1000 (`docs/RUNS.md` run1539b): the strike is
+    // laid on 742, `Group::action_flight`'s inside arm giving a plane no
+    // `valid_target` (`docs/GOLDEN.md` §174); run1539's game on every frame.
+    "rontrace-run1539b.log",
     // Item 3969: golden chapter one hundred and twenty-five (`chapter125.cmd`,
     // a first Library closed with Written Word queued on 640, the last
     // closed on 680, a new one ordered on 720) at `cover=1` on the

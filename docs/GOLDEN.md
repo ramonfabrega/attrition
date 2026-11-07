@@ -18434,19 +18434,117 @@ and the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 ident
 both when the refuser is listed second and when it is listed first; the train arm going on past a refusal.
 `blind::` is unmoved: run1537b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 173. Reserved for the next item on the rules track
+## 173. Chapter one hundred and twenty-three — a patrol with a Helicopter in the group takes the land arm, closed at 1000 (item 3967, run1538, run1538b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked T71-6; `docs/audit/2026-11-06-territory-adjudication-2.md`). `Group::action_patrol@007030c0`
+hands the whole call to `action_air_patrol` only when the leader's vslot `+0xc0` answers (`UnitData::is_plane@0046ce40`,
+inlined: domain 2 and not type flag `0x20`) or `GroupData::count(COUNT_DOMAIN, 4)` is non-zero. `count@00711720`'s
+`COUNT_DOMAIN` arm reads the type's domain word for any other parameter, but for **4** it asks each alive member's
+vslot `+0xc0` — so it counts planes, and a Helicopter is not one. A group with a Helicopter and no plane takes the
+land arm, whose member loop skips only vslot `+0xc0` and `is_busy`, so the Helicopter gets a `GroupPatrolOrder` like
+the rest. The crate handed off on any `Domain::Air` member, and its air arm orders only planes, so such a group got
+nothing. `GroupData::get_max_range@00711080` skips the same vslot (`+0xc0`); the crate's `group_max_range`
+(`do_attack/live.rs`) skipped every Air member.
 
-## 174. Reserved for the next item on the rules track
+**Staging** (`tools/gamelog/golden/chapter123.cmd`, walked on run1517's start, `RON_STAGE=ch118:chapter123:760`,
+`RON_STAGE_ALL=1`; ch10's places).
+- **The cast.** A Helicopter `0/6` at 16,36 (610), a Hoplite squad `0/7`..`0/9` at 56,40 (612), a second Helicopter
+  `0/10` at 30,30 (616). `add` takes no age.
+- **620**: `@patrol 0 3456 11136 6 7`, the Helicopter and the squad's captain together.
+- **700**: `@patrol 0 11136 11904 10`, the second Helicopter alone (its own leader, not a plane).
+- **The base tree's walk** laid nothing on either press: no stack of `0/6`..`0/10` changed after 616.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What the original does** (run1538 `cover=0`, its twin run1538b `cover=1 --no-ffwd --twin`, both `--ai-tribe 11` and
+the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical; `docs/RUNS.md`).
+- `process_patrol 3456 11136 2` on 621 and `process_patrol 11136 11904 2` on 701.
+- **622.** `0/6` (type 310, `HELICOPTER`) and `0/7`..`0/9` (132, `HOPLITES`) each hold a `GroupPatrolOrder` over
+  (10872, 7800)–(3480, 11160), `waypoint 1`, `id 621100`, `form_id 1`, `oxx 7` — the squad's captain leads — under a
+  `GROUPATTACKTOORDER`. The Helicopter's leg is (3912, 10968).
+- **702.** `0/10` holds a `GroupPatrolOrder` over (5880, 5880)–(11160, 11928), `id 701000`, `form_id 0`, `oxx 10`,
+  under a plain `ATTACKTOORDER` to (11160, 11928).
+- **The land arm, not the air one.** The twin enters `CommandPackage::process_patrol`, `Group::action_patrol` and
+  `Unit::add_patrol_order` first on 620, and never `Group::action_air_patrol`. (Its `Unit::add_air_patrol_order` and
+  `do_air_patrol`, first on 192 and 193, are before the staging.)
+
+**What this crate does** (built):
+- `Sim::group_action_patrol` (`group.rs`) hands off on a plane leader or an alive plane member (`Sim::is_plane`), so a
+  Helicopter's group takes the land arm.
+- `group_max_range` (`do_attack/live.rs`) skips `is_plane` members only, so a Helicopter's range counts.
+- **The test.** `a_helicopter_in_a_patrolled_group_takes_the_land_arm` (`group.rs`), a squad with a Helicopter and a
+  Helicopter alone, each member a `GroupPatrolOrder`.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE` = **1000**, the trace's end, closed
+  (`chapter_one_hundred_and_twenty_three_holds_to_the_golden_word`). On the unfixed tree the word is 633.
+- **The value diff on the frame the state first parted.** On the unfixed tree the widening's first block is 622, 64
+  keys: `0/6 orders.len` ours 0 / theirs 2 (the `GroupPatrolOrder` and its `GROUPATTACKTOORDER` leg), the same on
+  `0/7`..`0/9`, and `0/6 dest_angle` ours 1431655765 / theirs -1365770240. Built, all of them agree, and the window
+  parts on the standing `form` rows alone.
+- **The widening.** Over 605..1000 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE` (604, 1001), both directions, the
+  pool too), it parts on the eleven standing `form` rows and nothing else (`WANT_CH123`). The `cant_reach` tally is
+  2, as chapter one hundred and twenty-two's on the same start. The two Helicopters' birth climbs and flights read
+  fourteen inexact ground corners in the walk and thirteen in the widening (`GROUND_INEXACT`).
+- **Coverage.** The driver drives 620..704.
+
+**Mutations**: the journal's (`docs/journal/2026-11-07-item-3967.md`), on the committed tree.
+
+**Not established.**
+- `action_air_patrol`'s split of a group with planes and non-planes (the planes recurse, the rest take
+  `action_move_to`): a seam still, no staging here mixes a plane in.
+- `get_max_range` with a Helicopter member: built from the listing's vslot, no walked window reaches a group's
+  stand-off with an armed Helicopter in it (parked 3967a).
+- The `QUEUE_LAST` arm on a Helicopter's group (`update_patrol_order`), chapter one hundred and twenty's verbs.
+
+**Coverage.** Diff-backed: the hand-off predicate on a group with a Helicopter and no plane, and on a Helicopter alone;
+the land arm's order on a Helicopter (`PATROLORDER` compared on 622 and 702). Reading only: `get_max_range`'s skip.
+`blind::` is unmoved: run1538b joins `TRACES`, and nothing it enters was `NEVER`.
+
+## 174. Chapter one hundred and twenty-four — a strike from inside a base on a target unseen; a plane meets no missile gate, closed at 1000 (item 3968, run1539, run1539b)
+
+**The booking** (parked T71-5; adjudication 2, second-1). `Group::action_flight@006fb260`'s inside arm, for a member
+not on a strafe whose "inside" is a base: `6fbba8 testl $0x8000000, 0x1e4(%eax); je 6fbf6c`, then `cmpl $0xa, %edx;
+jne 6fbf6c`. Only a type with the missile bit on an `ATTACK` reaches `Object::valid_target@00648ba0` (`6fbbca`), the
+`MISSILE_DEFENSE_BONUS` shield and the reach. Every other type goes `6fbf6c` → `cmpl $1` (not `MOVE_TO`) →
+`6fbe61`: `is_ally || war_allowed`, then `add_strafe_order(target, base, 1, QUEUE_NEW, 1)` at `6fbeb3`. The crate's
+`Sim::strike_from_inside` gave all three gates to every plane, and `docs/ORDERS.md` §38.2 read them the same way.
+
+**Staging** (`tools/gamelog/golden/chapter124.cmd`, walked on run265's start, `RON_STAGE=ch22:chapter124:760`).
+Chapter twenty-two's game whole, and one line: `@strike 0 2006 1 6` on 740. The Fighter `0/6` (`TI` 289, Air) has
+stood inside the Airbase `0/2007` since 722. who=1's Barracks `1/2006` reads `ever_seen 2` (its own bit) until 762.
+So the press asks the inside arm of a plane on a target its player has not seen. The predicate is the type's missile
+bit, so a Fighter enters where the booking named a Bomber; no Bomber stands inside before 762 in this game. On 766
+chapter twenty-two's own strike re-points the strafe (the STRAFE arm), so from 768 the game is twenty-two's.
+
+**What the original does** (run1539 `cover=0`, its twin run1539b `cover=1 --no-ffwd --twin`; `rngcmp` 1001 of 1001
+identical between them and against run265; `docs/RUNS.md`).
+- `process_flight 741`; the twin's `INFO 17` on 740 is the flight issue, orders `0xa`, on `0/6`'s group.
+- **742.** `0/6`, still `inside_up 2007`, holds one `STRAFEORDER`: `xx/yy` (21120, 16512), `mandatory 1`, `oxx
+  2007`, `whose 0`, `cruising_alt 1600`, `returning 0`. `1/2006` reads `ever_seen 2`: unseen.
+- The strike draws nothing: the game is run265's on every frame.
+
+**What this crate does** (built, `air.rs`):
+- `Sim::strike_from_inside` tests `valid_target`, the shield and the reach under the missile bit
+  (`combat::mask::MISSILE`, `1 << 27`) only; every member that comes through takes `add_strafe_order`.
+- **The test.** `a_strike_beyond_the_tank_s_reach_binds_a_missile_only`, over the old `…_lays_nothing`: a plane out
+  of reach, and a plane on an unseen building in a fogged world, each take the strike; the same type with the missile
+  bit takes nothing.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR` = **1000**, the trace's end, closed. The order draws
+  nothing and 766's press lays the same one, so the word is 1000 with the gate on every plane too: the widening is
+  the chapter's assertion.
+- **The widening.** Over 605..1000 (`(604, 1001)`, both directions, the pool too) it parts on the eleven standing
+  `form` rows and nothing else (`WANT_CH124`). The ground pin is 27, chapter twenty-two's launch heights by 1000.
+- **The value diff on the frame the state first parted.** With the gate on every plane: 742 `0/6 orders.len` ours 0 /
+  theirs 1 (and `order:length`). Built: 1 / 1, the `STRAFEORDER` above on both sides.
+- **Coverage.** The driver drives 738..746.
+
+**Mutations**: the journal's (`docs/journal/2026-11-07-item-3968.md`), on the committed tree.
+
+**Not established.**
+- A plane out of reach. No staging on this map reaches past a Fighter's 400 × 75; the unit test holds it (parked
+  3968a).
+- The missile arms are unchanged and stand on run371 (the reach and `valid_target`) and run390 (the shield).
+- `war_allowed` is always allowed here (SEAM).
+
+**Coverage.** Diff-backed: a plane's strike from inside a base on a target its player has not seen. `blind::` is
+unmoved: run1539b joins `TRACES`, and nothing it enters was `NEVER`.
 
 ## 175. Chapter one hundred and twenty-five — a Library closed with a technology queued; the first Library's queue handed to the next, closed at 760 (item 3969, run1540, run1540b)
 
