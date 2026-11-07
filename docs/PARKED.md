@@ -3782,6 +3782,14 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
  **The sixty-sixth pass, measured**: the cache 16 GiB (2,344 files), 0 files rewritten since the base, `tools/emu/` untouched; the disk 141 → 147 on `afsctool` alone (the debug profile's clean skipped at 141, over the last pass's 125; DECISIONS 104 §6). Stays filed.
  **The sixty-ninth pass, measured**: `tools/emu/` untouched by the tranche (no sweep ran; `git log 02f72df7d..HEAD -- tools/emu/` empty). Stays filed.
 
+## Loop, filed 2026-11-06 — the seventy-first tranche's
+
+(3954) **A draft's comparison harness was committed and pushed without ever having run** (3941's "for the Loop"): its first
+run, in the fresh session, failed on an input it could have checked (a style file with no `TILECHANCE`, read from
+`default.xml` since). A harness run once before the draft commits would have caught it, and the take need not wait for it.
+Candidate: the `DEEP` draft's frame line asks for the harness's one run's exit beside the `Left to do` heading. Names no
+score; the loop's.
+
 ## Loop, filed 2026-11-06 — the seventieth tranche's
 
 **3938** (A `cover=1` take that dumps to its end frame and never exits holds a pool lane for the runner's whole timeout; 3932's "for the Loop", parked 3932c) — **built** by the seventieth pass, red first (`AttributeError: module 'unattended_capture' has no attribute 'end_frame_verdict'`), its text kept in `docs/audit/2026-11-06-fable-pass-70.md` ("Rulings"): the runner reads the trace's frame against `--end-frame` on every turn of its wait loop (`end_frame_verdict`), and a game still standing at the end frame `END_FRAME_GRACE` (120 s) later is ended by the runner — `SIGKILL` on the launch group, the receipt's `ended_by_runner` naming the frame and the seconds, the lifecycle check then refusing the receipt as it did the timeout's, an hour sooner. 49 tests in `test_unattended_capture.py`.
