@@ -50,8 +50,8 @@ impl Sim {
     /// `repair_damage` with a whole point of damage takes one off and
     /// zeroes `damage_frac` (`+0x3b`); with none it leaves the fraction
     /// alone. The second argument 0 is the no-sparkle arm, so the heal
-    /// draws nothing. `healing` is not carried: the aircraft heal that
-    /// also writes it is a seam (`crate::cast`).
+    /// draws nothing. `healing` is written by [`Sim::mark_healed`] (item
+    /// 3961).
     /// **The CEO's heal** — the third of `process_healing`'s three
     /// economic-patriot arms (`005e0670:149`–`:232`, item 3686,
     /// `docs/AI.md` §348):
@@ -74,7 +74,8 @@ impl Sim {
     /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
     /// draws `internal_random` only for the console's allies, which is no
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
-    /// `healing` (`+0x38`) and the `0x4000` clear are not carried.
+    /// `healing` (`+0x38`) is [`Sim::mark_healed`] (item 3961); the
+    /// `0x4000` clear is not carried.
     ///
     /// SEAM: the Monarch's and the Comrade's arms, which also ask an
     /// allied cell; read, not built (parked 3686a).
@@ -109,6 +110,16 @@ impl Sim {
             return;
         }
         self.repair_unit_damage(i, 1);
+        self.mark_healed(i, rate);
+    }
+
+    /// `healing = max(rate, healing)`, the write every arm of
+    /// `Unit::process_healing@005e0670` makes after its `repair_damage`,
+    /// with the arm's own period (item 3961, `docs/AI.md` §405).
+    pub(crate) fn mark_healed(&mut self, i: usize, rate: i64) {
+        let rate = i16::try_from(rate).unwrap_or(i16::MAX);
+        let u = &mut self.units[i];
+        u.healing = u.healing.max(rate);
     }
 
     /// **`Unit::repair_damage@0060de10`** on a figure, the whole-point
@@ -169,7 +180,7 @@ impl Sim {
     ///
     /// The sparkle arm (the second argument) draws only for the console's
     /// allies, which is no stream this crate keeps. `healing` (`+0x38`) is
-    /// not carried, as in the other two heals.
+    /// carried since item 3961 ([`Sim::mark_healed`]).
     pub(crate) fn ship_heal(&mut self, i: usize, frame: i64) {
         const AIRCRAFTCARRIER: i32 = 0x15f;
         let rate = i64::from(self.tuning.unit_heal_rate[0]);
@@ -202,9 +213,11 @@ impl Sim {
             });
         if !transport && self.has_rare(owner, crate::economy::CITRUS) {
             self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
         }
         if carrier {
             self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
         }
     }
 
@@ -255,6 +268,7 @@ impl Sim {
             u.health += 1;
             u.damage_frac = 0;
         }
+        self.mark_healed(i, rate);
     }
 }
 

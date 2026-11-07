@@ -1098,7 +1098,7 @@ impl Sim {
     /// SEAM: the supply wagon's gate.
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
         if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
-            self.burn_fuel(u);
+            self.burn_fuel(u, frame);
             return;
         }
         // `Unit::process@00610bc0`'s other arm, `unit_masks & 1`: a decoy's
@@ -1558,15 +1558,22 @@ impl Sim {
     /// its `add`, 112 on its landing, −2 a block inside to 0 on 778, and
     /// 400 — its `MANA` — on 1178.
     ///
-    /// SEAM: the heal inside, `aircraft_heal_rate[heal level]` frames
-    /// apart on the unit's phase (two thirds of it for one type), and the
-    /// `+0x38` word it writes; no captured plane is ever damaged.
-    fn burn_fuel(&mut self, u: usize) {
+    /// **The heal inside** (item 3961, `docs/AI.md` §405; `006110a0`–
+    /// `611154`): `AIRCRAFT_HEAL_RATE[heal level]` frames apart on the
+    /// unit's phase, two thirds of it — `(2r + 2) / 3` — for the Bomber's
+    /// lineage (`is(0x130, 0)`), then `repair_damage(1, 1, 1)` and
+    /// `healing = 1`, a literal and not the rate; off the phase nothing is
+    /// written. On the map the arm writes `healing = 0` every frame.
+    /// run1151c: who=1's planes in their Airbase (heal level 1, rate 16)
+    /// read 1 one frame in 11.
+    fn burn_fuel(&mut self, u: usize, frame: i64) {
+        const BOMBER: i32 = 0x130;
         let outside = self.units[u].inside.is_none() && self.units[u].inside_unit.is_none();
         if outside {
             if self.mana_left(u) != 0 {
                 self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
             }
+            self.units[u].healing = 0;
         } else {
             let r = i16::try_from(self.tuning.air_unit_mana_recharge).unwrap_or(i16::MAX);
             let unit = &mut self.units[u];
@@ -1575,6 +1582,18 @@ impl Sim {
             } else {
                 0
             };
+            let level = self.nation[self.units[u].owner as usize]
+                .heal_level
+                .clamp(0, 3) as usize;
+            let mut rate = self.tuning.aircraft_heal_rate[level];
+            if self.speed_is(u, BOMBER, false) {
+                rate = (rate * 2 + 2) / 3;
+            }
+            let rate = i64::from(rate);
+            if rate != 0 && (i64::from(self.units[u].index) + frame) % rate == 0 {
+                self.repair_unit_damage(u, 1);
+                self.units[u].healing = 1;
+            }
         }
     }
 }

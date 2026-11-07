@@ -706,9 +706,16 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `damage_frac` were parsed and compared by no site, so a building
         // taking a bomb was quiet on every window — run223's Barracks goes
         // to 45 on block 822 (`docs/GOLDEN.md` §25).
+        // **And the heal's clock** (item 3961, `docs/AI.md` §405):
+        // `ObjectData::healing` on a building is written only by
+        // `Build::process`'s patriot repair — a Monarch, Comrade or CEO
+        // near a damaged building of a French-supply leader. SEAM: that
+        // arm is not built, so this crate's side is 0, which every
+        // building of every dump on disk prints.
         for (field, mine, theirs) in [
             ("damage", i64::from(ours.damage), b.damage),
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
+            ("healing", 0, b.healing),
         ] {
             let Some(theirs) = theirs else { continue };
             r.build_compared += 1;
@@ -2157,6 +2164,10 @@ fn widen_block_rows(
                 // parts both on 614, which no walk holds.
                 ("num_queued", 0, them.num_queued),
                 ("queue_time", 0, them.queue_time),
+                // **The heal's clock** (item 3961, `docs/AI.md` §405):
+                // `ObjectData::healing`, `max(rate, ·)` on each heal the
+                // crate lands and one off a frame at the head.
+                ("healing", i64::from(un.healing), them.healing),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",
@@ -2429,6 +2440,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "good_obj" => ("UnitDump", "good_obj"),
         "num_queued" => ("UnitDump", "num_queued"),
         "queue_time" => ("UnitDump", "queue_time"),
+        "healing" => ("UnitDump", "healing"),
         "mylos" => ("UnitDump", "mylos"),
         "g.x" | "g.y" => ("Guy", "pos"),
         "g.angle" => ("Guy", "angle"),

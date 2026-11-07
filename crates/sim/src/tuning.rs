@@ -1289,6 +1289,9 @@ pub struct Tuning {
     pub fort_garrison_upgrade: i32,
     /// Frames between garrison heal steps, by heal tech level.
     pub unit_heal_rate: [i32; 4],
+    /// Frames between an aircraft's heal steps inside its base, by heal
+    /// tech level (`constants +0xc00`; `Unit::process`'s air arm, item 3961).
+    pub aircraft_heal_rate: [i32; 4],
     /// Frames between the civilian heal's steps — a citizen, caravan,
     /// merchant or fisherman on an ally's ground (`crate::heal`). Zero
     /// means never.
@@ -1826,6 +1829,7 @@ impl Tuning {
         tower_garrison_upgrade: 2,
         fort_garrison_upgrade: 5,
         unit_heal_rate: [20, 15, 10, 5],
+        aircraft_heal_rate: [20, 16, 12, 8],
         civilian_heal_rate: 45,
         red_fort_heal: 500,
         unit_train_distance: 288,
@@ -2760,6 +2764,7 @@ impl Tuning {
                 Slot::Value(T.fort_garrison_upgrade),
             ),
             ("UNIT_HEAL_RATE", Slot::Entries(&T.unit_heal_rate)),
+            ("AIRCRAFT_HEAL_RATE", Slot::Entries(&T.aircraft_heal_rate)),
             ("CIVILIAN_HEAL_RATE", Slot::Value(T.civilian_heal_rate)),
             ("RED_FORT_HEAL", Slot::Value(T.red_fort_heal)),
             ("UNIT_TRAIN_DISTANCE", Slot::Ratio192(T.unit_train_distance)),

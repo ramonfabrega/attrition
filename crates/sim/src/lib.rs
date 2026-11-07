@@ -427,6 +427,15 @@ pub struct Unit {
     /// Item 3598: run1241b's Phalanx `1/116` reads 2 on block 6718 and 1
     /// on 6719, the frame twelve of who=1's units lost the Citizen `0/12`.
     pub waiting: i8,
+    /// **`ObjectData::healing`** (`+0x38`, a short): the heal's display
+    /// clock. Every heal `Unit::process_healing@005e0670` lands writes
+    /// `max(rate, healing)` with that arm's period, `Unit::process@
+    /// 00610bc0`'s head takes one off a frame, and its air arm writes 0 on
+    /// the map and 1 on a heal inside; `Unit::init@00612100` zeroes it.
+    /// Item 3961 (`docs/AI.md` §405): run1151c's Citizens `0/5` and `0/8`
+    /// read 45 on their civilian heal and count down, and who=1's planes
+    /// in their Airbase read 1 one frame in 11.
+    pub healing: i16,
     /// **`UnitData::cavarch_o`/`cavarch_who` (`+0xa2`/`+0xa8`)** and the
     /// uid beside them (`+0xa6`) — a caster's target, written by
     /// `Group::action_spell` and again by each frame of `do_cast`'s
@@ -1151,6 +1160,7 @@ impl Unit {
             mana_burn: 0,
             full: 0,
             waiting: 0,
+            healing: 0,
             cast_target: None,
             cavarch_who: 0,
             cavarch_idle: false,
@@ -7223,6 +7233,10 @@ impl Sim {
         }
         if self.units[i].waiting != 0 {
             self.units[i].waiting -= 1;
+        }
+        // `:69`–`71`: the heal's clock, beside them (item 3961).
+        if self.units[i].healing != 0 {
+            self.units[i].healing -= 1;
         }
         // `Unit::process@00610bc0`'s head, a caster's arm: a hero's
         // spells run out, then a point of craft back (`crate::cast`),

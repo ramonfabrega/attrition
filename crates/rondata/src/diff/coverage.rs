@@ -142,6 +142,12 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 3598 took `waiting` off both `UNITDATA` paths**: `fight`'s
     // search budget, compared in `widen_block` beside `full`.
     //
+    // **Item 3961 took `healing` off both `UNITDATA` paths and off
+    // `BUILDDATA`**: `ObjectData::healing` as each record prints it on its
+    // own level — the unit's against `sim::Unit::healing`, the building's
+    // against this crate's 0 (`docs/AI.md` §405). The `OBJECT` levels
+    // print the same short and stay pinned.
+    //
     // **Item 3960 took `num_queued` and `queue_time` off both `UNITDATA`
     // paths**: a unit's own queue (a carrier's planes), compared in
     // `widen_block` beside `good_obj` against this crate's 0 (`docs/AI.md`
@@ -161,7 +167,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor play size special supply",
+        "air_alt cavarch_uid gather_down guy_mark hero increment inside_up_who length los_x los_y myarmor play size special supply",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -189,7 +195,7 @@ const UNREAD: &[(&str, &str)] = &[
     // widening's anti-air cycle rows (`golden::cycle_rows`).
     (
         "GAME/FRAME/BUILDDATA",
-        "dock flags fort founder healing increment infiltrate infiltrate2 metric oil_well stance type wonder",
+        "dock flags fort founder increment infiltrate infiltrate2 metric oil_well stance type wonder",
     ),
     ("GAME/FRAME/BUILDDATA/BUILDQUEUE", "queue_size"),
     (
@@ -285,7 +291,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor play size special supply",
+        "air_alt cavarch_uid gather_down guy_mark hero increment inside_up_who length los_x los_y myarmor play size special supply",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",

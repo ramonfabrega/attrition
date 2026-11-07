@@ -784,6 +784,7 @@ impl Sim {
                 u.health += 1;
             }
         }
+        self.mark_healed(i, period);
     }
 
     /// The garrison's contribution to a tower's arrows —
