@@ -11,13 +11,14 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-06, **the seventieth steering pass (steer, Fable) ratified the counters: the seventieth tranche drained on supply at 7 of 20 landed from `3cce22c2c` in 3 h 10, on two Opus 5.5 lanes at medium, the blind list reads open 0, and entry 29's three counters stand — no tranche is booked and the commander is not armed; the loop rests on Ramon's word**; no lane live. The pass's record is `docs/audit/2026-11-06-fable-pass-70.md`, its decisions DECISIONS 110; the seventy-first counts from the pass's commit, written here at its first booking.*
-- **Words: none open** — every melee, `Late ages` word, pair, battery game and long word stands whole; lower map first — closed; no fieldable line is never-seen (296 of 302, the six never being Boadicea and five gaia animals); no word moved this tranche.
-- **Map generation: every chain 8 of 8** (3890, MAPGEN §15, §18.3–§18.4). **A fifth style held out is Ramon's call** (3888c; DECISIONS 108 §2, 109 §2, 110 §3): eleven styles' `make_continents` are never entered (3908 names them, 3908b their chain takes), and the held-out one is captured and scored, never read against; the pass recommends a cliff style, because 3924a's cliff arm is the one unbuilt arm no scored lobby reaches.
-- **The blind list: open 0** (never 331 · residue 331). **The `kill_group_order` pair is `RESIDUE`, ratified** (3940, AI §399; DECISIONS 110 §1): residue on exhaustion — six refusals by six sessions, the list's first of its kind; its road is parked 3940a with a falsifier, and a capture that enters either row fails the pin. **Golden: 115 closed.** The implicit residue: **0 of 679** (`census.py --territory --pin --implicit`, open 0 · name 0).
-- **The finish line — entry 29's three counters stand:** (1) the pair on the long captures — EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000; (2) the blind list at zero — 331 `blind::RESIDUE` rows with their reasons, open 0, the uncited half 0 of 679; (3) the widening ledger by construction (`rondata::diff::coverage`, green on every gate). **By entry 29's letter phase 4 opens. What fills the seventy-first is Ramon's**: phase 4's first item, the held-out style (3888c), the style chain takes (3908b), or the territory (ported 544 · replaced by design 318 · open 1291 of 3611; a measure, never a counter); the pass's recommendation is its record's "For Ramon" — phase 4 on the counters, the held-out style beside it.
-- **For the next pass** (on Ramon's word; `tranche.py --base 3cce22c2c` and `gates.py <t70> --since …/d388900a/tmp/t69p/gate-pass69.log` read): **7 landings · one DEEP (3936 at 338 k) · 26.1 minutes waiting a landing · 6.68 USD a landing (46.77 over 7 sessions)**, the gate class 10.6 a session; captures 4 over 7 items; 8 gates with the drain's: 2 whole, 6 scoped (5 widened), 0 red; 163.0 minutes; admission 508.3 s summed, longest 20.7 s; no merge backed out, no lane gated twice. **The lane rule** (110 §2): 26.1 under 26.3 and 10.6 under 15.3 on two lanes — the letter returns the third lane, and the count follows the supply: three Opus lanes when the first wave is three items or more, two otherwise. 109 merged `worktree-att-*` stay on origin (the remote delete refused by the classifier, `[Git Destructive]`; Ramon's).
-- **Lanes: none live.** Next 3941, run 1524 (1521 and 1523 minted and unused). Pools: AI §400–402; MAPGEN §24–§27; GOLDEN §172–§175; park BT–BV free.
+*2026-11-06, **the seventy-first steering pass (steer, Fable), on Ramon's word at 20:52 −05:00: phase 4 opens, and the token surplus goes to reading — the seventy-first tranche is the map track's supply on three Opus 5.5 lanes at `--effort medium` (DECISIONS 110 §2: a first wave of three), counted from the pass's commit, the base written here as the `from` line by the commander at the first booking; beside the loop the pass runs a territory reading fan-out — 26 Opus readers over the 1,291 open functions, one report a group under `docs/audit/2026-11-06-territory-*.md`, the steer's and untracked until it commits them — and a renderer proposal, `docs/RENDERER.md`, for Ramon's morning**; no lane live. The pass's record is `docs/audit/2026-11-06-fable-pass-71.md`, its decisions DECISIONS 111.*
+- **Words: none open** — every melee, `Late ages` word, pair, battery game and long word stands whole; lower map first — closed; no fieldable line is never-seen (296 of 302, the six never being Boadicea and five gaia animals); no word moved.
+- **Map generation: every chain 8 of 8** (3890, MAPGEN §15, §18.3–§18.4). **The held-out style is East Meets West (style 19), Ramon's word** (3888c → 3941; DECISIONS 54, 61, 111 §1): ported from MAPGEN §22's reading, captured once, scored on its first try and never read against. The ten other chains are the map lane's supply (3908b → 3944–3953), read against. The cliff arm (3924a → 3942) builds on run1516's widening, and a held-out game on Southwest Mesa (3943) is the number that scores it: only Mesa lays cliffs (§18.3), so "a cliff style held out" is a game, not a chain.
+- **The blind list: open 0** (never 331 · residue 331; the `kill_group_order` pair `RESIDUE` on exhaustion, 3940, AI §399, DECISIONS 110 §1; a capture that enters either row fails the pin). **Golden: 115 closed.** The implicit residue: **0 of 679**.
+- **The finish line — entry 29's three counters stand, and phase 4 is open on Ramon's word (2026-11-06; DECISIONS 111 §2).** The renderer's definition of done is a counter nobody has yet; `docs/RENDERER.md` proposes one and the first five items, for him to read, and nothing of phase 4 is booked to a lane until he answers it.
+- **The territory** (ported 544 · replaced by design 318 · open 1291 of 3611) is read by name tonight, 679 of the 1,291 entered by a lockstep game: each function ruled twin, absorbed, excluded, replaced or unmodelled, with the dump field that would show an unmodelled one; the rulings are the pass's to adjudicate and Ramon's to accept per group (DECISIONS 111 §3). The Rubric line moves only when a landing moves it.
+- **For the next pass**: `tranche.py --base <the from line>` and `gates.py <t71 dir> --since …/d388900a/tmp/t71/gate-pass71.log`; the seventieth's numbers are in its record. **The lane rule** (110 §2): three Opus lanes on a first wave of three (3941, 3942, 3944); the held-out style and the held-out game are **scored, never debugged against** — a parting on either parks by frame and books no item. 109 merged `worktree-att-*` stay on origin (Ramon's).
+- **Lanes: none live.** Next 3954, run 1537. Pools: AI §402; MAPGEN §35–§37; GOLDEN §172–§175; park CG–CI free.
 - **Fable backlog: 12 Loop items** (3929, a `--batch` break that leaves a second guard of the same refusal standing; 3926, 3912's unstaged pool take; 3922, 3908's; 3848; 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118); no `FABLE:` row open.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -40,7 +41,7 @@ Rubric: ported 544 · replaced by design 318 · open 1291 of 3611 · lockstep by
 Held-out: 8 of 8 whole · shortest 6147
 
 
-**Opener: the seventy-first steering pass (steer, Fable), on Ramon's word — the seventieth pass put entry 29's counters to him (DECISIONS 110 §3; the record's "For Ramon") and the loop rests; read his answer first, then book it: a held-out style named is one capture at `--dump-all-start` on the click-free lane (MAPGEN §24, run 1524, park BT), scored by the port's first try and never read against, with the eleven chain takes (3908b) behind it as the map lane's pool; phase 4 opened is the renderer's first item, a document before its implementation (`docs/RENDERER.md`: the thin client over observed sim state, the original assets the visual oracle, the lab's viewer its seed), with the sim track running only what he also books; the territory booked is read by family off `rubric.py --tables` and booked only where a family names a score. Three Opus lanes at medium if the first wave is three items or more, two otherwise (110 §2); write the base as this file's `from` line at the first booking, and arm `ccc clear commander --then "<the queue's opener>"` as the last act.**
+**Opener: the seventy-first tranche (commander, Opus) — three Opus 5.5 lanes at `--effort medium`, counted from the pass's commit (write it here as this file's `from` line at the first booking); read "Where things stand" and `docs/LOOP.md`'s chain; spawn 3941, 3942 and 3944 cut off the tip with `--worktree=att-<N>`; refill in the queue's order, 3943 only once 3942 has merged; one capture at a time on the click-free lane; 3941 and 3943 are scored and never debugged against — a parting on either parks by frame and books nothing; the steer's untracked files on this tree (`docs/audit/2026-11-06-territory-*.md`, `docs/RENDERER.md`) are never added, committed, moved or deleted by the commander or a lane; count landings from the base, stop at twenty or when the queue is spent, `lore index` and write the handoff from the tables, whole gate, push, and clear the steer with the opener as the last act.**
 
 ## The queue
 
@@ -49,6 +50,81 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84–93). Three shapes
 the nation `rubric.py --tables 3` prints in braces, `diff::<name>_pair` at its first parting, a scoreboard line; no twin for a pair varying only
 age and nation, 93 §2); **a melee** (`gunpowder_melee.rs`'s shape, GOLDEN §155, its own `Melee:` row). **The refill is the next nation and age off
 the braces, one never-seen line a lobby, its triple read on `tools/refill.py` first** (101 §4, 102 §3).
+
+3941. **The held-out style: East Meets West (style 19), ported from the reading and scored on its first try** (a `coverage` item
+on the map track; Ramon's word 2026-11-06 on parked 3888c; DECISIONS 54, 61, 111 §1; MAPGEN §22.1–§22.2): the port of
+`MapEastMeetsWest::make_continents@00696640` and the two arms no other style runs, `Map::find_region_centroid@0068ae50` and
+`Map::eliminate_edge_canals@0068b360`, written from MAPGEN §22 and the decompile and **committed on the lane before the take is
+launched**; then one take, run1493's line at `--map 19 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0`, read
+against the port once — the phases it holds on that first try are the number, pinned as `MapgenStyle { map: "EastMeetsWest", ..
+}` and a `Mapgen:` entry, and never debugged against: a parting parks with its frame and its checkpoint; run 1524; MAPGEN §24;
+gate `--tests mapgen first_parting`; park BT.
+
+3942. **The cliff arm of `calc_gather`'s mine arm, built on run1516's BUILDDATA at 100** (a `residue` item on the AI track;
+parked 3924a; ECONOMY "The cliff arm", AI §395): `CliffsData::find_nearest`, the `is_gathered_from` walk over a cliff's tiles
+and `gather_size`'s count and band, each made to fail first; the diff is the widening of run1516's BUILDDATA on 100 — the mine
+at (10, 43) on Southwest Mesa reads `mtn -1`, `cliff 7`, `length 189`, `size 320` where this crate's `gather` gives an empty
+list; no capture (the disk answers it); AI §400; gate `--tests economy mapgen coverage:: first_parting battery_floors`; park BU.
+
+3943. **A held-out game on Southwest Mesa** (a `residue` item that stands a word up, DECISIONS 90's shape with
+`battery::Lobby`'s measure — first try, never debugged against; DECISIONS 54, 61, 111 §1; after 3942 has merged): the lobby
+`(10, <ai_tribe>, <difficulty>)` on a triple `tools/refill.py` prints as free, the nation the next off `rubric.py --tables 3`'s
+braces, on run1516's `--dump-all-start` dump (its `(10, 11, 0)`) as the start sibling; taken whole at `cover=0` on the
+click-free lane, start and long, so that a mine beside a cliff gathers under 3942's arm; scored at `count` and `sequence` on its
+first try and pinned as a `Held-out:` game, its partings parked by frame and booked by nobody; runs 1525 and 1526; AI §401; gate
+`--tests battery first_parting battery_floors`; park BV.
+
+3944. **The chain take of Old World (style 6)** (a `coverage` item on the map track; parked 3908b; MAPGEN §22.1–§22.2, the shape
+of every take 3944–3953): one take, run1493's line at `--map 6 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0`;
+the port of `MapOldWorld::make_continents@0069c0e0` from the reading and the take's checkpoints 7805..7945, each arm made to
+fail first, the shared phases read for what the style's grid turns on; `MapgenStyle { map: "OldWorld", .. }` pinned at the
+phases it holds, a `Mapgen:` entry; **read against** (this is not the held-out style); run 1527; MAPGEN §25; gate `--tests
+mapgen first_parting`; park BW.
+
+3945. **The chain take of Amazon Basin (style 8)** (a `coverage` item on the map track; parked 3908b; the shape of 3944): one
+take at `--map 8` on run1493's line, the port of `MapAmazonBasin::make_continents@0069be00` from the reading and the take's
+checkpoints 7805..7945, each arm made to fail first; `MapgenStyle { map: "AmazonBasin", .. }` pinned at the phases it holds, a
+`Mapgen:` entry, read against; run 1528; MAPGEN §26; gate `--tests mapgen first_parting`; park BX.
+
+3946. **The chain take of Himalayas (style 9)** (a `coverage` item on the map track; parked 3908b; the shape of 3944): one take
+at `--map 9` on run1493's line, the port of `MapHimalayas::make_continents@0069bc90` from the reading and the take's checkpoints
+7805..7945, each arm made to fail first; `MapgenStyle { map: "Himalayas", .. }` pinned at the phases it holds, a `Mapgen:`
+entry, read against; run 1529; MAPGEN §27; gate `--tests mapgen first_parting`; park BY.
+
+3947. **The chain take of African Watering Hole (style 11)** (a `coverage` item on the map track; parked 3908b; the shape of
+3944): one take at `--map 11` on run1493's line, the port of `MapAfricanWateringHole::make_continents@0069b650` from the reading
+and the take's checkpoints 7805..7945, each arm made to fail first; `MapgenStyle { map: "AfricanWateringHole", .. }` pinned at
+the phases it holds, a `Mapgen:` entry, read against; run 1530; MAPGEN §28; gate `--tests mapgen first_parting`; park BZ.
+
+3948. **The chain take of Mediterranean (style 12)** (a `coverage` item on the map track; parked 3908b; the shape of 3944): one
+take at `--map 12` on run1493's line, the port of `MapMediterranean::make_continents@0069add0` from the reading and the take's
+checkpoints 7805..7945, each arm made to fail first; `MapgenStyle { map: "Mediterranean", .. }` pinned at the phases it holds, a
+`Mapgen:` entry, read against; run 1531; MAPGEN §29; gate `--tests mapgen first_parting`; park CA.
+
+3949. **The chain take of Australian Outback (style 13)** (a `coverage` item on the map track; parked 3908b; the shape of 3944):
+one take at `--map 13` on run1493's line, the port of `MapAustralianOutback::make_continents@0069a650` from the reading and the
+take's checkpoints 7805..7945, each arm made to fail first; `MapgenStyle { map: "AustralianOutback", .. }` pinned at the phases
+it holds, a `Mapgen:` entry, read against; run 1532; MAPGEN §30; gate `--tests mapgen first_parting`; park CB.
+
+3950. **The chain take of New World (style 16)** (a `coverage` item on the map track; parked 3908b; the shape of 3944): one take
+at `--map 16` on run1493's line, the port of `MapNewWorld::make_continents@006984d0` from the reading and the take's checkpoints
+7805..7945, each arm made to fail first; `MapgenStyle { map: "NewWorld", .. }` pinned at the phases it holds, a `Mapgen:` entry,
+read against; run 1533; MAPGEN §31; gate `--tests mapgen first_parting`; park CC.
+
+3951. **The chain take of Colonial Powers (style 17)** (a `coverage` item on the map track; parked 3908b; the shape of 3944):
+one take at `--map 17` on run1493's line, the port of `MapColonialPowers::make_continents@00697dd0` from the reading and the
+take's checkpoints 7805..7945, each arm made to fail first; `MapgenStyle { map: "ColonialPowers", .. }` pinned at the phases it
+holds, a `Mapgen:` entry, read against; run 1534; MAPGEN §32; gate `--tests mapgen first_parting`; park CD.
+
+3952. **The chain take of Sea Power (style 20)** (a `coverage` item on the map track; parked 3908b; the shape of 3944): one take
+at `--map 20` on run1493's line, the port of `MapSeaPower::make_continents@00696080` from the reading and the take's checkpoints
+7805..7945, each arm made to fail first; `MapgenStyle { map: "SeaPower", .. }` pinned at the phases it holds, a `Mapgen:` entry,
+read against; run 1535; MAPGEN §33; gate `--tests mapgen first_parting`; park CE.
+
+3953. **The chain take of Nile Delta (style 21)** (a `coverage` item on the map track; parked 3908b; the shape of 3944): one
+take at `--map 21` on run1493's line, the port of `MapNileDelta::make_continents@00695bf0` from the reading and the take's
+checkpoints 7805..7945, each arm made to fail first; `MapgenStyle { map: "NileDelta", .. }` pinned at the phases it holds, a
+`Mapgen:` entry, read against; run 1536; MAPGEN §34; gate `--tests mapgen first_parting`; park CF.
 
 ## How to maintain this file
 
