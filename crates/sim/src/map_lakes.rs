@@ -727,37 +727,43 @@ mod tests {
         );
     }
 
-    /// A pool that touches the outer ring is listed under `EDGES_ONLY`, on
-    /// any of the four sides: two such seas merge the smaller.
+    /// A pool that touches the outer ring on one side only is listed under
+    /// `EDGES_ONLY`, on each of the four: two such seas merge the smaller.
     #[test]
-    fn edges_only_merges_the_smaller_of_two_edge_seas() {
+    fn edges_only_merges_a_bay_on_each_side() {
+        // A U of land walls a 2×2 bay off the middle of the top side.
+        let wall = [
+            (3, 0),
+            (3, 1),
+            (3, 2),
+            (4, 2),
+            (5, 2),
+            (6, 2),
+            (6, 1),
+            (6, 0),
+        ];
+        let bay = [(4, 0), (5, 0), (4, 1), (5, 1)];
+        // The four sides: top, left, bottom, right.
+        let turn = |side: i32, (x, y): (i32, i32)| match side {
+            0 => (x, y),
+            1 => (y, x),
+            2 => (x, 9 - y),
+            _ => (9 - y, x),
+        };
         for side in 0..4 {
             let mut grid = MapGrid::new(10, 10);
             grid.wipe();
             grid.clear_regions();
-            // A land wall cuts a bay two cells deep off one side.
-            for k in 0..10 {
-                let (x, y) = match side {
-                    0 => (2, k),
-                    1 => (k, 2),
-                    2 => (7, k),
-                    _ => (k, 7),
-                };
+            for &c in &wall {
+                let (x, y) = turn(side, c);
                 grid.cell_mut(x, y).land = 0;
             }
             eliminate_pools_in(&mut grid, true);
-            let bay = match side {
-                0 => (0, 5),
-                1 => (5, 0),
-                2 => (9, 5),
-                _ => (5, 9),
-            };
-            assert_eq!(
-                grid.cell(bay.0, bay.1).land,
-                0,
-                "side {side}: the bay merged"
-            );
-            assert_eq!(grid.cell(5, 5).land, 2, "side {side}: the open sea left");
+            for &c in &bay {
+                let (x, y) = turn(side, c);
+                assert_eq!(grid.cell(x, y).land, 0, "side {side}: ({x}, {y}) merged");
+            }
+            assert_eq!(grid.cell(8, 8).land, 2, "side {side}: the open sea left");
         }
     }
 

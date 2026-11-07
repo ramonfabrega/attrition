@@ -224,6 +224,11 @@ mod tests {
 
     /// A land map with a water disc of radius 4 about `(15, 15)`.
     fn pond() -> MapGrid {
+        pond_of(4)
+    }
+
+    /// A land map with a water disc of radius `r` about `(15, 15)`.
+    fn pond_of(r: i32) -> MapGrid {
         let mut grid = MapGrid::new(30, 30);
         grid.wipe();
         for c in &mut grid.cells {
@@ -231,7 +236,7 @@ mod tests {
         }
         for y in 0..30 {
             for x in 0..30 {
-                if (x - 15) * (x - 15) + (y - 15) * (y - 15) <= 16 {
+                if (x - 15) * (x - 15) + (y - 15) * (y - 15) <= r * r {
                     grid.cell_mut(x, y).land = 2;
                 }
             }
@@ -239,46 +244,57 @@ mod tests {
         grid
     }
 
-    /// The walk takes the first land point off the outer ring whose rings
-    /// 8–10 hold water and whose disc to 3 does not; it never stops off the
-    /// grid, on water or within a cell of the edge.
-    #[test]
-    fn the_walk_in_stops_on_the_first_land_near_the_sea() {
-        let grid = pond();
-        let mut turned = 0;
-        for k in 0..16 {
-            let angle = (k as u32).wrapping_mul(0x1000_0000) as i32;
-            let (x, y) = walk_in(&grid, (15, 15), angle, 10);
-            assert!(!grid.cell(x, y).is_ocean(), "{k}: ({x}, {y}) is water");
-            assert!(
-                (2..28).contains(&x) && (2..28).contains(&y),
-                "{k}: ({x}, {y})"
-            );
-            // Each step falls by 3 from 45: the start is the first such
-            // radius whose point is near the sea.
-            let first = (0..)
-                .map(|i| 45 - 3 * i)
-                .take_while(|&r| r - 3 >= 10)
-                .map(|r| project(15, 15, Angle(angle), r))
-                .find(|&(px, py)| {
-                    (1..29).contains(&px)
-                        && (1..29).contains(&py)
-                        && ORTHOG.iter().all(|&(dx, dy)| {
-                            (1..29).contains(&(px + dx)) && (1..29).contains(&(py + dy))
-                        })
-                        && is_near_ocean(&grid, px, py, 3, 9)
-                });
-            // When no radius on the first angle serves, the walk turned.
-            match first {
-                Some(f) => assert_eq!((x, y), f, "{k}"),
-                None => assert!(
-                    is_near_ocean(&grid, x, y, 3, 9),
-                    "{k}: turned to ({x}, {y})"
-                ),
+    /// The walk's candidates, read off the listing rather than the port:
+    /// radius `3·xs/2` falling by 3 while the next is at least `reach`, the
+    /// angle turned by 0x71c71c6 each time the radius runs out; a point
+    /// whose five orthogonal cells sit inside the outer ring, that is land
+    /// and `is_near_ocean(…, 3, 9)`, is the start.
+    fn listed_start(grid: &MapGrid, sea: (i32, i32), angle: i32, reach: i32) -> ((i32, i32), i32) {
+        let (xs, ys) = (grid.xs, grid.ys);
+        let inside = |x: i32, y: i32| (1..xs - 1).contains(&x) && (1..ys - 1).contains(&y);
+        for turn in 0..1024i32 {
+            let a = angle.wrapping_add(turn.wrapping_mul(0x071c_71c6));
+            let mut r = xs * 3 / 2;
+            while r - 3 >= reach {
+                let (x, y) = project(sea.0, sea.1, Angle(a), r);
+                if ORTHOG.iter().all(|&(dx, dy)| inside(x + dx, y + dy))
+                    && !grid.cell(x, y).is_ocean()
+                    && is_near_ocean(grid, x, y, 3, 9)
+                {
+                    return ((x, y), turn);
+                }
+                r -= 3;
             }
-            turned += usize::from(first.is_none());
         }
-        assert!((1..16).contains(&turned), "{turned} of 16 angles turned");
+        panic!("no start in 1024 turns at {angle:#x}, reach {reach}");
+    }
+
+    /// The walk takes the listing's start on every angle, on a pond where
+    /// most angles turn and many starts stand on the outer ring's band.
+    /// (On a pond of 4 with `reach` 10, angle 0 turns some 8.45 million
+    /// times: 36 turns of 0x71c71c6 come 8 short of a circle, and the walk
+    /// creeps until a projection rounds onto a cell near the water.)
+    #[test]
+    fn the_walk_in_is_the_listing_s_candidates() {
+        {
+            let (radius, reach) = (6, 10);
+            let grid = pond_of(radius);
+            let mut turned = 0;
+            let mut band = 0;
+            for k in 0..64 {
+                let angle = (k as u32).wrapping_mul(0x0400_0000) as i32;
+                let (x, y) = walk_in(&grid, (15, 15), angle, reach);
+                let (want, turns) = listed_start(&grid, (15, 15), angle, reach);
+                assert_eq!((x, y), want, "pond {radius}, angle {k}");
+                turned += usize::from(turns > 0);
+                band += usize::from(x == 2 || y == 2 || x == 27 || y == 27);
+            }
+            eprintln!("pond {radius}: {turned} of 64 turned, {band} on the band");
+            assert!(
+                turned > 0 && band > 0,
+                "{turned} turned, {band} on the band"
+            );
+        }
     }
 
     /// A HALFLAND cell is land to the walk: `is_ocean` refuses it, so the
@@ -301,7 +317,7 @@ mod tests {
     /// start with the angle's halves and the sea's opening.
     #[test]
     fn the_sea_is_inverted_and_the_island_grows_in_it() {
-        for seed in [1u32, 12345, 0xdead_beef] {
+        for seed in (1u32..=24).chain([12345, 0xdead_beef]) {
             let mut grid = MapGrid::new(60, 60);
             let mut d = Draws::new(seed);
             let m = mediterranean_make_continents(&mut grid, 2, style(), &mut d).expect("allowed");
@@ -325,6 +341,23 @@ mod tests {
                 .count();
             assert!(wet > 600 && wet < 1300, "{seed}: {wet} water cells");
             assert_eq!(m.map.avoid_continent, 8);
+            // `check_player_land`'s disc to `start_land` round each
+            // start-city cell is land; the island may have taken some of it.
+            let t = crate::scout::circle::table();
+            let cities: Vec<(i32, i32)> = grid.starts[2]
+                .list
+                .iter()
+                .zip(&grid.starts[3].list)
+                .map(|(&x, &y)| (x, y))
+                .collect();
+            for (cx, cy) in cities {
+                for i in 0..t.radius[style().start_land as usize] as usize {
+                    let (x, y) = (cx + i32::from(t.x[i]), cy + i32::from(t.y[i]));
+                    if let Some(c) = grid.get(x, y) {
+                        assert!(!c.is_ocean(), "{seed}: ({x}, {y}) by ({cx}, {cy})");
+                    }
+                }
+            }
         }
     }
 
