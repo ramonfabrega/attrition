@@ -281,8 +281,10 @@ mod bodies {
         // wrong. **786,842 → 852,005 on item 3962** — `BUILDDATA stance`,
         // none wrong; each of the two alone added 65,163, and the 1,000
         // past their sum the merge of the two was not traced.
+        // **852,005 → 917,168 on item 3965** — a building's `mylos`
+        // against its cache, none wrong.
         assert_eq!(
-            builds, 852_005,
+            builds, 917_168,
             "the site and the clock on every linked building-frame"
         );
         assert!(

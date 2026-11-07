@@ -8329,7 +8329,9 @@ pub(crate) mod tests {
     /// **894,314 → 986,161 on item 1497**, `myhits` and `construct_hits`.
     /// **986,161 → 1,075,324 on item 3961**, `healing` against 0; none wrong.
     /// **1,075,324 → 1,164,487 on item 3962**, `BUILDDATA stance`, none wrong.
-    const RUN58_BUILD_FIELDS: usize = 1_164_487;
+    /// **1,164,487 → 1,253,650 on item 3965**, a building's `mylos` against
+    /// its cache, none wrong.
+    const RUN58_BUILD_FIELDS: usize = 1_253_650;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.
