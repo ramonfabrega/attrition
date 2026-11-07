@@ -1243,6 +1243,24 @@ pub fn outback_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a New World setup path: from its
+/// first `MapNewWorld::make_continents@006984d0` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §31, item 3950), up to the first
+/// that is none.
+pub fn new_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let nw = 0x0069_84d0..0x0069_8b60;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| nw.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !nw.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `make_continents` segment of a Colonial Powers setup path: from
 /// its first `MapColonialPowers::make_continents@00697dd0` draw, every
 /// draw whose site is that function, `Map::grow_region`,
@@ -7699,6 +7717,9 @@ mod tests {
         /// Australian Outback's own, an island grown from the players'
         /// spots and the middle (§30).
         Outback,
+        /// New World's own, islands on a ring and a centre continent
+        /// (§31).
+        NewWorld,
         /// Colonial Powers' own, two continents grown half a turn apart
         /// and the border's seas merged (§32).
         Colonial,
@@ -7863,6 +7884,25 @@ mod tests {
         walks: OnceLock::new(),
     };
 
+    /// New World (style 16, §31): run1533, item 3950.
+    static NEW_WORLD: Chain = Chain {
+        label: "New World",
+        map: "NewWorld",
+        style: 16,
+        xml: "NEWWORLD.xml",
+        mask: new_world_part,
+        port: MaskPort::NewWorld,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: true,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
     /// Colonial Powers (style 17, §32): run1534, item 3951.
     static COLONIAL_POWERS: Chain = Chain {
         label: "Colonial Powers",
@@ -8015,20 +8055,6 @@ mod tests {
                 great_sahara_make_continents(&mut grid, g.nations, &mut d.rng),
                 4,
             )),
-            MaskPort::Colonial => {
-                // No seat of the corpus' lobbies is an unteamed computer
-                // under `team_style` 7 (§32.1).
-                let m = sim::map_colonial::colonial_powers_make_continents(
-                    &mut grid,
-                    g.nations,
-                    0,
-                    lobby_style(),
-                    &mut d,
-                )
-                .expect("a lobby inside its allowance");
-                eprintln!("{name}: colonial {m:?}");
-                None
-            }
             MaskPort::Outback => {
                 let m = sim::map_outback::australian_outback_make_continents(
                     &mut grid,
@@ -8050,6 +8076,20 @@ mod tests {
                 eprintln!("{name}: the watering hole {m:?}");
                 Some((m.start_dist, 4))
             }
+            MaskPort::Colonial => {
+                // No seat of the corpus' lobbies is an unteamed computer
+                // under `team_style` 7 (§32.1).
+                let m = sim::map_colonial::colonial_powers_make_continents(
+                    &mut grid,
+                    g.nations,
+                    0,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: colonial {m:?}");
+                None
+            }
             MaskPort::Mediterranean => {
                 let m = sim::map_mediterranean::mediterranean_make_continents(
                     &mut grid,
@@ -8069,12 +8109,25 @@ mod tests {
                 // Mediterranean writes no `start_dist` (§29.1).
                 None
             }
+            MaskPort::NewWorld => {
+                let m = sim::map_new_world::new_world_make_continents(
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: the new world {m:?}");
+                // New World writes no `start_dist` (§31).
+                None
+            }
         };
         if let Some((start_dist, floor)) = start {
             assert_eq!(start_dist, (g.xs / 16).max(floor), "{name}: `start_dist`");
         }
+        // New World's centre continent alone draws 102,324 (§31).
         let mut words = Vec::new();
-        while twin.seed != d.rng.seed && words.len() < 0x10000 {
+        while twin.seed != d.rng.seed && words.len() < 0x40000 {
             words.push(twin.seed);
             twin.roll();
         }
@@ -8775,18 +8828,6 @@ mod tests {
     );
 
     chain_tests!(
-        COLONIAL_POWERS,
-        colonial_powers_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
-        colonial_powers_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
-        colonial_powers_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
-        colonial_powers_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
-        colonial_powers_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
-        colonial_powers_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
-        colonial_powers_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
-        colonial_powers_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
-    );
-
-    chain_tests!(
         MEDITERRANEAN,
         mediterranean_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
         mediterranean_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
@@ -8796,5 +8837,29 @@ mod tests {
         mediterranean_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         mediterranean_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         mediterranean_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        NEW_WORLD,
+        new_world_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        new_world_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        new_world_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        new_world_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        new_world_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        new_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        new_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        new_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        COLONIAL_POWERS,
+        colonial_powers_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        colonial_powers_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        colonial_powers_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        colonial_powers_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        colonial_powers_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        colonial_powers_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        colonial_powers_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        colonial_powers_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }

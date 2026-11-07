@@ -3685,12 +3685,119 @@ the first cell. Ten failed nothing, each for a reason read off the take:
   read; whether a second join in one `point` could order differently is
   not decided by a take with two players.
 
-## 31. Reserved for the next item on the map track
+## 31. New World's chain, 8 of 8 (item 3950)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The sixth chain take (§22.2, §25's method), and the second whose mask is
+not Great Sahara's. One take, run1533 at `--map 16` on §22.2's line
+(`docs/RUNS.md`), walked phase by phase against its own checkpoints by
+the `Chain` walk (§26) with a third mask choice
+(`rondata::mapgen::tests::NEW_WORLD`, `MaskPort::NewWorld`). New World is
+**read against**. It is not the held-out style (§24).
+
+### 31.1 The mask is its own: islands on a ring and a centre continent
+
+`MapNewWorld::make_continents@006984d0` runs to 0x698b60, 1,680 bytes
+against Great Sahara's 368: 524 instructions in `llvm-objdump -d` against
+144, two `Random::get@00a39d70` calls against four, and three unwind
+funclets of its own. So it is not a dispatch, and the port is
+`sim::map_new_world`, read from the decompile and checked against the
+listing where the decompile hides an argument (`project@0092d000`'s centre
+is `(xs/2, ys/2)` in `ecx`/`edx`; `make_region`'s and
+`add_starting_location`'s `x` is `project`'s first out-parameter;
+`check_player_land@0068ef00` is called with `ecx` 1, `edx`
+`avoid_continent` and ring `-1`, East Meets West's call, §24):
+
+1. `avoid_continent` (+0x30) becomes `max(4, scale_land_area(it))`, once;
+   the four `avoid_edge` are scaled (inside the allowance, unchanged).
+2. Each generation: `World::wipe`, `Regions::clear_all`; the island size
+   `I = max(0x3c, scale_land_area(0xfa))`, 250; the centre's size
+   `scale_land_area((cells − I·players)·4/10)`; the ring's radius
+   `((m/2)·7)/8`, `m` the shorter side. One draw `r` (0x698655): under
+   four players the angle is `(r & 3)·0x3fffffff + 0x1fffffff`, a
+   quadrant's diagonal, and under three the centre's size is
+   `(cells − I·players)·2/3`; from four players a second draw (0x6986d8)
+   and the angle `(r % 0xffff) << 16 + r2 % 0xffff`.
+3. Each player steps the angle by `0xffffffff / players` (the first a
+   step past it), takes its start on the ring about `(xs/2, ys/2)` and
+   opens region `k + 1` there; the record's flags gain bit 1 and its
+   common and goody factors (+0, +4) become 12. Region 9 opens on
+   `(xs/2, ys/2)`, its factors 6. No phase this module walks reads the
+   factors or bit 1: `Regions::clear_all` resets the records before 7835,
+   and `grow_valid`'s sharing test reads bit 0.
+4. `avoid_center` (+0x2c) becomes `scale_land_area((xs/2)·70/100)`. Two
+   passes, the divisor 2 and then 1, grow every island by
+   `Map::grow_region` to `I / div` cells within `(radius / 4) / div`
+   (`4` is `max(4, scale_land_area(4))`), with `param_6` 1 so the call
+   returns the region's count; an island under half its pass's size
+   starts the generation again. Region 9's one live cell holds every
+   island `avoid_center` off the middle.
+5. `avoid_center` 0, region 9 grown to the centre's size within the
+   radius (`param_6` 0), `check_player_land` (East Meets West's guarded
+   arm, §24), and `Map::eliminate_pools` over the world. No
+   `invert_land`: the regions were grown as land on the wiped (all-water)
+   world and stay land. No `start_dist` is written.
+
+`NEWWORLD.xml` carries `AVOID_EDGE_0..3` 4 and `AVOID_CONTINENT` 5, so
+`grow_valid` draws once per edge per cell it tests.
+
+On run1533 (2 nations, 66×66): one generation, the quadrant draw, a ring
+of radius 28, islands of 250 and a centre of 2,570 cells, `avoid_modify`
+3 at the end, **102,324 draws** — the walk's twin stream was capped at
+0x10000 words and now runs to 0x40000. **7807 and the 102,324-draw
+stream agree on the first walk**, every site the port's: seed 532097073,
+part 2 561384113, part 5 1398700804, part 6 3972923393 on both sides.
+
+### 31.2 Every shared phase held, first walk
+
+- **The tileset**: `NEWWORLD.xml`'s own thirteen `TILECHANCE`s draw
+  `early_autumn`; 7854 agreeing backs it.
+- **7835..7945** agree: 7,249 draws `place_all` through the last
+  `compute_val`, whole against the trace's — the style's `nonplayer`
+  groups and bonuses and its negative `numrare` rows among them, with no
+  shared-phase change.
+- **`Terrain::init`**: the sea opens the half-land gate, so the walk takes
+  §28.2's water path; part 4 at 734 is 0x153e032b on both sides, and all
+  22 records 734..815 agree, 720 among them.
+- **Rivers**: 29 sources, 25 river draws on each side, whole; the 5
+  records 5012..5118 agree.
+- **894**: one trough section (13), six cells newly 0x1000, no oil and no
+  good moved (`moves_a_good: false`), `Cliffs::init` inert; seed
+  3091682547, part 5 2636052358, part 6 816403111, parts 10–13
+  1175582072 / 1199966433 / 142345283 / 262145 on both sides. All 70,225
+  start-dump vertices agree.
+
+**Made to fail**: `tools/mutate.py --batch --timeout 900` on `b04ad4f8c`,
+scored by the eight `new_world_s_*` walks: twenty-one breaks, sixteen
+held — `avoid_continent`'s floor at 6, the island's floor at 0x100, the
+radius at 6/8, the four-player branch at two, the three-player test
+negated, the centre at 3/4, the quadrant `r & 1`, the diagonal's
+`0x1fffffff` dropped, the step halved, the ring's centre a cell east,
+region 9 a cell south, `avoid_center` at 60 %, the two passes both
+divisor 1, `eliminate_pools` dropped, and each island opened a cell off
+its start. Five failed nothing, and four of them are unreached on this
+take (§31.3): the islands' reach (`quarter` at 5, and the reach without
+its divisor), the restart threshold at the whole pass, and
+`check_player_land` dropped. The fifth, region 9's `avoid_center` at 1
+in place of 0, is equivalent here (only the centre cell is within 1, and
+region 9 already holds it); `--edit` to 12 held, reddening all eight. No
+condition here is a disjunction.
+
+### 31.3 What is not established
+
+- One file only: 2 nations, 66×66. Other nation counts and sizes are
+  untaken; in particular **the four-player angle** (the second draw,
+  0x6986d8) and **the three-player centre** (`·4/10`) have unit tests
+  and no take.
+- The restart arm: run1533 grows every island in one generation.
+  Breaking the threshold to the whole pass fails nothing (parked 3950a).
+- **The islands' reach**: `grow_region`'s `max_dist` is read only by its
+  outer pick, past `scale_by_area(0x200)` cells — 455 on 66×66 against
+  the Standard 70 — and an island is 250, so on this take the reach is
+  inert; both breaks of it failed nothing (parked 3950a).
+- **`check_player_land`**: each island, grown from its start, already
+  covers the start city's ring 5, so dropping the call fails nothing on
+  this take (parked 3950a). The arm is East Meets West's, which §24's
+  take backs.
 
 ## 32. Colonial Powers' chain, 8 of 8 (item 3951)
 

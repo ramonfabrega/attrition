@@ -333,6 +333,20 @@ pub const MAPGEN: Mapgen = Mapgen {
             phases: 8,
         },
         MapgenStyle {
+            map: "NewWorld",
+            // 0 → 8 by item 3950 (MAPGEN §31), on run1533's one file (2
+            // nations, 66×66, seed 12345, `early_autumn` drawn from
+            // `NEWWORLD.xml`'s own `TILESET`): the mask is its own
+            // (`sim::map_new_world`, 0x6984d0: an island a player on a
+            // ring of radius 28, a centre continent of 2,570 cells, no
+            // inversion), 7807 and its 102,324-draw stream (one generation)
+            // whole on the first walk; every later checkpoint 7835..894
+            // agrees with no shared-phase change, and no trough reaches a
+            // good.
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
             map: "ColonialPowers",
             // 0 → 8 by item 3951 (MAPGEN §32), on run1534's one file (2
             // nations, 60×60, seed 12345, `dirty` drawn from
@@ -717,7 +731,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases \u{b7} ColonialPowers 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases \u{b7} NewWorld 8 of 8 phases \u{b7} ColonialPowers 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
