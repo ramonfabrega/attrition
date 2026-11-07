@@ -7651,7 +7651,9 @@ mod tests {
         walks: OnceLock::new(),
     };
 
-    /// African Watering Hole (style 11, §28): run1530, item 3947.
+    /// African Watering Hole (style 11, §28): run1530, item 3947 — 22
+    /// records 734..815 (720 among them, on the half-land path) and 5
+    /// records 5012..5118 on 2026-11-06.
     static AFRICAN_WATERING_HOLE: Chain = Chain {
         label: "African Watering Hole",
         map: "AfricanWateringHole",
@@ -7662,8 +7664,8 @@ mod tests {
         files: 1,
         traces: 1,
         checked: 8,
-        terrain_records: 0,
-        river_records: 0,
+        terrain_records: 22,
+        river_records: 5,
         moves_a_good: false,
         walks: OnceLock::new(),
     };
