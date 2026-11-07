@@ -40446,8 +40446,9 @@ or garrison row parted on any walked window, and no `firsts` or
 **The value diff.** run861 (the Lakota peace pair's word 4859 window,
 4853..5109): who=1 prints `retargets 3` on blocks 4859 and 4860, the
 word's own block, and non-zero on 166 records in the window; ours agrees on
-every one. The window's `firsts` pin is unchanged, and the mutation below
-shows the compare is live there. The garrison counts read 0 against 0 on
+every one. The window's `firsts` pin is unchanged. The compare is live
+there: with ours' row forced to 0 (`tools/mutate.py`), the widening fails,
+`firsts` 98 → 99, first row `f4855 1/-1 leader:retargets: ours 0 theirs 1`. The garrison counts read 0 against 0 on
 every walked window: run1075 is walked by no harness (parked 3964a).
 
 **What is not established.** The `Leaders::process_all` reset's flag-2
