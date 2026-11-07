@@ -2982,7 +2982,10 @@ mod launch_tests {
             s.units[u].orders.clear();
             s.unit_types[ty].combat.obj_masks |= crate::combat::mask::MISSILE;
             s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
-            assert!(s.units[u].orders.is_empty(), "unseen {unseen}: a missile does not");
+            assert!(
+                s.units[u].orders.is_empty(),
+                "unseen {unseen}: a missile does not"
+            );
         }
     }
 
