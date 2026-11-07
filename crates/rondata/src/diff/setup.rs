@@ -2242,6 +2242,76 @@ mod tests {
 
     use crate::testenv::{dump, install};
 
+    /// **The style's six territory limits are the start dump's** (item
+    /// 3963, `docs/AI.md` §407, parked T71-4): `WorldData::log_data` prints
+    /// `World +0x38..+0x4c` among the block's leading scalars, and the world
+    /// the harness stands up carries all six — Nile Delta and Sea Power's
+    /// player triple 48/8/8 (run1098, run1126), New World's colonized
+    /// 32/4/4 (run1123); every other triple the rules' 44/4/4 — and the
+    /// pinned lobby's start dump is the rules' on both, so the override is
+    /// inert on it.
+    #[test]
+    fn the_style_s_six_territory_limits_are_the_start_dump_s() {
+        let rules = [
+            T.territory_limit_base,
+            T.territory_limit_civic,
+            T.territory_limit_city,
+        ];
+        let carried = |init: &Initial<'_>| -> [i32; 6] {
+            let (world, _) = world_from(&init.world, &[], &mut Vec::new());
+            let l = world.territory_limits().map_or([rules, rules], |l| [l.player, l.colonized]);
+            [l[0][0], l[0][1], l[0][2], l[1][0], l[1][1], l[1][2]]
+        };
+        let printed = |init: &Initial<'_>| -> [i32; 6] {
+            let get = |k: &str| -> i32 {
+                init.world
+                    .iter()
+                    .find(|(key, _)| *key == k)
+                    .and_then(|(_, v)| v.trim().parse().ok())
+                    .unwrap_or_else(|| panic!("the start dump prints `{k}`"))
+            };
+            [
+                get("player_territory_limit"),
+                get("player_territory_limit_civic"),
+                get("player_territory_limit_city"),
+                get("colonized_territory_limit"),
+                get("colonized_territory_limit_civic"),
+                get("colonized_territory_limit_city"),
+            ]
+        };
+        let lobby = initial();
+        assert_eq!(printed(&lobby), [44, 4, 4, 44, 4, 4], "the pinned lobby");
+        assert_eq!(carried(&lobby), [44, 4, 4, 44, 4, 4], "the pinned lobby");
+        let styles = [
+            (
+                "gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt",
+                [48, 8, 8, 44, 4, 4],
+            ),
+            (
+                "gamelog-run1123-newworld-cover1-clickfree-diagonal.txt",
+                [44, 4, 4, 32, 4, 4],
+            ),
+            (
+                "gamelog-run1126-atlanticseapower-cover1-clickfree-diagonal.txt",
+                [48, 8, 8, 44, 4, 4],
+            ),
+        ];
+        let mut read = 0;
+        for (name, six) in styles {
+            let Some(path) = dump(name) else {
+                eprintln!("skipped: {name} is not on this machine");
+                continue;
+            };
+            let text = crate::capture::read(std::path::Path::new(&path));
+            let log = Log::parse(&text);
+            let init = log.initial().expect("the start dump");
+            assert_eq!(printed(&init), six, "{name}: the dump's six");
+            assert_eq!(carried(&init), six, "{name}: the world's six");
+            read += 1;
+        }
+        eprintln!("{read} of 3 styles' start dumps read");
+    }
+
     /// **The start permutation is replayed onto the first visit's state**
     /// (item 3849, `docs/GOLDEN.md` §153.1): run1482's setup trace holds
     /// 1,332,463,473 at `setup.cpp` 884 and 3,862,369,593 at the first
