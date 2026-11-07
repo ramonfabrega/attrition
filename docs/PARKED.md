@@ -3801,6 +3801,14 @@ on 1,831 tech-queued building-frames over five windows. Candidate: the `UNCOMPAR
 comparator's skips counted per record and the count pinned, red first. Not built this pass: 3969 emits the technology rows;
 the next pass pins the rest on the landed tree. Names no score; the loop's.
 
+## Loop, filed 2026-11-07 — the seventy-second tranche's
+
+(3972) **`tools/nations_census.py --write` rewrites rows no item touched** (3959's "for the Loop"): on `864dd6aec` the
+generator rewrote 24 rows unrelated to the Iroquois heal, so the table on the tree has drifted from what the generator
+emits and a lane that runs it to re-pin carries a churn it did not cause. Candidate: a guard that runs the generator
+in check mode and fails on any difference, red first on today's 24 rows, and the table regenerated in the same landing.
+Names no score; the loop's.
+
 ## Loop, filed 2026-11-06 — the seventy-first tranche's
 
 **3954** (a draft's comparison harness was committed and pushed without ever having run; 3941's "for the Loop") — **a clause** by the seventy-second pass, its text kept in `docs/audit/2026-11-07-fable-pass-72.md` ("Rulings"): the frame's `DEEP` line reads "a harness the draft commits has run once, its exit in the journal (3954)", paid for under the chapter kind's 13,000 ceiling by three trims (31 tests in `test_brief.py`). The row as filed: (3941's "for the Loop"): its first
