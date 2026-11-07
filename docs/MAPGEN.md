@@ -3402,12 +3402,145 @@ so nothing reads it.
   this mask (parked 3947a).
 - The loader that leaves red lowest is not read (§28.3).
 
-## 29. Reserved for the next item on the map track
+## 29. Mediterranean's chain, 8 of 8 (item 3948)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The fourth chain take (§22.2, 3944–3953), and the first whose mask is not
+Great Sahara's. The take is run1531 at `--map 12` on §22.2's line
+(`docs/RUNS.md`). `sim::map_mediterranean` ports the mask, and
+`rondata::mapgen::tests::chain_walk` walks it with East Indies' half-land
+order (§29.3). Mediterranean is **read against**, and every phase held on the
+first walk of the port.
+
+### 29.1 The mask is its own body
+
+`MapMediterranean::make_continents@0069add0` decompiles to 338 lines, against
+Great Sahara's 72, and its listing runs 0x69add0..0x69b650, against
+Great Sahara's 0x69bf70..0x69c0e0. It calls `Map::make_region`, `Map::grow_region`,
+`Regions::find_all`, `Map::eliminate_pools`, `Map::invert_land`, `project`,
+`Map::is_near_ocean`, `World::add_starting_location` and
+`Map::check_player_land`. Great Sahara calls none of these. So the listing
+compare (§25.1) does not apply, and the mask is ported from the decompile and
+the listing. The shape is Great Lakes' (§5), inverted:
+
+1. `avoid_continent` is set to `scale_land_area(avoid_continent)`, at least 4.
+   `reach` is the shorter side rounded down to even, then divided by 3 (20 on
+   60×60). The sea is `3·reach²` cells.
+2. A **sea draw**: `World::wipe`, `Regions::clear_all`, the start angle
+   `(r % 0xffff) << 16 + r % 0xffff` (sites `+0x158`, `+0x16f`), and the
+   opening cell `(xs/2 + (r & 1), ys/2 + (r & 1))` (`+0x20e`, `+0x23f`).
+   Region 1 opens there and grows as land to the sea's size within `reach`
+   (`grow_region(1, size, reach, −1, −1, 0)`). A grow that ends short draws
+   again.
+3. `Regions::clear_all`, `find_all`, `eliminate_pools(ENTIRE_WORLD)`,
+   `clear_all`, `invert_land`, `find_all`, `eliminate_pools(ENTIRE_WORLD)`,
+   `clear_all`. After this the grown region is the sea, and the wiped
+   background is the land around it.
+4. **The starts** (0x69b1f0..0x69b431). The angle steps by `0xffffffff /
+   players`. Each seat then walks in from `3·xs/2` in steps of 3,
+   **towards the sea's opening cell**: `project` takes `ecx`/`edx` = `esi`/`edi`,
+   the registers `make_region(1, …)` was passed, and no write to either
+   reaches the call (`sim::map_mediterranean::walk_in`). A radius that falls
+   under `reach` turns the angle by 0x71c71c6 and starts again. A step is the
+   start when its five orthogonal cells are all inside the outer ring, it is
+   land, and it is `is_near_ocean(…, 3, 9)`.
+5. `check_player_land` with `ecx` 1 (the guard), `edx` = `avoid_continent`,
+   and the ring = `start_land` (unit type 349's `max_range` quartered, 6),
+   not East Meets West's −1. Every `region` is 0 after step 3's last
+   `clear_all`, and every list is empty. So the guard and the adoption search
+   find nothing, and the call is Great Lakes' disc of land
+   (`map_lakes::check_player_land`).
+6. **The island**: `max(75, scale_land_area(150))` cells, region 0x20, opened
+   like the sea (`+0x6ab`, `+0x6dc`) and grown within `reach`. An island that
+   ends short goes back to step 2, which wipes the world and with it the
+   starts. One that grows ends with `eliminate_pools(EDGES_ONLY)`.
+
+**`EDGES_ONLY` is 1** (the call pushes 1, where `ENTIRE_WORLD` pushes 2). In
+`Map::eliminate_pools@0068b890` it lists only the water regions the scan meets
+on row 0, row `ys − 1`, column 0 or column `xs − 1`. The merge that follows is
+the same (`map_lakes::eliminate_pools_in`).
+
+**Two of the original's slots are never read.** The walk's `near` flag
+(`−0x2c`) is cleared once per seat, and `edge` (`−0x28`) is cleared only on a
+step that tests. But a step that sets `near` passes every later test and is
+the start. So `near` is clear on every step that reaches the refusal, and the
+turning step is refused whatever `edge` holds. The port keeps both per step.
+
+### 29.2 The walk
+
+run1531: 2 nations, 60×60, seed 12345. The tileset is `jungle`, drawn from
+`default.xml` (the style carries no `TILESET`). `SEA_MAP` 1. The first walk
+of the port agrees at every checkpoint:
+
+- **the mask**: 9,926 draws, site and word, are the trace's
+  `make_continents` segment (`mediterranean_part`, the function and the
+  growers). There is no sea stall and no island stall. The sea opens on
+  (30, 31), the starts are (18, 56) and (44, 2), and `avoid_modify` ends at 1.
+  At 7807: seed 1732231724, part 2 283445877, part 5 376318132, part 6
+  1792933889;
+- the zero-draw passes, `place_all` and its tail (the `nonplayer` centre-island
+  groups), the resources, and the values. 6,229 draws run from `place_all`
+  through the last `compute_val`. 7945 is at seed 1290649423, part 5
+  643770295, part 6 2223299715;
+- `Terrain::init`, 22 records. Part 4 at 734 is 0x1fe005e0 by `SEA_MAP` 1. The
+  half-land gate opens on the sea's shore, so the walk takes East Indies'
+  order (§29.3). At 720: part 5 62670617, part 6 2245036502, parts 10–13
+  4073357034, 2993161548, 1738081027, 262145;
+- `make_rivers`' five lines with no draw (an empty `RIVERLIST`, 19 sources);
+- 894: no trough. Part 5 is 1780631313, and the 58,081 start-dump vertices
+  agree.
+
+### 29.3 The chain walk's half-land path
+
+`SEA_MAP` 1 opens the half-land gate on the sea's shore. The walk takes the
+path 3947 built for African Watering Hole's lake (§28), Great Lakes'
+`great_lakes_at_894`: 734..706 on the 7945 grid, then the 706 heights,
+`check_and_set_halfland_heights` (720), `create_doobers_flags`,
+`create_doobers` and the beach, then the records to 5012, and the troughs at
+the lists' `verify_land` depth. This item first built the same order as a
+`halfland` row flag. At the merge it took 3947's version, which chooses the
+path by the gate's own refusal, and added `MaskPort::Mediterranean`. Both
+styles' eight tests pass on the merged walk.
+
+**Made to fail.** `tools/mutate.py --batch --timeout 900` ran 38 breaks
+against the walk (`mediterranean_s_`, on `f3759d08c`). Sixteen held, one of
+them hung (the island's stall inverted). The 22 that failed nothing were run
+again against the unit tests (`sim --lib map_`), once on `f3759d08c` and once
+on `97f93270e` after the unit tests were widened. Five held the first time,
+and six more the second (`edges_only_merges_a_bay_on_each_side`, and
+`the_walk_in_is_the_listing_s_candidates` reading the listing's candidates).
+At `reach` 12, `radius <= reach` hangs and is caught (`6f21cfe72`).
+
+Each disjunction was broken whole and by each half: the step's outer-ring
+test, the final refusal, and `EDGES_ONLY`'s ring. Every outer-ring half and
+every `EDGES_ONLY` half now fails a test. Of the rest:
+
+- **equivalent by construction** (§29.1's unread slots): dropping
+  `is_ocean` from the near test, or `is_ocean` or `edge` from the refusal;
+  the island's region number (0x21 for 0x20); the closing `ENTIRE_WORLD`
+  for `EDGES_ONLY`; and the second `eliminate_pools`. The last two hold
+  because after the inversion the sea is one water region, and no edge sea
+  exists;
+- **unreached**: the sea stall's redraw (no stall on run1531 or on the 26
+  seeds of `the_sea_is_inverted_and_the_island_grows_in_it`), a turn of
+  0x71c71c7 (only small turn counts are sampled, and the rounding hides one
+  angle unit), `is_near_ocean(…, 2, 9)`, and `start_land − 1` (no seed tried
+  had water in ring 6 of a start city).
+
+### 29.4 What is not established
+
+- **The stalls are unread by a run.** Neither the sea's redraw nor the
+  island's fresh generation is taken on run1531. Both are ported from the
+  listing, and the unit tests reach neither.
+- **The walk can creep** (parked 3948a). 36 turns of 0x71c71c6 come 8 short
+  of a circle, so a walk that finds no start sweeps millions of turns. On a
+  pond of 4 with `reach` 10, angle 0 turns about 8.45 million times. Whether
+  a shipped lobby reaches that is not known.
+- **`eliminate_pools`' merge target.** When a merged region's last in-bounds
+  neighbour is another sea, the original merges into that sea. Here
+  `eliminate_pools_in` takes the first land neighbour, as before (parked
+  3948b). No corpus file has two seas whose cells touch.
+- There is one lobby: 2 nations, 60×60, `jungle`. The float path of
+  `scale_land_area` is refused.
 
 ## 30. Australian Outback's chain, 8 of 8 (item 3949)
 
