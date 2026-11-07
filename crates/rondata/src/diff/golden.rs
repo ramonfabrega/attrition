@@ -6554,6 +6554,36 @@ fn chapter_one_hundred_and_twenty_two_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_twenty_two_holds_to_the_golden_word();
 }
 
+/// **run1539 whole, both directions** (item 3968, `docs/GOLDEN.md` §174).
+#[test]
+fn chapter_one_hundred_and_twenty_four_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_twenty_four_s_window_is_widened_whole();
+}
+
+/// What parts in run1539's window, blocks 605–1000 (item 3968): the eleven
+/// standing `form` rows, as chapter one hundred and twenty-two's. The strike
+/// on 742 agrees; with the missile gate on every plane it parts there.
+const WANT_CH124: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
+/// Chapter one hundred and twenty-four holds to its golden word (item 3968,
+/// run1539).
+#[test]
+fn chapter_one_hundred_and_twenty_four_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_twenty_four_holds_to_the_golden_word();
+}
+
 /// **run1538 whole, both directions** (item 3967, `docs/GOLDEN.md` §173).
 #[test]
 fn chapter_one_hundred_and_twenty_three_s_window_is_widened_whole() {

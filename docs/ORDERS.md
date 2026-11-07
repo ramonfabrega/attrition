@@ -6954,7 +6954,7 @@ original it flies through `Unit::do_air_physics@005e86d0`:
   `MISSILE_DEFENSE_BONUS`, reach (`dist ≤ mana · vslot 0x17c`) and war
   tests are not built: such a member takes no order here.~~ Built by
   item 836, §38.2 (`valid_target` and the reach; the other two stay
-  SEAMs).
+  SEAMs) — and item 3968 found all three a missile's alone (§38.2).
 
 ## 33. The flight home, flown (item 759, 2026-09-25)
 
@@ -7632,14 +7632,23 @@ one order on 1385 and 1489. Parked.~~ Built by item 854, §40:
 ### 38.2 `action_flight`'s inside arm
 
 For a member not already on a strafe, its "inside" is
-`ObjectData::get_inside@00651a80`. An `ATTACK` then needs, in order:
+`ObjectData::get_inside@00651a80`. **The gates below are a missile's
+alone** (item 3968, `docs/GOLDEN.md` §174; this paragraph read them as
+every plane's until then): `6fbba8 testl $0x8000000, 0x1e4; je 6fbf6c`
+sends a type without the missile bit past all of them to `6fbe61`, so
+a Fighter or a Bomber inside takes the strike on a target unseen or
+out of its reach (run1539's `0/6` on 742, the Barracks unseen until
+762). A missile's `ATTACK` needs, in order:
 - `Object::valid_target@00648ba0`: the target seen (a building's
   `ever_seen`), and an air-domain attacker is not refused a building;
 - the target's leader without `MISSILE_DEFENSE_BONUS`, unless it is one's
-  own (SEAM here);
+  own;
 - **the reach**, `vector_dist(base − target) ≤ mana · get_speed(x, y, 1)`,
-  the plane's own point (run265: 9857 against 400 × 75);
-- not a `NUCLEARMISSILE`, then `is_ally || war_allowed` (SEAM: always).
+  the missile's own point;
+- not a `NUCLEARMISSILE`, or `can_nuke` (once a call).
+
+Then every member that came through, missile or plane: `is_ally ||
+war_allowed` (SEAM: always).
 
 It gives `add_strafe_order(target, base, 1, QUEUE_NEW, 1)`: a strafe on
 the target, home the base, `mandatory 1`, the action bit, `returning 0`,

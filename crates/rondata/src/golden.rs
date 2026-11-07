@@ -2593,6 +2593,10 @@ mod tests {
         // Helicopter with a Hoplite squad and a Helicopter alone (item 3967,
         // `docs/GOLDEN.md` §173).
         ("chapter123.cmd", &[]),
+        // Chapter one hundred and twenty-four: chapter twenty-two's game
+        // and an `@strike` from inside the base on a Barracks who=0 has not
+        // seen (item 3968, `docs/GOLDEN.md` §174).
+        ("chapter124.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

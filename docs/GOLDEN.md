@@ -18497,12 +18497,54 @@ the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical
 the land arm's order on a Helicopter (`PATROLORDER` compared on 622 and 702). Reading only: `get_max_range`'s skip.
 `blind::` is unmoved: run1538b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 174. Reserved for the next item on the rules track
+## 174. Chapter one hundred and twenty-four — a strike from inside a base on a target unseen; a plane meets no missile gate, closed at 1000 (item 3968, run1539, run1539b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked T71-5; adjudication 2, second-1). `Group::action_flight@006fb260`'s inside arm, for a member
+not on a strafe whose "inside" is a base: `6fbba8 testl $0x8000000, 0x1e4(%eax); je 6fbf6c`, then `cmpl $0xa, %edx;
+jne 6fbf6c`. Only a type with the missile bit on an `ATTACK` reaches `Object::valid_target@00648ba0` (`6fbbca`), the
+`MISSILE_DEFENSE_BONUS` shield and the reach. Every other type goes `6fbf6c` → `cmpl $1` (not `MOVE_TO`) →
+`6fbe61`: `is_ally || war_allowed`, then `add_strafe_order(target, base, 1, QUEUE_NEW, 1)` at `6fbeb3`. The crate's
+`Sim::strike_from_inside` gave all three gates to every plane, and `docs/ORDERS.md` §38.2 read them the same way.
+
+**Staging** (`tools/gamelog/golden/chapter124.cmd`, walked on run265's start, `RON_STAGE=ch22:chapter124:760`).
+Chapter twenty-two's game whole, and one line: `@strike 0 2006 1 6` on 740. The Fighter `0/6` (`TI` 289, Air) has
+stood inside the Airbase `0/2007` since 722. who=1's Barracks `1/2006` reads `ever_seen 2` (its own bit) until 762.
+So the press asks the inside arm of a plane on a target its player has not seen. The predicate is the type's missile
+bit, so a Fighter enters where the booking named a Bomber; no Bomber stands inside before 762 in this game. On 766
+chapter twenty-two's own strike re-points the strafe (the STRAFE arm), so from 768 the game is twenty-two's.
+
+**What the original does** (run1539 `cover=0`, its twin run1539b `cover=1 --no-ffwd --twin`; `rngcmp` 1001 of 1001
+identical between them and against run265; `docs/RUNS.md`).
+- `process_flight 741`; the twin's `INFO 17` on 740 is the flight issue, orders `0xa`, on `0/6`'s group.
+- **742.** `0/6`, still `inside_up 2007`, holds one `STRAFEORDER`: `xx/yy` (21120, 16512), `mandatory 1`, `oxx
+  2007`, `whose 0`, `cruising_alt 1600`, `returning 0`. `1/2006` reads `ever_seen 2`: unseen.
+- The strike draws nothing: the game is run265's on every frame.
+
+**What this crate does** (built, `air.rs`):
+- `Sim::strike_from_inside` tests `valid_target`, the shield and the reach under the missile bit
+  (`combat::mask::MISSILE`, `1 << 27`) only; every member that comes through takes `add_strafe_order`.
+- **The test.** `a_strike_beyond_the_tank_s_reach_binds_a_missile_only`, over the old `…_lays_nothing`: a plane out
+  of reach, and a plane on an unseen building in a fogged world, each take the strike; the same type with the missile
+  bit takes nothing.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR` = **1000**, the trace's end, closed. The order draws
+  nothing and 766's press lays the same one, so the word is 1000 with the gate on every plane too: the widening is
+  the chapter's assertion.
+- **The widening.** Over 605..1000 (`(604, 1001)`, both directions, the pool too) it parts on the eleven standing
+  `form` rows and nothing else (`WANT_CH124`). The ground pin is 27, chapter twenty-two's launch heights by 1000.
+- **The value diff on the frame the state first parted.** With the gate on every plane: 742 `0/6 orders.len` ours 0 /
+  theirs 1 (and `order:length`). Built: 1 / 1, the `STRAFEORDER` above on both sides.
+- **Coverage.** The driver drives 738..746.
+
+**Mutations**: the journal's (`docs/journal/2026-11-07-item-3968.md`), on the committed tree.
+
+**Not established.**
+- A plane out of reach. No staging on this map reaches past a Fighter's 400 × 75; the unit test holds it (parked
+  3968a).
+- The missile arms are unchanged and stand on run371 (the reach and `valid_target`) and run390 (the shield).
+- `war_allowed` is always allowed here (SEAM).
+
+**Coverage.** Diff-backed: a plane's strike from inside a base on a target its player has not seen. `blind::` is
+unmoved: run1539b joins `TRACES`, and nothing it enters was `NEVER`.
 
 ## 175. Reserved for the next item on the rules track
 
