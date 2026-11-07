@@ -5954,10 +5954,8 @@ impl Sim {
         if std::env::var_os("RON_PROBE_3970").is_some() && self.buildings[b].owner == 1 && self.buildings[b].index == 2007 {
             for u in 0..self.units.len() {
                 if self.units[u].owner == 0 && self.units[u].alive() && self.units[u].index >= 6 {
-                    let t = self.buildings[b].target; let ix = self.units[u].index;
-                    let v = self.valid_target(me, Obj::Unit(u)); let a = self.search_admits(Obj::Unit(u), 0);
-                    let d = self.attack_dist(me, Obj::Unit(u)); let ir = self.is_in_range(me, Obj::Unit(u));
-                    eprintln!("PROBE3970 f{frame} r{radius} t{t:?} u{ix} valid {v} admits {a} dist {d} inrange {ir}");
+                    eprintln!("PROBE3970 f{frame} r{radius} t{:?} u{} valid {} admits {} dist {} inrange {}", self.buildings[b].target, self.units[u].index,
+                        self.valid_target(me, Obj::Unit(u)), self.search_admits(Obj::Unit(u), 0), self.attack_dist(me, Obj::Unit(u)), self.is_in_range(me, Obj::Unit(u)));
                 }
             }
         }
