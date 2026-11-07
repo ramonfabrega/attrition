@@ -14812,17 +14812,25 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3943, 2026-11-07 — a held-out game on Southwest Mesa
 
-- **3943a. `SouthwestMesaIncaTier2` parts on frame 7250** (`docs/AI.md` §401.3). This is the held-out game's
-  first try (runs 1525 and 1526, the Inca at Difficulty 2 on map 10). Its count and sequence are both 7250 of
-  8438. On that frame ours makes 7 draws and theirs 8, parting at index 3: ours `Farms::inc_time+0x1ae`, theirs
-  `Object::take_damage+0xe1`. The long dumps only its setup and closing blocks, so there is no record, field or
-  value on 7250 to quote; the row is the draw stream's. **Score**: none. It is a held-out game (DECISIONS 54, 61;
-  111 §6): parked by frame, booked by nobody, never read against.
-- **3943b. Whether a Mine gathered beside a cliff in run1526** (`docs/AI.md` §401.4). No Mine stands on the
-  closing block, where 25 buildings print `mtn -1`/`cliff -1`. A `cover=0` long prints neither mid-game
-  `BUILDDATA` nor coverage. A `cover=1` twin of run1526 (`unattended_capture.py --twin`, Loop 3928) would say
-  whether `CliffsData::gather_size` is entered in a played game. **Score**: none. It is a measurement of the
-  held-out game, and taking it must not lead to anything being built against the game.
+- **3943a. `SouthwestMesaLakotaTier2` parts on frame 15754** (`docs/AI.md` §401.3). This is the held-out game's
+  first try (runs 1525b and 1526b, the Lakota at Difficulty 2 on map 10). Its count and sequence are both 15754 of
+  24000. On that frame ours makes 6 draws and theirs 7, parting at index 0: ours `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. The long dumps only its setup and
+  closing blocks, so there is no record, field or value on 15754 to quote; the row is the draw stream's.
+  **Score**: none. It is a held-out game (DECISIONS 54, 61; 111 §6): parked by frame, booked by nobody, never read
+  against.
+- **3943b. The cliff lists' tiles in a played game** (`docs/AI.md` §401.4). On run1526b's closing block the AI's
+  four Mines stand on cliffs 2, 0, 10 and 6, and our laid cliffs give all four the same arm. Their tiles (451, 299,
+  50 and 199) depend on the owners when each was placed, and no block prints those. A capture windowed on a Mine's
+  placement block would carry them; that needs a `cover=0` twin of run1526b with `BUILDS=7` there, its frame found
+  by the closing block's object numbers (2009..2019). **Score**: none. It is a measurement of the held-out game, and
+  taking it must not lead to anything being built against the game.
+- **3943c. The Inca on Southwest Mesa, the lobby the battery's fence refused** (runs 1525 and 1526; `docs/AI.md`
+  §401.2). `(10, 2, 2)` was taken first. On its first try it scored 7250 of 8438 (ours 7 draws, theirs 8, at
+  index 3: `Farms::inc_time+0x1ae` against `Object::take_damage+0xe1`), and the game ended itself. The three Inca
+  pairs' `*_is_no_other_lobby` refuse any battery game on the Inca, so it is not pinned. No Mine stands on its
+  closing block. `tools/refill.py` checks triples, not the nation fence, which is how a free triple led to a
+  refused lobby. **Score**: none. It is a filed measurement.
 
 ## Parked by item 3944, 2026-11-06 — Old World's chain, 8 of 8
 

@@ -704,6 +704,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // (`sim::cliff_mine`, `docs/AI.md` §400) reads. It needs the setup
     // trace's 7805 seed: a start dump without the trace (or a sibling's)
     // lays none, and its Mines take the old empty list.
+    // both sides: no install root (tables alone) or no Mesa lobby at 7805
+    // lays no cliffs — the base's behaviour, not an agreement.
     if let (Some(root), Some(lobby)) = (
         loaded.install_root.as_deref(),
         crate::mapgen::mesa::MesaLobby::of_initial(init),

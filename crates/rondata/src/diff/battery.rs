@@ -901,31 +901,36 @@ pub(crate) const BATTERY: &[Lobby] = &[
         sequence: 24000,
     },
     // The held-out game on Southwest Mesa (item 3943; DECISIONS 54, 61,
-    // 111 §1; `docs/AI.md` §401; runs 1525 and 1525's long, 1526): the
-    // only style that lays cliffs (MAPGEN §18.3), so the number that scores
-    // the cliff arm of a Mine (AI §400), its cliffs laid by the generator's
-    // chain at the start's 7805 seed (`crate::mapgen::mesa`, committed
-    // `623b604ce` before either take). No lobby held map 10; the rubric's
-    // braces named no nation (its six never-seen lines are Boadicea and the
-    // gaia animals), and the Inca's power pays per miner (AI §281), the
-    // arm under test. Scored once and never debugged against. The game
-    // ends itself on 8438.
+    // 111 §1; `docs/AI.md` §401; runs 1525b and 1526b): the only style
+    // that lays cliffs (MAPGEN §18.3), so the number that scores the cliff
+    // arm of a Mine (AI §400), its cliffs laid by the generator's chain at
+    // the start's 7805 seed (`crate::mapgen::mesa`, committed `623b604ce`
+    // before any take). No lobby held map 10, and the rubric's braces named
+    // no nation (its six never-seen lines are Boadicea and the gaia
+    // animals). A battery game fields only the battery's own nations (the
+    // pairs' `*_is_no_other_lobby`), so the nation is one of them: the
+    // Lakota, the widest census reach among them (17, the rule (2) reading
+    // of item 3361). The first lobby, the Inca (runs 1525 and 1526, 7250 of
+    // 8438), was refused by that fence and is parked 3943c. Scored once and
+    // never debugged against. The game does not end itself: the long runs
+    // to 24000.
     Lobby {
-        name: "SouthwestMesaIncaTier2",
+        name: "SouthwestMesaLakotaTier2",
         map_style: 10,
-        ai_tribe: 2,
+        ai_tribe: 19,
         difficulty: 2,
-        start: "gamelog-run1525-southwestmesa-inca-diff2-start.txt",
+        start: "gamelog-run1525b-southwestmesa-lakota-diff2-start.txt",
         long: (
-            "gamelog-run1526-southwestmesa-inca-diff2-24k-trace.txt",
-            "rontrace-run1526.log",
+            "gamelog-run1526b-southwestmesa-lakota-diff2-24k-trace.txt",
+            "rontrace-run1526b.log",
         ),
-        length: 8438,
-        // Item 3943, the first try: count 7250, sequence 7250 of 8438 —
-        // ours 7 draws, theirs 8, at index 3 ours `Farms::inc_time+0x1ae`,
-        // theirs `Object::take_damage+0xe1`. Parked (3943a), never fixed.
-        count: 7250,
-        sequence: 7250,
+        length: 24000,
+        // Item 3943, the first try: count 15754, sequence 15754 of 24000 —
+        // ours 6 draws, theirs 7, at index 0 ours `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+        // Unit::move_step+0x823`. Parked (3943a), never fixed.
+        count: 15754,
+        sequence: 15754,
     },
 ];
 
@@ -1128,4 +1133,68 @@ fn a_southwest_mesa_game_lays_its_cliffs() {
     assert_eq!(arm, sim::gather::MineArm::Cliff(7), "the arm");
     assert_eq!(want.len(), 189, "the dump's list");
     assert_eq!(got, want, "the Mine's tiles");
+}
+
+/// **The held-out Mesa game's Mines take our cliffs** (item 3943,
+/// `docs/AI.md` §401.4): run1526b's closing block (24001) holds the AI's
+/// four Mines, each on a cliff's list (`mtn -1`, cliffs 0, 2, 6 and 10).
+/// Each one's arm, from the cliffs [`build_sim`] lays on run1525b's start
+/// at the Mine's dumped position, is that cliff. The arm reads only the
+/// laid cliffs and the region map, which the game does not move, so this
+/// measures the setup, not the game. The list's tiles are not compared:
+/// they depend on the owners when each Mine was placed, which no dump of
+/// this game prints.
+#[test]
+fn the_mesa_game_s_closing_mines_take_our_cliffs() {
+    let Some(inst) = crate::testenv::install() else {
+        eprintln!("skipped: no install on this machine");
+        return;
+    };
+    let (Some(path), Some(sib)) = (
+        dump("gamelog-run1526b-southwestmesa-lakota-diff2-24k-trace.txt"),
+        dump("gamelog-run1525b-southwestmesa-lakota-diff2-start.txt"),
+    ) else {
+        eprintln!("skipped: run1526b or run1525b is not on this machine");
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("run1525b's start dump");
+    let mut init = log.initial().expect("run1526b's start");
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    let built = build_sim(&loaded, &init, Tuning::RON);
+    let s = &built.sim;
+    let mines: Vec<_> = log
+        .frame_builds(24001)
+        .into_iter()
+        .filter(|b| b.cliff.is_some_and(|c| c >= 0))
+        .collect();
+    let mut rows = Vec::new();
+    for b in &mines {
+        let ty = loaded
+            .build_of_type_index(b.orig_type.expect("orig_type") as i32)
+            .expect("the Mine's build type");
+        let pos = sim::Pos::new(b.pos.x as i32, b.pos.y as i32);
+        let corner = s.tile_corner(ty, pos);
+        let arm = s.mine_arm(s.footprint_centre(ty, corner));
+        let ours = match arm {
+            sim::gather::MineArm::Cliff(k) => k as i64,
+            _ => -1,
+        };
+        eprintln!(
+            "run1526b 24001: mine {}/{} at {:?}: theirs cliff {:?} ({} tiles); ours {arm:?}",
+            b.who,
+            b.o,
+            b.pos,
+            b.cliff,
+            b.gather_from.len()
+        );
+        rows.push((b.o, b.cliff.unwrap(), ours));
+    }
+    assert_eq!(mines.len(), 4, "the closing block's Mines on a cliff");
+    let parted: Vec<_> = rows.iter().filter(|(_, t, o)| t != o).collect();
+    assert!(parted.is_empty(), "(o, theirs, ours): {parted:?}");
 }
