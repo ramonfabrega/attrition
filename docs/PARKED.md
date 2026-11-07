@@ -13648,13 +13648,23 @@ in theirs alone.~~
 sweeps, as 3810 did for 201, decide which cells the exact integer form misses. No word parts on them; the rounds of
 run1484's window agree whole to the unit.
 
-## Parked by the next landing, slot YU — reserved
+## Parked by item 3965, 2026-11-07 — a building's `mylos` cache
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot YU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3965a. The fog sweep reads a building's sight live, not its cache.**
+  `Sim::build_sweep` takes `build_los`, where the original's sweep reads the
+  `+0x3c` byte `Wall::update_los` last left (`Building::mylos` here since
+  item 3965, `docs/AI.md` §409). A wonder started after its placement
+  lights `1 + x_size / 2` here from its start and in the original from its
+  owner's next `calc_wall_stats` (run718's `1/2055`: started 2358, sight
+  from 2368); a Science epoch lights a finished building one leader pass
+  early. No widening run for item 3965 parted on it. It names no score.
+- **3965b. The unit arm's `0x4000000` is gated on the type's vslot `+0x60`.**
+  `gain_tech@006dcb60:659`–`662` raises `calc_unit_stats`' flag for a
+  gained unit type only when the slot answers (`is(MILITIA)`,
+  `docs/VISION.md` §2); `Sim::apply_gained` raises `unit_stats_dirty` on
+  every gain, a unit type's included. A non-militia unit gain refreshes
+  the units' cached `mylos` and pools a leader pass early here. No widening
+  run for item 3965 parted on it. It names no score.
 
 ## Parked by item 3851, 2026-11-05 — East Indies' eighth step, 894
 

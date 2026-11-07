@@ -716,6 +716,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ("damage", i64::from(ours.damage), b.damage),
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
             ("healing", 0, b.healing),
+            // **Its line of sight** (item 3965, `docs/AI.md` §409):
+            // `ObjectData::mylos`, the cache `Wall::update_los` last left,
+            // against `Building::mylos`, written at the original's five
+            // `+0x160` sites (`Sim::update_build_los`).
+            ("mylos", i64::from(ours.mylos), b.mylos),
         ] {
             let Some(theirs) = theirs else { continue };
             r.build_compared += 1;
@@ -8324,7 +8329,9 @@ pub(crate) mod tests {
     /// **894,314 → 986,161 on item 1497**, `myhits` and `construct_hits`.
     /// **986,161 → 1,075,324 on item 3961**, `healing` against 0; none wrong.
     /// **1,075,324 → 1,164,487 on item 3962**, `BUILDDATA stance`, none wrong.
-    const RUN58_BUILD_FIELDS: usize = 1_164_487;
+    /// **1,164,487 → 1,253,650 on item 3965**, a building's `mylos` against
+    /// its cache, none wrong.
+    const RUN58_BUILD_FIELDS: usize = 1_253_650;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

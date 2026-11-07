@@ -40582,12 +40582,89 @@ garrison counts' 0 on every walked window. Reading-only: the decoy gate (the
 listing's `(piVar2[0x1a] & 1) == 0` in both functions), and run1075's
 `peasants_garr`, which no compare reaches.
 
-## 409. Reserved for the next item on the AI track
+## 409. A building's `mylos` is a cache: compared against one written at the original's five `update_los` sites, and a unit-type gain stales no wall stats (item 3965, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** `ObjectData::mylos` (`+0x3c`) as the `OBJECT` level under a
+building's `WALLDATA` prints it, the last key of parked T71-9 left on the
+coverage driver's unread pin (`GAME/FRAME/BUILDDATA/WALLDATA/OBJECT`). It is
+the byte `Wall::update_los@0063eeb0` last wrote (`docs/VISION.md` §2.1), and
+that function has exactly five callers on a building, each beside the
+`+0x15c` (`update_hits`) call: `Wall::init@0063e9b0:57`,
+`Leader::calc_wall_stats@006cf7c0` (every building of the player, on
+`leader_flags & 0x8000000`), `Build::activate@00623e20:2025`,
+`Cities::capture_city@00733380:1186` and `Wall::swap_team@00640c00:69`.
+Nothing else writes `+0x3c` on a building (`grep` of the export's `Wall`,
+`Build` and `*Data` functions).
+
+**The disk first.** Compared against the crate's live `Sim::build_los`, the
+coverage driver's windows parted on ten rows, all on who=1, all of one
+shape: the original's figure lags the derivation.
+- run718 (Great Sahara Persian all-tech, 2267..2524): the wonder sites
+  `1/2055` (TypeIndex 529) and `1/2057` (539) print `flags 3` and `mylos 0`
+  from their start (2358, 2365) through 2367, and 5 and 4 from 2368; ours
+  read 5 and 4 from the start. The city `1/2018` (414) goes 29 → 31 on
+  2430, ours on 2429.
+- The other four Persian windows (run681, run702, run766, run767): the
+  same, on sites `1/2044`, `1/2048`, `1/2062`, `1/2064`, `1/2069` (ours 4 or
+  5 against 0) and the city's 31 → 33.
+
+**What was built.** `Building::mylos`, the cache, written by
+`Sim::update_build_los` (`build_los` into it) at the crate's five
+counterparts: `place`'s `Wall::init` step, `calc_wall_stats`, `activate`,
+`capture_city` and `swap_team`. A wonder started after its placement keeps
+the 0 `Wall::init` left until its owner's next `calc_wall_stats`, and a
+Science epoch reaches a finished building on the leader pass after the gain.
+`vision::tests::a_buildings_mylos_is_refreshed_only_where_the_original_calls_update_los`
+holds both. The ten rows agree.
+
+**And a unit-type gain stales no wall stats.** With the cache in, the whole
+`rondata` lib parted on one more kind: run99's Tower `1/2014` (TypeIndex
+439) prints `mylos 11` from 8780 to 10334 and 13 from 10335, and ours read 13
+on 10165. who=1 gains the Militia on sim-frame 10163. The original's
+`leader_flags` on 10164 read `0x7080713`, `0x4000000` without `0x8000000`,
+and on 10334 `0xf080713`, both. The listing says why: `gain_tech@006dcb60:658`
+asks the gained type's vslot `+0xc` (a unit type), raises `0x4000000` when
+its vslot `+0x60` answers, and leaves by `goto LAB_006e05d9` (`:883`), past
+the tail's `|= 0xc000000` (`:2313`). The crate's `apply_gained` raised both
+on every gain. `Sim::gain_tech` now restores `wall_stats_dirty` after it for
+a unit-type `t`. The nine other widenings that had parted with the cache
+alone — run970d (`1/2015` on 5545, 13 against 11), run471, run416, run1013b,
+run910, run897b, run613, run615 and Great Lakes' run163..run226 walk —
+stand at their pins again.
+
+**What is compared.** The building record's compare
+(`diff::harness`, beside `damage`, `damage_frac` and `healing`):
+`BuildDump::mylos` against `Building::mylos`. The key leaves the unread pin
+on every window the driver walks. Three building compare counts re-pin,
+none wrong: run56 605,173 → 651,486, run57 852,005 → 917,168, run58
+1,164,487 → 1,253,650. No widening's `firsts`, no `first_parting` and no
+word moved.
+
+**The value diffs.** run718 on 2358: `1/2055 mylos` ours 5 / theirs 0 → 0
+both, and on 2368, 5 both. On 2429: `1/2018` ours 31 / theirs 29 → 29 both.
+run99 on 10165: `1/2014` ours 13 / theirs 11 → 11 both.
+
+**Made to fail.** Both through `tools/mutate.py` on `71effc4b0`, scored on
+run99's widening, exit 101 each: the cache's write made a no-op, `firsts`
+under the word 22 → 46; the unit-gain restore dropped, 22 → 23
+(`f10165 1/2014 build:mylos: ours 13 theirs 11`).
+
+**What is not established.**
+- The colosseum and furs terms, the `LEADER_VALID` (`leader_flags & 1`)
+  gate and the byte's 8-bit wrap are not carried in `build_los`
+  (`crate::wall_los_view` sweeps all four). No walked window parts on any;
+  both constants ship as 0 (parked 3631a).
+- The fog sweep (`Sim::build_sweep`) still reads `build_los` live, not the
+  cache, so a started wonder lights `1 + x_size / 2` early here and a
+  Science epoch one leader pass early (parked 3965a).
+- The unit arm's `0x4000000` is gated on the type's vslot `+0x60`
+  (`is(MILITIA)`, `docs/VISION.md` §2), and the crate raises
+  `unit_stats_dirty` on every unit-type gain (parked 3965b).
+
+**Coverage.** Diff-backed: the cache's five writers and the unit-type gain,
+on every walked window (the Persian all-tech windows' wonder sites and
+city, run99's Tower). Reading-only: that no other function writes a
+building's `+0x3c`, and the four terms above.
 
 ## 410. Reserved for the next item on the AI track
 

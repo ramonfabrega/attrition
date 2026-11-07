@@ -523,9 +523,10 @@ mod tests {
         // **512,547 → 558,860 on item 3961**: `healing` against this
         // crate's 0 on every building, and `bad` stays empty. **558,860 →
         // 605,173 on item 3962**: `BUILDDATA stance` on every building,
-        // and `bad` stays empty.
+        // and `bad` stays empty. **605,173 → 651,486 on item 3965**: a
+        // building's `mylos` against its cache, and `bad` stays empty.
         assert_eq!(
-            seen, 605_173,
+            seen, 651_486,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

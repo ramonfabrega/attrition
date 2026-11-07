@@ -1836,6 +1836,12 @@ pub struct Building {
     /// player's fog (`docs/VISION.md` §6.1).
     pub ever_seen: u8,
     pub ever_seen_completed: u8,
+    /// **`ObjectData::mylos` (`+0x3c`) of a building** — the byte
+    /// `Wall::update_los@0063eeb0` last left, a cache as a unit's is
+    /// (item 3965, `docs/VISION.md` §2.1). [`Sim::update_build_los`] writes
+    /// it where the original calls the vslot `+0x160` on a building;
+    /// [`Sim::build_los`] is the derivation.
+    pub mylos: i32,
     /// **`ObjectData::visible` (`+0x40`) of a building** — the players it
     /// has shown itself to by shooting them (`Build::do_attack@006228f0`,
     /// `622b5b`..`622bd0`, `docs/GOLDEN.md` §59): the fallback arm of
@@ -3567,6 +3573,7 @@ impl Sim {
             farm: Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            mylos: 0,
             visible: 0,
             attacking: false,
         });
@@ -5838,7 +5845,17 @@ impl Sim {
                 _ => {}
             }
         }
+        let wall_stats_were = self.wall_stats_dirty[who as usize];
         self.apply_gained(who);
+        // **A unit type takes no wall stats** (item 3965): the unit arm
+        // (`gain_tech@006dcb60:658`, the type's vslot `+0xc`) raises
+        // `0x4000000` alone and leaves by `goto LAB_006e05d9` (`:883`), past
+        // the tail's `|= 0xc000000` (`:2313`). run99's Tower `1/2014` gains
+        // the Militia on 10163 and keeps its cached `mylos` 11 to 10334's
+        // tech, where this crate's refresh read 13 on 10165.
+        if self.tech_tree.kind(t).is_unit() {
+            self.wall_stats_dirty[who as usize] = wall_stats_were;
+        }
         // Step 10's second half: a Civic level re-masks every city and
         // sweeps the buildings its new reach covers into it.
         if matches!(

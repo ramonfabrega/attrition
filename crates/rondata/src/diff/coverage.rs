@@ -213,9 +213,11 @@ const UNREAD: &[(&str, &str)] = &[
     // A Missile Silo's `launching` (`ObjectData +0x44`), printed as
     // `list[scan]` while a missile waits in it, joined the row with
     // run371 (item 1019, `docs/GOLDEN.md` §44).
+    // **Item 3965 read `mylos`**: `ObjectData::mylos` against
+    // `Sim::build_los` (`docs/AI.md` §409).
     (
         "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
-        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] mylos near_o near_who size uid up up_who",
+        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] near_o near_who size uid up up_who",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
     // **Item 989 added `Newcastle`**: a city's name is the record's one
