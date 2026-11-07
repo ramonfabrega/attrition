@@ -2672,6 +2672,42 @@ fn a_leader_s_pop_is_one_three_five_by_city_level() {
 // Garrisons
 // ----------------------------------------------------------------------
 
+/// `LeaderData::peasants_garr` (`+0xa28`, item 3964, `docs/AI.md` §408):
+/// `Object::insert_inside@00647e90` adds one for a citizen captain going
+/// into a building and `remove_from_inside` takes it off — and both skip a
+/// decoy (`unit_masks & 1`), which this crate counted going in.
+#[test]
+fn a_decoy_moves_no_garrison_count_in_or_out() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(UnitType {
+        worker: crate::orders::Worker::Citizen,
+        ..citizen_type(t.village)
+    });
+    let c = spawn(&mut sim, 0, citizen, tile_pos(32, 32));
+    sim.units[c].captain = true;
+    sim.go_inside(c, b);
+    assert_eq!(
+        sim.ai[0].census.peasants_garr, 1,
+        "a citizen captain counts"
+    );
+    let d = spawn(&mut sim, 0, citizen, tile_pos(32, 32));
+    sim.units[d].captain = true;
+    sim.units[d].decoy = true;
+    sim.go_inside(d, b);
+    assert_eq!(
+        sim.ai[0].census.peasants_garr, 1,
+        "a decoy goes in uncounted"
+    );
+    sim.eject_contents(b, false);
+    for _ in 0..4 {
+        sim.tick();
+    }
+    assert_eq!(sim.squads_inside(b), 0);
+    assert_eq!(sim.ai[0].census.peasants_garr, 0, "and comes out uncounted");
+}
+
 #[test]
 fn hoplites_fill_a_barracks_to_its_limit_and_leave_one_squad_a_frame() {
     let mut sim = world_sim();
