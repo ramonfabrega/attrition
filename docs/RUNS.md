@@ -35961,3 +35961,48 @@ another lane. `~/ron-golden/run1539` links to `ch124` and `run1539b` to `ch124b`
 - `process_flight 741`. On 742, `0/6` (inside `0/2007`) holds one `STRAFEORDER` on (21120, 16512), home 2007,
   `mandatory 1`, `returning 0`; `1/2006` reads `ever_seen 2`.
 - `rngcmp`: run1539 against run1539b, and against run265, 1001 of 1001 identical.
+## run1542 and run1542b — the sixth melee: the third's lobby with two massed armies, past the death pool's 100 (2026-11-07, item 3971, `att-3971`)
+
+`docs/GOLDEN.md` §177. **What the disk could not answer**: no capture on disk fills `Objects::add_death@00653b60`'s pool
+of 100 `DeathObj` slots. The archive's busiest block holds 34 records (the seventy-first pass, 3,725 dumps); the five
+melees on disk hold at most 6 (run1491, run1492), and run1489 23.
+
+Recipe `tools/gamelog/golden/melee-corpses.cmd`: run1467's lobby held whole, 100,000 of everything on 600 and 602,
+then `add 100 elite_special_forces`, `add 40 advanced_machine_gun` and `add 10 rocket_artillery` a side, a tile
+apart, 610..620. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1542 --map 7
+--end-frame 2600 --timeout 3600 --allow-early-end --log-window 0 2601 --stride 50 --ffwd-minute 3 --cover cover=0
+--callwin 0 2600 --cmd-file tools/gamelog/golden/melee-corpses.cmd`, run1468's four detail sets, `--profile PLAYERS=2
+STARTING_TECHNOLOGY=7 ENDING_TECHNOLOGY=7 STARTING_RESOURCES=7 --seat-tribe 1=10 --seat-tribe 2=13`. The twin is the
+same line at `--cover cover=1`, into `~/ron-golden/run1542b`.
+
+13 GiB free before (`df -g ~`). Both `success`, 2601 frames, seed 12345, `page_faults` 0, no `relaunches`; seats who 0
+(flags 7, tribe 4), who 1 (flags 1, tribe 10), who 2 (flags 1, tribe 13), read back. No minutes waited on another lane.
+- run1542 (`cover=0`, pool lane 1): 16:19:12–16:20:27, 75.0 s launch to exit. DLL `adcee172…`. Filed with
+  `filerun.py run1542 greatsahara-corpse-melee-trace`.
+- **A dead take of run1542b** (`~/ron-golden/run1542b-deadtake1`): the line with `--no-ffwd --twin
+  ~/ron-golden/run1542` ran its game and raised `player read-back mismatch` with no receipt. `--twin` pins slot 1's
+  tribe as a two-seat `ai_tribe` (`unattended_capture.py`'s `twin_pins`), which a three-seat melee never satisfies —
+  the earlier melee twins never passed it (parked 3971b). Its logs were filed as
+  `gamelog-run1542b-greatsahara-corpse-melee-twin.txt` before the traceback was read; that file stays, and its
+  trace was moved aside by the good take's `--force` (`rontrace-run1542b.log.replaced-1794086921`).
+- run1542b (`cover=1`, pool lane 1): 16:23:59–16:27:57, 238.7 s launch to exit. Filed with `filerun.py run1542b
+  greatsahara-corpse-melee-cover --force`.
+- `rngcmp`: run1542 against run1542b, 2601 of 2601 identical; `samegame`: the same game over every common frame;
+  `cmdsran`: every line returned 1.
+
+Archive `gamelog-run1542-greatsahara-corpse-melee-trace.txt`, 45,667,815 bytes,
+SHA-256 `3ebfa20488a01dd26302dfec1dab88de802ef3183429e5ca15ccdefaeda2fb71`.
+
+Archive `rontrace-run1542.log`, 117,813,280 bytes,
+SHA-256 `5c4d66db8b949eb4fc66b3dc4c657600f73105c41f1f9e18de838e91f1b539ff`.
+
+Archive `gamelog-run1542b-greatsahara-corpse-melee-cover.txt`, 45,667,773 bytes,
+SHA-256 `fc93683af120a132a62bd73cd2c64c89f3051d3b02fb0efec6d48cbebff8e82a`.
+
+Archive `rontrace-run1542b.log`, 118,190,400 bytes,
+SHA-256 `797eb4df16a2ab7112864f11bf0664348e978951dfde0ba761e07a0110dd1e00`.
+
+**What it holds**: `DEATH_OBJS` at 100 on blocks 1001..1251 and 1351 (99 on 1301), and never past it; on every full
+block each record older than the oldest that stays has gone, hundreds of frames before its life ends (658's by 1051).
+The sixth melee's first try, **744 of 2600** (`corpse_melee_first_parting`).
+
