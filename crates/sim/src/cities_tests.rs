@@ -9988,3 +9988,106 @@ fn a_city_s_gather_all_points_it_at_its_own_resource_buildings() {
         "the Woodcutter button with no Woodcutter clears and lays nothing"
     );
 }
+
+// ----------------------------------------------------------------------
+// The armed building family (item 3970, `docs/GOLDEN.md` §176)
+// ----------------------------------------------------------------------
+
+/// **`BuildTypeData::get_building_range@00639990`'s tower arm and
+/// `BuildData::max_range@0062e470`'s temple term** (item 3970): a Tower
+/// adds `TOWER_FORT_RANGE[get_tower_fort_los − 1]` — 0 with none of the
+/// three unit bits, 1 on Militia — and a city centre whose city holds a
+/// finished Temple adds `TEMPLE_UPGRADE_RANGE[0]`, 1 with no
+/// `TEMPLERANGE2..4`. Chapter 126's Tower reaches 11 tiles of its 10 on the
+/// Militia bit, and its City 1 past its type.
+#[test]
+fn a_militia_tower_and_a_templed_city_reach_a_tile_further() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as TechUnit};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+    let bits = ["Militia", "Minuteman", "Partisan"]
+        .map(|n| tree.add(TypeDef::unit(n, TechUnit::default())));
+    tree.roles.tower_fort_los_units = bits.map(Some);
+    sim.set_tech_tree(tree);
+    let mut v = sim.build_types[t.village].clone();
+    v.combat = Some(combat::Profile {
+        attack: 12,
+        max_range: 8,
+        ..combat::Profile::default()
+    });
+    sim.build_types[t.village] = v;
+    let (centre, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tower);
+    assert_eq!(
+        sim.max_range_of(Obj::Building(tower)),
+        10,
+        "no unit bit: entry 0"
+    );
+    sim.tech[0].tech[bits[0]] = true;
+    assert_eq!(
+        sim.max_range_of(Obj::Building(tower)),
+        11,
+        "Militia: entry 1"
+    );
+    assert_eq!(sim.max_range_of(Obj::Building(centre)), 8, "no Temple");
+    let temple = sim.place_building(0, t.temple, tile_pos(24, 24)).unwrap();
+    assert_eq!(sim.max_range_of(Obj::Building(centre)), 8, "a Temple site");
+    finish(&mut sim, temple);
+    assert_eq!(
+        sim.max_range_of(Obj::Building(centre)),
+        9,
+        "TEMPLE_UPGRADE_RANGE[0]"
+    );
+    assert_eq!(
+        sim.max_range_of(Obj::Building(tower)),
+        11,
+        "a Temple is the city's"
+    );
+}
+
+/// **`BuildData::get_base_garrison_arrows@0062e340`** (item 3970): a Mayan
+/// building adds `MAYA_GARRISON_ARROWS` to its type's `BASE_ARROWS`, so an
+/// ungarrisoned Tower of `BASE_ARROWS 0` shoots — chapter 126's City
+/// `1/2000` names `0/7` on 753 — unless it is a finished city centre whose
+/// city's race is not its owner.
+#[test]
+fn a_mayan_building_has_an_arrow_its_type_does_not() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (centre, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tower);
+    assert_eq!(sim.base_garrison_arrows(tower), 0);
+    sim.nation[0].maya = true;
+    assert_eq!(sim.base_garrison_arrows(tower), 1, "the Maya's arrow");
+    assert_eq!(sim.base_garrison_arrows(centre), 1, "its own city");
+    sim.cities[c].race = Some(1);
+    assert_eq!(
+        sim.base_garrison_arrows(centre),
+        0,
+        "a city of another race"
+    );
+    assert_eq!(sim.base_garrison_arrows(tower), 1, "only the centre asks");
+}
+
+/// **`BuildData::attack@0062e610`'s Obsidian term** (item 3970): a
+/// garrison-class building of a holder of good 32 (`+0x6da7 & 4`) adds
+/// `OBSIDIAN_ARCHERS_ATTACK × 10`; a Barracks is not garrison-class.
+#[test]
+fn an_obsidian_holder_s_tower_hits_harder() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    city_at(&mut sim, &t, 0, 32, 32);
+    let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tower);
+    let base = sim.attack_of(Obj::Building(tower));
+    assert_ne!(base, 0);
+    sim.ledgers[0].rare |= 1 << (economy::OBSIDIAN - economy::BASE_RARE);
+    assert_eq!(sim.attack_of(Obj::Building(tower)), base + 10);
+    assert_eq!(sim.build_attack_terms(tower), 10);
+    let barracks = sim.place_building(0, t.barracks, tile_pos(24, 40)).unwrap();
+    finish(&mut sim, barracks);
+    assert_eq!(sim.build_attack_terms(barracks), 0, "not garrison-class");
+}

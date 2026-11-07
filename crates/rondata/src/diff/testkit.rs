@@ -6936,7 +6936,8 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR: (i64, i64) = (604
 
 /// **Chapter one hundred and twenty-six** (item 3970, `docs/GOLDEN.md`
 /// §176, run1541): the armed building family — a Mayan City with a Temple,
-/// a Tower on the Militia bit holding a General, a Chariot at each.
+/// a Tower on the Militia bit holding a General, a Chariot at each. Closed
+/// at 1100, the trace's end (word 746 → 752 → 804 → 1100).
 pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX: i64 = 1100;
 
 /// `chapter_one_hundred_and_twenty_six_s_window_is_widened_whole`'s window:
@@ -7467,6 +7468,17 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3970: chapter one hundred and twenty-six, run1541 walked to its
+    // end 1100 — one inexact corner under the Chariots' and the arrows'
+    // reads (three before the City's arrow struck the Temple, 804).
+    (
+        "chapter_one_hundred_and_twenty_six_holds_to_the_golden_word",
+        1,
+    ),
+    (
+        "chapter_one_hundred_and_twenty_six_s_window_is_widened_whole",
+        1,
+    ),
     // Item 3868: the fifth melee's first try, run1492 walked from run1482's
     // start with the two Airbases staged — the computers' Strategic Bombers
     // (305) drop from 1101 (chapter seventeen's corners): 6 to the word

@@ -13656,7 +13656,7 @@ run1484's window agree whole to the unit.
 
 ## Parked by item 3965, 2026-11-07 — a building's `mylos` cache
 
-- **3965a. The fog sweep reads a building's sight live, not its cache.**
+- (3965a) closed 2026-11-07 by item 3970: `Sim::build_sweep` reads `Building::mylos`; chapter 126's Tower `1/2007` lit its live 13 on the Militia bit where the cache holds 11, and who=1 saw `0/6` at 745 in ours alone — the Tower's `attack_ox` on 747 ours 6 / theirs −1 now agrees, the word 746 → 752 (`docs/GOLDEN.md` §176). The entry as parked: **The fog sweep reads a building's sight live, not its cache.**
   `Sim::build_sweep` takes `build_los`, where the original's sweep reads the
   `+0x3c` byte `Wall::update_los` last left (`Building::mylos` here since
   item 3965, `docs/AI.md` §409). A wonder started after its placement

@@ -845,6 +845,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch122 = golden_dump("ch122");
     let ch123 = golden_dump("ch123");
     let ch124 = golden_dump("ch124");
+    let ch126 = golden_dump("ch126");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3111,6 +3112,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 25,
             "chapter one hundred and twenty-two carries twenty-five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-six, on run1541** (item 3970): the
+    // City's first arrow on 752, the Tower's target on 777, its blow on
+    // 792 and the City's arrow on the Temple on 804.
+    if let Some(p) = &ch126 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX;
+        let n = drive_capture(p, 750, 806, &mut paths);
+        assert_eq!(
+            n, 57,
+            "chapter one hundred and twenty-six carries fifty-seven blocks in the window"
         );
         frames += n;
     }

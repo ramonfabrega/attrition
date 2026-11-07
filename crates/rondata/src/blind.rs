@@ -704,6 +704,14 @@ pub const TRACES: &[&str] = &[
     // laid on 742, `Group::action_flight`'s inside arm giving a plane no
     // `valid_target` (`docs/GOLDEN.md` §174); run1539's game on every frame.
     "rontrace-run1539b.log",
+    // Item 3970: golden chapter one hundred and twenty-six
+    // (`chapter126.cmd`, a Mayan City with a Temple, a Tower on the Militia
+    // bit holding a General, and a Chariot at each) at `cover=1` on the
+    // click-free pool, to 1100 (`docs/RUNS.md` run1541b): `BuildData::attack`,
+    // `get_base_garrison_arrows`, `max_range`, `get_building_range` and
+    // `get_temple_range` entered (`docs/GOLDEN.md` §176); run1541's game on
+    // every frame.
+    "rontrace-run1541b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and

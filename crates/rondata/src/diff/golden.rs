@@ -6626,8 +6626,36 @@ fn chapter_one_hundred_and_twenty_six_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_twenty_six_s_window_is_widened_whole();
 }
 
-/// What parts in run1541's window, blocks 605–1100 (item 3970).
-const WANT_CH126: &[&str] = &[];
+/// What parts in run1541's window, blocks 605–1100 (item 3970): the
+/// standing rows of every golden start (`form`, and the Mayan figures'
+/// `g.gpiece`), and the three death objects this capture's end detail does
+/// not print (no `DEATHS`) — `0/6` on 844, `1/3` on 997, `0/7` on 1037,
+/// each killed on the same block on both sides. The Tower's target on 747,
+/// the City's on 753, the Tower's blow on 792 and the strike on the Temple
+/// on 805 agree.
+const WANT_CH126: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/0 g.gpiece[0]",
+    "605 1/0 g.gpiece[1]",
+    "605 1/1 form",
+    "605 1/1 g.gpiece[0]",
+    "605 1/2 form",
+    "605 1/2 g.gpiece[0]",
+    "605 1/3 form",
+    "605 1/3 g.gpiece[0]",
+    "605 1/4 form",
+    "605 1/4 g.gpiece[0]",
+    "605 1/5 form",
+    "605 1/5 g.gpiece[0]",
+    "844 0/6 death:extra",
+    "997 1/3 death:extra",
+    "1037 0/7 death:extra",
+];
 
 /// Chapter one hundred and twenty-six holds to its golden word (item 3970,
 /// run1541).

@@ -24,7 +24,7 @@
 //!
 //! SEAM: `tribe_can_type(General)` is taken as yes, so a nation whose
 //! General the tribe mask refuses counts the General line and not the type
-//! its slot `+0x68` names; no capture seats one (`TRIBE_MASK` clears three).
+//! its slot `+0x68` names.
 
 use crate::build;
 use crate::build_attack_view::{BuildAttackView, build_attack_steps};

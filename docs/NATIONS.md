@@ -151,7 +151,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AZTEC_MAX_LIGHT` | 3 | Build::activate | modelled at nations.rs | `aztec_max_light` |
 | `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at plunder.rs | `aztec_plunder` |
 | `AZTEC_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `aztec_free_military` |
-| `MAYA_GARRISON_ARROWS` | 1 | BuildData::get_base_garrison_arrows | not carried | `maya_garrison_arrows` |
+| `MAYA_GARRISON_ARROWS` | 1 | BuildData::get_base_garrison_arrows | modelled at build_family.rs | `maya_garrison_arrows` |
 | `MAYA_BUILDING_TIMBER` | 25 | TypeData::get_cost | modelled at city.rs | `maya_building_timber` |
 | `MAYA_BUILDING_HP` | 25 | Wall::update_hits | modelled at build.rs | `maya_building_hp` |
 | `MAYA_BUILDING_SPEED` | 20 | Wall::update_construct_time | modelled at build.rs | `maya_building_speed` |
@@ -187,7 +187,7 @@ left out; a constant with no reader in the export is dead there too.
 | constant | rules | the export reads it in | status | witness |
 |---|---:|---|---|---|
 | `ROMAN_FORT_HP` | 0 | Wall::update_hits | modelled at build.rs | `roman_fort_hp` |
-| `ROMAN_FORT_RANGE` | 0 | BuildTypeData::get_building_range | not carried | `roman_fort_range` |
+| `ROMAN_FORT_RANGE` | 0 | BuildTypeData::get_building_range | modelled at build_family.rs | `roman_fort_range` |
 | `ROMAN_FORT_BORDERS` | 3 | World::compute_reg_territory | modelled at territory.rs | `roman_fort_borders` |
 | `ROMAN_FORT_COST` | 25 | TypeData::get_cost | modelled at cost.rs | `roman_fort_cost` |
 | `ROMAN_FORT_EARLY` | 1 | LeaderData::has_preq, LeaderData::special_preq | modelled at tech.rs | `roman_fort_early` |
