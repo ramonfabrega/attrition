@@ -720,6 +720,11 @@ pub const TRACES: &[&str] = &[
     // `get_temple_range` entered (`docs/GOLDEN.md` §176); run1541's game on
     // every frame.
     "rontrace-run1541b.log",
+    // Item 3971: the sixth melee (the third's lobby with two massed armies,
+    // `tools/gamelog/golden/melee-corpses.cmd`) at `cover=1` on the
+    // click-free pool, to 2600 (`docs/RUNS.md` run1542b): run1542's game
+    // on every frame (rngcmp 2601 identical, 0 differing).
+    "rontrace-run1542b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and

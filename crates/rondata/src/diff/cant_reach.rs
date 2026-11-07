@@ -353,6 +353,10 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         15,
     ),
     (
+        "diff::corpse_melee::corpse_melee_run1542_s_word_window_is_widened_whole",
+        147,
+    ),
+    (
         "diff::coverage_pair::run672_s_word_frame_is_widened_whole",
         2,
     ),

@@ -10516,13 +10516,22 @@ booking carried that name. The landing frame against each round in flight (`RON_
   The share goes 771 → 772 tenths (77.18 % → 77.27 %), 3531a's tenths again.
   **Score**: the rubric's lockstep bytes. The same lever as 3531a.
 
-## Parked by the next landing, slot PI — reserved
+## Parked by item 3971, 2026-11-07 — the sixth melee: the death pool of 100
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3971a. The sixth melee's word 744** (run1542; `docs/GOLDEN.md` §177): theirs spends `Unit::close+0xcb6` at index
+  74 where ours spends `Farms::inc_time+0x1ae` — the Russian `2/143`'s death (`cur_anim` 18), 744 in theirs and 745
+  in ours. Its damage has already parted on 701, the window's first block (`hits:damage` 135 against 136,
+  `damage_frac` 9 against 7). Block 651 is outside the widening, so where the state first parts is not walked.
+  **Score**: the `Melee:` line's GreatSaharaCorpseMelee word; a residue item booked by its frame (≤ 701) and that
+  draw.
+- **3971b. `--twin` refuses a three-seat lobby** (`tools/explore/unattended_capture.py`'s `twin_pins`): it pins slot
+  1's tribe as a two-seat `ai_tribe`, and `verify_game` then demands two players. run1542b's first take ran its game
+  and raised `player read-back mismatch` with no receipt. The melee twins pass `--cover cover=1` bare. No score: a
+  tool defect, the Loop's to file.
+- **3971c. The all-blocking fallback's `clear_blocking`** (`Objects::add_death@00653b60`, slot 0 when every record
+  blocks): ours cuts the record and leaves the disc to the same frame's cull, where the original clears it before
+  `DeathObj::init`. A hundred wrecks of a `blocks_while_dead` type would be needed. No capture reaches it, and no
+  score names it.
 
 ## Parked by item 3538, 2026-10-23 — the Chinese word 3271: the Anti-tank Rifle's launch rows
 
@@ -15184,10 +15193,10 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `stable_garr`, `scout_garr`, `barracks_garr` (`coverage.rs:275`; `Object::insert_inside` skips decoys where the crate does
   not) and `BUILDDATA/WALLDATA/OBJECT mylos` against `Sim::build_los` (`coverage.rs:205`; the colosseum and furs terms, the
   `LEADER_VALID` gate and the 8-bit wrap). **Score**: each leaves the uncompared pin on the headline windows; red is the item.
-- **T71-10. `Objects::add_death`'s pool of 100** (adjudication 3; `Objects::add_death (00653b60)`): the original keeps 100
+- ~~**T71-10. `Objects::add_death`'s pool of 100** (adjudication 3; `Objects::add_death (00653b60)`): the original keeps 100
   `DeathObj` slots and evicts the oldest non-blocking record when full; the crate's `Sim::deaths` only grows. The busiest
   frame on disk holds 34. **Score**: `DEATH_OBJS` (`death:extra`) on a capture with more than 100 live corpses; a melee of two
-  late-age armies is the lobby.
+  late-age armies is the lobby.~~ Built by item 3971 (`docs/GOLDEN.md` §177): `Sim::add_death`, the census on run1542 at 100 on both sides.
 - **T71-11. Three masks are Great Sahara's listing** (adjudication 1; map-1, second-3): Old World, Amazon Basin and Himalayas
   are `great_sahara_make_continents` (`mapgen.rs:406`) instruction for instruction, all 144 lines, so 3944–3946 are the route
   plus the take — 3944 closed so on run1527 at 22:55 — and the 7807 check (`rondata/src/mapgen.rs:1288`, `style == 7`)

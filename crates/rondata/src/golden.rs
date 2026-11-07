@@ -2874,10 +2874,11 @@ mod tests {
         ("chapter97.cmd", &[]),
         ("chapter98.cmd", &[]),
         ("chapter99.cmd", &[]),
-        // Items 3733, 3774, 3797, 3847 and 3868: `resource` and `add` only
-        // (GOLDEN §149, §150, §152, §153, §156).
+        // Items 3733, 3774, 3797, 3847, 3868 and 3971: `resource` and `add`
+        // only (GOLDEN §149, §150, §152, §153, §156, §177).
         ("melee-airbase.cmd", &[]),
         ("melee-classical.cmd", &[]),
+        ("melee-corpses.cmd", &[]),
         ("melee-gunpowder.cmd", &[]),
         ("melee-information.cmd", &[]),
         ("melee-sea.cmd", &[]),

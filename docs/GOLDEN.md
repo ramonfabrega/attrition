@@ -18706,12 +18706,62 @@ arrow), 804 (the index walk) and the 792 row with the General's term off (`docs/
 its cache, and the cell order of a ground hit. `blind::` is unmoved: run1541b joins `TRACES`, and nothing it enters
 was `NEVER`.
 
-## 177. Reserved for the next item on the rules track
+## 177. The sixth melee — the third's lobby with two massed armies, past the death pool's 100 (item 3971, run1542–run1542b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The subject** (parked T71-10, the seventy-first pass's adjudication 3). `Objects::init@0065ea80:384` writes 100 to
+the death pool's count (`Objects +0x140`), and nothing grows it. `Objects::add_death@00653b60`, called by
+`Objects::kill_guy` once for each figure whose death animation is in 11..20, walks those slots in order:
+
+1. It takes the first slot whose record is not valid (`DeathObj +0x0`).
+2. On the way, it remembers the oldest record whose type does not block while dead (`DeathObjData::blocking`, vslot
+   `+0x120`). The test is `first_frame` (`+0x4`, `game->frame` at `DeathObj::init`) `< best`, with `best` starting
+   at `frame + 1`, so the lowest slot wins a tie.
+3. With no free slot, that record is overwritten. When every record blocks, slot 0 is overwritten, after
+   `DeathObj::clear_blocking` on it.
+
+The crate's list only grew. The archive's busiest block held 34 records, so nothing on disk had parted on it.
+
+**Built**: `Sim::death_pool`, the 100 slots in order, each naming the figure record it holds (`combat::DeathSlot`). A
+slot is free when its record has ended. `Sim::add_death` is called from `close_unit` once for each figure, after its
+`Death` is pushed. An evicted record's figure life is cut to its age, so it bumps its number no more. A `Death` left
+with no live figure is culled on that frame's `death_objs_inc_time`, before the dump. Not built: the all-blocking
+fallback's `clear_blocking` runs at the cull, the same frame, not before `init` (parked 3971c).
+
+**The staging** (§155's shape; no lever moves). run1467's lobby is held whole: the third melee's start, the French
+(10) and the Russians (13) at a held Information age on Great Sahara. `tools/gamelog/golden/melee-corpses.cmd` fills
+both buckets on 600 and 602. It then `add`s, a side and a tile apart, 100 Elite Special Forces, 40 Advanced Machine
+Guns and 10 Rocket Artillery, 610..620. On the third melee's rows, ten tiles apart, ours peaked at 44 records, and at
+two tiles it reached 100. So the staged walk (`corpse_melee_staging_walk`) was run before the take and read 100 on
+982.
+
+**The killers, written before the take** (the script's header): (1) a block printing more than 100 records; (2) no
+block reaching 100; (3) a younger record leaving a full block while an older non-blocking one stays. **None fired.**
+run1542 holds 100 on 1001..1251 and on 1351 (99 on 1301), and never more. On every full block, each record older
+than the oldest that stays is gone, long before its life ends. The record of 658, a skeleton's (627 frames of fade
+after its animation), is gone by 1051. The young records that leave beside them are bodies, 135 frames of fade.
+
+**The score, first try: 744 of 2600** (`corpse_melee_first_parting`), the count and the sequence together. On 744 ours
+spends 82 draws against 83: at index 74 theirs spends `Unit::close+0xcb6`, the Russian `2/143`'s death, where ours
+spends `Farms::inc_time+0x1ae`. Theirs acted. **The value diff**: on 701, the widening's first block, `2/143` reads
+`hits:damage` 135 against theirs' 136 (`damage_frac` 9 / 7, `hits_left` 35 / 34). On 751 its death record reads
+`first_frame` 745 against 744, `cur_anim` 18 both. Block 651 lies outside the window, so the first parting is not
+walked (parked 3971a). The widening (`corpse_melee_run1542_s_word_window_is_widened_whole`, 701..995, six blocks):
+5,752 rows, the rounds read (81, 84), 235 parting. The close is 420 off (`corpse_melee_run1542_s_closing_state`, 241
+units).
+
+**The pool, past the word** (`corpse_melee_s_death_pool_stops_at_a_hundred_on_both_sides`). After 744 the two games
+are not one game, so this test is a census, not a lockstep comparison. Ours' live figure records against the dump's
+`DEATH_OBJS`, block by block, run close all game: 100 / 100 on 1001..1101, 99 / 100 on 1151..1251, 32 / 32 on
+1701. Neither side goes past 100. With the pool taken out (`tools/mutate.py`: no eviction, the pool grown), ours
+reads 101 on 1001 and 135 on 1251 against theirs' 100, and the census fails. So the census is the death list's
+`death:extra` row in aggregate, read where no position agrees. `the_death_pool_evicts_the_oldest_record_that_does_not_block`
+(`fight.rs`) holds the order. It fails with the blocking test dropped, with ties sent to the highest slot, and with
+the cap removed.
+
+**What is not established.** The order of slots past the word: the census compares counts, never which record sits
+in which slot. The fallback's `clear_blocking` (3971c). Whether the pool's eviction ever reaches a number's
+`hold_frames` on a capture. An evicted record stops bumping, but no dump prints a dead object's hold, and run1542's
+numbers are not reused inside the window.
 
 ## 178. Reserved for the next item on the rules track
 

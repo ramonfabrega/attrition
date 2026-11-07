@@ -7247,13 +7247,16 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
 - **`DEATH_OBJS`' `gpiece`**, the dead unit's own death piece
   (`DeathObj::init`'s `vtable[0x178](param_7, packed)`). Parsed and not
   compared — this crate loads no art for it.
-- **The cull.** `DeathObj::inc_time` clears the object when its animation
+- ~~**The cull.** `DeathObj::inc_time` clears the object when its animation
   packet ends, and this crate never does. No capture on disk reaches a
   cull: run112's four deaths are all still in the list on its last block,
   216 frames after the first, so the grow-only list is exact on every
   window that exists. ~~run146 culls on 771 (parked 617).~~ It does not:
   its three records live from their deaths to 999 on both sides. What
-  parted on 771 is the slot the record holds, §59.
+  parted on 771 is the slot the record holds, §59.~~ The cull landed in
+  `docs/GOLDEN.md` §127 (item 3205), and the pool of 100 slots behind it —
+  `Objects::add_death@00653b60` overwriting the oldest record that does
+  not block when every slot holds one — in §177 (item 3971).
 - ~~**`nuke_effect[0x108]`** in §11's hold, taken as zero.~~ It is 30
   (`Nuke::init@0092c960`, `92c987`), added to every round's remaining
   time (`docs/AI.md` §165, item 1594): run711's ICBM number is held thirty

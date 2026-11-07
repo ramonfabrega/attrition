@@ -1436,13 +1436,17 @@ pub struct Sim {
     /// for every unit death whose `dtype` is non-zero, and it carries the
     /// animation index the draw at `Unit::close+0xcb6` chose.
     ///
-    /// **Nothing culls them here.** The original's `DeathObj::inc_time`
-    /// runs the animation packet and clears the object when it ends; that
-    /// needs the death graphic piece's own packet, which this crate does
-    /// not load. No capture on disk reaches a cull — run112's four deaths
-    /// are all still in the list on its last block, 216 frames after the
-    /// first — so the list is grow-only and §42.5 records the gap.
+    /// Each figure's record ends at its life (`DeathObj::inc_time`,
+    /// [`Sim::death_objs_inc_time`], `docs/GOLDEN.md` §127), and the pool
+    /// of 100 behind them evicts the oldest non-blocking record when full
+    /// ([`Self::death_pool`], §177).
     pub deaths: Vec<combat::Death>,
+    /// **The death pool's slots** (item 3971, `docs/GOLDEN.md` §177):
+    /// which figure's record each of `Objects`' 100 `DeathObj` slots
+    /// holds, in slot order, grown to [`combat::DEATH_POOL`] as records
+    /// arrive. [`Self::deaths`] is the list the dump prints; this is the
+    /// capacity behind it, and the order `Objects::add_death` evicts in.
+    pub death_pool: Vec<Option<combat::DeathSlot>>,
     /// One per player: the nation, wonder and patriot layer of the damage
     /// formula, as inputs.
     pub mods: Vec<combat::Modifiers>,
@@ -1980,6 +1984,7 @@ impl Sim {
             nukes: nuke::Nukes::default(),
             ground_inexact: 0,
             deaths: Vec::new(),
+            death_pool: Vec::new(),
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
             art: anim::Art::default(),
