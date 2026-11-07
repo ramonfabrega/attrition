@@ -3975,14 +3975,100 @@ impl Sim {
         let figures = self.death_figures(i, cur_anim);
         let life = self.death_life(i, cur_anim);
         let u = &self.units[i];
+        let (who, o) = (i32::from(u.owner), i32::from(u.index));
         self.deaths.push(combat::Death {
-            who: i32::from(u.owner),
-            o: i32::from(u.index),
+            who,
+            o,
             first_frame: frame,
             cur_anim,
             life,
             figures,
         });
+        // `Objects::kill_guy`'s `add_death`, one call a figure, in the
+        // order `Unit::close`'s loops reach them.
+        for k in 0..figures.n {
+            self.add_death(combat::DeathSlot {
+                who,
+                o,
+                first_frame: frame,
+                figure: k,
+            });
+        }
+    }
+
+    /// Whether the record a pool slot names is still live on `self.frame`,
+    /// before this frame's `DeathObj::inc_time`: its [`combat::Death`]
+    /// stands and that figure's life has not run out.
+    fn death_slot_live(&self, r: &combat::DeathSlot) -> bool {
+        let age = self.frame - r.first_frame;
+        self.deaths.iter().any(|d| {
+            d.who == r.who
+                && d.o == r.o
+                && d.first_frame == r.first_frame
+                && r.figure < d.figures.n
+                && age < d.figures.life[usize::from(r.figure)]
+        })
+    }
+
+    /// `DeathObjData::blocking@008d4a90`: the type of the object holding
+    /// the record's number answers vslot `+0x120`, `blocks_while_dead`.
+    fn death_slot_blocks(&self, r: &combat::DeathSlot) -> bool {
+        self.units
+            .iter()
+            .rposition(|u| i32::from(u.owner) == r.who && i32::from(u.index) == r.o)
+            .and_then(|u| self.units[u].ty)
+            .is_some_and(|t| {
+                self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+            })
+    }
+
+    /// **`Objects::add_death@00653b60`'s slot** (item 3971, `docs/GOLDEN.md`
+    /// §177): the pool is [`combat::DEATH_POOL`] slots and nothing grows
+    /// it. The walk takes the first slot whose record is not valid; on the
+    /// way it remembers the oldest record whose type does not block while
+    /// dead — `first_frame < best`, `best` starting at `frame + 1`, so the
+    /// lowest slot wins a tie — and when no slot is free that record is
+    /// overwritten, or slot 0 when every record blocks. An overwritten
+    /// record that blocks has its disc cleared first
+    /// (`DeathObj::clear_blocking`); this crate leaves that to the cull
+    /// below, the same frame, since only the all-blocking fallback can
+    /// reach it.
+    ///
+    /// The evicted record ends where it stands: its figure's life is cut
+    /// to its age, so it bumps its number no more
+    /// ([`Self::death_objs_inc_time`]), and a [`combat::Death`] left with
+    /// no live figure is culled this frame and leaves the dump's list.
+    pub(crate) fn add_death(&mut self, rec: combat::DeathSlot) -> usize {
+        if self.death_pool.len() < combat::DEATH_POOL {
+            self.death_pool.resize(combat::DEATH_POOL, None);
+        }
+        let mut best = (0usize, self.frame + 1);
+        let mut free = None;
+        for k in 0..combat::DEATH_POOL {
+            let Some(r) = self.death_pool[k].filter(|r| self.death_slot_live(r)) else {
+                free = Some(k);
+                break;
+            };
+            if !self.death_slot_blocks(&r) && r.first_frame < best.1 {
+                best = (k, r.first_frame);
+            }
+        }
+        let k = free.unwrap_or(best.0);
+        if let Some(old) = self.death_pool[k].filter(|r| self.death_slot_live(r)) {
+            let age = self.frame - old.first_frame;
+            if let Some(d) = self
+                .deaths
+                .iter_mut()
+                .find(|d| d.who == old.who && d.o == old.o && d.first_frame == old.first_frame)
+            {
+                d.figures.life[usize::from(old.figure)] = age;
+                let n = usize::from(d.figures.n).min(combat::Figures::MAX);
+                let last = d.figures.life[..n].iter().copied().max().unwrap_or(age);
+                d.life = (last != i64::MAX).then_some(last);
+            }
+        }
+        self.death_pool[k] = Some(rec);
+        k
     }
 
     /// **`Object::close@00647160`'s contents arm on a unit** (item 3862,
@@ -11544,6 +11630,73 @@ mod tests {
         assert_eq!(sim.projectiles[0].cur_time, SPENT_LIFE - 1);
         sim.process_projectiles(i64::from(SPENT_LIFE));
         assert!(sim.projectiles.is_empty(), "closed at 200");
+    }
+
+    /// **The death pool holds 100 records and evicts the oldest that does
+    /// not block** (item 3971, `Objects::add_death@00653b60`,
+    /// `docs/GOLDEN.md` §177). A hundred deaths fill it; the hundred-and-
+    /// first overwrites the oldest record, whose death leaves the list on
+    /// that frame's `DeathObj::inc_time`. A type that blocks while dead is
+    /// passed over for the next oldest, and of two deaths on one frame the
+    /// lower slot goes first.
+    #[test]
+    fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
+        let (mut sim, ty) = at_war();
+        let wreck = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            ..crate::UnitType::default()
+        });
+        sim.unit_types[wreck].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
+        let mut dead = Vec::new();
+        // Slot 0 a wreck on frame 0; slots 1 and 2 two deaths on frame 1;
+        // then one a frame to slot 99.
+        let frames: Vec<i64> = [0, 1, 1].into_iter().chain(2..99).collect();
+        assert_eq!(frames.len(), combat::DEATH_POOL);
+        for (k, &f) in frames.iter().enumerate() {
+            let t = if k == 0 { wreck } else { ty };
+            let i = put(
+                &mut sim,
+                1,
+                t,
+                Pos::new(
+                    0x1000 + 0x200 * (k as i32 % 20),
+                    0x1000 + 0x200 * (k as i32 / 20),
+                ),
+            );
+            sim.frame = f;
+            sim.units[i].health = 0;
+            sim.close_unit(i, 1, f);
+            dead.push(sim.units[i].index);
+        }
+        assert_eq!(sim.deaths.len(), combat::DEATH_POOL, "a hundred records");
+        let listed = |sim: &Sim| -> Vec<i32> { sim.deaths.iter().map(|d| d.o).collect() };
+        let kill = |sim: &mut Sim, f: i64| -> usize {
+            let i = put(sim, 1, ty, Pos::new(0x3000, 0x3000));
+            sim.frame = f;
+            sim.units[i].health = 0;
+            sim.close_unit(i, 1, f);
+            sim.death_objs_inc_time();
+            sim.death_pool
+                .iter()
+                .position(|r| r.is_some_and(|r| r.o == i32::from(sim.units[i].index)))
+                .unwrap()
+        };
+        // The wreck in slot 0 is the oldest and blocks: slot 1 goes.
+        assert_eq!(kill(&mut sim, 200), 1, "the oldest that does not block");
+        assert_eq!(sim.deaths.len(), combat::DEATH_POOL);
+        assert!(
+            listed(&sim).contains(&i32::from(dead[0])),
+            "the wreck stays"
+        );
+        assert!(
+            !listed(&sim).contains(&i32::from(dead[1])),
+            "slot 1's death leaves"
+        );
+        // Its twin of frame 1, slot 2, is now the oldest.
+        assert_eq!(kill(&mut sim, 201), 2, "the tie's other half");
+        assert!(!listed(&sim).contains(&i32::from(dead[2])));
+        assert_eq!(kill(&mut sim, 202), 3, "then frame 2's");
+        assert_eq!(sim.deaths.len(), combat::DEATH_POOL, "never past a hundred");
     }
 
     /// **A dead unit's number is held while its death object lives**

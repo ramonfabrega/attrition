@@ -599,6 +599,26 @@ pub struct Death {
     pub figures: Figures,
 }
 
+/// **`Objects`' death pool's size** — `Objects::init@0065ea80:384` writes
+/// 100 to the `ObjectArray<DeathObj>`'s count (`+0x140`) and nothing grows
+/// it: `Objects::add_death@00653b60` walks those 100 slots and no more
+/// (item 3971, `docs/GOLDEN.md` §177).
+pub const DEATH_POOL: usize = 100;
+
+/// **One slot of the death pool** — which figure's record it holds: the
+/// dead unit's number, its death frame (`DeathObj +0x4`, the age
+/// `add_death` evicts by) and the figure, an index into that
+/// [`Death`]'s [`Figures`]. A slot is free when its record has ended —
+/// the [`Death`] culled, or that figure's life run out — which is
+/// `DeathObj +0x0` (`valid`) zeroed by `DeathObj::inc_time`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DeathSlot {
+    pub who: i32,
+    pub o: i32,
+    pub first_frame: i64,
+    pub figure: u8,
+}
+
 /// The lives of a dead unit's `DeathObj` records, one per guy, in frames;
 /// `i64::MAX` for a record whose piece the install does not describe.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
