@@ -356,6 +356,47 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 59, "run1151c baseline");
 }
 
+/// **The heal's clock agrees on every block of run1151c** (item 3961,
+/// `docs/AI.md` §405): 161 `UNITDATA` records print a non-zero `healing`
+/// — the Citizens `0/5` and `0/8` at 45 counting down from their civilian
+/// heal, who=1's planes in their Airbase at 1 one block in 11 — and the
+/// window's widening holds no `healing` row (its 59 `firsts` stand). No
+/// building prints anything but 0. Killed by the compare's own side at 0
+/// (`tools/mutate.py`, the journal), which parts all 161.
+#[test]
+fn american_modern_pair_run1151c_s_heal_clock_agrees() {
+    let Some(path) = dump(RUN1151C) else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let mut units = Vec::new();
+    let mut builds = 0usize;
+    for i in 0..ix.frames().len() {
+        let frame = ix.frame_state(i).unwrap();
+        for u in &frame.units {
+            if let Some(h) = u.healing.filter(|&h| h != 0) {
+                units.push((frame.n, u.who, u.o, h));
+            }
+        }
+        builds += frame
+            .builds
+            .iter()
+            .filter(|b| b.healing.is_some_and(|h| h != 0))
+            .count();
+    }
+    assert_eq!(units.len(), 161, "the records that print a clock");
+    assert!(units.contains(&(4493, 0, 8, 45)), "the citizen's heal");
+    assert!(units.contains(&(4488, 1, 45, 1)), "a plane's heal inside");
+    assert_eq!(builds, 0, "no building prints a clock");
+    let Some(w) = american_modern_frame_4488_window() else {
+        return;
+    };
+    assert!(
+        !w.firsts.keys().any(|(_, _, what)| what.contains("healing")),
+        "no healing row on the window"
+    );
+}
+
 /// **The long's stride, walked back from the word 4488** (item 3517): run1151
 /// dumps `UNITS=3,GUYS=2` every hundredth block, and run1151c's window opens
 /// on 188 standing rows, so the state parted somewhere in 2247..4481 and only

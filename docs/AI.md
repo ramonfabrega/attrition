@@ -40287,12 +40287,88 @@ walk to be diffed on until a harness replays run1066's staging (parked
 and run1066's values (the pinned test, read off the dump). Reading-only: the
 field offsets (`types.txt`) and which functions write them (§147).
 
-## 405. Reserved for the next item on the AI track
+## 405. The heal's clock, `UNITDATA healing` and `BUILDDATA healing`: ported on the unit, 0 on the building, and the heal level read (item 3961, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** Both keys are `ObjectData +0x38 short healing` (`types.txt`),
+which `UnitData::log_data@0060b070` and `BuildData::log_data@0062e810` each
+print on the record's own level (the `OBJECT` level,
+`ObjectData::log_data@00645fd0`, prints the same short again). It is a
+display clock, not a heal:
+
+- every arm of `Unit::process_healing@005e0670` that lands writes
+  `healing = max(rate, healing)` after its `repair_damage`, with the arm's
+  own period (the civilian heal 45, the ship and CEO arms their rates, the
+  garrison heal its adjusted period);
+- `Unit::process@00610bc0`'s head takes one off a frame (`:69`–`71`),
+  beside `full` and `waiting`;
+- its air arm writes `healing = 0` every frame on the map, and inside it
+  heals on `AIRCRAFT_HEAL_RATE[heal level]`'s phase, two thirds of that
+  (`(2r + 2) / 3`) for the Bomber's lineage (`is(0x130, 0)`, listing
+  `6110b7`), and then writes the literal **1**, not the rate;
+- on a building, only `Build::process@0061edf0`'s patriot repair writes it
+  (a Monarch, Comrade or CEO arm on `FRENCH_SUPPLY_HEAL_RATE`), and the same
+  function counts it down.
+
+**The disk first.** A scan of the 1182 dumps on disk (2026-11-07) finds a
+non-zero record-level `healing` in 363 of them, every one on a unit; no
+building anywhere prints anything but 0. run1151c (the American Modern
+pair's window, 4482..4549) holds 161 such records: the Citizens `0/5` and
+`0/8` at 45 counting down from a civilian heal (`0/8` on 4493 and again on
+4538), and who=1's planes in their Airbase at 1, one block in 11. The
+booking's "red where the crate has no field" held on 20 widenings at the
+first compare; the port below took 14 of them to green.
+
+**What was built.**
+- `sim::Unit::healing`, zeroed at birth, counted down at the head of
+  `process_unit`, and set by `Sim::mark_healed` at the civilian, CEO, ship
+  and garrison heals the crate already took.
+- The aircraft heal inside (`Sim::burn_fuel`'s inside arm, which had been a
+  `SEAM`), with `Tuning::aircraft_heal_rate` (`AIRCRAFT_HEAL_RATE`, 20 16 12
+  8).
+- **`LeaderData::get_heal_level@006e12e0`**, the count of `HEAL_FASTER_1..3`
+  held (`TECHBONUSES` rows 67–69, `Roles::heal_faster_preq`). Item 3959
+  built it at the same time under the same names (§403); at the merge, this
+  item's copy was dropped for theirs. `Nation::heal_level`, which nothing
+  wrote, is gone, and the garrison and aircraft heals now read `heal_level`.
+  On the pre-merge tree that moved no floor and no `first_parting`.
+- `Sim::mark_healed` added to item 3959's Senator and Iroquois heals at the
+  merge.
+- `widen_block` compares the unit's key against `Unit::healing`, and
+  `compare` the building's against **0** under a `SEAM`. The three keys
+  leave the unread pin (`coverage.rs`: both `UNITDATA` paths and
+  `BUILDDATA`).
+
+**The value diff.** run714 (Persian all-tech), the Jet Fighter `1/115`
+(TypeIndex 295, air), block 2438. Theirs prints `healing 1`, the heal it
+took inside its Airbase on game frame 2437 before launching: `(115 + 2437)
+% 8 == 0`, heal level 3. Before the level was read, ours printed 0: level
+0, period 20, no heal. After, both print 1, and the window's `firsts` stands
+at 75. run1151c: all 161 records agree, and its 59 `firsts` stand.
+
+**What still parts.** Five widenings each gain one `healing` row,
+re-pinned with their deltas. run1228b's two rows (theirs 20) closed at the
+merge with item 3959's heals, and its `firsts` stands at their 57.
+- run754's `1/116` and run855/run861's `1/6`: ours 45 against 0. Our
+  civilian heal fires on a unit whose hits already part from an earlier
+  block, so theirs, being whole, takes no heal.
+- run1262's `1/50` (theirs 10) and run1344b's `1/29` (theirs 20): theirs
+  heals on the very block its hits part, on an arm ours does not take. The
+  period names the arm: a rate-10 arm, and a `FRENCH_SUPPLY_HEAL_RATE` arm
+  (parked 3961a).
+
+The three building-field counts (run56, run57, run58) gain one field per
+linked building-frame, all agreeing.
+
+**What is not established.** The rate-10 arm's identity; the patriot repair
+on a building (parked 3961b: no dump holds one); the sea arm and the
+Antipater, hero and French-general arms of `process_healing`, which the crate
+does not build and which write the clock too.
+
+**Coverage.** Diff-backed: the unit clock on every walked window
+(`american_modern_pair_run1151c_s_heal_clock_agrees` and every widening's
+pin), the heal level through run714's Jet Fighter, and the building's 0 on
+every dump. Reading-only: the building writer, and the `BUY_SELL` arm's
+deadness (read off the listing, `6e12e7`–`6e1327`).
 
 ## 406. A stance press sets `SubObjectData::flags & 0x10`, the bit `Unit::think`'s idle gate reads as `cant_reach`; the row tallied apart (item 3962, 2026-11-07)
 
@@ -40315,8 +40391,9 @@ ran.
 - `Unit::think` is split at its cadence gate (`think_past_gate`). Every exit past the gate drops the bit (`think:130`,
   `LAB_005f761a` `:296`, `:339`).
 - `BUILDDATA stance` (`Build +0x7e`) is read by `gamelog::BuildDump::stance` and the oracle codec, and compared
-  against `Sim::build_stance`. It agrees on every walk of the suite. It moves three building-field counts (run56
-  512,547 → 558,860, run57 721,679 → 786,842, run58 986,161 → 1,075,324), all with none wrong.
+  against `Sim::build_stance`. It agrees on every walk of the suite. It moves three building-field counts, each on
+  top of item 3961's `healing` (run56 558,860 → 605,173, run57 786,842 → 851,005, run58 1,075,324 → 1,164,487),
+  all with none wrong.
 
 ### 406.3 The row, and the tally
 

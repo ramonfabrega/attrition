@@ -1853,7 +1853,9 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
     // Item 2761: 176 → 172 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 141, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 3961: +1, `healing` on `1/116` (4025, ours 45 theirs 0): our civilian heal on a
+    // citizen whose hits already part from 3923 (its attrition, 3917); theirs is whole.
+    pin_eq!(w.firsts.len(), 142, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]

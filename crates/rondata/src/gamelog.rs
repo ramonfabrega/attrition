@@ -2255,6 +2255,11 @@ pub struct UnitDump {
     /// `UnitData::queue_time` — that queue's clock, 100 a frame while it
     /// holds a craft and not reset by a cancel (item 3960).
     pub queue_time: Option<i64>,
+    /// `ObjectData::healing` (`+0x38`) as `UnitData::log_data` prints it on
+    /// the record's own level — the heal's display clock, `max(rate, ·)` on
+    /// each heal and one off a frame (item 3961, `docs/AI.md` §405). The
+    /// `OBJECT` level prints the same short again.
+    pub healing: Option<i64>,
     /// `ObjectData::uid` — the **identity** behind the per-player `o`,
     /// written on the `OBJECT` level beside the cell chain. `o` is a slot
     /// and is handed back out: a unit that dies frees its number, and the
@@ -2304,7 +2309,7 @@ pub struct BuildDump {
     /// land on sim-frame 9451, thirteen sixteenths apiece, and the first
     /// of them moves only the fraction (§20).
     ///
-    /// The rest of the `ObjectData` half — `healing`, `hold_frames`,
+    /// The rest of the `ObjectData` half — `hold_frames`,
     /// `infiltrated`, `visible`, `launch_frames`, `inside_down`,
     /// `inside_down_who`, `near_o`, `near_who` — is written on every
     /// `BUILDDATA` record and is still unparsed, deliberately: this
@@ -2321,6 +2326,11 @@ pub struct BuildDump {
     /// makes it the one field of the dump that dates an age to a block
     /// (`docs/TECH.md`, "An age snaps every figure").
     pub max_age: Option<i64>,
+    /// `ObjectData::healing` (`+0x38`) as `BuildData::log_data` prints it on
+    /// the record's own level (item 3961, `docs/AI.md` §405): written only
+    /// by `Build::process`'s patriot repair and counted down there; 0 on
+    /// every building of every dump on disk.
+    pub healing: Option<i64>,
     /// `WallData::build_masks`, whose `0x100` is "my roads want replanning"
     /// — the schedule's own field (`docs/ROADS.md` §1), written from
     /// **`BUILDS=1`**. `None` where the level did not print it.
@@ -3556,6 +3566,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         good_obj: b.int("good_obj"),
         num_queued: b.int("num_queued"),
         queue_time: b.int("queue_time"),
+        healing: b.int("healing"),
         uid: obj.and_then(|o| o.int("uid")),
         down: obj.and_then(|o| o.int("down")),
         down_who: obj.and_then(|o| o.int("down_who")),
@@ -3595,6 +3606,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         damage_frac: obj.and_then(|o| o.int("damage_frac")),
         orig_type: b.int("orig_type"),
         max_age: b.int("max_age"),
+        healing: b.int("healing"),
         // **`WALLDATA`'s, not `BUILDDATA`'s** (item 478). The name says
         // `WallData::build_masks` and the record writes it at the wall's
         // own indent, between `ever_seen_completed` and `helpers`; read
