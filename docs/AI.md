@@ -40384,12 +40384,85 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 408. Reserved for the next item on the AI track
+## 408. `LEADERDATA retargets` and the four garrison counts: compared, agreeing on every walked window, and the decoy gate ported (item 3964, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** Five keys of the leader record that stood on the coverage
+driver's unread pin (parked T71-9), all `int`s on `LeaderData`
+(`types.txt`):
+
+- `+0x9f4 retargets` — the frame's count of invalid targets. Its one
+  increment is `Unit::fight@005fd4d0:227`, under `LAB_005fdb9e`. Its readers
+  are `fight:205`'s search budget (`> 10`) and `resolve_unit_collision:232`'s
+  enemy ladder (`< 10`). Two resets: `Leader::process@006b88b0:19` and
+  `Leaders::process_all@006ed2a0:23`, the latter for a leader with flag 2.
+  The crate has carried it since item 668 as `Sim::retargets`, zeroed for
+  every player at the head of the income loop, and incremented in
+  `fight` and the cavalry archer's twin (`cavarch.rs`).
+- `+0xa28 peasants_garr`, `+0xa2c stable_garr`, `+0xa30 scout_garr` and
+  `+0xa34 barracks_garr`. Only `Object::insert_inside@00647e90` (+1),
+  `Object::remove_from_inside@006480f0` (−1) and `Leader::init` (0) write
+  them. The unit must be a captain whose unit record's `unit_masks & 1`
+  (`+0x68`, the decoy bit) is clear, inside a building
+  (`in_a_building`; `remove_from_inside` reads the container's slot `0x20`).
+  The first matching kind wins: a peasant, else a Stable type (`+0x40 ==
+  0x1ac`), else `is_special` (the scout bit), else a Barracks type
+  (`0x1ab`). `Leader::calc_gather:119`–`126` subtracts them in the Lakota
+  food term and the Americans' Barracks term. The crate has carried them
+  since item 2351 (`Census::peasants_garr` …, moved by
+  `Sim::track_garrison`, whose −1 is the swept `remove_from_inside_steps`).
+
+**What was built.** The booking's mechanism is the decoy gate. The crate's
+`SimRemoveInside::masked` answered false, and `track_garrison`'s +1 arm
+tested only the captain, so a garrisoned decoy counted going in, and its
+leaving was the swept walk's to skip. Both now read `Unit::decoy` (`unit_masks
+& 1`): `masked` returns it, and the +1 arm tests `!masked()` ahead of the
+captain, as `insert_inside` does. `cities_tests::a_decoy_moves_no_garrison_count_in_or_out`
+holds it: a citizen captain counts 1, a decoy citizen after it leaves the
+count at 1, and both out leave 0. No dump on disk shows a decoy garrisoned,
+so the gate is reading-backed only.
+
+**What is compared.** `diff::leader::rows` carries the five keys (ours:
+`Sim::retargets` and the census's four), and `leader::theirs` reads them off
+the block. They leave the `GAME/FRAME/LEADERDATA` unread row
+(`coverage.rs`) on every window the driver walks. `LeaderDump` is not the
+instrument's (`NOT_THE_INSTRUMENT_S`), so no uncompared pin moves.
+
+**The disk first.** Scan of every `gamelog.txt` under `~/ron-golden`
+(2026-11-07):
+- 920 dumps print the garrison counts, and one holds a non-zero value:
+  run1075 (the coverage pair's `cover=1` twin, 2034..2820). There who=1's
+  `peasants_garr` is 1 from block 2095 and climbs to 5 by 2820 (732
+  records); the other three counts are 0 everywhere.
+- `retargets` is non-zero in 295 dumps: run1075 181 lines, run861 166,
+  run866 124, run1340c 108, and so on.
+
+**Red where they part, and they do not.** The whole `rondata` lib ran
+with the five keys compared. Every red was a key-count pin (+5 keys a
+leader block): 21 widening `leader_rows` and unprinted-key literals, the
+six `diff::leader` window counts, and run96's by-hand sum. No `retargets`
+or garrison row parted on any walked window, and no `firsts` or
+`first_parting` moved (121 of 121 `first_parting` green).
+
+**The value diff.** run861 (the Lakota peace pair's word 4859 window,
+4853..5109): who=1 prints `retargets 3` on blocks 4859 and 4860, the
+word's own block, and non-zero on 166 records in the window; ours agrees on
+every one. The window's `firsts` pin is unchanged, and the mutation below
+shows the compare is live there. The garrison counts read 0 against 0 on
+every walked window: run1075 is walked by no harness (parked 3964a).
+
+**What is not established.** The `Leaders::process_all` reset's flag-2
+gate: a leader the original skips keeps a stale count, while the crate
+zeroes every player. The ladder reads a dead leader's count only through its
+own units, so it is unread. `insert_inside`'s `in_a_building` and
+`remove_from_inside`'s container slot `0x20` stay a `SEAM`; every
+`go_inside` here takes a building. Whether a decoy can be garrisoned at all
+in play: no dump shows one.
+
+**Coverage.** Diff-backed: `retargets` on every walked window (295 dumps
+print it non-zero, and run861's word window agrees on 166 records), and the
+garrison counts' 0 on every walked window. Reading-only: the decoy gate (the
+listing's `(piVar2[0x1a] & 1) == 0` in both functions), and run1075's
+`peasants_garr`, which no compare reaches.
 
 ## 409. Reserved for the next item on the AI track
 
