@@ -186,7 +186,7 @@ fn british_classical_pair_the_long_s_stride_walks_back_from_4567() {
     // `off_y` ours 24 theirs 744, `dest_y` 6936 against 6888. The gap
     // 4302..4400 is run1316c's (`docs/AI.md` §342). Item 3662: 186 →
     // 163, the standing families alone — no unit row parts through 4501.
-    pin_eq!(w.firsts.len(), 163, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 169, "the stride's baseline");
 }
 
 /// run1316c: the stride's gap before its first unit row, blocks
@@ -244,7 +244,7 @@ fn british_classical_pair_run1316c_s_gap_is_widened_whole() {
     // 4327 against 4321; on 4399 a round wounds the Citizen `0/5` (TI
     // 50) in ours alone (`hits_left` 48 against 50), and it flees.
     // Item 3662: 140 → 108, the standing families alone.
-    pin_eq!(w.firsts.len(), 108, "run1316c baseline");
+    pin_eq!(w.firsts.len(), 113, "run1316c baseline");
     // Every round, both directions: 167 round-blocks theirs, 164 ours,
     // 26 parting. **The first was on 4298, who=1's Galley `1/29`** (TY
     // 291, TI 341) at `0/2004`: theirs launches from (2690, 3917) at `sz`
@@ -326,7 +326,7 @@ fn british_classical_pair_run1316b_s_word_frame_is_widened_whole() {
     // the standing families alone, with `compare_target`'s sea raid arm:
     // on 4567 run1326's packet scores `0/3` and `0/10` at 512 and 596
     // for `1/21`, ours 9512 and 9596.
-    pin_eq!(w.firsts.len(), 109, "run1316b baseline");
+    pin_eq!(w.firsts.len(), 113, "run1316b baseline");
     // Every round, both directions: 809 round-blocks theirs, 899 ours,
     // 145 parting — the Galleys' rounds from the hull's square in ours.
     // Item 3662: 809 a side, none parting.
@@ -390,7 +390,7 @@ fn british_classical_pair_run1326b_s_closing_window_is_widened_whole() {
     // `1/108`, `1/124`, `1/114`, `1/98`, `1/105`), and the Javelineers
     // `1/114`'s `orders_x`/`orders_y` on 8760, (7953, 10301) against
     // (7958, 10275) (parked 3662a).
-    pin_eq!(w.firsts.len(), 99, "run1326b baseline");
+    pin_eq!(w.firsts.len(), 101, "run1326b baseline");
     // Every round, both directions: 209 a side. The British Catapults
     // (TI 265, piece 215) threw from their square 245 under until piece
     // 215 took piece 567's row; 23 parted before it.

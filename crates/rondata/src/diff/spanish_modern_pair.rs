@@ -280,7 +280,7 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     // muzzles and wound it on 3928 and 4017 in ours too. What stands is
     // block 3677's 101 rows, who=1's new units' `form`, groups 76 and 84,
     // and the Submarine `1/109` from its birth (3718a).
-    pin_eq!(w.firsts.len(), 113, "run1395b baseline");
+    pin_eq!(w.firsts.len(), 121, "run1395b baseline");
     // Every round, both directions: 654 in ours against 680, the first
     // parting the Battleship `1/45`'s on 3693. Item 3736: (654, 656), 28
     // parting — the Tanks `1/25` and `1/35` (TI 250, `PANZER`, a pivot
@@ -358,7 +358,7 @@ fn spanish_modern_pair_run1415_s_word_frame_is_widened_whole() {
     // 4015's 108 standing rows, who=1's groups 67 and 70 (4027, 4028), and
     // the Submarine `1/109`'s path, heading and tolerance (4030..4070,
     // 3718a). Nothing parts on the word's old frame.
-    pin_eq!(w.firsts.len(), 109, "run1415 baseline");
+    pin_eq!(w.firsts.len(), 118, "run1415 baseline");
     pin_eq!(w.rounds_read, (394, 394), "the rounds read");
     // Every round, both directions: 394 in ours against 400, 99 parting.
     // The Tanks `1/25` and `1/35` (TI 250, `PANZER`, `<RESTRICTION

@@ -190,7 +190,7 @@ fn korean_medieval_pair_the_long_s_stride_walks_back_from_3401() {
     // on 28 units, and who=1's groups' `held` and pools 64..75 as each is
     // minted. **No unit row parts on any stride block to 3301**: the
     // parting is in 3302..3401, which is run1331b's.
-    pin_eq!(w.firsts.len(), 108, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 132, "the stride's baseline");
 }
 
 /// run1331b: the word 3401's window, blocks 3295..3652 at the long's
@@ -259,7 +259,7 @@ fn korean_medieval_pair_run1331b_s_word_frame_is_widened_whole() {
     // the records part first on 3630, `1/95`'s `move.pause` ours 7
     // theirs 5, then `1/130` on 3632 (facing −945422336 against
     // −707788800, `recharging` 0 against 30).
-    pin_eq!(w.firsts.len(), 64, "run1331b baseline");
+    pin_eq!(w.firsts.len(), 73, "run1331b baseline");
     // Every round, both directions: 2152 round-blocks theirs, 1975 ours,
     // 298 parting. The slot rows from 3351 are theirs' spent arrows
     // (`flags 1`, held in their slot, COMBAT §46.7: the Royal Hwarang

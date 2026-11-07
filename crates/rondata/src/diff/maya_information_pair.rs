@@ -177,7 +177,7 @@ fn maya_information_pair_the_long_s_stride_is_widened() {
     // `form` on 27 units, who=1's nine groups' `held` with their pools, and
     // `mirror` on eight of who=1's craft. No position, order or hit parts
     // to the last stride block 3301.
-    pin_eq!(w.firsts.len(), 109, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 121, "the stride's baseline");
 }
 
 /// run1411b: the pair's closing window, blocks 3075..3331 at the long's

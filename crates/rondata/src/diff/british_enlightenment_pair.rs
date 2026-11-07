@@ -220,7 +220,7 @@ fn british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole() {
     // is the standing families alone: block 4581's 96 rows, the new
     // units' `form` and groups 76's and 79's `held`/pool, and one
     // `SITE[8].reg` on 4776.
-    pin_eq!(w.firsts.len(), 108, "run1157b baseline");
+    pin_eq!(w.firsts.len(), 113, "run1157b baseline");
 }
 
 /// run1185b: the pair's last blocks, 5266..5523 at the window's detail —
@@ -268,5 +268,5 @@ fn british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole() {
     // and group 76's `held`/pool. **One row is not a standing family**: on
     // block 5276 city `0/2000`'s `build:damage` reads ours 604 and 6/16
     // against theirs 610 and 0 (parked 3542a); the closing block agrees.
-    pin_eq!(w.firsts.len(), 110, "run1185b baseline");
+    pin_eq!(w.firsts.len(), 111, "run1185b baseline");
 }

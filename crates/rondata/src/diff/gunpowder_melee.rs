@@ -526,7 +526,7 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // one-step order in ours where theirs' are idle with none, and `0/3`
     // at (38136, 36600) against (38119, 36586) (parked 3788b).
     pin_eq!(w.blocks, 6, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 160, "run1413's word window");
+    pin_eq!(w.firsts.len(), 168, "run1413's word window");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

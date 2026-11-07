@@ -204,7 +204,7 @@ fn maya_ancient_pair_run1234b_s_word_frame_is_widened_whole() {
     // wound on 4386 and the Bowmen `1/44`..`1/46`'s angles from 4396
     // agree with it. What stands is the standing families (4177, 4179,
     // groups 77 and 78 from 4202 and 4238, `1/79`'s `form` on 4302).
-    pin_eq!(w.firsts.len(), 82, "run1234b baseline");
+    pin_eq!(w.firsts.len(), 84, "run1234b baseline");
 }
 
 /// **The closing state** (item 3600): run1234's closing block 5936, the

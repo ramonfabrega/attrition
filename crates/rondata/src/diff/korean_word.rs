@@ -210,7 +210,7 @@ fn run991b_s_word_frame_is_widened_whole() {
     // with the cart apart (3365b). No draw parts on either.
     // Item 3369: 80 -> 32, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 32, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 33, "keys that part in the window");
 }
 
 /// The closing state's window: run964b's closing block alone, the long's

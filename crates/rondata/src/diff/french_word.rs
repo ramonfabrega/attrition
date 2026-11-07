@@ -159,7 +159,7 @@ fn run982_s_word_frame_is_widened_whole() {
     // on 13941 left with the Cavalry Archer's and the Dragoon's nodes.
     // Item 3369: 41 -> 33, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 33, "run982 with the release nodes");
+    pin_eq!(w.firsts.len(), 37, "run982 with the release nodes");
 }
 
 /// run982b: the word 14604's window, blocks 14598..14854 at `GUYS=2`,

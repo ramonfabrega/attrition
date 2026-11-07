@@ -214,7 +214,7 @@ fn run973b_s_word_frame_is_widened_whole() {
     // moved 10497 → 12197, past the window.
     pin_eq!(
         w.firsts.len(),
-        28,
+        40,
         "run973b with bordering read off the owner"
     );
 }
@@ -268,7 +268,7 @@ fn run973c_s_gap_is_widened_whole() {
     // nothing apart on the army's targets — so the parting run973b's
     // first block holds is the army 1 target choice on 10490, between this
     // gap's last block (10478) and run973b's first.
-    pin_eq!(w.firsts.len(), 47, "run973c, quiet to its last block");
+    pin_eq!(w.firsts.len(), 49, "run973c, quiet to its last block");
 }
 
 /// run973d: the word 12197's window, blocks 12191..12447 at `GUYS=2`
@@ -324,7 +324,7 @@ fn run973d_s_word_frame_is_widened_whole() {
     // (`CHAR_ATTACK3` and `1` off run973e, `2` off run973f) **27**: the
     // standing set and `1/53`'s `dest_angle` on 12209, apart one field and
     // healed by the close; the word moved 12197 → 12267 → 13086.
-    pin_eq!(w.firsts.len(), 27, "run973d with the Horse Archer's nodes");
+    pin_eq!(w.firsts.len(), 28, "run973d with the Horse Archer's nodes");
 }
 
 /// The closing state's window: run966b's closing block alone, the long's

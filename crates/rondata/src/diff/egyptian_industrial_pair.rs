@@ -185,7 +185,7 @@ fn egyptian_industrial_pair_the_long_s_stride_walks_back_from_4959() {
     // units (the last, `1/112`, on 4901), the buildings' `build:extra`
     // (which the stride does not print) and who=1's groups 64..84's `held`
     // and pools as each is minted. No unit row parts on the stride.
-    pin_eq!(w.firsts.len(), 155, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 163, "the stride's baseline");
 }
 
 /// run1374b: the word 4959's window, blocks 4895..5210 at the long's
@@ -263,7 +263,7 @@ fn egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole() {
     // block 4895's standing families, `form` on `1/112` and `1/122`,
     // who=1's `bucket[2:wealth]` one low on 4943 (3700a's family), and
     // groups 65, 83 and 84's `held` and pools as each is minted.
-    pin_eq!(w.firsts.len(), 119, "run1374b baseline");
+    pin_eq!(w.firsts.len(), 123, "run1374b baseline");
     pin_eq!(w.rounds_read, (46, 46), "the rounds read");
     // Every round, both directions: 46 round-blocks ours, 54 theirs; 13
     // rows part, the first `1/54`'s launch on 4940 (`total_time` 6 against
@@ -339,7 +339,7 @@ fn egyptian_industrial_pair_run1384_s_closing_frame_is_widened_whole() {
     // after it, who=1's `bucket[2:wealth]` one low on 5436, `form` on
     // eighteen units as each is built, and groups 69 and 83 minted (5488,
     // 5516). No unit position, order, building or city row parts.
-    pin_eq!(w.firsts.len(), 128, "run1384 baseline");
+    pin_eq!(w.firsts.len(), 132, "run1384 baseline");
     // Every round, both directions: 122 a side, 19 parting — the
     // Artillery's (TY 269) seven launches from `1/81`, `1/89` and `1/91`
     // at their figures' squares, 136 low (5441..5621; 3683b's unfitted

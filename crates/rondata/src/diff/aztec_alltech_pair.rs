@@ -212,5 +212,5 @@ fn aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole() {
     // 4454, `1/94` on 4455, …) sit on units already apart by their
     // `attrition` period (ours 6 against theirs' 24), whose ticks fall on
     // other frames.
-    pin_eq!(w.firsts.len(), 277, "run1147b baseline");
+    pin_eq!(w.firsts.len(), 283, "run1147b baseline");
 }

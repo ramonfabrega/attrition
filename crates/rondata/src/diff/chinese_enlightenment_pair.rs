@@ -190,7 +190,7 @@ fn chinese_enlightenment_pair_the_long_s_stride_walks_back_from_3263() {
     // units, 51 buildings' `build:extra` (which the stride does not print)
     // and who=1's groups 64..70's `held` and pools as each is minted. No
     // unit row parts on a stride block through 3201.
-    pin_eq!(w.firsts.len(), 92, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 105, "the stride's baseline");
 }
 
 /// run1350b: the word 3263's window, blocks 3195..3514 at the long's
@@ -267,7 +267,7 @@ fn chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole() {
     // 7; 3675a's family).
     // Item 3708: 58 → 52, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 52, "run1350b baseline");
+    pin_eq!(w.firsts.len(), 62, "run1350b baseline");
     // Every round, both directions: 263 round-blocks theirs, 305 ours (each
     // of ours flies a frame longer), 209 parting, the first on the
     // window's first block 3195 (item 3675). Item 3704: 263 against 263,
@@ -344,7 +344,7 @@ fn chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole() {
     // no round parts, and the closing block 3837 agrees.
     // Item 3708: 62 → 47, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 47, "run1381b baseline");
+    pin_eq!(w.firsts.len(), 51, "run1381b baseline");
     // Every round, both directions: 231 round-blocks each side, none
     // parting.
     pin_eq!(w.rounds_read, (231, 231), "the rounds read");

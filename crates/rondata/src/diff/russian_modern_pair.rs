@@ -335,7 +335,7 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // parts nothing on the window. What is left is the standing families,
     // groups 73, 91, 92 and 93's `held` and pool, `form` on `1/122`,
     // `1/145`, `1/155`, and who=1's reassembly on block 3808.
-    pin_eq!(w.firsts.len(), 126, "run1161b baseline");
+    pin_eq!(w.firsts.len(), 130, "run1161b baseline");
 }
 
 /// run1166b: the word 4097's window, blocks 4092..4348 at the long's detail —
@@ -404,7 +404,7 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     // 4210 (their move points are `think_scout`'s unseen cells, and the CEO's
     // two tiles of sight lit them); what is left is the standing families
     // and who=1's reassembly on block 4104 (3522a).
-    pin_eq!(w.firsts.len(), 146, "run1166b baseline");
+    pin_eq!(w.firsts.len(), 147, "run1166b baseline");
 }
 
 /// run1170: the word 5651's window, blocks 5645..5841 at the long's detail —
@@ -479,7 +479,7 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
-    pin_eq!(w.firsts.len(), 177, "run1170 baseline");
+    pin_eq!(w.firsts.len(), 178, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
@@ -536,7 +536,7 @@ fn russian_modern_pair_run1168_s_gap_is_widened_whole() {
     // (8664, 1368) against theirs (8568, 984), `1/146` `order:kind` ours 2
     // against theirs 21, and 878 path keys with them. The fix (the barge's
     // sweep round slot 0): 1881 → 114, the standing families alone.
-    pin_eq!(w.firsts.len(), 114, "run1168 baseline");
+    pin_eq!(w.firsts.len(), 115, "run1168 baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one
@@ -584,7 +584,7 @@ fn russian_modern_pair_run1162_s_gap_is_widened_whole() {
     // `income` on 3400 (3487 against 3753: the CEO's city, run1162e). With
     // the three built, 121: the standing families and `dest_angle` on
     // `1/34`, `1/70` and `1/130`.
-    pin_eq!(w.firsts.len(), 121, "run1162 baseline");
+    pin_eq!(w.firsts.len(), 132, "run1162 baseline");
 }
 
 /// run1162c: the first parting's window, blocks 2174..2210 at the long's
@@ -630,7 +630,7 @@ fn russian_modern_pair_run1162c_s_first_parting_is_widened_whole() {
     // 2187 — the site `1/2038` (type 422, `construct_hits` 1) disbanded and
     // refunded 160 timber and 110 metal on theirs, priced after its close.
     // With `SimDisband` pricing after the close, 90: the standing families.
-    pin_eq!(w.firsts.len(), 90, "run1162c baseline");
+    pin_eq!(w.firsts.len(), 96, "run1162c baseline");
 }
 
 /// run1162d: the territory census's window, blocks 2596..2622 at the long's

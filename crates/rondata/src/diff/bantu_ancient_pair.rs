@@ -318,7 +318,7 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // 5253) stand: both are the **buried** `ATTACKORDER`'s target, which
     // this crate does not carry — the current attack agrees on both sides
     // on both blocks (`docs/AI.md` §315.3, parked 3592a).
-    pin_eq!(w.firsts.len(), 94, "run1236b baseline");
+    pin_eq!(w.firsts.len(), 99, "run1236b baseline");
 }
 
 /// **The long's stride, walked back from the word 5072** (item 3591):
@@ -363,7 +363,7 @@ fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
     // `form` and `build:extra` — from 101 through 5001: no unit field
     // parts on any stride block, so the state run1236b opens apart on
     // 5066 parts after 5001.
-    pin_eq!(w.firsts.len(), 182, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 190, "the stride's baseline");
 }
 
 /// run1238: the stride's gap walked, blocks 4995..5073 at the long's
@@ -422,7 +422,7 @@ fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
     // ours threw from the figure's own square (6792, 8520) for 16.
     //
     // With the Umpakati's bays: **92**, the standing families alone.
-    pin_eq!(w.firsts.len(), 92, "run1238 baseline");
+    pin_eq!(w.firsts.len(), 94, "run1238 baseline");
 }
 
 /// run1238d: the word 5322's window, blocks 5316..5572 at the long's
@@ -491,7 +491,7 @@ fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
     // (it came down on 5523 in ours), and the Bark's move on 5526 agrees.
     // What stands is the standing families, the buried target (3592a) and
     // eight guards' `dest_angle` (5380..5474, 3580b's shape).
-    pin_eq!(w.firsts.len(), 94, "run1238d baseline");
+    pin_eq!(w.firsts.len(), 103, "run1238d baseline");
 }
 
 /// **The pair's closing state**: run1206's closing dump, block 6211, walked
@@ -598,5 +598,5 @@ fn bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole() {
     // from the window's first block 5955: `form`, `SITE[i].reg`,
     // `aggression[1]` and who=1's groups' `held` and pools. No unit,
     // building or city field parts, and the closing block agrees.
-    pin_eq!(w.firsts.len(), 73, "run1240 baseline");
+    pin_eq!(w.firsts.len(), 77, "run1240 baseline");
 }

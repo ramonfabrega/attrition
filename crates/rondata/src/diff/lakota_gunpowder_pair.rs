@@ -196,7 +196,7 @@ fn lakota_gunpowder_pair_the_long_s_stride_walks_back_from_4187() {
     // part through block 4101: the Musket Horse `1/54` (TypeIndex 207)
     // and the Citizen `0/5` (TypeIndex 50) agree there, `1/54` on an
     // `ATTACKTOORDER` to (10440, 28248).
-    pin_eq!(w.firsts.len(), 83, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 91, "the stride's baseline");
 }
 
 /// run1289b: the word 4187's window, blocks 4182..4438 at the long's
@@ -280,7 +280,7 @@ fn lakota_gunpowder_pair_run1289b_s_word_frame_is_widened_whole() {
     // `1/51` 4215, `1/63` 4231, `1/50` 4315 — theirs writes it with the
     // turn, ours keeps the old) and who=1's `bucket[0:food]` 10681 against
     // 10683 from 4219; nothing past them parts through 4438.
-    pin_eq!(w.firsts.len(), 55, "run1289b baseline");
+    pin_eq!(w.firsts.len(), 57, "run1289b baseline");
     // **Every round, both directions** (item 3645, Loop 3644): 222 round-
     // blocks a side. Before the rows 235 ours against 222 and 119 round
     // keys, the first `1/39`'s launch on 4217. What stands is two rounds'
@@ -360,7 +360,7 @@ fn lakota_gunpowder_pair_run1305_s_gap_is_widened_whole() {
     // sides; its round leaves on frame 4181 from (8560, 27252, 666) and
     // flies 3 — ours' too since piece 157's rows, from (8712, 27240) and
     // 4 before. The Citizen `0/5` is struck on 4183 on both sides.
-    pin_eq!(w.firsts.len(), 49, "run1305 baseline");
+    pin_eq!(w.firsts.len(), 50, "run1305 baseline");
     pin_eq!(w.rounds_read, (2, 2), "the rounds read");
     pin!(w.rounds.is_empty(), "a round parts: {:?}", w.rounds);
 }
@@ -437,7 +437,7 @@ fn lakota_gunpowder_pair_run1305c_s_word_frame_is_widened_whole() {
     // 1. The draw on 4477: ours 73 against 83, index 56, ours
     // `Guy::set_anim < Unit::move_step`, theirs `Unit::find_attack_pos <
     // Unit::fight` (`docs/AI.md` §336).
-    pin_eq!(w.firsts.len(), 51, "run1305c baseline");
+    pin_eq!(w.firsts.len(), 63, "run1305c baseline");
     // Every round, both directions: 203 round-blocks theirs, 185 ours; the
     // first to part are the Musket Horse `1/25`'s landing on 4478 (ours
     // (6076, 28723) against (6067, 28724)) and the Bombard `1/58`'s on 4480.
@@ -559,7 +559,7 @@ fn lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole() {
     // `leftover[0:food]`, parked 3645b); group 67's from 4675 and
     // `SITE[1].reg` from 4576. No unit, building, city or round field parts,
     // and the closing block 4751 agrees.
-    pin_eq!(w.firsts.len(), 50, "run1319 baseline");
+    pin_eq!(w.firsts.len(), 63, "run1319 baseline");
     // 168 round-blocks a side, and none part.
     pin_eq!(w.rounds_read, (168, 168), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

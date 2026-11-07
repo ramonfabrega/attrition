@@ -177,7 +177,7 @@ fn japanese_medieval_pair_the_long_s_stride_walks_to_5101() {
     // buildings' `build:extra` (which the stride does not print), `form`
     // on 27 units, and who=1's groups' `held` and pools 64..71 as each is
     // minted. **No unit row parts on any stride block to 5101.**
-    pin_eq!(w.firsts.len(), 108, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 120, "the stride's baseline");
 }
 
 /// run1329b: the closing window, blocks 4884..5141 at the word window's

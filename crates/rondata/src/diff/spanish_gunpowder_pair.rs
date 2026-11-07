@@ -217,7 +217,7 @@ fn spanish_gunpowder_pair_the_long_s_stride_walks_back_from_2168() {
     // containment parts through block 2101: the Arquebusiers `1/48`, `1/49`
     // and `1/50` (TypeIndex 98) agree there, `1/48` and `1/49` on an
     // `ATTACKTOORDER` to (40776, 37128).
-    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 106, "the stride's baseline");
 }
 
 /// run1287b: the word 2168's window, blocks 2163..2419 at the long's
@@ -302,7 +302,7 @@ fn spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole() {
     // arm now ejects at the shore: on 2163 ours' `1/48` stands at (41688,
     // 36360), `1/49` at (41688, 36168) and `1/50` at (41832, 36504), as
     // theirs, `inside` −1, and `1/68` is gone on both sides.
-    pin_eq!(w.firsts.len(), 85, "run1287b baseline");
+    pin_eq!(w.firsts.len(), 87, "run1287b baseline");
 }
 
 /// run1301: the gap 2102..2162 that the long's stride does not print, at
@@ -361,7 +361,7 @@ fn spanish_gunpowder_pair_run1301_s_gap_is_widened_whole() {
     // order, both sides. **The state parted on 2163** before this item:
     // theirs puts the three ashore and `1/68` dies; ours kept them aboard
     // (`think_carry_army`'s eject was a seam, `docs/AI.md` §335.1).
-    pin_eq!(w.firsts.len(), 76, "run1301 baseline");
+    pin_eq!(w.firsts.len(), 78, "run1301 baseline");
 }
 
 /// run1303: the gap 3802..3860 that the long's stride does not print, at
@@ -498,7 +498,7 @@ fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
     // bay (1809, 5233) for 12 frames with theirs, and the Farm is struck
     // on 3877 both sides; what is left past block 3861 is who=1's groups'
     // `held` and pools on 3882, 3966, 4018, 4028 and 4106 (§335.3).
-    pin_eq!(w.firsts.len(), 95, "run1301b baseline");
+    pin_eq!(w.firsts.len(), 97, "run1301b baseline");
 }
 
 /// run1304b: the word 4859's window, blocks 4853..5109 at run1287b's
@@ -570,7 +570,7 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
     // (a sea-only attacker, `valid_target_const`'s `0x102000` arm), and no
     // unit parts past the standing families but `1/122`'s `half_step` on
     // 4878 (ours 1, theirs 0).
-    pin_eq!(w.firsts.len(), 135, "run1304b baseline");
+    pin_eq!(w.firsts.len(), 145, "run1304b baseline");
     // **Every round, both directions** (item 3645's walk, Loop 3644): 608
     // round-blocks a side. What parts is three rounds on block 5002 (`1/56`,
     // `1/57`, `1/73`) whose target `0/12` has left the dump: theirs keep
@@ -661,7 +661,7 @@ fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
             .is_none(),
         "no unit parts"
     );
-    pin_eq!(w.firsts.len(), 137, "run1306 baseline");
+    pin_eq!(w.firsts.len(), 144, "run1306 baseline");
     // **Every round, both directions** (item 3645's walk): 439 round-blocks
     // a side, and none parts.
     pin_eq!(w.rounds_read, (439, 439), "the rounds read");

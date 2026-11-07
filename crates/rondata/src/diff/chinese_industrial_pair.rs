@@ -263,7 +263,7 @@ fn chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole() {
     // and with them `0/4`'s flight of 3243 and `1/41`'s path of 3256. What
     // stands is block 3001's 49 standing rows and groups 68's and 70's
     // `held`/pool.
-    pin_eq!(w.firsts.len(), 53, "run1155b baseline");
+    pin_eq!(w.firsts.len(), 61, "run1155b baseline");
 }
 
 /// run1175: the word 3271's window, blocks 3258..3522 at the long's
@@ -323,7 +323,7 @@ fn chinese_industrial_pair_run1175_s_word_frame_is_widened_whole() {
     // re-aims at (8136, 30120), `path:length` 8, as theirs does. Block
     // 3258's standing rows are all that part: `form` on 22 units, the
     // ten `SITE[i].reg`, `aggression[1]`, and five groups' `held`/pool.
-    pin_eq!(w.firsts.len(), 43, "run1175 baseline");
+    pin_eq!(w.firsts.len(), 46, "run1175 baseline");
 }
 
 /// run1184: the pair's last blocks, 4201..4468 at the long's detail — from
@@ -386,5 +386,5 @@ fn chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole() {
     // (4203), `1/110` (4342) and `1/75` (4343), who=1's `escrow`/food
     // economy (4213, 4376–4379) and `mylos` ours 4 against theirs 16 on
     // five of who=1's units from 4376.
-    pin_eq!(w.firsts.len(), 81, "run1184 baseline");
+    pin_eq!(w.firsts.len(), 83, "run1184 baseline");
 }

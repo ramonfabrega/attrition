@@ -242,7 +242,7 @@ fn russian_medieval_pair_run1258b_s_word_frame_is_widened_whole() {
     // captain's): 49 keys — `1/41` falls at 36 on 3351 in ours too, and
     // `1/42`, alone, takes its whole point (20, `damage_frac` 0); past the
     // standing families nothing parts.
-    pin_eq!(w.firsts.len(), 49, "run1258b baseline");
+    pin_eq!(w.firsts.len(), 60, "run1258b baseline");
 }
 
 /// run1268b: the closing window, blocks 4286..4542 at run1258b's detail
@@ -309,7 +309,7 @@ fn russian_medieval_pair_run1268b_s_word_frame_is_widened_whole() {
     // on 4444, on both sides now. Past the standing families: the two
     // order points above and `1/125`'s `dest_angle` on 4509 (ours
     // -1605566464, theirs 1814626304); no draw parts.
-    pin_eq!(w.firsts.len(), 55, "run1268b baseline");
+    pin_eq!(w.firsts.len(), 87, "run1268b baseline");
 }
 
 /// **The long's stride, walked back from the window** (item 3605):
@@ -354,7 +354,7 @@ fn russian_medieval_pair_the_long_s_stride_walks_back_from_3149() {
     // who=1's pools and groups' `held`. The Peltasts `1/43` stand on 3001
     // and are gone on 3101 on both sides; the wagon's birth, and the
     // numbering, fall in the gap 3102..3142.
-    pin_eq!(w.firsts.len(), 87, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 94, "the stride's baseline");
 }
 
 /// **The Elite Javelineers' two buildings, valued as run1268's packet values

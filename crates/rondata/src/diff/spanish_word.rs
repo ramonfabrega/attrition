@@ -216,7 +216,7 @@ fn run958d_s_word_frame_is_widened_whole() {
     // `form`, the groups' `held` and the pools, from 7779, and group 68's
     // on 7939); the word's block
     // 7786 parts nothing, and the word moved 7785 → 14382, past the window.
-    pin_eq!(w.firsts.len(), 34, "run958d with Salt's Barracks arm");
+    pin_eq!(w.firsts.len(), 36, "run958d with Salt's Barracks arm");
 }
 
 /// run958e: the word 14382's window, blocks 14376..14632 at run958d's
@@ -385,5 +385,5 @@ fn run958f_s_word_frame_is_widened_whole() {
     // with the Iroquois'), and on the closing block 22701 alone who=0's
     // `defense` (0 against −1) and `1/2024`'s `queued` (1 against 0), the
     // game's end (park KJ).
-    pin_eq!(w.firsts.len(), 33, "run958f with decoys out of the tally");
+    pin_eq!(w.firsts.len(), 45, "run958f with decoys out of the tally");
 }

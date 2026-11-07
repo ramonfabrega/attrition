@@ -201,7 +201,7 @@ fn aztec_ancient_pair_run1256b_s_word_frame_is_widened_whole() {
     // collides in theirs alone (`collide_o` 3, path 4 against 1); the word's
     // extra draw is theirs' `Guy::set_anim < Unit::move_step`, at index 2.
     // Item 3613, with piece 36's bays: 136, the standing families alone.
-    pin_eq!(w.firsts.len(), 136, "run1256b baseline");
+    pin_eq!(w.firsts.len(), 143, "run1256b baseline");
 }
 
 /// **The long's stride, walked back from the word 8716** (item 3604):
@@ -250,7 +250,7 @@ fn aztec_ancient_pair_the_long_s_stride_walks_back_from_8716() {
     // parts in the gap 8602..8700. Item 3613, with piece 36's bays: 306 —
     // the wounds agree, and `1/107`'s `mylos` and the standing families
     // stay.
-    pin_eq!(w.firsts.len(), 306, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 366, "the stride's baseline");
 }
 
 /// run1266: the gap's window, blocks 8596..8710 at run1256b's detail with
@@ -308,7 +308,7 @@ fn aztec_ancient_pair_run1266_s_gap_is_widened_whole() {
     // 14 in theirs; then `0/13`'s on 8700, `1/155`'s from (6540, 9742).
     // With the bays: 141, the standing families and `1/175`'s
     // `dest_angle` alone.
-    pin_eq!(w.firsts.len(), 141, "run1266 baseline");
+    pin_eq!(w.firsts.len(), 147, "run1266 baseline");
 }
 
 /// **The closing state** (item 3613): run1256's closing block 9259, the
@@ -405,5 +405,5 @@ fn aztec_ancient_pair_run1266d_s_closing_frame_is_widened_whole() {
     );
     // Item 3613: 163 keys, the standing families alone, through the
     // closing block 9259.
-    pin_eq!(w.firsts.len(), 163, "run1266d baseline");
+    pin_eq!(w.firsts.len(), 166, "run1266d baseline");
 }

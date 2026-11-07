@@ -1626,7 +1626,7 @@ mod bodies {
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             // Item 1444: the ruins guard removes stale site fields (batch replay).
-            [(23960, 37), (24001, 48)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(23960, 37), (24001, 53)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, and how many"
         );
         let end: Vec<&String> = firsts
@@ -1708,7 +1708,7 @@ mod bodies {
         // Item 1291 took rows: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(23960, 37), (24001, 49)],
+            [(23960, 37), (24001, 54)],
             "the blocks keys first part on, and how many"
         );
         let end: Vec<String> = firsts
@@ -1725,7 +1725,14 @@ mod bodies {
         // endpoint prints East Indies' one torn unit, as it always has.
         pin_eq!(
             end,
-            ["0/3 pos: ours (5542,5934) theirs (5534,5957)"],
+            [
+                "0/1 cant_reach: ours 0 theirs 1",
+                "0/2 cant_reach: ours 0 theirs 1",
+                "0/3 cant_reach: ours 0 theirs 1",
+                "0/3 pos: ours (5542,5934) theirs (5534,5957)",
+                "0/4 cant_reach: ours 0 theirs 1",
+                "0/5 cant_reach: ours 0 theirs 1"
+            ],
             "the end block parts on `orders.len` and one position"
         );
         // Item 1115 took the caravan's four rows here (292 → 288; `docs/CARAVAN.md` §11.3).

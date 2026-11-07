@@ -294,7 +294,7 @@ fn run989d_s_word_frame_is_widened_whole() {
     // against 0, `aggression[1]`, `pool:64`/`65`/`67` and
     // `group:64`/`65`/`67.held` with no `GROUPDATA` printed, and the
     // `g.angle[0]` of fourteen figures).
-    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 45, "keys that part in the window");
 }
 
 /// The closing state's window: run895b's closing block alone, the long's

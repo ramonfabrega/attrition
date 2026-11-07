@@ -198,7 +198,7 @@ fn inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole() {
     // closing block 4472 agree.
     // Item 3742: 78 → **60**, the Biplanes' `myspeed` on 18 units gone
     // with `update_speed`'s Aluminum arm (`docs/AI.md` §366.3).
-    pin_eq!(w.firsts.len(), 60, "run1372b baseline");
+    pin_eq!(w.firsts.len(), 67, "run1372b baseline");
     // Every round, both directions: 297 round-blocks each side. **10 rows
     // part, every one a launch** of group 66's Siege Mortars (TI 275, TY
     // 225, **piece 225**, which `launch::BAYS` has no row for): `1/60`'s

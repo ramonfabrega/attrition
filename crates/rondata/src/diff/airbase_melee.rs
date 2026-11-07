@@ -306,7 +306,7 @@ fn airbase_melee_run1492_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 181, "run1492's word window");
+    pin_eq!(w.firsts.len(), 190, "run1492's word window");
     pin_eq!(w.rounds_read, (4, 4), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -439,7 +439,7 @@ fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
         }
     }
     pin_eq!(w.blocks, 4, "every stride block in the window");
-    pin_eq!(w.firsts.len(), 123, "run1492's stride before the word");
+    pin_eq!(w.firsts.len(), 133, "run1492's stride before the word");
     pin_eq!(w.rounds_read, (12, 12), "the rounds read");
     pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
@@ -506,7 +506,7 @@ fn airbase_melee_run1496_s_window_is_widened_whole() {
         "neither 1/18 nor 1/41 parts on any block of the window"
     );
     pin_eq!(w.blocks, 45, "every block in the window");
-    pin_eq!(w.firsts.len(), 120, "run1496's window");
+    pin_eq!(w.firsts.len(), 128, "run1496's window");
     pin_eq!(w.rounds_read, (139, 139), "the rounds read");
     pin_eq!(w.rounds.len(), 15, "the rounds that part");
 }

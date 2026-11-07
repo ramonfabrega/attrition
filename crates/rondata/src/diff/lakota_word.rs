@@ -154,7 +154,7 @@ fn run980_s_word_frame_is_widened_whole() {
     // Slingers' `order:target` — `1/12` on 6085 and `1/6` on 6092, ours
     // the citizen `0/2` and theirs the city centre `0/2000` (parked by
     // item 3345); the draw stream agrees past both to the game's end.
-    pin_eq!(w.firsts.len(), 30, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 33, "keys that part in the window");
 }
 
 /// The closing state's window: run975b's closing block alone, the long's

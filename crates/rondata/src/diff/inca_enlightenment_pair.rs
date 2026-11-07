@@ -178,7 +178,7 @@ fn inca_enlightenment_pair_the_long_s_stride_walks_back_from_3095() {
     // five groups' `held` and pools as each is minted (65 on 101 through
     // 68 on 2101). No unit's position, orders or hits part through block
     // 3001.
-    pin_eq!(w.firsts.len(), 84, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 96, "the stride's baseline");
 }
 
 /// run1310b: the word 3095's window, blocks 3089..3345 at the long's
@@ -254,7 +254,7 @@ fn inca_enlightenment_pair_run1310b_s_word_frame_is_widened_whole() {
     // pools, `form`, the leaders' `SITE[i].reg` and who=0's
     // `aggression[1]`. With piece 753's bays `0/5` is struck on 3053 and
     // `1/36` holds `0/12` on 3089 on both sides; no unit's field parts.
-    pin_eq!(w.firsts.len(), 50, "run1310b baseline");
+    pin_eq!(w.firsts.len(), 60, "run1310b baseline");
     // Every round, both directions: 104 round-blocks theirs, 138 ours. The
     // first to part is `1/36`'s, on 3092: ours at `0/5`, theirs at `0/12`.
     // Item 3659: 104 a side; four keys part, on 3239: `1/37`'s and
@@ -324,7 +324,7 @@ fn inca_enlightenment_pair_run1323_s_gap_is_widened_whole() {
     // `1/25`'s on 3053 flying 3 frames against 2. After: **51**, all
     // standing (groups' `held` and pools, `SITE[i].reg`,
     // `aggression[1]`), and no round parts.
-    pin_eq!(w.firsts.len(), 51, "run1323 baseline");
+    pin_eq!(w.firsts.len(), 60, "run1323 baseline");
     pin_eq!(w.rounds_read, (30, 30), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

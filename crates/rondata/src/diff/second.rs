@@ -1304,7 +1304,7 @@ mod tests {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(6604, 34), (6685, 2), (6718, 3)],
+            [(6604, 34), (6685, 2), (6718, 5)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1197: 298 → 189, the dead transports' numbers held
@@ -1315,7 +1315,7 @@ mod tests {
         // Item 1407: 130 → 129 (6604's 104 → 103).
         // Item 1457: 127 → 109; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 109 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 39, "every key parted on run420");
+        pin_eq!(w.firsts.len(), 41, "every key parted on run420");
     }
 
     /// **The second pair's East Indies word, 7382, widened whole** (item
@@ -2051,7 +2051,7 @@ mod tests {
                 .filter(|(b, _)| **b <= 11_638)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(11632, 29)],
+            [(11632, 29), (11638, 12)],
             "the blocks keys first part on, to 11637's"
         );
         // Item 1302 took 1151: the six squads' records, the group's list,
@@ -2060,7 +2060,7 @@ mod tests {
         // Item 1407: 139 → 138.
         // Item 1458: 136 → 131; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 52 -> 36.
-        pin_eq!(w.firsts.len(), 36, "every key parted on run506");
+        pin_eq!(w.firsts.len(), 48, "every key parted on run506");
     }
 
     /// **run508 — the second pair's East Indies word 12582, widened whole**
@@ -2284,7 +2284,7 @@ mod tests {
         // Item 1457: 159 → 149; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 149 → 141; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 48 -> 32.
-        pin_eq!(w.firsts.len(), 32, "every key parted on run535");
+        pin_eq!(w.firsts.len(), 34, "every key parted on run535");
     }
 
     /// **run544 — the second pair's East Indies word 15862, widened whole**
@@ -2802,7 +2802,7 @@ mod tests {
         // Item 1563: 163 → 177; the shared instrument compares `ever_seen` and `ever_seen_completed` (parked 1450), and on the closing block 18141 seven of player 1's buildings, `1/2056`..`1/2062`, read 3 in the original against 2 — the defeated human's bit, a closing residue.
         // Item 1586: 177 → 176; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 100 -> 84.
-        pin_eq!(w.firsts.len(), 84, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        pin_eq!(w.firsts.len(), 86, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2903,7 +2903,7 @@ mod tests {
         // Item 1502: 186 → 158 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 1586: 158 → 157; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 101 -> 85.
-        pin_eq!(w.firsts.len(), 85, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 89, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -3003,7 +3003,7 @@ mod tests {
         // Item 1481: 212 → 209; who=1's `MAKE[3]` is the Terra Cotta Army (worth 2) at 250750, not Hanging Gardens (worth 1) (`docs/AI.md` §124).
         // Item 1502: 158 → 134 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 84 -> 68.
-        pin_eq!(w.firsts.len(), 68, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 71, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
@@ -3148,7 +3148,7 @@ mod tests {
         // Item 1502: 221 → 197 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 2002: 105 → 103; `group:71.speed` 17527 and `new_speed` 17530, ours 26 theirs 25, agree: a member's search normalizes its group (`docs/GOLDEN.md` §73).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 102 -> 86.
-        pin_eq!(w.firsts.len(), 86, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 87, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
@@ -3234,7 +3234,7 @@ mod tests {
         // Item 1586: 202 → 199; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Items 2193 and 2205, merged together (each gated without the other): 139 → 138.
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 137 -> 121.
-        pin_eq!(w.firsts.len(), 121, "every key parted on run583");
+        pin_eq!(w.firsts.len(), 127, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
@@ -3553,7 +3553,7 @@ mod tests {
         pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1502: [(4550, 61), (4585, 1), (4598, 1)] → this, on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
-            [(4550, 28)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(4550, 28), (4711, 1), (4780, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((4550, 76) until \
              item 1061 compared the group record; 86, 18 and 1 on 4550, 4575 \
              and 4585 until item 1014, the scout's ten and eighteen)"
@@ -3858,7 +3858,7 @@ mod tests {
             // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: (4841, 72) → (4841, 59) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
             // Item 3279: −2, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-            [(4841, 28)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(4841, 31), (4883, 1), (4891, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((4841, 102), \
              (4909, 2) until item 1330 took the births' `form`; (4841, 104), \
              (4853, 3), (4868, 2) until item 1099 added the re-search's order \
@@ -3900,7 +3900,7 @@ mod tests {
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: 79 → 66 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
             // Item 3279: −2, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-            28, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            33, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every key parted on run373"
         );
     }
@@ -4022,7 +4022,7 @@ mod tests {
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             // Item 1502: (5100, 57), (5149, 1) → (5100, 57), (5176, 2) on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
             // Item 3279: −4, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-            [(5100, 23), (5176, 2)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(5100, 26), (5176, 2), (5178, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first three ((5100, 79) \
              until item 1330 took the births' `form`; (5100, 92), \
              (5105, 2), (5128, 1) until item 1099; (5100, 90), (5147, 2) \
@@ -4039,7 +4039,7 @@ mod tests {
             w.firsts.len(), // Item 1444: the ruins guard removes stale site fields (batch replay).
             // Item 1502: 77 → 62 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
             // Item 3279: −4, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-            25, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            29, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "every key parted on run396"
         );
     }

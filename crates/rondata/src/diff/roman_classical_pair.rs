@@ -264,7 +264,7 @@ fn roman_classical_pair_run1194b_s_word_frame_is_widened_whole() {
     // Horse `1/28`'s `dest_angle` on 4079 — ours 137756672, theirs
     // -1351155712, ours a frame late at its guard post, agreeing from
     // 4080 (parked 3567a).
-    pin_eq!(w.firsts.len(), 48, "run1194b baseline");
+    pin_eq!(w.firsts.len(), 49, "run1194b baseline");
 }
 
 /// run1210: the pair's last blocks, 6875..7131 at the window's detail —

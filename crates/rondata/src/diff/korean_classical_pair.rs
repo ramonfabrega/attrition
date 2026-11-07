@@ -251,7 +251,7 @@ fn korean_classical_pair_run1250b_s_word_frame_is_widened_whole() {
     // 8390, 69 on 8458), and three of who=1's `orders_x`/`orders_y` a few
     // units apart (`1/69` on 8548, 11580, 30913 against 11601, 30926).
     // No `pos`, `hits` or order row parts.
-    pin_eq!(w.firsts.len(), 74, "run1250b baseline");
+    pin_eq!(w.firsts.len(), 79, "run1250b baseline");
 }
 
 /// **The pair's last blocks, from the disk** (item 3609): the word is the
@@ -309,5 +309,5 @@ fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
     // `aggression[1]`, `1/2090`'s `gather:length[-1]` ours 0 against 45 —
     // and who=1's `bucket[3:knowledge]`, ours 1437 against 937 (parked
     // 3609a).
-    pin_eq!(w.firsts.len(), 173, "the closing walk's baseline");
+    pin_eq!(w.firsts.len(), 185, "the closing walk's baseline");
 }

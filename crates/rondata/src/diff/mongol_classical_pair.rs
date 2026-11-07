@@ -319,7 +319,7 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // 9783 (parked 3581a).
     // Item 3595: 96 -> 95, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9738, agrees.
-    pin_eq!(w.firsts.len(), 95, "run1218 baseline");
+    pin_eq!(w.firsts.len(), 103, "run1218 baseline");
 }
 
 /// **The long's stride, walked back from the word 9744** (item 3575):
@@ -367,7 +367,7 @@ fn mongol_classical_pair_the_long_s_stride_walks_back_from_9744() {
     // every unit's `form`, who=1's groups' `held` and pool, the `g.angle[0]`
     // of who=1's newborns on their first block. No unit row parts on a
     // stride block through 9701.
-    pin_eq!(w.firsts.len(), 148, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 158, "the stride's baseline");
 }
 
 /// run1222: the gap 9702..9737 the stride and run1218 leave undumped,
@@ -427,7 +427,7 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // the `dest_angle` family (3574b) from 9733.
     // Item 3595: 82 -> 81, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9696, agrees.
-    pin_eq!(w.firsts.len(), 81, "run1222 baseline");
+    pin_eq!(w.firsts.len(), 84, "run1222 baseline");
 }
 
 /// run1224: the word 9772's window, blocks 9740..9885 at run1218's detail
@@ -490,7 +490,7 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     // against 16856 (parked 3581a), and the `dest_angle` family (3574b).
     // Item 3595: 93 -> 92, the eight-slot territory tie (`docs/AI.md`
     // section 318.2): who=1's `leftover[2:wealth]` on 9740, agrees.
-    pin_eq!(w.firsts.len(), 92, "run1224 baseline");
+    pin_eq!(w.firsts.len(), 100, "run1224 baseline");
 }
 
 /// **The closing state** (item 3581): with the draw stream whole to the

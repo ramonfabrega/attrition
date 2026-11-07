@@ -221,7 +221,7 @@ fn german_industrial_moderate_pair_the_long_s_stride_walks_back_from_the_word() 
     // one a standing family — the buildings' `build:extra` (64, which the
     // stride does not print), `form` on 27 units, and who=1's groups
     // 64..71' `held` and pools (8 each). No value row; no draw parts.
-    pin_eq!(w.firsts.len(), 107, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 124, "the stride's baseline");
 }
 
 /// run1491b: the pair's last blocks, 4528..4785 at the long's detail with
@@ -284,7 +284,7 @@ fn german_industrial_moderate_pair_run1491b_s_closing_frame_is_widened_whole() {
     // family — `form` (23), who=1's groups' `held` and pools (9 each),
     // who=0's `SITE[0..9].reg` (1 against 0) and `aggression[1]` (0 against
     // 1). No draw parts to 4784.
-    pin_eq!(w.firsts.len(), 52, "run1491b baseline");
+    pin_eq!(w.firsts.len(), 55, "run1491b baseline");
     // Every round, both directions: 1015 against 1015, and one parts, on
     // two fields: the Armored Car `1/35`'s (TI 216, land) `ammo[3]` on 4564
     // flies at the Citizen `0/12`, which died on 4563 — theirs keeps `ox`

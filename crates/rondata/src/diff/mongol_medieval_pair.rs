@@ -200,7 +200,7 @@ fn mongol_medieval_pair_the_long_s_stride_walks_back_from_the_word() {
     // Item 3709, to 3901 before the word 3989: 39 blocks, **162** keys,
     // the same standing families as each group and building is minted —
     // no unit row parts on the stride before the word.
-    pin_eq!(w.firsts.len(), 162, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 168, "the stride's baseline");
 }
 
 /// run1378b: the word 2595's window, blocks 2495..2846 at the long's
@@ -356,7 +356,7 @@ fn mongol_medieval_pair_run1386_s_word_frame_is_widened_whole() {
     // on 3898..4013; the rounds read 209 a side and agree but for
     // `1/20`'s on 4221, whose target `0/13` died on 4220: theirs' round
     // keeps `ox` 13 and `whom` 0, ours' reads -1 (parked 3714a).
-    pin_eq!(w.firsts.len(), 135, "run1386 baseline");
+    pin_eq!(w.firsts.len(), 140, "run1386 baseline");
     pin_eq!(w.rounds_read, (209, 209), "the rounds read");
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }

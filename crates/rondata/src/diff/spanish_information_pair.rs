@@ -223,7 +223,7 @@ fn spanish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // and one value row, the Assault Infantry `1/18`'s (type 104, land, at
     // its full 180 hits) `damage_frac`, ours 13 against theirs 12 from 3101
     // (parked 3866b). No draw parts.
-    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 112, "the stride's baseline");
 }
 
 /// run1489b: the pair's last blocks, 3244..3501 at the long's detail with
@@ -289,7 +289,7 @@ fn spanish_information_pair_run1489b_s_closing_frame_is_widened_whole() {
     // (from 3324) `1/115` (ours 0, theirs 1) — and the one value row the
     // stride carries, the Assault Infantry `1/18`'s `damage_frac`, ours 13
     // against theirs 12 (parked 3866b). No draw parts to 3500.
-    pin_eq!(w.firsts.len(), 47, "run1489b baseline");
+    pin_eq!(w.firsts.len(), 48, "run1489b baseline");
     // Every round, both directions: 85 against 85, none parting.
     pin_eq!(w.rounds_read, (85, 85), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

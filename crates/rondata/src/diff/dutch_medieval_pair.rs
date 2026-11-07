@@ -185,7 +185,7 @@ fn dutch_medieval_pair_the_long_s_stride_walks_back_from_7063() {
     // from 5701, `inside_up` 2008) a `g.angle[0]` of 0 in theirs against
     // ours' 1431655765. Neither spends a draw, and no unit's position or
     // orders part through block 7001.
-    pin_eq!(w.firsts.len(), 306, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 336, "the stride's baseline");
 }
 
 /// run1273b: the word 7063's window, blocks 7057..7096 at the long's

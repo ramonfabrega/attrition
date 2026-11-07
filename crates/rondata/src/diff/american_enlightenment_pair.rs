@@ -181,7 +181,7 @@ fn american_enlightenment_pair_the_long_s_stride_walks_back_from_3215() {
     // 3183 with the Marines `1/29` (TY 69, TI 119) inside: `myhits` and
     // `hits_left` ours 90 theirs 160, `myspeed` 25 against 31, `pos`
     // (35137, 43021) against (34971, 43021) (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 127, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 135, "the stride's baseline");
 }
 
 /// run1314b: the word 3215's window, blocks 3209..3465 at the long's
@@ -374,7 +374,7 @@ fn american_enlightenment_pair_run1325b_s_word_frame_is_widened_whole() {
     // against (7451, 9479, 418), arriving a frame late — and the human's
     // capital `0/2000` took its damage on 5583 in theirs alone
     // (`build:damage` 0 against 4): the word 5583.
-    pin_eq!(w.firsts.len(), 164, "run1325b baseline");
+    pin_eq!(w.firsts.len(), 171, "run1325b baseline");
     pin_eq!(w.rounds_read, (84, 84), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

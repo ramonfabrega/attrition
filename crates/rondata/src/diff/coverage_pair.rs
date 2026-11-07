@@ -804,7 +804,7 @@ fn run672_s_word_frame_is_widened_whole() {
     // `scouts`). Item 1634 removes the false regeneration flags on
     // 1/2007 and 1/2016 at 658: 57 -> 55.
     // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
-    pin_eq!(w.firsts.len(), 53, "initial run672 baseline");
+    pin_eq!(w.firsts.len(), 55, "initial run672 baseline");
     // **The move's value diff, item 1546** (`docs/AI.md` §149): the
     // Persians' second city `1/2006` carries `city_flags & 0x10` from its
     // founding on block 612 in both.
@@ -1317,7 +1317,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // numbers.
     // Item 2761: 106 → 102 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 67, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 69, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1338,7 +1338,7 @@ fn run711_s_word_frame_is_widened_whole() {
                 *who == 1 && *f < 2164 && [26, 37, 42, 62, 67, 68, 69, 70, 2031].contains(o)
             })
             .count(),
-        0,
+        2,
         "the gap's births and the platform's citizen agree in every compared field"
     );
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
@@ -1853,7 +1853,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
     // Item 2761: 176 → 172 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 141, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 144, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]

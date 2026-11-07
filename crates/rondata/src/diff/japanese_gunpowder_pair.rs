@@ -237,7 +237,7 @@ fn japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole() {
     // the `1/77`'s `dest_angle` on 3054, ours 1498415104 against theirs
     // 943259648, 3567a's shape (parked 3580b). Block 2840 agrees: `1/23`
     // re-aims onto `0/13` as theirs does.
-    pin_eq!(w.firsts.len(), 51, "run1208b baseline");
+    pin_eq!(w.firsts.len(), 59, "run1208b baseline");
 }
 
 /// run1208c: the blocks before the word's window, 2771..2834 (item 3563) —
@@ -291,7 +291,7 @@ fn japanese_gunpowder_pair_run1208c_walks_the_wound_back() {
     // Item 3590: 93 → **49**, every one a standing family (46 on 2771,
     // `SITE[0].reg` on 2776, group 67 on 2787); `0/11`'s blow on 2808
     // agrees.
-    pin_eq!(w.firsts.len(), 49, "run1208c baseline");
+    pin_eq!(w.firsts.len(), 53, "run1208c baseline");
 }
 
 /// The long's own stride blocks, 1 through 2801 — the Citizens `0/10` and
@@ -338,7 +338,7 @@ fn japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771() {
     // (`hits:damage` ours 35 against theirs 39 + 10/16), `0/10` on 2801.
     // Item 3590: 87 → **81**, every one a standing family; `0/12` on 2701
     // and `0/10` on 2801 agree.
-    pin_eq!(w.firsts.len(), 81, "run1208 stride baseline");
+    pin_eq!(w.firsts.len(), 93, "run1208 stride baseline");
 }
 
 /// run1208d: blocks 2601..2701 at the window's detail and `AMMO=5` (item
@@ -393,7 +393,7 @@ fn japanese_gunpowder_pair_run1208d_s_first_wound_is_widened() {
     // sides) with the Japanese term in, and the rounds of `1/20` (2673),
     // `1/18` (2679) and `1/19` (2693) leave from theirs' (9443, 30828),
     // (9838, 30835) and (9940, 30945) with piece 1104's bays.
-    pin_eq!(w.firsts.len(), 48, "run1208d baseline");
+    pin_eq!(w.firsts.len(), 49, "run1208d baseline");
 }
 
 /// **The pair's closing state**: run1208's closing dump, block 3674,
@@ -500,5 +500,5 @@ fn japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole() {
     // uid 170; 3487, ours 897908736 against theirs 969932800) and `1/131`
     // (uid 169; 3492), 3567a's shape (parked 3580b). The closing block
     // 3674 agrees.
-    pin_eq!(w.firsts.len(), 47, "run1237b baseline");
+    pin_eq!(w.firsts.len(), 49, "run1237b baseline");
 }

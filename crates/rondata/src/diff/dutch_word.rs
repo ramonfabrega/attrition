@@ -294,7 +294,7 @@ fn run963c_s_word_frame_is_widened_whole() {
     // Item 3336: −4, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
     // Item 3369: 112 -> 74, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 74, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 76, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks

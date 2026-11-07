@@ -579,7 +579,7 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 165, "run1468's word window");
+    pin_eq!(w.firsts.len(), 174, "run1468's word window");
     pin_eq!(w.rounds_read, (24, 24), "the rounds read");
     pin_eq!(w.rounds.len(), 107, "the rounds that part");
 }

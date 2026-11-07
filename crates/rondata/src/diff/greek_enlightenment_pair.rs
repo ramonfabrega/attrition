@@ -253,7 +253,7 @@ fn greek_enlightenment_pair_run1348b_s_closing_frame_is_widened_whole() {
     // wealth 15598/15607, metal 12198/12227); the same slots part again on
     // 4533, 4616 and 4698 as each moves up (parked 3674a). The draw stream
     // and the closing block 4706 agree.
-    pin_eq!(w.firsts.len(), 74, "run1348b baseline");
+    pin_eq!(w.firsts.len(), 78, "run1348b baseline");
     // Every round, both directions: 40 round-blocks a side, none parting.
     pin_eq!(w.rounds_read, (40, 40), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

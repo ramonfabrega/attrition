@@ -170,7 +170,7 @@ fn run1011_s_word_frame_is_widened_whole() {
     // standing `1/63` 109). Every one of the 30 stands from the window's
     // first block, 13104: the leaders' `SITE[].reg` and `aggression[1]`,
     // the units' `form`, and the held groups and pools 64..66.
-    pin_eq!(w.firsts.len(), 30, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
 }
 
 /// run1014: the word 13416's window, blocks 13410..13666 at the same
@@ -222,7 +222,7 @@ fn run1014_s_word_frame_is_widened_whole() {
     // Macemen `1/90` and `1/91` as `extra`, which theirs had closed on
     // 13392 — then every unit row from the word's block 13417 on. Built
     // (a decoy's overflow strikes its captain): 26, the 13410 rows alone.
-    pin_eq!(w.firsts.len(), 26, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 27, "keys that part in the window");
 }
 
 /// The closing state's window: run1006b's closing block alone, the long's

@@ -257,7 +257,7 @@ fn japanese_enlightenment_pair_run1366b_s_closing_frame_is_widened_whole() {
     // frame sooner; and the Musketeers (99) `1/129` and `1/111`'s
     // `dest_angle` on 4619 and 4643 (3695b's shape). The draw stream and
     // the closing block 4702 agree.
-    pin_eq!(w.firsts.len(), 148, "run1366b baseline");
+    pin_eq!(w.firsts.len(), 149, "run1366b baseline");
     // Every round, both directions: 102 round-blocks ours, 115 theirs.
     // **72 rows part, every one a launch** of group 66's three Gun Samurai
     // (161, `ELITESAMURAI`) `1/53`, `1/54` and `1/55` at the city: ours

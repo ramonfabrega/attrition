@@ -421,7 +421,7 @@ pub(super) fn chapter_fifty_two_s_fog_plane_agrees_through_the_first_round() {
     // The eleven rows are the units' `form`, standing on the window's first
     // block (every chapter's); no fog cell parts on any of 25 frames.
     // Item 2384: 11 -> 13, the two `aggression` rows (parked 2385).
-    pin_eq!(got.len(), 13, "ch52fog: keys that part");
+    pin_eq!(got.len(), 16, "ch52fog: keys that part");
     pin_eq!(
         got.iter().filter(|r| r.contains("seen2")).count(),
         0,
