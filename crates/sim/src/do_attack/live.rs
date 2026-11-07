@@ -123,7 +123,8 @@ impl DoAttackView for SimDoAttack<'_> {
     }
     fn group_max_range(&mut self, worker: bool) -> i32 {
         // `GroupData::get_max_range@00711080`: the longest `max_range` over
-        // the members that are alive, on the map, no aircraft and whose
+        // the members that are alive, on the map, no plane (vslot `+0xc0`,
+        // `is_plane`: a Helicopter counts, item 3967) and whose
         // type attacks — and whose type is **siege** (`is_siege`, the type's
         // vslot `+0x10c`) exactly when the argument is non-zero. The caller
         // passes its own `is_worker`, but the function tests siege with it
@@ -147,7 +148,7 @@ impl DoAttackView for SimDoAttack<'_> {
                 .is_some_and(|t| self.s.unit_types[t].combat.attack != 0);
             if unit.alive()
                 && unit.on_map
-                && self.s.group_domain(m) != crate::attrition::Domain::Air
+                && !self.s.is_plane(m)
                 && self.s.is_siege_unit(m) == worker
                 && attacks
             {

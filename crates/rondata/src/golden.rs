@@ -2589,6 +2589,14 @@ mod tests {
         // Chapter one hundred and twenty-two: two `@queueup` presses on a
         // Barracks and a Stable together (item 3966, `docs/GOLDEN.md` §172).
         ("chapter122.cmd", &[]),
+        // Chapter one hundred and twenty-three: two `@patrol` presses, a
+        // Helicopter with a Hoplite squad and a Helicopter alone (item 3967,
+        // `docs/GOLDEN.md` §173).
+        ("chapter123.cmd", &[]),
+        // Chapter one hundred and twenty-four: chapter twenty-two's game
+        // and an `@strike` from inside the base on a Barracks who=0 has not
+        // seen (item 3968, `docs/GOLDEN.md` §174).
+        ("chapter124.cmd", &[]),
         // Chapter one hundred and twenty-six: a Mayan City with a Temple, a
         // Tower on the Militia bit with a General inside, and two Chariots
         // at them (item 3970, `docs/GOLDEN.md` §176).

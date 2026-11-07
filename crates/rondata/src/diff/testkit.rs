@@ -6914,6 +6914,26 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: i64 = 1000;
 /// run1537.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and twenty-three** (item 3967, `docs/GOLDEN.md`
+/// §173, run1538): a patrol on a Helicopter with a Hoplite squad on 620,
+/// and on a Helicopter alone on 700 — each the land arm, the Helicopter
+/// counted as no plane by `count(COUNT_DOMAIN, 4)`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE: i64 = 1000;
+
+/// `chapter_one_hundred_and_twenty_three_s_window_is_widened_whole`'s
+/// window: run1538.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE: (i64, i64) = (604, 1001);
+
+/// **Chapter one hundred and twenty-four** (item 3968, `docs/GOLDEN.md`
+/// §174, run1539): chapter twenty-two's game and an `@strike` on 740 from
+/// the Fighter inside its Airbase on who=1's Barracks, unseen by who=0 —
+/// `Group::action_flight`'s inside arm gives a plane no `valid_target`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR: i64 = 1000;
+
+/// `chapter_one_hundred_and_twenty_four_s_window_is_widened_whole`'s window:
+/// run1539.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR: (i64, i64) = (604, 1001);
+
 /// **Chapter one hundred and twenty-six** (item 3970, `docs/GOLDEN.md`
 /// §176, run1541): the armed building family — a Mayan City with a Temple,
 /// a Tower on the Militia bit holding a General, a Chariot at each.
@@ -7735,6 +7755,17 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // corner, in the walk and in the widening alike.
     ("chapter_seventy_nine_holds_to_the_golden_word", 1),
     ("chapter_seventy_nine_s_word_frame_is_widened_whole", 1),
+    // Item 3967: run1538, two Helicopters born and patrolled read their
+    // birth climbs and their flights' corners — fourteen in the walk to
+    // 1000, thirteen in the widening to its block 1000.
+    (
+        "chapter_one_hundred_and_twenty_three_holds_to_the_golden_word",
+        14,
+    ),
+    (
+        "chapter_one_hundred_and_twenty_three_s_window_is_widened_whole",
+        13,
+    ),
     // The coverage pair's run715 (item 1605): four reads in the replay's
     // diverged tail past the word 2969 — `coverage_pair_first_parting`,
     // which walks to the word, reads none.
@@ -7904,6 +7935,16 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // `find_data_z` (item 836).
     ("chapter_twenty_two_holds_to_the_golden_word", 35),
     ("chapter_twenty_two_s_word_frame_is_widened_whole", 35),
+    // Item 3968: run1539, chapter twenty-two's game to 1000 — the same
+    // Fighter's and Bombers' launch heights, 27 of twenty-two's 35 by 1000.
+    (
+        "chapter_one_hundred_and_twenty_four_holds_to_the_golden_word",
+        27,
+    ),
+    (
+        "chapter_one_hundred_and_twenty_four_s_window_is_widened_whole",
+        27,
+    ),
     ("run265_s_launch_is_the_original_s_field_for_field", 35),
     ("run265_s_rounds_are_the_original_s_record_for_record", 35),
     // Chapter twenty-three is chapter twenty-two's game to 1840 (item
