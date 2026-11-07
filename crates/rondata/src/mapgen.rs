@@ -1207,6 +1207,24 @@ pub fn watering_hole_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a New World setup path: from its
+/// first `MapNewWorld::make_continents@006984d0` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §31, item 3950), up to the first
+/// that is none.
+pub fn new_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let nw = 0x0069_84d0..0x0069_8b60;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| nw.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !nw.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7639,6 +7657,9 @@ mod tests {
         GreatSahara,
         /// African Watering Hole's own, a lake grown and inverted (§28).
         WateringHole,
+        /// New World's own, islands on a ring and a centre continent
+        /// (§31).
+        NewWorld,
     }
 
     struct Chain {
@@ -7761,6 +7782,25 @@ mod tests {
         walks: OnceLock::new(),
     };
 
+    /// New World (style 16, §31): run1533, item 3950.
+    static NEW_WORLD: Chain = Chain {
+        label: "New World",
+        map: "NewWorld",
+        style: 16,
+        xml: "NEWWORLD.xml",
+        mask: new_world_part,
+        port: MaskPort::NewWorld,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: true,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
     /// A chain's tileset (`docs/MAPGEN.md` §4, §25): the style file's own
     /// `TILECHANCE`s, or `default.xml`'s six when it carries none (Old
     /// World), make the one `init_map_data` draw — none when the list is
@@ -7876,7 +7916,9 @@ mod tests {
         let mut d = Draws::new(before.2);
         let mut twin = Rng::new(before.2);
         let start_dist = match c.port {
-            MaskPort::GreatSahara => great_sahara_make_continents(&mut grid, g.nations, &mut d.rng),
+            MaskPort::GreatSahara => Some(great_sahara_make_continents(
+                &mut grid, g.nations, &mut d.rng,
+            )),
             MaskPort::WateringHole => {
                 let style = lake_style(
                     root,
@@ -7891,12 +7933,32 @@ mod tests {
                 )
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: the watering hole {m:?}");
-                m.start_dist
+                Some(m.start_dist)
+            }
+            MaskPort::NewWorld => {
+                let style = lake_style(
+                    root,
+                    c.xml,
+                    (g.xs, g.ys, g.nations, g.map_size),
+                    base_edge_before(before.2),
+                    max_range_349(root),
+                )
+                .expect("the style's `Map` fields");
+                let m = sim::map_new_world::new_world_make_continents(
+                    &mut grid, g.nations, style, &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: the new world {m:?}");
+                // New World writes no `start_dist` (§31).
+                None
             }
         };
-        assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
+        if let Some(start_dist) = start_dist {
+            assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
+        }
+        // New World's centre continent alone draws 102,324 (§31).
         let mut words = Vec::new();
-        while twin.seed != d.rng.seed && words.len() < 0x10000 {
+        while twin.seed != d.rng.seed && words.len() < 0x40000 {
             words.push(twin.seed);
             twin.roll();
         }
@@ -8572,5 +8634,17 @@ mod tests {
         himalayas_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         himalayas_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         himalayas_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        NEW_WORLD,
+        new_world_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        new_world_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        new_world_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        new_world_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        new_world_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        new_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        new_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        new_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }
