@@ -3293,12 +3293,114 @@ the walk's own choices. No condition here is a disjunction.
 - A `numrare="-1"` row is backed here as East Indies backs it, on one
   nation count.
 
-## 28. Reserved for the next item on the map track
+## 28. African Watering Hole's chain, 8 of 8 (item 3947)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The fourth chain take (§22.2, §25's method), and the first whose mask is
+not Great Sahara's. One take, run1530 at `--map 11` on §22.2's line
+(`docs/RUNS.md`), walked phase by phase against its own checkpoints by
+the `Chain` walk (§26), now with a mask choice and a water path
+(`rondata::mapgen::tests::AFRICAN_WATERING_HOLE`, `MaskPort`). African
+Watering Hole is **read against**. It is not the held-out style (§24).
+
+### 28.1 The mask is its own: a lake grown and inverted
+
+`MapAfricanWateringHole::make_continents@0069b650` runs to 0x69bb20, 1,232
+bytes against Great Sahara's 368: 376 instructions against 144 in `llvm-objdump -d`,
+and six `Random::get@00a39d70` calls against four. So it is not a
+dispatch, and the port is `sim::map_watering_hole`, read from the
+decompile and checked against the listing where the decompile was
+ambiguous (the `grow_region` call's pushes: `size` in `edi`, the radius
+at `[ebp−0x14]`; the loop leaves on a zero return, `je 0x69b974`):
+
+1. `avoid_continent` (+0x30) becomes `max(4, scale_land_area(it))`, once.
+2. Each generation: `World::wipe`, `Regions::clear_all`; the radius
+   `min(m/2 − 4, (m/2)·80/100)`, `m` the shorter side; the angle's two
+   halves `(r % 0xffff) << 16 + r % 0xffff` (sites 0x69b78c, 0x69b7a3);
+   region 1 opened on `(xs/2 + (r & 1), ys/2 + (r & 1))` (0x69b858,
+   0x69b889) and grown by `Map::grow_region` to `World.size·5/100` cells
+   within the radius. A growth that ends short starts the generation
+   again, angle and all.
+3. `Map::invert_land`: the region's cells become water, the rest land.
+4. Two fresh parity draws for the ring's centre (0x69ba30, 0x69ba61),
+   `start_dist = max(4, xs/16)`, and each player on Great Sahara's ring
+   at the last generation's angle stepped by `0xffffffff / players`.
+
+The growers are Great Lakes' (`crate::map_lakes`, §5). `AFRICA.xml`
+carries no `AVOID_*`, so `default.xml`'s apply: edges 0 make
+`grow_valid` draw nothing, and with one region neither `avoid_center` nor
+`avoid_continent` refuses a cell.
+
+On run1530 (2 nations, 60×60): one generation, a 180-cell lake, 91 draws
+— the four, then 76 ring picks, 7 `large_stamp` cases and its two side
+draws inside `grow_region`, then the ring's two parities. **7807 and the
+91-draw stream agree on the first run**, every site the port's. 7807's
+seed 3818626210, part 2 267389567, part 5 3682864241 on both sides.
+
+### 28.2 The shared phases on a map with water
+
+- **The tileset**: `AFRICA.xml` has one `TILECHANCE`, `african_savannah`
+  at 100, and one entry makes no draw (§4), so `chain_tileset` takes it
+  without reading the seed. 7854 agreeing backs it.
+- **7835..7945** agree on the first run: 6,044 draws `place_all` through
+  the last `compute_val`, whole against the trace's.
+- **`Terrain::init`**: the lake opens the half-land gate, so the chain
+  walk takes Great Lakes' path (§10, `great_lakes_at_894`) where the
+  height-free one refuses with `HalfLand`: 734..706 on the 7945 grid with
+  the lists empty; then the heights, `build_coastal_data` and
+  `check_and_set_halfland_heights`, whose return is **720** (parts 5, 6 and
+  10–12 move there, read off run1530: 720 parted until the check was
+  moved before the doobers and the beach); then `create_doobers_flags`,
+  `create_doobers` and `convert_beach_to_sandy` before 738. All 22
+  records 734..815 agree. Great Lakes' own walk never checked 720..815;
+  this one does.
+- **Rivers**: 19 sources and no river draw on either side; the 5 records
+  5012..5118 agree. The row is `lays_rivers: false` (§27's key, item
+  3946), which asserts both streams empty.
+- **894**: no trough section, no good moved, `Cliffs::init` inert; seed
+  and parts 2, 5, 6 and 10–13 agree.
+
+### 28.3 The mountain mesh reads the texel's red
+
+The start dump's grid parted at 15 of 58,081 vertices, scattered over
+cells (40–45, 38–46), each off by `450·3/255` (one byte of a
+height-450 mesh) or twice it. No unit stands there; the cells are
+mountain (`land_sub` 2, flag 0x200) under the size-3 template placed at
+(44, 42), `h4_disp_0.tga`. That is the one template image whose channels
+disagree: 314 of its 11,841 opaque pixels differ between B, G and R by a
+step or two, where the other six templates are pure grey, so no chain
+before this one could tell the channels apart. `mesh_pixels` read the
+file's blue (`[b, g, r, a]`'s first byte). Read as red, all 58,081
+vertices agree; blue and green each part the same 15. So the texel's
+lowest byte that `MountainRange::init`'s `movzx` reads (0x899d90) is the
+file's red as the loader leaves it in memory. This is measured, not read:
+the loader's byte order is not.
+
+**Made to fail** (`tools/mutate.py --batch --timeout 900`): nineteen breaks
+across the three files, sixteen held. In the port: the radius without its
+`min`, the lake at 6 % in place of 5 %, the angle's halves swapped, the
+lake's x parity negated and its y parity flipped (negating y failed
+nothing, since run1530's y draw is even), the restart taken on success
+(hung, counted held), `invert_land` dropped, the ring's two parities
+negated, `start_dist`'s floor at 5, and `scale_land_area`'s refusal
+swallowed. In the walk: the one-entry tileset branch never taken (reddens
+African Watering Hole) and taken on any list (reddens Amazon Basin), the
+720 check dropped, a river check keyed on a traced file (since replaced
+by §27's `lays_rivers` at the merge), and `mesh_pixels` back on blue. Two failed nothing, and both are unreached on
+this take (§28.4): the restart never taken, and `avoid_continent`'s floor
+at 0. The troughs' `depth` was not broken: no trough section is cut here,
+so nothing reads it.
+
+### 28.4 What is not established
+
+- One file only: 2 nations, 60×60. Other nation counts and sizes are
+  untaken.
+- The restart arm: run1530 grows the lake in one generation. Breaking the
+  restart so that it never happens fails nothing. The arm is read from the
+  listing (`je 0x69b974` on a zero return) and has no take (parked
+  3947a).
+- `avoid_continent`'s `max(4, …)`: with one region nothing reads it on
+  this mask (parked 3947a).
+- The loader that leaves red lowest is not read (§28.3).
 
 ## 29. Reserved for the next item on the map track
 
