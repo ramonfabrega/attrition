@@ -40601,3 +40601,10 @@ under the word 22 → 46; the unit-gain restore dropped, 22 → 23
 on every walked window (the Persian all-tech windows' wonder sites and
 city, run99's Tower). Reading-only: that no other function writes a
 building's `+0x3c`, and the four terms above.
+
+## 410. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
