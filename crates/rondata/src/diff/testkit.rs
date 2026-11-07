@@ -7749,8 +7749,14 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3967: run1538, two Helicopters born and patrolled read their
     // birth climbs and their flights' corners — fourteen in the walk to
     // 1000, thirteen in the widening to its block 1000.
-    ("chapter_one_hundred_and_twenty_three_holds_to_the_golden_word", 14),
-    ("chapter_one_hundred_and_twenty_three_s_window_is_widened_whole", 13),
+    (
+        "chapter_one_hundred_and_twenty_three_holds_to_the_golden_word",
+        14,
+    ),
+    (
+        "chapter_one_hundred_and_twenty_three_s_window_is_widened_whole",
+        13,
+    ),
     // The coverage pair's run715 (item 1605): four reads in the replay's
     // diverged tail past the word 2969 — `coverage_pair_first_parting`,
     // which walks to the word, reads none.
