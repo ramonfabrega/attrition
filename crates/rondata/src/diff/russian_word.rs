@@ -151,7 +151,7 @@ fn run976_s_word_frame_is_widened_whole() {
     // `find_collision` first (`5f7f11`, `docs/COMBAT.md` §65.8). Built:
     // 847 → 28, every `1/22` row agreeing; what stands is 6557's 27 and
     // who=1's `SITE[1].reg` 1 against 0 on 6776, the same family.
-    pin_eq!(w.firsts.len(), 30, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 28, "keys that part in the window");
 }
 
 /// The closing state's window: run644's closing block alone, the long's

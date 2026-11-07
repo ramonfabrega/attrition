@@ -4398,7 +4398,7 @@ pub(super) fn chapter_three_s_word_frame_is_widened_whole() {
     //   `fast_angle_to_degrees` of the facing, not `angle_to_degrees`
     //   (`8e4c7d`–`8e4c98`), 240 against 242 at 61.7°, and the round
     //   leaves from the dump's `941, 8155` with no turret step at all.
-    pin_eq!(first, Some(616), "run145's first value parting moved");
+    pin_eq!(first, Some(678), "run145's first value parting moved");
     pin_eq!(
         rows_on(FIRST + 1, WORD + 1),
         vec![
@@ -4408,14 +4408,10 @@ pub(super) fn chapter_three_s_word_frame_is_widened_whole() {
             "678 0/6 ammo[2].whom: ours -1 theirs 1",
             "757 0/6 ammo[5].ox: ours -1 theirs 6",
             "757 0/6 ammo[5].whom: ours -1 theirs 1",
-            "667 0/7 cant_reach: ours 0 theirs 1",
             "757 0/8 ammo[0].ox: ours -1 theirs 6",
             "757 0/8 ammo[0].whom: ours -1 theirs 1",
             "678 0/8 ammo[1].ox: ours -1 theirs 8",
-            "678 0/8 ammo[1].whom: ours -1 theirs 1",
-            "659 1/6 cant_reach: ours 0 theirs 1",
-            "616 1/7 cant_reach: ours 0 theirs 1",
-            "616 1/8 cant_reach: ours 0 theirs 1"
+            "678 0/8 ammo[1].whom: ours -1 theirs 1"
         ],
         "a row past run145's first rounds moved"
     );
@@ -4850,21 +4846,14 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
     // (`docs/COMBAT.md` §46.7), so the catapult's round takes slot 1 on
     // both sides on 798, and what the slot had hidden is its `angle`: ours
     // 1130823680, theirs 1192951808, the rest of the record agreeing.
-    pin_eq!(first, Some(616), "run146's first value parting moved");
+    pin_eq!(first, Some(736), "run146's first value parting moved");
     pin_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
             "798 0/6 ammo[1].angle: ours 1130823680 theirs 1192951808",
-            "836 0/6 cant_reach: ours 0 theirs 1",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
-            "689 0/8 cant_reach: ours 0 theirs 1",
-            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "662 1/6 cant_reach: ours 0 theirs 1",
-            "616 1/7 cant_reach: ours 0 theirs 1",
-            "616 1/8 cant_reach: ours 0 theirs 1",
-            "771 1/10 cant_reach: ours 0 theirs 1",
-            "771 1/11 cant_reach: ours 0 theirs 1"
+            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }"
         ],
         "a row past run146's first rounds moved"
     );
@@ -4907,28 +4896,10 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
     pin_eq!(
         whole,
         vec![
-            "651 1/7 cant_reach: ours 0 theirs 1",
-            "651 1/8 cant_reach: ours 0 theirs 1",
-            "652 1/7 cant_reach: ours 0 theirs 1",
-            "652 1/8 cant_reach: ours 0 theirs 1",
-            "780 1/10 cant_reach: ours 0 theirs 1",
-            "780 1/11 cant_reach: ours 0 theirs 1",
-            "781 1/10 cant_reach: ours 0 theirs 1",
-            "781 1/11 cant_reach: ours 0 theirs 1",
             "865 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "865 1/10 cant_reach: ours 0 theirs 1",
-            "865 1/11 cant_reach: ours 0 theirs 1",
             "866 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "866 1/10 cant_reach: ours 0 theirs 1",
-            "866 1/11 cant_reach: ours 0 theirs 1",
-            "868 0/6 cant_reach: ours 0 theirs 1",
             "868 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "868 1/10 cant_reach: ours 0 theirs 1",
-            "868 1/11 cant_reach: ours 0 theirs 1",
-            "869 0/6 cant_reach: ours 0 theirs 1",
             "869 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "869 1/10 cant_reach: ours 0 theirs 1",
-            "869 1/11 cant_reach: ours 0 theirs 1"
         ],
         "a row on run146's whole blocks moved"
     );

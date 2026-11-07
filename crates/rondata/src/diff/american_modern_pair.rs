@@ -287,7 +287,7 @@ fn american_modern_pair_run1151b_s_word_frame_is_widened_whole() {
     // Item 3755: 72 → 57, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters and the buckets with them agree; the Bomber
     // (304) still reads 67 against 57 on 2186 (parked 3755a).
-    pin_eq!(w.firsts.len(), 65, "run1151b baseline");
+    pin_eq!(w.firsts.len(), 57, "run1151b baseline");
 }
 
 /// run1151c: the word 4488's window, blocks 4482..4549 — six blocks before
@@ -353,7 +353,7 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // Item 3755: 76 → 59, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters agree; the Bomber (304) at `1/2022` still
     // reads 115 against 100 on 4482, the buckets with it (parked 3755a).
-    pin_eq!(w.firsts.len(), 61, "run1151c baseline");
+    pin_eq!(w.firsts.len(), 59, "run1151c baseline");
 }
 
 /// **The long's stride, walked back from the word 4488** (item 3517): run1151
@@ -404,7 +404,7 @@ fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
     // `order:air.mandatory` on 3501, ours' later groups and `1/140`'s
     // `g.z[0]` on 4401 (a Mustang in the Airbase `1/105`, ours 0 against
     // 398).
-    pin_eq!(w.firsts.len(), 126, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 116, "the stride's baseline");
 }
 
 /// run1163: the walk back from the word 4488, blocks 4396..4482 at
@@ -466,5 +466,5 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     // Item 3755: 79 → 62, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters agree; the Bomber (304) at `1/2022` still
     // reads 115 against 100 on 4396, the buckets with it (parked 3755a).
-    pin_eq!(w.firsts.len(), 63, "run1163 baseline");
+    pin_eq!(w.firsts.len(), 62, "run1163 baseline");
 }

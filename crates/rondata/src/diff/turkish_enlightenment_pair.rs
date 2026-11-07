@@ -255,7 +255,7 @@ fn turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole() {
     // the long's block 1401 at (40885, 14504) and has parted by 1501, ours
     // (41596, 12371) against theirs (41524, 12335) (`docs/AI.md` section
     // 307). The 440 keys of block 2555 are past the word.
-    pin_eq!(w.firsts.len(), 55, "run1159b baseline");
+    pin_eq!(w.firsts.len(), 49, "run1159b baseline");
 }
 
 /// run1186: the walk back from the word 2501, blocks 1395..1502 at
@@ -365,5 +365,5 @@ fn turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole() {
     // groups 65, 69 and 71. The closing block 3813 parts nothing new.
     // Item 3708: 59 → 58, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 63, "run1186c baseline");
+    pin_eq!(w.firsts.len(), 58, "run1186c baseline");
 }

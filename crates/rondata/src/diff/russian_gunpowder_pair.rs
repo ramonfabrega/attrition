@@ -199,7 +199,7 @@ fn russian_gunpowder_pair_the_long_s_stride_walks_back_from_3711() {
     // (`hits_left` ours 25 against theirs 22, `hits:damage` 25 against 28).
     // Item 3688: **100** — the Citizen's two rows are gone with the
     // Monarch's cavalry arm; the standing families stay.
-    pin_eq!(w.firsts.len(), 109, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
 }
 
 /// run1340b: the word 3711's window, blocks 3695..3961 at the long's
@@ -270,7 +270,7 @@ fn russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole() {
     // `SITE[i].reg` and `aggression`, who=1's groups' `held` and pools
     // 64..73). who=1's `leader:attack` is gone with the Citizen's rows:
     // the leader's attack tally parted on the same Monarch's arm.
-    pin_eq!(w.firsts.len(), 60, "run1340b baseline");
+    pin_eq!(w.firsts.len(), 58, "run1340b baseline");
     // Every round, both directions: none — the window's fighting is
     // melee.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
@@ -339,7 +339,7 @@ fn russian_gunpowder_pair_run1340c_s_damage_window_is_widened_whole() {
     // cavalry arm adds `THEMONARCH_CAV_ATTACK × 10` = 20 to the Heavy
     // Knight's 170, the attack run1357's packet returns (190); and
     // `leader:attack` (888 against 894 on 3395) agrees.
-    pin_eq!(w.firsts.len(), 62, "run1340c baseline");
+    pin_eq!(w.firsts.len(), 58, "run1340c baseline");
     // No round: the blow is melee.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -400,7 +400,7 @@ fn russian_gunpowder_pair_run1357b_s_closing_window_is_widened_whole() {
     // 6312 against 6308 on 5237, `1/59`'s on 5275) and two idle units'
     // `dest_angle` (`1/65` on 5239, `1/75` on 5271): draw-silent to the
     // close (parked 3688b).
-    pin_eq!(w.firsts.len(), 64, "run1357b baseline");
+    pin_eq!(w.firsts.len(), 60, "run1357b baseline");
     pin_eq!(w.rounds_read, (504, 504), "the rounds read");
     // 504 a side, 153 parting: who=1's Crossbowmen (TY 172) launch a unit
     // or two off theirs (`1/36`'s of 5146 from (3777, 31725) against

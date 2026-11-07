@@ -231,5 +231,5 @@ fn spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole() {
     // Item 3595: 82 -> 74, the eight-slot territory tie (`docs/AI.md`
     // section 318.2; parked 3586a answered): both leaders' `territory`
     // and team sums on 8310 agree.
-    pin_eq!(w.firsts.len(), 81, "run1232b baseline");
+    pin_eq!(w.firsts.len(), 74, "run1232b baseline");
 }

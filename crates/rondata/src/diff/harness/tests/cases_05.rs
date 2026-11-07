@@ -845,7 +845,7 @@ mod bodies {
         // Item 1330 took 43 (155/165/172/178 → 112/118/122/128): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (36, 39, 39, 39),
+            (36, 37, 37, 37),
             "the floor"
         );
     }
@@ -1621,7 +1621,7 @@ mod bodies {
         // Item 1330 took 46 (162/0/162/167 → 116/0/116/119): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (38, 0, 38, 41),
+            (38, 0, 38, 39),
             "the floor"
         );
     }

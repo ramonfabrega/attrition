@@ -178,7 +178,7 @@ fn indian_enlightenment_pair_the_long_s_stride_walks_back_from_4157() {
     // state parts in the undumped gap 4002..4100 (`docs/AI.md` §340).
     // Item 3660, piece 294's bays: 133, the standing families alone —
     // `0/13`'s rows leave with the Man o' War's round (§340.1).
-    pin_eq!(w.firsts.len(), 141, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 133, "the stride's baseline");
 }
 
 /// run1312b: the word 4157's window, blocks 4151..4407 at the long's
@@ -249,7 +249,7 @@ fn indian_enlightenment_pair_run1312b_s_word_frame_is_widened_whole() {
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §340).
     // Item 3660, piece 294's bays: **109**, the standing families alone;
     // `0/13` agrees on every block (§340.1).
-    pin_eq!(w.firsts.len(), 112, "run1312b baseline");
+    pin_eq!(w.firsts.len(), 109, "run1312b baseline");
     // Every round, both directions: 711 round-blocks theirs, 631 ours,
     // 72 parting. The first to part is the Bomb Ketch `1/53`'s (TypeIndex
     // 347, sea, stance Raid) on 4165, its hull agreeing to 4312: it leaves
@@ -322,7 +322,7 @@ fn indian_enlightenment_pair_run1324_s_gap_is_widened_whole() {
     // Man o' War `1/97`'s (TypeIndex 344, piece 294): its round on 4082
     // left (3000, 8472, 0) in ours, flying 11 frames, against (2866,
     // 8510, −33) in theirs, flying 12. After: **99**, all standing.
-    pin_eq!(w.firsts.len(), 101, "run1324 baseline");
+    pin_eq!(w.firsts.len(), 99, "run1324 baseline");
     pin_eq!(w.rounds_read, (197, 197), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -394,7 +394,7 @@ fn indian_enlightenment_pair_run1324b_s_word_frame_is_widened_whole() {
     // `1/56`'s target on 4955 (`0/5` against `0/12`), and who=1's timber
     // and the building `1/2005`'s `queue[2].cost[0]` on 4983 (250 against
     // 125) — parked 3660a and 3660b; rounds 320 a side, none parting.
-    pin_eq!(w.firsts.len(), 143, "run1324b baseline");
+    pin_eq!(w.firsts.len(), 133, "run1324b baseline");
     pin_eq!(w.rounds_read, (320, 320), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

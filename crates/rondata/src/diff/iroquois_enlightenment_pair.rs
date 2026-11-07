@@ -183,7 +183,7 @@ fn iroquois_enlightenment_pair_the_long_s_stride_walks_back_from_3962() {
     // Item 3958: 155 → 152 — the three `blown` rows leave (parked 3114):
     // each unit holds `land_cloak`, which `Unit::work`'s stealth arm skips
     // (`docs/AI.md` §402).
-    pin_eq!(w.firsts.len(), 162, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 152, "the stride's baseline");
 }
 
 /// run1291b: the word 3962's window, blocks 3956..4212 at the long's
@@ -261,7 +261,7 @@ fn iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole() {
     // `aggression[1]`) and eleven later: `form` on `1/150`, `1/154` and
     // `1/157`, and groups 68, 82, 84 and 85's `held` and pools as each is
     // minted. No unit's position, orders or hits part.
-    pin_eq!(w.firsts.len(), 124, "run1291b baseline");
+    pin_eq!(w.firsts.len(), 121, "run1291b baseline");
     // Every round, both directions: 301 round-blocks theirs, 228 ours. The
     // first to part is `1/82`'s, on the window's first block, fired in the
     // undumped gap 3902..3955 on both sides: ours leaves from (3912, 12792,
@@ -347,20 +347,8 @@ fn iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole() {
             .into_iter()
             .collect::<Vec<_>>(),
         [
-            "4873 0/1 cant_reach",
-            "4873 0/2 cant_reach",
-            "4873 0/6 cant_reach",
-            "4873 0/7 cant_reach",
-            "4873 0/8 cant_reach",
-            "4873 0/9 cant_reach",
-            "4976 0/3 cant_reach",
             "4983 1/2005 queue:queue[2].cost[0]",
-            "5034 0/11 cant_reach",
             "5064 1/2005 queue:queue[1].cost[0]",
-            "5065 1/130 cant_reach",
-            "5065 1/132 cant_reach",
-            "5113 1/100 cant_reach",
-            "5127 0/0 cant_reach"
         ],
         "the only object rows: a price"
     );
@@ -369,7 +357,7 @@ fn iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole() {
     // boat (the inside arm's clear) and eight `cloak` rows, the President
     // `1/15`'s Ambush on 4889 and seven Transport Galleons in its aura from
     // 4895 (the hero arm), all agree; 131 stands.
-    pin_eq!(w.firsts.len(), 143, "run1320 baseline");
+    pin_eq!(w.firsts.len(), 131, "run1320 baseline");
     // **Every round, both directions**: 940 round-blocks a side, and none
     // parts — the Musketeers' (`1/73`..`1/75`, piece 1457) among them,
     // which left the figure's own point before item 3655's bays.

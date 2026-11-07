@@ -296,7 +296,7 @@ fn greek_classical_pair_run1209_s_word_frame_is_widened_whole() {
     // 69 cells on 2616 as theirs does, and every unit row leaves: what
     // stands is 2611's 86 standing rows, groups 75, 83, 84 and 85's `held`
     // and pool (2613, 2617, 2673, 2729) and `form` on `1/93` and `1/94`.
-    pin_eq!(w.firsts.len(), 98, "run1209 baseline");
+    pin_eq!(w.firsts.len(), 96, "run1209 baseline");
 }
 
 pub(crate) const RUN1212: &str = "gamelog-run1212-eastindies-greek-classical-window-4336-4592.txt";
@@ -349,7 +349,7 @@ fn greek_classical_pair_run1212_s_word_frame_is_widened_whole() {
     // `known_rares` on 4584 (ours 3, theirs 1). Item 3594: 114 → 113, the
     // `known_rares` row leaves with the border pass's re-zero
     // (`docs/AI.md` §318.1).
-    pin_eq!(w.firsts.len(), 127, "run1212 baseline");
+    pin_eq!(w.firsts.len(), 113, "run1212 baseline");
 }
 
 pub(crate) const RUN1214: &str = "gamelog-run1214-eastindies-greek-classical-window-7859-8127.txt";
@@ -410,7 +410,7 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // Item 3595: 134 -> 125, the eight-slot territory tie (`docs/AI.md`
     // section 318.2; parked 3574a answered): both leaders' `territory`
     // and team sums on 7859, and who=1's `resources[2:wealth]`, agree.
-    pin_eq!(w.firsts.len(), 127, "run1214 baseline");
+    pin_eq!(w.firsts.len(), 125, "run1214 baseline");
 }
 
 /// **The long's stride, walked back from the word 4341** (item 3571):
@@ -457,7 +457,7 @@ fn greek_classical_pair_the_long_s_stride_walks_back_from_4341() {
     // rows a `UNITS=3` stride prints no building for, every unit's `form`,
     // who=1's groups' `held` and pool). No unit row parts on a stride
     // block: the General `1/138` is born on 4328, between 4301 and 4336.
-    pin_eq!(w.firsts.len(), 155, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 141, "the stride's baseline");
 }
 
 /// **The long's stride, walked back from the word 7865** (item 3574):
@@ -510,5 +510,5 @@ fn greek_classical_pair_the_long_s_stride_walks_back_from_7865() {
     // figure's own square; with the Archers' bays it leaves from (8201,
     // 8775) and flies 18 frames, as run1217's packet holds it: 252 -> 251,
     // the standing families alone.
-    pin_eq!(w.firsts.len(), 273, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 251, "the stride's baseline");
 }

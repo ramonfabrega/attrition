@@ -367,7 +367,7 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // sides, where ours had sailed on to (2832, 8916) under its
     // `MOVEORDER`. What is left from 3790 is the standing `form` family and
     // `1/82`'s path on 3813 (parked 3525a).
-    pin_eq!(w.firsts.len(), 155, "run1153c baseline");
+    pin_eq!(w.firsts.len(), 151, "run1153c baseline");
 }
 
 /// run1171: the word 4343's window, blocks 4338..4548 — six blocks before
@@ -448,5 +448,5 @@ fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
     // closing 4548. Left: the 109 standing rows of 4338, who=1's `form`
     // on `1/38` (4351) and `1/87` (4352), and groups 70 (4357) and 84
     // (4491) `held` and pool, the standing families.
-    pin_eq!(w.firsts.len(), 117, "run1171 baseline");
+    pin_eq!(w.firsts.len(), 115, "run1171 baseline");
 }

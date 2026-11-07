@@ -199,7 +199,7 @@ fn german_industrial_pair_the_long_s_stride_walks_back_from_4323() {
     // standing families and the Albatrosses' `myspeed` stay.
     // Item 3742: 125 → **107**, the Albatrosses' `myspeed` gone with
     // `update_speed`'s Aluminum arm (`docs/AI.md` §366.3).
-    pin_eq!(w.firsts.len(), 119, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 107, "the stride's baseline");
 }
 
 /// run1334b: the word 4323's window, blocks 4295..4574 at the long's
@@ -278,7 +278,7 @@ fn german_industrial_pair_run1334b_s_word_frame_is_widened_whole() {
     // pool on 4565 (ours `[0]`, theirs none — the pools' standing row).
     // Item 3742: 76 → **58**, the Albatrosses' `myspeed` gone with the
     // Aluminum arm (§366.3).
-    pin_eq!(w.firsts.len(), 63, "run1334b baseline");
+    pin_eq!(w.firsts.len(), 58, "run1334b baseline");
     // Every round, both directions: 1018 round-blocks theirs, 246 ours,
     // 168 parting. **The first launch that parts is on 4304, who=1's A7V
     // `1/48`** (TY 242, the Light Tank): theirs fires from (5427, 31534)
@@ -353,7 +353,7 @@ fn german_industrial_pair_run1351b_s_damage_window_is_widened_whole() {
     // agrees.
     // Item 3742: 70 → **54**, the Albatrosses' `myspeed` gone with the
     // Aluminum arm (§366.3).
-    pin_eq!(w.firsts.len(), 55, "run1351b baseline");
+    pin_eq!(w.firsts.len(), 54, "run1351b baseline");
     pin_eq!(w.rounds_read, (51, 51), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -485,7 +485,7 @@ fn german_industrial_pair_run1354_s_closing_window_is_widened_whole() {
     // 3682b). No draw parts: the word is whole.
     // Item 3742: 73 → **55**, the Albatrosses' `myspeed` gone with the
     // Aluminum arm (§366.3).
-    pin_eq!(w.firsts.len(), 58, "run1354 baseline");
+    pin_eq!(w.firsts.len(), 55, "run1354 baseline");
     // Every round, both directions: 995 a side, 11 parting. Six are
     // 4728's dead target (`1/33`'s and `1/35`'s `ox`/`whom`, ours −1
     // against theirs `0/13`, §338's standing row); five are who=1's German

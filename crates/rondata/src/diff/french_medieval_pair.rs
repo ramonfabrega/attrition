@@ -180,7 +180,7 @@ fn french_medieval_pair_the_long_s_stride_walks_back_from_the_word() {
     // `form` on 27 units and the buildings' `build:extra` on 45 (which the
     // stride does not print), and who=1's groups 64..69 with their pools
     // as each is minted. No unit row parts before the word's window.
-    pin_eq!(w.firsts.len(), 86, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 84, "the stride's baseline");
 }
 
 /// run1393b: the word 3108's window, blocks 3077..3359 at the long's
@@ -336,7 +336,7 @@ fn french_medieval_pair_run1414_s_closing_frame_is_widened_whole() {
     // -1696333824 — 3567a's shape (parked 3735a). No other unit, building
     // or city field parts, no draw parts to 4664, and the closing block
     // 4665 agrees.
-    pin_eq!(w.firsts.len(), 57, "run1414 baseline");
+    pin_eq!(w.firsts.len(), 55, "run1414 baseline");
     // Every round, both directions: 287 each side, 10 rows parting — the
     // Trebuchets `1/70`'s `ammo[1]` and `1/71`'s `ammo[0]` (TI 266) on
     // 4408, each round's `sx`, `sy`, `sz`, `angle` and `v1z`: they leave

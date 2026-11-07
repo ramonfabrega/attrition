@@ -236,7 +236,7 @@ fn japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole() {
     // `1/51` takes the extra `Guy::set_anim < Guy::move` draw in ours.
     // Item 3610: 1962 → 82, the standing families alone, with piece
     // 1176's bays: `1/50`'s arrow lands on `0/6` on 4904 on both sides.
-    pin_eq!(w.firsts.len(), 93, "run1252b baseline");
+    pin_eq!(w.firsts.len(), 82, "run1252b baseline");
 }
 
 /// **The long's stride, walked back from the word 4934** (item 3602):
@@ -281,7 +281,7 @@ fn japanese_ancient_pair_the_long_s_stride_walks_back_from_4934() {
     // `form`, and who=1's groups' `held` and pools, which the stride does
     // not print — from 101 through 4901: no unit field parts on any stride
     // block, so the state run1252b opens apart on 4928 parts after 4901.
-    pin_eq!(w.firsts.len(), 157, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 134, "the stride's baseline");
 }
 
 /// run1264: the gap's window, blocks 4895..4940 at run1252b's detail with
@@ -336,7 +336,7 @@ fn japanese_ancient_pair_run1264_s_gap_is_widened_whole() {
     // 4926, `1/51`'s re-aim. With the bays: 79, the standing families
     // alone (every unit's `form`, who=0's `SITE[i].reg`, `aggression[1]`,
     // who=1's groups' `held`).
-    pin_eq!(w.firsts.len(), 88, "run1264 baseline");
+    pin_eq!(w.firsts.len(), 79, "run1264 baseline");
 }
 
 /// **The closing state** (item 3610): run1252's closing block 6127, the
@@ -439,5 +439,5 @@ fn japanese_ancient_pair_run1264c_s_closing_frame_is_widened_whole() {
     );
     // Item 3610: 59 keys, the standing families alone, through the
     // closing block 6127.
-    pin_eq!(w.firsts.len(), 60, "run1264c baseline");
+    pin_eq!(w.firsts.len(), 59, "run1264c baseline");
 }

@@ -875,7 +875,7 @@ fn run932_s_word_frame_is_widened_whole() {
     // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
-    pin_eq!(w.firsts.len(), 32, "initial run932 baseline");
+    pin_eq!(w.firsts.len(), 31, "initial run932 baseline");
 }
 
 /// run934: the word 6982's window, blocks 6976..7232 at run932's detail
@@ -1130,7 +1130,7 @@ fn run943_s_word_frame_is_widened_whole() {
     // the caravan diagonal (235, 153) (`docs/AI.md` §260).
     // Item 3369: 47 -> 29, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 32, "run943 with set_diags' corner tail");
+    pin_eq!(w.firsts.len(), 29, "run943 with set_diags' corner tail");
 }
 
 /// run952: the word 11585's window, blocks 11579..11835 at run943's
@@ -1185,7 +1185,7 @@ fn run952_s_word_frame_is_widened_whole() {
     // Item 3369: 60 -> 33, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
     // Item 3385: 33 -> 31 (the General's rally armour, `Sim::rally_armor`).
-    pin_eq!(w.firsts.len(), 33, "run952 with the Despot's cut");
+    pin_eq!(w.firsts.len(), 31, "run952 with the Despot's cut");
 }
 
 /// run954: the word 12156's window, blocks 12150..12406 at run952's
@@ -1236,7 +1236,7 @@ fn run954_s_word_frame_is_widened_whole() {
     // `sim::pivot::RELEASES`: block 12231's `0/2000` `build:damage`, ours
     // 902 against theirs 904, agrees.
     // Item 3385: 33 -> 31 (the General's rally armour, `Sim::rally_armor`).
-    pin_eq!(w.firsts.len(), 44, "run954 on its first build");
+    pin_eq!(w.firsts.len(), 31, "run954 on its first build");
     // Item 3306: 1118 on the first build, 1088 with the held building's
     // yield (the parting index 1 → 10), and 61 with the yield's skip of
     // the flee arm and the on-duty gate. Block 12150 holds the standing
@@ -1353,7 +1353,7 @@ fn run952b_s_gap_is_widened_whole() {
     // Item 3369: 59 -> 32, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
     // Item 3385: 32 -> 30 (the General's rally armour, `Sim::rally_armor`).
-    pin_eq!(w.firsts.len(), 32, "run952b with the Despot's cut");
+    pin_eq!(w.firsts.len(), 30, "run952b with the Despot's cut");
 }
 
 /// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`

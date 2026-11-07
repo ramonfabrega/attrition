@@ -188,7 +188,7 @@ fn japanese_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // on 27 units, the buildings' `build:extra` (which the stride does not
     // print) and who=1's groups with their pools — and one unit row, the
     // Infantry `1/18`'s `dest_angle` on 1801.
-    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 95, "the stride's baseline");
 }
 
 /// run1403b: the word 3160's window, blocks 3095..3411 at the long's
@@ -266,7 +266,7 @@ fn japanese_modern_pair_run1403b_s_word_frame_is_widened_whole() {
     // standing families, who=1's group 68 `held` [104] and its pool on
     // 3167 (ours alone), and `mirror` on four craft minted in the window
     // (`1/95`, `1/103`, `1/106` and `1/110`); no draw parts (parked 3745b).
-    pin_eq!(w.firsts.len(), 62, "run1403b baseline");
+    pin_eq!(w.firsts.len(), 59, "run1403b baseline");
     // Every round, both directions: 269 in ours against 320, 247 rows
     // parting, the first group 65's Infantry rounds from 3143 (`1/21`,
     // `1/23`, `1/28`: `sx, sy, sz`, `angle`, `v1z`), the launch point.
@@ -340,7 +340,7 @@ fn japanese_modern_pair_run1424b_s_closing_frame_is_widened_whole() {
     // closing block 3867 agrees. Before piece 1145's bays it was 56: the
     // Bazookas' rounds struck `0/2002` (3850, `build:damage` 74 against
     // 84) and `0/2000` (3860) late, and `0/2000`'s `raid_stamp` parted.
-    pin_eq!(w.firsts.len(), 56, "run1424b baseline");
+    pin_eq!(w.firsts.len(), 53, "run1424b baseline");
     // Every round, both directions: 282 a side, 15 parting — the Bombers'
     // (TI 304, `1/95`, `1/103`, `1/106`): `accuracy` 0 in ours against
     // 256..300, and `1/106`'s `ammo[3]` of 3860 one unit off in `sx` and

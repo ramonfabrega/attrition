@@ -187,7 +187,7 @@ fn chinese_modern_pair_the_long_s_stride_is_widened() {
     // Item 3782, 207 → 177: the Submarine's re-chosen slot agrees —
     // `find_unit_with_radius` asks the disc's cells, so its block-0 re-place
     // no longer sees a unit across a cell line (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 190, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 177, "the stride's baseline");
 }
 
 /// run1431b: the pair's closing window, blocks 3875..4131 at the long's
@@ -256,7 +256,7 @@ fn chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole() {
     // No draw parts to 4130.
     // Item 3782, 164 → 125: `1/139`'s rows go — its block-0 re-place asks
     // the disc's cells (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 126, "run1431b baseline");
+    pin_eq!(w.firsts.len(), 125, "run1431b baseline");
     pin_eq!(w.rounds_read, (71, 73), "the rounds read");
     // Every round, both directions: 71 in ours against 73, 52 parting —
     // all three who=1's Manchu Infantry (TI 118, TY 68,

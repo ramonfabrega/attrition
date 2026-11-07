@@ -204,7 +204,7 @@ fn egyptian_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // `build:extra` on 53 buildings (which the stride does not print),
     // `form` on 27 units, and who=1's six groups' `held` with their pools.
     // No position, order or hit parts before the word.
-    pin_eq!(w.firsts.len(), 97, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 92, "the stride's baseline");
 }
 
 /// run1399b: the word 3244's window, blocks 3195..3494 at the long's
@@ -278,7 +278,7 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // piece 207's pivot rows): **65** — the T80DES `1/42`'s round of 3214
     // leaves its muzzle on both sides; `1/29`'s of 3216 still parts, a
     // node-1 round ours fires from `WALK` (parked 3743a).
-    pin_eq!(w.firsts.len(), 71, "run1399b baseline");
+    pin_eq!(w.firsts.len(), 65, "run1399b baseline");
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).
@@ -353,7 +353,7 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
     // craft), group 67's `held` on 3507, `1/124`'s `mirror` on 3511, and
     // the same families later; `0/10` dies on 3519 on both sides and the
     // leader rows agree (`docs/AI.md` §367.2).
-    pin_eq!(w.firsts.len(), 64, "run1421 baseline");
+    pin_eq!(w.firsts.len(), 62, "run1421 baseline");
     // Every round, both directions: 655 against 697 and 367 parting before;
     // now 655 against 662 and 74, none of them `1/55`'s — the T80DES
     // node-1 rounds (parked 3743a).

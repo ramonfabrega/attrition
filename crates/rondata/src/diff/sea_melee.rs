@@ -307,7 +307,7 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 202, "run1483's word window");
+    pin_eq!(w.firsts.len(), 192, "run1483's word window");
     pin_eq!(w.rounds_read, (8, 8), "the rounds read");
     pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }
@@ -371,7 +371,7 @@ fn sea_melee_run1484_s_window_is_widened_whole() {
         }
     }
     pin_eq!(w.blocks, 20, "every block in the window");
-    pin_eq!(w.firsts.len(), 99, "run1484's window");
+    pin_eq!(w.firsts.len(), 90, "run1484's window");
     pin_eq!(w.rounds_read, (157, 157), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
@@ -443,7 +443,7 @@ fn sea_melee_run1486_s_window_is_widened_whole() {
     // `2/16`'s rounds, and 3849a's dead targets (118 → 111, 46 → 24).
     pin_eq!(carrier, vec![], "the carrier's first parted damage");
     pin_eq!(w.blocks, 102, "every block in the window");
-    pin_eq!(w.firsts.len(), 120, "run1486's window");
+    pin_eq!(w.firsts.len(), 111, "run1486's window");
     pin_eq!(w.rounds_read, (381, 381), "the rounds read");
     pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
@@ -514,7 +514,7 @@ fn sea_melee_run1487_s_window_is_widened_whole() {
         .collect();
     pin_eq!(scouts, vec![], "the two scouts' first parted rows");
     pin_eq!(w.blocks, 26, "every block in the window");
-    pin_eq!(w.firsts.len(), 151, "run1487's window");
+    pin_eq!(w.firsts.len(), 144, "run1487's window");
     pin_eq!(w.rounds_read, (121, 121), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }

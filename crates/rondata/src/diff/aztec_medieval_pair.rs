@@ -185,7 +185,7 @@ fn aztec_medieval_pair_the_long_s_stride_walks_back_from_2556() {
     // five groups' `held` and pools as each is minted (65 on 101 through
     // 68 on 1901). No unit's position, orders or hits part through block
     // 2501.
-    pin_eq!(w.firsts.len(), 87, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 81, "the stride's baseline");
 }
 
 /// run1308b: the word 2556's window, blocks 2550..2806 at the long's
@@ -268,7 +268,7 @@ fn aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole() {
     // pool on 2586 and group 70's on 2655 — the standing pool family as
     // each group is minted. `0/2000`'s `build:damage` and
     // `city:raid_stamp` on 2585 agree.
-    pin_eq!(w.firsts.len(), 64, "run1308b baseline");
+    pin_eq!(w.firsts.len(), 52, "run1308b baseline");
     // Every round, both directions: 163 round-blocks theirs, 141 ours. The
     // first to part is `1/29`'s, on the window's first block, at the
     // Citizen `0/13`: ours leaves from (7599, 31648, 659), theirs from
@@ -358,8 +358,6 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
             "4494 1/69 orders_x",
             "4494 1/69 orders_y",
             "4496 1/118 dest_angle",
-            "4572 1/190 cant_reach",
-            "4580 1/191 cant_reach"
         ],
         "the object rows past `form`"
     );
@@ -370,7 +368,7 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
     // Atl-Atl `1/69` (87) hold `orders_x/y` at their guard point where
     // theirs print the unit's own, and `1/118`'s `dest_angle` parts on
     // 4496. No position, hit or draw parts through the closing block.
-    pin_eq!(w.firsts.len(), 59, "run1322 baseline");
+    pin_eq!(w.firsts.len(), 57, "run1322 baseline");
     pin_eq!(w.rounds_read, (537, 537), "the rounds read");
     // Every round, both directions: 362 a side, 38 parting — the slot
     // shifts from theirs' spent arrows (`docs/COMBAT.md` §46.7), the Heavy

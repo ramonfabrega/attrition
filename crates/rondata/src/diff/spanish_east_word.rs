@@ -227,7 +227,7 @@ fn run993c_s_word_frame_is_widened_whole() {
     // broadside's round now lands on 12774 as theirs does, so `0/2004`'s
     // `damage` (2 → 3) and `damage_frac` (10 → 15) and `0/2000`'s
     // `raid_stamp` (12767 → 12773) agree. What stands is the standing family.
-    pin_eq!(w.firsts.len(), 60, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 58, "keys that part in the window");
 }
 
 /// run993d: the word 14942's window, blocks 14936..15192 at `GUYS=4`,

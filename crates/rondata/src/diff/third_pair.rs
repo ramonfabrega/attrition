@@ -436,7 +436,7 @@ fn run667_s_closing_frame_is_widened_whole() {
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 190 -> 166.
     // Item 3603: piece 48's bays (the Arquebusiers' art, run1254c) moved this pin: 166 -> 164.
-    pin_eq!(w.firsts.len(), 169, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    pin_eq!(w.firsts.len(), 164, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -1540,7 +1540,7 @@ fn run609_s_closing_frame_is_widened_whole() {
     // Item 2761: 47 → 45 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        44, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        42, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }

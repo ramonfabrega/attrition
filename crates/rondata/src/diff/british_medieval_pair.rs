@@ -193,7 +193,7 @@ fn british_medieval_pair_run1376b_s_closing_frame_is_widened_whole() {
     // `aggression[1]`); after it, who=1's groups 69 (5088, ours [241]
     // against none) and 72 (5160, ours [248, 249, 250] against none), the
     // same family. The draw stream and the closing block 5283 agree.
-    pin_eq!(w.firsts.len(), 58, "run1376b baseline");
+    pin_eq!(w.firsts.len(), 56, "run1376b baseline");
     // Every round, both directions: 296 round-blocks each side. **10 rows
     // part, every one a launch** of a Trebuchet (TI 266, TY 216, packed,
     // the lead figure on **piece 216**, slot 12 `CHAR_ATTACK2`, which

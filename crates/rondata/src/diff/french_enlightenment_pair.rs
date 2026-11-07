@@ -182,7 +182,7 @@ fn french_enlightenment_pair_the_long_s_stride_walks_back_from_4505() {
     // unit rows, both who=1's Fusiliers (TY 136): `1/59`'s `dest_angle`
     // on 3901 (its guard order re-aimed) and **`1/48`'s `order:target`
     // on 4401, ours `0/4` against theirs `0/12`**, an army's attack.
-    pin_eq!(w.firsts.len(), 178, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 171, "the stride's baseline");
 }
 
 /// **The closing state** (item 3691): run1344's closing block 4941, the
@@ -324,7 +324,7 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // Grenadier `1/29`'s damage, 5 in ours since 4552 (parked 3691c); and
     // the capital `0/2000`'s `build:damage` on 4691, ours 421 against
     // theirs' 427, under the Fusiliers' rounds (parked 3691a).
-    pin_eq!(w.firsts.len(), 119, "run1360 baseline");
+    pin_eq!(w.firsts.len(), 117, "run1360 baseline");
     pin_eq!(w.rounds_read, (465, 477), "the rounds read");
     // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
     // 3691a) and the Musketeers' slot swaps on 4724, 4725, 4900 and 4902,
@@ -405,7 +405,7 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // 4495's families, `1/48`'s target, group 77's `held` on 4518 and the
     // Horse Guard Grenadier `1/29`'s `damage_frac` on 4552 (TY 238; ours 5,
     // theirs 0).
-    pin_eq!(w.firsts.len(), 126, "run1344b baseline");
+    pin_eq!(w.firsts.len(), 122, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
     // parting, the first on the window's first block 4495. Item 3691: 428
     // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;

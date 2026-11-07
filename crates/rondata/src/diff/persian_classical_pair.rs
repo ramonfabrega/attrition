@@ -180,7 +180,7 @@ fn persian_classical_pair_the_long_s_stride_walks_back_from_10937() {
     // on 27 units, and who=1's groups' `held` and pools 64..73 as each is
     // minted. **No unit row parts on any stride block to 10901**: the
     // parting is in 10902..10937, which is run1318b's.
-    pin_eq!(w.firsts.len(), 171, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 143, "the stride's baseline");
 }
 
 /// run1318b: the word 10937's window, blocks 10895..11188 at the long's
@@ -246,7 +246,7 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     // Item 3663, pieces 1793's, 1881's, 113's and 1975's bays: **58**,
     // the standing families alone (`SITE[i].reg`, `aggression[1]`,
     // `form`, who=1's groups' `held` and pools as each is minted).
-    pin_eq!(w.firsts.len(), 74, "run1318b baseline");
+    pin_eq!(w.firsts.len(), 58, "run1318b baseline");
     // Every round, both directions: 520 round-blocks theirs, 699 ours, 114
     // parting. **The first is on 10931, who=1's Javelineers `1/312`** (TY
     // 83) at the human's Citizen `0/12`: theirs launches from (5054,
@@ -323,7 +323,7 @@ fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
     // the Archer `1/124` on 11406; parked 3663a). Before pieces 113's and
     // 1975's bays: 65, with the human's `0/2000`'s `build:damage` (414
     // against 420 on 11378), `1/296`'s `damage_o` and `city_flags[0x4]`.
-    pin_eq!(w.firsts.len(), 68, "run1327b baseline");
+    pin_eq!(w.firsts.len(), 59, "run1327b baseline");
     pin_eq!(w.rounds_read, (1332, 1332), "the rounds read");
     // 1278 a side, 24 parting: dead targets' `whom`/`ox` and slot shifts.
     // Item 3679: 1332 a side, 6 parting — the spent arrows held (COMBAT

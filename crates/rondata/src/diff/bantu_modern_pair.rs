@@ -185,7 +185,7 @@ fn bantu_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // Item 3723: 94 keys over 33 blocks, the standing families alone —
     // `form` on 27 units, the buildings' `build:extra` (which the stride
     // does not print), and who=1's groups 64..69 with their pools.
-    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 94, "the stride's baseline");
 }
 
 /// **The long's stride past run1405b's window, walked back from the word
@@ -379,7 +379,7 @@ fn bantu_modern_pair_run1425_s_word_frame_is_widened_whole() {
     // only on `whom`/`ox` on 4300; the other fifteen rows are the
     // Howitzers `1/84` (4320) and `1/102` (4336) and the Armored Scout Car
     // `1/82` (4367), each from its own square in ours (3748a).
-    pin_eq!(w.firsts.len(), 53, "run1425 baseline");
+    pin_eq!(w.firsts.len(), 51, "run1425 baseline");
     pin_eq!(w.rounds_read, (70, 70), "the rounds read");
     pin_eq!(w.rounds.len(), 17, "the rounds that part");
 }

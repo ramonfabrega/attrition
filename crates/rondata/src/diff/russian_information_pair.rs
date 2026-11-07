@@ -200,7 +200,7 @@ fn russian_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // `1/99`'s (TI 273) `attack[1].mandatory`, 0 against 1.
     // Item 3744, the siege-city arm: 293 — the MLRS `1/99`'s
     // `attack[1].mandatory` on 5901 goes (`docs/AI.md` §368.1).
-    pin_eq!(w.firsts.len(), 293, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 288, "the stride's baseline");
 }
 
 /// run1401b: the word 6153's window, blocks 6095..6403 at the long's
@@ -478,7 +478,7 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // city `0/2000` on 6636 (`damage` 1191 against 1200, `city_flags`
     // `0x2`/`0x4`, `reduce_stamp` 6310 against 6635; 3744d) and `1/49`'s
     // `dest_angle` on 6703 (3744e).
-    pin_eq!(w.firsts.len(), 160, "run1423c baseline");
+    pin_eq!(w.firsts.len(), 152, "run1423c baseline");
     pin_eq!(w.rounds_read, (29, 30), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)
     // launch point from 6605 (3744d).

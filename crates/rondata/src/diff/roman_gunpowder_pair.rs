@@ -192,7 +192,7 @@ fn roman_gunpowder_pair_the_long_s_stride_walks_back_from_2926() {
     // `hits_left` ours 26 theirs 23; on 2801 `0/4` 24 against 21): theirs
     // take more. Item 3688: **90** — the Citizens' rows are gone with the
     // Monarch's cavalry arm; the standing families stay.
-    pin_eq!(w.firsts.len(), 95, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 90, "the stride's baseline");
 }
 
 /// run1342b: the word 2926's window, blocks 2895..3177 at the long's
@@ -264,7 +264,7 @@ fn roman_gunpowder_pair_run1342b_s_word_frame_is_widened_whole() {
     // leaders' `SITE[i].reg`, who=0's `aggression`, who=1's groups' `held`
     // and pools); the Citizens' damage, the word and who=1's `attack` are
     // gone with the Monarch's cavalry arm.
-    pin_eq!(w.firsts.len(), 70, "run1342b baseline");
+    pin_eq!(w.firsts.len(), 55, "run1342b baseline");
     // Every round, both directions: 17 round-blocks a side since item
     // 3688, 2 parting — `1/135`'s of 2962, its target dead in ours alone
     // (`ox` −1 against 13), the dead-target standing shape.
@@ -326,7 +326,7 @@ fn roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole() {
     // pools), the Pike Legion `1/68`'s walk end (`orders_x` 8424 against
     // 8471 on 3987) and the Spy `1/98`'s idle `dest_angle` (4048):
     // draw-silent to the close (parked 3688b).
-    pin_eq!(w.firsts.len(), 48, "run1357c baseline");
+    pin_eq!(w.firsts.len(), 46, "run1357c baseline");
     pin_eq!(w.rounds_read, (431, 431), "the rounds read");
     // 431 a side, 10 parting: who=1's Bombards (TY 267, `1/64`, `1/100`)
     // launch from their square, ours, against (6886, 30285) at `sz` 365

@@ -203,7 +203,7 @@ fn turkish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // Item 3782, 165 → 149: the sub's re-seat agrees, so its rows on 3901
     // go; the rest are the standing families and the Tornado's `g.z[0]`
     // (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 160, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 149, "the stride's baseline");
 }
 
 /// run1446b: the word 2551's window, blocks 2495..2801 at the long's
@@ -275,7 +275,7 @@ fn turkish_information_pair_run1446b_s_word_frame_is_widened_whole() {
     // 1 node against 22 (`docs/AI.md` §378; the next item's hypothesis).
     // Item 3780, 940 → 83: the sub comes out east in both, and the window
     // parts on the standing families alone.
-    pin_eq!(w.firsts.len(), 89, "run1446b baseline");
+    pin_eq!(w.firsts.len(), 83, "run1446b baseline");
     // Every round, both directions: 56 against 56, none parting.
     pin_eq!(w.rounds_read, (56, 56), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

@@ -194,7 +194,7 @@ fn egyptian_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // the buildings' `build:extra` (58, which the stride does not print),
     // `form` on 27 units, and who=1's groups with their pools (12). No
     // unit row parts.
-    pin_eq!(w.firsts.len(), 99, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 97, "the stride's baseline");
 }
 
 /// run1407b: the word 3451's window, blocks 3395..3702 at the long's
@@ -266,7 +266,7 @@ fn egyptian_modern_pair_run1407b_s_word_frame_is_widened_whole() {
     // units, who=0's ten `SITE[i].reg` and `aggression[1]`, who=1's two
     // `SITE[i].reg` and five groups with their pools) once piece 195 reads
     // piece 194's rows (`pivot::SAME_AS`, `docs/AI.md` §371.1).
-    pin_eq!(w.firsts.len(), 49, "run1407b baseline");
+    pin_eq!(w.firsts.len(), 46, "run1407b baseline");
     // Every round, both directions: 11 in ours against 18, 27 rows
     // parting, all the Churchills' (`1/27`, `1/36`, `1/37`, `1/47`) from
     // 3438 — `1/47`'s `ammo[0]` leaves the figure's own square (3720,
@@ -341,7 +341,7 @@ fn egyptian_modern_pair_run1426_s_word_frame_is_widened_whole() {
     // Infantry `1/19`'s round of 3723 leaving (6456, 31752, z 221) against
     // (6417, 31701, z 341), and the Citizen `0/12` struck harder from 3739
     // and dying on 3748 in theirs alone.
-    pin_eq!(w.firsts.len(), 56, "run1426 baseline");
+    pin_eq!(w.firsts.len(), 51, "run1426 baseline");
     pin_eq!(w.rounds_read, (222, 222), "the rounds read");
     // 16 rows part, every one a round's `whom`/`ox` read after its target
     // died (`-1` in ours against the dead unit's number in theirs, 3749,

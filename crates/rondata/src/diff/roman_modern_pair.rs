@@ -182,7 +182,7 @@ fn roman_modern_pair_the_long_s_stride_is_widened() {
     // not print them), who=1's groups' `held` (25, groups 64..88) and their
     // pools (25). No position, order or path key parts; no draw parts to
     // the game's end.
-    pin_eq!(w.firsts.len(), 210, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 186, "the stride's baseline");
 }
 
 /// run1444b: the pair's closing window, blocks 4979..5235 at the long's
@@ -249,7 +249,7 @@ fn roman_modern_pair_run1444b_s_closing_frame_is_widened_whole() {
     // 13760 against 13759 and `leftover[0:food]` 5400 against 2200, parted
     // before any leader record the pair prints (parked 3771a). No draw
     // parts to 5234.
-    pin_eq!(w.firsts.len(), 128, "run1444b baseline");
+    pin_eq!(w.firsts.len(), 127, "run1444b baseline");
     pin_eq!(w.rounds_read, (63, 63), "the rounds read");
     // Every round, both directions: 63 against 63, none parting.
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

@@ -228,7 +228,7 @@ fn korean_ancient_pair_run1200b_s_word_frame_is_widened_whole() {
     // standing families alone (every unit's `form`, `SITE[i].reg`, both
     // leaders' `aggression`, who=1's groups' `held` and pools); no unit
     // field parts on any block.
-    pin_eq!(w.firsts.len(), 90, "run1200b baseline");
+    pin_eq!(w.firsts.len(), 83, "run1200b baseline");
 }
 
 /// **The long's stride, walked back from the word 4350** (item 3578):
@@ -277,7 +277,7 @@ fn korean_ancient_pair_the_long_s_stride_walks_back_from_4350() {
     // frame long from the figure's own square) and `damage_frac` 2 against
     // 10 (`1/44`'s arrow, the same). With the bays, 125: the standing
     // families alone.
-    pin_eq!(w.firsts.len(), 136, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 125, "the stride's baseline");
 }
 
 /// **The pair's last blocks, from the disk** (item 3578): the word is the
@@ -328,5 +328,5 @@ fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
     // (every one of theirs' 67 queues reads 0), who=0's `leader:defense`
     // ours 0 against -1, and `1/2061`'s `gather:length[-1]` ours 0
     // against 73 (parked 3578c).
-    pin_eq!(w.firsts.len(), 177, "the closing walk's baseline");
+    pin_eq!(w.firsts.len(), 164, "the closing walk's baseline");
 }

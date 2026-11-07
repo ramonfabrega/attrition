@@ -290,7 +290,7 @@ fn chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole() {
     // left is the standing families: block 2975's, who=1's `SITE[0].reg`
     // on 2976, groups 70 and 68 on 3019/3020; the Crossbowmen `1/127`'s
     // 3037 rows agree.
-    pin_eq!(w.firsts.len(), 66, "run1202b baseline");
+    pin_eq!(w.firsts.len(), 53, "run1202b baseline");
 }
 
 /// run1220: the Fire Lances' volley at `AMMO=5`, blocks 2955..2982 (item
@@ -342,7 +342,7 @@ fn chinese_medieval_pair_run1220_s_volley_is_widened_whole() {
     // `held`/`pool` (nor `GROUPS`). Nothing parts after 2955: the three
     // rounds, the Citizen's blow on 2977 and its flight agree. Without piece
     // 46's bays the Citizen `0/10` parts on 2978.
-    pin_eq!(w.firsts.len(), 87, "run1220 baseline");
+    pin_eq!(w.firsts.len(), 84, "run1220 baseline");
 }
 
 /// run1223: the pair's last blocks, 4265..4521 at the window's detail —
@@ -401,5 +401,5 @@ fn chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole() {
     // Mongols' Crossbowmen, the same Asian style) launch `1/69`'s round
     // from its bay, and 4452's `0/2000` `damage_frac` agrees (parked 3580a,
     // struck).
-    pin_eq!(w.firsts.len(), 53, "run1223 baseline");
+    pin_eq!(w.firsts.len(), 51, "run1223 baseline");
 }

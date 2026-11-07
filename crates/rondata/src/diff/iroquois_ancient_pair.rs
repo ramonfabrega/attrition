@@ -250,5 +250,5 @@ fn iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole() {
     // Lore) on 8246 (`1/52` 39 → 38), the one block `1/50` stood under
     // its `GUARDORDER` alone — refused on 8186, 8201 and 8216 while it
     // walked.
-    pin_eq!(w.firsts.len(), 65, "run1228b baseline");
+    pin_eq!(w.firsts.len(), 57, "run1228b baseline");
 }

@@ -249,7 +249,7 @@ fn run779_s_word_frame_is_widened_whole() {
     }
     // Item 2384: 104 -> 106, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
-    pin_eq!(w.firsts.len(), 102, "initial run779 baseline");
+    pin_eq!(w.firsts.len(), 98, "initial run779 baseline");
     // Item 1744: 1406 keys part on blocks 1349..1605 before the build, the
     // word's own block being 1355 (frame 1354: ours 5 draws, theirs 7, index
     // 1; building `1/2024`'s `queue[0].job_counter` 17200 against 17150 and
@@ -298,7 +298,7 @@ fn run780_s_word_frame_is_widened_whole() {
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 133 → 129 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 101, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 97, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle

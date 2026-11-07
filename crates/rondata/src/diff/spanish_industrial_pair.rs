@@ -189,7 +189,7 @@ fn spanish_industrial_pair_the_long_s_stride_walks_back_from_3229() {
     // in theirs (`damage_frame`), and its position after it. **Item 3705:
     // 99 → 93**, the Citizen's rows gone with piece 50's bays — the wound
     // was a Rifleman's round; no unit row parts.
-    pin_eq!(w.firsts.len(), 106, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 93, "the stride's baseline");
 }
 
 /// run1368b: the word 3229's window, blocks 3195..3480 at the long's
@@ -266,7 +266,7 @@ fn spanish_industrial_pair_run1368b_s_word_frame_is_widened_whole() {
     // 33795, 588) and flies 2 frames as theirs does, `0/2003`'s
     // `build:damage` 5 on block 3230 both sides, and the Citizen `0/4`'s
     // `damage_frame` agrees.
-    pin_eq!(w.firsts.len(), 59, "run1368b baseline");
+    pin_eq!(w.firsts.len(), 56, "run1368b baseline");
     // Every round, both directions: 98 round-blocks theirs, 105 ours (each
     // of ours flew a frame longer), 55 parting, the first on 3198 (item
     // 3697); **98 against 98, none parting** since item 3705.
@@ -394,7 +394,7 @@ fn spanish_industrial_pair_run1382b_s_closing_frame_is_widened_whole() {
     // building or city row parts.
     // Item 3742: 70 → **52**, every Albatross's `myspeed` gone with
     // `update_speed`'s Aluminum arm (`docs/AI.md` §366.3).
-    pin_eq!(w.firsts.len(), 53, "run1382b baseline");
+    pin_eq!(w.firsts.len(), 52, "run1382b baseline");
     // Every round, both directions, none parting.
     pin_eq!(w.rounds_read, (458, 458), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

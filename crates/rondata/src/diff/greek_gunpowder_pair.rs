@@ -247,5 +247,5 @@ fn greek_gunpowder_pair_run1285b_s_closing_frame_is_widened_whole() {
     // `1/146` (3864), guarding `1/118` — 3624a's shape (parked 3626a). No
     // other unit, building or city field parts, and the closing block 4075
     // agrees.
-    pin_eq!(w.firsts.len(), 68, "run1285b baseline");
+    pin_eq!(w.firsts.len(), 65, "run1285b baseline");
 }

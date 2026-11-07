@@ -228,7 +228,7 @@ fn lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole() {
     // the Eagle Feather Horse's round through its pivot, `0/5` stands
     // struck for 30 + 10/16 on 4163, `1/19` re-aims at it on 4168 as
     // theirs does, and block 4169 agrees.
-    pin_eq!(w.firsts.len(), 123, "run1204b baseline");
+    pin_eq!(w.firsts.len(), 115, "run1204b baseline");
 }
 
 /// **The pair's closing state**: run1204's closing dump, block 4974,
@@ -330,7 +330,7 @@ fn lakota_medieval_pair_run1235_s_rounds_are_widened_whole() {
     // `damage` 30, `damage_frac` 10, `damage_o` 32 on both sides). Without
     // piece 156's rows ours looses from the figure's (5544, 10152), flies
     // 18, and `0/5` stands at 21 + 5/16 from 1/11 on 4163.
-    pin_eq!(w.firsts.len(), 107, "run1235 baseline");
+    pin_eq!(w.firsts.len(), 101, "run1235 baseline");
 }
 
 /// run1235c: the pair's last blocks, 4718..4974 at the long's detail —
@@ -381,5 +381,5 @@ fn lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole() {
     // rows are not standing families**: `dest_angle` on the `1/103` (4782)
     // and `1/104` (4790), 3567a's shape (parked 3580b). The closing block
     // 4974 agrees.
-    pin_eq!(w.firsts.len(), 119, "run1235c baseline");
+    pin_eq!(w.firsts.len(), 115, "run1235c baseline");
 }

@@ -902,10 +902,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `Group::action_stance`'s building arm rewrites. This crate
         // computes it ([`sim::Sim::build_stance`]); no buildings group
         // reaches the second writer.
-        if let Some(theirs) = b
-            .stance
-            .filter(|_| std::env::var_os("RON_PROBE_NOROWS").is_none())
-        {
+        if let Some(theirs) = b.stance.filter(|_| std::env::var_os("RON_PROBE_NOROWS").is_none()) {
             let mine = i64::from(built.sim.build_stance(handle));
             r.build_compared += 1;
             compared::note("BuildDump", &["stance"]);

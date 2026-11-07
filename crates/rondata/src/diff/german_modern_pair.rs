@@ -200,7 +200,7 @@ fn german_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // parked 3677a's and 3705b's family. Item 3742: 114 → **101**, the
     // `myspeed` family gone with the Aluminum arm; what stands is `form`,
     // `build:extra`, and who=1's groups and pools.
-    pin_eq!(w.firsts.len(), 108, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 101, "the stride's baseline");
 }
 
 /// run1397b: the word 4077's window, blocks 3995..4328 at the long's
@@ -289,7 +289,7 @@ fn german_modern_pair_run1397b_s_word_frame_is_widened_whole() {
     // theirs 1, eight rows, 3742a). Past block 3995's 47 standing rows:
     // `1/49`'s `dest_angle` on 4103, groups 65 and 69's lists on 4171 and
     // 4180, and `1/69`'s `dest_angle` on 4320.
-    pin_eq!(w.firsts.len(), 67, "run1397b baseline");
+    pin_eq!(w.firsts.len(), 61, "run1397b baseline");
     // Every round, both directions: 137 in ours against 176, the first
     // parting the Tiger `1/38`'s on 4018, which ours holds alone. Item 3738:
     // 137 against 144 and 18 parting, the first `1/53`'s `ammo[1]` on 4301
@@ -372,7 +372,7 @@ fn german_modern_pair_run1418_s_word_frame_is_widened_whole() {
     // who=1's groups and pools, and the eight aircraft's `mirror`, 3742a),
     // the Bomber `1/36`'s `g.z` on 4528, and groups 65 and 69's lists on
     // 4587 and 4687.
-    pin_eq!(w.firsts.len(), 60, "run1418 baseline");
+    pin_eq!(w.firsts.len(), 58, "run1418 baseline");
     // Every round, both directions: 912 against 102, 55 parting, the
     // first the Bomber `1/95`'s `ammo[0]` on 4753, which the dump holds
     // alone — the airports' family, past the word. Item 3742: (912, 912),
@@ -447,7 +447,7 @@ fn german_modern_pair_run1422_s_closing_frame_is_widened_whole() {
     // on 5157, `city_flags[0x4]` 0 against 1 and `reduce_stamp` 4806
     // against 5156 (parked 3742d). No unit position or order parts, no
     // draw parts to 5304, and the closing block 5305 agrees.
-    pin_eq!(w.firsts.len(), 57, "run1422 baseline");
+    pin_eq!(w.firsts.len(), 55, "run1422 baseline");
     // Every round, both directions: 228 each side, 13 rows parting. The
     // Bomber `1/36`'s `ammo[0]` on 5048, `sx`/`sy` one unit apart and
     // `angle` (3742b's family), and the Volksgrenadiers `1/48` (5291) and

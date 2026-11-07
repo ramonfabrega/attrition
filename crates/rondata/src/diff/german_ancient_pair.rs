@@ -229,5 +229,5 @@ fn german_ancient_pair_run1244b_s_closing_frame_is_widened_whole() {
     // building or city field parts.
     // Item 3708: 55 → 50, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 58, "run1244b baseline");
+    pin_eq!(w.firsts.len(), 50, "run1244b baseline");
 }

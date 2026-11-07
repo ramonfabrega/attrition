@@ -157,7 +157,7 @@ fn run984_s_word_frame_is_widened_whole() {
     // the leaders' `SITE[·].reg` 1 against 0, `aggression[1]`, the army
     // pools `pool:65`/`67` and `group:65..67.held` with no `GROUPDATA`
     // printed).
-    pin_eq!(w.firsts.len(), 35, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 32, "keys that part in the window");
 }
 
 /// run984d: the word 6323's window, blocks 6317..6573 at `GUYS=4` and
@@ -208,7 +208,7 @@ fn run984d_s_word_frame_is_widened_whole() {
     // Built: 1136 → 594, the next parting 6387, where `1/10` at 144 from
     // `0/4` struck it inline under `CHAR_ATTACKSPECIAL` (`0/4`'s `damage`
     // 17 against 13). Built: 594 → 31, 6317's standing family alone.
-    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
+    pin_eq!(w.firsts.len(), 31, "keys that part in the window");
 }
 
 /// The closing state's window: run979b's closing block alone, the long's

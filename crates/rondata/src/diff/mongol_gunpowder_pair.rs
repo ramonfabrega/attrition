@@ -287,7 +287,7 @@ fn mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole() {
     // 1976. The word left this window for 4499.
     // Item 3688: 90 → 89. who=1's `leader:attack` agrees with the
     // Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1).
-    pin_eq!(w.firsts.len(), 95, "run1279b baseline");
+    pin_eq!(w.firsts.len(), 89, "run1279b baseline");
 }
 
 /// run1292: the gap before the word's window, blocks 1895..1975 at
@@ -421,7 +421,7 @@ fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
     // orders agree on 4633: theirs' order id 4640007 is ours, `1/93`,
     // `1/94` and `1/95` each hold the attack on `0/11`, and `1/84` the
     // second `GROUPATTACKTOORDER`.
-    pin_eq!(w.firsts.len(), 147, "run1292b baseline");
+    pin_eq!(w.firsts.len(), 139, "run1292b baseline");
 }
 
 /// run1296b: the word 5047's window, blocks 5041..5297 at run1292's
@@ -488,7 +488,7 @@ fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
     // parts through 5297.
     // Item 3688: 119 → 118, block 5041's `leader:attack` agreeing (the
     // Monarch's cavalry arm, `docs/AI.md` §349.1).
-    pin_eq!(w.firsts.len(), 124, "run1296b baseline");
+    pin_eq!(w.firsts.len(), 118, "run1296b baseline");
 }
 
 /// run1298: the closing window, blocks 5297..5400 at run1296b's detail,
@@ -547,7 +547,7 @@ fn mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole() {
     // position or orders part through the closing block.
     // Item 3688: 114 → 113, `leader:attack` agreeing (the Monarch's
     // cavalry arm, `docs/AI.md` §349.1).
-    pin_eq!(w.firsts.len(), 119, "run1298 baseline");
+    pin_eq!(w.firsts.len(), 113, "run1298 baseline");
 }
 
 /// **The closing state** (item 3636): run1279's closing block 5400, the
@@ -659,7 +659,7 @@ fn mongol_gunpowder_pair_the_long_s_stride_walks_back_from_4499() {
     // and new buildings' `build:extra`, who=1's groups' `held` and pools as
     // each is minted, and new units' `form`. No unit's position or orders
     // part through block 4401.
-    pin_eq!(w.firsts.len(), 197, "the late stride's baseline");
+    pin_eq!(w.firsts.len(), 187, "the late stride's baseline");
 }
 
 /// run1292c: the walk back from the word 4499, blocks 4395..4495 at
@@ -716,5 +716,5 @@ fn mongol_gunpowder_pair_run1292c_walks_back_from_4499() {
     // Item 3632: 404 → 136, the standing families alone: the Horde `1/21`'s
     // round leaves through piece 153's pivot and strikes `0/5` on 4474, so
     // block 4475's treaties, wound and flight agree.
-    pin_eq!(w.firsts.len(), 137, "run1292c baseline");
+    pin_eq!(w.firsts.len(), 136, "run1292c baseline");
 }

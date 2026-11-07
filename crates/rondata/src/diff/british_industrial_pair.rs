@@ -194,7 +194,7 @@ fn british_industrial_pair_the_long_s_stride_walks_back_from_2382() {
     // on 27 units, and who=1's groups' `held` and pools 64..69 as each is
     // minted. **No unit row parts on any stride block to 2301**: the
     // parting is in 2302..2382, which is run1336b's.
-    pin_eq!(w.firsts.len(), 86, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 80, "the stride's baseline");
 }
 
 /// run1336b: the word 2382's window, blocks 2295..2633 at the long's
@@ -268,7 +268,7 @@ fn british_industrial_pair_run1336b_s_word_frame_is_widened_whole() {
     // keeps the Flamethrower off who=1's make list on 2184, and the
     // queues, the list and the buckets agree to 2633. The value diff on
     // the old word's block 2383 is empty.
-    pin_eq!(w.firsts.len(), 57, "run1336b baseline");
+    pin_eq!(w.firsts.len(), 53, "run1336b baseline");
     // No round is in flight on either side over the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -388,7 +388,7 @@ fn british_industrial_pair_run1352_s_word_frame_is_widened_whole() {
     // → (306, 306), 110 → 6, all dead targets' `whom`/`ox`.
     // Item 3708: 53 → 52, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 58, "run1352 baseline");
+    pin_eq!(w.firsts.len(), 52, "run1352 baseline");
     // Rounds are in flight on both sides over the window.
     pin_eq!(w.rounds_read, (306, 306), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
@@ -456,7 +456,7 @@ fn british_industrial_pair_run1355b_s_word_frame_is_widened_whole() {
     // `hits:damage` (54 against 41), `damage_o` (15, the Black Watch
     // `1/15`, against 28, the `MARK4` `1/28`) and `damage_frame` (2901
     // against 2871).
-    pin_eq!(w.firsts.len(), 59, "run1355b baseline");
+    pin_eq!(w.firsts.len(), 52, "run1355b baseline");
     pin_eq!(w.rounds_read, (363, 363), "the rounds read");
     // 363 a side, 10 parting: dead targets' `whom`/`ox` alone. Before
     // piece 65's bays: 363 against 402, 122 parting, the Black Watch's
@@ -518,7 +518,7 @@ fn british_industrial_pair_run1355c_s_closing_window_is_widened_whole() {
     // `held` and pools, the human leader's `SITE[*].reg` and
     // `aggression[1]`) and two idle Black Watch's `dest_angle` (`1/83` on
     // 4624, `1/61` on 4626; parked 3683c).
-    pin_eq!(w.firsts.len(), 62, "run1355c baseline");
+    pin_eq!(w.firsts.len(), 58, "run1355c baseline");
     pin_eq!(w.rounds_read, (295, 295), "the rounds read");
     // 295 a side, 37 parting: the Artillery's (`1/68`, `1/94`, `1/106`,
     // TY 269) eight launches, 136 below theirs and some 40 behind (parked
@@ -671,7 +671,7 @@ fn british_industrial_pair_run1336c_s_leaders_stride_is_widened_whole() {
     // Item 3678: **97 → 59**, the standing families alone to 2301: the
     // make list, the queues and the buckets agree on 2201 with the
     // British AA Gun's discount (`docs/AI.md` §347).
-    pin_eq!(w.firsts.len(), 65, "run1336c baseline");
+    pin_eq!(w.firsts.len(), 59, "run1336c baseline");
 }
 
 /// run1336d: the gap 2095..2201 between run1336c's agreeing 2101 and its
@@ -737,7 +737,7 @@ fn british_industrial_pair_run1336d_s_gap_is_widened_whole() {
     // was 941484 here without the British `BRITISH_AA_COST` (its price 79
     // food and 79 metal, the income factor 206) and is 1028320 with it
     // (59 and 59, 225), as theirs: the value diff on 2184 is empty.
-    pin_eq!(w.firsts.len(), 58, "run1336d baseline");
+    pin_eq!(w.firsts.len(), 54, "run1336d baseline");
     // No round is in flight on either side over the gap.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

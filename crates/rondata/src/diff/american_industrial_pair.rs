@@ -203,7 +203,7 @@ fn american_industrial_pair_the_long_s_stride_walks_back_from_3174() {
     // figure's unset facing, against theirs' 0; the American Modern
     // pair's standing row). **No unit row parts on any stride block to
     // 3101**: the parting is in 3102..3174, which is run1338b's.
-    pin_eq!(w.firsts.len(), 111, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
 }
 
 /// run1338b: the word 3174's window, blocks 3095..3425 at the long's
@@ -287,7 +287,7 @@ fn american_industrial_pair_run1338b_s_word_frame_is_widened_whole() {
     // Item 3755: 76 → 59, `get_cost`'s American aircraft arm built —
     // who=1's Biplanes, its `MAKE[2]` and the wealth and oil buckets that
     // stood from the window's first block agree (parked 3669a).
-    pin_eq!(w.firsts.len(), 66, "run1338b baseline");
+    pin_eq!(w.firsts.len(), 59, "run1338b baseline");
     // Rounds are in flight on both sides over the window.
     pin_eq!(w.rounds_read, (326, 326), "the rounds read");
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
@@ -467,7 +467,7 @@ fn american_industrial_pair_run1356_s_word_frame_is_widened_whole() {
     // Item 3755: 78 → 76, `get_cost`'s American aircraft arm built —
     // who=1's Biplanes, its `MAKE[2]` and the wealth and oil buckets that
     // stood from the window's first block agree (parked 3669a).
-    pin_eq!(w.firsts.len(), 78, "run1356 after item 3693");
+    pin_eq!(w.firsts.len(), 76, "run1356 after item 3693");
     pin_eq!(w.rounds_read, (166, 166), "the rounds read");
     pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }
