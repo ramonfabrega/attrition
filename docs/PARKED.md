@@ -11776,11 +11776,13 @@ draw parts; it names no score.
 
 ## Parked by item 3686, 2026-10-26 — a CEO's heal and a rifle's bays
 
-- **3686a — the Monarch's and the Comrade's heal arms.**
-  `Unit::process_healing@005e0670:149`–`:208`: `0x161` and `0x163` on
-  `FRENCH_SUPPLY_HEAL_RATE`, each also asking an allied cell. They are
-  read and not built (`heal.rs`'s SEAM); which captures reach them is not
-  scanned. They name no score.
+- **3686a — ~~the Monarch's and the Comrade's heal arms~~ the Senator's
+  and the President's heal arms.**
+  `Unit::process_healing@005e0670:149`–`:208`: `0x161` (THESENATOR) and
+  `0x163` (THEPRESIDENT) on `FRENCH_SUPPLY_HEAL_RATE`, each also asking an
+  allied cell. ~~They are read and not built~~ The Senator's is built
+  (item 3959, `docs/AI.md` §403.3: run1228b reaches it); the President's
+  stays read and not built (`heal.rs`'s SEAM), and names no score.
 - **3686b — `repair_damage`'s reinforcement.** Past a squad's last live
   figure, a squad under its `uber_size` trains a figure back:
   `Objects::find_free`, `init`, a spot, a move order, and the groups
@@ -15003,13 +15005,14 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   soldier standing in forest, and a human stealth unit standing idle. The score is the first window where a human
   Iroquois unit in forest parts on its target or order list.
 
-## Parked by the next landing, slot CH — reserved
+## Parked by item 3959, 2026-11-07 — the Iroquois heal and the Senator's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3959a — the garrison heal reads a level nothing writes.** `Sim::garrison_heal` indexes
+  `UNIT_HEAL_RATE` by `city::Nation::heal_level`, which stays 0; `process_healing`'s inside branch
+  indexes it by `get_heal_level@006e12e0`, now `Sim::heal_level` (Herbal Lore, Medicine,
+  Pharmaceuticals). A garrisoned unit of a player holding Herbal Lore heals every 15 frames in theirs
+  and every 20 in ours. The score is the first window where a garrisoned unit of such a player parts
+  on `hits:damage`. No window was scanned for one.
 
 ## Parked by item 3960, 2026-11-07 — a unit's own queue, compared against the crate's 0
 

@@ -633,4 +633,138 @@ mod tests {
         sim.ceo_heal(c, due + 20);
         assert_eq!(state(&sim), (212, 0), "under an attrition period, nothing");
     }
+
+    /// A captain of player 1 on its own cell, 40 hits, three down with a
+    /// fraction, in a tree whose one row is Herbal Lore, the heal ladder's
+    /// first rung (`TECHBONUSES` row 67).
+    fn iroquois_captain(type_index: i32) -> (crate::Sim, usize, usize) {
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let mut tree = crate::tech::TechTree::new();
+        let herbal = tree.add(crate::tech::TypeDef::plain("Herbal Lore", 0));
+        tree.roles.heal_faster_preq = [Some(herbal), None, None];
+        sim.set_tech_tree(tree);
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            type_index,
+            combat: crate::combat::Profile {
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let mut u = crate::Unit::new(1, 50, at, 40);
+        u.ty = Some(ty);
+        u.type_index = type_index;
+        u.on_map = true;
+        u.captain = true;
+        u.kind = sim.unit_types[ty].kind;
+        let c = sim.add_unit(u);
+        sim.units[c].health = 37;
+        sim.units[c].damage_frac = 5;
+        sim.world
+            .set_owner(at.cell(), Owner::Player(1), Owner::Player(1));
+        (sim, c, herbal)
+    }
+
+    fn attack_to(dest: crate::world::Pos) -> crate::orders::Order {
+        crate::orders::Order {
+            flags: crate::orders::flag::ACTION,
+            body: crate::orders::Body::Move(crate::orders::MoveOrder {
+                kind: crate::orders::MoveKind::AttackTo,
+                dest,
+                angle: crate::movement::Angle(0),
+                facing: None,
+                has_waypoint: false,
+                waypoint: dest,
+                last: None,
+                pause: 0,
+                retry: 0,
+                attempts: 0,
+                timer: 0,
+                coll: None,
+                orig: None,
+                group: None,
+            }),
+        }
+    }
+
+    /// **An Iroquois captain heals standing on its own ground, at the heal
+    /// level's period** (item 3959, `docs/AI.md` §403.2): a point every 20
+    /// frames, 15 under Herbal Lore, phased on `o`; nothing under an
+    /// attack-move (`is_moving`), when blown, on another leader's ground,
+    /// or for a leader without the bonus. run1228b's `1/50` was refused
+    /// on 8186, 8201 and 8216 under its `ATTACKTOORDER` and healed on 8246
+    /// under its `GUARDORDER`.
+    #[test]
+    fn an_iroquois_captain_heals_standing_on_its_own_ground() {
+        let (mut sim, c, herbal) = iroquois_captain(167);
+        let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "no bonus, nothing");
+        sim.tech[1].power = Some(crate::nations::power::IROQUOIS);
+        assert!(sim.iroquois(1), "the bonus holds in this setup");
+        sim.iroquois_heal(c, 8189);
+        assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
+        sim.units[c].orders.push_front(attack_to(sim.units[c].pos));
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "an attack-move is moving");
+        sim.units[c].orders.clear();
+        sim.units[c].blown = true;
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "a blown unit, nothing");
+        sim.units[c].blown = false;
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (38, 0), "standing, level 0: (50 + 8190) % 20");
+        sim.tech[1].tech[herbal] = true;
+        assert_eq!(sim.heal_level(1), 1, "Herbal Lore is the first rung");
+        sim.iroquois_heal(c, 8210);
+        assert_eq!(state(&sim), (38, 0), "level 1 is not on the 20s");
+        sim.iroquois_heal(c, 8245);
+        assert_eq!(state(&sim), (39, 0), "level 1: (50 + 8245) % 15");
+        let cell = sim.units[c].pos.cell();
+        sim.world.set_owner(cell, Owner::Player(0), Owner::Player(0));
+        sim.iroquois_heal(c, 8260);
+        assert_eq!(state(&sim), (39, 0), "another leader's ground, nothing");
+    }
+
+    /// **The Senator heals a walking column on allied ground, every 20
+    /// frames** (item 3959, `docs/AI.md` §403.3): `process_healing`'s
+    /// `0x161` arm asks no standing test, only an allied cell and a
+    /// Senator of the owner in reach. run1228b's `1/50`, walking under an
+    /// `ATTACKTOORDER` with `1/92` near, healed on 8191, 8211 and 8231.
+    #[test]
+    fn the_senator_heals_a_walking_column_on_allied_ground() {
+        use crate::ai_load::{UnitCols, uflags2};
+        let (mut sim, c, _) = iroquois_captain(167);
+        let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
+        sim.units[c].orders.push_front(attack_to(sim.units[c].pos));
+        sim.senator_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "no Senator, nothing");
+        let senator = sim.add_unit_type(crate::UnitType {
+            hits: 110,
+            type_index: 0x161,
+            cols: UnitCols {
+                unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                ..UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let mut u = crate::Unit::new(1, 92, sim.units[c].pos, 110);
+        u.ty = Some(senator);
+        u.type_index = 0x161;
+        u.on_map = true;
+        u.captain = true;
+        u.kind = sim.unit_types[senator].kind;
+        sim.add_unit(u);
+        sim.senator_heal(c, 8189);
+        assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
+        sim.senator_heal(c, 8190);
+        assert_eq!(state(&sim), (38, 0), "walking, a point and the fraction");
+        let cell = sim.units[c].pos.cell();
+        sim.world.set_owner(cell, Owner::None, Owner::None);
+        sim.senator_heal(c, 8210);
+        assert_eq!(state(&sim), (38, 0), "nobody's ground, nothing");
+    }
 }

@@ -40158,12 +40158,82 @@ stood (`run897_s_word_frame_is_widened_whole`, `run897b_iroquois_closing_state` 
 - **Whether any pinned game's enemy refused a cloaked Iroquois target.** The readers are live now, and every
   lobby's `first_parting` held at the gate, but no window has been read for the moment an enemy's search skips one.
 
-## 403. Reserved for the next item on the AI track
+## 403. Two heals, not one: the Iroquois arm with its standing test, and the Senator's, run1228b's closing window 65 → 57 (item 3959, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3959, Opus 5.5. Parked T71-2 (territory adjudication 3): on the Iroquois Ancient pair's closing window
+(run1228b, 8165..8421) two Iroquois units stood a point more hurt than theirs, `1/52` from 8191 and `1/30` from
+8411. The booking named the Iroquois arm of `Unit::process_healing@005e0670` with its `is_moving` term. That arm is
+real and is built, but it gives one of the five heals. The other four are the Senator's.*
+
+### 403.1 The heals on the window, from the dump
+
+`healing` (`+0x38`) is decremented at `Unit::process@00610bc0:69` before `process_healing` runs, and every arm that
+heals writes `max(rate, healing)`. So a jump in the dumped `healing` names the arm's period. Only one function reads
+`IROQUOIS_HEAL_RATE` or `FRENCH_SUPPLY_HEAL_RATE` (`Constants::init` aside), and only `process_healing` and
+`Unit::process`'s aircraft arm write a unit's `+0x38`. Player 1 has five heals in the window, all on squad captains,
+each point handed down `o_down` to the hurt figure:
+
+| block | captain | `healing` | head order | arm |
+|---|---|---|---|---|
+| 8191, 8211, 8231 | `1/50` (Mohawk Spearmen, TI 167, land) | 20 | `ATTACKTOORDER` | Senator |
+| 8246 | `1/50` | 15 | `GUARDORDER` alone | Iroquois |
+| 8411 | `1/30` (Javelineers, TI 83, land) | 20 | `ATTACKTOORDER` | Senator |
+
+The level is fixed through the window: `tech_frame` reads 7782 on every block, so player 1 researched nothing. The
+crate holds Herbal Lore, so `get_heal_level` is 1 and the Iroquois period is 15. Both 15 and the 20s cannot be the
+one arm.
+
+### 403.2 The Iroquois arm (`process_healing:118-147`)
+
+`has_tribe_bonus(0x12)`, not blown (`unit_masks & 0x1000`), vslot `+0xd8` false, land, then
+`IROQUOIS_HEAL_RATE[get_heal_level]` on `(o + frame)`, and the cell's territory owner an ally.
+
+- **Vslot `+0xd8` is `UnitData::is_moving@00610af0`.** The PE's `Unit::vftable` at `00b417d0 + 0xd8` holds
+  `0x610af0`. It reads the order at `orderlist +0x14 → +4 → +8`, which is the node `OrderList::log_data` prints
+  last, so the dump's current order. It returns that order's `+0x14`. For `AttackToOrder` the slot is a vtordisp
+  thunk to `0x41e0e0`, which is `mov eax, 1; ret`. So an attack-move is moving, as `Sim::is_moving` already said.
+- **The dump agrees.** On its 15-phase `1/50` was refused on 8186, 8201 and 8216, all three under `ATTACKTOORDER`.
+  It healed on 8246, the one block its list held `GUARDORDER` alone.
+- **`get_heal_level@006e12e0`** counts `HEAL_FASTER_1..3` (`0x2ef..0x2f1`) held by `has_preq`. Its `BUY_SELL` arm
+  is out of the loop's range. Those bonuses are `TECHBONUSES` rows 67–69, whose prerequisites in the shipped
+  `rules.xml` are Herbal Lore, Medicine and Pharmaceuticals. The crate had no reader of them: `heal_level` was a
+  field nothing wrote. `Roles::heal_faster_preq` now loads them, and `Sim::heal_level` counts the ladder as
+  `speed_upgrade_level` does.
+
+`Sim::iroquois_heal`, in `crate::heal`, runs before the CEO's heal in `process_healing`'s order.
+
+### 403.3 The Senator's arm (`process_healing:149-177`)
+
+On `FRENCH_SUPPLY_HEAL_RATE` (20): the leader counts a `THESENATOR` (`0x161`, `LeaderData::num_units` at `+0x5762`,
+indexed from `BASE_UNITTYPES`), the cell's owner is an ally, and `has_general(0, 0x161)` finds one in reach. Then
+`repair_damage(1, 1, 1)`. Nothing asks about motion. Player 1's Senator is `1/92` (TI 353, the Republic's patriot,
+`rules.xml`: "a general who also provides healing"), about four tiles from `1/50` on 8190. Parked 3686a had named
+this arm the Monarch's; the TypeIndex enum names `0x161` THESENATOR. `Sim::senator_heal` sits beside `ceo_heal`.
+The President's arm (`0x163`, `:179-203`, an allied cell **or** an unowned one) stays a SEAM.
+
+### 403.4 The score
+
+**`firsts` 65 → 57** on run1228b's closing window, re-pinned at `iroquois_ancient_pair.rs`. The booking counted two
+firsts, but each wound was four keys: `damage_frac`, `hits:damage`, `hits:damage_frac` and `hits_left`, on `1/52` from
+8191 and on `1/30` from 8411. All eight agree on every block. Value diff on the word's frame 8191: `1/52`
+`hits:damage` was ours 42 against theirs 41; it is now 41 both sides, then 40 on 8211, 39 on 8231 and 38 on 8246,
+which is theirs' value through 8420. `1/30` is 4 both sides from 8411.
+
+**Held out, run897**: see 403.6.
+
+### 403.5 Coverage
+
+- **Diff-backed**: both arms' periods, phases, hand-down and allied-cell test on run1228b; the standing test's
+  refusal on three blocks and its heal on one; `get_heal_level` at 1.
+- **Reading alone**: levels 2 and 3; the `0x1000` (blown) refusal; the mutual-ally cell; the Senator's leader count
+  (answered here by `has_general`'s walk, as in `Sim::near_monarch`); the sparkle arm's `internal_random` draw for
+  the console's allies (no stream this crate keeps).
+
+### 403.6 What is not established
+
+- **The President's arm.** Read, not built.
+- **Other lobbies' Senators.** A Republic AI elsewhere heals by the same arm now. What the full suite said is in the
+  item's journal.
 
 ## 404. A unit's own queue, `UNITDATA num_queued` and `queue_time`: compared against the crate's 0, parting on run1066's carrier at 614 (item 3960, 2026-11-07)
 

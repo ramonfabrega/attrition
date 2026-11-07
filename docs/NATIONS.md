@@ -326,7 +326,7 @@ left out; a constant with no reader in the export is dead there too.
 | `IROQUOIS_LOS` | 0 | CheckSums::check_constants, Game::walk_rules_data, GameLog::say_checksum +3 | not carried | `iroquois_los` |
 | `IROQUOIS_FOOD` | 2 | BuildTypeData::calc_gather, BuildTypeOut::draw_template | modelled at economy.rs | `iroquois_food` |
 | `IROQUOIS_SENATE` | 0 | Setup::build_civ_specific | not carried | `iroquois_senate` |
-| `IROQUOIS_HEAL_RATE` | [20 frames, ...] | Unit::process_healing | not carried | `iroquois_heal_rate` |
+| `IROQUOIS_HEAL_RATE` | [20 frames, ...] | Unit::process_healing | modelled at heal.rs | `iroquois_heal_rate` |
 | `IROQUOIS_FREE_SCOUT` | 1 | Build::activate | modelled at nations.rs | `iroquois_free_scout` |
 | `IROQUOIS_SCOUT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `iroquois_scout_upgrades` |
 | `IROQUOIS_GOVS_EARLY` | 0 | TypeData::get_preq | modelled at tech.rs | `iroquois_govs_early` |
@@ -469,7 +469,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::has_bonus@006e0b80` | 4 | not modelled | `006e0b80` |
 | `LeaderData::get_spy_upgrade@006e1090` | 4 | carried at supply.rs | `006e1090` |
 | `LeaderData::get_troops_los_upgrade@006e1110` | 4 | carried at tech.rs | `006e1110` |
-| `LeaderData::get_heal_level@006e12e0` | 4 | not modelled | `006e12e0` |
+| `LeaderData::get_heal_level@006e12e0` | 4 | carried at heal.rs | `006e12e0` |
 | `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at borders_is_border_hidden.rs | `006e1370` |
 | `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at lib.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
