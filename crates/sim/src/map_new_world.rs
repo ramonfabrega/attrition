@@ -117,6 +117,9 @@ pub fn new_world_make_continents(
             let (x, y) = project(xs / 2, ys / 2, Angle(angle), radius);
             g.grid.add_starting_location(x, y);
             g.make_region(k + 1, x, y);
+            // Bit 2, not the bit 1 `grow_valid` and `point` read: inert
+            // in the growers (§31.1).
+            g.lakes.flags[(k + 1) as usize] |= 2;
         }
         g.make_region(CENTRE, xs / 2, ys / 2);
         g.style.avoid_center = scale_land_area(xs / 2 * 70 / 100, players, allow)?;

@@ -3409,12 +3409,148 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 30. Reserved for the next item on the map track
+## 30. Australian Outback's chain, 8 of 8 (item 3949)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The fifth chain take (§22.2, §25's method), and the second whose mask
+is its own after African Watering Hole's (§28). One take, run1532 at
+`--map 13` on §22.2's line (`docs/RUNS.md`), walked phase by phase
+against its own checkpoints by the `Chain` walk (§26) with a third
+`MaskPort` (`rondata::mapgen::tests::AUSTRALIAN_OUTBACK`). Australian
+Outback is **read against**. It is not the held-out style (§24).
+
+### 30.1 The mask is its own: an island grown from the spots and the middle
+
+`MapAustralianOutback::make_continents@0069a650` runs to 0x69add0,
+1,920 bytes against Great Sahara's 368: 599 lines of `llvm-objdump -d`
+against 144 instructions, four `Random::get@00a39d70` calls but nine
+`Map::grow_region@0069c600` calls and two `Map::make_region@0069d3f0`.
+So it is not a dispatch, and the port is `sim::map_outback`, read from
+the decompile and checked against the listing where the decompile hides
+a register (the `project@0092d000` centre in `ecx`/`edx`, the middle's
+`(cx, cy)` at `[ebp−0x2c]`/`[ebp−0x1c]`; x out at `[ebp−0x38]`):
+
+1. Each generation: `World::wipe`, `Regions::clear_all`. `half` is half
+   the shorter side (`[ebp−0x30]`), the reach `half·55/100`
+   (`[ebp−0x14]`), the island `total = size·5/9` (`[ebp−0x10]`).
+2. The angle's two halves `(r % 0xffff) << 16 + r % 0xffff` (sites
+   0x69a762, 0x69a77a); the middle `(xs/2 + (r & 1), ys/2 + (r & 1))`
+   (0x69a833, 0x69a867); `start_dist = max(2, xs/16)` — not Great
+   Sahara's 4, so the walk's `start_dist` check takes the port's floor.
+3. Player `i` from 1: `project(middle, angle, half·66/100)`, its start
+   added, record `i` opened there and given flag bit 1 (+8) and +0xc 1;
+   the angle steps by `0xffffffff / players` *after* each, so the first
+   player stands at the drawn angle (Great Sahara's steps first). Record
+   9 opens on the middle without the flag, +0xc 0. The mask `joined` is
+   every player's bit and 0x200.
+4. Each player's record grows to `total/players/4`, then every one
+   again to `total/players/2`, within the reach of the middle (the
+   growers' centre given, `param_4`/`param_5`). Record 9 still lacks the
+   flag here, so `grow_valid`'s `avoid_center` test keeps the players
+   off the middle. Then record 9 takes flag bit 1 and grows to
+   `total/3` within a third of the reach, about its own first cell.
+5. Until record 9's adjacency mask (+0x24) holds `joined`: for each of
+   records **1..8, whatever the player count**, not yet joined to 9
+   (`mask & 0x200` clear): when `count + total/64` passes `total`,
+   record 9 grows by `total/64` within a quarter of the reach; otherwise
+   the record grows by `total/64` toward the middle, and only when that
+   stalls does record 9 grow. A stall of record 9 in either arm starts
+   the generation again (`jmp 0x69a680`, all four draws anew). An empty
+   record (3..8 on a two-player map) returns 1 from `grow_region` at
+   once, so each of them grows record 9 a step every pass.
+6. Joined: every player's cells are appended to record 9 and their
+   cells' `region` written 9 (no `point`, so no mask), record 9 grows to
+   `total` within the reach, `Map::eliminate_pools@0068b890` on the
+   whole world keeps the largest water, and `Regions::clear_all`.
+
+**What the growers had to learn.** Every mask before this one opened
+its regions with the map's `region_flags`, 0 on every corpus style, so
+the growers' port carried neither the flags nor the masks (§5). This one
+sets flag bit 1 itself, and two arms wake: `Map::grow_valid@0069d000`'s
+two refusals — another live region with the point within
+`avoid_center` of the map's centre, and another region inside the
+`avoid_continent` disc — both pass over a record that shares bit 1 with
+the grower; and `Map::point@0069d5a0`, for a record with bit 1, meets
+each other region among the cell's nine neighbours (`move_x`/`move_y`)
+and writes the union of both masks and both bits into both and into
+every one of the first 32 records whose mask meets it. Both live in
+`sim::map_lakes` (`Lakes::flags`, `Lakes::adjacent`,
+`Grower::grow_region_about`), inert on every flag-0 style: the other
+styles' chains, East Meets West's and Himalayas' among them, held.
+
+On run1532 (2 nations, 60×60, `OUTBACK.xml`'s four `AVOID_EDGE` at 4):
+one generation, **17,262 draws** — the four, then 10,116 edge draws in
+`grow_valid`, 1,989 gates, 1,973 outer picks, 1,456 whole-region and 681
+ring picks in `grow_region`, 943 `large_stamp` cases and 100 side draws.
+**7807 and the whole stream agree on the first walk**: seed 2524927299,
+part 2 181013119, part 5 1934301065, part 6 1792933889 on both sides.
+
+### 30.2 The shared phases, first walk
+
+- **The tileset**: `OUTBACK.xml`'s four `TILECHANCE`s at 25 draw
+  `autumn` off 7805's seed; 7854 agreeing backs it.
+- **7835..7945** agree: 4,678 draws `place_all` through the last
+  `compute_val`, whole against the trace's.
+- **`Terrain::init`**: the sea opens the half-land gate, so the walk
+  takes §28.2's path; all 22 records 734..815 agree, 720 among them
+  (part 5 4114045574 on both sides).
+- **Rivers**: an empty `RIVERLIST`; 21 sources and no river draw on
+  either side; the 5 records 5012..5118 agree. The row is
+  `lays_rivers: false`.
+- **894**: seed 85646897, parts 2, 5 (2363972222), 6 (3983024254) and
+  10–13 (942242802, 515048837, 1919615731, 262145) as the file's; no
+  good moved; all 58,081 start-dump vertices.
+
+No shared phase parted, and no shared fix was taken.
+
+### 30.3 Made to fail
+
+Each arm first against a unit test (`sim::map_outback::tests`, and
+`map_lakes::tests::a_join_reaches_every_record_whose_mask_meets_it` for
+`point`'s join), then `tools/mutate.py --batch --timeout 900` on the
+walk: thirty breaks, then six and one more, **twenty of the thirty
+targets held** (the walk, or the join's unit test for the two
+propagation breaks). Held: the island's `5/9`, the angle's halves
+swapped, both middle parities, `start_dist`'s floor at 4, the ring and
+the reach once broken past their rounding (`66 → 65` and `55 → 56` give
+19 and 16 either way on 60×60; `60` and `50` hold), the first player a
+step on, either flag bit dropped, the second share at 3, record 9's
+`total/3` at `/2`, the merge loop's exit, the last growth at
+`total·9/10`, and in the growers the shared-bit exemption gone (whole,
+and each of `grow_valid`'s two refusals alone), the masks never kept,
+the join pass dropped or cut to nine records, and the centre left to
+the first cell. Ten failed nothing, each for a reason read off the take:
+
+- **The merge loop's body and the restart** (seven: the player's
+  centre, `total/64`, the loop's test made any-bit, records `1..=8`
+  made `1..=players`, `<` made `<=`, the `&&` made `||`, the restart
+  never taken): record 9's `total/3` growth joins both players at once,
+  so no pass runs (`Outback::passes` 0). Not a port's blind spot: every
+  pass draws, and the original's 17,262-draw stream is whole, so it took
+  none either. 112 lobbies of the port (40–100 cells a side, 2–8
+  nations, four seeds) take no pass and no restart (parked 3949a).
+- **Record 9's reach** (`reach/3`, broken to `/2` and to 1): every
+  outer pick it draws lies 9 to 29 from the middle, so any reach under 9
+  refuses all of them alike.
+- **The absorb's `region` write**: an equivalent mutant here — every
+  record shares bit 1, so no refusal reads which record a cell is in,
+  and `clear_all` follows.
+- **`eliminate_pools`**: the island encloses no pool on run1532.
+
+### 30.4 What is not established
+
+- One file only: 2 nations, 60×60. Other nation counts and sizes are
+  untaken; a map with more than two players makes fewer empty records
+  among 1..8, and the step that grows record 9 for each is read, not
+  taken beyond two.
+- The merge loop's body and the restart: unreached on run1532 and on
+  every lobby the port was run on (§30.3, parked 3949a); read from the
+  decompile and the listing (`jle 0x69abd0`, `je 0x69ac1e`, `jmp
+  0x69a680`), no take decides them.
+- `eliminate_pools` and record 9's reach under 9: nothing on this take
+  reads them (§30.3).
+- `point`'s propagation is a single pass over the first 32 records, as
+  read; whether a second join in one `point` could order differently is
+  not decided by a take with two players.
 
 ## 31. New World's chain, 8 of 8 (item 3950)
 

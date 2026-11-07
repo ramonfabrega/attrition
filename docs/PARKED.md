@@ -14892,13 +14892,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CB — reserved
+## Parked by item 3949, 2026-11-07 — Australian Outback's chain take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3949a) **Australian Outback's merge loop and restart, unreached.** `MapAustralianOutback::make_continents@0069a650`
+loops over records 1..8 until record 9's adjacency mask holds every player's bit, growing each unjoined record by
+`total/64` toward the middle (or record 9, past `total`), and restarts the generation on a stall of record 9
+(`jle 0x69abd0`, `je 0x69ac1e`, `jmp 0x69a680`). On run1532 record 9's `total/3` growth joins both players at once:
+no pass runs (`Outback::passes` 0), and the original's whole 17,262-draw stream says it took none either. 112 lobbies
+of the port (40–100 cells a side, 2–8 nations, four seeds) take no pass and no restart, so the seven breaks inside
+the loop fail nothing (MAPGEN §30.3, §30.4). A take would decide the loop only on a lobby where the middle's growth
+misses a player, and none is known. Names no score.
 
 ## Parked by item 3950, 2026-11-07 — New World's chain take
 
