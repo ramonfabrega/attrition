@@ -1453,6 +1453,25 @@ pub(super) fn stage_walk() {
     // a border pass is walked on the staging before any capture.
     let owners_walk = std::env::var_os("RON_STAGE_OWNERS").is_some();
     let mut last_owners = built.sim.world.owners();
+    if std::env::var_os("RON_PROBE_3970_MAP").is_some() {
+        for cy in 76..130 {
+            let row: String = (180..240)
+                .map(|cx| {
+                    let p = sim::Pos::new(cx * 192 + 96, cy * 192 + 96);
+                    let m = built.sim.world.tile_mask(p.tile());
+                    let own = built.sim.world.owner_at(p);
+                    match (m & 0x30, own.player()) {
+                        (0x30, _) => 'F',
+                        (0x20, _) => '~',
+                        (_, Some(1)) => '1',
+                        (_, Some(0)) => '0',
+                        _ => '.',
+                    }
+                })
+                .collect();
+            eprintln!("MAP {cy:3} {row}");
+        }
+    }
     while built.sim.frame <= to {
         let did = script.stage(built.sim.frame, &mut built, &loaded);
         applied.merge(&did);
