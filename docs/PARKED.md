@@ -15019,13 +15019,21 @@ words and edits nothing here; a refill lands when two remain.
   `Group::action_spell`'s carrier arm, the `Unit::process` tick and `action_unqueue(1)` would have no diff. **Score**:
   none until a walk holds a carrier; a lobby whose AI builds a carrier (an Industrial-or-later sea game) would name one.
 
-## Parked by the next landing, slot CJ — reserved
+## Parked by item 3961, 2026-11-07 — the heal's clock, `UNITDATA` and `BUILDDATA healing`, compared
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3961a. The on-map heals this crate does not take, now dated by `healing`** (`docs/AI.md` §405): four widenings
+  carry a `healing` row where theirs heals on the block its hits part and ours does not — run1262's `1/50` on 5601
+  (theirs 10: the period of no arm the crate builds; `process_healing`'s supply arm with the French bonus and Versailles,
+  `(VERSAILLES + SUPPLY + FRENCH) / 4`, is one candidate, unread), run1344b's `1/29` on 4552 (theirs 20, the
+  `FRENCH_SUPPLY_HEAL_RATE` arms: the Monarch's and the Comrade's, parked 3686a), and run1228b's `1/50` (8191) and `1/30`
+  (8411), theirs 20, the Iroquois heal (item 3959). The rate a unit's `healing` prints is the arm's period, so each row
+  names its arm without a packet. **Score**: none of them is a word's frame; each is its widening's `firsts` pin, −1 a
+  row, when the arm lands.
+- **3961b. `Build::process`'s patriot repair** (`Build::process@0061edf0`, the arm ending at `0061f3b9`): a Monarch, Comrade or CEO near a damaged building
+  of a leader holding one repairs it on `FRENCH_SUPPLY_HEAL_RATE`'s phase and writes the building's `healing`; this crate
+  compares `BUILDDATA healing` against 0 under a `SEAM`, and 0 is what every building of the 1182 dumps on disk prints
+  (the 2026-11-07 scan, every record-level non-zero `healing` a unit's). **Score**: none until a capture holds a patriot
+  beside a damaged building; the compare reds at once when one does.
 
 ## Parked by the next landing, slot CK — reserved
 
