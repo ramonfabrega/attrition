@@ -40079,12 +40079,59 @@ does not run whole.
 - **The cliff lists' tiles in a played game**, as §401.4 says.
 - **Why 15754 parts.** Held out: it is parked by frame, and it is read by nobody.
 
-## 402. Reserved for the next item on the AI track
+## 402. The Iroquois cloak: three mask bits widened and ported, run1228b's closing window 67 → 65 (item 3958, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3958, Opus 5.5. Parked T71-1 (territory adjudications 3 and 4): on the Iroquois Ancient pair's closing window
+(run1228b, 8165..8421) the Iroquois' units print three mask bits that no row compared and the crate held at 0.*
+
+### 402.1 The widening, red first
+
+`widen_block_rows` gains three rows on every on-map unit, each mapped to its parsed word for the coverage pin
+(`widened_field`): `cloak` (`unit_masks & 0x800`), `land_cloak` (`unit_masks2 & 0x8000`) and `cloak_mark`
+(`unit_masks2 & 0x80`). On their first run the window's `firsts` went **67 → 325**: `cloak_mark` 139 units,
+`land_cloak` 116, `cloak` 3, every one who=1 and ours 0 against theirs 1 from block 8165.
+
+### 402.2 The writers, from the reading
+
+- **The birth mark** (`Unit::init@00612100:341-352`): a unit of a leader with tribe bonus `0x12` whose type is land
+  (`+0x218 == 0`) and lacks objmask 4 (`CIVILIAN`; `ObjectTypeData::has_objmask@00470860` is `obj_masks & mask`)
+  takes `unit_masks2 |= 0x80`. Nothing clears it. `Sim::init_iroquois_masks`, beside the Scout's `0x4080`.
+- **The own-land cloak** (`Unit::process_cloak@005e1c20:47-58`, on the unit's sixteen-frame phase in
+  `Unit::process`, after the `targeted` decay): `unit_masks2 &= ~0x8000`, then `|= 0x8000` when `0x80` is set and
+  the cell's territory owner (`world +0x134`, `+0xf`, `>> 8` coordinates) is the unit's owner or a mutual ally.
+  `Sim::process_cloak`.
+- **The forest cloak** (`process_cloak:93-108`): an Iroquois land unit takes `unit_masks |= 0x800` on a forest tile
+  (`TData & 0x30 == 0x30`, `>> 6` coordinates) and loses it off one. The same test runs in
+  `Unit::set_new_location@005f8d20:61-82` when a step crosses a **tile inside one world cell** — a cell crossing
+  skips it. `Sim::step_cloak`, called from both. `crate::Unit::cloak` carries the bit.
+- **The readers** already asked `0x8000`; they now ask `0x800` too: `is_seen`'s stealth arm
+  (`unit_stealth_hides`), `is_cloaked` (`unit_is_cloaked`) and `Unit::work@0060d180:384`'s blown test
+  (`unit_stealth_type`).
+
+### 402.3 The score
+
+The rows went green with the process arms and the birth mark, but for `1/0`'s `cloak` (theirs 1 on 8197, off the
+unit's phase), which the tile step's test closed. `firsts` **67 → 65**, and the two that left are readers' rows:
+`1/88`'s `blown` ours 1 theirs 0 on 8165 and `1/16`'s ours 1 theirs 0 on 8177. Both carried `land_cloak` theirs 1
+on 8165, so `Unit::work`'s stealth arm, which skips a unit holding `0x800` or `0x8000`, no longer blows them. What
+remains of the 65: the 50 standing rows of item 3584 (`form`, `SITE[i].reg`, `aggression[1]`, groups' `held` and
+`pool`), groups 68's on 8181, six `dest_angle` rows from 8225 and the two wounds (`1/52`, `1/30`) that item 3959
+takes.
+
+### 402.4 Coverage
+
+- **Diff-backed**: all three bits on every unit and every block of run1228b's closing window. The birth mark's
+  predicate is checked on 139 units, the own-land arm on 116, and the forest arm on 3, two of them through the
+  tile step.
+- **Reading alone**: the mutual-ally term (no pinned lobby is allied); the hero aura (`unit_masks & 0x2000`, the
+  leader's `0x4000`), a `SEAM` in `Sim::process_cloak`, since this crate carries neither flag and the arm only
+  clears; and `Unit::find_melee_target@005ff9c0`'s cloak exit for a human's cloaked unit (`leader_flags & 4`), not
+  ported (parked 3958a).
+
+### 402.5 What is not established
+
+- **Whether any pinned game's enemy refused a cloaked Iroquois target.** The readers are live now, and every
+  lobby's `first_parting` held at the gate, but no window has been read for the moment an enemy's search skips one.
 
 ## 403. Reserved for the next item on the AI track
 
