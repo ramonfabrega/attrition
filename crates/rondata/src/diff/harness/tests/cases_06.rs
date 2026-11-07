@@ -35,7 +35,8 @@ mod bodies {
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            1364670,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            1408360,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -155,7 +156,8 @@ mod bodies {
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            1364670,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            1408360,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -662,7 +664,8 @@ mod bodies {
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            1364670,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            1408360,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -769,7 +772,8 @@ mod bodies {
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            902700,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            931600,
             "170 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -906,7 +910,8 @@ mod bodies {
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            796500,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            822000,
             "150 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -1055,7 +1060,8 @@ mod bodies {
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            1911600,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            1972800,
             "360 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");

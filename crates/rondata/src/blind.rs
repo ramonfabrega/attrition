@@ -704,6 +704,14 @@ pub const TRACES: &[&str] = &[
     // laid on 742, `Group::action_flight`'s inside arm giving a plane no
     // `valid_target` (`docs/GOLDEN.md` §174); run1539's game on every frame.
     "rontrace-run1539b.log",
+    // Item 3969: golden chapter one hundred and twenty-five (`chapter125.cmd`,
+    // a first Library closed with Written Word queued on 640, the last
+    // closed on 680, a new one ordered on 720) at `cover=1` on the
+    // click-free pool, to 760 (`docs/RUNS.md` run1540b): the 640 close
+    // enters `Build::close` and no `Build::clean_queue` — the hand-off —
+    // and the 680 close the clean (`docs/GOLDEN.md` §175); run1540's game
+    // on every frame.
+    "rontrace-run1540b.log",
     // Item 3970: golden chapter one hundred and twenty-six
     // (`chapter126.cmd`, a Mayan City with a Temple, a Tower on the Militia
     // bit holding a General, and a Chariot at each) at `cover=1` on the

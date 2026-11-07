@@ -224,5 +224,7 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // Horse `1/182`'s `guard.retry` 7 against 6.
     // Item 3961: +1, `healing` on `1/50` (5601, ours 0 theirs 10): theirs heals on the block its
     // hits part, an arm of rate 10 ours does not take (parked 3961a).
-    pin_eq!(w.firsts.len(), 155, "the closing walk's baseline");
+    // Item 3969: +3, who=1's technology `num_queued[505]`, `[512]` and `[527]` on 6107, ours 1
+    // theirs 0, beside the unit rows that part the same way: the closing state's emptied queue.
+    pin_eq!(w.firsts.len(), 158, "the closing walk's baseline");
 }

@@ -2802,7 +2802,8 @@ mod tests {
         // Item 1563: 163 → 177; the shared instrument compares `ever_seen` and `ever_seen_completed` (parked 1450), and on the closing block 18141 seven of player 1's buildings, `1/2056`..`1/2062`, read 3 in the original against 2 — the defeated human's bit, a closing residue.
         // Item 1586: 177 → 176; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 100 -> 84.
-        pin_eq!(w.firsts.len(), 84, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        // Item 3969: +1, who=1's technology `num_queued[504]` on the closing block 18141, ours 1 theirs 0, beside its units' `queued` rows.
+        pin_eq!(w.firsts.len(), 85, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))

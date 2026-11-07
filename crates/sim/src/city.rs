@@ -438,7 +438,13 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// `Cities::init_city` → `City::init`: a record for a city building.
-    fn init_city(&mut self, who: Player, b: usize, transfer: bool, capital: bool) -> usize {
+    pub(crate) fn init_city(
+        &mut self,
+        who: Player,
+        b: usize,
+        transfer: bool,
+        capital: bool,
+    ) -> usize {
         let pos = self.buildings[b].pos;
         let stamp = if transfer { self.frame } else { 0 };
         let reg = self.world.region_of(pos.cell());
@@ -2622,6 +2628,45 @@ impl Sim {
             .is_some_and(|t| line.get(crate::tech::wonder::COLOSSUS) == Some(&t))
     }
 
+    /// `Build::clean_queue@00620b60` on a building's own queue: every entry
+    /// off, each refunded when `refund` is set, and each one's queued count
+    /// taken down — a technology's under its own type
+    /// ([`Sim::untrack_item`]; item 3969).
+    fn clean_queue(&mut self, b: usize, refund: bool) {
+        let who = self.buildings[b].owner;
+        let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
+        while !self.buildings[b].queue.items.is_empty() {
+            if let Some(item) = self.buildings[b].queue.unqueue(0, refund, &mut ledger) {
+                self.untrack_item(who, &item);
+            }
+        }
+        self.ledgers[who as usize] = ledger;
+    }
+
+    /// **A closing first library hands its queue to the next**
+    /// (`Build::close@00628980:468`–`:521`, item 3969, `docs/GOLDEN.md`
+    /// §175). The building is already out of its city, so
+    /// `get_first_library` names the owner's next library: with none, the
+    /// queue is cleaned with a refund (`clean_queue(1)`); with one, every
+    /// entry is appended to that library's queue as it stood — progress,
+    /// price and all — and no count moves. A Disband at the head stays
+    /// behind (`0x29a` at index 0) and closes with the building.
+    fn hand_off_library_queue(&mut self, b: usize) {
+        let who = self.buildings[b].owner;
+        let Some(next) = self.first_library(who) else {
+            self.clean_queue(b, true);
+            return;
+        };
+        let items = std::mem::take(&mut self.buildings[b].queue.items);
+        for (i, item) in items.into_iter().enumerate() {
+            if i == 0 && item.disband {
+                self.buildings[b].queue.items.push(item);
+                continue;
+            }
+            self.buildings[next].queue.items.push(item);
+        }
+    }
+
     /// `Build::close` / `Wall::close`. `silent` is reason 5, a transfer:
     /// the footprint stays marked for the copy that replaces it.
     pub fn close_building(&mut self, b: usize, silent: bool) {
@@ -2629,6 +2674,11 @@ impl Sim {
             return;
         }
         let who = self.buildings[b].owner;
+        // `Build::close@00628980`'s entry (`0x628a2d`, the listing; the
+        // decompile's `pLStack_38`): whether this building is the owner's
+        // first library, asked before anything closes. Only that one hands
+        // its queue on below.
+        let was_first_library = self.buildings[b].is_library && self.first_library(who) == Some(b);
         // `Build::close@00628980` line 59, its first act: `defense -= 1`
         // for a type with arrows.
         if self.buildings[b]
@@ -2639,17 +2689,11 @@ impl Sim {
         }
         // `Build::close@00628980` line 95: the economy's dirty flag.
         self.economy_changed(who);
-        // `clean_queue(refund)`.
-        {
-            let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
-            while !self.buildings[b].queue.items.is_empty() {
-                if let Some(item) = self.buildings[b].queue.unqueue(0, !silent, &mut ledger)
-                    && !item.disband
-                {
-                    self.untrack_queued(who, item.ty);
-                }
-            }
-            self.ledgers[who as usize] = ledger;
+        // `clean_queue(refund)` — `Build::close@00628980:78`–`:87`, for
+        // anything but a library; a library's queue waits for the hand-off
+        // at the close's end.
+        if !self.buildings[b].is_library {
+            self.clean_queue(b, !silent);
         }
         if self.buildings[b].started && !silent {
             self.mask_building(b, false);
@@ -2744,6 +2788,9 @@ impl Sim {
                 .is_some_and(|t| build::is_fort(&self.build_types, t))
         {
             self.sync_territory();
+        }
+        if was_first_library && !self.buildings[b].queue.items.is_empty() {
+            self.hand_off_library_queue(b);
         }
         self.economy_changed(who);
         // `Build::close` line 562: the last dock lost revokes the level
@@ -3111,7 +3158,7 @@ impl Sim {
             let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
             while !self.buildings[b].queue.items.is_empty() {
                 if let Some(item) = self.buildings[b].queue.unqueue(0, true, &mut ledger) {
-                    self.untrack_queued(who, item.ty);
+                    self.untrack_item(who, &item);
                 }
             }
             self.ledgers[who as usize] = ledger;

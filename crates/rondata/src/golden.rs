@@ -2597,6 +2597,10 @@ mod tests {
         // and an `@strike` from inside the base on a Barracks who=0 has not
         // seen (item 3968, `docs/GOLDEN.md` §174).
         ("chapter124.cmd", &[]),
+        // Chapter one hundred and twenty-five: a first Library closed with a
+        // technology queued, the last closed, and a new one ordered (item
+        // 3969, `docs/GOLDEN.md` §175).
+        ("chapter125.cmd", &[]),
         // Chapter one hundred and twenty-six: a Mayan City with a Temple, a
         // Tower on the Militia bit with a General inside, and two Chariots
         // at them (item 3970, `docs/GOLDEN.md` §176).

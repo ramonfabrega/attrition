@@ -6934,6 +6934,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR: i64 = 1000;
 /// run1539.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_FOUR: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and twenty-five** (item 3969, `docs/GOLDEN.md`
+/// §175, run1540): a Library closed with a technology queued — the first
+/// Library's Written Word handed to the next on 640, refunded when the
+/// last closes on 680, and queued again at a new Library on 720.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FIVE: i64 = 760;
+
+/// `chapter_one_hundred_and_twenty_five_s_window_is_widened_whole`'s
+/// window: run1540.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_FIVE: (i64, i64) = (609, 761);
+
 /// **Chapter one hundred and twenty-six** (item 3970, `docs/GOLDEN.md`
 /// §176, run1541): the armed building family — a Mayan City with a Temple,
 /// a Tower on the Militia bit holding a General, a Chariot at each. Closed
@@ -7095,6 +7105,10 @@ pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 110;
 /// player: the goods block's 88, `gov` since item 706, and the three tech
 /// counters since item 883 (`docs/GOLDEN.md` §35).
 pub(crate) const LEADERS_TWO_KEYS: usize = 92;
+/// The leader keys `LEADERS=9` prints and the leader diff reads, a player
+/// (item 3969, chapter one hundred and twenty-five's take, the first golden
+/// window at that level).
+pub(crate) const LEADERS_NINE_KEYS: usize = 1209;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,

@@ -35883,6 +35883,35 @@ No minutes were waited on another lane. `~/ron-golden/run1537` links to `ch122` 
   `BuildData::could_queue` on the first press's frame.
 - `rngcmp`: run1537 against run1537b, 1001 of 1001 identical.
 
+## run1540 and run1540b — chapter one hundred and twenty-five: a Library closed with a technology queued, Written Word at `0/2005` on 620, `die 2005,0` on 640, `die 2008,0` on 680, a new Library ordered on 720 (2026-11-07, item 3969, `att-3969`)
+
+`docs/GOLDEN.md` §175. **What the disk could not answer**: no window closed a building with a technology queued.
+1,831 tech-queued building-frames over five windows never closed mid-window (parked T71-7). And no golden window
+printed a leader's `num_queued` past the start dump: the muster section sits above `LEADERS=5`.
+
+Recipe `tools/gamelog/golden/chapter125.cmd`: 3,000 of everything (601), a Small City at 40,160 (603), a second
+Library in it at 34,152 (606), then Written Word at the start's Library, its close, the second Library's close, a
+Library at the old site (700) and the order at it (720).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch125 --map 14 --end-frame 760
+--log-window 610 760 --timeout 3600 --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=9,GROUPS=1`, with run1517's start
+and misc detail sets, `--ai-tribe 11` and `--profile DIFFICULTY=0 --profile STARTING_RESOURCES=1 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`. The twin is the same line at `--cover cover=1 --no-ffwd --twin
+~/ron-golden/ch125`, into `~/ron-golden/ch125b`.
+
+21 GiB free before. Both `success`, lifecycle verified, `map_verified`, map style 14, 761 frames, `last_frame` 760,
+seed 12345, the lobby read back as pinned. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11).
+No minutes were waited on another lane. `~/ron-golden/run1540` links to `ch125` and `run1540b` to `ch125b`.
+- run1540 (`ch125`, `cover=0`, pool lane 1): 14:58:04–14:58:41, 36.9 s launch to exit, no relaunch, 284 MB. The
+  word's.
+- run1540b (`ch125b`, `cover=1`, pool lane 1): from 15:00:45, 78.2 s launch to exit, no relaunch. Filed by
+  `filerun.py run1540b ch125-library-close-tech-queued-cover`.
+- On 622, `0/2005` reads `queued 1`, and who=0's `num_queued[551]` 1 and `epochs_queued` 1.
+- On 641, `0/2008` reads `queued 1`, and `num_queued[551]` and `epochs_queued` still 1: the hand-off.
+- On 681, `num_queued[551]` and `epochs_queued` read 0, timber +120 and wealth +50: the refund.
+- On 722, `0/2005` reads `queued 1`.
+- The twin enters `Build::close`, `Object::die` and `Wall::close` on 640, and first enters `Build::clean_queue` on 680.
+- `rngcmp`: run1540 against run1540b, 761 of 761 identical.
 ## run1538 and run1538b — chapter one hundred and twenty-three: a patrol with a Helicopter in the group, `@patrol 0 3456 11136 6 7` on 620 and `@patrol 0 11136 11904 10` on 700 (2026-11-07, item 3967, `att-3967`)
 
 `docs/GOLDEN.md` §173. **What the disk could not answer**: no captured patrol named a group holding a Helicopter.

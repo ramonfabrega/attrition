@@ -3588,14 +3588,22 @@ impl Sim {
         at
     }
 
-    /// The player's first library — `LeaderData::get_first_library`, which
-    /// walks the owner's buildings from the lowest index and returns the first
-    /// library. (The original also asks that it be active, in a city and not
-    /// unassimilated; none of those states exist here.)
+    /// The player's first library — `LeaderData::get_first_library@006db6c0`,
+    /// which walks the owner's buildings from the lowest index and returns
+    /// the first that is alive (`flags & 1`), active (`WallData::is_active`,
+    /// vslot `+0x4c`), in a city (`+0x72 >= 0`), not unassimilated and a
+    /// Library by lineage (item 3969: a closed library was still the first
+    /// here, and every research order after it was refused).
     pub fn first_library(&self, who: Player) -> Option<usize> {
-        self.buildings
-            .iter()
-            .position(|b| b.owner == who && b.is_library)
+        (0..self.buildings.len()).find(|&b| {
+            let bd = &self.buildings[b];
+            bd.owner == who
+                && bd.is_library
+                && bd.alive
+                && bd.active
+                && bd.city.is_some()
+                && !self.building_unassimilated(b)
+        })
     }
 
     /// Where an order given at `at` actually lands. A library that is not the
@@ -6321,6 +6329,26 @@ impl Sim {
         // two counts agree by construction rather than by inspection.
         if let Some(g) = self.unit_types[ty].group {
             self.muster[who as usize].queued_by_group[g] += delta;
+        }
+    }
+
+    /// A queue entry's own count taken down, as `Build::clean_queue
+    /// @00620b60:75`–`:77` does by the entry's type: a technology's
+    /// `num_queued` is its own (`PlayerTech::queued`), a unit's goes through
+    /// [`Sim::untrack_queued`], and a Disband's is not one this crate keeps.
+    /// The close loops took a technology off the Citizen's count instead
+    /// (item 3969; parked T71-7).
+    pub(crate) fn untrack_item(&mut self, who: Player, item: &production::Item) {
+        if item.disband {
+            return;
+        }
+        if let Some(t) = item.tech {
+            let q = &mut self.tech[who as usize].queued[t];
+            if *q != 0 {
+                *q -= 1;
+            }
+        } else {
+            self.untrack_queued(who, item.ty);
         }
     }
 

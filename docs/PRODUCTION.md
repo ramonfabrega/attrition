@@ -812,6 +812,13 @@ is. run285: the Bowmen out on 1060 and re-queued at 0, 46 timber and 56
 wealth, 4160; out again on 1272, refused on 19 wealth, the queue empty and
 4096. A research entry's completion (`gain_tech`) never re-queues.
 
+**A closing first Library hands its queue on** (item 3969, `docs/GOLDEN.md`
+§175, run1540): `Build::close` cleans every other building's queue, but a
+Library that was its owner's first at entry appends its queue to the next
+`get_first_library` answer, progress and price kept and no count moved,
+and refunds it only when none is left. `clean_queue` takes each entry's
+`num_queued` off by its own type, a technology's at its `TypeIndex`.
+
 **The other clears**: `Build::clean_queue@00620b60` (a closed, captured
 or defeated building's queue) clears the bit when it empties, reading-only;
 `Build::action_unqueue@00620280`, the player's cancel, clears it first,

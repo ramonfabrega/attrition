@@ -18546,12 +18546,100 @@ identical between them and against run265; `docs/RUNS.md`).
 **Coverage.** Diff-backed: a plane's strike from inside a base on a target its player has not seen. `blind::` is
 unmoved: run1539b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 175. Reserved for the next item on the rules track
+## 175. Chapter one hundred and twenty-five — a Library closed with a technology queued; the first Library's queue handed to the next, closed at 760 (item 3969, run1540, run1540b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked T71-7; second-7, adjudication 6). `Build::close@00628980` left a closing building's queue to
+`clean_queue`, and this crate's two close loops (`close_building`, `swap_team`) took each entry off with
+`untrack_queued(who, item.ty)`. A technology's entry carries type 0, so the loops took one off record 0's unit count
+and never off `PlayerTech::queued[t]`. `researching()` then stayed true and `queue_tech_with` refused that technology
+for good. No window had parted, because the leader diff emitted `num_queued` for the units alone and the comparator
+skips a dump key the crate has no row for (Loop 3957).
+
+**The reading** (the listing settles the decompile's `pLStack_38`).
+- `Build::close`'s entry (`0x6289f4`–`0x628a47`) asks, for a building alive at entry, whether it is a Library
+  (`is(0x1b3)`) and whether `LeaderData::get_first_library` names it. The answer is kept at `0x14(%esp)`.
+- A building that is not a Library is cleaned at once (`:78`–`:87`): `clean_queue` with a refund unless the
+  semaphore's bit 3 is up.
+- A Library waits until `Wall::close` and `remove_from_city` have run. Then (`:468`–`:521`), if it was the first and
+  its queue is not empty, `get_first_library` is asked again. It walks the owner's buildings from 2000 and takes the
+  first that is alive, active (`WallData::is_active`, vslot `+0x4c`), in a city (`+0x72 >= 0`), not unassimilated
+  and a Library (`@006db6c0`).
+  - With none, `clean_queue(1)`: a refund.
+  - With one, the queue is appended to that Library's: each entry's 0x14 bytes copied whole, progress and price
+    kept, no count moved. A Disband at the head (`0x29a`, index 0) is not copied, and the closing building keeps a
+    count of 1.
+- `Build::clean_queue@00620b60:75`–`:77` takes `num_queued[type]` off by the entry's own type, a technology's at its
+  `TypeIndex`, and `:132`–`:158` takes `ages_queued` or `epochs_queued` off for an age or an epoch.
+
+**The emitter first.** `diff::leader` now emits `num_queued[TypeIndex − 50]` for every technology from
+`PlayerTech::queued`, beside the units' rows (`leader.rs`). Every walked window agreed: the six `diff::leader`
+windows' compared counts each rose by 85 keys a block, and nothing parted.
+
+**Staging** (`tools/gamelog/golden/chapter125.cmd`, walked on ch122's start, `RON_STAGE=ch122:chapter125:760`).
+- **The cast.** 3,000 of everything (601), a Small City `0/2007` at 40,160 (603) and a second Library `0/2008` in
+  it at 34,152 (606). The start's Library `0/2005` stays the first.
+- **620**: `@queueup 0 551 1 2005`, Written Word (`num_queued[501]`), an epoch.
+- **640**: `die 2005,0`. The first Library closes with it queued.
+- **680**: `die 2008,0`. The last Library closes.
+- **700**: `add library who=0 10,158`, the old site, which takes slot 2005 again (free since 670). **720**:
+  `@queueup 0 551 1 2005`, the order this crate refused for good.
+- `add` takes half-tile coordinates (`internal / 192`).
+
+**What the original does** (run1540 `cover=0` at `LEADERS=9`, its twin run1540b `cover=1 --no-ffwd --twin`, both
+`--ai-tribe 11` and the golden start's four lobby fields, read back; `rngcmp` 761 of 761 identical; `docs/RUNS.md`).
+- **622.** `0/2005` reads `queued 1`. who=0's `num_queued[551]` (the dump's own index) reads 1 and `epochs_queued` 1.
+- **641.** `0/2008` reads `queued 1`, and `num_queued[551]` and `epochs_queued` still read 1: the hand-off.
+- **681.** `num_queued[551]` reads 0 and `epochs_queued` 0, with timber +120 and wealth +50: the refund.
+- **722.** `0/2005` reads `queued 1`: the re-queue.
+- **The closes entered.** The twin enters `Build::close`, `Object::die` and `Wall::close` on 640, and first enters
+  `Build::clean_queue` on 680. So the 640 close took the hand-off and not a clean.
+
+**What this crate does** (built, `city.rs`, `lib.rs`):
+- `Sim::first_library` asks what `get_first_library` asks: alive, active, in a city, not unassimilated, a Library.
+- `close_building` keeps `was_first_library` from its entry. A building that is not a Library is cleaned at once
+  (`Sim::clean_queue`). A first Library hands its queue on at the close's end, after its city
+  (`hand_off_library_queue`), or refunds it when no Library is left.
+- `Sim::untrack_item` takes a technology's entry off `PlayerTech::queued[t]`, never below zero, and a Disband's off
+  nothing. Both close loops use it.
+- **The test.** `a_closing_first_library_hands_its_queue_to_the_next` (`cities_tests.rs`). Unbuilt and cityless
+  Libraries at lower indices are passed over, the closed first Library's entry lands on the next with its progress
+  and no count moved, and the last close refunds and takes the count off the technology.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FIVE` = **760**, the trace's end, closed
+  (`chapter_one_hundred_and_twenty_five_holds_to_the_golden_word`). Research draws nothing, so the word does not move
+  on the unfixed tree. The widening is the catch.
+- **The widening.** Over 610..760 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_FIVE` (609, 761), both directions, the
+  pool too; `LEADERS_NINE_KEYS` 1,209 a leader). It parts on thirty standing rows on 610 alone (`WANT_CH125`): the
+  eleven `form` rows, the leaders' `SITE[i].reg` and `aggression[·]` (parked 2385's family, which only a whole
+  leader record prints, as on chapter one hundred and seven's `@dumpall` blocks), and who=0's `defense`, 2 theirs.
+  That last one is the added Small City's arrows, counted at its init and its activate and never recounted for a
+  human (parked 1386).
+- **The value diff on the frame the state first parted.**
+  - With the hand-off replaced by a refund: 641 `leader:num_queued[501]` ours 0 / theirs 1, `0/2008 queue:queued`
+    0 / 1, timber 3243 / 3123, wealth 3114 / 3064.
+  - With the technology arm taken off record 0 instead (the unfixed loops): 681 `leader:num_queued[501]` ours 1 /
+    theirs 0. Then on 722 `0/2005 queue:queued` 0 / 1, `tech_frame` 621 / 721, timber 3250 / 3130.
+  - Built, every one of those agrees.
+- **Coverage.** The driver drives 619..723.
+
+**Mutations**: the journal's (`docs/journal/2026-11-07-item-3969.md`), on the committed tree.
+
+**Not established.**
+- `ages_queued` and `epochs_queued`. This crate keeps neither. Every Library technology is an age or an epoch, and
+  run1540 moves `epochs_queued` 0 → 1 → 1 → 0 beside `num_queued`. Both keys stand on the coverage pin's unread list
+  (parked 3969a).
+- The Disband-at-the-head exception and a hand-off past the next Library's capacity. Both are built, and no staging
+  reaches either.
+- `get_first_library`'s `alive` term. It is built and held by nothing: a closed building has left its city before
+  anything asks.
+- `Build::new_library`'s queue move, when a lower-index Library becomes the first. It is a `SEAM` (`city.rs`,
+  `new_library`), and the faithful predicate makes it reachable when a slot is reused (parked 3969b).
+- `clean_queue`'s refund flag is the semaphore's bit 3 in the original and `!silent` here. No capture separates
+  them.
+
+**Coverage.** Diff-backed: the first Library's queue handed to the next on its close, the refund when the last one
+closes, `num_queued` at a technology's `TypeIndex` through both, and the re-queue after. The non-Library close's
+technology arm is held by the unit test and the `untrack_item` it shares. `blind::` is unmoved: run1540b joins
+`TRACES`, and nothing it enters was `NEVER`.
 
 ## 176. Chapter one hundred and twenty-six — the armed building family: a Mayan City's arrow, a Tower on the Militia bit holding a General; the fog reads a building's cache, closed at 1100 (item 3970, run1541, run1541b)
 
@@ -18619,6 +18707,34 @@ its cache, and the cell order of a ground hit. `blind::` is unmoved: run1541b jo
 was `NEVER`.
 
 ## 177. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 178. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 179. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 180. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 181. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
