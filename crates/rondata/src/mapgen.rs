@@ -1225,6 +1225,24 @@ pub fn watering_hole_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of an Australian Outback setup path:
+/// from its first `MapAustralianOutback::make_continents@0069a650` draw,
+/// every draw whose site is that function, `Map::grow_region`,
+/// `Map::large_stamp` or `Map::grow_valid` (`docs/MAPGEN.md` §30, item
+/// 3949), up to the first that is none.
+pub fn outback_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let ao = 0x0069_a650..0x0069_add0;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| ao.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !ao.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7660,6 +7678,9 @@ mod tests {
         /// Mediterranean's own, a sea grown and inverted and an island in
         /// it (§29).
         Mediterranean,
+        /// Australian Outback's own, an island grown from the players'
+        /// spots and the middle (§30).
+        Outback,
     }
 
     struct Chain {
@@ -7802,6 +7823,25 @@ mod tests {
         walks: OnceLock::new(),
     };
 
+    /// Australian Outback (style 13, §30): run1532, item 3949.
+    static AUSTRALIAN_OUTBACK: Chain = Chain {
+        label: "Australian Outback",
+        map: "AustralianOutback",
+        style: 13,
+        xml: "OUTBACK.xml",
+        mask: outback_part,
+        port: MaskPort::Outback,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
     /// A chain's tileset (`docs/MAPGEN.md` §4, §25): the style file's own
     /// `TILECHANCE`s, or `default.xml`'s six when it carries none (Old
     /// World), make the one `init_map_data` draw — none when the list is
@@ -7920,37 +7960,48 @@ mod tests {
         let mut grid = MapGrid::new(g.xs, g.ys);
         let mut d = Draws::new(before.2);
         let mut twin = Rng::new(before.2);
-        let start_dist = match c.port {
-            MaskPort::GreatSahara => Some(great_sahara_make_continents(
-                &mut grid, g.nations, &mut d.rng,
+        let lobby_style = || {
+            lake_style(
+                root,
+                c.xml,
+                (g.xs, g.ys, g.nations, g.map_size),
+                base_edge_before(before.2),
+                max_range_349(root),
+            )
+            .expect("the style's `Map` fields")
+        };
+        let start = match c.port {
+            MaskPort::GreatSahara => Some((
+                great_sahara_make_continents(&mut grid, g.nations, &mut d.rng),
+                4,
             )),
+            MaskPort::Outback => {
+                let m = sim::map_outback::australian_outback_make_continents(
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
+                );
+                eprintln!("{name}: the outback {m:?}");
+                Some((m.start_dist, 2))
+            }
             MaskPort::WateringHole => {
-                let style = lake_style(
-                    root,
-                    c.xml,
-                    (g.xs, g.ys, g.nations, g.map_size),
-                    base_edge_before(before.2),
-                    max_range_349(root),
-                )
-                .expect("the style's `Map` fields");
                 let m = sim::map_watering_hole::african_watering_hole_make_continents(
-                    &mut grid, g.nations, style, &mut d,
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
                 )
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: the watering hole {m:?}");
-                Some(m.start_dist)
+                Some((m.start_dist, 4))
             }
             MaskPort::Mediterranean => {
-                let style = lake_style(
-                    root,
-                    c.xml,
-                    (g.xs, g.ys, g.nations, g.map_size),
-                    base_edge_before(before.2),
-                    max_range_349(root),
-                )
-                .expect("the style's `Map` fields");
                 let m = sim::map_mediterranean::mediterranean_make_continents(
-                    &mut grid, g.nations, style, &mut d,
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
                 )
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: {m:?}");
@@ -7965,8 +8016,8 @@ mod tests {
                 None
             }
         };
-        if let Some(start_dist) = start_dist {
-            assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
+        if let Some((start_dist, floor)) = start {
+            assert_eq!(start_dist, (g.xs / 16).max(floor), "{name}: `start_dist`");
         }
         let mut words = Vec::new();
         while twin.seed != d.rng.seed && words.len() < 0x10000 {
@@ -8643,6 +8694,18 @@ mod tests {
         amazon_basin_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         amazon_basin_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         amazon_basin_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        AUSTRALIAN_OUTBACK,
+        australian_outback_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        australian_outback_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        australian_outback_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        australian_outback_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        australian_outback_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        australian_outback_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        australian_outback_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        australian_outback_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 
     chain_tests!(
