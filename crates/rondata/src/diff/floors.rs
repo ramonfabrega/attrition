@@ -320,6 +320,18 @@ pub const MAPGEN: Mapgen = Mapgen {
             ported: 8,
             phases: 8,
         },
+        MapgenStyle {
+            map: "Mediterranean",
+            // 0 → 8 by item 3948 (MAPGEN §29), on run1531's one file (2
+            // nations, 60×60, seed 12345, `jungle` drawn from `default.xml`):
+            // the mask is its own body at 0x69add0, ported
+            // (`sim::map_mediterranean`), and every phase holds on the port's
+            // first walk — 9,926 mask draws, 6,229 `place_all` through the
+            // values, East Indies' half-land order on `SEA_MAP` 1 (720's
+            // lists as the file's), no river, and at 894 part 5 1780631313.
+            ported: 8,
+            phases: 8,
+        },
     ],
 };
 
@@ -691,7 +703,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [

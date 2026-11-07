@@ -503,13 +503,27 @@ pub(crate) fn isqrt(n: i32) -> i32 {
 /// take the first land region a cell of it touches; `invert_land` zeroes
 /// every `region` straight after, so only the `land` writes reach 7807.
 pub(crate) fn eliminate_pools(grid: &mut MapGrid) {
+    eliminate_pools_in(grid, false);
+}
+
+/// **`Map::eliminate_pools@0068b890`** with its `ElimPoolParam`:
+/// `ENTIRE_WORLD` (2, `edges_only` false) lists every water region the scan
+/// meets; `EDGES_ONLY` (1, Mediterranean's last call, `docs/MAPGEN.md` §29)
+/// lists only those the scan meets on the map's outer ring — row 0, row
+/// `ys − 1`, column 0 or column `xs − 1`. The merge that follows is the
+/// same: every listed region but one, smallest first, into land.
+pub(crate) fn eliminate_pools_in(grid: &mut MapGrid, edges_only: bool) {
     let mut regions = Regions::default();
     regions.clear_all(grid);
     regions.find_all(grid);
     let mut seas: Vec<i16> = Vec::new();
-    for c in &grid.cells {
-        if c.region > 0x40 && !seas.contains(&c.region) {
-            seas.push(c.region);
+    for y in 0..grid.ys {
+        for x in 0..grid.xs {
+            let ring = y < 1 || y >= grid.ys - 1 || x == 0 || x == grid.xs - 1;
+            let c = grid.cell(x, y);
+            if (!edges_only || ring) && c.region > 0x40 && !seas.contains(&c.region) {
+                seas.push(c.region);
+            }
         }
     }
     while seas.len() > 1 {
@@ -685,7 +699,7 @@ pub fn great_lakes_make_continents(
 /// ring `radius` round each start-city cell, bar the centre, becomes land
 /// (`land` and `land_sub` 0, `region` 0). With every `region` 0 the
 /// neighbour searches that would adopt or protect a region find none.
-fn check_player_land(grid: &mut MapGrid, radius: i32) {
+pub(crate) fn check_player_land(grid: &mut MapGrid, radius: i32) {
     let t = circle::table();
     let ring = if radius < 0 { 5 } else { radius } as usize;
     let cities: Vec<(i32, i32)> = grid.starts[2]
@@ -742,6 +756,73 @@ mod tests {
                 let want = if ring || inside { 0 } else { 2 };
                 assert_eq!(grid.cell(x, y).land, want, "({x}, {y})");
             }
+        }
+    }
+
+    /// `EDGES_ONLY` lists only the water regions met on the outer ring, so
+    /// an enclosed pool is left water where `ENTIRE_WORLD` merges it
+    /// (Mediterranean's last call, `docs/MAPGEN.md` §29).
+    #[test]
+    fn edges_only_spares_a_pool_off_the_outer_ring() {
+        let ring = |edges_only: bool| {
+            let mut grid = MapGrid::new(10, 10);
+            grid.wipe();
+            grid.clear_regions();
+            for y in 3..=7 {
+                for x in 3..=7 {
+                    if x == 3 || x == 7 || y == 3 || y == 7 {
+                        grid.cell_mut(x, y).land = 0;
+                    }
+                }
+            }
+            eliminate_pools_in(&mut grid, edges_only);
+            (grid.cell(5, 5).land, grid.cell(0, 0).land)
+        };
+        assert_eq!(ring(false), (0, 2), "the whole world merges the pool");
+        assert_eq!(
+            ring(true),
+            (2, 2),
+            "the outer ring lists the open sea alone"
+        );
+    }
+
+    /// A pool that touches the outer ring on one side only is listed under
+    /// `EDGES_ONLY`, on each of the four: two such seas merge the smaller.
+    #[test]
+    fn edges_only_merges_a_bay_on_each_side() {
+        // A U of land walls a 2×2 bay off the middle of the top side.
+        let wall = [
+            (3, 0),
+            (3, 1),
+            (3, 2),
+            (4, 2),
+            (5, 2),
+            (6, 2),
+            (6, 1),
+            (6, 0),
+        ];
+        let bay = [(4, 0), (5, 0), (4, 1), (5, 1)];
+        // The four sides: top, left, bottom, right.
+        let turn = |side: i32, (x, y): (i32, i32)| match side {
+            0 => (x, y),
+            1 => (y, x),
+            2 => (x, 9 - y),
+            _ => (9 - y, x),
+        };
+        for side in 0..4 {
+            let mut grid = MapGrid::new(10, 10);
+            grid.wipe();
+            grid.clear_regions();
+            for &c in &wall {
+                let (x, y) = turn(side, c);
+                grid.cell_mut(x, y).land = 0;
+            }
+            eliminate_pools_in(&mut grid, true);
+            for &c in &bay {
+                let (x, y) = turn(side, c);
+                assert_eq!(grid.cell(x, y).land, 0, "side {side}: ({x}, {y}) merged");
+            }
+            assert_eq!(grid.cell(8, 8).land, 2, "side {side}: the open sea left");
         }
     }
 

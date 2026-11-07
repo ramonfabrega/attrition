@@ -1189,6 +1189,24 @@ pub fn himalayas_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Mediterranean setup path: from its
+/// first `MapMediterranean::make_continents@0069add0` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §29, item 3948), up to the first that
+/// is none.
+pub fn mediterranean_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let me = 0x0069_add0..0x0069_b650;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| me.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !me.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `make_continents` segment of an African Watering Hole setup path:
 /// from its first `MapAfricanWateringHole::make_continents@0069b650` draw,
 /// every draw whose site is that function, `Map::grow_region`,
@@ -7657,6 +7675,9 @@ mod tests {
         GreatSahara,
         /// African Watering Hole's own, a lake grown and inverted (§28).
         WateringHole,
+        /// Mediterranean's own, a sea grown and inverted and an island in
+        /// it (§29).
+        Mediterranean,
         /// Australian Outback's own, an island grown from the players'
         /// spots and the middle (§30).
         Outback,
@@ -7761,6 +7782,26 @@ mod tests {
         walks: OnceLock::new(),
     };
 
+    /// Mediterranean (style 12, §29): run1531, item 3948 — its own
+    /// `make_continents` ported (`sim::map_mediterranean`).
+    static MEDITERRANEAN: Chain = Chain {
+        label: "Mediterranean",
+        map: "Mediterranean",
+        style: 12,
+        xml: "MEDITERRANEAN.xml",
+        mask: mediterranean_part,
+        port: MaskPort::Mediterranean,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
     /// African Watering Hole (style 11, §28): run1530, item 3947 — 22
     /// records 734..815 (720 among them, on the half-land path) and 5
     /// records 5012..5118 on 2026-11-06.
@@ -7842,6 +7883,9 @@ mod tests {
         part4: (u32, u32, Vec<(String, i64)>),
         /// The mask's words, and the trace's `make_continents` segment.
         mask: (Vec<u32>, Vec<SetupDraw>),
+        /// The mask's draws, site and word, when the port records them
+        /// (Mediterranean's; Great Sahara's draw on a bare stream).
+        mask_log: Vec<SetupDraw>,
         /// `place_all` through the last `compute_val`, ours and the trace's.
         make: (Vec<SetupDraw>, Vec<SetupDraw>),
         /// `make_rivers`' draws, ours and the trace's.
@@ -7911,7 +7955,8 @@ mod tests {
                 checks.push((ff.clone(), *l, ours, theirs));
             }
         };
-        // Phase 1: the mask — Great Sahara's four draws, or a grown lake.
+        // Phase 1: the mask — Great Sahara's four draws, a grown lake, or
+        // Mediterranean's sea and island.
         let mut grid = MapGrid::new(g.xs, g.ys);
         let mut d = Draws::new(before.2);
         let mut twin = Rng::new(before.2);
@@ -7925,11 +7970,11 @@ mod tests {
             )
             .expect("the style's `Map` fields")
         };
-        let (start_dist, floor) = match c.port {
-            MaskPort::GreatSahara => (
+        let start = match c.port {
+            MaskPort::GreatSahara => Some((
                 great_sahara_make_continents(&mut grid, g.nations, &mut d.rng),
                 4,
-            ),
+            )),
             MaskPort::Outback => {
                 let m = sim::map_outback::australian_outback_make_continents(
                     &mut grid,
@@ -7938,7 +7983,7 @@ mod tests {
                     &mut d,
                 );
                 eprintln!("{name}: the outback {m:?}");
-                (m.start_dist, 2)
+                Some((m.start_dist, 2))
             }
             MaskPort::WateringHole => {
                 let m = sim::map_watering_hole::african_watering_hole_make_continents(
@@ -7949,15 +7994,37 @@ mod tests {
                 )
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: the watering hole {m:?}");
-                (m.start_dist, 4)
+                Some((m.start_dist, 4))
+            }
+            MaskPort::Mediterranean => {
+                let m = sim::map_mediterranean::mediterranean_make_continents(
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: {m:?}");
+                // No file on disk takes either stall (§29.4): a take that
+                // does is the first reading of that arm.
+                assert_eq!(
+                    (m.sea_stalls, m.island_stalls),
+                    (0, 0),
+                    "{name}: a stall no walk has read"
+                );
+                // Mediterranean writes no `start_dist` (§29.1).
+                None
             }
         };
-        assert_eq!(start_dist, (g.xs / 16).max(floor), "{name}: `start_dist`");
+        if let Some((start_dist, floor)) = start {
+            assert_eq!(start_dist, (g.xs / 16).max(floor), "{name}: `start_dist`");
+        }
         let mut words = Vec::new();
         while twin.seed != d.rng.seed && words.len() < 0x10000 {
             words.push(twin.seed);
             twin.roll();
         }
+        let mask_log = d.log.clone();
         check(&grid, &d, parts, "map.cpp", 7807);
         // Phase 2: the zero-draw passes.
         let mut regions = Regions::default();
@@ -8188,6 +8255,7 @@ mod tests {
             checks,
             part4,
             mask: (words, theirs_mask),
+            mask_log,
             make: (make_log, theirs_make),
             rivers: (river_log, theirs_rivers),
             printed,
@@ -8277,7 +8345,15 @@ mod tests {
             }
             walked += 1;
             let words: Vec<u32> = theirs.iter().map(|x| x.1).collect();
-            eprintln!("{}: mask draws {theirs:x?}", w.name);
+            if theirs.len() <= 64 {
+                eprintln!("{}: mask draws {theirs:x?}", w.name);
+            } else {
+                eprintln!("{}: {} mask draws", w.name, theirs.len());
+            }
+            if !w.mask_log.is_empty() {
+                let parted = stream_parts(&w.name, "the mask", &w.mask_log, theirs);
+                assert!(parted.is_none(), "{}", parted.unwrap_or_default());
+            }
             assert_eq!(&words, ours, "{}: the mask's words", w.name);
         }
         assert!(walked >= c.traces, "the mask walked {walked} traces");
@@ -8642,5 +8718,17 @@ mod tests {
         himalayas_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         himalayas_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         himalayas_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        MEDITERRANEAN,
+        mediterranean_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        mediterranean_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        mediterranean_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        mediterranean_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        mediterranean_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        mediterranean_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        mediterranean_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        mediterranean_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }
