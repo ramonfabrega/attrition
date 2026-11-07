@@ -37,6 +37,9 @@ pub struct Outback {
     pub map: LakeMap,
     /// The generations a stalled `grow_region` threw away.
     pub restarts: u32,
+    /// The passes over records 1..8 the last generation took before
+    /// record 9 held every player's bit.
+    pub passes: u32,
     pub start_dist: i32,
 }
 
@@ -118,7 +121,9 @@ pub fn australian_outback_make_continents(
         g.lakes.flags[MIDDLE as usize] |= 1;
         let _ = g.grow_region(MIDDLE, total / 3, reach / 3);
         let more = total / 64;
+        let mut passes = 0;
         while g.lakes.adjacent[MIDDLE as usize] & joined != joined {
+            passes += 1;
             for id in 1..=8 {
                 if g.lakes.adjacent[id as usize] & (1 << MIDDLE) != 0 {
                     continue;
@@ -152,6 +157,7 @@ pub fn australian_outback_make_continents(
         return Outback {
             map: g.map,
             restarts,
+            passes,
             start_dist,
         };
     }
@@ -192,6 +198,11 @@ mod tests {
         assert_eq!(grid.cell(30, 30).land, 0, "the middle is land");
         assert_eq!(grid.cell(0, 0).land, 2, "the corner is sea");
         assert_eq!(m.start_dist, 3, "max(2, 60/16)");
+        assert_eq!(
+            (m.restarts, m.passes),
+            (0, 0),
+            "run1532's shape: joined at once"
+        );
         assert!(grid.cells.iter().all(|c| c.region == 0), "cleared");
     }
 

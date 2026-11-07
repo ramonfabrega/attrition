@@ -745,6 +745,55 @@ mod tests {
         }
     }
 
+    /// `point`'s masks for a record with flag bit 1 (Australian Outback,
+    /// MAPGEN §30.1): records 20 and 21 meet first, then 21 meets 9, and
+    /// 20 — which never touched 9 — learns 9's bit through the pass over
+    /// the first 32 records. A record without the flag keeps no mask.
+    #[test]
+    fn a_join_reaches_every_record_whose_mask_meets_it() {
+        let mut grid = MapGrid::new(20, 20);
+        grid.wipe();
+        grid.clear_regions();
+        let mut draws = Draws::new(1);
+        let mut g = Grower {
+            grid: &mut grid,
+            lakes: Lakes::cleared(),
+            draws: &mut draws,
+            style: LakeStyle {
+                avoid_center: 0,
+                avoid_continent: 0,
+                avoid_edge: [0; 4],
+                base_edge: 0,
+                standard: 60,
+                start_land: 6,
+                overage_allowance: 8,
+            },
+            map: LakeMap {
+                avoid_continent: 0,
+                avoid_modify: 0,
+            },
+        };
+        g.make_region(20, 2, 2);
+        g.make_region(21, 10, 10);
+        g.make_region(9, 16, 16);
+        g.make_region(5, 2, 16);
+        for id in [20, 21, 9] {
+            g.lakes.flags[id] |= 1;
+        }
+        assert!(g.point(21, 3, 2), "21 beside 20");
+        let pair = (1 << 20) | (1 << 21);
+        assert_eq!(g.lakes.adjacent[20], pair);
+        assert_eq!(g.lakes.adjacent[21], pair);
+        assert!(g.point(21, 15, 15), "21 beside 9");
+        let all = pair | (1 << 9);
+        assert_eq!(g.lakes.adjacent[9], all);
+        assert_eq!(g.lakes.adjacent[21], all);
+        assert_eq!(g.lakes.adjacent[20], all, "20 learns 9 through 21");
+        assert!(g.point(5, 15, 17), "the unflagged 5 beside 9");
+        assert_eq!(g.lakes.adjacent[5], 0, "5 keeps no mask");
+        assert_eq!(g.lakes.adjacent[9], all, "nor writes 9's");
+    }
+
     #[test]
     fn a_lobby_past_its_allowance_is_refused() {
         assert_eq!(scale_land_area(8, 4, 4), Some(8));
