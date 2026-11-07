@@ -40370,12 +40370,63 @@ pin), the heal level through run714's Jet Fighter, and the building's 0 on
 every dump. Reading-only: the building writer, and the `BUY_SELL` arm's
 deadness (read off the listing, `6e12e7`–`6e1327`).
 
-## 406. Reserved for the next item on the AI track
+## 406. A stance press sets `SubObjectData::flags & 0x10`, the bit `Unit::think`'s idle gate reads as `cant_reach`; the row tallied apart (item 3962, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** `SubObjectData +flags` bit `0x10` is the one `Unit::think`'s one-in-sixteen idle gate reads. This
+crate carries it as `sim::Unit::cant_reach`. Until this item, only `do_gather`'s unreachable-gather arm wrote it, and
+only the near-`o` arm of `think` cleared it. `UNITDATA`'s `SUBOBJECT flags` key was on the coverage driver's unread pin.
+
+### 406.1 The disk first
+
+run1017 (the same game as run668: `samegame.py` 203 of 203) prints `flags` on every unit. On 15230..15432, 75 of who
+1's units hold `0x10` (flags 17). The bit holds all window, and every one of them is `idle 0` under a `GUARDORDER`
+(group 65), so `think` never reaches its clear. `report.py coverage` dates `Army::set_stance` to 252 and
+`Group::action_stance` to 4602. Those are first entries only; a `cover=1` trace does not list every frame a function
+ran.
+
+### 406.2 The port
+
+- `Group::action_stance@0070d440:100` raises `0x10` on every member it sets, whatever the panel. The crate's
+  `group_action_stance` does the same.
+- `Unit::think` is split at its cadence gate (`think_past_gate`). Every exit past the gate drops the bit (`think:130`,
+  `LAB_005f761a` `:296`, `:339`).
+- `BUILDDATA stance` (`Build +0x7e`) is read by `gamelog::BuildDump::stance` and the oracle codec, and compared
+  against `Sim::build_stance`. It agrees on every walk of the suite. It moves three building-field counts, each on
+  top of item 3961's `healing` (run56 558,860 → 605,173, run57 786,842 → 852,005, of which 1,000 past the two alone was not traced, run58 1,075,324 → 1,164,487),
+  all with none wrong.
+
+### 406.3 The row, and the tally
+
+`widen_block` compares `flags & 0x10` against `cant_reach` on every unit of every block (label `cant_reach` →
+`UnitDump.flags`). Before the port, run668's window read **75 rows, ours 0 / theirs 1, on 15230**. After it, the
+window reads **0**, and its `firsts` stay 30 with `by` unchanged. Of the two mutations, removing the set brings the 75
+back. Removing the clear fails nothing on run668 alone, and is held by
+`group::tests::a_stance_press_lets_an_idle_member_past_the_think_gate` and the `sahara_toughest` module.
+
+Every other walk reads the row red, **every row ours 0 / theirs 1**. The cause is two writers this crate lacks (parked
+3962a, 3962b). Folding the row into `firsts` would have re-pinned 398 sites and six floor triples for unported
+writers. Instead the row is kept apart, the way `Widened::rounds` is (item 3645), in `diff::cant_reach`. A walk notes
+each parting unit once on the test's thread, and the count is not added to `compared`. `Pins` clears the tally when
+it is taken and checks it against `cant_reach::PINNED` when it drops. A test the table does not name is held to 0.
+The table was filled from a whole-suite run: **373 tests, 2,398 units**, with run668 absent. `tools/cant_reach_pins.py
+<log> --write` rewrites it. `RON_FIRSTS` prints the rows. An item that ports a writer folds its rows into `firsts` and
+re-pins the table.
+
+### 406.4 Coverage
+
+- **Diff-backed**: the stance press's set and the past-gate clears on run668 (75 → 0); `BUILDDATA stance` on every
+  walk; the per-test tally.
+- **Reading alone**: the two unported writers (3962a, 3962b); the three exits of `think` that keep the bit (`:98`,
+  `:101`, `:155`).
+
+### 406.5 What is not established
+
+- **The three non-clearing exits of `think`** (`:98`, `:101`, `:155`) are not modelled. No walk was found where one
+  decides the bit.
+- **The decoy squads' writer** (3962a) has not been found. These were read and none of them is it: `cast_create_decoy`,
+  `Objects::init_unit`, `Unit::init`, `SubObject::init` (`flags = 1`), `Group::add`, `Army::add_unit`,
+  `Unit::set_stance`.
+- **The rest of the `flags` byte** is not compared.
 
 ## 407. Reserved for the next item on the AI track
 

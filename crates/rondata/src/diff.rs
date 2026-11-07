@@ -305,6 +305,8 @@ mod ammo;
 #[cfg(test)]
 mod army;
 #[cfg(test)]
+pub(crate) mod cant_reach;
+#[cfg(test)]
 mod coverage;
 #[cfg(test)]
 pub(crate) mod testkit;
