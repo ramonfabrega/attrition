@@ -1836,6 +1836,12 @@ pub struct Building {
     /// player's fog (`docs/VISION.md` §6.1).
     pub ever_seen: u8,
     pub ever_seen_completed: u8,
+    /// **`ObjectData::mylos` (`+0x3c`) of a building** — the byte
+    /// `Wall::update_los@0063eeb0` last left, a cache as a unit's is
+    /// (item 3965, `docs/VISION.md` §2.1). [`Sim::update_build_los`] writes
+    /// it where the original calls the vslot `+0x160` on a building;
+    /// [`Sim::build_los`] is the derivation.
+    pub mylos: i32,
     /// **`ObjectData::visible` (`+0x40`) of a building** — the players it
     /// has shown itself to by shooting them (`Build::do_attack@006228f0`,
     /// `622b5b`..`622bd0`, `docs/GOLDEN.md` §59): the fallback arm of
@@ -3567,6 +3573,7 @@ impl Sim {
             farm: Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            mylos: 0,
             visible: 0,
             attacking: false,
         });

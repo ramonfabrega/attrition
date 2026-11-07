@@ -471,6 +471,18 @@ impl Sim {
         los
     }
 
+    /// The building's vslot `+0x160` call: [`Self::build_los`] into the
+    /// cache, [`crate::Building::mylos`] (item 3965). The original makes it
+    /// beside every `+0x15c` (`update_hits`) on a building — `Wall::init`,
+    /// `Leader::calc_wall_stats`, `Build::activate`, `Cities::capture_city`
+    /// and `Wall::swap_team` — and nowhere else, so a wonder site started
+    /// after its `Wall::init` keeps `0` until its owner's next
+    /// `calc_wall_stats`, and a Science epoch reaches a finished building
+    /// on the leader pass after the gain, as it reaches a unit (§2).
+    pub(crate) fn update_build_los(&mut self, b: usize) {
+        self.buildings[b].mylos = self.build_los(b);
+    }
+
     /// `LeaderData::get_fort_los@006daf30`: `1` plus the highest of
     /// `FORTLOS2..4` held ([`crate::tech::Roles::fort_los_preq`]).
     pub(crate) fn fort_los(&self, who: crate::Player) -> usize {
@@ -1417,6 +1429,36 @@ mod tests {
         s.buildings[b].started = false;
         assert_eq!(s.build_los(b), 0);
         assert!(s.build_sweep(b).is_none());
+    }
+
+    /// §2.1: a building's `mylos` is a **cache** (item 3965). A wonder
+    /// started after its placement keeps the `0` `Wall::init` left until
+    /// its owner's next `calc_wall_stats`, and a Science epoch reaches a
+    /// finished building only there — run718's wonder sites `1/2055` and
+    /// `1/2057` print 0 from their start to 2368, and the city `1/2018`
+    /// goes 29 → 31 on 2430, the leader pass after the gain.
+    #[test]
+    fn a_buildings_mylos_is_refreshed_only_where_the_original_calls_update_los() {
+        let (mut s, b) = fog_build(12, 0, 7);
+        let t = s.buildings[b].ty.expect("typed");
+        s.buildings[b].active = false;
+        s.buildings[b].started = false;
+        s.build_types[t].wonder = true;
+        s.update_build_los(b);
+        assert_eq!(s.buildings[b].mylos, 0, "unstarted at `Wall::init`");
+        s.buildings[b].started = true;
+        assert_eq!(s.build_los(b), 4, "the derivation moves at once");
+        assert_eq!(s.buildings[b].mylos, 0, "the cache does not");
+        s.calc_wall_stats(0);
+        assert_eq!(s.buildings[b].mylos, 4, "`calc_wall_stats` refreshes it");
+        s.buildings[b].active = true;
+        s.update_build_los(b);
+        assert_eq!(s.buildings[b].mylos, 15);
+        s.build_types[t].science_los = 2;
+        s.tech[0].epoch[crate::tech::Line::Science.index()] = 1;
+        assert_eq!(s.buildings[b].mylos, 15, "the gain alone moves nothing");
+        s.calc_wall_stats(0);
+        assert_eq!(s.buildings[b].mylos, 17);
     }
 
     /// §6: the disc a finished building throws is the **whole** circle at

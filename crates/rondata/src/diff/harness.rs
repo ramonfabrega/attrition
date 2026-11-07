@@ -717,8 +717,10 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
             ("healing", 0, b.healing),
             // **Its line of sight** (item 3965, `docs/AI.md` §409):
-            // `ObjectData::mylos` against `Sim::build_los`.
-            ("mylos", i64::from(built.sim.build_los(handle)), b.mylos),
+            // `ObjectData::mylos`, the cache `Wall::update_los` last left,
+            // against `Building::mylos`, written at the original's five
+            // `+0x160` sites (`Sim::update_build_los`).
+            ("mylos", i64::from(ours.mylos), b.mylos),
         ] {
             let Some(theirs) = theirs else { continue };
             r.build_compared += 1;

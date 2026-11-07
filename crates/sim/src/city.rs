@@ -1527,6 +1527,7 @@ impl Sim {
             farm: crate::Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            mylos: 0,
             visible: 0,
             attacking: false,
         });
@@ -1550,6 +1551,7 @@ impl Sim {
         self.buildings[b].constr_time =
             build::construct_base(&self.tuning, &self.build_types, ty, &mods);
         self.update_hits(b);
+        self.update_build_los(b);
         // `Wall::init@0063e9b0`'s `check_ever_seen(0)`, after `update_los`:
         // an unstarted site takes the owner's (and allies') bits of the
         // current plane over its footprint at once, rather than at the
@@ -1851,6 +1853,7 @@ impl Sim {
                     build::construct_base(&self.tuning, &self.build_types, ty, &mods);
             }
             self.update_hits(b);
+            self.update_build_los(b);
         }
     }
 
@@ -2404,6 +2407,7 @@ impl Sim {
             }
         }
         self.update_hits(b);
+        self.update_build_los(b);
         // `Build::activate` line 1978: a finished dock may grant the
         // transport level (`docs/TRANSPORT.md` §4).
         if dock {
@@ -3012,6 +3016,8 @@ impl Sim {
             let bd = &mut self.buildings[nb];
             bd.damage = bd.hits_now() - 10;
             bd.sync_health();
+            // `capture_city:1186`, after the damage: the `+0x160`.
+            self.update_build_los(nb);
             self.sync_pop_cities();
             self.sync_territory();
         }
@@ -3105,6 +3111,7 @@ impl Sim {
         bd.ever_seen = old.ever_seen;
         bd.ever_seen_completed = old.ever_seen_completed;
         self.update_hits(n);
+        self.update_build_los(n);
         Some(n)
     }
 
