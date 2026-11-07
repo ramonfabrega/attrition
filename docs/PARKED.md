@@ -14812,12 +14812,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3944, 2026-11-06 — Old World's chain, 8 of 8
 
-- **3944a. `make_riverlist`'s nearest start breaks ties to the first, and no take
-  decides it** (MAPGEN §25.3). The mutant `d <= best.0` (ties to the last) fails
-  nothing on run1527, and the Great Lakes and East Indies pins never ran it. A source
-  or river end equidistant from two starts would decide it. The other nine chain takes
-  (3945–3953) may lay one, and a take that does should run this mutant again. This row
-  names no score.
+- ~~**3944a. `make_riverlist`'s nearest start breaks ties to the first, and no take
+  decides it**~~ — decided by run1528 (item 3945, MAPGEN §26.2): ties go to the
+  first start. The mutant `d <= best.0` fails Amazon Basin's river and trough checks.
 - **3944b. Great Lakes and East Indies hand the troughs no footprints** (MAPGEN
   §25.3). `calculate_all(…, None)` stays at their callers, since no trough there
   reaches a good (they would refuse with `Goody`). A style whose trough does reach one
@@ -14827,13 +14824,14 @@ words and edits nothing here; a refill lands when two remain.
   reads `down` 3, `down_who` 8 there. Some setup writer stands an object on it after
   `Terrain::init`, and this item did not name that writer. This row names no score.
 
-## Parked by the next landing, slot BX — reserved
+## Parked by item 3945, 2026-11-06 — Amazon Basin's chain, 8 of 8
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3945a. 3944c's unnamed writer stands on a second moved good** (MAPGEN §26.3).
+  On run1528 the troughs move a good from (11, 30) to (10, 28), and part 5 at 894
+  agrees. The start dump reads `down` 3, `down_who` 8 at (10, 28) against ours
+  (−2, 17), the same pair 3944c read at Old World's (43, 18). The four later new cells
+  agree with the dump. One writer between `Terrain.cpp` 894 and `setup.cpp` 1240 now
+  has two cells across two files to be read on. This row names no score.
 
 ## Parked by item 3946, 2026-11-06 — Himalayas' chain, 8 of 8
 
@@ -14930,3 +14928,102 @@ names slot CI renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
+
+## Parked by the seventy-first Fable pass, 2026-11-06 — the territory read by name: what a diff can take next
+
+The pass's reading fan-out (DECISIONS 111 §3; `docs/audit/2026-11-06-territory-*.md`: 26 first readings over the
+1,291 open functions, 8 blind second readings over the 157 rows ruled `unmodelled` or `twin-differs`, 6 adjudications
+over every disagreement and every claim that a compared field would part) yields these rows, cheapest first. Each names
+its score; none is a Loop item. A commander books one by quoting it and minting the item number; **T71-1 and T71-2 are
+on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 55).**
+
+- **T71-1. The Iroquois cloak, three mask bits no pin compares** (adjudications 3, 4; `Unit::process_cloak (005e1c20)`,
+  `UnitData::is_seen (00607a60)`, parked 2759, 3114, 3115): on run1228b (the Iroquois Ancient pair, whole at 8420) the
+  Iroquois units print `unit_masks2 & 0x8000` on 3,275 unit-blocks from block 1, `unit_masks2 & 0x80` on 3,800 and
+  `unit_masks & 0x800` on 13 from block 2701; the crate holds 0 on every one, and the coverage pins compare 7 bits of
+  `unit_masks` and 5 of `unit_masks2`, none of these. **Score**: the Iroquois pair's closing-window `firsts` (67 today)
+  once the three bits join `widen_block_rows` — red at once on run1228b and run897 block 1 — and the port of the forest
+  cloak (`unit_masks |= 0x800` in forest) and the own-land cloak (`unit_masks2 |= 0x8000`) that turns it green. No capture.
+- **T71-2. The Iroquois heal in friendly territory, with its `is_moving` term** (adjudication 3; `Unit::process_healing (005e0670)`,
+  `iroquois_ancient_pair.rs:225-232` "theirs heals both and ours does not"): the value diff is already pinned — `1/52`
+  `hits:damage` theirs 41 / ours 42 on 8191, `1/30` 4 / 5 from 8411, two of the window's 67 firsts. The arm heals a
+  standing (vslot `+0xd8`, `is_moving` false) Iroquois unit in friendly territory; both readers omitted the standing
+  test. **Score**: the same `firsts` count, 67 → 65. No capture.
+- **T71-3. A stance press sets bit `0x10`, which the crate reads as `cant_reach`** (adjudication 2; `Group::action_stance (0070d440)`):
+  the original sets `SubObjectData::flags |= 0x10` on every unit of the group; the crate reads that bit as `cant_reach`,
+  which exempts a unit from `Unit::think`'s one-in-sixteen idle check (`orders.rs:4480`), so after every `Army::set_stance`
+  the original's units think on the next frame and ours wait for their phase. The flags byte is printed and uncompared
+  (`coverage.rs:3411`); the buildings arm writes `BuildData::stance`, printed by `log_data:126` and unparsed
+  (`coverage.rs:187`). **Score**: a widening row `flags & 0x10` against `cant_reach` on run1017's `set_stance` frames (on disk)
+  and a parser line for `BUILDDATA stance`; red is the item, and the order lists that follow are compared.
+- **T71-4. The style's territory limits are not read** (adjudication 2; `Map::make (0068bc90)`, map-2, second-2):
+  `Map::make` copies six limits into `World +0x38..+0x4c` that `compute_reg_territory:114–123` reads by `Region::flags & 4`;
+  `NILEDELTA.xml` and `SEAPOWER.xml` set the player triple 48/8/8, `NEWWORLD.xml` the colonized 32/4/4; the crate uses
+  the rules constants 44/4/4 for every region (`territory.rs:168, 175, 239`) and reads the dump's six scalars only as a
+  sibling key (`setup.rs:2021`); `docs/ATTRITION.md`'s `WorldData` row omits the override. Inert on every pinned style.
+  **Score**: a start-dump parser line checking the six `WORLD` limits against `Tuning` — red on run1098, run1123 and run1126
+  today — and then the first parting of 3952's or 3953's game on that style, whose borders it will move.
+- **T71-5. `Group::action_flight` gates every plane as a missile** (adjudications 2; second-1): the listing at `6fbba8`
+  (`testl $0x8000000, 0x1e4; je 6fbf6c` → `6fbe61`) gives `valid_target`, the shield and the reach test to missiles only;
+  `air.rs:1230–1246` applies all three to every plane, so a bomber sent at an unseen or out-of-reach target gets no order
+  where the original lays the strafe; `docs/ORDERS.md` §38.2 misreads it the same way. `STRAFEORDER` is compared.
+  **Score**: a chapter staging a bomber strike at a target beyond its reach; the first parting is the order list on the strike frame.
+- **T71-6. A patrol with a helicopter in the group issues nothing** (adjudication 2): `action_patrol` hands off to the air
+  patrol on `count(COUNT_DOMAIN, 4)` = `is_plane`; the crate hands off on any Air-domain member (`group.rs:3523`) and its
+  air arm orders no non-plane (`:3571`). `GroupData::get_max_range` skips `is_plane` only where `live.rs:124` skips every
+  Air member. **Score**: a chapter patrolling a mixed group with a Helicopter; `PATROLORDER` is compared.
+- **T71-7. `Build::clean_queue` untracks a queued technology under type 0** (second-7, adjudication 6, confirmed): the
+  close and capture loops (`city.rs:2611–2619`, `:3077–3081`) call `untrack_queued(who, 0)` for a tech item (`ty = 0`,
+  `production.rs:108`), which takes one off the Citizen's count and never `tech[who].queued[t]`, so `researching()`
+  (`lib.rs:4037`) stays true and `queue_tech_with` refuses that technology for good (`lib.rs:4086`); the original walks the
+  live queues instead and hands a closing Library's queue to the owner's next Library (`Build::close:465–500`). Reachable at
+  eight building kinds (46 of 85 `WHERE` entries). No window parted because the crate emits no tech `num_queued` rows
+  (`leader.rs:402`; the comparator skips keys the crate has no row for, `harness.rs:4939`) and none of 1,831 tech-queued
+  building-frames over five windows closes mid-window. **Score**: emit the technologies' `num_queued[r]` rows beside the
+  unit rows (a compared field on any window with a tech queued), then a chapter closing a building with a technology queued.
+- **T71-8. The building-family bonuses and ranges** (build-1, second-7, adjudication 5, confirmed): `BuildData::attack`'s
+  General ×10, Obsidian ×10 and Antipater ×30 arms; `get_base_garrison_arrows`'s Maya +1 (`NATIONS.md:154`); `BuildData::hits`'s
+  single-precision loss while a Disband runs (run1512's take to widen); `get_building_range`'s `TOWER_FORT_RANGE` and
+  `FORT_UPGRADE_RANGE` (parked 1420); `max_range`'s garrisoned-General and temple terms; `compare_target`'s garrison weight
+  (`fight.rs:5595` passes `bd.garrison_attack`, 0 in play) and the temple range (`TEMPLE_UPGRADE_RANGE` ships `entry0="1"`,
+  `rules.xml:91`: every city centre with a Temple shoots one tile farther, and the crate has none). Entered by every
+  lockstep run; a building holds a target in only 4 of 3,725 dumps on disk (Towers and a Radar, none garrisoned), so the
+  case never arose. **Score**: a comparator line for `attack_ox`/`attack_whom` on every armed building (today only
+  `wall_cycle` types, `golden.rs:2405`), then one staged chapter that enters five rows at once — a Mayan city with a
+  Temple, an upgraded Tower and a garrisoned General, attacked by two units inside a dumped window.
+- **T71-9. Fields printed and never compared, which part at once on disk** (adjudications 1, 6): `UNITDATA num_queued` /
+  `queue_time` (run1066, 614–622: a carrier's own training queue, `Unit::process`) and `UNITDATA healing` (run1151c),
+  pinned unread at `coverage.rs:283` — both part straight away, since the crate has neither field; `LEADERDATA retargets`
+  (`coverage.rs:275`); `BUILDDATA healing` (`coverage.rs:187`, zero on disk, so it pins the supply heal); and `LEADERDATA peasants_garr`,
+  `stable_garr`, `scout_garr`, `barracks_garr` (`coverage.rs:275`; `Object::insert_inside` skips decoys where the crate does
+  not) and `BUILDDATA/WALLDATA/OBJECT mylos` against `Sim::build_los` (`coverage.rs:205`; the colosseum and furs terms, the
+  `LEADER_VALID` gate and the 8-bit wrap). **Score**: each leaves the uncompared pin on the headline windows; red is the item.
+- **T71-10. `Objects::add_death`'s pool of 100** (adjudication 3; `Objects::add_death (00653b60)`): the original keeps 100
+  `DeathObj` slots and evicts the oldest non-blocking record when full; the crate's `Sim::deaths` only grows. The busiest
+  frame on disk holds 34. **Score**: `DEATH_OBJS` (`death:extra`) on a capture with more than 100 live corpses; a melee of two
+  late-age armies is the lobby.
+- **T71-11. Three masks are Great Sahara's listing** (adjudication 1; map-1, second-3): Old World, Amazon Basin and Himalayas
+  are `great_sahara_make_continents` (`mapgen.rs:406`) instruction for instruction, all 144 lines, so 3944–3946 are the route
+  plus the take — 3944 closed so on run1527 at 22:55 — and the 7807 check (`rondata/src/mapgen.rs:1288`, `style == 7`)
+  extends to 6, 8 and 9. **Score**: the `Mapgen:` line, booked.
+- **T71-12. The rest, each with its capture** (adjudications 1–4): `Objects::remove`'s number reuse within 30 frames (a unit
+  test, no score); `find_city_at` treating `Owner::Ambiguous` as unowned (`place.rs:718`, one line and a test); `Group::kill`'s
+  stale `order_num`/`facing`/`form_num` on a re-pushed slot (`GroupState::copied`, `group.rs:825`; a `GROUPDATA` scan for a
+  town-bell gather then a push); `think_carry_idle` (`RON_FIRSTS=1` on run1483's and run1492's stride tests, then wire
+  `carry_idle.rs`, parked 3411a); `Caravans::new_danger` and `Caravan::restart_trade_route` (run353's 1007, `CITY trade_val`);
+  `check_enemy_adjacent`'s dock ring (`BUILDDATA damage` on a dock, 8 per 32 frames); `City::capture`'s Senate disband and
+  race arms (CITIES §7.4); and the captures owed in order: a Blow Tread, a Depopulate, an All-Technologies Spy's Bribe from
+  range, an interrupted Restock Supplies, Beaver Pelts held while a Scout trains, a struck Airbase with a fighter, a team
+  lobby with an allied unit on its ally's land (`process_attrition`'s treaty exemption), a battle past 100 corpses.
+- **T71-14. A queue order on a mixed group skips `can_make`** (adjudication 5): `Group::action_queue_up` offers the order
+  to every member and relies on `can_make`'s `queue_here`; the crate's loop (`group_queue_up.rs:124`) goes through
+  `queue_up_with`, which lacks the test, so a unit queued on a Barracks + Stable group is queued at the Stable here and
+  refused in the original. A human reaches it with one click. **Score**: a chapter with the mixed selection; `BUILDQUEUE` is compared.
+- **T71-13. Stale prose the readers found, for the documents' owners** (no score): `collide.rs:2051–2053`'s SEAM (the held
+  copy is read ungated, as the original); `ROADS.md` §10.5 (C4 carried since 3287, `mesh.rs:122`); `ARMY.md:1341`'s plane
+  test in `Army::stop`; `ECONOMY.md:523, :599` (`new_rare` built by 1555); `CITIES.md` ~1536 (`0x2000000` is the economy's
+  dirty bit); `TRANSPORT.md` §9.1 (`Region::coastal` has no reader; `find_target` reads `coast`); `group.rs:1951`
+  (`seat_sort` exists); `ORDERS.md` §38.2 (T71-5); `cast.rs`'s SEAM label (the vehicle override is `0x281`, the Sniper); `anim.rs:1985`'s SEAM (the node offset is added
+  at `:2104–2120`); `city.rs:65, :109` (Global Government's flag has no writer);
+  `Doober::has_doobers` always answers 0 (`div_3_table[0]`, listing `8466fb`), so parked 2635 closes as inert; parked
+  3343a amended: the Aztec speed arm is inert (run1256b 8711, all 51 gatherers `myspeed 25`).

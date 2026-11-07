@@ -251,6 +251,30 @@ pub const MAPGEN: Mapgen = Mapgen {
             phases: 8,
         },
         MapgenStyle {
+            map: "EastMeetsWest",
+            // The held-out style (item 3941, DECISIONS 54, 61): ported from
+            // the reading (`004dbbab7`, pushed before run1524 was launched)
+            // and scored on run1524's first comparison, never debugged
+            // against (`docs/MAPGEN.md` §24). 8 of 8 phases on the first
+            // comparison: the mask's 6,788 draws and every checkpoint from
+            // 7807 to 894; phases 3–8 by seed and parts, no stream check.
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
+            map: "AmazonBasin",
+            // 0 → 8 by item 3945 (MAPGEN §26), on run1528's one file (2
+            // nations, 60×60, seed 12345, `tropical` drawn from
+            // `AMAZON.xml`'s own three `TILECHANCE`s): the mask is Great
+            // Sahara's listing at 0x69be00, and every phase holds on the
+            // first run with no `sim` change — 21,411 draws `place_all`
+            // through the values, 8,290 river draws (78 sources), and at
+            // 894 the troughs move four oils and six goods (one good walked
+            // four times, (41, 36) → (40, 28)).
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
             map: "Himalayas",
             // 0 → 8 by item 3946 (MAPGEN §27), on run1529 and the AI
             // track's run348, run464 and run465 (one lobby: 2 nations,
@@ -260,17 +284,6 @@ pub const MAPGEN: Mapgen = Mapgen {
             // no `sim` change — 90,970 draws `place_all` through the
             // values, an empty `RIVERLIST` (no river, no trough), and at
             // 894 seed and parts as the file's. No fix was taken.
-            ported: 8,
-            phases: 8,
-        },
-        MapgenStyle {
-            map: "EastMeetsWest",
-            // The held-out style (item 3941, DECISIONS 54, 61): ported from
-            // the reading (`004dbbab7`, pushed before run1524 was launched)
-            // and scored on run1524's first comparison, never debugged
-            // against (`docs/MAPGEN.md` §24). 8 of 8 phases on the first
-            // comparison: the mask's 6,788 draws and every checkpoint from
-            // 7807 to 894; phases 3–8 by seed and parts, no stream check.
             ported: 8,
             phases: 8,
         },
@@ -645,7 +658,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
