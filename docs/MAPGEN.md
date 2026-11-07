@@ -3414,8 +3414,8 @@ first walk of the port.
 ### 29.1 The mask is its own body
 
 `MapMediterranean::make_continents@0069add0` decompiles to 338 lines, against
-Great Sahara's 72, and its listing runs 0x69add0..0x69b650 (0x880 bytes,
-against 0x170). It calls `Map::make_region`, `Map::grow_region`,
+Great Sahara's 72, and its listing runs 0x69add0..0x69b650, against
+Great Sahara's 0x69bf70..0x69c0e0. It calls `Map::make_region`, `Map::grow_region`,
 `Regions::find_all`, `Map::eliminate_pools`, `Map::invert_land`, `project`,
 `Map::is_near_ocean`, `World::add_starting_location` and
 `Map::check_player_land`. Great Sahara calls none of these. So the listing

@@ -7954,6 +7954,13 @@ mod tests {
                 )
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: {m:?}");
+                // No file on disk takes either stall (§29.4): a take that
+                // does is the first reading of that arm.
+                assert_eq!(
+                    (m.sea_stalls, m.island_stalls),
+                    (0, 0),
+                    "{name}: a stall no walk has read"
+                );
                 // Mediterranean writes no `start_dist` (§29.1).
                 None
             }
