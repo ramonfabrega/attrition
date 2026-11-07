@@ -6554,6 +6554,60 @@ fn chapter_one_hundred_and_twenty_two_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_twenty_two_holds_to_the_golden_word();
 }
 
+/// **run1540 whole, both directions** (item 3969, `docs/GOLDEN.md` §175).
+#[test]
+fn chapter_one_hundred_and_twenty_five_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_twenty_five_s_window_is_widened_whole();
+}
+
+/// What parts in run1540's window, blocks 610–760 (item 3969): standing
+/// rows on the first block alone — the eleven `form` rows every golden
+/// chapter carries; the leaders' `SITE[i].reg` and `aggression[·]`, which
+/// only a whole leader record prints (`LEADERS=9` here; parked 2385's
+/// family, as chapter one hundred and seven's `@dumpall` blocks); and
+/// who=0's `defense`, 2 theirs, the added Small City's arrows counted at
+/// its init and its activate and never recounted for a human (parked
+/// 1386). Nothing parts on the Libraries, their queues or `num_queued`.
+const WANT_CH125: &[&str] = &[
+    "610 0/-1 leader:SITE[0].reg",
+    "610 0/-1 leader:SITE[1].reg",
+    "610 0/-1 leader:SITE[2].reg",
+    "610 0/-1 leader:SITE[3].reg",
+    "610 0/-1 leader:SITE[4].reg",
+    "610 0/-1 leader:SITE[5].reg",
+    "610 0/-1 leader:SITE[6].reg",
+    "610 0/-1 leader:SITE[7].reg",
+    "610 0/-1 leader:SITE[8].reg",
+    "610 0/-1 leader:SITE[9].reg",
+    "610 0/-1 leader:aggression[1]",
+    "610 0/-1 leader:defense",
+    "610 0/0 form",
+    "610 0/1 form",
+    "610 0/2 form",
+    "610 0/3 form",
+    "610 0/4 form",
+    "610 0/5 form",
+    "610 1/-1 leader:SITE[0].reg",
+    "610 1/-1 leader:SITE[1].reg",
+    "610 1/-1 leader:SITE[2].reg",
+    "610 1/-1 leader:SITE[3].reg",
+    "610 1/-1 leader:SITE[4].reg",
+    "610 1/-1 leader:SITE[5].reg",
+    "610 1/-1 leader:aggression[0]",
+    "610 1/1 form",
+    "610 1/2 form",
+    "610 1/3 form",
+    "610 1/4 form",
+    "610 1/5 form",
+];
+
+/// Chapter one hundred and twenty-five holds to its golden word (item 3969,
+/// run1540).
+#[test]
+fn chapter_one_hundred_and_twenty_five_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_twenty_five_holds_to_the_golden_word();
+}
+
 /// **run936 whole, both directions** (item 3236, `docs/GOLDEN.md` §132).
 #[test]
 fn chapter_one_hundred_s_window_is_widened_whole() {
