@@ -7872,6 +7872,7 @@ mod tests {
         river_records: 5,
         moves_a_good: false,
         lays_rivers: false,
+        height_files: 1,
         walks: OnceLock::new(),
     };
 
