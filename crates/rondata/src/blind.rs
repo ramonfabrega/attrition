@@ -3679,7 +3679,15 @@ mod tests {
     use super::*;
     use std::collections::{BTreeMap, BTreeSet};
 
-    /// `docs/**/*.md`, each cited address with the documents that cite it.
+    /// `docs/**/*.md`, each cited address with the documents that cite it —
+    /// **less the territory reports** (`docs/audit/*-territory-*.md`, the
+    /// seventy-first pass, DECISIONS 111 §3): a territory reader rules every
+    /// open function of a stem by name, so its working file cites hundreds
+    /// of never-entered functions before anyone has adjudicated one, and
+    /// the first gate with seven such files on the tree read the list at
+    /// 332. The blind list takes a row from a specification or an
+    /// adjudicated audit, never from a territory report; a ruling that
+    /// should join it is cited from the mechanic's document by the pass.
     fn citations() -> BTreeMap<u32, BTreeSet<String>> {
         fn walk(
             dir: &std::path::Path,
@@ -3696,8 +3704,11 @@ mod tests {
                 if p.is_dir() {
                     walk(&p, root, out);
                 } else if p.extension().is_some_and(|x| x == "md") {
-                    let text = std::fs::read_to_string(&p).unwrap_or_default();
                     let rel = p.strip_prefix(root).unwrap_or(&p).display().to_string();
+                    if rel.starts_with("audit/") && rel.contains("-territory-") {
+                        continue;
+                    }
+                    let text = std::fs::read_to_string(&p).unwrap_or_default();
                     for a in cited(&text) {
                         out.entry(a).or_default().insert(rel.clone());
                     }

@@ -1,0 +1,659 @@
+# The renderer — a proposal
+
+*2026-11-06. A proposal, not a decision: Ramon decides what phase 4's first
+items are, and this document is what he decides from. Every choice below is
+marked **Choice**, with the alternative beside it. Nothing here is built.
+Written by a worker on Opus 5.5 from the tree at `4314ac355`.*
+
+**Why now.** Entry 29's three counters stand (`docs/DECISIONS.md` entry 29;
+the seventieth pass ratified them, entry 110 §3): the long captures run
+24,000 of 24,000 frames on both maps, the blind list is at open 0, and the
+widening ledger closes by construction. By entry 29's letter, phase 4 opens.
+Entry 110 §3 put the opening to Ramon, and he said go on 2026-11-06.
+
+**How this was established.** The worker read `CLAUDE.md`,
+`docs/DEBUG_VIEWER.md`, `docs/DECISIONS.md` entries 29, 38, 100 and 110,
+`docs/FORMATS.md`'s model, animation and install sections, `docs/ORACLE.md`'s
+camera and screenshot notes, and the parts of `crates/sim` and
+`crates/rondata` a client would read: `Sim`, `Unit`, `Building`, `World`,
+`anim::Guy`, `diff::run_traced_observed` and `debug_view::Window::observe`.
+The function addresses come from the decompile index. The asset file counts
+in §3 come from listing the install's directories, not from their contents.
+Nothing has been run, and no claim here is diff-backed yet. Section 7 lists
+what is still open.
+
+## 1. Scope
+
+**What the renderer is.** It is a thin client over observed simulation state,
+as `CLAUDE.md`'s architecture section says. Each tick it reads a snapshot
+from the simulation (§2) and draws it. It never writes anything back. The
+simulation does not depend on it: `sim` keeps no graphics, windowing or async
+dependency, and must still run inside a `#[test]` with no display attached.
+The renderer is the **only** place art lives, and it can be swapped. Phase
+6's asset swap replaces the renderer's asset layer and leaves the simulation
+untouched.
+
+**The original made the same split, in name.** The executable keeps its
+drawing in `*Out` classes beside the simulation classes. The export holds 501
+functions across 60 of them: `TerrainOut` 142, `GroupOut` 33, `UnitOut` 21,
+`GuyOut` 9, `BuildOut` 7, and so on. `GuyOut::draw@005dc490`,
+`UnitOut::draw@00615b80` and `BuildTypeOut::draw@00634060` are the draw
+entries for a figure, a unit and a building type.
+
+The split leaks, so a function's class name does not settle which side it is
+on:
+
+- `TerrainOut::find_tcoord_z@008544a0` is simulation state. It answers the
+  tile heights `sim::world` pins.
+- `TerrainOut::terraform_for_building@00875210` rewrites that height grid.
+- `RiversOut::calculate_all` is map generation (`docs/MAPGEN.md`).
+
+The rule here goes by data flow instead. Anything whose output changes a
+later frame belongs to the simulation, whatever its class. Anything that only
+turns state into pixels belongs to the renderer.
+
+**What the renderer does not reproduce.** The original draws with `float`
+transforms (`GuyOut::draw` builds `Transform<float>` locals). The renderer may
+use floats freely: the no-float rule binds the simulation, not the client.
+What the renderer must never do is hand a float back, cache a value the
+simulation reads, or decide anything the next tick depends on.
+
+**In scope for the first items:**
+
+- A **replay viewer**: the simulation's own run of a scored capture, drawn
+  tick by tick from a start dump and the capture's order stream, with no
+  human input.
+- A **camera** that reproduces the original's projection (§3, §5).
+- **Terrain** from the simulation's height grid and cell land types.
+- **Figures and buildings** at their simulated positions, facing and
+  animation clocks.
+- **Territory borders and fog** for one chosen viewer, read from the
+  simulation's own grids.
+- **The original's assets**, read from the user's install at runtime.
+
+**Out of scope until something books it** (each is a §7 question):
+
+- **Input that issues orders.** Selecting and panning are client concerns
+  and cheap. Turning a click into an order means producing the original's
+  command packages. That is the order stream's job (`rondata::input`), and
+  today it replays recorded orders rather than minting new ones. A playable
+  client is a later item, not a first one.
+- **The `iface*` windows**, which are cut from v1 (`CLAUDE.md`, phases). Any
+  heads-up display beyond a debug overlay waits for a decision.
+- **Sound.** Pixels are the first oracle.
+- **Starting a game without the original.** The simulation loads its world
+  and starting units from the original's start dump (`docs/MAPGEN.md`,
+  introduction; §15 for the map chain built so far). So a first renderer can
+  only show games the original has started. That is enough for the oracle
+  work in §5, and not enough for a game.
+- **Conquer the World, the editor, triggers and multiplayer**, which stay cut
+  as `CLAUDE.md` says.
+
+**The lab's viewer stays a diagnostic.** `docs/DEBUG_VIEWER.md` §1 calls it
+"not phase 4's game client", and this proposal keeps it that way.
+
+- Its job is to show the original and the port side by side, after the
+  harness's corrections, on logged frames only.
+- A client's job is to show the port alone, every tick, with no dump.
+
+The two share one thing: the observer seam, which §2 generalises.
+
+**Choice: replay viewer first.** *Alternative:* a playable client against the
+AI from the first item. That needs order minting, which the simulation does
+not expose, and a game start without a dump, which it cannot do. Both would
+come before a single correct pixel.
+
+## 2. The observed-state interface
+
+### 2.1 What exists
+
+**The observer.** `rondata::diff::run_traced_observed`
+(`crates/rondata/src/diff/harness.rs`) is the one read-only view of
+simulation state today. After each comparison, `Replay::step` calls
+`observe(&Built, &Frame, &FrameResult)`, and the callback holds only a shared
+reference. Three properties matter here:
+
+- **It fires on logged frames only.** `step` ticks forward to the next
+  `FRAME` record and observes once. A client needs every tick.
+- **It sees corrected state.** `Built::tick` installs the original's random
+  word, and the figures' clocks, on every frame the dump traced. The pairs'
+  games are uncorrected from frame 1 by construction (`docs/DECISIONS.md`
+  entry 100 §4). Whether the 24,000-frame long captures install anything
+  past their start block is not established here (§7).
+- **It needs the whole log.** The harness reads every frame's dump to compare
+  against. The debug viewer's 30-record export peaked at 1,353 MiB resident
+  (`docs/DEBUG_VIEWER.md` §3), and most of that is dump reading, not the
+  simulation.
+
+**The stepping itself is small.** `Replay::step`'s loop is
+`stream.apply(frame, &mut built)` followed by `built.tick()`, and
+`Built::tick` is `Sim::tick` plus the installs. A runner with no dump past
+the start block is that loop with the installs and the comparison removed.
+
+**What the debug viewer reads.** `debug_view::Window::observe` pulls these
+from `Built`:
+
+- the world's size (`World::width`/`height` × `UNITS_PER_CELL`);
+- each unit's `Pos` and path stack;
+- `Built::units` (`UnitLink`: the log's `(who, o)` → the simulation's index);
+- `Sim::unit_by_o`;
+- the comparator's `FrameResult`.
+
+It walks the **dump's** unit list and links each record to a simulation
+unit. A client has no dump, so it has to walk the simulation's own list.
+
+### 2.2 What the simulation already carries that a renderer wants
+
+All of it is integer:
+
+| record | where | what a client draws from it |
+|---|---|---|
+| unit | `Sim::units: Vec<Unit>` | `owner`, `index` (the original's `o`), `pos: Pos` (1/768 cell), `ty`, `health`/`max_health`, `on_map`, `inside`/`inside_unit`, `squad_size`, `attrition`, `sheltered`, `orders`, `path` |
+| figure | `Unit::guys: Vec<anim::Guy>` | `gpiece` (the graphic piece), `anim` (the `UnitAnim` slot), `cur_time`/`end_time`, `follow` (a crew body's own `pos` and `facing: Angle`), `turret` angles |
+| building | `Sim::buildings: Vec<Building>` | `owner`, `index`, `pos`, `ty`/`orig_ty`, `health`/`hits`, `active`/`started`, `constr_time`, `garrison` |
+| terrain | `World` (private fields, accessors), `Sim::mountains` | `tile_z` (a pinned integer height per tile), `corner_z` (the corner grid as integer-mantissa singles), `cells` (`land`, `land_sub`, `flags`), regions, `coast`; the placed mountain ranges |
+| territory | `World::owner`, `owner_at`, `Sim::borders` | the owner of each cell, and border lines |
+| fog | `World::fog`, `fog_now`, `fog_detect` | per-player visibility planes on the half-cell grid |
+| effects | `Sim::projectiles`, `Sim::deaths`, `Sim::nukes` | missiles in flight, and corpses fading |
+| cities | `Sim::cities` | names, levels, centres, for labels |
+
+The graphic piece is simulation state already, because an animation's frame
+count decides when a random draw is spent (`docs/FORMATS.md`, "The animation
+file"). `docs/ANIM.md` §3.2 derives a player's piece from the original's own
+piece ranges (`GraphicPieces::init_piece_ranges@008f70e0`,
+`GraphicPieces::get_unit_gpiece@0090c030`). The animation clocks are compared
+against the dump's `GUY` records wherever a `DUMP_ALL` dump prints them
+(below `DUMP_ALL` the per-frame `GUY` blocks are empty, ANIM §1), so a
+renderer that reads `gpiece`, `anim`
+and `cur_time` gets the original's model, animation and frame without
+computing any of them.
+
+### 2.3 The proposed snapshot
+
+**Choice: a new module `sim::observe`, with `Sim::observe(&self, viewer:
+Option<Player>) -> Scene`.** It returns an owned value, called every tick.
+
+*Alternative 1:* the client reads `Sim`'s public fields directly, as the debug
+viewer does. That needs no simulation change and couples the client to every
+internal layout. `Sim`'s fields are public for the test harness's sake, not
+as an interface. The first refactor of `Unit` would break the renderer.
+
+*Alternative 2:* a borrowed view (`Scene<'a>` holding slices into `Sim`).
+That is zero-copy, but it pins the client to the simulation's thread and
+lifetime. At this game's scale (hundreds of units, not tens of thousands) a
+copy each tick costs little.
+
+*The name is a choice too:* the crate already uses `*_view` for the sweeps'
+walks (57 modules), so `view` is taken.
+
+**What `Scene` holds:**
+
+- `frame: i64`.
+- `units`: one `UnitScene` per unit **on the map**, carrying:
+  - `id: ObjId`;
+  - `owner`, `ty`;
+  - `pos: Pos`, and `z: i32` (the pinned tile height under it);
+  - `facing: Angle`;
+  - `health`, `max_health`;
+  - `figures: Vec<FigureScene { pos, facing, gpiece, anim, cur_time, end_time }>`.
+- `buildings`: `id`, `owner`, `ty`, `pos`, `z`, `health`, `hits`, and a
+  construction-progress pair, integers as the simulation keeps them.
+- `projectiles` and `deaths`: position, kind and clock.
+- `fog: Option<Vec<u8>>`: the chosen viewer's plane, `None` for an observer
+  who sees everything.
+- `terrain_version: u32` and `territory_version: u32`. Each counter moves
+  when its grid changes. A terraform rewrites corners
+  (`TerrainOut::terraform_for_building`), and territory moves with cities and
+  forts. The client fetches the grid itself only when a version moves:
+  `Sim::observe_terrain() -> TerrainScene { width, height, tile_z, land,
+  land_sub, mountains }`, and `Sim::observe_territory()`.
+
+**The rules the module holds:**
+
+1. **Nothing in it is a float or a renderer type.** No `f32`, no colour, no
+   matrix, no texture handle. `no_float.rs` already scans every file in
+   `sim`, so a new module is guarded by construction.
+2. **It is keyed by the original's identity, not by `Vec` index.** `ObjId` is
+   `(who, o)`, the identity the dump prints and the harness links on. A
+   dumped slot index is not an identity (`CLAUDE.md`), and nor is the
+   simulation's `Vec` position. Whether an `o` is reused after a death within
+   one game decides whether `ObjId` needs a generation counter. That is not
+   established here (§7).
+3. **It is read-only by type.** It takes `&self`. A test asserts that calling
+   `observe` every tick leaves the soak digest (`soak.rs`) bit-identical to
+   not calling it. That holds trivially today, and the test is there for the
+   day someone adds a cache.
+4. **It reports, it does not interpret.** It carries no "is this unit
+   visible on screen" and no draw order. Projection and culling are the
+   client's.
+
+### 2.4 What changes, and what does not
+
+**In `sim`:** one module (`observe.rs`), three methods, the version counters
+written where the grids change, and the read-only test. `Sim::tick`, the
+mechanics and the harness do not change.
+
+**In `rondata`:** a **free runner** that builds a `Sim` from a start dump
+with `diff::build_sim`, and then each tick applies the order stream
+(`input::Stream::apply`), calls `Sim::tick` and hands `Sim::observe` to a
+callback. It installs nothing and compares nothing.
+
+- The per-frame dump is not read past the start block, so memory is the
+  simulation's, not the log's.
+- `run_traced_observed` stays as it is, for the diagnostic viewer and the
+  tests.
+
+**Choice: the free runner lives in `rondata`.** That crate already owns the
+start dump and the order stream, and tools take an install path. *The
+alternative* is a new crate that depends on both. That is only worth it if
+`rondata`'s compile time becomes the client's bottleneck.
+
+**What need not change:** `Built`, `Replay` and `FrameResult`. The debug
+viewer keeps its seam.
+
+## 3. The visual oracle
+
+### 3.1 Nothing from the install enters the repository
+
+The renderer follows the rule the data layer already follows (`CLAUDE.md`,
+hard constraints): **it takes an install path at runtime** and generates what
+it needs on demand.
+
+- **Decoders live in `rondata`**, beside `artdata` (the `.BHa` key-time
+  reader) and `mountains::Tga`.
+- Each decoder is **self-checking**: a chunk must end where its header says,
+  as `.BHa`'s does today. `cargo run -p rondata -- <install>` re-derives the
+  structural claims and exits non-zero when one stops holding.
+- **Decoded caches** go under `~/Library/Caches/attrition/`, outside every
+  worktree.
+- **The original's screenshots** come from `tools/gamelog/shot.sh` on the
+  capture lane, and are kept in the run archive like a dump, never in git.
+  `docs/ORACLE.md`, "Traps that cost a run each", says to capture the game's
+  rectangle and never the desktop.
+- **Reference projection tables** (§3.3) are generated from packets, outside
+  the repository, and regenerated by a tool.
+
+**Choice: decoders in `rondata`.** *Alternative:* a separate `ronart` crate,
+so that the format readers do not lengthen the release suite's build. Take it
+if the decoders grow large.
+
+### 3.2 What `docs/FORMATS.md` establishes, format by format
+
+The file counts below come from listing the install, 2026-11-06.
+
+| format | where | established | not established |
+|---|---|---|---|
+| BIG archives | — | **Absent**: the Extended Edition ships unpacked (FORMATS, "Verified: the shipped install") | nothing is needed |
+| `.BHa` animation (2,062 in `art/`) | `rondata::artdata` | The chunk container (`{u32 size; u16 id; u16 version}`, size measured from the size field); three nested headers; the root `AnimObj` node's 36-byte keys, whose first `f32` is the key's duration; frames = `round(times·3/200)`, as in `AnimMgr::force_load@0053ade0` and `AnimObj::load_hier@0054b700`. The lengths are diff-backed against `DUMP_ALL` `end_time`. | The rest of each 36-byte key, the child nodes' key arrays and the bone hierarchy (FORMATS, "What is not read"). |
+| `.BH3` model (1,524 in `art/`, 323 in `terrain art/`) | — | Which file a piece plays: `unit_graphics.xml` `<UNIT … model="…bh3">` per piece (ANIM §3.2), plus restriction and track attributes `rondata` reads. | **The whole on-disk encoding.** The PDB describes the structures and not their bytes (FORMATS, "Prior art"). ptasev's converter reads and writes it, and is the reference for reading. |
+| `.tga` texture (2,171 in `art/`, 730 in `terrain art/`) | `rondata::mountains` | Type 10 (run-length), 32-bit, descriptor `0x08`, bottom row first: the mountain templates (FORMATS, "The mountain templates"). | Every other TGA variant the install uses, which textures a model binds, and how terrain textures map to land types. |
+| `.png` (16 in `terrain art/`) | — | The extension only. | Their role. |
+| `unit_graphics.xml`, `anim_graphics.xml` | `rondata::artdata` | Piece → animation slot → `.bha` file, looping or not. | Material, scale and attachment attributes beyond those read. |
+| `effects_graphics.xml` `<MOUNTAINS>` | `rondata::mountains` | The template order, and `TEMPLATE_TEX` read as solid cells. | `MAIN_ALPHA_TEX` and `RING_ALPHA_TEX`, which are loaded for the renderer. |
+| `mapstyles/*.xml` (22), terrain art's `bridgelabelsandratings` | — | — | Unexamined for drawing. |
+| `.cur` (114 in `art/`) | — | — | Cursors. They wait on input. |
+
+**The asset layer needs one more reading the simulation never needed:** what
+a piece's `<UNIT>` binds besides its animations, meaning textures, team-colour
+masks and scale. That reading belongs to item 4 in §6, and its claims go into
+`docs/FORMATS.md` with their evidence, as every format claim does.
+
+### 3.3 A frame of the original becomes a check
+
+**What makes the oracle exact rather than visual.** The port's positions
+already equal the original's on every compared frame of every scored capture.
+That is what entry 29's first counter says. So comparing pixels is not the
+first check. The first check compares **where the original would draw a
+thing** with **where the renderer draws it**, both computed from the same
+integer position.
+
+**The original's projection is a function we can call.**
+`MiscAccess::world_to_screen@00583810` adds the console's offset to
+`MiscAccess::world_to_console@00583840`. That reads the camera, which
+`BaseCamera::update_transforms@00537cc0` and
+`Camera::update_transforms@008430a0` build. Tilt comes from
+`Camera::adjust_tilt@00843970` and zoom from its sibling
+`Camera::zoom_to_level`, and the
+starting camera from `Game::init_camera@00590bc0`.
+
+**Two rungs reach it** (`docs/EMULATOR.md` §8):
+
+- **A packet** (`tools/explore/frame_snapshot.py`, the `RON_STATE_FRAME`
+  tracer build) copies the process's private data, camera included, at one
+  frame boundary. `tools/recomp/step4.py` then runs `world_to_screen` on it
+  for every unit's dumped position. The result is the original's own screen
+  coordinates for that frame and camera.
+- **`tools/emu/callfn.py`** with a synthesized camera sweeps zooms, tilts and
+  centres without a capture, at the "hour of synthesized state" the emulator
+  document prices for a function that reads a singleton.
+
+**Before booking a packet, grep the disk.** Packets already exist (run144's
+is cited in FORMATS). The camera fields come from `types.txt`.
+
+**The approximate transform already measured is not the oracle.**
+`docs/ORACLE.md`, "Aiming a right-click", fits screen position as linear in
+`u = wx − wy` and `v = wx + wy`. It gets within a tile or two, which is good
+enough to aim a click and not good enough to score. It also ignores height.
+
+**What can be compared, in order of cost:**
+
+1. **Projected anchor points.** For each object, the screen point the
+   original's function gives for its position and height, against the
+   client's, at the same camera. The comparison is exact up to the client's
+   rounding to whole pixels, and headless on both sides.
+2. **The drawn set.** Which objects a viewer sees on a frame: on the map,
+   alive, and inside the viewer's fog. The fog planes are simulation state,
+   and the dump prints `mylos` (`docs/VISION.md` §2).
+3. **The pose index.** Piece, animation slot and frame. The simulation
+   already agrees with the dump on these, so the client only has to resolve
+   them to the right files.
+4. **Silhouettes against a screenshot.** The original's frame, taken at a
+   chosen frame (`pause` and `break #` from the console, `docs/ORACLE.md`,
+   "The `~` console") and camera (`cheat camera`), is compared with the
+   client's frame on object footprints, never on pixels.
+
+**Nothing is pixel-exact at first, and maybe never.** The original draws
+through Direct3D 11, then DXVK, then MoltenVK, then Metal, with its own float
+transforms and filtering. A pixel difference against that measures the
+translation stack as much as the port. Rung 4 is for the art phase's eyes and
+for the silhouette metric in §5's third candidate. It is not a gate.
+
+## 4. The stack
+
+The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
+has real code, not in anticipation. The `sim` crate has no dependencies at
+all. `rondata` has four: `flate2`, `lz4_flex`, `roxmltree` and `fixed`.
+
+### 4.1 The options
+
+**A. A browser client fed by a replay export.** This is what the lab viewer
+already is: an HTML file with embedded JSON, drawn on a canvas, with no
+network requests (`docs/DEBUG_VIEWER.md` §1–§2).
+
+- *For:* no new Rust dependency, and it already exists.
+- *Against:* it is a file, not a client. Exports are bounded at 200 records
+  and 64 MiB. A three-dimensional model would mean writing WebGL in
+  hand-rolled JavaScript with no libraries, because the page loads nothing
+  external.
+- *A variant:* compile `sim` to WebAssembly and run it live in the page. The
+  crate has no dependencies, and its only operating-system calls are debug
+  environment reads (`RON_DEBUG_*`, `RON_TURN_TABLE`). So
+  `wasm32-unknown-unknown` is plausible. **It has not been tried.**
+
+**B. A native two-dimensional isometric first pass** (sprites or flat shapes
+through a small framebuffer crate).
+
+- *For:* few dependencies, quick to a first image.
+- *Against:* the original is three-dimensional. Its figures are `.BH3`
+  meshes posed by `.BHa` animations, and its camera tilts and zooms
+  (`Camera::adjust_tilt`, `Camera::zoom_to_level`). A sprite pass would be
+  thrown away the day the first mesh draws, and it cannot be put in register
+  with a tilting camera without reproducing the camera anyway.
+
+**C. A native window with `wgpu`** (with `winit` for the window): Metal on
+this machine, and Vulkan or Direct3D elsewhere.
+
+- *For:* it is where three-dimensional meshes, the original's camera and
+  phase 6's new art all end up.
+- *Against:* it is the largest dependency tree the workspace would take on,
+  around a hundred transitive crates. It buys nothing until there is a mesh
+  to draw.
+
+### 4.2 The recommendation
+
+**Choice: no graphics dependency for the first three items, then C.**
+
+- The counter (§5) is **headless**. The camera, projection, drawn set and
+  draw list are pure functions in a new `render` crate that depends on `sim`
+  and `rondata` only, and they run in `cargo test` with no display.
+- The lab viewer stays the place to *look* at a disagreement while that is
+  built. Teaching it to draw the client's draw list beside the original's
+  reference is a small change to an existing diagnostic, not a new stack.
+- **`wgpu` and `winit` are earned by the first decoded mesh** (§6, item 5),
+  in a separate `client` binary crate. That keeps the testable core free of
+  graphics, which is the same split as `sim` and `rondata` one level up.
+
+*Alternative 1:* grow option A into the client. That is cheapest now, but it
+ends in a JavaScript renderer the Rust core cannot test.
+
+*Alternative 2:* B as a stepping stone. It costs an item and leaves nothing
+behind.
+
+*Alternative 3:* C from the first item. Then the dependency arrives an item
+or two before anything uses it, which is what "earn every dependency" rules
+out.
+
+### 4.3 What the first dependency buys
+
+`wgpu` buys: drawing the decoded `.BH3` meshes at their simulated positions
+under a camera already proven in register (§5); terrain as a lit heightfield
+from `tile_z` and the corner grid; and the eventual art swap, at no cost to
+the core. `winit` buys a window and a camera the user can pan. Neither enters
+`sim`, and neither enters `render`.
+
+## 5. The counter
+
+The loop books only what names a score (`CLAUDE.md`, working agreement). The
+renderer needs a number a test can pin, a floor that can only rise, and a
+denominator that comes from outside the work. Here are three candidates and a
+recommendation.
+
+### 5.1 Candidate A: frames in register
+
+**Definition.** On a pinned capture, the client is driven by the free runner
+(§2.4) from the start dump and the order stream. Score the consecutive
+logged frames from frame 0 on which two things hold:
+
+- every object the client draws has its integer screen anchor within **1
+  pixel** of the original's projection (§3.3, rung 1) of the dumped position;
+- the drawn set equals the original's (§3.3, rung 2).
+
+Both are taken at a pinned camera and a pinned resolution.
+
+**It measures:** that the snapshot is complete and faithful, and that the
+camera, the heights and the visibility set are right.
+
+**It does not measure:** anything about appearance. And it **saturates**:
+once the projection matches, every frame of a lockstep capture agrees,
+because the positions already did. It is a step function that moves from 0
+to the capture's length in one or two items, and then has nothing left to
+steer.
+
+**Choice: a 1-pixel tolerance**, because both sides project the same
+integers and only rounding separates them. *Alternative:* a tolerance in
+world units, which is independent of the camera but hides a wrong zoom.
+
+### 5.2 Candidate B: asset files decoded
+
+**Definition.** The count of the install's files of each kind that decode
+under a self-checking reader. The denominators are the counts in §3.2:
+2,062 `.bha`, 1,847 `.bh3` and 2,901 `.tga`.
+
+**It measures:** format coverage, with a denominator nobody chose.
+
+**It does not measure:** whether anything is drawn, or drawn in the right
+place. It also counts files the game never loads, such as editor leftovers,
+the same as the citizen's walk.
+
+### 5.3 Candidate C: scene silhouettes against the original's frame
+
+**Definition.** For each pinned (capture, frame, camera), the overlap of
+per-object footprints between the client's frame and the original's
+screenshot, above a threshold.
+
+**It measures:** what a player would see.
+
+**It does not measure** anything until art is drawn. It also needs a capture
+for every data point, and it inherits the translation stack's noise (§3.3).
+It is the art phase's counter, not the first one.
+
+### 5.4 Recommended: pieces in register, K of M
+
+**Definition.**
+
+- **M** is the set of distinct graphic pieces (`gpiece`) the simulation's
+  own run of the pinned captures plays, plus the building types those
+  captures' dumps hold. The pieces are the simulation's, because only a
+  `DUMP_ALL` dump prints `gpiece` (ANIM §1). They are checked against every
+  `DUMP_ALL` dump of the same lobby on disk, where the two must agree. So M
+  is counted from what the games show, not chosen.
+- A piece **counts toward K** when two things hold:
+  1. its `.BH3` model, and every `.BHa` its captured animation slots name,
+     decode under the self-checking readers;
+  2. on every logged frame of every pinned capture where an object plays it,
+     that object's draw-list entry is in register in candidate A's sense.
+
+**The shape.** It reads like the rubric's "unit types seen 296 of 302". It
+has a denominator from the oracle's own files. It rises one piece at a time,
+so it steers for many items. And it embeds candidate A as its per-piece
+condition, so frames in register is checked on every gate without being the
+headline.
+
+**Pinned** in a `render` test, with the scoreboard line parsed the way
+`rondata::diff` parses the queue's.
+
+**It measures:** that the client can resolve, decode and place everything the
+scored games show.
+
+**It does not measure:** textures, lighting, the correctness of an animation
+pose beyond its frame index, the terrain's look, or any interface.
+
+**The terrain is outside M** and has its own binary condition: the
+heightfield's projected corner points are in register at the pinned camera.
+
+**When it changes.** Candidate C replaces it once K reaches M. Phase 6's
+asset swap retires condition (1) and keeps condition (2).
+
+**Choice: this counter.** *The alternative most worth weighing* is candidate
+A alone, as a gate rather than a counter, with the order of items set by hand
+instead of by a number. That is simpler, and honest for a phase that may
+prove short. But it gives the loop nothing to book after the second item.
+
+## 6. The first five items
+
+In dependency order. Each item names the score it moves and what it needs
+from `sim`. None is minted: item numbers and the queue are the commander's.
+
+**1. The scene and the free runner.**
+
+- *Builds:* `sim::observe` (§2.3) and the `rondata` free runner (§2.4).
+- *Tests:*
+  - on a pair (uncorrected from frame 1, entry 100 §4), every logged frame's
+    `Scene` positions and `gpiece`/`anim`/`cur_time` equal the harness's on
+    the same frame, with zero differences;
+  - the soak digest is unchanged when `observe` runs;
+  - the runner's peak memory is measured against the harness's.
+- *Score:* the scene agrees with the harness on N of N logged frames of the
+  pair: the precondition sub-score, pinned. The **M** of §5.4 is counted in
+  the same item, from the runner's own scenes, and checked against the
+  lobby's `DUMP_ALL` dumps.
+- *Needs from `sim`:* the module, the version counters, and nothing in
+  `tick`.
+
+**2. The camera, proven against the original's function.**
+
+- *Builds:* a pure camera and projection in a new `render` crate. It is
+  written from reading `BaseCamera::update_transforms` and
+  `Camera::update_transforms`, never transcribed.
+- *Tests:* it is checked against `MiscAccess::world_to_screen` run under
+  unicorn on synthesized camera states (a sweep, as `crates/sim` runs its
+  sweeps) and on a packet on disk.
+- *Score:* camera states in register, K of the sweep, with every point within
+  1 pixel.
+- *Needs from `sim`:* nothing.
+
+**3. The draw list, and frames in register.**
+
+- *Builds:* the headless draw list (object id, screen anchor, depth key,
+  piece, slot, frame, facing) from a `Scene` and a camera.
+- *Tests:* checked frame by frame against the reference built from the
+  original's projection of the dumped positions and the drawn set from the
+  dump's visibility.
+- *Score:* frames in register on the pair (candidate A, kept as a floor), and
+  the K of §5.4 counted with the decode condition stubbed true. The decode
+  half arrives in item 4.
+- *Needs from `sim`:* the viewer's fog plane in `Scene`, and the figures'
+  `follow.body` positions, so a crew piece draws where its body is.
+
+**4. The asset resolution, and the first decoder.**
+
+- *Builds:* piece → `<UNIT>` → `.bh3` and `.bha` files (extending
+  `rondata::artdata`); the `.BH3` container decoded to vertices, faces,
+  nodes and bounds, self-checking; the remaining `.BHa` key fields.
+- *Evidence:* each claim lands in `docs/FORMATS.md` with what proves it: the
+  PDB's types, the chunk arithmetic, and a round trip against ptasev's
+  converter's reading of the same file, which is a reading aid and not a
+  source.
+- *Score:* the §5.4 K, now with both conditions, rising per piece decoded.
+- *Needs from `sim`:* nothing new.
+
+**5. First pixels.**
+
+- *Builds:* the `client` crate (`winit`, `wgpu`). It draws the terrain
+  heightfield in flat land-type colours, and each figure's decoded mesh at
+  its draw-list anchor and facing, untextured, at the pinned camera.
+- *Compared with:* a screenshot of the original at the same frame and camera,
+  taken on the capture lane and kept outside the repository. The comparison
+  is by eye at this stage. Candidate C's silhouette metric is the item after.
+- *Score:* the terrain's binary condition (§5.4), and K unchanged. This item
+  makes the counted pieces visible, and that is the dependency's earning.
+- *Needs from `sim`:* `observe_terrain` (heights, land types and mountain
+  placements).
+
+**After these**, in the order the counter's misses name them: textures and
+team colours, animation poses, buildings' construction stages, territory
+lines and fog shading, projectiles and corpses, then candidate C.
+
+## 7. What is not established, and what needs Ramon's word
+
+### 7.1 Not established
+
+Each line names what would settle it.
+
+- **Whether the long captures run uncorrected past their start block.** The
+  pairs do (entry 100 §4). For the long ones, read their tests' installs, or
+  run the free runner and compare. Until then, item 1 pins on a pair.
+- **Whether `o` is reused within one game.** This decides whether `ObjId`
+  needs a generation counter. Grep the dumps for a `(who, o)` whose type
+  changes mid-capture.
+- **How many pieces M holds.** Item 1 counts it from the free runner's
+  scenes. Whether every lobby's pinned capture has a `DUMP_ALL` sibling to
+  check the count against is a grep of the archive.
+- **Whether the original interpolates figures between simulation frames**
+  when it draws. `GuyOut::draw` is the place to read. It does not affect the
+  counter, which compares at frame boundaries. It does decide whether the
+  client's motion looks like the original's.
+- **`world_to_screen`'s inputs beyond the camera.** It takes two `Coord`s and
+  two more integers. Whether height enters through those, or through a
+  lookup inside, is a reading item 2 owes.
+- **The `.BH3` encoding, every TGA variant past type 10, the terrain
+  textures' mapping, and the 16 PNGs** (§3.2).
+- **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
+  matters only if option A's live variant is wanted.
+- **The licence of ptasev/Rise-of-Nations.** Reading it is fine under the
+  project's rules. Anything beyond reading would need its licence checked.
+
+### 7.2 Ramon's word
+
+1. **The counter.** Pieces in register K of M (recommended), frames in
+   register alone, or another.
+2. **The stack.** Headless first and `wgpu` at the first mesh (recommended),
+   or the browser client grown, or `wgpu` from the start.
+3. **Replay viewer first, or playable first.** Playable needs order minting
+   and a game start without the original's dump. Both are simulation work,
+   and the first is the larger one.
+4. **Starting a game without the dump.** Is the rest of map generation's
+   chain (`docs/MAPGEN.md` §15) and the start block booked alongside phase 4,
+   or after it?
+5. **The simulation track beside the renderer.** Entry 110 §3's
+   recommendation runs the held-out style beside phase 4. Does it run, and on
+   how many lanes?
+6. **The crate layout.** A headless `render` crate plus a `client` binary,
+   and decoders in `rondata` (recommended), or another split.
+7. **Which viewer the client shows by default:** one player under fog, or an
+   omniscient observer. The counter needs one pinned, and the default
+   proposed is the human's seat, whose fog the dump prints.
+8. **How much interface comes in with the client** beyond a debug overlay:
+   selection outlines, health bars and a resource line. `UnitOut::draw`'s
+   neighbours (`draw_health_bar`, `draw_unit_circles`) are drawing, not
+   `iface*` windows. Still, every one is scope.
