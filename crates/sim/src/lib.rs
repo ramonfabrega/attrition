@@ -7346,6 +7346,12 @@ impl Sim {
             // enters on 979 and reads `0x840008` on 980).
             self.units[i].blown = false;
             self.units[i].fought = false;
+            // The same arm's `unit_masks2 &= 0xffff7f9f` and, for a unit
+            // without the hero's `0x2000` (never carried here),
+            // `unit_masks &= ~0x800`: inside, no cloak stands (item 3958,
+            // `docs/AI.md` §402).
+            self.units[i].unit_masks2 &= !(combat::umask2::LAND_CLOAK | 0x60);
+            self.units[i].cloak = false;
         }
         if !self.units[i].on_map {
             // **The inside arm's figure write** — `Unit::process@00610bc0`'s
