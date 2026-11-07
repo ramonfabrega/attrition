@@ -244,9 +244,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1611: Babylon, named in run718's window (block 2274).
     // Item 1697: Meshed, named in run766's window.
     // Item 2474: Yeha, named in run860's window (the founded Small City).
+    // Item 3970: Mayapan, the Maya capital, named in run1541's window.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Babylon Brest Edinburgh Khomein London Lyons Meshed Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz Yeha York flags increment length size",
+        "Amiens Arak Babylon Brest Edinburgh Khomein London Lyons Mayapan Meshed Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz Yeha York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
