@@ -15078,13 +15078,14 @@ An item that ports one of them folds its rows into `firsts` and re-pins the tabl
   passes one figure's share (`+0x24 < local_c`). On run989d, who 1's Cataphracts 1/72 and 1/74 on 17388, and 1/79 on
   17397, are in melee and read ours 0 / theirs 1. **Score**: run989d's tally, and every melee walk's.
 
-## Parked by the next landing, slot CL — reserved
+## Parked by item 3963, 2026-11-07 — the style's six territory limits
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3963a. A world with no dump does not read the style's six territory limits** (`Map::init_map_data@0069f250`,
+  `PLAYER_TERRITORY_*_HARD_LIMIT`, `COLONIZED_TERRITORY_*_HARD_LIMIT`): `sim::world::World::territory_limits` is
+  filled only by the harness's `world_from` from a start dump's `WORLD` block. A game this crate generates from a style
+  (the map lane's chains) stays on the rules' 44/4/4 on Nile Delta, Sea Power and New World. `analyze_map`'s other
+  writes (`player_reg`, `resource_reg`, the computed sea class) are not carried either. **Score**: none until a game on
+  one of those styles is walked from a generated map rather than a dump.
 
 ## Parked by the seventy-first Fable pass, 2026-11-06 — the territory read by name: what a diff can take next
 

@@ -858,6 +858,9 @@ impl Sim {
     /// 1106); [`Sim::settle_borders`] is setup's wholesale pass.
     pub fn sync_territory(&mut self) {
         self.fix_borders();
+        if !self.in_play {
+            self.analyze_player_regions();
+        }
         let before = self.world.owners();
         // `World::compute_reg_territory` rebuilds its whole per-player table
         // at the top of every region pass (`006b0bb0` lines 125–260) rather
@@ -937,6 +940,34 @@ impl Sim {
         }
         self.recompute_territory();
         self.start_border_pass(before);
+    }
+
+    /// **`World::analyze_map@006b58b0`'s player-region arm** (item 3963,
+    /// `docs/AI.md` §407): every land region in which some active leader
+    /// has a city (`LeaderData::reg_cities[r] != 0`, `leaders[p] & 1`)
+    /// takes [`crate::world::REGION_PLAYER`], the bit
+    /// `compute_reg_territory:114` reads to give the region the style's
+    /// player territory limits rather than its colonized ones. The
+    /// original runs it once, in `Setup::build_game` just before the
+    /// setup's `compute_all_territory`; here every setup fix runs it, and
+    /// the bit only grows, so the last fix before the first frame — which
+    /// sees every starting city — leaves exactly the original's flags.
+    /// The arm's other writes (`player_reg`, `resource_reg`, the sea class
+    /// it computes, the cell tallies) are not carried: the harness takes
+    /// the sea class from the dump ([`crate::world::World::sea_map`]).
+    fn analyze_player_regions(&mut self) {
+        let players = self.players.len();
+        let lands: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == crate::world::Terrain::Land)
+            .map(|(r, _)| r)
+            .collect();
+        for r in lands {
+            if (0..players).any(|p| self.leader_reg_cities(p as Player, r) != 0) {
+                self.world.or_region_flags(r, crate::world::REGION_PLAYER);
+            }
+        }
     }
 
     /// `Region::fix_borders@00680f60` (and `Regions::fix_all_borders`,

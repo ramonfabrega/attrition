@@ -435,6 +435,26 @@ pub fn world_from(
     // at every level (`sea_map 1` on run9's Great Lakes, 4 on run20's
     // islands). Not derivable from the cells: `World::sea_map`.
     world.set_sea_map(get("sea_map").unwrap_or(0) as i32);
+    // `world+0x38..+0x4c`, the style's six territory limits, printed with
+    // the same scalars (item 3963): `Map::make` copies them, and
+    // `compute_reg_territory` reads the player triple on a region whose
+    // flags carry bit 4 and the colonized one elsewhere. A block that
+    // prints none of the six leaves the world on the rules' triple.
+    let six = [
+        "player_territory_limit",
+        "player_territory_limit_civic",
+        "player_territory_limit_city",
+        "colonized_territory_limit",
+        "colonized_territory_limit_civic",
+        "colonized_territory_limit_city",
+    ]
+    .map(|k| get(k).map(|v| v as i32));
+    if let [Some(a), Some(b), Some(c), Some(d), Some(e), Some(f)] = six {
+        world.set_territory_limits(sim::world::TerritoryLimits {
+            player: [a, b, c],
+            colonized: [d, e, f],
+        });
+    }
     (world, region_map)
 }
 
@@ -2241,6 +2261,176 @@ mod tests {
     use sim::ai::{MAKE_SLOTS, MakeObject};
 
     use crate::testenv::{dump, install};
+
+    /// **The style's six territory limits are the start dump's** (item
+    /// 3963, `docs/AI.md` §407, parked T71-4): `WorldData::log_data` prints
+    /// `World +0x38..+0x4c` among the block's leading scalars, and the world
+    /// the harness stands up carries all six — Nile Delta and Sea Power's
+    /// player triple 48/8/8 (run1098, run1126), New World's colonized
+    /// 32/4/4 (run1123); every other triple the rules' 44/4/4 — and the
+    /// pinned lobby's start dump is the rules' on both, so the override is
+    /// inert on it.
+    #[test]
+    fn the_style_s_six_territory_limits_are_the_start_dump_s() {
+        let rules = [
+            sim::tuning::Tuning::RON.territory_limit_base,
+            sim::tuning::Tuning::RON.territory_limit_civic,
+            sim::tuning::Tuning::RON.territory_limit_city,
+        ];
+        let carried = |init: &Initial<'_>| -> [i32; 6] {
+            let (world, _) = world_from(&init.world, &[], &mut Vec::new());
+            let l = world
+                .territory_limits()
+                .map_or([rules, rules], |l| [l.player, l.colonized]);
+            [l[0][0], l[0][1], l[0][2], l[1][0], l[1][1], l[1][2]]
+        };
+        let printed = |init: &Initial<'_>| -> [i32; 6] {
+            let get = |k: &str| -> i32 {
+                init.world
+                    .iter()
+                    .find(|(key, _)| *key == k)
+                    .and_then(|(_, v)| v.trim().parse().ok())
+                    .unwrap_or_else(|| panic!("the start dump prints `{k}`"))
+            };
+            [
+                get("player_territory_limit"),
+                get("player_territory_limit_civic"),
+                get("player_territory_limit_city"),
+                get("colonized_territory_limit"),
+                get("colonized_territory_limit_civic"),
+                get("colonized_territory_limit_city"),
+            ]
+        };
+        // The pinned lobby's siblings: every one that prints the six is the
+        // rules' on both triples (448 of the 451 kept start dumps are).
+        let inert = with_sibling_initials(|inits| {
+            let mut n = 0;
+            for init in inits.iter().filter(|i| {
+                i.world
+                    .iter()
+                    .any(|(k, _)| *k == "colonized_territory_limit_city")
+            }) {
+                assert_eq!(printed(init), [44, 4, 4, 44, 4, 4], "a pinned sibling");
+                assert_eq!(carried(init), [44, 4, 4, 44, 4, 4], "a pinned sibling");
+                n += 1;
+            }
+            n
+        });
+        eprintln!("{inert} pinned siblings print the rules' six");
+        let styles = [
+            (
+                "gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt",
+                [48, 8, 8, 44, 4, 4],
+            ),
+            (
+                "gamelog-run1123-newworld-cover1-clickfree-diagonal.txt",
+                [44, 4, 4, 32, 4, 4],
+            ),
+            (
+                "gamelog-run1126-atlanticseapower-cover1-clickfree-diagonal.txt",
+                [48, 8, 8, 44, 4, 4],
+            ),
+        ];
+        let mut read = 0;
+        for (name, six) in styles {
+            let Some(path) = dump(name) else {
+                eprintln!("skipped: {name} is not on this machine");
+                continue;
+            };
+            let text = crate::capture::read(std::path::Path::new(&path));
+            let log = Log::parse(&text);
+            let init = log.initial().expect("the start dump");
+            assert_eq!(printed(&init), six, "{name}: the dump's six");
+            assert_eq!(carried(&init), six, "{name}: the world's six");
+            read += 1;
+        }
+        eprintln!("{read} of 3 styles' start dumps read");
+    }
+
+    /// **The style's limits move the setup's borders to the original's**
+    /// (item 3963, `docs/AI.md` §407): the start dump prints every cell's
+    /// `who`/`who2` as the setup's `compute_all_territory` left them, and
+    /// the harness's own setup recomputes them from the starting cities.
+    /// Each style's dump is stood up twice — with its six limits, and with
+    /// the six struck from the block so the world reads the rules' 44/4/4 —
+    /// and both owners are compared on every cell.
+    #[test]
+    fn the_style_s_limits_give_the_start_dump_s_owners() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let six = [
+            "player_territory_limit",
+            "player_territory_limit_civic",
+            "player_territory_limit_city",
+            "colonized_territory_limit",
+            "colonized_territory_limit_civic",
+            "colonized_territory_limit_city",
+        ];
+        let owner = |w: i64| match w {
+            -2 => sim::world::Owner::Ambiguous,
+            w if (0..=255).contains(&w) => sim::world::Owner::Player(w as sim::Player),
+            _ => sim::world::Owner::None,
+        };
+        let mut got = Vec::new();
+        for name in [
+            "gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt",
+            "gamelog-run1123-newworld-cover1-clickfree-diagonal.txt",
+            "gamelog-run1126-atlanticseapower-cover1-clickfree-diagonal.txt",
+        ] {
+            let Some(path) = dump(name) else {
+                eprintln!("skipped: {name} is not on this machine");
+                continue;
+            };
+            let text = crate::capture::read(std::path::Path::new(&path));
+            let log = Log::parse(&text);
+            let init = log.initial().expect("the start dump");
+            let cells = crate::gamelog::world_cells(&init.world);
+            let xs = init
+                .world
+                .iter()
+                .find(|(k, _)| *k == "xs")
+                .and_then(|(_, v)| v.trim().parse::<i32>().ok())
+                .expect("xs");
+            let wrong = |init: &Initial<'_>| -> (usize, usize) {
+                let built = build_sim(&loaded, init, sim::tuning::Tuning::RON);
+                let w = &built.sim.world;
+                let mut n = (0, 0);
+                for (i, c) in cells.iter().enumerate() {
+                    let cell = sim::world::Cell::new(i as i32 % xs, i as i32 / xs);
+                    if w.owner(cell) != owner(c.who) {
+                        n.0 += 1;
+                    }
+                    if w.second(cell) != owner(c.who2) {
+                        n.1 += 1;
+                    }
+                }
+                n
+            };
+            let styled = wrong(&init);
+            let mut rules = init.clone();
+            rules.world.retain(|(k, _)| !six.contains(k));
+            let plain = wrong(&rules);
+            eprintln!(
+                "{name}: who/who2 wrong — the style's six {styled:?}, the rules' {plain:?}, of {}",
+                cells.len()
+            );
+            got.push((name, styled, plain));
+        }
+        // Every cell the original's setup owns, ours owns alike with the
+        // style's six; the rules' triple was 110, 3 and 90 `who` cells
+        // short or over (no `who2` moves). New World's three are the
+        // colonized 32 on a region no start stands in — the player region
+        // keeps 44, so the bit `analyze_map` sets is what holds them.
+        for (name, styled, plain) in got {
+            assert_eq!(styled, (0, 0), "{name}: the style's six");
+            let want = match &name[..15] {
+                "gamelog-run1098" => (110, 0),
+                "gamelog-run1123" => (3, 0),
+                _ => (90, 0),
+            };
+            assert_eq!(plain, want, "{name}: the rules' six");
+        }
+    }
 
     /// **The start permutation is replayed onto the first visit's state**
     /// (item 3849, `docs/GOLDEN.md` §153.1): run1482's setup trace holds

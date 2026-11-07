@@ -100,13 +100,19 @@ below is re-read from the user's own install by
 | | *(take disabled)* @ +2044 | `i32` | Scenario flag; suppresses resistance |
 | | `neutral_attrition` @ +2048 | `i32` | Period applied on unowned ground |
 | | `attrition_stamp{,2,3}` @ +500/504/508 | `i32` | Warning-message throttles |
-| `WorldData` (364 B) | `player_territory_limit{,_civic,_city}` @ +56/60/64 | `i32` | Seeded from `TERRITORY_LIMIT_*` |
+| `WorldData` (364 B) | `player_territory_limit{,_civic,_city}` @ +56/60/64 | `i32` | Seeded from `TERRITORY_LIMIT_*`, overridden by the style |
+| | `colonized_territory_limit{,_civic,_city}` @ +68/72/76 | `i32` | The same, for a region that is not a player region |
 
-`WorldData` carries a **second** triple of limits at +68/72/76:
-`colonized_territory_limit{,_civic,_city}`. The territory pass picks the
-player triple for a region whose `Region::flags` has bit 4 set and the
-colonized triple otherwise, so some regions are computed against a different
-reach than others. Which regions carry the flag, and why, is not established.
+`WorldData` carries **two** triples of limits. `Map::make` copies both from the
+map's record. Both start as the rules' `TERRITORY_LIMIT_*`, and a style's
+`PLAYER_TERRITORY_*_HARD_LIMIT` / `COLONIZED_TERRITORY_*_HARD_LIMIT`
+overrides them: Nile Delta and Sea Power give the player triple 48/8/8, and New
+World gives the colonized triple 32/4/4. The territory pass picks the player
+triple for a region whose `Region::flags` has bit 4 set, and the colonized
+triple otherwise. **Bit 4 is the player region**: `World::analyze_map` sets it
+once at setup on every land region a starting city stands in. The harness reads
+the six from the start dump, and on the three style dumps the setup's borders
+come out cell-for-cell the original's (`docs/AI.md` §407, item 3963).
 
 Two incidental findings worth recording, because they will bite anyone reading
 memory or a save file:
@@ -797,8 +803,9 @@ supply; it is its own rule, and it lives with the buildings.
 - ~~**The second limit triple** at `WorldData` +68/72/76, and the per-region flag
   that selects between it and the first.~~ The triple is
   `colonized_territory_limit{,_civic,_city}` and the selector is
-  `Region::flags & 4` (set → player limits, clear → colonized). **Still open:**
-  which regions carry the flag, and what sets it.
+  `Region::flags & 4` (set → player limits, clear → colonized). ~~**Still open:**
+  which regions carry the flag, and what sets it.~~ `World::analyze_map` sets
+  it at setup on every land region with a starting city (`docs/AI.md` §407).
 - `down` and `down_who` are named in `WData` and look like a stored claim and
   claimant, but the territory pass writes `who`/`who2` and does not obviously
   touch them. They may belong to a different system.
