@@ -261,6 +261,16 @@ mod tests {
             Some(1),
             "off the map"
         );
+        // With no region at the site the region gate is off, and the map's
+        // edge is what refuses the cliff.
+        let mut bare = Sim::new(Tuning::RON, World::new(16, 16), 2);
+        bare.place_cliffs(&[off, cell_tiles(Cell::new(9, 9))]);
+        assert_eq!(bare.world.region_of(site.cell()), None);
+        assert_eq!(
+            bare.find_nearest_cliff(site).map(|(_, k)| k),
+            Some(1),
+            "off, no region"
+        );
         s.world
             .fill_region(Terrain::Land, Cell::new(5, 5), Cell::new(5, 5));
         s.place_cliffs(&[cell_tiles(Cell::new(5, 5)), cell_tiles(Cell::new(9, 9))]);
