@@ -10205,13 +10205,23 @@ consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so
   For the refill: a held-age pair that wants a longer game varies something other than the difficulty, or lives
   with the length. **Score**: none; the length of the late-age pairs' games.
 
-## Parked by the next landing, slot OK — reserved
+## Parked by item 3969, 2026-11-07 — a Library closed with a technology queued
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3969a. `ages_queued` and `epochs_queued` are kept by nobody here.** `Build::queue_up` raises the leader's
+  `ages_queued` (`+0x67f4`) for an age and `epochs_queued` (`+0x67f5`) for an epoch, and `Build::unqueue` and
+  `Build::clean_queue@00620b60:132`–`:158` take them down. run1540 prints `epochs_queued` 0 → 1 on 622 and → 0 on 681,
+  beside `num_queued[551]` (`docs/GOLDEN.md` §175). This crate carries neither, and both keys stand on
+  `coverage.rs`'s unread list. Their reader is the age catch-up's `ages_queued` term in `train_time`'s research
+  block, a `SEAM` at `Sim::greek_research`.
+  **Score**: none; no word's frame reads them. A widening that reads both keys parts on every window with an age or an
+  epoch queued.
+- **3969b. `Build::new_library`'s queue move is not built.** When a Library earlier in the object table becomes the
+  owner's first, the original moves the research queue onto it (`new_library@00627fe0`, from
+  `City::find_buildings` and `City::assimilate`). This crate keeps the queue where it stands and resolves
+  `queue_home` on read (the `SEAM` at `city.rs`'s `SimFind::new_library`). Item 3969 made `first_library` ask the
+  original's predicate (active, in a city), so a reused lower slot that comes up while another Library holds a queue
+  now strands that queue. Chapter one hundred and twenty-five's re-queue reaches a reused slot 2005, but with no
+  queue standing. **Score**: none; no capture holds a queue across a change of first Library.
 
 ## Parked by item 3509, 2026-10-23 — the Americans at a held Modern age, Great Sahara
 
@@ -15136,7 +15146,8 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   patrol on `count(COUNT_DOMAIN, 4)` = `is_plane`; the crate hands off on any Air-domain member (`group.rs:3523`) and its
   air arm orders no non-plane (`:3571`). `GroupData::get_max_range` skips `is_plane` only where `live.rs:124` skips every
   Air member. **Score**: a chapter patrolling a mixed group with a Helicopter; `PATROLORDER` is compared.
-- **T71-7. `Build::clean_queue` untracks a queued technology under type 0** (second-7, adjudication 6, confirmed): the
+- ~~**T71-7. `Build::clean_queue` untracks a queued technology under type 0**~~ (second-7, adjudication 6, confirmed;
+  built and closed by item 3969, `docs/GOLDEN.md` §175, run1540): the
   close and capture loops (`city.rs:2611–2619`, `:3077–3081`) call `untrack_queued(who, 0)` for a tech item (`ty = 0`,
   `production.rs:108`), which takes one off the Citizen's count and never `tech[who].queued[t]`, so `researching()`
   (`lib.rs:4037`) stays true and `queue_tech_with` refuses that technology for good (`lib.rs:4086`); the original walks the
