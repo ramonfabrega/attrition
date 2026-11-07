@@ -14812,12 +14812,9 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3944, 2026-11-06 — Old World's chain, 8 of 8
 
-- **3944a. `make_riverlist`'s nearest start breaks ties to the first, and no take
-  decides it** (MAPGEN §25.3). The mutant `d <= best.0` (ties to the last) fails
-  nothing on run1527, and the Great Lakes and East Indies pins never ran it. A source
-  or river end equidistant from two starts would decide it. The other nine chain takes
-  (3945–3953) may lay one, and a take that does should run this mutant again. This row
-  names no score.
+- ~~**3944a. `make_riverlist`'s nearest start breaks ties to the first, and no take
+  decides it**~~ — decided by run1528 (item 3945, MAPGEN §26.2): ties go to the
+  first start. The mutant `d <= best.0` fails Amazon Basin's river and trough checks.
 - **3944b. Great Lakes and East Indies hand the troughs no footprints** (MAPGEN
   §25.3). `calculate_all(…, None)` stays at their callers, since no trough there
   reaches a good (they would refuse with `Goody`). A style whose trough does reach one
@@ -14827,13 +14824,14 @@ words and edits nothing here; a refill lands when two remain.
   reads `down` 3, `down_who` 8 there. Some setup writer stands an object on it after
   `Terrain::init`, and this item did not name that writer. This row names no score.
 
-## Parked by the next landing, slot BX — reserved
+## Parked by item 3945, 2026-11-06 — Amazon Basin's chain, 8 of 8
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3945a. 3944c's unnamed writer stands on a second moved good** (MAPGEN §26.3).
+  On run1528 the troughs move a good from (11, 30) to (10, 28), and part 5 at 894
+  agrees. The start dump reads `down` 3, `down_who` 8 at (10, 28) against ours
+  (−2, 17), the same pair 3944c read at Old World's (43, 18). The four later new cells
+  agree with the dump. One writer between `Terrain.cpp` 894 and `setup.cpp` 1240 now
+  has two cells across two files to be read on. This row names no score.
 
 ## Parked by the next landing, slot BY — reserved
 

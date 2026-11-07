@@ -1155,6 +1155,22 @@ pub fn old_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of an Amazon Basin setup path: every draw
+/// whose site is `MapAmazonBasin::make_continents@0069be00`
+/// (`docs/MAPGEN.md` §26, item 3945), Great Sahara's listing at another
+/// address, from the first to the first that is not.
+pub fn amazon_basin_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let ab = 0x0069_be00..0x0069_bf70;
+    let Some(from) = setup.iter().position(|(s, _)| ab.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !ab.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7534,47 +7550,105 @@ mod tests {
     /// with step 7's tail (894 and the start dump's grid, item 3851).
     const EAST_INDIES_CHECKED: i64 = 8;
 
-    /// The Old World files carrying 7805..894, and the traces whose
-    /// streams the checks walk: floors (run1527, item 3944).
-    const OLD_WORLD_FILES: usize = 1;
-    const OLD_WORLD_TRACES: usize = 1;
+    /// One chain read against its own setup take (`docs/MAPGEN.md` §22.2,
+    /// §25, item 3944 and on): the style, its file, the mask's listing, and
+    /// the floors its walk keeps. Old World (§25) was the first; the walk
+    /// and its eight checks are the same for every chain whose mask is a
+    /// built one's listing, and a chain is a row here and one
+    /// [`chain_tests`] line.
+    struct Chain {
+        /// The style's name in prose, and its `floors::MAPGEN` row.
+        label: &'static str,
+        map: &'static str,
+        /// `GAMEINFO`'s `MAP_STYLE`, and the `mapstyles` file.
+        style: i64,
+        xml: &'static str,
+        /// The trace's `make_continents` segment for this style.
+        mask: fn(&[SetupDraw]) -> &[SetupDraw],
+        /// The files carrying 7805..894, and the traces whose streams the
+        /// checks walk: floors.
+        files: usize,
+        traces: usize,
+        /// The §15 phases this module checks on the style: the mask (7807),
+        /// the zero-draw passes (7835..7854), `place_all` and its tail
+        /// (7859..7870), the resources (7877..7927), the values (7937,
+        /// 7945), `Terrain::init` without heights (734..5012), the rivers
+        /// (5012..5118) and the heights with the troughs (894 and the start
+        /// dump's grid).
+        checked: i64,
+        /// The records from `setup.cpp` 734 to `Terrain.cpp` 815, and from
+        /// `map.cpp` 5012 to 5118: floors.
+        terrain_records: usize,
+        river_records: usize,
+        /// Whether a trough reaches a good, which `move_goody` moves.
+        moves_a_good: bool,
+        walks: OnceLock<Option<Vec<ChainWalk>>>,
+    }
 
-    /// The §15 phases this module checks on Old World (item 3944, MAPGEN
-    /// §25): the mask (7807), the zero-draw passes (7835..7854),
-    /// `place_all` and its tail (7859..7870), the resources (7877..7927),
-    /// the values (7937, 7945), `Terrain::init` without heights
-    /// (734..5012), the rivers (5012..5118) and the heights with the
-    /// troughs (894 and the start dump's grid).
-    const OLD_WORLD_CHECKED: i64 = 8;
+    /// Old World (style 6, §25): run1527, item 3944 — 21 records 734..815
+    /// and 5 records 5012..5118 on 2026-11-06.
+    static OLD_WORLD: Chain = Chain {
+        label: "Old World",
+        map: "OldWorld",
+        style: 6,
+        xml: "OLDWORLD.xml",
+        mask: old_world_part,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 21,
+        river_records: 5,
+        moves_a_good: true,
+        walks: OnceLock::new(),
+    };
 
-    /// Old World's tileset (`docs/MAPGEN.md` §4, §25): `OLDWORLD.xml`
-    /// carries no `TILESET`, so `default.xml`'s six `TILECHANCE`s make the
-    /// one `init_map_data` draw, the last before `base_edge`'s — the word
-    /// [`tileset_before`] reads off 7805's seed, as it reads a style
-    /// file's own draw on Great Lakes.
-    fn old_world_tileset(root: &Path, seed_7805: u32) -> String {
-        let own = tile_chances(root, "OLDWORLD.xml").expect("OLDWORLD.xml");
-        assert!(own.is_empty(), "OLDWORLD.xml grew a TILECHANCE: {own:?}");
-        let chances = tile_chances(root, "default.xml").expect("default.xml's tilesets");
-        tileset_before(&chances, seed_7805).expect("default.xml draws one")
+    /// Amazon Basin (style 8, §26): run1528, item 3945 — 22 records
+    /// 734..815 and 5 records 5012..5118 on 2026-11-06.
+    static AMAZON_BASIN: Chain = Chain {
+        label: "Amazon Basin",
+        map: "AmazonBasin",
+        style: 8,
+        xml: "AMAZON.xml",
+        mask: amazon_basin_part,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: true,
+        walks: OnceLock::new(),
+    };
+
+    /// A chain's tileset (`docs/MAPGEN.md` §4, §25): the style file's own
+    /// `TILECHANCE`s, or `default.xml`'s six when it carries none (Old
+    /// World), make the one `init_map_data` draw, the last before
+    /// `base_edge`'s — the word [`tileset_before`] reads off 7805's seed.
+    fn chain_tileset(root: &Path, xml: &str, seed_7805: u32) -> String {
+        let own = tile_chances(root, xml).expect("the style file");
+        let chances = if own.is_empty() {
+            tile_chances(root, "default.xml").expect("default.xml's tilesets")
+        } else {
+            own
+        };
+        tileset_before(&chances, seed_7805).expect("one tileset drawn")
     }
 
     /// One checkpoint compared: the file, the line, and ours and theirs as
     /// `(seed, part 2, part 5, part 6, parts 10–13)`.
-    type OwCheck = (
+    type ChainCheck = (
         String,
         i64,
         (u32, u32, u32, u32, [u32; 4]),
         (u32, u32, u32, u32, [u32; 4]),
     );
 
-    /// One Old World file walked from 7805 to `Terrain.cpp` 894 (item
+    /// One chain's file walked from 7805 to `Terrain.cpp` 894 (item
     /// 3944): every checkpoint the file carries, compared as the chain
     /// reaches it, the streams the port drew, and what the late arms did.
-    struct OwWalk {
+    struct ChainWalk {
         name: String,
         tileset: String,
-        checks: Vec<OwCheck>,
+        checks: Vec<ChainCheck>,
         /// Part 4 at 734, ours by `SEA_MAP`, and theirs; then every record
         /// after it whose part 4 is not 734's.
         part4: (u32, u32, Vec<(String, i64)>),
@@ -7592,33 +7666,33 @@ mod tests {
         z: Vec<sim::single::Single>,
     }
 
-    /// Every Old World file's walk, once a process.
-    fn old_world_walks() -> Option<&'static [OwWalk]> {
-        static ALL: OnceLock<Option<Vec<OwWalk>>> = OnceLock::new();
-        ALL.get_or_init(|| {
-            let all = archive()?;
-            let root = crate::testenv::install_root()?;
-            let root = Path::new(&root);
-            Some(
-                all.iter()
-                    .filter(|(_, g)| g.style == 6 && g.xs > 0)
-                    .filter_map(|(name, g)| old_world_walk(root, name, g))
-                    .collect(),
-            )
-        })
-        .as_deref()
+    /// Every file of a chain's style walked, once a process.
+    fn chain_walks(c: &'static Chain) -> Option<&'static [ChainWalk]> {
+        c.walks
+            .get_or_init(|| {
+                let all = archive()?;
+                let root = crate::testenv::install_root()?;
+                let root = Path::new(&root);
+                Some(
+                    all.iter()
+                        .filter(|(_, g)| g.style == c.style && g.xs > 0)
+                        .filter_map(|(name, g)| chain_walk(c, root, name, g))
+                        .collect(),
+                )
+            })
+            .as_deref()
     }
 
-    /// [`old_world_walks`]' one file: the chain in `Map::make`'s and
+    /// [`chain_walks`]' one file: the chain in `Map::make`'s and
     /// `Terrain::init`'s order — Great Sahara's mask
-    /// ([`great_sahara_make_continents`], `MapOldWorld::make_continents`'
-    /// listing being 0x69bf70's), the shared passes under the drawn
+    /// ([`great_sahara_make_continents`]; Old World's and Amazon Basin's
+    /// `make_continents` listings are 0x69bf70's, §25.1, §26.1), the shared passes under the drawn
     /// tileset, Southwest Mesa's height-free `Terrain::init`, Great Lakes'
     /// river port and the troughs with `move_goody`'s good arm.
-    fn old_world_walk(root: &Path, name: &str, g: &StartGrid) -> Option<OwWalk> {
+    fn chain_walk(c: &Chain, root: &Path, name: &str, g: &StartGrid) -> Option<ChainWalk> {
         let before = g.at("map.cpp", 7805)?;
-        let tileset = old_world_tileset(root, before.2);
-        let fert = fertility_of(root, "OLDWORLD.xml", &tileset).expect("its fertility");
+        let tileset = chain_tileset(root, c.xml, before.2);
+        let fert = fertility_of(root, c.xml, &tileset).expect("its fertility");
         let mut checks = Vec::new();
         let mut parts = [0u32; 4];
         let mut check = |grid: &MapGrid, d: &Draws, parts: [u32; 4], f: &str, line: i64| {
@@ -7676,8 +7750,8 @@ mod tests {
         grid.fill_fertile(&fractal, &fertile_partitions(&fert.baseland));
         check(&grid, &d, parts, "map.cpp", 7854);
         // Phase 3: `place_all` and its tail.
-        let inputs = place_all_inputs_of(root, "OLDWORLD.xml", &tileset, g.xs, g.ys, 6)
-            .expect("Old World's place_all inputs");
+        let inputs = place_all_inputs_of(root, c.xml, &tileset, g.xs, g.ys, c.style as i32)
+            .expect("the style's place_all inputs");
         let ts = tileset_groups(root, &tileset).expect("the drawn tileset's groups");
         let mut d = Draws::new(d.rng.seed);
         place_all(&mut grid, &mut d, &inputs);
@@ -7691,8 +7765,7 @@ mod tests {
         // Phase 4: the resources.
         check(&grid, &d, parts, "map.cpp", 7877);
         check(&grid, &d, parts, "map.cpp", 7880);
-        let rows =
-            resource_inputs(root, "OLDWORLD.xml", g.xs, g.ys, g.nations).expect("Old World's rows");
+        let rows = resource_inputs(root, c.xml, g.xs, g.ys, g.nations).expect("the style's rows");
         place_resources(&mut grid, &mut d, &rows, g.nations);
         check(&grid, &d, parts, "map.cpp", 7927);
         // Phase 5: the values.
@@ -7704,7 +7777,7 @@ mod tests {
         check(&grid, &d, parts, "map.cpp", 7945);
         let make_log = d.log.clone();
         // Phase 6: `Terrain::init` without heights, part 4 at 734.
-        let sea = sea_map(root, "OLDWORLD.xml").expect("OLDWORLD.xml's SEA_MAP");
+        let sea = sea_map(root, c.xml).expect("the style's SEA_MAP");
         let (sea_map, mut coord, half) = terrain_init_without_heights(&mut grid, sea)
             .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
         let p = half.parts().expect("empty half-land lists");
@@ -7741,9 +7814,9 @@ mod tests {
             }
         }
         // Phase 7: the rivers.
-        let rivers = river_list(root, "OLDWORLD.xml").expect("a RIVERLIST");
+        let rivers = river_list(root, c.xml).expect("a RIVERLIST");
         let phase = Phase {
-            thresh: river_thresh(root, "OLDWORLD.xml").expect("RIVER_THRESHOLD"),
+            thresh: river_thresh(root, c.xml).expect("RIVER_THRESHOLD"),
             city_radius: sim::tuning::Tuning::RON.city_center_radius,
             rivers: &rivers,
             standard: standard_map_size(root).expect("the Standard map size"),
@@ -7804,7 +7877,7 @@ mod tests {
             "{name}: Cliffs::init moved oil {:?}, goods {:?}",
             cliffs.moved, cliffs.goods
         );
-        assert!(grid.cliffs.is_empty(), "{name}: Old World lays no cliff");
+        assert!(grid.cliffs.is_empty(), "{name}: {} lays no cliff", c.label);
         check(&grid, &d, parts, "Terrain.cpp", 894);
         // The traces' streams.
         let trace = name
@@ -7818,7 +7891,7 @@ mod tests {
             let setup = setup_draws(Path::new(&path))
                 .expect("a readable trace")
                 .expect("a trace");
-            theirs_mask = old_world_part(&setup).to_vec();
+            theirs_mask = (c.mask)(&setup).to_vec();
             theirs_make = make_draws(Path::new(&path))
                 .expect("a readable trace")
                 .unwrap_or_default();
@@ -7832,7 +7905,7 @@ mod tests {
                     .collect();
             }
         }
-        Some(OwWalk {
+        Some(ChainWalk {
             name: name.to_string(),
             tileset,
             checks,
@@ -7850,14 +7923,14 @@ mod tests {
 
     /// The checks of `walk` on the lines `lines` keeps, and the partings
     /// among them; asserts each file carries at least one.
-    fn old_world_phase(lines: impl Fn(&str, i64) -> bool, what: &str) -> usize {
-        let Some(walks) = old_world_walks() else {
+    fn chain_phase(c: &'static Chain, lines: impl Fn(&str, i64) -> bool, what: &str) -> usize {
+        let Some(walks) = chain_walks(c) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return 0;
         };
         let (mut files, mut records, mut parted) = (0, 0, Vec::new());
         for w in walks {
-            let mine: Vec<&OwCheck> = w.checks.iter().filter(|c| lines(&c.0, c.1)).collect();
+            let mine: Vec<&ChainCheck> = w.checks.iter().filter(|c| lines(&c.0, c.1)).collect();
             for (f, l, ours, theirs) in &mine {
                 eprintln!(
                     "{} on {}: {f} {l} ours {ours:?} theirs {theirs:?}",
@@ -7875,17 +7948,14 @@ mod tests {
             records += mine.len();
             files += 1;
         }
-        eprintln!("Old World {what}: {files} files, {records} records");
+        eprintln!("{} {what}: {files} files, {records} records", c.label);
         assert!(
             parted.is_empty(),
             "{} part:\n{}",
             parted.len(),
             say_partings(&parted)
         );
-        assert!(
-            files >= OLD_WORLD_FILES,
-            "{what} reached {files} Old World files"
-        );
+        assert!(files >= c.files, "{what} reached {files} {} files", c.label);
         records
     }
 
@@ -7910,19 +7980,18 @@ mod tests {
         ))
     }
 
-    /// **Old World's mask at 7807, draw for draw** (`docs/MAPGEN.md` §5,
-    /// §25, item 3944): `MapOldWorld::make_continents@0069c0e0` is Great
+    /// **A chain's mask at 7807, draw for draw** (`docs/MAPGEN.md` §5,
+    /// §25, §26, items 3944, 3945): the style's `make_continents` is Great
     /// Sahara's listing at another address, so from 7805's seed the port
     /// lands on 7807's seed and parts 2 and 5, and its four words are the
-    /// trace's `make_continents` segment ([`old_world_part`]), every site
-    /// inside 0x69c0e0..0x69c260.
-    #[test]
-    fn old_world_s_mask_is_the_traced_7807_and_stream() {
-        let Some(walks) = old_world_walks() else {
+    /// trace's `make_continents` segment ([`Chain::mask`]), every site
+    /// inside the style's listing.
+    fn chain_s_mask_is_the_traced_7807_and_stream(c: &'static Chain) {
+        let Some(walks) = chain_walks(c) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return;
         };
-        old_world_phase(|f, l| f == "map.cpp" && l == 7807, "7807");
+        chain_phase(c, |f, l| f == "map.cpp" && l == 7807, "7807");
         let mut walked = 0;
         for w in walks {
             let (ours, theirs) = &w.mask;
@@ -7934,65 +8003,62 @@ mod tests {
             eprintln!("{}: mask draws {theirs:x?}", w.name);
             assert_eq!(&words, ours, "{}: the mask's words", w.name);
         }
-        assert!(
-            walked >= OLD_WORLD_TRACES,
-            "the mask walked {walked} traces"
-        );
+        assert!(walked >= c.traces, "the mask walked {walked} traces");
         let pinned = MAPGEN
             .styles
             .iter()
-            .find(|s| s.map == "OldWorld")
-            .expect("MAPGEN's OldWorld row");
+            .find(|s| s.map == c.map)
+            .expect("the chain's MAPGEN row");
         assert_eq!(
-            pinned.ported, OLD_WORLD_CHECKED,
-            "an Old World phase was ported or lost: re-pin `floors::MAPGEN` and the handoff's \
+            pinned.ported, c.checked,
+            "a chain phase was ported or lost: re-pin `floors::MAPGEN` and the handoff's \
              `Mapgen:` line"
         );
     }
 
-    /// **Old World's zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
+    /// **A chain's zero-draw passes, 7835 to 7854** (`docs/MAPGEN.md`
     /// §6, §25): the shared passes on the all-land mask, `fill_fertile`
-    /// under the tileset `default.xml` drew ([`old_world_tileset`]).
-    #[test]
-    fn old_world_s_zero_draw_passes_are_7835_to_7854() {
-        old_world_phase(
+    /// under the tileset the style drew ([`chain_tileset`]).
+    fn chain_s_zero_draw_passes_are_7835_to_7854(c: &'static Chain) {
+        chain_phase(
+            c,
             |f, l| f == "map.cpp" && (7835..=7854).contains(&l),
             "7835..7854",
         );
     }
 
-    /// **Old World's `place_all` and its tail, 7859 to 7870**
+    /// **A chain's `place_all` and its tail, 7859 to 7870**
     /// (`docs/MAPGEN.md` §7, §25): the first chain whose groups carry
     /// `grouping="1"` and chances under 100.
-    #[test]
-    fn old_world_s_place_all_and_tail_are_7859_to_7870() {
-        old_world_phase(
+    fn chain_s_place_all_and_tail_are_7859_to_7870(c: &'static Chain) {
+        chain_phase(
+            c,
             |f, l| f == "map.cpp" && (7859..=7870).contains(&l),
             "7859..7870",
         );
     }
 
-    /// **Old World's resources, 7877 to 7927** (`docs/MAPGEN.md` §8, §25):
+    /// **A chain's resources, 7877 to 7927** (`docs/MAPGEN.md` §8, §25):
     /// the first chain with a `GOODIES` section of its own.
-    #[test]
-    fn old_world_s_resources_are_7877_to_7927() {
-        old_world_phase(
+    fn chain_s_resources_are_7877_to_7927(c: &'static Chain) {
+        chain_phase(
+            c,
             |f, l| f == "map.cpp" && (7877..=7927).contains(&l),
             "7877..7927",
         );
     }
 
-    /// **Old World's values, 7937 and 7945, and `Map::make`'s stream**
+    /// **A chain's values, 7937 and 7945, and `Map::make`'s stream**
     /// (`docs/MAPGEN.md` §9, §25): seed and parts at both, and every draw
     /// from `place_all`'s first through the last `compute_val`, site and
     /// word, against the trace's [`make_draws`].
-    #[test]
-    fn old_world_s_values_and_make_stream_are_the_trace_s() {
-        let Some(walks) = old_world_walks() else {
+    fn chain_s_values_and_make_stream_are_the_trace_s(c: &'static Chain) {
+        let Some(walks) = chain_walks(c) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return;
         };
-        old_world_phase(
+        chain_phase(
+            c,
             |f, l| f == "map.cpp" && (l == 7937 || l == 7945),
             "7937, 7945",
         );
@@ -8007,30 +8073,24 @@ mod tests {
             parted.extend(stream_parts(&w.name, "make", &w.make.0, &w.make.1));
         }
         assert!(parted.is_empty(), "{}", say_partings(&parted));
-        assert!(
-            walked >= OLD_WORLD_TRACES,
-            "the make stream walked {walked} traces"
-        );
+        assert!(walked >= c.traces, "the make stream walked {walked} traces");
     }
 
-    /// **`Terrain::init` without heights on Old World, 734 to 5012**
+    /// **`Terrain::init` without heights on a chain, 734 to 5012**
     /// (`docs/MAPGEN.md` §10, §25): Southwest Mesa's all-land case — part 4
     /// at 734 by `OLDWORLD.xml`'s `SEA_MAP`, held to 894, and seed and parts
     /// 2, 5, 6 and 10–13 at every record to 5012.
-    #[test]
-    fn old_world_s_terrain_init_without_heights_is_734_to_5012() {
-        let Some(walks) = old_world_walks() else {
+    fn chain_s_terrain_init_without_heights_is_734_to_5012(c: &'static Chain) {
+        let Some(walks) = chain_walks(c) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return;
         };
-        let n = old_world_phase(
+        let n = chain_phase(
+            c,
             |f, l| f == "setup.cpp" && (l == 734 || l == 745) || f == "Terrain.cpp" && l < 894,
             "734..5012",
         );
-        assert!(
-            n >= OLD_WORLD_TERRAIN_RECORDS,
-            "734..5012 reached {n} records"
-        );
+        assert!(n >= c.terrain_records, "734..5012 reached {n} records");
         for w in walks {
             let (ours, theirs, off) = &w.part4;
             eprintln!(
@@ -8042,29 +8102,22 @@ mod tests {
         }
     }
 
-    /// run1527's records from `setup.cpp` 734 to `Terrain.cpp` 815: a floor
-    /// (21 on 2026-11-06, item 3944).
-    const OLD_WORLD_TERRAIN_RECORDS: usize = 21;
-
-    /// **Rivers on Old World, 5012 to 5118** (`docs/MAPGEN.md` §10, §25):
+    /// **Rivers on a chain, 5012 to 5118** (`docs/MAPGEN.md` §10, §25):
     /// Great Lakes' river port on an all-land grid, its first rivers that
     /// end on the map's border — the lines `make_rivers` prints are the
     /// file's, seed and parts at each, and its draws whole against the
     /// trace's (`SPREAD` then every `astar_river` `PRICE`).
-    #[test]
-    fn old_world_s_rivers_are_5012_to_5118() {
-        let Some(walks) = old_world_walks() else {
+    fn chain_s_rivers_are_5012_to_5118(c: &'static Chain) {
+        let Some(walks) = chain_walks(c) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return;
         };
-        let n = old_world_phase(
+        let n = chain_phase(
+            c,
             |f, l| f == "map.cpp" && (5012..=5118).contains(&l),
             "5012..5118",
         );
-        assert!(
-            n >= OLD_WORLD_RIVER_RECORDS,
-            "5012..5118 reached {n} records"
-        );
+        assert!(n >= c.river_records, "5012..5118 reached {n} records");
         let (mut walked, mut parted) = (0, Vec::new());
         for w in walks {
             let lines: Vec<i64> = w
@@ -8092,31 +8145,26 @@ mod tests {
         }
         assert!(parted.is_empty(), "{}", say_partings(&parted));
         assert!(
-            walked >= OLD_WORLD_TRACES,
+            walked >= c.traces,
             "the river stream walked {walked} traces"
         );
     }
 
-    /// run1527's records from `map.cpp` 5012 to 5118: a floor (5 on
-    /// 2026-11-06, item 3944).
-    const OLD_WORLD_RIVER_RECORDS: usize = 5;
-
-    /// **The troughs on Old World at 894, and every vertex**
+    /// **The troughs on a chain at 894, and every vertex**
     /// (`docs/MAPGEN.md` §10, §17, §25): seed and parts 2, 5, 6 and 10–13
     /// at `Terrain.cpp` 894, and the heights with the roster stood on them
     /// against the start dump's grid, its 0x1000 cells and the moved
     /// good's cell. The troughs reach a good here first, and
     /// `move_goody`'s good arm moves it.
-    #[test]
-    fn old_world_s_troughs_are_894_and_the_start_dump_s_grid() {
-        let Some(walks) = old_world_walks() else {
+    fn chain_s_troughs_are_894_and_the_start_dump_s_grid(c: &'static Chain) {
+        let Some(walks) = chain_walks(c) else {
             eprintln!("skipped: no kept dumps or no install on this machine");
             return;
         };
         let root = crate::testenv::install_root().expect("an install");
         let install = crate::Install::new(Path::new(&root));
         let loaded = crate::load::load(&install).expect("the install's tables");
-        old_world_phase(|f, l| f == "Terrain.cpp" && l == 894, "894");
+        chain_phase(c, |f, l| f == "Terrain.cpp" && l == 894, "894");
         let all = archive().expect("the archive");
         let (mut files, mut parted) = (0, Vec::new());
         for w in walks {
@@ -8125,9 +8173,10 @@ mod tests {
                 "{}: sections {:?}, {} cells newly 0x1000, oil moved {:?}, goods moved {:?}",
                 w.name, t.sections, t.river_cells, t.moved, t.moved_goods
             );
-            assert!(
+            assert_eq!(
                 !t.moved_goods.is_empty(),
-                "{}: no good moved off a trough",
+                c.moves_a_good,
+                "{}: a good moved off a trough",
                 w.name
             );
             let Some((_, g)) = all.iter().find(|(n, _)| *n == w.name) else {
@@ -8227,8 +8276,46 @@ mod tests {
             say_partings(&parted)
         );
         assert!(
-            files >= OLD_WORLD_FILES,
-            "the heights reached {files} Old World files"
+            files >= c.files,
+            "the heights reached {files} {} files",
+            c.label
         );
     }
+
+    /// A chain's eight checks as `#[test]`s, one per §15 phase, named
+    /// `<prefix>_s_<check>` so a lane's filter is the style's name.
+    macro_rules! chain_tests {
+        ($chain:ident, $($test:ident: $check:ident),* $(,)?) => {
+            $(
+                #[test]
+                fn $test() {
+                    $check(&$chain)
+                }
+            )*
+        };
+    }
+
+    chain_tests!(
+        OLD_WORLD,
+        old_world_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        old_world_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        old_world_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        old_world_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        old_world_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        old_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        old_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        old_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        AMAZON_BASIN,
+        amazon_basin_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        amazon_basin_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        amazon_basin_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        amazon_basin_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        amazon_basin_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        amazon_basin_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        amazon_basin_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        amazon_basin_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
 }
