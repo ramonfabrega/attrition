@@ -716,6 +716,9 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ("damage", i64::from(ours.damage), b.damage),
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
             ("healing", 0, b.healing),
+            // **Its line of sight** (item 3965, `docs/AI.md` §409):
+            // `ObjectData::mylos` against `Sim::build_los`.
+            ("mylos", i64::from(built.sim.build_los(handle)), b.mylos),
         ] {
             let Some(theirs) = theirs else { continue };
             r.build_compared += 1;

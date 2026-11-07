@@ -2331,6 +2331,10 @@ pub struct BuildDump {
     /// by `Build::process`'s patriot repair and counted down there; 0 on
     /// every building of every dump on disk.
     pub healing: Option<i64>,
+    /// `ObjectData::mylos` (`+0x3c`) as the `OBJECT` level under `WALLDATA`
+    /// prints it (item 3965, `docs/AI.md` §409): the byte
+    /// `Wall::update_los@0063eeb0` last left there, a cache.
+    pub mylos: Option<i64>,
     /// `WallData::build_masks`, whose `0x100` is "my roads want replanning"
     /// — the schedule's own field (`docs/ROADS.md` §1), written from
     /// **`BUILDS=1`**. `None` where the level did not print it.
@@ -3607,6 +3611,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         orig_type: b.int("orig_type"),
         max_age: b.int("max_age"),
         healing: b.int("healing"),
+        mylos: obj.and_then(|o| o.int("mylos")),
         // **`WALLDATA`'s, not `BUILDDATA`'s** (item 478). The name says
         // `WallData::build_masks` and the record writes it at the wall's
         // own indent, between `ever_seen_completed` and `helpers`; read
