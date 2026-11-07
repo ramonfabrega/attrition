@@ -2616,12 +2616,11 @@ impl Sim {
         let un = &self.units[i];
         let who = un.owner;
         let mut masks2 = un.unit_masks2 & !combat::umask2::LAND_CLOAK;
-        if masks2 & combat::umask2::CLOAK_MARK != 0 {
-            if let Some(o) = self.world.owner_at(un.pos).player() {
-                if o == who || (self.allied_with(who, o) && self.allied_with(o, who)) {
-                    masks2 |= combat::umask2::LAND_CLOAK;
-                }
-            }
+        if masks2 & combat::umask2::CLOAK_MARK != 0
+            && let Some(o) = self.world.owner_at(un.pos).player()
+            && (o == who || (self.allied_with(who, o) && self.allied_with(o, who)))
+        {
+            masks2 |= combat::umask2::LAND_CLOAK;
         }
         let pos = un.pos;
         self.units[i].unit_masks2 = masks2;
