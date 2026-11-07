@@ -8310,7 +8310,8 @@ pub(crate) mod tests {
     /// **715,988 → 894,314 on item 1563**, `ever_seen` and
     /// `ever_seen_completed` (parked 1450); nothing here is wrong on either.
     /// **894,314 → 986,161 on item 1497**, `myhits` and `construct_hits`.
-    const RUN58_BUILD_FIELDS: usize = 986_161;
+    /// **986,161 → 1,075,324 on item 3962**, `BUILDDATA stance`, none wrong.
+    const RUN58_BUILD_FIELDS: usize = 1_075_324;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

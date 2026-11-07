@@ -127,6 +127,10 @@ fn diff_sources() -> Vec<String> {
 #[cfg(test)]
 const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
+        "diff/cant_reach.rs",
+        "the cant_reach tally and its pins; the row is compared in harness.rs's widen_block",
+    ),
+    (
         "diff/testkit/whole_capture.rs",
         "bounded observation readers; original comparisons stay in city/unit/order",
     ),

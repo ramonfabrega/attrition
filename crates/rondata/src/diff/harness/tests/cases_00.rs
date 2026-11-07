@@ -276,9 +276,10 @@ mod bodies {
         // two more, none wrong (parked 728). **523,747 → 654,073 on item
         // 1563** — `ever_seen` and `ever_seen_completed`, none wrong
         // (parked 1450). **654,073 → 721,679 on item 1497** — `myhits`
-        // and an unfinished site's `construct_hits`, none wrong.
+        // and an unfinished site's `construct_hits`, none wrong. **721,679 →
+        // 786,842 on item 3962** — `BUILDDATA stance`, none wrong.
         assert_eq!(
-            builds, 721_679,
+            builds, 786_842,
             "the site and the clock on every linked building-frame"
         );
         assert!(
