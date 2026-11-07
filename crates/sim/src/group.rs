@@ -2501,6 +2501,24 @@ impl Sim {
         } else {
             (cur + 1) % n
         };
+        if std::env::var_os("RON_PROBE_3962").is_some() {
+            eprintln!(
+                "PROBE3962 f{} who{} army{:?} s{} ty{:?} list {:?}",
+                self.frame,
+                g.who,
+                g.army,
+                s,
+                ty,
+                g.list
+                    .iter()
+                    .map(|&u| (
+                        self.units[u].index,
+                        self.units[u].alive(),
+                        self.unit_stance_type(u) == ty
+                    ))
+                    .collect::<Vec<_>>()
+            );
+        }
         for &u in &g.list {
             // `0070d440:95`: vslot `+0xc0` is `is_plane`, so a plane never
             // receives a stance. (The building arm's gate is `is_build` —
