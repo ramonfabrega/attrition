@@ -683,6 +683,13 @@ pub const TRACES: &[&str] = &[
     // `Unit::repath` and `Group::kill_next_order` (`docs/GOLDEN.md` §171);
     // run1522's game on every frame.
     "rontrace-run1522b.log",
+    // Item 3966: golden chapter one hundred and twenty-two (`chapter122.cmd`,
+    // a Barracks and a Stable pressed together for Hoplites on 620 and for
+    // Bowmen on 640) at `cover=1` on the click-free pool, to 1000
+    // (`docs/RUNS.md` run1537b): each press enters `Group::action_queue_up`
+    // and `Build::queue_up` → `could_queue`, and only the Barracks lays an
+    // entry (`docs/GOLDEN.md` §172); run1537's game on every frame.
+    "rontrace-run1537b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and

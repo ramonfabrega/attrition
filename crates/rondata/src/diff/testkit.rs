@@ -6904,6 +6904,16 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE: i64 = 1000;
 /// run1522.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_ONE: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and twenty-two** (item 3966, `docs/GOLDEN.md`
+/// §172, run1537): a queue order on a Barracks and a Stable together —
+/// Hoplites on 620, Bowmen on 640 — each laid at the Barracks alone,
+/// `BuildData::can_make`'s `queue_here` refusing the Stable.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: i64 = 1000;
+
+/// `chapter_one_hundred_and_twenty_two_s_window_is_widened_whole`'s window:
+/// run1537.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO: (i64, i64) = (604, 1001);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
