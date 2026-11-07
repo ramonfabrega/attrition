@@ -62,11 +62,22 @@ fn mask_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The tileset list whose draw is the 7805 seed stepped back once: the
+/// style file has no `TILECHANCE`, so its `init_map_data` draws nothing and
+/// the draw before `base_edge`'s is `default.xml`'s (`docs/MAPGEN.md` §4).
+fn chances(root: &Path) -> Vec<(String, i32)> {
+    let own = tile_chances(root, XML).expect("EASTWEST.xml's tilesets");
+    if own.is_empty() {
+        tile_chances(root, "default.xml").expect("default.xml's tilesets")
+    } else {
+        own
+    }
+}
+
 /// The 7854 grid → `place_all` (7859), as [`super::east_indies_at_7859`]
 /// is built.
 fn at_7859(root: &Path, g: &StartGrid, run: GlRun, range: i32) -> (MapGrid, Draws, String) {
-    let chances = tile_chances(root, XML).expect("EASTWEST.xml's tilesets");
-    let tileset = tileset_before(&chances, run.0).expect("a drawn tileset");
+    let tileset = tileset_before(&chances(root), run.0).expect("a drawn tileset");
     let fert = fertility_of(root, XML, &tileset).expect("its fertility");
     let (mut grid, draws, _) = at_7807(root, run, range);
     let mut regions = Regions::default();
@@ -170,8 +181,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
 
     // 2. The zero-draw passes, 7835..7854.
     let mut grid = grid;
-    let chances = tile_chances(root, XML).expect("EASTWEST.xml's tilesets");
-    let fert = match tileset_before(&chances, run.0) {
+    let fert = match tileset_before(&chances(root), run.0) {
         Some(t) => fertility_of(root, XML, &t),
         None => fertility(root, XML),
     }
@@ -434,7 +444,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
 /// (item 3941): the count of §15 phases, in order, before the first that
 /// parts. The held-out rule pins this as measured and nothing in `sim` is
 /// changed against it.
-const EAST_MEETS_WEST_HELD: i64 = 0;
+const EAST_MEETS_WEST_HELD: i64 = 8;
 
 /// **East Meets West on its first take** (`docs/MAPGEN.md` §24, item
 /// 3941): the chain walked on every style-19 file carrying 7805 —

@@ -239,8 +239,10 @@ pub const MAPGEN: Mapgen = Mapgen {
             // The held-out style (item 3941, DECISIONS 54, 61): ported from
             // the reading (`004dbbab7`, pushed before run1524 was launched)
             // and scored on run1524's first comparison, never debugged
-            // against (`docs/MAPGEN.md` §24).
-            ported: 0,
+            // against (`docs/MAPGEN.md` §24). 8 of 8 phases on the first
+            // comparison: the mask's 6,788 draws and every checkpoint from
+            // 7807 to 894; phases 3–8 by seed and parts, no stream check.
+            ported: 8,
             phases: 8,
         },
     ],

@@ -2793,7 +2793,7 @@ pinned trace entered and no document cited (`python3 tools/census.py
 --territory --pin --implicit`). The item read each style to its lobby id and
 each `Map` row to its callers, from the decompile and the listing. **It took
 no capture, and the styles' bodies are unread on purpose**: Ramon has not
-named the held-out style (3888c, DECISIONS 108 §2), and the held-out style
+named the held-out style (3888c, DECISIONS 108 §2; ~~not named~~ named since: East Meets West, §24), and the held-out style
 is captured and scored, never read against. So this section reads the
 dispatch, the lobby and the callers, and nothing inside a `make_continents`
 past its entry.
@@ -2989,12 +2989,68 @@ coverage trace marks entry and does not count calls. And what
 these moves a score. A packet at `RON_STATE_FRAME=620`, reading
 `extra_starting_locs`, would settle the first two (parked 3921b).
 
-## 24. Reserved for the next item on the map track
+## 24. The held-out style, East Meets West: 8 of 8 phases on its first take (item 3941)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+East Meets West (style 19) is the held-out style, on Ramon's word (3888c;
+DECISIONS 54, 61, 111 §1). It is scored and never read against. **Its
+port held all eight of §15's phases on run1524's first comparison.** The
+pin is `floors::MAPGEN`'s `EastMeetsWest` row, `ported: 8, phases: 8`, and
+`EAST_MEETS_WEST_HELD` in
+`rondata::mapgen::tests::east_west::east_meets_west_on_its_first_take`.
+
+**The order.** The port was written from the decompile and the listing
+alone, with no style-19 dump read. It was pushed as `004dbbab7` before
+run1524 was launched. `sim::map_east_west` holds
+`MapEastMeetsWest::make_continents@00696640` and the arms no other ported
+style runs: `Map::fill_cont@0068a960`, `Map::find_region_centroid@0068ae50`,
+`Map::eliminate_edge_canals@0068b360`, `Map::place_start_in_region@0068ac00`,
+`Map::is_near_ocean@0068b0a0`, and `Map::check_player_land@0068ef00`'s
+guarded arm. The growers, `make_region`, `scale_by_area` and
+`eliminate_pools` are `sim::map_lakes`', shared with Great Lakes and East
+Indies, with no body changed.
+
+**The take.** run1524 used §22.2's line at `--map 19` (`docs/RUNS.md`). It
+has one file. On it the port drew 6,788 mask draws with no stalls and no
+unplaced seat. It read `avoid_continent` as 14, the two regions'
+centroids as (46, 36) and (10, 21), and the starts as (15, 16) and
+(37, 40).
+
+| phase | checkpoints held |
+|---|---|
+| 1 the mask | the stream against the trace's segment, 6,788 draws; then 7807 |
+| 2 zero-draw passes | 7835, 7843, 7846, 7854 |
+| 3 `place_all` and tail | 7859, 7861, 7865, 7870 |
+| 4 resources | 7877, 7880, 7927 |
+| 5 values | 7937, 7945 |
+| 6 `Terrain::init` | 734 part 4 and the 24 records to 5012 (489 half-land cells) |
+| 7 rivers | 5012, 5014, 5076, 5116, 5118 (no rivers) |
+| 8 heights | 894 |
+
+**What the first execution was.** The harness's first run stopped in
+phase 2 on a panic, before it reached a phase-2 checkpoint, so no
+phase-2 verdict was printed. The mask had held. The cause was the
+harness: `EASTWEST.xml` carries no `TILECHANCE`, so the style's
+`init_map_data` makes no draw (§4). The draw stepped back from 7805 is
+then `default.xml`'s. The harness had asked the style file for its list.
+It now falls back to `default.xml`'s, as §4 reads, and the second run is
+the comparison above. Nothing in `sim` was touched between the two runs.
+
+**Confidence and what is not established.** Phases 1–2 are the strongest
+evidence. Phase 1 compares the whole mask draw stream site by site, and
+7807 checks the whole grid. Phases 3–8 compare the seed and the dump's
+parts at each checkpoint. They run no draw-stream check and no
+start-dump vertex check, so "held" there means the checksums and the
+seed agree. The take is one lobby: two seats, seed 12345, no teams. Two
+readings are untested because the lobby cannot falsify them. The first
+is that `get_team` 8 and team = own seat give the same continents. That
+can only part under teams. The second is that a style with no
+`TILECHANCE` keeps the tileset `default.xml` drew. The takes so far
+cannot tell this from the style resetting the tileset to a list that
+happens to agree, since the 7854 agreement backs the tileset in either
+case. `place_start_in_region`'s second-pass band ran, but this take does
+not show which pass placed each seat. Only run1524 is scored. The rule
+for a held-out style is that a parting on a later take parks by frame
+and books nothing.
 
 ## 25. Reserved for the next item on the map track
 
