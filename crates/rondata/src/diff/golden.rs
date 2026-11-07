@@ -2405,7 +2405,13 @@ fn widen_civilians_walk(
                     .ty
                     .and_then(|t| s.built.sim.build_types[t].tree)
                     .is_some_and(|id| s.built.sim.tech_tree.types[id].wall_cycle.is_some());
-                if !cycles {
+                // **Every armed building's target** (item 3970, `docs/GOLDEN.md`
+                // §176): `attack_ox`/`attack_whom` on a building whose attack
+                // is not zero as well, the Tower and Fort lines and a city
+                // centre among them; `recharging` stays the cycle's alone.
+                let armed = cycles
+                    || s.built.sim.attack_of(sim::combat::Obj::Building(b)) != 0;
+                if !armed {
                     continue;
                 }
                 let (to, tw) = match bd.target {
@@ -2424,6 +2430,9 @@ fn widen_civilians_walk(
                     ("attack_ox", to, ox),
                     ("attack_whom", tw, whom),
                 ] {
+                    if what == "recharging" && !cycles {
+                        continue;
+                    }
                     rows += 1;
                     if ours != theirs {
                         firsts
