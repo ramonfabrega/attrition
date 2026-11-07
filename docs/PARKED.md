@@ -3803,6 +3803,11 @@ the next pass pins the rest on the landed tree. Names no score; the loop's.
 
 ## Loop, filed 2026-11-07 — the seventy-second tranche's
 
+(3977) **`tools/gamelog/frame.py` cuts from the frame to the dump's end, not to the next frame** (3975's "for the Loop"):
+`frame.py <dump> <frame> <out>` wrote 2.0 M lines for 651 on run1542, so `one.py --file` read the last record in the file
+rather than the frame's. Candidate: the cut stops at the next `BEGIN FRAME`, red first on run1542's 651. Names no score;
+the loop's.
+
 (3976) **`unattended_capture.py --twin` refuses a three-seat lobby** (3971's "for the Loop"): `twin_pins` pins slot 1's
 tribe as a two-seat `ai_tribe`, and `verify_game` then demands two players, so run1542b's first take ran its game and raised
 `player read-back mismatch` with no receipt; the melee twins pass `--cover cover=1` bare. Candidate: `twin_pins` reads the
