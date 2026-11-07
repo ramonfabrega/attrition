@@ -3803,6 +3803,11 @@ the next pass pins the rest on the landed tree. Names no score; the loop's.
 
 ## Loop, filed 2026-11-07 — the seventy-second tranche's
 
+(3974) **The whole `rondata` lib no longer fits `tools/check.sh`'s 1800 s execution timeout** (3965's "for the Loop"):
+`resource budget: execution timeout 1800s`, killed at `third_pair::run661`, so a worker who wants the lib's reds before its
+gate splits the run by name by hand. Candidate: `check.sh` scales the timeout to the reservation's test count (or splits the
+lib by module itself), red first on today's kill; measured against the gate's own release minutes. Names no score; the loop's.
+
 (3973) **`report.py coverage` lists a function's first entry, never every frame it ran** (3962's "for the Loop"):
 so "the frames a function ran" cannot be read off a `cover=1` trace, and 3962's booking named "run1017's `set_stance`
 frames" with no instrument behind it — the lane found its red on run668 instead. Candidate: a `report.py frames <function>`
