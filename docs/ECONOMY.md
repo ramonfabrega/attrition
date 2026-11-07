@@ -1095,7 +1095,8 @@ count = MountainRangeData::gather_size(mtn, …)   # or CliffsData::gather_size
 
 The survey's walk (item 613, `docs/AI.md` §62) is what refuses a second
 mine on a range another building already mines. The cliff arm has the same
-walk over the cliff's tiles, and it is not built.
+walk over the cliff's tiles, without the mountain test, and it is built
+(`sim::cliff_mine`, `docs/AI.md` §400).
 
 `find_nearest@0089cd30` walks every placed mountain and ~~**every tile of
 its range**~~ its range's **solid cells** (`solid_mount_wx`/`_wy`), keeping
@@ -1192,10 +1193,13 @@ mine lands at `(41088, 25920)`, which is the original's own position for
   10583 gather list agrees on all 80 rows.
 - **The cliff arm.** `CliffsData::find_nearest` runs beside the mountain one
   and wins when a scary cliff is nearer, with its own `gather_size`. Neither
-  scored map has an `OBJECT_CLIFF` tile; a mine beside a cliff still gets an
-  empty list here. ~~The falsifier is a map with cliff tiles and a mine on
+  scored map has an `OBJECT_CLIFF` tile; ~~a mine beside a cliff still gets an
+  empty list here~~ (built, below). ~~The falsifier is a map with cliff tiles and a mine on
   one.~~ Met: run1516's mine on Southwest Mesa reads `cliff 7`, `length 189`
-  (`docs/AI.md` §395); the build is parked 3924a.
+  (`docs/AI.md` §395). ~~The build is parked 3924a.~~ Built (`sim::cliff_mine`,
+  `docs/AI.md` §400): run1516b's block 101 lists the same 189 tiles, and
+  the count is a reading. A game `diff::setup` builds lays no cliffs (parked
+  3942b).
 - ~~**The tie-break in `find_nearest`.** The original's order is the placed-
   mountain array's and then each range's own tile order; this crate's is
   row-major. Two ranges the same distance away would seed different
