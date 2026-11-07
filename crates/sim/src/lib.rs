@@ -73,6 +73,7 @@ pub mod border_pass;
 pub mod bribe;
 pub mod build;
 pub mod build_attack_view;
+mod build_family;
 pub mod build_plunder_view;
 pub mod build_spot_view;
 pub mod build_unqueue_view;

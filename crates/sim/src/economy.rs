@@ -265,6 +265,14 @@ pub const AMBER: usize = 17;
 /// (`docs/ATTRITION.md`, "Territory").
 pub const GEMS: usize = 29;
 
+/// `TypeIndex::OBSIDIAN` — `resourcerules.xml`'s thirty-third `RESOURCE`.
+///
+/// `BuildData::attack@0062e610` tests `+0x6da7 & 4` or `+0x6dcf & 4`, byte
+/// 3 bit 2 of `rare` or `rare_conquest`: bit `32 - `[`BASE_RARE`]` = 26`
+/// (item 3970). A garrison-class building of its holder adds
+/// `OBSIDIAN_ARCHERS_ATTACK × 10`.
+pub const OBSIDIAN: usize = 32;
+
 /// `TypeIndex::PEACOCKS` — the one rare the **population cap** reads.
 ///
 /// `Leader::calc_pop_cap@006dc490`'s tail, `006dc656`: `testb $0x8,

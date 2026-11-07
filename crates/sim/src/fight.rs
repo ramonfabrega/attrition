@@ -122,6 +122,16 @@ pub const SITE_AMMO_SCATTER_X: &str = "Ammo::init+0xcd9";
 /// `Ammo::init@0067bbf0+0xd0b` — the landing scatter's **y** draw.
 pub const SITE_AMMO_SCATTER_Y: &str = "Ammo::init+0xd0b";
 
+/// `Object::fire_ammo@0064c8b0+0x3d5` — a building's launch point in its
+/// footprint, the **x** draw (`64cc80`'s call, `idivl` by `x_size × 0x60`);
+/// none when the span is under two (item 3970: chapter 126's 7 × 7 City
+/// `1/2000` on 752, where a 2 × 2 Tower's draws had always been taken
+/// unnamed and matched by count).
+pub const SITE_FIRE_FOOTPRINT_X: &str = "Object::fire_ammo+0x3d5";
+
+/// `Object::fire_ammo@0064c8b0+0x406` — the footprint's **y** draw.
+pub const SITE_FIRE_FOOTPRINT_Y: &str = "Object::fire_ammo+0x406";
+
 /// `Ammo::init@0067bbf0+0xae8` — a **ground** shot's scatter, x: the
 /// attack-ground arm (`init:461`–`484`) has its own pair of calls, the
 /// listing's `67c6d3` and `67c710` (return addresses `67c6d8`, `67c715`),
@@ -372,9 +382,14 @@ impl Sim {
         if base == 0 {
             return 0;
         }
+        let family = match o {
+            Obj::Building(b) => self.build_attack_terms(b),
+            Obj::Unit(_) => 0,
+        };
         base + self.mods_of(self.owner_of(o) as usize).attack
             + self.citizen_attack(o)
             + self.monarch_cav_attack(o)
+            + family
     }
 
     /// **`UnitData::attack@006103c0`'s Monarch arm** (item 3688, `docs/AI.md`
@@ -529,7 +544,10 @@ impl Sim {
         }
         p.max_range
             + self.mods_of(self.owner_of(o) as usize).range
-            + self.british_building_range(o)
+            + match o {
+                Obj::Building(b) => self.building_range_terms(b),
+                Obj::Unit(_) => 0,
+            }
             + self.ceo_unit_range(o)
             + self.siege_unit_range(o)
     }
@@ -623,32 +641,6 @@ impl Sim {
                     && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
                         <= self.hero_radius(h) * 0xc0
             })
-    }
-
-    /// **`BuildTypeData::get_building_range@00639990`'s first block**
-    /// (`docs/GOLDEN.md` §59): a Tower-line or Fort-line building of a
-    /// British owner (`has_tribe_bonus(0xb)`) adds `BRITISH_TOWER_RANGE`.
-    /// Chapter fifty's Stockades `1/2006` and `1/2007` reach 13 tiles, not
-    /// 11, in run577. The colosseum's `COLOSSEUM_FORT_RANGE` (0 as shipped),
-    /// the Roman and the tech-bit arrays (`FORT_UPGRADE_RANGE`,
-    /// `TOWER_FORT_RANGE`, entry 0 is 0) and `general_building_range` are
-    /// not carried; no capture holds them.
-    fn british_building_range(&self, o: Obj) -> i32 {
-        let Obj::Building(b) = o else {
-            return 0;
-        };
-        let Some(t) = self.buildings[b].ty else {
-            return 0;
-        };
-        let who = self.buildings[b].owner as usize;
-        if self.nation[who].british
-            && (crate::build::is_tower(&self.build_types, t)
-                || crate::build::is_fort(&self.build_types, t))
-        {
-            self.tuning.british_tower_range
-        } else {
-            0
-        }
     }
 
     fn hits_left(&self, o: Obj) -> i32 {
@@ -5585,16 +5577,16 @@ impl Sim {
                 }
             }
         }
-        if matches!(attacker, Obj::Building(b) if self.buildings[b].target == Some(target)) {
-            let bd = &self.buildings[match attacker {
-                Obj::Building(b) => b,
-                _ => 0,
-            }];
+        if let Obj::Building(b) = attacker
+            && self.buildings[b].target == Some(target)
+        {
+            // `get_base_garrison_arrows` and the squads inside, as
+            // `do_attack` counts them (item 3970).
             let arrows = combat::garrison_arrows(
                 self.attack_of(attacker),
-                ap.base_arrows,
+                self.base_garrison_arrows(b),
                 ap.most_shots,
-                bd.garrison_attack,
+                self.buildings[b].garrison_attack + self.garrison_attack_sum(b),
             );
             if arrows < 2 {
                 v = v.wrapping_mul(2);
@@ -5924,9 +5916,11 @@ impl Sim {
         // The garrison's arrows: the input the earlier mechanic took, plus
         // what the squads actually inside contribute (`docs/CITIES.md` §6).
         let garrison_attack = bd.garrison_attack + self.garrison_attack_sum(b);
+        // `BuildData::get_base_garrison_arrows@0062e340`: the Maya's
+        // `MAYA_GARRISON_ARROWS` (item 3970).
         let arrows = combat::garrison_arrows(
             self.attack_of(me),
-            p.base_arrows,
+            self.base_garrison_arrows(b),
             p.most_shots,
             garrison_attack,
         );
@@ -5998,11 +5992,22 @@ impl Sim {
         let xs = p.x_size * 0x60;
         let ys = p.y_size * 0x60;
         for _ in 0..p.ammo_per_att.max(1) {
-            let ox = if xs - 1 < 1 { 0 } else { self.rng.roll() % xs };
-            let oy = if ys - 1 < 1 { 0 } else { self.rng.roll() % ys };
+            let ox = if xs - 1 < 1 {
+                0
+            } else {
+                self.mark(SITE_FIRE_FOOTPRINT_X);
+                self.rng.roll() % xs
+            };
+            let oy = if ys - 1 < 1 {
+                0
+            } else {
+                self.mark(SITE_FIRE_FOOTPRINT_Y);
+                self.rng.roll() % ys
+            };
             let launch = Pos::new(centre.x - xs / 2 + ox, centre.y - ys / 2 + oy);
             let angle = find_angle(target_pos.x - launch.x, target_pos.y - launch.y);
-            let landing = combat::scatter_point(&mut self.rng, target_pos, s);
+            let landing =
+                self.scatter_landing(target_pos, s, (SITE_AMMO_SCATTER_X, SITE_AMMO_SCATTER_Y));
             // **A building's arrow flies at 90, not at its type's
             // `PROJ_SPEED`** (`Ammo::init@0067bbf0`'s building arm,
             // `0067d1e0`): `get_shot() == 0` divides by
@@ -6595,8 +6600,7 @@ impl Sim {
     /// round it, of a player below eight, active (vslots `0xc` and `0x4c`,
     /// `SubObjectData::is_active` and `WallData::is_active`) whose
     /// footprint, `WallData::tile_corner` to `+ x_size`/`+ y_size`, holds
-    /// the tile. Footprints do not overlap, so the walk's order picks
-    /// nothing. This crate compared the tile against the building's point
+    /// the tile. This crate compared the tile against the building's point
     /// in position units, and no building was ever found: a V2 with no
     /// target that came down on run371's Barracks `1/2006` struck it as a
     /// splash fringe, 400 of its 1,200, where the original struck it as
@@ -6612,6 +6616,18 @@ impl Sim {
     /// 4444) and makes no puncture draws; ours punctured the ground. A
     /// building with no combat profile is still refused, as
     /// [`Sim::struck`] refuses it.
+    ///
+    /// **The walk's order picks when footprints overlap** (item 3970,
+    /// `docs/GOLDEN.md` §176): the nine cells are `move_x`/`move_y`'s
+    /// first nine round the tile's cell (`tile >> 2`), the centre first,
+    /// and each cell's chain holds the buildings whose point is in it. A
+    /// console `add` overlaps: chapter 126's Temple `1/2006` stands on the
+    /// Library `1/2005`'s footprint, and the City's arrow missing `0/7` on
+    /// 804 comes down on the tile both hold — theirs strikes the Temple,
+    /// whose point is in the landing's own cell, where the first building by
+    /// index took the Library. Inside one cell the order is the building
+    /// index, as the target search's is; the chain's own order there is not
+    /// established.
     fn building_under(&self, landing: Pos) -> Option<usize> {
         if landing.x < 0
             || landing.y < 0
@@ -6621,11 +6637,17 @@ impl Sim {
             return None;
         }
         let tile = landing.tile();
-        (0..self.buildings.len()).find(|&b| {
-            self.buildings[b].owner < crate::world::PLAYER_SLOTS
-                && self.struck(Obj::Building(b))
-                && self.buildings[b].active
-                && self.covers_tile(b, tile)
+        let at = landing.cell();
+        let (mx, my) = (crate::ai_place::MOVE_X, crate::ai_place::MOVE_Y);
+        mx.iter().zip(my).find_map(|(&dx, dy)| {
+            let cell = crate::Cell::new(at.x + dx, at.y + dy);
+            (0..self.buildings.len()).find(|&b| {
+                self.buildings[b].pos.cell() == cell
+                    && self.buildings[b].owner < crate::world::PLAYER_SLOTS
+                    && self.struck(Obj::Building(b))
+                    && self.buildings[b].active
+                    && self.covers_tile(b, tile)
+            })
         })
     }
 }

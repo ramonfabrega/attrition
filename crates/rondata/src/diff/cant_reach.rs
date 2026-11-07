@@ -673,6 +673,10 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         2,
     ),
     (
+        "diff::golden::chapter_one_hundred_and_twenty_six_s_window_is_widened_whole",
+        4,
+    ),
+    (
         "diff::golden::chapter_one_hundred_and_twenty_three_s_window_is_widened_whole",
         2,
     ),

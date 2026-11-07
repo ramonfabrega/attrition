@@ -210,8 +210,9 @@ Three consequences worth stating:
   Science epoch reaches a finished building on the leader pass after the
   gain. A unit-type gain raises no `0x8000000` at all (`gain_tech:883`
   leaves past the tail), so run99's Tower keeps 11 past its Militia.
-  `Building::mylos` is the cache, compared on every walked window; the fog
-  sweep still reads `build_los` live (parked 3965a).
+  `Building::mylos` is the cache, compared on every walked window, and the
+  fog sweep reads it (item 3970, `docs/GOLDEN.md` §176): chapter 126's
+  Tower lights 11 past its Militia, so who=1 first sees `0/6` on 764.
 
 The caller is what makes this matter: **`Build::activate@00623e20`'s last
 statement is `update_seen(0)`**, the whole disc, at vtable `+0x174`, after

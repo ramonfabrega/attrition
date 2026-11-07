@@ -244,9 +244,10 @@ const UNREAD: &[(&str, &str)] = &[
     // Item 1611: Babylon, named in run718's window (block 2274).
     // Item 1697: Meshed, named in run766's window.
     // Item 2474: Yeha, named in run860's window (the founded Small City).
+    // Item 3970: Mayapan, the Maya capital, named in run1541's window.
     (
         "GAME/FRAME/CITIES/CITY",
-        "Amiens Arak Babylon Brest Edinburgh Khomein London Lyons Meshed Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz Yeha York flags increment length size",
+        "Amiens Arak Babylon Brest Edinburgh Khomein London Lyons Mayapan Meshed Nantes Napata Newcastle Norwich Orleans Paris Pasargadae Persepolis Rheims Rigan Tabriz Yeha York flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -846,6 +847,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch123 = golden_dump("ch123");
     let ch124 = golden_dump("ch124");
     let ch125 = golden_dump("ch125");
+    let ch126 = golden_dump("ch126");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3112,6 +3114,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 25,
             "chapter one hundred and twenty-two carries twenty-five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-six, on run1541** (item 3970): the
+    // City's first arrow on 752, the Tower's target on 777, its blow on
+    // 792 and the City's arrow on the Temple on 804.
+    if let Some(p) = &ch126 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX;
+        let n = drive_capture(p, 750, 806, &mut paths);
+        assert_eq!(
+            n, 57,
+            "chapter one hundred and twenty-six carries fifty-seven blocks in the window"
         );
         frames += n;
     }
