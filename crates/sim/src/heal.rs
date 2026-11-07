@@ -74,12 +74,12 @@ impl Sim {
     /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
     /// draws `internal_random` only for the console's allies, which is no
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
-    /// `healing` (`+0x38`) and the `0x4000` clear are not carried.
+    /// `healing` (`+0x38`) and the `0x4000` clear are not carried. The
+    /// Senator's arm is [`Self::senator_heal`].
     ///
     /// SEAM: the President's arm (`0x163`, `:179`–`:203`), which heals on
     /// an allied cell **or** one nobody owns; read, not built (parked
-    /// 3686a, which named it the Comrade's). The Senator's is
-    /// [`Self::senator_heal`].
+    /// 3686a, which named it the Comrade's).
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
         const THECEO: i32 = 0x165;
         let rate = i64::from(self.tuning.french_supply_heal_rate);
@@ -725,7 +725,8 @@ mod tests {
         sim.iroquois_heal(c, 8245);
         assert_eq!(state(&sim), (39, 0), "level 1: (50 + 8245) % 15");
         let cell = sim.units[c].pos.cell();
-        sim.world.set_owner(cell, Owner::Player(0), Owner::Player(0));
+        sim.world
+            .set_owner(cell, Owner::Player(0), Owner::Player(0));
         sim.iroquois_heal(c, 8260);
         assert_eq!(state(&sim), (39, 0), "another leader's ground, nothing");
     }
