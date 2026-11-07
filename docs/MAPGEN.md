@@ -3239,8 +3239,8 @@ Watering Hole is **read against**. It is not the held-out style (§24).
 
 ### 28.1 The mask is its own: a lake grown and inverted
 
-`MapAfricanWateringHole::make_continents@0069b650` is 0x4d0 bytes against
-Great Sahara's 0x170: 376 instructions against 144 in `llvm-objdump -d`,
+`MapAfricanWateringHole::make_continents@0069b650` runs to 0x69bb20, 1,232
+bytes against Great Sahara's 368: 376 instructions against 144 in `llvm-objdump -d`,
 and six `Random::get@00a39d70` calls against four. So it is not a
 dispatch, and the port is `sim::map_watering_hole`, read from the
 decompile and checked against the listing where the decompile was
