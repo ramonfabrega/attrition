@@ -18744,13 +18744,33 @@ after its animation), is gone by 1051. The young records that leave beside them 
 spends 82 draws against 83: at index 74 theirs spends `Unit::close+0xcb6`, the Russian `2/143`'s death, where ours
 spends `Farms::inc_time+0x1ae`. Theirs acted. **The value diff**: on 701, the widening's first block, `2/143` reads
 `hits:damage` 135 against theirs' 136 (`damage_frac` 9 / 7, `hits_left` 35 / 34). On 751 its death record reads
-`first_frame` 745 against 744, `cur_anim` 18 both. Block 651 lies outside the window, so the first parting is not
-walked (parked 3971a). The widening (`corpse_melee_run1542_s_word_window_is_widened_whole`, 701..995, six blocks):
-5,752 rows, the rounds read (81, 84), 235 parting. The close is 420 off (`corpse_melee_run1542_s_closing_state`, 241
-units).
+`first_frame` 745 against 744, `cur_anim` 18 both. Block 651 lay outside the window (parked 3971a).
+
+**The walk back, and the MLRS's rack** (item 3975). On 651 every unit's hits agree and the MLRS rounds do not: each
+one's `sx, sy, sz` — `2/155`'s of 649 ours (17736, 16104, 501), the launcher's own square, against theirs (17714,
+16065, 741). On 701 eleven units' damage parts, and every one's `damage_who`/`damage_o` names an MLRS (`TypeIndex`
+273); `2/143` was hit by `1/155` on 678. The draws agree to 744, so the state parted on the rounds' arithmetic, not on a
+draw. The MLRS (piece 223) fires eight rockets on node 1, at frames 5, 8, … 26 of `CHAR_ATTACK2`, and is a pivot type
+(`<RESTRICTION name="MLRS" node="4">`). No row of `launch` or `pivot` named it, so ours launched from the unit's point
+at the ground's `z`. Node 1 is past the one restriction, so `execute_game_events` hands `get_position` the count and
+`get_position@0090b750:53` takes the non-pivot arm: the rack's entry alone, turned by the figure's facing.
+run883b's packet (the peace pair's MLRS) holds the eight entries (`get_position.py … entries 223`, `RData +0x88`
+0.69). They are `sim::pivot::RELEASES`' piece 223 rows, and `release_point` already reads them that way. The
+original's `get_position` on every whole degree of all eight (`sweep 223 1 12 <t>`, 2,888 cells) agrees with the
+exact form everywhere (`the_original_s_release_agrees_on_every_cell_for_piece_223`, the table outside git), and
+run1542's own round of 649 is frame 5's (`the_mlrs_s_rockets_leave_from_its_rack`). On the dump the eight frames'
+heights are 240, 237, 240, 240, 237, 232, 226, 226 over the figure, and a volley's rounds read them in that order.
+
+**The score: 744 → 2600 of 2600, the game whole**, the count and the sequence. The close is **0 off**
+(`corpse_melee_run1542_s_closing_state`, 256 units; 420 before). The widening is the closing window, 2501..2601
+(`corpse_melee_run1542_s_word_window_is_widened_whole`): 344 rows, the rounds read (30, 30), 31 parting. The rounds
+part on `angle` alone (parked 3975a). The units part on `hits` where theirs heals out of the fight and ours does not,
+first on 1151, the French Elite Special Forces `1/17`: `healing` 13 against 0 (parked 3975b). The seats part on 1 key
+(176 before).
 
 **The pool, past the word** (`corpse_melee_s_death_pool_stops_at_a_hundred_on_both_sides`). After 744 the two games
-are not one game, so this test is a census, not a lockstep comparison. Ours' live figure records against the dump's
+were not one game, so this test is a census, not a lockstep comparison. With the draws whole (item 3975), ours is full
+on 1001..1251 as theirs is; 1351 is theirs' alone, not read. Ours' live figure records against the dump's
 `DEATH_OBJS`, block by block, run close all game: 100 / 100 on 1001..1101, 99 / 100 on 1151..1251, 32 / 32 on
 1701. Neither side goes past 100. With the pool taken out (`tools/mutate.py`: no eviction, the pool grown), ours
 reads 101 on 1001 and 135 on 1251 against theirs' 100, and the census fails. So the census is the death list's
@@ -18758,8 +18778,9 @@ reads 101 on 1001 and 135 on 1251 against theirs' 100, and the census fails. So 
 (`fight.rs`) holds the order. It fails with the blocking test dropped, with ties sent to the highest slot, and with
 the cap removed.
 
-**What is not established.** The order of slots past the word: the census compares counts, never which record sits
-in which slot. The fallback's `clear_blocking` (3971c). Whether the pool's eviction ever reaches a number's
+**What is not established.** The order of slots: the census compares counts, never which record sits in which
+slot. The MLRS round's `angle` (3975a) and the heal out of the fight (3975b). The rack's rows for another nation's
+MLRS piece (`MLRS-ARAB-AGE0`): only piece 223 is measured. The fallback's `clear_blocking` (3971c). Whether the pool's eviction ever reaches a number's
 `hold_frames` on a capture. An evicted record stops bumping, but no dump prints a dead object's hold, and run1542's
 numbers are not reused inside the window.
 

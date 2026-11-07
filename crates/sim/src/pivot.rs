@@ -575,6 +575,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (201, (4, 5)),
     (280, (9, 10)),
     (300, (4, 5)),
+    (223, (69, 100)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -798,6 +799,9 @@ pub struct Release {
     pub float_lands: &'static [(i32, i32, i32, i32)],
 }
 
+/// Piece 223's [`Release::float_lands`], every row's (item 3975, run883b's
+/// packet; the eight sweeps agree with the exact form on every heading).
+const FLOAT_LANDS_223: &[(i32, i32, i32, i32)] = &[];
 /// Piece 170's [`Release::float_lands`], one list per `(anim, time)` row
 /// (item 3756, run854's packet).
 const FLOAT_LANDS_170_A10_T4: &[(i32, i32, i32, i32)] = &[];
@@ -4273,6 +4277,115 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: FLOAT_LANDS_300_A12_N9,
         },
     ),
+    // **The MLRS, piece 223** (unit type 273; item 3975, `docs/GOLDEN.md`
+    // §177): run883b's packet (the peace pair, which fields the MLRS `1/95`
+    // and `1/124`) holds the piece's seventeen entries, `RData +0x88` 0.69:
+    // the `(4, 0, 0)` pivot of its `<RESTRICTION name="MLRS" node="4">` and,
+    // for each of its eight `<RESTRICTION>`-free rockets (node 1, frames 5,
+    // 8, … 26 of `CHAR_ATTACK2`), the pivot node's entry and the rack's.
+    // Node 1 is past the piece's one restriction, so `get_position` takes
+    // its non-pivot arm (`0090b750:53`, `node & 3 < param_7`): the rack's
+    // entry alone, turned by the figure's facing ([`release_point`]). The
+    // pivot entries are kept as the packet holds them and read by nothing.
+    // Without them run1542's rockets left from the launcher's own square,
+    // 240 low (`2/155`'s of 649: ours (17736, 16104, 501) against the
+    // original's (17714, 16065, 741)), and every blast landed elsewhere.
+    (
+        223,
+        crate::anim::ATTACK2,
+        5,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [459_189, 33_981_510, 21_489_197],
+            at: [12_569_457, 5_370_341, 72_714_676],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        8,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 3_478_557, 71_661_247],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        11,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 4_849_190, 72_723_297],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        14,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 4_849_190, 72_723_297],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        17,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 4_001_522, 71_734_413],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        20,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 2_771_771, 70_213_913],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        23,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 1_440_200, 68_446_014],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
+    (
+        223,
+        crate::anim::ATTACK2,
+        26,
+        Release {
+            piece: 223,
+            node: 1,
+            pivot: [460_000, 33_990_000, 21_770_000],
+            at: [12_530_000, 1_440_200, 68_446_014],
+            float_lands: FLOAT_LANDS_223,
+        },
+    ),
 ];
 
 /// The release row for `(piece, anim, starttime frame)`, if the piece
@@ -4693,6 +4806,79 @@ mod tests {
             }
         }
         assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The MLRS's rockets leave from its rack, past its one restriction**
+    /// (item 3975, `docs/GOLDEN.md` §177): node 1 is past the
+    /// `<RESTRICTION node="4">`'s count, so the row's entry alone turns with
+    /// the figure. Each cell is a sweep's (`deg 0 x y z`), and the last is
+    /// run1542's own round of 649 from `2/155`, facing 1021181952 at
+    /// (17736, 16104, z 501): the dump's (17714, 16065, 741) on 651. Made to
+    /// fail with the rows out of `RELEASES`: no row, and the rocket leaves
+    /// the launcher's square.
+    #[test]
+    fn the_mlrs_s_rockets_leave_from_its_rack() {
+        let alone = |t| {
+            let r = release_node(223, crate::anim::ATTACK2, t, 1).expect("the row");
+            assert_eq!(r.node, 1);
+            r
+        };
+        for (t, d, xyz) in [
+            (26, 180, (-41, 4, 226)),
+            (26, 0, (41, -4, 226)),
+            (5, 90, (17, 41, 240)),
+            (20, 270, (-9, -41, 232)),
+        ] {
+            let r = Release {
+                pivot: [0; 3],
+                ..alone(t)
+            };
+            assert_eq!(release_offset_at(&r, d, 0), xyz, "t {t} d {d}");
+        }
+        let facing = Angle(1_021_181_952);
+        let t = (5..=26).step_by(3).find(|&t| {
+            release_point(&alone(t), facing, &[0; 4], 1) == (17714 - 17736, 16065 - 16104, 240)
+        });
+        assert!(
+            t.is_some(),
+            "no frame of the rack leaves where run1542's round did"
+        );
+    }
+
+    /// **Every cell of piece 223's eight rows against the original**
+    /// (item 3975): `get_position.py … sweep 223 1 12 <time>` on run883b's
+    /// packet, the non-pivot arm at every whole degree. `$RON_RELEASE_TABLE_223`
+    /// is the directory holding `sweep-223-n1-a12-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-11-07-item-3975/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_223() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_223") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_223 (item 3975's oracle, run883b)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for time in [5, 8, 11, 14, 17, 20, 23, 26] {
+            let path = format!("{dir}/sweep-223-n1-a12-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_223");
+            let r = release_node(223, crate::anim::ATTACK2, time, 1).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(5)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                let want = release_offset_at(&Release { pivot: [0; 3], ..r }, f[0], 0);
+                if want != (f[2], f[3], f[4]) {
+                    off.push(format!(
+                        "t{time} ({}, 0, {}, {}) z {}",
+                        f[0], f[2], f[3], f[4]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert_eq!(rows, 8 * 361, "{dir}");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
