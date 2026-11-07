@@ -2561,19 +2561,87 @@ impl Sim {
     /// unit takes it in the spawn, and a unit stood up from a start dump
     /// takes it from the harness, since both are born through `init`.
     ///
-    /// SEAM: the arm's first half, `0x80` on an Iroquois land unit whose
-    /// type lacks objmask 4 — no reader in this crate, and run897's
-    /// citizens print `unit_masks2` 0.
+    /// The arm's first half (item 3958, `docs/AI.md` §402): an Iroquois
+    /// unit whose type is land (`+0x218 == 0`) and lacks objmask 4
+    /// ([`combat::mask::CIVILIAN`]) takes `unit_masks2 |= 0x80`
+    /// ([`combat::umask2::CLOAK_MARK`]), the input of
+    /// [`Sim::process_cloak`]'s own-land arm. run1228b's soldiers print it
+    /// on every block and its citizens never.
     pub fn init_iroquois_masks(&mut self, u: usize) {
         self.init_marine_mask(u);
-        let who = self.units[u].owner;
-        if self.unit_line_is(u, 0x45)
-            && self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
-            })
+        if !self.iroquois(self.units[u].owner) {
+            return;
+        }
+        if let Some(t) = self.units[u].ty {
+            let p = &self.unit_types[t].combat;
+            if p.domain == attrition::Domain::Land && p.obj_masks & combat::mask::CIVILIAN == 0 {
+                self.units[u].unit_masks2 |= combat::umask2::CLOAK_MARK;
+            }
+        }
+        if self.unit_line_is(u, 0x45) {
+            self.units[u].unit_masks2 |= combat::umask2::IROQUOIS_SCOUT;
+        }
+    }
+
+    /// `LeaderData::has_tribe_bonus(0x12)`, the Iroquois.
+    fn iroquois(&self, who: Player) -> bool {
+        self.tech.get(who as usize).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+        })
+    }
+
+    /// **`Unit::process_cloak@005e1c20`'s two Iroquois arms** (item 3958,
+    /// `docs/AI.md` §402), reached from `Unit::process` on the unit's
+    /// sixteen-frame phase, on the map:
+    ///
+    /// ```text
+    /// unit_masks2 &= ~0x8000
+    /// if (unit_masks2 & 0x80) && (owner(cell) == who
+    ///                             || diplos[who][owner] == 2 && diplos[owner][who] == 2):
+    ///     unit_masks2 |= 0x8000                     // own land
+    /// if !(unit_masks & 0x2000) && !(leader_flags & 0x4000): unit_masks &= ~0x800
+    /// if has_tribe_bonus(0x12) && type.domain == 0:
+    ///     unit_masks = tile(pos) & 0x30 == 0x30 ? |0x800 : &~0x800   // forest
+    /// ```
+    ///
+    /// The cell is the territory record's owner byte (`world +0x134`,
+    /// `+0xf`), the tile the `TData` mask (`world +0x138`).
+    ///
+    /// SEAM: the hero aura — a leader with `0x4000` (an Ambush) cloaks a
+    /// unit within a hero's radius — and the hero's own `0x2000`, which
+    /// keeps its `0x800`: this crate carries neither flag, so the aura arm
+    /// only clears, as it does for every unit without them.
+    pub(crate) fn process_cloak(&mut self, i: usize) {
+        let un = &self.units[i];
+        let who = un.owner;
+        let mut masks2 = un.unit_masks2 & !combat::umask2::LAND_CLOAK;
+        if masks2 & combat::umask2::CLOAK_MARK != 0 {
+            if let Some(o) = self.world.owner_at(un.pos).player() {
+                if o == who || (self.allied_with(who, o) && self.allied_with(o, who)) {
+                    masks2 |= combat::umask2::LAND_CLOAK;
+                }
+            }
+        }
+        let pos = un.pos;
+        self.units[i].unit_masks2 = masks2;
+        self.units[i].cloak = false;
+        self.step_cloak(i, pos);
+    }
+
+    /// The forest arm alone, at `at`: an Iroquois land unit is cloaked on a
+    /// forest tile (`TData & 0x30 == 0x30`) and uncloaked off one; any
+    /// other unit is left as it stands. [`Sim::process_cloak`]'s tail and
+    /// `Unit::set_new_location@005f8d20`'s tile step both run it.
+    pub(crate) fn step_cloak(&mut self, i: usize, at: Pos) {
+        let un = &self.units[i];
+        if self.iroquois(un.owner)
+            && un
+                .ty
+                .is_some_and(|t| self.unit_types[t].combat.domain == attrition::Domain::Land)
         {
-            self.units[u].unit_masks2 |= crate::combat::umask2::IROQUOIS_SCOUT;
+            self.units[i].cloak = self.world.tile_mask(at.tile()) & world::tile::SURFACE
+                == world::tile::SURFACE_FOREST;
         }
     }
 
@@ -7319,6 +7387,7 @@ impl Sim {
             && self.units[i].inside_unit.is_none()
         {
             self.units[i].combat.targeted /= 4;
+            self.process_cloak(i);
         }
         // Attrition first, movement second. That is the order inside
         // `Unit::process`, and it is observable: a unit that steps over a

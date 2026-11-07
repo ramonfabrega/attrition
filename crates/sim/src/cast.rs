@@ -844,13 +844,17 @@ impl Sim {
 
     /// `UnitData::is_cloaked@0060a6a0`, with the order list as it stands:
     /// the type's `CLOAKED` (`0x4000`), `unit_masks2 & 0x8000`, or a
-    /// `STEALTH` type with no order. `unit_masks & 0x800` is not carried.
+    /// `STEALTH` type with no order, or `unit_masks & 0x800`
+    /// ([`crate::Unit::cloak`], item 3958).
     pub(crate) fn unit_is_cloaked(&self, u: usize) -> bool {
         let Some(t) = self.units[u].ty else {
             return false;
         };
         let cols = self.unit_types[t].cols;
-        if cols.flag(crate::ai_load::uflags::CLOAKED) || self.units[u].unit_masks2 & 0x8000 != 0 {
+        if self.units[u].cloak
+            || cols.flag(crate::ai_load::uflags::CLOAKED)
+            || self.units[u].unit_masks2 & 0x8000 != 0
+        {
             return true;
         }
         cols.flag(crate::ai_load::uflags::STEALTH) && self.units[u].orders.is_empty()

@@ -1875,6 +1875,13 @@ impl Sim {
         if from != to {
             let on_map = self.units[u].on_map && self.units[u].alive();
             let cell_change = on_map && from.cell() != to.cell();
+            // **The forest cloak on a tile step** (`005f8d20:61-82`, item
+            // 3958, `docs/AI.md` §402): a tile crossing inside one world
+            // cell re-tests an Iroquois land unit's new tile, the same
+            // test as [`Sim::process_cloak`]'s; a cell crossing does not.
+            if on_map && !cell_change && from.tile() != to.tile() {
+                self.step_cloak(u, to);
+            }
             if !self.shore_step(u, from, to, on_map, cell_change) {
                 return false;
             }
