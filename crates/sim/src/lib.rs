@@ -92,6 +92,7 @@ pub mod cavarch;
 pub mod check_build_view;
 pub mod city;
 pub mod civ_transport;
+pub mod cliff_mine;
 pub mod cliffs;
 pub mod collide;
 pub mod combat;
@@ -1562,6 +1563,10 @@ pub struct Sim {
     /// [`gather::PlacedMountain`]). Empty when nothing supplied them, and
     /// then [`Sim::mountain_range`] stands a range up from the tiles.
     pub mountains: Vec<gather::PlacedMountain>,
+    /// `CliffsData::cliff_mining_data`, the scary cliffs a mine may stand
+    /// against, by queue index ([`cliff_mine::CliffMining`]). Empty when
+    /// nothing laid them ([`Sim::place_cliffs`]); no dump prints them.
+    pub cliffs: Vec<cliff_mine::CliffMining>,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
@@ -1949,6 +1954,7 @@ impl Sim {
             gaia: gaia::Gaia::default(),
             art: anim::Art::default(),
             mountains: Vec::new(),
+            cliffs: Vec::new(),
             game_seed: 0,
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
