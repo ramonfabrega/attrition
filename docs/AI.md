@@ -40393,8 +40393,10 @@ driver's unread pin (parked T71-9), all `int`s on `LeaderData`
 - `+0x9f4 retargets` — the frame's count of invalid targets. Its one
   increment is `Unit::fight@005fd4d0:227`, under `LAB_005fdb9e`. Its readers
   are `fight:205`'s search budget (`> 10`) and `resolve_unit_collision:232`'s
-  enemy ladder (`< 10`). Two resets: `Leader::process@006b88b0:19` and
-  `Leaders::process_all@006ed2a0:23`, the latter for a leader with flag 2.
+  enemy ladder (`< 10`). Its live reset is `Leaders::process_all@006ed2a0:23`,
+  for a leader with flag 2. `Leader::process` writes 0 too, but the
+  executable never references it (`rondata::blind::RESIDUE`), so the crate's
+  comments citing it name a dead function for the live behaviour.
   The crate has carried it since item 668 as `Sim::retargets`, zeroed for
   every player at the head of the income loop, and incremented in
   `fight` and the cavalry archer's twin (`cavarch.rs`).
@@ -40452,8 +40454,8 @@ there: with ours' row forced to 0 (`tools/mutate.py`), the widening fails,
 every walked window: run1075 is walked by no harness (parked 3964a).
 
 **What is not established.** The `Leaders::process_all` reset's flag-2
-gate: a leader the original skips keeps a stale count, while the crate
-zeroes every player. The ladder reads a dead leader's count only through its
+gate, which is the only live reset: a leader the original skips keeps a
+stale count, while the crate zeroes every player. The ladder reads a dead leader's count only through its
 own units, so it is unread. `insert_inside`'s `in_a_building` and
 `remove_from_inside`'s container slot `0x20` stay a `SEAM`; every
 `go_inside` here takes a building. Whether a decoy can be garrisoned at all
