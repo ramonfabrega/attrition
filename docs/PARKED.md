@@ -10528,7 +10528,8 @@ booking carried that name. The landing frame against each round in flight (`RON_
   in ours. Its damage has already parted on 701, the window's first block (`hits:damage` 135 against 136,
   `damage_frac` 9 against 7). Block 651 is outside the widening, so where the state first parts is not walked.
   **Score**: the `Melee:` line's GreatSaharaCorpseMelee word; a residue item booked by its frame (≤ 701) and that
-  draw. Booked as 3975 by the commander.
+  draw. Booked as 3975 by the commander. **Answered by item 3975**: the state first parts on 651's MLRS
+  rounds, which left from the launcher's square; with piece 223's rack the word is 2600 of 2600 (§177).
 - **3971b. `--twin` refuses a three-seat lobby** (`tools/explore/unattended_capture.py`'s `twin_pins`): it pins slot
   1's tribe as a two-seat `ai_tribe`, and `verify_game` then demands two players. run1542b's first take ran its game
   and raised `player read-back mismatch` with no receipt. The melee twins pass `--cover cover=1` bare. No score: a
@@ -12492,6 +12493,8 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   275 — so ours launches from the unit's centre at ground height where theirs leaves a rack offset and raised
   (`docs/AI.md` §368.1). 94 of run1423's rounds and 40 of run1401b's. The rounds land, wound and spend no draw:
   the pair runs whole to 6706. The pivot or bay rows of the MLRS's piece are the first reading.
+  **Closed 2026-11-07 by item 3975**: piece 223's eight rack rows (`docs/GOLDEN.md` §177); run1423's rounds parting
+  40 → 0, run1401b's 46 → 6.
 - **3744b. The `1/198`'s rounds part on run1401b** (58 rows from 6295: `sx` 6601 against 6565, `accuracy` 0
   against 6), with its `airorder.mandatory` 0 against 1 from 6203. They are 3721's first parting round; no draw
   reads them.
@@ -15229,13 +15232,20 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `Doober::has_doobers` always answers 0 (`div_3_table[0]`, listing `8466fb`), so parked 2635 closes as inert; parked
   3343a amended: the Aztec speed arm is inert (run1256b 8711, all 51 gatherers `myspeed 25`).
 
-## Parked by the next landing, slot CM — reserved
+## Parked by item 3975, 2026-11-07 — the MLRS's rack, the sixth melee closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3975a. The MLRS round's `angle`** (run1542; `docs/GOLDEN.md` §177): with the rack's rows in, every MLRS round
+  agrees on `sx, sy, sz, ex, ey, ez, v1z` and parts on `angle` alone, from 651 (`2/155`'s `ammo[29]` ours 1064501248
+  against theirs 1070792704). Ours keeps the bearing from the launch point to the order's point before the scatter
+  (`anim.rs`'s `guy_release_events`); on 651 ours' `ammo[38]` reads theirs' `ammo[19]`'s value exactly, so theirs'
+  may be another event's bearing, or the landing's. Not read: `Ammo::init`'s writer of `+0x2c` on the release arm.
+  The draws and the close agree without it. **Score**: none (the word is closed); a widening row on the closing
+  window, 31 rounds.
+- **3975b. Theirs heals units out of the fight, ours does not** (run1542; `docs/GOLDEN.md` §177): the first value
+  parting of the closed game, 1151: the French Elite Special Forces `1/17` (TI 77, land, walking off at (25157,
+  9797)) reads `healing` theirs 13 against ours 0, `damage_frac` 0 against 4, `hits:damage` 8 against 11; the MLRS
+  `1/162` (TI 273) on 1251, `1/22` on 1301, 29 units by 2501. No draw is spent and the close is 0 off, so it is a
+  value row. Not read: which heal (`healing`'s writers). **Score**: the closing window's 344 rows.
 
 ## Parked by the next landing, slot CN — reserved
 

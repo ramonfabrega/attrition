@@ -116,9 +116,14 @@ pub(crate) const CORPSE_MELEE: Melee = Melee {
     // pool first fills (1001, both sides). On 744 ours spends 82 against
     // 83: at index 74 theirs spends `Unit::close+0xcb6` — a death's draw —
     // where ours spends `Farms::inc_time+0x1ae`: theirs acted
-    // (`docs/GOLDEN.md` §177).
-    count: 744,
-    sequence: 744,
+    // (`docs/GOLDEN.md` §177). Item 3975: **744 → 2600, the game whole**,
+    // with the MLRS's rack (piece 223's rows in `sim::pivot::RELEASES`):
+    // the rockets left from the launcher's own square, 240 low, where
+    // theirs leave the rack some 41 out and 226..240 up, so every blast
+    // from 649 landed elsewhere — on 701 `2/143` read `hits:damage` ours
+    // 135 against theirs' 136, and died on 745 against 744.
+    count: 2600,
+    sequence: 2600,
 };
 
 /// **Where the sixth melee's draw stream first parts** (item 3971): the
@@ -155,16 +160,19 @@ pub(crate) const CORPSE_MELEE_WORD: i64 = if CORPSE_MELEE.count < CORPSE_MELEE.s
 ///
 /// Item 3971, first try: 420 off at a close 1857 frames past the word —
 /// 217 units off, 15 unlinked, 11 buildings, 7 cities, 150 leader rows
-/// and 20 groups; 241 units compared.
-pub(crate) const CORPSE_MELEE_CLOSING_OFF: usize = 420;
+/// and 20 groups; 241 units compared. Item 3975: 420 → **0**, the game
+/// whole, with the MLRS's rack: 256 units compared, every count 0.
+pub(crate) const CORPSE_MELEE_CLOSING_OFF: usize = 0;
 
 /// The word's window on run1542's stride: the block before the word to
-/// 250 frames past it.
-pub(crate) const WIDENING_CORPSE_MELEE: (i64, i64) = (701, 995);
+/// 250 frames past it (item 3971: the word 744, so 701..995). Item 3975
+/// closes the game: the block before the word, 2501, through the closing
+/// block 2601, as the other closed melees'.
+pub(crate) const WIDENING_CORPSE_MELEE: (i64, i64) = (2501, 2601);
 
 /// The word's window, widened whole on run1542's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
-pub(crate) fn corpse_melee_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn corpse_melee_closing_window() -> Option<harness::tests::Widened> {
     crate::diff::setup::with_staged_script(melee_script(), || {
         harness::tests::widen_on_siblings_with_rounds(
             &[MELEE_START],
@@ -174,7 +182,7 @@ pub(crate) fn corpse_melee_word_window() -> Option<harness::tests::Widened> {
             &[(MELEE_LONG.0, WIDENING_CORPSE_MELEE.0)],
             WIDENING_CORPSE_MELEE,
             1,
-            &[],
+            &[2601],
             true,
         )
     })
@@ -187,7 +195,7 @@ pub(crate) fn corpse_melee_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn corpse_melee_run1542_s_word_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = corpse_melee_word_window() else {
+    let Some(w) = corpse_melee_closing_window() else {
         return;
     };
     if std::env::var("RON_FIRSTS").is_ok() {
@@ -209,15 +217,23 @@ fn corpse_melee_run1542_s_word_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.blocks, 6, "every stride block in the window");
+    // Item 3971, on 701..995: 6 blocks, 5,752 rows, the rounds read
+    // (81, 84) and 235 parting. Item 3975, the game closed, on 2501..2601:
+    // 3 blocks, 344 rows, (30, 30) and 31 — the rounds' `angle` alone
+    // (parked 3975a), and on 2501 the first block's standing families
+    // (`group`, `pool`, `form`, `build:extra`) beside 29 units' `hits`:
+    // theirs heals units ours does not, from 1151 (`1/17`, an Elite Special
+    // Forces, `healing` 13 against 0; parked 3975b). The draws agree
+    // throughout and the close is 0 off.
+    pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 5752, "run1542's word window");
-    pin_eq!(w.rounds_read, (81, 84), "the rounds read");
-    pin_eq!(w.rounds.len(), 235, "the rounds that part");
+    pin_eq!(w.firsts.len(), 344, "run1542's word window");
+    pin_eq!(w.rounds_read, (30, 30), "the rounds read");
+    pin_eq!(w.rounds.len(), 31, "the rounds that part");
 }
 
 /// **Every seat's leader** (the shape item 3791 gave the first two,
@@ -243,7 +259,8 @@ fn corpse_melee_s_leaders_are_compared_on_every_seat() {
         "leader records compared, by seat"
     );
     pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
-    pin_eq!(w.rest().len(), 176, "the keys that part, by seat");
+    // Item 3971: 176. Item 3975, the game closed: 1.
+    pin_eq!(w.rest().len(), 1, "the keys that part, by seat");
 }
 
 /// **The melee's closing state** (item 3971): run1542's closing block, the
@@ -287,12 +304,8 @@ fn corpse_melee_run1542_s_closing_state() {
         return;
     };
     pin_eq!(e.frame, 2601, "the closing block");
-    pin_eq!(e.compared, 241, "units compared");
-    pin_eq!(
-        e.counts(),
-        [217, 15, 11, 7, 150, 0, 20],
-        "the closing counts"
-    );
+    pin_eq!(e.compared, 256, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.counts().iter().sum::<usize>(),
         CORPSE_MELEE_CLOSING_OFF,
@@ -361,11 +374,16 @@ fn corpse_melee_s_death_pool_stops_at_a_hundred_on_both_sides() {
     pin_eq!(most(|r| r.1), Some(POOL), "ours never past the pool");
     // Item 3971: theirs holds 100 on 1001..1251 and 1351 (99 on 1301);
     // ours on 1001..1101, then 99 — the two games parted on 744, and the
-    // kills past it are not the same kills.
+    // kills past it are not the same kills. Item 3975, the draws whole to
+    // the end: ours on 1001..1251 too; 1351 only theirs', not read.
     pin_eq!(
         full(|r| r.2),
         vec![1001, 1051, 1101, 1151, 1201, 1251, 1351],
         "theirs' full blocks"
     );
-    pin_eq!(full(|r| r.1), vec![1001, 1051, 1101], "ours' full blocks");
+    pin_eq!(
+        full(|r| r.1),
+        vec![1001, 1051, 1101, 1151, 1201, 1251],
+        "ours' full blocks"
+    );
 }
