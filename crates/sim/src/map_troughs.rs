@@ -28,6 +28,7 @@
 //! tangents) is not built.
 
 use crate::halfland::{Combo, Pass, Unported as HalfUnported};
+use crate::map_resources::Footprint;
 use crate::mapgen::{Fractal, MapGrid};
 use crate::single::Single;
 use crate::world::{MOVE_49, MOVE_289};
@@ -330,12 +331,16 @@ pub struct Troughs {
     pub depth: i32,
     /// The oil `move_goody` moved off a trough, from and to.
     pub moved: Vec<((i32, i32), (i32, i32))>,
+    /// The goods `move_goody`'s good arm moved off a trough, from and to
+    /// (item 3944: Old World's rivers, the first troughs to reach a good).
+    pub moved_goods: Vec<((i32, i32), (i32, i32))>,
 }
 
 /// The arms the troughs can enter that are not built.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Unported {
-    /// `Terrain::move_goody@0084a3d0` would move a good off these cells.
+    /// `Terrain::move_goody@0084a3d0` would move a good off these cells,
+    /// and no footprints were handed to move it under.
     Goody(Vec<(i32, i32)>),
     /// The land batch's `verify_land` refused (`crate::halfland`).
     Land(HalfUnported),
@@ -356,6 +361,9 @@ struct River<'a> {
     smooth: Vec<i32>,
     added: Vec<bool>,
     goody: Vec<(i32, i32)>,
+    /// The types' footprints `move_goody`'s good arm moves a good under.
+    goods: Option<&'a [Footprint]>,
+    moved_goods: Vec<((i32, i32), (i32, i32))>,
 }
 
 impl River<'_> {
@@ -458,9 +466,15 @@ impl River<'_> {
 
     /// **`Terrain::move_goody@0084a3d0`** on cell `(x, y)`
     /// ([`Pass::move_goody`]); oil that moves takes its rocky patch's
-    /// terraform on its new cell. A good refuses by name.
+    /// terraform on its new cell, and a good moves under the types'
+    /// footprints ([`Pass::with_goods`]) — refused by name without them.
     fn move_goody(&mut self, x: i32, y: i32) {
-        let to = Pass::new(&mut *self.g, &mut *self.coord, &*self.z, self.combo).move_goody(x, y);
+        let mut pass = Pass::new(&mut *self.g, &mut *self.coord, &*self.z, self.combo);
+        if let Some(goods) = self.goods {
+            pass = pass.with_goods(goods);
+        }
+        let to = pass.move_goody(x, y);
+        self.moved_goods.extend(pass.moved_goods.iter().copied());
         match to {
             Ok(Some((nx, ny))) => {
                 self.moved.push(((x, y), (nx, ny)));
@@ -657,7 +671,8 @@ fn add_point(pts: &mut Vec<(i32, i32)>, cd: &mut Single, c: (i32, i32)) {
 
 /// **`RiversOut::calculate_all@00888820(0, 0)`** on `g`'s rivers, the
 /// heights `z` and the `CoordInfo` flags `coord`; `riverbase` is the drawn
-/// tileset's (`TileSet+0x229`), `combo` and `depth` the land pass's.
+/// tileset's (`TileSet+0x229`), `combo` and `depth` the land pass's;
+/// `goods` the types' footprints a trough's good is moved under.
 pub fn calculate_all(
     g: &mut MapGrid,
     coord: &mut [u16],
@@ -665,6 +680,7 @@ pub fn calculate_all(
     riverbase: i32,
     combo: Combo,
     depth: i32,
+    goods: Option<&[Footprint]>,
 ) -> Result<Troughs, Unported> {
     let mut out = Troughs {
         depth,
@@ -701,6 +717,8 @@ pub fn calculate_all(
             smooth: Vec::new(),
             added: vec![false; (16 * g.xs * g.ys) as usize],
             goody: Vec::new(),
+            goods,
+            moved_goods: Vec::new(),
             g: &mut *g,
         };
         let mut made = 0;
@@ -762,6 +780,7 @@ pub fn calculate_all(
         out.sections.push(made);
         goody.append(&mut r.goody);
         out.moved.append(&mut r.moved);
+        out.moved_goods.append(&mut r.moved_goods);
         let spot = r.spot;
         let mut p = Pass::new(g, coord, &*z, combo).with_depth(out.depth);
         p.spot_update_land_batch(&spot, 0, riverbase)
