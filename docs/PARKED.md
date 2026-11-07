@@ -3803,6 +3803,11 @@ the next pass pins the rest on the landed tree. Names no score; the loop's.
 
 ## Loop, filed 2026-11-07 — the seventy-second tranche's
 
+(3976) **`unattended_capture.py --twin` refuses a three-seat lobby** (3971's "for the Loop"): `twin_pins` pins slot 1's
+tribe as a two-seat `ai_tribe`, and `verify_game` then demands two players, so run1542b's first take ran its game and raised
+`player read-back mismatch` with no receipt; the melee twins pass `--cover cover=1` bare. Candidate: `twin_pins` reads the
+sibling's seat count and pins every seat, red first on run1542's three-seat lobby. Names no score; the loop's.
+
 (3974) **The whole `rondata` lib no longer fits `tools/check.sh`'s 1800 s execution timeout** (3965's "for the Loop"):
 `resource budget: execution timeout 1800s`, killed at `third_pair::run661`, so a worker who wants the lib's reds before its
 gate splits the run by name by hand. Candidate: `check.sh` scales the timeout to the reservation's test count (or splits the
@@ -10523,7 +10528,7 @@ booking carried that name. The landing frame against each round in flight (`RON_
   in ours. Its damage has already parted on 701, the window's first block (`hits:damage` 135 against 136,
   `damage_frac` 9 against 7). Block 651 is outside the widening, so where the state first parts is not walked.
   **Score**: the `Melee:` line's GreatSaharaCorpseMelee word; a residue item booked by its frame (≤ 701) and that
-  draw.
+  draw. Booked as 3975 by the commander.
 - **3971b. `--twin` refuses a three-seat lobby** (`tools/explore/unattended_capture.py`'s `twin_pins`): it pins slot
   1's tribe as a two-seat `ai_tribe`, and `verify_game` then demands two players. run1542b's first take ran its game
   and raised `player read-back mismatch` with no receipt. The melee twins pass `--cover cover=1` bare. No score: a
