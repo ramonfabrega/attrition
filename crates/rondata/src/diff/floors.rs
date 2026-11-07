@@ -234,6 +234,15 @@ pub const MAPGEN: Mapgen = Mapgen {
             ported: 8,
             phases: 8,
         },
+        MapgenStyle {
+            map: "EastMeetsWest",
+            // The held-out style (item 3941, DECISIONS 54, 61): ported from
+            // the reading (`004dbbab7`, pushed before run1524 was launched)
+            // and scored on run1524's first comparison, never debugged
+            // against (`docs/MAPGEN.md` §24).
+            ported: 0,
+            phases: 8,
+        },
     ],
 };
 
