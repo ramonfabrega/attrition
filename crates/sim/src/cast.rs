@@ -1588,6 +1588,16 @@ impl Sim {
                 rate = (rate * 2 + 2) / 3;
             }
             let rate = i64::from(rate);
+            if std::env::var_os("RON_PROBE_HEAL").is_some() {
+                let p = &self.tech[self.units[u].owner as usize];
+                eprintln!(
+                    "probe-heal f{frame} {}/{} level {level} rate {rate} t2ef {:?} has {:?}",
+                    self.units[u].owner,
+                    self.units[u].index,
+                    self.tech_tree.types.get(0x2ef).map(|t| t.name.clone()),
+                    (0x2ef..0x2f2).map(|t| self.tech_tree.types.get(t).is_some() && self.tech_tree.has_tech(&self.setup, p, t)).collect::<Vec<_>>()
+                );
+            }
             if rate != 0 && (i64::from(self.units[u].index) + frame) % rate == 0 {
                 self.repair_unit_damage(u, 1);
                 self.units[u].healing = 1;
