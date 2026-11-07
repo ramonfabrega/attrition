@@ -35667,6 +35667,31 @@ values; no river draw (19 sources); no trough section. At 894 the seed is 319868
 red (`mapgen::tests::african_watering_hole_*`, MAPGEN §28.3). No `blind::TRACES` row: a `cover=0` setup trace
 enters only its hooks.
 
+## run1532 — Australian Outback (style 13), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3949, `att-3949`)
+
+`docs/MAPGEN.md` §30. The chain take §22.2 writes, at `--map 13`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1532 --map 13 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: run1121 (style 13, `cover=1`) enters
+`MapAustralianOutback::make_continents` and carries no setup trace, so no Australian Outback checkpoint 7805..7945
+was on disk.
+- Pool lane 1, the pool's pick. Launched 00:47:49, exited 00:48:13 (23.6 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 13, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60; `page_faults` 0,
+  `relaunches: []`. `df -g ~` read 93 GiB free before it. Filed with `filerun.py run1532 outback-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1532-outback-mapgen-start.txt`, 152,083,474 bytes,
+SHA-256 `6f43c60ac2afd844c089b05d55552a2613b4d6c959e066fdc38838bc7e3e35a0`.
+
+Archive `rontrace-run1532.log`, 8,716,768 bytes,
+SHA-256 `d52c976579d78b8a38ce831a9186efe5b7262824aa771b4cd529bb23df0247c2`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118. The tileset is `autumn`, drawn from `OUTBACK.xml`'s four `TILECHANCE`s. 7807's seed is
+2524927299 after the mask's 17,262 draws (one generation, no merge pass: an island grown from the two ring spots and
+the middle); 4,678 draws from `place_all` through the values; no river draw (21 sources, an empty `RIVERLIST`); no
+trough section. At 894 the seed is 85646897, part 5 2363972222 and part 6 3983024254. The port meets all of it on
+the first walk, and all 58,081 start-dump vertices (`mapgen::tests::australian_outback_*`, MAPGEN §30). No
+`blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
 ## run1525b — Southwest Mesa (style 10), the Lakota at Difficulty 2: the held-out game's `DUMP_ALL` start with the setup trace (2026-11-07, item 3943, `att-3943`)
 
 `docs/AI.md` §401. **What the disk could not answer**: run1525's lobby is the Inca, which the battery's nation fence
