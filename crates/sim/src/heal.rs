@@ -707,7 +707,8 @@ mod tests {
         assert!(sim.iroquois(1), "the bonus holds in this setup");
         sim.iroquois_heal(c, 8189);
         assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
-        sim.units[c].orders.push_front(attack_to(sim.units[c].pos));
+        let at = sim.units[c].pos;
+        sim.units[c].orders.push_front(attack_to(at));
         sim.iroquois_heal(c, 8190);
         assert_eq!(state(&sim), (37, 5), "an attack-move is moving");
         sim.units[c].orders.clear();
@@ -739,7 +740,8 @@ mod tests {
         use crate::ai_load::{UnitCols, uflags2};
         let (mut sim, c, _) = iroquois_captain(167);
         let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
-        sim.units[c].orders.push_front(attack_to(sim.units[c].pos));
+        let at = sim.units[c].pos;
+        sim.units[c].orders.push_front(attack_to(at));
         sim.senator_heal(c, 8190);
         assert_eq!(state(&sim), (37, 5), "no Senator, nothing");
         let senator = sim.add_unit_type(crate::UnitType {
