@@ -461,7 +461,24 @@ the third lane's absence costs one wave — **and the seventieth read
 seven landings, drained on supply): both under, **so the letter returns
 the third lane, and the count follows the supply** — three Opus lanes
 when the next tranche's first wave is three items or more, two
-otherwise, and the supply is Ramon's, never the rule's to answer; a
+otherwise, and the supply is Ramon's, never the rule's to answer —
+**and the seventy-first read 52.0 waiting and 21.0 gate a session on
+three lanes** (DECISIONS 112 §1; thirteen landings, drained on supply):
+the waiting past the 31.6 that takes the lane and the gate past 15.3,
+**so the rule's letter takes the third lane away for the
+seventy-second**, two Opus lanes at medium. What it cost was the chains
+again, by construction: ten chain takes of one track landing in the
+same two files (`floors.rs`'s `MapgenStyle` rows and
+`rondata/src/mapgen.rs`'s arms) — 3950's merge backed out once and
+3951's three times, each a `ccc update --keep-conflicts`, a lane gate
+and a message wait (3951: 114.0 minutes waiting, 44.3 gate, 31.1
+suite, 31.7 message) — and the row-list lever could not spare them,
+since every one of those conflicts also touched code (`mapgen.rs`,
+`map_lakes.rs`, `sim/src/lib.rs`), so no row-list regex is added; the
+door 5,594.7 s and eight gate ends of twelve past the cores, the whole
+gates 45.9–64.4 release minutes. The lane returns when a two-lane
+tranche reads waiting under 26.3 and the gate under 15.3, or on
+Ramon's word; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

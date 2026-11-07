@@ -144,8 +144,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 
 ## chapter
 
-- **At most three arms of one staging; one opening with a parting
-  ends there**: walked, captured, pinned, written; **at the trace's end `word == hi − 1`; `Golden:` is mine** (1781).
+- **At most three arms of one staging; a parting ends it**: walked,
+  captured, pinned, written; **at the trace's end `word == hi − 1`; `Golden:` is mine** (1781).
 - **A chapter's staging is walked before its capture** (794): a dump
   when every predicate prints (821), else a staging-only packet (808),
   via the command's entry (885); combat precondition first (828); **a
@@ -154,8 +154,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   (903, 968); **a cast lists its callees' lines** (2824); **no
   capture a packet or widening on disk answers** (2330);
   **an AI-track arm: its constant's readers** (2356);
-  **`blind.rs` is a pin an issuer chapter moves** (950), a cite
-  picks address or pin (943); **control: `--cmd-without <arm frame>`,
+  **`blind.rs` is a pin an issuer chapter moves** (950, 943);
+  **control: `--cmd-without <arm frame>`,
   second run** (2542); **the staging is the landing; a build
   without one parks** (2756).
 - **`success: true`, nothing staged** (1170): `stage_walk` first;
@@ -163,9 +163,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   lines: `issuesmatch.py --none-refused`** (966, 1256); **ids
   off `RON_STAGE_ALL`**, `add N <type>` is N squads (1730);
   **`runwiring.py --chapter N`: places, staged count** (2914); **a
-  row that cannot fit says where** (932, 949); **the walk prints each
-  `add`; a piece is its record's `type`, not its `add` place** (2970,
-  2654, 3852).
+  row that cannot fit says where** (932, 949); **a piece is its
+  record's `type`, not its `add` place** (2970, 2654, 3852).
 
 ## sweep
 
@@ -423,7 +422,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   yours alone, before the gate (3089): the modules touched; a "for the
   Loop" line: `none`, or a finding I file; **at 300 k, one line to me** (1637,
   1638): draft, commit, end the turn **done**: a `blocked` row or a
-  suggested reply holds the clear (3931).
+  suggested reply holds the clear (3931); **a harness the draft commits
+  has run once, its exit in the journal** (3954).
 - **Documents and journal by the file tool, never in a backgrounded `&&`
   chain (1781); commit, then gate, no suite first (2409, 2415).** Parks:
   your park heading (1812). The gate: `python3
@@ -439,7 +439,7 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   gate; on row lists alone, the line's steps, then land** (3341, 3366,
   3401, 3694); a re-pinned count is the merged tree's (1151); read your
   RUNS row (1285); say if you moved a word (1289). **`check.sh` exits as
-  cargo does; never a pipe's** (3327). **Paperwork guards run under
+  cargo does, never a pipe's** (3327); **paperwork guards run under
   `--lane`** (3373); **never delete under `~/ron-data`** (3375).
 - **At a trace's end, `runwiring.py runNNN` says what the word owes**
   (1729); a `Pair`'s word and a golden `WANT_CH*` list are consts

@@ -54,6 +54,34 @@ pub(crate) const CHINESE_X: Pair = Pair {
     starting_technology: 3,
 };
 // pub(crate) const DEAD: Pair = Pair { map_style: 9, ai_tribe: 9, difficulty: 9 };
+
+#[test]
+fn chinese_x_pair_is_no_other_lobby() {
+    let p = &CHINESE_X;
+    assert!(
+        !battery::BATTERY.iter().any(|l| l.ai_tribe == p.ai_tribe),
+        "a battery game fields the Chinese"
+    );
+}
+'''
+
+# A pair that walks the battery games of its nation is not a fence (the
+# Egyptian pairs' shape): the fence is the `!…any(…)` assertion alone.
+WALKER = '''
+pub(crate) const ROMAN_Y: Pair = Pair {
+    name: "GreatLakesRomanY",
+    map_style: 14,
+    ai_tribe: 6,
+    difficulty: 5,
+};
+
+#[test]
+fn roman_y_pair_is_no_other_lobby() {
+    let p = &ROMAN_Y;
+    for l in battery::BATTERY.iter().filter(|l| l.ai_tribe == p.ai_tribe) {
+        assert_ne!(l.difficulty, p.difficulty);
+    }
+}
 '''
 
 WORD = '''
@@ -73,6 +101,7 @@ def synthetic():
     (diff / 'battery.rs').write_text(BATTERY)
     (diff / 'chinese_x_pair.rs').write_text(PAIR)
     (diff / 'roman_word.rs').write_text(WORD)
+    (diff / 'roman_y_pair.rs').write_text(WALKER)
     return tmp, Path(tmp.name)
 
 
@@ -139,6 +168,37 @@ class Synthetic(unittest.TestCase):
         self.assertIn('(18, 6, 2)', text)
         self.assertNotIn('(14, 11, 0)', text)
 
+    # Loop 3955: `(10, 2, 2)` printed free, was taken whole (runs 1525/1526)
+    # and then refused by the Inca pairs' `*_is_no_other_lobby` fence, so
+    # the held-out game was re-taken as the Lakota — two captures for one.
+    # The fence is read off the tree: the `!battery::BATTERY.iter().any(|l|
+    # l.ai_tribe == p.ai_tribe)` assertion, `p` the pair's own literal.
+    def test_fences_are_read_off_the_tree(self):
+        self.assertEqual(refill.fences(self.root),
+                         {14: ['chinese_x_pair.rs CHINESE_X "GreatLakesChineseX"']})
+
+    def test_a_walker_over_the_battery_is_not_a_fence(self):
+        self.assertNotIn(6, refill.fences(self.root))
+
+    def test_a_fenced_nation_s_free_triple_is_not_free(self):
+        self.assertNotIn((7, 14, 1), self.occ)
+        with redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(refill.main(['--root', str(self.root), '7', '14', '1']), 1)
+        text = out.getvalue()
+        self.assertIn('fenced', text)
+        self.assertIn('chinese_x_pair.rs', text)
+        with redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(refill.main(['--root', str(self.root), '7', '6', '1']), 0)
+        self.assertEqual(out.getvalue().strip(), '(7, 6, 1) free')
+
+    def test_list_and_nation_print_the_fence(self):
+        with redirect_stdout(io.StringIO()) as out:
+            refill.main(['--root', str(self.root), '--nation', '14'])
+        self.assertIn('fence: ai_tribe 14', out.getvalue())
+        with redirect_stdout(io.StringIO()) as out:
+            refill.main(['--root', str(self.root), '--list'])
+        self.assertIn('fence: ai_tribe 14', out.getvalue())
+
 
 class LiveTree(unittest.TestCase):
     @classmethod
@@ -183,6 +243,16 @@ class LiveTree(unittest.TestCase):
 
     def test_every_pair_module_spells_its_lobby(self):
         self.assertEqual(refill.unparsed(ROOT), [])
+
+    def test_the_inca_are_fenced_and_10_2_2_is_not_free(self):
+        # 3943c's lobby (Loop 3955): the Inca pairs refuse any battery game
+        # on ai_tribe 2, and the triple read free before this was built.
+        fences = refill.fences(ROOT)
+        self.assertIn(2, fences)
+        self.assertTrue(any(w.startswith('inca_classical_pair.rs') for w in fences[2]), fences[2])
+        with redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(refill.main(['--root', str(ROOT), '10', '2', '2']), 1)
+        self.assertIn('fenced', out.getvalue())
 
 
 if __name__ == '__main__':

@@ -115,9 +115,10 @@ is append-only and amended in place, as it always was.
 - 106 extended by 107 — The sixty-sixth tranche: two Opus lanes, twenty in 11 h 12, the fourth melee whole at sea, every map chain whole, two pairs whole first try, the third lane returns, ten blind rows residue
 - 107 extended by 108 — The sixty-seventh tranche: three Opus lanes, twenty in 7 h 51, the fifth melee whole, Mesa 1 → 7 of 8, three lanes stand, eight blind rows residue
 - 108 extended by 109 — The sixty-eighth tranche: three Opus lanes, thirteen in 3 h 51 on supply, blind open 2, Mesa whole, three lanes stand; the implicit residue 81, the pool
-- 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4, 42.1 waiting so the third lane goes; the seventieth on the four open rows
-- 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0, entry 29's counters stand; the loop rests on Ramon's word
-- 111 standing — The seventy-first: phase 4 open, the territory read by name, East Meets West held out and whole first try
+- 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4, 42.1 waiting so the third lane goes
+- 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0, entry 29's counters stand
+- 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
+- 112 standing — The seventy-second: the map lane closed, two lanes on T71's rows; the renderer waits
 - 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11118,3 +11119,128 @@ tranche drains on supply — **met**, at seven.
 6. **The held-out style held on its first try.** 3941 landed at 23:0x: East Meets West, ported from MAPGEN §22's reading before its take, holds 8 of 8 phases on run1524 and was never read against. With it the map track's last number is whole, and the ten chain takes behind it are supply, not a measurement — three of them (Old World, Amazon Basin, Himalayas) Great Sahara's listing with the class renamed, so a route and a take each (3944 landed so at 22:55). **Himalayas (style 9) is the AI track's held-out map (entry 54), and its chain's walk falls under the held-out rule the same way East Meets West's does** (3946b, ruled at 3946's landing): the walk is a measurement, pinned at what it reads — 8 of 8 on run1529, first try, no sim change, so nothing was debugged against it — and a later `Mapgen:` parting on map 9 parks by frame and books nothing; a fix for the shared chain found on another style may move the Himalayas pin as a side effect, which is not debugging against it. The held-out game on Himalayas is untouched either way, since every game word installs the start dump. 3946a stands: run348, run464 and run465 already carried 7805..894, and §22.2 should have said so.
 
 **Against this entry's estimate**: the fan-out's price was the account's own window, 62 % at 19:05 to 75 % at 23:04, thirteen points at the measured 21.27 USD a point — about 277 USD list for 26 readers, 8 second readers, 6 adjudicators and the renderer draft, with the loop's three lanes and two bookings inside the same number; `lore spawns` does not see this harness's subagent transcripts, which is lore's to fix. The surplus bought what the loop could not: a map of the open third of the original with every row ruled and the consequential ones twice read and adjudicated, fourteen scored items, and two instrument gaps no capture would have found.
+
+## 112. The seventy-first tranche is scored on three Opus lanes at thirteen landings in 7 h 21, drained on supply with every style 3908b named ported and the held-out Mesa game at 15754, waiting reads 52.0 and the gate 21.0 so the rule's letter takes the third lane away, the seventy-second is booked on the territory reading's fourteen scored rows, two Loop items are built and two filed, and the renderer and the census defects wait on Ramon
+
+*2026-11-07, the seventy-second pass (the `steer` session, Fable), started
+by the drain's own `ccc clear steer --then`, which fired at 06:15 −05:00
+on the drain's push (the push after its whole gate, 48 minutes past the
+commit). The record is `docs/audit/2026-11-07-fable-pass-72.md`; this
+entry carries the decisions. Extends entries 110 and 111; amends the lane
+clause of `docs/LOOP.md`.*
+
+**What was measured.** Thirteen landings on three Opus 5.5 lanes at
+`--effort medium` in **7 h 21** from the base (`41c823576`, 22:0x on
+11-06) to the drain's commit (`979216b47`, 05:27 on 11-07), drained on
+supply: every chain 3908b named ported (3944–3953, MAPGEN §25–§34), the
+held-out style (3941, East Meets West) 8 of 8 on its first try, the cliff
+arm built (3942) and the held-out Mesa game scored 15754 of 24000 on its
+first try (3943). **No word moved; the blind list open 0; Golden 115;
+`Mapgen:` fifteen styles 8 of 8.** The rubric: the territory 544 → 545
+ported, 1291 → 1290 open (3942's `sim::cliff_mine`, the one port the
+census counts of the tranche's 3,570 sim lines), bytes 36.3 %, lockstep
+bytes 78.1 %, unit types 296 of 302, ages 8 of 8. **The price: 105.44 USD
+list for the workers over 14 sessions, 8.11 a landing. Waiting 52.0
+minutes a landing** (`tranche.py`, after `lore index`): the gate class
+21.0 a session, other 10.8, suite 9.8, capture 3.1, message 2.8; fifteen
+captures; **four `DEEP`** (3941 339 k, 3943 307 k, 3948 366 k, 3952 300 k).
+Twelve gates with the drain's — five whole at 45.9–64.4 release minutes,
+seven scoped and widened at 11.6–15.4 — **none red**, 384.6 minutes;
+admission 5,594.7 s summed, longest 582.8; eight gate ends of twelve past
+the cores. 113 `origin/worktree-att-*` stand, 112 merged. The disk 91 GiB
+free, under the seventieth's 109, so both first acts: the debug profile
+(28,731 files, 14.3 GiB) and `afsctool` over both archives, 105 after.
+The seventy-first pass's own price 35.08 USD list (166 Fable requests).
+
+**What it means.**
+
+1. **The rule's letter takes the third lane away, and the cost was the
+   chains by construction.** Entry 110 §2 returned the lane for a first
+   wave of three or more; the seventy-first read **52.0 and 21.0** on
+   three lanes, the waiting past the 31.6 a fifth above 26.3 allows and
+   the gate past 15.3. The letter is applied: **two Opus 5.5 lanes at
+   medium for the seventy-second**. What the waiting was: ten chain
+   takes of one track landing in the same two files — `floors.rs`'s
+   `MapgenStyle` rows and `rondata/src/mapgen.rs`'s arms — 3950's merge
+   backed out once and 3951's three times (114.0 minutes waiting: 44.3
+   gate, 31.1 suite, 31.7 message), each a `ccc update --keep-conflicts`
+   and a lane gate; the sixty-ninth's shape (entry 109 §1) on another
+   track. The row-list lever (Loop 3694, `row_list_overlap`) could not
+   have spared them, since every one of those conflicts also touched
+   code (`mapgen.rs`, `map_lakes.rs`, `sim/src/lib.rs`), so no regex is
+   added to `ROW_LISTS` and the supply's shape is the remedy: the
+   seventy-second's items are two tracks — the Iroquois pair's closing
+   window and the instrument's uncompared keys — then six chapters, and
+   two lanes keep the two tracks apart. The lane returns when a two-lane
+   tranche reads waiting under 26.3 and the gate under 15.3, or on
+   Ramon's word.
+2. **The map lane is closed, and the supply is the territory reading's
+   scored rows.** Every style 3908b named is ported and agrees on its
+   first walk; the held-out style and the held-out Mesa game are
+   measurements (entries 54, 61, 111 §6): 3943a parks the Mesa game's
+   parting by frame (15754, ours 6 draws and theirs 7, the long dumping
+   only its setup and closing blocks) and books nothing. With no word
+   open, the queue takes the fourteen rows the seventy-first pass parked
+   as T71-1 to T71-14, cheapest first and in dependency order: the
+   Iroquois cloak's three mask bits widened and ported on run1228b's
+   closing window (3958, T71-1; its `firsts` 67 the score) and the
+   Iroquois heal's standing test behind it (3959, T71-2); the keys the
+   dump prints and nothing compares, one family an item — `num_queued`
+   and `queue_time` (3960), the two `healing`s (3961), `retargets` and
+   the four garrison counts (3964), `mylos` (3965; all T71-9); the stance
+   bit `0x10` against `cant_reach` on run1017 (3962, T71-3); the style's
+   six territory limits (3963, T71-4); and six chapters with a capture
+   each — the mixed-group queue (3966, T71-14), the helicopter patrol
+   (3967, T71-6), the bomber strike (3968, T71-5), the closed building
+   with a technology queued (3969, T71-7, the technologies' `num_queued`
+   rows first), the building family's five rows (3970, T71-8) and the
+   death pool past 100 corpses (3971, T71-10). **A widening that goes red
+   on a held-out lobby is read there after, never debugged against**:
+   T71-1's bits are set on run897 block 1 too, and 3958 builds on the
+   pair's window alone. T71-11 is closed by the chains, T71-12's captures
+   owed stay parked, T71-13 is prose for the documents' owners.
+3. **The renderer and the census defects wait on Ramon, and nothing
+   moves on his silence.** `docs/RENDERER.md` §7.2 asks eight things —
+   the counter, the stack, replay viewer or playable first, the start
+   without the dump, the simulation track beside it, the crate layout,
+   the default viewer, the interface's scope — and no prompt has
+   answered since the proposal landed (`lore conversation` of the
+   seventy-first pass: every turn after the record was a reader's or the
+   commander's), so nothing of phase 4 is booked. The two `tools/census.py`
+   defects (entry 111; `territory_kind` filing a sweep-backed function as
+   `layout` before the census marks are asked, 82 rows; the port spelling
+   counting only a doc comment on a fn named exactly after the method,
+   272 rows; A+B 804 · 312 · 946 against 545 · 318 · 1290) stand measured
+   on the copies in the pass's `tmp/t71/toolsA` and `toolsB`, unlanded:
+   B reverses Loop 2286/2420's deliberate narrowing, and both are his to
+   accept per entry 111 §3's fence. The user's silence is consent to
+   nothing on the fenced list (`docs/LOOP.md`).
+4. **Two Loop items built, two filed, three closed; the backlog 14 → 11.**
+   **3955 built**: `refill.py` reads the pairs' nation fences off the
+   tree (24 on the live tree) and a free triple on a fenced nation reads
+   `fenced`, exit 1 — `(10, 2, 2)`, the Inca lobby 3943 took whole and
+   then had refused, is the live test; red first, 16 tests. **3954 a
+   clause**: the frame's `DEEP` line asks the draft for its harness's one
+   run, under the chapter kind's 13,000 ceiling by three trims. **3956
+   and 3957 filed** from entry 111 §5's two instrument gaps — a parsed
+   mask word with one compared bit is on neither coverage pin, and a
+   per-record key the crate emits for units only reads compared for every
+   record — not built this pass because 3958 and 3969 land in exactly
+   those rows and a pin built beside them conflicts at the merge; the
+   next pass builds both on the landed tree. **3929, 3926 and 3922
+   close** by the two-tranche rule (entry 54; filed by the sixty-ninth
+   tranche, unreached by the seventieth and seventy-first), their text
+   kept in the record. The eight standing rows (3848, 3821, 3799, 3382,
+   3350, 3237, 3188, 3143, 3118) each take their measured line; 3821's
+   arm fired at once a seventh time; 3848 not retried.
+5. **The pass's first acts, measured.** The disk 91, under 109, so both:
+   `cargo clean --profile dev` (28,731 files, 14.3 GiB) and `afsctool`
+   over both archives (105 after); the rubric's record; no lane row to
+   reap (the commander reaped all three); no scan owed with the open
+   rows at none; the suite re-timed (`suite_timings.py --stale-only`).
+
+**Against entry 111's estimate**: the held-out style holds on its first
+try — **met** (8 of 8, never read against); the ten chains land read
+against — **met**, all 8 of 8, no sim change on seven of them; the
+tranche drains on supply — **met**, at thirteen; the cliff number is a
+held-out game on Mesa — **met**, 15754 of 24000, parked by frame.

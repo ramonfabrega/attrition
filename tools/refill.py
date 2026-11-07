@@ -26,8 +26,18 @@ literal — their lobbies are their dumps' `GAME INFO` — and `SCORED_LOBBIES`
 is where they are held; `--list` names any pair module with no literal,
 and any `map_style:` the three-field pattern did not parse.
 
-Exit 0 and `free` when nothing holds the triple; exit 1 and the occupants
-otherwise. It reads and prints; it decides nothing.
+It also reads the nation fences (Loop 3955): a pair's `*_is_no_other_lobby`
+test that asserts `!battery::BATTERY.iter().any(|l| l.ai_tribe ==
+p.ai_tribe)`, `p` the pair's own literal, refuses every battery game on
+that nation. `(10, 2, 2)` read free, was taken whole (runs 1525/1526) and
+was then refused by the Inca pairs' fence, so the held-out game was
+re-taken as the Lakota — two captures for one. A triple nothing holds
+whose nation is fenced reads `fenced`, exit 1; a pair that only walks the
+battery games of its nation (`.filter(…)`) is not a fence.
+
+Exit 0 and `free` when nothing holds the triple and no fence refuses its
+nation; exit 1 and the occupants (or the fence) otherwise. It reads and
+prints; it decides nothing.
 """
 import argparse
 import re
@@ -45,6 +55,9 @@ SCORED = re.compile(r'const\s+SCORED_LOBBIES\s*:[^=]*=\s*&\[(.*?)\n\];', re.S)
 TUPLE = re.compile(r'\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\)')
 CONST = re.compile(r'const\s+(\w+)\s*:\s*\w+\s*=\s*\w+\s*\{')
 NAME = re.compile(r'name:\s*"([^"]*)"')
+FENCE = re.compile(
+    r'!\s*battery::BATTERY\s*\.iter\(\)\s*\.any\(\|l\|\s*l\.ai_tribe\s*==\s*p\.ai_tribe\s*\)')
+BIND = re.compile(r'let\s+p\s*=\s*&(?:[A-Za-z_][\w:]*::)?([A-Z][A-Z0-9_]*)\s*;')
 
 
 @dataclass
@@ -126,6 +139,33 @@ def sources(root):
     return sorted((root / DIFF).rglob('*.rs'))
 
 
+def fences(root=ROOT):
+    """`{ai_tribe: [where]}` for every nation a pair's test fences off the
+    battery (Loop 3955): the `!battery::BATTERY.iter().any(|l| l.ai_tribe ==
+    p.ai_tribe)` assertion, `p` bound to a literal of the same file."""
+    out = {}
+    for path in sources(root):
+        code = strip(path.read_text())
+        if not FENCE.search(code):
+            continue
+        consts = {}
+        for t, o in literals(path, root):
+            parts = o.where.split(' ')
+            if len(parts) >= 2:
+                consts[parts[1]] = (t[1], o.where)
+        for m in FENCE.finditer(code):
+            binds = list(BIND.finditer(code[:m.start()]))
+            if not binds:
+                continue
+            hit = consts.get(binds[-1].group(1))
+            if hit is None:
+                continue
+            tribe, where = hit
+            if where not in out.setdefault(tribe, []):
+                out[tribe].append(where)
+    return out
+
+
 def occupants(root=ROOT):
     """`{triple: [Occupant]}` for every triple the tree holds."""
     occ = {}
@@ -175,10 +215,14 @@ def main(argv=None):
     ap.add_argument('--root', type=Path, default=ROOT, help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
     occ = occupants(a.root)
+    fence = fences(a.root)
     if a.list or a.nation is not None:
         keys = sorted(k for k in occ if a.nation is None or k[1] == a.nation)
         for k in keys:
             show(k, occ[k])
+        for tribe in sorted(t for t in fence if a.nation is None or t == a.nation):
+            for where in fence[tribe]:
+                print(f'fence: ai_tribe {tribe} — {where} refuses every battery game on it (Loop 3955)')
         if a.list:
             for b in bare_pairs(a.root):
                 print(f'note: {b} carries no lobby literal (its lobby is its dumps\' GAME INFO)')
@@ -191,6 +235,10 @@ def main(argv=None):
         ap.error('give map_style ai_tribe difficulty, --list or --nation')
     t = tuple(a.triple)
     if t not in occ:
+        if t[1] in fence:
+            print(f'{t} fenced: ' + '; '.join(fence[t[1]])
+                  + f' refuses every battery game on ai_tribe {t[1]} (Loop 3955)')
+            return 1
         print(f'{t} free')
         return 0
     show(t, occ[t])
