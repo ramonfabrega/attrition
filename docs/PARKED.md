@@ -14841,13 +14841,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BZ — reserved
+## Parked by item 3947, 2026-11-07 — African Watering Hole's chain take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3947a) **African Watering Hole's two unreached mask arms.** `MapAfricanWateringHole::make_continents@0069b650`
+restarts a generation when `grow_region` ends short (`je 0x69b974` on a zero return), and floors
+`avoid_continent` at 4. run1530 grows its 180-cell lake in one generation, and with one region nothing reads
+`avoid_continent`. So breaking either arm fails nothing (MAPGEN §28.3, §28.4). A take whose lake stalls would
+decide the restart: a larger nation count or a smaller map at style 11. Names no score.
 
 ## Parked by the next landing, slot CA — reserved
 
