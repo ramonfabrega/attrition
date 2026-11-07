@@ -287,6 +287,12 @@ pub const MAPGEN: Mapgen = Mapgen {
             ported: 8,
             phases: 8,
         },
+        MapgenStyle {
+            map: "Mediterranean",
+            // 0 → 8 by item 3948 (MAPGEN §29), on run1531's one file.
+            ported: 8,
+            phases: 8,
+        },
     ],
 };
 
@@ -658,7 +664,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [

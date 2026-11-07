@@ -1187,6 +1187,24 @@ pub fn himalayas_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Mediterranean setup path: from its
+/// first `MapMediterranean::make_continents@0069add0` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §29, item 3948), up to the first that
+/// is none.
+pub fn mediterranean_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let me = 0x0069_add0..0x0069_b650;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| me.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !me.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7581,6 +7599,8 @@ mod tests {
         xml: &'static str,
         /// The trace's `make_continents` segment for this style.
         mask: fn(&[SetupDraw]) -> &[SetupDraw],
+        /// The port the style's `make_continents` is.
+        make: Mask,
         /// The files carrying 7805..894, and the traces whose streams the
         /// checks walk: floors.
         files: usize,
@@ -7603,7 +7623,20 @@ mod tests {
         lays_rivers: bool,
         /// The files whose start dump prints the heights: a floor.
         height_files: usize,
+        /// Whether the half-land gate opens (a `SEA_MAP` style's shores,
+        /// §29), so `Terrain::init` reads the 706 heights as East Indies'
+        /// does (item 3844).
+        halfland: bool,
         walks: OnceLock<Option<Vec<ChainWalk>>>,
+    }
+
+    /// Which port a chain's `make_continents` is: Great Sahara's listing at
+    /// another address (§25.1, §26.1, §27.1), or Mediterranean's own body
+    /// (§29.1).
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Mask {
+        GreatSahara,
+        Mediterranean,
     }
 
     /// Old World (style 6, §25): run1527, item 3944 — 21 records 734..815
@@ -7614,6 +7647,7 @@ mod tests {
         style: 6,
         xml: "OLDWORLD.xml",
         mask: old_world_part,
+        make: Mask::GreatSahara,
         files: 1,
         traces: 1,
         checked: 8,
@@ -7622,6 +7656,7 @@ mod tests {
         moves_a_good: true,
         lays_rivers: true,
         height_files: 1,
+        halfland: false,
         walks: OnceLock::new(),
     };
 
@@ -7633,6 +7668,7 @@ mod tests {
         style: 8,
         xml: "AMAZON.xml",
         mask: amazon_basin_part,
+        make: Mask::GreatSahara,
         files: 1,
         traces: 1,
         checked: 8,
@@ -7641,6 +7677,7 @@ mod tests {
         moves_a_good: true,
         lays_rivers: true,
         height_files: 1,
+        halfland: false,
         walks: OnceLock::new(),
     };
 
@@ -7655,6 +7692,7 @@ mod tests {
         style: 9,
         xml: "HIMALAYAS.xml",
         mask: himalayas_part,
+        make: Mask::GreatSahara,
         files: 4,
         traces: 4,
         checked: 8,
@@ -7663,6 +7701,28 @@ mod tests {
         moves_a_good: false,
         lays_rivers: false,
         height_files: 2,
+        halfland: false,
+        walks: OnceLock::new(),
+    };
+
+    /// Mediterranean (style 12, §29): run1531, item 3948 — its own
+    /// `make_continents` ported (`sim::map_mediterranean`).
+    static MEDITERRANEAN: Chain = Chain {
+        label: "Mediterranean",
+        map: "Mediterranean",
+        style: 12,
+        xml: "MEDITERRANEAN.xml",
+        mask: mediterranean_part,
+        make: Mask::Mediterranean,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 1,
+        halfland: true,
         walks: OnceLock::new(),
     };
 
@@ -7701,6 +7761,9 @@ mod tests {
         part4: (u32, u32, Vec<(String, i64)>),
         /// The mask's words, and the trace's `make_continents` segment.
         mask: (Vec<u32>, Vec<SetupDraw>),
+        /// The mask's draws, site and word, when the port records them
+        /// (Mediterranean's; Great Sahara's draw on a bare stream).
+        mask_log: Vec<SetupDraw>,
         /// `place_all` through the last `compute_val`, ours and the trace's.
         make: (Vec<SetupDraw>, Vec<SetupDraw>),
         /// `make_rivers`' draws, ours and the trace's.
@@ -7770,17 +7833,39 @@ mod tests {
                 checks.push((ff.clone(), *l, ours, theirs));
             }
         };
-        // Phase 1: the mask, four draws.
+        // Phase 1: the mask — Great Sahara's four draws, or Mediterranean's
+        // growers.
         let mut grid = MapGrid::new(g.xs, g.ys);
         let mut d = Draws::new(before.2);
-        let mut twin = Rng::new(before.2);
-        let start_dist = great_sahara_make_continents(&mut grid, g.nations, &mut d.rng);
-        assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
         let mut words = Vec::new();
-        while twin.seed != d.rng.seed && words.len() < 64 {
-            words.push(twin.seed);
-            twin.roll();
+        match c.make {
+            Mask::GreatSahara => {
+                let mut twin = Rng::new(before.2);
+                let start_dist = great_sahara_make_continents(&mut grid, g.nations, &mut d.rng);
+                assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
+                while twin.seed != d.rng.seed && words.len() < 64 {
+                    words.push(twin.seed);
+                    twin.roll();
+                }
+            }
+            Mask::Mediterranean => {
+                let style = lake_style(
+                    root,
+                    c.xml,
+                    (g.xs, g.ys, g.nations, g.map_size),
+                    base_edge_before(before.2),
+                    max_range_349(root),
+                )
+                .expect("Mediterranean's style");
+                let map = sim::map_mediterranean::mediterranean_make_continents(
+                    &mut grid, g.nations, style, &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: {map:?}");
+                words = d.log.iter().map(|x| x.1).collect();
+            }
         }
+        let mask_log = d.log.clone();
         check(&grid, &d, parts, "map.cpp", 7807);
         // Phase 2: the zero-draw passes.
         let mut regions = Regions::default();
@@ -7823,12 +7908,71 @@ mod tests {
         compute_all_vals(&mut grid, &mut d, &makes);
         check(&grid, &d, parts, "map.cpp", 7945);
         let make_log = d.log.clone();
-        // Phase 6: `Terrain::init` without heights, part 4 at 734.
+        // Phase 6: `Terrain::init`, part 4 at 734 — without heights, or, on
+        // a style whose gate opens (§29), East Indies' half-land on the 706
+        // heights (item 3844).
         let sea = sea_map(root, c.xml).expect("the style's SEA_MAP");
-        let (sea_map, mut coord, half) = terrain_init_without_heights(&mut grid, sea)
-            .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
-        let p = half.parts().expect("empty half-land lists");
+        let combo = sim::halfland::Combo {
+            coast_base: ts.coast_base,
+            num_tiles: [
+                Some(ts.base_tiles),
+                Some(ts.coastal_tiles),
+                Some(ts.ocean_tiles),
+                None,
+            ],
+        };
+        let p = sim::terrain_init::HalfLand::default()
+            .parts()
+            .expect("empty half-land lists");
         parts = [p[0], p[1], p[2], p[3]];
+        let mut depth = 0;
+        let mut sea_z = None;
+        let (sea_map, mut coord) = if c.halfland {
+            let sea_map = sim::terrain_init::sea_map_after_make(WORLD_SEA_MAP_BEFORE, sea);
+            let mut coord = coord_flags(&grid);
+            let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+            let records = terrain_init_records(g);
+            let at720 = records
+                .iter()
+                .position(|(f, l, _, _)| f == "Terrain.cpp" && *l == 720)
+                .unwrap_or(records.len());
+            for (f, l, _, _) in &records[..at720] {
+                check(&grid, &d, parts, f, *l);
+            }
+            let lists = sim::terrain_init::check_and_set_halfland_heights(
+                &mut grid, &mut coord, &z, combo, &mut depth,
+            )
+            .unwrap_or_else(|e| panic!("{name}: the half-land: {e:?}"));
+            let p = lists.parts().expect("the lists' walk");
+            parts = [p[0], p[1], p[2], p[3]];
+            check(&grid, &d, parts, "Terrain.cpp", 720);
+            sim::halfland::create_doobers_flags(&mut grid);
+            sim::map_heights::create_doobers(&grid, &mut z);
+            for (f, l, _, _) in records.iter().skip(at720 + 1) {
+                if !(f == "map.cpp" && *l == 5012) {
+                    check(&grid, &d, parts, f, *l);
+                }
+            }
+            sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                .with_depth(depth)
+                .convert_beach_to_sandy()
+                .unwrap_or_else(|e| panic!("{name}: the beach: {e:?}"));
+            sea_z = Some(z);
+            (sea_map, coord)
+        } else {
+            let (sea_map, coord, half) = terrain_init_without_heights(&mut grid, sea)
+                .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
+            let p = half.parts().expect("empty half-land lists");
+            parts = [p[0], p[1], p[2], p[3]];
+            for (f, l, _, _) in terrain_init_records(g) {
+                if !(f == "map.cpp" && *l == 5012) {
+                    check(&grid, &d, parts, f, *l);
+                }
+            }
+            (sea_map, coord)
+        };
         let part4 = match (g.at("map.cpp", 7945), g.at("setup.cpp", 734)) {
             (Some(b), Some(a)) => {
                 let ours = adler_rewrite(
@@ -7855,11 +7999,6 @@ mod tests {
             }
             _ => (0, 0, Vec::new()),
         };
-        for (f, l, _, _) in terrain_init_records(g) {
-            if !(f == "map.cpp" && *l == 5012) {
-                check(&grid, &d, parts, f, *l);
-            }
-        }
         // Phase 7: the rivers.
         let rivers = river_list(root, c.xml).expect("a RIVERLIST");
         let phase = Phase {
@@ -7887,26 +8026,20 @@ mod tests {
         // `Cliffs::init` (no `CLIFFS` group: inert).
         let install = crate::Install::new(root);
         let meshes = crate::mountains::meshes(&install);
-        let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
-        sim::map_heights::create_doobers(&grid, &mut z);
-        let combo = sim::halfland::Combo {
-            coast_base: ts.coast_base,
-            num_tiles: [
-                Some(ts.base_tiles),
-                Some(ts.coastal_tiles),
-                Some(ts.ocean_tiles),
-                None,
-            ],
-        };
+        let mut z = sea_z.unwrap_or_else(|| {
+            let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+            let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+            sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+            sim::map_heights::create_doobers(&grid, &mut z);
+            z
+        });
         let troughs = sim::map_troughs::calculate_all(
             &mut grid,
             &mut coord,
             &mut z,
             ts.riverbase,
             combo,
-            0,
+            depth,
             Some(&rows.goods),
         )
         .unwrap_or_else(|e| panic!("{name}: the troughs: {e:?}"));
@@ -7958,6 +8091,7 @@ mod tests {
             checks,
             part4,
             mask: (words, theirs_mask),
+            mask_log,
             make: (make_log, theirs_make),
             rivers: (river_log, theirs_rivers),
             printed,
@@ -8047,7 +8181,15 @@ mod tests {
             }
             walked += 1;
             let words: Vec<u32> = theirs.iter().map(|x| x.1).collect();
-            eprintln!("{}: mask draws {theirs:x?}", w.name);
+            if theirs.len() <= 64 {
+                eprintln!("{}: mask draws {theirs:x?}", w.name);
+            } else {
+                eprintln!("{}: {} mask draws", w.name, theirs.len());
+            }
+            if !w.mask_log.is_empty() {
+                let parted = stream_parts(&w.name, "the mask", &w.mask_log, theirs);
+                assert!(parted.is_none(), "{}", parted.unwrap_or_default());
+            }
             assert_eq!(&words, ours, "{}: the mask's words", w.name);
         }
         assert!(walked >= c.traces, "the mask walked {walked} traces");
@@ -8388,5 +8530,17 @@ mod tests {
         himalayas_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         himalayas_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         himalayas_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        MEDITERRANEAN,
+        mediterranean_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        mediterranean_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        mediterranean_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        mediterranean_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        mediterranean_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        mediterranean_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        mediterranean_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        mediterranean_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }

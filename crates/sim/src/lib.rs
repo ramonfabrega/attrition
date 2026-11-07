@@ -147,6 +147,7 @@ pub mod map_east_indies;
 pub mod map_east_west;
 pub mod map_heights;
 pub mod map_lakes;
+pub mod map_mediterranean;
 pub mod map_resources;
 pub mod map_rivers;
 pub mod map_troughs;
