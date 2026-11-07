@@ -2414,6 +2414,9 @@ fn widen_civilians_walk(
                 if !armed {
                     continue;
                 }
+                if std::env::var_os("RON_PROBE_3970").is_some() && !cycles {
+                    eprintln!("PROBE3970 {run} {n} {w}/{o} theirs {ox}/{whom} ours {:?}", bd.target.is_some());
+                }
                 let (to, tw) = match bd.target {
                     Some(sim::combat::Obj::Unit(x)) => (
                         i64::from(s.built.sim.units[x].index),
