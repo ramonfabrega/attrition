@@ -1603,7 +1603,8 @@ mod bodies {
         pin_eq!(
             missing.len(),
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            1118,
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            1123,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1680,8 +1681,9 @@ mod bodies {
             missing.len(),
             // Item 2384: +7, `aggression[1..8]`, which the short form
             // does not print. Item 3255: +47, the rare masks and
-            // `rares_collected`.
-            1_118 + 1_531 + 2,
+            // `rares_collected`. Item 3964: +5, `retargets` and the four
+            // garrison counts.
+            1_123 + 1_531 + 2,
             "the keys run96's records do not carry"
         );
         pin_eq!(

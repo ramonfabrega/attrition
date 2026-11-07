@@ -143,8 +143,7 @@ pub fn garrison_tail<V: RemoveInsideView>(v: &mut V, delta: i32) {
 /// its building.
 ///
 /// SEAM: the container's slot `0x20` is not modelled (the view answers true),
-/// the unit record's `+0x68 & 1` is not read (the view answers false), and the
-/// chain words do not exist, so the splice is empty and the unit says it is in
+/// and the chain words do not exist, so the splice is empty and the unit says it is in
 /// a chain.
 pub(crate) struct SimRemoveInside<'a> {
     pub(crate) sim: &'a mut crate::Sim,
@@ -169,7 +168,9 @@ impl RemoveInsideView for SimRemoveInside<'_> {
     fn clear_own_links(&mut self) {}
     fn add_to_world(&mut self) {}
     fn masked(&mut self) -> bool {
-        false
+        // `unit_masks & 1`, the decoy bit (item 3964, `docs/AI.md` §408): a
+        // decoy moves no garrison count either way.
+        self.sim.units[self.unit].decoy
     }
     fn is_captain(&mut self) -> bool {
         self.sim.units[self.unit].captain
