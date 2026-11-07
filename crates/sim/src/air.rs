@@ -2888,6 +2888,44 @@ mod launch_tests {
         assert_eq!(s.units[u].mana_burn, 0, "and never below 0");
     }
 
+    /// **The heal inside** (item 3961, `Unit::process@00610bc0`'s air arm,
+    /// `006110a0`–`611154`): `AIRCRAFT_HEAL_RATE[heal level]` frames apart
+    /// on the plane's phase, a point back and `healing = 1`; off the phase
+    /// nothing is written, and on the map `healing` is 0 every frame.
+    /// run1151c: who=1's planes in their Airbase (heal level 1, 16 frames,
+    /// the Bomber's two thirds 11) read 1 one block in 11. Made to fail
+    /// with the phase dropped (the second assertion), with the rate's level
+    /// ignored (the first), and with the map's write gone (the last).
+    #[test]
+    fn a_plane_inside_heals_on_its_phase_and_marks_healing_1() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        let owner = s.units[u].owner as usize;
+        s.nation[owner].heal_level = 1;
+        let hurt = s.units[u].max_health - 3;
+        s.units[u].health = hurt;
+        let o = i64::from(s.units[u].index);
+        let due = 16 * 100 - o;
+        s.recover_mana(u, due);
+        assert_eq!(
+            (s.units[u].health, s.units[u].healing),
+            (hurt + 1, 1),
+            "on the level-1 phase: a point back and the mark"
+        );
+        s.units[u].healing = 0;
+        s.recover_mana(u, due + 1);
+        assert_eq!(
+            (s.units[u].health, s.units[u].healing),
+            (hurt + 1, 0),
+            "off it: nothing"
+        );
+        s.units[u].healing = 7;
+        s.come_out(u);
+        s.recover_mana(u, due + 2);
+        assert_eq!(s.units[u].healing, 0, "on the map: 0");
+    }
+
     /// **A strike from inside a base** (`Group::action_flight@006fb260`'s
     /// inside arm, run265's 768): one `StrafeOrder` on the target, home
     /// the base, `mandatory`, the action bit, `returning` 0 — and the

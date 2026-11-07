@@ -322,12 +322,20 @@ mod tests {
             (sim.units[c].max_health - 3, 5),
             "off the phase, nothing"
         );
+        assert_eq!(sim.units[c].healing, 0, "no heal, no clock");
         sim.civilian_heal(c, due);
         assert_eq!(
             (sim.units[c].health, sim.units[c].damage_frac),
             (sim.units[c].max_health - 2, 0),
             "on the phase, a point and the fraction"
         );
+        // Item 3961: the heal sets `healing` to `max(45, healing)` —
+        // run1151c's Citizen `0/8` reads 45 on 4493 and 4538.
+        assert_eq!(sim.units[c].healing, 45, "the clock, at the rate");
+        sim.units[c].healing = 50;
+        sim.units[c].health -= 1;
+        sim.civilian_heal(c, due + 45);
+        assert_eq!(sim.units[c].healing, 50, "a longer clock stands");
         let os = i64::from(sim.units[soldier].index);
         sim.civilian_heal(soldier, 45 * 100 - os);
         assert_eq!(
