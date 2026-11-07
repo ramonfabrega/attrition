@@ -10022,6 +10022,10 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     }
     sim.buildings[ghost].active = false;
     assert_eq!(
+        sim.buildings[stray].city, None,
+        "the stray stands in no city"
+    );
+    assert_eq!(
         sim.first_library(0),
         Some(first),
         "not the unbuilt, not the cityless"
