@@ -18473,7 +18473,11 @@ the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical
 - **The test.** `a_helicopter_in_a_patrolled_group_takes_the_land_arm` (`group.rs`), a squad with a Helicopter and a
   Helicopter alone, each member a `GroupPatrolOrder`.
 - **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE` = **1000**, the trace's end, closed
-  (`chapter_one_hundred_and_twenty_three_holds_to_the_golden_word`). On the unfixed tree: the journal's mutation.
+  (`chapter_one_hundred_and_twenty_three_holds_to_the_golden_word`). On the unfixed tree the word is 633.
+- **The value diff on the frame the state first parted.** On the unfixed tree the widening's first block is 622, 64
+  keys: `0/6 orders.len` ours 0 / theirs 2 (the `GroupPatrolOrder` and its `GROUPATTACKTOORDER` leg), the same on
+  `0/7`..`0/9`, and `0/6 dest_angle` ours 1431655765 / theirs -1365770240. Built, all of them agree, and the window
+  parts on the standing `form` rows alone.
 - **The widening.** Over 605..1000 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_THREE` (604, 1001), both directions, the
   pool too), it parts on the eleven standing `form` rows and nothing else (`WANT_CH123`). The `cant_reach` tally is
   2, as chapter one hundred and twenty-two's on the same start. The two Helicopters' birth climbs and flights read

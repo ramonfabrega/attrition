@@ -6539,7 +6539,9 @@ the code):
 
 - the arm for a unit in no group, which pushes its own bare `ATTACK_TO`;
 - the tail's transport scramble;
-- `action_patrol`'s air hand-off to `action_air_patrol`;
+- ~~`action_patrol`'s air hand-off to `action_air_patrol`;~~ built by items 3911 and 3967 (`docs/GOLDEN.md`
+  §158, §173): a plane leader or an alive plane member (`count(COUNT_DOMAIN, 4)`, vslot `+0xc0`) — a Helicopter
+  is no plane and takes the land arm;
 - the `QUEUE_LAST` shift-click append that makes a third point (and
   `redo_patrol_order`'s copy of it);
 - the off-map member's plain move;
