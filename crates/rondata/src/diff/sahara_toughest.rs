@@ -2466,15 +2466,22 @@ mod tests {
             // `MAKE[3].val` 276800 against 283200 (10382) — and nothing
             // from 10383 to 10395. Its `defense` 1 against 2 on 10178
             // left with item 1377 (`Build::init`'s `+1`).
-            [(10139, 28)],
+            // Item 3962: +10 on 10364, `cant_reach` ours 0 / theirs 1 on
+            // the ten non-captain members of a General's decoy squads
+            // born on frame 10363 (1/93 1/94 1/97 1/98 1/101 1/102 1/104
+            // 1/105 1/108 1/109, `flags` 25; their captains and the single
+            // decoys 9). No writer read yet (parked 3962a, `docs/AI.md`
+            // §406).
+            [(10139, 28), (10364, 10)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1371: 156 → 87, the caravan's 39 + 19 + 9 + 2 gone
         // (measured on the tree merged with 1358's). Item 1377: 87 → 86,
-        // who=1's `defense` on 10178.
+        // who=1's `defense` on 10178. Item 3962: 28 → 38, the decoy
+        // members' `cant_reach` on 10364.
         pin_eq!(
             w.firsts.len(),
-            28,
+            38,
             "every key parted on run547 (156 before item 1371)"
         );
     }
