@@ -1306,7 +1306,8 @@ mod tests {
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            179_840, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3969: +85 keys a leader block (the technologies' `num_queued`).
+            193_440, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1412,7 +1413,8 @@ mod tests {
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            193_328, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3969: +85 keys a leader block (the technologies' `num_queued`).
+            207_948, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1609,7 +1611,8 @@ mod tests {
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            40_464, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3969: +85 keys a leader block (the technologies' `num_queued`).
+            43_524, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1750,7 +1753,8 @@ mod tests {
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            292_240, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3969: +85 keys a leader block (the technologies' `num_queued`).
+            314_340, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1891,7 +1895,8 @@ mod tests {
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            67_440, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3969: +85 keys a leader block (the technologies' `num_queued`).
+            72_540, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2991,7 +2996,8 @@ mod tests {
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            550_760, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3969: +85 keys a leader block (the technologies' `num_queued`).
+            592_410, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
