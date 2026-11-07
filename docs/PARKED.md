@@ -14836,13 +14836,13 @@ The second reading disagrees, and names an entry (`docs/audit/2026-11-06-item-39
   hooked on `005fa802` (`resolve_unit_collision`'s `find_upath` call) on recon3940-1's staging would show it.
   **Score**: none.
 
-## Parked by the next landing, slot BT — reserved
+## Parked by item 3964, 2026-11-07 — `LEADERDATA retargets` and the four garrison counts, compared
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3964a. run1075's citizens garrisoned, which no walk reaches** (`docs/AI.md` §408): the one dump on disk with a
+  non-zero garrison count. who=1's `peasants_garr` is 1 from block 2095 and 5 by 2820 (732 records, the other three
+  counts 0). run1075 is the coverage pair's `cover=1` twin (2034..2820, RUNS run1075), and no harness walks it, so the
+  compare reads 0 against 0 everywhere it runs. **Score**: none; a widening over run1075's 2095 would compare it, and
+  the coverage pair is closed.
 
 ## Parked by item 3942, 2026-11-06 — the cliff arm of a mine, built
 

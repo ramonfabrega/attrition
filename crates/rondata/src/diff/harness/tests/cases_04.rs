@@ -1843,7 +1843,8 @@ mod bodies {
         // before item 1209, which compares `agendas[·]`, and 1,062 before
         // item 1293, which compares `flock_stamp`.
         // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-        pin_eq!(leader_rows, 89520, "40 blocks x 2 leaders x 1,065 keys");
+        // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+        pin_eq!(leader_rows, 89920, "40 blocks x 2 leaders x 1,065 keys");
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -1916,7 +1917,8 @@ mod bodies {
         pin_eq!(
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            1325000,
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            1327500,
             "250 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(
@@ -2044,7 +2046,8 @@ mod bodies {
         pin_eq!(
             leader_rows,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            3339000,
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            3345300,
             "630 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         pin_eq!(

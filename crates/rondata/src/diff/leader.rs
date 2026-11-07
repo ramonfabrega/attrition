@@ -285,6 +285,28 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         i64::from(c.active_wars_with),
     ));
     out.push(("ally_mask".to_string(), i64::from(c.ally_mask)));
+    // **The four garrison counts** (item 3964, `docs/AI.md` §408):
+    // `LeaderData +0xa28..+0xa34`, which only `Object::insert_inside`
+    // (+1) and `Object::remove_from_inside` (−1) move, for a captain that
+    // is not a decoy going into or out of a building — a peasant, else a
+    // Stable type, else a scout, else a Barracks type
+    // (`Sim::track_garrison`). `calc_gather`'s Lakota and American
+    // terms subtract them.
+    for (k, v) in [
+        ("peasants_garr", c.peasants_garr),
+        ("stable_garr", c.stable_garr),
+        ("scout_garr", c.scout_garr),
+        ("barracks_garr", c.barracks_garr),
+    ] {
+        out.push((k.to_string(), i64::from(v)));
+    }
+    // `retargets` (`+0x9f4`, item 3964): the frame's count of invalid
+    // targets `Unit::fight` and the cavalry archer searched past, zeroed at
+    // `Leader::process`'s head ([`sim::Sim::retargets`]).
+    out.push((
+        "retargets".to_string(),
+        i64::from(built.sim.retargets.get(who).copied().unwrap_or(0)),
+    ));
     // `known_rares` (item 327): `calc_gather`'s sum of the census's
     // `reg_known_rares`, and the gate of `create_units`' merchant arm.
     out.push(("known_rares".to_string(), i64::from(a.known_rares)));
@@ -717,6 +739,11 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "active_wars",
         "active_wars_with",
         "ally_mask",
+        "peasants_garr",
+        "stable_garr",
+        "scout_garr",
+        "barracks_garr",
+        "retargets",
         "peasant_high",
         "scholar_high",
         "merchant_high",
@@ -1264,7 +1291,8 @@ mod tests {
         assert_eq!(
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            179_040, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            179_840, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1369,7 +1397,8 @@ mod tests {
         assert_eq!(
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            192_468, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            193_328, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1565,7 +1594,8 @@ mod tests {
         assert_eq!(
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            40_284, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            40_464, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1705,7 +1735,8 @@ mod tests {
         assert_eq!(
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            290_940, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            292_240, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1845,7 +1876,8 @@ mod tests {
         assert_eq!(
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            67_140, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            67_440, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2944,7 +2976,8 @@ mod tests {
         assert_eq!(
             compared,
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
-            548_310, // item 2384: +7 a leader block, `aggression[1..8]` compared
+            // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
+            550_760, // item 2384: +7 a leader block, `aggression[1..8]` compared
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump

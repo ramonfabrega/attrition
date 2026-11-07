@@ -2204,14 +2204,21 @@ impl Sim {
     /// tail alone, [`remove_inside_view::garrison_tail`] behind the captain
     /// test — `insert_inside` is not swept.
     ///
-    /// SEAM: the gate's `unit_masks & 1` is not read, nor the container's
-    /// slot `0x20`.
+    /// **A decoy moves no count** (item 3964, `docs/AI.md` §408): both
+    /// functions test the unit record's `unit_masks & 1` (`+0x68`) ahead of
+    /// the captain test — `insert_inside@00647e90`'s `(piVar2[0x1a] & 1) ==
+    /// 0`, `remove_from_inside`'s the same — so a French decoy garrisoned
+    /// counts as nothing.
+    ///
+    /// SEAM: the container's slot `0x20` is not modelled, nor
+    /// `insert_inside`'s `in_a_building` — every caller here puts the unit in
+    /// a building.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
         use remove_inside_view::{RemoveInsideView, SimRemoveInside};
         let mut view = SimRemoveInside { sim: self, unit: u };
         if delta < 0 {
             remove_inside_view::remove_from_inside_steps(&mut view);
-        } else if view.is_captain() {
+        } else if !view.masked() && view.is_captain() {
             remove_inside_view::garrison_tail(&mut view, delta);
         }
     }
