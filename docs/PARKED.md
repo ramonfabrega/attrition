@@ -14911,13 +14911,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CD — reserved
+## Parked by item 3951, 2026-11-07 — Colonial Powers' chain take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3951a) **Colonial Powers' outsiders, restart and clamp: unreached by any take.**
+`MapColonialPowers::make_continents@00697dd0` puts on the old world the live seats with `flags & 5 == 1` whose team
+no `flags & 5 == 5` seat is on. It does this only when `team_style` is 7 and the semaphore's bit 8 is clear. On
+run1534 (`TEAM_STYLE 1`) it puts nobody there. `sim::map_colonial` takes that count as an argument, and no caller
+computes it. The restart (`jmp 0x697e22` on a short `grow_region`) and the start clamp to `5..=side − 5` are reached
+only on the port's own 24×24 and 28×28 maps (MAPGEN §32.3, §32.4). A take would decide them on a `team_style` 7
+lobby, or on a map under 40 cells a side. No such lobby is known. Names no score.
 
 ## Parked by the next landing, slot CE — reserved
 
