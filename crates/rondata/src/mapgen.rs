@@ -1189,6 +1189,24 @@ pub fn himalayas_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of an African Watering Hole setup path:
+/// from its first `MapAfricanWateringHole::make_continents@0069b650` draw,
+/// every draw whose site is that function, `Map::grow_region`,
+/// `Map::large_stamp` or `Map::grow_valid` (`docs/MAPGEN.md` §28, item
+/// 3947), up to the first that is none.
+pub fn watering_hole_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let awh = 0x0069_b650..0x0069_bb20;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| awh.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !awh.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7613,6 +7631,16 @@ mod tests {
     /// and its eight checks are the same for every chain whose mask is a
     /// built one's listing, and a chain is a row here and one
     /// [`chain_tests`] line.
+    /// Which `make_continents` port a chain's mask phase runs.
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum MaskPort {
+        /// Great Sahara's ([`great_sahara_make_continents`]): Old World's
+        /// and Amazon Basin's listings are 0x69bf70's (§25.1, §26.1).
+        GreatSahara,
+        /// African Watering Hole's own, a lake grown and inverted (§28).
+        WateringHole,
+    }
+
     struct Chain {
         /// The style's name in prose, and its `floors::MAPGEN` row.
         label: &'static str,
@@ -7622,6 +7650,8 @@ mod tests {
         xml: &'static str,
         /// The trace's `make_continents` segment for this style.
         mask: fn(&[SetupDraw]) -> &[SetupDraw],
+        /// The port the mask phase runs.
+        port: MaskPort,
         /// The files carrying 7805..894, and the traces whose streams the
         /// checks walk: floors.
         files: usize,
@@ -7655,6 +7685,7 @@ mod tests {
         style: 6,
         xml: "OLDWORLD.xml",
         mask: old_world_part,
+        port: MaskPort::GreatSahara,
         files: 1,
         traces: 1,
         checked: 8,
@@ -7674,6 +7705,7 @@ mod tests {
         style: 8,
         xml: "AMAZON.xml",
         mask: amazon_basin_part,
+        port: MaskPort::GreatSahara,
         files: 1,
         traces: 1,
         checked: 8,
@@ -7696,6 +7728,7 @@ mod tests {
         style: 9,
         xml: "HIMALAYAS.xml",
         mask: himalayas_part,
+        port: MaskPort::GreatSahara,
         files: 4,
         traces: 4,
         checked: 8,
@@ -7707,9 +7740,31 @@ mod tests {
         walks: OnceLock::new(),
     };
 
+    /// African Watering Hole (style 11, §28): run1530, item 3947 — 22
+    /// records 734..815 (720 among them, on the half-land path) and 5
+    /// records 5012..5118 on 2026-11-06.
+    static AFRICAN_WATERING_HOLE: Chain = Chain {
+        label: "African Watering Hole",
+        map: "AfricanWateringHole",
+        style: 11,
+        xml: "AFRICA.xml",
+        mask: watering_hole_part,
+        port: MaskPort::WateringHole,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
     /// A chain's tileset (`docs/MAPGEN.md` §4, §25): the style file's own
     /// `TILECHANCE`s, or `default.xml`'s six when it carries none (Old
-    /// World), make the one `init_map_data` draw, the last before
+    /// World), make the one `init_map_data` draw — none when the list is
+    /// one entry long —, the last before
     /// `base_edge`'s — the word [`tileset_before`] reads off 7805's seed.
     fn chain_tileset(root: &Path, xml: &str, seed_7805: u32) -> String {
         let own = tile_chances(root, xml).expect("the style file");
@@ -7718,6 +7773,11 @@ mod tests {
         } else {
             own
         };
+        if let [(only, _)] = chances.as_slice() {
+            // One entry makes no draw (African Watering Hole's
+            // `african_savannah`, §28).
+            return only.clone();
+        }
         tileset_before(&chances, seed_7805).expect("one tileset drawn")
     }
 
@@ -7811,14 +7871,32 @@ mod tests {
                 checks.push((ff.clone(), *l, ours, theirs));
             }
         };
-        // Phase 1: the mask, four draws.
+        // Phase 1: the mask — Great Sahara's four draws, or a grown lake.
         let mut grid = MapGrid::new(g.xs, g.ys);
         let mut d = Draws::new(before.2);
         let mut twin = Rng::new(before.2);
-        let start_dist = great_sahara_make_continents(&mut grid, g.nations, &mut d.rng);
+        let start_dist = match c.port {
+            MaskPort::GreatSahara => great_sahara_make_continents(&mut grid, g.nations, &mut d.rng),
+            MaskPort::WateringHole => {
+                let style = lake_style(
+                    root,
+                    c.xml,
+                    (g.xs, g.ys, g.nations, g.map_size),
+                    base_edge_before(before.2),
+                    max_range_349(root),
+                )
+                .expect("the style's `Map` fields");
+                let m = sim::map_watering_hole::african_watering_hole_make_continents(
+                    &mut grid, g.nations, style, &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: the watering hole {m:?}");
+                m.start_dist
+            }
+        };
         assert_eq!(start_dist, (g.xs / 16).max(4), "{name}: `start_dist`");
         let mut words = Vec::new();
-        while twin.seed != d.rng.seed && words.len() < 64 {
+        while twin.seed != d.rng.seed && words.len() < 0x10000 {
             words.push(twin.seed);
             twin.roll();
         }
@@ -7864,12 +7942,62 @@ mod tests {
         compute_all_vals(&mut grid, &mut d, &makes);
         check(&grid, &d, parts, "map.cpp", 7945);
         let make_log = d.log.clone();
-        // Phase 6: `Terrain::init` without heights, part 4 at 734.
+        // Phase 6: `Terrain::init` without heights, part 4 at 734. A
+        // mask with water opens the half-land gate (African Watering
+        // Hole's lake, §28): Great Lakes' path, 734..706 on the 7945 grid,
+        // then the heights, `check_and_set_halfland` and the beach before
+        // 720 (`great_lakes_at_894`).
         let sea = sea_map(root, c.xml).expect("the style's SEA_MAP");
-        let (sea_map, mut coord, half) = terrain_init_without_heights(&mut grid, sea)
-            .unwrap_or_else(|u| panic!("{name}: an unported arm: {u:?}"));
-        let p = half.parts().expect("empty half-land lists");
-        parts = [p[0], p[1], p[2], p[3]];
+        let combo = sim::halfland::Combo {
+            coast_base: ts.coast_base,
+            num_tiles: [
+                Some(ts.base_tiles),
+                Some(ts.coastal_tiles),
+                Some(ts.ocean_tiles),
+                None,
+            ],
+        };
+        let mut probe = grid.clone();
+        let (sea_map, mut coord, wet) = match terrain_init_without_heights(&mut probe, sea) {
+            Ok((sea_map, coord, half)) => {
+                grid = probe;
+                let p = half.parts().expect("empty half-land lists");
+                parts = [p[0], p[1], p[2], p[3]];
+                (sea_map, coord, None)
+            }
+            Err(Unported::HalfLand(_)) => {
+                let p = HalfLand::default().parts().expect("the lists start empty");
+                parts = [p[0], p[1], p[2], p[3]];
+                for (f, l, _, _) in before_halfland_records(g) {
+                    check(&grid, &d, parts, f, *l);
+                }
+                let mut coord = coord_flags(&grid);
+                let fr = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+                let mut z = sim::map_heights::generate_land(&grid, &coord, &fr);
+                sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+                let mut depth = 0;
+                let lists = sim::terrain_init::check_and_set_halfland_heights(
+                    &mut grid, &mut coord, &z, combo, &mut depth,
+                )
+                .unwrap_or_else(|e| panic!("{name}: check_and_set_halfland: {e:?}"));
+                let p = lists.parts().expect("the lists' walk");
+                parts = [p[0], p[1], p[2], p[3]];
+                // 720 is `check_and_set_halfland`'s return.
+                check(&grid, &d, parts, "Terrain.cpp", 720);
+                sim::halfland::create_doobers_flags(&mut grid);
+                sim::map_heights::create_doobers(&grid, &mut z);
+                sim::halfland::Pass::new(&mut grid, &mut coord, &z, combo)
+                    .with_depth(depth)
+                    .convert_beach_to_sandy()
+                    .unwrap_or_else(|e| panic!("{name}: the beach: {e:?}"));
+                (
+                    sea_map_after_make(WORLD_SEA_MAP_BEFORE, sea),
+                    coord,
+                    Some((z, depth)),
+                )
+            }
+            Err(u) => panic!("{name}: an unported arm: {u:?}"),
+        };
         let part4 = match (g.at("map.cpp", 7945), g.at("setup.cpp", 734)) {
             (Some(b), Some(a)) => {
                 let ours = adler_rewrite(
@@ -7896,8 +8024,14 @@ mod tests {
             }
             _ => (0, 0, Vec::new()),
         };
-        for (f, l, _, _) in terrain_init_records(g) {
-            if !(f == "map.cpp" && *l == 5012) {
+        let halfland_done = before_halfland_records(g).len();
+        for (f, l, _, _) in
+            terrain_init_records(g)
+                .iter()
+                .skip(if wet.is_some() { halfland_done } else { 0 })
+        {
+            let at_720 = wet.is_some() && f == "Terrain.cpp" && *l == 720;
+            if !(f == "map.cpp" && *l == 5012) && !at_720 {
                 check(&grid, &d, parts, f, *l);
             }
         }
@@ -7928,18 +8062,15 @@ mod tests {
         // `Cliffs::init` (no `CLIFFS` group: inert).
         let install = crate::Install::new(root);
         let meshes = crate::mountains::meshes(&install);
-        let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
-        let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
-        sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
-        sim::map_heights::create_doobers(&grid, &mut z);
-        let combo = sim::halfland::Combo {
-            coast_base: ts.coast_base,
-            num_tiles: [
-                Some(ts.base_tiles),
-                Some(ts.coastal_tiles),
-                Some(ts.ocean_tiles),
-                None,
-            ],
+        let (mut z, depth) = match wet {
+            Some(zd) => zd,
+            None => {
+                let f = sim::map_heights::fractals(grid.xs, grid.ys, g.seed as u32);
+                let mut z = sim::map_heights::generate_land(&grid, &coord, &f);
+                sim::map_heights::build_coastal_data(&grid, &mut coord, &mut z, g.seed as u32);
+                sim::map_heights::create_doobers(&grid, &mut z);
+                (z, 0)
+            }
         };
         let troughs = sim::map_troughs::calculate_all(
             &mut grid,
@@ -7947,7 +8078,7 @@ mod tests {
             &mut z,
             ts.riverbase,
             combo,
-            0,
+            depth,
             Some(&rows.goods),
         )
         .unwrap_or_else(|e| panic!("{name}: the troughs: {e:?}"));
@@ -8405,6 +8536,18 @@ mod tests {
         old_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         old_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         old_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        AFRICAN_WATERING_HOLE,
+        african_watering_hole_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        african_watering_hole_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        african_watering_hole_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        african_watering_hole_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        african_watering_hole_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        african_watering_hole_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        african_watering_hole_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        african_watering_hole_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 
     chain_tests!(

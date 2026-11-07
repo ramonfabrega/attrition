@@ -287,6 +287,22 @@ pub const MAPGEN: Mapgen = Mapgen {
             ported: 8,
             phases: 8,
         },
+        MapgenStyle {
+            map: "AfricanWateringHole",
+            // 0 → 8 by item 3947 (MAPGEN §28), on run1530's one file (2
+            // nations, 60×60, seed 12345, `african_savannah`, `AFRICA.xml`'s
+            // one `TILECHANCE`, no draw): the mask is its own
+            // (`sim::map_watering_hole`, 0x69b650: a lake of 180 cells
+            // grown and inverted, Great Sahara's ring about it), 7807 and
+            // its 91-draw stream (one generation) whole on the first run;
+            // 6,044 draws `place_all` through the values; the lake opens
+            // Great Lakes' half-land path (734..706, 720 at
+            // `check_and_set_halfland`'s return); no river and no trough;
+            // the start dump's 58,081 vertices once `mesh_pixels` reads the
+            // texel's red (h4's 15 parted on blue).
+            ported: 8,
+            phases: 8,
+        },
     ],
 };
 
@@ -658,7 +674,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
