@@ -703,8 +703,9 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    /// From the template image's sampled pixels — `(x, y, first byte)`
-    /// (`movzx` of the 32-bit pixel's lowest byte, 0x899d90) at every
+    /// From the template image's sampled pixels — `(x, y, byte)`
+    /// (`movzx` of the 32-bit texel's lowest byte, 0x899d90: the file's
+    /// red, `docs/MAPGEN.md` §28.3) at every
     /// fourth pixel from `((w/2) % 16, (h/2) % 16)` whose alpha is
     /// not zero, rows outer — and the `<MOUNTAIN>`'s `height`: each vertex
     /// sits `(x − w/2) / 4` vertices across (the listing's `(x − w/2) ·
