@@ -3503,7 +3503,7 @@ impl Sim {
     /// own index and the leader. `order_num` steps once after the loop.
     ///
     /// SEAMS, none of which a player's command on land units reaches:
-    /// a plane leader or any air member hands the whole call to
+    /// a plane leader or any plane member hands the whole call to
     /// `action_air_patrol`, which returns here; the `QUEUE_LAST` arm reads
     /// [`Self::group_loc_to`] and appends the click to each member's
     /// existing patrol (`update_patrol_order`) instead of issuing one —
@@ -3525,7 +3525,15 @@ impl Sim {
         let Some(leader) = self.group_find_leader(g) else {
             return;
         };
-        if self.is_plane(leader) || g.list.iter().any(|&m| self.group_domain(m) == Domain::Air) {
+        // `count(COUNT_DOMAIN, 4)`: param 4 counts vslot `+0xc0`, `is_plane`,
+        // over the alive members — a Helicopter is not counted, so a group
+        // with one and no plane takes the land arm (item 3967, `docs/GOLDEN.md`
+        // §173).
+        if self.is_plane(leader)
+            || g.list
+                .iter()
+                .any(|&m| self.units[m].alive() && self.is_plane(m))
+        {
             self.group_action_air_patrol(g, to, queue);
             return;
         }
