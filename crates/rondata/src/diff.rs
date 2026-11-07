@@ -34,6 +34,8 @@ mod airbase_melee;
 #[cfg(test)]
 mod american_enlightenment_pair;
 #[cfg(test)]
+mod corpse_melee;
+#[cfg(test)]
 mod american_industrial_pair;
 #[cfg(test)]
 mod american_information_pair;
