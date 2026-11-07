@@ -2347,6 +2347,91 @@ mod tests {
         eprintln!("{read} of 3 styles' start dumps read");
     }
 
+    /// **The style's limits move the setup's borders to the original's**
+    /// (item 3963, `docs/AI.md` §407): the start dump prints every cell's
+    /// `who`/`who2` as the setup's `compute_all_territory` left them, and
+    /// the harness's own setup recomputes them from the starting cities.
+    /// Each style's dump is stood up twice — with its six limits, and with
+    /// the six struck from the block so the world reads the rules' 44/4/4 —
+    /// and both owners are compared on every cell.
+    #[test]
+    fn the_style_s_limits_give_the_start_dump_s_owners() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let six = [
+            "player_territory_limit",
+            "player_territory_limit_civic",
+            "player_territory_limit_city",
+            "colonized_territory_limit",
+            "colonized_territory_limit_civic",
+            "colonized_territory_limit_city",
+        ];
+        let owner = |w: i64| match w {
+            -2 => sim::world::Owner::Ambiguous,
+            w if (0..=255).contains(&w) => sim::world::Owner::Player(w as sim::Player),
+            _ => sim::world::Owner::None,
+        };
+        let mut got = Vec::new();
+        for name in [
+            "gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt",
+            "gamelog-run1123-newworld-cover1-clickfree-diagonal.txt",
+            "gamelog-run1126-atlanticseapower-cover1-clickfree-diagonal.txt",
+        ] {
+            let Some(path) = dump(name) else {
+                eprintln!("skipped: {name} is not on this machine");
+                continue;
+            };
+            let text = crate::capture::read(std::path::Path::new(&path));
+            let log = Log::parse(&text);
+            let init = log.initial().expect("the start dump");
+            let cells = crate::gamelog::world_cells(&init.world);
+            let xs = init
+                .world
+                .iter()
+                .find(|(k, _)| *k == "xs")
+                .and_then(|(_, v)| v.trim().parse::<i32>().ok())
+                .expect("xs");
+            let wrong = |init: &Initial<'_>| -> (usize, usize) {
+                let built = build_sim(&loaded, init, sim::tuning::Tuning::RON);
+                let w = &built.sim.world;
+                let mut n = (0, 0);
+                for (i, c) in cells.iter().enumerate() {
+                    let cell = sim::world::Cell::new(i as i32 % xs, i as i32 / xs);
+                    if w.owner(cell) != owner(c.who) {
+                        n.0 += 1;
+                    }
+                    if w.second(cell) != owner(c.who2) {
+                        n.1 += 1;
+                    }
+                }
+                n
+            };
+            let styled = wrong(&init);
+            let mut rules = init.clone();
+            rules.world.retain(|(k, _)| !six.contains(k));
+            let plain = wrong(&rules);
+            eprintln!(
+                "{name}: who/who2 wrong — the style's six {styled:?}, the rules' {plain:?}, of {}",
+                cells.len()
+            );
+            got.push((name, styled, plain));
+        }
+        // Every cell the original's setup owns, ours owns alike with the
+        // style's six; the rules' triple was 110, 3 and 90 `who` cells
+        // short or over (no `who2` moves). New World's three are the
+        // colonized 32 on a region no start stands in — the player region
+        // keeps 44, so the bit `analyze_map` sets is what holds them.
+        for (name, styled, plain) in got {
+            assert_eq!(styled, (0, 0), "{name}: the style's six");
+            let want = match &name[..15] {
+                "gamelog-run1098" => (110, 0),
+                "gamelog-run1123" => (3, 0),
+                _ => (90, 0),
+            };
+            assert_eq!(plain, want, "{name}: the rules' six");
+        }
+    }
+
     /// **The start permutation is replayed onto the first visit's state**
     /// (item 3849, `docs/GOLDEN.md` §153.1): run1482's setup trace holds
     /// 1,332,463,473 at `setup.cpp` 884 and 3,862,369,593 at the first
