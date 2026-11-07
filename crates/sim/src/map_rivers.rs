@@ -231,10 +231,14 @@ fn border(g: &MapGrid, x: i32, y: i32) -> bool {
     x == 0 || y == 0 || x == g.xs - 1 || y == g.ys - 1
 }
 
-/// The start city nearest `(x, y)` by [`octagonal`], the first of equals;
-/// `None` when no distance is under 99999.
+/// The start nearest `(x, y)` by [`octagonal`], the first of equals;
+/// `None` when no distance is under 99999. `make_riverlist`'s two inline
+/// loops walk `start_x`/`start_y` (`WorldData` +0x80 and +0x9c, their data
+/// at `field_0x90`/`field_0xac`), one entry a nation — never
+/// `start_city_x`/`start_city_y`, the footprint's four a city (item 3944:
+/// Old World's first border-ended rivers parted 5076 on it).
 fn nearest_start(g: &MapGrid, x: i32, y: i32, nations: i32) -> Option<usize> {
-    let (xs, ys) = (&g.starts[2].list, &g.starts[3].list);
+    let (xs, ys) = (&g.starts[0].list, &g.starts[1].list);
     let mut best = (99999, None);
     for (i, (&cx, &cy)) in xs.iter().zip(ys).enumerate().take(nations.max(0) as usize) {
         let d = octagonal((cx - x).abs(), (cy - y).abs());
@@ -839,6 +843,23 @@ mod tests {
         assert_eq!(octagonal(4, 0), 4);
         assert_eq!(octagonal(3, 4), 3 * 3 / 8 + 4);
         assert_eq!(octagonal(4, 3), 3 * 3 / 8 + 4);
+    }
+
+    /// `make_riverlist`'s nearest start is a nation's `start_x`/`start_y`
+    /// entry, not a footprint cell (item 3944): two cities twenty cells
+    /// apart, and a river end beside the second is the second's.
+    #[test]
+    fn the_nearest_start_is_a_nation_s_start_not_a_footprint_cell() {
+        let mut g = forest(30, 10);
+        g.add_starting_location(5, 5);
+        g.add_starting_location(25, 5);
+        assert_eq!(nearest_start(&g, 24, 5, 2), Some(1));
+        assert_eq!(nearest_start(&g, 6, 5, 2), Some(0));
+        assert_eq!(
+            nearest_start(&g, 24, 5, 1),
+            Some(0),
+            "one nation, one start"
+        );
     }
 
     /// The first clear takes 0x2000 and 0x2 and nothing else, before the
