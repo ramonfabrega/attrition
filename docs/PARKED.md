@@ -14802,13 +14802,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot BW — reserved
+## Parked by item 3944, 2026-11-06 — Old World's chain, 8 of 8
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3944a. `make_riverlist`'s nearest start breaks ties to the first, and no take
+  decides it** (MAPGEN §25.3). The mutant `d <= best.0` (ties to the last) fails
+  nothing on run1527, and the Great Lakes and East Indies pins never ran it. A source
+  or river end equidistant from two starts would decide it. The other nine chain takes
+  (3945–3953) may lay one, and a take that does should run this mutant again. This row
+  names no score.
+- **3944b. Great Lakes and East Indies hand the troughs no footprints** (MAPGEN
+  §25.3). `calculate_all(…, None)` stays at their callers, since no trough there
+  reaches a good (they would refuse with `Goody`). A style whose trough does reach one
+  must pass `Some(&rows.goods)`, as Old World does. This row names no score.
+- **3944c. The good's new cell is overwritten between 894 and 1240** (MAPGEN §25.3).
+  run1527's (43, 18) holds the moved good at 894 (part 5 agrees), and the start dump
+  reads `down` 3, `down_who` 8 there. Some setup writer stands an object on it after
+  `Terrain::init`, and this item did not name that writer. This row names no score.
 
 ## Parked by the next landing, slot BX — reserved
 

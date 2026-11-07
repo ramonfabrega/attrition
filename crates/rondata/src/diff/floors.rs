@@ -235,6 +235,22 @@ pub const MAPGEN: Mapgen = Mapgen {
             phases: 8,
         },
         MapgenStyle {
+            map: "OldWorld",
+            // 0 → 8 by item 3944 (MAPGEN §25), on run1527's one file (2
+            // nations, 60×60, seed 12345, `jungle` drawn from
+            // `default.xml`): the mask is Great Sahara's listing at
+            // 0x69c0e0, and the shared passes hold 7807..5012 first try
+            // (5,552 draws `place_all` through the values). Two arms were
+            // built: `make_riverlist`'s nearest start reads
+            // `start_x`/`start_y`, not the footprint — 5076 parted on it
+            // (seed 3320652424 against 422556960, 1,758 river draws against
+            // 2,070) — and the troughs move a good under the types'
+            // footprints, (44, 20) → (43, 18). Then 5076..5118 and 894
+            // (seed 422556960, part 5 1499455944, part 6 1423377562) agree.
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
             map: "EastMeetsWest",
             // The held-out style (item 3941, DECISIONS 54, 61): ported from
             // the reading (`004dbbab7`, pushed before run1524 was launched)
@@ -616,7 +632,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [

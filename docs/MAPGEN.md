@@ -2945,8 +2945,8 @@ established:
   for any map with a land region 1, which this item did not check on
   run1129's dump);~~ it is non-empty: run1515 enters `check_starting_loc`
   (§23);
-- §5's sentence that Amazon, Himalayas and Old World "read the same" as
-  Great Sahara. That sentence predates this item, and this item did not
+- §5's sentence that Amazon, Himalayas and ~~Old World~~ "read the same" as
+  Great Sahara (Old World's listing is Great Sahara's: §25.1). That sentence predates this item, and this item did not
   re-read it because of 3888c.
 
 ## 23. The `!eval` take: `find_extra_starting_loc` enters `check_starting_loc` (item 3921)
@@ -3052,12 +3052,102 @@ not show which pass placed each seat. Only run1524 is scored. The rule
 for a held-out style is that a parting on a later take parks by frame
 and books nothing.
 
-## 25. Reserved for the next item on the map track
+## 25. Old World's chain, 8 of 8 (item 3944)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The first of the ten chain takes (§22.2, 3944–3953), and the method the other
+nine copy. One take, run1527 at `--map 6` on §22.2's line (`docs/RUNS.md`).
+The chain is then walked phase by phase against the take's own checkpoints,
+in `Map::make`'s and `Terrain::init`'s order
+(`rondata::mapgen::tests::old_world_walk`). The first checkpoint that parts
+names the arm to read. Old World is **read against**: it is not the held-out
+style (§24).
+
+### 25.1 The mask is Great Sahara's listing
+
+`MapOldWorld::make_continents@0069c0e0` and
+`MapGreatSahara::make_continents@0069bf70` decompile to the same body: the
+two files differ only in the class name. The listing settles it.
+`llvm-objdump -d` from 0x69c0e0 to 0x69c260 and from 0x69bf70 to 0x69c0e0,
+with addresses stripped, differ in four lines, and those are the four
+relative jumps (`jns`, `jns`, `jle`, `jne`). Each targets the same
+instruction 0x170 further on, and the calls name the same absolute
+targets. So the port is `great_sahara_make_continents`, as Southwest
+Mesa's is (§15 step 1). Its four draws are the trace's
+`make_continents` segment, site for site inside 0x69c0e0..0x69c260
+(`rondata::mapgen::old_world_part`), and 7807's seed and parts 2 and 5
+agree. What makes Old World Old World is `OLDWORLD.xml`, read from §4 on:
+
+- **No `TILESET`.** `default.xml`'s six `TILECHANCE`s make the one
+  `init_map_data` draw (§4). Nothing draws between it and `base_edge`'s
+  draw, so it is the word `tileset_before` reads off 7805's seed. On
+  run1527 that word gives `jungle`, and 7854 agreeing backs it.
+- `grouping="1"` groups with chances of 50 and 25 (§7), a `GOODIES`
+  section of its own (§8), and one `RIVER` (`start_range` 2, `end_range` 4,
+  `river_length` 50 SCALE, flags 11: water or border ends, the length a
+  cap).
+
+### 25.2 What the shared phases held, first run
+
+From 7805's seed through `map.cpp` 5014, every checkpoint the file carries
+agrees on the first run with no `sim` change. That covers the zero-draw
+passes (all land, one region), `place_all` and its tail, the resources and
+the values. It also covers the 5,552 draws from `place_all` through the last
+`compute_val`, site and word, and Southwest Mesa's height-free
+`Terrain::init` on an all-land grid with no cliff: part 4 at 734 by `SEA_MAP`,
+then 21 records to 5012. Seed and parts 2, 5, 6 and 10–13 agree throughout.
+Phases 1–6 of §15 therefore hold as they were built.
+
+### 25.3 The two arms built
+
+**The river walk's nearest start** (5076, phase 7). The first run parted
+at 5076: seed 3320652424 against 422556960. Our 1,758 river draws were the
+trace's first 1,758 of 2,070, so every `astar_river` agreed, and the walk
+stopped one search early. `make_riverlist@00693820`'s two inline
+nearest-start loops read `WorldData` `field_0x90` and `field_0xac`. Those
+are `start_x` and `start_y` (+0x80 and +0x9c, with each `SimpleArray`'s data
+at +0x10, `types.txt`), one entry per nation. The port read `start_city_x`
+and `start_city_y`, the footprint, which holds four cells per city. With two
+nations its "two starts" were both city 0's cells. So both border-ended
+rivers counted against one start, and every later source near that start
+was passed over. Great Lakes' lake-ended rivers never let the count bind.
+Fixed in `sim::map_rivers::nearest_start`, and
+`the_nearest_start_is_a_nation_s_start_not_a_footprint_cell` fails on the
+old line. After the fix the 2,070 draws are whole, the three rivers (16
+sources) are the trace's, and 5076, 5116 and 5118 agree.
+
+**The troughs move a good** (894, phase 8). Old World is the first map
+whose troughs reach a good. `RiverSection::create_trough_edge` calls
+`Terrain::move_goody` on every vertex it terraforms, and the troughs
+refused with `Goody([(44, 20), …, (14, 30), …])`. Item 3890 built
+`move_goody`'s good arm for the cliffs (`halfland::Pass::with_goods`). The
+troughs now take the types' footprints
+(`map_troughs::calculate_all(…, goods)`) and move the good from (44, 20) to
+(43, 18). The repeats on that cell then find nothing to move. At 894,
+seed 422556960, part 5 1499455944 and part 6 1423377562 agree, part 4 is
+held from 734, and all 58,081 start-dump vertices agree with the roster
+stood on them, as do the 0x1000 cells. There are three troughs (181, 134
+and 107 sections), and two oil moves ((4, 49) → (5, 51) → (7, 50)).
+`Cliffs::init` is inert, since no cliff is placed.
+
+**Made to fail** (`tools/mutate.py --batch --timeout 900` on
+`old_world`, `badee562f`): six breaks, five held. The footprint lists put
+back; no footprints for the troughs; the pre-search skip at `>=`; the kept
+river counted at its source rather than its end; flag 2 refused. The sixth
+break, ties to the last in `nearest_start`, has nothing to decide on
+run1527 (parked 3944a).
+
+### 25.4 What is not established
+
+- The good's new cell (43, 18) is backed by part 5 at 894 and not by the
+  start dump. A setup writer between 894 and 1240 writes `down` 3,
+  `down_who` 8 there (parked 3944c).
+- Only one file: 2 nations, 60×60, `jungle`. The other five tilesets and
+  other nation counts are untaken. So are `default.xml`'s second tileset
+  draw (an unavailable name) and a `grouping="1"` group whose chance
+  refuses every clump.
+- Great Lakes and East Indies still hand the troughs no footprints
+  (parked 3944b). That is harmless while none of their troughs reaches a
+  good.
 
 ## 26. Reserved for the next item on the map track
 
