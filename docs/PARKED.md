@@ -14956,13 +14956,14 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   reaches a good through `reveal_fog` earlier than the original did is
   not measured beyond those pins. This row names no score.
 
-## Parked by the next landing, slot CF — reserved
+## Parked by item 3953, 2026-11-07 — Nile Delta's chain take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3953a. Three arms of Nile Delta's mask that run1536 does not reach** (MAPGEN §34.3; no score: every phase is 8 of
+  8). The restart (a pass's `grow_region` ending short: `S` to `max(S·4/5, (cells / players)/4)` and a fresh
+  generation), the size's floor of 100, and `check_player_land` (each continent already covers its city's ring 5):
+  each broken fails nothing on the one file, 2 nations on 60×60. A take that reaches one is a lobby with more nations
+  on a small map, where a continent's share runs into its neighbours'; the restart's draws would then show in the
+  mask stream. Unit tests carry the shrink and the floor.
 
 ## Parked by the next landing, slot CG — reserved
 
