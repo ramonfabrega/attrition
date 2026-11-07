@@ -39982,10 +39982,10 @@ emptied. The list's three filters and `from_tiles`' dedup fail nothing there, fo
   `CliffsData::gather_size` under the emulator would be its value check (parked 3942c).
 - **The rest of the record.** Every other `BUILDDATA` field of the Mine, and every other building on block 101,
   needs a Mesa game built to block 101. That game is 3943's (parked 3942a).
-- **A Mesa game's cliffs.** `diff::setup` lays the placed mountains from a `DUMP_ALL` head and lays no cliffs:
+- ~~**A Mesa game's cliffs.** `diff::setup` lays the placed mountains from a `DUMP_ALL` head and lays no cliffs:
   no dump prints them, and the port's chain to `Cliffs::init` lives in `mapgen`'s tests. A game that
   `build_sim` stands up on Mesa therefore has no cliffs, and its Mines take the base's empty list (parked 3942b).
-  3943's game scores this arm only once its build lays them.
+  3943's game scores this arm only once its build lays them.~~ Laid by item 3943: §401.1.
 - **The region gate** is unit-tested only. Southwest Mesa has one land region, so run1516b cannot tell it apart.
 - **`MiningList::mtn` and `::cliff`** are not carried on a `Building`. A standing building's list re-finds its arm
   from the footprint's centre, where the original reads the stored indices with distance 0. The two agree while
@@ -39993,12 +39993,91 @@ emptied. The list's three filters and `from_tiles`' dedup fail nothing there, fo
 - **The nation and wonder additions** (`german_miners`, `taj_farms`, `kremlin_farms`) are not modelled, as on
   the range's arm.
 
-## 401. Reserved for the next item on the AI track
+## 401. A held-out game on Southwest Mesa: the Lakota at Difficulty 2, 15754 of 24000 on its first try, and four Mines on cliffs (item 3943, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3943, Opus 5.5. The number that scores §400's cliff arm: Southwest Mesa (style 10) is the only style that
+lays cliffs (MAPGEN §18.3), so the cliff number is a game rather than a chain (DECISIONS 111 §1). It is a held-out
+game: scored once, on its first try, and never debugged against (DECISIONS 54, 61; 111 §6). Its partings park by
+frame and book nothing.*
+
+### 401.1 The cliffs in a Mesa game's setup, committed before the takes
+
+No dump prints `cliff_mining_data`, so a Mesa game's cliffs can only come from the generator itself.
+`crate::mapgen::mesa` carries the port's chain out of `mapgen`'s tests: the mask from 7805's seed, through
+`Cliffs::init` at `Terrain.cpp` 894. This is the walk items 3869–3890 checked phase by phase on run1493.
+`diff::setup::build_sim` runs the chain for a start dump that is style 10 and carries the setup trace's 7805
+record, and lays `CliffsInit::mining` with `Sim::place_cliffs`. A start without the trace, and without a sibling
+that has one, lays no cliffs.
+
+The test is `battery::a_southwest_mesa_game_lays_its_cliffs`. It stands run1516b up through `build_sim`, with
+run1493 as the sibling for the setup trace (the same seed and lobby). The Mine `0/2007` that block 101 adds at
+cell (10, 43) takes arm `Cliff(7)` and 189 tiles, all 189 shared with the dump. Without `place_cliffs` the test
+fails on the arm (`None`, 0 tiles). The wiring is `623b604ce`, pushed before either take.
+
+### 401.2 The lobby and the takes
+
+- **The lobby** is `(10, 19, 2)`: human Nubians against the Lakota at Difficulty 2, seed 12345, with the default
+  `STARTING_RESOURCES 1`, `STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 7`. Every field is named on both takes.
+  - No lobby on the tree held map 10 (`tools/refill.py --list`).
+  - The rubric's table 3 named no nation in braces: its six never-seen lines are Boadicea and the five gaia
+    animals.
+  - **A battery game fields only the battery's own eight nations.** Twenty-four pair modules assert "no battery
+    game fields" their nation (`*_is_no_other_lobby`), so that a nation debugged against on a word is never also
+    held out.
+  - Of the eight, the Lakota reach the most census functions: 17, item 3361's rule (2) reading.
+- **The first lobby was the Inca** `(10, 2, 2)`, chosen because their power pays per miner (§281).
+  - Runs 1525 and 1526 took it. It scored 7250 of 8438 on its first try, and the game ended itself.
+  - The gate refused it on that fence: `inca_{classical,enlightenment,industrial}_pair_is_no_other_lobby`.
+  - It was re-taken in a battery nation for the fence, not for the score. The Inca game is parked as a
+    measurement (3943c).
+- **run1525b** is the `DUMP_ALL` start with the setup trace, to frame 36. **run1526b** is the long: run1012b's
+  recipe and run643's four `--detail` lines. The game does not end itself and runs to 24000. The two traces' 37
+  common frames are identical (`rngcmp`). Both receipts read the lobby back as asked.
+
+### 401.3 The score, first try
+
+`battery_measure`, run once, gives **count 15754, sequence 15754, of 24000**. On frame 15754 ours makes 6 draws and
+theirs 7. They part at index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`.
+
+The long dumps only its setup and closing blocks, so no record is printed on 15754 and the parting is a draw-stream
+row only. It is parked as 3943a and is not read.
+
+The game is pinned as `battery::BATTERY`'s `SouthwestMesaLakotaTier2`, the battery's ninth game and its first that
+does not run whole.
+
+### 401.4 Whether a Mine gathered beside a cliff
+
+**Theirs, yes; ours, on the setup only.**
+- **Theirs.** On run1526b's closing block (24001) the AI holds four Mines (`orig_type` 419), each on a cliff's
+  list. All read `mtn -1`:
+
+  | Mine | Cliff | Tiles |
+  |---|---|---|
+  | `1/2009` | 2 | 451 |
+  | `1/2010` | 0 | 299 |
+  | `1/2016` | 10 | 50 |
+  | `1/2019` | 6 | 199 |
+
+  So the original's AI builds Mines beside cliffs in a played game. They gather under the cliff arm until the game
+  ends, past our parting.
+- **Ours.** `battery::the_mesa_game_s_closing_mines_take_our_cliffs` measures the setup.
+  - **How.** It takes each Mine's arm at its dumped position, from the cliffs `build_sim` lays on run1525b's
+    start.
+  - **Result.** It gives all four the same cliff (**4 of 4**) on its first run.
+  - **What it covers.** The arm reads only the laid cliffs and the region map, which the game does not move, so
+    this is a check of §401.1, not of the game.
+  - **What it leaves out.** The lists' tiles are not compared: they depend on the owners when each Mine was placed,
+    and no block of this game prints those.
+- **The arm in our walk.** Whether a Mine's cliff list stands in our walk before 15754 is not measured. The long
+  prints no mid-game `BUILDDATA`.
+
+### 401.5 What is not established
+
+- **Whether the 7805 seed depends on the lobby.** This game reads its own: run1525b carries the setup trace. The
+  step 1 test's run1516b borrows run1493's, which shares its lobby.
+- **The cliff lists' tiles in a played game**, as §401.4 says.
+- **Why 15754 parts.** Held out: it is parked by frame, and it is read by nobody.
 
 ## 402. Reserved for the next item on the AI track
 
