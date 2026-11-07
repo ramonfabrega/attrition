@@ -14930,13 +14930,29 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CE — reserved
+## Parked by item 3952, 2026-11-07 — Sea Power's chain, the arms run1535 does not reach
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3952a. `check_player_land`'s guard and adoption arm on Sea Power** (a
+  `coverage` reading; MAPGEN §33.4, §33.5). On run1535 every start's
+  ring-5 disc is already its island's own land, so Mediterranean's
+  unguarded disc and a guard held to ring 4 pass the walk like the
+  call. On two-player 16×16 lobbies of the port the guard holds 175–222
+  disc cells back, and the port's own count is no oracle. A take with
+  islands close enough for the guard (more nations on a small map) would
+  decide it. A lone 15×15 island on seed 2 also keeps 9 wet disc cells
+  with the call in, which no guard explains: the adoption arm writes
+  land without `region`, and whether that is the original's is read, not
+  taken. This row names no score.
+- **3952b. The first-pass stall** (MAPGEN §33.1 step 4, §33.5). The
+  listing jumps back from 0x6963dc with `ebx` untouched, so the island is
+  kept; a mutant that shrinks it there passes every test, since no
+  lobby tried takes a first-pass stall. This row names no score.
+- **3952c. The harness's goods order** (MAPGEN §33.3). `build_sim` now
+  installs the dump's goods before the cities and `start_of_game`. Every
+  lobby's `first_parting` and every chain held. `seed_new_rares_from_fog`
+  still runs after them, as before. Whether a building's `activate` now
+  reaches a good through `reveal_fog` earlier than the original did is
+  not measured beyond those pins. This row names no score.
 
 ## Parked by item 3953, 2026-11-07 — Nile Delta's chain take
 

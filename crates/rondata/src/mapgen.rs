@@ -1261,6 +1261,24 @@ pub fn new_world_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Sea Power setup path: from its
+/// first `MapSeaPower::make_continents@00696080` draw, every draw whose
+/// site is that function, `Map::grow_region`, `Map::large_stamp` or
+/// `Map::grow_valid` (`docs/MAPGEN.md` §33, item 3952), up to the first that
+/// is none.
+pub fn sea_power_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let sp = 0x0069_6080..0x0069_6640;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| sp.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !sp.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `make_continents` segment of a Nile Delta setup path: from its
 /// first `MapNileDelta::make_continents@00695bf0` draw, every draw whose
 /// site is that function, `Map::grow_region`, `Map::large_stamp` or
@@ -7720,6 +7738,8 @@ mod tests {
         /// New World's own, islands on a ring and a centre continent
         /// (§31).
         NewWorld,
+        /// Sea Power's own, an island a player on a ring (§33).
+        SeaPower,
         /// Nile Delta's own, a continent a player on a ring, the edge
         /// canals widened (§34).
         NileDelta,
@@ -7899,6 +7919,26 @@ mod tests {
         river_records: 5,
         moves_a_good: false,
         lays_rivers: true,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
+    /// Sea Power (style 20, §33): run1535, item 3952 — its own
+    /// `make_continents` ported (`sim::map_sea_power`).
+    static SEA_POWER: Chain = Chain {
+        label: "Sea Power",
+        map: "SeaPower",
+        style: 20,
+        xml: "SEAPOWER.xml",
+        mask: sea_power_part,
+        port: MaskPort::SeaPower,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
         height_files: 1,
         walks: OnceLock::new(),
     };
@@ -8105,6 +8145,25 @@ mod tests {
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: the new world {m:?}");
                 // New World writes no `start_dist` (§31).
+                None
+            }
+            MaskPort::SeaPower => {
+                let m = sim::map_sea_power::sea_power_make_continents(
+                    &mut grid,
+                    g.nations,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: {m:?}");
+                // No file on disk takes either stall (§33.4): a take that
+                // does is the first reading of that arm.
+                assert_eq!(
+                    (m.quarter_stalls, m.whole_stalls),
+                    (0, 0),
+                    "{name}: a stall no walk has read"
+                );
+                // Sea Power writes no `start_dist` (§33.1).
                 None
             }
             MaskPort::NileDelta => {
@@ -8847,6 +8906,18 @@ mod tests {
         new_world_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         new_world_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         new_world_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        SEA_POWER,
+        sea_power_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        sea_power_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        sea_power_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        sea_power_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        sea_power_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        sea_power_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        sea_power_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        sea_power_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 
     chain_tests!(

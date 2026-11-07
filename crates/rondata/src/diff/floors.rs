@@ -347,6 +347,23 @@ pub const MAPGEN: Mapgen = Mapgen {
             phases: 8,
         },
         MapgenStyle {
+            map: "SeaPower",
+            // 0 → 8 by item 3952 (MAPGEN §33), on run1535's one file (2
+            // nations, 60×60, seed 12345, `dirty` drawn from `SEAPOWER.xml`'s
+            // five `TILECHANCE`s): the mask is its own body at 0x696080,
+            // ported (`sim::map_sea_power`: an island a player on a ring,
+            // East Meets West's guarded `check_player_land`, `EDGES_ONLY`,
+            // `eliminate_edge_canals`), 7807 at seed 119778082 and its 6,363
+            // draws whole on the first walk; 5,183 draws `place_all` through
+            // the values; 720's half-land lists as the file's; 20 sources and
+            // no river draw; 894 at seed 2387569999; and the start dump's
+            // 58,081 vertices once the harness installs the goods before the
+            // roster (four corners of player 1's type-418 box had taken the
+            // border blend over the Wine `terraform_for_building` holds back).
+            ported: 8,
+            phases: 8,
+        },
+        MapgenStyle {
             map: "NileDelta",
             // 0 → 8 by item 3953 (MAPGEN §34), on run1536's one file (2
             // nations, seed 12345, `gs_desert`): the mask is its own
@@ -730,7 +747,7 @@ mod tests {
         let line = mapgen_line(&MAPGEN);
         assert_eq!(
             line,
-            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases \u{b7} NewWorld 8 of 8 phases \u{b7} NileDelta 8 of 8 phases"
+            "Mapgen: checksum 496 of 496 \u{b7} GreatSahara 8 of 8 phases \u{b7} GreatLakes 8 of 8 phases \u{b7} EastIndies 8 of 8 phases \u{b7} SouthwestMesa 8 of 8 phases \u{b7} OldWorld 8 of 8 phases \u{b7} EastMeetsWest 8 of 8 phases \u{b7} AmazonBasin 8 of 8 phases \u{b7} Himalayas 8 of 8 phases \u{b7} AfricanWateringHole 8 of 8 phases \u{b7} AustralianOutback 8 of 8 phases \u{b7} Mediterranean 8 of 8 phases \u{b7} NewWorld 8 of 8 phases \u{b7} SeaPower 8 of 8 phases \u{b7} NileDelta 8 of 8 phases"
         );
         assert_eq!(mapgen_verdict(&line, &MAPGEN), Ok(()));
         for wrong in [
