@@ -11,14 +11,14 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-07, **the seventy-second tranche (commander, Opus) is underway: 11 of 20 landed from `80e119cb3`, on two Opus 5.5 lanes at `--effort medium` — the territory reading's scored rows, the residue items done, the chapters running**; 3969 and 3970 live, 3971 next. The seventy-second pass's record is `docs/audit/2026-11-07-fable-pass-72.md`, its decisions DECISIONS 112; `docs/RENDERER.md` and the two census defects wait on Ramon.*
+*2026-11-07, **the seventy-second tranche (commander, Opus) is underway: 12 of 20 landed from `80e119cb3`, on two Opus 5.5 lanes at `--effort medium` — the territory reading's scored rows, the residue items done, the chapters running**; 3970 and 3971 live. The seventy-second pass's record is `docs/audit/2026-11-07-fable-pass-72.md`, its decisions DECISIONS 112; `docs/RENDERER.md` and the two census defects wait on Ramon.*
 - **Words: none open** — every melee, `Late ages` word, pair, battery game and long word stands whole; lower map first — closed; 296 of 302 fieldable lines seen. **The Iroquois Ancient pair's closing window** (run1228b) is the one score this tranche moved: `firsts` 67 → 65 by 3958's cloak bits (`blown` on 8165 and 8177 now agreeing) and 65 → 57 by 3959's Senator and Iroquois heals (8191's `1/52 hits:damage` ours 42 → 41); run897 held out, green both times (DECISIONS 55).
 - **The residue items landed, 3958–3965** (stories in `docs/journal/2026-11-07-item-<N>.md`, AI §402–§409): the `UNITDATA` queue and heal keys, `LEADERDATA retargets` and garrison counts, building `mylos` (a cache, `Building::mylos`), the style's six territory limits on `World` (setup's `who` on three style dumps 110/3/90 → 0), and the stance press — its `cant_reach` row compared everywhere and tallied apart from `firsts` (`diff::cant_reach`, 373 tests and 2,398 units, the commander's call over 400 re-pins for two writers ours lacks, 3962a/b); run57's building-field count 1,000 past the two new fields' sum, not traced. Parks 3960a–3965b, none scored.
-- **The chapters**: 122 (3966, a queue order on a mixed Barracks + Stable group, `queue_here`) and 124 (3968, a bomber at an unseen target, the missile gate) closed at 1000 first try; 123 (3967, a patrol with a Helicopter, the plane count's hand-off) closed at 1000 on its re-landing over 124's merge (run1538, 1538b; `group_max_range` unwalked, 3967a). The map lane is closed (fifteen styles 8 of 8; the held-out Mesa game 15754 of 24000, 3943a, booked by nobody).
-- **The blind list: open 0** (never 331 · residue 331; DECISIONS 110 §1). **Golden: 118 closed.** The implicit residue: **0 of 679**.
+- **The chapters**: 122 (3966, a queue order on a mixed Barracks + Stable group, `queue_here`) and 124 (3968, a bomber at an unseen target, the missile gate) closed at 1000 first try; 123 (3967, a patrol with a Helicopter, the plane count's hand-off) closed at 1000 on its re-landing over 124's merge (run1538, 1538b; `group_max_range` unwalked, 3967a); 125 (3969, a Library closed with a technology queued — `get_first_library`'s alive-and-active test and `close`'s hand-off to the next first Library, the technologies' `num_queued` rows emitted beside the units') closed at 760, the trace's end (run1540, 1540b; 3969a/b parked). The map lane is closed (fifteen styles 8 of 8; the held-out Mesa game 15754 of 24000, 3943a, booked by nobody).
+- **The blind list: open 0** (never 331 · residue 331; DECISIONS 110 §1). **Golden: 119 closed.** The implicit residue: **0 of 679**.
 - **The finish line — entry 29's three counters stand, and phase 4 is open on Ramon's word (DECISIONS 111 §2).** `docs/RENDERER.md` §7.2 asks eight things and no prompt has answered; nothing of phase 4 is booked until he does (112 §3). The territory (ported 545 · replaced by design 318 · open 1290 of 3611) waits on his per-group rulings and the two `tools/census.py` defects (A 82 rows, B 272; the steer job's `tmp/t71/toolsA`, `toolsB`).
 - **The lane rule** (112 §1): two lanes, read at the drain against 26.3 waiting and 15.3 gate a session. **For the pass**: `tranche.py --base 80e119cb3` and `gates.py <the commander's tmp/t72> --since …/d388900a/tmp/t72/gate-pass72.log`, after `lore index`. The classifier let every lane branch delete through this tranche (3848's refusal did not recur).
-- **Lanes: two Opus 5.5 at `--effort medium`** — 3969 (GOLDEN §175, run 1540, park OK) and 3970 (§176, run 1541, park PP) live, spawned off `5f34fd889` while a whole gate ran; 3971 (§177, run 1542) next; the last whole gate ran on `5f34fd889`. `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`. A `cover=1` twin passes `--twin <its sibling's output dir>` (Loop 3928). Next 3975, run 1543. Pools: AI §410–§414; GOLDEN §177; MAPGEN §35–§37; park PI and CM–CR free.
+- **Lanes: two Opus 5.5 at `--effort medium`** — 3970 (GOLDEN §176, run 1541, park PP) live, spawned off `5f34fd889`; 3971 (§177, run 1542, park PI) spawned off 3969's booking; past 3971 the queue is empty and the refill mints off `tools/refill.py`; the last whole gate ran on `5f34fd889`. `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`. A `cover=1` twin passes `--twin <its sibling's output dir>` (Loop 3928). Next 3975, run 1543. Pools: AI §410–§414; GOLDEN §178–§181; MAPGEN §35–§37; park CM–CR free.
 - **Fable backlog: 14 Loop items** (3974, the `rondata` lib past `check.sh`'s 1800 s; 3973, `report.py coverage` prints first entries only; 3972, `nations_census.py --write` drifted from its table; 3957 and 3956, the two instrument gaps; 3848; 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118); no `FABLE:` row open.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -34,14 +34,14 @@ Melee: GreatSaharaGunpowderMelee w2600 of 2,600 0 off · GreatSaharaClassicalMel
 Mapgen: checksum 496 of 496 · GreatSahara 8 of 8 phases · GreatLakes 8 of 8 phases · EastIndies 8 of 8 phases · SouthwestMesa 8 of 8 phases · OldWorld 8 of 8 phases · EastMeetsWest 8 of 8 phases · AmazonBasin 8 of 8 phases · Himalayas 8 of 8 phases · AfricanWateringHole 8 of 8 phases · AustralianOutback 8 of 8 phases · Mediterranean 8 of 8 phases · NewWorld 8 of 8 phases · SeaPower 8 of 8 phases · NileDelta 8 of 8 phases · ColonialPowers 8 of 8 phases
 Census: simulation backed 1448 of 3611 · port 585 · layout 863
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
-Golden: every chapter closed · 118 closed
+Golden: every chapter closed · 119 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 331 · residue 331 · open 0
 Rubric: ported 545 · replaced by design 318 · open 1290 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
 
 
-**Opener: continue the seventy-second tranche (commander, Opus) from docs/QUEUE.md's handoff: 11 of 20 landed from `80e119cb3`; 3967 merged and booked, Golden 118; 3969 (`1ceb8f07`) and 3970 (`b0ba0a15`) are live — re-arm `tools/lanewait.py` on them; then the chain — merge, book, refill from the queue in its order (3971 next), gate, push, reap — counting landings from the base and stopping at twenty or the drain; the handoff rewritten and `ccc clear steer --then "<the opener>"` as the drain's last act, its `--status` read a minute after.**
+**Opener: continue the seventy-second tranche (commander, Opus) from docs/QUEUE.md's handoff: 12 of 20 landed from `80e119cb3`; 3969 merged and booked, Golden 119; 3970 (`b0ba0a15`) and 3971 (its ref in the commander's `tmp/t72/spawn3971.json`) are live — re-arm `tools/lanewait.py` on them; then the chain — merge, book, refill from the queue in its order (past 3971, minted off `tools/refill.py`), gate, push, reap — counting landings from the base and stopping at twenty or the drain; the handoff rewritten and `ccc clear steer --then "<the opener>"` as the drain's last act, its `--status` read a minute after.**
 
 ## The queue
 
@@ -50,13 +50,6 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84–93). Three shapes
 the nation `rubric.py --tables 3` prints in braces, `diff::<name>_pair` at its first parting, a scoreboard line; no twin for a pair varying only
 age and nation, 93 §2); **a melee** (`gunpowder_melee.rs`'s shape, GOLDEN §155, its own `Melee:` row). **The refill is the next nation and age off
 the braces, one never-seen line a lobby, its triple read on `tools/refill.py` first** (101 §4, 102 §3).
-
-3969. **A building closed with a technology queued** (a `chapter` item; T71-7; `Build::clean_queue`; `city.rs:2611–2619`, `:3077–3081`
-call `untrack_queued(who, 0)` for a tech item, `production.rs:108`, never `tech[who].queued[t]`, so `researching()` (`lib.rs:4037`)
-stays true and `queue_tech_with` refuses for good, `lib.rs:4086`; the original hands a closing Library's queue to the next Library,
-`Build::close:465–500`): first the technologies' `num_queued[r]` rows emitted beside the units' (`leader.rs:402`), compared on
-every window with a tech queued (Loop 3957's half); then the staging, a Library closed mid-window with a technology queued; run
-1540; GOLDEN §175; gate `--tests golden coverage:: first_parting`; park OK.
 
 3970. **The building family's five rows in one staging** (a `chapter` item; T71-8; `BuildData::attack`'s General ×10, Obsidian ×10 and
 Antipater ×30 arms, `get_base_garrison_arrows`'s Maya +1, `get_building_range`'s `TOWER_FORT_RANGE` and `FORT_UPGRADE_RANGE`,
@@ -68,7 +61,7 @@ golden coverage:: first_parting`; park PP.
 3971. **`Objects::add_death`'s pool of 100** (a `chapter` item on a melee lobby; T71-10; `Objects::add_death@00653b60` keeps 100
 `DeathObj` slots and evicts the oldest non-blocking record when full; the crate's `deaths` vector only grows; the busiest frame on disk holds 34):
 a melee of two late-age armies past 100 live corpses, `DEATH_OBJS` (`death:extra`) compared on its window; run 1542; GOLDEN §177;
-gate `--tests golden melee coverage:: first_parting`; park: the commander's next free slot.
+gate `--tests golden melee coverage:: first_parting`; park PI.
 
 ## How to maintain this file
 
