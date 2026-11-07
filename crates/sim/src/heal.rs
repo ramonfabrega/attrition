@@ -50,8 +50,8 @@ impl Sim {
     /// `repair_damage` with a whole point of damage takes one off and
     /// zeroes `damage_frac` (`+0x3b`); with none it leaves the fraction
     /// alone. The second argument 0 is the no-sparkle arm, so the heal
-    /// draws nothing. `healing` is not carried: the aircraft heal that
-    /// also writes it is a seam (`crate::cast`).
+    /// draws nothing. `healing` is written by [`Sim::mark_healed`] (item
+    /// 3961).
     /// **The CEO's heal** — the third of `process_healing`'s three
     /// economic-patriot arms (`005e0670:149`–`:232`, item 3686,
     /// `docs/AI.md` §348):
@@ -74,8 +74,9 @@ impl Sim {
     /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
     /// draws `internal_random` only for the console's allies, which is no
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
-    /// `healing` (`+0x38`) and the `0x4000` clear are not carried. The
-    /// Senator's arm is [`Self::senator_heal`].
+    /// `healing` (`+0x38`) is [`Sim::mark_healed`] (item 3961); the
+    /// `0x4000` clear is not carried. The Senator's arm is
+    /// [`Self::senator_heal`].
     ///
     /// SEAM: the President's arm (`0x163`, `:179`–`:203`), which heals on
     /// an allied cell **or** one nobody owns; read, not built (parked
@@ -111,6 +112,16 @@ impl Sim {
             return;
         }
         self.repair_unit_damage(i, 1);
+        self.mark_healed(i, rate);
+    }
+
+    /// `healing = max(rate, healing)`, the write every arm of
+    /// `Unit::process_healing@005e0670` makes after its `repair_damage`,
+    /// with the arm's own period (item 3961, `docs/AI.md` §405).
+    pub(crate) fn mark_healed(&mut self, i: usize, rate: i64) {
+        let rate = i16::try_from(rate).unwrap_or(i16::MAX);
+        let u = &mut self.units[i];
+        u.healing = u.healing.max(rate);
     }
 
     /// **The Senator's heal** — the first of `process_healing`'s three
@@ -165,6 +176,7 @@ impl Sim {
         };
         if ally && self.has_general(i, THESENATOR) {
             self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
         }
     }
 
@@ -226,7 +238,7 @@ impl Sim {
     ///
     /// The sparkle arm (the second argument) draws only for the console's
     /// allies, which is no stream this crate keeps. `healing` (`+0x38`) is
-    /// not carried, as in the other two heals.
+    /// carried since item 3961 ([`Sim::mark_healed`]).
     pub(crate) fn ship_heal(&mut self, i: usize, frame: i64) {
         const AIRCRAFTCARRIER: i32 = 0x15f;
         let rate = i64::from(self.tuning.unit_heal_rate[0]);
@@ -259,9 +271,11 @@ impl Sim {
             });
         if !transport && self.has_rare(owner, crate::economy::CITRUS) {
             self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
         }
         if carrier {
             self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
         }
     }
 
@@ -291,8 +305,8 @@ impl Sim {
     /// and at rate 15 (Herbal Lore, `get_heal_level` 1) 38 on 8246.
     ///
     /// The sparkle arm draws only for the console's allies, which is no
-    /// stream this crate keeps; `healing` (`+0x38`) and the `0x4000` clear
-    /// are not carried, as in the other heals.
+    /// stream this crate keeps; `healing` (`+0x38`) is
+    /// [`Self::mark_healed`] (item 3961); the `0x4000` clear is not carried.
     pub(crate) fn iroquois_heal(&mut self, i: usize, frame: i64) {
         let u = &self.units[i];
         if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
@@ -327,6 +341,7 @@ impl Sim {
         };
         if ally {
             self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
         }
     }
 
@@ -389,6 +404,7 @@ impl Sim {
             u.health += 1;
             u.damage_frac = 0;
         }
+        self.mark_healed(i, rate);
     }
 }
 
@@ -442,12 +458,20 @@ mod tests {
             (sim.units[c].max_health - 3, 5),
             "off the phase, nothing"
         );
+        assert_eq!(sim.units[c].healing, 0, "no heal, no clock");
         sim.civilian_heal(c, due);
         assert_eq!(
             (sim.units[c].health, sim.units[c].damage_frac),
             (sim.units[c].max_health - 2, 0),
             "on the phase, a point and the fraction"
         );
+        // Item 3961: the heal sets `healing` to `max(45, healing)` —
+        // run1151c's Citizen `0/8` reads 45 on 4493 and 4538.
+        assert_eq!(sim.units[c].healing, 45, "the clock, at the rate");
+        sim.units[c].healing = 50;
+        sim.units[c].health -= 1;
+        sim.civilian_heal(c, due + 45);
+        assert_eq!(sim.units[c].healing, 50, "a longer clock stands");
         let os = i64::from(sim.units[soldier].index);
         sim.civilian_heal(soldier, 45 * 100 - os);
         assert_eq!(

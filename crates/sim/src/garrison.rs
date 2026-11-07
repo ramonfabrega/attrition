@@ -755,7 +755,7 @@ impl Sim {
         };
         let owner = u.owner as usize;
         let n = &self.nation[owner];
-        let level = n.heal_level.clamp(0, 3) as usize;
+        let level = self.heal_level(u.owner);
         let mut period = self.tuning.unit_heal_rate[level];
         if self.build_types[bty].ident == Ident::RedFort || n.red_fort {
             period = period * 100 / (self.tuning.red_fort_heal + 100);
@@ -784,6 +784,7 @@ impl Sim {
                 u.health += 1;
             }
         }
+        self.mark_healed(i, period);
     }
 
     /// The garrison's contribution to a tower's arrows —

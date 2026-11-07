@@ -434,7 +434,9 @@ fn run855_s_word_frame_is_widened_whole() {
     }
     // Item 2761: 128 → 122 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 103, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 3961: +1, `healing` on `1/6` (4630, ours 45 theirs 0): our civilian heal on a unit
+    // whose hits stand apart from the window's first block (4538, 78 against 83).
+    pin_eq!(w.firsts.len(), 104, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 8265/8000 and metal 9997/9732,
     // standing from 4538, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -493,7 +495,9 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
     // Item 3336: −6, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
     // Item 3335: −1, the group change (every attacking type in its trainer's group).
-    pin_eq!(w.firsts.len(), 97, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 3961: +1, `healing` on `1/6` standing on 4853 (ours 2 theirs 0), run855's heal
+    // counting down.
+    pin_eq!(w.firsts.len(), 98, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).

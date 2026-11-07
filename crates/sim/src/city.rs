@@ -63,8 +63,6 @@ pub struct Nation {
     /// field, and the clock reads [`crate::Sim::has_rare`] now.
     pub created_faster: bool,
     pub global_government: bool,
-    /// `get_heal_level`, 0..3.
-    pub heal_level: i32,
     /// `FORTGARRISON2..4`: 1..4.
     pub fort_garrison_level: i32,
     /// `disable_building_attrition`.
@@ -107,7 +105,6 @@ impl Default for Nation {
             tikal: false,
             created_faster: false,
             global_government: false,
-            heal_level: 0,
             fort_garrison_level: 1,
             disable_building_attrition: false,
             plunder_hero: false,
