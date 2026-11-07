@@ -5845,7 +5845,17 @@ impl Sim {
                 _ => {}
             }
         }
+        let wall_stats_were = self.wall_stats_dirty[who as usize];
         self.apply_gained(who);
+        // **A unit type takes no wall stats** (item 3965): the unit arm
+        // (`gain_tech@006dcb60:658`, the type's vslot `+0xc`) raises
+        // `0x4000000` alone and leaves by `goto LAB_006e05d9` (`:883`), past
+        // the tail's `|= 0xc000000` (`:2313`). run99's Tower `1/2014` gains
+        // the Militia on 10163 and keeps its cached `mylos` 11 to 10334's
+        // tech, where this crate's refresh read 13 on 10165.
+        if self.tech_tree.kind(t).is_unit() {
+            self.wall_stats_dirty[who as usize] = wall_stats_were;
+        }
         // Step 10's second half: a Civic level re-masks every city and
         // sweeps the buildings its new reach covers into it.
         if matches!(
