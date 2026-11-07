@@ -14857,13 +14857,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CA — reserved
+## Parked by item 3948, 2026-11-07 — Mediterranean's chain take
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3948a) **The start walk can creep for millions of turns** (MAPGEN §29.4). 36 turns of 0x71c71c6 fall 8 angle units
+short of a circle, so a seat whose walk finds no start on its first sweep keeps turning, 8 units further each
+circle, until a projection rounds onto a cell near the water. On a 30×30 pond of radius 4 with `reach` 10, angle 0
+turns about 8.45 million times (`sim::map_mediterranean`'s walk test, retuned off it). run1531's two seats took no
+turn. It names no score. It is the question to put to the first Mediterranean lobby whose take shows a long
+`make_continents`: would a different size or nation count make the original hang here?
+
+(3948b) **`eliminate_pools`' merge target when the last neighbour read is another sea** (MAPGEN §29.4). In
+`Map::eliminate_pools@0068b890` the neighbour scan keeps the last in-bounds neighbour's region in `EVar10`. When no
+neighbour of the merged region's first cell is land, and the last one read is another water region (over 0x40),
+the region merges into that sea rather than into land. `map_lakes::eliminate_pools_in` takes the first land
+neighbour of any cell. No corpus file has two seas that touch on the eight neighbours, so no run tells the two
+apart. It names no score: a falsifier is a lobby whose 7807 part 5 parts after a merge, with a two-sea mask.
 
 ## Parked by the next landing, slot CB — reserved
 
