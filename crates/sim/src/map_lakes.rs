@@ -503,11 +503,27 @@ pub(crate) fn isqrt(n: i32) -> i32 {
 /// take the first land region a cell of it touches; `invert_land` zeroes
 /// every `region` straight after, so only the `land` writes reach 7807.
 pub(crate) fn eliminate_pools(grid: &mut MapGrid) {
+    eliminate_pools_in(grid, false);
+}
+
+/// [`eliminate_pools`] with its `ElimPoolParam`: `ENTIRE_WORLD` when
+/// `edges_only` is false, `EDGES_ONLY` (1) when true — Colonial Powers'
+/// call (`crate::map_colonial`, `docs/MAPGEN.md` §32). `EDGES_ONLY` lists
+/// only the water regions a cell of the map's border holds, in the
+/// border's row-major scan order; a pool no border cell holds is never
+/// listed and stays water. The merge loop is the same.
+pub(crate) fn eliminate_pools_in(grid: &mut MapGrid, edges_only: bool) {
     let mut regions = Regions::default();
     regions.clear_all(grid);
     regions.find_all(grid);
     let mut seas: Vec<i16> = Vec::new();
-    for c in &grid.cells {
+    let (xs, ys) = (grid.xs, grid.ys);
+    for (i, c) in grid.cells.iter().enumerate() {
+        let (x, y) = (i as i32 % xs, i as i32 / xs);
+        let border = y == 0 || y >= ys - 1 || x == 0 || x == xs - 1;
+        if edges_only && !border {
+            continue;
+        }
         if c.region > 0x40 && !seas.contains(&c.region) {
             seas.push(c.region);
         }

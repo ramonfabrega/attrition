@@ -428,7 +428,7 @@ fn walk_out(
 /// written, appended to its list) unless a spiral neighbour within ring
 /// `min(avoid_continent, 10)` that is not water belongs to another region
 /// whose list holds more than four cells.
-fn check_player_land(grid: &mut MapGrid, lists: &mut [Vec<(i32, i32)>], avoid: i32) {
+pub(crate) fn check_player_land(grid: &mut MapGrid, lists: &mut [Vec<(i32, i32)>], avoid: i32) {
     let t = circle::table();
     let ring = 5usize;
     let guard = MOVE_RADIUS[avoid.min(10) as usize];
