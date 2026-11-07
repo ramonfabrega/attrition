@@ -1933,6 +1933,9 @@ pub fn load_tables(
     tree.roles.ships_speed_preq = [bonus_at(64), bonus_at(65), bonus_at(66)];
     tree.roles.troops_speed_preq = [bonus_at(58), bonus_at(59), bonus_at(60)];
     tree.roles.vehicles_speed_preq = [bonus_at(76), bonus_at(77), bonus_at(78)];
+    // `HEAL_FASTER_1..3` (`0x2ef`), rows 67–69: the level `get_heal_level`
+    // counts for the Iroquois heal (item 3959).
+    tree.roles.heal_faster_preq = [bonus_at(67), bonus_at(68), bonus_at(69)];
     tree.roles.supply_upgrade_preq = [bonus_at(79), bonus_at(80), bonus_at(81)];
     tree.roles.spy_upgrade_preq = [bonus_at(92), bonus_at(93), bonus_at(94)];
     // `GENERALS_UPGRADE_1..3` (`0x305`): the level `get_general_upgrade`
@@ -1945,8 +1948,6 @@ pub fn load_tables(
     tree.roles.buildings_hp_preq = [bonus_at(73), bonus_at(74), bonus_at(75)];
     // `TEMPLEHP2..4` (`0x2cb`): the temple's hit-point ladder (item 1497).
     tree.roles.temple_hp_preq = [bonus_at(31), bonus_at(32), bonus_at(33)];
-    // `HEAL_FASTER_1..3` (`0x2ef`): the heal level (item 3961).
-    tree.roles.heal_faster_preq = [bonus_at(67), bonus_at(68), bonus_at(69)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

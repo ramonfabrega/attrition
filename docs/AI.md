@@ -40079,19 +40079,161 @@ does not run whole.
 - **The cliff lists' tiles in a played game**, as §401.4 says.
 - **Why 15754 parts.** Held out: it is parked by frame, and it is read by nobody.
 
-## 402. Reserved for the next item on the AI track
+## 402. The Iroquois cloak: three mask bits widened and ported, run1228b's closing window 67 → 65 (item 3958, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3958, Opus 5.5. Parked T71-1 (territory adjudications 3 and 4): on the Iroquois Ancient pair's closing window
+(run1228b, 8165..8421) the Iroquois' units print three mask bits that no row compared and the crate held at 0.*
 
-## 403. Reserved for the next item on the AI track
+### 402.1 The widening, red first
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+`widen_block_rows` gains three rows on every on-map unit, each mapped to its parsed word for the coverage pin
+(`widened_field`): `cloak` (`unit_masks & 0x800`), `land_cloak` (`unit_masks2 & 0x8000`) and `cloak_mark`
+(`unit_masks2 & 0x80`). On their first run the window's `firsts` went **67 → 325**: `cloak_mark` 139 units,
+`land_cloak` 116, `cloak` 3, every one who=1 and ours 0 against theirs 1 from block 8165.
+
+### 402.2 The writers, from the reading
+
+- **The birth mark** (`Unit::init@00612100:341-352`): a unit of a leader with tribe bonus `0x12` whose type is land
+  (`+0x218 == 0`) and lacks objmask 4 (`CIVILIAN`; `ObjectTypeData::has_objmask@00470860` is `obj_masks & mask`)
+  takes `unit_masks2 |= 0x80`. Nothing clears it. `Sim::init_iroquois_masks`, beside the Scout's `0x4080`.
+- **The own-land cloak** (`Unit::process_cloak@005e1c20:47-58`, on the unit's sixteen-frame phase in
+  `Unit::process`, after the `targeted` decay): `unit_masks2 &= ~0x8000`, then `|= 0x8000` when `0x80` is set and
+  the cell's territory owner (`world +0x134`, `+0xf`, `>> 8` coordinates) is the unit's owner or a mutual ally.
+  `Sim::process_cloak`.
+- **The forest cloak** (`process_cloak:93-108`): an Iroquois land unit takes `unit_masks |= 0x800` on a forest tile
+  (`TData & 0x30 == 0x30`, `>> 6` coordinates) and loses it off one. The same test runs in
+  `Unit::set_new_location@005f8d20:61-82` when a step crosses a **tile inside one world cell** — a cell crossing
+  skips it. `Sim::step_cloak`, called from both. `crate::Unit::cloak` carries the bit.
+- **Two clears.** `Unit::process@00610bc0:556`'s inside arm, reached every frame a unit is inside, runs
+  `unit_masks2 &= 0xffff7f9f` and drops `0x800` from a unit without the hero's `0x2000`. `Unit::do_idle@0060dcd0:13-16,
+  34-36` lifts `0x8000` for `set_anim`, `check_idle` and `think`, and puts it back after them. Without the first,
+  run1320's units leaving a building or a boat kept a `land_cloak` theirs had dropped (27 rows).
+- **The Ambush's cloak** (`process_cloak:61-91`, `SpellType::cast_ambush@00671610`). The cast's
+  `unit_masks |= 0x2800` gives the hero both `ambushing` (`0x2000`, carried since item 3320) and `cloak`, and the
+  spell's end takes both. A unit not itself ambushing is cloaked while one of its owner's heroes, not itself,
+  ambushes unblown (`0x3000 == 0x2000`) on the map within `HeroData::get_radius × 0xc0`
+  (`Sim::in_ambush_aura`), and uncloaked otherwise. That is the arm's clear for every unit. The leader's `0x4000`
+  gate is set with the first ambushing hero and dropped by `Leader::verify_spell_flags` when none is left, so the
+  walk answers it. The Iroquois forest arm runs after the aura and overrides it for land units, so the aura shows on
+  ships.
+- **The readers** already asked `0x8000`; they now ask `0x800` too: `is_seen`'s stealth arm
+  (`unit_stealth_hides`), `is_cloaked` (`unit_is_cloaked`) and `Unit::work@0060d180:384`'s blown test
+  (`unit_stealth_type`).
+
+### 402.3 The score
+
+The rows went green with the process arms and the birth mark, but for `1/0`'s `cloak` (theirs 1 on 8197, off the
+unit's phase), which the tile step's test closed. `firsts` **67 → 65**, and the two that left are readers' rows:
+`1/88`'s `blown` ours 1 theirs 0 on 8165 and `1/16`'s ours 1 theirs 0 on 8177. Both carried `land_cloak` theirs 1
+on 8165, so `Unit::work`'s stealth arm, which skips a unit holding `0x800` or `0x8000`, no longer blows them. What
+remains of the 65: the 50 standing rows of item 3584 (`form`, `SITE[i].reg`, `aggression[1]`, groups' `held` and
+`pool`), groups 68's on 8181, six `dest_angle` rows from 8225 and the two wounds (`1/52`, `1/30`) that item 3959
+takes.
+
+**The other Iroquois windows**: the Scouts' and soldiers' `blown` rows leave wherever the unit stood cloaked:
+run918–run940 lose one each (`1/0`'s `blown`, ours 1 theirs 0 on run918's 1114), the Enlightenment pair's stride
+155 → 152 (`1/0`, `1/18`, `1/19`, parked 3114), run1001 35 → 34 and run1001c 67 → 66 (`1/0` on 13825, parked
+3375a). On run1320, the Enlightenment pair's closing window, the rows went red two ways before the clears and the aura
+were built: 27 `land_cloak` ours 1 theirs 0, and eight `cloak` theirs 1 ours 0. The second set is the President `1/15`
+(TI 355) casting Ambush on 4889 (`unit_masks` `0x84000a` → `0x84280a`), then seven Transport Galleons (TI 321, sea)
+inside its aura from 4895. Built, all of them agree, and 131 stands. **On every other lobby** the `cloak` row went
+red wherever an AI hero ambushed: the lane gate named 53 widenings (run657 +8, run1189b +26, run1250 +81, all of them
+`cloak` rows only). With the aura they stand at their old pins.
+
+**Held out, run897**: read after the port and never debugged against. Its word frame and closing state hold as they
+stood (`run897_s_word_frame_is_widened_whole`, `run897b_iroquois_closing_state` green, unchanged).
+
+### 402.4 Coverage
+
+- **Diff-backed**: all three bits on every unit and every block of run1228b's closing window. The birth mark's
+  predicate is checked on 139 units, the own-land arm on 116, and the forest arm on 3, two of them through the
+  tile step.
+- **Diff-backed too**: the Ambush's cloak and aura, on the 53 widenings above and run1320.
+- **Reading alone**: the mutual-ally term (no pinned lobby is allied); `do_idle`'s hold, which no window parts
+  without; and `Unit::find_melee_target@005ff9c0`'s cloak exit for a human's cloaked unit (`leader_flags & 4`), not
+  ported (parked 3958a).
+
+### 402.5 What is not established
+
+- **Whether any pinned game's enemy refused a cloaked Iroquois target.** The readers are live now, and every
+  lobby's `first_parting` held at the gate, but no window has been read for the moment an enemy's search skips one.
+
+## 403. Two heals, not one: the Iroquois arm with its standing test, and the Senator's, run1228b's closing window 65 → 57 (item 3959, 2026-11-07)
+
+*Item 3959, Opus 5.5. Parked T71-2 (territory adjudication 3): on the Iroquois Ancient pair's closing window
+(run1228b, 8165..8421) two Iroquois units stood a point more hurt than theirs, `1/52` from 8191 and `1/30` from
+8411. The booking named the Iroquois arm of `Unit::process_healing@005e0670` with its `is_moving` term. That arm is
+real and is built, but it gives one of the five heals. The other four are the Senator's.*
+
+### 403.1 The heals on the window, from the dump
+
+`healing` (`+0x38`) is decremented at `Unit::process@00610bc0:69` before `process_healing` runs, and every arm that
+heals writes `max(rate, healing)`. So a jump in the dumped `healing` names the arm's period. Only one function reads
+`IROQUOIS_HEAL_RATE` or `FRENCH_SUPPLY_HEAL_RATE` (`Constants::init` aside), and only `process_healing` and
+`Unit::process`'s aircraft arm write a unit's `+0x38`. Player 1 has five heals in the window, all on squad captains,
+each point handed down `o_down` to the hurt figure:
+
+| block | captain | `healing` | head order | arm |
+|---|---|---|---|---|
+| 8191, 8211, 8231 | `1/50` (Mohawk Spearmen, TI 167, land) | 20 | `ATTACKTOORDER` | Senator |
+| 8246 | `1/50` | 15 | `GUARDORDER` alone | Iroquois |
+| 8411 | `1/30` (Javelineers, TI 83, land) | 20 | `ATTACKTOORDER` | Senator |
+
+The level is fixed through the window: `tech_frame` reads 7782 on every block, so player 1 researched nothing. The
+crate holds Herbal Lore, so `get_heal_level` is 1 and the Iroquois period is 15. Both 15 and the 20s cannot be the
+one arm.
+
+### 403.2 The Iroquois arm (`process_healing:118-147`)
+
+`has_tribe_bonus(0x12)`, not blown (`unit_masks & 0x1000`), vslot `+0xd8` false, land, then
+`IROQUOIS_HEAL_RATE[get_heal_level]` on `(o + frame)`, and the cell's territory owner an ally.
+
+- **Vslot `+0xd8` is `UnitData::is_moving@00610af0`.** The PE's `Unit::vftable` at `00b417d0 + 0xd8` holds
+  `0x610af0`. It reads the order at `orderlist +0x14 → +4 → +8`, which is the node `OrderList::log_data` prints
+  last, so the dump's current order. It returns that order's `+0x14`. For `AttackToOrder` the slot is a vtordisp
+  thunk to `0x41e0e0`, which is `mov eax, 1; ret`. So an attack-move is moving, as `Sim::is_moving` already said.
+- **The dump agrees.** On its 15-phase `1/50` was refused on 8186, 8201 and 8216, all three under `ATTACKTOORDER`.
+  It healed on 8246, the one block its list held `GUARDORDER` alone.
+- **`get_heal_level@006e12e0`** counts `HEAL_FASTER_1..3` (`TECHBONUSES` rows 67–69) held by `has_preq`. Its `BUY_SELL` arm
+  is out of the loop's range. Those bonuses are `TECHBONUSES` rows 67–69, whose prerequisites in the shipped
+  `rules.xml` are Herbal Lore, Medicine and Pharmaceuticals. The crate had no reader of them: `heal_level` was a
+  field nothing wrote. `Roles::heal_faster_preq` now loads them, and `Sim::heal_level` counts the ladder as
+  `speed_upgrade_level` does.
+
+`Sim::iroquois_heal`, in `crate::heal`, runs before the CEO's heal in `process_healing`'s order.
+
+### 403.3 The Senator's arm (`process_healing:149-177`)
+
+On `FRENCH_SUPPLY_HEAL_RATE` (20): the leader counts a `THESENATOR` (`0x161`, `LeaderData::num_units` at `+0x5762`,
+indexed from `BASE_UNITTYPES`), the cell's owner is an ally, and `has_general(0, 0x161)` finds one in reach. Then
+`repair_damage(1, 1, 1)`. Nothing asks about motion. Player 1's Senator is `1/92` (TI 353, the Republic's patriot,
+`rules.xml`: "a general who also provides healing"), about four tiles from `1/50` on 8190. Parked 3686a had named
+this arm the Monarch's; the TypeIndex enum names `0x161` THESENATOR. `Sim::senator_heal` sits beside `ceo_heal`.
+The President's arm (`0x163`, `:179-203`, an allied cell **or** an unowned one) stays a SEAM.
+
+### 403.4 The score
+
+**`firsts` 65 → 57** on run1228b's closing window, re-pinned at `iroquois_ancient_pair.rs`. The booking counted two
+firsts, but each wound was four keys: `damage_frac`, `hits:damage`, `hits:damage_frac` and `hits_left`, on `1/52` from
+8191 and on `1/30` from 8411. All eight agree on every block. Value diff on the word's frame 8191: `1/52`
+`hits:damage` was ours 42 against theirs 41; it is now 41 both sides, then 40 on 8211, 39 on 8231 and 38 on 8246,
+which is theirs' value through 8420. `1/30` is 4 both sides from 8411.
+
+**Held out, run897**: see 403.6.
+
+### 403.5 Coverage
+
+- **Diff-backed**: both arms' periods, phases, hand-down and allied-cell test on run1228b; the standing test's
+  refusal on three blocks and its heal on one; `get_heal_level` at 1.
+- **Reading alone**: levels 2 and 3; the `0x1000` (blown) refusal; the mutual-ally cell; the Senator's leader count
+  (answered here by `has_general`'s walk, as in `Sim::near_monarch`); the sparkle arm's `internal_random` draw for
+  the console's allies (no stream this crate keeps).
+
+### 403.6 What is not established
+
+- **The President's arm.** Read, not built.
+- **Other lobbies' Senators.** A Republic AI elsewhere heals by the same arm now. What the full suite said is in the
+  item's journal.
 
 ## 404. A unit's own queue, `UNITDATA num_queued` and `queue_time`: compared against the crate's 0, parting on run1066's carrier at 614 (item 3960, 2026-11-07)
 
@@ -40183,13 +40325,14 @@ first compare; the port below took 14 of them to green.
 - The aircraft heal inside (`Sim::burn_fuel`'s inside arm, which had been a
   `SEAM`), with `Tuning::aircraft_heal_rate` (`AIRCRAFT_HEAL_RATE`, 20 16 12
   8).
-- **`LeaderData::get_heal_level@006e12e0`** as `Sim::heal_level`: the count
-  of `HEAL_FASTER_1..3` held. These are `TECHBONUSES` rows 67–69, bonuses
-  sitting at `0x2ac` + their row, loaded into `Roles::heal_faster_preq`. Its
-  `BUY_SELL` arm (`0x2ad`) sits below the loop's first index (`0x2ef`) and
-  can never be taken. `Nation::heal_level`, which nothing wrote, is gone, so
-  the garrison heal reads the real level too. That moved no floor and no
-  `first_parting`.
+- **`LeaderData::get_heal_level@006e12e0`**, the count of `HEAL_FASTER_1..3`
+  held (`TECHBONUSES` rows 67–69, `Roles::heal_faster_preq`). Item 3959
+  built it at the same time under the same names (§403); at the merge, this
+  item's copy was dropped for theirs. `Nation::heal_level`, which nothing
+  wrote, is gone, and the garrison and aircraft heals now read `heal_level`.
+  On the pre-merge tree that moved no floor and no `first_parting`.
+- `Sim::mark_healed` added to item 3959's Senator and Iroquois heals at the
+  merge.
 - `widen_block` compares the unit's key against `Unit::healing`, and
   `compare` the building's against **0** under a `SEAM`. The three keys
   leave the unread pin (`coverage.rs`: both `UNITDATA` paths and
@@ -40202,15 +40345,15 @@ took inside its Airbase on game frame 2437 before launching: `(115 + 2437)
 0, period 20, no heal. After, both print 1, and the window's `firsts` stands
 at 75. run1151c: all 161 records agree, and its 59 `firsts` stand.
 
-**What still parts.** Six widenings each gain a `healing` row (+1, +2 on
-run1228b), re-pinned with their deltas.
+**What still parts.** Five widenings each gain one `healing` row,
+re-pinned with their deltas. run1228b's two rows (theirs 20) closed at the
+merge with item 3959's heals, and its `firsts` stands at their 57.
 - run754's `1/116` and run855/run861's `1/6`: ours 45 against 0. Our
   civilian heal fires on a unit whose hits already part from an earlier
   block, so theirs, being whole, takes no heal.
-- run1262's `1/50` (theirs 10), run1344b's `1/29` (theirs 20) and run1228b's
-  `1/50`, `1/30` (theirs 20): theirs heals on the very block its hits part,
-  on an arm ours does not build. The period names the arm: the Iroquois heal
-  (item 3959), the French patriots' arms (parked 3686a), and a rate-10 arm
+- run1262's `1/50` (theirs 10) and run1344b's `1/29` (theirs 20): theirs
+  heals on the very block its hits part, on an arm ours does not take. The
+  period names the arm: a rate-10 arm, and a `FRENCH_SUPPLY_HEAL_RATE` arm
   (parked 3961a).
 
 The three building-field counts (run56, run57, run58) gain one field per

@@ -3801,6 +3801,14 @@ on 1,831 tech-queued building-frames over five windows. Candidate: the `UNCOMPAR
 comparator's skips counted per record and the count pinned, red first. Not built this pass: 3969 emits the technology rows;
 the next pass pins the rest on the landed tree. Names no score; the loop's.
 
+## Loop, filed 2026-11-07 — the seventy-second tranche's
+
+(3972) **`tools/nations_census.py --write` rewrites rows no item touched** (3959's "for the Loop"): on `864dd6aec` the
+generator rewrote 24 rows unrelated to the Iroquois heal, so the table on the tree has drifted from what the generator
+emits and a lane that runs it to re-pin carries a churn it did not cause. Candidate: a guard that runs the generator
+in check mode and fails on any difference, red first on today's 24 rows, and the table regenerated in the same landing.
+Names no score; the loop's.
+
 ## Loop, filed 2026-11-06 — the seventy-first tranche's
 
 **3954** (a draft's comparison harness was committed and pushed without ever having run; 3941's "for the Loop") — **a clause** by the seventy-second pass, its text kept in `docs/audit/2026-11-07-fable-pass-72.md` ("Rulings"): the frame's `DEEP` line reads "a harness the draft commits has run once, its exit in the journal (3954)", paid for under the chapter kind's 13,000 ceiling by three trims (31 tests in `test_brief.py`). The row as filed: (3941's "for the Loop"): its first
@@ -11776,11 +11784,13 @@ draw parts; it names no score.
 
 ## Parked by item 3686, 2026-10-26 — a CEO's heal and a rifle's bays
 
-- **3686a — the Monarch's and the Comrade's heal arms.**
-  `Unit::process_healing@005e0670:149`–`:208`: `0x161` and `0x163` on
-  `FRENCH_SUPPLY_HEAL_RATE`, each also asking an allied cell. They are
-  read and not built (`heal.rs`'s SEAM); which captures reach them is not
-  scanned. They name no score.
+- **3686a — ~~the Monarch's and the Comrade's heal arms~~ the Senator's
+  and the President's heal arms.**
+  `Unit::process_healing@005e0670:149`–`:208`: `0x161` (THESENATOR) and
+  `0x163` (THEPRESIDENT) on `FRENCH_SUPPLY_HEAL_RATE`, each also asking an
+  allied cell. ~~They are read and not built~~ The Senator's is built
+  (item 3959, `docs/AI.md` §403.3: run1228b reaches it); the President's
+  stays read and not built (`heal.rs`'s SEAM), and names no score.
 - **3686b — `repair_damage`'s reinforcement.** Past a squad's last live
   figure, a squad under its `uber_size` trains a figure back:
   `Objects::find_free`, `init`, a spot, a move order, and the groups
@@ -14994,21 +15004,23 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   on a small map, where a continent's share runs into its neighbours'; the restart's draws would then show in the
   mask stream. Unit tests carry the shrink and the floor.
 
-## Parked by the next landing, slot CG — reserved
+## Parked by item 3958, 2026-11-07 — the Iroquois cloak
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3958a. `Unit::find_melee_target@005ff9c0`'s cloak exit** (AI §402.4; no score: no pinned window parts on it). A
+  unit of a human leader (`leader_flags & 4`) that `is_cloaked` and is not blown returns −1 when it holds
+  `unit_masks & 0x800`, and also without `0x8000` unless its type carries `+0x2b4 & 0x100000` or it `is(0x44)`. The
+  crate's `find_melee_target_as` has no such exit. With the cloak bits now carried, it would bind a human Iroquois
+  soldier standing in forest, and a human stealth unit standing idle. The score is the first window where a human
+  Iroquois unit in forest parts on its target or order list.
 
-## Parked by the next landing, slot CH — reserved
+## Parked by item 3959, 2026-11-07 — the Iroquois heal and the Senator's
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3959a — the garrison heal reads a level nothing writes.** `Sim::garrison_heal` indexes
+  `UNIT_HEAL_RATE` by `city::Nation::heal_level`, which stays 0; `process_healing`'s inside branch
+  indexes it by `get_heal_level@006e12e0`, now `Sim::heal_level` (Herbal Lore, Medicine,
+  Pharmaceuticals). A garrisoned unit of a player holding Herbal Lore heals every 15 frames in theirs
+  and every 20 in ours. The score is the first window where a garrisoned unit of such a player parts
+  on `hits:damage`. No window was scanned for one.
 
 ## Parked by item 3960, 2026-11-07 — a unit's own queue, compared against the crate's 0
 
@@ -15021,13 +15033,13 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3961, 2026-11-07 — the heal's clock, `UNITDATA` and `BUILDDATA healing`, compared
 
-- **3961a. The on-map heals this crate does not take, now dated by `healing`** (`docs/AI.md` §405): four widenings
+- **3961a. The on-map heals this crate does not take, now dated by `healing`** (`docs/AI.md` §405): two widenings
   carry a `healing` row where theirs heals on the block its hits part and ours does not — run1262's `1/50` on 5601
   (theirs 10: the period of no arm the crate builds; `process_healing`'s supply arm with the French bonus and Versailles,
-  `(VERSAILLES + SUPPLY + FRENCH) / 4`, is one candidate, unread), run1344b's `1/29` on 4552 (theirs 20, the
-  `FRENCH_SUPPLY_HEAL_RATE` arms: the Monarch's and the Comrade's, parked 3686a), and run1228b's `1/50` (8191) and `1/30`
-  (8411), theirs 20, the Iroquois heal (item 3959). The rate a unit's `healing` prints is the arm's period, so each row
-  names its arm without a packet. **Score**: none of them is a word's frame; each is its widening's `firsts` pin, −1 a
+  `(VERSAILLES + SUPPLY + FRENCH) / 4`, is one candidate, unread) and run1344b's `1/29` on 4552 (theirs 20, a
+  `FRENCH_SUPPLY_HEAL_RATE` arm: item 3959 built the Senator's, so the President's, parked 3686a, or the Senator's gate).
+  run1228b's two rows (theirs 20) closed at the merge with item 3959's Senator and Iroquois heals. The rate a unit's
+  `healing` prints is the arm's period, so each row names its arm without a packet. **Score**: none of them is a word's frame; each is its widening's `firsts` pin, −1 a
   row, when the arm lands.
 - **3961b. `Build::process`'s patriot repair** (`Build::process@0061edf0`, the arm ending at `0061f3b9`): a Monarch, Comrade or CEO near a damaged building
   of a leader holding one repairs it on `FRENCH_SUPPLY_HEAL_RATE`'s phase and writes the building's `healing`; this crate

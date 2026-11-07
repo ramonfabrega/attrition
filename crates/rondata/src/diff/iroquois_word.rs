@@ -395,7 +395,8 @@ fn run918_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 33, "initial run918 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 32, "initial run918 baseline");
     // Item 3170: 37 → 33. who=1's food row (`income`, `resources`,
     // `bucket`, `leftover`) leaves with `IROQUOIS_FOOD`, the woodcutter's
     // two food (`docs/AI.md` §250). What stands is the control's set and the
@@ -462,7 +463,8 @@ fn run918b_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 38, "initial run918b baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 37, "initial run918b baseline");
     // Item 3170: 43 → 38. who=1's food row and `known_rares` leave
     // (`IROQUOIS_FOOD`; setup's border fixes no longer zero frame 0's
     // census count, `docs/AI.md` §250).
@@ -530,7 +532,8 @@ fn run921_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 32, "initial run921 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 31, "initial run921 baseline");
     // Item 3170: 40 → 32. The food row, and with it Barter's queue on
     // 1576 (`tech_frame`, the Library's `queued`, `script_step`): ours now
     // pays its 54 food (`docs/AI.md` §250).
@@ -604,7 +607,8 @@ fn run922_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 32, "initial run922 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 31, "initial run922 baseline");
     // **Item 3170: 408 → 32**, the word's own frame closed. The value diff
     // on block 1771 (frame 1770): who=1's `1/6` takes the `GATHERORDER` on
     // the camp 1/2008 on both sides (`orders.len` 1 and 1, the camp's
@@ -693,7 +697,8 @@ fn run923_s_food_row_is_widened_whole() {
     // original's setup ends in `World::compute_all_territory`, so no pass
     // is pending (`docs/AI.md` §250). Both closed: 41 → 36, the control's
     // set, the groups' `held`, the pool, and the Scout's `blown`.
-    pin_eq!(w.firsts.len(), 36, "initial run923 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 35, "initial run923 baseline");
 }
 
 /// run926: the word 5144's window, blocks 5138..5394 at run918's detail
@@ -747,7 +752,8 @@ fn run926_s_word_frame_is_widened_whole() {
     // keys, the first on block 5156: `1/4`'s move order `x`/`y` 41016/17016
     // against 40824/17592 (`off_x`/`off_y` 312/120 against 120/696) — the
     // stream one draw behind. The word moved 5144 → 5576, past the window.
-    pin_eq!(w.firsts.len(), 32, "initial run926 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 31, "initial run926 baseline");
 }
 
 /// run928: the word 5576's window, blocks 5570..5826 at run918's detail
@@ -812,7 +818,8 @@ fn run928_s_word_frame_is_widened_whole() {
     // neither a draw (`docs/AI.md` §253).
     // Item 3369: 35 -> 33, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 33, "initial run928 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 32, "initial run928 baseline");
 }
 
 /// run932: the word 5843's window, blocks 5826..6094 at run918's detail
@@ -867,7 +874,8 @@ fn run932_s_word_frame_is_widened_whole() {
     // 6982 (`docs/AI.md` §253). The move's value diff is this block.
     // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 32, "initial run932 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 31, "initial run932 baseline");
 }
 
 /// run934: the word 6982's window, blocks 6976..7232 at run932's detail
@@ -925,7 +933,8 @@ fn run934_s_word_frame_is_widened_whole() {
     // other lobbies) and `SITE[1].reg` on 7176. The move's value diff is these two blocks.
     // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 32, "initial run934 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 31, "initial run934 baseline");
 }
 
 /// run937: the word 7982's window, blocks 7976..8232 at run934's detail
@@ -983,7 +992,8 @@ fn run937_s_word_frame_is_widened_whole() {
     // 7983.
     // Item 3369: 51 -> 42, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 42, "initial run937 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 41, "initial run937 baseline");
 }
 
 /// run940: the word 8415's window, blocks 8409..8665 at run937's detail
@@ -1043,7 +1053,8 @@ fn run940_s_word_frame_is_widened_whole() {
     // (`docs/AI.md` §256). The move's value diff is block 8416.
     // Item 3369: 61 -> 43, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 43, "initial run940 baseline");
+    // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 42, "initial run940 baseline");
 }
 
 /// run943: the word 10695's window, blocks 10689..10945 at run940's detail

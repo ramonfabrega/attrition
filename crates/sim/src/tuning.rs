@@ -1292,6 +1292,10 @@ pub struct Tuning {
     /// Frames between an aircraft's heal steps inside its base, by heal
     /// tech level (`constants +0xc00`; `Unit::process`'s air arm, item 3961).
     pub aircraft_heal_rate: [i32; 4],
+    /// Frames between the Iroquois heal's steps — a standing land unit on
+    /// an ally's ground (`Unit::process_healing@005e0670:118-147`,
+    /// [`crate::Sim::iroquois_heal`]), by heal tech level.
+    pub iroquois_heal_rate: [i32; 4],
     /// Frames between the civilian heal's steps — a citizen, caravan,
     /// merchant or fisherman on an ally's ground (`crate::heal`). Zero
     /// means never.
@@ -1830,6 +1834,7 @@ impl Tuning {
         fort_garrison_upgrade: 5,
         unit_heal_rate: [20, 15, 10, 5],
         aircraft_heal_rate: [20, 16, 12, 8],
+        iroquois_heal_rate: [20, 15, 10, 5],
         civilian_heal_rate: 45,
         red_fort_heal: 500,
         unit_train_distance: 288,
@@ -2765,6 +2770,7 @@ impl Tuning {
             ),
             ("UNIT_HEAL_RATE", Slot::Entries(&T.unit_heal_rate)),
             ("AIRCRAFT_HEAL_RATE", Slot::Entries(&T.aircraft_heal_rate)),
+            ("IROQUOIS_HEAL_RATE", Slot::Entries(&T.iroquois_heal_rate)),
             ("CIVILIAN_HEAL_RATE", Slot::Value(T.civilian_heal_rate)),
             ("RED_FORT_HEAL", Slot::Value(T.red_fort_heal)),
             ("UNIT_TRAIN_DISTANCE", Slot::Ratio192(T.unit_train_distance)),

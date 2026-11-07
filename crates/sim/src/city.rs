@@ -1768,25 +1768,6 @@ impl Sim {
         }
     }
 
-    /// **`LeaderData::get_heal_level@006e12e0`**, 0..3: how many of
-    /// `HEAL_FASTER_1..3` (`0x2ef`..`0x2f1`) the player holds, each by
-    /// `has_preq`. The loop's `BUY_SELL` arm (`0x2ad`, the tribe bonus 4)
-    /// sits below the loop's first index and is never taken (listing
-    /// `6e12e7`–`6e1327`). `Nation::heal_level` held this and nothing wrote
-    /// it, so every heal it indexes read level 0 (item 3961: run714's
-    /// Persian Jet Fighter `1/115` heals inside on 2437, `(115 + 2437) % 8`,
-    /// the all-tech level 3, where ours waited out 20).
-    pub(crate) fn heal_level(&self, who: Player) -> usize {
-        let p = &self.tech[who as usize];
-        self.tech_tree
-            .roles
-            .heal_faster_preq
-            .iter()
-            .flatten()
-            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
-            .count()
-    }
-
     /// `Wall::update_hits`: the full figure and the site's growing one.
     pub fn update_hits(&mut self, b: usize) {
         let Some(ty) = self.buildings[b].ty else {

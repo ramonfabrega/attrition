@@ -180,7 +180,10 @@ fn iroquois_enlightenment_pair_the_long_s_stride_walks_back_from_3962() {
     // 3501), and `blown` on three of who=1's units (`1/0` from 101, `1/18` and `1/19`
     // from 1101; parked 3114). No unit's position, orders or hits part
     // through block 3901.
-    pin_eq!(w.firsts.len(), 155, "the stride's baseline");
+    // Item 3958: 155 → 152 — the three `blown` rows leave (parked 3114):
+    // each unit holds `land_cloak`, which `Unit::work`'s stealth arm skips
+    // (`docs/AI.md` §402).
+    pin_eq!(w.firsts.len(), 152, "the stride's baseline");
 }
 
 /// run1291b: the word 3962's window, blocks 3956..4212 at the long's
@@ -349,6 +352,11 @@ fn iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole() {
         ],
         "the only object rows: a price"
     );
+    // Item 3958: the cloak's rows of `docs/AI.md` §402 part nothing here
+    // once ported — 27 `land_cloak` rows on units leaving a building or a
+    // boat (the inside arm's clear) and eight `cloak` rows, the President
+    // `1/15`'s Ambush on 4889 and seven Transport Galleons in its aura from
+    // 4895 (the hero arm), all agree; 131 stands.
     pin_eq!(w.firsts.len(), 131, "run1320 baseline");
     // **Every round, both directions**: 940 round-blocks a side, and none
     // parts — the Musketeers' (`1/73`..`1/75`, piece 1457) among them,
