@@ -238,5 +238,17 @@ fn iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole() {
     // more: `1/88`'s `blown` ours 1 theirs 0 on 8165 and `1/16`'s ours 1
     // theirs 0 on 8177 agree, since `Unit::work`'s stealth arm skips a
     // unit holding `0x800` or `0x8000`.
-    pin_eq!(w.firsts.len(), 65, "run1228b baseline");
+    //
+    // Item 3959, **65 → 57** (`docs/AI.md` §403): the two wounds' eight
+    // rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`
+    // on each) agree on every block. They were two heals, not one: the
+    // Senator's arm (`process_healing:149-177`, `FRENCH_SUPPLY_HEAL_RATE`
+    // 20, an allied cell, player 1's Senator `1/92` within reach) on the
+    // captains `1/50` (blocks 8191, 8211, 8231: `1/52` 42 → 39) and `1/30`
+    // (8411: 5 → 4), both walking under an `ATTACKTOORDER`; and the
+    // Iroquois arm (`:118-147`, `IROQUOIS_HEAL_RATE[1]` 15 under Herbal
+    // Lore) on 8246 (`1/52` 39 → 38), the one block `1/50` stood under
+    // its `GUARDORDER` alone — refused on 8186, 8201 and 8216 while it
+    // walked.
+    pin_eq!(w.firsts.len(), 57, "run1228b baseline");
 }

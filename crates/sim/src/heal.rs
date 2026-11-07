@@ -60,7 +60,7 @@ impl Sim {
     /// captain, not air, has_damage(1), inside_up < 0     # the head
     /// domain == SEA → the ship heal;  is_supply → return
     /// FRENCH_SUPPLY_HEAL_RATE != 0 and (o + frame) % rate == 0:
-    ///   …the Monarch's (0x161) and the Comrade's (0x163) arms…  # not built
+    ///   …the Senator's (0x161) and the President's (0x163) arms…
     ///   leader counts a 0x165:
     ///     unit_masks & 0x80 and !(unit_masks2 & 0x40000) and !is_supply
     ///                                         → skip to the next heal
@@ -74,10 +74,12 @@ impl Sim {
     /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
     /// draws `internal_random` only for the console's allies, which is no
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
-    /// `healing` (`+0x38`) and the `0x4000` clear are not carried.
+    /// `healing` (`+0x38`) and the `0x4000` clear are not carried. The
+    /// Senator's arm is [`Self::senator_heal`].
     ///
-    /// SEAM: the Monarch's and the Comrade's arms, which also ask an
-    /// allied cell; read, not built (parked 3686a).
+    /// SEAM: the President's arm (`0x163`, `:179`–`:203`), which heals on
+    /// an allied cell **or** one nobody owns; read, not built (parked
+    /// 3686a, which named it the Comrade's).
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
         const THECEO: i32 = 0x165;
         let rate = i64::from(self.tuning.french_supply_heal_rate);
@@ -109,6 +111,61 @@ impl Sim {
             return;
         }
         self.repair_unit_damage(i, 1);
+    }
+
+    /// **The Senator's heal** — the first of `process_healing`'s three
+    /// economic-patriot arms (`005e0670:149`–`:177`, item 3959,
+    /// `docs/AI.md` §403), on the CEO's phase:
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// FRENCH_SUPPLY_HEAL_RATE != 0 and (o + frame) % rate == 0:
+    ///   leader counts a 0x161 (THESENATOR)
+    ///     and the cell's owner is an ally
+    ///     and has_general(0, 0x161)  → repair_damage(1, 1, 1)
+    /// ```
+    ///
+    /// It asks nothing of the unit's motion, so a column walking home
+    /// under the Senator's radius heals on its phase: run1228b's Mohawk
+    /// Spearmen captain `1/50`, under an `ATTACKTOORDER` with player 1's
+    /// Senator `1/92` (TI 353) within reach, takes `healing 20` on blocks
+    /// 8191, 8211 and 8231 and hands each point down to `1/52` (42 → 41 →
+    /// 40 → 39); the Javelineers' `1/30` on 8411 (5 → 4). `0x161` is
+    /// THESENATOR (the TypeIndex enum), the Republic's patriot, which
+    /// parked 3686a called the Monarch's. The leader's count is answered
+    /// by `has_general`'s walk, which finds no Senator without one.
+    pub(crate) fn senator_heal(&mut self, i: usize, frame: i64) {
+        const THESENATOR: i32 = 0x161;
+        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if !u.captain || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let owner = u.owner;
+        let damaged = self.squad_members(i).iter().any(|&f| {
+            let f = &self.units[f];
+            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
+        });
+        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+            return;
+        }
+        let ally = match self.world.owner_at(self.units[i].pos) {
+            Owner::Player(p) => self.is_ally(owner, p),
+            _ => false,
+        };
+        if ally && self.has_general(i, THESENATOR) {
+            self.repair_unit_damage(i, 1);
+        }
     }
 
     /// **`Unit::repair_damage@0060de10`** on a figure, the whole-point
@@ -206,6 +263,83 @@ impl Sim {
         if carrier {
             self.repair_unit_damage(i, 1);
         }
+    }
+
+    /// **The Iroquois heal** — `process_healing`'s on-map arm after the
+    /// Conquer-the-World hero's (`005e0670:118`–`:147`, item 3959,
+    /// `docs/AI.md` §403):
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// has_tribe_bonus(0x12) and !(unit_masks & 0x1000)   # not blown
+    ///   and !is_moving                                   # vslot +0xd8
+    ///   and domain == LAND:
+    ///     rate = IROQUOIS_HEAL_RATE[get_heal_level]
+    ///     rate != 0 and (o + frame) % rate == 0
+    ///       and the cell's owner is an ally:
+    ///         repair_damage(1, 1, 1); healing = max(rate, healing)
+    /// ```
+    ///
+    /// **The standing test** is vslot `+0xd8`, `UnitData::is_moving`
+    /// ([`crate::Sim::is_moving`]: the head order is a move), read on the
+    /// captain; both territory readers omitted it. A unit walking under
+    /// an attack order is not moving by it. The point goes down the squad
+    /// as the CEO's does ([`Self::repair_unit_damage`]): run1228b's
+    /// Mohawk Spearmen captain `1/50` (unhurt, `healing 20` from block
+    /// 8191) hands it to `1/52`, 42 to 41 on 8191, 40 on 8211, 39 on 8231,
+    /// and at rate 15 (Herbal Lore, `get_heal_level` 1) 38 on 8246.
+    ///
+    /// The sparkle arm draws only for the console's allies, which is no
+    /// stream this crate keeps; `healing` (`+0x38`) and the `0x4000` clear
+    /// are not carried, as in the other heals.
+    pub(crate) fn iroquois_heal(&mut self, i: usize, frame: i64) {
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if self.captain_of(i) != i || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let owner = u.owner;
+        if u.blown || !self.iroquois(owner) || self.is_moving(i) {
+            return;
+        }
+        if self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+            return;
+        }
+        let rate = i64::from(self.tuning.iroquois_heal_rate[self.heal_level(owner)]);
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let damaged = self.squad_of(i).iter().any(|&f| {
+            self.units[f].health < self.units[f].max_health || self.units[f].damage_frac != 0
+        });
+        if !damaged {
+            return;
+        }
+        let ally = match self.world.owner_at(self.units[i].pos) {
+            Owner::Player(p) => self.is_ally(owner, p),
+            _ => false,
+        };
+        if ally {
+            self.repair_unit_damage(i, 1);
+        }
+    }
+
+    /// **`LeaderData::get_heal_level@006e12e0`**: how many of
+    /// `HEAL_FASTER_1`..`HEAL_FASTER_3` (TypeIndex `0x2ef`..`0x2f1`,
+    /// `TECHBONUSES` rows 67–69) the leader holds by `has_preq` — the
+    /// bonus's prerequisite, Herbal Lore, Medicine and Pharmaceuticals —
+    /// 0..3, as [`Self::speed_upgrade_level`] counts its ladders. The
+    /// loop's `BUY_SELL` arm (`0x2ad`) lies outside its range and never
+    /// runs.
+    pub(crate) fn heal_level(&self, who: crate::world::Player) -> usize {
+        let ladder = self.tech_tree.roles.heal_faster_preq;
+        self.speed_upgrade_level(who, &ladder) as usize
     }
 
     pub(crate) fn civilian_heal(&mut self, i: usize, frame: i64) {
@@ -498,5 +632,142 @@ mod tests {
         sim.units[c].attrition = 48;
         sim.ceo_heal(c, due + 20);
         assert_eq!(state(&sim), (212, 0), "under an attrition period, nothing");
+    }
+
+    /// A captain of player 1 on its own cell, 40 hits, three down with a
+    /// fraction, in a tree whose one row is Herbal Lore, the heal ladder's
+    /// first rung (`TECHBONUSES` row 67).
+    fn iroquois_captain(type_index: i32) -> (crate::Sim, usize, usize) {
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let mut tree = crate::tech::TechTree::new();
+        let herbal = tree.add(crate::tech::TypeDef::plain("Herbal Lore", 0));
+        tree.roles.heal_faster_preq = [Some(herbal), None, None];
+        sim.set_tech_tree(tree);
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            type_index,
+            combat: crate::combat::Profile {
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let mut u = crate::Unit::new(1, 50, at, 40);
+        u.ty = Some(ty);
+        u.type_index = type_index;
+        u.on_map = true;
+        u.captain = true;
+        u.kind = sim.unit_types[ty].kind;
+        let c = sim.add_unit(u);
+        sim.units[c].health = 37;
+        sim.units[c].damage_frac = 5;
+        sim.world
+            .set_owner(at.cell(), Owner::Player(1), Owner::Player(1));
+        (sim, c, herbal)
+    }
+
+    fn attack_to(dest: crate::world::Pos) -> crate::orders::Order {
+        crate::orders::Order {
+            flags: crate::orders::flag::ACTION,
+            body: crate::orders::Body::Move(crate::orders::MoveOrder {
+                kind: crate::orders::MoveKind::AttackTo,
+                dest,
+                angle: crate::movement::Angle(0),
+                facing: None,
+                has_waypoint: false,
+                waypoint: dest,
+                last: None,
+                pause: 0,
+                retry: 0,
+                attempts: 0,
+                timer: 0,
+                coll: None,
+                orig: None,
+                group: None,
+            }),
+        }
+    }
+
+    /// **An Iroquois captain heals standing on its own ground, at the heal
+    /// level's period** (item 3959, `docs/AI.md` §403.2): a point every 20
+    /// frames, 15 under Herbal Lore, phased on `o`; nothing under an
+    /// attack-move (`is_moving`), when blown, on another leader's ground,
+    /// or for a leader without the bonus. run1228b's `1/50` was refused
+    /// on 8186, 8201 and 8216 under its `ATTACKTOORDER` and healed on 8246
+    /// under its `GUARDORDER`.
+    #[test]
+    fn an_iroquois_captain_heals_standing_on_its_own_ground() {
+        let (mut sim, c, herbal) = iroquois_captain(167);
+        let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "no bonus, nothing");
+        sim.tech[1].power = Some(crate::nations::power::IROQUOIS);
+        assert!(sim.iroquois(1), "the bonus holds in this setup");
+        sim.iroquois_heal(c, 8189);
+        assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
+        let at = sim.units[c].pos;
+        sim.units[c].orders.push_front(attack_to(at));
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "an attack-move is moving");
+        sim.units[c].orders.clear();
+        sim.units[c].blown = true;
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "a blown unit, nothing");
+        sim.units[c].blown = false;
+        sim.iroquois_heal(c, 8190);
+        assert_eq!(state(&sim), (38, 0), "standing, level 0: (50 + 8190) % 20");
+        sim.tech[1].tech[herbal] = true;
+        assert_eq!(sim.heal_level(1), 1, "Herbal Lore is the first rung");
+        sim.iroquois_heal(c, 8210);
+        assert_eq!(state(&sim), (38, 0), "level 1 is not on the 20s");
+        sim.iroquois_heal(c, 8245);
+        assert_eq!(state(&sim), (39, 0), "level 1: (50 + 8245) % 15");
+        let cell = sim.units[c].pos.cell();
+        sim.world
+            .set_owner(cell, Owner::Player(0), Owner::Player(0));
+        sim.iroquois_heal(c, 8260);
+        assert_eq!(state(&sim), (39, 0), "another leader's ground, nothing");
+    }
+
+    /// **The Senator heals a walking column on allied ground, every 20
+    /// frames** (item 3959, `docs/AI.md` §403.3): `process_healing`'s
+    /// `0x161` arm asks no standing test, only an allied cell and a
+    /// Senator of the owner in reach. run1228b's `1/50`, walking under an
+    /// `ATTACKTOORDER` with `1/92` near, healed on 8191, 8211 and 8231.
+    #[test]
+    fn the_senator_heals_a_walking_column_on_allied_ground() {
+        use crate::ai_load::{UnitCols, uflags2};
+        let (mut sim, c, _) = iroquois_captain(167);
+        let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
+        let at = sim.units[c].pos;
+        sim.units[c].orders.push_front(attack_to(at));
+        sim.senator_heal(c, 8190);
+        assert_eq!(state(&sim), (37, 5), "no Senator, nothing");
+        let senator = sim.add_unit_type(crate::UnitType {
+            hits: 110,
+            type_index: 0x161,
+            cols: UnitCols {
+                unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                ..UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let mut u = crate::Unit::new(1, 92, sim.units[c].pos, 110);
+        u.ty = Some(senator);
+        u.type_index = 0x161;
+        u.on_map = true;
+        u.captain = true;
+        u.kind = sim.unit_types[senator].kind;
+        sim.add_unit(u);
+        sim.senator_heal(c, 8189);
+        assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
+        sim.senator_heal(c, 8190);
+        assert_eq!(state(&sim), (38, 0), "walking, a point and the fraction");
+        let cell = sim.units[c].pos.cell();
+        sim.world.set_owner(cell, Owner::None, Owner::None);
+        sim.senator_heal(c, 8210);
+        assert_eq!(state(&sim), (38, 0), "nobody's ground, nothing");
     }
 }
