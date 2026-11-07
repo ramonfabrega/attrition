@@ -10643,13 +10643,13 @@ words and edits nothing here; a refill lands when two remain.
   lobby reaches it — `TRIBE_MASK` says the Scutari are **Spanish** (`rubric.py --tables 3` prints the nation now,
   DECISIONS 93 §4); booked as 3586, the Spanish at a held Classical age, Great Sahara.
 
-## Parked by the next landing, slot PU — reserved
+## Parked by item 3968, 2026-11-07 — a strike from inside a base on a target unseen
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3968a. A plane's inside strike out of its tank's reach** (no score): `Group::action_flight`'s inside arm gives
+  the reach test to a missile only (`docs/GOLDEN.md` §174), and chapter one hundred and twenty-four stages the
+  unseen arm alone; a Fighter's 400 × 75 is past any distance on map 14's golden start. Held by
+  `a_strike_beyond_the_tank_s_reach_binds_a_missile_only`. A staging would need a short-tanked plane type or a
+  larger map.
 
 ## Parked by item 3558, 2026-10-24 — the Mongols at Classical: who=1's economy on the window's first block
 
@@ -15127,7 +15127,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   sibling key (`setup.rs:2021`); `docs/ATTRITION.md`'s `WorldData` row omits the override. Inert on every pinned style.
   **Score**: a start-dump parser line checking the six `WORLD` limits against `Tuning` — red on run1098, run1123 and run1126
   today — and then the first parting of 3952's or 3953's game on that style, whose borders it will move.
-- **T71-5. `Group::action_flight` gates every plane as a missile** (adjudications 2; second-1): the listing at `6fbba8`
+- ~~**T71-5. `Group::action_flight` gates every plane as a missile**~~ — closed by item 3968, `docs/GOLDEN.md` §174 (adjudications 2; second-1): the listing at `6fbba8`
   (`testl $0x8000000, 0x1e4; je 6fbf6c` → `6fbe61`) gives `valid_target`, the shield and the reach test to missiles only;
   `air.rs:1230–1246` applies all three to every plane, so a bomber sent at an unseen or out-of-reach target gets no order
   where the original lays the strafe; `docs/ORDERS.md` §38.2 misreads it the same way. `STRAFEORDER` is compared.
