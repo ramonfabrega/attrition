@@ -1289,6 +1289,10 @@ pub struct Tuning {
     pub fort_garrison_upgrade: i32,
     /// Frames between garrison heal steps, by heal tech level.
     pub unit_heal_rate: [i32; 4],
+    /// Frames between the Iroquois heal's steps — a standing land unit on
+    /// an ally's ground (`Unit::process_healing@005e0670:118-147`,
+    /// [`crate::Sim::iroquois_heal`]), by heal tech level.
+    pub iroquois_heal_rate: [i32; 4],
     /// Frames between the civilian heal's steps — a citizen, caravan,
     /// merchant or fisherman on an ally's ground (`crate::heal`). Zero
     /// means never.
@@ -1826,6 +1830,7 @@ impl Tuning {
         tower_garrison_upgrade: 2,
         fort_garrison_upgrade: 5,
         unit_heal_rate: [20, 15, 10, 5],
+        iroquois_heal_rate: [20, 15, 10, 5],
         civilian_heal_rate: 45,
         red_fort_heal: 500,
         unit_train_distance: 288,
@@ -2760,6 +2765,7 @@ impl Tuning {
                 Slot::Value(T.fort_garrison_upgrade),
             ),
             ("UNIT_HEAL_RATE", Slot::Entries(&T.unit_heal_rate)),
+            ("IROQUOIS_HEAL_RATE", Slot::Entries(&T.iroquois_heal_rate)),
             ("CIVILIAN_HEAL_RATE", Slot::Value(T.civilian_heal_rate)),
             ("RED_FORT_HEAL", Slot::Value(T.red_fort_heal)),
             ("UNIT_TRAIN_DISTANCE", Slot::Ratio192(T.unit_train_distance)),

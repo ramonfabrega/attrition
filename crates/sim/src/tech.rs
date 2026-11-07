@@ -508,6 +508,11 @@ pub struct Roles {
     pub ships_speed_preq: [Option<TypeId>; 3],
     pub troops_speed_preq: [Option<TypeId>; 3],
     pub vehicles_speed_preq: [Option<TypeId>; 3],
+    /// `HEAL_FASTER_1..3` (`0x2ef..0x2f1`), `TECHBONUSES` rows 67–69 —
+    /// Herbal Lore, Medicine and Pharmaceuticals in the shipped file:
+    /// the level `LeaderData::get_heal_level@006e12e0` counts, which
+    /// indexes the Iroquois heal's period (`crate::Sim::heal_level`).
+    pub heal_faster_preq: [Option<TypeId>; 3],
     /// `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3` (`0x2f2..0x2f7`),
     /// `TECHBONUSES` rows 70–72 and 73–75 — Construction, Architecture and
     /// Engineering for both in the shipped file. Their counters,
