@@ -35702,3 +35702,28 @@ SHA-256 `510f40938ab714746a27dd71745613110d83dc02de209c078fc8b16bf2a65fd5`.
 **What it holds**: the held-out `SouthwestMesaLakotaTier2`, **15754 / 15754** of 24000 on its first try, pinned in
 `battery::BATTERY` (parked 3943a). On the closing block (24001) the AI's four Mines stand on cliffs 2, 0, 10 and
 6, and our laid cliffs give the same four arms (`battery::the_mesa_game_s_closing_mines_take_our_cliffs`).
+
+## run1533 — New World (style 16), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3950, `att-3950`)
+
+`docs/MAPGEN.md` §31. The chain take §22.2 writes, at `--map 16`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1533 --map 16 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: §22.2's sweep entered New World's
+`make_continents` at `cover=1` and carried no setup trace, so no New World checkpoint 7805..7945 was on disk.
+- Pool lane 1, the pool's pick. Launched 02:09:26, exited 02:09:54 (27.9 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 16, seed 12345, players tribe 4 and tribe 11, 2 nations on 66×66; `page_faults` 0,
+  `relaunches: []`. `df -g ~` read 83 GiB free before it. Filed with `filerun.py run1533 newworld-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1533-newworld-mapgen-start.txt`, 164,891,103 bytes,
+SHA-256 `ebb2f62f35cb01771c93a445f1a90f1da83d0a9f84e40cf09c898be660c4b2d9`.
+
+Archive `rontrace-run1533.log`, 13,177,472 bytes,
+SHA-256 `85fd595d168cca2768c715141cc478ba41012eb070da4f16b2595aba24030728`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118. The tileset is `early_autumn`, drawn from `NEWWORLD.xml`'s own thirteen `TILECHANCE`s. 7807's
+seed is 532097073 after the mask's 102,324 draws (two islands of 250 and a centre continent of 2,570 cells in one
+generation); 7,249 draws from `place_all` through the values; 25 river draws (29 sources); one trough section, no
+good moved. At 894 the seed is 3091682547, part 5 2636052358 and part 6 816403111. The port meets all of it, and all
+70,225 start-dump vertices (`mapgen::tests::new_world_*`, MAPGEN §31). No `blind::TRACES` row: a `cover=0` setup
+trace enters only its hooks.
