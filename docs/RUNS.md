@@ -35601,6 +35601,32 @@ seed is 2355140353. It holds 21,411 draws from `place_all` through the values an
 sources. At 894 the seed is 345508960, part 5 3390494892 and part 6 841929190. The port meets all of it on the first
 run (`mapgen::tests::amazon_basin_*`). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
 
+## run1531 — Mediterranean (style 12), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3948, `att-3948`)
+
+`docs/MAPGEN.md` §29. The chain take §22.2 writes, at `--map 12`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1531 --map 12 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level`
+14, `CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**: the one Mediterranean file on disk,
+run1120 (`mediterranean-cover1-clickfree-diagonal`, `cover=1`), enters `MapMediterranean::make_continents` and
+carries no setup trace, so no checkpoint 7805..7945 for style 12 was on disk.
+- Pool lane 1, the pool's pick. Launched 00:27:38, exited 00:28:01 (23.0 s launch to exit). `success`: 37 frames,
+  `map_verified`, map style 12, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60 (`MAP_SIZE` 2);
+  `page_faults` 0, `relaunches: []`. `df -g ~` read 89 GiB free before it. Filed with `filerun.py run1531
+  mediterranean-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1531-mediterranean-mapgen-start.txt`, 152,088,554 bytes,
+SHA-256 `d023ad1b8c4b1eabb289587e306f7604f46eb4b3e4ac3199b48ae3f07eaa5736`.
+
+Archive `rontrace-run1531.log`, 8,606,016 bytes,
+SHA-256 `0a245682642a8e00f435091ac9a28564fbef3236f5cd68bda8cd0c73b729dc69`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..894 and
+`map.cpp` 5012..5118. The tileset is `jungle`, drawn from `default.xml`. The mask runs to 9,926 draws (the sea grown
+and inverted, the island grown, neither stalled), and 7807 is at seed 1732231724. There are 6,229 draws from
+`place_all` through the values, the half-land gate opens on the sea's shore, and there is no river draw (an empty
+`RIVERLIST`). At 894 the seed is 1290649423 and part 5 is 1780631313. The port meets all of it on its first walk
+(`mapgen::tests::mediterranean_*`). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
+
 
 ## run1525 — Southwest Mesa (style 10), the Inca at Difficulty 2: the first held-out lobby's `DUMP_ALL` start, refused by the battery's nation fence (2026-11-07, item 3943, `att-3943`)
 
