@@ -48,8 +48,9 @@ pub struct Outback {
 ///
 /// Each generation wipes the world and the region table; `half` is half
 /// the shorter side, the growers' reach `half·55/100`, the island
-/// `total = size·5/9` cells. Two draws make the angle `(r % 0xffff) << 16
-/// + r % 0xffff`, two more the middle `(xs/2 + (r & 1), ys/2 + (r & 1))`;
+/// `total = size·5/9` cells. Two draws make the angle
+/// `(r % 0xffff) << 16 + r % 0xffff`, two more the middle
+/// `(xs/2 + (r & 1), ys/2 + (r & 1))`;
 /// `start_dist = max(2, xs/16)`. Player `i` (from 1) starts on the ring
 /// `half·66/100` about the middle at the angle, stepped by `0xffffffff /
 /// players` after each, and opens record `i` there with flag bit 1; the
