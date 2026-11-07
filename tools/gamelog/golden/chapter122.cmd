@@ -4,12 +4,14 @@
 # `BuildTypeData::queue_here` gate (`:31`-`:36`) stands ahead of the per-kind tail and binds a unit too.
 #   620: Hoplites (132) on the Barracks `0/2007` and the Stable `0/2008`, num 1: both hold nothing, so the sort keeps
 #        the list's order; the Barracks lays one, the Stable's `queue_here` refuses.
-#   640: Light Horse (209) on the same two, num 2: the sort puts the Stable (0 queued) ahead of the Barracks (1);
-#        each pass the Stable lays one and the Barracks refuses, so the Stable holds two.
+#   640: Bowmen (170) on the Stable and the Barracks, in that order, num 2: the sort keeps the Stable (0 queued)
+#        ahead of the Barracks (1); each pass the Stable refuses and the Barracks lays one -- a refusal ends nothing
+#        in the train arm -- so the Barracks holds three. (Every Stable unit's PREQ0 is the Classical Age, and the
+#        `age` cheat sets no tech bit, so the staging stays in the Ancient Age with the Stable as the refuser.)
 # Killers, before the take (the journal's list): (1) the cover=1 twin enters no `Group::action_queue_up` on trace
 # frame 621 -- the press never reached the group arm; (2) `0/2008` reads `queued 1 [132]` on 622 -- the original
-# queues a Hoplite at a Stable and T71-14 is wrong; (3) `0/2007` reads anything but `queued 1 [132]` after 642 --
-# the Barracks laid a Light Horse, or refused its own type.
+# queues a Hoplite at a Stable and T71-14 is wrong; (3) `0/2008` holds anything on 642, or `0/2007` anything but
+# `queued 3` -- the Stable laid a Bowmen, or its refusal ended the pass.
 #   run1537 (cover=0), run1537b (cover=1), both with the golden start's lobby pinned:
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch122 \
 #       --map 14 --end-frame 1000 --log-window 605 1000 --timeout 3600 \
@@ -23,4 +25,4 @@
 606 add barracks who=0 14,74
 608 add stable who=0 24,74
 620 @queueup 0 132 1 2007 2008
-640 @queueup 0 209 2 2007 2008
+640 @queueup 0 170 2 2008 2007
