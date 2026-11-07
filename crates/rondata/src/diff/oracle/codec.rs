@@ -75,6 +75,8 @@ record!(UnitDump {
     waiting: Option<i64>,
     rare: Option<i64>,
     good_obj: Option<i64>,
+    num_queued: Option<i64>,
+    queue_time: Option<i64>,
     uid: Option<i64>,
     down: Option<i64>,
     down_who: Option<i64>,
