@@ -321,6 +321,9 @@ pub(super) fn port_build(
         s.buildings[b].started = true;
         s.buildings[b].active = true;
         s.buildings[b].visible = visible;
+        // The row's `mylos` is the `+0x3c` byte the original's sweep reads,
+        // and `build_sweep` reads its cache (item 3970).
+        s.buildings[b].mylos = mylos;
         (s, b)
     };
     let (mut s, b) = mk();

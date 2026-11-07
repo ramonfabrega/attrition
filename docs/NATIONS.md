@@ -247,7 +247,7 @@ left out; a constant with no reader in the export is dead there too.
 | `BRITISH_AA_SPEED` | 33 | ObjectData::train_time, Wall::update_construct_time | modelled at build.rs | `british_aa_speed` |
 | `BRITISH_FREE_SHIP` | 0 | no reader in the export | not carried | `british_free_ship` |
 | `BRITISH_TAXATION` | 100 | Leader::calc_gather, TypeData::get_desc_parsed | modelled at lib.rs | `british_taxation` |
-| `BRITISH_TOWER_RANGE` | 2 | BuildTypeData::get_building_range | modelled at fight.rs | `british_tower_range` |
+| `BRITISH_TOWER_RANGE` | 2 | BuildTypeData::get_building_range | modelled at build_family.rs | `british_tower_range` |
 | `BRITISH_AGE_FOR_1_ARCHER` | 0 | Build::activate | modelled at nations.rs | `british_age_for_1_archer` |
 | `BRITISH_AGE_FOR_2_ARCHERS` | 2 | Build::activate | modelled at nations.rs | `british_age_for_2_archers` |
 | `BRITISH_AGE_FOR_3_ARCHERS` | 3 | Build::activate | modelled at nations.rs | `british_age_for_3_archers` |
@@ -409,7 +409,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Build::close@00628980` | 23 | carried at city.rs | `00628980` |
 | `BuildOut::make_options@00629ed0` | 4 | not sim | `interface or render side` |
 | `BuildData::construct_time@0062d5c0` | 20 | modelled at build.rs | `iroquois_quick_senate` |
-| `BuildTypeData::get_building_range@00639990` | 6 | carried at fight.rs | `00639990` |
+| `BuildTypeData::get_building_range@00639990` | 6 | carried at build_family.rs | `00639990` |
 | `BuildTypeData::calc_gather@00639e40` |  +var | carried at economy.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
