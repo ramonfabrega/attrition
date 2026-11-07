@@ -63,8 +63,6 @@ pub struct Nation {
     /// field, and the clock reads [`crate::Sim::has_rare`] now.
     pub created_faster: bool,
     pub global_government: bool,
-    /// `get_heal_level`, 0..3.
-    pub heal_level: i32,
     /// `FORTGARRISON2..4`: 1..4.
     pub fort_garrison_level: i32,
     /// `disable_building_attrition`.
@@ -107,7 +105,6 @@ impl Default for Nation {
             tikal: false,
             created_faster: false,
             global_government: false,
-            heal_level: 0,
             fort_garrison_level: 1,
             disable_building_attrition: false,
             plunder_hero: false,
@@ -1769,6 +1766,24 @@ impl Sim {
         } else {
             1 + i32::from(has(l2))
         }
+    }
+
+    /// **`LeaderData::get_heal_level@006e12e0`**, 0..3: how many of
+    /// `HEAL_FASTER_1..3` (`0x2ef`..`0x2f1`) the player holds, each by
+    /// `has_preq`. The loop's `BUY_SELL` arm (`0x2ad`, the tribe bonus 4)
+    /// sits below the loop's first index and is never taken (listing
+    /// `6e12e7`–`6e1327`). `Nation::heal_level` held this and nothing wrote
+    /// it, so every heal it indexes read level 0 (item 3961: run714's
+    /// Persian Jet Fighter `1/115` heals inside on 2437, `(115 + 2437) % 8`,
+    /// the all-tech level 3, where ours waited out 20).
+    pub(crate) fn heal_level(&self, who: Player) -> usize {
+        const HEAL_FASTER_1: crate::tech::TypeId = 0x2ef;
+        let p = &self.tech[who as usize];
+        (HEAL_FASTER_1..HEAL_FASTER_1 + 3)
+            .filter(|&t| {
+                self.tech_tree.types.get(t).is_some() && self.tech_tree.has_tech(&self.setup, p, t)
+            })
+            .count()
     }
 
     /// `Wall::update_hits`: the full figure and the site's growing one.

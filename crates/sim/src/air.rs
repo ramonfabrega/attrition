@@ -2894,24 +2894,24 @@ mod launch_tests {
     /// nothing is written, and on the map `healing` is 0 every frame.
     /// run1151c: who=1's planes in their Airbase (heal level 1, 16 frames,
     /// the Bomber's two thirds 11) read 1 one block in 11. Made to fail
-    /// with the phase dropped (the second assertion), with the rate's level
-    /// ignored (the first), and with the map's write gone (the last).
+    /// with the phase dropped (the second assertion), with the rate off the
+    /// table's first entry (the first), and with the map's write gone (the
+    /// last).
     #[test]
     fn a_plane_inside_heals_on_its_phase_and_marks_healing_1() {
         let mut s = sim();
         let (base, _) = base_and_target(&mut s);
         let u = fighter_inside(&mut s, base, 400);
-        let owner = s.units[u].owner as usize;
-        s.nation[owner].heal_level = 1;
+        assert_eq!(s.heal_level(s.units[u].owner), 0, "no HEAL_FASTER held");
         let hurt = s.units[u].max_health - 3;
         s.units[u].health = hurt;
         let o = i64::from(s.units[u].index);
-        let due = 16 * 100 - o;
+        let due = 20 * 100 - o;
         s.recover_mana(u, due);
         assert_eq!(
             (s.units[u].health, s.units[u].healing),
             (hurt + 1, 1),
-            "on the level-1 phase: a point back and the mark"
+            "on the level-0 phase: a point back and the mark"
         );
         s.units[u].healing = 0;
         s.recover_mana(u, due + 1);

@@ -1582,9 +1582,7 @@ impl Sim {
             } else {
                 0
             };
-            let level = self.nation[self.units[u].owner as usize]
-                .heal_level
-                .clamp(0, 3) as usize;
+            let level = self.heal_level(self.units[u].owner);
             let mut rate = self.tuning.aircraft_heal_rate[level];
             if self.speed_is(u, BOMBER, false) {
                 rate = (rate * 2 + 2) / 3;
