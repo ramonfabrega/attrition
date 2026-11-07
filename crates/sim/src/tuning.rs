@@ -1109,6 +1109,39 @@ pub struct Tuning {
     /// into this array's (`+0x194`): indexed here by the level − 1 (item
     /// 3631, `docs/AI.md` §330).
     pub fort_upgrade_los: [i32; 5],
+    /// `TOWER_FORT_RANGE`: the tiles a Tower-line building's reach gains at
+    /// `get_tower_fort_los`' level − 1 (`BuildTypeData::get_building_range@
+    /// 00639990`'s tower arm, the leader's tech byte 8; item 3970,
+    /// `docs/GOLDEN.md` §176).
+    pub tower_fort_range: [i32; 4],
+    /// `FORT_UPGRADE_RANGE`: the tiles a Fort-line building's reach gains at
+    /// the highest `FORTRANGE2..4` held (the same function's fort arm).
+    pub fort_upgrade_range: [i32; 5],
+    /// `TEMPLE_UPGRADE_RANGE`: the tiles a templed city centre's reach gains
+    /// at the highest `TEMPLERANGE2..4` held (`LeaderData::get_temple_range@
+    /// 006db4a0`, read by `BuildData::max_range@0062e470`). Entry 0 is 1.
+    pub temple_upgrade_range: [i32; 5],
+    /// `COLOSSEUM_FORT_RANGE`: a Tower- or Fort-line building of a Colosseum
+    /// holder (`get_building_range`'s first block). Ships as 0.
+    pub colosseum_fort_range: i32,
+    /// `ROMAN_FORT_RANGE`: a Roman Tower- or Fort-line building (both arms of
+    /// `get_building_range`). Ships as 0.
+    pub roman_fort_range: i32,
+    /// `GENERAL_BUILDING_RANGE`: tiles a garrison building holding one of
+    /// its owner's Generals adds (`BuildData::max_range`, both blocks).
+    pub general_building_range: i32,
+    /// `GENERAL_BUILDING_ATTACK`: the same building's attack term, times ten
+    /// where it is read (`BuildData::attack@0062e610`).
+    pub general_building_attack: i32,
+    /// `OBSIDIAN_ARCHERS_ATTACK`: a garrison building of an Obsidian holder,
+    /// times ten (`BuildData::attack`).
+    pub obsidian_archers_attack: i32,
+    /// `ANTIPATER_GARRISON_ATTACK_BONUS`: a garrison building holding
+    /// Antipater (`0x169`, strict), times ten (`BuildData::attack`).
+    pub antipater_garrison_attack_bonus: i32,
+    /// `MAYA_GARRISON_ARROWS`: arrows a Mayan building adds to its type's
+    /// `BASE_ARROWS` (`BuildData::get_base_garrison_arrows@0062e340`).
+    pub maya_garrison_arrows: i32,
     /// Percent faster British creation of the Archers line. Ships as zero,
     /// so the arm is live and inert at once.
     pub british_archer_speed: i32,
@@ -1764,6 +1797,16 @@ impl Tuning {
         british_tower_range: 2,
         tower_fort_los: [0, 2, 4, 6],
         fort_upgrade_los: [0, 2, 4, 6, 8],
+        tower_fort_range: [0, 1, 2, 3],
+        fort_upgrade_range: [0, 1, 2, 3, 4],
+        temple_upgrade_range: [1, 2, 3, 4, 5],
+        colosseum_fort_range: 0,
+        roman_fort_range: 0,
+        general_building_range: 1,
+        general_building_attack: 1,
+        obsidian_archers_attack: 1,
+        antipater_garrison_attack_bonus: 3,
+        maya_garrison_arrows: 1,
         british_archer_speed: 0,
         british_aa_speed: 33,
         british_aa_cost: 25,
@@ -1920,6 +1963,19 @@ impl Tuning {
             ("ATTRITION_IMPROVED", Slot::Entries(&T.attrition_improved)),
             ("TOWER_FORT_LOS", Slot::Entries(&T.tower_fort_los)),
             ("FORT_UPGRADE_LOS", Slot::Entries(&T.fort_upgrade_los)),
+            ("TOWER_FORT_RANGE", Slot::Entries(&T.tower_fort_range)),
+            ("FORT_UPGRADE_RANGE", Slot::Entries(&T.fort_upgrade_range)),
+            ("TEMPLE_UPGRADE_RANGE", Slot::Entries(&T.temple_upgrade_range)),
+            ("COLOSSEUM_FORT_RANGE", Slot::Value(T.colosseum_fort_range)),
+            ("ROMAN_FORT_RANGE", Slot::Value(T.roman_fort_range)),
+            ("GENERAL_BUILDING_RANGE", Slot::Value(T.general_building_range)),
+            ("GENERAL_BUILDING_ATTACK", Slot::Value(T.general_building_attack)),
+            ("OBSIDIAN_ARCHERS_ATTACK", Slot::Value(T.obsidian_archers_attack)),
+            (
+                "ANTIPATER_GARRISON_ATTACK_BONUS",
+                Slot::Value(T.antipater_garrison_attack_bonus),
+            ),
+            ("MAYA_GARRISON_ARROWS", Slot::Value(T.maya_garrison_arrows)),
             ("ATTRITION_UPGRADE", Slot::Entries(&T.attrition_upgrade)),
             ("CITY_UPGRADE_TERR", Slot::Entries(&T.city_upgrade_terr)),
             ("FORT_UPGRADE_TERR", Slot::Entries(&T.fort_upgrade_terr)),
