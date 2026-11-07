@@ -10592,13 +10592,23 @@ a site. Not booked: no score names it.
   4652, by the frame. 8,813,649 → 8,816,240 of 11,392,782 bytes, 77.36 % → 77.38 %, which stays 773 tenths. 3531a's
   prediction held again. **Score**: none.
 
-## Parked by the next landing, slot PP — reserved
+## Parked by item 3970, 2026-11-07 — the armed building family
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3970a. The Obsidian and Antipater attack terms are unstaged.** `BuildData::attack@0062e610`'s
+  `OBSIDIAN_ARCHERS_ATTACK × 10` (good 32, `+0x6da7 & 4`) and `ANTIPATER_GARRISON_ATTACK_BONUS × 10` (`0x169` inside,
+  strict, with the leader's short `+0x59d0`) are built in `sim::build_family` and held by
+  `cities_tests::an_obsidian_holder_s_tower_hits_harder` only; chapter 126 holds neither, and Antipater's count is the
+  leader's per-type short, read here off `muster.by_type`. It names no score.
+- **3970b. The range terms the walk cannot part.** `building_range_terms`' `FORT_UPGRADE_RANGE`, Roman, Colosseum and
+  Tikal terms, and the General's `GENERAL_BUILDING_RANGE` in both blocks. Chapter 126's Tower first takes `0/6` at 7.6
+  tiles, its reach never binding, and its City shoots `0/7` inside 8. The Militia and temple terms stand on
+  `cities_tests::a_militia_tower_and_a_templed_city_reach_a_tile_further`. It names no score.
+- **3970c. `BuildData::hits`' single-precision loss while a Disband runs** (T71-8's third row, run1512's take to widen)
+  is not built. No widening parts on it. It names no score.
+- **3970d. A cell's own building chain order.** `Sim::building_under` walks the nine cells in `move_x`/`move_y` order
+  (chapter 126's Temple on 804) and, inside one cell, by building index; the original's chain (`World +0x134`, the
+  object's `+0x2c`/`+0x2e` link) may run head-first. Two overlapping footprints whose points share a cell would part on
+  it; none is staged. It names no score.
 
 ## Parked by item 3551, 2026-10-23 — the Japanese Industrial twin at `cover=1`
 
@@ -15146,7 +15156,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   (`leader.rs:402`; the comparator skips keys the crate has no row for, `harness.rs:4939`) and none of 1,831 tech-queued
   building-frames over five windows closes mid-window. **Score**: emit the technologies' `num_queued[r]` rows beside the
   unit rows (a compared field on any window with a tech queued), then a chapter closing a building with a technology queued.
-- **T71-8. The building-family bonuses and ranges** (build-1, second-7, adjudication 5, confirmed): `BuildData::attack`'s
+- ~~**T71-8. The building-family bonuses and ranges**~~ — closed by item 3970, `docs/GOLDEN.md` §176 (`sim::build_family`; the unstaged arms parked 3970a–3970d) (build-1, second-7, adjudication 5, confirmed): `BuildData::attack`'s
   General ×10, Obsidian ×10 and Antipater ×30 arms; `get_base_garrison_arrows`'s Maya +1 (`NATIONS.md:154`); `BuildData::hits`'s
   single-precision loss while a Disband runs (run1512's take to widen); `get_building_range`'s `TOWER_FORT_RANGE` and
   `FORT_UPGRADE_RANGE` (parked 1420); `max_range`'s garrisoned-General and temple terms; `compare_target`'s garrison weight
