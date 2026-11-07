@@ -3699,12 +3699,150 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 33. Reserved for the next item on the map track
+## 33. Sea Power's chain, 8 of 8 (item 3952)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The eighth chain take (§22.2, §25's method), and the fourth whose mask is
+its own, after African Watering Hole's (§28), Mediterranean's (§29) and
+Australian Outback's (§30). One take, run1535 at `--map 20` on §22.2's
+line (`docs/RUNS.md`), walked phase by phase against its own checkpoints
+by the `Chain` walk (§26) with a fifth `MaskPort`
+(`rondata::mapgen::tests::SEA_POWER`). Sea Power is **read against**. It
+is not the held-out style (§24).
+
+### 33.1 The mask is its own: an island a player on a ring
+
+`MapSeaPower::make_continents@00696080` runs to 0x696640, where East Meets
+West's begins: 1,472 bytes and 464 instructions against Great Sahara's 368
+and 144, with two `Random::get@00a39d70` calls, two
+`Map::grow_region@0069c600` and one `Map::make_region@0069d3f0`. It calls
+`Map::check_player_land@0068ef00`, `Map::eliminate_pools@0068b890` and
+`Map::eliminate_edge_canals@0068b360`, and Great Sahara calls none of
+them. So it is not a dispatch, and the port is `sim::map_sea_power`, read
+from the decompile. The listing settles what the decompile hides:
+
+1. Once: the island is `max(80, scale_land_area(5·(cells / players) /
+   8))` (`ebx`), and `avoid_continent` (+0x30) becomes
+   `scale_land_area(avoid_continent)`, at least 4.
+2. Each generation: `World::wipe`, `Regions::clear_all`; the ring's radius
+   is `7·(m/2)/8`, `m` the shorter side (`[ebp−0x18]`); the angle's halves
+   `(r % 0xffff) << 16 + r % 0xffff` (sites 0x6961d0, 0x6961e8).
+3. Player `i` from 1: the angle steps by `0xffffffff / players` **before**
+   the projection (`addl −0x1c(%ebp), %esi` at the loop's head), and
+   `project@0092d000` takes `ecx = xs/2`, `edx = ys/2`, the map's middle.
+   The point is added as a starting location, and record `i` opens there.
+4. Every record grows to `island/4` within `3·radius/4` of its first cell
+   (`param_4`/`param_5` −1). A stall (`jne 0x6963dc`) logs and jumps back
+   to the generation's head with `ebx` untouched, so the island is kept.
+5. Every record grows to `island` within the same reach. A stall (`jne
+   0x69650c`) makes the island `max(9·island/10, (cells / players)/4)`
+   (`imul 0x66666667`, then `cmovl`) before it jumps back.
+6. Grown: `check_player_land` with `ecx` 1, `edx` = `avoid_continent` and
+   the pushed ring −1, so ring 5, as in East Meets West (§24) and not
+   Mediterranean's `start_land`. Here the regions are still the islands,
+   and the lists are the growers' own: the `Array<TCoordData>` at
+   `Region`+0x6c that the call edits keeps its count at +0x70 and its data
+   at +0x7c, the list `grow_region` appends to. So the guarded arm is live,
+   and the port is East Meets West's (`map_east_west::check_player_land`,
+   now `pub(crate)`) on `Lakes::points`. Then `eliminate_pools(1)`
+   (`EDGES_ONLY`, §29) and `eliminate_edge_canals`, which East Meets West's
+   port built (§24).
+
+On run1535 (2 nations, 60×60, `SEAPOWER.xml`'s `AVOID_CONTINENT 8 SCALE`):
+one generation, neither pass stalled, island 1,125, `avoid_continent` 7,
+starts (54, 22) and (5, 39); **6,363 draws**. **7807 and the whole stream
+agree, site and word, on the first walk**: seed 119778082, part 2
+254806645, part 5 1967155436, part 6 1792933889 on both sides.
+
+### 33.2 The shared phases, first walk
+
+- **The tileset**: `SEAPOWER.xml`'s five `TILECHANCE`s at 20 draw `dirty`
+  off 7805's seed; 7854 agreeing backs it.
+- **7835..7945** agree: 5,183 draws `place_all` through the last
+  `compute_val`, whole against the trace's. 7945 is at seed 2387569999,
+  part 5 134365532.
+- **`Terrain::init`**: `SEA_MAP` 3 and the islands' shores open the
+  half-land gate, so the walk takes §28.2's path. All 22 records 734..815
+  agree, 720 among them (parts 10–13 2962912875, 1328350534, 2953839330,
+  262145 on both sides), and part 4 at 734 is 0x262805f6 on both.
+- **Rivers**: an empty `RIVERLIST`; 20 sources and no river draw on either
+  side; the 5 records 5012..5118 agree. The row is `lays_rivers: false`.
+- **894**: seed 2387569999, parts 2, 5 (3351400679), 6 (3038527180) and
+  10–13 as the file's; no good moved.
+
+No shared mapgen phase parted, and no shared fix was taken. East Meets
+West's and Himalayas' held-out pins were not touched.
+
+### 33.3 The start dump's grid: the goods go in before the roster
+
+The eighth check compares the heights, with the start roster stood on
+them, against the start dump's 58,081 vertices. On the first walk **4
+parted**: vertices (228..231, 100), ours 139.5, 132.95, 119.8 and 107.6
+against the dump's 178.125, 165.0, 138.75 and 114.375. Each of ours is
+`(theirs + 100.9) / 2` to the print: our `terraform_for_building` gave
+those four corners the border blend of player 1's type-418 building at
+(44160, 18816), box (228, 96)..(233, 101), and the original held them
+back. Instrumented at the four corners, each read `AS_BUILDING` on its
+tile (0x6300) and `good_at((57, 25))` answered none. Yet the dump's goods
+list has Wine (o 20) at (44160, 19584), on cell (57, 25), whose
+`down`/`down_who` read −2/20 on both sides.
+
+The reason was the harness's order, not mapgen's: `diff::setup::build_sim`
+stood the roster (`start_of_game`) before it installed the dump's goods.
+The original's goods are the generator's, laid before `Setup::build_game`
+stands a building, so the terraform's good arm sees them. The goods'
+install now comes before the cities. With that, all 58,081 vertices agree.
+Every lobby's `first_parting` and every other style's chain hold on the
+moved order (229 of 230 `mapgen`/`first_parting` tests; the 230th is the
+queue's `Mapgen:` line, the commander's).
+
+### 33.4 Made to fail
+
+Each arm against a unit test (`sim::map_sea_power::tests`, seven), then
+`tools/mutate.py --batch --timeout 900` on the unit tests and the walk
+(`-p sim map_sea_power && -p rondata sea_power`).
+Twenty-three distinct breaks over three batches (the angle's swap
+refused once for its twin in the tests, then run as the first;
+`check_player_land`'s three re-run once the disc test existed); **nineteen
+held**, one of them by hanging (counted as caught, Loop 3276):
+
+- **The mask's ring:** the radius `7/8`, the centre, the step halved, the
+  angle's halves swapped, and the first start a cell off.
+- **The two growths:** the first pass's `/4` made `/3`, the second's
+  island cut to nine tenths, and the reach `3/4` made `2/3`.
+- **The island:** `5/8` made `5/9`; the floor at 80 and both terms of the
+  shrink broken (unit tests).
+- **`avoid_continent`:** its floor of 4 made 9.
+- **The calls after the growth:** `EDGES_ONLY` made `ENTIRE_WORLD`,
+  `eliminate_pools` dropped, `eliminate_edge_canals` dropped, and
+  `check_player_land` dropped. The drop held only once the disc test
+  moved to lone 13×13 and 14×14 islands, which the call alone fills; on
+  run1535 every disc is already the island's.
+- **The stall arms:** the shrink dropped hung on the 20×20 lobbies, and a
+  whole stall taken without a shrink held.
+
+Four failed nothing:
+
+- **The lists padded to 64, not 128:** equivalent, since no land cell
+  carries a region above the player count.
+- **The guard's ring held to 4, and Mediterranean's unguarded disc in
+  place of East Meets West's call:** the two differ only in the guard and
+  the adoption arm. Neither fires on a lone island, and nothing on run1535
+  reaches them (parked 3952a).
+- **The first-pass stall made to shrink:** no lobby tried takes a
+  first-pass stall (parked 3952b).
+
+### 33.5 What is not established
+
+- One file only: 2 nations, 60×60. Other nation counts and sizes are
+  untaken.
+- Both stall arms: unreached on run1535 (the walk asserts none). The
+  whole-pass stall and its shrink are unit-tested on 20×20 two-player
+  lobbies. The first-pass stall, which keeps the island, is read from the
+  listing alone (no write to `ebx` on 0x6963dc's path).
+- `check_player_land`'s guard and adoption arm: on run1535 every disc is
+  already the island's own land. The disc is unit-tested on a lone
+  player's 20×20 island. The guard rests on East Meets West's port and its
+  unit test.
 
 ## 34. Reserved for the next item on the map track
 
