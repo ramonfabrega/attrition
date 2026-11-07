@@ -40104,6 +40104,10 @@ does not run whole.
   (`TData & 0x30 == 0x30`, `>> 6` coordinates) and loses it off one. The same test runs in
   `Unit::set_new_location@005f8d20:61-82` when a step crosses a **tile inside one world cell** — a cell crossing
   skips it. `Sim::step_cloak`, called from both. `crate::Unit::cloak` carries the bit.
+- **Two clears.** `Unit::process@00610bc0:556`'s inside arm, reached every frame a unit is inside, runs
+  `unit_masks2 &= 0xffff7f9f` and drops `0x800` from a unit without the hero's `0x2000`. `Unit::do_idle@0060dcd0:13-16,
+  34-36` lifts `0x8000` for `set_anim`, `check_idle` and `think`, and puts it back after them. Without the first,
+  run1320's units leaving a building or a boat kept a `land_cloak` theirs had dropped (27 rows).
 - **The readers** already asked `0x8000`; they now ask `0x800` too: `is_seen`'s stealth arm
   (`unit_stealth_hides`), `is_cloaked` (`unit_is_cloaked`) and `Unit::work@0060d180:384`'s blown test
   (`unit_stealth_type`).
@@ -40118,14 +40122,24 @@ remains of the 65: the 50 standing rows of item 3584 (`form`, `SITE[i].reg`, `ag
 `pool`), groups 68's on 8181, six `dest_angle` rows from 8225 and the two wounds (`1/52`, `1/30`) that item 3959
 takes.
 
+**The other Iroquois windows**: the Scouts' and soldiers' `blown` rows leave wherever the unit stood cloaked:
+run918–run940 lose one each (`1/0`'s `blown`, ours 1 theirs 0 on run918's 1114), the Enlightenment pair's stride
+155 → 152 (`1/0`, `1/18`, `1/19`, parked 3114), run1001 35 → 34 and run1001c 67 → 66 (`1/0` on 13825, parked
+3375a). run1320, the Enlightenment pair's closing window, goes **131 → 139**: eight `cloak` rows, theirs 1 against ours
+0. They belong to the Ambush (the President `1/15` on 4889, then seven Transport Galleons inside its aura from 4895),
+which this crate does not carry (parked 3958b). Every `land_cloak` and `cloak_mark` there agrees.
+
+**Held out, run897**: read after the port and never debugged against. Its word frame and closing state hold as they
+stood (`run897_s_word_frame_is_widened_whole`, `run897b_iroquois_closing_state` green, unchanged).
+
 ### 402.4 Coverage
 
 - **Diff-backed**: all three bits on every unit and every block of run1228b's closing window. The birth mark's
   predicate is checked on 139 units, the own-land arm on 116, and the forest arm on 3, two of them through the
   tile step.
-- **Reading alone**: the mutual-ally term (no pinned lobby is allied); the hero aura (`unit_masks & 0x2000`, the
-  leader's `0x4000`), a `SEAM` in `Sim::process_cloak`, since this crate carries neither flag and the arm only
-  clears; and `Unit::find_melee_target@005ff9c0`'s cloak exit for a human's cloaked unit (`leader_flags & 4`), not
+- **Reading alone**: the mutual-ally term (no pinned lobby is allied); `do_idle`'s hold, which no window parts
+  without; the hero aura (`unit_masks & 0x2000`, the leader's `0x4000`), a `SEAM` in `Sim::process_cloak` whose
+  eight rows stand on run1320 (parked 3958b); and `Unit::find_melee_target@005ff9c0`'s cloak exit for a human's cloaked unit (`leader_flags & 4`), not
   ported (parked 3958a).
 
 ### 402.5 What is not established
