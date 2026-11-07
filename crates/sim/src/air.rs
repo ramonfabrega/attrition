@@ -1204,17 +1204,20 @@ impl Sim {
     /// **`Group::action_flight@006fb260`'s inside arm** — a player's
     /// strike on a plane standing in a base (`docs/ORDERS.md` §38.2,
     /// the listing `6fbbb0`–`6fbea0`; run265's 768). The plane's "inside"
-    /// is `base`; the strike needs, in order, a target
-    /// `Object::valid_target@00648ba0` passes, and the reach
-    /// `vector_dist(base − target) ≤ mana · get_speed(x, y, 1)`, and then
-    /// is `add_strafe_order(target, base, 1, QUEUE_NEW, 1)`: a strafe on
-    /// the target, home the base, `returning 0`. The plane stays inside;
-    /// [`Sim::do_launch`] puts it out.
+    /// is `base`, and the strike is `add_strafe_order(target, base, 1,
+    /// QUEUE_NEW, 1)`: a strafe on the target, home the base, `returning
+    /// 0`. The plane stays inside; [`Sim::do_launch`] puts it out. **A
+    /// plane meets no gate** (item 3968, `docs/GOLDEN.md` §174): `6fbba8`'s
+    /// `testl $0x8000000, 0x1e4` sends a type without the missile bit
+    /// straight to `6fbe61`'s war test, so a target unseen or beyond the
+    /// tank is struck — run1539's `0/6` on 742.
     ///
-    /// **A missile takes the same arm** (`6fbbb0`..`6fbea0`, item 1050):
-    /// the valid target, the reach, and then `add_strafe_order`, whose
-    /// head makes it an air attack on the target's point
-    /// ([`Sim::add_air_attack_ground_order`]). run371's V2 `0/10` on 2672.
+    /// **A missile takes the gates** (`6fbbb0`..`6fbea0`, item 1050):
+    /// a target `Object::valid_target@00648ba0` passes, the shield, the
+    /// reach `vector_dist(base − target) ≤ mana · get_speed(x, y, 1)`,
+    /// and then `add_strafe_order`, whose head makes it an air attack on
+    /// the target's point ([`Sim::add_air_attack_ground_order`]). run371's
+    /// V2 `0/10` on 2672.
     ///
     /// **The shield refuses a missile** (item 1078, `6fbbd7`..`6fbbfb`):
     /// unless the target is the player's own, a target owner holding
