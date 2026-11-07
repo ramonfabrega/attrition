@@ -1,0 +1,167 @@
+# Territory reading: terrain-1 (2026-11-06)
+
+The seventy-first tranche's reading fan-out, group `terrain-1`: 60 functions of the
+`cliff`, `cliffs`, `mountains`, `riversection`, `roads`, `roadspieces` and `surf` stems,
+read by name from the decompile export, one ruling each, by a territory reader on Opus 5.5.
+`entered` is the TSV's lockstep column (`-` none, else the first runs). Line numbers cite
+the tree at `4314ac355`.
+
+## Part 1
+
+| va | name | kind | entered | ruling | evidence |
+|---|---|---|---|---|---|
+| 008a40a0 | `Cliff::get_vert_alpha` | open | - | ui | A per-vertex alpha in floats (0.1, 0.5, 1.0) chosen by a switch on the vertex slot over nine neighbour bytes: the cliff mesh's blend. No caller in the export (no call, no vtable slot named); `Cliff::init`'s mesh builder is its only neighbour. `crates/sim/src/cliffs.rs:20` says the `Cliff` meshes are not built. Census: proposed class `^Cliff::(get_vert_alpha\|add_tcoord_data\|get_vert_offsets\|average_neighbor_norms)$`, or the general pattern `(^\|_)(vert\|tcoord\|norms?\|tangents?)(_\|$)` on the short name (catches all four of this group's `Cliff::` mesh helpers). |
+| 008a43a0 | `Cliff::add_tcoord_data` | open | - | ui | Appends vertices and texture coordinates to the `Cliff`'s `verts`/`tex` arrays (`Array<Vector<float>>`), a 3 × 3 vertex window per tile, gated by a 9-neighbour bitmask; called only from `Cliff::init@008a5190` (lines 68, 76). Render geometry. Read by its first screen and its one caller (16.6 KB). Census: the `(vert\|tcoord\|norms?)` pattern above. |
+| 008a4040 | `Cliff::walk_data` | layout | - | saveload | One `DataWalk` callback over `wx` and `mapped_verts`: the save game's walk of a cliff. The sweep `crates/sim/src/sweep/cliff_walk_data.rs` holds only the call's arguments. Census: proposed pattern `::walk_data$` (catches all five `walk_data` of this group: `Cliff`, `CliffsData`, `CliffMiningData`, `Mountains`, and every other class's); `MAPGEN.md` §12 already files `Terrain::walk_data` as the save game. |
+| 008a4060 | `Cliff::average_neighbor_norms` | layout | - | dead | Empty body (`return;`): the `Cliff` override of a terrain-object normal-smoothing virtual. The sweep `crates/sim/src/sweep/cliff_average_neighbor_norms.rs` asserts zero bytes changed. Census: the mesh pattern above, or a proposed `is_empty_body` mark (an export body of `return;` alone). |
+| 008a4070 | `Cliff::get_vert_offsets` | layout | - | dead | Writes 0.0 to its three float outs and returns: the `Cliff` override of a vertex-offset virtual. The sweep `cliff_get_vert_offsets.rs` holds the three zeroed words. Census: the mesh pattern above. |
+| 008a60c0 | `Cliff::render` | layout | - | ui | Forwards to `CliffsOut::build_render_data`. The existing `UI_BODY` `render` mark (`tools/census.py:875`) already catches it, but `territory_kind` (`tools/census.py:1227`) files a doc- or sweep-backed address as `layout` before any mark is read, so the sweep `cliff_render.rs` lifts it out of `ui`. Proposed census fix: read the marks before `backed` for the `layout` kind (catches this row, `Mountains::tileset_texture_load`, `RoadsOut::get_name`, `Surf::get_name`, `RiverSectionOut::compute_vert_height`, the three `MountainsOut::mnt_*` and the two `CliffsOut::get_mining_*` of this group). |
+| 008a60e0 | `Cliffs::delete_cliff` | open | - | editor | Already ruled: `docs/AI.md` (the scenario-editor block near line 39445) has it called from `ScenarioEditor::modify_terrain_map` and `TerrainMap::remove_cliff` alone. Census: proposed `^(Cliffs::delete_cliff\|Mountains::remove_mountain)$`, or a pattern `::(delete\|remove)_(cliff\|mountain\|river)$` (catches these two). |
+| 008a6a40 | `Cliffs::assess_wcoord` | open | run1016–1021 | twin | `crates/sim/src/cliffs.rs:275` `assess`. Compared: the cell gate `flags & 0x40`; per tile of the 4 × 4, refuse the cell's `& 4` (`COAST`, `mapgen.rs:442`) or `land` 1 or 2, and a tile mask `& 3 == 2`; `has_plus_slope` (`cliffs.rs:134`); on a pass, `set_blocked_at(.., 1)` then `& 0xfffd \| 1` on the tile and on each in-bounds `move[1..9]` neighbour, the neighbour's cell marked, `move_goody` on it, and its `+0x6a` group copied from the centre cell when it is another cell holding −1; after the 16 tiles, `move_goody` on the cell when any passed, else `& 0xffbf`. All agree. Diff-backed at 894 on run1493 (`docs/MAPGEN.md` §13, item 3890). The census kind is `open` only because the Rust fn is `assess`, not `assess_wcoord`: renaming it (or spelling the name in a backed doc row) moves it to `port`. |
+| 008a8da0 | `CliffsData::find_nearest` | open | run1017–1022 | unmodelled | The nearest cliff to a point by the engine's octagonal distance (`d_max + d_min²/(2·d_max)`, the 60000 guard) over every cliff's mining cells at `cell·0x300 + 0x180`, filtered to a cell whose `+4` short equals the asked continent when it is ≥ 0; answers the index and the distance. Callers: `BuildTypeData::calc_gather@00639e40` and `find_gather_tcoords@0063bdc0` (the mine arm). Entered on every lockstep run because the mine arm asks it beside `MountainsData::find_nearest`; inert there because neither scored map lays a cliff, so the list is empty and it answers −1. `crates/sim/src/gather.rs:460` names the arm unmodelled; parked 3924a. The dump that shows it: `BUILDDATA`'s mining list (`cliff`, `length`, `size`; run1516 on 100 reads `cliff 7`, `length 189`, `size 320`, `docs/AI.md` §395). |
+| 008a8f80 | `CliffsData::gather_size` | open | - | unmodelled | A mine's gather size against cliff `param_1`: counts the cliff's tiles whose cell owner (`+0xf`) is none, the asker, the asker's team or a mutual ally (`+0x74 == 2` both ways), and (with a list) only tiles already in the list; bands the cliff's tile count by `mtn_{tiny,small,medium,large}_size` to a `mtn_*_gather`, and answers `gather · counted / total`, at least 1 when any counted. One caller, `calc_gather`'s mine arm. No lockstep run entered it (run1516's coverage take did). `gather.rs:775` cites it as "the same shape" as the mountain one but nothing computes it. The dump: `BUILDDATA` `size` on a mine beside a cliff (run1516 on 100, `size 320`). |
+| 008a9480 | `CliffsData::walk_data` | open | - | saveload | Walks the cliff mining arrays through the `DataWalk` and, on a load, rebuilds each cliff with `Cliff::init` (line 66). The save game. Census: the `::walk_data$` pattern above. |
+| 008a6310 | `Cliffs::verify_placement` | name | - | twin | `crates/sim/src/terrain_groups.rs:588`. Compared: loose returns 1 at the first on-map cell and at the list's end (an off-map cell continues), so always 1; strict refuses an off-map cell, a 0x40 in `move[1..49]` (the 7 × 7 less the centre), a 0x20 in `move[1..9]`, and on the cell 0x10, 0x28, 0x800, 0x1000 or 0x40, a dry skip (no 0x100 and `land` 1 or 2) and a blocked cell. Agree; diff-backed by item 3875's mutations on run1493 at 7859 (`docs/MAPGEN.md` §18.3). The census reads it as `name` because no backed row names the address; §13's coverage table could. |
+| 008a6690 | `Cliffs::add_cliff` | name | - | twin | `terrain_groups.rs:640`. Re-verifies, queues `(x, y, t, i)`, marks 0x40 on each on-map footprint cell `is_clear_land(.., 2)` passes (0x22 loose: admits 0x40 and blocked). Agree with §18.3; diff-backed by item 3875 (run1493). |
+| 008a7ea0 | `Cliffs::place_cliff` | name | - | twin | `crates/sim/src/cliffs.rs:181`. Over `index_to_size[t]`² vertices at `offtable[t]`, skip an off-map cell, 0x10, a dry skip; add the template height on a cell with no 0x1000 and `CoordInfo::flags & 4` clear; the template index counts skipped vertices. Agree; diff-backed at 894 on run1493 (item 3890, `MAPGEN.md` §18.3). |
+| 008a8680 | `Cliffs::verify_defensive_position` | name | - | twin-differs | `terrain_groups.rs:712`: `FACE_ANY` (2) returns 1 with no float, as the original; the other two facings (the `acos` angle under 22.5° to the map centre for `FACE_WORLD_CENTER`, 17.5° to the starts' mean otherwise) are a `SEAM` that asserts. The crate panics where the original measures. No shipped style reaches it (Southwest Mesa's player cliff below size 5 is `FACE_ANY`, §18.3), so it is inert on every capture. |
+| 008a8bc0 | `Cliffs::position_cliff` | name | - | twin | `terrain_groups.rs:657`. Compared: the facing table `[1, 2, 4, 3]` at `2·[dy ≥ 0] + [dx ≥ 0]`, strict of `(x, y) − toward`, loose under `FACE_ANY` of the centre `(xs/2, xs/2) − toward`, loose otherwise 1; −1 wants any; the list of matching templates passing `verify_placement`; one `game_random` draw `r % n` only when n ≥ 2; then `add_cliff`. Agree; diff-backed by item 3875 (run1493 at 7859). |
+| 008a6d70 | `CliffMiningData::walk_data` | layout | - | saveload | Walks the `WCoord` array, the `tcoords` array and `size` through the `DataWalk`: the save game. The `::walk_data$` pattern. |
+| 008a6da0 | `CliffsOut::get_mining_size` | layout | - | debug | The cell's `+0x6a` cliff index, 0 at −1, else the cliff's mining entry. Only caller `ConsoleWin::run_cmd@007d6a70`: the console. `is_ui_body` would catch it (`cls.endswith("Out")`) were marks read before `backed` (see `Cliff::render`). |
+| 008a8590 | `CliffsOut::get_mining_data` | layout | - | debug | The same lookup answering the `CliffMiningData*`; only caller `ConsoleWin::run_cmd`. As above, the existing `Out` mark once the order is fixed. |
+
+## Part 2
+
+| va | name | kind | entered | ruling | evidence |
+|---|---|---|---|---|---|
+| 00898050 | `Mountains::set_behind_flags` | open | run1016–1021 | twin | Inlined in `crates/sim/src/terrain_groups.rs:914` (`add_mountain`'s last loop, `for k in 1..=3` at 916). Compared: for each template tile at `4·loc + off`, `move[1..=3]` (the original's byte offsets 4, 8 at `< 9`: three entries, the row north), in tile bounds and mask `& 3 != 2`, `\|= 8`. Agree. The Rust doc comment names `set_behind_flags` but no fn of that name exists, so the census reads `open`; diff-backed through part 6 (the tile masks) of the `say_checksum` record after `place_all` (`docs/MAPGEN.md` §3, §7). |
+| 00898170 | `Mountains::sliding_excluding_verify` | open | run1016–1021 | twin | `terrain_groups.rs:837`, named `sliding_verify` (the census's `name` hit on `Mountains::sliding_verify` is this collision). Compared: each template cell in turn as the anchor, origin `(x − ax, y − ay)`; every in-bounds unmarked cell marked, an engine-octagonal distance to any start below `start_min` abandons the anchor (to `LAB_0089847b`) with the marks kept; then `quick_verify_template` at the slid origin, on `LIBERR_OK` the marks cleared and the origin written out; at the end the marks cleared and `LIBERR_GENERAL`. Agree, including the marks surviving between anchors. Diff-backed by `place_all`'s draw stream and parts 5 and 6 at 7859 (`MAPGEN.md` §7). Proposed: rename the Rust fn `sliding_excluding_verify`. |
+| 00898ab0 | `Mountains::quick_verify_template` | open | run1016–1021 | twin | `terrain_groups.rs:785`, named `quick_verify`. Compared per template cell: off-map or `& 0x30` refuses; no 0x100 with `land` 1 or 2 (`is_ocean`, `mapgen.rs:447`) refuses; `& 0x48` refuses; the cell or any of `circle[radius[0]..radius[1]]` in the `+0xf8` city bitmask, or that ring off-map, refuses. Agree. Diff-backed with the chain above. |
+| 00898cf0 | `Mountains::verify_template` | open | - | editor | `add_mountain`'s mode 1 (`+0x67`), which only `ScenarioEditor::modify_terrain_map:226` passes (`docs/AI.md`, the block near line 39450). Census: proposed `^Mountains::(verify_template\|sliding_verify\|remove_mountain)$`, the three modes and verbs map generation never reaches. |
+| 00898f10 | `Mountains::remove_mountain` | open | - | editor | Called from `TerrainMap::remove_mountain` alone (`docs/AI.md`, near line 39444). Census: the `(delete\|remove)_(cliff\|mountain\|river)` pattern above. |
+| 008992b0 | `Mountains::add_range` | open | run1016–1021 | replaced | The XML loaders: `Mountains::init@0089ad70` calls it once per `<MOUNTAIN>` of `effects_graphics.xml`, handing out the first free of 16 slots and running `MountainRange::init` on the three texture paths (`docs/FORMATS.md` near line 911). Covered by `rondata::mountains` (the templates, in file order) and, for the size rings, by `Rings::stock` (`terrain_groups.rs:312`), which hard-codes the install's sixteen (large 0..=6, medium 7..=14, small 15): a mod with another `<MOUNTAINS>` list would part there. |
+| 0089ca70 | `Mountains::randomize_mountains` | open | run1016–1021 | twin | `terrain_groups.rs:321` `Rings::randomize`. Compared: small, medium, large in that order; a list of count 1 or below 1 seeks 0 with no draw, else `Random::get(0, 0xffff) % n`. Agree; pinned by the test at `terrain_groups.rs:2433` on run1000 and by the draw stream (`MAPGEN.md` §7 step 1). |
+| 0089cb50 | `Mountains::get_range` | open | run1016–1021 | twin | `terrain_groups.rs:335` `Rings::get`. Compared: sizes 1..=3 answer the ring's current value and step it; any other answers 0 (the original reports "Invalid Mountain Size Request" first, an assert). The original steps only when the node's link `+0x18`/`+0x30`/`+0x48` is non-zero; on the circular lists `init` builds it always is, which the crate's `% len` assumes. Agree on every shipped list. |
+| 0089cd30 | `MountainsData::find_nearest` | open | run1017–1022 | twin | `crates/sim/src/gather.rs:912` `find_nearest_mountain`. Compared: placements in generator order; a range skipped when its first solid cell's region is not the site's (no test when the site has none); every solid cell at `(loc + off)·0x300 + 0x180` by the octagonal distance; replace only when strictly nearer or none yet. Agree; diff-backed by the run144 packet and East Indies' refusals (`docs/AI.md` §59, `docs/ECONOMY.md` "The mine's range"). `open` only because the Rust name carries `_mountain`. |
+| 0089d170 | `MountainRangeData::gather_size` | open | run1016–1021 | twin | `gather.rs:787` `mine_slots` with `Sim::mountain_range` (`gather.rs:995`). Compared: solid cells counted toward the total only when `& 0x20` is clear and the centre tile `(4x+2, 4y+2)` is mountain art (`mountain_range`'s filter, lines 1007–1011); counted usable when the cell owner is none, the asker or an ally, and (with a list) the centre tile is in it; band by template tile count against `mtn_*_size`; `gather · usable / total`, at least 1 when any usable. Agree; the band table is `MOUNTAIN_GATHER` (`gather.rs:138`), the shipped constants. Diff-backed by the mine's `BUILDDATA` `size` (ECONOMY). |
+| 00898570 | `Mountains::excluding_verify` | name | run1016–1021 | twin | `terrain_groups.rs:815`. Compared: an out-of-range template index refuses; each in-bounds unmarked template cell marked and measured against every start (`vector_dist < start_min` refuses, marks cleared); then `quick_verify_template`. Agree; diff-backed by `place_all` (MAPGEN §7). The census kind is `name` because no backed row names the address. |
+| 00898920 | `Mountains::sliding_verify` | name | - | dead | `add_mountain`'s mode 3 (`+0x8b`), which none of its four callers passes (`docs/AI.md`, near line 39461). The crate's `fn sliding_verify` (`terrain_groups.rs:837`) is the twin of `sliding_excluding_verify`, not of this: the `name` kind is a false hit. Census: the proposed `Mountains::(verify_template\|sliding_verify\|remove_mountain)` class. |
+| 0089c1a0 | `Mountains::set_edge_flags` | name | run1016–1021 | twin | Inlined in `crates/sim/src/map_values.rs:228` (`set_edge_flags`, the `World::set_edge_flags` twin), its first loop. Compared: placements in order, each template tile at `4·loc + off`, `has_gather_access(.., −1, 0, 1)` (`map_values.rs:209`) then `\|= 0x8000`. Agree; diff-backed by part 6 at 7937 (`MAPGEN.md` §9). |
+| 0089c2e0 | `Mountains::add_mountain` | name | run1016–1021 | twin | `terrain_groups.rs:870`. Compared (12.3 KB; read by the mode switch, the rings and the writes): modes 4 and 5 as above; per template cell the four rings `circle[radius[0]..radius[n]]` refusing 0x10 or 0x40 (mount space), 4 (coast), 0x20 (forest), 8 (rock); each solid cell `& 0xffc3 \| (f & 0x404) \| 0x10`, which is `& ~0x38 \| 0x10`, the crate's `& !0x28 \| MOUNTAIN` (the `== 4` → 0x400 arm is dead, `uVar12` always holds 0x10, and the `land` store writes back what it read); each tile `set_blocked_at(.., 1)` and `& 0xfffe \| 2`; `set_behind_flags`; the placement appended. Agree. Modes 0, 1 and 3 are the editor's and the scenario import's. |
+| 0089ad00 | `MountainRange::validate_tcoord` | layout | - | dead | Copies four texture-coordinate indices of a 2 × 2 window and fails on any −1. No caller in the export; texture data. The sweep `mountain_range_validate_tcoord.rs` holds the copy. Census: the `(vert\|tcoord\|norms?)` pattern above. |
+| 0089be90 | `MountainsOut::mnt_locs` | layout | - | dead | Returns a field address (the placements' `Vert3Array`). No caller in the export (inlined everywhere it is used). The existing `Out` mark once marks precede `backed`. |
+| 0089bea0 | `MountainsOut::mnt_ranges` | layout | - | dead | Returns the range array's address; no caller. As above. |
+| 0089beb0 | `MountainsOut::mnt_types` | layout | - | dead | Returns the placements' type array's address; no caller. As above. |
+| 0089c110 | `MountainsData::total_gather_size` | layout | run1016–1021 | ui | Sums `MountainRangeData::gather_size(loc, −1, none)` over every placement. One caller, `World::analyze_map@006b58b0:180`, into `WorldData +0x64` = `total_metal` (`types.txt`; `+0x78` is `land_size`, which the same function sums). `total_metal`'s only other reader is `TerrainWin::on_redraw@008ac620` and the `WORLD` dump's scalars, which `rondata::diff::setup` reads only as a sibling-identity gate (`setup.rs:2018`), never against the crate. No simulation reader, so no rule. Were it wanted, `WORLD total_metal` is the field (parked 455 already lists it uncompared). |
+| 0089cf90 | `MountainsData::mnt_loc_x` | layout | run1016–1021 | absorbed | The placement's x by index, asserting the range. Callers `calc_gather`, `find_gather_tcoords`, `ScenarioWrite::save_mountains_chunk`. Covered by `PlacedMountain::loc` (`gather.rs:1080`, laid by `place_mountains` at 942) and the `mnt_loc` seam of `crates/sim/src/calc_gather_type_view.rs:195`. |
+| 0089d080 | `MountainsData::mnt_loc_y` | layout | run1016–1021 | absorbed | The y twin of the above; the same cover. |
+| 0089d320 | `Mountains::walk_data` | layout | run1016, run1497, run53, run54 | saveload | Walks the placements' two `WCoord` arrays (`+0x6c`, `+0x88`), a `Vector<float>` array (`+0xa4`) and the type array (`+0xc0`). Callers: `WalkDataGame::walk_data`, `SaveGame::verify_save`, `LoadGame::verify_load`, `CheckSums::check_mountains@00936ca0`, and `GameLog::say_checksum:264`, which is how the four runs entered it: `say_checksum` prints the walk's Adler-32 as one line of a `CHECKSUM` record past level 15. `rondata::gamelog::world_checksums_in` (`crates/rondata/src/gamelog.rs:2875`) keeps only the sixteen `World` lines, so that mountains line is printed and compared by nothing. Its float array keeps it from being a cheap diff of `MapGrid::mountains`, but the two `WCoord` arrays are the placements. The `::walk_data$` pattern above. |
+| 0089d3a0 | `Mountains::tileset_texture_load` | layout | - | dead | Returns `LIBERR_OK` and does nothing; no caller in the export (a virtual's stub). The sweep `mountains_tileset_texture_load.rs` holds the return. Census: a proposed `is_empty_body` mark, or `texture` in the short name (`\w*texture\w*`, which catches this one here). |
+
+## Part 3
+
+| va | name | kind | entered | ruling | evidence |
+|---|---|---|---|---|---|
+| 00889660 | `RiverSection::create_trough_edge` | open | run1018, run53 | twin | `crates/sim/src/map_troughs.rs:477` `edge`. Compared: nine vertices `width · o · 2 · 768 / 8` apart, centred on `c` (start `c − 4·step`); depth `max_depth − profile · max_depth + (max_depth / 4 · −1)` over the profile at `0xb69870`/`0xb69ac0`/1.0; a wet tile within `\|i − 4\| < 2` deepened `(d − 30 + d) / 2`; on-map: terraform, `set_river_at` over the 3 × 3, `move_goody` on the vertex's cell; off-map: clamp x and y to `[0, 768·xs]`. Agree. Diff-backed at `Terrain.cpp` 894 on all 185 Great Lakes files and every vertex of 45 start grids (`MAPGEN.md` §17, item 3850). Read by its callee chain and the twin (16.2 KB). The Rust name is `edge`, hence `open`. |
+| 00889f20 | `RiverSection::create_trough_and_water` | open | run1018, run53 | twin | `map_troughs.rs:517` `section`: the edge at the first end, at the midpoint (the two orthogonals' mean, not normalised, and the widths' mean), and at the second end. Agree; the same §17 diff. The water planes it also builds are render-only (`map_troughs.rs:26`). |
+| 0088b6a0 | `RiverSectionOut::compute_vert_height` | layout | - | dead | Returns `ST0` untouched (an x87 stub); no caller in the export. The existing `Out` mark once marks precede `backed`. |
+| 0088e100 | `Roads::scan_and_kill_bad_tcoord` | open | run1016–1021 | twin-differs | `crates/sim/src/mesh.rs:499` `scan_stray_tile`, its `match elem` (lines 521–545). Compared: an empty slot (`rotation == 10`) kills a road with `set_road_at` alone; `is_terrain_creation` stands while any of the nine is a road; otherwise a tile that is not a road or claims no direction toward a road is killed (`docs/ROADS.md` §10.3). Agree on those. Differs: the original's exemption `element_num == element_C4` is never taken here, because the crate does not run `RoadsPieces::find_map` and so never sets `c4` from a picked piece (ROADS §10.5, "Not established: `element_num`"). Diff-backed at 14529 on run189 (`rondata::diff::world::tests::run189_s_world_has_the_original_s_roads_at_14529`); the C4 arm was inert there (both C4 elements near the road sit off it). |
+| 00894060 | `add_single_line` | open | - | debug | Already ruled: called only from `RoadsOut::render_debug@00890060`, under a debug flag (`docs/AI.md`, near line 39466). Census: proposed `^add_(single_)?line$` among the free functions of `Roads.cpp`, or an extension of `UI_BODY`'s `add_\w*_poly` to `add_\w*line` (catches these two; `StatWin::add_line` is a UI window's anyway). |
+| 008941b0 | `add_line` | open | - | debug | As above: `RoadsOut::render_debug` alone. |
+| 00437980 | `RoadsOut::get_name` | layout | - | dead | Returns the literal `L"Roads"`: the object's registry name. Census: proposed `::get_name$` beside `registration` in `DEAD_WEIGHT` (catches this and `Surf::get_name`), or the existing `Out` mark once marks precede `backed`. |
+| 0088e050 | `Roads::scan_and_kill_straggled_tcoord` | layout | run1016–1021 | twin | `mesh.rs:550`, the `if road[0]` block of `scan_stray_tile`: a centre road claiming exactly one neighbour (`points_cache`), with no footprint (`& 3 == 3`) and no river or ocean among the eight, is killed. Agree (ROADS §10.4); diff-backed by run189 at 14529 and the sweep `sweep/roads_scan_and_kill_straggled_tcoord.rs`. `layout` only because the Rust body is inline in `scan_stray_tile`. |
+| 00890c30 | `RoadsOut::set_neighbor` | layout | run1016–1021 | twin | `mesh.rs:347` `RoadMesh::join`. Compared: `get_road_data(.., create)`, nothing when absent; when the element already carries any bit of the mask, answer 0; else `flags \|= mask` (and `& ~param_5` when `param_5 != −1`) and answer 1, where `join` appends the redo entry that the original's caller adds on a 1. The clear arm is unused by `set_diags` (it passes `0xffffffff`, `set_diags:90`); its other callers `RoadsOut::mark_splits` and `mark_yellow_lines` are the road texture pass. Agree on the simulation's caller. |
+| 008942d0 | `get_float_z` | layout | - | ui | Wraps `TerrainOut::find_data_z` and returns its float height; one caller, `TerrainOut::render@008558b0`. Census: the free function is caught by no class; proposed `^get_float_z$` or the general `float` in a short name of a free function (`(^\|_)float(_\|$)`), which here catches this one. |
+| 00894350 | `Roads::generate` | layout | run1016–1021 | absorbed | Clears the render helpers, runs `add_roads(0)` when the modification queue is not empty, and clears the debug list (ROADS near line 1065). No direct caller in the export (a virtual). Covered by `mesh.rs`'s `road_added` (`mesh.rs:639`) → `add_roads` (`mesh.rs:634`), which runs the queue at each lay instead; the helpers and the debug list are render. |
+| 00895b20 | `RoadsPieces::rotate_flags` | open | run1016–1021 | replaced | The XML loaders: called only from `RoadsPieces::parse_element@00895fc0`, it writes a catalogue element's eight rotated and mirrored connection-flag words (`flags[1..]` from `flags[0]`), the words `find_map` matches against. Load-time catalogue building for the road pieces; its only consumer is `find_map` (below). |
+| 00897840 | `RoadsPieces::find_map` | open | run1016–1021 | unmodelled | Picks a road element's render piece: every catalogue element and rotation whose flag word matches the tile's (exactly, or under the diagonal masks) is a candidate; none sets `element_num = C31`, `rotation 0`; else `texture_fractal(x mod xs, y mod ys) · (n / 100.0)` (a float, clamped to `n − 1`) indexes the list. Callers `RoadsOut::find_piece@00890c90` and the console. Entered on every lockstep run. It looks like texture choice, but `scan_and_kill_bad_tcoord` reads its `element_num` for the C4 exemption and its `rotation` for the empty slot (10, which `find_map` never writes), so it can keep a road the crate kills. Inert on every capture so far (ROADS §10.5). No `gamelog` record prints `element_num`; what shows it is the tile mask's road surface in the `WORLD` per-tile masks (part 6) on the frame the sweep reaches a C4 tile on a road, or the run189-style packet's `RoadElementCandidate`. A float site, so `docs/DECISIONS.md` entry 16's rule applies before any port. |
+| 00895af0 | `RoadsPieces::rot_byte` | layout | - | dead | An 8-bit rotate right; no caller in the export (inlined into `rotate_flags`). The sweep `roads_pieces_rot_byte.rs` holds the rotate. Census: a proposed `^RoadsPieces::` class (all three of this group's `RoadsPieces` rows are catalogue or piece selection). |
+| 0089d5a0 | `Surf::add_wave` | open | run1016, 1018, 1019, 1021, 1062, 1176 | ui | Adds a shore wave in floats, its shape drawn from `internal_random` (not `game_random`), so it touches no synced state. One caller, `Surf::init@008a0cf0`. `MAPGEN.md` §12 files `Surf::*` as shoreline waves, renderer. Census: proposed `^Surf::` class (catches all four `Surf` rows here). |
+| 0089ddc0 | `Surf::on_field_change` | open | - | ui | Already ruled (`docs/AI.md`, near line 39477): `Surf::vftable +0xc`, re-phases the waves in floats. The `^Surf::` class. |
+| 008a1a00 | `Surf::inc_time` | open | run1016–1021 | ui | Called each frame from `Objects::inc_time@0065db70:95`, inside the simulation's tick, but it only steps each wave's and breaker's timer and, at `wave_total_time`, draws a new shape from `internal_random` (lines 18, 33). The draws are on the unsynced stream: the draw tracker prints them (`docs/AI.md` near line 35850, "five `Surf::inc_time` draws") and the sync comparison rightly ignores them. The `^Surf::` class; worth stating in the class's comment that a `Surf` draw is never a residue. |
+| 004a5dc0 | `Surf::get_name` | layout | - | dead | The registry name string. The `::get_name$` proposal above, or the `^Surf::` class. |
+
+## Summary
+
+**Counts by ruling (60):** twin 19 · twin-differs 2 · absorbed 3 · unmodelled 3 · replaced 2 ·
+dead 12 · ui 8 · saveload 4 · debug 4 · editor 3.
+
+**The twins the census misses.** Of the 19 twins, 15 are diff-backed by `MAPGEN.md` §7, §9, §17
+and §18.3 or `ROADS.md` §10, and are `open`, `name` or `layout` only because the Rust fn has
+another name (`assess`, `quick_verify`, `sliding_verify`, `find_nearest_mountain`, `mine_slots`,
+`edge`, `section`, `join`), is inlined into a neighbour (`set_behind_flags`, `Mountains::set_edge_flags`,
+`scan_and_kill_straggled_tcoord`), or no backed row names its address (`verify_placement`,
+`add_cliff`, `place_cliff`, `position_cliff`, `excluding_verify`, `add_mountain`). Spelling
+`Class::method@addr` in each twin's doc comment *and* naming the fn the snake-case method (or adding
+the addresses to `MAPGEN.md` §13's coverage table) would move them to `port`. One collision is
+false: `fn sliding_verify` (`terrain_groups.rs:837`) is `Mountains::sliding_excluding_verify`'s twin,
+which makes `Mountains::sliding_verify` (a dead mode) read as `name`.
+
+**Proposed census classes** (`tools/census.py`):
+- **Read the marks before `backed`** in `territory_kind` (`census.py:1227`): a doc- or sweep-backed
+  address is filed `layout` before `is_dead_weight`/`is_ui_body` run. With the order swapped, the
+  existing marks catch `Cliff::render` (`render`), the three `MountainsOut::mnt_*`,
+  `CliffsOut::get_mining_size`, `CliffsOut::get_mining_data`, `RiverSectionOut::compute_vert_height`
+  and `RoadsOut::get_name` (`Out`): eight rows of this group.
+- `::walk_data$` → save and load: `Cliff::walk_data`, `CliffsData::walk_data`,
+  `CliffMiningData::walk_data`, `Mountains::walk_data` (and every other class's).
+- `::get_name$` into `DEAD_WEIGHT`: `RoadsOut::get_name`, `Surf::get_name`.
+- `^Surf::` → renderer (MAPGEN §12 already says so): `Surf::add_wave`, `on_field_change`,
+  `inc_time`, `get_name`.
+- `(^|_)(vert|tcoord|norms?|tangents?)(_|$)` on the short name, excluding the `scan_and_kill_*_tcoord`
+  pair (or scoped to `^(Cliff|MountainRange)::`) → mesh: `Cliff::get_vert_alpha`, `add_tcoord_data`,
+  `get_vert_offsets`, `average_neighbor_norms`, `MountainRange::validate_tcoord`.
+- `^Mountains::(verify_template|sliding_verify|remove_mountain)$` and
+  `::(delete|remove)_(cliff|mountain|river)$` → editor, or a mode no caller passes:
+  `Mountains::verify_template`, `sliding_verify`, `remove_mountain`, `Cliffs::delete_cliff`.
+- An **empty-body** mark (an export body that is `return;` or a constant return alone):
+  `Cliff::average_neighbor_norms`, `Cliff::get_vert_offsets`, `Mountains::tileset_texture_load`,
+  `RiverSectionOut::compute_vert_height`.
+- Free functions of `Roads.cpp` that only `render_debug` or `TerrainOut::render` call:
+  `^(add_single_line|add_line|get_float_z)$`.
+
+**Proposed replaced groups.** None new. `Mountains::add_range` and `RoadsPieces::rotate_flags` fall in
+the existing XML loaders group. A **save and load** group (the `walk_data` four here) would be
+the natural new one; its evidence is the callers `WalkDataGame::walk_data`, `SaveGame::verify_save`
+and `LoadGame::verify_load`, with the checksum's use noted below.
+
+**`unmodelled`, ranked (lockstep-entered first):**
+1. **`RoadsPieces::find_map@00897840`**, entered on every lockstep run. Its `element_num` is the
+   C4 exemption of `scan_and_kill_bad_tcoord`, so a road the original keeps can be one this crate
+   erodes. Inert on every capture so far (ROADS §10.5). The field that would show it: a road
+   surface bit in the `WORLD` per-tile masks (part 6 of the `CHECKSUM` record) on the frame the
+   stray sweep reaches a road tile holding a C4 element; no gamelog record prints `element_num`
+   itself, only a state packet. A float site (`n / 100.0`).
+2. **`CliffsData::find_nearest@008a8da0`**, entered on every lockstep run and inert there: the
+   mine arm asks it beside the mountain one, and neither scored map lays a cliff, so it answers −1.
+   The field: `BUILDDATA`'s mining list (`cliff`, `length`, `size`) on a mine beside a cliff
+   (run1516 on 100: `cliff 7`, `length 189`, `size 320`). Parked 3924a.
+3. **`CliffsData::gather_size@008a8f80`**, not entered by a lockstep run (run1516's coverage take
+   entered it). The same arm's count and band; the field is that `BUILDDATA` `size`. Parked 3924a.
+
+The two `twin-differs` rows are seams of the same kind: `Cliffs::verify_defensive_position`'s angle
+test asserts where the original measures (no shipped style reaches it), and
+`scan_and_kill_bad_tcoord`'s C4 arm is the consumer of row 1.
+
+**Two dumped values nothing compares, met on the way:**
+- The `CHECKSUM` record's mountains line (`Mountains::walk_data`'s Adler-32, printed past level 15)
+  is printed and not parsed: `world_checksums_in` keeps the `World` lines alone.
+- `WORLD total_metal`, which `MountainsData::total_gather_size` writes through `World::analyze_map`,
+  is uncompared (parked 455). It has no simulation reader, so it is not a rule.
+
+## Not established
+
+- **The `Rings` stock list.** `Rings::stock` (`terrain_groups.rs:312`) hard-codes the install's
+  sixteen ranges by size. That matches `add_range`'s slot order on the shipped
+  `effects_graphics.xml`; whether each range's size bucket comes from `MountainRange::init` (and so
+  would follow a modded list) was not read.
+- **`Mountains::get_range`'s step guard.** The original steps a ring only when the node link
+  (`+0x18`/`+0x30`/`+0x48`) is non-zero; that this always holds on the lists `init` builds is taken
+  from the crate's agreement with the draw stream, not read in `init`.
+- **`Cliff::get_vert_alpha`'s caller.** The export names no call or vtable slot for it; it is
+  ruled render by its body alone.
+- **Which element index is `element_C4`**, and so how often `find_map` can pick it beside a road,
+  was not read (`RoadsPieces::parse_element`, the catalogue's order).
+- **`Mountains::walk_data`'s float array** (`+0xa4`): what it holds (heights or render positions)
+  was not read, so whether the mountains checksum line could be reproduced from `MapGrid` alone is
+  open.
