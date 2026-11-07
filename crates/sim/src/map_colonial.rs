@@ -145,6 +145,9 @@ mod tests {
     /// The stock files' values on a Standard map: `default.xml`'s
     /// `AVOID_CENTER` and `AVOID_CONTINENT`, `COLONIALPOWERS.xml`'s four
     /// zero edges.
+    /// [`a_short_growth_restarts_the_generation`]'s pin, the port's own.
+    const LAND_AND_DRAWS_28: (usize, usize) = (545, 8428);
+
     fn style() -> LakeStyle {
         LakeStyle {
             avoid_center: 4,
@@ -258,19 +261,34 @@ mod tests {
     }
 
     /// A start off the ring's reach is held five in from each edge: on
-    /// 40×40 the ring is 15 about 20, so a start may fall at 5 or 35, and
-    /// none falls outside.
+    /// 24×24 the ring is `3·12/4 = 9` about 12, so the ring's own points
+    /// fall as near as 3 to an edge, and every start lands in `5..=19`.
     #[test]
     fn a_start_is_held_five_in_from_the_edge() {
         let mut held = 0;
-        for seed in 1..40 {
-            let (grid, _, _) = run(36, 6, 3, seed);
+        for (players, outsiders) in [(2, 0), (4, 1), (6, 3), (8, 4)] {
+            let (grid, _, _) = run(24, players, outsiders, 99);
             for (&x, &y) in grid.starts[0].list.iter().zip(&grid.starts[1].list) {
-                assert!((5..=31).contains(&x) && (5..=31).contains(&y), "({x}, {y})");
-                held += usize::from(x == 5 || y == 5 || x == 31 || y == 31);
+                assert!((5..=19).contains(&x) && (5..=19).contains(&y), "({x}, {y})");
+                held += usize::from(x == 5 || y == 5 || x == 19 || y == 19);
             }
         }
-        assert!(held > 0, "no start reached the clamp");
+        assert_eq!(held, 20, "every start of these lobbies reaches the clamp");
+    }
+
+    /// A growth that ends short starts the generation again, the angle
+    /// drawn anew and `avoid_center` restored for the old world's growth:
+    /// 28×28 at seed 99 stalls twice before a generation holds. The land
+    /// and the stream's length are the port's own (no take reaches a
+    /// restart, parked 3951a) — a pin that the restart's two writes move.
+    #[test]
+    fn a_short_growth_restarts_the_generation() {
+        let (grid, draws, m) = run(28, 2, 0, 99);
+        assert_eq!(m.restarts, 2);
+        let opens = draws.log.iter().filter(|d| d.0 == site::ANGLE_HI).count();
+        assert_eq!(opens, 3);
+        let land = grid.cells.iter().filter(|c| c.land == 0).count();
+        assert_eq!((land, draws.log.len()), LAND_AND_DRAWS_28);
     }
 
     /// `EDGES_ONLY`: a pool no border cell holds stays water, and each of
