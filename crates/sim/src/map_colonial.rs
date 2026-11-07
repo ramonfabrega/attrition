@@ -218,7 +218,65 @@ mod tests {
         assert!(d2 >= 30 * 30, "{d2}");
     }
 
-    /// `EDGES_ONLY`: a pool no border cell holds stays water.
+    /// Every start is on its continent's arc, exactly: the old world's
+    /// from `angle − 0x15555555` by `0x2aaaaaaa / (n − 1)`, the new
+    /// world's from `angle + 0x7fffffff − 0x2aaaaaaa` by `0x55555555 / (n −
+    /// 1)`, the angle the mask's first two draws.
+    #[test]
+    fn the_starts_are_the_arcs_own() {
+        for (players, outsiders) in [(3, 1), (4, 2), (5, 2), (2, 0)] {
+            let (grid, _, m) = run(60, players, outsiders, 777);
+            assert_eq!(m.restarts, 0);
+            let mut d = Draws::new(777);
+            let hi = d.get(site::ANGLE_HI) % 0xffff;
+            let lo = d.get(site::ANGLE_LO) % 0xffff;
+            let angle = (hi << 16).wrapping_add(lo) as u32;
+            let mut want = Vec::new();
+            for (k, n, from) in [
+                (0, outsiders, angle.wrapping_sub(0x1555_5555)),
+                (
+                    1,
+                    players - outsiders,
+                    angle.wrapping_add(0x7fff_ffff).wrapping_sub(0x2aaa_aaaa),
+                ),
+            ] {
+                let step = if n < 2 { 0 } else { ARC[k] / (n - 1) as u32 };
+                for j in 0..n as u32 {
+                    let a = from.wrapping_add(step.wrapping_mul(j));
+                    let (x, y) = project(30, 30, Angle(a as i32), 22);
+                    want.push((x.clamp(5, 55), y.clamp(5, 55)));
+                }
+            }
+            let got: Vec<(i32, i32)> = grid.starts[0]
+                .list
+                .iter()
+                .zip(&grid.starts[1].list)
+                .map(|(&x, &y)| (x, y))
+                .collect();
+            assert_eq!(got, want, "{players} players, {outsiders} outsiders");
+        }
+    }
+
+    /// A start off the ring's reach is held five in from each edge: on
+    /// 40×40 the ring is 15 about 20, so a start may fall at 5 or 35, and
+    /// none falls outside.
+    #[test]
+    fn a_start_is_held_five_in_from_the_edge() {
+        let mut held = 0;
+        for seed in 1..40 {
+            let (grid, _, _) = run(36, 6, 3, seed);
+            for (&x, &y) in grid.starts[0].list.iter().zip(&grid.starts[1].list) {
+                assert!((5..=31).contains(&x) && (5..=31).contains(&y), "({x}, {y})");
+                held += usize::from(x == 5 || y == 5 || x == 31 || y == 31);
+            }
+        }
+        assert!(held > 0, "no start reached the clamp");
+    }
+
+    /// `EDGES_ONLY`: a pool no border cell holds stays water, and each of
+    /// the four borders lists the pools its cells hold — one pool on the
+    /// middle of each (none on a corner), so a border left out of the
+    /// predicate leaves its pool water too.
     #[test]
     fn an_inland_pool_survives_the_edge_only_pass() {
         let mut grid = MapGrid::new(20, 20);
@@ -227,19 +285,22 @@ mod tests {
         for c in grid.cells.iter_mut() {
             c.land = 0;
         }
-        for (x, y) in [(10, 10), (11, 10), (0, 0), (1, 0)] {
-            grid.cell_mut(x, y).land = 2;
-        }
-        for (x, y) in [(19, 19)] {
+        let pools = [(10, 0), (0, 10), (10, 19), (19, 10)];
+        for (x, y) in pools.into_iter().chain([(10, 10)]) {
             grid.cell_mut(x, y).land = 2;
         }
         let mut both = grid.clone();
         eliminate_pools_in(&mut grid, true);
         assert_eq!(grid.cell(10, 10).land, 2, "inland, never listed");
-        let wet = [(0, 0), (19, 19)].map(|(x, y)| grid.cell(x, y).land == 2);
-        assert_eq!(wet.iter().filter(|&&w| w).count(), 1, "one border sea kept");
+        let wet = pools.map(|(x, y)| grid.cell(x, y).land == 2);
+        assert_eq!(
+            wet,
+            [false, false, true, false],
+            "the last listed, row-major, is kept"
+        );
         eliminate_pools_in(&mut both, false);
-        let wet = [(10, 10), (0, 0), (19, 19)].map(|(x, y)| both.cell(x, y).land == 2);
+        let wet = pools.map(|(x, y)| both.cell(x, y).land == 2);
+        assert_eq!(both.cell(10, 10).land, 0, "the whole world lists it");
         assert_eq!(
             wet.iter().filter(|&&w| w).count(),
             1,
