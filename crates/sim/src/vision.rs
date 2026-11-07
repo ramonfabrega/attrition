@@ -512,8 +512,16 @@ impl Sim {
     /// The disc `Object::update_seen(0)` walks for a building: its own
     /// half-cell, radius `los / 2`, the whole circle. A building is not
     /// `is_unit()`, so §3's projected centre never applies to it.
+    ///
+    /// **The radius is the cache's** (item 3970, parked 3965a): the sweep
+    /// reads the `mylos` byte `Wall::update_los` last left
+    /// ([`crate::Building::mylos`]), never the live [`Sim::build_los`]. A
+    /// Tower gaining the Militia bit keeps lighting its old disc until its
+    /// owner's next `calc_wall_stats`: chapter 126's `1/2007` lights 11
+    /// tiles, so who=1 first sees `0/6` on 764 and its Tower's 777 scan
+    /// takes it, where the live 13 lit the chariot's half-cell by 745.
     pub fn build_sweep(&self, b: usize) -> Option<Sweep> {
-        let los = self.build_los(b);
+        let los = self.buildings[b].mylos;
         if los == 0 {
             return None;
         }
@@ -1038,6 +1046,8 @@ mod tests {
         let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
         let b = s.add_building(0, at, 0);
         s.buildings[b].ty = Some(t);
+        // `Wall::init`'s `update_los`: the cache the sweep reads.
+        s.update_build_los(b);
         (s, b)
     }
 
@@ -1095,6 +1105,10 @@ mod tests {
         assert_eq!(s.build_los(b), 15);
         s.tech[0].epoch[crate::tech::Line::Science.index()] = 1;
         assert_eq!(s.build_los(b), 17, "the science term");
+        // The sweep reads the cache, which the epoch has not refreshed
+        // (parked 3965a, item 3970): the old disc until `update_los`.
+        assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(7));
+        s.update_build_los(b);
         assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(8));
     }
 
@@ -1377,6 +1391,8 @@ mod tests {
         }
         s.tech[0].tech[bits[2]] = false;
         assert_eq!(s.build_los(b), 19, "the Turks' 1/2012");
+        assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(7), "the cache");
+        s.update_build_los(b);
         assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(9));
         s.buildings[b].active = false;
         assert_eq!(s.build_los(b), 0, "an unfinished tower");
@@ -1410,6 +1426,7 @@ mod tests {
         s.tech[0].tech[levels[1]] = false;
         s.tech[0].tech[levels[2]] = false;
         assert_eq!(s.build_los(b), 16, "the Romans' 1/2013");
+        s.update_build_los(b);
         assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(8));
         s.build_types[t].ident = Ident::Tower;
         assert_eq!(s.build_los(b), 14, "a tower takes no fort term");
@@ -1428,6 +1445,7 @@ mod tests {
         assert_eq!(s.build_los(b), 4);
         s.buildings[b].started = false;
         assert_eq!(s.build_los(b), 0);
+        s.update_build_los(b);
         assert!(s.build_sweep(b).is_none());
     }
 

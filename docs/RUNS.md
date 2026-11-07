@@ -36006,3 +36006,27 @@ SHA-256 `797eb4df16a2ab7112864f11bf0664348e978951dfde0ba761e07a0110dd1e00`.
 block each record older than the oldest that stays has gone, hundreds of frames before its life ends (658's by 1051).
 The sixth melee's first try, **744 of 2600** (`corpse_melee_first_parting`).
 
+
+## run1541 and run1541b — chapter one hundred and twenty-six: the armed building family, a Mayan City with a Temple and a Tower on the Militia bit holding a General, a Chariot at each (2026-11-07, item 3970, `att-3970`)
+
+`docs/GOLDEN.md` §176. **What the disk could not answer**: a building holds a target in 4 of 3,725 dumps on disk
+(Towers and a Radar, none garrisoned, no Mayan owner), so no dump showed `BuildData::attack`'s General term, the Maya's
+arrow on a city centre, or a building's reach on the Militia bit or a Temple (parked T71-8).
+
+Recipe `tools/gamelog/golden/chapter126.cmd`: who=1 the Maya; a Temple at 226,90 (606), a Tower at 200,104 (608), the
+Militia bit (610), a General garrisoned on 620, two Chariots (640, 642), `@attack` on the Tower (700) and the City (702).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch126 --map 14 --end-frame 1100
+--log-window 605 1100 --timeout 3600 --ai-tribe 1` with the golden lobby's four `--profile` pins and the cmd header's
+three detail sets (`AMMO=5` among them). The twin is the same line at `--cover cover=1 --no-ffwd --twin
+~/ron-golden/ch126`, into `~/ron-golden/ch126b`.
+
+19 GiB free before the first take, 16 before the twin. Both `success`, lifecycle verified, `map_verified`, map style
+14, 1101 frames, `last_frame` 1100, seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 1).
+No minutes were waited on another lane. `~/ron-golden/run1541` links to `ch126` and `run1541b` to `ch126b`.
+- run1541 (`ch126`, `cover=0`, pool lane 2): 15:01:42–15:02:10, no relaunch. The word's.
+- run1541b (`ch126b`, `cover=1`, pool lane 1): 15:10:08–15:13:02, 174.4 s launch to exit, no relaunch. Filed by
+  `filerun.py run1541b ch126-building-family-cover`.
+- On 753 the City `1/2000` names `0/7`; the Tower `1/2007` (`mylos 11`) names `0/6` from 778; `0/6` reads `visible 2`
+  from 764; on 805 the Temple `1/2006` reads `damage 8`, the Library `1/2005` 0.
+- `rngcmp`: run1541 against run1541b, 1101 of 1101 identical.

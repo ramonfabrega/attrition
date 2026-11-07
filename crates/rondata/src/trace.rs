@@ -536,6 +536,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x0067_c138, None, sim::air::SITE_AIR_SHOOTER_HIGH),
     // `Ammo::init_crash@0067b800`'s one game draw, the crash's roll.
     (0x0067_bb05, None, sim::air::SITE_CRASH_ROLL),
+    // `Object::fire_ammo@0064c8b0`'s building arm — the launch point in the
+    // footprint, x then y, ahead of `Ammo::init`'s pair (item 3970).
+    (0x0064_cc85, None, sim::fight::SITE_FIRE_FOOTPRINT_X),
+    (0x0064_ccb6, None, sim::fight::SITE_FIRE_FOOTPRINT_Y),
     (0x0067_c8c9, None, sim::fight::SITE_AMMO_SCATTER_X),
     (0x0067_c8fb, None, sim::fight::SITE_AMMO_SCATTER_Y),
     // The attack-ground arm's own pair (`init:461`–`484`), ahead of

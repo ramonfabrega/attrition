@@ -712,6 +712,14 @@ pub const TRACES: &[&str] = &[
     // and the 680 close the clean (`docs/GOLDEN.md` §175); run1540's game
     // on every frame.
     "rontrace-run1540b.log",
+    // Item 3970: golden chapter one hundred and twenty-six
+    // (`chapter126.cmd`, a Mayan City with a Temple, a Tower on the Militia
+    // bit holding a General, and a Chariot at each) at `cover=1` on the
+    // click-free pool, to 1100 (`docs/RUNS.md` run1541b): `BuildData::attack`,
+    // `get_base_garrison_arrows`, `max_range`, `get_building_range` and
+    // `get_temple_range` entered (`docs/GOLDEN.md` §176); run1541's game on
+    // every frame.
+    "rontrace-run1541b.log",
     // Item 3971: the sixth melee (the third's lobby with two massed armies,
     // `tools/gamelog/golden/melee-corpses.cmd`) at `cover=1` on the
     // click-free pool, to 2600 (`docs/RUNS.md` run1542b): run1542's game

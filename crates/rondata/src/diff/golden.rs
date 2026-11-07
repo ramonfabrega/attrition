@@ -2405,7 +2405,12 @@ fn widen_civilians_walk(
                     .ty
                     .and_then(|t| s.built.sim.build_types[t].tree)
                     .is_some_and(|id| s.built.sim.tech_tree.types[id].wall_cycle.is_some());
-                if !cycles {
+                // **Every armed building's target** (item 3970, `docs/GOLDEN.md`
+                // §176): `attack_ox`/`attack_whom` on a building whose attack
+                // is not zero as well, the Tower and Fort lines and a city
+                // centre among them; `recharging` stays the cycle's alone.
+                let armed = cycles || s.built.sim.attack_of(sim::combat::Obj::Building(b)) != 0;
+                if !armed {
                     continue;
                 }
                 let (to, tw) = match bd.target {
@@ -2424,6 +2429,9 @@ fn widen_civilians_walk(
                     ("attack_ox", to, ox),
                     ("attack_whom", tw, whom),
                 ] {
+                    if what == "recharging" && !cycles {
+                        continue;
+                    }
                     rows += 1;
                     if ours != theirs {
                         firsts
@@ -6610,6 +6618,50 @@ const WANT_CH123: &[&str] = &[
 #[test]
 fn chapter_one_hundred_and_twenty_three_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_twenty_three_holds_to_the_golden_word();
+}
+
+/// **run1541 whole, both directions** (item 3970, `docs/GOLDEN.md` §176).
+#[test]
+fn chapter_one_hundred_and_twenty_six_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_twenty_six_s_window_is_widened_whole();
+}
+
+/// What parts in run1541's window, blocks 605–1100 (item 3970): the
+/// standing rows of every golden start (`form`, and the Mayan figures'
+/// `g.gpiece`), and the three death objects this capture's end detail does
+/// not print (no `DEATHS`) — `0/6` on 844, `1/3` on 997, `0/7` on 1037,
+/// each killed on the same block on both sides. The Tower's target on 747,
+/// the City's on 753, the Tower's blow on 792 and the strike on the Temple
+/// on 805 agree.
+const WANT_CH126: &[&str] = &[
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/0 g.gpiece[0]",
+    "605 1/0 g.gpiece[1]",
+    "605 1/1 form",
+    "605 1/1 g.gpiece[0]",
+    "605 1/2 form",
+    "605 1/2 g.gpiece[0]",
+    "605 1/3 form",
+    "605 1/3 g.gpiece[0]",
+    "605 1/4 form",
+    "605 1/4 g.gpiece[0]",
+    "605 1/5 form",
+    "605 1/5 g.gpiece[0]",
+    "844 0/6 death:extra",
+    "997 1/3 death:extra",
+    "1037 0/7 death:extra",
+];
+
+/// Chapter one hundred and twenty-six holds to its golden word (item 3970,
+/// run1541).
+#[test]
+fn chapter_one_hundred_and_twenty_six_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_twenty_six_holds_to_the_golden_word();
 }
 
 /// **run1540 whole, both directions** (item 3969, `docs/GOLDEN.md` §175).

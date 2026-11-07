@@ -18641,12 +18641,70 @@ closes, `num_queued` at a technology's `TypeIndex` through both, and the re-queu
 technology arm is held by the unit test and the `untrack_item` it shares. `blind::` is unmoved: run1540b joins
 `TRACES`, and nothing it enters was `NEVER`.
 
-## 176. Reserved for the next item on the rules track
+## 176. Chapter one hundred and twenty-six — the armed building family: a Mayan City's arrow, a Tower on the Militia bit holding a General; the fog reads a building's cache, closed at 1100 (item 3970, run1541, run1541b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked T71-8; build-1, second-7, adjudication 5). `BuildData::attack@0062e610`'s three garrison terms,
+`BuildData::get_base_garrison_arrows@0062e340`'s Maya arrow, `BuildTypeData::get_building_range@00639990`'s tier arrays
+and `BuildData::max_range@0062e470`'s General and temple terms — none carried, and a building held a target in 4 of
+3,725 dumps on disk. First a comparator line: `widen_civilians_walk` compares `attack_ox`/`attack_whom` on every
+building whose `attack_of` is not zero, not only the `wall_cycle` types. On the 105 golden windows it reaches 174,425
+armed-building rows, 5,712 holding a target, and none parts.
+
+**Staging** (`tools/gamelog/golden/chapter126.cmd`, who=1 the Maya by `--ai-tribe 1`, the golden lobby's four fields
+pinned). A Temple in who=1's City `1/2000` (606), a Tower `1/2007` off the forest at 200,104 (608; `is_in_range@006486b0`
+refuses a shot from a forest tile), the Militia bit (610), a General `1/6` garrisoned on 620, two Chariots on 640/642,
+`0/6` sent at the Tower on 700 and `0/7` at the City on 702. The five killers are in the cmd file's header, written
+before the take.
+
+**What the original does** (run1541 `cover=0`, run1541b `cover=1 --no-ffwd --twin`; `rngcmp` 1101 of 1101 identical;
+`docs/RUNS.md`).
+- **753.** The Small City `1/2000` names `0/7` in `attack_ox` (`ammo[0]` from 752): ungarrisoned, `BASE_ARROWS 0`, it
+  shoots on the Maya's arrow.
+- **The Tower's `mylos` stays 11 past the Militia** (`docs/VISION.md` §2.1, item 3965), and so does its fog disc:
+  who=1 first sees `0/6` on 764 (`visible 2`), and the Tower's next scan, 777, takes it (`near_o 6`, `attack_ox 6` on
+  778). On 745 the chariot is 12.4 tiles out and unseen.
+- **792.** The Tower's blow is 13: attack 130, the General's `GENERAL_BUILDING_ATTACK × 10`.
+- **804–805.** The City's arrow at `0/7` misses and lands on (43266, 17134), tile (225, 89), which the Library `1/2005`
+  and the staged Temple `1/2006` both cover (the console `add` overlaps them). The Temple takes it: `damage` 2 → 8.
+- The twin enters `BuildData::attack`, `get_base_garrison_arrows`, `BuildData::max_range`, `get_building_range`,
+  `get_temple_range`, `Object::fire_ammo` and `ObjectsData::find_building_at`.
+
+**What this crate does** (built):
+- **The fog reads the cache** (`vision.rs`, parked 3965a): `Sim::build_sweep` takes `Building::mylos`, never the live
+  `build_los`. Ours lit 13 and saw `0/6` at 745: the Tower's `attack_ox` on 747 ours 6 / theirs −1 → −1 both, and 6 both
+  on 778. The word 746 → 752.
+- **`sim::build_family`**, wired: `attack_of` adds `build_attack_terms` for a building (the swept
+  `build_attack_view`); `max_range_of` takes `building_range_terms` in place of the British term alone;
+  `process_building_combat` and `compare_target`'s garrison weight take `base_garrison_arrows`, and the latter the
+  squads inside (`garrison_attack_sum`) as `do_attack` counts them. New: `economy::OBSIDIAN` (32), the roles
+  `fort_range_preq` (bonuses 40–42) and `temple_range_preq` (34–36), and the constants in `tuning.rs`. The City's 753
+  row ours −1 / theirs 7 → 7 both; the word 752 → 804. The 792 row `0/6 hits:damage` ours 12 / theirs 13 → 13 both.
+- **The building's fire names its draws**: `Object::fire_ammo+0x3d5`/`+0x406` (the footprint, `SITE_FIRE_FOOTPRINT_X/Y`)
+  and the `Ammo::init` pair, which a building's shot had spent unnamed — a 2 × 2 Tower's matched by count, the 7 × 7
+  City's parted the sequence at 752.
+- **A ground hit walks the cells in compass order** (`Sim::building_under`): the nine of `move_x`/`move_y` round the
+  tile's cell, the centre first. On 804 ours struck the Library, the first by index: `1/2005 build:damage` ours 6 /
+  theirs 0 and `1/2006` ours 2 / theirs 8 on 805 → both agree. The word 804 → 1100.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX` = **1100**, the trace's end, closed.
+- **The widening.** Over 605..1100 (`(604, 1101)`, both directions, the pool too) it parts on the standing rows only
+  (`WANT_CH126`): eleven `form`, seven `g.gpiece` on the Mayan figures, and three `death:extra` (no `DEATHS` in the end
+  detail). The ground pin is 1; the `cant_reach` tally 4.
+- **Tests.** `cities_tests::a_militia_tower_and_a_templed_city_reach_a_tile_further`,
+  `…::a_mayan_building_has_an_arrow_its_type_does_not` and `…::an_obsidian_holder_s_tower_hits_harder`; the vision
+  fixtures refresh the cache where `Wall::init` and `calc_wall_stats` would.
+- **Coverage.** The driver drives 750..806.
+
+**Mutations**: each arm was measured red before it landed, the word standing at 746 (the live sweep), 752 (no Maya
+arrow), 804 (the index walk) and the 792 row with the General's term off (`docs/journal/2026-11-07-item-3970.md`).
+
+**Not established.**
+- The Obsidian and Antipater terms (parked 3970a) and the range terms the walk cannot part — the fort tiers, Roman,
+  Colosseum, Tikal and the General's reach (3970b): chapter 126's reach never binds.
+- `BuildData::hits` during a Disband (3970c); a cell's own building chain order (3970d).
+
+**Coverage.** Diff-backed: the Maya arrow on a city centre, the General's attack term, a building's fog disc read off
+its cache, and the cell order of a ground hit. `blind::` is unmoved: run1541b joins `TRACES`, and nothing it enters
+was `NEVER`.
 
 ## 177. The sixth melee — the third's lobby with two massed armies, past the death pool's 100 (item 3971, run1542–run1542b)
 
