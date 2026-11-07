@@ -2965,6 +2965,8 @@ mod launch_tests {
             let (base, target) = base_and_target(&mut s);
             let u = fighter_inside(&mut s, base, if unseen { 400 } else { 100 });
             if unseen {
+                let n = (s.world.fog_xs() * s.world.fog_ys()) as usize;
+                assert!(s.world.set_fog(vec![0; n]), "a fogged world");
                 s.buildings[target].ever_seen = 0;
             }
             s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
