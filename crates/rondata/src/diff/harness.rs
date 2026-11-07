@@ -902,7 +902,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `Group::action_stance`'s building arm rewrites. This crate
         // computes it ([`sim::Sim::build_stance`]); no buildings group
         // reaches the second writer.
-        if let Some(theirs) = b.stance.filter(|_| std::env::var_os("RON_PROBE_NOROWS").is_none()) {
+        if let Some(theirs) = b.stance {
             let mine = i64::from(built.sim.build_stance(handle));
             r.build_compared += 1;
             compared::note("BuildDump", &["stance"]);
@@ -2244,9 +2244,6 @@ fn widen_block_rows(
                     Some(i64::from(them.flags & 0x10 != 0)),
                 ),
             ] {
-                if r.0 == "cant_reach" && std::env::var_os("RON_PROBE_NOROWS").is_some() {
-                    continue;
-                }
                 rows.push((r.0.into(), r.1, r.2));
             }
         }
