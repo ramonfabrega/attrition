@@ -3559,12 +3559,145 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 32. Reserved for the next item on the map track
+## 32. Colonial Powers' chain, 8 of 8 (item 3951)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The chain take of style 17 (§22.2, §25's method). Its mask is its own,
+like African Watering Hole's (§28) and Australian Outback's (§30). One
+take, run1534 at `--map 17` on §22.2's line (`docs/RUNS.md`), walked
+phase by phase against its own checkpoints by the `Chain` walk (§26)
+with a fourth `MaskPort` (`rondata::mapgen::tests::COLONIAL_POWERS`).
+Colonial Powers is **read against**. It is not the held-out style (§24).
+
+### 32.1 The mask is its own: two continents half a turn apart
+
+`MapColonialPowers::make_continents@00697dd0` runs to 0x6984d0 (the
+next function, `MapNewWorld::make_continents`), 1,792 bytes against
+Great Sahara's 368. `llvm-objdump -d` gives 539 lines with two
+`Random::get@00a39d70` calls, two `project@0092d000`, one
+`Map::make_region@0069d3f0`, one `Map::grow_region@0069c600`, then
+`Map::check_player_land@0068ef00` and `Map::eliminate_pools@0068b890`,
+plus a `SimpleArray<int>` and an exception frame. Great Sahara's listing
+has none of the four calls after `project`. So it is not a dispatch, and
+the port is `sim::map_colonial`, read from the decompile and checked
+against the listing where the decompile hides a register: `project`'s
+centre is `(xs/2, ys/2)` in `ecx`/`edx` (signed halves); the continent's
+spot is written to `[ebp−0x84]`/`[ebp−0x80]`; the start's is written to
+`[ebp−0x5c]`/`[ebp−0x60]`; the counts are at `[ebp−0xb4]`; and the steps
+are at `[ebp−0x8c]`/`[ebp−0x88]`.
+
+1. Once: `avoid_continent` (+0x30) becomes
+   `max(4, scale_land_area(avoid_continent))`.
+2. Each generation: `World::wipe`, `Regions::clear_all`. **The counts**
+   are `[outsiders, players − outsiders]`. `outsiders` is 0 unless
+   `team_style` is 7 and the game semaphore's bit 8 is clear. In that
+   case it counts the live seats with `flags & 5 == 1` whose team no
+   `flags & 5 == 5` seat is on. The port takes it as an argument. The
+   walk passes 0, because run1534's `GAMEINFO` reads `TEAM_STYLE 1`.
+3. `r = 3·(m/2)/4` (`m` the shorter side, `[ebp−0x20]`). The angle is
+   `(h % 0xffff) << 16 + l % 0xffff` (sites 0x69805a, 0x698072).
+   `area = 2·size/3` (`[ebp−0x64]`). The steps are `0x2aaaaaaa / (n₀ −
+   1)` and `0x55555555 / (n₁ − 1)`, unsigned (`divl`), or 0 when the
+   count is under 2.
+4. For continent `k` = 0, 1: its spot is `project(centre, angle, r)`.
+   Its `n_k` starts stand on the same ring, from `angle − 0x15555555`
+   (k = 0) or `angle − 0x2aaaaaaa` (k = 1, after the step below), each
+   clamped to `5..=side − 5` and added. Then region `k + 1` opens on
+   the spot, and the angle steps by `0x7fffffff`. The old world is
+   always opened and grown, even when it has no seat.
+5. Region 1, then region 2, grows to `area/2` cells within `3r/4` of
+   its first cell. For region 2, `avoid_center` (+0x2c) is `7r/9`
+   (`imul 0x38e38e39`, `sar 1`), so `grow_valid` keeps it off the
+   middle while region 1 is live. A growth that ends short (non-zero
+   return) restores `avoid_center` and starts the generation again
+   (`jmp 0x697e22`, the angle drawn anew).
+6. Last, with `avoid_center` restored: `check_player_land` at ring 5
+   with the guard on (`ecx` 1, `edx` `avoid_continent`). This is East
+   Meets West's call (§24), so the port reuses
+   `map_east_west::check_player_land`. Then `eliminate_pools` with
+   **`EDGES_ONLY`** (`push 1`).
+
+**What `eliminate_pools` had to learn.** Every caller before this one
+passed `ENTIRE_WORLD`. Under `EDGES_ONLY` the listing loop reads only
+the cells of the border: row 0, row `ys − 1`, column 0 and column
+`xs − 1`, in row-major order. So a pool that no border cell holds is
+never listed, and it stays water. The merge loop is unchanged. The arm
+is `map_lakes::eliminate_pools_in(grid, edges_only)`, and
+`eliminate_pools` is its `false`. Mediterranean (0x69add0) and Sea
+Power (0x696080) also call `EDGES_ONLY`.
+
+On run1534 (2 nations, 60×60, `COLONIALPOWERS.xml`'s four zero
+`AVOID_EDGE`s, so `grow_valid` makes no draw) there is one generation of
+**7,344 draws**. The first two are the angle. The rest are
+`grow_region`'s 2,171 gates, 2,152 outer picks, 1,858 whole-region and
+53 ring picks, plus 1,024 `large_stamp` cases and 84 side draws. **7807
+and the whole stream agree on the first walk**: seed 1384684973, part
+2 464390838, part 5 3702735690 and part 6 1792933889 on both sides.
+
+### 32.2 The shared phases, first walk
+
+- **The tileset**: `COLONIALPOWERS.xml`'s four `TILECHANCE`s at 25
+  draw `dirty` off 7805's seed. 7854 agreeing backs it.
+- **7835..7945** agree. 6,690 draws, from `place_all` through the last
+  `compute_val`, match the trace's draw for draw.
+- **`Terrain::init`**: the sea opens the half-land gate, so the walk
+  takes §28.2's path. All 22 records 734..815 agree, 720 among them
+  (part 5 4133509385 on both sides).
+- **Rivers**: `RIVERLIST` is empty. Neither side makes a river draw (29
+  sources), and the 5 records 5012..5118 agree. The row is
+  `lays_rivers: false`.
+- **894**: seed 3791265415, part 5 302209281, part 6 3082300098 and
+  parts 10–13 (954561119, 3959817517, 4262200017, 262145) match the
+  file's. No good moved, and all 58,081 start-dump vertices agree.
+
+No shared phase parted, and no shared fix was taken. Every other
+style's pins held (`--lib mapgen`, 100 green), East Meets West's and
+Himalayas' among them. The one red is the queue's `Mapgen:` line.
+
+### 32.3 Made to fail
+
+Each arm was first put under a unit test (`sim::map_colonial::tests`):
+the arcs exactly, on four lobbies with and without outsiders; the clamp
+on 24×24, where the ring falls 3 from the edge; the restart on 28×28 at
+seed 99, which stalls twice (land and stream length are the port's own
+pin, since no take restarts); and each border of `EDGES_ONLY`, with one
+pool on the middle of each edge and one inland. Then `tools/mutate.py
+--batch --timeout 900` ran on the walk and the unit tests together:
+twenty-seven breaks, then eight. **Thirty-four of the thirty-five
+held.** Held:
+
+- `avoid_center`'s raise dropped, applied to both regions, or set to
+  `8r/9`.
+- The reach at `2r/3`, the size at `area/2 − 8`, `area` at `3/5`, `r`
+  at `2/3`, and the angle step at `0x70000000`.
+- Both arcs' half-offsets dropped, the step's `n − 1` made `n`, the
+  `< 2` gate made `< 1`, and the outsiders ignored.
+- `check_player_land` dropped, or its guard at 10.
+- `EDGES_ONLY` made `ENTIRE_WORLD`. Run1534's map holds an inland pool,
+  so this breaks the walk itself, not only the unit test.
+- The border predicate broken whole and in each of its four terms, and
+  its gate inverted.
+- `max(4)` widened to 12 and to 20. At 5 it failed nothing: the
+  continents never come within 5 of each other on run1534. At 20 the
+  growth never ends and was killed, which counts as held.
+- The clamp removed or moved by one on either axis.
+- The restart never taken, and the restart's `avoid_center` restore
+  dropped.
+
+The one not broken is the restore *after* the growth loop, an
+equivalent mutant: nothing reads `avoid_center` between it and the
+mask's return.
+
+### 32.4 What is not established
+
+- One file only: 2 nations, 60×60, `TEAM_STYLE 1`. The outsiders
+  predicate (`team_style` 7, the semaphore's bit 8, the two leader
+  scans) is read and taken as an argument. No caller computes it, and
+  no take has a `team_style` 7 lobby (parked 3951a).
+- The restart and the clamp are reached only by the port's own small
+  maps (§32.3), never by a take (parked 3951a).
+- `make_region`'s fourth argument (`area`) is passed and, as read, only
+  logged. The port drops it.
+
 
 ## 33. Reserved for the next item on the map track
 
