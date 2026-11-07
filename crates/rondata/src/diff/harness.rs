@@ -2148,6 +2148,15 @@ fn widen_block_rows(
                 ("waiting", i64::from(un.waiting), them.waiting),
                 ("rare", i64::from(un.rare), them.rare),
                 ("good_obj", i64::from(un.good_obj), them.good_obj),
+                // **A unit's own queue** (item 3960, `docs/AI.md` §404):
+                // an Aircraft Carrier's planes and their clock. SEAM: this
+                // crate holds no unit queue — `Group::action_spell`'s
+                // carrier arm, `Unit::process`'s tick and
+                // `Unit::action_unqueue(1)` are unmodelled — so its side is
+                // 0, which every walked window prints; run1066's carrier
+                // parts both on 614, which no walk holds.
+                ("num_queued", 0, them.num_queued),
+                ("queue_time", 0, them.queue_time),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",
@@ -2418,6 +2427,8 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "waiting" => ("UnitDump", "waiting"),
         "rare" => ("UnitDump", "rare"),
         "good_obj" => ("UnitDump", "good_obj"),
+        "num_queued" => ("UnitDump", "num_queued"),
+        "queue_time" => ("UnitDump", "queue_time"),
         "mylos" => ("UnitDump", "mylos"),
         "g.x" | "g.y" => ("Guy", "pos"),
         "g.angle" => ("Guy", "angle"),

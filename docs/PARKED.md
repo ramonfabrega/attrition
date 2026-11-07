@@ -15010,13 +15010,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CI — reserved
+## Parked by item 3960, 2026-11-07 — a unit's own queue, compared against the crate's 0
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3960a. The carrier's queue, ported, needs a walk of run1066** (`docs/AI.md` §404): `num_queued`/`queue_time` are
+  compared against the crate's 0 and agree on every walked window; the only parting on disk is run1066's carrier `0/14`,
+  block 614, theirs 1/100 against 0/0, 203 blocks to 816 (`coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero`).
+  No harness replays run1066's staging (console `add` lines and `@unqueueunit` are not staging verbs), so a port of
+  `Group::action_spell`'s carrier arm, the `Unit::process` tick and `action_unqueue(1)` would have no diff. **Score**:
+  none until a walk holds a carrier; a lobby whose AI builds a carrier (an Industrial-or-later sea game) would name one.
 
 ## Parked by the next landing, slot CJ — reserved
 

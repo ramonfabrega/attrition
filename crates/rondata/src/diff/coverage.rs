@@ -142,6 +142,11 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 3598 took `waiting` off both `UNITDATA` paths**: `fight`'s
     // search budget, compared in `widen_block` beside `full`.
     //
+    // **Item 3960 took `num_queued` and `queue_time` off both `UNITDATA`
+    // paths**: a unit's own queue (a carrier's planes), compared in
+    // `widen_block` beside `good_obj` against this crate's 0 (`docs/AI.md`
+    // §404). Two keys leave each; no path does.
+    //
     // **Item 3306 took `good_obj`, `mana_burn` and `rare` off both
     // `UNITDATA` paths** (Loop 3310): fields `sim::Unit` carries, compared
     // beside `spell_time` in `widen_block`. Three keys leave each; no path
@@ -156,7 +161,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor play size special supply",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -280,7 +285,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor play size special supply",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
