@@ -2867,8 +2867,9 @@ Run1127 (British Isles) enters none of the fifteen and was not joined.
 
 **What the entry does not give.** These are coverage traces. They are not
 setup traces: none carries `check_all_level` 14 or a `CHECKSUM` line, so no
-checkpoint 7805..7945 for these styles is on disk, and nothing here backs a
-value. **A style's chain take** is still one run with run1493's line at its
+checkpoint 7805..7945 for these styles is on disk ~~in these traces~~ — the
+AI track's Himalayas files run348, run464 and run465 carry style 9's (§27.2,
+parked 3946a) — and nothing here backs a value. **A style's chain take** is still one run with run1493's line at its
 own `--map`, written here and not run:
 
 ```
@@ -3156,12 +3157,76 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 27. Reserved for the next item on the map track
+## 27. Himalayas' chain, 8 of 8 (item 3946)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+The second chain take (§22.2, 3944–3953), in §25's shape. The take is
+run1529 at `--map 9` on §22.2's line (`docs/RUNS.md`). The chain is walked
+against it and against three older files of the same lobby by
+`rondata::mapgen::tests::chain_walk`, which is §25's Old World walk made a
+style's. Himalayas is **read against**, and no fix was taken (§27.3).
+
+### 27.1 The mask is Great Sahara's listing
+
+`MapHimalayas::make_continents@0069bc90` decompiles to Great Sahara's body.
+The two files differ only in the class name. `llvm-objdump -d` of
+0x69bc90..0x69be00 and of 0x69bf70..0x69c0e0, with addresses stripped, gives
+144 lines each. They differ in four lines, the relative jumps (`jns`, `jns`,
+`jle`, `jne`), and each of those targets the same instruction 0x2e0 further
+on. Every call names the same absolute target. So the port is
+`great_sahara_make_continents`, as it is for Old World (§25.1). Its four
+draws are the trace's `make_continents` segment, site for site, inside
+0x69bc90..0x69be00 (`rondata::mapgen::himalayas_part`).
+
+`HIMALAYAS.xml` shows what makes the style differ from the others, read
+from §4 on:
+
+- **Its own `TILESET`**, Snowy 50 and Arctic 50. The one `init_map_data`
+  draw is the style file's own, and on every file the word gives `Snowy`.
+- `grouping="1"` home trees at chances 15, 25, 25 and 35, forty-eight
+  scaled edge forests (`edge_stay_near`), and `edge_keep_away` mountains
+  (§7).
+- `numrare="-1"` world bonuses (per player, East Indies' shape) and no
+  `GOODIES` section, so `default.xml`'s is used (§8).
+- **An empty `RIVERLIST`**, which `river_list` reads as the style's own,
+  so there are no rivers (§10).
+
+### 27.2 The disk, and the walk
+
+The four files are run1529 (this item's), and the AI track's held-out-map
+captures run348, run464 and run465 (DECISIONS 53 §4, item 972). All four are
+one lobby: 2 nations, 60×60, seed 12345. §22.2's on-disk claim read only the
+`cover=1` traces, so it missed these three (parked 3946a). The first walk
+agrees at all 42 checkpoints of each file, 168 of 168, with no `sim`
+change:
+
+- the mask at 7807 (seed 2355140353, part 2 292424319, part 5 1267075849);
+- the zero-draw passes, `place_all` and its tail, the resources, and the
+  values. That is 90,970 draws from `place_all` through the last
+  `compute_val`, site and word, and 7945 is at seed 3700877363, part 5
+  2809422360, part 6 156400355;
+- `Terrain::init` without heights, 21 records a file, with part 4 at 734
+  by `SEA_MAP` 0 and held;
+- `make_rivers`' five lines with no draw. The 44 candidate sources are
+  listed and none is walked, and the trace draws none either;
+- 894: there is no trough, so part 5 is 7945's. The 58,081 start-dump
+  vertices of run1529 and run464 agree with the roster stood on them.
+
+**Made to fail** (`tools/mutate.py --batch --timeout 900` on `himalayas`,
+`719fc1a96`): five breaks, five held. They were the mask segment moved to
+Amazon Basin's range, the tileset drawn from `default.xml`, the walk
+filtered to style 8, `place_all`'s map style passed as 6, and Old World's
+file read in place of `HIMALAYAS.xml`. No arm was built, so the breaks are
+the walk's own choices. No condition here is a disjunction.
+
+### 27.3 What is not established
+
+- **Himalayas is also the AI track's held-out map** (DECISIONS 53 §4). The
+  chain took nothing from it, since nothing parted. Whether a parting here
+  could be debugged is the commander's question (parked 3946b).
+- There is only one lobby: 2 nations, 60×60, `Snowy`. `Arctic`, other sizes
+  and other nation counts are untaken.
+- A `numrare="-1"` row is backed here as East Indies backs it, on one
+  nation count.
 
 ## 28. Reserved for the next item on the map track
 

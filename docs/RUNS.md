@@ -35553,3 +35553,28 @@ SHA-256 `1d0093e791519f232942703b49dade5c18321b91898629e689ce4346f796621f`.
 `place_all` through the values and 2,070 river draws (one `SPREAD`, then `astar_river`'s `PRICE`s); 894 at seed
 422556960, part 5 1499455944, part 6 1423377562. The port meets all of it (`mapgen::tests::old_world_*`). No
 `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
+
+## run1529 — Himalayas (style 9), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-06, item 3946, `att-3946`)
+
+`docs/MAPGEN.md` §27. The chain take §22.2 writes, at `--map 9`: `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1529 --map 9 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0` (`check_all_level` 14,
+`CHECKSUM` 2, a start `WORLD` 6). **What the disk could not answer**, as booked: run1128 (style 9, `cover=1`) enters
+`MapHimalayas::make_continents` and carries no setup trace. The disk did answer, though, and the booking missed it:
+run348, run464 and run465 (the AI track's held-out map, item 972) carry 7805..894 of the same lobby (parked 3946a).
+- Pool lane 1, the pool's pick. Launched 23:11:57, exited 23:13:53 (116.1 s launch to exit, at host load 60; the pace
+  line read 1 frame in 100 s at the dump-all start). `success`: 37 frames, `map_verified`, map style 9, seed 12345,
+  players tribe 4 and tribe 11, 2 nations on 60×60; `page_faults` 0, `relaunches: []`. `df -g ~` read 89 GiB free
+  before it. Filed with `filerun.py run1529 himalayas-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1529-himalayas-mapgen-start.txt`, 150,354,957 bytes,
+SHA-256 `71ea13e3d74f8410dfaa0dc6991f3eca2668296ff43565df2abc054ca7dee650`.
+
+Archive `rontrace-run1529.log`, 10,880,576 bytes,
+SHA-256 `66d39abc7149deb59fa14a447dc47b8ef8bc8662dba59714b8a3d1d51c361595`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..894 and
+`map.cpp` 5012..5118. The tileset is `Snowy`, drawn from `HIMALAYAS.xml`'s own `TILESET`. There are 90,970 draws
+from `place_all` through the values, and no river draw (an empty `RIVERLIST`). 894 is at seed 3700877363, part 5
+2809422360, part 6 156400355. The port meets all of it on the first walk (`mapgen::tests::himalayas_*`). No
+`blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
