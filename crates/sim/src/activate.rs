@@ -132,6 +132,9 @@ impl ActivateHeadView for SimHead<'_> {
     /// SEAM: the city arm's `mask_city` masks the converted centre.
     fn mask_me(&mut self) {}
     fn flag_wall_stats(&mut self) {
+        if std::env::var_os("RON_PROBE_3965").is_some() {
+            eprintln!("PROBE3965 f{} who{} activate raise", self.sim.frame, self.who);
+        }
         self.sim.wall_stats_dirty[self.who as usize] = true;
     }
     /// SEAM: nothing here reads the tables.
