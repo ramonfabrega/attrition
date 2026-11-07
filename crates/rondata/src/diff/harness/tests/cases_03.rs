@@ -1604,7 +1604,8 @@ mod bodies {
             missing.len(),
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
-            1123,
+            // item 3969: +85 keys a leader (`num_queued` for every technology).
+            1208,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1682,8 +1683,9 @@ mod bodies {
             // Item 2384: +7, `aggression[1..8]`, which the short form
             // does not print. Item 3255: +47, the rare masks and
             // `rares_collected`. Item 3964: +5, `retargets` and the four
-            // garrison counts.
-            1_123 + 1_531 + 2,
+            // garrison counts. Item 3969: +85, `num_queued` for every
+            // technology.
+            1_208 + 1_531 + 2,
             "the keys run96's records do not carry"
         );
         pin_eq!(

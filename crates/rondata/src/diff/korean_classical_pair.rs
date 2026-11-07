@@ -309,5 +309,8 @@ fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
     // `aggression[1]`, `1/2090`'s `gather:length[-1]` ours 0 against 45 —
     // and who=1's `bucket[3:knowledge]`, ours 1437 against 937 (parked
     // 3609a).
-    pin_eq!(w.firsts.len(), 173, "the closing walk's baseline");
+    // Item 3969: +3, who=1's technology `num_queued[506]`, `[528]` and
+    // `[542]`, ours 1 against theirs 0 on 8778: the same emptied queue,
+    // now that the leader emits a technology's count.
+    pin_eq!(w.firsts.len(), 176, "the closing walk's baseline");
 }

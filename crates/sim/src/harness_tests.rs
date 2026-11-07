@@ -1119,6 +1119,12 @@ fn only_the_first_library_fans_out() {
     let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
     let library = sim.add_library(0, centre_of(Cell::new(3, 0)), 8);
     let annex = sim.add_library(0, centre_of(Cell::new(4, 0)), 8);
+    // `get_first_library` asks that a library stand in a city (item 3969).
+    let centre = sim.add_building(0, centre_of(Cell::new(5, 0)), 8);
+    let c = sim.init_city(0, centre, false, false);
+    for l in [library, annex] {
+        sim.buildings[l].city = Some(c);
+    }
 
     sim.queue_up(hall, citizen).unwrap();
     sim.queue_up(hall, citizen).unwrap();

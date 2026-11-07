@@ -9988,3 +9988,78 @@ fn a_city_s_gather_all_points_it_at_its_own_resource_buildings() {
         "the Woodcutter button with no Woodcutter clears and lays nothing"
     );
 }
+
+/// **A closing first library hands its queue to the next, and a closed
+/// building's technology comes off its own count** (item 3969,
+/// `docs/GOLDEN.md` §175; parked T71-7). `Build::close@00628980:468`–`:521`
+/// appends the first library's queue to the owner's next library
+/// (`get_first_library`, which asks alive, active, in a city and not
+/// unassimilated) with no refund and no count moved; with no library left,
+/// `clean_queue(1)` refunds it and takes each entry off by its type
+/// (`Build::clean_queue@00620b60:75`–`:77`). The close loops took a
+/// technology off record 0's unit count instead, so
+/// `PlayerTech::queued` stood at 1 and `queue_tech_with` refused that
+/// technology for good; and a closed library stayed the first, so the
+/// next order was forwarded to a dead building.
+///
+/// Made to fail by the hand-off removed (the second library's queue stays
+/// empty), by `untrack_item`'s technology arm removed (the count stays 1
+/// after the last close), and by `first_library`'s `active` or city term
+/// removed (an unbuilt or a cityless library at a lower index is taken
+/// for the first). Its `alive` term is the original's and no test holds
+/// it: a closed building has left its city before anything asks.
+#[test]
+fn a_closing_first_library_hands_its_queue_to_the_next() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let ghost = sim.add_library(0, tile_pos(32, 40), 8);
+    let stray = sim.add_library(0, tile_pos(32, 24), 8);
+    let first = sim.add_library(0, tile_pos(40, 32), 8);
+    let next = sim.add_library(0, tile_pos(24, 32), 8);
+    for l in [ghost, first, next] {
+        sim.buildings[l].city = Some(c);
+    }
+    sim.buildings[ghost].active = false;
+    assert_eq!(
+        sim.buildings[stray].city, None,
+        "the stray stands in no city"
+    );
+    assert_eq!(
+        sim.first_library(0),
+        Some(first),
+        "not the unbuilt, not the cityless"
+    );
+    // One technology on the first library's queue, part done, and a unit
+    // count at record 0 that the old close took it off instead.
+    // The fixture carries no tree, so the count gets a slot of its own.
+    let tech = sim.tech[0].queued.len().max(9);
+    sim.tech[0].queued.resize(tech + 1, 0);
+    let mut item = production::Item::tech_queued(tech, &[0; economy::RESOURCES]);
+    item.job_counter = 700;
+    sim.buildings[first].queue.items.push(item);
+    sim.tech[0].queued[tech] = 1;
+    let units = sim.unit_types.len();
+    sim.muster[0].queued_by_type.resize(units.max(1), 0);
+    sim.muster[0].queued_by_type[0] = 1;
+
+    sim.close_building(first, false);
+    assert_eq!(
+        sim.first_library(0),
+        Some(next),
+        "the closed one is not first"
+    );
+    assert!(sim.buildings[first].queue.items.is_empty());
+    let q = &sim.buildings[next].queue.items;
+    assert_eq!(q.len(), 1, "the queue went to the next library");
+    assert_eq!((q[0].tech, q[0].job_counter), (Some(tech), 700));
+    assert_eq!(sim.tech[0].queued[tech], 1, "a hand-off moves no count");
+    assert_eq!(sim.muster[0].queued_by_type[0], 1);
+
+    // The last library closes: a refund, and the count comes off the
+    // technology, never record 0.
+    sim.close_building(next, false);
+    assert_eq!(sim.first_library(0), None);
+    assert_eq!(sim.tech[0].queued[tech], 0);
+    assert_eq!(sim.muster[0].queued_by_type[0], 1);
+}

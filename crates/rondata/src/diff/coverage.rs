@@ -845,6 +845,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch122 = golden_dump("ch122");
     let ch123 = golden_dump("ch123");
     let ch124 = golden_dump("ch124");
+    let ch125 = golden_dump("ch125");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3134,6 +3135,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 85,
             "chapter one hundred and twenty-three carries eighty-five blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-five, on run1540** (item 3969): the
+    // Written Word queued at the first Library (621), its hand-off when
+    // that Library closes (641), the refund when the last closes (681),
+    // and the order at a new Library (721).
+    if let Some(p) = &ch125 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_FIVE;
+        let n = drive_capture(p, 619, 723, &mut paths);
+        assert_eq!(
+            n, 105,
+            "chapter one hundred and twenty-five carries a hundred and five blocks in the window"
         );
         frames += n;
     }

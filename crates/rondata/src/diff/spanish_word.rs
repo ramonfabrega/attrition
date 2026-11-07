@@ -384,6 +384,7 @@ fn run958f_s_word_frame_is_widened_whole() {
     // `1/141`'s `g.angle[0]` (`Unit::init`'s 0x55555555 against 0, parked
     // with the Iroquois'), and on the closing block 22701 alone who=0's
     // `defense` (0 against −1) and `1/2024`'s `queued` (1 against 0), the
-    // game's end (park KJ).
-    pin_eq!(w.firsts.len(), 33, "run958f with decoys out of the tally");
+    // game's end (park KJ). Item 3969: +1, who=1's technology
+    // `num_queued[541]` on 22701, ours 1 against 0, the same end.
+    pin_eq!(w.firsts.len(), 34, "run958f with decoys out of the tally");
 }
