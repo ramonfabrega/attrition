@@ -40194,7 +40194,7 @@ one arm.
   thunk to `0x41e0e0`, which is `mov eax, 1; ret`. So an attack-move is moving, as `Sim::is_moving` already said.
 - **The dump agrees.** On its 15-phase `1/50` was refused on 8186, 8201 and 8216, all three under `ATTACKTOORDER`.
   It healed on 8246, the one block its list held `GUARDORDER` alone.
-- **`get_heal_level@006e12e0`** counts `HEAL_FASTER_1..3` (`0x2ef..0x2f1`) held by `has_preq`. Its `BUY_SELL` arm
+- **`get_heal_level@006e12e0`** counts `HEAL_FASTER_1..3` (`TECHBONUSES` rows 67–69) held by `has_preq`. Its `BUY_SELL` arm
   is out of the loop's range. Those bonuses are `TECHBONUSES` rows 67–69, whose prerequisites in the shipped
   `rules.xml` are Herbal Lore, Medicine and Pharmaceuticals. The crate had no reader of them: `heal_level` was a
   field nothing wrote. `Roles::heal_faster_preq` now loads them, and `Sim::heal_level` counts the ladder as
