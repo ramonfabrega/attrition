@@ -230,6 +230,62 @@ mod tests {
         assert_eq!(m.map.avoid_continent, 8);
     }
 
+    /// `check_player_land` makes land of the circle to ring 5 round every
+    /// start-city cell. On run1535 each 1,125-cell island already covers
+    /// it; a lone player's 250-cell island on a 20×20 map does not, so the
+    /// call is what fills it — one island, so no guard (§33.3).
+    #[test]
+    fn every_start_city_has_its_ring_5_disc_of_land() {
+        let t = crate::scout::circle::table();
+        let mut filled = 0;
+        for seed in 1..=24u32 {
+            let mut grid = MapGrid::new(20, 20);
+            let mut d = Draws::new(seed);
+            let m = sea_power_make_continents(&mut grid, 1, style(), &mut d).expect("allowed");
+            assert_eq!(m.whole_stalls + m.quarter_stalls, 0, "seed {seed}");
+            let cities: Vec<(i32, i32)> = grid.starts[2]
+                .list
+                .iter()
+                .zip(&grid.starts[3].list)
+                .map(|(&x, &y)| (x, y))
+                .collect();
+            for (cx, cy) in cities {
+                for i in t.radius[0] as usize..t.radius[5] as usize {
+                    let (x, y) = (cx + i32::from(t.x[i]), cy + i32::from(t.y[i]));
+                    if grid.get(x, y).is_some() {
+                        assert!(!grid.cell(x, y).is_ocean(), "seed {seed}: ({x}, {y})");
+                        filled += 1;
+                    }
+                }
+            }
+        }
+        assert!(filled > 0);
+    }
+
+    /// Two 125-cell islands on a 20×20 map stall the whole pass, the arm
+    /// run1535 never takes: each stall shrinks the island once by
+    /// [`shrunk`] and draws the ring again; a first-pass stall would
+    /// keep it.
+    #[test]
+    fn a_whole_stall_shrinks_the_island_and_draws_again() {
+        let mut whole = 0;
+        for seed in 1..=24u32 {
+            let mut grid = MapGrid::new(20, 20);
+            let mut d = Draws::new(seed);
+            let m = sea_power_make_continents(&mut grid, 2, style(), &mut d).expect("allowed");
+            let mut land = 125;
+            for _ in 0..m.whole_stalls {
+                land = shrunk(land, 400, 2);
+            }
+            assert_eq!(m.land, land, "seed {seed}");
+            // The angle's two draws open every generation.
+            let opened = d.log.iter().filter(|e| e.0 == site::ANGLE_HI).count() as u32;
+            assert_eq!(opened, 1 + m.whole_stalls + m.quarter_stalls, "seed {seed}");
+            whole += m.whole_stalls;
+        }
+        assert!(whole > 0);
+    }
+
     /// `avoid_continent` is held to at least 4 after `scale_land_area`.
     #[test]
     fn avoid_continent_is_at_least_4() {
