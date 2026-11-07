@@ -846,6 +846,29 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         }
     }
 
+    // **The goods before the roster** (item 3952, `docs/MAPGEN.md` §33.3):
+    // the generator laid them before `Setup::build_game` stands a building,
+    // and `terraform_for_building`'s good arm holds back a corner whose tile
+    // is `AS_BUILDING` over a good — run1535's Wine beside player 1's type-418
+    // building. The goods, in the dump's own order — which is the `goods` list order
+    // `WData.down_who` indexes. The record names the *type*, so the id
+    // comes back through `good_names`; a name the tables do not carry is
+    // dropped with a note rather than guessed, because the id is what
+    // `type_avail` is asked about.
+    let mut unknown: Vec<&str> = Vec::new();
+    for g in &init.goods {
+        let Some(row) = loaded.good_names.iter().position(|n| n == g.name) else {
+            if !unknown.contains(&g.name) {
+                unknown.push(g.name);
+            }
+            continue;
+        };
+        sim.world.add_good(sim::world::Good {
+            pos: Pos::new(g.x as i32, g.y as i32),
+            ty: loaded.good_tree[row],
+            alive: g.flags & 1 != 0,
+        });
+    }
     // Map generation's grid, when a test hands one, goes under the
     // starting cities: `build_cities` terraforms too (item 3812).
     #[cfg(test)]
@@ -1087,25 +1110,6 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     }
     if !init.herds.is_empty() {
         notes.push(format!("herds: {} from the dump", init.herds.len()));
-    }
-    // The goods, in the dump's own order — which is the `goods` list order
-    // `WData.down_who` indexes. The record names the *type*, so the id
-    // comes back through `good_names`; a name the tables do not carry is
-    // dropped with a note rather than guessed, because the id is what
-    // `type_avail` is asked about.
-    let mut unknown: Vec<&str> = Vec::new();
-    for g in &init.goods {
-        let Some(row) = loaded.good_names.iter().position(|n| n == g.name) else {
-            if !unknown.contains(&g.name) {
-                unknown.push(g.name);
-            }
-            continue;
-        };
-        sim.world.add_good(sim::world::Good {
-            pos: Pos::new(g.x as i32, g.y as i32),
-            ty: loaded.good_tree[row],
-            alive: g.flags & 1 != 0,
-        });
     }
     // The goody boxes and the leaders' bits on each (`ItemData::ever_seen`,
     // item 3335): the dump's own, never replayed off `seen2` — a box under

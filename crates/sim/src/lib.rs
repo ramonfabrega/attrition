@@ -154,6 +154,7 @@ pub mod map_new_world;
 pub mod map_outback;
 pub mod map_resources;
 pub mod map_rivers;
+pub mod map_sea_power;
 pub mod map_troughs;
 pub mod map_values;
 pub mod map_watering_hole;
