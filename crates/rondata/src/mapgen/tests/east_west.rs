@@ -410,6 +410,7 @@ fn walk(root: &Path, name: &str, g: &StartGrid, range: i32) -> Vec<(&'static str
         ts.riverbase,
         combo,
         depth,
+        None,
     ) {
         Err(e) => Err(format!("the troughs: {e:?}")),
         Ok(troughs) => {
