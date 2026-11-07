@@ -232,14 +232,18 @@ mod tests {
 
     /// `check_player_land` makes land of the circle to ring 5 round every
     /// start-city cell. On run1535 each 1,125-cell island already covers
-    /// it; a lone player's 250-cell island on a 20×20 map does not, so the
-    /// call is what fills it — one island, so no guard (§33.3).
+    /// it; a lone player's 105- and 122-cell islands on 13×13 and 14×14 maps
+    /// do not — without the call, eight of these twelve lobbies leave
+    /// water in a disc — and one island means no guard (§33.4).
     #[test]
     fn every_start_city_has_its_ring_5_disc_of_land() {
         let t = crate::scout::circle::table();
         let mut filled = 0;
-        for seed in 1..=24u32 {
-            let mut grid = MapGrid::new(20, 20);
+        for (n, seed) in [13, 14]
+            .into_iter()
+            .flat_map(|n| (1..=6u32).map(move |s| (n, s)))
+        {
+            let mut grid = MapGrid::new(n, n);
             let mut d = Draws::new(seed);
             let m = sea_power_make_continents(&mut grid, 1, style(), &mut d).expect("allowed");
             assert_eq!(m.whole_stalls + m.quarter_stalls, 0, "seed {seed}");
