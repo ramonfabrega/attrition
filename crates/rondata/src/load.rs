@@ -1945,6 +1945,8 @@ pub fn load_tables(
     tree.roles.buildings_hp_preq = [bonus_at(73), bonus_at(74), bonus_at(75)];
     // `TEMPLEHP2..4` (`0x2cb`): the temple's hit-point ladder (item 1497).
     tree.roles.temple_hp_preq = [bonus_at(31), bonus_at(32), bonus_at(33)];
+    // `HEAL_FASTER_1..3` (`0x2ef`): the heal level (item 3961).
+    tree.roles.heal_faster_preq = [bonus_at(67), bonus_at(68), bonus_at(69)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

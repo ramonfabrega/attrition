@@ -523,6 +523,11 @@ pub struct Roles {
     /// else 1 plus `TEMPLEHP2` — and indexes `TEMPLE_UPGRADE_HP` by it
     /// (item 1497).
     pub temple_hp_preq: [Option<TypeId>; 3],
+    /// `HEAL_FASTER_1..3` (`0x2ef..0x2f1`), `TECHBONUSES` rows 67–69:
+    /// `LeaderData::get_heal_level@006e12e0` counts every one held, and
+    /// the garrison and aircraft heals index their rate tables by it
+    /// (item 3961).
+    pub heal_faster_preq: [Option<TypeId>; 3],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

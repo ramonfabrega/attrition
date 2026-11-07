@@ -1777,12 +1777,13 @@ impl Sim {
     /// Persian Jet Fighter `1/115` heals inside on 2437, `(115 + 2437) % 8`,
     /// the all-tech level 3, where ours waited out 20).
     pub(crate) fn heal_level(&self, who: Player) -> usize {
-        const HEAL_FASTER_1: crate::tech::TypeId = 0x2ef;
         let p = &self.tech[who as usize];
-        (HEAL_FASTER_1..HEAL_FASTER_1 + 3)
-            .filter(|&t| {
-                self.tech_tree.types.get(t).is_some() && self.tech_tree.has_tech(&self.setup, p, t)
-            })
+        self.tech_tree
+            .roles
+            .heal_faster_preq
+            .iter()
+            .flatten()
+            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
             .count()
     }
 
