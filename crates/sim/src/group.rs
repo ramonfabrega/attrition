@@ -7351,6 +7351,36 @@ mod tests {
         assert_eq!(s.units[a].combat.stance, Stance::Aggressive);
     }
 
+    /// **A stance press is a think on the next frame** (item 3962,
+    /// `docs/AI.md` §406): `action_stance` raises `flags & 0x10` on every
+    /// member, so an idle member off its one-in-sixteen phase passes
+    /// `Unit::think`'s gate, and the think's exit drops the bit again.
+    #[test]
+    fn a_stance_press_lets_an_idle_member_past_the_think_gate() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let g = group_of(1, &[a, b]);
+        for u in [a, b] {
+            s.units[u].idle = 6;
+        }
+        s.group_action_stance(&g, stance_option(Stance::Defensive));
+        assert!(
+            s.units[a].cant_reach && s.units[b].cant_reach,
+            "every member takes the bit"
+        );
+        // Off phase: `(frame + o) % 16 != 0`.
+        let frame = 17 - i64::from(s.units[a].index);
+        s.think(a, frame);
+        assert!(!s.units[a].cant_reach, "the think ran, and dropped it");
+        // Without the press the gate holds, and the bit stays as it was.
+        s.units[b].cant_reach = false;
+        let frame = 17 - i64::from(s.units[b].index);
+        s.think(b, frame);
+        assert!(!s.units[b].cant_reach);
+    }
+
     #[test]
     fn siege_attack_to_is_an_attack_move_when_the_group_has_no_siege() {
         let mut s = sim();
