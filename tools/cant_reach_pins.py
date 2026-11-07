@@ -2,13 +2,14 @@
 """cant_reach_pins.py — rewrite `diff::cant_reach::PINNED` from a test log.
 
 Every test that holds `Pins` prints `  cant_reach tally <test> <n>` when its
-tally or its pin is non-zero (`crates/rondata/src/diff/cant_reach.rs`, item
+tally or its pin is non-zero — libtest shows it only for a failing test, so
+a log of a green suite names nothing, and `--nocapture` shows every one — (`crates/rondata/src/diff/cant_reach.rs`, item
 3962). This reads those lines from a `cargo test` log and prints the table;
 `--write` replaces the table in the file with the log's counts, merged over
 what is there: a test the log names takes the log's count (0 drops it), a
 test it does not name keeps its pin.
 
-    zsh tools/check.sh test --release -p rondata 2>&1 | tee /tmp/run.log
+    zsh tools/check.sh test --release -p rondata -- --nocapture 2>&1 | tee /tmp/run.log
     python3 tools/cant_reach_pins.py /tmp/run.log            # report
     python3 tools/cant_reach_pins.py /tmp/run.log --write    # rewrite
 """
@@ -20,7 +21,8 @@ ROOT = Path(__file__).resolve().parent.parent
 FILE = ROOT / "crates/rondata/src/diff/cant_reach.rs"
 LINE = re.compile(r"^\s*cant_reach tally (?P<test>\S+) (?P<n>\d+)\s*$")
 TABLE = re.compile(r"(pub\(crate\) const PINNED: &\[\(&str, usize\)\] = &\[)(.*?)(\];)", re.S)
-ROW = re.compile(r'\(\s*"(?P<test>[^"]+)",\s*(?P<n>\d+)\s*\)')
+# rustfmt breaks a long row over four lines with a trailing comma.
+ROW = re.compile(r'\(\s*"(?P<test>[^"]+)",\s*(?P<n>\d+),?\s*\)')
 
 
 def main() -> int:
