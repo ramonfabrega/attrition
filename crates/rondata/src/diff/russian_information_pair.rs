@@ -278,9 +278,11 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // 408 against 408, 98 parting — the MLRS `1/99`'s launch point (40,
     // `sx`/`sy`/`sz`, 3744a) and `1/198`'s rounds (58, 3744b); none spends
     // a draw. Item 3760, the Strategic Bomber's bays (piece 255) and the
-    // Jet Fighter's guns (245): 98 → **46** (`docs/AI.md` §372.4).
+    // Jet Fighter's guns (245): 98 → **46** (`docs/AI.md` §372.4). Item
+    // 3975, the MLRS's rack (piece 223, `docs/GOLDEN.md` §177; 3744a): 46
+    // → **6**.
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
-    pin_eq!(w.rounds.len(), 46, "the rounds that part");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
 /// run1423: the stride's last gap, blocks 5895..6101 at run1401b's detail
@@ -349,8 +351,9 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
     // 94 parting: the MLRS `1/99`'s launch point from 5913 (3744a). Item
     // 3760, the Strategic Bomber's bays and the Jet Fighter's guns: 94 →
-    // **40** (`docs/AI.md` §372.4).
-    pin_eq!(w.rounds.len(), 40, "the rounds that part");
+    // **40** (`docs/AI.md` §372.4). Item 3975, the MLRS's rack (piece 223,
+    // `docs/GOLDEN.md` §177; 3744a): 40 → **0**.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1423b: the stride's gap before run1423, blocks 5795..5900 (item

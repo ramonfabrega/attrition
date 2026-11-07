@@ -12493,6 +12493,8 @@ The word is closed (`docs/AI.md` §366.3). None of the rows below names a draw.
   275 — so ours launches from the unit's centre at ground height where theirs leaves a rack offset and raised
   (`docs/AI.md` §368.1). 94 of run1423's rounds and 40 of run1401b's. The rounds land, wound and spend no draw:
   the pair runs whole to 6706. The pivot or bay rows of the MLRS's piece are the first reading.
+  **Closed 2026-11-07 by item 3975**: piece 223's eight rack rows (`docs/GOLDEN.md` §177); run1423's rounds parting
+  40 → 0, run1401b's 46 → 6.
 - **3744b. The `1/198`'s rounds part on run1401b** (58 rows from 6295: `sx` 6601 against 6565, `accuracy` 0
   against 6), with its `airorder.mandatory` 0 against 1 from 6203. They are 3721's first parting round; no draw
   reads them.

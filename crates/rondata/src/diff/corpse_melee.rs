@@ -172,7 +172,7 @@ pub(crate) const WIDENING_CORPSE_MELEE: (i64, i64) = (2501, 2601);
 
 /// The word's window, widened whole on run1542's stride blocks, the rounds
 /// compared — the coverage driver's slice too.
-pub(crate) fn corpse_melee_word_window() -> Option<harness::tests::Widened> {
+pub(crate) fn corpse_melee_closing_window() -> Option<harness::tests::Widened> {
     crate::diff::setup::with_staged_script(melee_script(), || {
         harness::tests::widen_on_siblings_with_rounds(
             &[MELEE_START],
@@ -195,7 +195,7 @@ pub(crate) fn corpse_melee_word_window() -> Option<harness::tests::Widened> {
 #[test]
 fn corpse_melee_run1542_s_word_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = corpse_melee_word_window() else {
+    let Some(w) = corpse_melee_closing_window() else {
         return;
     };
     if std::env::var("RON_FIRSTS").is_ok() {
