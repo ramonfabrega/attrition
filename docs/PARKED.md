@@ -3803,6 +3803,12 @@ the next pass pins the rest on the landed tree. Names no score; the loop's.
 
 ## Loop, filed 2026-11-07 — the seventy-second tranche's
 
+(3973) **`report.py coverage` lists a function's first entry, never every frame it ran** (3962's "for the Loop"):
+so "the frames a function ran" cannot be read off a `cover=1` trace, and 3962's booking named "run1017's `set_stance`
+frames" with no instrument behind it — the lane found its red on run668 instead. Candidate: a `report.py frames <function>`
+verb printing every frame a traced function entered, red first on a function the trace enters more than once; and a
+booking that cites a function's frames names the verb's output. Names no score; the loop's.
+
 (3972) **`tools/nations_census.py --write` rewrites rows no item touched** (3959's "for the Loop"): on `864dd6aec` the
 generator rewrote 24 rows unrelated to the Iroquois heal, so the table on the tree has drifted from what the generator
 emits and a lane that runs it to re-pin carries a churn it did not cause. Candidate: a guard that runs the generator
