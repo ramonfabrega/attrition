@@ -324,10 +324,12 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// name 4, unmarked 398), excluded 1459. The sixty-fourth pass: ported
 /// 541, open 1294 (twelve map-generation ports, the first move). The
 /// sixty-fifth pass: ported 543, open 1292 (`sim::halfland` and
-/// `sim::map_east_indies`, items 3843 and 3820).
-pub const RUBRIC_TERRITORY_PORTED: usize = 544;
+/// `sim::map_east_indies`, items 3843 and 3820). Item 3943: ported 545,
+/// open 1290 — measured on its base `1bc2e2e0` as on its tip, so the move
+/// is item 3942's (`sim::cliff_mine`), re-pinned here.
+pub const RUBRIC_TERRITORY_PORTED: usize = 545;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1291;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1290;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

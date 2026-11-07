@@ -178,6 +178,11 @@ pub struct Loaded {
     /// `TEMPLATE_TEX` (`crate::mountains`). Indexed as the dump's
     /// `mountain_types` is. Empty when loaded from tables alone.
     pub mountain_templates: Vec<sim::gather::MountainTemplate>,
+    /// The install these tables came from, which a Southwest Mesa game's
+    /// setup reads the style's files through to run the generator's chain to
+    /// `Cliffs::init` (`crate::mapgen::mesa`, item 3943). `None` when loaded
+    /// from tables alone.
+    pub install_root: Option<std::path::PathBuf>,
     /// `craftrules.xml`'s 55 `CRAFT` records in file order — `TypeIndex`
     /// `0x275..=0x2ab`, the `SpellTypeData` table `Unit::do_cast` and
     /// `SpellTypeData::get_job_time` read (`docs/ORDERS.md` §6.9). Empty
@@ -510,6 +515,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     // The mountain templates: the placed ranges' tiles and solid cells,
     // which a mine's reach and its gather list are measured on.
     loaded.mountain_templates = crate::mountains::templates(install);
+    loaded.install_root = Some(install.root().to_path_buf());
     // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
     // A missing file is not an error: a game without scripts is a game whose
     // AI skips to step 2, which is what the original does when
@@ -2133,6 +2139,7 @@ pub fn load_tables(
         piece_releases: Default::default(),
         pivot_restrictions: Default::default(),
         mountain_templates: Vec::new(),
+        install_root: None,
         spells,
     }
 }
@@ -2916,6 +2923,7 @@ mod tests {
             piece_releases: Default::default(),
             pivot_restrictions: Default::default(),
             mountain_templates: Vec::new(),
+            install_root: None,
             spells: vec![],
         };
         assert_eq!(l.type_index(0), 0);

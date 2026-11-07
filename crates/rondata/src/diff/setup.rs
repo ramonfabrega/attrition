@@ -696,6 +696,29 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             sim.mountains.iter().map(|m| m.solid.len()).sum::<usize>()
         ));
     }
+    // **And a Southwest Mesa game's cliffs** (item 3943; parked 3942b): no
+    // dump prints `cliff_mining_data`, so the generator's own chain to
+    // `Cliffs::init` (`crate::mapgen::mesa`, checked phase by phase on
+    // run1493, `docs/MAPGEN.md` §18.3) runs at the lobby's seed and its
+    // mining lists are laid by queue index — what a Mine's cliff arm
+    // (`sim::cliff_mine`, `docs/AI.md` §400) reads. It needs the setup
+    // trace's 7805 seed: a start dump without the trace (or a sibling's)
+    // lays none, and its Mines take the old empty list.
+    // both sides: no install root (tables alone) or no Mesa lobby at 7805
+    // lays no cliffs — the base's behaviour, not an agreement.
+    if let (Some(root), Some(lobby)) = (
+        loaded.install_root.as_deref(),
+        crate::mapgen::mesa::MesaLobby::of_initial(init),
+    ) {
+        let (.., cliffs) = crate::mapgen::mesa::southwest_mesa_at_894(root, &lobby);
+        sim.place_cliffs(&cliffs.mining);
+        notes.push(format!(
+            "cliffs: {} mining lists, {} tiles, from the generator at 7805's seed {}",
+            sim.cliffs.len(),
+            sim.cliffs.iter().map(|c| c.tiles.len()).sum::<usize>(),
+            lobby.at_7805
+        ));
+    }
     if !loaded.piece_releases.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' arrow-release frames from the install",
