@@ -1547,6 +1547,12 @@ pub(super) fn stage_walk() {
                 continue;
             }
             let inside: Vec<i16> = b.garrison.iter().map(|&u| s.units[u].index).collect();
+            // Item 3970: the building's target, by owner and index, beside
+            // its reach and attack — the armed building family's walk.
+            let target = b.target.map(|t| match t {
+                sim::combat::Obj::Unit(x) => (s.units[x].owner, s.units[x].index),
+                sim::combat::Obj::Building(x) => (s.buildings[x].owner, s.buildings[x].index),
+            });
             // Item 1278: the gatherer chain, head first (`gather_down`'s
             // walk), which `all_gathering`'s prune reads.
             let chain: Vec<i16> = b.gatherers.iter().map(|&u| s.units[u].index).collect();
@@ -1556,7 +1562,7 @@ pub(super) fn stage_walk() {
             now.push((
                 format!("b{i}"),
                 format!(
-                    "B {}/{} {} alive={} hp={} active={} damage={}/{} job={} under_attack={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={}",
+                    "B {}/{} {} alive={} hp={} active={} damage={}/{} job={} under_attack={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={} target={target:?} city={:?} range={} attack={}",
                     b.owner,
                     b.index,
                     build_name(b.ty),
@@ -1573,7 +1579,10 @@ pub(super) fn stage_walk() {
                     b.pos.y,
                     queue,
                     b.gather,
-                    b.launch_frames
+                    b.launch_frames,
+                    b.city,
+                    s.max_range_of(sim::combat::Obj::Building(i)),
+                    s.attack_of(sim::combat::Obj::Building(i)),
                 ),
             ));
         }
