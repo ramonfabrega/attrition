@@ -35601,3 +35601,42 @@ seed is 2355140353. It holds 21,411 draws from `place_all` through the values an
 sources. At 894 the seed is 345508960, part 5 3390494892 and part 6 841929190. The port meets all of it on the first
 run (`mapgen::tests::amazon_basin_*`). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
 
+
+## run1525 — Southwest Mesa (style 10), the Inca at Difficulty 2: the held-out game's `DUMP_ALL` start with the setup trace (2026-11-07, item 3943, `att-3943`)
+
+`docs/AI.md` §401. **What the disk could not answer**: no dump holds a game in a lobby on map 10 other than the
+default `(10, 11, 0)` (run1118, run1493, run1516), and a held-out game is its own lobby's. The take was launched
+after the cliff wiring was pushed (`623b604ce`). It ran through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1525 --map 10 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 2 --profile
+DIFFICULTY=2 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`
+(`check_all_level` 14, `CHECKSUM` 2). `df -g ~` read 83 GiB free before it.
+- Pool lane 1. Launched 00:43:21 and exited 00:43:45 (24.8 s). Receipt: `success`, 37 frames, `map_verified`,
+  map style 10, seed 12345, players `(0, 4, 7)` and `(1, 2, 1)`, `lobby_read` DIFFICULTY 2, STARTING_RESOURCES 1,
+  STARTING_TECHNOLOGY 0, ENDING_TECHNOLOGY 7. `page_faults` 0, `relaunches: []`. Filed with `filerun.py run1525
+  southwestmesa-inca-diff2-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1525-southwestmesa-inca-diff2-start.txt`, 149,630,193 bytes,
+SHA-256 `d8fd9690e608615424ad8a47ba1f7b07b3abe0d06f199e3c0870955b6694846f`.
+Archive `rontrace-run1525.log`, 8,369,664 bytes,
+SHA-256 `3abb45840dab6c642b6513a57673d7461eb56ac46d67b90c3ba4e5d5b41665a1`.
+
+## run1526 — the Inca at Southwest Mesa 2: the held-out game's draw stream to its end (2026-11-07, item 3943, `att-3943`)
+
+`docs/AI.md` §401. This is run1012b's recipe at `--map 10` with the lobby named field by field: `--end-frame 24000
+--timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --ai-tribe 2
+--profile DIFFICULTY=2 --profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`,
+with run643's four `--detail` lines.
+- Pool lane 2, beside run1525. Launched 00:43:49 and exited 00:48:10 (261.5 s). Receipt: `success`, 8439 frames;
+  **the game ended itself on 8438** (closing block 8439, `ended_early` true). The players and `lobby_read` are
+  as run1525's. Against run1525, `rngcmp.py` gives **37 identical, 0 differing**. Filed with `filerun.py run1526
+  southwestmesa-inca-diff2-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1526-southwestmesa-inca-diff2-24k-trace.txt`, 12,328,365 bytes,
+SHA-256 `0d2374d2f2b89e761d6dc1472c17b1777f17bd9ae83b6e84a7acb6856f037407`.
+Archive `rontrace-run1526.log`, 55,961,216 bytes,
+SHA-256 `b4c30b14fe349d33465ab2be76aceb41244a991ab5272bfd3286ad8166c60a18`.
+
+**What it holds**: the held-out `SouthwestMesaIncaTier2`, **7250 / 7250** of 8438 on its first try, pinned in
+`battery::BATTERY`. The parting is parked 3943a. No Mine stands on the closing block (parked 3943b).

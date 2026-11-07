@@ -900,6 +900,33 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 24000,
         sequence: 24000,
     },
+    // The held-out game on Southwest Mesa (item 3943; DECISIONS 54, 61,
+    // 111 §1; `docs/AI.md` §401; runs 1525 and 1525's long, 1526): the
+    // only style that lays cliffs (MAPGEN §18.3), so the number that scores
+    // the cliff arm of a Mine (AI §400), its cliffs laid by the generator's
+    // chain at the start's 7805 seed (`crate::mapgen::mesa`, committed
+    // `623b604ce` before either take). No lobby held map 10; the rubric's
+    // braces named no nation (its six never-seen lines are Boadicea and the
+    // gaia animals), and the Inca's power pays per miner (AI §281), the
+    // arm under test. Scored once and never debugged against. The game
+    // ends itself on 8438.
+    Lobby {
+        name: "SouthwestMesaIncaTier2",
+        map_style: 10,
+        ai_tribe: 2,
+        difficulty: 2,
+        start: "gamelog-run1525-southwestmesa-inca-diff2-start.txt",
+        long: (
+            "gamelog-run1526-southwestmesa-inca-diff2-24k-trace.txt",
+            "rontrace-run1526.log",
+        ),
+        length: 8438,
+        // Item 3943, the first try: count 7250, sequence 7250 of 8438 —
+        // ours 7 draws, theirs 8, at index 3 ours `Farms::inc_time+0x1ae`,
+        // theirs `Object::take_damage+0xe1`. Parked (3943a), never fixed.
+        count: 7250,
+        sequence: 7250,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked

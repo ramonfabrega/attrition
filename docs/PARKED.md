@@ -14810,13 +14810,19 @@ words and edits nothing here; a refill lands when two remain.
   A row that places a `CliffMiningData` with its `tcoords`, the world's owner bytes, two leaders' `diplos` and the
   `mtn_*` constants would be its value check. **Score**: none.
 
-## Parked by the next landing, slot BV — reserved
+## Parked by item 3943, 2026-11-07 — a held-out game on Southwest Mesa
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot BV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3943a. `SouthwestMesaIncaTier2` parts on frame 7250** (`docs/AI.md` §401.3). This is the held-out game's
+  first try (runs 1525 and 1526, the Inca at Difficulty 2 on map 10). Its count and sequence are both 7250 of
+  8438. On that frame ours makes 7 draws and theirs 8, parting at index 3: ours `Farms::inc_time+0x1ae`, theirs
+  `Object::take_damage+0xe1`. The long dumps only its setup and closing blocks, so there is no record, field or
+  value on 7250 to quote; the row is the draw stream's. **Score**: none. It is a held-out game (DECISIONS 54, 61;
+  111 §6): parked by frame, booked by nobody, never read against.
+- **3943b. Whether a Mine gathered beside a cliff in run1526** (`docs/AI.md` §401.4). No Mine stands on the
+  closing block, where 25 buildings print `mtn -1`/`cliff -1`. A `cover=0` long prints neither mid-game
+  `BUILDDATA` nor coverage. A `cover=1` twin of run1526 (`unattended_capture.py --twin`, Loop 3928) would say
+  whether `CliffsData::gather_size` is entered in a played game. **Score**: none. It is a measurement of the
+  held-out game, and taking it must not lead to anything being built against the game.
 
 ## Parked by item 3944, 2026-11-06 — Old World's chain, 8 of 8
 
