@@ -40428,12 +40428,76 @@ re-pins the table.
   `Unit::set_stance`.
 - **The rest of the `flags` byte** is not compared.
 
-## 407. Reserved for the next item on the AI track
+## 407. The style's six territory limits, read from the start dump, and the player region that picks a triple (item 3963, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** `Map::make@0068bc90:101–106` copies six limits from the map's record into `World +0x38..+0x4c`: the
+player triple `player_territory_limit{,_civic,_city}` and the colonized triple `colonized_territory_limit{,_civic,_city}`.
+`Map::load_map_data@0069dad0` seeds both with the rules' `TERRITORY_LIMIT_*`. `Map::init_map_data@0069f250` overrides
+them from the style's `PLAYER_TERRITORY_*_HARD_LIMIT` and `COLONIZED_TERRITORY_*_HARD_LIMIT`. Then
+`compute_reg_territory@006b0bb0:114–123` reads the player triple on a region whose `Region +0x8 flags & 4` is set, and
+the colonized one elsewhere. Every limit term of the per-player table (`local_34`, `local_18`, `local_50`) is that
+triple's. Until this item the crate used the rules' 44/4/4 on every region (parked T71-4).
+
+### 407.1 The disk first
+
+`WorldData::log_data` prints the six among the `WORLD` block's leading scalars. Of 451 kept start dumps, 448 print 44/4/4
+on both triples. The other three are the style captures: **run1098** (Nile Delta) and **run1126** (Sea Power) print
+`48 8 8 44 4 4`, and **run1123** (New World) prints `44 4 4 32 4 4`. None of the three prints a `REGIONS` block, so the
+region flag has to be computed rather than read.
+
+The flag's one writer is `World::analyze_map@006b58b0`, called once from `Setup::build_game` just before the setup's
+`compute_all_territory`. It walks regions 1..63 and ORs `4` into each where an active leader (`leaders[p] & 1`) has
+`reg_cities[r] != 0` (`LeaderData +0x125e`). That makes a region holding a starting city a *player region*
+(`docs/TRANSPORT.md` §9).
+
+### 407.2 The port
+
+- `sim::world::TerritoryLimits` and `World::territory_limits` hold the six. `World::region_territory_limits(r)` picks
+  the triple by `REGION_PLAYER` (`4`). A world with no override reads `None`, and then the rules' triple applies.
+- The harness's `world_from` reads the six from the block. When a block prints none of them, the world stays on the
+  rules'.
+- `territory::Source::steps` (`[civic, city]`) carries the multipliers its limit is built from. The civic count is the
+  Civic level plus the flat bonuses' steps. The city count is the city level plus the temple level, or the fort level
+  less one for a fort. `Source::limit_in(triple)` rebuilds the limit on any triple, and the sweep uses it under the
+  region's triple. `Source::limit` stays the rules' value. A test holds `limit_in(rules) == limit` for a city and a
+  fort.
+- `Sim::analyze_player_regions` is `analyze_map`'s player-region arm. Every setup border fix (`sync_territory` with
+  `!in_play`) runs it, and the bit only grows. So the last fix before the first frame, which sees every starting city,
+  leaves the original's flags. A city founded in play flags nothing.
+
+### 407.3 The value diff
+
+The start dump prints each cell's `who`/`who2` as the setup's `compute_all_territory` left them.
+`setup::tests::the_style_s_limits_give_the_start_dump_s_owners` stands each style's dump up twice: once with its six,
+and once with the six struck. With the rules' 44/4/4, the cells whose `who` differs number **110 on run1098, 3 on
+run1123 and 90 on run1126**. With the style's six they number **0, 0 and 0**. No `who2` differs either way. New World's
+three are the colonized 32 on a region no start stands in. They hold only because the start's own region keeps 44
+through bit 4.
+
+Three mutations each fail their tests: swapping the triples, dropping the arm, and the sweep ignoring the region's
+triple. Dropping the arm also puts run1098 back at 110.
+
+### 407.4 Inert on every pinned lobby
+
+Every pinned lobby is Great Sahara, East Indies or Great Lakes, and each prints 44/4/4 on both triples. The pinned
+siblings' four start dumps that print the six are checked in
+`the_style_s_six_territory_limits_are_the_start_dump_s`. On those lobbies `limit_in` gives back `limit` on either
+triple. The new bit 4 on their home regions is read by no other `region_flags` reader (`& 8`, `0x10` and `0x20` are
+the others).
+
+### 407.5 Coverage
+
+- **Diff-backed**: the six on the three style dumps and the four siblings; the setup's owners on the three style dumps
+  (0 cells off); the player-region arm, through New World's three cells and the mutation's 110.
+- **Reading alone**: `analyze_map`'s other writes (`player_reg`, `resource_reg`, the computed sea class, the cell
+  tallies), none of which this item carries; the in-play borders on the three styles, which no lockstep capture has.
+
+### 407.6 What is not established
+
+- **A world with no dump** does not read the style's XML. The six reach the world only from a `WORLD` block (parked
+  3963a).
+- **`analyze_map`'s region range** is taken as every land region. The original walks slots 1..63, which are the
+  original's land numbers (`docs/TRANSPORT.md` §9).
 
 ## 408. Reserved for the next item on the AI track
 
