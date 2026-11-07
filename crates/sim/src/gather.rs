@@ -103,6 +103,9 @@
 //!   `docs/AI.md` §60) it is that range. Without them
 //!   [`Sim::mountain_range`] rebuilds one as the connected component of
 //!   mountain cells. The *arithmetic* on top of it is the original's.
+//! - **The cliffs, without a caller to lay them.** A mine's cliff arm
+//!   (`cliff_mine.rs`) reads [`Sim::cliffs`], which no dump prints; with none
+//!   laid a mine beside a cliff gets the empty list it always had.
 //! - **The remaining nation and wonder layer.** `taj_farms`,
 //!   `kremlin_farms`, `german_miners` and the Iroquois food bonus all add to
 //!   the count and are not modelled. French timber capacity is implemented

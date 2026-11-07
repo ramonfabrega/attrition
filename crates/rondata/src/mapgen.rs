@@ -7519,6 +7519,12 @@ mod tests {
             );
             assert_eq!(got.len(), want.len(), "mine {}/{}: the length", b.who, b.o);
             assert_eq!(got, want, "mine {}/{}: the tiles", b.who, b.o);
+            // Cliff 7 is 189 tiles and the list keeps every one, so the
+            // list's three filters decide nothing on this block (they are
+            // `sim::cliff_mine`'s tests); the count, which no dump prints, is
+            // `gather_size`'s reading: the 100..210 band, all counted.
+            assert_eq!(s.cliffs[7].tiles.len(), 189, "cliff 7's tcoords");
+            assert_eq!(s.max_gatherers_at(ty, 0, corner), 5, "the reading's count");
             checked += 1;
         }
         assert_eq!(

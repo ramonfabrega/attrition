@@ -39667,9 +39667,11 @@ until a blind second reading agrees: 3904b, widened to §390 and this section (p
   is parked (3924a), because no scored map lays a cliff.
 - **The twin.** run1516b (`cover=0`, the same line and the same lobby pinned by `--profile`): `rngcmp` 201 of
   201 identical, `samegame` 105 of 105 (95..199), 0 differing. Both send the line, so there is no `--from`.
-- **Not established.** Which of the mining list's 189 cells `gather_size` counted into `size 320` (that is a
+- **Not established.** ~~Which of the mining list's 189 cells `gather_size` counted into `size 320` (that is a
   `mtn_*_gather` band times the counted share). Whether the `is_gathered_from` walk (−2) refuses a second mine on
-  the same cliff. Neither has a take, and both belong to the arm's build (3924a).
+  the same cliff. Neither has a take, and both belong to the arm's build (3924a).~~ Built in §400: `size 320` is
+  `ArrayBase::size`, the list's allocation, not the count. The walk and `gather_size` are ported from the
+  reading, and both rest on unit tests.
 
 ## 396. The take on 3923a's entry: the regroup ungroups the move it needs, and `kill_group_order` is not entered (item 3932)
 
@@ -39897,12 +39899,99 @@ for any `RESIDUE` row.
 - Nothing here is diff-backed beyond the dump's `collide`, `collide_o`, `collide_frame`, `start_dist` and positions.
   The ruling rests on six readings and two recons, with no trace of the entry.
 
-## 400. Reserved for the next item on the AI track
+## 400. The cliff arm of a mine, built: run1516b's Mine takes cliff 7's 189 tiles (item 3942, 2026-11-06)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3924a, built. §395 entered `CliffsData::find_nearest@008a8da0` and `CliffsData::gather_size@008a8f80`
+on Southwest Mesa and left the arm unmodelled. This section builds it in `sim::cliff_mine` and wires it into
+`gather.rs`'s two mine paths. No capture was taken, because run1516b's dump answers it.
+
+### 400.1 What the original does
+
+- **The choice** (`BuildTypeData::calc_gather@00639e40`'s mine arm, `63a555…`;
+  `BuildTypeData::find_gather_tcoords@0063bdc0`'s metal branch is the same). Each takes the nearest range and the
+  nearest cliff, each with its distance. A cliff that is **strictly** nearer drops the range (`dmtn > dcliff`;
+  `find_gather_tcoords` keeps the range on `dmtn <= dcliff`). Whichever wins then answers only inside
+  `gather_radius × 0xc0`. A range that wins and is out of reach leaves the site nothing, and the cliff is not
+  asked again. This crate's `Sim::mine_arm` makes the choice.
+- **`CliffsData::find_nearest`** walks `cliff_mining_data` (`CliffsData +0x3c`; each `CliffMiningData`, size 0x48,
+  holds `wcoords` at +0x0 and `tcoords` at +0x1c). It skips a cliff with no cell, and a cliff whose **first** cell is
+  off the map or (with a region at the site) in another region than the site's. It then measures each of the
+  cliff's cells by `vector_dist` (inlined, with the same 60000 guard) from the footprint's centre to the cell's
+  centre, `c × 0x300 + 0x180`. A cell replaces the best only on `d < best || best < 0`, so a tie keeps the first
+  cliff. The index it returns is `MiningList::cliff`.
+- **The walk** (survey only, `!list`) goes over the cliff's `tcoords` in order. It passes a tile `is_tree_at` and a
+  tile whose cell is an enemy's, and stops at the first tile `is_gathered_from` with `cliff = -2`, `count = -1`.
+  Unlike the range's walk it has no `is_mountain_at` test.
+- **`CliffsData::gather_size(cliff, who, list)`** counts each `tcoord` whose cell's owner byte (`+0xf`) is
+  negative, or `who`, or passes `LeaderData::is_ally`'s test inlined (`leaders[who].who`, or `diplos` 2 both ways).
+  With a list, a tile also has to be in that list. The band is the one the cliff's **whole** `tcoords` count falls
+  in (`mtn_tiny_size` … `mtn_huge_gather`, the range's constants), and the answer is `band × counted / total`,
+  raised to 1 when anything counted.
+- **The gather list** (`find_gather_tcoords`' cliff branch) is the cliff's `tcoords` in order, keeping each tile
+  that is not forest-surfaced (`mask & 0x30 != 0x30`), whose cell is unclaimed, ours or an ally's, and that does
+  not carry `0x1000`.
+- **Where the cliffs come from.** `Cliffs::init@008a8020` makes one `CliffMiningData` per queued cliff, at its
+  queue index. In the cell sweep (y outer), a cell under a cliff index whose `Cliff::init` count is non-zero
+  appends itself to `wcoords` and its marked tiles to `tcoords`. `sim::cliffs` already builds those tiles
+  (`CliffsInit::mining`, item 3890). A cliff's cells are therefore its tiles' cells in first-seen order
+  (`CliffMining::from_tiles`). No dump prints the cliffs, so a `Sim` has them only when a caller lays them
+  (`Sim::place_cliffs`).
+
+### 400.2 The value diff: run1516b's block 101
+
+run1516b's block 101 (`BEGIN FRAME 101`) closes the `add`'s trace frame 100. It is the first block that holds the
+Mine `0/2007`; block 100 holds the other 14 buildings. The Mine is `orig_type 419`, at (1920, 8256). The test
+`mapgen::tests::run1516_s_mine_takes_cliff_7_s_tiles_on_100` builds the comparison:
+
+- the cliffs are the port's `Cliffs::init` on run1493's grid, which has the same seed (7236) and the same lobby;
+- the tile masks are that grid's;
+- the owners are run1516b's start `WORLD`;
+- the Mine type is the install's.
+
+Every mining list on the block is compared, and there is one:
+
+| field | theirs | ours on the base (`41c82357`) | ours now |
+| --- | --- | --- | --- |
+| `mtn` | −1 | no range (the stand-in finds no mountain) | −1 (the arm is `Cliff(7)`) |
+| `cliff` | 7 | — (no cliff arm) | 7, at 576 world units |
+| `length` | 189 | 0 | 189 |
+| `tx`/`ty` | 189 pairs | none | 189 tiles, **189 shared** (as a set) |
+| `size` | 320 | not modelled | not modelled (`ArrayBase::size`, the allocation) |
+| count (`gather_max`) | not printed | 0 (`NoMountain`) | 5 (a reading, below) |
+
+It passed on the first run. Cliff 7 holds exactly 189 tiles and the list keeps every one, so on this block the list's three filters (forest, owner, `0x1000`) decide nothing; they rest on `sim::cliff_mine`'s tests. The order of the pairs is not compared: it is the placement's shuffle, drawn from the
+sync stream, which this test does not carry.
+
+### 400.3 Mutations
+
+`tools/mutate.py --batch --timeout 900`, on the committed tree. **Against `sim::cliff_mine`'s tests, 29 breaks, 28
+held at first.** They break `find_nearest`'s strict `<`, its first-cell region and map gates, and its every-cell walk;
+the owner disjunction whole and each of its three halves (unclaimed, `who`, ally); each conjunct of the walk; the
+list-only guard on the walk, and the walk dropped; the band read off the count and `<` against `<=`; the minimum
+of one whole and by halves; the list filter and the owner filter in `gather_size`; each of the list's three filters;
+the arm's tie (`<=` to `<`), the cliff never winning, the reach dropped, the cliff branch's list and count emptied;
+and `from_tiles`' cell dedup. The one that failed nothing was the map-edge gate: an off-map cell has no region, so
+the region gate refused it first. A case with no region at the site (`find_nearest_gates_a_cliff_on_its_first_cell`)
+now holds it, so all **29 of 29** hold. **Against the value test, 6 breaks, 1 held**: the cliff branch's list
+emptied. The list's three filters and `from_tiles`' dedup fail nothing there, for the reason above.
+
+### 400.4 What is not established
+
+- **The count.** No dump prints `gather_max` on the block a Mine is placed. 5 is
+  `gather_size`'s arithmetic (cliff 7's 189 tiles, the 100..210 band, every tile counted) from the reading, and the unit tests are written from the same reading. A sweep of
+  `CliffsData::gather_size` under the emulator would be its value check (parked 3942c).
+- **The rest of the record.** Every other `BUILDDATA` field of the Mine, and every other building on block 101,
+  needs a Mesa game built to block 101. That game is 3943's (parked 3942a).
+- **A Mesa game's cliffs.** `diff::setup` lays the placed mountains from a `DUMP_ALL` head and lays no cliffs:
+  no dump prints them, and the port's chain to `Cliffs::init` lives in `mapgen`'s tests. A game that
+  `build_sim` stands up on Mesa therefore has no cliffs, and its Mines take the base's empty list (parked 3942b).
+  3943's game scores this arm only once its build lays them.
+- **The region gate** is unit-tested only. Southwest Mesa has one land region, so run1516b cannot tell it apart.
+- **`MiningList::mtn` and `::cliff`** are not carried on a `Building`. A standing building's list re-finds its arm
+  from the footprint's centre, where the original reads the stored indices with distance 0. The two agree while
+  the cliffs and ranges stand still, and a game never moves them.
+- **The nation and wonder additions** (`german_miners`, `taj_farms`, `kremlin_farms`) are not modelled, as on
+  the range's arm.
 
 ## 401. Reserved for the next item on the AI track
 
