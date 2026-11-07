@@ -334,6 +334,8 @@ pub struct World {
     cell_good: Vec<i32>,
     /// `world+0x34` — see [`World::sea_map`].
     sea_map: i32,
+    /// `world+0x38..+0x4c` — see [`World::territory_limits`].
+    territory_limits: Option<TerritoryLimits>,
     /// `WorldData::seen2` (`World +0x160`) — the fog grid, two entries per
     /// cell each way (`fog_xs = 2 × xs`), one bit per player: what
     /// `was_seen` and `was_really_seen` answer from. Empty until a dump or
@@ -625,6 +627,23 @@ pub const fn is_built_at(mask: u16) -> bool {
 /// (`docs/ECONOMY.md` §17). Only [`World::cycle_gather_flags`] sets it.
 pub const REGION_REFIND_GATHER: i32 = 0x10;
 
+/// `Region +0x8 flags & 4`, the **player region**: a land region some
+/// active leader had a city in when `World::analyze_map@006b58b0` ran at
+/// setup. `compute_reg_territory` reads it to pick the style's player
+/// territory limits over its colonized ones ([`World::region_territory_limits`]).
+pub const REGION_PLAYER: i32 = 4;
+
+/// The style's two territory-limit triples, `World +0x38..+0x4c`: each
+/// `[base, civic, city]` — the distance limit, its step per Civic level and
+/// flat-bonus step, and its step per city level, temple level and fort level.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TerritoryLimits {
+    /// `player_territory_limit{,_civic,_city}`, `+0x38/+0x3c/+0x40`.
+    pub player: [i32; 3],
+    /// `colonized_territory_limit{,_civic,_city}`, `+0x44/+0x48/+0x4c`.
+    pub colonized: [i32; 3],
+}
+
 /// `Region.flags`' `0x20`: a gather building in the region has closed and
 /// given its tiles back; the buildings processed after it this frame run
 /// `Build::verify_gather_tiles`, and the next region pass turns it into
@@ -824,6 +843,7 @@ impl World {
             corner_z: Vec::new(),
             corner_exact: Vec::new(),
             sea_map: 0,
+            territory_limits: None,
             fog: Vec::new(),
             fog_now: Vec::new(),
             fog_detect: Vec::new(),
@@ -1676,6 +1696,38 @@ impl World {
 
     pub fn set_sea_map(&mut self, v: i32) {
         self.sea_map = v;
+    }
+
+    /// `world+0x38..+0x4c`: the **style's six territory limits**, which
+    /// `Map::make@0068bc90:101–106` copies out of the map's own record —
+    /// `Map::load_map_data@0069dad0` seeds both triples with the rules'
+    /// `TERRITORY_LIMIT_*`, and `Map::init_map_data@0069f250` overrides
+    /// them from the style's `PLAYER_TERRITORY_*_HARD_LIMIT` and
+    /// `COLONIZED_TERRITORY_*_HARD_LIMIT` (Nile Delta and Sea Power 48/8/8
+    /// player, New World 32/4/4 colonized). `None` is a world that never
+    /// carried them, which reads as the rules' triple for every region
+    /// (`docs/ATTRITION.md`, "Territory", item 3963).
+    pub fn territory_limits(&self) -> Option<TerritoryLimits> {
+        self.territory_limits
+    }
+
+    pub fn set_territory_limits(&mut self, l: TerritoryLimits) {
+        self.territory_limits = Some(l);
+    }
+
+    /// The triple `World::compute_reg_territory@006b0bb0:114–123` reads
+    /// for one region: the player's when `Region +0x8 flags & 4` — the
+    /// *player region* bit `World::analyze_map@006b58b0` sets on every
+    /// land region a leader has a city in at setup — and the colonized
+    /// one otherwise. `None` when the world carries no override.
+    pub fn region_territory_limits(&self, region: u16) -> Option<[i32; 3]> {
+        self.territory_limits.map(|l| {
+            if self.region_flags(region) & REGION_PLAYER != 0 {
+                l.player
+            } else {
+                l.colonized
+            }
+        })
     }
 
     /// `world+0x8`, `size`: the cell count.

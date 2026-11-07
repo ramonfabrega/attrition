@@ -47,6 +47,13 @@ pub struct Source {
     /// field contraction. A source beyond its limit does not claim at all,
     /// which is not the same as claiming at a cost above the cap.
     pub limit: i32,
+    /// The steps [`Self::limit`] is made of, `[civic, city]`: the limit is
+    /// `base + civic × civic_step + city × city_step` over a territory-limit
+    /// triple, and `compute_reg_territory:114–123` picks the triple per
+    /// region — the rules' `TERRITORY_LIMIT_*` unless the style overrides
+    /// them ([`crate::world::World::region_territory_limits`], item 3963).
+    /// [`Self::limit`] is this over the rules' triple.
+    pub steps: [i32; 2],
     /// Whether the source's own record of its owner agrees with [`Self::owner`].
     /// When it does not, a winning claim writes [`Owner::Ambiguous`].
     ///
@@ -82,6 +89,13 @@ pub struct PlayerBorders {
     pub fort_limit: i32,
     /// Temple border tech level, 1 to 4. Contributes to a city's limit.
     pub temple_level: i32,
+    /// The Civic level plus the flat bonuses' limit steps:
+    /// `compute_reg_territory`'s multiplier of the triple's civic step in
+    /// [`Self::city_limit`] (`local_18`, lines 198–248).
+    pub civic_steps: i32,
+    /// The fort border level less one: the multiplier of the triple's city
+    /// step in [`Self::fort_limit`] (`aiStack_130 × local_50`, line 259).
+    pub fort_steps: i32,
 }
 
 impl PlayerBorders {
@@ -174,6 +188,8 @@ impl PlayerBorders {
             city_limit,
             fort_limit: fort_steps * t.territory_limit_city + city_limit,
             temple_level,
+            civic_steps: civic_level as i32 + steps,
+            fort_steps,
         }
     }
 }
@@ -237,9 +253,11 @@ pub fn city_source(t: &Tuning, owner: Player, b: &PlayerBorders, c: &City) -> So
     };
     let mut bonuses = b.civic + level_bonus + b.flat;
     let mut limit = b.city_limit + c.level as i32 * t.territory_limit_city;
+    let mut city_steps = c.level as i32;
     if c.temple {
         bonuses += b.temple;
         limit += b.temple_level * t.territory_limit_city;
+        city_steps += b.temple_level;
     }
     Source {
         owner,
@@ -247,6 +265,7 @@ pub fn city_source(t: &Tuning, owner: Player, b: &PlayerBorders, c: &City) -> So
         pos: c.pos,
         bonuses,
         limit,
+        steps: [b.civic_steps, city_steps],
         owner_agrees: c.owner_agrees,
     }
 }
@@ -263,8 +282,17 @@ pub fn fort_source(t: &Tuning, owner: Player, b: &PlayerBorders, f: &Fort) -> So
         pos: f.pos,
         bonuses: bonuses + b.flat,
         limit: b.fort_limit,
+        steps: [b.civic_steps, b.fort_steps],
         // A fort is only ever found under its own owner.
         owner_agrees: true,
+    }
+}
+
+impl Source {
+    /// [`Self::limit`] over another territory-limit triple `[base, civic,
+    /// city]` — the style's, for the region `compute_reg_territory` is on.
+    pub const fn limit_in(&self, l: [i32; 3]) -> i32 {
+        l[0] + self.steps[0] * l[1] + self.steps[1] * l[2]
     }
 }
 
@@ -406,6 +434,9 @@ fn compute_region_territory_won(
     won: &mut [i32],
 ) {
     let cap = cost_cap(t);
+    // `compute_reg_territory:114–123`: the region's triple, the style's
+    // player limits on a player region and its colonized ones elsewhere.
+    let limits = world.region_territory_limits(region);
     let cells: Vec<Cell> = world.cells_in(region).collect();
     for cell in cells {
         let here = cell.centre_tile();
@@ -434,7 +465,7 @@ fn compute_region_territory_won(
                 // The limit is tested against the raw distance, before the
                 // contraction. Testing the contracted one would let a source
                 // reach measurably further.
-                if d > s.limit {
+                if d > limits.map_or(s.limit, |l| s.limit_in(l)) {
                     continue;
                 }
                 let Some(c) = cost(t, s.kind, contract(d), s.bonuses) else {
@@ -611,6 +642,107 @@ mod tests {
         );
     }
 
+    /// **The style's triple is the region's** (item 3963, `docs/AI.md`
+    /// §407): `compute_reg_territory:114–123` reads the player triple on a
+    /// region whose flags carry bit 4 and the colonized one elsewhere, so
+    /// two plain cities on two regions of one world reach 16 and 32 tiles
+    /// — four and eight cells — where the rules' 44 reached eleven.
+    #[test]
+    fn a_player_region_takes_the_style_s_player_limits_and_the_rest_its_colonized() {
+        let mut w = World::new(80, 1);
+        let a = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 0));
+        w.fill_region(Terrain::Land, Cell::new(40, 0), Cell::new(79, 0));
+        let at = |cx: i32| Pos::new(cx * UNITS_PER_CELL + UNITS_PER_CELL / 2, UNITS_PER_CELL / 2);
+        let b = plain_player();
+        let s = [
+            city_source(&T, 0, &b, &plain_city(at(0))),
+            city_source(&T, 1, &b, &plain_city(at(79))),
+        ];
+        let mut rules = w.clone();
+        compute_all_territory(&mut rules, &T, &s, 2);
+        assert_eq!(rules.owner(Cell::new(11, 0)), Owner::Player(0));
+        assert_eq!(rules.owner(Cell::new(12, 0)), Owner::None);
+        assert_eq!(rules.owner(Cell::new(68, 0)), Owner::Player(1));
+
+        w.set_territory_limits(crate::world::TerritoryLimits {
+            player: [16, 4, 4],
+            colonized: [32, 4, 4],
+        });
+        w.set_region_flags(a, crate::world::REGION_PLAYER);
+        compute_all_territory(&mut w, &T, &s, 2);
+        assert_eq!(
+            w.owner(Cell::new(4, 0)),
+            Owner::Player(0),
+            "the player triple"
+        );
+        assert_eq!(w.owner(Cell::new(5, 0)), Owner::None, "the player triple");
+        assert_eq!(
+            w.owner(Cell::new(71, 0)),
+            Owner::Player(1),
+            "the colonized triple"
+        );
+        assert_eq!(
+            w.owner(Cell::new(70, 0)),
+            Owner::None,
+            "the colonized triple"
+        );
+    }
+
+    /// A source's steps rebuild its limit on any triple: the rules' gives
+    /// [`Source::limit`] back, and the city and fort steps each multiply
+    /// their own term (Civic 2 with a Russian flat step, a town with a
+    /// level-3 temple, a level-3 fort).
+    #[test]
+    fn a_source_s_steps_rebuild_its_limit_on_any_triple() {
+        let b = PlayerBorders::new(
+            &T,
+            2,
+            3,
+            3,
+            &Wonders::default(),
+            &NationBonuses {
+                russian: true,
+                civic: 2,
+                ..NationBonuses::default()
+            },
+            0,
+        );
+        let city = city_source(
+            &T,
+            0,
+            &b,
+            &City {
+                level: 1,
+                temple: true,
+                ..plain_city(Pos::new(0, 0))
+            },
+        );
+        let fort = fort_source(
+            &T,
+            0,
+            &b,
+            &Fort {
+                pos: Pos::new(0, 0),
+                red_fort: false,
+            },
+        );
+        let rules = [
+            T.territory_limit_base,
+            T.territory_limit_civic,
+            T.territory_limit_city,
+        ];
+        for s in [city, fort] {
+            assert_eq!(s.limit_in(rules), s.limit, "{:?}", s.kind);
+        }
+        // Civic 2 plus the Russians' two (`russian_borders != 0` and the
+        // Civic level again): four civic steps; level 1 and temple 3: four
+        // city steps; fort level 3: two.
+        assert_eq!(city.steps, [4, 4]);
+        assert_eq!(fort.steps, [4, 2]);
+        assert_eq!(city.limit_in([48, 8, 1]), 48 + 32 + 4);
+        assert_eq!(fort.limit_in([48, 8, 1]), 48 + 32 + 2);
+    }
+
     /// A one-region world with a single city at the centre of cell `(cx, cy)`.
     fn one_city_world(n: i32, at: Cell) -> (World, Vec<Source>) {
         let mut w = World::new(n, n);
@@ -716,6 +848,7 @@ mod tests {
             pos: at(39),
             bonuses: 0,
             limit: 1000,
+            steps: [0, 0],
             owner_agrees: true,
         };
         let near_fort = Source {
@@ -724,6 +857,7 @@ mod tests {
             pos: at(0),
             bonuses: 0,
             limit: 1000,
+            steps: [0, 0],
             owner_agrees: true,
         };
         let near_city = Source {
