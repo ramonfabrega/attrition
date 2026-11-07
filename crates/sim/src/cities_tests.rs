@@ -10002,21 +10002,30 @@ fn a_city_s_gather_all_points_it_at_its_own_resource_buildings() {
 /// technology for good; and a closed library stayed the first, so the
 /// next order was forwarded to a dead building.
 ///
-/// Made to fail three ways: the hand-off removed (the second library's
-/// queue stays empty), `untrack_item`'s technology arm removed (the count
-/// stays 1 after the last close), and `first_library`'s `alive` term
-/// removed (the closed library is still the first).
+/// Made to fail by the hand-off removed (the second library's queue stays
+/// empty), by `untrack_item`'s technology arm removed (the count stays 1
+/// after the last close), and by `first_library`'s `active` or city term
+/// removed (an unbuilt or a cityless library at a lower index is taken
+/// for the first). Its `alive` term is the original's and no test holds
+/// it: a closed building has left its city before anything asks.
 #[test]
 fn a_closing_first_library_hands_its_queue_to_the_next() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let ghost = sim.add_library(0, tile_pos(32, 40), 8);
+    let stray = sim.add_library(0, tile_pos(32, 24), 8);
     let first = sim.add_library(0, tile_pos(40, 32), 8);
     let next = sim.add_library(0, tile_pos(24, 32), 8);
-    for l in [first, next] {
+    for l in [ghost, first, next] {
         sim.buildings[l].city = Some(c);
     }
-    assert_eq!(sim.first_library(0), Some(first));
+    sim.buildings[ghost].active = false;
+    assert_eq!(
+        sim.first_library(0),
+        Some(first),
+        "not the unbuilt, not the cityless"
+    );
     // One technology on the first library's queue, part done, and a unit
     // count at record 0 that the old close took it off instead.
     // The fixture carries no tree, so the count gets a slot of its own.
