@@ -35754,6 +35754,31 @@ SHA-256 `510f40938ab714746a27dd71745613110d83dc02de209c078fc8b16bf2a65fd5`.
 `battery::BATTERY` (parked 3943a). On the closing block (24001) the AI's four Mines stand on cliffs 2, 0, 10 and
 6, and our laid cliffs give the same four arms (`battery::the_mesa_game_s_closing_mines_take_our_cliffs`).
 
+## run1534 — Colonial Powers (style 17), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3951, `att-3951`)
+
+`docs/MAPGEN.md` §32. This is the chain take §22.2 writes, at `--map 17`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1534 --map 17 --end-frame 36 --timeout 1200
+--dump-all-start --cover cover=0` (`check_all_level` 14, `CHECKSUM` 2, a start `WORLD` 6). **What the disk could not
+answer**: no Colonial Powers setup trace was on disk, so no checkpoint 7805..7945 existed for style 17 (§22.2).
+
+- Pool lane 1, the pool's pick. Launched 02:30:15 and exited 02:30:42, 26.3 s from launch to exit. `success`: 37
+  frames, `map_verified`, map style 17, seed 12345, players tribe 4 and tribe 11, 2 nations on 60×60, `TEAM_STYLE 1`;
+  `page_faults` 0, `relaunches: []`. `df -g ~` read 82 GiB free before it. Filed with `filerun.py run1534
+  colonial-mapgen-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1534-colonial-mapgen-start.txt`, 151,835,327 bytes,
+SHA-256 `4bca5ac54518be5e8d6972df5f794d8e9adb7667cbed09267eefe0ba488b9a99`.
+
+Archive `rontrace-run1534.log`, 8,900,160 bytes,
+SHA-256 `02119ed9e81d3b154e9dfc778409e10ac45161afe611fbdda689e8769b20a9aa`.
+
+**What it holds**: the setup trace's `map.cpp` 7805..7945, `setup.cpp` 734/745, `Terrain.cpp` 408..933 and
+`map.cpp` 5012..5118. The tileset is `dirty`, drawn from `COLONIALPOWERS.xml`'s four `TILECHANCE`s. 7807's seed is
+1384684973 after the mask's 7,344 draws: one generation of two continents grown half a turn apart, then
+`eliminate_pools(EDGES_ONLY)`, which leaves an inland pool. Every phase agrees with `sim::map_colonial` on the first
+walk (`ColonialPowers 8 of 8 phases`).
+
 
 ## run1535 — Sea Power (style 20), the default lobby: the setup trace and `DUMP_ALL` start (2026-11-07, item 3952, `att-3952`)
 

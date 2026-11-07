@@ -1297,6 +1297,24 @@ pub fn nile_delta_part(setup: &[SetupDraw]) -> &[SetupDraw] {
     &setup[from..from + len]
 }
 
+/// The `make_continents` segment of a Colonial Powers setup path: from
+/// its first `MapColonialPowers::make_continents@00697dd0` draw, every
+/// draw whose site is that function, `Map::grow_region`,
+/// `Map::large_stamp` or `Map::grow_valid` (`docs/MAPGEN.md` §32, item
+/// 3951), up to the first that is none.
+pub fn colonial_part(setup: &[SetupDraw]) -> &[SetupDraw] {
+    let cp = 0x0069_7dd0..0x0069_84d0;
+    let growers = 0x0069_c600..0x0069_d3f0;
+    let Some(from) = setup.iter().position(|(s, _)| cp.contains(s)) else {
+        return &[];
+    };
+    let len = setup[from..]
+        .iter()
+        .position(|(s, _)| !cp.contains(s) && !growers.contains(s))
+        .unwrap_or(setup.len() - from);
+    &setup[from..from + len]
+}
+
 /// The `place_all` prefix of a [`make_draws`] segment: up to its first
 /// draw of the tail — `TerrainGroups::nubify_forest@006a93b0` or, when no
 /// run of forest draws one (Great Lakes' team lobby), the first
@@ -7738,6 +7756,9 @@ mod tests {
         /// New World's own, islands on a ring and a centre continent
         /// (§31).
         NewWorld,
+        /// Colonial Powers' own, two continents grown half a turn apart
+        /// and the border's seas merged (§32).
+        Colonial,
         /// Sea Power's own, an island a player on a ring (§33).
         SeaPower,
         /// Nile Delta's own, a continent a player on a ring, the edge
@@ -7962,6 +7983,25 @@ mod tests {
         walks: OnceLock::new(),
     };
 
+    /// Colonial Powers (style 17, §32): run1534, item 3951.
+    static COLONIAL_POWERS: Chain = Chain {
+        label: "Colonial Powers",
+        map: "ColonialPowers",
+        style: 17,
+        xml: "COLONIALPOWERS.xml",
+        mask: colonial_part,
+        port: MaskPort::Colonial,
+        files: 1,
+        traces: 1,
+        checked: 8,
+        terrain_records: 22,
+        river_records: 5,
+        moves_a_good: false,
+        lays_rivers: false,
+        height_files: 1,
+        walks: OnceLock::new(),
+    };
+
     /// A chain's tileset (`docs/MAPGEN.md` §4, §25): the style file's own
     /// `TILECHANCE`s, or `default.xml`'s six when it carries none (Old
     /// World), make the one `init_map_data` draw — none when the list is
@@ -8115,6 +8155,20 @@ mod tests {
                 .expect("a lobby inside its allowance");
                 eprintln!("{name}: the watering hole {m:?}");
                 Some((m.start_dist, 4))
+            }
+            MaskPort::Colonial => {
+                // No seat of the corpus' lobbies is an unteamed computer
+                // under `team_style` 7 (§32.1).
+                let m = sim::map_colonial::colonial_powers_make_continents(
+                    &mut grid,
+                    g.nations,
+                    0,
+                    lobby_style(),
+                    &mut d,
+                )
+                .expect("a lobby inside its allowance");
+                eprintln!("{name}: colonial {m:?}");
+                None
             }
             MaskPort::Mediterranean => {
                 let m = sim::map_mediterranean::mediterranean_make_continents(
@@ -8930,5 +8984,17 @@ mod tests {
         nile_delta_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
         nile_delta_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
         nile_delta_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
+    );
+
+    chain_tests!(
+        COLONIAL_POWERS,
+        colonial_powers_s_mask_is_the_traced_7807_and_stream: chain_s_mask_is_the_traced_7807_and_stream,
+        colonial_powers_s_zero_draw_passes_are_7835_to_7854: chain_s_zero_draw_passes_are_7835_to_7854,
+        colonial_powers_s_place_all_and_tail_are_7859_to_7870: chain_s_place_all_and_tail_are_7859_to_7870,
+        colonial_powers_s_resources_are_7877_to_7927: chain_s_resources_are_7877_to_7927,
+        colonial_powers_s_values_and_make_stream_are_the_trace_s: chain_s_values_and_make_stream_are_the_trace_s,
+        colonial_powers_s_terrain_init_without_heights_is_734_to_5012: chain_s_terrain_init_without_heights_is_734_to_5012,
+        colonial_powers_s_rivers_are_5012_to_5118: chain_s_rivers_are_5012_to_5118,
+        colonial_powers_s_troughs_are_894_and_the_start_dump_s_grid: chain_s_troughs_are_894_and_the_start_dump_s_grid,
     );
 }
