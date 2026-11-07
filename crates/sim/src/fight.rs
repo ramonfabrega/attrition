@@ -372,9 +372,14 @@ impl Sim {
         if base == 0 {
             return 0;
         }
+        let family = match o {
+            Obj::Building(b) => self.build_attack_terms(b),
+            Obj::Unit(_) => 0,
+        };
         base + self.mods_of(self.owner_of(o) as usize).attack
             + self.citizen_attack(o)
             + self.monarch_cav_attack(o)
+            + family
     }
 
     /// **`UnitData::attack@006103c0`'s Monarch arm** (item 3688, `docs/AI.md`
@@ -529,7 +534,10 @@ impl Sim {
         }
         p.max_range
             + self.mods_of(self.owner_of(o) as usize).range
-            + self.british_building_range(o)
+            + match o {
+                Obj::Building(b) => self.building_range_terms(b),
+                Obj::Unit(_) => 0,
+            }
             + self.ceo_unit_range(o)
             + self.siege_unit_range(o)
     }
@@ -623,32 +631,6 @@ impl Sim {
                     && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
                         <= self.hero_radius(h) * 0xc0
             })
-    }
-
-    /// **`BuildTypeData::get_building_range@00639990`'s first block**
-    /// (`docs/GOLDEN.md` §59): a Tower-line or Fort-line building of a
-    /// British owner (`has_tribe_bonus(0xb)`) adds `BRITISH_TOWER_RANGE`.
-    /// Chapter fifty's Stockades `1/2006` and `1/2007` reach 13 tiles, not
-    /// 11, in run577. The colosseum's `COLOSSEUM_FORT_RANGE` (0 as shipped),
-    /// the Roman and the tech-bit arrays (`FORT_UPGRADE_RANGE`,
-    /// `TOWER_FORT_RANGE`, entry 0 is 0) and `general_building_range` are
-    /// not carried; no capture holds them.
-    fn british_building_range(&self, o: Obj) -> i32 {
-        let Obj::Building(b) = o else {
-            return 0;
-        };
-        let Some(t) = self.buildings[b].ty else {
-            return 0;
-        };
-        let who = self.buildings[b].owner as usize;
-        if self.nation[who].british
-            && (crate::build::is_tower(&self.build_types, t)
-                || crate::build::is_fort(&self.build_types, t))
-        {
-            self.tuning.british_tower_range
-        } else {
-            0
-        }
     }
 
     fn hits_left(&self, o: Obj) -> i32 {
@@ -5585,16 +5567,16 @@ impl Sim {
                 }
             }
         }
-        if matches!(attacker, Obj::Building(b) if self.buildings[b].target == Some(target)) {
-            let bd = &self.buildings[match attacker {
-                Obj::Building(b) => b,
-                _ => 0,
-            }];
+        if let Obj::Building(b) = attacker
+            && self.buildings[b].target == Some(target)
+        {
+            // `get_base_garrison_arrows` and the squads inside, as
+            // `do_attack` counts them (item 3970).
             let arrows = combat::garrison_arrows(
                 self.attack_of(attacker),
-                ap.base_arrows,
+                self.base_garrison_arrows(b),
                 ap.most_shots,
-                bd.garrison_attack,
+                self.buildings[b].garrison_attack + self.garrison_attack_sum(b),
             );
             if arrows < 2 {
                 v = v.wrapping_mul(2);
@@ -5924,9 +5906,11 @@ impl Sim {
         // The garrison's arrows: the input the earlier mechanic took, plus
         // what the squads actually inside contribute (`docs/CITIES.md` §6).
         let garrison_attack = bd.garrison_attack + self.garrison_attack_sum(b);
+        // `BuildData::get_base_garrison_arrows@0062e340`: the Maya's
+        // `MAYA_GARRISON_ARROWS` (item 3970).
         let arrows = combat::garrison_arrows(
             self.attack_of(me),
-            p.base_arrows,
+            self.base_garrison_arrows(b),
             p.most_shots,
             garrison_attack,
         );

@@ -1965,12 +1965,24 @@ impl Tuning {
             ("FORT_UPGRADE_LOS", Slot::Entries(&T.fort_upgrade_los)),
             ("TOWER_FORT_RANGE", Slot::Entries(&T.tower_fort_range)),
             ("FORT_UPGRADE_RANGE", Slot::Entries(&T.fort_upgrade_range)),
-            ("TEMPLE_UPGRADE_RANGE", Slot::Entries(&T.temple_upgrade_range)),
+            (
+                "TEMPLE_UPGRADE_RANGE",
+                Slot::Entries(&T.temple_upgrade_range),
+            ),
             ("COLOSSEUM_FORT_RANGE", Slot::Value(T.colosseum_fort_range)),
             ("ROMAN_FORT_RANGE", Slot::Value(T.roman_fort_range)),
-            ("GENERAL_BUILDING_RANGE", Slot::Value(T.general_building_range)),
-            ("GENERAL_BUILDING_ATTACK", Slot::Value(T.general_building_attack)),
-            ("OBSIDIAN_ARCHERS_ATTACK", Slot::Value(T.obsidian_archers_attack)),
+            (
+                "GENERAL_BUILDING_RANGE",
+                Slot::Value(T.general_building_range),
+            ),
+            (
+                "GENERAL_BUILDING_ATTACK",
+                Slot::Value(T.general_building_attack),
+            ),
+            (
+                "OBSIDIAN_ARCHERS_ATTACK",
+                Slot::Value(T.obsidian_archers_attack),
+            ),
             (
                 "ANTIPATER_GARRISON_ATTACK_BONUS",
                 Slot::Value(T.antipater_garrison_attack_bonus),

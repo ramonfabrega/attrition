@@ -2409,8 +2409,7 @@ fn widen_civilians_walk(
                 // §176): `attack_ox`/`attack_whom` on a building whose attack
                 // is not zero as well, the Tower and Fort lines and a city
                 // centre among them; `recharging` stays the cycle's alone.
-                let armed = cycles
-                    || s.built.sim.attack_of(sim::combat::Obj::Building(b)) != 0;
+                let armed = cycles || s.built.sim.attack_of(sim::combat::Obj::Building(b)) != 0;
                 if !armed {
                     continue;
                 }

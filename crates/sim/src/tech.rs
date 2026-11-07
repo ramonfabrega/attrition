@@ -464,6 +464,15 @@ pub struct Roles {
     /// `Wall::update_los` adds `FORT_UPGRADE_LOS` at it to a finished fort's
     /// sight (`crate::Sim::build_los`, item 3631).
     pub fort_los_preq: [Option<TypeId>; 3],
+    /// `FORTRANGE2..4`, bonuses 40–42 (`0x2d4..0x2d6`):
+    /// `BuildTypeData::get_building_range@00639990` asks `has_preq` from
+    /// the top down and indexes `FORT_UPGRADE_RANGE` at `1` plus the
+    /// highest held, less one (item 3970, `crate::Sim::building_range_terms`).
+    pub fort_range_preq: [Option<TypeId>; 3],
+    /// `TEMPLERANGE2..4`, bonuses 34–36 (`0x2ce..0x2d0`):
+    /// `LeaderData::get_temple_range@006db4a0`, the same ladder, indexing
+    /// `TEMPLE_UPGRADE_RANGE` for a templed city centre (item 3970).
+    pub temple_range_preq: [Option<TypeId>; 3],
     /// `ATTRITION1..4`, bonuses 49–52 (`0x2dd..0x2e0`): Allegiance, Oath of
     /// Fealty, Patriotism and Nationalism in the shipped file.
     /// `Leader::calc_attrition@006cdea0` counts the **leading run** held —
