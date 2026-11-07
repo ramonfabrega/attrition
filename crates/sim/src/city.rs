@@ -2337,7 +2337,6 @@ impl Sim {
         // `leader_flags |= 0x2000000 | 0x8000000`: the wall stats go stale —
         // which is how a nomad's other sites lose the ×3 once the first city
         // stands.
-        if std::env::var_os("RON_PROBE_3965").is_some() { eprintln!("PROBE3965 f{} wall activate raise", self.frame); }
         self.wall_stats_dirty[who as usize] = true;
         // `Build::activate@00623e20:1970`: a **wonder** (`TypeIndex`
         // `0x20e..0x21e`, else the type's own test) raises `0x4000000` too,
@@ -2676,7 +2675,6 @@ impl Sim {
         self.buildings[b].hold_frames = Self::CLOSE_HOLD;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
-        if std::env::var_os("RON_PROBE_3965").is_some() { eprintln!("PROBE3965 f{} close raise", self.frame); }
         self.wall_stats_dirty[who as usize] = true;
         // `Build::close@00628980:319`: a wonder's close raises `0x4000000`
         // beside `Wonders::close_wonder` (`docs/VISION.md` §2).
@@ -3759,7 +3757,6 @@ impl CheckUpgradeView for SimUpgrade<'_> {
         // The Senate bonus and the new hits arrive through `calc_wall_stats`
         // on the next frame.
         let owner = self.sim.cities[self.c].owner as usize;
-        if std::env::var_os("RON_PROBE_3965").is_some() { eprintln!("PROBE3965 f{} upgrade raise", self.sim.frame); }
         self.sim.wall_stats_dirty[owner] = true;
     }
     fn find_buildings(&mut self) {

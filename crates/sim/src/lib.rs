@@ -6174,7 +6174,6 @@ impl Sim {
         // both stats flags, on every tech that reaches it — so the units'
         // cached line of sight is refreshed by the next `Leader::process`
         // (`docs/VISION.md` §2).
-        if std::env::var_os("RON_PROBE_3965").is_some() { eprintln!("PROBE3965 f{} who{} tree raise", self.frame, who); }
         self.wall_stats_dirty[who as usize] = true;
         self.unit_stats_dirty[who as usize] = true;
         self.calc_attrition(who);
@@ -6968,9 +6967,6 @@ impl Sim {
                 let gems_moved = (self.ledgers[who].rare ^ rare) & gem != 0;
                 self.ledgers[who].rare = rare;
                 self.unit_stats_dirty[who] = true;
-                if std::env::var_os("RON_PROBE_3965").is_some() {
-                    eprintln!("PROBE3965 f{} who{} rare raise", self.frame, who);
-                }
                 self.wall_stats_dirty[who] = true;
                 if gems_moved {
                     self.sync_territory();
@@ -6985,9 +6981,6 @@ impl Sim {
             // `Leader::process` also answers the wall-stats dirty flag here,
             // before any building is touched.
             if self.wall_stats_dirty[who] {
-                if std::env::var_os("RON_PROBE_3965").is_some() {
-                    eprintln!("PROBE3965 f{} who{} calc_wall_stats", self.frame, who);
-                }
                 self.calc_wall_stats(player);
             }
             // And then `0x4000000` — `Leader::calc_unit_stats`, which is

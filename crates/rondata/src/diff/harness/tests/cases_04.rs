@@ -1607,7 +1607,6 @@ mod bodies {
         // tile corners, and what their footprints and the leader's rate
         // flag had held off (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        if std::env::var_os("RON_PROBE_3965").is_some() { for (k, v) in &firsts { if k.2.contains("mylos") { eprintln!("PROBE3965 {k:?} {v:?}"); } } }
         // **Item 632 took three** (197 → 194): three computer
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
