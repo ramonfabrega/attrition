@@ -15002,15 +15002,6 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   crate's `find_melee_target_as` has no such exit. With the cloak bits now carried, it would bind a human Iroquois
   soldier standing in forest, and a human stealth unit standing idle. The score is the first window where a human
   Iroquois unit in forest parts on its target or order list.
-- **3958b. The Ambush's cloak: the hero's own `0x800` and the hero aura** (AI §402.4; `Unit::process_cloak@005e1c20:61-91`,
-  `SpellType::cast_ambush@00671610`). Score: eight `cloak` rows on run1320 (the Iroquois Enlightenment pair's closing
-  window, 131 → 139 at this landing). The President `1/15` (TI 355) casts Ambush on 4889, taking `unit_masks |= 0x2800`
-  and the leader's `0x4000`. From 4895 the Transport Galleons `1/114`, `1/125`, `1/127`..`1/130` and `1/132` (TI 321,
-  sea) take `0x800` from the aura: a unit within `HeroData::get_radius × 0xc0` of a hero with `flags & 1` whose unit
-  holds `0x2000` without `0x1000`. The crate carries neither the hero's `0x2000` nor the leader's `0x4000`, so its
-  `process_cloak` only clears. A build would carry both, set `cloak` in `cast_ambush`, and walk the leader's hero
-  list. `cast.rs`'s `SEAM` at `cast_ambush` says only `verify_spell_flags` reads the leader's `0x4000`, and
-  `process_cloak` reads it too.
 
 ## Parked by the next landing, slot CH — reserved
 

@@ -2608,10 +2608,14 @@ impl Sim {
     /// The cell is the territory record's owner byte (`world +0x134`,
     /// `+0xf`), the tile the `TData` mask (`world +0x138`).
     ///
-    /// SEAM: the hero aura — a leader with `0x4000` (an Ambush) cloaks a
-    /// unit within a hero's radius — and the hero's own `0x2000`, which
-    /// keeps its `0x800`: this crate carries neither flag, so the aura arm
-    /// only clears, as it does for every unit without them.
+    /// **The hero aura** (`:61-91`): a unit not itself ambushing (`0x2000`,
+    /// [`crate::Unit::ambushing`]) is cloaked while one of its owner's
+    /// active heroes — not itself — ambushes unblown (`0x3000 == 0x2000`)
+    /// on the map within `HeroData::get_radius × 0xc0`, and uncloaked
+    /// otherwise. The leader's `0x4000` gate is set with the first such
+    /// hero and dropped by `verify_spell_flags` once none is left, so the
+    /// walk alone answers it. An ambushing hero keeps the `0x800`
+    /// `cast_ambush` gave it.
     pub(crate) fn process_cloak(&mut self, i: usize) {
         let un = &self.units[i];
         let who = un.owner;
@@ -2624,8 +2628,29 @@ impl Sim {
         }
         let pos = un.pos;
         self.units[i].unit_masks2 = masks2;
-        self.units[i].cloak = false;
+        if self.units[i].ambushing.is_none() {
+            self.units[i].cloak = self.in_ambush_aura(i);
+        }
         self.step_cloak(i, pos);
+    }
+
+    /// [`Sim::process_cloak`]'s hero walk: one of `i`'s owner's heroes,
+    /// other than `i`, ambushing and not blown, on the map, within its
+    /// radius of `i` (`vector_dist(|dx|, |dy|)`).
+    fn in_ambush_aura(&self, i: usize) -> bool {
+        let me = &self.units[i];
+        (0..self.units.len()).any(|h| {
+            let x = &self.units[h];
+            h != i
+                && x.owner == me.owner
+                && x.alive()
+                && x.on_map
+                && x.ambushing.is_some()
+                && !x.blown
+                && self.is_hero_unit(h)
+                && world::vector_dist((x.pos.x - me.pos.x).abs(), (x.pos.y - me.pos.y).abs())
+                    <= self.hero_radius(h) * 0xc0
+        })
     }
 
     /// The forest arm alone, at `at`: an Iroquois land unit is cloaked on a
@@ -7347,11 +7372,13 @@ impl Sim {
             self.units[i].blown = false;
             self.units[i].fought = false;
             // The same arm's `unit_masks2 &= 0xffff7f9f` and, for a unit
-            // without the hero's `0x2000` (never carried here),
-            // `unit_masks &= ~0x800`: inside, no cloak stands (item 3958,
+            // without the hero's `0x2000`, `unit_masks &= ~0x800`: inside,
+            // no cloak stands but an ambushing hero's (item 3958,
             // `docs/AI.md` §402).
             self.units[i].unit_masks2 &= !(combat::umask2::LAND_CLOAK | 0x60);
-            self.units[i].cloak = false;
+            if self.units[i].ambushing.is_none() {
+                self.units[i].cloak = false;
+            }
         }
         if !self.units[i].on_map {
             // **The inside arm's figure write** — `Unit::process@00610bc0`'s

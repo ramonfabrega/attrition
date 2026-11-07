@@ -1262,11 +1262,13 @@ impl Sim {
     /// Parmenio's (`0x168`) `PARMENIO_AMBUSH_TIME` 8.8 scale is
     /// [`cast_ambush_steps`]'s.
     ///
-    /// SEAM: `0x800`, the cloak `UnitData::is_seen` and `is_cloaked` read,
-    /// and `Unit::set_new_location` clears on the hero's next step — the
-    /// hero arm casts Ambush only on the move, so it lasts a step; the
-    /// leader's `0x4000`, which only `Leader::verify_spell_flags` reads;
-    /// the console's sound.
+    /// The `0x800` is [`crate::Unit::cloak`] (item 3958, `docs/AI.md`
+    /// §402): it stays while the hero holds `0x2000`, which keeps
+    /// [`Sim::process_cloak`]'s aura arm off it, and goes with the spell or
+    /// an Iroquois hero's tile step. The leader's `0x4000`, which
+    /// `process_cloak` and `Leader::verify_spell_flags` read, is the aura's
+    /// gate, and the aura asks the heroes themselves. SEAM: the console's
+    /// sound.
     pub(crate) fn cast_ambush(&mut self, g: usize) {
         let Some(d) = self.spell(crate::orders::spell::AMBUSH) else {
             return;
@@ -1364,6 +1366,7 @@ impl Sim {
         // An Ambush's `0x27b` arm: `unit_masks &= 0xffffd7ff`.
         if self.units[u].ambushing.is_some_and(|end| end < frame) {
             self.units[u].ambushing = None;
+            self.units[u].cloak = false;
         }
         let Some(end) = self.units[u].marching else {
             return;
@@ -1720,9 +1723,8 @@ impl crate::unit_speed_view::UnitSpeedView for LiveSpeed<'_> {
     }
 }
 
-/// [`Sim`]'s [`AmbushView`]: an `ActiveSpell` is `ambushing`; the cloak
-/// `0x800`, the leader's `0x4000` and the sound are unmodelled (the SEAM on
-/// [`Sim::cast_ambush`]).
+/// [`Sim`]'s [`AmbushView`]: an `ActiveSpell` is `ambushing`, and the cloak
+/// `0x800` is [`crate::Unit::cloak`]; the sound is unmodelled.
 struct SimAmbush<'a> {
     sim: &'a mut Sim,
     g: usize,
@@ -1750,7 +1752,12 @@ impl AmbushView for SimAmbush<'_> {
     fn push_active_spell(&mut self, _start: i32, end: i32) {
         self.sim.units[self.g].ambushing = Some(i64::from(end));
     }
-    fn set_flags(&mut self) {}
+    /// `unit_masks |= 0x2800`: the `0x2000` is `ambushing`, the `0x800`
+    /// the cloak (item 3958, `docs/AI.md` §402). The leader's `0x4000` is
+    /// not kept: [`Sim::process_cloak`]'s aura walks the heroes themselves.
+    fn set_flags(&mut self) {
+        self.sim.units[self.g].cloak = true;
+    }
     fn console_sound(&mut self) {}
 }
 
