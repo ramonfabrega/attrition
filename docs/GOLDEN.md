@@ -18371,12 +18371,68 @@ the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical
 
 `Group::is_moving_to` leaves `NEVER` in `blind::` (run1522b joins `TRACES`).
 
-## 172. Reserved for the next item on the rules track
+## 172. Chapter one hundred and twenty-two — a queue order on a Barracks and a Stable together; `queue_here` refuses the Stable, closed at 1000 (item 3966, run1537, run1537b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked T71-14; `docs/audit/2026-11-06-territory-adjudication-5.md`, `BuildData::can_make`'s row).
+`Group::action_queue_up@006fdbb0`'s train arm offers `Build::queue_up(ty, 1)` to every alive, active member of the
+commanded group. Only a Missile Silo is filtered first (`can_carry`). The type test is left to
+`Build::queue_up@00620f40` → `BuildData::could_queue@0062da50` → `BuildData::can_make@0062db10`. There,
+`BuildTypeData::queue_here(type, p1)` (`:31`–`:36`) stands ahead of the per-kind tail, so it binds a unit too. The
+crate's loop (`group_queue_up.rs`) is the original's, but it went through `Sim::queue_up_with`, whose unit arm
+tested `type_avail` and never `queue_here`. The tech arm (`queue_tech_with`) already had it.
+
+**Staging** (`tools/gamelog/golden/chapter122.cmd`, walked on run1517's start, `RON_STAGE=ch118:chapter122:700`).
+- **The cast.** A Barracks `0/2007` at 14,74 (606) and a Stable `0/2008` at 24,74 (608), and 3,000 of everything
+  (601).
+- **620**: `@queueup 0 132 1 2007 2008`, Hoplites, num 1. Both hold nothing, so the sort keeps the list's order.
+- **640**: `@queueup 0 170 2 2008 2007`, Bowmen, num 2, the Stable listed first. The sort keeps it first (0 queued
+  against the Barracks' 1).
+- **The Ancient Age only.** Every Stable unit's `PREQ0` is the Classical Age (`unitrules.xml`). The `age` cheat is
+  `Leader::set_age` and sets no tech bit (the walk's Light Horse read `type_avail` 0), so the Stable is the refuser
+  in both presses rather than a maker in one.
+
+**What the original does** (run1537 `cover=0`, its twin run1537b `cover=1 --no-ffwd --twin`, both `--ai-tribe 11`
+and the golden start's four lobby fields, read back; `rngcmp` 1001 of 1001 identical; `docs/RUNS.md`).
+- `process_queue_up 132 1` on 621 and `process_queue_up 170 2` on 641.
+- **622.** `0/2007` reads `queued 1`, `queue[scan].type 132`. `0/2008` reads `queued 0`, `queue[scan].type -1`.
+- **642.** `0/2007` reads `queued 3`, its queue `132, 170, 170`. `0/2008` still holds nothing. So the Stable's
+  refusal, first in the list, ends nothing in the train arm.
+- **The press reached the arm.** The twin first enters `CommandPackage::process_queue_up`,
+  `CommandManager::issue_queue_up`, `Group::action_queue_up`, `Build::queue_up` and `BuildData::could_queue` on the
+  first press's frame. `can_make` and `queue_here` run from frame 0.
+
+**What this crate does** (built, `lib.rs`):
+- `Sim::queue_up_with` refuses a unit whose tree entry the building's tree entry cannot queue
+  (`TechTree::queue_here`), ahead of `type_avail` and the price, with `QueueFail::CantTrain`. It refuses only a
+  building and a type the tree both carry. A hand-built fixture without a tree is unchanged.
+- **The test.** `a_press_on_a_barracks_and_a_stable_queues_only_where_the_type_is_made` (`production.rs`), red on
+  the unfixed tree (the Stable took the Barracks unit).
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO` = **1000**, the trace's end, closed
+  (`chapter_one_hundred_and_twenty_two_holds_to_the_golden_word`). On the unfixed tree the word is 855: the Stable's
+  Hoplite is born on 856.
+- **The widening.** Over 605..1000 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_TWO` (604, 1001), both directions, the
+  pool too), it parts on the eleven standing `form` rows and nothing else (`WANT_CH122`). The `cant_reach` tally is
+  2, `0/7` and `0/8` on 849 (ours 0, theirs 1), as chapter one hundred and eighteen's on the same start.
+- **The value diff on the frame the state first parted.** On the unfixed tree the first row is 622 `0/2008
+  queue:queued` ours 1 / theirs 0, with who=0's food 3153 / 3204 and timber 3166 / 3204. Built, both read 0, and
+  3204 / 3204 for both buckets. On 642 the Barracks' second and third entries were priced on a ramp the Stable's
+  Hoplite had raised (food 46 / 41 and 55 / 43). Built, both read 41 and 43.
+- **Coverage.** The driver drives 620..644.
+
+**Mutations**: the journal's (`docs/journal/2026-11-07-item-3966.md`), on the committed tree.
+
+**Not established.**
+- `can_make`'s return-3 arms and the neutralized slot (`vslot +0x180`). These are grey-the-button answers that
+  `could_queue` admits, and no press reaches them.
+- A Stable that makes the unit beside a Barracks that does not. The staging cannot reach it without a Classical
+  grant whose cheat this crate models (above). The predicate is the same `queue_here`, so it is held by the unit test
+  only.
+- The building half of `queue_here` (`is(b, w, true)` for a building type queued at a building). No staging queues a
+  building.
+
+**Coverage.** Diff-backed: `queue_here`'s refusal of a unit at a building that does not make it, on a group press,
+both when the refuser is listed second and when it is listed first; the train arm going on past a refusal.
+`blind::` is unmoved: run1537b joins `TRACES`, and nothing it enters was `NEVER`.
 
 ## 173. Reserved for the next item on the rules track
 

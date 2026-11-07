@@ -2142,7 +2142,10 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   `build_flags & 0x10` clear returns `type_avail` itself. `queue_here` and
   `type_eligible` are the tech tree's — **now read, in `docs/TECH.md`**: a
   building queues what its lineage (`is(where, 0)`) makes, and eligibility is
-  the tribe mask, the ending age, obsolescence and the jump rule.
+  the tribe mask, the ending age, obsolescence and the jump rule. The unit
+  arm of `Sim::queue_up_with` lacked the `queue_here` gate until item 3966
+  (`docs/GOLDEN.md` §172): a group press on a Barracks and a Stable laid a
+  Hoplite at the Stable.
 - ~~**What sets the availability bit at `leader + 0x6c18`.**~~ It is the
   `tech` bitmask — `BitMask<806>` at `LeaderData + 0x6c0c`, whose pointer
   sits at `+0x6c18` — and `Leader::gain_tech` sets it, for a unit type exactly

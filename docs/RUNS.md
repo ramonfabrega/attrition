@@ -35855,3 +35855,30 @@ ring of radius 22, four passes, one generation); 4,982 draws from `place_all` th
 no river draw (an empty `RIVERLIST`); no trough section, no good moved. At 894 the seed is 1554454810, part 5
 1018357250 and part 6 4275928712. The port meets all of it, and all 58,081 start-dump vertices
 (`mapgen::tests::nile_delta_*`, MAPGEN §34). No `blind::TRACES` row: a `cover=0` setup trace enters only its hooks.
+
+## run1537 and run1537b — chapter one hundred and twenty-two: a queue order on a Barracks and a Stable together, `@queueup 0 132 1 2007 2008` on 620 and `@queueup 0 170 2 2008 2007` on 640 (2026-11-07, item 3966, `att-3966`)
+
+`docs/GOLDEN.md` §172. **What the disk could not answer**: no captured press named a group holding a building that
+does not make the type. The scripted humans queue at single buildings, and the AI host queues on one-member groups.
+So no dump showed whether `can_make`'s `queue_here` refuses a unit on a group press (parked T71-14).
+
+Recipe `tools/gamelog/golden/chapter122.cmd`: 3,000 of everything (601), a Barracks at 14,74 (606), a Stable at
+24,74 (608), then the two presses.
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch122 --map 14 --end-frame 1000
+--log-window 605 1000 --timeout 3600`, with run1517's three detail sets, `--ai-tribe 11` and `--profile DIFFICULTY=0
+--profile STARTING_RESOURCES=1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7`. The twin is the same
+line at `--cover cover=1 --no-ffwd --twin ~/ron-golden/ch122`, into `~/ron-golden/ch122b`.
+
+33 GiB free before. Both `success`, lifecycle verified, `map_verified`, map style 14, 1001 frames, `last_frame` 1000,
+seed 12345, the lobby read back as pinned. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11).
+No minutes were waited on another lane. `~/ron-golden/run1537` links to `ch122` and `run1537b` to `ch122b`.
+- run1537 (`ch122`, `cover=0`, pool lane 1): 13:24:35–13:25:08, 32.7 s launch to exit, no relaunch. The word's.
+- run1537b (`ch122b`, `cover=1`, pool lane 1): from 13:25:40, 95.6 s launch to exit, no relaunch. Filed by
+  `filerun.py run1537b ch122-queueup-mixed-group-cover`.
+- `process_queue_up 132 1` on 621 and `process_queue_up 170 2` on 641.
+- On 622, `0/2007` reads `queued 1 [132]` and `0/2008` `queued 0`. On 642, `0/2007` reads `queued 3 [132, 170, 170]`
+  and `0/2008` still `queued 0`.
+- The twin first enters `CommandPackage::process_queue_up`, `Group::action_queue_up`, `Build::queue_up` and
+  `BuildData::could_queue` on the first press's frame.
+- `rngcmp`: run1537 against run1537b, 1001 of 1001 identical.
