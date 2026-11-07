@@ -2515,6 +2515,11 @@ impl Sim {
             // half until item 530 — so a hoplite the army set to
             // `action_stance(1)` read `stance 0` against the dump's 1.
             self.units[u].stance = s.clamp(0, 255) as u8;
+            // `0070d440:100`: `SubObjectData::flags |= 0x10` on every
+            // member set, whatever the panel — the bit `Unit::think`'s
+            // idle gate reads, so the member thinks on its next frame
+            // (item 3962, `docs/AI.md` §406).
+            self.units[u].cant_reach = true;
             if ty != StanceType::Combat {
                 // The worker/caster/packer stances live elsewhere in the
                 // simulation (`Unit::stance`); only the write is modelled.
