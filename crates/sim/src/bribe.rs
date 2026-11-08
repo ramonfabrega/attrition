@@ -24,8 +24,9 @@
 //! SEAM: the `inside_down` chain (`+0x28`, units carried inside the target,
 //! each re-created and `go_inside`d), which a Land unit that Bribe admits
 //! does not hold; the `unit_masks` bits this crate keeps as separate
-//! fields are copied only for `in_danger`, `line_ok`, `casting` and
-//! `marching`; the cast's messages and sounds (`S_SPY_OURS_DONE_BRIBE`).
+//! fields are copied for `in_danger`, `line_ok`, `casting`, `marching`,
+//! the mirror (`& 2`) and the half step (`& 0x100000`, item 3985) and no
+//! others; the cast's messages and sounds (`S_SPY_OURS_DONE_BRIBE`).
 
 use crate::{Player, Sim};
 
@@ -93,14 +94,21 @@ impl Sim {
     fn copy_figure(&mut self, o: usize, m: usize) {
         let old = &self.units[o];
         let damage = old.max_health - old.health;
+        // `swap_team` copies the figure's guy `angle` — the dump's `angle`,
+        // this crate's `heading` — not the unit's facing: they differ on a
+        // figure still turning, run1543's `1/7` on 1294 (item 3985).
         let (frac, facing, form, recharging) = (
             old.damage_frac,
-            old.movement.facing,
+            old.movement.heading,
             old.form,
             old.combat.recharging,
         );
         let (in_danger, line_ok, casting, marching) =
             (old.in_danger, old.line_ok, old.casting, old.marching);
+        // `unit_masks & 2` (the figure's mirror) and `& 0x100000` (the
+        // half step) ride the same copy: run1543's bribed Hoplites read
+        // 0x14000a old and 0x10000a new on 1294 (item 3985).
+        let (mirror, half_step) = (old.movement.mirror, old.half_step);
         let (on_map, at) = (old.on_map, old.pos);
         let guys: Vec<_> = old.guys.iter().map(|g| (g.stopped, g.turret)).collect();
         let n = &mut self.units[m];
@@ -115,6 +123,8 @@ impl Sim {
         n.line_ok = line_ok;
         n.casting = casting;
         n.marching = marching;
+        n.movement.mirror = mirror;
+        n.half_step = half_step;
         for (g, (stopped, turret)) in n.guys.iter_mut().zip(guys) {
             g.stopped = stopped;
             g.turret = turret;

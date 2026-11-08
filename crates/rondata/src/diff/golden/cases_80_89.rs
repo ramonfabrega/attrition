@@ -1803,13 +1803,14 @@ pub(super) fn chapter_one_hundred_and_twenty_six_holds_to_the_golden_word() {
 
 pub(super) fn chapter_one_hundred_and_twenty_seven_s_window_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some((firsts, pool)) = widen_civilians_and_pool(
+    // run1543's end detail prints no `GROUPS`, so the pool is not walked.
+    let Some(firsts) = widen_civilians(
         "ch127",
         "chapter127",
         (1095, 1600),
         0,
         0,
-        (1110, 1260),
+        (1110, 1300),
         false,
         LEADERS_TWO_KEYS,
     ) else {
@@ -1818,16 +1819,9 @@ pub(super) fn chapter_one_hundred_and_twenty_seven_s_window_is_widened_whole() {
     for ((w, o, what), (f, row)) in &firsts {
         eprintln!("  ch127 f{f} {w}/{o} {what}: {row}");
     }
-    for ((slot, key), (f, row)) in &pool {
-        eprintln!("  ch127 pool f{f} slot {slot} {key}: {row}");
-    }
     let mut got: Vec<String> = firsts
         .iter()
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
-        .chain(
-            pool.iter()
-                .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}")),
-        )
         .collect();
     got.sort();
     eprintln!("ch127: {} rows", got.len());

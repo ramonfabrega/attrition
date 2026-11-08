@@ -1976,7 +1976,10 @@ mod tests {
         s.set_tech_tree(tree);
         let who = s.units[spy].owner;
         let b = s.add_building(0, Pos::new(768, 768), 0);
-        let (u, bld) = (crate::combat::Obj::Unit(filler), crate::combat::Obj::Building(b));
+        let (u, bld) = (
+            crate::combat::Obj::Unit(filler),
+            crate::combat::Obj::Building(b),
+        );
         let row = |s: &Sim| {
             [
                 s.spell_range(spell::BRIBE, who, u),
@@ -1995,15 +1998,31 @@ mod tests {
             [2304, 3072, 3648, 1824, 192],
             "three upgrades: the Informer halved after its term"
         );
-        assert_eq!(s.spell_range(spell::BRIBE, 1 - who, u), 1152, "another leader");
+        assert_eq!(
+            s.spell_range(spell::BRIBE, 1 - who, u),
+            1152,
+            "another leader"
+        );
         let t = s.units[filler].ty.unwrap();
         s.unit_types[t].combat.siege = true;
         assert_eq!(s.spell_range(spell::BRIBE, who, u), 192, "a siege unit");
-        assert_eq!(s.spell_range(spell::INFORMER, who, u), 3648, "not the Informer's");
+        assert_eq!(
+            s.spell_range(spell::INFORMER, who, u),
+            3648,
+            "not the Informer's"
+        );
         s.unit_types[t].combat.siege = false;
         s.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
-        assert_eq!(s.spell_range(spell::COUNTERINTEL, who, u), 192, "a supply unit");
-        assert_eq!(s.spell_range(0x281, who, u), 12 * 192, "the Sniper, no vehicle");
+        assert_eq!(
+            s.spell_range(spell::COUNTERINTEL, who, u),
+            192,
+            "a supply unit"
+        );
+        assert_eq!(
+            s.spell_range(0x281, who, u),
+            12 * 192,
+            "the Sniper, no vehicle"
+        );
         s.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
         assert_eq!(s.spell_range(0x281, who, u), 192, "the Sniper on a vehicle");
     }
