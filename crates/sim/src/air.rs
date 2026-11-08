@@ -5243,6 +5243,10 @@ mod flak_tests {
                 ..combat::Profile::default()
             },
         );
+        for u in [gone, near] {
+            let t = s.units[u].ty.unwrap();
+            s.unit_types[t].combat.cost = 100;
+        }
         // The departing one inside the search's radius and out of range;
         // the near one walks (`/4`); the departing one is the target (`×2`).
         let me = Obj::Building(b);
