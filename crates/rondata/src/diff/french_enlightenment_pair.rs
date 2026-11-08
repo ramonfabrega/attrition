@@ -324,7 +324,10 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // Grenadier `1/29`'s damage, 5 in ours since 4552 (parked 3691c); and
     // the capital `0/2000`'s `build:damage` on 4691, ours 421 against
     // theirs' 427, under the Fusiliers' rounds (parked 3691a).
-    pin_eq!(w.firsts.len(), 117, "run1360 baseline");
+    // Item 3978: −4, the supply heal (`sim::heal`'s `supply_heal`, period 20): `1/29`'s
+    // `damage_frac`, `hits:damage_frac`, `hits:damage` and `hits_left` on 4685 agree (0, 0, 0
+    // and 161 both sides) — parked 3691c.
+    pin_eq!(w.firsts.len(), 113, "run1360 baseline");
     pin_eq!(w.rounds_read, (465, 477), "the rounds read");
     // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
     // 3691a) and the Musketeers' slot swaps on 4724, 4725, 4900 and 4902,
@@ -407,7 +410,10 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // theirs 0).
     // Item 3961: +1, `healing` on `1/29` (4552, ours 0 theirs 20): the same block's heal, a
     // rate-20 arm (the French patriots', parked 3686a; 3961a).
-    pin_eq!(w.firsts.len(), 123, "run1344b baseline");
+    // Item 3978: −5, the supply heal (`sim::heal`'s `supply_heal`, the French period 20, not a
+    // patriot's): `1/29`'s `healing`, `damage_frac`, `hits:damage_frac`, `hits:damage` and
+    // `hits_left` on 4552 agree (20, 0, 0, 4 and 157 both sides) — 3961a's run1344b row.
+    pin_eq!(w.firsts.len(), 118, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
     // parting, the first on the window's first block 4495. Item 3691: 428
     // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;
