@@ -638,14 +638,6 @@ impl Sim {
                 }) {
                     return true;
                 }
-                if std::env::var_os("RON_PROBE_DOCK").is_some() {
-                    eprintln!(
-                        "PLACEPROBE who={who} owner={p} tile=({},{}) city_num={}",
-                        t.x,
-                        t.y,
-                        self.city_num(who)
-                    );
-                }
             }
         }
         false

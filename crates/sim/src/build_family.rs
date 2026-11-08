@@ -209,18 +209,6 @@ impl Sim {
         if (tower || fort) && self.holds_general(b) {
             r += self.tuning.general_building_range;
         }
-        if std::env::var_os("RON_PROBE_DOCK").is_some() {
-            let up = if fort {
-                self.tuning.fort_upgrade_range
-                    [self.bonus_level(who, &self.tech_tree.roles.fort_range_preq)]
-            } else {
-                0
-            };
-            let held_gen = (tower || fort) && self.holds_general(b);
-            if up != 0 || held_gen {
-                eprintln!("FORTPROBE b={b} who={who} fort={fort} up={up} general={held_gen} r={r}");
-            }
-        }
         if let Some(c) = bd.city
             && self.is_city_building(b)
         {
