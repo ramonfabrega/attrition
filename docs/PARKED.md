@@ -3834,6 +3834,11 @@ not held — and would for any bit at a known offset. Candidate: a row of the br
 writes this bit" question takes the grep before the packet), red first on a brief that books a packet for a bit. Names no score;
 the loop's.
 
+(4003) **A gate on a field's position is mutation-checked when it is added** (3987's "for the Loop"): the comparator gated `UNITDATA
+healing` behind `on_map` for 26 items, so a heal written inside a garrison was a field nobody compared. Candidate: a guard or a
+brief row that a comparator's `on_map`-style gate on a field lands with a mutation that writes the field off the gate and is caught;
+red first on the `healing` gate as it stood before 3987. Names no score; the loop's.
+
 ## Loop, filed 2026-11-07 — the seventy-second tranche's
 
 **3977** (`frame.py` cut from the frame to the dump's end; 3975's "for the Loop") — **built** by the seventy-third pass, an Opus 5.5 subagent's, red first (run1542's 651: 2,013,317 lines cut → 65,256; the cut ends at the next `BEGIN FRAME` whatever its number, a strided dump writing one every 50 frames; `tools/explore/test_frame_cut.py`), its text kept in `docs/audit/2026-11-07-fable-pass-73.md` ("Rulings"). The row as filed: (3977) **`tools/gamelog/frame.py` cuts from the frame to the dump's end, not to the next frame** (3975's "for the Loop"):
