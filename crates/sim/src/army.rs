@@ -763,11 +763,17 @@ impl Sim {
         if self.armies[w].list[slot].units.contains(&u) {
             return;
         }
-        let live = self.armies[w].list[slot]
-            .units
-            .iter()
-            .any(|&m| self.units[m].alive());
-        let pool = if self.armies[w].list[slot].group.pool.is_none() || !live {
+        // **The push arm is an army with no group, never one whose group
+        // emptied** (`Army::add_unit@006f9f40`: `+0x96 < 1 || list[0] < 0`).
+        // Nothing writes the army's `list[0]` when `Group::kill` empties
+        // and clears the record, so the join goes through the record's own
+        // `Group::add` — `get_num`'s normalize at every step of the squad
+        // walk prunes the figure added the step before while its `+0x80`
+        // still names another group, and only the walk's last figure is
+        // listed. Chapter 128's `1/6..1/8` rejoin army 0 on 642 as `[8]`
+        // (run1555's `GROUPDATA 64`), not `[6 7 8]` (item 4000,
+        // `docs/GOLDEN.md` §190; item 518 had pushed an emptied army).
+        let pool = if self.armies[w].list[slot].group.pool.is_none() {
             // The stack group's `Group::add`: `captain, o_down, …`.
             let mut g = crate::group::Group::stack(who);
             self.group_add(&mut g, u);

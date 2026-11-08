@@ -410,6 +410,27 @@ impl GroupState {
     /// `Group::kill@00714110` runs when its list empties (`docs/GROUPS.md`
     /// §30), so the next `copy_group` into the slot inherits zeros, not the
     /// last occupant's counts.
+    /// `Group::kill@00714110`'s tail on the member that empties the list:
+    /// `Group::clear(-1)@00713e80` on the record itself. It zeroes `ox`/`oy`,
+    /// `o_dist`, `o_angle`, `order_num`, `think_frame`, both speeds, the
+    /// march bit and **`facing`** (`+0x48`, a short with `buildings`), and
+    /// stamps the frame; `form`, `form_num` and the slot arrays stand. The
+    /// pool slot is the seat's and stays. Item 4000 (`docs/GOLDEN.md`
+    /// §190): `Group::sort` kills a follower-first squad whole, so the
+    /// mirror the move's layout reads a line later is 0.
+    pub fn emptied(&mut self, frame: i64) {
+        self.o = Pos::new(0, 0);
+        self.o_dist = 0;
+        self.o_angle = Angle(0);
+        self.order_num = 0;
+        self.opportunity = 0;
+        self.speed = 0;
+        self.new_speed = 0;
+        self.march = false;
+        self.facing = false;
+        self.stamp = frame;
+    }
+
     pub fn clear(&mut self, frame: i64) {
         *self = GroupState {
             o: Pos::new(0, 0),
@@ -1368,6 +1389,9 @@ impl Sim {
         let pool = st.pool;
         Self::seat_remove_at(list, st, i);
         st.stamp = frame;
+        if list.is_empty() {
+            st.emptied(frame);
+        }
         if self.units[o].group_ptr == pool {
             self.units[o].group_ptr = None;
         }
@@ -2749,11 +2773,18 @@ impl Sim {
         // record keeps. run31 shows the two coming apart: two of its moves
         // carry `facing 1` and lay out unmirrored, the third carries
         // `facing 1` and mirrors (§6.3, §12.3).
-        let facing = self.group_facing(g);
-        let reverse = facing != self.group_leader_faces_away(g, angle);
+        //
+        // **The leader is found before the sort, the flag read after it**
+        // (`compute_form@00707c80:37` finds the leader and its slot;
+        // `Form::categorize`'s `Group::sort` runs at `:72`; the mirror test
+        // reads `GroupData::facing` at `:103`). A sort that kills a
+        // follower-first squad whole empties the list, and `Group::kill`'s
+        // `Group::clear(-1)` zeroes the flag before it is read (item 4000,
+        // `docs/GOLDEN.md` §190: chapter 128's `1/6..1/8` on 764).
+        let away = self.group_leader_faces_away(g, angle);
         // `Form::compute` → `Form::categorize`, whose first statement is
-        // `Group::sort@00708090` (§4.1, §23) — after the clear and the
-        // mirror above, before the layout and the order loop, which
+        // `Group::sort@00708090` (§4.1, §23) — after the clear, before the
+        // mirror test, the layout and the order loop, which
         // therefore walk the **sorted** list. A member the sort brought in
         // was not in the list the clear walked, so it is decided now, as
         // the order loop's own second reading would.
@@ -2792,6 +2823,8 @@ impl Sim {
             }
             None => (g, plan),
         };
+        let facing = self.group_facing(g);
+        let reverse = facing != away;
         let mut slots = self.form_compute(
             g,
             to,
