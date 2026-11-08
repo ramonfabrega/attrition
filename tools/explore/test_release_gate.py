@@ -971,6 +971,7 @@ class GateTests(unittest.TestCase):
         # (Loop 2409) is then the gate itself.
         self.assertEqual(gate.lane_widens(['crates/sim/src/sweep/x.rs', 'docs/AI.md', 'tools/x.py',
                                            'crates/rondata/src/census.rs']), [])
+        self.assertEqual(gate.lane_widens(['crates/sim/tests/sweep/x.rs', 'crates/sim/tests/sweep_a_f.rs']), [])
         # Loop 3087 (the fortieth pass): `blind::NEVER` is the residue of
         # functions the documents cite and no trace enters — a sweep that
         # cites one moves it, and no timed `diff::` pin reads it. Seven of

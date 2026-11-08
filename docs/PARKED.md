@@ -9448,7 +9448,7 @@ words and edits nothing here; a refill lands when two remain.
   GoodType receiver is not read. `WallData::hits@00642bb0` has the same shape and §142 reads it as reached. A scan
   of `+0x94` vcalls by receiver type would settle both.
 - **3409c. `docs/audit/census-backed.txt` predates item 3346.** `Object::disband@006455c0` has a sweep
-  (`crates/sim/src/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
+  (`crates/sim/tests/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
 
 ## Parked by item 3410, 2026-10-21 — the first five never-entered unmarked rows swept
 

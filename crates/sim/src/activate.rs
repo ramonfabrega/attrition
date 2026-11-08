@@ -4,7 +4,7 @@
 //! `Wall::activate`, is [`activate_head_steps`] over an [`ActivateHeadView`]
 //! that names every access it makes in the order it makes them. [`SimHead`]
 //! answers from this crate's state; the sweep
-//! (`crates/sim/src/sweep/build_activate_head.rs`) answers from the emulated
+//! (`crates/sim/tests/sweep/build_activate_head.rs`) answers from the emulated
 //! original's windows and ends the call where `Wall::activate` is first
 //! entered (`--stop-stub`).
 //!

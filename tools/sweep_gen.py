@@ -189,7 +189,8 @@ a `--mask` is `field` with the mask in the port. `vcall --own N` hands the
 function N stack arguments of its own, which the port reads as `p[..]`
 (1966's `has_stance_type` compares the slot's answer with its `p0`).
 
-Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`;
+Written: `tools/emu/sweep_<snake>.py` and `crates/sim/src/sweep/<snake>.rs`
+(`crates/sim/tests/sweep/<snake>.rs` for a standalone one, item 4009);
 the registration is inserted (the default since item 2887; `--no-write-mod` prints it instead). New tests without
 `crate::` references join one of four standalone alphabetical partitions; tests
 using crate internals stay in `sweep/mod.rs`. Existing registrations stay owned
@@ -224,6 +225,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EMU = ROOT / 'tools/emu'
 SWEEP = ROOT / 'crates/sim/src/sweep'
+# The standalone partitions and their sweeps, outside `src/` since item 4009;
+# `sweep/mod.rs`'s crate-private sweeps stay in `SWEEP`.
+STANDALONE = ROOT / 'crates/sim/tests/sweep'
 # A method `Class::name`, or a free function `name` (item 2346: `add_type_bucket2`).
 NAME = re.compile(r'^([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_~][A-Za-z0-9_<>=!\[\]+\-*/%&|^]*)*)@(00[0-9a-f]{6})$')
 
@@ -2789,14 +2793,14 @@ def sweep_registry(line, test):
     name = line[4:-1]
     owners = [main] if main.exists() and line in main.read_text().splitlines() else []
     for family in SWEEP_FAMILIES:
-        path = SWEEP / f'standalone_{family}.rs'
+        path = STANDALONE / f'standalone_{family}.rs'
         if path.exists() and name in standalone_names(path.read_text()):
             owners.append(path)
     if len(owners) > 1:
         raise ValueError(f'module registered in multiple targets: {name}')
     if owners:
         return owners[0]
-    candidate = SWEEP / f'standalone_{sweep_family(name)}.rs'
+    candidate = STANDALONE / f'standalone_{sweep_family(name)}.rs'
     return candidate if candidate.exists() and 'crate::' not in test else main
 
 
@@ -2806,6 +2810,7 @@ def validate_sweep_registrations(crate):
     import tomllib
     crate = Path(crate)
     folder = crate / 'src/sweep'
+    standalone = crate / 'tests/sweep'
     manifest = crate / 'Cargo.toml'
     if manifest.exists():
         config = tomllib.loads(manifest.read_text())
@@ -2816,21 +2821,21 @@ def validate_sweep_registrations(crate):
     main = re.findall(r'^mod ([a-z][a-z0-9_]*);$', (folder / 'mod.rs').read_text(), re.M)
     names = [name for name in main if name != 'support']
     for family in SWEEP_FAMILIES:
-        path = folder / f'standalone_{family}.rs'
+        path = standalone / f'standalone_{family}.rs'
         selected = standalone_names(path.read_text())
         for name in selected:
             if sweep_family(name) != family:
                 raise ValueError(f'{name} is in the wrong partition: {family}')
         entry = crate / 'tests' / f'sweep_{family}.rs'
-        mount = f'#[path = "../src/sweep/standalone_{family}.rs"]\nmod sweep;'
+        mount = f'#[path = "sweep/standalone_{family}.rs"]\nmod sweep;'
         if mount not in entry.read_text():
             raise ValueError(f'partition is not mounted by {entry}')
-        if any('crate::' in (folder / f'{name}.rs').read_text() for name in selected):
+        if any('crate::' in (standalone / f'{name}.rs').read_text() for name in selected):
             if 'pub use sim::*;' not in entry.read_text().splitlines():
                 raise ValueError(f'public API bridge missing from {entry}')
         names += selected
     excluded = {'mod', 'support', *(f'standalone_{f}' for f in SWEEP_FAMILIES)}
-    sources = {p.stem for p in folder.glob('*.rs')
+    sources = {p.stem for p in [*folder.glob('*.rs'), *standalone.glob('*.rs')]
                if re.fullmatch('[a-z][a-z0-9_]*', p.stem) and p.stem not in excluded}
     counts = Counter(names)
     if set(counts) != sources or any(n != 1 for n in counts.values()):
@@ -3688,6 +3693,8 @@ def main(argv=None):
         print(f'sweep_gen.py: {shown(sp)} is the sweep of `{owner}`, not `{args.function}`; an overload '
               'names its own module with --name (Loop 3013, 3182)', file=sys.stderr)
         return 2
+    if not tp.exists() and (STANDALONE / tp.name).exists():
+        tp = STANDALONE / tp.name
     old_test = tp.read_text() if args.regen and tp.exists() else None
     todo = f'todo!("the port of {parse(args.function)[0]}")' if old_test is not None else None
     if args.regen and args.port is None and tp.exists():
@@ -3725,6 +3732,7 @@ def main(argv=None):
         except ValueError as e:
             print(f'sweep_gen.py: {e}', file=sys.stderr)
             return 2
+        tp = mp.parent / tp.name
         print(f'# {obj_table_path() if as_row else sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
         return 0
     for p in (sp, tp):
@@ -3736,6 +3744,7 @@ def main(argv=None):
     try:
         mp = sweep_registry(mod, test)
         registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
+        tp = mp.parent / tp.name
         updated = None
         if args.write_mod:
             text = mp.read_text() if mp.exists() else ''

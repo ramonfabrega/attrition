@@ -319,7 +319,10 @@ def lane_paperwork(timings):
 # cite and no trace enters — a sweep that cites one moves it; Loop 3087:
 # three scoped gates of the fortieth tranche ran every timed test for it
 # alone). `--scope` (below) reads the same rule for the booking gate.
-NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/rondata/src/census.rs', 'crates/rondata/src/blind.rs')
+# Item 4009 moved the standalone sweeps to `crates/sim/tests/sweep/`; their
+# four integration targets are `crates/sim/tests/sweep_*.rs`.
+NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/sim/tests/sweep', 'crates/rondata/src/census.rs',
+                'crates/rondata/src/blind.rs')
 
 
 def lane_widens(paths, row_only=()):

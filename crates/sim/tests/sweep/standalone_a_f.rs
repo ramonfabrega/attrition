@@ -1,6 +1,6 @@
 //! Independent sweep partition; test bodies keep their original paths.
 
-#[path = "support.rs"]
+#[path = "../../src/sweep/support.rs"]
 mod support;
 #[allow(unused_imports)]
 use support::{emu_obj, emu_rows, row, tail_row};

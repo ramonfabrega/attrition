@@ -1325,7 +1325,7 @@ const MACHINEGUN: crate::tech::TypeId = 0x7b;
 
 /// What `Unit::do_attack_ground@005f1410` asks of its unit and the world:
 /// the one body [`do_attack_ground_steps`] runs over [`Sim`] (`SimAttackGround`)
-/// and, in `crates/sim/src/sweep/unit_do_attack_ground.rs`, over the emulated
+/// and, in `crates/sim/tests/sweep/unit_do_attack_ground.rs`, over the emulated
 /// original's stubs. The attack-unit-0 arm (a player's ground click: the
 /// peace test, the range test, the nearby-spot search, the walk-in) is the
 /// SEAM the steps keep as a kill.
@@ -7857,7 +7857,7 @@ impl Sim {
     }
 
     /// `Unit::do_build` (§5.2): [`do_build_steps`] over [`DoBuildView`]
-    /// (`SimDoBuild`); `crates/sim/src/sweep/unit_do_build.rs` runs the
+    /// (`SimDoBuild`); `crates/sim/tests/sweep/unit_do_build.rs` runs the
     /// steps against the original under the emulator (item 3295).
     fn do_build(&mut self, u: usize, frame: i64) {
         let Some(Order {
@@ -8230,7 +8230,7 @@ impl Sim {
     }
 
     /// `Unit::do_repair` (§5.6): [`do_repair_steps`] over [`DoRepairView`]
-    /// (`SimDoRepair`); `crates/sim/src/sweep/unit_do_repair.rs` runs the
+    /// (`SimDoRepair`); `crates/sim/tests/sweep/unit_do_repair.rs` runs the
     /// steps against the original under the emulator (item 3346).
     fn do_repair(&mut self, u: usize, frame: i64) {
         let Some(Order {
@@ -8551,7 +8551,7 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// `Unit::do_gather` (§6.3): [`do_gather_steps`] over [`DoGatherView`]
-    /// (`SimDoGather`); `crates/sim/src/sweep/unit_do_gather_005ef2a0.rs`
+    /// (`SimDoGather`); `crates/sim/tests/sweep/unit_do_gather_005ef2a0.rs`
     /// runs the steps against the original under the emulator (item 3356).
     fn do_gather(&mut self, u: usize, frame: i64) {
         let Some(Order {
@@ -9863,7 +9863,7 @@ impl Sim {
     ///    building reads 82 (run44 `0/15`, 408).
     ///
     /// The body is [`do_attack_ground_steps`] over [`AttackGroundView`];
-    /// `crates/sim/src/sweep/unit_do_attack_ground.rs` runs it against the
+    /// `crates/sim/tests/sweep/unit_do_attack_ground.rs` runs it against the
     /// original under the emulator (item 3289).
     pub(crate) fn do_attack_ground(&mut self, u: usize, frame: i64) {
         let Some(Order {
@@ -11958,7 +11958,7 @@ impl DoRepairView for SimDoRepair<'_> {
 /// What `Unit::do_gather@005ef2a0` asks of its unit, its gather order, the
 /// site and the world, in the order it asks (item 3356). [`SimDoGather`]
 /// answers from this crate's state; the sweep answers from the emulated
-/// original's windows (`crates/sim/src/sweep/unit_do_gather_005ef2a0.rs`).
+/// original's windows (`crates/sim/tests/sweep/unit_do_gather_005ef2a0.rs`).
 ///
 /// The site is the order's `(idx, uid)` pair; the view holds it, so no
 /// method takes one. Coordinates are the world's own (decoded: the unit

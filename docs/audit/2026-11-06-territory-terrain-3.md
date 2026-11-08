@@ -21,7 +21,7 @@ already calls the stem "the renderer's vertex-stream and visibility cache", and 
 
 **The fog here is the drawn fog, not vision.** `fill_fog_texcoords` reads the global `fog`'s
 `fog_lookup` with stride `fog_xs + 2` — the shape `WorldMapFog::get_fog_lookup@008d1830` answers
-(`(y+1)*(xs+2) + x + 1`, swept in `crates/sim/src/sweep/world_map_fog_get_fog_lookup.rs`), the
+(`(y+1)*(xs+2) + x + 1`, swept in `crates/sim/tests/sweep/world_map_fog_get_fog_lookup.rs`), the
 renderer's padded copy — and writes only `f32` texture coordinates into a `FogTransition` and the
 terrain's vertex buffer. The simulation's vision is `World::seen`/`seen2` (`docs/VISION.md`), which
 no function of this group reads or writes.
@@ -54,7 +54,7 @@ helper a renderer embeds; the literal regex is the cheap one.
 
 ## Part 2 — the `layout` rows (an emulator sweep, no consumer)
 
-Each of these seven has a `crates/sim/src/sweep/terrain_vis_*.rs` test that runs the original
+Each of these seven has a `crates/sim/tests/sweep/terrain_vis_*.rs` test that runs the original
 under unicorn against an inline restatement of its byte writes; nothing in `sim` outside `sweep/`
 consumes them, which is what `layout` means. The sweeps are correct as regressions of the
 emulator lane and say nothing about the game; a census mark of `ui` on the class would leave
@@ -62,7 +62,7 @@ them standing and take the rows off the open list.
 
 | va | name | kind | entered | ruling | evidence |
 |---|---|---|---|---|---|
-| 008b0060 | TerrainVis::get_verts_per_bucket | layout | - | ui | `sys_grade > 2` (the graphics-quality grade) → 9, else `verts_per_bucket[cur_zoom]`: vertices per terrain bucket by zoom. No caller in the export; the same expression is inlined in `move_stream_bucket`, `squeeze_cache`, `get_ib`. Sweep `crates/sim/src/sweep/terrain_vis_get_verts_per_bucket.rs` (item 1942). Mark: class `Vis$`. |
+| 008b0060 | TerrainVis::get_verts_per_bucket | layout | - | ui | `sys_grade > 2` (the graphics-quality grade) → 9, else `verts_per_bucket[cur_zoom]`: vertices per terrain bucket by zoom. No caller in the export; the same expression is inlined in `move_stream_bucket`, `squeeze_cache`, `get_ib`. Sweep `crates/sim/tests/sweep/terrain_vis_get_verts_per_bucket.rs` (item 1942). Mark: class `Vis$`. |
 | 008b13b0 | TerrainVis::wcoord_was_cached | layout | - | ui | `CoordInfo.last_vis_frame[i] == last_moved_frame`, a draw-stamp compare. No caller in the export (inlined into `add_visible_wcoord`'s first test). Sweep `terrain_vis_wcoord_was_cached.rs` (item 1932). Mark: class `Vis$`. |
 | 008b13d0 | TerrainVis::invalidate_wcoord | layout | 6 | ui | The `CoordInfo *` overload: for the cell and its eight neighbours (`move_x`/`move_y`, bounded by the world's `xs`/`ys`) sets the cached draw stamps `CoordInfo +0x6c` and `+0x70` to -1 (the latter conditional on the fog bucket), forcing a vertex rebuild. Caller `Terrain::object_placed@00850c40` (with a `CoordInfo *` from `Terrain +0x6ab0`) — the arm `docs/ROADS.md` §7.4 rules visual. Sweep `terrain_vis_invalidate_wcoord_1.rs` (item 2927). Mark: class `Vis$`. |
 | 008b2e80 | TerrainVis::invalidate_wcoord | layout | 6 | ui | The `(WCoord *, WCoord *)` overload: looks up the cell's `CoordInfo` in `Terrain +0x6ab0` and tail-calls the overload above. No direct caller in the export besides the inlined path; entered by the lockstep runs through the draw loop. Sweep `terrain_vis_invalidate_wcoord.rs` (item 2655). Mark: class `Vis$`. |

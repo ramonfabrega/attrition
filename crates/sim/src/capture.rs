@@ -6,7 +6,7 @@
 //! do, hands the city over. [`check_capture_steps`] is that, over a
 //! [`CaptureView`] that names every access it makes, in the order it makes
 //! them: [`SimCapture`] answers from this crate's state, and the sweep
-//! (`crates/sim/src/sweep/build_check_capture.rs`) answers from the
+//! (`crates/sim/tests/sweep/build_check_capture.rs`) answers from the
 //! emulated original's windows.
 //!
 //! **The walk is the original's.** The tally does not scan the object lists:
