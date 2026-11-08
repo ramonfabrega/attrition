@@ -40748,12 +40748,63 @@ not carried. `process_healing`'s Antipater and Conquer-the-World hero arms
 stay unbuilt. Only the heal half of a Despot's supply radius is confirmed
 here; the attrition half reads the same `find_supply` and has no capture.
 
-## 411. Reserved for the next item on the AI track
+## 411. A ground round's angle is its scattered landing's: run1542's MLRS rounds 31 → 6 (item 3979, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Established from the listing, and backed by the diff.** Confidence:
+high for the attack-ground arm. Parked 3975a found that, once the rack was
+in, every MLRS round on run1542 agreed on `sx, sy, sz, ex, ey, ez, v1z` and
+parted on `angle` alone. The first of them was on 651: `2/155`'s `ammo[29]`,
+ours 1064501248 against theirs 1070792704. The MLRS `2/154`–`2/162` (TI
+273, land) fire under an `ATTACKGROUNDORDER` with `attack_unit=1`, so the
+round takes `Ammo::init`'s order arm.
+
+**The writer.** `Ammo::init@0067bbf0` writes `+0x2c` on three arms, and
+the decompile drops the arguments of every `find_angle` call. The listing
+gives them:
+
+| arm | listing | `+0x2c` |
+|---|---|---|
+| a target object (`local_38 == 0`) | `67c762`–`67c7af` | `find_angle(target.x − sx, target.y − sy)`, before the scatter |
+| an attack-ground order (`local_38 != 0`) | `67c6b0`–`67c75a` | `find_angle(+0x18 − sx, +0x1c − sy)`: the order's point **plus the scatter**, before the clamp |
+| the Bomber's fall | `init:541` | the bearing to the projected, restricted landing (built already) |
+
+Ours took the bearing to the order's point for the order arm too. That was
+the bearing `guy_release_events` hands in, from the release point to the
+point. The arm is now built in `fire_ammo_aim` (`sim::fight`): on a ground
+aim, the angle is re-read from the scattered landing before the strafe walk
+and the clamp. A land missile's lead reads `+0x2c` (§174, item 3816), so on
+the order arm it follows the new angle too. The target arm is unchanged.
+
+**The value diff.** On 651, `2/155`'s `ammo[29]` reads theirs' 1070792704
+on both sides. A one-run window over 601..701 (the constant moved, not
+kept) has 23 round rows on the base and **0** with the arm built, 29 rounds
+read. On the kept closing window 2501..2601 the rounds that part go
+**31 → 6**. For example, on 2551 `2/159`'s `ammo[0]` reads theirs'
+-1128988672 on both sides. The six rows left are two rounds, both fired on
+the closing frame 2600 (`cur_time 1` on 2601). `2/159`'s `ammo[12]` lands at
+ours (2697, 24408) against theirs (2656, 24424), and `2/160`'s `ammo[13]`
+at (2654, 24414) against (2661, 24406). Each one's `angle` follows its own
+landing. Both sides' order point on 2601 is (2658, 24408), and that row
+agrees. The landing parting stood before this item (parked 3979a). Of the
+276 unit and standing rows, none moved.
+
+The same arm closes run146's row on chapter three's restage
+(`chapter_three_s_restage_is_widened_whole`, `docs/GOLDEN.md` chapter
+three). On 798 the catapult `0/6`'s round under its pushed
+`ATTACKGROUNDORDER` reads `angle` theirs 1192951808 on both sides; it was
+ours 1130823680. Its row leaves the pinned list, which keeps 736's round
+target and 847's scout facing.
+
+**Made to fail** (`tools/mutate.py`): with the ground arm's angle put back
+to the bearing passed in, `corpse_melee_run1542_s_word_window_is_widened_whole`
+fails with 31 against 6 (exit 101).
+
+**What is not established.** Why the two rounds fired on 2600 land apart.
+It is either the scatter's values or the point at the moment of fire: under
+`attack_unit=1` the order re-reads the attacked unit `1/35`, whose point
+moved from (787, 24530) on 2551 to (2658, 24408) on 2601 (parked 3979a). A
+sea-point order (`accuracy` set, no scatter) takes the same arm. It has no
+capture here, but the arithmetic is the same line.
 
 ## 412. Reserved for the next item on the AI track
 
