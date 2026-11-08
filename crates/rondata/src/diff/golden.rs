@@ -173,7 +173,7 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
         built.tick();
         // `RON_DEBUG_UNIT` on the golden walk too (item 3999): a one-draw
         // idle parting asks for the figure clocks of the units the draws name.
-        crate::diff::harness::debug_watch(&built, f);
+        crate::diff::harness::debug_watch(&built, built.sim.frame);
         if sites.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
             // The frame's opening word, so each roll can be named (922).
             eprintln!("  f{f} seed {seed:#010x}");
