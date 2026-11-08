@@ -15500,13 +15500,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DC — reserved
+## Parked by item 4005, 2026-11-08 — chapter 129's scout on 1021, and the rings no walk holds
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4005a. Who=1's scout `1/0` on 1021** (`docs/GOLDEN.md` §193; run1545, a value row on the closed chapter 129).
+  Theirs' `1/0` (uid 6, group 64, `!ai off`) swaps its `EXPLORETOORDER` to (39672, 10488) for an `ATTACKTOORDER`
+  to (38664, 13320) on block 1021, a six-node path; ours keeps the explore (`order:kind` 3 to theirs' 2). Then
+  `tolerance` parts on 1096. The rows have stood since item 3987's first pin, and no draw parts with them: the
+  word closes at 1100 across them. The widening's 13 rows, on 1021 and 1096. A value row on a closed word.
+- **4005b. The flee rings a walk does not hold** (`docs/COMBAT.md` §34.2). Chapter 129 holds the hero's `0x300`
+  from a melee unit attacker. The `0x180` from a unit attacker with a range, the `0x300` from a building
+  attacker, the supply unit's rings and the `unit_masks & 0xa000` refusal rest on
+  `fight::tests::a_hero_or_supply_unit_flees_on_the_attacker_s_ring` alone. A staging is a Supply Wagon struck
+  by an archer, and a General in an Ambush struck by a Hoplite. It names no score.
 
 ## Parked by the next landing, slot DD — reserved
 
