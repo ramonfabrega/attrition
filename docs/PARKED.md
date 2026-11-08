@@ -3827,6 +3827,10 @@ section with the frame's shared sections. Candidate: a `structure` kind (opening
 rule and the shape counter's line, landing) and a `render` kind (opening, booked, lanes, a `render` section carrying the counter and
 the oracle's rungs, landing), each under the frame's ceiling, red first on 4008's and 4018's lines. Names no score; the loop's.
 
+ **4018's "for the Loop"** (the seventy-fifth tranche, 2026-11-08): the `render` kind's section names the render tests'
+preconditions — `RON_INSTALL` exported (a worktree has no `../../game`) and `uv` on the path for the unicorn oracle — or a lane
+reads a vacuous pass. Folded into this row; no new number.
+
 ## Loop, filed 2026-11-07 — the seventy-third pass's own
 
 **3996** (`tranche.py`'s `other` class names nothing, and it read 11.9 a session) — **built by the seventy-fourth pass, an Opus 5.5 subagent's, red first (`KeyError: 'other_heads'`; `tools/explore/test_tranche.py` 16 green): `tranche.py` names the call a wake waited on and prints the top three heads under a session whose `other` is 10 minutes or at or above its gate. The class was the suite under another spelling — `zsh tools/check.sh test` 127.9 of the seventy-third's 220.1 `other` minutes (58 %), `python3 -` heredocs chained to a test 32.6, `git` 17.8 — and the pass added `check.sh test` to the `suite` class: gate 18.2 · suite 10.1 · other 2.9 a session.** The row as filed: (3996) **`tranche.py`'s `other` class names nothing, and it read 11.9 a session** (the seventy-third pass, DECISIONS 113 §1):
