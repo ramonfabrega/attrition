@@ -465,12 +465,6 @@ clamped up to 0; `group.form = form`. `width = param_10`, or
   caller's angle stands, and `reverse = |find_angle(dx, dy) − angle| ≥ 90°`.
   The idiom is `0x3fffffff < d && d < 0xc0000001` at `707e09`–`707e1a`, so
   **both bounds are inclusive**;
-- `Form::categorize` → `Group::sort@00708090` (`:72`), **before** the
-  mirror test: a list with a follower first is killed and re-added, and
-  a kill that empties it runs `Group::clear(-1)`, so the `facing` the
-  test reads next is 0 and every back-pointer is −1 (item 4000,
-  `docs/GOLDEN.md` §190). `action_move_near` wrote `form` before the call
-  (`00704990:354`) and writes `ox`/`oy`/`o_angle` after it (`:464–466`);
 - if the leader's facing, **minus its slot's packed angle byte**, minus the
   given angle is `≥ 90°` by the same idiom, `group.facing` is **toggled**
   around the `Form::compute` call and toggled back afterwards — and the two
@@ -3225,7 +3219,12 @@ builds a stack group, which is never normalized, and pushes it.
 record's `+0x8 army` −1, and `Army::remove_group@006f8b50` takes off
 only a record that names the army. A group whose members died is
 pruned by `Group::normalize`, keeps the link and leaves the army, so
-the next join pushes (`GroupState::unlinked`).
+the next join pushes (`GroupState::unlinked`). And `compute_form`'s
+`Form::categorize` → `Group::sort` (`:72`) runs **before** §6.3's
+mirror test (`:103`): a sort that kills a follower-first list whole
+runs `Group::clear(-1)`, so the test reads `facing` 0 and every pointer
+is −1. `action_move_near` writes `form` before `compute_form`
+(`00704990:354`) and `ox`/`oy`/`o_angle` after it (`:464–466`).
 `Group::sort` runs where `Form::categorize` does, in
 `group_action_move_to`'s layout, after the `QUEUE_NEW` clear and before
 the order loop. So a member the sort brought in is decided by the
