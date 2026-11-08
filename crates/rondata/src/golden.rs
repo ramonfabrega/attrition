@@ -2657,6 +2657,10 @@ mod tests {
         // second Library then cancelled where it stands (item 3989,
         // `docs/GOLDEN.md` §182).
         ("chapter131.cmd", &[]),
+        // Chapter one hundred and thirty-two: a dock astride a border
+        // (`check_enemy_adjacent`'s ring), and a Fort's upgraded reach with a
+        // General inside (item 3992, `docs/GOLDEN.md` §185).
+        ("chapter132.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),
