@@ -7265,6 +7265,27 @@ mod tests {
         assert_eq!(patrol(&s, lone).len(), 1, "the lone Helicopter patrols");
     }
 
+    /// **A cast that is no pack or unpack is not busy** (item 3988,
+    /// `docs/GOLDEN.md` §181): `UnitData::is_busy@0060a370` asks the head
+    /// cast's spell type `is_pack`/`is_unpack` (vslots `+0x50`/`+0x54`), so
+    /// a lone member mid-Bribe takes the patrol over its cast and one
+    /// mid-Pack is passed over. run1546's Spy `0/6` on 1115.
+    #[test]
+    fn a_lone_member_mid_bribe_takes_the_patrol_and_one_mid_pack_does_not() {
+        use crate::orders::spell;
+        let mut s = sim();
+        let t = fighter(&mut s);
+        for (sp, patrols) in [(spell::BRIBE, true), (spell::PACK, false)] {
+            let u = spawn(&mut s, 0, t, Pos::new(10872, 7800));
+            s.add_cast_order_on(u, sp, None, Pos::new(-1, -1), QueuePos::New, true);
+            assert_eq!(s.is_busy(u), !patrols, "spell {sp:#x}");
+            let mut g = group_of(0, &[u]);
+            assert!(s.push_group(&mut g, true));
+            s.group_action_patrol(&g, Pos::new(11136, 11904), QueuePos::New);
+            assert_eq!(patrol(&s, u).len(), usize::from(patrols), "spell {sp:#x}");
+        }
+    }
+
     /// `Unit::do_patrol@005f1910` on the leader steps the waypoint and
     /// hands the group an attack-move `QUEUE_FIRST`; the group's
     /// `QUEUE_FIRST` halts the members and `redo_patrol_order@00706d90`
