@@ -2460,7 +2460,10 @@ impl Sim {
             }
             (want, dist)
         } else {
-            (self.strike_altitude(u, dx, dy, cruise, ahead) + ahead, 0x240)
+            (
+                self.strike_altitude(u, dx, dy, cruise, ahead) + ahead,
+                0x240,
+            )
         };
         let want = if animal {
             want
@@ -3714,7 +3717,11 @@ mod launch_tests {
     fn a_strafing_type_on_a_strike_wants_half_its_cruising_altitude() {
         let mut s = sim();
         let (u, target, dx, dy) = striking_fighter(&mut s, true);
-        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 0), 800, "half, on a strike");
+        assert_eq!(
+            s.strike_altitude(u, dx, dy, 1600, 0),
+            800,
+            "half, on a strike"
+        );
         let mut plain = sim();
         let (v, _, vdx, vdy) = striking_fighter(&mut plain, false);
         assert_eq!(
@@ -3724,7 +3731,11 @@ mod launch_tests {
         );
         let h = s.units[u].movement.heading;
         s.units[u].movement.heading = Angle(h.0.wrapping_add(0x4000_0000));
-        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 0), 800, "90° off is inside");
+        assert_eq!(
+            s.strike_altitude(u, dx, dy, 1600, 0),
+            800,
+            "90° off is inside"
+        );
         s.units[u].movement.heading = Angle(h.0.wrapping_add(0x4000_0000 + 0x100_0000));
         assert_eq!(
             s.strike_altitude(u, dx, dy, 1600, 0),
@@ -3738,6 +3749,44 @@ mod launch_tests {
             1300,
             "no target, the whole"
         );
+    }
+
+    /// **A strike on a flying target wants that target's height** (item
+    /// 3991, `docs/GOLDEN.md` §184; `pitch_aircraft`, `0x5e9114`–`0x5e9206`):
+    /// the target figure's `z`, plus `min(300, max(0, (0x600 − dist)·5))`
+    /// when its object number is below the striker's — or, equal, its
+    /// owner is — and less it otherwise; over the ground ahead. Made to
+    /// fail with the arm dropped (the whole cruise comes back) and with the
+    /// comparison's sense turned (the second and third swap).
+    #[test]
+    fn a_strike_on_a_flying_target_wants_that_target_s_height() {
+        let mut s = sim();
+        let (u, _, _, _) = striking_fighter(&mut s, true);
+        let ty = s.units[u].ty.unwrap();
+        let mut e = Unit::new(1, s.units[u].index, Pos::new(11424, 12000), 100);
+        e.ty = Some(ty);
+        e.on_map = true;
+        let e = s.add_unit(e);
+        s.units[e].airframe.z = 700;
+        if let Some(Body::Strafe(sf)) = s.units[u].orders.front_mut().map(|o| &mut o.body) {
+            sf.target = Some(Obj::Unit(e));
+        }
+        let (dx, dy) = (0, -0x200);
+        s.units[u].movement.heading = crate::movement::find_angle(dx, dy);
+        // Equal numbers, the target's owner above: less 300, over 40.
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 40), 700 - 300 - 40);
+        // The target's number below the striker's: plus.
+        s.units[e].index = s.units[u].index - 1;
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 40), 700 + 300 - 40);
+        // Above: less; and from 0x5a0 off, 0x60 · 5 = 480 caps at 300, 0x600 off gives 0.
+        s.units[e].index = s.units[u].index + 1;
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 0), 400);
+        assert_eq!(
+            s.strike_altitude(u, 0, -0x600, 1600, 0),
+            700,
+            "no offset at 0x600"
+        );
+        assert_eq!(s.strike_altitude(u, 0, -0x5f0, 1600, 0), 700 - 80);
     }
 
     /// **run265's 798**: the Fighter at pitch 40 and `z` 677 comes down

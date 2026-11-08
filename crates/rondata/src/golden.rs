@@ -2662,6 +2662,11 @@ mod tests {
         // and a Helicopter ordered into its own Airbase (item 3990,
         // `docs/GOLDEN.md` §183).
         ("chapter132.cmd", &[]),
+        // Chapter one hundred and thirty-four: land-based air, the second
+        // three — a mixed strike's split, a Fighter's strike on an enemy
+        // plane, and a flight home refused by ten homed planes (item 3991,
+        // `docs/GOLDEN.md` §184).
+        ("chapter134.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),

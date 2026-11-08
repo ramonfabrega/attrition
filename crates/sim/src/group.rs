@@ -47,7 +47,6 @@ use crate::world::{Pos, vector_dist};
 const GROUP_LOC_NEAR: i32 = 0x180;
 use crate::{Player, Sim};
 
-
 /// The flight command's `orders` (`docs/ORDERS.md` §32): `MOVE_TO` (1),
 /// home to one's own base, or `ATTACK` (10), at an enemy.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -8863,5 +8862,69 @@ mod tests {
              record dumped after this click shows the last layout's flag \
              until the leader turns again"
         );
+    }
+
+    /// **A flight home counts the planes homed on the base, flying too**
+    /// (item 3991, `docs/GOLDEN.md` §184): `Group::action_flight@006fb260`'s
+    /// `MOVE_TO` gate asks `ObjectData::can_carry@006483c0` of each member,
+    /// whose room is `num_aircraft_here(0) < 10` — every plane whose home
+    /// is the base, standing in it or not. Ten planes ordered home together
+    /// fill it with none inside, so an eleventh is refused, while one of the
+    /// ten, its own home, is still pointed home. Made to fail with the room
+    /// counting the garrison (the eleventh takes a strafe).
+    #[test]
+    fn a_flight_home_is_refused_by_ten_homed_planes_none_of_them_inside() {
+        let mut s = sim();
+        let (base, _) = airbase_and_target(&mut s);
+        let t = flier(&mut s, false);
+        let ten: Vec<usize> = (0..10)
+            .map(|i| spawn(&mut s, 0, t, Pos::new(11616 + 96 * i, 16224)))
+            .collect();
+        s.group_action_flight(&group_of(0, &ten), Obj::Building(base), Flight::Home);
+        assert!(ten.iter().all(|&u| s.home_base(u) == Some(base)));
+        assert!(s.buildings[base].garrison.is_empty(), "none inside");
+        assert_eq!(s.aircraft_homed(base), 10);
+        let late = spawn(&mut s, 0, t, Pos::new(10104, 16248));
+        s.group_action_flight(
+            &group_of(0, &[late, ten[0]]),
+            Obj::Building(base),
+            Flight::Home,
+        );
+        assert!(s.units[late].orders.is_empty(), "the eleventh is refused");
+        assert!(
+            matches!(s.units[ten[0]].orders.front().map(|o| o.body),
+                Some(Body::Strafe(sf)) if sf.home == Some(base) && sf.returning),
+            "its own home still takes it"
+        );
+    }
+
+    /// **A strike on a mixed group splits** (item 3991, `docs/GOLDEN.md`
+    /// §184; `Group::action_flight@006fb260`, `6fb3f9`..`6fb53f`): the
+    /// members that are not planes (`UnitData::is_plane`, so a helicopter
+    /// among them) take `action_attack(o, whom, mandatory 1, QUEUE_NEW)` on
+    /// the target, and the planes are flown alone — the one inside its base
+    /// takes its strike. Made to fail with the split dropped (the ground
+    /// member and the helicopter take nothing).
+    #[test]
+    fn a_strike_on_a_mixed_group_sends_the_rest_to_attack() {
+        let mut s = sim();
+        let (base, _) = airbase_and_target(&mut s);
+        let pt = flier(&mut s, false);
+        let ht = flier(&mut s, true);
+        let ft = fighter(&mut s);
+        let foe = spawn(&mut s, 1, ft, Pos::new(15360, 16000));
+        let p = spawn(&mut s, 0, pt, Pos::new(11616, 13920));
+        s.units[p].on_map = false;
+        s.units[p].inside = Some(base);
+        s.buildings[base].garrison.push(p);
+        let h = spawn(&mut s, 0, ht, Pos::new(14000, 16000));
+        let g = spawn(&mut s, 0, ft, Pos::new(14400, 16000));
+        s.group_action_flight(&group_of(0, &[p, h, g]), Obj::Unit(foe), Flight::Strike);
+        for u in [h, g] {
+            let o: Vec<u8> = s.units[u].orders.iter().map(|o| o.index()).collect();
+            assert_eq!(o, [index::ATTACK], "{u}: one attack");
+            assert_eq!(s.units[u].combat.target, Some(Obj::Unit(foe)));
+        }
+        assert!(!s.units[p].orders.is_empty(), "the plane takes its strike");
     }
 }

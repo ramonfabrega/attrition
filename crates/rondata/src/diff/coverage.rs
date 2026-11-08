@@ -858,6 +858,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch130 = golden_dump("ch130");
     let ch131 = golden_dump("ch131");
     let ch132 = golden_dump("ch132");
+    let ch134 = golden_dump("ch134");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3210,6 +3211,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 795,
             "chapter one hundred and thirty-two carries 795 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirty-four, on run1549** (item 3991): a
+    // mixed strike's split, a Fighter's strike on an enemy plane, and a
+    // flight home refused by an Airbase's ten homed planes.
+    if let Some(p) = &ch134 {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR;
+        let n = drive_capture(p, 605, 1400, &mut paths);
+        assert_eq!(
+            n, 795,
+            "chapter one hundred and thirty-four carries 795 blocks in the window"
         );
         frames += n;
     }
