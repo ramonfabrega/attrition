@@ -7,6 +7,7 @@ one worker's shape: a turn that backgrounds a gate and ends, the gap, the
 re-invocation that reads the log — the gap is waiting, and its class is the
 gate, not the `tail` that came last.
 """
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -111,6 +112,106 @@ class Fold(unittest.TestCase):
         ]}
         row = tranche.fold(trace, gap_s=90, deep_k=300)
         self.assertEqual(row['on'], {'subagent': 30.0})
+
+
+
+def bg(ts, command, request, task):
+    """A Bash call the harness backgrounded: its result names the task id."""
+    return {'tool': 'Bash', 'input': json.dumps({'command': command, 'run_in_background': True}), 'ts': ts,
+            'ms': 50, 'error': False, 'requestId': request,
+            'result': 'Command running in background with ID: %s. Output is being written to: '
+                      '/private/tmp/claude-501/x/s/tasks/%s.output' % (task, task)}
+
+
+class OtherHeads(unittest.TestCase):
+    """Loop 3996 (the seventy-third pass, DECISIONS 113 §1): `other` read 11.9
+    minutes a session, 3965's session waited 82.7 minutes in it, and the table
+    could not say whether it was a reading, a subagent, a packet or a sleep.
+    The heads line names the waited call's head under the class — the
+    backgrounded call whose output the wake read, else the last call."""
+
+    def trace(self):
+        t0 = '2026-11-08T09:56:00.000Z'
+        t1 = '2026-11-08T10:14:00.000Z'
+        t2 = '2026-11-08T10:30:00.000Z'
+        t3 = '2026-11-08T10:40:00.000Z'
+        return {'transactions': [
+            {'ts': t0, 'kind': 'prompt', 'requests': [req(t0)],
+             'instructions': [bg('2026-11-08T09:56:01.000Z',
+                                 'RON_INSTALL=~/game zsh tools/check.sh test --release -p rondata --lib > '
+                                 '$CLAUDE_JOB_DIR/tmp/full.log 2>&1', t0, 'bxiul41l3')]},
+            # The wake reads the task's output file, stamped with the wake
+            # request's own ts: the waited call is the backgrounded suite,
+            # not the `cat` (6532f55d's 17.6 minutes).
+            {'ts': t1, 'kind': 'prompt', 'requests': [req(t1)],
+             'instructions': [ins(t1, 'cat /private/tmp/claude-501/x/s/tasks/bxiul41l3.output | head -60', t1),
+                              ins('2026-11-08T10:14:05.000Z',
+                                  'export PATH=/x:$PATH; cd /a && T=$CLAUDE_JOB_DIR/tmp; '
+                                  'python3 -I tools/cant_reach_pins.py $T/full.log', t1)]},
+            {'ts': t2, 'kind': 'prompt', 'requests': [req(t2)],
+             'instructions': [{'tool': 'Write', 'input': '{"file_path":"/x/golden180.md","content":"## 180."}',
+                               'ts': '2026-11-08T10:30:01.000Z', 'ms': 13, 'error': False, 'result': '',
+                               'requestId': t2}]},
+            {'ts': t3, 'kind': 'prompt', 'requests': [req(t3)], 'instructions': []},
+        ]}
+
+    def test_the_heads_name_what_the_other_minutes_waited_on(self):
+        row = tranche.fold(self.trace(), gap_s=90, deep_k=300)
+        self.assertEqual(row['on'], {'other': 44.0})
+        self.assertEqual(row['other_heads'], {'zsh check.sh': 18.0, 'python3 cant_reach_pins.py': 16.0,
+                                              'Write': 10.0})
+
+    def test_a_peek_at_a_running_task_does_not_hide_it_from_the_wake_that_reads_it(self):
+        # d9275b73's 13.5 minutes read as `Edit`: the lane `tail`ed the
+        # suite's output file mid-run, then edited, then ended its turn; the
+        # wake's `cat` of the same file names the suite.
+        t0, t1, t2 = '2026-11-08T03:30:00.000Z', '2026-11-08T03:31:40.000Z', '2026-11-08T03:45:31.000Z'
+        out = '/private/tmp/claude-501/x/s/tasks/bix1abc.output'
+        trace = {'transactions': [
+            {'ts': t0, 'kind': 'prompt', 'requests': [req(t0)],
+             'instructions': [bg('2026-11-08T03:30:01.000Z', 'zsh tools/check.sh test --release', t0, 'bix1abc')]},
+            {'ts': t1, 'kind': 'meta', 'requests': [req(t1)],
+             'instructions': [ins('2026-11-08T03:31:45.000Z', 'tail -5 ' + out, t1),
+                              {'tool': 'Edit', 'input': '{"file_path":"docs/SUPPLY.md"}',
+                               'ts': '2026-11-08T03:31:55.000Z', 'requestId': t1}]},
+            {'ts': t2, 'kind': 'meta', 'requests': [req(t2)],
+             'instructions': [ins(t2, 'cat ' + out, t2)]},
+        ]}
+        row = tranche.fold(trace, gap_s=90, deep_k=300)
+        self.assertEqual(row['other_heads'], {'zsh check.sh': 15.5})
+
+    def test_a_large_other_prints_its_heads_line_and_a_small_one_does_not(self):
+        row = tranche.fold(self.trace(), gap_s=90, deep_k=300)
+        self.assertEqual(tranche.other_heads_line(row),
+                         '         other: zsh check.sh 18.0 · python3 cant_reach_pins.py 16.0 · Write 10.0')
+        # Under the 10-minute floor and under the gate's: no line.
+        small = {'on': {'gate': 30.0, 'other': 4.0}, 'other_heads': {'cat': 4.0}}
+        self.assertIsNone(tranche.other_heads_line(small))
+        # At or above the gate's and over the 2-minute floor: a line.
+        self.assertEqual(tranche.other_heads_line({'on': {'gate': 3.0, 'other': 3.0}, 'other_heads': {'git': 3.0}}),
+                         '         other: git 3.0')
+        self.assertIsNone(tranche.other_heads_line({'on': {'other': 1.9}, 'other_heads': {'git': 1.9}}))
+
+    def test_a_command_s_head(self):
+        for command, head in [('export A=1; cd /x && T=$J/tmp; grep -c x y', 'grep'),
+                              ('RON_INSTALL=~/g zsh tools/check.sh test --release', 'zsh check.sh'),
+                              ("python3 - <<'PYEOF'\np=1\nPYEOF", 'python3 -'),
+                              ('python3 -I tools/nations_census.py --check', 'python3 nations_census.py'),
+                              ('uv run tools/emu/callfn.py 0x1', 'uv callfn.py'),
+                              ('/usr/bin/git -C . log', 'git'),
+                              ('sleep 600 && tail x', 'sleep')]:
+            self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': json.dumps({'command': command})}),
+                             head, command)
+        # A loop's head is its body's first command.
+        self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': json.dumps(
+            {'command': 'for f in a b; do cargo test -q $f; done'})}), 'cargo')
+        # `lore trace --head 200` cuts the input mid-string: the prefix still names the head.
+        cut = json.dumps({'command': 'RON_INSTALL=~/code/fun/attrition/game zsh tools/check.sh test ' + 'x' * 300})
+        self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': cut[:200]}), 'zsh check.sh')
+        self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': '{"command":"cd /a && python3 -I tools/x.py \\"q'}),
+                         'python3 x.py')
+        self.assertEqual(tranche.head_of({'tool': 'Monitor', 'input': '{}'}), 'Monitor')
+        self.assertEqual(tranche.head_of(None), '?')
 
 
 if __name__ == '__main__':
