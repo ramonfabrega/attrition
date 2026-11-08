@@ -276,7 +276,10 @@ it needs on demand.
 
 **Choice: decoders in `rondata`.** *Alternative:* a separate `ronart` crate,
 so that the format readers do not lengthen the release suite's build. Take it
-if the decoders grow large.
+if the decoders grow large. *Amended by item 4019:* the decoders read bytes
+in `render` (`bh3`, `bha`), which depends on nothing. `rondata`, which
+depends on `sim`, opens the install, resolves the files and surveys them.
+So the client can decode without reaching `sim`.
 
 ### 3.2 What `docs/FORMATS.md` establishes, format by format
 
@@ -285,8 +288,8 @@ The file counts below come from listing the install, 2026-11-06.
 | format | where | established | not established |
 |---|---|---|---|
 | BIG archives | — | **Absent**: the Extended Edition ships unpacked (FORMATS, "Verified: the shipped install") | nothing is needed |
-| `.BHa` animation (2,062 in `art/`) | `rondata::artdata` | The chunk container (`{u32 size; u16 id; u16 version}`, size measured from the size field); three nested headers; the root `AnimObj` node's 36-byte keys, whose first `f32` is the key's duration; frames = `round(times·3/200)`, as in `AnimMgr::force_load@0053ade0` and `AnimObj::load_hier@0054b700`. The lengths are diff-backed against `DUMP_ALL` `end_time`. | The rest of each 36-byte key, the child nodes' key arrays and the bone hierarchy (FORMATS, "What is not read"). |
-| `.BH3` model (1,524 in `art/`, 323 in `terrain art/`) | — | Which file a piece plays: `unit_graphics.xml` `<UNIT … model="…bh3">` per piece (ANIM §3.2), plus restriction and track attributes `rondata` reads. | **The whole on-disk encoding.** The PDB describes the structures and not their bytes (FORMATS, "Prior art"). ptasev's converter reads and writes it, and is the reference for reading. |
+| `.BHa` animation (2,062 in `art/`) | `render::bha`, `rondata::artdata` | The chunk container (`{u32 size; u16 id; u16 num_chunks}`); the root node's durations, frames = `round(times·3/200)`, as in `AnimMgr::force_load@0053ade0` and `AnimObj::load_hier@0054b700`, diff-backed against `DUMP_ALL` `end_time`. **Since item 4019, the whole file**: the node tree, every node's 36-byte keys (duration, quaternion, translation, one unread word), the skipped roots and `id 10` tracks; 2,062 of 2,062 decode (FORMATS, "The model files"). | The key's ninth word, the `id 10` element, and how a tree binds to a model it does not match. |
+| `.BH3` model (1,524 in `art/`, 323 in `terrain art/`) | `render::bh3`, `rondata::artdata` | **Since item 4019, the encoding**: vertices, normals, texcoords, faces and the node tree, as `BH3Method::load_bh3@009156f0` reads them, self-checking; 1,845 of 1,847 decode, and the two that fail are named (FORMATS, "The model files"). Which file a piece plays: `<UNIT … model="…bh3">` (`artdata::unit_art`). | The normals' fourth word, and the transform fields compared against a loaded `HierObj`. |
 | `.tga` texture (2,171 in `art/`, 730 in `terrain art/`) | `rondata::mountains` | Type 10 (run-length), 32-bit, descriptor `0x08`, bottom row first: the mountain templates (FORMATS, "The mountain templates"). | Every other TGA variant the install uses, which textures a model binds, and how terrain textures map to land types. |
 | `.png` (16 in `terrain art/`) | — | The extension only. | Their role. |
 | `unit_graphics.xml`, `anim_graphics.xml` | `rondata::artdata` | Piece → animation slot → `.bha` file, looping or not. | Material, scale and attachment attributes beyond those read. |
@@ -728,6 +731,12 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
   source.
 - *Score:* the §5.4 K, now with both conditions, rising per piece decoded.
 - *Needs from `sim`:* nothing new.
+- *Built by item 4019*, the decode half: `render::bh3`/`bha` and
+  `artdata::unit_art`/`piece_decoding`. **Pieces decoding 1,439 of 1,452**
+  (`artdata::PIECES_DECODING`), the 13 short named by file. The decoders
+  sit in `render` rather than `rondata` (§3.1's choice is amended):
+  `rondata` depends on `sim`, `render` must not, and `rondata` now
+  depends on `render`.
 
 **5. First pixels.**
 

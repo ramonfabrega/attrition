@@ -15640,13 +15640,18 @@ words and edits nothing here; a refill lands when two remain.
   unread. `Camera::compute_clip_planes@00842950` was stubbed in the oracle, not read. A replay viewer takes the
   packet's camera until the draw list (`docs/RENDERER.md` §6 item 3) needs culling. It names no score.
 
-## Parked by the next landing, slot DJ — reserved
+## Parked by item 4019, 2026-11-08 — the models' binding and transforms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4019a. How an animation binds to a model whose tree it does not match** (`docs/FORMATS.md`, "The model files",
+  "What is not established"). Of the 1,439 decoded pieces, 801 have every played `.bha` tree equal in shape to the
+  `.bh3`'s (`artdata::SAME_SHAPE`). The citizen's `peasant.bh3` has 29 nodes, and `man_walk.bha` has 27: the same
+  tree without the two `ammo node` leaves. The binding is in the code that walks a `HierObj` tree against an
+  `AnimObj` tree (`HierObj::iKey1`/`iKey2` are candidates), which is unread. It names no score until animation
+  poses are drawn (`docs/RENDERER.md` §6, "After these").
+- **4019b. The node and key transforms against a loaded `HierObj`** (`docs/FORMATS.md`, "The model files"). Which
+  float is the quaternion and which the translation, the component order, the truncation and `start`/`num` as a
+  vertex run all rest on reading alone. A packet holding a loaded unit's `HierarchyPacket` would back them. It
+  names no score until a mesh is drawn (§6 item 5).
 
 ## Parked by the next landing, slot DK — reserved
 

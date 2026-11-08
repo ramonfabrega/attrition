@@ -1033,6 +1033,202 @@ pub fn game_frames(times: &[u16], looping: bool) -> u32 {
     n / 200 + u32::from(n % 200 * 2 >= 200)
 }
 
+/// One `<UNIT>` entry's art: the model it loads and the animation each of
+/// its slots names (`docs/FORMATS.md` §3, "From a piece to its files").
+///
+/// `GraphicPieces` loads an entry's `model=` as the piece's `.BH3` and
+/// builds its `AnimationPacket` from the `<ANIM>` rows, each name resolved
+/// through `anim_graphics.xml` as [`anim_files`] does. An entry is every
+/// piece [`entry_pieces`] gives it, so pieces sharing an entry share its
+/// files.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct UnitArt {
+    pub name: String,
+    /// `model=`, as the XML writes it (`.\art\minigun_gunner.bh3`).
+    pub model: String,
+    /// `(slot, the name the row cites, its file if anim_graphics names it)`.
+    pub anims: Vec<(i8, String, Option<String>)>,
+    /// The graphic pieces the entry is; empty when it is none.
+    pub pieces: Vec<i32>,
+}
+
+/// Every `<UNIT>` entry's [`UnitArt`], in name order. `graphs` is the
+/// `GRAPH` column, as [`piece_lengths`] takes it. Empty when either XML is
+/// unreadable.
+pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
+    let apath = install.data("anim_graphics.xml");
+    let upath = install.data("unit_graphics.xml");
+    let (Ok(atext), Ok(utext)) = (crate::read(&apath), crate::read(&upath)) else {
+        return Vec::new();
+    };
+    let (Ok(adoc), Ok(udoc)) = (crate::parse(&apath, &atext), crate::parse(&upath, &utext)) else {
+        return Vec::new();
+    };
+    let files = anim_files(&adoc);
+    let units = unit_anims(&udoc);
+    let by_graph = graph_types(graphs);
+    let mut out = Vec::new();
+    for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
+        let (Some(name), Some(model)) = (u.attribute("name"), u.attribute("model")) else {
+            continue;
+        };
+        let name = name.trim().to_string();
+        let anims = units
+            .get(&name)
+            .into_iter()
+            .flatten()
+            .map(|(slot, anim)| {
+                let file = files.get(&anim_key(anim)).map(|(f, _)| f.clone());
+                (*slot, anim.clone(), file)
+            })
+            .collect();
+        let pieces = entry_pieces(&name, &by_graph).unwrap_or_default();
+        out.push(UnitArt {
+            name,
+            model: model.trim().to_string(),
+            anims,
+            pieces,
+        });
+    }
+    out.sort_by(|a, b| a.name.cmp(&b.name));
+    out
+}
+
+/// Why one file did not decode, by the path the XML writes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ArtFailure {
+    /// No file in the install answers the path, in any case.
+    Missing(String),
+    /// The file is there and the decoder names what is wrong with it.
+    Undecodable(String, String),
+    /// A slot cites an animation `anim_graphics.xml` does not name.
+    Unnamed(String),
+}
+
+/// The pieces the resolution names, and how many decode whole
+/// ([`piece_decoding`]).
+#[derive(Clone, Debug, Default)]
+pub struct PieceDecoding {
+    /// Distinct pieces with an entry: the N.
+    pub pieces: usize,
+    /// Those whose model and every slot's animation decode: the K.
+    pub decoded: usize,
+    /// Entries read, and entries that are at least one piece.
+    pub entries: usize,
+    pub entries_with_pieces: usize,
+    /// Pieces whose model's node tree and every played animation's have
+    /// the same shape (a count beside K, never part of it).
+    pub same_shape: usize,
+    /// Every failing file, with the pieces it costs.
+    pub failures: BTreeMap<String, (ArtFailure, usize)>,
+}
+
+/// **Pieces decoding: K of N** (item 4019; `docs/RENDERER.md` §5.4's
+/// condition 1). N is the distinct graphic pieces a `<UNIT>` entry is
+/// ([`unit_art`]); a piece counts toward K when its `.bh3` and every `.bha`
+/// its slots name decode under `render`'s readers. Measured on the user's
+/// install by [`piece_decoding`] (`the_pieces_decode`): 1,452 pieces from
+/// 1,399 of 1,435 entries, 13 short — three slots name a `.bha` the
+/// install does not ship (`armsuplytruck_attackwalk`, `ceo_crew3_idle3`,
+/// `siegeship_ship_walk`: 14 pieces' worth, overlapping) and one model,
+/// `citizen6_fem_NA.bh3`, has a node run past its vertices. New, so no
+/// delta.
+pub const PIECES_DECODING: (usize, usize) = (1439, 1452);
+
+/// Of [`PIECES_DECODING`]'s K, the pieces whose model's node tree and every
+/// played animation's tree have the same shape — beside K, never part of
+/// it; what the other 638 mean is the next render item's question
+/// (`docs/FORMATS.md` §3, "What is not established").
+pub const SAME_SHAPE: usize = 801;
+
+/// Resolve every entry's files and decode each once: `K of N`, and every
+/// file that costs a piece named with its reason.
+pub fn piece_decoding(install: &Install, graphs: &[String]) -> PieceDecoding {
+    let mut models: BTreeMap<String, Result<render::bh3::Model, ArtFailure>> = BTreeMap::new();
+    let mut anims: BTreeMap<String, Result<render::bha::Anim, ArtFailure>> = BTreeMap::new();
+    let read = |rel: &str| -> Result<Vec<u8>, ArtFailure> {
+        let path = resolve(install.root(), rel).ok_or_else(|| ArtFailure::Missing(rel.into()))?;
+        std::fs::read(path).map_err(|_| ArtFailure::Missing(rel.into()))
+    };
+    let mut out = PieceDecoding::default();
+    let mut seen = std::collections::BTreeSet::new();
+    for e in unit_art(install, graphs) {
+        out.entries += 1;
+        if e.pieces.is_empty() {
+            continue;
+        }
+        out.entries_with_pieces += 1;
+        let model = models
+            .entry(e.model.clone())
+            .or_insert_with(|| {
+                let b = read(&e.model)?;
+                render::bh3::decode(&b)
+                    .map_err(|err| ArtFailure::Undecodable(e.model.clone(), err.to_string()))
+            })
+            .clone();
+        let mut fails: Vec<(String, ArtFailure)> = Vec::new();
+        let mut shapes_agree = true;
+        match &model {
+            Ok(_) => {}
+            Err(f) => fails.push((e.model.clone(), f.clone())),
+        }
+        for (_, anim, file) in &e.anims {
+            let Some(file) = file else {
+                fails.push((anim.clone(), ArtFailure::Unnamed(anim.clone())));
+                continue;
+            };
+            let a = anims.entry(file.clone()).or_insert_with(|| {
+                let b = read(file)?;
+                render::bha::decode(&b)
+                    .map_err(|err| ArtFailure::Undecodable(file.clone(), err.to_string()))
+            });
+            match (a, &model) {
+                (Ok(a), Ok(m)) => shapes_agree &= a.shape() == m.shape(),
+                (Ok(_), Err(_)) => shapes_agree = false,
+                (Err(f), _) => fails.push((file.clone(), f.clone())),
+            }
+        }
+        let fresh = e.pieces.iter().filter(|p| seen.insert(**p)).count();
+        out.pieces += fresh;
+        if fails.is_empty() {
+            out.decoded += fresh;
+            out.same_shape += if shapes_agree { fresh } else { 0 };
+        }
+        for (key, f) in fails {
+            out.failures.entry(key).or_insert((f, 0)).1 += fresh;
+        }
+    }
+    out
+}
+
+/// Every `.bh3` and `.bha` under `art/` and `terrain art/`, by path —
+/// the denominator nobody chose (`docs/RENDERER.md` §5.2).
+pub fn art_files(install: &Install, ext: &str) -> Vec<PathBuf> {
+    fn walk(dir: &Path, ext: &str, out: &mut Vec<PathBuf>) {
+        let Ok(rd) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for e in rd.flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                walk(&p, ext, out);
+            } else if p
+                .extension()
+                .and_then(|x| x.to_str())
+                .is_some_and(|x| x.eq_ignore_ascii_case(ext))
+            {
+                out.push(p);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    for d in ["art", "terrain art"] {
+        walk(&install.root().join(d), ext, &mut out);
+    }
+    out.sort();
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1087,6 +1283,127 @@ mod tests {
         let lengths = piece_lengths(&inst, &graphs);
         assert!(lengths.contains_key(&10), "CARADUTCH's age-0 piece");
         assert!(lengths.contains_key(&12682), "and its crew's");
+    }
+
+    fn graphs(inst: &Install) -> Vec<String> {
+        inst.units()
+            .expect("unitrules.xml")
+            .records
+            .iter()
+            .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+            .collect()
+    }
+
+    /// **Every model and animation file the install ships is read whole
+    /// but two** (item 4019, `docs/FORMATS.md` §3): 1,845 of 1,847 `.bh3`
+    /// under `art/` and `terrain art/`, and 2,062 of 2,062 `.bha`. The two
+    /// models carry a node whose vertex run passes the vertex array — the
+    /// original `memcpy`s and never checks — and they are named here, so a
+    /// third fails by name rather than by count.
+    #[test]
+    fn every_model_and_animation_the_install_ships_decodes_but_two() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let mut failed = Vec::new();
+        let models = art_files(&inst, "bh3");
+        for f in &models {
+            if let Err(e) = render::bh3::decode(&std::fs::read(f).unwrap()) {
+                let name = f.file_name().unwrap().to_string_lossy().to_string();
+                failed.push((name, e.reason));
+            }
+        }
+        let anims = art_files(&inst, "bha");
+        let mut anim_failed = Vec::new();
+        for f in &anims {
+            if let Err(e) = render::bha::decode(&std::fs::read(f).unwrap()) {
+                anim_failed.push(format!("{}: {e}", f.display()));
+            }
+        }
+        assert_eq!((models.len(), anims.len()), (1847, 2062), "the files read");
+        use render::chunk::Reason::RangePastVerts;
+        assert_eq!(
+            failed,
+            [
+                (
+                    "citizen6_fem_Na.BH3".to_string(),
+                    RangePastVerts {
+                        start: 219,
+                        num: 21,
+                        verts: 237
+                    }
+                ),
+                (
+                    "granary_3kz.BH3".to_string(),
+                    RangePastVerts {
+                        start: 0,
+                        num: 104,
+                        verts: 58
+                    }
+                ),
+            ]
+        );
+        assert!(anim_failed.is_empty(), "{anim_failed:#?}");
+    }
+
+    /// **The whole reader and the simulation's agree on every animation**:
+    /// `render::bha`'s first root's times are `key_times`' — which is
+    /// diff-backed against every dumped `end_time` — on all 2,062 files.
+    #[test]
+    fn the_whole_animation_reader_agrees_with_key_times() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let files = art_files(&inst, "bha");
+        assert_eq!(files.len(), 2062);
+        for f in &files {
+            let b = std::fs::read(f).unwrap();
+            let whole = render::bha::decode(&b).expect("every .bha decodes");
+            assert_eq!(
+                Some(whole.nodes[0].times()),
+                key_times(&b),
+                "{}",
+                f.display()
+            );
+        }
+    }
+
+    /// **Pieces decoding, K of N** — the renderer's first score
+    /// ([`PIECES_DECODING`]). Every failing file is named with the pieces
+    /// it costs, so a change says which file moved.
+    #[test]
+    fn the_pieces_decode() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let d = piece_decoding(&inst, &graphs(&inst));
+        let failures: Vec<(String, usize)> = d
+            .failures
+            .iter()
+            .map(|(k, (_, n))| (k.clone(), *n))
+            .collect();
+        eprintln!(
+            "pieces decoding {} of {}; {} of {} entries are pieces; same shape {}; {failures:?}",
+            d.decoded, d.pieces, d.entries_with_pieces, d.entries, d.same_shape
+        );
+        assert_eq!((d.decoded, d.pieces), PIECES_DECODING);
+        assert_eq!(
+            failures,
+            [
+                (".\\art\\armsuplytruck_attackwalk.bha".to_string(), 1),
+                (".\\art\\ceo_crew3_idle3.bha".to_string(), 10),
+                (".\\art\\citizen6_fem_NA.bh3".to_string(), 1),
+                (".\\art\\siegeship_ship_walk.bha".to_string(), 3),
+            ]
+        );
+        assert!(matches!(
+            d.failures[".\\art\\ceo_crew3_idle3.bha"].0,
+            ArtFailure::Missing(_)
+        ));
+        assert_eq!(d.same_shape, SAME_SHAPE);
     }
 
     /// **Every turn slot the install ships names a looping file** (item

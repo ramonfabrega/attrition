@@ -823,6 +823,50 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         ),
     );
 
+    // The model files (`docs/FORMATS.md` §3, "The model file" and "The
+    // animation file"): every `.bh3` and `.bha` the install ships, read
+    // whole by `render`'s self-checking decoders — sizes summing to the
+    // file, every container's `num_chunks` its child count, faces and node
+    // runs inside the vertex array — and the pieces whose files all decode.
+    let decodes = |ext: &str| {
+        let files = rondata::artdata::art_files(install, ext);
+        let ok = files
+            .iter()
+            .filter(|f| {
+                std::fs::read(f).is_ok_and(|b| match ext {
+                    "bh3" => render::bh3::decode(&b).is_ok(),
+                    _ => render::bha::decode(&b).is_ok(),
+                })
+            })
+            .count();
+        (ok, files.len())
+    };
+    let (bh3, bha) = (decodes("bh3"), decodes("bha"));
+    let graphs: Vec<String> = install
+        .units()?
+        .records
+        .iter()
+        .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+        .collect();
+    let pieces = rondata::artdata::piece_decoding(install, &graphs);
+    failures += check(
+        "the install's models and animations decode whole",
+        bh3 == (1845, 1847)
+            && bha == (2062, 2062)
+            && (pieces.decoded, pieces.pieces) == rondata::artdata::PIECES_DECODING,
+        &format!(
+            ".bh3 {} of {} (1845 of 1847), .bha {} of {} (2062 of 2062); \
+             pieces decoding {} of {} ({:?})",
+            bh3.0,
+            bh3.1,
+            bha.0,
+            bha.1,
+            pieces.decoded,
+            pieces.pieces,
+            rondata::artdata::PIECES_DECODING
+        ),
+    );
+
     // The claim that forces index-keyed loading. If this ever comes back
     // empty, name-keying would be safe and decision 9 deserves revisiting.
     let dups = rules.constants.duplicate_tags();
