@@ -2091,3 +2091,63 @@ fn run1066_s_carrier_queue_parts_against_the_crate_s_zero() {
     );
     assert_eq!(parted.last(), Some(&(816, 0, 14, 1, 20300)));
 }
+
+/// run1066's staging, `tools/gamelog/coverage/carrier3446.cmd`, read from
+/// the tree (item 3981).
+pub(crate) fn carrier_script() -> crate::golden::Script {
+    let path = format!(
+        "{}/../../tools/gamelog/coverage/carrier3446.cmd",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    crate::golden::Script::read(std::path::Path::new(&path))
+        .unwrap_or_else(|e| panic!("tools/gamelog/coverage/carrier3446.cmd: {e}"))
+}
+
+/// **run1066's staging, walked** (item 3981): the coverage pair's start
+/// stood up with the carrier's script staged by the harness's own tick, to
+/// `RON_CARRIER_STAGE` (default 830). Prints what each line did and the
+/// carrier's queue on each frame it moves.
+#[test]
+fn carrier_staging_walk() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some(path) = dump(COVERAGE.start) else {
+        return;
+    };
+    let to: i64 = std::env::var("RON_CARRIER_STAGE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(830);
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut built = crate::diff::testkit::with_named_sibling_initials(&[COVERAGE.start], |refs| {
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let text = source.read_replay_setup().unwrap();
+        let log = Log::parse(&text);
+        let mut init = log.replay_initial().unwrap();
+        borrow_from_siblings(&mut init, refs);
+        if let Some(t) = trace(COVERAGE.long.1) {
+            borrow_pasture(&mut init, &t);
+        }
+        crate::diff::setup::with_staged_script(carrier_script(), || {
+            build_sim(&loaded, &init, Tuning::RON)
+        })
+    });
+    while built.sim.frame < to {
+        built.tick();
+    }
+    let st = built.staged.as_ref().expect("the script is staged");
+    eprintln!(
+        "carrier staged to {to}: {} ran, {} unit(s), {} building(s); {} not acted on",
+        st.applied.ran,
+        st.applied.units,
+        st.applied.buildings,
+        st.applied.skipped_total()
+    );
+    for ((word, why), k) in &st.applied.skipped {
+        eprintln!("  {k:5} {word}: {why}");
+    }
+    for line in st.applied.landed.iter().chain(&st.applied.reached) {
+        eprintln!("  {line}");
+    }
+}
