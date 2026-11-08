@@ -15445,7 +15445,9 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   theirs' 5 on 2169, so the new garrison heal does not reach a Citizen there. Eight units read 1 against 0 from
   2389: `1/108` 2389, `1/113` 2432, `1/120` 2485, `1/122` 2511, `1/59` 2534, `1/135` 2610, `1/138` 2631,
   `1/132` 2797. run1075 is the one walk on disk with a computer's Citizen garrisoned. **Score**: those nine
-  rows of the widening, by the frame 2169.
+  rows of the widening, by the frame 2169. ~~`1/37`'s row~~ agrees since item 3993 (the garrison heal reads
+  `has_damage` and gives one point down the chain; 9071 → 9070). The eight from 2389 stand, so the score is now
+  those eight, by the frame 2389.
 
 ## Parked by item 4002, 2026-11-08 — a mandatory attack on a dead figure takes its squad's captain
 
