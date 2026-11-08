@@ -2640,6 +2640,11 @@ mod tests {
         // Chapter thirteen: two `@garrison` issuer lines and an `@eject`, the
         // garrison line (item 718, `docs/GOLDEN.md` §21).
         ("chapter13.cmd", &[]),
+        // Chapter one hundred and thirty: a lone Spy patrolled mid-Bribe
+        // (`UnitData::is_busy`'s spell half), and a mandatory attack with a
+        // queued move whose target another squad kills (`Unit::fight`'s
+        // kill-only tail; item 3988, `docs/GOLDEN.md` §181).
+        ("chapter130.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),

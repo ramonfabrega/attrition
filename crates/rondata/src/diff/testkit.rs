@@ -7013,6 +7013,20 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 911;
 /// window: run1545.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: (i64, i64) = (604, 1101);
 
+/// **Chapter one hundred and thirty** (item 3988, `docs/GOLDEN.md` §181,
+/// run1546): group orders over a busy member and a mandatory attack's
+/// kill-only tail — who=0's lone Spy `0/6`, mid-Bribe on the who=1 Hoplite
+/// `1/6`, patrolled on 1114 (`UnitData::is_busy@0060a370` answers 0 for a
+/// cast that is no pack or unpack), and who=0's Hoplites `0/7` on a
+/// mandatory attack with a move queued behind it, whose target, the who=1
+/// Catapult `1/9`, the Hoplites `0/10` kill (`Unit::fight@005fd4d0:332`–
+/// `:335`).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY: i64 = 1500;
+
+/// `chapter_one_hundred_and_thirty_s_window_is_widened_whole`'s window:
+/// run1546.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY: (i64, i64) = (1094, 1501);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

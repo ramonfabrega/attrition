@@ -638,8 +638,7 @@ impl Sim {
             if target.is_some_and(|t| !self.spell_valid_target(s, g.who, t)) {
                 continue;
             }
-            // `is_busy@0060a370`: a head cast (group.rs's reading).
-            if matches!(self.current_order(u).map(|o| o.body), Some(Body::Cast(_))) {
+            if self.is_busy(u) {
                 continue;
             }
             // `(ox, whom)` against `(cavarch_o, cavarch_who)`: a change
@@ -694,6 +693,26 @@ impl Sim {
             stopped += 1;
         }
         stopped
+    }
+
+    /// `UnitData::is_busy@0060a370` (item 3988, `docs/GOLDEN.md` §181): the
+    /// head order is a cast whose spell type answers `TypeData::is_pack`
+    /// or `is_unpack` (vslots `+0x50`/`+0x54` on `types.list[spell]`) —
+    /// [`Sim::is_packing_or_unpacking`] — or else
+    /// `UnitData::is_entering_or_exiting@0060a6f0`. **Any other cast is not
+    /// busy**: a Spy mid-Bribe takes a group's order. The four group walks
+    /// read this, not "a head cast".
+    ///
+    /// SEAM: `is_entering_or_exiting` answers false here. It is a head
+    /// `SpecialAnimOrder` (the one order class whose vslot `+0x11c` hands
+    /// back the order) of type 0 or 1, added by `Unit::land_plane` and
+    /// `Unit::come_out` alone, and `Unit::do_spec_anim` ends it on its
+    /// first call, so no command meets one at a frame boundary; no dump on
+    /// disk prints a `SPECIALANIMORDER` (`docs/GOLDEN.md` §30; scan: `find
+    /// -L ~/ron-golden -maxdepth 4 -name 'gamelog*.txt' | xargs grep -l
+    /// SPECIALANIMORDER`, none of 2362 files, links followed, 2026-11-08).
+    pub(crate) fn is_busy(&self, u: usize) -> bool {
+        self.is_packing_or_unpacking(u)
     }
 
     /// `UnitData::is_casting(spell)`: the unit's head order is a cast of
