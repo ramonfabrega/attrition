@@ -36236,3 +36236,34 @@ tribe 4) and who 1 (flags 1, tribe 11). `~/ron-golden/run1548` links to `ch132`.
   gone on 1231.
 - The Helicopter: on 1262 `0/9` holds a `STRAFEORDER` with `xx/yy −1` and `mandatory 1`. It is at (7569, 19308) on
   1316, and it reads `inside_up 2007` from 1318 to the end.
+
+## run1549 — chapter one hundred and thirty-four: land-based air, the second three — a mixed strike's split, a Fighter's strike on an enemy plane, and a flight home refused by ten homed planes (2026-11-08, item 3991, `att-3991`)
+
+`docs/GOLDEN.md` §184. **What the disk could not answer**: no pinned capture homes ten planes on one base
+(`ObjectData::num_aircraft_here@00645330`; GOLDEN chapter 6b's Airbase held none, and run1548's held three). No
+compared window holds a strike on a flier (`Unit::pitch_aircraft@005e8de0`: run1492's stride blocks hold no air order
+in flight). No lockstep run enters `Group::action_flight@006fb260` with a ground member (run223 strikes with planes
+alone).
+
+Recipe `tools/gamelog/golden/chapter134.cmd`, chapter seventeen's lobby and lines (run223):
+- a Hoplite squad of who=0's, struck with the Bomber `0/7` at the Barracks (780, 790);
+- who=1's Airbase and a who=1 Bomber `1/6` standing on our side (800, 804);
+- a Fighter `0/12` flown into `0/2007` and struck at `1/6` (806, 810, 902);
+- an Airbase `0/2008` and ten Fighters flown into it (820, 830, 840), four struck out (1000), and `@flight 0 2008 0
+  6 13` (1010).
+
+The staging was walked first on run223's start (`RON_STAGE=ch17:chapter134:1400`).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch134 --map 14 --end-frame 1400
+--log-window 605 1400 --timeout 3600`, with the cmd header's three detail sets. `success`, lifecycle verified,
+`map_verified`, map style 14, 1401 frames, `last_frame` 1400, seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and
+who 1 (flags 1, tribe 11). `~/ron-golden/run1549` links to `ch134`.
+- run1549 (`ch134`, `cover=0`, pool lane 1): 12:04:03–12:06:59, 176.5 s from launch to exit, no relaunch. The
+  word's. No cover twin was taken.
+- The split: on 792 each Hoplite holds `ATTACKORDER mandatory=1` on `1/2006`, with a move under it.
+- The strike on a plane: `0/12` patrols to `1/6`'s point from 903 and strafes it from 933. Its first aim is (7878,
+  11686) on 934, the lead point, which reaches the target by 940.
+- The room: on 1012 `0/6` stands in `0/2007` with no order, refused. `0/13`, homed on `0/2008`, holds a strafe home
+  with `xx/yy −1`.
+- The word's parting: on 969 `1/6`, unwounded, takes `ATTACKORDER mandatory=0` on `0/12` (uid 20), and drops it by
+  971.

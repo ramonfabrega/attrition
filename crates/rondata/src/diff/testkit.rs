@@ -7071,6 +7071,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE: i64 = 1000;
 /// window: run1550.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE: (i64, i64) = (599, 1001);
 
+/// **Chapter one hundred and thirty-four** (item 3991, `docs/GOLDEN.md`
+/// §184, run1549): land-based air, the second three. A mixed strike's
+/// ground half takes `action_attack` (`Group::action_flight@006fb260`'s
+/// split), the Fighter `0/12` strikes who=1's Bomber
+/// (`Unit::pitch_aircraft@005e8de0`'s flier-target arm), and `0/6`'s
+/// flight home to `0/2008` is refused by its ten homed planes
+/// (`ObjectData::num_aircraft_here@00645330`).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR: i64 = 969;
+
+/// `chapter_one_hundred_and_thirty_four_s_window_is_widened_whole`'s
+/// window: run1549.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR: (i64, i64) = (604, 1401);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
@@ -8086,6 +8099,16 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     (
         "chapter_one_hundred_and_thirty_two_s_window_is_widened_whole",
         40,
+    ),
+    // Item 3991: chapter one hundred and thirty-four, run1549 walked to
+    // 1400 — chapter seventeen's Bombers on the Barracks again.
+    (
+        "chapter_one_hundred_and_thirty_four_holds_to_the_golden_word",
+        33,
+    ),
+    (
+        "chapter_one_hundred_and_thirty_four_s_window_is_widened_whole",
+        33,
     ),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),

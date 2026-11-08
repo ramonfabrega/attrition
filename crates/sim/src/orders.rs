@@ -2999,8 +2999,7 @@ impl Sim {
     /// `find_new_air_target` — is the bomber's point search and nothing;
     /// an escorted unit that is gone (its captain, else a patrol over
     /// `xx/yy`); a flying unit escorted, projected ahead past `0xc00`; a
-    /// missile, a helicopter, a flying target's lead point, and a strike
-    /// with no point left (`is_valid(xx, yy)` false turns it for home).
+    /// missile, a helicopter, and a strike with no point left (`is_valid(xx, yy)` false turns it for home).
     fn do_strafe(&mut self, u: usize, frame: i64) {
         let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
             return;
@@ -3056,7 +3055,7 @@ impl Sim {
                 self.work(u, frame);
                 return;
             } else {
-                goal = Some(self.pos_of(target));
+                goal = Some(self.strafe_lead(u, target));
             }
         }
         if self.plane_air_physics(u, goal, frame) == crate::air::Flew::Done {
@@ -3082,6 +3081,41 @@ impl Sim {
             }
         }
         self.strafe_retarget(u, frame);
+    }
+
+    /// **A flying target's lead point** (`do_strafe@005eab00`,
+    /// `0x5eafcf`–`0x5eb0a8`; item 3991, `docs/GOLDEN.md` §184): a plane
+    /// striking a live plane (domain 2, no helicopter) farther than `0xc00`
+    /// from it aims at the target's point `project`ed along the target's
+    /// own heading (`+0x50`) by `(dist − 0xc00) / 3`, restricted to the
+    /// world. run1549's Fighter `0/12` on 934: (7878, 11686) for who=1's
+    /// Bomber standing at (7800, 11640) on its first 120°, 3,343 off.
+    ///
+    /// SEAM: a helicopter striker inside its reach, which aims at a point
+    /// projected from its own.
+    pub(crate) fn strafe_lead(&self, u: usize, target: crate::combat::Obj) -> crate::world::Pos {
+        let at = self.pos_of(target);
+        let crate::combat::Obj::Unit(t) = target else {
+            return at;
+        };
+        if self.is_helicopter(u)
+            || !self.units[t].alive()
+            || !matches!(self.profile(target).domain, crate::attrition::Domain::Air)
+            || self.is_helicopter(t)
+        {
+            return at;
+        }
+        let me = self.units[u].pos;
+        let dist = crate::world::vector_dist((at.x - me.x).abs(), (at.y - me.y).abs());
+        if dist <= 0xc00 {
+            return at;
+        }
+        let d = (dist - 0xc00) / 3;
+        let heading = self.units[t].movement.heading;
+        self.restrict_pos(crate::world::Pos::new(
+            at.x + crate::movement::sin_component(heading, d),
+            at.y - crate::movement::cos_component(heading, d),
+        ))
     }
 
     /// `do_strafe`'s arm for a strike it may take and is not reloading
