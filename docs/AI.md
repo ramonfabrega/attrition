@@ -32346,9 +32346,10 @@ item's hypothesis is the merged group's order — which member it
 guards — not a mechanism this item read. *(Answered in §346.2: the
 siege anchor's supply arm, `UnitData::is_supply`'s raw bit.)*
 
-**Not established.** The Citizen's armour arm (`UnitData::armor@
+**Not established.** ~~The Citizen's armour arm (`UnitData::armor@
 00610160`, `THECITIZEN_ARMOR_BONUS` 2) is read and not built: no blow on
-a unit beside a Citizen parts in a window on disk. `has_general`'s
+a unit beside a Citizen parts in a window on disk.~~ Built and diff-backed
+by item 3986 on run1544 (`docs/GOLDEN.md` §179). `has_general`'s
 leader count at `+0x56fe` stays the SEAM `near_monarch` named.
 
 **The rounds**, both directions: run1334b reads 1018 round-blocks theirs
@@ -33040,8 +33041,9 @@ takes the word back to 3711 (exit 101).
 **The rubric**: unit types seen 213 → **214**, the Cossack (225) — the
 line this section named — once the pair is lockstep.
 
-**Not established**: the Monarch's armour twin (`THEMONARCH_CAV_ARMOR`,
-parked 3688c), and the leader's count read apart from the walk.
+**Not established**: ~~the Monarch's armour twin (`THEMONARCH_CAV_ARMOR`,
+parked 3688c)~~ (built and diff-backed by item 3986, `docs/GOLDEN.md` §179),
+and the leader's count read apart from the walk.
 
 ## 350. The Romans at a held Gunpowder age, Great Lakes: first try 2926 of 4062 (item 3671)
 

@@ -311,8 +311,12 @@ in this order (item 1350, the listing):
    `+0x59c0` set, `HeroesData::find_hero` for a `THESENATOR` (`0x161`)
    within `(type +0x234 + type +0x238) × 96` (zero when vslot `+0x20` is
    clear); one found adds `thesenator_build_armor`. A Senator itself takes
-   the first arm (`63fa84`–`63faae`). **Not modelled** (`Sim::armor_of`'s
-   `SEAM`).
+   the first arm (`63fa84`–`63faae`). **Built, item 3986**
+   (`Sim::senator_build_armor` over `Sim::hero_near_building`): the reach is
+   the hero's radius less the footprint's slack, the President's clause's
+   walk. **Diff-backed** on run1544's Barracks `0/2007`, every blow through
+   764 (`docs/GOLDEN.md` §179). The leader's `+0x59c0` count is not read: a
+   live Senator the walk finds implies it.
 2. **A building not `is_active`** (`flags & 4` clear, `63fb31`–`63fb41`)
    **holds half**: `cltd; sub edx; sar` — a signed `/ 2`, toward zero.
    run514's Keep site, armour 4, took every Hoplite blow at 2: 13 whole
@@ -331,8 +335,14 @@ built, item 3385** (`Sim::rally_armor`, `docs/AI.md` §293): the unit is a
 hero, or `HeroesData::find_hero@0073a1b0(x, y, owner, 0, −1, 0)` finds one of
 the owner's active heroes on the map whose `get_radius × 0xc0` covers it by
 `vector_dist`. **Diff-backed** on run1011e's packet: the Inti Maceman `1/61`
-took 13 at armour 4 (`myarmor` 2 and the General's 2). The named heroes after
-it are a `SEAM`.
+took 13 at armour 4 (`myarmor` 2 and the General's 2). **The patriots'
+two terms are built, item 3986**: `has_general(0, 0x164)` (`THECITIZEN`,
+shipped as The Comrade, Socialism's patriot) adds `thecitizen_armor_bonus` 2,
+and a Stable-trained unit with `has_general(0, 0x162)` (The Monarch) adds
+`themonarch_cav_armor` 2. **Diff-backed** on run1544 (`docs/GOLDEN.md` §179):
+every blow on Hoplites beside a Comrade and on a Heavy Knight beside a
+Monarch agrees through 764. The named generals between them (Ptolemy,
+Darius, Wellington, Blücher, Memnon) are a `SEAM`.
 
 ### 4.3 `hits` — `Unit::update_hits`
 
