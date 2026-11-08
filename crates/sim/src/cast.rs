@@ -861,7 +861,7 @@ impl Sim {
         self.units[u].casting = true;
         self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
-        if self.units[u].spell_time < self.spell_job_time(s) {
+        if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;
         }
         self.cast_blow(u, s, false);
@@ -1948,6 +1948,94 @@ mod tests {
             s.add_unit(u)
         });
         (s, units)
+    }
+
+    /// **`get_range` whole** (`SpellTypeData::get_range@00676a80`, item
+    /// 3985, `docs/GOLDEN.md` §178). With every spy upgrade held, a Bribe
+    /// and Counterintelligence reach `3 × 2 × 192` further and an Informer
+    /// `3 × 3 × 192`; the Informer's halving on a building is of that sum;
+    /// a siege unit, a supply unit or a building takes one tile for Bribe
+    /// whatever the upgrades; the Sniper takes one tile on a vehicle; and
+    /// another leader's upgrades count nothing. Made to fail with the
+    /// upgrade terms dropped, with the halving taken before them, and with
+    /// the one-tile collapse dropped.
+    #[test]
+    fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].range = 6 * 192;
+        s.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
+        s.spells[at(spell::INFORMER)].range = 10 * 192;
+        s.spells[at(0x281)].range = 12 * 192;
+        let mut tree = s.tech_tree.clone();
+        let steps = ["one", "two", "three"].map(|n| tree.add(crate::tech::TypeDef::plain(n, 0)));
+        tree.roles.spy_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let who = s.units[spy].owner;
+        let b = s.add_building(0, Pos::new(768, 768), 0);
+        let (u, bld) = (crate::combat::Obj::Unit(filler), crate::combat::Obj::Building(b));
+        let row = |s: &Sim| {
+            [
+                s.spell_range(spell::BRIBE, who, u),
+                s.spell_range(spell::COUNTERINTEL, who, u),
+                s.spell_range(spell::INFORMER, who, u),
+                s.spell_range(spell::INFORMER, who, bld),
+                s.spell_range(spell::BRIBE, who, bld),
+            ]
+        };
+        assert_eq!(row(&s), [1152, 1920, 1920, 960, 192], "no upgrade");
+        for t in steps {
+            s.gain_tech(who, t);
+        }
+        assert_eq!(
+            row(&s),
+            [2304, 3072, 3648, 1824, 192],
+            "three upgrades: the Informer halved after its term"
+        );
+        assert_eq!(s.spell_range(spell::BRIBE, 1 - who, u), 1152, "another leader");
+        let t = s.units[filler].ty.unwrap();
+        s.unit_types[t].combat.siege = true;
+        assert_eq!(s.spell_range(spell::BRIBE, who, u), 192, "a siege unit");
+        assert_eq!(s.spell_range(spell::INFORMER, who, u), 3648, "not the Informer's");
+        s.unit_types[t].combat.siege = false;
+        s.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
+        assert_eq!(s.spell_range(spell::COUNTERINTEL, who, u), 192, "a supply unit");
+        assert_eq!(s.spell_range(0x281, who, u), 12 * 192, "the Sniper, no vehicle");
+        s.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
+        assert_eq!(s.spell_range(0x281, who, u), 192, "the Sniper on a vehicle");
+    }
+
+    /// **`get_job_time`'s spy arm** (`00675800`, item 3985, `docs/GOLDEN.md`
+    /// §178): with `SPIES_CRAFT_FASTER`'s prerequisite held, Bribe's and
+    /// the Informer's hold is halved for the caster's leader and no other,
+    /// and Counterintelligence's is not. Made to fail with the arm dropped
+    /// and with Counterintelligence let in.
+    #[test]
+    fn strategy_halves_bribe_and_the_informer_s_hold() {
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, _]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].job_time = 100;
+        s.spells[at(spell::INFORMER)].job_time = 40;
+        s.spells[at(spell::COUNTERINTEL)].job_time = 40;
+        let mut tree = s.tech_tree.clone();
+        let strategy = tree.add(crate::tech::TypeDef::plain("strategy", 0));
+        tree.roles.spies_craft_faster_preq = Some(strategy);
+        s.set_tech_tree(tree);
+        let row = |s: &Sim| {
+            [spell::BRIBE, spell::INFORMER, spell::COUNTERINTEL].map(|c| s.cast_job_time(spy, c))
+        };
+        assert_eq!(row(&s), [100, 40, 40]);
+        let who = s.units[spy].owner;
+        s.gain_tech(1 - who, strategy);
+        assert_eq!(row(&s), [100, 40, 40], "another leader's");
+        s.gain_tech(who, strategy);
+        assert_eq!(row(&s), [50, 20, 40]);
     }
 
     /// **`do_cast`'s two `0x11000` writes** (`005ec932`, `005ec9a7`; item

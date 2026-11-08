@@ -6954,6 +6954,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX: i64 = 1100;
 /// run1541.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX: (i64, i64) = (604, 1101);
 
+/// **Chapter one hundred and twenty-seven** (item 3985, `docs/GOLDEN.md`
+/// §178, run1543): a Spy's Bribe and Informer from beyond the row's range
+/// with every spy upgrade held, and a Bribe on a Catapult.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN: i64 = 1600;
+
+/// `chapter_one_hundred_and_twenty_seven_s_window_is_widened_whole`'s
+/// window: run1543.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN: (i64, i64) = (1094, 1601);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
