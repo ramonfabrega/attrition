@@ -30,7 +30,7 @@
 #   run1548 (cover=0), chapter seventeen's lobby:
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch132 \
 #       --map 14 --end-frame 1400 --log-window 605 1400 --timeout 3600 \
-#       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5,DEATHS=1 \
+#       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter132.cmd
