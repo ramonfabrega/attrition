@@ -15438,6 +15438,12 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `AMMO` prints at the capture's detail (`MISC,UNITS=3,LEADERS=9`), so the shot's own record is not on
   disk; the trace's draws on 2059 are the next instrument. **Score**: the tally's 432 and the widening's
   9062, by the frame 2060.
+- **3984b. run1075's `healing` rows after 3987's garrison heal** (`run1075_s_garrison_window_is_widened_whole`,
+  9062 → 9071 on the merge of item 3987). The garrisoned Citizen `1/37` inside `1/2000` reads `healing` 0 against
+  theirs' 5 on 2169, so the new garrison heal does not reach a Citizen there. Eight units read 1 against 0 from
+  2389: `1/108` 2389, `1/113` 2432, `1/120` 2485, `1/122` 2511, `1/59` 2534, `1/135` 2610, `1/138` 2631,
+  `1/132` 2797. run1075 is the one walk on disk with a computer's Citizen garrisoned. **Score**: those nine
+  rows of the widening, by the frame 2169.
 
 ## Parked by the next landing, slot CX — reserved
 

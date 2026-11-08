@@ -2425,5 +2425,9 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // alone from 2060 (`1/59`, 10 against 0), the window's first gameplay
     // parting; and the collision staggers from 2076 (`1/62`'s `pause` 9
     // against 2), a draw stream already apart. Parked 3984a.
-    pin_eq!(w.firsts.len(), 9062, "initial run1075 baseline");
+    // **9071** on the tree merged with item 3987's garrison heal: nine
+    // `healing` rows arrive — the garrisoned Citizen `1/37` inside
+    // `1/2000` on 2169, ours 0 against theirs' 5, and eight units 1
+    // against 0 from 2389 (parked 3984b).
+    pin_eq!(w.firsts.len(), 9071, "initial run1075 baseline");
 }

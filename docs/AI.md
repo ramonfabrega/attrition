@@ -41113,7 +41113,8 @@ called from `take_damage_typed` on a unit after the accumulate. The gates are th
 - The tally: **726 → 432**. The counts agree from 2095 (`1/73` into `1/2020`) through 2187 (3: `1/73`,
   and `1/37` and `1/3` into `1/2000`). They part on **2188**, theirs 4 and ours 3, where theirs' `1/5`
   goes in behind `1/3` and ours' is still walking. By 2820 theirs holds 5 and ours 13.
-- The widening: **9217 → 9062** first partings; the garrison rows: 1 (2188).
+- The widening: **9217 → 9062** first partings; the garrison rows: 1 (2188). Merged with item 3987's
+  garrison heal: **9071**, nine `healing` rows from 2169 (parked 3984b).
 - Every lobby's `first_parting` passes unchanged (122 tests).
 
 The 2188 parting is not the garrison chain's. Ours' `1/5` parts on 2089 on `move.pause`, 5 against
