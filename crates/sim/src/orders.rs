@@ -4445,9 +4445,6 @@ impl Sim {
         if !self.units[u].idle_latch {
             self.units[u].idle_latch = true;
             self.units[u].cant_reach = true;
-            if let Ok(w) = std::env::var("RON_CR_PROBE") && w == format!("{}/{}", self.units[u].owner, self.units[u].index) {
-                eprintln!("CRPROBE {} latch {}/{} idle {} captain {}", self.frame, self.units[u].owner, self.units[u].index, self.units[u].idle, self.units[u].captain);
-            }
             if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
                 self.economy_changed(self.units[u].owner);
             }
@@ -4530,9 +4527,6 @@ impl Sim {
         // and `:155` is reached only by a seat `:98` has already sent
         // back.
         if let Some(unit) = self.units.get_mut(u) {
-            if unit.cant_reach && let Ok(w) = std::env::var("RON_CR_PROBE") && w == format!("{}/{}", unit.owner, unit.index) {
-                eprintln!("CRPROBE {} think-clear {}/{}", frame, unit.owner, unit.index);
-            }
             unit.cant_reach = false;
         }
     }
