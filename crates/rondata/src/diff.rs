@@ -400,6 +400,7 @@ pub(crate) mod compared {
     #[cfg(test)]
     pub(crate) fn start() {
         ON.with(|r| *r.borrow_mut() = Some(Fields::default()));
+        MASKS.with(|r| *r.borrow_mut() = Some(Masks::default()));
     }
 
     /// Allocate the public field labels once per unique field, at the boundary.
@@ -426,6 +427,7 @@ pub(crate) mod compared {
 
     #[cfg(test)]
     pub(crate) fn stop() -> BTreeSet<String> {
+        MASKS.with(|r| r.borrow_mut().take());
         ON.with(|r| labels(&r.borrow_mut().take().unwrap_or_default()))
     }
 
@@ -456,6 +458,90 @@ pub(crate) mod compared {
                 }
             }
         });
+    }
+
+    /// **The bits of a mask word, and the dump keys no row reads** (Loop
+    /// 3956, 3957). A key leaves `coverage::UNREAD` when any parser reads
+    /// it and leaves the compared pin when any site compares it, so a mask
+    /// word compared on one bit reads compared on all of them, and a
+    /// leader key emitted for one index range reads compared for every
+    /// index. Beside the field registry this keeps, per `(record, field)`
+    /// mask word, the union of the dump's values on the records the
+    /// comparator walks and the union of the bits its sites compare; and
+    /// per `(record, key)` the dump keys the leader comparator skipped
+    /// because the crate emits no row for them. Off unless [`start`] ran,
+    /// like the registry; [`recorded`] leaves it alone, so a nested audit
+    /// adds to the outer walk's union.
+    #[derive(Default)]
+    struct Masks {
+        words: std::collections::BTreeMap<(&'static str, &'static str), (u64, u64)>,
+        #[cfg(test)]
+        skipped: std::collections::HashSet<(&'static str, String)>,
+    }
+    thread_local! {
+        static MASKS: RefCell<Option<Masks>> = const { RefCell::new(None) };
+    }
+
+    /// Whether a walk is being recorded — a site that must loop to
+    /// register asks first.
+    pub(crate) fn on() -> bool {
+        MASKS.with(|r| r.borrow().is_some())
+    }
+
+    /// The dump's own value of a mask word, on a record the comparator
+    /// walks: every bit it holds is a bit some row must read. The words
+    /// are the original's 32-bit fields, and one printed signed (a city's
+    /// `city_flags` with its top bit set) would otherwise sign-extend into
+    /// thirty-two bits no field has.
+    pub(crate) fn word(record: &'static str, field: &'static str, theirs: i64) {
+        MASKS.with(|r| {
+            if let Some(m) = r.borrow_mut().as_mut() {
+                m.words.entry((record, field)).or_default().0 |= u64::from(theirs as u32);
+            }
+        });
+    }
+
+    /// The bits of a mask word a comparison read, with both sides present.
+    pub(crate) fn bits(record: &'static str, field: &'static str, mask: i64) {
+        MASKS.with(|r| {
+            if let Some(m) = r.borrow_mut().as_mut() {
+                m.words.entry((record, field)).or_default().1 |= mask as u64;
+            }
+        });
+    }
+
+    /// A dump key of `record` the comparator skipped: the crate emits no
+    /// row under that name.
+    #[cfg(test)]
+    pub(crate) fn skipped(record: &'static str, key: &str) {
+        MASKS.with(|r| {
+            if let Some(m) = r.borrow_mut().as_mut()
+                && !m.skipped.contains(&(record, key.to_string()))
+            {
+                m.skipped.insert((record, key.to_string()));
+            }
+        });
+    }
+
+    /// `(record.field → (bits the dump set, bits a comparison read))` and
+    /// the skipped `(record, key)` pairs, sorted; stops the mask recorder.
+    #[cfg(test)]
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn stop_masks() -> (
+        std::collections::BTreeMap<String, (u64, u64)>,
+        BTreeSet<(String, String)>,
+    ) {
+        let m = MASKS.with(|r| r.borrow_mut().take().unwrap_or_default());
+        (
+            m.words
+                .into_iter()
+                .map(|((r, f), v)| (format!("{r}.{f}"), v))
+                .collect(),
+            m.skipped
+                .into_iter()
+                .map(|(r, k)| (r.to_string(), k))
+                .collect(),
+        )
     }
 
     #[cfg(test)]

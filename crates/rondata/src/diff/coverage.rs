@@ -3666,6 +3666,211 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 5772..5776 (slot 72, ours 0 against 599056).
 ];
 
+/// **The bits of a mask word the dump sets and no comparison reads**
+/// (Loop 3956, DECISIONS 111 §5). `(record.field, bits)`, on the coverage
+/// driver's windows: a word leaves [`UNREAD`] when any parser reads it and
+/// leaves [`UNCOMPARED_BY_THE_INSTRUMENT`] when any site compares it, so a
+/// word compared on one bit stood compared on all of them — the Iroquois
+/// cloak's `unit_masks & 0x800` and `unit_masks2 & 0x8000`/`0x80` sat on
+/// thousands of unit-frames of a closed pair with the crate holding 0 and
+/// nothing red, until item 3958 rowed them. The dump's side is every
+/// player's record the comparison walks (`harness::compare`'s head), the
+/// read side every bit a row compares with both sides present
+/// (`compared::bits`). **Exact**: a bit compared since leaves here, a bit
+/// that arrives unread is rowed or added here with the item that owes it
+/// — a list that may only shrink, save for what a new window brings.
+const UNREAD_BITS: &[(&str, u64)] = &[
+    // Pinned 2026-11-07, items 3956/3957, on the coverage driver's 86,724
+    // blocks, with 3958's three cloak bits rowed. One row a word; the bits
+    // are listed so a row that takes one names it.
+    //
+    // `build_masks`: 0x8 0x10 0x20 0x400 0x1000 0x2000 0x4000 (0x40, 0x80,
+    // 0x100 are rowed — the infinite queue, repeat air, the replan flag).
+    ("BuildDump.build_masks", 0x7438),
+    // `city_flags`: 0x200 0x400 0x800 0x1000, and every bit from 0x10000
+    // to 0x80000000 (the eleven rowed bits are `harness::compare`'s
+    // `flags` table).
+    ("CityDump.city_flags", 0xffff_1e00),
+    // `unit_masks`: 0x1 0x4 0x8 0x40 0x80 0x200 0x400 0x2000 0x4000
+    // 0x8000 0x40000 0x200000 0x800000 0x8000000 0x10000000 0x40000000.
+    ("UnitDump.unit_masks", 0x58a4_e6cd),
+    // `unit_masks2`: 0x4 0x400 0x4000 0x10000.
+    ("UnitDump.unit_masks2", 0x1_4404),
+];
+
+/// **The `LEADERDATA` keys the leader comparator skips** (Loop 3957,
+/// DECISIONS 111 §5). The comparison walks the crate's own rows and looks
+/// each up in the dump's (`harness`'s two leader loops), so a dump key the
+/// crate emits no row for was skipped in silence: `num_queued` read
+/// compared because the unit records' indices were rowed, and the
+/// technologies' stranded count (`Build::clean_queue`) never parted.
+/// `(record, key with every index written `[]`, distinct keys skipped)` on
+/// the coverage driver's windows (`harness::note_leader_skips`). **Exact**
+/// both ways: a family the crate rows since leaves or shrinks here, one
+/// that arrives or grows is rowed or re-pinned with the item that owes it.
+const SKIPPED_BY_THE_LEADER_COMPARATOR: &[(&str, &str, usize)] = &[
+    // Pinned 2026-11-07, items 3956/3957, on the coverage driver's 86,724
+    // blocks, with item 3969's technology `num_queued` rows emitted. The
+    // six per-seat arrays are rowed for the game's own seats alone
+    // (`leader::rows`' loop over `built.sim.players`), so the eight-seat array's
+    // empty slots are skipped — six keys, `[2]` and up on a two-seat
+    // lobby; `num_queued` on 319 indices, the first `[352]`, that the
+    // crate rows as neither a unit record (`MUSTER_WIDTH`) nor a
+    // technology.
+    ("LEADERDATA", "agendas[]", 6),
+    ("LEADERDATA", "aggression[]", 6),
+    ("LEADERDATA", "diplos[]", 6),
+    ("LEADERDATA", "num_queued[]", 319),
+    ("LEADERDATA", "strong[]", 6),
+    ("LEADERDATA", "treaties[]", 6),
+    ("LEADERDATA", "weak[]", 6),
+];
+
+/// A dump key's family: every `[index]` written `[]`.
+fn key_family(key: &str) -> String {
+    let mut out = String::with_capacity(key.len());
+    let mut depth = 0usize;
+    for c in key.chars() {
+        match c {
+            '[' => {
+                if depth == 0 {
+                    out.push('[');
+                }
+                depth += 1;
+            }
+            ']' => {
+                depth = depth.saturating_sub(1);
+                if depth == 0 {
+                    out.push(']');
+                }
+            }
+            _ if depth > 0 => {}
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+#[test]
+fn a_key_family_strips_every_index() {
+    assert_eq!(key_family("num_queued[316]"), "num_queued[]");
+    assert_eq!(key_family("bucket[3:knowledge]"), "bucket[]");
+    assert_eq!(key_family("MAKE[0].t"), "MAKE[].t");
+    assert_eq!(key_family("SITE[9].reg"), "SITE[].reg");
+    assert_eq!(key_family("retargets"), "retargets");
+}
+
+/// The mask pin and the skip pin against what one walk measured: the
+/// failures, and the pins as measured in source form on stderr.
+fn mask_and_skip_failures(
+    masks: &BTreeMap<String, (u64, u64)>,
+    skipped: &BTreeSet<(String, String)>,
+    bits_pin: &[(&str, u64)],
+    skips_pin: &[(&str, &str, usize)],
+) -> Vec<String> {
+    let mut wrong = Vec::new();
+    let unread_bits: BTreeMap<&str, u64> = masks
+        .iter()
+        .map(|(k, (set, read))| (k.as_str(), set & !read))
+        .filter(|(_, bits)| *bits != 0)
+        .collect();
+    let pinned_bits: BTreeMap<&str, u64> = bits_pin.iter().copied().collect();
+    for (k, &bits) in &unread_bits {
+        let pin = pinned_bits.get(k).copied().unwrap_or(0);
+        if bits & !pin != 0 {
+            wrong.push(format!(
+                "{k}: bits {:#x} set by the dump and read by no comparison, not pinned in UNREAD_BITS",
+                bits & !pin
+            ));
+        }
+    }
+    for (k, &pin) in &pinned_bits {
+        let bits = unread_bits.get(k).copied().unwrap_or(0);
+        if pin & !bits != 0 {
+            wrong.push(format!(
+                "{k}: bits {:#x} are compared now or no longer set; delete them from UNREAD_BITS",
+                pin & !bits
+            ));
+        }
+    }
+    let mut families: BTreeMap<(&str, String), Vec<&str>> = BTreeMap::new();
+    for (record, key) in skipped {
+        families
+            .entry((record.as_str(), key_family(key)))
+            .or_default()
+            .push(key.as_str());
+    }
+    let pinned_skips: BTreeMap<(&str, &str), usize> =
+        skips_pin.iter().map(|&(r, k, n)| ((r, k), n)).collect();
+    for ((record, family), keys) in &families {
+        let pin = pinned_skips
+            .get(&(*record, family.as_str()))
+            .copied()
+            .unwrap_or(0);
+        if keys.len() != pin {
+            wrong.push(format!(
+                "{record} `{family}`: {} keys skipped by the comparator (the crate emits no row), pinned {pin}; e.g. {:?}",
+                keys.len(),
+                keys.iter().take(4).collect::<Vec<_>>()
+            ));
+        }
+    }
+    for ((record, family), pin) in &pinned_skips {
+        if !families.contains_key(&(*record, family.to_string())) {
+            wrong.push(format!(
+                "{record} `{family}`: pinned {pin} skipped, and none is now; delete the row"
+            ));
+        }
+    }
+    if !wrong.is_empty() {
+        eprintln!("UNREAD_BITS as measured, in source form:");
+        for (k, bits) in &unread_bits {
+            eprintln!("    ({k:?}, {bits:#x}),");
+        }
+        eprintln!("SKIPPED_BY_THE_LEADER_COMPARATOR as measured, in source form:");
+        for ((record, family), keys) in &families {
+            eprintln!("    ({record:?}, {family:?}, {}),", keys.len());
+        }
+    }
+    wrong
+}
+
+/// The two pins' arithmetic on a synthetic walk: a bit set and unread is
+/// named, a skipped key family is counted, and a pin row the walk no
+/// longer measures is named stale.
+#[test]
+fn the_mask_and_skip_pins_name_what_they_measure() {
+    let masks = BTreeMap::from([("Synthetic.mask".to_string(), (0b1011u64, 0b0011u64))]);
+    let skipped = BTreeSet::from([
+        ("SYNTH".to_string(), "num_queued[505]".to_string()),
+        ("SYNTH".to_string(), "num_queued[512]".to_string()),
+    ]);
+    let wrong = mask_and_skip_failures(&masks, &skipped, &[], &[]);
+    assert_eq!(wrong.len(), 2, "{wrong:#?}");
+    assert!(wrong[0].contains("Synthetic.mask: bits 0x8"), "{wrong:#?}");
+    assert!(
+        wrong[1].contains("SYNTH `num_queued[]`: 2 keys skipped"),
+        "{wrong:#?}"
+    );
+    // The measured pins hold; a stale bit and a stale family are named.
+    let exact = mask_and_skip_failures(
+        &masks,
+        &skipped,
+        &[("Synthetic.mask", 0x8)],
+        &[("SYNTH", "num_queued[]", 2)],
+    );
+    assert!(exact.is_empty(), "{exact:#?}");
+    let stale = mask_and_skip_failures(
+        &masks,
+        &skipped,
+        &[("Synthetic.mask", 0x8 | 0x4)],
+        &[("SYNTH", "num_queued[]", 2), ("SYNTH", "agendas[]", 6)],
+    );
+    assert_eq!(stale.len(), 2, "{stale:#?}");
+    assert!(stale[0].contains("bits 0x4 are compared now"), "{stale:#?}");
+    assert!(stale[1].contains("`agendas[]`: pinned 6"), "{stale:#?}");
+}
+
 /// **Every field the parser carries is compared by the shared instrument
 /// on every open word's own window, or pinned above.** The window is
 /// `second::east_indies_closing_window`, retained after item 1441 closed
@@ -4142,6 +4347,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
             missing = true;
         }
     }
+    let (masks, skipped) = compared::stop_masks();
     let seen = compared::stop();
     super::oracle::profile_report();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
@@ -4209,6 +4415,19 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
             "registered, but no record has the field: {unknown:?}"
         ));
     }
+    // The bits of a compared mask word, and the leader keys no row reads
+    // (Loop 3956, 3957): a field registered compared is not every bit or
+    // every index of it.
+    assert!(
+        masks.contains_key("UnitDump.unit_masks"),
+        "the mask recorder saw no `unit_masks` on {total_blocks} blocks"
+    );
+    wrong.extend(mask_and_skip_failures(
+        &masks,
+        &skipped,
+        UNREAD_BITS,
+        SKIPPED_BY_THE_LEADER_COMPARATOR,
+    ));
     assert!(
         wrong.is_empty(),
         "the compared pin, over {} blocks and {} registrations:\n  {}",
