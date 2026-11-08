@@ -20,6 +20,29 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
     // leaves is a `UNITS=3` frame in which *no* unit holds an order, which
     // then goes uncompared; it corrects itself on the next frame that does.
     let orders_logged = frame.units.iter().any(|u| !u.orders.is_empty());
+    // **Every bit the dump sets on a mask word this comparison walks**
+    // (Loop 3956): the bits no row below reads are `coverage`'s
+    // `UNREAD_BITS` pin. Registered on every player's record, compared
+    // or not — a bit on a unit the link misses is still a bit.
+    if compared::on() {
+        let mine = |who: i64| (0..players as i64).contains(&who);
+        for u in frame.units.iter().filter(|u| mine(u.who)) {
+            if let Some(m) = u.unit_masks {
+                compared::word("UnitDump", "unit_masks", m);
+            }
+            if let Some(m) = u.unit_masks2 {
+                compared::word("UnitDump", "unit_masks2", m);
+            }
+        }
+        for b in frame.builds.iter().filter(|b| mine(b.who)) {
+            if let Some(m) = b.build_masks {
+                compared::word("BuildDump", "build_masks", m);
+            }
+        }
+        for c in frame.cities.iter().filter(|c| mine(c.who)) {
+            compared::word("CityDump", "city_flags", c.city_flags);
+        }
+    }
     for u in &frame.units {
         if !(0..players as i64).contains(&u.who) {
             continue;
@@ -85,6 +108,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         if let Some(masks) = u.unit_masks {
             r.packed_compared += 1;
             compared::note("UnitDump", &["unit_masks"]);
+            compared::bits("UnitDump", "unit_masks", 0x8_0000);
             let ours_packed = built.sim.units[link.unit].combat.packed;
             if ours_packed != (masks & 0x8_0000 != 0) {
                 r.packed_diverged.push(PackedDivergence {
@@ -337,6 +361,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 let Some(theirs) = logged else { continue };
                 r.firing_compared += 1;
                 compared::note("UnitDump", &[field]);
+                match field {
+                    "unit_masks2" => compared::bits("UnitDump", field, i64::from(masks2)),
+                    "unit_masks" => compared::bits("UnitDump", field, 0x200_0000),
+                    _ => {}
+                }
                 if theirs != mine {
                     r.firing_diverged.push(FiringDivergence {
                         frame: frame.n,
@@ -397,6 +426,9 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                         field
                     }],
                 );
+                if field == "half_step" {
+                    compared::bits("UnitDump", "unit_masks", 0x10_0000);
+                }
                 if theirs != mine {
                     parts.push(CollideDivergence {
                         frame: frame.n,
@@ -821,6 +853,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             let mine = i64::from(ours.regen_roads);
             r.build_compared += 1;
             compared::note("BuildDump", &["build_masks"]);
+            compared::bits("BuildDump", "build_masks", 0x100 | 0x80 | 0x40);
             if mine != theirs {
                 r.build_diverged.push(BuildDivergence {
                     frame: frame.n,
@@ -1229,6 +1262,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ("dock_tile".into(), i64::from(ai.dock_tile), c.dock_tile),
         ];
         for (name, bit, mine) in flags {
+            compared::bits("CityDump", "city_flags", bit);
             fields.push((
                 name.to_string(),
                 i64::from(mine),
@@ -2390,6 +2424,9 @@ fn widen_block_rows(
                 widened_field(if eager { &eager_names[index] } else { name.0 })
             {
                 compared::note(record, &[field]);
+                if let Some(bit) = widened_bit(name.0) {
+                    compared::bits(record, field, bit);
+                }
             }
             if ours != theirs {
                 firsts
@@ -2540,6 +2577,68 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "g.z" => ("Guy", "pos"),
         _ => return None,
     })
+}
+
+/// The bit of the mask word [`widened_field`] names that one of
+/// [`widen_block`]'s mask rows reads (Loop 3956). **It restates the row's
+/// own mask**, so a row whose bit changes changes here in the same edit:
+/// `widened_bits_match_the_rows` holds the two against each other.
+#[cfg(test)]
+fn widened_bit(label: &str) -> Option<i64> {
+    Some(match label {
+        "sheltered" => 0x4_0000,
+        "land_cloak" => 0x8000,
+        "cloak_mark" => 0x80,
+        "mirror" => 0x2,
+        "half_step" => 0x10_0000,
+        "packed" => 0x8_0000,
+        "blown" => 0x1000,
+        "fought" => 0x1_0000,
+        "contact" => 0x10,
+        "cloak" => 0x800,
+        _ => return None,
+    })
+}
+
+/// Every mask row of [`widen_block`] has its bit in [`widened_bit`], and
+/// the bit is the one the row's own `m & …` reads: the source is the
+/// oracle, read the way `deferred_row_labels_preserve_names_and_field_registration`
+/// reads [`widened_field`].
+#[cfg(test)]
+#[test]
+fn widened_bits_match_the_rows() {
+    let source = include_str!("harness.rs");
+    let body = source
+        .split("fn widen_block_rows(")
+        .nth(1)
+        .unwrap()
+        .split("\n}\n")
+        .next()
+        .unwrap();
+    let mut rows = 0;
+    for (label, mask) in [
+        ("unit_masks", "unit_masks.map(|m| i64::from(m & "),
+        ("unit_masks2", "unit_masks2.map(|m| i64::from(m & "),
+    ] {
+        for (at, _) in body.match_indices(mask) {
+            let digits = body[at + mask.len()..].split(' ').next().unwrap();
+            let bit = i64::from_str_radix(&digits.trim_start_matches("0x").replace('_', ""), 16)
+                .unwrap();
+            // The row's label is the last string literal before the mask.
+            let name = body[..at].rsplit('"').nth(1).unwrap();
+            assert_eq!(
+                widened_bit(name),
+                Some(bit),
+                "`{name}` reads `{label} & {bit:#x}`; `widened_bit` must say so"
+            );
+            assert!(
+                widened_field(name).is_some_and(|(_, f)| f == label),
+                "`{name}` reads `{label}`; `widened_field` must say so"
+            );
+            rows += 1;
+        }
+    }
+    assert!(rows >= 10, "{rows} mask rows found");
 }
 
 /// `RON_DEBUG_TECH=<lo>-<hi>` — every computer leader's held types: the
@@ -5042,6 +5141,7 @@ pub(crate) mod tests {
                             .or_insert((n, format!("ours {v} theirs {y}")));
                     }
                 }
+                note_leader_skips(&mine, t.keys());
             }
             if gaia {
                 compared += widen_gaia(&built, frame, players, n, &mut here, &mut missing);
@@ -7496,6 +7596,10 @@ pub(crate) mod tests {
                             .or_insert((n, format!("ours {v} theirs {y}")));
                     }
                 }
+                let region = cached
+                    .as_ref()
+                    .and_then(|value| value.regions.get(who).and_then(Option::as_ref));
+                note_leader_skips(&mine, t.keys().chain(region.into_iter().flat_map(|r| r.keys())));
             }
             // **Gaia's animals** (parked 577): [`widen_gaia`].
             if gaia {
@@ -7641,6 +7745,27 @@ pub(crate) mod tests {
     /// prints no clock for is a key unprinted, not a parting (item 919).
     /// Answers the rows compared. [`widen_east_indies_on`]'s since item 577,
     /// a helper since item 1066 walked Great Sahara's herds.
+    /// **The leader keys the comparator skips** (Loop 3957): a dump key
+    /// of `LEADERDATA` the crate emits no row for is never compared, and
+    /// the loop above iterates ours alone, so the skip was silent —
+    /// `num_queued` read compared for every index while the crate emitted
+    /// the unit records' and no technology's. Each one is registered, and
+    /// `coverage`'s `SKIPPED_BY_THE_LEADER_COMPARATOR` pins them per key.
+    pub(crate) fn note_leader_skips<'a>(
+        mine: &[crate::diff::leader::Row],
+        theirs: impl Iterator<Item = &'a String>,
+    ) {
+        if !compared::on() {
+            return;
+        }
+        let ours: std::collections::HashSet<&str> = mine.iter().map(|(k, _)| k.as_str()).collect();
+        for k in theirs {
+            if !ours.contains(k.as_str()) {
+                compared::skipped("LEADERDATA", k);
+            }
+        }
+    }
+
     pub(crate) fn widen_gaia(
         built: &Built,
         frame: &Frame,
