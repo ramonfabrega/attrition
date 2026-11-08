@@ -6420,9 +6420,9 @@ impl Sim {
     /// moves the entries and neither count.
     fn track_age_epoch_queued(&mut self, who: Player, t: tech::TypeId, delta: i8) {
         let p = &mut self.tech[who as usize];
-        let c = match self.tech_tree.kind(t) {
-            tech::Kind::Age(_) => &mut p.ages_queued,
-            tech::Kind::Epoch { .. } => &mut p.epochs_queued,
+        let c = match self.tech_tree.types.get(t).map(|d| d.kind) {
+            Some(tech::Kind::Age(_)) => &mut p.ages_queued,
+            Some(tech::Kind::Epoch { .. }) => &mut p.epochs_queued,
             _ => return,
         };
         *c = c.wrapping_add_signed(delta);

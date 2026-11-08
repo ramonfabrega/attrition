@@ -10166,3 +10166,111 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     assert_eq!(sim.tech[0].queued[tech], 0);
     assert_eq!(sim.muster[0].queued_by_type[0], 1);
 }
+
+/// **`ages_queued` and `epochs_queued` follow the queue** (item 3982,
+/// `docs/AI.md` §414): `Build::queue_up@00620f40:518`–`:541` raises the
+/// leader's byte for an age or an epoch, `Build::unqueue@006207c0` takes it
+/// down on a cancel and on a finished research, and `Build::clean_queue
+/// @00620b60:132`–`:158` on a close. run1540's `epochs_queued` reads 1 on
+/// 622 with the Written Word queued and 0 on 681 when the last Library
+/// closes with it (`docs/GOLDEN.md` §175).
+///
+/// Made to fail by any one of the four writers removed.
+#[test]
+fn ages_and_epochs_queued_follow_the_queue() {
+    use crate::tech::{Line, TechTree, TypeDef};
+    let food = economy::Resource::Food.index();
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let library_t = tree.add(TypeDef::building("Library"));
+    let mut ww = TypeDef::epoch("Written Word", Line::Science, 0).at(library_t);
+    ww.job_time = 200;
+    let written_word = tree.add(ww);
+    let mut age = TypeDef::age("Classical Age", 1).at(library_t);
+    age.job_time = 20;
+    let classical = tree.add(age);
+    sim.set_tech_tree(tree);
+    sim.build_types[t.library].tree = Some(library_t);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
+    finish(&mut sim, lib);
+    sim.ledgers[0].bucket[food] = 1_000;
+    // The age quota (`techs_per_age`) met without researching a thing.
+    sim.tech[0].epochs = 8;
+    let counts = |sim: &Sim| (sim.tech[0].ages_queued, sim.tech[0].epochs_queued);
+
+    assert_eq!(sim.queue_tech(lib, classical), Ok(0));
+    assert_eq!(sim.queue_tech(lib, written_word), Ok(1));
+    assert_eq!(counts(&sim), (1, 1), "queue_up raises each");
+    assert!(sim.cancel(lib, 1).is_some());
+    assert_eq!(counts(&sim), (1, 0), "a cancel takes the epoch's down");
+    assert_eq!(sim.queue_tech(lib, written_word), Ok(1));
+    let mut frames = 0;
+    while !sim.tech[0].tech[classical] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 600);
+    }
+    assert_eq!(
+        counts(&sim),
+        (0, 1),
+        "a finished research takes the age's down"
+    );
+    sim.close_building(lib, false);
+    assert!(sim.buildings[lib].queue.items.is_empty());
+    assert_eq!(
+        counts(&sim),
+        (0, 0),
+        "the close's clean_queue takes the epoch's down"
+    );
+}
+
+/// **The age's catch-up reads the queued ages on both sides** (item 3982,
+/// `docs/AI.md` §414): `ObjectData::train_time@006508c0`'s `LAB_00651454`
+/// counts the leaders whose `ages + ages_queued` exceed this leader's
+/// `ages + ages_queued + 1` — 1 an ally, 2 anyone else — and takes
+/// `t × (2N − n + 2) / (2N + 2)`. An epoch is past the term.
+///
+/// Made to fail by the term removed, or by either side's `ages_queued` left
+/// out of the test.
+#[test]
+fn the_age_catch_up_reads_the_queued_ages() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let classical = tree.add(tech::TypeDef::age("Classical Age", 1));
+    let city_state = tree.add(tech::TypeDef::epoch("City State", tech::Line::Civic, 0));
+    for t in [classical, city_state] {
+        tree.types[t].job_time = 400;
+    }
+    sim.set_tech_tree(tree);
+    let plain = [classical, city_state].map(|t| sim.tech_time(0, t));
+    let nations = 2 * sim.players.len() as i32;
+    let n = if sim.is_ally(1, 0) { 1 } else { 2 };
+    let caught = plain[0] * (nations - n + 2) / (nations + 2);
+    sim.tech[1].ages = 1;
+    sim.tech[1].ages_queued = 1;
+    assert_eq!(
+        sim.tech_time(0, classical),
+        caught,
+        "two ahead with its queued age"
+    );
+    assert_eq!(
+        sim.tech_time(0, city_state),
+        plain[1],
+        "an epoch is past the term"
+    );
+    sim.tech[1].ages_queued = 0;
+    assert_eq!(
+        sim.tech_time(0, classical),
+        plain[0],
+        "one ahead is not more than one"
+    );
+    sim.tech[1].ages_queued = 1;
+    sim.tech[0].ages_queued = 1;
+    assert_eq!(
+        sim.tech_time(0, classical),
+        plain[0],
+        "and its own queued age counts"
+    );
+}
