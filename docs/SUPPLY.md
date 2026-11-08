@@ -484,10 +484,12 @@ Still open:
   is set for them explicitly and by name, so the code means it; whether the
   design meant a Despot to project a 14-tile supply radius, or whether the flag
   was reused to get him the wagon's exemptions and the radius came along, is
-  not something the code can answer. It is a cheap behavioural check
-  (`docs/ORACLE.md`): park a unit inside enemy borders beside a Despot with no
-  wagon anywhere near, log the frame, and see whether its attrition period is
-  ever set.
+  not something the code can answer. ~~It is a cheap behavioural check~~ —
+  **the radius comes along in the original** (`docs/AI.md` §410, item 3978):
+  on run1542 the French Despot `1/164` prints `supply 0`, no wagon or general
+  stands on the map, and the Elite Special Forces `1/17`, 2648 from him
+  (inside 14 tiles' 2688), takes the supply heal on its French period. The
+  attrition half was not logged; it reads the same `find_supply`.
 - ~~**What `unit_flags2` bits `0x4` and `0x8` are.**~~ Closed by
   `docs/COMBAT.md` §2.1: `0x4` is **packs** (the types that stand packed
   between moves — catapult, flaming arrow, machine gun, merchants, fishermen,
@@ -496,7 +498,10 @@ Still open:
 - ~~**The rest of `Unit::process_healing`.** Six other heals share the function
   and none is derived here.~~ **The civilian heal is derived and built in
   `docs/COMBAT.md` §72 (item 1072).** The ship, aura, hero, Iroquois and
-  patriot heals are still open there.
+  patriot heals are still open there. **The supply heal of Consumer 2 is built
+  by item 3978** (`sim::heal`'s `supply_heal`, on `supply::heal_period`;
+  `docs/AI.md` §410): `find_supply` walks the supply list alone, so a
+  supplying general's aura shelters from attrition and heals nobody.
 
 ---
 
