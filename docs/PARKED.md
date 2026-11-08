@@ -15628,7 +15628,7 @@ words and edits nothing here; a refill lands when two remain.
   `crates/render` takes `zoom_distance`, `parallel_distance` and `tilt_angle` as state.
   `Camera::adjust_tilt@00843970` interpolates the tilt between `fixed_angles`, and its decompile reads
   `(zoom − angle)` where `(zoom − zoom₀)` would be expected; the listing settles which.
-  `Camera::zoom_to_level@008437f0` only arms a zoom, and the step that moves the two distances is not read.
+  `Camera::zoom_to_level` only arms a zoom, and the step that moves the two distances is not read.
   run1484's packet has every `fixed_angles` entry at 60, so no capture on disk exercises the interpolation.
   It names no score until a client animates the camera. A sweep of the step under `tools/render/camera_oracle.py`'s
   harness would book it.

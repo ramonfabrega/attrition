@@ -485,7 +485,7 @@ pinned test.
   check, whose matrix the bottle built, is bit-identical. That is one
   camera, not a proof.
 - **The camera's animation.** `Camera::adjust_tilt@00843970` interpolates
-  `tilt_angle` between `fixed_angles`, and `zoom_to_level@008437f0` only
+  `tilt_angle` between `fixed_angles`, and `Camera::zoom_to_level` only
   arms a zoom. The per-frame step that moves `zoom_distance` and
   `parallel_distance` is not read. This crate takes the fields as state.
   Every `fixed_angles` entry on the packet is 60, so the interpolation is
