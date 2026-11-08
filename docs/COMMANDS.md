@@ -382,7 +382,8 @@ player's auto-citizen settings pushed at game start. Every stamp
 contiguous, every payload plain — the SP path of §2 exactly as derived.
 
 The issuing side agrees with §3's table for ten issuers, run under the
-emulator (item 2379, `crates/sim/src/sweep/command_manager_issue_*`):
+emulator (item 2379's `command_manager_issue_*` sweeps, retired by item 3731
+as layout-only):
 `speed_up` 0x35, `speed_down` 0x36, `cheat_ai_toggle` 0x40 and `halt`
 0x0c, `alarm` 0x1b, `recall` 0x23 (length 1, the last three after
 `add_group` answers nonzero); `speed_set` 0x34, `cheat_increase_buckets`
