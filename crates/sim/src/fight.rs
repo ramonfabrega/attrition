@@ -3265,6 +3265,13 @@ impl Sim {
         dtype: i32,
         splash: bool,
     ) -> Taken {
+        if std::env::var_os("RON_PROBE_3984").is_some() && (2071..=2073).contains(&_frame) {
+            let o = |x: Obj| match x {
+                Obj::Unit(u) => (self.units[u].owner, i32::from(self.units[u].index)),
+                Obj::Building(b) => (self.buildings[b].owner, i32::from(self.buildings[b].index)),
+            };
+            eprintln!("PROBE td f{_frame} target {:?} by {:?} hit {hit:?} dtype {dtype} splash {splash}", o(target), o(_by));
+        }
         // `Object::take_damage@00652020:67-71`, first after the sixteenth
         // floor: a hit by anything but attrition (`param_5 == 0`), at
         // difficulty below 2, stamps the **struck object's owner's**

@@ -2409,7 +2409,7 @@ fn run1075_s_garrison_window_is_widened_whole() {
     for r in first
         .iter()
         .filter(|r| r.0 > WIDENING_GARRISON_1075.0)
-        .take(80)
+        .take(400)
     {
         eprintln!("run1075 first: {r:?}");
     }
