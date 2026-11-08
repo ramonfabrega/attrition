@@ -19286,12 +19286,104 @@ coverage driver takes 605..1400, 795 blocks.
 
 No cover twin was taken.
 
-## 184. Reserved for the next item on the rules track
+## 184. Chapter one hundred and thirty-four — land-based air, the second three: a mixed strike's split, a Fighter's strike on an enemy plane, and a flight home refused by ten homed planes; pinned open at 969 (item 3991, run1549)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** named three arms from the territory adjudications: the third's row 36
+(`ObjectData::num_aircraft_here@00645330`, read by `ObjectData::can_carry@006483c0:137`), the fourth's row 47
+(`Unit::pitch_aircraft@005e8de0`'s flier-target arm) and the second's row 38 (`Group::action_flight@006fb260`'s split
+of a strike's non-air members). No pinned capture holds any of them: no base had ten planes homed on it, no compared
+window holds a strike on a flier, and no lockstep run enters `action_flight` with a ground member. So all three were
+staged on one chapter, in chapter seventeen's lobby (§25, run223), as §183 was, with the new lines from 780.
+
+```text
+can_carry(base, plane):                                       # ObjectData::can_carry@006483c0
+    ... own home -> 1
+    return num_aircraft_here(base, 0) < num_aircraft_limit    # every live plane of the owner whose home_base is
+                                                              # the base, standing in it or flying (:137)
+action_flight(MOVE_TO), per member:                           # 6fb5f0..6fb67b
+    missile, or !can_carry(base, member) -> skip
+action_flight(ATTACK), before the member loop:                # 6fb3f9..6fb53f
+    split the live members by UnitData::is_plane (vslot +0xc0; a helicopter is no plane)
+    any non-plane -> action_flight(planes, ATTACK); ally ? action_guard(rest) : action_attack(rest, o, 1, QUEUE_NEW, 0)
+                     and return
+pitch_aircraft, not returning, a `w` type on a strike within 90°:   # 0x5e9114..0x5e9206
+    target type domain 2 -> want target.guys[0].z +/- min(300, max(0, (0x600 - vector_dist(dx, dy)) * 5))
+                            (+ when the target's number is below the striker's, or, equal, its owner is)
+    capped after at cruising_alt over the ground ahead
+do_strafe, a strike on a live non-helicopter plane:           # 0x5eafcf..0x5eb0a8
+    dist = vector_dist(target - me) > 0xc00 -> aim at project(target, target heading +0x50, (dist - 0xc00) / 3),
+                                               restricted to the world
+```
+
+**Built** (commits `9cd63a985`, `13bdc9dbb`):
+- `base_can_carry` (`airbase.rs`) takes its room from `aircraft_homed`, `num_aircraft_here(0)`, which counts the
+  planes homed on the base in the air too, and no longer the garrison.
+- `group_action_flight` (`group.rs`): the `MOVE_TO` gate asks `base_can_carry` of each air member, which carries the
+  own-home exemption, in place of the garrison count `aircraft_inside` (removed). The strike splits first, as above.
+  SEAM: an ally's building target, which this crate's guard does not take.
+- `strike_altitude` (`air.rs`) builds the flying target's arm. It takes the ground ahead as an argument, since the
+  arm's answer is a height and the caller adds the ground back.
+- `strafe_lead` (`orders.rs`, from `do_strafe`): **the lead point, a fourth arm the walk found**. run1549 parted on
+  934 before the altitude arm could: theirs' Fighter aims at (7878, 11686) against who=1's Bomber standing at (7800,
+  11640). That is 90 along the Bomber's first heading of 120°, which is (3343 − 3072) / 3 on 933's position, and it
+  walks onto the target by 940. The listing at `0x5eb05b`–`0x5eb0a8` names the arithmetic. It was this crate's SEAM
+  "a flying target's lead point". SEAM: a helicopter striker inside its reach, which projects from its own point.
+- Tests: `group::tests::a_flight_home_is_refused_by_ten_homed_planes_none_of_them_inside`,
+  `group::tests::a_strike_on_a_mixed_group_sends_the_rest_to_attack`,
+  `air::launch_tests::a_strike_on_a_flying_target_wants_that_target_s_height`.
+
+**The staging** (`tools/gamelog/golden/chapter134.cmd`, chapter seventeen's lines and eleven more, map 14), walked
+first on run223's start (`RON_STAGE=ch17:chapter134:1400`):
+- a Hoplite squad of who=0's (captain `0/9`) on 780, and `@strike 0 2006 1 7 9` on 790: the Bomber `0/7` and the
+  squad on the Barracks;
+- who=1's Airbase `1/2007` on 800 and a who=1 Bomber `1/6` standing on our side on 804. who=1 cannot issue (only the
+  console's seat can), so `1/6` stands on the ground. That is enough for the altitude arm, whose predicate on the
+  target is its type's domain, not its height;
+- a Fighter `0/12` on 806, flown into `0/2007` on 810, and struck at `1/6` on 902;
+- an Airbase `0/2008` on 820, ten Fighters `0/13`..`0/22` on 830, flown into it on 840; four struck out at `1/2007` on
+  1000; on 1010 `@flight 0 2008 0 6 13`.
+
+The walk's first draft named a Hoplite that is not the squad's captain and was refused whole (the DLL's refusal 3).
+Its 1100 strike named the Barracks, dead on 1080. Both were fixed before the take.
+
+**Killers, before the take**: (1) a Hoplite with no attack on `1/2006` on 793; (2) `0/12` with no `STRAFEORDER` on
+`1/6` by 940; (3) `0/12`'s figure above 1000 while it strafes; (4) `0/6` with any order, or outside `0/2007`, after
+1012; (5) `0/13` with no strafe home on 1012. **None fired.**
+- On 792 theirs gives each of `0/9`, `0/10`, `0/11` an `ATTACKORDER mandatory=1` on `1/2006` (uid 12), with a move
+  under it.
+- `0/12` patrols to `1/6`'s point from 903, and strafes it from 933.
+- On 1012 `0/6` stands in `0/2007` with no order, and `0/13` holds a `STRAFEORDER` with `xx/yy −1` and `oxx 2008`.
+
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_FOUR` = **969 of 1,400**, pinned open. On 969 who=1's
+Bomber `1/6`, unwounded (hits 300 throughout), takes `ATTACKORDER mandatory=0` on the Fighter `0/12` there (uid 20),
+and drops it by 971. Here it takes nothing. Its idle cadence does not fall on 969 (`o + frame` is 975) and its `near`
+is −1, so the reading that it was the idle search is dead. Parked 3991a with the frame and the delta.
+
+The widening over 605..1400 parts 691 rows (`WANT_CH134`):
+- the eleven standing `form` rows on 605;
+- `1/6`'s order and `idle` on 969–970;
+- everything downstream: the redraws of `cruising_alt` from 973, the Bombers' `accuracy` (§35.3's SEAM), and the
+  orders and figures that follow.
+
+Each arm, where the word reaches it, parts nothing:
+- the squad's attack on 792;
+- `0/12`'s lead point and height from 932 to 968;
+- `0/6`'s refusal on 1010, which parts no row to 1400, and `0/13`'s flight home, whose first row is a redraw on 1052.
+
+`GROUND_INEXACT` holds both tests at 33: chapter seventeen's Bombers. The `cant_reach` tally is 1. The coverage
+driver takes 605..1400, 795 blocks.
+
+**Mutations** (`tools/mutate.py --batch`, seven breaks): four of seven breaks ran before the session was cleared, and all four held, each by both its unit test and the chapter: the split dropped, the room counting the garrison, the `MOVE_TO` gate dropped, and the flier arm dropped. Three remain: the arm's sense turned, the lead point dropped, and its divisor at 2.
+
+**What is not established**:
+- the 969 parting (parked 3991a);
+- the split's ally arm (`action_guard`), and a guard on an ally's building;
+- a flier target that is flying, rather than standing. The arm's predicate is the type, and its height is the
+  figure's `z` either way;
+- `do_strafe`'s helicopter striker in reach;
+- the carrier and `param_1 = 1` arms of `num_aircraft_here`.
+
+No cover twin was taken.
 
 ## 185. Reserved for the next item on the rules track
 

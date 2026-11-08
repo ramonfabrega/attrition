@@ -15544,13 +15544,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DF — reserved
+## Parked by item 3991, 2026-11-08 — land-based air, the second three
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3991a. An unwounded plane standing outside a base takes its striker** (`docs/GOLDEN.md` §184; run1549, chapter
+  134's word, 969). who=1's Bomber `1/6`, standing on the ground with no order, takes `ATTACKORDER mandatory=0` on
+  the Fighter `0/12` that strafes it, on 969 there (uid 20). It drops the order by 971, and its `idle` reads 0 on
+  970. Here it takes nothing. Its hits read 300 throughout, so no blow lands. Its idle cadence does not fall on 969
+  (`o + frame` is 975) and its `near` is −1, so the idle search and `think`'s off-phase `near_o` arm are dead
+  readings. What is left to read: `0/12`'s rounds landing on 968 (`AMMO` is on), and a struck unit's
+  `Unit::target_opportunity@005fffc0` on a round that does no damage. Books on chapter 134's frame, the word at
+  969.
+- **3991b. The split's ally arm and the strike on a flying flier** (`docs/GOLDEN.md` §184). These rest on
+  `group::tests` and the reading alone: `action_flight`'s `action_guard` on an ally's target (and the guard on an
+  ally's building, which this crate does not take), a target that is in the air rather than standing, and
+  `do_strafe`'s helicopter striker inside its reach. A staging is an allied plane struck with a ground squad, and a
+  Fighter struck at a plane on a patrol, which needs a second seat that can issue. It names no score.
 
 ## Parked by the next landing, slot DG — reserved
 
