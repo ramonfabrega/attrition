@@ -2366,8 +2366,7 @@ mod tests {
             "the unit's angle (`UnitData +0x50`)"
         );
         assert_eq!(
-            s.units[n].movement.frame_facing,
-            s.units[n].movement.facing,
+            s.units[n].movement.frame_facing, s.units[n].movement.facing,
             "the copy is no turn: `guy_flags & 2` clear"
         );
         assert!(!s.units[target].alive(), "the old one is closed");
