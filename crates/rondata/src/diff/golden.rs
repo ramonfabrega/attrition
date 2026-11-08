@@ -6819,6 +6819,24 @@ fn chapter_one_hundred_and_thirty_one_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_one_s_window_is_widened_whole();
 }
 
+/// **Chapter one hundred and thirty-two** (item 3990, `docs/GOLDEN.md`
+/// §183, run1548): land-based air — a blow on an Airbase scrambles its
+/// Fighter, its homes razed while its planes are out, and a Helicopter
+/// ordered into its own Airbase.
+#[test]
+fn chapter_one_hundred_and_thirty_two_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_two_holds_to_the_golden_word();
+}
+
+/// **run1548 whole, both directions** (item 3990, `docs/GOLDEN.md` §183).
+#[test]
+fn chapter_one_hundred_and_thirty_two_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_two_s_window_is_widened_whole();
+}
+
+/// What parts in run1548's window, blocks 605–1400 (item 3990).
+const WANT_CH132: &[&str] = &[];
+
 /// What parts in run1547's window, blocks 605–1000 (item 3989): chapter
 /// one hundred and twenty-five's standing rows on the first block alone —
 /// the eleven `form` rows, the leaders' `SITE[i].reg` and `aggression[·]`

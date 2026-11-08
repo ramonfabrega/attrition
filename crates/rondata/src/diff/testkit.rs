@@ -7047,6 +7047,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE: i64 = 1000;
 /// window: run1547.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and thirty-two** (item 3990, `docs/GOLDEN.md`
+/// §183, run1548): land-based air. The hoplites' blow on the Airbase
+/// `0/2007` scrambles the Fighter `0/6` (`Object::attempt_launch@00643a10`),
+/// its home and then its second home razed while it and the two Bombers are
+/// out (`Unit::check_fuel@005e9be0`'s re-home and its death), and a
+/// Helicopter ordered into its own Airbase (`Unit::do_garrison@005e6b80`'s
+/// helicopter arm).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO: i64 = 1400;
+
+/// `chapter_one_hundred_and_thirty_two_s_window_is_widened_whole`'s
+/// window: run1548.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO: (i64, i64) = (604, 1401);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);
