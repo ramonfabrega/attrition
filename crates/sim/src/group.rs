@@ -7430,7 +7430,10 @@ mod tests {
         s.units[a].cant_reach = true;
         s.defeated[1] = true;
         s.think(a, 17);
-        assert!(s.units[a].cant_reach, "the defeated seat's think returns at :98");
+        assert!(
+            s.units[a].cant_reach,
+            "the defeated seat's think returns at :98"
+        );
         s.defeated[1] = false;
         s.think(a, 18);
         assert!(!s.units[a].cant_reach, "a live seat's think drops it");

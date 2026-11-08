@@ -40424,11 +40424,11 @@ re-pins the table.
 
 ### 406.5 What is not established
 
-- **The three non-clearing exits of `think`** (`:98`, `:101`, `:155`) are not modelled. No walk was found where one
-  decides the bit.
-- **The decoy squads' writer** (3962a) has not been found. These were read and none of them is it: `cast_create_decoy`,
+- ~~**The three non-clearing exits of `think`** (`:98`, `:101`, `:155`) are not modelled. No walk was found where one
+  decides the bit.~~ `:98` and `:155` are a defeated seat's, built in §415.1; `:101` stays open.
+- ~~**The decoy squads' writer** (3962a) has not been found. These were read and none of them is it: `cast_create_decoy`,
   `Objects::init_unit`, `Unit::init`, `SubObject::init` (`flags = 1`), `Group::add`, `Army::add_unit`,
-  `Unit::set_stance`.
+  `Unit::set_stance`.~~ It is `check_idle`'s `0x18` (§415.1).
 - **The rest of the `flags` byte** is not compared.
 
 ## 407. The style's six territory limits, read from the start dump, and the player region that picks a triple (item 3963, 2026-11-07)
@@ -40979,12 +40979,76 @@ the finished research's take-down (held by
 `ages_and_epochs_queued_follow_the_queue`), and the catch-up's arithmetic
 (held by `the_age_catch_up_reads_the_queued_ages`).
 
-## 415. Reserved for the next item on the AI track
+## 415. The `cant_reach` bit's two missing writers, and a defeated seat's exit: `PINNED` 2,398 units → 77 (item 3983, 2026-11-08)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3962a and 3962b: §406's row read `SubObjectData::flags & 0x10` ours 0 / theirs 1 on 373 tests,
+because the original has writers of the bit this crate lacked. The booking named thirteen of the rows:
+run989d's Cataphracts `1/72`, `1/74` (17388) and `1/79` (17397), and run547's ten decoy members (10364).
+
+### 415.1 The writers, found by their instruction
+
+The disassembly holds six `or byte [r+8], 0x10` sites: `Unit::do_gather` twice and
+`Group::action_stance` (both carried), `Object::take_damage` twice and `Group::action_unitmask`. The
+decompile holds one more spelling, `flags | 0x18`, in `Unit::check_idle@006032c0:69`. The only clears
+are `Unit::think`'s three (`:130`, `:296`, `:339`). No packet was taken: the booking asked for one only
+to name the decoys' writer, and these two searches named it.
+
+- **`check_idle`'s latch is `0x18`.** On the first idle frame (`flags & 8` clear) the original writes
+  `8` and `0x10` together. `Unit::do_idle@0060dcd0` calls `check_idle` and then `think`. A captain
+  clears the bit in that `think`. A non-captain cannot: `think`'s first statement returns a non-captain
+  before the gate, so a member that has once gone idle keeps the bit until it becomes a captain. That is
+  run547's decoys. Born on 10363 and printed from 10364, the ten members (`o_up ≥ 0`) read `flags` 25
+  (`1|8|0x10`) and the captains and single decoys read 9 (`1|8`). This crate carried the `8` as
+  `idle_latch`. [`Sim::check_idle`]'s latch now raises `cant_reach` with it.
+- **`take_damage`'s survive branch** (`:345`–`:350`). After the blow is accumulated, a unit whose whole
+  points taken (`+0x24`) are still under its figure's share sets `0x10` on `get_captain` (vslot
+  `+0xe4`, through the objects table). `Sim::struck_alive` does the same in the crate's `take_damage`
+  and in `SimSuffer::hurt`, because attrition's slot `0x16c` is this function. The building arm (the
+  same write on itself) is not carried, since no building flag is compared. run989d's `1/79` is the
+  value diff: `flags` 1 / `damage` 0 on 17388, then 17 / 1 on 17397. Ours read `cant_reach` 0 on both
+  blocks, and with the writer reads 0 then 1.
+- **A defeated seat leaves `think` at `:98`.** `leader_flags2 & 2` is the first test past the gate, and
+  `Leader::defeat@006ecb00:67` sets it as it clears `leader_flags & 2`. So a defeated seat's units
+  return with the bit kept, and `:155` is never reached by a defeated seat either. This crate reads
+  `defeated`. The exit is built from the reading. No walk moves with it (two whole-suite runs, with and
+  without it, read the same table), and `group::tests::a_defeated_seat_s_unit_keeps_the_bit_through_think`
+  holds it.
+
+### 415.2 The score
+
+`PINNED` went from **373 tests and 2,398 units to 20 tests and 77**. The booked thirteen are at 0:
+run989d 3 → 0 and run547 10 → 0, with no other pin of either test moving. In the whole suite the only
+thing that moved was the tally, on 380 tests. No `firsts`, count, floor or golden list moved, and the
+only other red was `floors::…bounded_test_width` (the measuring run's `--test-threads 4`).
+
+The 77 units left are named. None is a writer this crate lacks:
+
+- **59 rows: the human's units on a quit's closing block.** These are `0/1..0/7` on 2601 in the six
+  melee windows, and `0/1..0/5` in run80, run96, run609 and run667. In theirs `Leader::defeat`'s
+  `clear_orders` sets them idle on the quit frame. They latch, and their `think` returns at `:98` with
+  the bit kept: run1450's citizens read `idle 1`, `flags` 25 on 2601. Ours keeps them on their orders,
+  which is the seam parked as 3841c (parked 3983a).
+- **18 rows, ours 1 / theirs 0, each on a unit whose widening already parts.** 14 are attrition that
+  starts earlier in ours. run790's `1/154` stands `attrition` 12 / 48 and `hits:damage` 1 / 0 on 3761,
+  and theirs takes its first point near 3800. Three are an order (`0/4`'s `form`, `1/143`'s
+  `order:kind` from 3235). One is chapter 38's `0/7`, struck on 784 in theirs only (parked 3983b).
+
+### 415.3 Coverage
+
+- **Diff-backed:** the latch's `0x10` (run547's ten members, 10 → 0); the survive branch (run989d,
+  3 → 0); attrition's call (removing it brings run790 4 → 6 and run817 2 → 6); the tally on every walk.
+- **Reading alone:** the defeated seat's exit; the building arm of `take_damage`'s write (not carried);
+  `Group::action_unitmask`'s write for mask `0x100` (`CommandPackage::process_unitmask`, never sent in
+  the corpus, `docs/MOVEMENT.md`).
+- **Mutations** (`tools/mutate.py`): the captain's write removed, held (run989d, got 3); the latch's
+  `0x10` removed, held (run547, got 10); the defeat exit disabled, held by its unit test; attrition's
+  call removed, held (run790, run817).
+
+### 415.4 What is not established
+
+- **`think`'s `:101` exit** (`unit_masks & 0x1000000`, the scenario's `disable_unit_ai`) and the
+  scenario's `disable_all_unit_ai` arm of `:98` are not modelled.
+- **The human's quit** (3841c) and the earlier attrition (3983b) are what the 77 rows wait on.
 
 ## 416. Reserved for the next item on the AI track
 

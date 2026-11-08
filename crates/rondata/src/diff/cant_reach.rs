@@ -15,6 +15,17 @@
 //! count is still a pin, so a writer that lands, or a regression, moves a
 //! number. An item that ports a writer folds its rows into `firsts`.
 //!
+//! **Item 3983** (`docs/AI.md` §415) ported both: `check_idle`'s latch is
+//! `0x18`, so every unit raises the bit on its first idle frame and a
+//! non-captain keeps it (the decoys' members were that), and
+//! `take_damage` raises it on the captain of a unit that survives a blow,
+//! attrition included. 373 tests and 2,398 units fell to 20 and 77, every
+//! one named: 59 are the human's units on a quit's closing block, idle in
+//! theirs because `Leader::defeat` cleared their orders (parked 3841c,
+//! 3983a); 18 ride a field that already parts on the same unit — 14 an
+//! attrition that starts earlier in ours, three an order, one a blow
+//! theirs lands and ours does not (3983b).
+//!
 //! [`widen_block`](crate::diff::harness::widen_block) notes each parting
 //! unit once, at its first parting block, on the test's own thread;
 //! [`Pins`](crate::diff::testkit::pins::Pins) clears the tally when it is
@@ -79,28 +90,82 @@ pub(crate) fn check() -> Option<String> {
     })
 }
 
-/// Each test's count of units whose `cant_reach` parts, ours 0 against
-/// theirs 1 on every row (item 3962). `tools/cant_reach_pins.py <log>
+/// Each test's count of units whose `cant_reach` parts (item 3962; item
+/// 3983's writers took it from 2,398 units to 77, §415 of `docs/AI.md`). `tools/cant_reach_pins.py <log>
 /// --write` rewrites it from a suite run's `cant_reach tally` lines.
 pub(crate) const PINNED: &[(&str, usize)] = &[
-    ("diff::airbase_melee::airbase_melee_run1492_s_word_window_is_widened_whole", 7),
-    ("diff::aztec_alltech_pair::aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole", 2),
-    ("diff::british_modern_pair::british_modern_pair_run1433b_s_closing_frame_is_widened_whole", 1),
-    ("diff::classical_melee::classical_melee_run1450_s_word_window_is_widened_whole", 7),
-    ("diff::corpse_melee::corpse_melee_run1542_s_word_window_is_widened_whole", 7),
-    ("diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole", 1),
-    ("diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole", 7),
-    ("diff::harness::tests::run80_s_word_frame_is_widened_whole", 5),
-    ("diff::harness::tests::run96_s_word_frame_is_widened_whole", 5),
-    ("diff::information_melee::information_melee_run1468_s_word_window_is_widened_whole", 7),
+    (
+        "diff::airbase_melee::airbase_melee_run1492_s_word_window_is_widened_whole",
+        7,
+    ),
+    (
+        "diff::aztec_alltech_pair::aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole",
+        2,
+    ),
+    (
+        "diff::british_modern_pair::british_modern_pair_run1433b_s_closing_frame_is_widened_whole",
+        1,
+    ),
+    (
+        "diff::classical_melee::classical_melee_run1450_s_word_window_is_widened_whole",
+        7,
+    ),
+    (
+        "diff::corpse_melee::corpse_melee_run1542_s_word_window_is_widened_whole",
+        7,
+    ),
+    (
+        "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole",
+        1,
+    ),
+    (
+        "diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole",
+        7,
+    ),
+    (
+        "diff::harness::tests::run80_s_word_frame_is_widened_whole",
+        5,
+    ),
+    (
+        "diff::harness::tests::run96_s_word_frame_is_widened_whole",
+        5,
+    ),
+    (
+        "diff::information_melee::information_melee_run1468_s_word_window_is_widened_whole",
+        7,
+    ),
     ("diff::lakota_pair::run881_s_word_frame_is_widened_whole", 1),
     ("diff::lakota_pair::run882_s_word_frame_is_widened_whole", 1),
-    ("diff::lakota_pair::run883_s_closing_frame_is_widened_whole", 1),
-    ("diff::mongol_pair::run844_s_closing_frame_is_widened_whole", 3),
-    ("diff::sahara_coverage::run790_s_word_frame_is_widened_whole", 4),
-    ("diff::sahara_coverage::run817_s_word_frame_is_widened_whole", 2),
-    ("diff::sahara_mongol::run834_s_word_frame_is_widened_whole", 2),
-    ("diff::sea_melee::sea_melee_run1483_s_word_window_is_widened_whole", 7),
-    ("diff::third_pair::run609_s_closing_frame_is_widened_whole", 2),
-    ("diff::third_pair::run667_s_closing_frame_is_widened_whole", 5),
+    (
+        "diff::lakota_pair::run883_s_closing_frame_is_widened_whole",
+        1,
+    ),
+    (
+        "diff::mongol_pair::run844_s_closing_frame_is_widened_whole",
+        3,
+    ),
+    (
+        "diff::sahara_coverage::run790_s_word_frame_is_widened_whole",
+        4,
+    ),
+    (
+        "diff::sahara_coverage::run817_s_word_frame_is_widened_whole",
+        2,
+    ),
+    (
+        "diff::sahara_mongol::run834_s_word_frame_is_widened_whole",
+        2,
+    ),
+    (
+        "diff::sea_melee::sea_melee_run1483_s_word_window_is_widened_whole",
+        7,
+    ),
+    (
+        "diff::third_pair::run609_s_closing_frame_is_widened_whole",
+        2,
+    ),
+    (
+        "diff::third_pair::run667_s_closing_frame_is_widened_whole",
+        5,
+    ),
 ];

@@ -15152,13 +15152,15 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
 Both are scored by `diff::cant_reach::PINNED` (`docs/AI.md` §406.3). Every row the table counts is ours 0 / theirs 1.
 An item that ports one of them folds its rows into `firsts` and re-pins the table.
 
-- **3962a. A General's decoy squads are born with `0x10` on their non-captain members.** On run547, twenty decoys are
+- ~~**3962a. A General's decoy squads are born with `0x10` on their non-captain members.**~~ Answered by item 3983
+  (`docs/AI.md` §415): `check_idle`'s latch is `0x18`, and a non-captain never reaches `think`'s clear. The row as filed: On run547, twenty decoys are
   born on frame 10363 (1/90..1/109, army 1/1). The ten non-captain members (`o_up ≥ 0`: 1/93 94 97 98 101 102 104
   105 108 109) print `flags` 25, and the captains and single decoys print 9. Ours has all twenty at `cant_reach` 0.
   The writer has not been found. These were read and none of them is it: `cast_create_decoy`, `Objects::init_unit`,
   `Unit::init`, `SubObject::init` (`flags = 1`), `Group::add`, `Army::add_unit`, `Unit::set_stance`. **Score**:
   run547's tally (its decoy rows), and every walk past a decoy cast.
-- **3962b. `Object::take_damage:349` raises `0x10` on the struck unit's captain** (vslot `+0xe4`) when the damage
+- ~~**3962b. `Object::take_damage:349` raises `0x10` on the struck unit's captain**~~ Built by item 3983 (`docs/AI.md`
+  §415.1), run989d 3 → 0. The row as filed: (vslot `+0xe4`) when the damage
   passes one figure's share (`+0x24 < local_c`). On run989d, who 1's Cataphracts 1/72 and 1/74 on 17388, and 1/79 on
   17397, are in melee and read ours 0 / theirs 1. **Score**: run989d's tally, and every melee walk's.
 
@@ -15360,13 +15362,22 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   group (a `go_to`'s squad walk and `group_target_opportunity` are the candidates). The first brief is the draws on
   764–765 both sides and `RON_DEBUG_ARMIES`. Score: ch128 w765 of 1,100.
 
-## Parked by the next landing, slot CT — reserved
+## Parked by item 3983, 2026-11-08 — the `cant_reach` tally's last 77 units
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3983a. The human's units on a quit's closing block keep `0x10` in theirs** (59 units, `diff::cant_reach::PINNED`:
+  the six melee windows' `0/1..0/7` on 2601, and run80, run96, run609 and run667's `0/1..0/5`). `Leader::defeat`'s
+  `clear_orders` sets the quitter's units idle on the quit frame. They take `check_idle`'s `0x18`, and `think` returns
+  at `:98` (`leader_flags2 & 2`), so the bit stays: run1450's citizens read `idle 1`, `flags` 25 on 2601. Ours keeps
+  them on their orders, which is 3841c's seam. Both the latch and the `:98` exit are built (§415.1), so the rows
+  should fold once 3841c's clear lands. **Score**: those eleven tests' tallies, 59 → 0.
+- **3983b. 18 `cant_reach` rows, ours 1 / theirs 0, ride a field that already parts on the same unit.** 14 are
+  attrition that starts earlier in ours: run790's `1/154` stands `attrition` 12 / 48 and `hits:damage` 1 / 0 on 3761,
+  and theirs' first point lands near 3800. The same shape is on run817, run834, run844, run881–883 and run1147b's
+  `1/104`, `1/119`, `1/130`, `1/17`, `1/73`, `1/161` and their neighbours. Three are an order (run1433b's `0/4` from
+  `form`, run790/817's `1/143` from `order:kind` on 3235), and one is chapter 38's `0/7`, struck on 784 in theirs
+  only. Not read: why ours' attrition starts on the first in-territory tick where theirs waits 36–84 frames
+  (`attrition` 12 against 48 or 96). **Score**: those ten tests' tallies (18 units), and the same units' `attrition`
+  rows in their `firsts`.
 
 ## Parked by the next landing, slot CU — reserved
 
