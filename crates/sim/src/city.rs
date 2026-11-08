@@ -2878,68 +2878,6 @@ impl Sim {
         // A building in enemy territory bleeds.
         let who = self.buildings[b].owner;
         if phase % build::ENEMY_TERRITORY_PERIOD == 0
-            && std::env::var_os("RON_PROBE_DOCK").is_some()
-            && self.buildings[b]
-                .ty
-                .is_some_and(|t| build::is_dock(&self.build_types, t))
-        {
-            let ty = self.buildings[b].ty.unwrap();
-            let corner = self.tile_corner(ty, self.buildings[b].pos);
-            let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
-            let (x0, y0, x1, y1) = (corner.x - 1, corner.y - 1, corner.x + xs, corner.y + ys);
-            let mut ring = -1;
-            let mut owners = Vec::new();
-            'w: for x in x0..=x1 {
-                for y in y0..=y1 {
-                    let t = Pos::new(x, y);
-                    let inside = x >= corner.x && x < x1 && y >= corner.y && y < y1;
-                    let ct = (x == x0 || x == x1) && (y == y0 || y == y1);
-                    if inside
-                        || ct
-                        || !self.world.tile_in_bounds(t)
-                        || self.world.tile_mask(t) & crate::world::tile::SURFACE
-                            == crate::world::tile::SURFACE_OCEAN
-                    {
-                        continue;
-                    }
-                    let o =
-                        crate::place::owner_byte(self.world.owner(crate::World::cell_of_tile(t)));
-                    owners.push(o);
-                    if o < 0 {
-                        ring = o;
-                        break 'w;
-                    }
-                    let p = o as u8;
-                    if crate::place::friendly_ground(
-                        o,
-                        i32::from(who),
-                        self.allied_with(who, p),
-                        self.allied_with(p, who),
-                    ) {
-                        ring = o;
-                        break 'w;
-                    }
-                    ring = o;
-                }
-            }
-            let ring_hit = ring >= 0 && {
-                let p = ring as u8;
-                !crate::place::friendly_ground(
-                    ring,
-                    i32::from(who),
-                    self.allied_with(who, p),
-                    self.allied_with(p, who),
-                )
-            };
-            let own = self.in_unfriendly_territory(b);
-            eprintln!(
-                "DOCKPROBE frame={frame} b={b} who={who} pos=({},{}) own={own} ring={ring_hit} ring_owner={ring} owners={owners:?}{}",
-                self.buildings[b].pos.x,
-                self.buildings[b].pos.y,
-                if own != ring_hit { " DIFFER" } else { "" }
-            );
-        }
-        if phase % build::ENEMY_TERRITORY_PERIOD == 0
             && !self.nation[who as usize].disable_building_attrition
             && self.in_unfriendly_territory(b)
         {
