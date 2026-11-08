@@ -10,8 +10,10 @@
 //!
 //! # What it allows, and why
 //!
-//! - **Test code.** `#[cfg(test)]` modules and the two whole-file test
-//!   modules `lib.rs` mounts under it. A test may use `f64` freely and
+//! - **Test code.** `#[cfg(test)]` modules, every file the module tree
+//!   mounts under one (read from `lib.rs` down, recursively: [`module_tree`]),
+//!   and the files only an integration target under `tests/` mounts. A
+//!   test may use `f64` freely and
 //!   several do, deliberately: `movement.rs` checks `find_angle` against
 //!   `atan2`, and `combat.rs` checks the software float against the host's.
 //!   Those are *oracles*, and an oracle written in the same arithmetic as
@@ -29,30 +31,224 @@
 //! Everything else is a failure, including a lone `1.0` literal — a float
 //! literal is a float even before it is named.
 
-/// Every `.rs` file the simulation is built from, with its text.
-fn sources() -> Vec<(String, String)> {
-    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src");
+use std::collections::BTreeMap;
+use std::path::{Component, Path, PathBuf};
+
+/// Every `.rs` file under the crate's `src/`, recursively, with whether it is
+/// test code and its text: `(path relative to src/, test, text)`, sorted.
+///
+/// **Recursive since item 4008** (`docs/STRUCTURE.md` §5, move 1): the scan read
+/// the flat `src/` alone, so `do_attack/live.rs` was never checked and every
+/// file a structure landing moves into a directory would have left the
+/// guard in silence.
+pub(crate) fn source_files() -> Vec<(String, bool, String)> {
+    let src = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src"));
+    let tests = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests"));
+    classify(src, Some(tests))
+}
+
+/// The files of `src`, each marked test or production by the module tree:
+///
+/// - a file the tree reaches from `lib.rs` is test when it, or a module
+///   above it, is declared under `#[cfg(test)]` (an out-of-line `mod x;`
+///   after the attribute, or one inside an inline `#[cfg(test)]` block);
+/// - a file the tree does not reach, but which an integration target under
+///   `tests` mounts with `#[path]`, is test — it is compiled only there;
+/// - a file nothing reaches is production: it is scanned, never exempted.
+pub(crate) fn classify(src: &Path, tests: Option<&Path>) -> Vec<(String, bool, String)> {
+    let tree = module_tree(src);
+    let mounted_by_tests = match tests.filter(|t| t.is_dir()) {
+        Some(tests) => walk_modules(
+            src,
+            walk(tests)
+                .into_iter()
+                .map(|(file, _, _)| (tests.join(file), tests.to_path_buf(), true))
+                .collect(),
+        ),
+        None => BTreeMap::new(),
+    };
+    walk(src)
+        .into_iter()
+        .map(|(rel, _, text)| {
+            let test = match tree.get(&rel) {
+                Some(&t) => t,
+                None => mounted_by_tests.contains_key(&rel),
+            };
+            (rel, test, text)
+        })
+        .collect()
+}
+
+/// Every `.rs` file under `dir`, recursively, as `(relative path, false,
+/// text)`, sorted; the path is `/`-separated.
+fn walk(dir: &Path) -> Vec<(String, bool, String)> {
     let mut out = Vec::new();
-    for entry in std::fs::read_dir(dir).expect("the crate's own src/") {
-        let path = entry.expect("a readable entry").path();
-        if path.extension().is_none_or(|e| e != "rs") {
-            continue;
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        for entry in std::fs::read_dir(&d).unwrap_or_else(|e| panic!("{}: {e}", d.display())) {
+            let path = entry.expect("a readable entry").path();
+            if path.is_dir() {
+                stack.push(path);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                let text = std::fs::read_to_string(&path).expect("a readable source file");
+                let rel = relative(dir, &path).expect("under its own walk");
+                out.push((rel, false, text));
+            }
         }
-        let name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default()
-            .to_string();
-        let text = std::fs::read_to_string(&path).expect("a readable source file");
-        out.push((name, text));
     }
     out.sort();
     out
 }
 
-/// The whole-file test modules `lib.rs` mounts under `#[cfg(test)]`, which a
-/// per-file scan cannot recognise from their own contents.
-const TEST_FILES: [&str; 3] = ["harness_tests.rs", "cities_tests.rs", "no_float.rs"];
+/// A path's components with `.` and `..` resolved lexically.
+fn lexical(path: &Path) -> Vec<String> {
+    let mut parts: Vec<String> = Vec::new();
+    for c in path.components() {
+        match c {
+            Component::ParentDir => {
+                parts.pop();
+            }
+            Component::CurDir => {}
+            other => parts.push(other.as_os_str().to_string_lossy().into_owned()),
+        }
+    }
+    parts
+}
+
+/// `path` relative to `base`, `/`-separated; `None` when it is not under
+/// `base`.
+fn relative(base: &Path, path: &Path) -> Option<String> {
+    let parts = lexical(path);
+    parts
+        .strip_prefix(lexical(base).as_slice())
+        .map(|rest| rest.join("/"))
+        .filter(|r| !r.is_empty())
+}
+
+/// One out-of-line `mod name;` in a source text.
+pub(crate) struct ModDecl {
+    pub(crate) name: String,
+    /// Declared under `#[cfg(test)]`, on itself or on an inline module
+    /// around it.
+    pub(crate) test: bool,
+    /// Its `#[path = "…"]`, when it has one.
+    pub(crate) path: Option<String>,
+}
+
+/// The out-of-line module declarations of one file: `mod x;` with any
+/// visibility, its attributes read from the lines above it (attributes and
+/// comments, contiguous). Comments and strings do not declare.
+pub(crate) fn mod_decls(text: &str) -> Vec<ModDecl> {
+    let code = code_only(text);
+    let live = without_test_modules(&code);
+    let raw: Vec<&str> = text.split('\n').collect();
+    let mut out = Vec::new();
+    let mut offset = 0;
+    for (i, line) in code.split('\n').enumerate() {
+        let start = offset;
+        offset += line.len() + 1;
+        let t = line.trim();
+        let rest = ["pub(crate) ", "pub(super) ", "pub "]
+            .iter()
+            .find_map(|v| t.strip_prefix(v))
+            .unwrap_or(t);
+        let Some(name) = rest
+            .strip_prefix("mod ")
+            .and_then(|r| r.strip_suffix(';'))
+            .map(str::trim)
+            .filter(|n| !n.is_empty() && n.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'_'))
+        else {
+            continue;
+        };
+        // Inside a stripped `#[cfg(test)] mod x { … }`: test code.
+        let mut test = live.as_bytes()[start..start + line.len()]
+            .iter()
+            .all(|&c| c == b' ');
+        let mut path = None;
+        for above in raw[..i].iter().rev().map(|l| l.trim()) {
+            if above.starts_with("//") {
+                continue;
+            }
+            if !above.starts_with("#[") {
+                break;
+            }
+            if above == "#[cfg(test)]" {
+                test = true;
+            }
+            if let Some(p) = above
+                .strip_prefix("#[path")
+                .and_then(|r| r.split('"').nth(1))
+            {
+                path = Some(p.to_string());
+            }
+        }
+        out.push(ModDecl {
+            name: name.to_string(),
+            test,
+            path,
+        });
+    }
+    out
+}
+
+/// The crate's module tree from `src/lib.rs`: every file it reaches,
+/// relative to `src`, and whether it is test code. A child of `lib.rs`, a
+/// `mod.rs` or a `#[path]` file resolves beside it; a child of `foo.rs`
+/// resolves in `foo/`; a `#[path]` is relative to the declaring file's
+/// directory — the rules `rustc` resolves them by (inline modules that
+/// declare out-of-line children are not followed; the crate has none).
+pub(crate) fn module_tree(src: &Path) -> BTreeMap<String, bool> {
+    walk_modules(src, vec![(src.join("lib.rs"), src.to_path_buf(), false)])
+}
+
+/// The files under `src` that the module trees rooted at `roots` reach —
+/// each root `(file, the directory its children resolve in, test)` — and
+/// whether each is test code. A root outside `src` (an integration target)
+/// is followed but not listed.
+fn walk_modules(src: &Path, roots: Vec<(PathBuf, PathBuf, bool)>) -> BTreeMap<String, bool> {
+    let mut out = BTreeMap::new();
+    let mut seen = std::collections::BTreeSet::new();
+    let mut stack = roots;
+    while let Some((file, children, test)) = stack.pop() {
+        if !seen.insert(lexical(&file)) {
+            continue;
+        }
+        let Ok(text) = std::fs::read_to_string(&file) else {
+            continue;
+        };
+        if let Some(rel) = relative(src, &file) {
+            out.insert(rel, test);
+        }
+        let dir = file.parent().unwrap_or(src).to_path_buf();
+        for decl in mod_decls(&text) {
+            let test = test || decl.test;
+            if let Some(p) = decl.path {
+                let at = dir.join(p);
+                let beside = at.parent().unwrap_or(&dir).to_path_buf();
+                stack.push((at, beside, test));
+                continue;
+            }
+            let flat = children.join(format!("{}.rs", decl.name));
+            let nested = children.join(&decl.name).join("mod.rs");
+            if flat.exists() {
+                stack.push((flat, children.join(&decl.name), test));
+            } else if nested.exists() {
+                stack.push((nested, children.join(&decl.name), test));
+            }
+        }
+    }
+    out
+}
+
+/// The simulation's production files with their text: what the float scan
+/// reads.
+fn sources() -> Vec<(String, String)> {
+    source_files()
+        .into_iter()
+        .filter(|(_, test, _)| !test)
+        .map(|(name, _, text)| (name, text))
+        .collect()
+}
 
 /// Blanks out everything that is not code: line and block comments, string
 /// literals, char literals. Byte positions are preserved so a line number
@@ -118,18 +314,40 @@ pub(crate) fn code_only(text: &str) -> String {
     String::from_utf8(out).expect("ASCII sources stay valid")
 }
 
-/// Blanks out every `#[cfg(test)]` item: the attribute, and the braced block
-/// that follows it.
+/// Blanks out every `#[cfg(test)]` item: the attribute, and the item that
+/// follows it — a braced block to its matching `}`, or an item that ends at
+/// a `;` before any brace (`mod tests;`, `use …;`, `const …;`).
+///
+/// **The `;` since item 4008**: the attribute blanked to the next braced
+/// block wherever it was, so `#[cfg(test)] mod tests;` hid the production
+/// item after it from the scan — the shape `docs/STRUCTURE.md` §5's third
+/// move writes into every file whose tail it moves out.
 pub(crate) fn without_test_modules(code: &str) -> String {
     let mut out = code.as_bytes().to_vec();
     let mut from = 0;
     while let Some(rel) = code[from..].find("#[cfg(test)]") {
         let at = from + rel;
-        // The braced item that follows the attribute, from its first `{` to
-        // the matching `}`.
-        let mut i = at;
-        while i < out.len() && out[i] != b'{' {
+        // The item that follows the attribute: up to a `;` outside brackets
+        // when one comes before the first `{`, else from that `{` to its
+        // matching `}`.
+        let mut i = at + "#[cfg(test)]".len();
+        let mut nest = 0i32;
+        while i < out.len() && out[i] != b'{' && !(out[i] == b';' && nest == 0) {
+            match out[i] {
+                b'(' | b'[' => nest += 1,
+                b')' | b']' => nest -= 1,
+                _ => {}
+            }
             i += 1;
+        }
+        if i < out.len() && out[i] == b';' {
+            for byte in &mut out[at..=i] {
+                if *byte != b'\n' {
+                    *byte = b' ';
+                }
+            }
+            from = i + 1;
+            continue;
         }
         let mut depth = 0;
         let mut end = out.len();
@@ -226,9 +444,6 @@ mod tests {
         let mut bad: Vec<String> = Vec::new();
         let mut scanned = 0;
         for (name, text) in sources() {
-            if TEST_FILES.contains(&name.as_str()) {
-                continue;
-            }
             scanned += 1;
             let code = without_test_modules(&code_only(&text));
             for (line, what) in floats(&code) {
@@ -248,6 +463,152 @@ mod tests {
              mechanic's document.\n  {}",
             bad.len(),
             bad.join("\n  ")
+        );
+    }
+
+    /// **The scan reaches every file the crate is built from** (item 4008,
+    /// `docs/STRUCTURE.md` §5, move 1): a module that moves into a directory
+    /// must not leave the guard. Made to fail first on the flat scan,
+    /// which read `src/` alone and missed `do_attack/live.rs`.
+    #[test]
+    fn the_scan_reaches_a_nested_module() {
+        let names: Vec<String> = sources().into_iter().map(|(n, _)| n).collect();
+        assert!(
+            names.iter().any(|n| n == "do_attack/live.rs"),
+            "the float scan does not read do_attack/live.rs; it read {} files",
+            names.len()
+        );
+    }
+
+    /// **The module tree on a synthetic nested crate** (item 4008, before
+    /// item 4010 moves anything): a `mod.rs` directory, a `foo.rs` with a
+    /// `foo/` child, a `#[path]` module, a `#[cfg(test)]` directory whose
+    /// children inherit it, a test declared inside an inline `#[cfg(test)]`
+    /// block, a file only `tests/` mounts, and an orphan, which is scanned.
+    #[test]
+    fn the_module_tree_reads_a_nested_crate() {
+        let root = std::env::temp_dir().join(format!(
+            "attrition-module-tree-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let _ = std::fs::remove_dir_all(&root);
+        let files: &[(&str, &str)] = &[
+            (
+                "src/lib.rs",
+                "pub mod core;\nmod units;\n#[cfg(test)]\nmod sweep;\n\
+                 #[cfg(test)]\n#[path = \"support/env.rs\"]\npub(crate) mod testenv;\n\
+                 // mod commented;\n#[cfg(test)]\nmod tests {\n    mod inner;\n}\n",
+            ),
+            (
+                "src/core/mod.rs",
+                "pub mod tick;\n#[cfg(test)]\nmod tests;\n",
+            ),
+            ("src/core/tick.rs", "pub fn t() {}\n"),
+            ("src/core/tests.rs", "fn x() {}\n"),
+            ("src/units.rs", "/// The think.\npub(crate) mod think;\n"),
+            ("src/units/think.rs", "fn t() {}\n"),
+            ("src/sweep/mod.rs", "mod one;\n"),
+            ("src/sweep/one.rs", "fn s() {}\n"),
+            ("src/sweep/standalone.rs", "fn s() {}\n"),
+            ("src/support/env.rs", "fn e() {}\n"),
+            ("src/inner.rs", "fn i() {}\n"),
+            ("src/commented.rs", "fn c() {}\n"),
+            (
+                "tests/sweep.rs",
+                "pub use sim::*;\n#[path = \"../src/sweep/standalone.rs\"]\nmod sweep;\n",
+            ),
+        ];
+        for (path, text) in files {
+            let at = root.join(path);
+            std::fs::create_dir_all(at.parent().unwrap()).unwrap();
+            std::fs::write(at, text).unwrap();
+        }
+        let got: Vec<(String, bool)> = classify(&root.join("src"), Some(&root.join("tests")))
+            .into_iter()
+            .map(|(rel, test, _)| (rel, test))
+            .collect();
+        std::fs::remove_dir_all(&root).unwrap();
+        let want: Vec<(String, bool)> = [
+            // Nothing declares it (the declaration is a comment): scanned.
+            ("commented.rs", false),
+            ("core/mod.rs", false),
+            ("core/tests.rs", true),
+            ("core/tick.rs", false),
+            // `mod inner;` inside an inline `#[cfg(test)]` block resolves
+            // beside lib.rs here, and is test.
+            ("inner.rs", true),
+            ("lib.rs", false),
+            ("support/env.rs", true),
+            ("sweep/mod.rs", true),
+            ("sweep/one.rs", true),
+            ("sweep/standalone.rs", true),
+            ("units.rs", false),
+            ("units/think.rs", false),
+        ]
+        .iter()
+        .map(|(r, t)| (r.to_string(), *t))
+        .collect();
+        assert_eq!(got, want);
+    }
+
+    /// The real tree: the files a structure landing would move are read,
+    /// and the test files are recognised from the tree rather than a list.
+    #[test]
+    fn the_real_tree_classifies_its_test_files() {
+        let all = source_files();
+        let test = |name: &str| {
+            all.iter()
+                .find(|(n, _, _)| n == name)
+                .map(|(_, t, _)| *t)
+                .unwrap_or_else(|| panic!("{name} is not in the walk"))
+        };
+        for name in [
+            "harness_tests.rs",
+            "cities_tests.rs",
+            "no_float.rs",
+            "docs_guard.rs",
+            "soak.rs",
+            "sweep/mod.rs",
+            "test_support/install.rs",
+        ] {
+            assert!(test(name), "{name} read as production");
+        }
+        for name in ["lib.rs", "orders.rs", "do_attack.rs", "do_attack/live.rs"] {
+            assert!(!test(name), "{name} read as test");
+        }
+        assert!(
+            all.iter()
+                .filter(|(n, _, _)| n.starts_with("sweep/"))
+                .all(|(_, t, _)| *t),
+            "a sweep read as production"
+        );
+    }
+
+    /// **No source file is an orphan**: every `.rs` under `src/` is reached
+    /// by `lib.rs`'s module tree or an integration target's. A file a move
+    /// left without its `mod` line is code the compiler never sees, and the
+    /// float scan would read it as production forever.
+    #[test]
+    fn every_source_file_is_mounted() {
+        let src = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src"));
+        let tests = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests"));
+        let mut reached = module_tree(src);
+        reached.extend(walk_modules(
+            src,
+            walk(tests)
+                .into_iter()
+                .map(|(f, _, _)| (tests.join(f), tests.to_path_buf(), true))
+                .collect(),
+        ));
+        let orphans: Vec<String> = walk(src)
+            .into_iter()
+            .map(|(rel, _, _)| rel)
+            .filter(|rel| !reached.contains_key(rel))
+            .collect();
+        assert!(
+            orphans.is_empty(),
+            "sources no module tree mounts: {orphans:?}"
         );
     }
 
@@ -271,5 +632,16 @@ mod tests {
         let found = floats(&stripped);
         assert_eq!(found.len(), 1, "{found:?}");
         assert_eq!(found[0].1, "f64");
+        // An item that ends at its `;` takes nothing after it along: the
+        // shape a tail moved to `foo/tests.rs` leaves behind.
+        for decl in [
+            "#[cfg(test)]\nmod tests;",
+            "#[cfg(test)]\nuse std::f64::consts;",
+            "#[cfg(test)]\nconst N: [u8; 2] = [0; 2];",
+        ] {
+            let src = format!("{decl}\nfn c() {{ let y: f64 = 0; }}");
+            let found = floats(&without_test_modules(&code_only(&src)));
+            assert_eq!(found.len(), 1, "{src}: {found:?}");
+        }
     }
 }

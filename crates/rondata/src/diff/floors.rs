@@ -393,6 +393,64 @@ pub const MAPGEN: Mapgen = Mapgen {
     ],
 };
 
+/// **The structure track's six counts** (`docs/STRUCTURE.md` §2, item
+/// 4008), as `tools/shape.py --exact` measures them on the tree, in the
+/// queue's order: `flat · test-tails · sweep-lines · names · fields ·
+/// largest`. Each may only fall, and a structure landing that moves one
+/// re-pins it here with its delta; the queue's `Structure:` line is
+/// [`structure_line`] of these, which rounds the two line counts to
+/// thousands so the line stays short while the pin stays exact.
+///
+/// At `4f5dde2aa`: `flat 203 · test-tails 64958 · sweep-lines 148079 ·
+/// names 130 · fields 92 · largest 14222`. The inventory's reading
+/// (`149.5k`, `14223`) counted one line more per newline-terminated file
+/// (`split('\n')`); these are `wc -l`'s. Its `65k` counted the guards'
+/// own tails (214 lines) as production; §2 says production files, and a
+/// guard's test is not one.
+#[cfg(test)]
+pub const STRUCTURE: [(&str, u64); 6] = [
+    ("flat", 203),
+    ("test-tails", 64_958),
+    ("sweep-lines", 148_079),
+    ("names", 130),
+    ("fields", 92),
+    ("largest", 14_222),
+];
+
+/// **The queue's line as the seventy-fourth pass wrote it, before
+/// `tools/shape.py` existed** — the inventory's reading, which
+/// [`structure_line`] of [`STRUCTURE`] does not reproduce (`65k`, `149.5k`
+/// and `14223` against `65k`, `148.1k` and `14222`). The handoff guard
+/// accepts it in place of the measured line until the commander writes
+/// the measured line into `docs/QUEUE.md` at the booking and sets this to
+/// `None`; once `None`, only the measured line passes.
+#[cfg(test)]
+pub const STRUCTURE_LINE_BEFORE_SHAPE: Option<&str> = None;
+
+/// The queue's `Structure:` line for `counts`, exactly as `tools/shape.py`
+/// prints it: the counts in order, parted by a middle dot, `test-tails` and
+/// `sweep-lines` in thousands to one decimal, half up, a whole thousand
+/// without its `.0`.
+#[cfg(test)]
+pub fn structure_line(counts: &[(&str, u64)]) -> String {
+    let parts: Vec<String> = counts
+        .iter()
+        .map(|(key, n)| {
+            if matches!(*key, "test-tails" | "sweep-lines") {
+                let tenths = (n + 50) / 100;
+                if tenths % 10 == 0 {
+                    format!("{key} {}k", tenths / 10)
+                } else {
+                    format!("{key} {}.{}k", tenths / 10, tenths % 10)
+                }
+            } else {
+                format!("{key} {n}")
+            }
+        })
+        .collect();
+    format!("Structure: {}", parts.join(" \u{b7} "))
+}
+
 /// One of the AI track's handoff lines read part by part: `<map> w<word>
 /// of <length>`, the length with or without its comma. The one parser of
 /// those lines — the floors guards read it against `AI_WORDS`, and the
@@ -929,6 +987,100 @@ mod tests {
             Some(want.as_str()),
             "docs/QUEUE.md's handoff carries `{want}` (the held-out battery, `BATTERY`'s pinned \
              counts against each game's length), beside the Blind line"
+        );
+    }
+
+    /// **The handoff's structure line is the pinned shape** (item 4008,
+    /// `docs/STRUCTURE.md` §2): the queue's `Structure:` line is
+    /// [`structure_line`] of [`STRUCTURE`] — or, until the booking writes
+    /// the measured line, the pass's own reading,
+    /// [`STRUCTURE_LINE_BEFORE_SHAPE`]. A commander's line
+    /// (`release_gate.py`'s `COMMANDERS_LINES`); the pin's other half,
+    /// that [`STRUCTURE`] is the tree's, is a worker's and is
+    /// [`the_pinned_shape_is_the_tree_s`]. Made to fail first on a handoff
+    /// with no such line.
+    #[test]
+    fn the_handoff_s_structure_line_is_the_pinned_shape() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let q = std::fs::read_to_string(format!("{root}/docs/QUEUE.md")).expect("docs/QUEUE.md");
+        let want = structure_line(&STRUCTURE);
+        let line = q
+            .lines()
+            .find(|l| l.starts_with("Structure:"))
+            .map(str::trim_end);
+        assert!(
+            line == Some(want.as_str()) || (line.is_some() && line == STRUCTURE_LINE_BEFORE_SHAPE),
+            "docs/QUEUE.md's handoff carries `{want}` (`tools/shape.py`'s line, \
+             `rondata::diff::floors::STRUCTURE`); it says {line:?}"
+        );
+        if let Some(before) = STRUCTURE_LINE_BEFORE_SHAPE {
+            assert_ne!(
+                before, want,
+                "STRUCTURE_LINE_BEFORE_SHAPE is the measured line now; set it to None"
+            );
+        }
+    }
+
+    /// **The pinned shape is the tree's** (item 4008): `tools/shape.py
+    /// --json` measures [`STRUCTURE`] on the tree, so a move that changes
+    /// a count re-pins it in the same landing, with its delta — the
+    /// worker's half, never forgiven. Made to fail first on the pin as
+    /// first written, which counted the guards' own test tails (`65172`
+    /// against the tree's `65186`, once this item's tests were in them).
+    #[test]
+    fn the_pinned_shape_is_the_tree_s() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let out = std::process::Command::new("python3")
+            .arg(format!("{root}/tools/shape.py"))
+            .arg("--json")
+            .output()
+            .expect("python3 runs");
+        assert!(
+            out.status.success(),
+            "tools/shape.py failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let text = String::from_utf8_lossy(&out.stdout);
+        let measured: Vec<(&str, u64)> = STRUCTURE
+            .iter()
+            .map(|(key, _)| {
+                let at = text
+                    .find(&format!("\"{key}\": "))
+                    .unwrap_or_else(|| panic!("shape.py printed no {key}: {text}"));
+                let rest = &text[at + key.len() + 4..];
+                let end = rest
+                    .find(|c: char| !c.is_ascii_digit())
+                    .unwrap_or(rest.len());
+                (*key, rest[..end].parse().expect("a count"))
+            })
+            .collect();
+        assert_eq!(
+            measured,
+            STRUCTURE.to_vec(),
+            "the tree's shape (left, `tools/shape.py --exact`) is not the pin \
+             (right, `rondata::diff::floors::STRUCTURE`): re-pin the count a \
+             move changed, with its delta, and the queue's line is the \
+             commander's to write"
+        );
+    }
+
+    #[test]
+    fn the_structure_line_rounds_as_shape_py_does() {
+        let line = structure_line(&[
+            ("flat", 12),
+            ("test-tails", 65_172),
+            ("sweep-lines", 65_000),
+            ("names", 15),
+            ("fields", 24),
+            ("largest", 149),
+        ]);
+        assert_eq!(
+            line,
+            "Structure: flat 12 \u{b7} test-tails 65.2k \u{b7} sweep-lines 65k \u{b7} names 15 \u{b7} fields 24 \u{b7} largest 149"
+        );
+        assert_eq!(
+            structure_line(&[("test-tails", 149_950), ("sweep-lines", 49)]),
+            "Structure: test-tails 150k \u{b7} sweep-lines 0k"
         );
     }
 

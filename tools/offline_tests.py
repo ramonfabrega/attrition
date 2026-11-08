@@ -77,6 +77,8 @@ SUITES = (
     'test_rubric',  # the forty-eighth pass's scorecard
     'test_frame_cut',  # item 3977
     'test_nations_census',  # Loop 3972: the census's --check
+    'test_paths',  # item 4008: the cited source paths, checked and moved
+    'test_shape',  # item 4008: the structure track's six counts
 )
 
 # The lab's suites (`docs/DECISIONS.md` entry 38: merged whole, its ledger
