@@ -6971,10 +6971,15 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN: (i64, i64) = (10
 /// **Chapter one hundred and twenty-eight** (item 3986, `docs/GOLDEN.md`
 /// §179, run1544): who=0's Hoplites beside its Comrade, its Heavy Knight
 /// beside its Monarch and its Barracks beside its Senator, each struck by
-/// who=1's Hoplites. Open at 765 (1100 → 765, the first pin): every blow
-/// of the three arms agrees through 764, and on 765 who=1's arm-one
-/// Hoplites `1/6..1/8` read `group` 64 ours, −1 theirs (parked 3986a).
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: i64 = 765;
+/// who=1's Hoplites. Opened at 765 (1100 → 765, the first pin): on 765
+/// who=1's arm-one Hoplites `1/6..1/8` read `group` 64 ours, −1 theirs
+/// (parked 3986a). **Whole since item 4000 (765 → 1100, `docs/GOLDEN.md`
+/// §190, run1555)**: the squad rejoins army 0 on 642 through the emptied
+/// record's own `Group::add`, listed `[8]` and then `[8 6 7]`; the
+/// 764 move's `Group::sort` kills it whole, which clears the record's
+/// `facing` and drops every back-pointer, so `1/7`'s `off` reads
+/// (360, 168) both sides and `group` −1.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: i64 = 1100;
 
 /// `chapter_one_hundred_and_twenty_eight_s_window_is_widened_whole`'s
 /// window: run1544.
