@@ -2565,6 +2565,16 @@ impl Sim {
             (SITE_AMMO_SCATTER_X, SITE_AMMO_SCATTER_Y)
         };
         let landing = self.scatter_landing(aim, s, sites);
+        // **A ground round's angle is the scattered landing's** (item
+        // 3979, `docs/AI.md` §411; `Ammo::init@0067bbf0`, `67c747`–`67c75a`):
+        // the order's arm takes `+0x2c = find_angle(+0x18 − sx, +0x1c − sy)`
+        // once the scatter is in, before the clamp, where the target arm
+        // (`67c792`–`67c7af`) takes the bearing to the target unscattered.
+        // run1542's MLRS `2/155` on 651.
+        let angle = match ground {
+            Some(_) => crate::movement::find_angle(landing.x - launch.x, landing.y - launch.y),
+            None => angle,
+        };
         let landing = self.strafe_walk(shooter, target, landing, node);
         let clamp = |q: Pos, w: &crate::World| {
             Pos::new(
