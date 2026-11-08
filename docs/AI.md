@@ -41050,12 +41050,94 @@ The 77 units left are named. None is a writer this crate lacks:
   scenario's `disable_all_unit_ai` arm of `:98` are not modelled.
 - **The human's quit** (3841c) and the earlier attrition (3983b) are what the 77 rows wait on.
 
-## 416. Reserved for the next item on the AI track
+## 416. A Citizen struck rings its city's bell: run1075's garrison counts walked, 726 parted records → 432 (item 3984, 2026-11-08)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3964a: run1075 is the one dump on disk whose garrison counts are not all 0. It is the coverage
+pair's `cover=1` twin with eleven human Battleships staged on the navy's path from 2050 (RUNS run1075,
+`tools/gamelog/coverage/disband3455-navy.cmd`), blocks 2034..2820. No harness walked it, so §408's
+compare read 0 against 0 everywhere it ran.
+
+### 416.1 The walk, and what parted
+
+`coverage_pair::navy_script` stages the cmd file through `setup::with_staged_script`, the run1066
+shape (§413). Two tests hold it:
+
+- `run1075_s_garrison_counts_part_by_the_record` reads each leader's four counts on every block of
+  2034..2820. A record is one count on one block. Theirs holds **726** non-zero records, all who=1's
+  `peasants_garr`, one a block from 2095 (1) to 2820 (5). The park's 732 was a line count. On the
+  first walk ours read 0 on every one: **726 parted**.
+- `run1075_s_garrison_window_is_widened_whole` widens every dumped record over 2034..2820 (787 blocks)
+  and joins the coverage driver. The window opens at the capture's first block, not at 2095, because
+  the citizens' orders part on 2073.
+
+The citizen `1/73` agrees in every field through 2094 and parts on 2095 only on `inside` (ours −1,
+theirs `1/2020`). Its `GARRISONORDER search=1` dates from 2073 in theirs; ours never took it. Five
+who=1 units take the order together on 2073 (`1/3`, `1/5`, `1/37`, `1/60`, `1/73`), and the trace's
+first entry of `Group::action_alarm` is frame 2072. That is a city bell.
+
+### 416.2 The bell's cause
+
+A probe of ours' `take_damage_typed` named the blows on 2072. The Battleship `0/23` hits `1/65`
+directly, splashes the building `1/2033`, and the building's spill (`Sim::spill_onto_builders`,
+`do_damage@0064a480`'s tail) reaches `1/2033`'s four repairers in chain order: `1/37`, `1/5`, `1/3`,
+`1/60`, 13 sixteenths each. On 2073 `0/22` repeats it.
+
+Theirs spills onto `1/37` alone (`damage_frac` 13, no attacker recorded), and its other three
+repairers take nothing on either frame, though `1/65`'s blows agree. The original's
+`Object::take_damage@00652020`, lines 176–214, has an arm for an object that is not a city building
+(vslot `+0x20` answers 0). It runs after the accumulate and before the kill arm, on every blow:
+
+```text
+leader_flags & 4 clear (a computer), leader_flags2 & 8 clear, get_diff > 1,
+ObjectData::is_peasant(this), c = find_city_at(this's point, who, -1, 0) >= 0,
+c's building finished (Build: flags & 4), c's flags & 0x40 clear:
+  Group::clear; Group::add(c's building); push_group(who, ·, 1); Group::action_alarm
+```
+
+So the first repairer struck rings the bell. `Group::action_alarm`'s bell arm (`Sim::action_alarm`, item 3364)
+puts a `GARRISONORDER` in front of every Citizen in the city's radius. The spill's filter reads the
+front order (`BUILD_AT` or `REPAIR` on this building), so it passes the other three by.
+
+This crate carried the arm only as a swept walk (`take_damage_view::peasant_alarm`, item 3376). The
+live `take_damage_typed` never called it. **Built:** `Sim::peasant_alarm` (`crates/sim/src/alarm.rs`),
+called from `take_damage_typed` on a unit after the accumulate. The gates are this crate's
+`Nation::human` (`leader_flags & 4`, not "out" as the view's constant names it), `ai_difficulty`,
+`is_peasant`, `find_city_at`, the city building `alive && active`, and `City::alarm`.
+
+### 416.3 The score, and the value diff
+
+- On block 2073 `1/3`, `1/5`, `1/60` read `damage_frac` 0 and `order:kind` 26 (GARRISON) on both sides,
+  and `1/37` reads 13 on both. Before the arm, ours read 13 and kind 6.
+- The tally: **726 → 432**. The counts agree from 2095 (`1/73` into `1/2020`) through 2187 (3: `1/73`,
+  and `1/37` and `1/3` into `1/2000`). They part on **2188**, theirs 4 and ours 3, where theirs' `1/5`
+  goes in behind `1/3` and ours' is still walking. By 2820 theirs holds 5 and ours 13.
+- The widening: **9217 → 9062** first partings; the garrison rows: 1 (2188).
+- Every lobby's `first_parting` passes unchanged (122 tests).
+
+The 2188 parting is not the garrison chain's. Ours' `1/5` parts on 2089 on `move.pause`, 5 against
+theirs' 2. That field is the collision stagger, `roll() % 9 + 1` (`Sim::collide_pause`), and the
+soldier `1/62` parts on it on 2076 (9 against 2). So the stream had parted before the citizens walked.
+The window's first gameplay parting is 2060: the staged Battleships strike who=1's ships in ours alone
+(`1/59`, 10 against 0, `damage_frame` 2059). Parked 3984a, by its frame.
+
+### 416.4 Coverage
+
+- **Diff-backed:** the arm, by run1075's 2073 (the three repairers' rows gone, the five `GARRISONORDER`s
+  agreeing) and the counts' agreement through 2187.
+- **Reading alone:** the `leader_flags2 & 8` gate (never set in this crate); the city building's
+  `finished` test, read as `alive && active`; the group the arm pushes on the player's pool, which is
+  not pushed here (no dump shows a slot held past the frame).
+- **The sister arm, the wall notice** (lines 220–290, a city building struck from outside rings its
+  city's bell), is not wired either. Theirs' 2072 shows it did not fire on `1/2033`'s splash, since its
+  repairers were still spilled on, so no walk on disk asks for it.
+
+### 416.5 What is not established
+
+- **Attrition's blow.** `Unit::suffer_attrition` calls `take_damage` with `param_5` 1, which the arm does
+  not read, but this crate's attrition hurt (`SimSuffer::hurt`) does not come through
+  `take_damage_typed`. It would need a computer Citizen bleeding on a cell `find_city_at` accepts for
+  its own city, which is neutral attrition, and no shipped scenario sets it.
+- **The 2060 parting** and the stream it leaves (3984a).
 
 ## 417. Reserved for the next item on the AI track
 
