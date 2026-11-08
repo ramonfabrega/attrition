@@ -15622,13 +15622,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DI — reserved
+## Parked by item 4018, 2026-11-08 — the camera's motion and its start
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4018a. The camera's per-frame motion** (`docs/RENDERER.md` §3.4, "What is not established").
+  `crates/render` takes `zoom_distance`, `parallel_distance` and `tilt_angle` as state.
+  `Camera::adjust_tilt@00843970` interpolates the tilt between `fixed_angles`, and its decompile reads
+  `(zoom − angle)` where `(zoom − zoom₀)` would be expected; the listing settles which.
+  `Camera::zoom_to_level@008437f0` only arms a zoom, and the step that moves the two distances is not read.
+  run1484's packet has every `fixed_angles` entry at 60, so no capture on disk exercises the interpolation.
+  It names no score until a client animates the camera. A sweep of the step under `tools/render/camera_oracle.py`'s
+  harness would book it.
+- **4018b. The starting camera and the clip planes** (`docs/RENDERER.md` §3.4). `Game::init_camera@00590bc0` is
+  unread. `Camera::compute_clip_planes@00842950` was stubbed in the oracle, not read. A replay viewer takes the
+  packet's camera until the draw list (`docs/RENDERER.md` §6 item 3) needs culling. It names no score.
 
 ## Parked by the next landing, slot DJ — reserved
 
