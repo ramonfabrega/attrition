@@ -80,7 +80,9 @@ TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the
 # And the audited guard in every word lane (Loop 3880): a melee or pair word
 # that closes whole wants an `audited!` row or an `OWED` line, and 3862's and
 # 3873's lane gates never ran it; the test alone, since `diff::audit::` also
-# reads the long words' dumps and would add minutes.
+# reads the long words' dumps and would add minutes. It reads the lane's own
+# `AI_WORDS` pin beside the queue's line (Loop 3998: 3975's lane ran it green
+# against the commander's unwritten `w744`), so `audit::` adds nothing here.
 ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'blind::',
                             'audit::every_whole_scoreboard_word_is_audited'),
                 'chapter': ('coverage::', 'first_parting', 'battery_floors', 'blind::',
