@@ -290,8 +290,10 @@ fn spanish_information_pair_run1489b_s_closing_frame_is_widened_whole() {
     // against 1), `mirror` on `1/63`, `1/75`, `1/87`, `1/102`, `1/109` and
     // (from 3324) `1/115` (ours 0, theirs 1) — and the one value row the
     // stride carries, the Assault Infantry `1/18`'s `damage_frac`, ours 13
-    // against theirs 12 (parked 3866b). No draw parts to 3500.
-    pin_eq!(w.firsts.len(), 47, "run1489b baseline");
+    // against theirs 12 (parked 3866b). No draw parts to 3500. 47 → 45
+    // (item 3986): `1/18`'s two `damage_frac` rows agree once the
+    // patriots' armour terms are carried (`docs/GOLDEN.md` §179).
+    pin_eq!(w.firsts.len(), 45, "run1489b baseline");
     // Every round, both directions: 85 against 85, none parting.
     pin_eq!(w.rounds_read, (85, 85), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
