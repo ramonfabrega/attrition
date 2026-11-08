@@ -329,26 +329,182 @@ impl Sim {
     /// live figure with the same call. A figure with no damage hands the
     /// whole of it on, so a captain's heal reaches the hurt figure below.
     ///
-    /// SEAM: past the chain's last live figure, a squad under its
-    /// `uber_size` (`+0x308`) **trains a figure back** (a free object slot,
-    /// `init`, a spot and a move order, the group joins): read, not built,
-    /// and here the remainder is dropped (parked 3686b).
+    /// **Past the chain's last live figure the excess regrows one**
+    /// ([`Sim::regrow_figure`], item 3993, `docs/GOLDEN.md` §186): the
+    /// listing's `o_down` arm (`:88`–`:100`) recurses only while the next
+    /// figure is alive, and the dead tail `Unit::close` relinks there is
+    /// the slot the new figure takes.
     pub(crate) fn repair_unit_damage(&mut self, i: usize, amount: i32) {
-        let mut cur = Some(i);
+        if !self.units[i].alive() {
+            return;
+        }
+        let mut cur = i;
         let mut left = amount;
-        while let Some(f) = cur {
-            if left <= 0 || !self.units[f].alive() {
-                return;
-            }
-            let u = &mut self.units[f];
+        loop {
+            let u = &mut self.units[cur];
             let damage = u.max_health - u.health;
+            let rest = left - damage;
             if damage != 0 {
                 u.health += left.min(damage);
                 u.damage_frac = 0;
             }
-            left -= damage;
-            cur = self.units[f].o_down;
+            if rest <= 0 {
+                return;
+            }
+            match self.units[cur].o_down {
+                Some(d) if self.units[d].alive() => {
+                    cur = d;
+                    left = rest;
+                }
+                down => {
+                    self.regrow_figure(cur, down, rest);
+                    return;
+                }
+            }
         }
+    }
+
+    /// `Unit::repair_damage@0060de10:101`–`:217`, on the squad's last live
+    /// figure `tail` with `left` points of heal still to give (item 3993,
+    /// `docs/GOLDEN.md` §186):
+    ///
+    /// ```text
+    /// uber_size (+0x308) > curr_uber_size(this, 0)
+    ///   and (inside_up >= 0 or !(unit_masks & 4)):
+    ///     n = Objects::find_free(who, 0, 2000, &mark, o_down)  # the dead tail's number
+    ///     n.init(who, type, n, x, y)                            # Guy::init_real's draw
+    ///     n.o_up, n.o_down = the dead tail's                    # restored over init's −1s
+    ///     n.damage = hits / uber_size;  n.stance, n.unit_masks = this's
+    ///     inside: insert_inside(n, host)  else: find_nearby_spot, add_move_order
+    ///     console selection, this->group, the hotkey groups:
+    ///       member(this.o) → kill(this.o, who, 0, 0); add(this.o, who, 0, 0)
+    ///     n.repair_damage(left, sparkle, 0)
+    /// ```
+    ///
+    /// `find_free` with a number asked for returns that number (`0065ad60`,
+    /// the `param_5 >= 0` arm), so the figure is born into the dead
+    /// tail's slot and the chain reads as it did before the death. The
+    /// group pair is `Group::kill@00714110` then `Group::add@00714350`,
+    /// and `add` writes no member's `+0x80`: every figure of the squad
+    /// leaves the group it named. run1545's Hoplites `0/8..0/10`, short
+    /// `0/9` since 810 and garrisoned in `0/2000`, take the heal at 15 on
+    /// game frame 862 and print on block 863 a new `0/9` (uid 20) at
+    /// `damage` 39 — 120 / 3, less the heal's one point — inside behind
+    /// `0/10`, and `group` −1 on all three.
+    ///
+    /// SEAM: the outside arm's `find_nearby_spot` and move order — the
+    /// figure stays on the tail's point; the console's selection and the
+    /// hotkey groups, which this crate does not carry; and a chain with
+    /// no dead tail (`o_down < 0`, the listing's error report), where the
+    /// original numbers a fresh object — none is regrown here.
+    pub(crate) fn regrow_figure(&mut self, tail: usize, down: Option<usize>, left: i32) {
+        let Some(ty) = self.units[tail].ty else {
+            return;
+        };
+        let uber = self.unit_types[ty].combat.uber_size;
+        if self.curr_uber_size(tail) >= uber {
+            return;
+        }
+        let inside = self.units[tail].inside;
+        let boat = self.units[tail].inside_unit;
+        if inside.is_none() && boat.is_none() && self.units[tail].in_danger {
+            return;
+        }
+        let Some(dead) = down else {
+            return;
+        };
+        let who = self.units[tail].owner;
+        let index = self.units[dead].index;
+        let at = self.units[tail].pos;
+        let pos = crate::Pos::new(crate::gaia::init_snap(at.x), crate::gaia::init_snap(at.y));
+        let n = self.init_figure(who, ty, index, pos);
+        // The links are the dead tail's, restored over `init`'s −1s; this
+        // crate keeps the dead occupant as its own entry, so the figures
+        // either side are pointed at the new one and the old is unlinked.
+        let (up, below) = (self.units[dead].o_up, self.units[dead].o_down);
+        self.units[dead].o_up = None;
+        self.units[dead].o_down = None;
+        self.units[n].o_up = up;
+        self.units[n].o_down = below;
+        if let Some(a) = up {
+            self.units[a].o_down = Some(n);
+        }
+        if let Some(b) = below {
+            self.units[b].o_up = Some(n);
+        }
+        self.units[n].captain = false;
+        self.units[n].combat.captain = self.units[tail].combat.captain;
+        // `damage = hits / uber_size`, the hits the tail's vslot `+0x11c`
+        // answers.
+        let share = self.units[tail].max_health / uber.max(1);
+        self.units[n].health = self.units[n].max_health - share;
+        self.units[n].stance = self.units[tail].stance;
+        self.units[n].combat.stance = self.units[tail].combat.stance;
+        self.copy_unit_masks(tail, n);
+        if let Some(b) = inside.or(boat) {
+            // `Object::insert_inside@00647e90`: off the world, onto the
+            // host's chain; a follower counts in no garrison tally.
+            self.coll_remove(n);
+            self.chain_remove(n);
+            let u = &mut self.units[n];
+            if inside.is_some() {
+                u.inside = Some(b);
+            } else {
+                u.inside_unit = Some(b);
+            }
+            u.on_map = false;
+        }
+        if self.units[tail].group_ptr.is_some()
+            && let Some(seat) = self.seat_of(tail)
+            && self.seat_list(seat).contains(&tail)
+        {
+            self.seat_kill(seat, tail, false, false);
+            self.seat_add(seat, tail, false, false);
+        }
+        self.repair_unit_damage(n, left);
+    }
+
+    /// `n.unit_masks = tail.unit_masks` — the word `repair_damage` copies
+    /// whole onto a regrown figure (`0060de10:154`), over the bits this
+    /// crate keeps as fields.
+    fn copy_unit_masks(&mut self, from: usize, to: usize) {
+        let f = self.units[from].clone();
+        let t = &mut self.units[to];
+        t.decoy = f.decoy;
+        t.movement.mirror = f.movement.mirror;
+        t.in_danger = f.in_danger;
+        t.line_ok = f.line_ok;
+        t.contact = f.contact;
+        t.waiting_on = f.waiting_on;
+        t.was_builder = f.was_builder;
+        t.cloak = f.cloak;
+        t.blown = f.blown;
+        t.fought = f.fought;
+        t.casting = f.casting;
+        t.auto_transport = f.auto_transport;
+        t.half_step = f.half_step;
+        t.carry = f.carry;
+        t.combat.packed = f.combat.packed;
+    }
+
+    /// `UnitData::has_damage(this, 1)@00609b50` from the captain: a figure
+    /// of the chain that is hurt, holds a fraction, **or is dead** — the
+    /// dead tail `Unit::close` leaves linked counts (item 3993).
+    pub(crate) fn has_damage(&self, i: usize) -> bool {
+        let mut cur = Some(i);
+        let mut guard = 0;
+        while let Some(f) = cur {
+            let u = &self.units[f];
+            if !u.alive() || u.health < u.max_health || u.damage_frac != 0 {
+                return true;
+            }
+            cur = u.o_down;
+            guard += 1;
+            if guard > 64 {
+                break;
+            }
+        }
+        false
     }
 
     /// **The ship heal** — `process_healing`'s sea arm (`005e0670:39`–`:71`,
