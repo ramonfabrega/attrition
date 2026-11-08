@@ -5245,7 +5245,7 @@ mod flak_tests {
         );
         for u in [gone, near] {
             let t = s.units[u].ty.unwrap();
-            s.unit_types[t].combat.cost = 100;
+            s.unit_types[t].combat.cost = 20_000;
         }
         // The departing one inside the search's radius and out of range;
         // the near one walks (`/4`); the departing one is the target (`×2`).
