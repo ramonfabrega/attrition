@@ -2330,7 +2330,8 @@ mod tests {
     /// Made to fail with the counter dropped, with the old unit left
     /// standing, with the damage not carried, with `heading` copied into
     /// both (item 3985's reading), with `facing` copied into both, and with
-    /// `frame_facing` left at the birth's.
+    /// `frame_facing` left at the birth's (the seeded facing is not
+    /// [`crate::movement::Angle::INITIAL`], or that one passes).
     #[test]
     fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
         let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
@@ -2343,7 +2344,7 @@ mod tests {
         s.units[target].health = 15;
         s.units[target].max_health = 20;
         s.units[target].movement.heading = crate::movement::Angle(0x1200_0000);
-        s.units[target].movement.facing = crate::movement::Angle(0x5555_5555);
+        s.units[target].movement.facing = crate::movement::Angle(0x6600_0000);
         let bribes = s.tech[1].bribes;
         let before = s.units.len();
         let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
@@ -2356,7 +2357,7 @@ mod tests {
         );
         assert_eq!(
             s.units[n].movement.facing,
-            crate::movement::Angle(0x5555_5555),
+            crate::movement::Angle(0x6600_0000),
             "the figure's angle (`GuyData +0x18`)"
         );
         assert_eq!(
