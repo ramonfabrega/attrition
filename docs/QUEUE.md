@@ -46,9 +46,6 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84–93). The shapes a
 and value or draw delta), a pair stood up (`mongol_pair.rs`'s shape; the refill is spent, 113 §2), a `melee` (GOLDEN §155), a `chapter`
 (at most three arms of one staging, `tools/brief/frame.md`).
 
-
-
-
 3981. **The carrier's training queue, run1066's 203 blocks** (a `residue` item on the instrument track; parked 3960a; AI §404;
 `coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero`): the one parting on disk is run1066's carrier `0/14`, block 614,
 theirs `num_queued` 1 / `queue_time` 100 against ours 0 / 0, 203 blocks to 816. No harness replays run1066's staging (console `add` lines
