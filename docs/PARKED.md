@@ -2601,6 +2601,16 @@ the queue on the strength of being true. Promote it only if something
 later starts comparing the seat, or if `order_num` turns out to be read by
 a mechanism that is scored.
 
+## Shelved by the seventy-fourth pass, 2026-11-08 — the sim's three items, filler once the structure lands (DECISIONS 114 §2)
+
+The queue's last three sim items, moved here whole with their frames and runs so a structure tranche runs alone on the sim side; each re-books as the commander's filler once `docs/STRUCTURE.md`'s moves have landed, by its frame as written.
+
+(4007) **Chapter 134's Bomber on 969** (a `residue` item, the rules headline; parked 3991a; GOLDEN §184): the word is 969 of 1,400; who=1's Bomber `1/6`, standing unwounded on the ground with no order, takes `ATTACKORDER mandatory=0` on the Fighter `0/12` that strafes it (uid 20) on 969 in theirs, `orders.len` 1 against ours 0, and drops it by 971; its hits 300 throughout, its idle cadence off 969 and its `near` −1, so the idle search and `think`'s `near_o` arm are dead readings. `0/12`'s rounds landing on 968 (`AMMO` is on) first, then a struck unit's `Unit::target_opportunity@005fffc0` on a round that does no damage. The score is ch134's word; run 1558 if the disk cannot answer; GOLDEN §194; gate `--tests golden air fight coverage:: first_parting`; park DG.
+
+(3994) **The Helicopter's stand-off and Delete on a building** (a `chapter` item; parked 3967a; adjudication 2 row 48): an Attack Helicopter and a shorter-ranged unit given one group attack whose asker stands off (`GroupData::get_max_range@00711080` skips `is_plane` only, as the crate does since 3967, held by no test or walk), and Delete on a selected finished building and on an unfinished one (`Group::action_disband@0070e260`'s building arms — unfinished → `Object::disband`, finished → a queued DISBAND; `disband.rs:405` walks units only; `select` and `@key` stage it); the asker's destination (`GUY des_x des_y`), `BUILDQUEUE` and the death compared; run 1552; GOLDEN §187; gate `--tests golden coverage:: first_parting`.
+
+(3995) **The boats and the caravan** (a `chapter` item on a water lobby; adjudication 4 rows 50, 49, 51): a soldier barge whose army's target dies in transit (`Unit::think_carry_military@005f3260`'s dead-target and no-army arms; the `SEAM`s at `transport.rs:640` answer false), the idle boat's move to the nearest coastal Dock city (`Unit::think_carry_idle@005f2f30`; `transport.rs:1921–1924` returns 0 — first `RON_FIRSTS=1` on run1483's and run1492's window tests on disk, then `carry_idle.rs` wired, parked 3411a), and a razed trade city with a caravan on its route (`Unit::think_caravan@005f5650`'s kill arms re-think; `caravan.rs:145–170` re-thinks only on the dead-city arm — grep run1017's 15230..15433 first); the boat's order, the riders' `inside_up` and `TRADEORDER` compared; run 1553; GOLDEN §188; gate `--tests golden transport caravan coverage:: first_parting`.
+
 ## Loop — the steering pass's, never a worker's
 
 Tooling, guards and the queue's own rules. The Fable pass takes these
@@ -3779,6 +3789,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
  **The seventy-second pass**: bytes backed 36.3 % and port 584 → 585 (3942's cliff arm, `sim::cliff_mine`, the one port the census counts); 3,570 sim lines on fifteen files (`map_east_west.rs` +865 new, `cliff_mine.rs` +435 new, `map_mediterranean.rs` +379 new, `map_colonial.rs` +328 new) and the census counts one of them; the territory 545 · 318 · 1290; the definition yours. Ramon's.
  **The seventy-third pass**: bytes backed 36.3 % and port 585 unmoved (no sweep ran); 2,238 sim lines on 26 files (`heal.rs` +309, `fight.rs` +277, `build_family.rs` +249 new) and the census counts none of it; the territory 545 · 318 · 1290; the definition yours. Ramon's.
 
+ **The seventy-fourth pass**: bytes backed 36.3 % and port 588 unmoved (no sweep ran); the structure tranche's rule is no behaviour change, so the census must read the same on every landing.
+
 ## Loop, filed 2026-10-29 — the sixty-third pass's own
 
 (3799) **The emu row cache stores what it could recompute, and it is 16 GiB** (the sixty-third pass, from Loop 3777's build): the 273 over-cap sweeps' rows are 41.9 GB raw and gzip packs them only 3.05x (three of the largest 1.75x), so the cache that took the five binaries 683.5 → 41.8 s cost 13 GiB of the 147 free, and every change to `tools/emu/` or the executable's key rewrites it. The test needs the original's rows only to compare the port's against them. Candidate: store a digest of the original's rows (SHA-256 over the canonical row text) beside the receipt, hash the port's rows the same way, and re-run the emulator only on a disagreement to find the row — a cache of kilobytes, the slow path paid once by the one sweep that broke, `RON_VERIFY_EMU` unchanged. Measured first: the cache's size and rewrite count over the sixty-fourth; taken when either shows up in a drain's table rather than in a hunch. **The sixty-fourth pass, measured**: the cache 16 GiB unmoved and `tools/emu/` untouched over the tranche, so 0 rewrites; the disk's fall (134 → 102 GiB over the tranche) was the integration tree's debug profile — `cargo clean --profile dev` removed 180,851 files, 74.2 GiB, and the pass now cleans it as a first act (DECISIONS 104 §6) — not the cache. Not taken: neither number is in a table yet. Stays filed. **The sixty-fifth pass, measured**: the cache 16 GiB (2,344 files) and 0 files rewritten since the base, `tools/emu/` untouched; the disk 114 → 125 on `afsctool` and the debug profile's clean. Stays filed. **The sixty-seventh pass, measured**: the cache 16 GiB, `tools/emu/` untouched over the tranche; the disk 138 → 151 on `afsctool` and the debug profile's clean (48,997 files, 24.9 GiB). Stays filed. **The sixty-eighth pass, measured**: the cache 16 GiB (2,344 files), 0 rewritten since the base, `tools/emu/` untouched; the disk 134 → 144 on `afsctool` and the debug profile's clean (17,446 files, 11.3 GiB). Stays filed.
@@ -3786,6 +3798,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
  **The sixty-ninth pass, measured**: `tools/emu/` untouched by the tranche (no sweep ran; `git log 02f72df7d..HEAD -- tools/emu/` empty). Stays filed.
  **The seventy-second pass, measured**: `tools/emu/` untouched by the tranche (`git log 41c823576..HEAD -- tools/emu/` empty); the disk 91 → 105 GiB free on the debug profile's clean (28,731 files, 14.3 GiB) and `afsctool` over both archives. Stays filed.
  **The seventy-third pass, measured**: `tools/emu/` untouched by the tranche (`git log 80e119cb3..HEAD -- tools/emu/` empty); the disk 24 → 67 GiB free on the debug profile's clean (40,664 files, 19.1 GiB) and `afsctool` over both archives — and 52 GiB of the fall is Chrome's leaked `code_sign_clone` dirs under the user temp folder, 107 GiB OrbStack, neither the loop's (the record, For Ramon). Stays filed.
+
+ **The seventy-fourth pass**: the cache read 16.9 GB on disk at 2,346 files and was compressed in place by `afsctool` (70 % on a sampled row file, 13 GB after) as the pass's disk act; the recompute-or-drop rule stays unbuilt.
 
 ## Loop, filed 2026-11-07 — the seventy-second pass's own
 
@@ -3804,9 +3818,18 @@ on 1,831 tech-queued building-frames over five windows. Candidate: the `UNCOMPAR
 comparator's skips counted per record and the count pinned, red first. Not built this pass: 3969 emits the technology rows;
 the next pass pins the rest on the landed tree. Names no score; the loop's.
 
+## Loop, filed 2026-11-08 — the seventy-fourth pass's own
+
+(4022) **`brief.py` has no kind for a structure or a render item** (the seventy-fourth pass, DECISIONS 114 §4): the structure
+tranche's items are moves gated whole with no behaviour change (`docs/STRUCTURE.md` §1, §5) and the renderer's are `docs/RENDERER.md`
+§6's, and `KINDS` knows residue, chapter, sweep, reading and coverage only, so the commander briefs both by hand from the document's
+section with the frame's shared sections. Candidate: a `structure` kind (opening, booked, lanes, a `structure` section carrying §1's
+rule and the shape counter's line, landing) and a `render` kind (opening, booked, lanes, a `render` section carrying the counter and
+the oracle's rungs, landing), each under the frame's ceiling, red first on 4008's and 4018's lines. Names no score; the loop's.
+
 ## Loop, filed 2026-11-07 — the seventy-third pass's own
 
-(3996) **`tranche.py`'s `other` class names nothing, and it read 11.9 a session** (the seventy-third pass, DECISIONS 113 §1):
+**3996** (`tranche.py`'s `other` class names nothing, and it read 11.9 a session) — **built by the seventy-fourth pass, an Opus 5.5 subagent's, red first (`KeyError: 'other_heads'`; `tools/explore/test_tranche.py` 16 green): `tranche.py` names the call a wake waited on and prints the top three heads under a session whose `other` is 10 minutes or at or above its gate. The class was the suite under another spelling — `zsh tools/check.sh test` 127.9 of the seventy-third's 220.1 `other` minutes (58 %), `python3 -` heredocs chained to a test 32.6, `git` 17.8 — and the pass added `check.sh test` to the `suite` class: gate 18.2 · suite 10.1 · other 2.9 a session.** The row as filed: (3996) **`tranche.py`'s `other` class names nothing, and it read 11.9 a session** (the seventy-third pass, DECISIONS 113 §1):
 3965's session waited 82.7 minutes in `other` and 3962's 38.6, the largest class of the tranche after the gate's, and the table
 cannot say whether it was a reading, a subagent, a packet or a sleep. Candidate: `tranche.py` splits `other` by the waited
 call's head — the command's first word, or the tool's name — and prints the top three per session under the class, red first
@@ -3819,7 +3842,9 @@ is in `docs/LOOP.md`'s chain since this pass (the push reads the log's `gate exi
 gate writes a `gate-verdict` file beside the log that `ccc push` refuses on, the mechanical form of the clause. Names no
 score; the loop's.
 
-(3998) **A word that may close whole needs `diff::audit::` in its lane gate** (3975's landing): the sixth melee closed whole by
+ **The seventy-fourth pass**: did not recur (no drain pushed red); stays filed.
+
+**3998** (A word that may close whole needs `diff::audit::` in its lane gate) — **built by the seventy-fourth pass, an Opus 5.5 subagent's, red first (`left: [] right: ["Melee: GreatSaharaCorpseMelee (no audit)"]`) — and the diagnosis refuted: `audit::every_whole_scoreboard_word_is_audited` was in every residue and chapter brief's `ALWAYS_TESTS` since Loop 3880, so it was inside 3975's filters; it was green there because it read only the queue's line, which still said w744 on 3975's tip. `audit_gaps` now counts a word whole when the queue line or the lane's own `AI_WORDS` pin says so, so the lane that closes a word sees the debt; `brief.py`'s lines unchanged.** The row as filed: (3998) **A word that may close whole needs `diff::audit::` in its lane gate** (3975's landing): the sixth melee closed whole by
 3975 without its `OWED` row — a staged game, which `audit_walk` stages no script for, as the five melees before it — and the
 test that said so was outside the lane's filters, so the first whole gate found it. Candidate: the brief's gate line for a
 melee or a word item adds `audit::` (the seventy-third's AI items carry it by hand), and `brief.py` adds it for the `residue`
@@ -3827,20 +3852,20 @@ kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
 ## Loop, filed 2026-11-08 — the seventy-third tranche's
 
-(4001) **A bit's writer is grepped in the executable before a packet is booked for it** (3983's "for the Loop"): the booking ordered a
+**4001** (A bit's writer is grepped in the executable before a packet is booked for it) — **a row of `tools/brief/frame.md`'s capture section since the seventy-fourth pass (a bit's writer at a known offset is grepped in the executable before any packet).** The row as filed: (4001) **A bit's writer is grepped in the executable before a packet is booked for it** (3983's "for the Loop"): the booking ordered a
 packet off run547's 10363 to name who writes the decoys' `flags` `0x10`; an instruction-level grep of the executable (`or byte
 [r+8], 0x10`) and the decompile's `| 0x18` named `check_idle@006032c0:69` in two commands, no packet taken and the capture lane
 not held — and would for any bit at a known offset. Candidate: a row of the brief checklist and `tools/brief/frame.md` (a "who
 writes this bit" question takes the grep before the packet), red first on a brief that books a packet for a bit. Names no score;
 the loop's.
 
-(4006) **The waiter reads a cleared lane's job state, not its session** (the seventy-third's commander): after lane-3990's
+**4006** (The waiter reads a cleared lane's job state, not its session) — **built by the seventy-fourth pass, an Opus 5.5 subagent's, red first (`'done' != 'working'` on tempo `active`; `tools/explore/test_lanewait.py`, 91 green) — and the cause was not the row's: `state_of` knew only `tempo == 'working'`, and ccc 0.1.40 writes a running turn as `active`, so the override of parked 1572 had been inert on current ccc; `TURN_RUNNING = (working, active, busy)`, `session.status` never read; its text is in `docs/audit/2026-11-08-fable-pass-74.md`.** The row as filed: (4006) **The waiter reads a cleared lane's job state, not its session** (the seventy-third's commander): after lane-3990's
 armed clear fired, its fresh session worked on, building, editing `air.rs` and committing `680c411ae`, while `ccc list` read the row
 `done busy` with the old turn's detail; `lanewait.py` exited `ENDED lane-3990 done` twice within a minute of each start, so the lane
 could not be watched and the commander waited on its done line alone. Candidate: `lanewait.py` reads the row's tempo (`busy`) or the
 transcript's last record before calling a row out of `working`; red first on this shape. Names no score; the loop's.
 
-(4003) **A gate on a field's position is mutation-checked when it is added** (3987's "for the Loop"): the comparator gated `UNITDATA
+**4003** (A gate on a field's position is mutation-checked when it is added) — **a row of `tools/brief/frame.md`'s before-reading section since the seventy-fourth pass (a comparator's gate on a field lands with a mutation that writes it off the gate).** The row as filed: (4003) **A gate on a field's position is mutation-checked when it is added** (3987's "for the Loop"): the comparator gated `UNITDATA
 healing` behind `on_map` for 26 items, so a heal written inside a garrison was a field nobody compared. Candidate: a guard or a
 brief row that a comparator's `on_map`-style gate on a field lands with a mutation that writes the field off the gate and is caught;
 red first on the `healing` gate as it stood before 3987. Names no score; the loop's.
@@ -3932,6 +3957,8 @@ the nation fence beside each free triple. Names no score; the loop's.
  **The seventy-second pass**: not retried; 113 `origin/worktree-att-*` stand, 112 merged and `1565-opus` beside them (the seventy-first's thirteen added; 3952's delete refused by the classifier at the drain, 3951's and 3953's not tried). Yours.
  **The seventy-third pass**: 118 `origin/worktree-att-*` stand, 117 merged by `git branch -r --merged` (the five of the seventy-second added: 3967, 3969, 3970, 3971, 3975); not retried. Yours.
 
+ **The seventy-fourth pass**: 128 `origin/worktree-att-*` stood, 127 merged; Ramon deleted the merged ones by hand from his shell during the pass (one unmerged row, `1565-opus`, stands). The classifier's refusal from every row is unchanged; the rule stays.
+
 ## Loop, filed 2026-11-04 — the sixty-fourth pass's own
 
 (3821) **The drain's arm on the steer row was refused, and the refusal reached nobody** (the sixty-fourth's drain, 2026-11-04): `ccc clear steer --then "<the opener>"` armed at 02:01 −05:00 as the drain's last act, fired at once on the idle row and refused — `the clear on d388900a did not fire: d388900a's prompt box cannot be read (the cursor was … on "[Pasted text #1 +21 lines]"); nothing was typed` — because a person's unsent pasted draft sat in the steer's prompt box, which ccc rightly never submits or deletes; the commander's row then read "steer clear armed; 64th pass starts itself when row idles" for eight hours, until Ramon cleared both rows by hand and asked what had happened. The loop's half is built as a clause (`docs/LOOP.md`, the passes: the drain reads `ccc clear steer --status` a minute after the arm, and a `did not fire` goes to the phone as a permission-shaped block). Candidate, ccc's (Ramon's repo): a refused fire is a banner and a push like a blocked row — `ccc watch` prints `blocked` and `stalled`, and a refused fire is the same shape; and `ccc clear --status` could carry `refused` as a state beside `armed`, so a waiter can poll it. Measured first: how many fires ccc has refused on a draft since 0.1.38 (`ccc clear` with no ref lists the last few). **The second shape** (the sixty-fourth pass's own arms, 2026-11-04): the pass's two `ccc clear commander --then "<the opener>"` arms on the commander's fresh pane were refused too — `prompt box cannot be read … on "──⏵⏵ auto mode on"`, then `typed /clear; the screen never changed` — with no draft in the box, so the sixty-fifth's opener reached the commander as a cross-session message, the steer's one-time deviation (for the pass's record); and the steer's last message asked the drain not to arm `ccc clear steer` at all, which Ramon overruled the same hour: the drain runs the regular arm and its `--status` read, and a `did not fire` goes to him, who re-arms by hand and investigates. Measured first, beside the draft count: whether the status-line text `──⏵⏵ auto mode on` is what ccc's prompt-box reader takes for the cursor line on every fresh pane, or only after a `/clear`. **The sixty-fifth pass, measured**: the drain's `ccc clear steer --then` fired at once on the idle row (20:13 −05:00) and this pass began on it, the regular flow; ccc's half stays yours. **The sixty-seventh pass, measured**: the drain's arm fired at once on the idle row after its push (20:29 −05:00) and this pass began on it, the regular flow a third time; ccc's half stays yours. **The sixty-eighth pass, measured**: the drain's arm fired two minutes after its push (01:44 −05:00, the commander's own `--status` read) and this pass began on it, the regular flow a fourth time; ccc's half stays yours.
@@ -3940,6 +3967,8 @@ the nation fence beside each free triple. Names no score; the loop's.
  **The seventieth pass, measured**: the drain committed `970ff7cab` at 16:23 −05:00, ran its whole gate, pushed at 17:10 and the arm fired at 17:11 on the idle row; the regular flow a sixth time. ccc's half stays yours.
  **The seventy-second pass, measured**: the drain committed `979216b47` at 05:27 −05:00, ran its whole gate (47.9 minutes), pushed at 06:15 and the arm fired at once on the idle row (this session's first request 06:15:50); the regular flow a seventh time. ccc's half stays yours.
  **The seventy-third pass, measured**: the drain's arm fired within the minute of its push (20:08 −05:00; the commander's own `--status` read at 150 s) and this pass began on it, the regular flow a fifth time; ccc's half stays yours.
+
+ **The seventy-fourth pass**: the arm fired at once an eighth time (the drain's `ccc clear steer --then` at 13:14, the pass's first read at 13:2x).
 
 **3823** (a gate filter `brief.py` accepts can match no test the lane gate runs; 3819's "for the Loop") — **built** by the sixty-fifth pass, an Opus 5.5 subagent's, red first (`AttributeError: module 'release_gate' has no attribute 'crate_tests'`), its text kept in `docs/audit/2026-11-04-fable-pass-65.md` ("Rulings"): seven of the sixty-fifth's twenty briefs (3819, 3826, 3830, 3831, 3832, 3840, 3844 — seven of its eleven mapgen briefs, none of its nine melee briefs) named a filter whose every live match is in `crates/sim` (`map_lakes`, `terrain_groups`, `map_east_indies`, `map_heights`, `map_values`) for a lane whose merge touched no sim build input, and three journals (3819, 3830, 3840) quote the exit 2 it cost. Built: `brief.crate_tests()`/`brief.sim_only()` on 3818's lister; `release_gate.py` reuses them — under `--lane`, when `sim_crate_left`, each sim-only filter is dropped from the word with `Lane filter dropped: <t> — every match is in crates/sim, which this lane left to the booking gate (Loop 3823)` and recorded as `policy['lane']['dropped']`; the exit 2 stays for a filter that matches nothing anywhere; `brief.py` prints `note: --tests <t> matches tests in crates/sim only; moot on a lane that touches no sim path (Loop 3823)` on stderr and composes. 5 tests; `offline_tests.py` 833 OK.
 
@@ -4132,6 +4161,8 @@ coverage pins first (cache the walk per dump, never per window); closes itself w
  **The seventy-second pass**: the suite re-timed first (`suite_timings.py --stale-only`: 92 untimed, the seventy-first's chain tests, none over 30 s — the slowest `new_world_s_troughs…` 4.0 s); the thirty minutes went to 3955's build and 3954's clause. Stays, Ramon's.
  **The seventy-third pass**: the suite re-timed (`suite_timings.py --stale-only`, the record names the count); the thirty minutes went to the chapter supply's reading (`tmp/t73/chapter-supply.md`). Stays, Ramon's.
 
+ **The seventy-fourth pass**: the suite not re-timed — the structure tranche moves every test file, so the timings file is re-made after it lands (DECISIONS 114).
+
 3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
 `docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
 unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape
@@ -4167,6 +4198,8 @@ first run says how many of the 323 are inline. One reach. **The forty-third pass
  **The seventy-second pass**: the same — port 584 → 585 on 3942's cliff arm, no sweep ran, the `called` column unbuilt. Ramon's.
  **The seventy-third pass**: the same — port 585 unmoved, no sweep ran, the `called` column unbuilt. Ramon's.
 
+ **The seventy-fourth pass**: the same — port 588 unmoved, no sweep ran, the `called` column unbuilt. Ramon's.
+
 ## Loop, filed 2026-10-18 — the forty-second tranche's
 
 Loop 2003's reaches in the forty-second tranche, filed here below its own row (its section is at the size ceiling):
@@ -4185,6 +4218,8 @@ nations lane stays on the roster is Ramon's (DECISIONS 78). One reach. **The for
  **The sixty-ninth pass**: no nations lane ran; unit types 296 of 302 unmoved, the six never-seen being Boadicea and five gaia animals. Ramon's.
  **The seventy-second pass**: no nations lane ran; unit types 296 of 302 unmoved, no fieldable line never-seen. Ramon's.
  **The seventy-third pass**: no nations lane ran; unit types 296 of 302 unmoved, no fieldable line never-seen (the six never: Boadicea and five gaia animals), so the pair refill is spent. Ramon's.
+
+ **The seventy-fourth pass**: no nations lane ran; unit types 296 of 302 unmoved; the pair refill stays spent.
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
@@ -4205,6 +4240,8 @@ terminate (the soak found one in an hour; this one ran under no budget). **The f
  **The seventy-second pass**: three Opus lanes — admission **5,594.7 s summed at the door, longest 582.8** (540.0 / 10.6 the sixty-eighth's three), eight gate ends of twelve past the sixteen cores, the gate class 21.0 a session (7.5); the lane rule takes the third lane away (DECISIONS 112 §1). The slot policy and the reaper stay yours.
  **The seventy-third pass**: two Opus lanes — admission **6,386.2 s summed at the door, longest 363.4** (6,358.4 / 363.4 at the drain's count), eight gate ends of fifteen past the sixteen cores, the gate class 21.8 a session (21.0); two lanes stand (DECISIONS 113 §1). The slot policy and the reaper stay yours.
 
+ **The seventy-fourth pass**: two Opus lanes — admission **6,775.7 s summed at the door, longest 139.2**; 13 of 19 gate ends past the cores; the host load column 3.5→88.0 at the worst gate.
+
 ## Loop, filed 2026-10-17 — the forty-first tranche's, Ramon's last row
 
 (3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is **The fifty-fourth pass**: not measured — a pass cannot hear the box; thirty captures ran. The muted-launch trial stays yours. **The fifty-seventh pass**: not measured — a pass cannot hear the box; thirty-eight captures ran. The muted-launch trial stays yours. **The fifty-eighth pass**: not measured — fifty captures ran. The muted-launch trial stays yours. **The fifty-ninth pass**: not measured — forty-nine captures ran. The muted-launch trial stays yours. **The sixtieth pass**: not measured — forty-four captures ran. The muted-launch trial stays yours. **The sixty-seventh pass**: not measured — ten captures ran. The muted-launch trial stays yours. **The sixty-eighth pass**: not measured — two captures ran. The muted-launch trial stays yours.
@@ -4222,6 +4259,8 @@ carries it. Ramon's to discuss at the steer. **The forty-first pass**: not measu
  **The sixty-ninth pass**: not measured — fourteen captures ran, chapters and takes on the pool's lanes. The muted-launch trial stays yours.
  **The seventy-second pass**: not measured — fifteen captures ran. The muted-launch trial stays yours.
  **The seventy-third pass**: not measured — six captures ran. The muted-launch trial stays yours.
+
+ **The seventy-fourth pass**: not measured — ten captures ran. The muted-launch trial stays yours.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
 

@@ -321,6 +321,15 @@ end with a lane empty and the queue not, and it never asks whether to
 continue — the queue's opener is the answer.
 ## The lanes
 
+**Two lanes, on Ramon's word (DECISIONS 114 §3); the count moves only
+when a pass names the bottleneck a third lane would relieve.** The clause
+below — add a lane while waiting holds, take it away when it does not — is
+history from the seventy-fourth pass: it flipped the lane five times in
+eight tranches without naming what it waited on; Loop 3996 named it (28
+of 34 waiting minutes a session are the tests running), so the lever is
+the gate's length. A pass reports the shape and recommends under "For
+Ramon"; it does not move the count.
+
 **Lanes are independent.** Lanes are throughput, not a pair — **one to
 an open word, and the queue's handoff says how many**: each lands, is
 chained and is refilled without reference to another's state, and the

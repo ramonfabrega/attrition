@@ -21954,3 +21954,27 @@ their scores, cheapest first — three widenings red at once on dumps on
 disk, the Iroquois heal whose value diff is pinned, the style territory
 limits, the `clean_queue` technology bug, the building family's chapter.
 **DECISIONS 111.** `docs/audit/2026-11-06-fable-pass-71.md`.
+
+**2026-11-08, the seventy-fourth pass (Fable, steering), with Ramon on the
+row.** The seventy-third tranche drained at twenty on two Opus 5.5 lanes,
+212.18 USD, 10.61 a landing, 49.3 waiting a landing; seven chapters closed,
+134 open at w969 of 1,400, every other line delta 0; the territory 546 →
+549. Three Loop items built by Opus subagents, two of them refuting the row
+as filed: the waiter had never known ccc's `active` tempo, the audit guard
+had been inside the lane's filters all along and read the wrong line, and
+the `other` waiting class was the suite under `check.sh test`'s spelling —
+so the waiting is the tests running, 28 of 34 minutes a session, and the
+third lane's flip rule is retired on Ramon's word. Ramon's decisions, in
+conversation: the finish line written once, decided with him ("our own app, no Wine …
+fed the same orders, Rise of Nations does the same thing frame for frame …
+saved and replayed, by us and by the original") and decomposed into tracks
+(`docs/TRACKS.md`); the rules track whole, its three items shelved;
+phase 4 open with a structure tranche first — 59 % of the sim crate is
+test and sweep code, 203 files in one flat directory with 1,462 generated
+sweeps beside them, a 92-field `Sim`,
+130 names defined twice — under the rule no behaviour change, every floor
+unchanged, with the renderer's camera and first decoder beside it; our
+lobby, their start rules; the order stream as the network; the census and
+territory rulings a lane's filler from lore's scoring, the data walk its
+own track as the original's full-state checksum. **DECISIONS 114.**
+`docs/audit/2026-11-08-fable-pass-74.md`.

@@ -119,7 +119,8 @@ is append-only and amended in place, as it always was.
 - 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0, entry 29's counters stand
 - 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
 - 112 extended by 113 — T71's rows booked
-- 113 standing — value rows and chapters booked
+- 113 extended by 114 — rows booked
+- 114 standing — finish line
 - 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11354,3 +11355,165 @@ seven-day window read 7 % at this pass's start.
 fourteen, and the one word they opened closed; the tranche drains on
 supply — **met**, at fifteen; the two instrument gaps built on the
 landed tree — **met**, 3956 and 3957, each red first and measured.
+
+## 114. The finish line is decided with Ramon, written once and decomposed into tracks, the sim's rules track is whole and its three items are shelved, phase 4 opens with a structure tranche first and the renderer's sim-free items beside it, two lanes stand on Ramon's word and the flip rule is retired, the waiting is named as the tests running, and the census and territory rulings become a lane's filler
+
+*2026-11-08, the seventy-fourth pass (the `steer` session, Fable), started
+by the seventy-third drain's `ccc clear steer --then` at 13:14 −05:00;
+**Ramon joined on the row at 13:5x and the decisions below are his**, taken
+in conversation, with the `lore` session sitting in as a second head on his
+word. The record is `docs/audit/2026-11-08-fable-pass-74.md`; the tracks
+page it opens is `docs/TRACKS.md`. Extends entries 29, 61, 110–113; amends
+the lane clause of `docs/LOOP.md`.*
+
+**What was measured.** Twenty landings on two Opus 5.5 lanes at `--effort
+medium` from `3f3a403b5` (2026-11-07 22:5x) to the drain's handoff
+(`c6e9460d3`, 13:14 on 11-08), drained at twenty: seven chapters closed
+(127–133), 134 open at w969 of 1,400, the AI track's seven value rows
+spent, every other scoreboard line delta 0; the territory 546 → 549 ported
+(1289 → 1286 open). **The price: 212.18 USD list over 29 sessions, 10.61 a
+landing; waiting 49.3 minutes a landing, 34.0 a session.** Nineteen gates
+with the drain's — seven whole at 47.8–58.1 release minutes, twelve scoped
+at 11.8–17.5 — one red (3993's census pin, green on the second commit);
+598 gate minutes, 396 of them the whole gates'. The disk 11 GB free at the
+start, at ccc's spawn floor; 28 after the first acts, with `~/ron-golden`'s
+compression still running. The seven-day window 17 %.
+
+**What it means.**
+
+1. **The finish line, decided with Ramon, and it is written once.** "Our
+   own app, no Wine. It opens in a moment. A lobby asks for a map, a
+   nation and computer opponents; one click, and the game is on screen
+   fast, drawn with the original's art, running smooth and light. You
+   play a whole game against the computer. Under the picture the rules
+   are the original's exactly: fed the same orders, Rise of Nations does
+   the same thing frame for frame. A game can be saved and replayed, by
+   us and by the original." Multiplayer, Conquer the World, the editor
+   and new art are each a finish line of their own, after this one is
+   finished and tested, never additions to it. `docs/TRACKS.md` decomposes
+   it into tracks, each with the number a landing moves and its gate, and
+   the steering pass maintains that page; the queue books from it. Entry
+   29's three counters stay as the rules track's definition of whole and
+   run on every gate forever. Ramon's reason, which the pass shares: seven
+   rubrics in seven weeks each saturated because "complete" was never
+   written down in a unit a landing can move, and the page is where it is
+   written down.
+
+2. **The rules track is whole and its supply is shelved, not spent.**
+   Every word stands at its length but chapter 134; the blind list is at
+   zero; what remains is chapters that stage situations the original has
+   never been observed in, at a capture and ~10 USD each, moving the
+   territory by zero or one. The queue's three items (4007, 3994, 3995)
+   move to `docs/PARKED.md` whole, with their frames and runs, and
+   re-book as the commander's filler once the structure lands — not
+   before, since every one touches the files the structure moves. The
+   queue's headline-never-empty rule (entry 42) is satisfied by the
+   structure track's items, which name a score of their own.
+
+3. **Two lanes, on Ramon's word, and the flip rule is retired.** The lane
+   clause of `docs/LOOP.md` — add a lane while waiting holds, take it
+   away when it does not — moved the third lane five times in eight
+   tranches without ever naming what it waited on; Ramon: "we're never
+   really sure if a third lane just competes for resources or what". Loop
+   3996 (built this pass) named the waiting: 127.9 of the seventy-third's
+   220.1 `other` minutes were `zsh tools/check.sh test`, the budgeted
+   `cargo test`, so the honest classes are gate 18.2 · suite 10.1 · other
+   2.9 a session and 28 of 34 waiting minutes are the tests running, with
+   no readings, subagents or sleeps in them. lore's fleet row says the same
+   from outside: a gateless Opus worker elsewhere waits 9–17 machine
+   minutes a session against this loop's 34, and the whole difference is
+   the gate class, which exists nowhere else in the fleet. So the lever is
+   the gate's length, and the count is two until a pass can name the
+   bottleneck a third lane would relieve; a pass reports the shape and
+   recommends, and does not move the count.
+
+4. **Phase 4 opens, and a structure tranche goes first.** Ramon: "general
+   structural pass and lifting tests out is the biggest win before we
+   start any phase 4 work". Measured: the `sim` crate is 397k lines: 203 files in
+   one flat directory (247k lines, 204 modules declared in `lib.rs`, a
+   92-field `Sim`) and `sweep/`, 1,462 generated test-only files of
+   149.5k lines; 84k of the flat lines are in-file test tails, so about
+   59 % of the crate is test and ~163k lines are the live simulation; `orders.rs` is 14.2k lines and `fight.rs` 13.5k;
+   `rondata` is 221k lines of which the diff harness and pins are 175k;
+   130 constant names are defined more than once (real duplicates such as
+   `AMERICANS = 20` twice and `ATTACK_TO = 2` in two integer types,
+   collisions such as `AIRBASE` as a flag bit and as a type id, and
+   legitimate per-sweep addresses, mixed); `tools/` is 821 Python files,
+   48k lines of them generated per-sweep twins; the README was last
+   touched 2026-09-27. The structure is the renderer's precondition
+   because phase 4 adds a crate that reads the sim's public surface, and
+   today the sim has none: defining the observed-state snapshot the client
+   reads is the same act as drawing the module boundary, and done the
+   other way round the renderer freezes the god struct in place. **The
+   rule of every structure landing is no behaviour change: every floor
+   unchanged, the soak digest unchanged, the census reading the same**,
+   which this repository alone can certify frame for frame. The map is
+   `docs/STRUCTURE.md`, written by this pass from three Opus readers'
+   inventories (the `Sim` fields to their owners and the files to
+   subsystems; the 130 names classified; the test, sweep and tooling
+   code mapped), and the moves land in its order on the sim lane: the
+   sweeps and the in-file tests out of the source (the sweeps as files,
+   not as a table: 667 keep no generator line and every one carries a
+   hand-written port, so the win is one harness function replacing ~70k
+   generated lines, with `tools/emu` untouched because the emulator
+   cache's key hashes it), the flat root into subsystem directories, the names defined once, the
+   `Sim` split behind the view traits the crate already has (57 of
+   them), the public read surface (`observe`, RENDERER §2.3) and the
+   `Command` interface as the crate's two doors, and a README a person
+   can read. The renderer lane starts beside it on the two items that
+   need nothing from `sim` — the pure camera proven against the
+   original's projection function (RENDERER §6 item 2) and the first
+   decoder (item 4) — and takes the scene (item 1) once the snapshot
+   lands. The renderer's clock is pinned from its first item: seconds to
+   lobby, seconds to frame zero, the slowest-percentile frame
+   milliseconds, peak resident memory; the client writes a session trace
+   from launch to quit (Ramon: "godseye view the whole flow"), in a
+   standard trace format, and the profiler is chosen at the client's first
+   item, not now.
+
+5. **Our lobby, their rules; and the order stream is the network.** The
+   original's lobby is its `iface*` window layer and GameSpy-era
+   networking, cut from v1; what a lobby's choices become at frame zero —
+   the start builder, the territory's group E — must be 1:1 and is the
+   `start` track. The `orders` track's `Command` type is at once the
+   input path, the replay and the lockstep wire format, so it is designed
+   once as part of the sim's public surface; a modern relay and
+   matchmaking layer moves those bytes in the multiplayer finish line
+   later, and OpenRA is the prior art for the serialization.
+
+6. **The census defects and the territory's per-group rulings become a
+   lane's filler, from lore's scoring.** Defect A (82 rows, an ordering
+   bug in `territory_kind`) is accepted; defect B's 272 rows are reached
+   by landing the readers' twin spellings row by row, not by widening the
+   port rule that Loop 2286/2420 narrowed for cause. lore's scoring of
+   the 71 `replaced` rows (`~/.claude/jobs/a18a763f/tmp/territory-convergence-scoring.md`,
+   re-parsed from the 26 reports): G the data walk (9) is the original's
+   full-state checksum and the convergence page's first-ordered
+   deliverable — it is the `checksum` track, never filed as plumbing; E
+   the start builder (9) is the `start` track; B the command issuers (25)
+   are `replaced` with the port's own issuer as their owner, the `orders`
+   track's specification; A the XML loaders (21), C the scripting VM (5),
+   D the turn pump (1, reversal trigger "networking") and F the playback
+   (1) are `replaced` as proposed. The other 1,210 rows are `census.py`
+   work the readers specified row by row (twin 339, absorbed 136,
+   twin-differs 90, unmodelled 66, not a skirmish's 579) and would read
+   the open count near 156 without a ruling; the 66 `unmodelled` are the
+   1:1's finish and get a fourth mark saying so.
+
+7. **The pass's own acts.** Loop 4006, 3998 and 3996 built by Opus 5.5
+   subagents, each red first, two of them refuting the row as filed (the
+   record has the detail); 4001 and 4003 as rows of the brief's frame,
+   seven older rows shortened to keep the chapter kind under its ceiling;
+   the territory re-pinned 549 · 318 · 1286; the archives and the
+   emulator receipts cache compressed in place (16.9 → 13 GB), the disk
+   11 → 28 GB free with `~/ron-golden` still compressing; the lane
+   clause and the tracks page written. Ramon's, still: the 127 merged lane
+   branches on origin, Chrome's 52 GiB of leaked clones, OrbStack's 107
+   GiB (one container, Faro's Postgres, up 13 days).
+
+**Against this entry's estimate**: the structure tranche lands with every
+floor unchanged on every landing and the crate's shape counts at their
+targets; the renderer's camera agrees with the original's projection within
+a pixel on its sweep; the next pass reads waiting under 34 a session with
+the suite class named; and the tracks page, not a conversation, is where
+the next steer learns where the project stands.
