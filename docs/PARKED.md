@@ -4749,8 +4749,8 @@ a non-tail stub with `nargs` = the function's own and `ret 4·N`. `--tail` is th
 leaves `esp` wrong here, and the generated script holds neither `esp` nor what the slot was handed; both were by
 hand. A `--jmp` flag (non-tail stub, `--own N`, the handed arguments and `ecx` in the row) would take them, and a
 slot whose answer is a function of its first argument (`GoodTypeData::is_flat`'s three asks of `+0x60`) beside it.
-Also: three tracked `crates/sim/src/sweep/world_data_is_valid_*.rs-E` files are BSD `sed -i -E` leftovers from
-item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.
+~~Also: three tracked `world_data_is_valid_*.rs-E` files under the sweep directory are BSD `sed -i -E` leftovers
+from item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.~~ Removed by item 4009.
 
 ## Parked by item 2032, 2026-10-13 — chapter sixty-one
 
