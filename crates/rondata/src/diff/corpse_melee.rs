@@ -224,14 +224,19 @@ fn corpse_melee_run1542_s_word_window_is_widened_whole() {
     // (`group`, `pool`, `form`, `build:extra`) beside 29 units' `hits`:
     // theirs heals units ours does not, from 1151 (`1/17`, an Elite Special
     // Forces, `healing` 13 against 0; parked 3975b). The draws agree
-    // throughout and the close is 0 off.
+    // throughout and the close is 0 off. Item 3978: 344 → **276**, with
+    // the supply heal (`sim::heal`'s `supply_heal`: the French bonus's
+    // period 20 within the Despot `1/164`'s supply radius) — the 68 `hits`
+    // rows of 2501 agree; on 1151 `1/17` reads `healing` 13, `damage_frac`
+    // 0 and `hits:damage` 8 both. What stands is the first block's standing
+    // families (248) and who=0's seven orders on the closing block (28).
     pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 344, "run1542's word window");
+    pin_eq!(w.firsts.len(), 276, "run1542's word window");
     pin_eq!(w.rounds_read, (30, 30), "the rounds read");
     pin_eq!(w.rounds.len(), 31, "the rounds that part");
 }
