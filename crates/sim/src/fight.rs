@@ -6129,14 +6129,10 @@ impl Sim {
                 t.map(|o| self.is_in_range(me, o)),
                 t.map(|o| self.valid_target(me, o)),
             );
-            for i in 0..self.units.len() {
-                let u = &self.units[i];
+            for (i, u) in self.units.iter().enumerate() {
                 if u.owner == 1 && (u.index == 12 || u.index == 14) && u.alive() {
-                    let (ix, pos) = (u.index, u.pos);
                     let o = Obj::Unit(i);
-                    let r = self.is_in_range(me, o);
-                    let v = self.valid_target(me, o);
-                    eprintln!("  P4004 1/{ix} pos {pos:?} in_range {r} valid {v}");
+                    eprintln!("  P4004 1/{} pos {:?} in_range {} valid {}", u.index, u.pos, self.is_in_range(me, o), self.valid_target(me, o));
                 }
             }
         }
