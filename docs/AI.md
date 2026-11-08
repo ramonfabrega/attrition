@@ -40901,10 +40901,12 @@ The `cant_reach` tally of the window is 4 (607 and 742, rows of
 §406's kind).
 
 **What is not established.**
-- `unpay_cost`'s price: `get_cost(…, 1, 1, −1)`'s fourth argument counts one
-  fewer in the ramp; it is priced here at the count as it stands. Whether
-  leader 0's `bucket` would show the difference depends on the stock's cap
-  under run1066's `+100000`; see the mutation rows in the journal.
+- `unpay_cost`'s ramp: `get_cost(…, 1, 1, −1)`'s fourth argument counts one
+  fewer in the ramp, and the refund is priced here at the count as it
+  stands. On run1066 the two agree: leader 0's `bucket` agrees on every
+  block, and a mutation dropping the refund parts two `bucket` rows (101 →
+  103), as one dropping the pay does. A ramp step the Fighter-Bomber's
+  price moves on is not reached.
 - The pop cap's hold and its message, `ai_speed` above 1, and the trainer's
   President clause: no capture reaches them.
 - `go_inside`'s selection and cast branches, beyond `Sim::board`.
@@ -40912,8 +40914,9 @@ The `cant_reach` tally of the window is 4 (607 and 742, rows of
 **Coverage.** Diff-backed on run1066: the arm's increment and its trigger
 (614, 616), the cancel's decrement and its kept clock (622), the tick's
 pace and its threshold (816, 817), the plane's birth inside the carrier
-(817 onward). Reading-only: the arm's three refusals (castable, ten,
-the aircraft limit), the pop-cap hold, the refund's ramp count.
+(817 onward), the price paid on 612 and 614 and refunded on 620 (leader
+0's `bucket`). Reading-only: the arm's three refusals (castable, ten, the
+aircraft limit), the pop-cap hold, the refund's ramp count.
 
 ## 414. Reserved for the next item on the AI track
 

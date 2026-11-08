@@ -2110,10 +2110,20 @@ fn run1066_s_carrier_queue_parts_against_the_crate_s_zero() {
             }
         }
     }
-    assert_eq!(held.first(), Some(&(614, 0, 14, (1, 100))), "theirs: the queue opens on 614");
+    assert_eq!(
+        held.first(),
+        Some(&(614, 0, 14, (1, 100))),
+        "theirs: the queue opens on 614"
+    );
     assert_eq!(held.len(), 203, "theirs: 614..816, one record a block");
-    assert!(held.iter().all(|r| (r.1, r.2) == (0, 14)), "theirs: only the carrier");
-    assert_eq!(held.iter().find(|r| r.0 == 622), Some(&(622, 0, 14, (1, 900))));
+    assert!(
+        held.iter().all(|r| (r.1, r.2) == (0, 14)),
+        "theirs: only the carrier"
+    );
+    assert_eq!(
+        held.iter().find(|r| r.0 == 622),
+        Some(&(622, 0, 14, (1, 900)))
+    );
     assert_eq!(held.last(), Some(&(816, 0, 14, (1, 20300))));
     eprintln!("run1066 queue parted: {:?}", parted.first());
     // 203 before item 3981, the crate's side 0 on every record.
