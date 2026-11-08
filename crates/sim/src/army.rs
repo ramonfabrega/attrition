@@ -752,9 +752,6 @@ impl Sim {
     /// counts move as the original's do, `num_units` by the list's change
     /// and `num_captains` by one.
     pub fn army_add_unit(&mut self, who: Player, slot: usize, u: usize) {
-        if std::env::var("RON_PROBE4000").is_ok() && who == 1 && self.frame >= 640 && self.frame <= 670 {
-            eprintln!("PROBE4000 add_unit f{} slot {} u {} list {:?} pool {:?}\n{}", self.frame, slot, self.units[u].index, self.armies[1].list[slot].units.iter().map(|&m| self.units[m].index).collect::<Vec<_>>(), self.armies[1].list[slot].group.pool, std::backtrace::Backtrace::force_capture());
-        }
         if !self.units[u].alive() {
             return;
         }
