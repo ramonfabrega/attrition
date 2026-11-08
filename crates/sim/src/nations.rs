@@ -1007,9 +1007,11 @@ mod tests {
                 }
             }
         }
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let crate_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
         let mut files = Vec::new();
-        walk(&root, &mut files);
+        walk(&crate_dir.join("src"), &mut files);
+        // The standalone sweeps, which item 4009 moved to the crate's tests.
+        walk(&crate_dir.join("tests/sweep"), &mut files);
         files
             .into_iter()
             .map(|p| {

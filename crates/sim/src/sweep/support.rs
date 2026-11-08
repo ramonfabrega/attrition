@@ -829,7 +829,7 @@ pub(crate) struct Obj<'s> {
 }
 
 /// Every row of an `obj with windows` sweep held to `port` (item 4009,
-/// `docs/STRUCTURE.md` §5.2): the row-parsing and the asserts `sweep_gen.py`
+/// `docs/STRUCTURE.md` §5, move 2): the row-parsing and the asserts `sweep_gen.py`
 /// generated into each such test, once. A row is `<args…> | <windows> ->
 /// <eax> | <windows>[ # <calls>]`, each window hex and `;`-separated,
 /// `this` first; `port` is handed the arguments, `this`, the cells, the
