@@ -98,11 +98,7 @@ impl Sim {
         let Some(t) = u.ty else {
             return;
         };
-        let squad = self.squad_members(i);
-        let damaged = squad.iter().any(|&f| {
-            let f = &self.units[f];
-            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
-        });
+        let damaged = self.has_damage(i);
         if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
             return;
         }
@@ -166,10 +162,7 @@ impl Sim {
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
-        let damaged = self.squad_members(i).iter().any(|&f| {
-            let f = &self.units[f];
-            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
-        });
+        let damaged = self.has_damage(i);
         if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
             return;
         }
@@ -305,10 +298,7 @@ impl Sim {
             return;
         };
         let owner = u.owner;
-        let damaged = self.squad_members(i).iter().any(|&f| {
-            let f = &self.units[f];
-            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
-        });
+        let damaged = self.has_damage(i);
         if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
             return;
         }
@@ -553,9 +543,7 @@ impl Sim {
         let Some(t) = u.ty else {
             return;
         };
-        let damaged = self.squad_of(i).iter().any(|&f| {
-            self.units[f].health < self.units[f].max_health || self.units[f].damage_frac != 0
-        });
+        let damaged = self.has_damage(i);
         if !damaged {
             return;
         }
@@ -627,9 +615,7 @@ impl Sim {
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
-        let damaged = self.squad_of(i).iter().any(|&f| {
-            self.units[f].health < self.units[f].max_health || self.units[f].damage_frac != 0
-        });
+        let damaged = self.has_damage(i);
         if !damaged {
             return;
         }
@@ -671,9 +657,7 @@ impl Sim {
             return;
         };
         // `UnitData::has_damage(1)`: this figure or one below it.
-        let damaged = self.squad_of(i).iter().any(|&f| {
-            self.units[f].health < self.units[f].max_health || self.units[f].damage_frac != 0
-        });
+        let damaged = self.has_damage(i);
         if !damaged {
             return;
         }
