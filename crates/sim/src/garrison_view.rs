@@ -305,8 +305,7 @@ fn garrison_member<V: GarrisonView>(
 /// - SEAM: the insert dance of the first queue position runs as its walk
 ///   alone: the group has no insertion list here, so the set-up, the halt,
 ///   the finish and the list's clear are nothing.
-/// - SEAM: the zero-limit arm's second test is taken as a refusal; the
-///   editor's instant garrison (the game's semaphore bit) is not modelled
+/// - SEAM: the editor's instant garrison (the game's semaphore bit) is not modelled
 ///   and neither is the busy test (a unit entering or leaving a building);
 ///   a unit type that packs takes the plain arm.
 pub struct SimGarrison<'a> {
@@ -376,8 +375,11 @@ impl GarrisonView for SimGarrison<'_> {
     fn data_limit(&mut self, _p: i32, o: i32) -> i32 {
         self.sim.garrison_limit(o as usize)
     }
-    fn data_is_1bf(&mut self, _p: i32, _o: i32) -> bool {
-        false
+    /// The zero-limit arm's second test, the type's `is(AIRBASE 0x1bf)`
+    /// (item 3990): an Airbase, whose garrison column is 0, takes a
+    /// helicopter's garrison all the same.
+    fn data_is_1bf(&mut self, _p: i32, o: i32) -> bool {
+        self.sim.building_ident(o as usize) == crate::build::Ident::Airbase
     }
     fn data_unassimilated(&mut self, _p: i32, o: i32) -> bool {
         // `BuildData::is_unassimilated`: a city whose race is not its owner.

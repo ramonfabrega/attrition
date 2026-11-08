@@ -8231,6 +8231,25 @@ impl Sim {
         else {
             return;
         };
+        // **The helicopter arm** (`do_garrison@005e6b80:63`–`:83`, the
+        // listing's `is(0x1bf, 0)` at `5e6bf4`; item 3990, `docs/GOLDEN.md`
+        // §183): a type that flies like a helicopter ordered into an
+        // Airbase that `can_carry`s it flies in — the order killed, a
+        // strafe with no target home there (`returning` from its birth, and
+        // `+0x3c = 1` again after `update_order`) put first with the action
+        // bit. A base that will not take it gets a `QUEUE_FIRST` move to
+        // its point and the red feedback (the console's alone).
+        if self.is_helicopter(u) && self.building_ident(b) == crate::build::Ident::Airbase {
+            self.kill_current_order(u);
+            if self.base_can_carry(b, u) {
+                self.add_strafe_order(u, None, Some(b), true, QueuePos::First, true);
+                self.update_action(u);
+            } else {
+                let at = self.buildings[b].pos;
+                self.add_move_order(u, at, MoveKind::MoveTo, QueuePos::First, false);
+            }
+            return;
+        }
         match self.garrison(u, b) {
             Ok(()) => self.kill_garrison_order(u),
             Err(GarrisonRefused::NotAdjacent) => {
