@@ -403,6 +403,13 @@ test binaries and old worktrees still bypass cooperation; this is not a kernel
 CPU quota or interception of arbitrary commands. Do not wrap a gate/guard/isolated
 dispatcher in another whole-budget reservation. No cache of test verdicts or
 shared target directory is introduced. Different revisions run their own binaries.
+`check.sh test` alone passes `--test-count-timeout` (item 3974: the whole
+rondata lib was killed at the fixed 1800 s, `third_pair::run661`): the
+execution timeout is 2 s times the timed tests its Cargo arguments select in
+the lane gate's timings file (`release_gate.TIMINGS`; libtest's filters,
+`--exact` and `--skip`; another package selects none), 1800 s the floor, and
+the budget prints the figure. The whole lib reads 2,108 timed tests, 4,216 s;
+a one-test filter keeps 1800. The gate, guard and isolated runner pass no flag.
 
 Every gate phase now retains a log. Supervisors print a JSON timing receipt
 separating shared-admission wait from admitted execution (including launch and
