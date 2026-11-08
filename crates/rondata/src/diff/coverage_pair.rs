@@ -2357,7 +2357,14 @@ fn run1075_s_garrison_counts_part_by_the_record() {
         726,
         "theirs: the non-zero records, one a block 2095..2820"
     );
-    pin_eq!(parted.len(), 726, "the garrison counts' parted records");
+    // 726 on the first walk, ours 0 on every record: this crate's
+    // `take_damage` rang no bell for a Citizen struck. With the peasant arm
+    // (`Sim::peasant_alarm`, item 3984) the counts agree 2095..2187 — 1/73
+    // into `1/2020` on 2095, 1/37 and 1/3 into `1/2000` — and part on 2188,
+    // where theirs' 1/5 goes in behind 1/3 and ours' is still walking:
+    // its collision stagger drew 5 on 2089 against theirs' 2, a stream
+    // already apart (parked 3984a). By 2820 theirs holds 5, ours 13.
+    pin_eq!(parted.len(), 432, "the garrison counts' parted records");
 }
 
 /// run1075's window, 2034..2820: the capture whole — the citizens' orders
@@ -2407,7 +2414,16 @@ fn run1075_s_garrison_window_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.blocks, 732, "every captured block");
-    pin_eq!(garr.len(), 0, "the garrison counts part nowhere");
-    pin_eq!(w.firsts.len(), 0, "initial run1075 baseline");
+    pin_eq!(w.blocks, 787, "every captured block");
+    // who=1's `peasants_garr`, first on 2188: ours 3 theirs 4 (above).
+    pin_eq!(garr.len(), 1, "the garrison counts' rows");
+    // **9062** first partings (9217 before the peasant arm: the four
+    // repairers of `1/2033` on 2073, spilled on by the Battleship `0/23`'s
+    // hit, where theirs' first rang the bell and the other three left on
+    // their `GARRISONORDER`s). The standing families from 2034 (groups,
+    // pools, corpses); the staged Battleships strike who=1's ships in ours
+    // alone from 2060 (`1/59`, 10 against 0), the window's first gameplay
+    // parting; and the collision staggers from 2076 (`1/62`'s `pause` 9
+    // against 2), a draw stream already apart. Parked 3984a.
+    pin_eq!(w.firsts.len(), 9062, "initial run1075 baseline");
 }
