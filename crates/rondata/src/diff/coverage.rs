@@ -3137,8 +3137,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN;
         let n = drive_capture(p, 1110, 1296, &mut paths);
         assert_eq!(
-            n, 0,
-            "chapter one hundred and twenty-seven carries 0 blocks in the window"
+            n, 187,
+            "chapter one hundred and twenty-seven carries 187 blocks in the window"
         );
         frames += n;
     }

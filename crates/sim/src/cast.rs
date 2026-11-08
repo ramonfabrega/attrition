@@ -2057,6 +2057,46 @@ mod tests {
         assert_eq!(row(&s), [50, 20, 40]);
     }
 
+    /// **`cast_bribe`'s refusal refunds** (`00672d00`, item 3985,
+    /// `docs/GOLDEN.md` §178): a Bribe landing on a target of the caster's
+    /// own, or on one inside its owner's CEO's reach (`has_general(0,
+    /// 0x165)`), hands the craft's `MANA` back through `unpay_cast_costs`'
+    /// mana half, floored at 0, and copies no unit. Dead from a unit's
+    /// cast — `do_cast` asks `is_valid_target` on the land frame first —
+    /// and held here so the arm stays faithful. Made to fail with the
+    /// refund dropped and with the CEO test dropped.
+    #[test]
+    fn a_refused_bribe_hands_its_mana_back() {
+        use crate::ai_load::{UnitCols, uflags2};
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].mana = 200;
+        s.spells[at(spell::BRIBE)].from = [Some(super::SPY), None];
+        let units = s.units.len();
+        let t = crate::combat::Obj::Unit(filler);
+        s.units[spy].mana_burn = 500;
+        s.cast_on(spy, spell::BRIBE, t);
+        assert_eq!(s.units[spy].mana_burn, 300, "its own target");
+        s.units[spy].mana_burn = 150;
+        s.cast_on(spy, spell::BRIBE, t);
+        assert_eq!(s.units[spy].mana_burn, 0, "floored at 0");
+        s.units[filler].owner = 0;
+        s.units[filler].type_index = 0x165;
+        let ty = s.units[filler].ty.unwrap();
+        s.unit_types[ty].cols = UnitCols {
+            unit_flags2: uflags2::GENERAL,
+            ..UnitCols::default()
+        };
+        s.units[spy].mana_burn = 500;
+        s.cast_on(spy, spell::BRIBE, t);
+        assert_eq!(s.units[spy].mana_burn, 300, "the CEO's reach");
+        assert_eq!(s.units.len(), units, "no copy");
+        assert_eq!(s.units[filler].owner, 0, "not taken");
+    }
+
     /// **`do_cast`'s two `0x11000` writes** (`005ec932`, `005ec9a7`; item
     /// 2804, `docs/GOLDEN.md` §105): a cloaked caster of a craft without
     /// `l` is blown and fought — on the first, every-frame site not a Spy
