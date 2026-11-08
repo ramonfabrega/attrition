@@ -19010,12 +19010,79 @@ building. Theirs' garrison heal at heal level 1 prints the 15 the unit test asse
 against it on a matching squad. Reading only: the rows under "Not established".
 `blind::` is unmoved: run1545b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 181. Reserved for the next item on the rules track
+## 181. Chapter one hundred and thirty — group orders with a member inside: a Spy mid-Bribe is not busy, and a mandatory attack's kill-only tail; closed at 1500 (item 3988, run1546)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** named three arms: `GroupData::get_loc@0070e030`'s off-map leader, `UnitData::is_busy@0060a370` in a
+group walk (booked under `@settransport`), and parked 4002a's `Unit::fight@005fd4d0:332`–`:335` tail. **Two of its
+framings were wrong**, and the reading said so before the staging.
+
+**Arm 1 is dead in every simulation caller.** `get_loc` reaches its off-map leader only when no captain is on the map:
+`find_leader`'s first pass takes on-map captains alone. `Group::action_move_near@00704990` gates on
+`GroupData::is_on_map@0070c450`, whose captain and on-map predicates are the same, so the leader there is always on
+the map. `Group::action_guard`'s scratch group takes the members on the map alone. `Group::action_patrol@007030c0`
+skips an off-map land member, so its `get_loc` answer is never used. The other callers are interface code
+(`Options::do_*`, `ArmiesOut::select_army`, `Console`). Nothing to stage; this crate's early return matches.
+
+**Arm 2's verb was the wrong one.** `@settransport` is the boarding toggle, not `Group::action_transport`, and is none
+of `is_busy`'s ten readers. `is_busy` has two halves:
+
+```text
+is_busy(u):
+    head = u.orders.head
+    if head is a CASTORDER and (types[head.spell].is_pack() || types[head.spell].is_unpack()):  # vslots +0x50/+0x54
+        return true
+    return is_entering_or_exiting(u)                                   # @0060a6f0
+is_entering_or_exiting(u): head's vslot +0x11c                         # only SpecialAnimOrder answers (folded `return this`)
+```
+
+`vtables.txt` names `+0x50`/`+0x54` on `TypeData` as `is_pack`/`is_unpack`. A `SpecialAnimOrder` is added only by
+`Unit::land_plane` (type 0) and `Unit::come_out` (type 1), and `Unit::do_spec_anim` ends it on its first call, so no
+command meets one at a frame boundary. No golden dump prints one, and none of the 155 logged runs did either (§30).
+**So a head cast that is no pack or unpack is not busy.** This crate's four walks — `Group::action_spell`,
+`action_patrol`, `action_air_patrol`, `action_air_attack_ground` — treated every head cast as busy.
+
+**In a mixed group the test cannot be seen** (walked). The patrol leader's `do_patrol` runs a `QUEUE_FIRST` group move,
+and its `action_halt` clears every member, cast or not; the re-issue hands every member the patrol on the same frame.
+So the staging patrols the Spy **alone**.
+
+**Arm 3** is 4002's `Sim::mandatory_substitute` tail (§191): a mandatory attack on a dead target with no other captain,
+whose next action is not `NONE`, `ATTACK_TO` or `GROUP_ATTACK_TO`, ends at `kill_current_order` with no search.
+Item 4002 built it from the listing; this item stages it.
+
+**Built.** `Sim::is_busy` (`cast.rs`) is `Sim::is_packing_or_unpacking`, with a SEAM for the entering/exiting half,
+and replaces the head-cast test in the four walks. The airbase launches (`Sim::group_action_launch_patrol`,
+`group_action_scramble`) never call it: a plane inside holds no order. Test
+`group::tests::a_lone_member_mid_bribe_takes_the_patrol_and_one_mid_pack_does_not`.
+
+**The staging** (`tools/gamelog/golden/chapter130.cmd`, chapter 128's lobby, map 14). The Spy's ~500 frames of
+`mana_burn` from birth, Citizens and Supply Wagons wandering, and who=1's units attack-moving to their struck
+Catapults moved the timing to 1104–1114 for arm 2 and 1190–1201 for arm 3:
+
+- Spy `0/6` (606) casts Bribe on the who=1 Hoplite `1/6` beside it (1108), and a patrol over `0/6` alone follows
+  (1114).
+- Hoplites `0/7` attack the who=1 Catapult `1/9` from 25 half-tiles off with a move queued behind (`@moveadd`, 1201);
+  Hoplites `0/10`, beside it, kill it first. The Catapult is no squad's follower, so `get_captain` answers itself,
+  and the next action is the move. The who=1 Catapult `1/10` stands beside the corpse, where a search would take it.
+
+**Killers, before the take** (game frames; a block is one later): (1) the Bribed Hoplite turns who=0, or `0/6` holds
+a CASTORDER past 1114 — the Spy was busy; (2) `0/6` takes no patrol on 1115 — the command missed; (3) any of `0/7`'s squad holds an attack on `1/10` after
+`1/9` dies — the tail searched; (4) `1/9` dies to `0/7`'s squad, or not at all — the staging missed. **None fired.**
+`0/6` holds its CASTORDER on block 1115 and a `GroupPatrolOrder` on 1116, and `1/6` stays who=1. `1/9` dies on 1301
+(`DEATH_OBJS`) to `0/10`'s squad. On 1304 `0/7`'s squad holds the queued MOVEORDER alone, with no search.
+
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY` = **1500 of 1,500**, closed whole. The widening over
+1095..1500 parts only the eleven `form` rows every golden start carries (`WANT_CH130`). The coverage driver takes
+1095..1500, 405 blocks.
+
+**Mutations** (`tools/mutate.py`):
+- `is_busy` as "any head cast": the word falls 1500 → 1208. On 1116, `0/6` reads `order:kind` 14 to theirs' 2,
+  `mana_burn` 1000 to 0, and `form_mod` −1 to 50.
+- 4002a's tail turned into the search: the word falls to 1304, `0/7` `dest_angle` 1379139584 to theirs'
+  −1439170560, 33 keys parted. **4002a is closed**: the tail is now held by a walk.
+
+**What is not established**: the entering/exiting half (a SEAM; no dump prints a `SPECIALANIMORDER`); a busy member
+of a mixed group, which the group halt makes unobservable on any command this item found; a pack or unpack cast under
+a group order on a walk (the unit test alone holds the busy arm). No cover twin was taken.
 
 ## 182. Reserved for the next item on the rules track
 
@@ -19248,7 +19315,7 @@ parked 3987b, item 3993's booking; the widening's first non-standing rows are it
 `fight::tests::a_mandatory_attack_on_a_dead_figure_takes_its_squad_s_captain` fails. **The `LAB_005fe0e5` tail is
 held by no walk**: its mutation to the search fails nothing in the 335 golden tests. It is built from the listing
 alone; `docs/ORDERS.md` §7.12's raiders (a `GROUP_MOVE` under a mandatory attack on a dead building) are its
-reading's witness, and run100's window does not reach it after the reload. Its unit test is owed (parked 4002a).
+reading's witness, and run100's window does not reach it after the reload. ~~Its unit test is owed (parked 4002a).~~ Chapter 130's walk holds it (item 3988, §181).
 
 **What is not established**: the `ox < 0` arm (the order's `uid` no longer the slot's) — this crate keeps no slot
 reuse; and whether the action check's early return (an action that is not an `ATTACK`) is reached by any capture.

@@ -15449,21 +15449,25 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
 
 ## Parked by item 4002, 2026-11-08 — a mandatory attack on a dead figure takes its squad's captain
 
-- **4002a. `Unit::fight`'s `LAB_005fe0e5` tail is held by no walk** (`docs/GOLDEN.md` §191, `Sim::mandatory_substitute`).
+- ~~**4002a. `Unit::fight`'s `LAB_005fe0e5` tail is held by no walk** (`docs/GOLDEN.md` §191, `Sim::mandatory_substitute`).
   A mandatory attack whose dead target has no other captain, and whose next action is not `NONE`, `ATTACK_TO` or
   `GROUP_ATTACK_TO`, ends at `kill_current_order` with no search. Built from the listing (`fight@005fd4d0:333`–`:335`,
   `:498`–`:500`); mutated to the search, it fails nothing in the 335 golden tests. `docs/ORDERS.md` §7.12's raiders on
   run100 (a `GROUP_MOVE` under a mandatory attack on the dead `0/2004`) are the reading's witness; whether their
   `GROUP_MOVE` carries the action bit, which `get_next_action` reads, is not read. Not read: the tail on run100's
-  blocks past 10231 with `RON_STACKS`. Score: none yet — a unit test that fails without the tail, then a walk.
+  blocks past 10231 with `RON_STACKS`. Score: none yet — a unit test that fails without the tail, then a walk.~~ Closed by item 3988 (run1546,
+  `docs/GOLDEN.md` §181): chapter 130's walk holds the tail; mutated to the search, ch130 w1500 falls to 1304.
 
-## Parked by the next landing, slot CY — reserved
+## Parked by item 3988, 2026-11-08 — group orders with a member inside
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3988a. A busy member of a mixed group is unobservable on the group commands found** (`docs/GOLDEN.md` §181).
+  `Group::action_patrol@007030c0`'s leader runs a `QUEUE_FIRST` group move in `do_patrol`, and its `action_halt`
+  clears every member, cast or not, on the same frame, so a member mid-Pack is re-ordered beside the rest (walked on
+  run1546's staging). `Sim::is_busy`'s busy arm (a pack or unpack) is held by a unit test alone. Not read: whether
+  `action_spell`, `action_air_patrol` or `action_air_attack_ground` reach a busy member past any halt. Score: none —
+  a walk with a member mid-Pack under one of those three, if one exists.
+- **3988b. `@settransport` is the boarding toggle, not `Group::action_transport`** (`docs/GOLDEN.md` §181), and is
+  none of `is_busy`'s ten readers. A booking that names it for the busy test names the wrong verb. Score: none.
 
 ## Parked by the next landing, slot CZ — reserved
 
