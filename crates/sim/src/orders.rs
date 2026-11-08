@@ -4434,8 +4434,17 @@ impl Sim {
         // drops the recompute period from 512 frames to 8 and puts a
         // newly-arrived boat's deposit on the books within the same
         // handful of frames ([`crate::rares`]).
+        //
+        // **The latch is `0x18`, not `8`** (`check_idle@006032c0:69`, item
+        // 3983, `docs/AI.md` §415): the same write raises `0x10`, the bit
+        // `think`'s cadence gate reads as `cant_reach`. A captain drops it
+        // past the gate on its next think; a non-captain returns before the
+        // gate and keeps it until something else clears it — run547's
+        // decoy members print `flags` 25 against their captains' 9 on the
+        // block they are born.
         if !self.units[u].idle_latch {
             self.units[u].idle_latch = true;
+            self.units[u].cant_reach = true;
             if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
                 self.economy_changed(self.units[u].owner);
             }
@@ -4490,15 +4499,33 @@ impl Sim {
         if !unit.cant_reach && unit.idle > 2 && phase % 16 != 0 {
             return;
         }
+        // **A defeated leader's units think no further, and keep the bit**
+        // (`think:98`, item 3983, `docs/AI.md` §415): the first test past
+        // the gate is `leader_flags2 & 2`, which `Leader::defeat@006ecb00:67`
+        // sets as it clears `leader_flags & 2` — so `:155`, a leader
+        // without `& 2`, is never reached by a defeated seat either.
+        // run1450's idle human is defeated on the closing block 2601, and
+        // its seven citizens print `flags` 25 on their first idle frame
+        // where a live seat's captains print 9. SEAM: the scenario's
+        // `disable_all_unit_ai` (the same bit, `docs/AI.md` §1) is not
+        // modelled.
+        if self
+            .defeated
+            .get(self.units[u].owner as usize)
+            .copied()
+            .unwrap_or(false)
+        {
+            return;
+        }
         self.think_past_gate(u, frame, phase);
         // **Every exit past the gate drops the bit** (item 3962,
         // `docs/AI.md` §406): `think:130`, `LAB_005f761a` (`:296`) and the
         // tail (`:339`) each write `flags &= 0xef`, and every `return 1` of
-        // an arm is a `goto LAB_005f761a`. The three exits that keep it —
-        // `:98` (the leader's `+4 & 2`), `:101` (`unit_masks & 0x1000000`)
-        // and `:155` (a leader without `leader_flags & 2`) — this crate
-        // does not model, and no walked game reaches one: every seated
-        // leader carries `& 2`.
+        // an arm is a `goto LAB_005f761a`. Of the three exits that keep it,
+        // `:98` is the defeated seat's above; `:101` (`unit_masks &
+        // 0x1000000`, the scenario's `disable_unit_ai`) is not modelled,
+        // and `:155` is reached only by a seat `:98` has already sent
+        // back.
         if let Some(unit) = self.units.get_mut(u) {
             unit.cant_reach = false;
         }

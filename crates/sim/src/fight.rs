@@ -3318,7 +3318,11 @@ impl Sim {
                 // hands on to its captain below.
                 let overflow = u.max_health - u.health - share;
                 let decoy = u.decoy;
+                if matches!(taken, Taken::Alive { .. }) {
+                    self.struck_alive(i);
+                }
                 if matches!(taken, Taken::Died { .. }) {
+                    let u = &mut self.units[i];
                     u.health = u.health.min(0);
                     // `take_damage@00652020:607`, before `die` (vslot
                     // `+0x158`): the kill's plunder (`docs/AI.md` §259).
@@ -3381,6 +3385,21 @@ impl Sim {
             }
             Obj::Building(b) => self.damage_building(b, hit, Some(_by), _frame, false),
         }
+    }
+
+    /// **A struck unit that survives raises `0x10` on its captain**
+    /// (`Object::take_damage@00652020:345`–`350`, item 3983, `docs/AI.md`
+    /// §415): after the hit is accumulated, a unit whose whole points taken
+    /// (`+0x24`) are still under its figure's share sets
+    /// `SubObjectData::flags |= 0x10` on `get_captain` (vslot `+0xe4`) —
+    /// the bit `Unit::think`'s idle gate reads, carried as `cant_reach`.
+    /// Attrition comes through here too (`suffer_attrition`'s slot `0x16c`
+    /// is this function), so [`crate::suffer_view::SimSuffer`] calls it as
+    /// well. A building's own arm (the same write on its captain, itself)
+    /// is not carried: no building flag is compared.
+    pub(crate) fn struck_alive(&mut self, i: usize) {
+        let c = self.captain_of(i);
+        self.units[c].cant_reach = true;
     }
 
     /// **The Despot's unit plunder** (`docs/AI.md` §259): `Object::take_damage
@@ -8414,6 +8433,40 @@ mod tests {
         // And the squad-sized maximum is untouched, because item 484's
         // row compares it against the dump's `myhits`.
         assert_eq!(sim.units[me].max_health, 120);
+    }
+
+    /// **A struck unit that survives raises `0x10` on its captain** (item
+    /// 3983, `Object::take_damage@00652020:345`–`350`, `docs/AI.md` §415):
+    /// the member is struck, the captain takes the bit; a blow that kills
+    /// the figure does not reach the write.
+    #[test]
+    fn a_survived_blow_raises_the_captain_s_cant_reach() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 120,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 3,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let cap = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let mem = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let c = i32::from(sim.units[cap].index);
+        for u in [cap, mem] {
+            sim.units[u].combat.captain = c;
+        }
+        let hit = combat::Sixteenths { whole: 15, frac: 0 };
+        sim.take_damage(Obj::Unit(mem), hit, Obj::Unit(foe), 10);
+        assert!(sim.units[cap].cant_reach, "the captain takes it");
+        assert!(!sim.units[mem].cant_reach, "the struck member does not");
+        sim.units[cap].cant_reach = false;
+        let kill = combat::Sixteenths { whole: 40, frac: 0 };
+        sim.take_damage(Obj::Unit(mem), kill, Obj::Unit(foe), 11);
+        assert!(!sim.units[cap].cant_reach, "a kill is past the write");
     }
 
     /// **The remainder share is the last figure's** (item 3618,

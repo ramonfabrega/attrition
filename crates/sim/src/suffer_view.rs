@@ -199,6 +199,8 @@ impl SufferView for SimSuffer<'_> {
         let killed = matches!(taken, combat::Taken::Died { .. });
         if killed {
             unit.health = unit.health.min(0);
+        } else {
+            self.sim.struck_alive(self.unit);
         }
         self.outcome = Some((sixteenths, lost, killed));
         killed
