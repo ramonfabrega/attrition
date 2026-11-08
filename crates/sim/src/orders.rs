@@ -9081,6 +9081,9 @@ impl Sim {
             if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
                 return false;
             }
+            if let Some(done) = self.mandatory_substitute(u, target, state.mandatory, frame) {
+                return done;
+            }
             // **The search budget** (item 3598, `docs/AI.md` §318.3):
             // `LAB_005fdb9e`'s first arm. While the unit's `waiting`
             // (`+0xad`) is below 5 and its leader has counted more than ten
@@ -9542,6 +9545,88 @@ impl Sim {
         {
             self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
         }
+    }
+
+    /// **A mandatory attack on a dead figure takes its squad's captain, in
+    /// the same order** (item 4002, `docs/GOLDEN.md` §191). `Unit::fight@
+    /// 005fd4d0:300`–`:335`, the invalid-target branch past the capture
+    /// approach, with `param_5 == 0`:
+    ///
+    /// ```text
+    /// action = get_action(); if !action || action.type != ATTACK: return 0
+    /// if !mandatory || ox < 0:                       goto LAB_005fdb9e
+    /// c = objects[whom][ox]->get_captain()            ; vslot +0xe4
+    /// if c != ox && valid_target(c, whom):
+    ///     order.target = (c, whom, uid(c))            ; mandatory, ever_in_range,
+    ///     flags ^= 0x10; if now set: work()           ;   new_ord untouched
+    ///     return 0
+    /// if next_action_type() in (NONE, ATTACK_TO, GROUP_ATTACK_TO): goto LAB_005fdb9e
+    /// LAB_005fe0e5: kill_current_order(0); return 0
+    /// ```
+    ///
+    /// `UnitData::get_captain@00610ab0` walks `o_up` and asks nothing of
+    /// life, and `Unit::close`'s relink hands a dead middle figure the tail
+    /// as its `o_up` ([`Self::relink_squad`]), so the walk from the dead
+    /// figure reaches the squad's live head. A building answers its own `o`
+    /// (`ObjectData::get_captain@00472400`) and never substitutes.
+    ///
+    /// run1545's Hoplite `1/14` (chapter 129) is the witness: its mandatory
+    /// attack on `0/9`, who died on 809 with `o_up` 8 → 10 after the relink,
+    /// names `0/8` on block 810 with `mandatory 1`, `ever_in_range 1` and
+    /// `new_ord 0`, a move to (5352, 31704) over it — the re-entered `work`'s
+    /// chase. Ours searched and took `0/10` fresh.
+    ///
+    /// Returns `None` where the original goes on to `LAB_005fdb9e`, and
+    /// `Some(false)`, `fight`'s 0, where it returns.
+    fn mandatory_substitute(
+        &mut self,
+        u: usize,
+        target: Obj,
+        mandatory: bool,
+        frame: i64,
+    ) -> Option<bool> {
+        let k = self.action_of(u);
+        if !k.is_some_and(|k| matches!(self.units[u].orders[k].body, Body::Attack(_))) {
+            return Some(false);
+        }
+        if !mandatory {
+            return None;
+        }
+        if let Obj::Unit(t) = target {
+            let mut c = t;
+            for _ in 0..self.units.len() {
+                match self.units[c].o_up {
+                    Some(up) if up != c => c = up,
+                    _ => break,
+                }
+            }
+            let me = Obj::Unit(u);
+            if c != t && self.valid_target(me, Obj::Unit(c)) {
+                self.units[u].combat.target = Some(Obj::Unit(c));
+                let front = self.units[u].orders.front_mut()?;
+                if front.flags & flag::FIGHT_REENTRY == 0 {
+                    front.flags |= flag::FIGHT_REENTRY;
+                    self.work(u, frame);
+                } else {
+                    front.flags &= !flag::FIGHT_REENTRY;
+                }
+                return Some(false);
+            }
+        }
+        let next = self.units[u]
+            .orders
+            .iter()
+            .skip(1)
+            .find(|o| !o.is_transit() && o.index() != index::CHANGE_FORM)
+            .map_or(index::NONE, Order::index);
+        if matches!(
+            next,
+            index::NONE | index::ATTACK_TO | index::GROUP_ATTACK_TO
+        ) {
+            return None;
+        }
+        self.kill_current_order(u);
+        Some(false)
     }
 
     /// **The chase runs in the frame it is ordered** — `Unit::fight@

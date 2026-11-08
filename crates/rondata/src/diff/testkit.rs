@@ -6998,8 +6998,12 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL: (i64, i64) 
 /// the first pin): ours spends ten draws to theirs' nine, its second a
 /// `Guy::set_anim < Unit::move_step+0x823` theirs does not; the state
 /// parts first on 810, who=1's `1/14` taking order kind 10 at `0/10` where
-/// theirs keeps a move (parked 3987a).
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 827;
+/// theirs keeps a move (parked 3987a). 827 → 862 (+35, item 4002, GOLDEN
+/// §191): a mandatory attack on a dead figure takes its squad's captain in
+/// the same order; the word is now the garrison heal's regrown figure,
+/// theirs' first draw `Guy::init_real < Unit::init < Unit::repair_damage+0x33d`
+/// (parked 3987b, item 3993's).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 862;
 
 /// `chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole`'s
 /// window: run1545.
