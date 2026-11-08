@@ -10,12 +10,6 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-fn unhex(s: &str) -> Vec<u8> {
-    (0..s.len() / 2)
-        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
-        .collect()
-}
-
 use crate::build::{Ident, flags};
 use crate::tcoord::{TcoordView, blocked_tcoord_steps};
 
@@ -256,65 +250,28 @@ fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_obj("build_type_data_blocked_tcoord") else {
         return;
     };
-    let mut n = 0;
-    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
-        let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
-        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
-        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
-        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
-        let mut m = wins.remove(0);
-        let mut p: Vec<Vec<u8>> = wins.split_off(5);
-        let mut c: Vec<Vec<u8>> = wins;
-        let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let mut log: Vec<String> = Vec::new();
-        let got: i64 = {
-            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
-            let _ = (&a, &m, &c, &p);
-            let mut e = Emu {
-                a,
-                m,
-                c,
-                p,
-                n: [0; 18],
-                der: Default::default(),
-                site: None,
-                log: &mut log,
-            };
-            let r = blocked_tcoord_steps(&mut e, a[2], a[0], a[1], a[3]);
-            e.finish();
-            i64::from(r)
+    let obj = super::Obj {
+        name: "blocked_tcoord",
+        full: "BuildTypeData::blocked_tcoord@00636db0",
+        cells: 5,
+        calls: true,
+        eax: true,
+        min_rows: 4000,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, log| {
+        let _ = (&a, &m, &c, &p);
+        let mut e = Emu {
+            a,
+            m,
+            c,
+            p,
+            n: [0; 18],
+            der: Default::default(),
+            site: None,
+            log: &mut *log,
         };
-        assert_eq!(got, want_eax, "blocked_tcoord — eax, row `{line}`");
-        assert_eq!(
-            log, want_log,
-            "blocked_tcoord — the recorded calls, row `{line}`"
-        );
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "blocked_tcoord — this's bytes, row `{line}`");
-        for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "blocked_tcoord — window c[{i}], row `{line}`"
-            );
-        }
-        for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[6 + i],
-                "blocked_tcoord — window p[{i}], row `{line}`"
-            );
-        }
-        n += 1;
-    }
-    assert!(n >= 4000, "only {n} rows");
-    eprintln!("BuildTypeData::blocked_tcoord@00636db0: {n} rows agree");
+        let r = blocked_tcoord_steps(&mut e, a[2], a[0], a[1], a[3]);
+        e.finish();
+        i64::from(r)
+    });
 }

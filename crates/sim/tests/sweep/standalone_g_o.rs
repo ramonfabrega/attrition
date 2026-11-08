@@ -3,7 +3,7 @@
 #[path = "../../src/sweep/support.rs"]
 mod support;
 #[allow(unused_imports)]
-use support::{emu_obj, emu_rows, row, tail_row};
+use support::{Obj, emu_obj, emu_rows, obj_rows, row, tail_row};
 
 // Registered standalone sweeps.
 #[path = "game_access_const_find_data_z.rs"]

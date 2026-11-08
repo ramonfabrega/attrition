@@ -15614,13 +15614,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DH — reserved
+## Parked by item 4009, 2026-11-08 — the sweeps leave the source
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(4009a) **`sweep_gen.py` still draws the unfolded `obj with windows` skeleton** (Loop; names no score). Item 4009
+folded 787 such sweeps' generated row-parsing and asserts into `sweep::support::obj_rows`, but the generator's
+template still writes them out whole, so a new sweep lands unfolded. And `--regen` on a folded sweep has no
+port block where `kept_port` looks for one (the line above the port is indented one level less inside the
+closure), so it refuses as Loop 2792 says it should, unless `--port`, `--port-file` or `--reset-port` is
+given. The fix: the template emits the `obj_rows` call and `kept_port` reads both forms. It moves no count:
+the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 
 ## Parked by the next landing, slot DI — reserved
 

@@ -10,12 +10,6 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-fn unhex(s: &str) -> Vec<u8> {
-    (0..s.len() / 2)
-        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
-        .collect()
-}
-
 use sim::Tuning;
 use sim::attrition::Domain;
 use sim::balance::{Kind, line as l, type_damage};
@@ -123,51 +117,29 @@ fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_obj("balance_type_damage") else {
         return;
     };
-    let mut n = 0;
-    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
-        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
-        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
-        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
-        let mut m = wins.remove(0);
-        let mut p: Vec<Vec<u8>> = wins.split_off(1);
-        let mut c: Vec<Vec<u8>> = wins;
-        let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let got: i64 = {
-            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
-            let _ = (&a, &m, &c, &p);
-            // The two type records are `p[2]` (the attacker, table slot 5) and `p[3]` (the target, slot
-            // 6). The original reads their words and asks five stubbed slots, each answered from a
-            // word of the record itself (`ecx+0x2b0` unit, `+0x2b4` build, `+0x2b8` wonder, `+0x2bc`
-            // age, `+0x2c0` siege, `+0x2c4` caravan, `+0x2c8` missile); slot `+0x60` is the real
-            // `ObjectTypeData::is@0065f7d0`, which reads `+4` (the index), the `is_list` (count `+0x280`,
-            // `u16`s behind `+0x28c`) and the strict list (`+0x29c`, `+0x2a8`). So each record is a `Kind`.
-            let mut t = Tuning::RON;
-            t.one_age_down = rd(&c[0], 0x70);
-            t.two_ages_down = rd(&c[0], 0x74);
-            t.three_ages_down = rd(&c[0], 0x78);
-            t.four_ages_down = rd(&c[0], 0x7c);
-            t.five_ages_down = rd(&c[0], 0x80);
-            let (ka, kb) = (kind_of(&p[2], &p[4], &p[5]), kind_of(&p[3], &p[6], &p[7]));
-            i64::from(type_damage(&t, &ka, &kb))
-        };
-        assert_eq!(got, want_eax, "type_damage — eax, row `{line}`");
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "type_damage — this's bytes, row `{line}`");
-        for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "type_damage — window c[{i}], row `{line}`");
-        }
-        for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "type_damage — window p[{i}], row `{line}`");
-        }
-        n += 1;
-    }
-    assert!(n >= 1800, "only {n} rows");
-    eprintln!("Balance::type_damage@0057fb50: {n} rows agree");
+    let obj = super::Obj {
+        name: "type_damage",
+        full: "Balance::type_damage@0057fb50",
+        cells: 1,
+        calls: false,
+        eax: true,
+        min_rows: 1800,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, _log| {
+        let _ = (&a, &m, &c, &p);
+        // The two type records are `p[2]` (the attacker, table slot 5) and `p[3]` (the target, slot
+        // 6). The original reads their words and asks five stubbed slots, each answered from a
+        // word of the record itself (`ecx+0x2b0` unit, `+0x2b4` build, `+0x2b8` wonder, `+0x2bc`
+        // age, `+0x2c0` siege, `+0x2c4` caravan, `+0x2c8` missile); slot `+0x60` is the real
+        // `ObjectTypeData::is@0065f7d0`, which reads `+4` (the index), the `is_list` (count `+0x280`,
+        // `u16`s behind `+0x28c`) and the strict list (`+0x29c`, `+0x2a8`). So each record is a `Kind`.
+        let mut t = Tuning::RON;
+        t.one_age_down = rd(&c[0], 0x70);
+        t.two_ages_down = rd(&c[0], 0x74);
+        t.three_ages_down = rd(&c[0], 0x78);
+        t.four_ages_down = rd(&c[0], 0x7c);
+        t.five_ages_down = rd(&c[0], 0x80);
+        let (ka, kb) = (kind_of(&p[2], &p[4], &p[5]), kind_of(&p[3], &p[6], &p[7]));
+        i64::from(type_damage(&t, &ka, &kb))
+    });
 }

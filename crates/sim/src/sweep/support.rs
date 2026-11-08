@@ -809,6 +809,95 @@ pub(crate) fn tail_row(line: &str) -> (Vec<i64>, i64, Vec<&str>) {
     (args, eax, tail)
 }
 
+/// An `obj with windows` sweep's shape (item 4009): what `obj_rows` needs
+/// besides the rows and the port to hold one to the other.
+#[allow(dead_code)] // A partition may hold no folded sweep.
+pub(crate) struct Obj<'s> {
+    /// The short name the assertions print (`find_target`).
+    pub name: &'s str,
+    /// `Class::fn@00xxxxxx`, printed with the row count.
+    pub full: &'s str,
+    /// How many windows after `this` are cells and tables (`c`); the rest
+    /// are the pointed buffers (`p`).
+    pub cells: usize,
+    /// Whether a row carries the stubs' recorded calls after ` # `.
+    pub calls: bool,
+    /// Whether `eax` is held to the port's answer.
+    pub eax: bool,
+    /// The fewest rows the sweep accepts.
+    pub min_rows: usize,
+}
+
+/// Every row of an `obj with windows` sweep held to `port` (item 4009,
+/// `docs/STRUCTURE.md` §5.2): the row-parsing and the asserts `sweep_gen.py`
+/// generated into each such test, once. A row is `<args…> | <windows> ->
+/// <eax> | <windows>[ # <calls>]`, each window hex and `;`-separated,
+/// `this` first; `port` is handed the arguments, `this`, the cells, the
+/// pointed buffers and the call log, and answers `eax`. `this` and every
+/// window after the port are held to the row's after-image, the cells from
+/// `want[1]` and the pointed buffers from `want[1 + cells]`, exactly as
+/// the generated code held them.
+#[allow(dead_code)] // A partition may hold no folded sweep.
+pub(crate) fn obj_rows(
+    rows: &str,
+    obj: &Obj,
+    mut port: impl FnMut(&[i32], &mut [u8], &mut [Vec<u8>], &mut [Vec<u8>], &mut Vec<String>) -> i64,
+) {
+    fn unhex(s: &str) -> Vec<u8> {
+        (0..s.len() / 2)
+            .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
+            .collect()
+    }
+    let name = obj.name;
+    let mut n = 0;
+    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
+        let (line, want_log) = if obj.calls {
+            let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
+            (line, calls.split_whitespace().collect())
+        } else {
+            (line, Vec::new())
+        };
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
+        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
+        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
+        let mut m = wins.remove(0);
+        let mut p: Vec<Vec<u8>> = wins.split_off(obj.cells);
+        let mut c: Vec<Vec<u8>> = wins;
+        let want_eax: i64 = eax.trim().parse().expect("an integer");
+        let mut log: Vec<String> = Vec::new();
+        let got = port(&a, &mut m, &mut c, &mut p, &mut log);
+        if obj.eax {
+            assert_eq!(got, want_eax, "{name} — eax, row `{line}`");
+        }
+        if obj.calls {
+            let want_log: Vec<&str> = want_log;
+            assert_eq!(log, want_log, "{name} — the recorded calls, row `{line}`");
+        }
+        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
+        assert_eq!(m, want[0], "{name} — this's bytes, row `{line}`");
+        for (i, w) in c.iter().enumerate() {
+            assert_eq!(w, &want[1 + i], "{name} — window c[{i}], row `{line}`");
+        }
+        for (i, w) in p.iter().enumerate() {
+            assert_eq!(
+                w,
+                &want[1 + obj.cells + i],
+                "{name} — window p[{i}], row `{line}`"
+            );
+        }
+        n += 1;
+    }
+    assert!(n >= obj.min_rows, "only {n} rows");
+    eprintln!("{}: {n} rows agree", obj.full);
+}
+
 #[cfg(test)]
 mod tests {
     use super::{

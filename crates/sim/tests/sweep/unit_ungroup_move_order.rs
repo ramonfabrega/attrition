@@ -10,12 +10,6 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-fn unhex(s: &str) -> Vec<u8> {
-    (0..s.len() / 2)
-        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
-        .collect()
-}
-
 /// The emulator's windows as the port's view (`crate::orders::UngroupView`).
 ///
 /// Units: 0 is `this` (`m`), 1 and 2 are `c1`/`c2` at `UNIT1`/`UNIT2`, the
@@ -298,71 +292,31 @@ fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_obj("unit_ungroup_move_order") else {
         return;
     };
-    let mut n = 0;
-    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
-        let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
-        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
-        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
-        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
-        let mut m = wins.remove(0);
-        let mut p: Vec<Vec<u8>> = wins.split_off(15);
-        let mut c: Vec<Vec<u8>> = wins;
-        let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let mut log: Vec<String> = Vec::new();
-        let got: i64 = {
-            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
-            let _ = (&a, &m, &c, &p);
-            {
-                let mut w = Win {
-                    m,
-                    c,
-                    log: &mut log,
-                    real_captain: a[a.len() - 1] == 1,
-                    cur: 0,
-                    attack: false,
-                    listu: 0,
-                };
-                crate::orders::ungroup_move_order_steps(&mut w, 0usize, i64::from(a[0]), a[1] != 0);
-            }
-            if log.is_empty() {
-                log.push("-".into());
-            }
-            0
-        };
-        let _ = (got, want_eax);
-        assert_eq!(
-            log, want_log,
-            "ungroup_move_order — the recorded calls, row `{line}`"
-        );
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(
-            m, want[0],
-            "ungroup_move_order — this's bytes, row `{line}`"
-        );
-        for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "ungroup_move_order — window c[{i}], row `{line}`"
-            );
+    let obj = super::Obj {
+        name: "ungroup_move_order",
+        full: "Unit::ungroup_move_order@005fd140",
+        cells: 15,
+        calls: true,
+        eax: false,
+        min_rows: 3000,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, log| {
+        let _ = (&a, &m, &c, &p);
+        {
+            let mut w = Win {
+                m,
+                c,
+                log: &mut *log,
+                real_captain: a[a.len() - 1] == 1,
+                cur: 0,
+                attack: false,
+                listu: 0,
+            };
+            crate::orders::ungroup_move_order_steps(&mut w, 0usize, i64::from(a[0]), a[1] != 0);
         }
-        for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[16 + i],
-                "ungroup_move_order — window p[{i}], row `{line}`"
-            );
+        if log.is_empty() {
+            log.push("-".into());
         }
-        n += 1;
-    }
-    assert!(n >= 3000, "only {n} rows");
-    eprintln!("Unit::ungroup_move_order@005fd140: {n} rows agree");
+        0
+    });
 }

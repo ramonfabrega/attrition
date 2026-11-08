@@ -407,11 +407,18 @@ pub const MAPGEN: Mapgen = Mapgen {
 /// (`split('\n')`); these are `wc -l`'s. Its `65k` counted the guards'
 /// own tails (214 lines) as production; §2 says production files, and a
 /// guard's test is not one.
+///
+/// Item 4009: `sweep-lines` 148079 → 17255 (−130824). The 1,305
+/// standalone sweeps and their four partitions left `src/` for
+/// `crates/sim/tests/sweep/` (−127,140 under `src/`), the three `.rs-E`
+/// backups went, and 787 `obj with windows` sweeps' generated parsing and
+/// asserts folded into `sweep::support::obj_rows` (the 102 of them under
+/// `src/` −3,684 lines there; 29,171 net across both homes).
 #[cfg(test)]
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 203),
     ("test-tails", 64_958),
-    ("sweep-lines", 148_079),
+    ("sweep-lines", 17_255),
     ("names", 130),
     ("fields", 92),
     ("largest", 14_222),

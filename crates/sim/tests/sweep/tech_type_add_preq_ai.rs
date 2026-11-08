@@ -10,12 +10,6 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-fn unhex(s: &str) -> Vec<u8> {
-    (0..s.len() / 2)
-        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
-        .collect()
-}
-
 struct Walk<'a> {
     count: i32,
     keep: bool,
@@ -71,47 +65,25 @@ fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_obj("tech_type_add_preq_ai") else {
         return;
     };
-    let mut n = 0;
-    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
-        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
-        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
-        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
-        let mut m = wins.remove(0);
-        let mut p: Vec<Vec<u8>> = wins.split_off(0);
-        let mut c: Vec<Vec<u8>> = wins;
-        let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let got: i64 = {
-            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
-            let _ = (&a, &m, &c, &p);
-            let mut w = Walk {
-                count: a[3],
-                keep: a[38] != 0,
-                seq1: &a[6..22],
-                seq2: &a[22..38],
-                n1: 0,
-                n2: 0,
-            };
-            add_preq_ai(&mut w, p, rd(m, 0) == 0xb4456cu32 as i32, a[0], a[1], a[2]);
-            0
+    let obj = super::Obj {
+        name: "add_preq_ai",
+        full: "TechType::add_preq_ai@0066c350",
+        cells: 0,
+        calls: false,
+        eax: false,
+        min_rows: 200,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, _log| {
+        let _ = (&a, &m, &c, &p);
+        let mut w = Walk {
+            count: a[3],
+            keep: a[38] != 0,
+            seq1: &a[6..22],
+            seq2: &a[22..38],
+            n1: 0,
+            n2: 0,
         };
-        let _ = (got, want_eax);
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "add_preq_ai — this's bytes, row `{line}`");
-        for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "add_preq_ai — window c[{i}], row `{line}`");
-        }
-        for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "add_preq_ai — window p[{i}], row `{line}`");
-        }
-        n += 1;
-    }
-    assert!(n >= 200, "only {n} rows");
-    eprintln!("TechType::add_preq_ai@0066c350: {n} rows agree");
+        add_preq_ai(&mut w, p, rd(m, 0) == 0xb4456cu32 as i32, a[0], a[1], a[2]);
+        0
+    });
 }

@@ -10,12 +10,6 @@ fn wr(m: &mut [u8], off: usize, v: i32) {
     m[off..off + 4].copy_from_slice(&v.to_le_bytes());
 }
 
-fn unhex(s: &str) -> Vec<u8> {
-    (0..s.len() / 2)
-        .map(|i| u8::from_str_radix(&s[2 * i..2 * i + 2], 16).expect("hex"))
-        .collect()
-}
-
 // hand: view
 use crate::carry_idle::{CarryIdleView, think_carry_idle_steps};
 use crate::movement::Angle;
@@ -165,71 +159,34 @@ fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_obj("unit_think_carry_idle") else {
         return;
     };
-    let mut n = 0;
-    for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
-        let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
-        let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
-        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
-        let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
-        let mut m = wins.remove(0);
-        let mut p: Vec<Vec<u8>> = wins.split_off(11);
-        let mut c: Vec<Vec<u8>> = wins;
-        let want_eax: i64 = eax.trim().parse().expect("an integer");
-        let mut log: Vec<String> = Vec::new();
-        let got: i64 = {
-            let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
-            let _ = (&a, &m, &c, &p);
-            let (ret, mut derefs) = {
-                let mut v = RowView {
-                    a,
-                    m,
-                    c,
-                    p,
-                    log: &mut log,
-                    derefs: Vec::new(),
-                    coasts: 0,
-                    docks: 0,
-                };
-                let ret = think_carry_idle_steps(&mut v);
-                (ret, std::mem::take(&mut v.derefs))
+    let obj = super::Obj {
+        name: "think_carry_idle",
+        full: "Unit::think_carry_idle@005f2f30",
+        cells: 11,
+        calls: true,
+        eax: true,
+        min_rows: 3000,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, log| {
+        let _ = (&a, &m, &c, &p);
+        let (ret, mut derefs) = {
+            let mut v = RowView {
+                a,
+                m,
+                c,
+                p,
+                log: &mut *log,
+                derefs: Vec::new(),
+                coasts: 0,
+                docks: 0,
             };
-            if log.is_empty() {
-                log.push("-".to_string());
-            }
-            log.append(&mut derefs);
-            i64::from(ret)
+            let ret = think_carry_idle_steps(&mut v);
+            (ret, std::mem::take(&mut v.derefs))
         };
-        assert_eq!(got, want_eax, "think_carry_idle — eax, row `{line}`");
-        assert_eq!(
-            log, want_log,
-            "think_carry_idle — the recorded calls, row `{line}`"
-        );
-        let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "think_carry_idle — this's bytes, row `{line}`");
-        for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "think_carry_idle — window c[{i}], row `{line}`"
-            );
+        if log.is_empty() {
+            log.push("-".to_string());
         }
-        for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[12 + i],
-                "think_carry_idle — window p[{i}], row `{line}`"
-            );
-        }
-        n += 1;
-    }
-    assert!(n >= 3000, "only {n} rows");
-    eprintln!("Unit::think_carry_idle@005f2f30: {n} rows agree");
+        log.append(&mut derefs);
+        i64::from(ret)
+    });
 }
