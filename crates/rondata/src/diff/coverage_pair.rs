@@ -2238,3 +2238,177 @@ fn run1066_s_carrier_window_is_widened_whole() {
     pin_eq!(queue.len(), 0, "the carrier's queue parts nowhere");
     pin_eq!(w.firsts.len(), 101, "initial run1066 baseline");
 }
+
+/// run1075, item 3455: the coverage pair's lobby with eleven human
+/// Battleships staged by console on the navy's path from 2050, at
+/// `cover=1`, blocks 2034..2820 (RUNS run1075). The one dump on disk whose
+/// garrison counts are not all 0: who=1's `peasants_garr` is 1 from 2095,
+/// when the citizen `1/73` goes into `1/2020` on the `GARRISONORDER` it
+/// took on 2073 (parked 3964a; item 3984, `docs/AI.md` §416).
+pub(crate) const RUN1075: &str =
+    "gamelog-run1075-eastindies-persian-alltech-navy-battleships-window-2034-2820-cover1.txt";
+
+/// run1075's staging, `tools/gamelog/coverage/disband3455-navy.cmd`, read
+/// from the tree (item 3984).
+pub(crate) fn navy_script() -> crate::golden::Script {
+    let path = format!(
+        "{}/../../tools/gamelog/coverage/disband3455-navy.cmd",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    crate::golden::Script::read(std::path::Path::new(&path))
+        .unwrap_or_else(|e| panic!("tools/gamelog/coverage/disband3455-navy.cmd: {e}"))
+}
+
+/// The four garrison counts (`LeaderData +0xa28..+0xa34`, item 3964).
+const GARRISON_KEYS: [&str; 4] = [
+    "peasants_garr",
+    "stable_garr",
+    "scout_garr",
+    "barracks_garr",
+];
+
+/// **The four garrison counts, ours against theirs, on every block**
+/// (item 3984, `docs/AI.md` §416): run1075 walked from the coverage pair's
+/// start with its staging ([`navy_script`]), and on every dumped block
+/// of 2034..2820 each leader's four counts read on both sides. A record
+/// is one leader's one count on one block; `held` the dump's non-zero
+/// ones, `parted` those that differ.
+#[test]
+fn run1075_s_garrison_counts_part_by_the_record() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(path)) = (dump(COVERAGE.start), dump(RUN1075)) else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut built = crate::diff::testkit::with_named_sibling_initials(&[COVERAGE.start], |refs| {
+        let mut source = crate::capture::indexed::IndexedCapture::open(&start).unwrap();
+        let text = source.read_replay_setup().unwrap();
+        let log = Log::parse(&text);
+        let mut init = log.replay_initial().unwrap();
+        borrow_from_siblings(&mut init, refs);
+        if let Some(t) = trace(COVERAGE.long.1) {
+            borrow_pasture(&mut init, &t);
+        }
+        crate::diff::setup::with_staged_script(navy_script(), || {
+            build_sim(&loaded, &init, Tuning::RON)
+        })
+    });
+    // (block, who, key, theirs, ours).
+    let (mut held, mut parted) = (Vec::new(), Vec::new());
+    while built.sim.frame < 2820 {
+        built.tick();
+        let n = built.sim.frame;
+        if n < 2034 {
+            continue;
+        }
+        let Some(at) = ix.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let raw = ix.read_frame(at).unwrap();
+        let log = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = log.leader_block(n, who as i64) else {
+                continue;
+            };
+            let theirs = crate::diff::leader::theirs(&block);
+            let c = &built.sim.ai[who].census;
+            let ours = [
+                c.peasants_garr,
+                c.stable_garr,
+                c.scout_garr,
+                c.barracks_garr,
+            ];
+            for (key, mine) in GARRISON_KEYS.iter().zip(ours) {
+                let Some(&t) = theirs.get(*key) else {
+                    continue;
+                };
+                if t != 0 {
+                    held.push((n, who, *key, t, i64::from(mine)));
+                }
+                if t != i64::from(mine) {
+                    parted.push((n, who, *key, t, i64::from(mine)));
+                }
+            }
+        }
+    }
+    assert_eq!(
+        held.first().map(|r| (r.0, r.1, r.2, r.3)),
+        Some((2095, 1, "peasants_garr", 1)),
+        "theirs: the first citizen goes in on 2095"
+    );
+    assert!(
+        held.iter().all(|r| (r.1, r.2) == (1, "peasants_garr")),
+        "theirs: only who=1's citizens"
+    );
+    assert_eq!(held.last().map(|r| (r.0, r.3)), Some((2820, 5)));
+    eprintln!(
+        "run1075 garrison: held {}, parted {}, first {:?}, last {:?}",
+        held.len(),
+        parted.len(),
+        parted.first(),
+        parted.last()
+    );
+    pin_eq!(held.len(), 732, "theirs: the non-zero records");
+    pin_eq!(parted.len(), 0, "the garrison counts' parted records");
+}
+
+/// run1075's window, 2089..2820: six blocks before the first citizen goes
+/// in (2095) and the capture's last block (item 3984).
+pub(crate) const WIDENING_GARRISON_1075: (i64, i64) = (2089, 2820);
+
+/// run1075 walked from run651's start with `disband3455-navy.cmd` staged
+/// by the harness's own tick (item 3984): the Battleships, the navy's
+/// growth and who=1's citizens garrisoned, every dumped record compared
+/// both directions.
+pub(crate) fn garrison_1075_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(navy_script(), || {
+        harness::tests::widen_on_siblings(
+            &[COVERAGE.start],
+            true,
+            COVERAGE.long,
+            "run1075",
+            &[(RUN1075, WIDENING_GARRISON_1075.0)],
+            WIDENING_GARRISON_1075,
+            1,
+            &[2095, 2820],
+            true,
+        )
+    })
+}
+
+/// **run1075's window, widened whole with its staging** (item 3984): the
+/// four garrison counts against `Sim::track_garrison`.
+#[test]
+fn run1075_s_garrison_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = garrison_1075_window() else {
+        return;
+    };
+    let garr: Vec<_> = w
+        .firsts
+        .iter()
+        .filter(|((_, _, f), _)| GARRISON_KEYS.contains(&f.as_str()))
+        .map(|(k, v)| format!("{k:?} {v:?}"))
+        .collect();
+    eprintln!("run1075 garrison rows: {garr:#?}");
+    let mut first: Vec<_> = w
+        .firsts
+        .iter()
+        .map(|(k, v)| (v.0, k.clone(), v.1.clone()))
+        .collect();
+    first.sort();
+    for r in first
+        .iter()
+        .filter(|r| r.0 > WIDENING_GARRISON_1075.0)
+        .take(40)
+    {
+        eprintln!("run1075 first: {r:?}");
+    }
+    pin_eq!(w.blocks, 732, "every captured block");
+    pin_eq!(garr.len(), 0, "the garrison counts part nowhere");
+    pin_eq!(w.firsts.len(), 0, "initial run1075 baseline");
+}
