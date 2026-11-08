@@ -35,7 +35,7 @@
 //! the Persians' Fighter-Bomber line's `train_time`).
 //!
 //! SEAMS: the arm's two refusals' messages (the console's feedback, no
-//! state); `ai_speed` above 1 (a lobby setting no capture moves); the pop
+//! state); `ai_speed` above 1 (a lobby setting); the pop
 //! cap's message flag (`player.flags & 0x800`); `unpay_cost`'s
 //! `get_cost(…, 1, 1, -1)`, whose fourth argument counts one fewer in the
 //! ramp, priced here at the count as it stands; `go_inside`'s selection

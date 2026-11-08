@@ -40831,7 +40831,7 @@ own spot — and refused only `@unqueueunit`, an issuer this crate did not
 know. `golden::Issued::UnqueueUnit` is `@comeout`'s shape on units, and its
 entry `input::unqueue_unit` is `process_unqueue@009466f0`'s unit arm:
 `units[who][o]` live, then `Unit::action_unqueue(1)`. The `uid` test is a
-`SEAM`. Now all fifteen lines run (the walk asserts it). A staged walk takes
+`SEAM`. Now every line runs: fourteen by 830, the `@strike` written on 830 acting on 831 (the walk asserts it). A staged walk takes
 no shared prefix (`setup::script_staged`), since a prefix an unstaged walk
 of the same start put carries no staging.
 

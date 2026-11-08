@@ -2191,7 +2191,9 @@ fn carrier_staging_walk() {
     // Every line runs: the `add`s land (the carrier `0/14` where the
     // dump's stands, (1272, 7224)), and `@unqueueunit` is a staging verb.
     assert_eq!(st.applied.skipped_total(), 0, "the staging refuses nothing");
-    assert_eq!(st.applied.ran, 15, "the script's fifteen lines");
+    // Fourteen of the fifteen by 830: the `@strike` written on 830 acts at
+    // the pump of 831 (`Script::apply`'s one frame late).
+    assert_eq!(st.applied.ran, 14, "the script's lines through 830");
 }
 
 /// run1066's window, 594..830: the six blocks before the staging's first
