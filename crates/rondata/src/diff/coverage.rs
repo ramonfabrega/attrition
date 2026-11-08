@@ -3679,7 +3679,24 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// (`compared::bits`). **Exact**: a bit compared since leaves here, a bit
 /// that arrives unread is rowed or added here with the item that owes it
 /// — a list that may only shrink, save for what a new window brings.
-const UNREAD_BITS: &[(&str, u64)] = &[];
+const UNREAD_BITS: &[(&str, u64)] = &[
+    // Pinned 2026-11-07, items 3956/3957, on the coverage driver's 86,724
+    // blocks, with 3958's three cloak bits rowed. One row a word; the bits
+    // are listed so a row that takes one names it.
+    //
+    // `build_masks`: 0x8 0x10 0x20 0x400 0x1000 0x2000 0x4000 (0x40, 0x80,
+    // 0x100 are rowed — the infinite queue, repeat air, the replan flag).
+    ("BuildDump.build_masks", 0x7438),
+    // `city_flags`: 0x200 0x400 0x800 0x1000, and every bit from 0x10000
+    // to 0x80000000 (the eleven rowed bits are `harness::compare`'s
+    // `flags` table).
+    ("CityDump.city_flags", 0xffff_1e00),
+    // `unit_masks`: 0x1 0x4 0x8 0x40 0x80 0x200 0x400 0x2000 0x4000
+    // 0x8000 0x40000 0x200000 0x800000 0x8000000 0x10000000 0x40000000.
+    ("UnitDump.unit_masks", 0x58a4_e6cd),
+    // `unit_masks2`: 0x4 0x400 0x4000 0x10000.
+    ("UnitDump.unit_masks2", 0x1_4404),
+];
 
 /// **The `LEADERDATA` keys the leader comparator skips** (Loop 3957,
 /// DECISIONS 111 §5). The comparison walks the crate's own rows and looks
@@ -3691,7 +3708,23 @@ const UNREAD_BITS: &[(&str, u64)] = &[];
 /// the coverage driver's windows (`harness::note_leader_skips`). **Exact**
 /// both ways: a family the crate rows since leaves or shrinks here, one
 /// that arrives or grows is rowed or re-pinned with the item that owes it.
-const SKIPPED_BY_THE_LEADER_COMPARATOR: &[(&str, &str, usize)] = &[];
+const SKIPPED_BY_THE_LEADER_COMPARATOR: &[(&str, &str, usize)] = &[
+    // Pinned 2026-11-07, items 3956/3957, on the coverage driver's 86,724
+    // blocks, with item 3969's technology `num_queued` rows emitted. The
+    // six per-seat arrays are rowed for the game's own seats alone
+    // (`leader::rows`' `for i in 0..players`), so the eight-seat array's
+    // empty slots are skipped — six keys, `[2]` and up on a two-seat
+    // lobby; `num_queued` on 319 indices, the first `[352]`, that the
+    // crate rows as neither a unit record (`MUSTER_WIDTH`) nor a
+    // technology.
+    ("LEADERDATA", "agendas[]", 6),
+    ("LEADERDATA", "aggression[]", 6),
+    ("LEADERDATA", "diplos[]", 6),
+    ("LEADERDATA", "num_queued[]", 319),
+    ("LEADERDATA", "strong[]", 6),
+    ("LEADERDATA", "treaties[]", 6),
+    ("LEADERDATA", "weak[]", 6),
+];
 
 /// A dump key's family: every `[index]` written `[]`.
 fn key_family(key: &str) -> String {

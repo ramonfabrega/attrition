@@ -488,11 +488,14 @@ pub(crate) mod compared {
     }
 
     /// The dump's own value of a mask word, on a record the comparator
-    /// walks: every bit it holds is a bit some row must read.
+    /// walks: every bit it holds is a bit some row must read. The words
+    /// are the original's 32-bit fields, and one printed signed (a city's
+    /// `city_flags` with its top bit set) would otherwise sign-extend into
+    /// thirty-two bits no field has.
     pub(crate) fn word(record: &'static str, field: &'static str, theirs: i64) {
         MASKS.with(|r| {
             if let Some(m) = r.borrow_mut().as_mut() {
-                m.words.entry((record, field)).or_default().0 |= theirs as u64;
+                m.words.entry((record, field)).or_default().0 |= u64::from(theirs as u32);
             }
         });
     }
