@@ -36170,3 +36170,26 @@ and who 1 (flags 1, tribe 11). No minutes were waited on another lane. `~/ron-go
 - The Spy: `0/6` holds its CASTORDER on block 1115 and a `GroupPatrolOrder` on 1116; `1/6` stays who=1.
 - The tail: `1/9` dies on 1301 (`DEATH_OBJS`) to `0/10`'s squad; on 1304 `0/7`'s squad holds the queued MOVEORDER
   alone, with no attack on `1/10`.
+
+## run1547 — chapter one hundred and thirty-one: a gather point on a unit that dies, and a second Library's own Disband cancelled (2026-11-08, item 3989, `att-3989`)
+
+`docs/GOLDEN.md` §182. **What the disk could not answer**: run341's 700 prints 1,750 `GATHERPOINT` records, every one
+action 0, so `Build::replace_gather@00622d10` ran there on no action-3 point; ch33 and ch34 hold the only action-3
+points on disk, on Citizen `0/1`, which lives. No window held a `DISBAND` queued at a library that is not the first,
+nor its cancel (`Build::action_unqueue@00620280`, `Build::unqueue@006207c0`).
+
+Recipe `tools/gamelog/golden/chapter131.cmd`, chapter 125's lobby: a Small City `0/2007` at (40, 160) (603) and a
+second Library `0/2008` in it (606); the City `0/2000` takes an action-3 point on Citizen `0/4` (610); `0/2008`
+queues `DISBAND` (630) and cancels its slot 0 (650); `die 4,0` (670); a Citizen queued at `0/2000` (690). The staging
+was walked first on ch125's start (`RON_STAGE=ch125:chapter131:1000`).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch131 --map 14 --end-frame 1000
+--log-window 605 1000 --timeout 3600` with the cmd header's three detail sets. `success`, lifecycle verified,
+`map_verified`, map style 14, 1001 frames, `last_frame` 1000, seed 12345. PLAYER records: who 0 (flags 7, tribe 4)
+and who 1 (flags 1, tribe 11). `~/ron-golden/run1547` links to `ch131`.
+- run1547 (`ch131`, `cover=0`, pool lane 1): 09:20:47–09:21:55, 67.9 s launch to exit, no relaunch. The word's.
+  No cover twin was taken.
+- The point: `0/2000` holds `(4, 0, action 3)` from 612, and `(1656, 32376, action 0)` from 671 — `0/4`'s last
+  position.
+- The Disband: `0/2008` reads `queued 1 [666 DISBAND]` from 632 at 100 a frame, and `queued 0` on 652; `0/2005`
+  stays empty, and `0/2008` stands to the end. The City's next Citizen is `0/4` again from 782.

@@ -856,6 +856,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch128g = golden_dump("ch128g");
     let ch129 = golden_dump("ch129");
     let ch130 = golden_dump("ch130");
+    let ch131 = golden_dump("ch131");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3184,6 +3185,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 405,
             "chapter one hundred and thirty carries 405 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirty-one, on run1547** (item 3989): the
+    // City's action-3 point on 612 and on the ground on 671, the second
+    // Library's Disband from 632 to its cancel on 652, to the trace's end.
+    if let Some(p) = &ch131 {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE;
+        let n = drive_capture(p, 605, 1000, &mut paths);
+        assert_eq!(
+            n, 395,
+            "chapter one hundred and thirty-one carries 395 blocks in the window"
         );
         frames += n;
     }

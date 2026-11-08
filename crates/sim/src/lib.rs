@@ -3638,6 +3638,26 @@ impl Sim {
         self.first_library(self.buildings[at].owner).unwrap_or(at)
     }
 
+    /// [`Sim::queue_home`] for a cancel of `slot` at `at`:
+    /// `Build::unqueue@006207c0` and `Build::action_unqueue@00620280` each
+    /// forward to the first library **unless the slot they name, at the
+    /// building itself, holds `DISBAND`** (0x29a, the type short at `+4` of
+    /// the entry; `action_unqueue` reads slot `max(p, 0)`). A second
+    /// library's own Disband — `Build::queue_up` never forwards one
+    /// ([`Sim::queue_disband`]) — is cancelled where it stands (item 3989,
+    /// `docs/GOLDEN.md` §182).
+    pub(crate) fn unqueue_home(&self, at: usize, slot: usize) -> usize {
+        if self.buildings[at]
+            .queue
+            .items
+            .get(slot)
+            .is_some_and(|i| i.disband)
+        {
+            return at;
+        }
+        self.queue_home(at)
+    }
+
     /// Orders one unit of a type at a building — `Build::queue_up`.
     ///
     /// **The price is charged here**, and what was charged is written into the
@@ -4333,7 +4353,7 @@ impl Sim {
     /// forward past entries of the same type, so cancelling one of a run
     /// removes the last of it and the one in progress keeps its progress.
     pub fn cancel(&mut self, at: usize, slot: usize) -> Option<production::Item> {
-        let at = self.queue_home(at);
+        let at = self.unqueue_home(at, slot);
         let who = self.buildings[at].owner;
         let item = {
             let ledger = &mut self.ledgers[who as usize];
@@ -4342,7 +4362,10 @@ impl Sim {
         if let Some(t) = item.tech {
             self.tech[who as usize].queued[t] -= 1;
             self.track_age_epoch_queued(who, t, -1);
-        } else {
+        } else if !item.disband {
+            // A `DISBAND` entry's tally is `num_queued[0x29a]`, a craft's,
+            // which this crate never raised ([`Sim::queue_disband`]); its
+            // `ty` 0 is no unit's (item 3989).
             self.untrack_queued(who, item.ty);
         }
         Some(item)
@@ -4772,8 +4795,13 @@ impl Sim {
                 return;
             }
             if self.buildings[at].is_library {
-                if self.first_library(who) != Some(at) {
-                    // `do_queue`'s first gate: a non-first library returns.
+                if self.first_library(who) != Some(at) && !self.buildings[at].queue.items[0].disband
+                {
+                    // `do_queue`'s first gate: a non-first library returns,
+                    // unless the slot holds `DISBAND` (`do_queue@0061e410`,
+                    // `TVar21 != DISBAND`): a second library's own Disband
+                    // runs at 100 a frame (item 3989, run1547's `0/2008`
+                    // from 632).
                     return;
                 }
                 // The library branch recurses into `i + 1` before handling

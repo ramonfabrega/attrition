@@ -858,10 +858,11 @@ impl crate::Sim {
     /// entry's type and refunds the recorded price ([`Sim::cancel`]).
     /// Returns the entries removed.
     ///
-    /// SEAM: the forward to the first library skips a slot holding
-    /// `DISBAND` (0x29a); this crate queues no such entry.
+    /// The forward to the first library skips a slot holding `DISBAND`
+    /// (0x29a): the loop's `bVar3` reads slot `max(p, 0)` at the building
+    /// pressed ([`Sim::unqueue_home`]; item 3989, `docs/GOLDEN.md` §182).
     pub fn action_unqueue(&mut self, at: usize, p: i32) -> usize {
-        let at = self.queue_home(at);
+        let at = self.unqueue_home(at, p.max(0) as usize);
         let len = |sim: &crate::Sim| sim.buildings[at].queue.items.len();
         if len(self) == 0 {
             return 0;
