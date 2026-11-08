@@ -51,8 +51,25 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // since is found by its number — `find_free` hands out the same
         // per-player `o` the original did, which is what makes a trained
         // unit comparable at all.
+        //
+        // A starting unit's link names its slot, and a number freed by a
+        // death is handed out again (`Objects::find_free`): once the slot
+        // is dead and a live unit holds the number, the live one is the
+        // record's (item 3989: run1547's Citizen `0/4` dies on 670 and the
+        // City's next Citizen is `0/4` from 782).
         let trained;
-        let link = match built.units.iter().find(|l| l.who == u.who && l.o == u.o) {
+        let linked = built
+            .units
+            .iter()
+            .find(|l| l.who == u.who && l.o == u.o)
+            .filter(|l| {
+                built.sim.units[l.unit].alive()
+                    || i16::try_from(u.o)
+                        .ok()
+                        .and_then(|o| built.sim.unit_by_o(u.who as sim::Player, o))
+                        .is_none()
+            });
+        let link = match linked {
             Some(l) => l,
             None => {
                 let found = i16::try_from(u.o)

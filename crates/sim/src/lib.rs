@@ -4795,8 +4795,13 @@ impl Sim {
                 return;
             }
             if self.buildings[at].is_library {
-                if self.first_library(who) != Some(at) {
-                    // `do_queue`'s first gate: a non-first library returns.
+                if self.first_library(who) != Some(at) && !self.buildings[at].queue.items[0].disband
+                {
+                    // `do_queue`'s first gate: a non-first library returns,
+                    // unless the slot holds `DISBAND` (`do_queue@0061e410`,
+                    // `TVar21 != DISBAND`): a second library's own Disband
+                    // runs at 100 a frame (item 3989, run1547's `0/2008`
+                    // from 632).
                     return;
                 }
                 // The library branch recurses into `i + 1` before handling

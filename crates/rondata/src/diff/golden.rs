@@ -6805,6 +6805,61 @@ fn chapter_one_hundred_and_thirty_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_s_window_is_widened_whole();
 }
 
+/// **Chapter one hundred and thirty-one** (item 3989, `docs/GOLDEN.md`
+/// §182, run1547): a gather point on a unit that dies, and a second
+/// Library's own Disband cancelled.
+#[test]
+fn chapter_one_hundred_and_thirty_one_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_one_holds_to_the_golden_word();
+}
+
+/// **run1547 whole, both directions** (item 3989, `docs/GOLDEN.md` §182).
+#[test]
+fn chapter_one_hundred_and_thirty_one_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_one_s_window_is_widened_whole();
+}
+
+/// What parts in run1547's window, blocks 605–1000 (item 3989): chapter
+/// one hundred and twenty-five's standing rows on the first block alone —
+/// the eleven `form` rows, the leaders' `SITE[i].reg` and `aggression[·]`
+/// a whole leader record prints, and who=0's `defense` (parked 1386).
+/// Nothing parts on the City's gather point (action 3 on `0/4` from 612,
+/// on the ground at (1656, 32376) from 671), on `0/2008`'s Disband (632
+/// to its cancel on 652, `0/2005` untouched), on the reborn Citizen `0/4`
+/// from 782, or in the pool.
+const WANT_CH131: &[&str] = &[
+    "605 0/-1 leader:SITE[0].reg",
+    "605 0/-1 leader:SITE[1].reg",
+    "605 0/-1 leader:SITE[2].reg",
+    "605 0/-1 leader:SITE[3].reg",
+    "605 0/-1 leader:SITE[4].reg",
+    "605 0/-1 leader:SITE[5].reg",
+    "605 0/-1 leader:SITE[6].reg",
+    "605 0/-1 leader:SITE[7].reg",
+    "605 0/-1 leader:SITE[8].reg",
+    "605 0/-1 leader:SITE[9].reg",
+    "605 0/-1 leader:aggression[1]",
+    "605 0/-1 leader:defense",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/-1 leader:SITE[0].reg",
+    "605 1/-1 leader:SITE[1].reg",
+    "605 1/-1 leader:SITE[2].reg",
+    "605 1/-1 leader:SITE[3].reg",
+    "605 1/-1 leader:SITE[4].reg",
+    "605 1/-1 leader:SITE[5].reg",
+    "605 1/-1 leader:aggression[0]",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+];
+
 /// What parts in run1546's window, blocks 1095–1500 (item 3988): the
 /// eleven `form` rows every golden start carries, and nothing else. The
 /// lone Spy `0/6`, casting Bribe on block 1115, holds theirs'

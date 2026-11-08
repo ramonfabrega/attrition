@@ -7027,6 +7027,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY: i64 = 1500;
 /// run1546.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY: (i64, i64) = (1094, 1501);
 
+/// **Chapter one hundred and thirty-one** (item 3989, `docs/GOLDEN.md`
+/// §182, run1547): the City `0/2000`'s action-3 gather point on the Citizen
+/// `0/4`, put on the ground where it stood when the Citizen dies
+/// (`Build::replace_gather@00622d10`), and a Disband queued at the second
+/// Library `0/2008` and cancelled there (`Build::action_unqueue@00620280`
+/// forwards no slot holding `DISBAND`).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE: i64 = 1000;
+
+/// `chapter_one_hundred_and_thirty_one_s_window_is_widened_whole`'s
+/// window: run1547.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE: (i64, i64) = (604, 1001);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

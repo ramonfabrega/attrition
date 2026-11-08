@@ -2652,6 +2652,11 @@ mod tests {
         // queued move whose target another squad kills (`Unit::fight`'s
         // kill-only tail; item 3988, `docs/GOLDEN.md` §181).
         ("chapter130.cmd", &[]),
+        // Chapter one hundred and thirty-one: a gather point on a Citizen
+        // that dies (`Build::replace_gather`), and a Disband queued at a
+        // second Library then cancelled where it stands (item 3989,
+        // `docs/GOLDEN.md` §182).
+        ("chapter131.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),
