@@ -2572,9 +2572,6 @@ impl Sim {
             MoveKind::FleeTo => index::FLEE_TO,
         });
         let plain = group.is_none();
-        if std::env::var("RON_PROBE4000").is_ok() && self.units[u].owner == 1 && (6..=8).contains(&self.units[u].index) && self.frame >= 760 && self.frame <= 766 {
-            eprintln!("PROBE4000 f{} u{} to {:?} facing {:?} angle {:?} group {:?}\n{}", self.frame, self.units[u].index, to, facing, angle, group.is_some(), std::backtrace::Backtrace::force_capture());
-        }
         add_move_facing_steps(
             self,
             (to.x.div_euclid(SNAP), to.y.div_euclid(SNAP)),
