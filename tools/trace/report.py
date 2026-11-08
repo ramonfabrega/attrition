@@ -17,6 +17,13 @@
                                                that no given trace entered
     report.py <log> functions                  every function ever entered, with the
                                                frame it was first entered on
+    report.py <log> frames NAME|ADDR           every frame the trace holds one function
+                                               on, by source: its coverage records (every
+                                               frame inside a re-armed window, the first
+                                               entry only outside it), its own records if
+                                               hooked or proxied (every call), and the
+                                               draws made from it or under it (a lower
+                                               bound). NAME as `coverage` prints it
     report.py <exe> refs ADDR|NAME ... [-]     every reference the executable's bytes hold
                                                to each function: `call`/`jmp`/`jcc rel32`,
                                                a `rel8` jump from a neighbour, and its
@@ -177,6 +184,11 @@ class Index:
         i = bisect.bisect_right(self.addrs, va) - 1
         return self.names[i] if i >= 0 else f"{va:#x}"
 
+    def start(self, va):
+        """The entry of the function containing `va` (a VA at BASE), or None."""
+        i = bisect.bisect_right(self.addrs, va) - 1
+        return self.addrs[i] if i >= 0 else None
+
 
 def read_log(path):
     data = open(path, "rb").read()
@@ -241,6 +253,50 @@ def frame_args(rest):
         else:
             want.add(frame_arg(a))
     return want
+
+
+def function_frames(head, recs, starts, start_of, sites=None):
+    """Every frame the trace holds the functions at `starts` on (VAs at
+    BASE; one name can be several entries), by source (parked 3973).
+
+    - `hit`: the frames a coverage record names. A stub records a function's
+      first entry of the run and, inside the window `win_lo..win_hi`, its
+      first entry of each frame (`tracer.c`'s `on_cover`) — so inside the
+      window the list is complete and outside it holds the first entry
+      only. Two threads can record one frame twice; the list folds them.
+    - `calls`: a hooked function's own records, or a proxied one's CALL
+      records — one per call, so complete (a proxy's inside its `callwin`).
+    - `site`: draws whose return address lies in the function — it was
+      running on that frame. `chain`: draws whose caller's caller or its
+      caller (the ebp chain) lies in it. Both are lower bounds: a frame
+      it ran without drawing leaves nothing.
+    """
+    base = head["base"]
+    lo, hi = head["win_lo"], head["win_hi"]
+    window = (lo, hi) if lo <= hi else None
+    hooked = {kind for rva, kind in HOOKS.items() if rva + BASE in starts}
+    proxied = {i for i, (rva, _, _) in (sites or {}).items() if rva + BASE in starts}
+
+    def inside(va):
+        return bool(va) and start_of(va - base + BASE) in starts
+
+    hit, calls, site, chain = set(), Counter(), Counter(), Counter()
+    for r in recs:
+        k = r[0]
+        if k == 0:
+            if r[1] - base + BASE in starts:
+                hit.add(frame_of(r))
+        elif k in hooked:
+            calls[frame_of(r)] += 1
+        elif k == 7 and r[1] in proxied:
+            calls[frame_of(r)] += 1
+        if k in (1, 3, 4, 6):
+            if inside(r[1]):
+                site[frame_of(r)] += 1
+            elif inside(r[4]) or inside(r[5]):
+                chain[frame_of(r)] += 1
+    how = "hooked" if hooked else "proxied" if proxied else None
+    return dict(window=window, hit=sorted(hit), calls=calls, how=how, site=site, chain=chain)
 
 
 def pe_sections(data):
@@ -475,6 +531,55 @@ def main():
                 print(f"f{f:<7} {per_frame[f]}")
         if not per_frame:
             print(f"no draw in this trace is made from {' < '.join(want_chain)}")
+        return
+
+    if cmd == "frames":
+        if not rest:
+            print("report.py <log> frames <Class::method | 00xxxxxx>")
+            return
+        w = rest[0]
+        if re.fullmatch(r"(0x)?00[0-9a-f]{6}", w):
+            starts = {int(w, 16)}
+        else:
+            starts = {a for a, n in idx.by_addr.items() if n == w}
+        if not starts:
+            print(f"{w}: no function of that name in {index_path}")
+            sys.exit(2)
+        got = function_frames(head, recs, starts, idx.start, site_table(recs))
+        print(f"{w} @ {', '.join(f'{a:08x}' for a in sorted(starts))}  ({log})")
+        win = got["window"]
+        if got["hit"]:
+            if win is None:
+                print(f"  coverage: first entry only, f{got['hit'][0]} — this trace re-armed no "
+                      f"frame (window {head['win_lo']}..{head['win_hi']}), so every frame after "
+                      "the first entry is unrecorded by the coverage records")
+            else:
+                inn = [f for f in got["hit"] if win[0] <= f <= win[1]]
+                print(f"  coverage: every frame entered inside the window {win[0]}..{win[1]} "
+                      f"({len(inn)}); outside it the first entry only")
+        else:
+            print("  coverage: no record — " + ("never entered this run" if not got["how"] else
+                  f"a {got['how']} function carries no stub"))
+        if got["how"]:
+            c = got["calls"]
+            print(f"  {got['how']}: every call recorded — {sum(c.values())} calls on {len(c)} "
+                  "frames" + (" (a proxy's, inside its callwin)" if got["how"] == "proxied" else ""))
+        s, ch = got["site"], got["chain"]
+        print(f"  draws made from it: {sum(s.values())} on {len(s)} frames; under it (ebp chain): "
+              f"{sum(ch.values())} on {len(ch)} frames — lower bounds on the frames it ran")
+        frames = sorted(set(got["hit"]) | set(got["calls"]) | set(s) | set(ch))
+        for f in frames:
+            parts = []
+            if f in got["hit"]:
+                parts.append("entered" if win and win[0] <= f <= win[1] else "first entry")
+            if f in got["calls"]:
+                parts.append(f"calls {got['calls'][f]}")
+            if f in s:
+                parts.append(f"draws {s[f]}")
+            if f in ch:
+                parts.append(f"under {ch[f]}")
+            print(f"f{f} " + "  ".join(parts))
+        print(f"{len(frames)} frames", file=sys.stderr)
         return
 
     want = frame_args(rest) if rest and cmd != "blind" else None
