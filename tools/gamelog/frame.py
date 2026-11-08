@@ -18,6 +18,12 @@ and the frame line carries a **leading space**, so even `rstrip()` is not
 enough. Compare on the fully stripped line. Both cost an iteration on
 2026-09-03, and `grep -a` finding the line while the reader does not is
 exactly what they look like.
+
+**The cut ends at the next `BEGIN FRAME`, whatever its number.** A capture
+with a stride dumps a block every fifty frames, so the line after 651's
+block is `BEGIN FRAME 701`; a cut that waited for `652` ran to the dump's
+end — 2.0 M lines for 651 on run1542, forty frames, and `one.py --file`
+read the last record in the file rather than the frame's (Loop 3977).
 """
 import os
 import sys
@@ -31,15 +37,15 @@ out = sys.argv[3] if len(sys.argv) > 3 else os.path.join(
 )
 os.makedirs(os.path.dirname(out), exist_ok=True)
 
-start, stop = f"BEGIN FRAME {frame}", f"BEGIN FRAME {frame + 1}"
+start = f"BEGIN FRAME {frame}"
 keep, n = False, 0
 with open(path, errors="replace") as fh, open(out, "w") as w:
     for line in fh:
         s = line.strip()
-        if s == start:
-            keep = True
-        elif s == stop:
-            break
+        if s.startswith("BEGIN FRAME"):
+            if keep:
+                break
+            keep = s == start
         if keep:
             # Keep the indentation: `leader.py` cuts a block by it, and a
             # slice that flattened every line ended the LEADERDATA block on
