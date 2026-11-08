@@ -850,6 +850,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch126 = golden_dump("ch126");
     let ch127 = golden_dump("ch127");
     let ch128 = golden_dump("ch128");
+    let ch128g = golden_dump("ch128g");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3153,6 +3154,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 462,
             "chapter one hundred and twenty-eight carries 462 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-eight's group pool, on run1555**
+    // (item 4000): run1544's twin with `GROUPS=1`, the squad's rejoin on
+    // 642 and the 764 move's sort, 630..780.
+    if let Some(p) = &ch128g {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL;
+        let n = drive_capture(p, 630, 780, &mut paths);
+        assert_eq!(
+            n, 150,
+            "chapter one hundred and twenty-eight's pool twin carries 150 blocks in the window"
         );
         frames += n;
     }

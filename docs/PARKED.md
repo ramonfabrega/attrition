@@ -15352,13 +15352,15 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
 
 ## Parked by item 3986, 2026-11-08 — the patriots' armour beside a fight
 
-- **3986a. Chapter 128's word at 765: who=1's arm-one Hoplites take a group ours alone** (`GOLDEN_WORD_CHAPTER_ONE_
+- ~~**3986a. Chapter 128's word at 765: who=1's arm-one Hoplites take a group ours alone** (`GOLDEN_WORD_CHAPTER_ONE_
   HUNDRED_AND_TWENTY_EIGHT`, run1544, `docs/GOLDEN.md` §179). Every blow of the three arms agrees through 764. On 765
   the squad `1/6..1/8` (who=1's, on an `@attack` at who=0's Hoplites `0/7` since 640) reads `group` 64 ours and −1
   theirs. Its move's `facing`, `dest`/`off` and `orders_x/y` part on the same block, and `1/6` collides with `1/7` on
   766 theirs only. The draw stream parts on 765 too (sequence 765, values 766). Not read: which crate path pushes the
   group (a `go_to`'s squad walk and `group_target_opportunity` are the candidates). The first brief is the draws on
-  764–765 both sides and `RON_DEBUG_ARMIES`. Score: ch128 w765 of 1,100.
+  764–765 both sides and `RON_DEBUG_ARMIES`. Score: ch128 w765 of 1,100.~~ Closed by item 4000 (run1555,
+  `docs/GOLDEN.md` §190): no crate path pushed it; theirs' emptied record takes the squad back by `Group::add`, and the
+  764 move's sort kills it whole and drops every back-pointer.
 
 ## Parked by the next landing, slot CT — reserved
 
@@ -15368,13 +15370,9 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CU — reserved
+## Parked by item 4000, 2026-11-08 — chapter 128's group on 765
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the word closed at the trace's end with no value parting.
 
 ## Parked by the next landing, slot CV — reserved
 

@@ -839,6 +839,9 @@ mod tests {
                 pool: u8::try_from(g.id - 64 * g.who).ok().filter(|&s| s < 64),
                 // `+0x38` is not printed either; zero is `Group::clear`'s.
                 opportunity: 0,
+                // `+0x8 army` names this army, or the record would have
+                // been skipped above (item 4000).
+                unlinked: false,
             };
         }
 

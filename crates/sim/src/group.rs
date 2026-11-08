@@ -373,6 +373,13 @@ pub struct GroupState {
     /// group, which it gates at fifteen frames. `Group::clear` zeroes it
     /// and `copy_group` is taken to leave the previous occupant's.
     pub opportunity: i64,
+    /// `+0x8 army` written −1 by `Group::clear(-1)@00713e80`: the record
+    /// no longer names its army, so `Army::remove_group@006f8b50` (which
+    /// asks `group.army == army.id`) cannot take it off the army's list,
+    /// and `Army::add_unit`'s join goes through it rather than pushing a
+    /// fresh one ([`Sim::army_add_unit`], item 4000). `add_group` writes
+    /// the link on every push, so a pushed or copied record starts linked.
+    pub unlinked: bool,
 }
 
 impl GroupState {
@@ -380,8 +387,12 @@ impl GroupState {
     /// `pool`, whose record was `prev`: the stack group's own `(ox, oy)`,
     /// `o_dist`, `o_angle`, `speed` and offset arrays, `stamp = frame`, and
     /// everything else — `form`, `order_num`, `facing`, `form_num`,
-    /// `new_speed`, `march` — the previous occupant's (§28, §30).
-    pub fn copied(prev: GroupState, pool: u8, frame: i64) -> GroupState {
+    /// `new_speed`, `march` — the previous occupant's (§28, §30). The
+    /// arrays are the stack group's `n` entries, each zeroed by its
+    /// `Group::add` (`00714350:71–75`) and copied whole (`copy_group`'s
+    /// `memcpy`s): run1555's pushes 66 and 67 on 642 print three zero
+    /// slots each (item 4000).
+    pub fn copied(prev: GroupState, pool: u8, frame: i64, n: usize) -> GroupState {
         GroupState {
             pool: Some(pool),
             stamp: frame,
@@ -396,9 +407,10 @@ impl GroupState {
             o_dist: 0,
             o_angle: Angle(0),
             speed: 0,
-            off: Vec::new(),
-            curr: Vec::new(),
-            angles: Vec::new(),
+            off: vec![(0, 0); n],
+            curr: vec![Pos::new(0, 0); n],
+            angles: vec![0; n],
+            unlinked: false,
             ..prev
         }
     }
@@ -410,15 +422,29 @@ impl GroupState {
     /// `Group::kill@00714110` runs when its list empties (`docs/GROUPS.md`
     /// §30), so the next `copy_group` into the slot inherits zeros, not the
     /// last occupant's counts.
-    /// `Group::kill@00714110`'s tail on the member that empties the list:
-    /// `Group::clear(-1)@00713e80` on the record itself. It zeroes `ox`/`oy`,
-    /// `o_dist`, `o_angle`, `order_num`, `think_frame`, both speeds, the
-    /// march bit and **`facing`** (`+0x48`, a short with `buildings`), and
-    /// stamps the frame; `form`, `form_num` and the slot arrays stand. The
-    /// pool slot is the seat's and stays. Item 4000 (`docs/GOLDEN.md`
-    /// §190): `Group::sort` kills a follower-first squad whole, so the
-    /// mirror the move's layout reads a line later is 0.
+    pub fn clear(&mut self, frame: i64) {
+        *self = GroupState {
+            o: Pos::new(0, 0),
+            stamp: frame,
+            pool: self.pool,
+            unlinked: true,
+            ..GroupState::default()
+        };
+    }
+
+    /// `Group::kill@00714110`'s tail on the member that empties a seated
+    /// list: `Group::clear(-1)@00713e80` on the record itself. It sets
+    /// `form` −1 and zeroes `ox`/`oy`, `o_dist`, `o_angle`, `order_num`,
+    /// `think_frame`, both speeds, `form_num`, the march bit and
+    /// **`facing`** (`+0x48`, a short with `buildings`), and stamps the
+    /// frame. The slot arrays are `kill`'s own shift's, and the pool slot
+    /// is the seat's, so both stand. Item 4000 (`docs/GOLDEN.md` §190):
+    /// `Group::sort` kills a follower-first squad whole, so the mirror the
+    /// move's layout reads a line later is 0 (run1555's slot 64 on 765:
+    /// `form` −1, `facing` 0).
     pub fn emptied(&mut self, frame: i64) {
+        self.form = -1;
+        self.form_num = 0;
         self.o = Pos::new(0, 0);
         self.o_dist = 0;
         self.o_angle = Angle(0);
@@ -428,16 +454,8 @@ impl GroupState {
         self.new_speed = 0;
         self.march = false;
         self.facing = false;
+        self.unlinked = true;
         self.stamp = frame;
-    }
-
-    pub fn clear(&mut self, frame: i64) {
-        *self = GroupState {
-            o: Pos::new(0, 0),
-            stamp: frame,
-            pool: self.pool,
-            ..GroupState::default()
-        };
     }
 
     /// `Group::refresh_group_order@00713a50`'s middle third — **slide the
@@ -488,6 +506,7 @@ impl Default for GroupState {
             march: false,
             pool: None,
             opportunity: 0,
+            unlinked: false,
         }
     }
 }
@@ -843,7 +862,7 @@ impl Sim {
         // pushes `1/64`..`1/66` onto the slot army 1's closed group last
         // held, and the layout reads that group's `facing` (§28).
         let (slot, prev) = self.pool_record(g.who, pool);
-        let state = GroupState::copied(prev, pool, self.frame);
+        let state = GroupState::copied(prev, pool, self.frame, g.list.len());
         let entry = crate::group::Pushed {
             who: g.who,
             list: g.list.clone(),
@@ -1630,7 +1649,7 @@ impl Sim {
         let pool = self.open_slot(who);
         self.last_group[w] = pool;
         let (slot, prev) = self.pool_record(who, pool);
-        let state = GroupState::copied(prev, pool, self.frame);
+        let state = GroupState::copied(prev, pool, self.frame, list.len());
         let entry = crate::group::Pushed {
             who,
             list: Vec::new(),
@@ -2695,6 +2714,14 @@ impl Sim {
         // …and the same for the width: `param_10 == −1` takes
         // `get_form_mod_option`, which is 50 for an army and stays 50.
         let width = self.group_form_mod_option(g);
+        // `action_move_near` writes `form` to the record here, ahead of
+        // `compute_form` (`00704990:354` against `:460`), so a sort that
+        // kills the list whole and `Group::clear`s the record leaves it −1
+        // (run1555's slot 64 on 765, item 4000); `ox`/`oy` and `o_angle`
+        // come after it ([`Self::record_move`]).
+        if let Some(st) = self.gstate_mut(g) {
+            st.form = form;
+        }
 
         // §6.5: the AI branch. `hurry` is the army's, so a group with no
         // army never takes it — and "hurrying" and "found a city" are two
@@ -3072,7 +3099,7 @@ impl Sim {
         // `o_dist` is the leader's offset within the block, which is how
         // run31 measures §6.4's displacement.
         self.record_form(g, &slots, to);
-        self.record_move(g, to, angle, form, queue);
+        self.record_move(g, to, angle, queue);
     }
 
     /// The type `action_move_near`'s different-region arm sweeps for member
@@ -4099,12 +4126,12 @@ impl Sim {
         }
     }
 
-    /// `action_move_near`'s writes to the record: `form` unconditionally
-    /// (`70535a`), the origin and its angle only for `QUEUE_NEW` and
-    /// `QUEUE_LAST` (§6.3) — so `charge`'s `QUEUE_FIRST` leaves them.
-    fn record_move(&mut self, g: &Group, to: Pos, angle: Angle, form: i32, queue: QueuePos) {
+    /// `action_move_near`'s writes to the record after `compute_form`: the
+    /// origin and its angle, only for `QUEUE_NEW` and `QUEUE_LAST` (§6.3) —
+    /// so `charge`'s `QUEUE_FIRST` leaves them. `form` (`70535a`) is written
+    /// before the layout, in [`Self::group_action_move_to`].
+    fn record_move(&mut self, g: &Group, to: Pos, angle: Angle, queue: QueuePos) {
         let Some(st) = self.gstate_mut(g) else { return };
-        st.form = form;
         if queue != QueuePos::First {
             st.o = to;
             st.o_angle = angle;

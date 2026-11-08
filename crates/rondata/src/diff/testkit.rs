@@ -6985,6 +6985,10 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: i64 = 1100;
 /// window: run1544.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: (i64, i64) = (604, 1101);
 
+/// `chapter_one_hundred_and_twenty_eight_s_group_pool_is_widened_whole`'s
+/// window: run1555, `GROUPS=1` over 630..780 (item 4000).
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL: (i64, i64) = (630, 780);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

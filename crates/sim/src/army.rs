@@ -760,17 +760,27 @@ impl Sim {
         if self.armies[w].list[slot].units.contains(&u) {
             return;
         }
-        // **The push arm is an army with no group, never one whose group
-        // emptied** (`Army::add_unit@006f9f40`: `+0x96 < 1 || list[0] < 0`).
-        // Nothing writes the army's `list[0]` when `Group::kill` empties
-        // and clears the record, so the join goes through the record's own
-        // `Group::add` — `get_num`'s normalize at every step of the squad
-        // walk prunes the figure added the step before while its `+0x80`
-        // still names another group, and only the walk's last figure is
-        // listed. Chapter 128's `1/6..1/8` rejoin army 0 on 642 as `[8]`
-        // (run1555's `GROUPDATA 64`), not `[6 7 8]` (item 4000,
-        // `docs/GOLDEN.md` §190; item 518 had pushed an emptied army).
-        let pool = if self.armies[w].list[slot].group.pool.is_none() {
+        // **The push arm is an army with no group** (`Army::add_unit
+        // @006f9f40`: `+0x96 < 1 || list[0] < 0`). An army loses its group
+        // only through `Army::normalize@006f9b50`'s `remove_group` on an
+        // empty one, and `remove_group@006f8b50` asks the record to name
+        // the army. So a group whose members **died** — `Group::normalize`
+        // prunes them and writes no link — leaves the army, and the next
+        // join pushes (run146's `1/9..1/11` on 771 to 66, their army's 64
+        // dead since 735; item 518). A group emptied by `Group::kill`
+        // (`clear(-1)`, the link −1) stays listed, and the join goes
+        // through the record's own `Group::add` — `get_num`'s normalize at
+        // every step of the squad walk prunes the figure added the step
+        // before while its `+0x80` still names another group, and only the
+        // walk's last figure is listed. Chapter 128's `1/6..1/8` rejoin
+        // army 0 on 642 as `[8]` (run1555's `GROUPDATA 64`), not `[6 7 8]`
+        // (item 4000, `docs/GOLDEN.md` §190).
+        let live = self.armies[w].list[slot]
+            .units
+            .iter()
+            .any(|&m| self.units[m].alive());
+        let group = &self.armies[w].list[slot].group;
+        let pool = if group.pool.is_none() || (!live && !group.unlinked) {
             // The stack group's `Group::add`: `captain, o_down, …`.
             let mut g = crate::group::Group::stack(who);
             self.group_add(&mut g, u);
@@ -794,10 +804,11 @@ impl Sim {
             self.armies[w].list[slot].group = if equal {
                 crate::group::GroupState {
                     pool: Some(s),
+                    unlinked: false,
                     ..prev
                 }
             } else {
-                crate::group::GroupState::copied(prev, s, self.frame)
+                crate::group::GroupState::copied(prev, s, self.frame, chain.len())
             };
             for f in chain {
                 let captain = self.is_captain(f);
