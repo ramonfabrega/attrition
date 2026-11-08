@@ -6111,30 +6111,8 @@ impl Sim {
         // - out of range (`622b45`): the target is cleared (`622c1c`).
         // `find_target` itself clears the order bit (`& 0xfffb`).
         let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
-        let probe = std::env::var("RON_PROBE_4004").is_ok()
-            && self.buildings[b].index == 2000
-            && (900..=913).contains(&frame);
-        let was = self.buildings[b].target;
         if !bd.ordered {
             self.buildings[b].target = self.find_nearby_target(me, radius);
-        }
-        if probe {
-            let t = self.buildings[b].target;
-            eprintln!(
-                "P4004 f{frame} b{b} was {:?} found {:?} radius {radius} maxr {} arrows {arrows} pos {:?} in_range {:?} valid {:?}",
-                was.map(|o| self.pos_of(o)),
-                t.map(|o| (self.owner_of(o), self.pos_of(o))),
-                self.max_range_of(me),
-                self.pos_of(me),
-                t.map(|o| self.is_in_range(me, o)),
-                t.map(|o| self.valid_target(me, o)),
-            );
-            for (i, u) in self.units.iter().enumerate() {
-                if u.owner == 1 && (u.index == 12 || u.index == 14) && u.alive() {
-                    let o = Obj::Unit(i);
-                    eprintln!("  P4004 1/{} pos {:?} in_range {} valid {}", u.index, u.pos, self.is_in_range(me, o), self.valid_target(me, o));
-                }
-            }
         }
         let Some(target) = self.buildings[b].target else {
             self.buildings[b].ordered = false;
