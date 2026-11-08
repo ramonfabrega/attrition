@@ -522,6 +522,11 @@ pub struct Roles {
     /// the level `LeaderData::get_heal_level@006e12e0` counts, which
     /// indexes the Iroquois heal's period (`crate::Sim::heal_level`).
     pub heal_faster_preq: [Option<TypeId>; 3],
+    /// `SPIES_CRAFT_FASTER` (`0x304`), `TECHBONUSES` row 88 — Strategy in
+    /// the shipped file: `SpellTypeData::get_job_time@00675800` halves
+    /// Bribe's and the Informer's hold for a leader who `has_preq` it
+    /// (item 3985, `docs/GOLDEN.md` §178).
+    pub spies_craft_faster_preq: Option<TypeId>,
     /// `BUILDINGS_FASTER_1..3` and `BUILDINGS_HP_1..3` (`0x2f2..0x2f7`),
     /// `TECHBONUSES` rows 70–72 and 73–75 — Construction, Architecture and
     /// Engineering for both in the shipped file. Their counters,

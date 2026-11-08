@@ -848,6 +848,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch124 = golden_dump("ch124");
     let ch125 = golden_dump("ch125");
     let ch126 = golden_dump("ch126");
+    let ch127 = golden_dump("ch127");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3126,6 +3127,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 57,
             "chapter one hundred and twenty-six carries fifty-seven blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-seven, on run1543** (item 3985): the
+    // three spells' orders on 1114, the Informer's hold from 1219 and its
+    // landing on 1239, Bribe's copies born on 1293 and the word on 1294.
+    if let Some(p) = &ch127 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN;
+        let n = drive_capture(p, 1110, 1296, &mut paths);
+        assert_eq!(
+            n, 187,
+            "chapter one hundred and twenty-seven carries 187 blocks in the window"
         );
         frames += n;
     }
