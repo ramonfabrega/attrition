@@ -11105,6 +11105,79 @@ mod tests {
         }
     }
 
+    /// **A mandatory attack on a dead figure takes its squad's captain, in
+    /// the same order** (item 4002, `docs/GOLDEN.md` §191; `Unit::fight@
+    /// 005fd4d0:300`–`:335`). The dead middle figure's `o_up` walks, after
+    /// the relink, to the squad's head, and the attack names it with its
+    /// `ever_in_range` and `new_ord` untouched and a chase over it — run1545's
+    /// `1/14` on 810. A plain attack drops the order to the search instead.
+    #[test]
+    fn a_mandatory_attack_on_a_dead_figure_takes_its_squad_s_captain() {
+        for mandatory in [true, false] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+            let [a, b, c] =
+                [0x2000, 0x2030, 0x2060].map(|x| put(&mut sim, 1, ty, Pos::new(x, 0x1000)));
+            for (f, up, down) in [
+                (a, None, Some(b)),
+                (b, Some(a), Some(c)),
+                (c, Some(b), None),
+            ] {
+                sim.units[f].captain = up.is_none();
+                sim.units[f].o_up = up;
+                sim.units[f].o_down = down;
+                sim.units[f].combat.captain = i32::from(sim.units[a].index);
+            }
+            sim.add_attack_order(
+                me,
+                Obj::Unit(b),
+                crate::orders::QueuePos::First,
+                mandatory,
+                false,
+            );
+            if let Some(crate::orders::Order {
+                body: crate::orders::Body::Attack(x),
+                ..
+            }) = sim.units[me].orders.front_mut()
+            {
+                x.ever_in_range = true;
+                x.new_ord = false;
+            }
+            sim.units[b].health = 0;
+            sim.relink_squad(b);
+            sim.forget(Obj::Unit(b));
+            sim.work(me, 0);
+            let attack = sim.units[me].orders.iter().find_map(|o| match o.body {
+                crate::orders::Body::Attack(x) => Some(x),
+                _ => None,
+            });
+            if !mandatory {
+                // `LAB_005fdb9e`: the order goes and the search adds a
+                // fresh one or none; it is never the old order retargeted.
+                assert!(
+                    attack.is_none_or(|x| x.new_ord && !x.ever_in_range),
+                    "the old order kept: {attack:?}"
+                );
+                continue;
+            }
+            let attack = attack.expect("the mandatory order stands");
+            assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(a)), "the head");
+            assert!(
+                attack.ever_in_range && !attack.new_ord,
+                "the same order: {attack:?}"
+            );
+            assert!(sim.units[me].combat.mandatory, "still mandatory");
+            assert!(
+                matches!(
+                    sim.units[me].orders.front().map(|o| &o.body),
+                    Some(crate::orders::Body::Move(_))
+                ),
+                "the re-entered work's chase: {:?}",
+                sim.units[me].orders
+            );
+        }
+    }
+
     /// **An emplaced weapon drops a dead target's order at once, reload or
     /// not** (item 3540, `docs/ORDERS.md` §7.12). `Unit::fight@005fd4d0:
     /// 94`–`102`: the type's `unit_flags2 & 1` (the machine gun and

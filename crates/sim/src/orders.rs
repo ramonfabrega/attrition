@@ -9613,14 +9613,16 @@ impl Sim {
                 return Some(false);
             }
         }
-        let next = self
-            .units[u]
+        let next = self.units[u]
             .orders
             .iter()
             .skip(1)
             .find(|o| !o.is_transit() && o.index() != index::CHANGE_FORM)
             .map_or(index::NONE, Order::index);
-        if matches!(next, index::NONE | index::ATTACK_TO | index::GROUP_ATTACK_TO) {
+        if matches!(
+            next,
+            index::NONE | index::ATTACK_TO | index::GROUP_ATTACK_TO
+        ) {
             return None;
         }
         self.kill_current_order(u);
