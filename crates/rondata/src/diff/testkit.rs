@@ -6989,6 +6989,22 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: (i64, i64) = (60
 /// window: run1555, `GROUPS=1` over 630..780 (item 4000).
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL: (i64, i64) = (630, 780);
 
+/// **Chapter one hundred and twenty-nine** (item 3987, `docs/GOLDEN.md`
+/// §180, run1545): `Build::process`'s patriot repair — who=0's Barracks
+/// struck beside its Senator on its own ground and beside its President on
+/// nobody's, each a point on `FRENCH_SUPPLY_HEAL_RATE`'s phase with
+/// `healing` 20 — and its Hoplites garrisoned in its capital under Herbal
+/// Lore, healing on `UNIT_HEAL_RATE[1]`'s 15. Opened at 827 (1100 → 827,
+/// the first pin): ours spends ten draws to theirs' nine, its second a
+/// `Guy::set_anim < Unit::move_step+0x823` theirs does not; the state
+/// parts first on 810, who=1's `1/14` taking order kind 10 at `0/10` where
+/// theirs keeps a move (parked 3987a).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 827;
+
+/// `chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole`'s
+/// window: run1545.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: (i64, i64) = (604, 1101);
+
 /// `chapter_forty_eight_s_word_frame_is_widened_whole`'s window: run551
 /// whole, 605 to its end (block 1749 is the one the dump does not carry).
 pub(crate) const WIDENING_CHAPTER_FORTY_EIGHT: (i64, i64) = (605, 1751);

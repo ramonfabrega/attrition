@@ -740,14 +740,12 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // to 45 on block 822 (`docs/GOLDEN.md` §25).
         // **And the heal's clock** (item 3961, `docs/AI.md` §405):
         // `ObjectData::healing` on a building is written only by
-        // `Build::process`'s patriot repair — a Monarch, Comrade or CEO
-        // near a damaged building of a French-supply leader. SEAM: that
-        // arm is not built, so this crate's side is 0, which every
-        // building of every dump on disk prints.
+        // `Build::process`'s patriot repair — a Senator, President or CEO
+        // near a damaged building (item 3987, `Sim::patriot_repair`).
         for (field, mine, theirs) in [
             ("damage", i64::from(ours.damage), b.damage),
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
-            ("healing", 0, b.healing),
+            ("healing", i64::from(ours.healing), b.healing),
             // **Its line of sight** (item 3965, `docs/AI.md` §409):
             // `ObjectData::mylos`, the cache `Wall::update_los` last left,
             // against `Building::mylos`, written at the original's five
@@ -2179,6 +2177,14 @@ fn widen_block_rows(
                 i64::from(un.movement.mirror),
                 them.unit_masks.map(|m| i64::from(m & 2 != 0)),
             ),
+            // **The heal's clock** (item 3961, `docs/AI.md` §405):
+            // `ObjectData::healing`, `max(rate, ·)` on each heal the crate
+            // lands and one off a frame at the head — **on or off the map**
+            // (item 3987, `docs/GOLDEN.md` §180): the garrison heal writes
+            // it inside, and a unit inside prints it, so it sat blind under
+            // the on-map gate (the garrison heal read at level 0 parted
+            // nothing on run1545).
+            ("healing".into(), i64::from(un.healing), them.healing),
         ];
         // The collision block and the two masks, **ungated by the
         // position** — the whole point of this test.
@@ -2221,10 +2227,6 @@ fn widen_block_rows(
                 // run1066, the one capture that holds a carrier's queue.
                 ("num_queued", i64::from(un.num_queued), them.num_queued),
                 ("queue_time", i64::from(un.queue_time), them.queue_time),
-                // **The heal's clock** (item 3961, `docs/AI.md` §405):
-                // `ObjectData::healing`, `max(rate, ·)` on each heal the
-                // crate lands and one off a frame at the head.
-                ("healing", i64::from(un.healing), them.healing),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
                 (
                     "half_step",

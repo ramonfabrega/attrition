@@ -2630,6 +2630,10 @@ mod tests {
         // a fight — a Comrade's Hoplites, a Monarch's Heavy Knight and a
         // Senator's Barracks struck (item 3986, `docs/GOLDEN.md` §179).
         ("chapter128.cmd", &[]),
+        // Chapter one hundred and twenty-nine: the patriot repair beside a
+        // Senator and a President, and the garrison heal under Herbal Lore
+        // (item 3987, `docs/GOLDEN.md` §180).
+        ("chapter129.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

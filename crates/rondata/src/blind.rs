@@ -739,6 +739,13 @@ pub const TRACES: &[&str] = &[
     // entered (`docs/GOLDEN.md` §179); run1544's game on every frame
     // (rngcmp 1101 identical).
     "rontrace-run1544b.log",
+    // Item 3987: golden chapter one hundred and twenty-nine
+    // (`chapter129.cmd`, the patriot repair and the garrison heal at level
+    // one) at `cover=1` on the click-free pool, to 1100 (`docs/RUNS.md`
+    // run1545b): `Build::repair_damage` first on 653, `get_heal_level` on
+    // 855, `Unit::repair_damage` on 862 (`docs/GOLDEN.md` §180); run1545's
+    // game on every frame (rngcmp 1101 identical).
+    "rontrace-run1545b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and

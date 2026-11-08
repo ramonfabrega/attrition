@@ -36122,3 +36122,29 @@ to exit, no relaunch. No minutes were waited on another lane. `~/ron-golden/run1
 - On 642 theirs enters no `push_group`, `get_open_slot` or `copy_group` for the rejoin.
 - Killers: (A) and (C) fired as written (army −1 from 643); (B) did not (no `facing` 1 on 765).
 - `rngcmp`: run1544 against run1555, 781 of 781 identical.
+
+## run1545 and run1545b — chapter one hundred and twenty-nine: the patriot repair and the garrison heal under Herbal Lore (2026-11-08, item 3987, `att-3987`)
+
+`docs/GOLDEN.md` §180. **What the disk could not answer**: no building on disk prints a non-zero `healing` (the
+2026-11-07 scan of 1182 dumps, parked 3961b). run1544's Barracks beside a Senator is never repaired, because it stands
+on nobody's ground. So no dump held `Build::process@0061edf0`'s patriot repair landing on either branch. And no window
+held a garrisoned unit of a Herbal Lore player healing (parked 3959a).
+
+Recipe `tools/gamelog/golden/chapter129.cmd`: Herbal Lore for who=0 (600); who=0's Barracks and Senator on its own
+ground, Barracks and President on nobody's, Hoplites (606–614); three who=1 Hoplite squads (620–624); three `@attack`s
+as who=1 on 640; the Hoplites garrisoned in the capital on 700.
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch129 --map 14 --end-frame 1100
+--log-window 605 1100 --timeout 3600` with the cmd header's three detail sets. The twin is the same line at `--cover
+cover=1 --no-ffwd --twin ~/ron-golden/ch129`, into `~/ron-golden/ch129b`.
+
+18 GiB free before the take. Both `success`, lifecycle verified, `map_verified`, map style 14, 1101 frames,
+`last_frame` 1100, seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes were
+waited on another lane. `~/ron-golden/run1545` links to `ch129` and `run1545b` to `ch129b`.
+- run1545 (`ch129`, `cover=0`, pool lane 1): 04:35:31–04:36:48, 76.5 s launch to exit, no relaunch. The word's.
+- run1545b (`ch129b`, `cover=1`, pool lane 1): 04:38:14–04:39:57, 102.5 s launch to exit, no relaunch. Filed by
+  `filerun.py run1545b ch129-patriot-repair-cover`. Enters `Build::repair_damage` (first on 653),
+  `HeroesData::find_hero` (608), `LeaderData::get_heal_level` (855) and `Unit::repair_damage` (862).
+- The repairs: `0/2007` on game frame 653 (block 654, 3/0, `healing` 20); `0/2008` on 672 (block 673, 7/0, `healing`
+  20). The heal: `0/8` inside `0/2000` from block 855, `healing` 15 on block 863.
+- `rngcmp`: run1545 against run1545b, 1101 of 1101 identical.

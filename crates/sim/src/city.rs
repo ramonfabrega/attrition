@@ -1565,6 +1565,7 @@ impl Sim {
             ever_seen: 0,
             ever_seen_completed: 0,
             mylos: 0,
+            healing: 0,
             visible: 0,
             attacking: false,
         });
@@ -2891,6 +2892,11 @@ impl Sim {
         }
         if !self.buildings[b].active {
             return false;
+        }
+        // `Build::process@0061edf0`'s first statement past the gate: the
+        // heal's clock (`ObjectData::healing`) loses a frame.
+        if self.buildings[b].healing != 0 {
+            self.buildings[b].healing -= 1;
         }
         if self.buildings[b].eject_pending {
             self.process_ejection(b);
