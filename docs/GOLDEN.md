@@ -18904,7 +18904,7 @@ them: a blow's size spends no draw.
 the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
 `blind::` is unmoved: run1544b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191; 911 since item 3993, §186)
+## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191; 911 since item 3993, §186; 997 since item 4004, §192)
 
 **The booking** (parked 3961b, 3959a) named two arms: a Monarch, Comrade or CEO beside a damaged own building
 (`Build::process@0061edf0`'s arm to `0061f3b9`), and a wounded unit garrisoned by a player holding Herbal Lore. **The
@@ -19325,12 +19325,64 @@ reading's witness, and run100's window does not reach it after the reload. Its u
 **What is not established**: the `ox < 0` arm (the order's `uid` no longer the slot's) — this crate keeps no slot
 reuse; and whether the action check's early return (an action that is not an `ATTACK`) is reached by any capture.
 
-## 192. Reserved for the next item on the rules track
+## 192. Chapter one hundred and twenty-nine, 911 → 997 — a building's search must reach what it takes (item 4004, run1545)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: ch129's word 911, theirs drawing the "Barracks" `0/2000`'s shot at `1/12` (`Object::fire_ammo+0x3d5`,
+`+0x406`, `Ammo::init+0xcd9`, `+0xd0b`) and ours none; the widening's first rows `912 0/2000 build:attack_ox` (ours −1,
+theirs 12) and `attack_whom` (−1, 1). Its hypothesis was the garrison arming the building. **Neither the type nor the
+mechanism held.** `0/2000` is who=0's capital (`orig_type` 414, `VILLAGE` in `TypeIndex`), and `do_attack` counts one
+arrow on 911 with the squad inside. No run was taken (1557 unused): the disk and one probe answered it.
+
+**The disk.** run1545 prints the capital's `attack_ox`/`attack_whom` at 14/1 with `recharging` 30 from block 881. It counts
+down to 0 on 911 and reads 12/1 with `recharging` 30 on 912. So theirs fired on `1/14` on game frame 880, which ours did
+as well (the window agreed there), and on 911 it fired at `1/12`. `1/14` (uid 20) walks north-east to (6264, 29736), and
+`1/12` (uid 18) walks west to (4392, 31464). Both are who=1's Hoplites captains.
+
+**Ours on game frame 911** (a probe, reverted whole): `find_nearby_target` hands back `1/14` at (5940, 30422), and
+`is_in_range` refuses it, so the target is cleared and nothing fires. `1/12` at (5579, 31649) is in range. Scored with the
+range test's permission, `1/12` is 15778 and `1/14` 4116 (`/5`). Scored without it, `1/14` is 20576 (its current-target
+`×2`). On 912 ours takes `1/12`, a frame late.
+
+**The listing** (`Object::find_nearby_target@00648da0:164`–`:168`, the range gate `:345`–`:375`). Vslot `+0x18` answers 0
+for a non-unit, so a building takes the first arm: `local_54` 0, `local_24` 1, `local_2c` 0, and `local_5c` stays 0.
+With `local_24` set, every candidate is tested with `is_in_range`, and one out of range is skipped (`LAB_006498a4`)
+unless `local_5c` is set. `local_5c` is the computer's packed siege engine's flag alone. COMBAT §60.2 already said "a
+building sets it". This crate built `must_reach` for a unit only (§60.4). Its building arm kept an out-of-range unit or
+armed candidate untested, with no `/5`.
+
+**Built** (`sim::fight`, `find_nearby_target_as`): `must_reach` is true for a building. The range gate's other two arms
+were reachable only by a building, so they are folded into the one `true`.
+
+**The value diff, 912** (block; game frame 911): ours' capital reads `attack_ox` 12, `attack_whom` 1, as theirs. The
+shot draws `Object::fire_ammo`'s and `Ammo::init`'s four on 911 in both. The window agrees through 996. `WANT_CH129` goes
+from 237 rows to 116. The 912 pair leaves, with the rows it moved: `1/12`'s wounds on 937 and later, `1/4`'s and `0/4`'s
+moves of 937–939, `0/3`'s of 987–991, and the block of 1064–1066. The standing `0/6` rows of 947–968 stay. The
+`cant_reach` tally goes from 3 to 1.
+
+**The word moves 911 → 997** (`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE`). On 997 theirs draws three
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` ahead of the two `Farms::inc_time+0x1ae`, and ours draws only the farms: 2
+draws to 5 (`RON_GOLDEN_SITES=995-997`). The rows are `997 0/6 orders.len` and `order:length`, then `998 0/6 idle`.
+`0/6` is arm 1's Senator, three figures. Theirs' order list empties on 997 and the squad goes idle; ours still holds an
+order. `0/6` has stood parted since 947 (`dest_angle`, the move order's fields, then `pos` on 949), so the word's cause
+is upstream of 997.
+
+**Killers** (`tools/mutate.py`, the fix reverted whole as a patch): it held. The word falls back to 911, and
+`air::flak_tests::a_building_s_search_skips_a_unit_out_of_its_range` fails. That test puts a Stockade's current target
+just past its range and inside the search's radius, with a walking unit in range. The units carry a cost of 20,000. At
+cost 0 both scores flatten to the `+100,000` class weight, and the first draft of the test failed nothing under the
+mutant. A first mutant that set only `must_reach` to false failed nothing too. With the arms folded, `false` deems a
+building's candidate in range, and `compare_target`'s own `is_in_range` gives the `/5` that still prefers `1/12`. So it
+did not mean what it was for.
+
+**Floors.** `golden` 333 of 335 before the re-pin (only ch129's two), `first_parting` 122 of 122, `coverage::` 21 of 21,
+`battery_floors` 1 of 1, and the `sim` lib's `fight` 121 of 121. No other window on disk moved.
+
+**What is not established**: the computer's packed siege engine (`local_5c`) is still not flagged for a building, and
+its exception asks the target's attack or a wonder (§60.4). A building with `local_5c` is not reachable in the listing,
+since `:191`–`:205` run only for a unit. Item 3992's arms (the building defence remainder) are untouched: this is the
+search's gate, not `do_attack`'s.
+
+**Coverage.** Diff-backed: the gate's skip, on run1545's capital on 911. Reading only: nothing new.
 
 ## 193. Reserved for the next item on the rules track
 
