@@ -247,10 +247,16 @@ def lobby_readback(path, keys=TWIN_LOBBY):
 
 
 def twin_pins(twin):
-    """What a `--twin` take pins from its sibling's own read-back: slot 1's
-    tribe from the receipt's PLAYER records and the four lobby fields from
-    its gamelog's GAMEINFO — never from what the sibling was asked for,
-    which run1508b's sibling was not asked either."""
+    """What a `--twin` take pins from its sibling's own read-back: every
+    computer seat's `(slot, tribe)` from the receipt's PLAYER records, the
+    lobby's PLAYERS as that seat count, and the four lobby fields from its
+    gamelog's GAMEINFO — never from what the sibling was asked for, which
+    run1508b's sibling was not asked either. Item 3976: run1542's lobby
+    seats three (computers 10 and 13), and a twin that pinned slot 1 alone
+    as a two-seat `--ai-tribe` failed `verify_game` after its game ran.
+    PLAYERS is the computer count: 62 of 62 three-seat receipts under
+    ~/ron-golden asked `PLAYERS=2`, and every two-seat one left the
+    template's 1 (measured 2026-11-07)."""
     twin = Path(twin)
     try:
         reports = json.loads((twin / 'receipt.json').read_text())
@@ -263,21 +269,39 @@ def twin_pins(twin):
     by_who = {p.get('who'): p for p in report.get('players') or []}
     if 'tribe' not in by_who.get(1, {}):
         raise ValueError(f'--twin {twin}: its receipt read back no computer slot 1 ({report.get("players")})')
+    seats = tuple((who, p['tribe']) for who, p in sorted(by_who.items(), key=lambda kv: kv[0])
+                  if isinstance(who, int) and who >= 1 and 'tribe' in p)
+    if [who for who, _ in seats] != list(range(1, len(seats) + 1)) or len(seats) + 1 != len(by_who):
+        raise ValueError(f'--twin {twin}: its receipt seats no contiguous computer slots 1..n '
+                         f'beside a slot 0 ({report.get("players")})')
     style = report.get('map_style') or report.get('map_requested')
     gamelog = twin / f'map-{style}' / (report.get('gamelog') or 'gamelog.txt')
     lobby = lobby_readback(gamelog) if gamelog.is_file() else {}
     missing = [k for k in TWIN_LOBBY if k not in lobby]
     if missing:
         raise ValueError(f'--twin {twin}: {gamelog} reads back no {", ".join(missing)}')
-    return by_who[1]['tribe'], lobby
+    return seats, {'PLAYERS': len(seats), **lobby}
 
 
 def apply_twin(args):
-    """Fill `--ai-tribe` and the four lobby pairs from the sibling, keeping
-    every one the take passed itself."""
-    tribe, lobby = twin_pins(args.twin)
-    if args.ai_tribe is None:
-        args.ai_tribe = tribe
+    """Fill the seats, PLAYERS and the four lobby pairs from the sibling,
+    keeping every one the take passed itself, and set `args.seats` for
+    `verify_game`. A two-seat sibling pins slot 1 as `--ai-tribe`, whose
+    read-back also checks the human Nubians in slot 0; a sibling with more
+    seats pins each computer slot as a `--seat-tribe` (item 3976), and an
+    `--ai-tribe` beside it is refused: its read-back demands two players."""
+    seats, lobby = twin_pins(args.twin)
+    given_seats = {slot for slot, _ in getattr(args, 'seat_tribes', None) or []}
+    if len(seats) == 1:
+        if args.ai_tribe is None and 1 not in given_seats:
+            args.ai_tribe = seats[0][1]
+    else:
+        if args.ai_tribe is not None:
+            raise ValueError(f'--twin {args.twin} seats {len(seats) + 1}; --ai-tribe pins a two-seat lobby '
+                             f'(its read-back demands two players), pass --seat-tribe 1=N instead')
+        args.seat_tribes = list(getattr(args, 'seat_tribes', None) or []) + [
+            (slot, tribe) for slot, tribe in seats if slot not in given_seats]
+    args.seats = len(seats) + 1
     given = {p.split('=')[0] for p in args.lobby or []}
     args.lobby = list(args.lobby or []) + [f'{k}={v}' for k, v in lobby.items() if k not in given]
 
@@ -589,7 +613,7 @@ def lane_prefix():
 
 
 def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_window=None, seat_tribes=(),
-                allow_early_end=False, lobby=()):
+                allow_early_end=False, lobby=(), seats=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
@@ -646,6 +670,10 @@ def verify_game(path, style, end, seed=None, detail=None, ai_tribe=None, log_win
         by_who = {p.get('who'): p for p in players}
         if any(by_who.get(slot, {}).get('tribe') != tribe for slot, tribe in seat_tribes):
             raise ValueError(f'seat tribe read-back mismatch: {players} for {list(seat_tribes)}')
+    # Item 3976: a twin pins its sibling's seat count, read back as seats
+    # 0..n-1 exactly, as the two-seat `ai_tribe` arm reads back two.
+    if seats is not None and sorted(p.get('who') for p in players) != list(range(seats)):
+        raise ValueError(f'seat count read-back mismatch: {players} for {seats} seats (item 3976)')
     # Loop 3928: a lobby field the take asked for is read back from the
     # header, as the tribe is — a twin on a stale lane differed from frame 0
     # and nothing the lane printed said why.
@@ -798,6 +826,7 @@ def capture(args, output, style, run=None):
         set_ai_tribe(args.profile, report['ai_tribe_requested'])
         report['seat_tribes_requested'] = getattr(args, 'seat_tribes', None) or []
         set_seat_tribes(args.profile, report['seat_tribes_requested'])
+        report['seats_requested'] = getattr(args, 'seats', None)
         report['bindkey'] = getattr(args, 'bindkeys', None) or []
         bind_keys(args.profile, args.install, report['bindkey'])
         rise = args.profile / 'rise.ini'
@@ -988,6 +1017,7 @@ def capture(args, output, style, run=None):
                                   detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL,
                                   ai_tribe=report['ai_tribe_requested'],
                                   seat_tribes=report['seat_tribes_requested'],
+                                  seats=report['seats_requested'],
                                   log_window=None if getattr(args, 'stride', None) else getattr(args, 'log_window', None),
                                   allow_early_end=early, lobby=report['lobby']))
         if playback and sha(recording) != report['recording']['sha256']:
@@ -1318,9 +1348,10 @@ def parser():
                     help='explicit nation for computer slot SLOT (1..7), repeatable; read back from '
                          'the receipt\'s PLAYER records (item 3774)')
     ap.add_argument('--twin', type=Path, metavar='DIR',
-                    help="a sibling take's output directory: pins --ai-tribe from its receipt's PLAYER read-back "
-                         "and the four golden-start lobby fields from its gamelog's GAMEINFO, each unless given "
-                         "(Loop 3928)")
+                    help="a sibling take's output directory: pins every computer seat from its receipt's PLAYER "
+                         "read-back (--ai-tribe for a two-seat lobby, --seat-tribe each for more), PLAYERS as the "
+                         "seat count, and the four golden-start lobby fields from its gamelog's GAMEINFO, each "
+                         "unless given; the take reads its seat count back (Loop 3928, item 3976)")
     ap.add_argument('--profile', action='append', dest='lobby', metavar='KEY=N',
                     help="a lobby field in the profile's <SOLO>/<MULTI> blocks, repeatable "
                          "(the queue lane's `profile:` key; e.g. DIFFICULTY=5)")
