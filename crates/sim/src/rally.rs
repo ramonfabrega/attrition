@@ -3,7 +3,9 @@
 //!
 //! `BuildData::gather` (`+0xb8`, a `PtrLinkListAbstract<GatherPoint>`, the
 //! count at `+0xc8`) holds the points in order; `Build::add_gather_point@
-//! 00622e70` and `Build::clear_gather@00623180` are its only writers.
+//! 00622e70` and `Build::clear_gather@00623180` write the list, and
+//! `Build::replace_gather@00622d10` rewrites a point in place when the unit
+//! it names dies ([`Sim::replace_gather`](crate::Sim::replace_gather)).
 
 use crate::world::Pos;
 
@@ -368,6 +370,51 @@ impl Sim {
             .collect();
         v.sort_by_key(|&u| self.units[u].index);
         v
+    }
+
+    /// **`Build::replace_gather@00622d10`** on every building of the dying
+    /// unit's owner that holds a gather list, from
+    /// `HotKeyGroups::kill@00714e30` in `Unit::close@0060ee50:288` (item
+    /// 3989, `docs/GOLDEN.md` §182). An action-3 point naming `(o, who)` of
+    /// the dying unit's owner whose object's captain (vslot `0xe4`,
+    /// `get_captain`: `o_up` to the top, a building its own number) is the
+    /// dying unit's becomes **action 0 at the dying unit's position**
+    /// (`+0x10`/`+0x14`, decoded).
+    ///
+    /// SEAM: the other arm — the point renamed to the captain of the
+    /// hotkey group's new leader (`find_leader`, or `list[0]` for a group
+    /// of buildings), with `y` the owner — needs a hotkey group holding the
+    /// unit, and this crate keeps none: no command makes one, so the
+    /// successor is always −1.
+    pub(crate) fn replace_gather(&mut self, dying: usize) {
+        let who = self.units[dying].owner;
+        let o = self.units[dying].index;
+        let at = self.units[dying].pos;
+        let captain = self.units[self.top_captain(dying)].index;
+        for b in 0..self.buildings.len() {
+            if self.buildings[b].owner != who || self.buildings[b].gather.is_empty() {
+                continue;
+            }
+            for k in 0..self.buildings[b].gather.len() {
+                let p = self.buildings[b].gather[k];
+                if p.action != 3 || p.pos.y != i32::from(who) {
+                    continue;
+                }
+                let Ok(x) = i16::try_from(p.pos.x) else {
+                    continue;
+                };
+                let theirs = if x == o {
+                    Some(dying)
+                } else {
+                    self.unit_by_o(who, x)
+                };
+                let Some(t) = theirs else { continue };
+                if self.units[self.top_captain(t)].index != captain {
+                    continue;
+                }
+                self.buildings[b].gather[k] = GatherPoint { pos: at, action: 0 };
+            }
+        }
     }
 
     /// An action-3 point's `(o, who)` as the object it names.

@@ -3638,6 +3638,26 @@ impl Sim {
         self.first_library(self.buildings[at].owner).unwrap_or(at)
     }
 
+    /// [`Sim::queue_home`] for a cancel of `slot` at `at`:
+    /// `Build::unqueue@006207c0` and `Build::action_unqueue@00620280` each
+    /// forward to the first library **unless the slot they name, at the
+    /// building itself, holds `DISBAND`** (0x29a, the type short at `+4` of
+    /// the entry; `action_unqueue` reads slot `max(p, 0)`). A second
+    /// library's own Disband — `Build::queue_up` never forwards one
+    /// ([`Sim::queue_disband`]) — is cancelled where it stands (item 3989,
+    /// `docs/GOLDEN.md` §182).
+    pub(crate) fn unqueue_home(&self, at: usize, slot: usize) -> usize {
+        if self.buildings[at]
+            .queue
+            .items
+            .get(slot)
+            .is_some_and(|i| i.disband)
+        {
+            return at;
+        }
+        self.queue_home(at)
+    }
+
     /// Orders one unit of a type at a building — `Build::queue_up`.
     ///
     /// **The price is charged here**, and what was charged is written into the
@@ -4333,7 +4353,7 @@ impl Sim {
     /// forward past entries of the same type, so cancelling one of a run
     /// removes the last of it and the one in progress keeps its progress.
     pub fn cancel(&mut self, at: usize, slot: usize) -> Option<production::Item> {
-        let at = self.queue_home(at);
+        let at = self.unqueue_home(at, slot);
         let who = self.buildings[at].owner;
         let item = {
             let ledger = &mut self.ledgers[who as usize];

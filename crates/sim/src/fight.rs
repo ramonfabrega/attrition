@@ -3591,6 +3591,14 @@ impl Sim {
         self.die_with(v, dtype);
     }
 
+    /// The `die o,who` cheat on a unit (`run_cmd`'s `die` arm,
+    /// `007dde60`–`007ddf1d`): vslot `+0x158` with `(0, −1, 0)`,
+    /// [`Sim::die_with`] at `dtype` 0 — no death draw (item 3989,
+    /// `docs/GOLDEN.md` §182).
+    pub fn cheat_die_unit(&mut self, v: usize) {
+        self.die_with(v, 0);
+    }
+
     /// `Object::die(o, dtype, −1, 0)` on a unit, through `Unit::die`
     /// (vslot `+0x158`): the combat death's tail without a wound — the
     /// Sniper's kill ([`Sim::cast_sniper_unit`]) and a disband
@@ -3850,7 +3858,17 @@ impl Sim {
             }
         }
         let u = &self.units[i];
-        if u.o_up.is_some() || u.decoy || u.o_down.is_some_and(|d| self.units[d].alive()) {
+        if u.o_up.is_some() || u.o_down.is_some_and(|d| self.units[d].alive()) {
+            return;
+        }
+        // `Unit::close@0060ee50:287`-`:289`: the hotkey arm sits on the
+        // squad gate alone, below the count's decoy and population tests,
+        // and reaches `Build::replace_gather` (item 3989).
+        if u.owner < 8 {
+            self.replace_gather(i);
+        }
+        let u = &self.units[i];
+        if u.decoy {
             return;
         }
         let Some(ty) = u.ty else { return };

@@ -7311,6 +7311,47 @@ fn a_detour_the_line_check_pushes_is_the_waypoint() {
     );
 }
 
+/// **A gather point on a unit that dies falls to the ground where it
+/// stood** (item 3989, `docs/GOLDEN.md` §182; adjudication 2 row 32).
+/// `Unit::close@0060ee50:288`'s `HotKeyGroups::kill` reaches
+/// `Build::replace_gather@00622d10` for each of the owner's buildings with
+/// a gather list: an action-3 point naming `(o, who)` whose object shares
+/// the dying unit's captain becomes action 0 at the dying unit's position,
+/// with no hotkey group to name a successor. A point on another unit, and
+/// a point of another action, stand.
+///
+/// Made to fail by the call in [`Sim::close_count`] removed, or by its
+/// gate taken to the count's decoy test (a decoy's close renames the
+/// point too).
+#[test]
+fn a_gather_point_on_a_unit_that_dies_falls_to_the_ground_where_it_stood() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let a = spawn(&mut sim, 0, citizen, tile_pos(36, 36));
+    let other = spawn(&mut sim, 0, citizen, tile_pos(30, 36));
+    let at = |x, y, action| crate::rally::GatherPoint {
+        pos: Pos::new(x, y),
+        action,
+    };
+    let (ao, oo) = (
+        i32::from(sim.units[a].index),
+        i32::from(sim.units[other].index),
+    );
+    sim.buildings[b].gather = vec![at(ao, 0, 3), at(oo, 0, 3), at(ao, 0, 0)];
+    let stood = sim.units[a].pos;
+    sim.units[a].decoy = true;
+    sim.die_with(a, 1);
+    assert_eq!(
+        sim.buildings[b].gather,
+        vec![at(stood.x, stood.y, 0), at(oo, 0, 3), at(ao, 0, 0)],
+        "the point on the dead unit is on the ground where it stood"
+    );
+}
+
 /// **The gather point's command** (item 928, `docs/GOLDEN.md` §39,
 /// run312): `Group::action_gather_point` gives a training building one
 /// point, replaced by the next press and appended under `add_to_end`; the
@@ -10271,6 +10312,54 @@ fn an_obsidian_holder_s_tower_hits_harder() {
     let barracks = sim.place_building(0, t.barracks, tile_pos(24, 40)).unwrap();
     finish(&mut sim, barracks);
     assert_eq!(sim.build_attack_terms(barracks), 0, "not garrison-class");
+}
+
+/// **A second library's own Disband is cancelled where it stands** (item
+/// 3989, `docs/GOLDEN.md` §182; adjudication 2 row 31).
+/// `Build::action_unqueue@00620280` and `Build::unqueue@006207c0` forward a
+/// library's cancel to `get_first_library` unless the slot named, at the
+/// building pressed, holds `DISBAND` (0x29a); `Build::queue_up` never
+/// forwards a Disband, so the second library's is its own. The cancel
+/// takes the entry off the second library and leaves the first's
+/// technology queued.
+///
+/// Made to fail by [`Sim::unqueue_home`]'s Disband test removed from
+/// `action_unqueue` (the first library's technology goes, the Disband
+/// stays).
+#[test]
+fn a_second_library_s_own_disband_is_cancelled_where_it_stands() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let first = sim.add_library(0, tile_pos(40, 32), 8);
+    let second = sim.add_library(0, tile_pos(24, 32), 8);
+    for l in [first, second] {
+        sim.buildings[l].city = Some(c);
+    }
+    assert_eq!(sim.first_library(0), Some(first));
+    let tech = sim.tech[0].queued.len().max(9);
+    sim.tech[0].queued.resize(tech + 1, 0);
+    let item = production::Item::tech_queued(tech, &[0; economy::RESOURCES]);
+    sim.buildings[first].queue.items.push(item);
+    sim.tech[0].queued[tech] = 1;
+    assert!(sim.queue_disband(second), "a library takes its own Disband");
+    assert_eq!(sim.buildings[first].queue.items.len(), 1);
+    assert_eq!(sim.buildings[second].queue.count_disband(), 1);
+
+    assert_eq!(sim.action_unqueue(second, 0), 1);
+    assert!(
+        sim.buildings[second].queue.items.is_empty(),
+        "the Disband came off the library pressed"
+    );
+    let q = &sim.buildings[first].queue.items;
+    assert_eq!(q.len(), 1, "the first library's technology stands");
+    assert_eq!(q[0].tech, Some(tech));
+    assert_eq!(sim.tech[0].queued[tech], 1);
+
+    // Any other cancel at the second library is the first's.
+    assert_eq!(sim.action_unqueue(second, 0), 1);
+    assert!(sim.buildings[first].queue.items.is_empty());
+    assert_eq!(sim.tech[0].queued[tech], 0);
 }
 
 /// **A closing first library hands its queue to the next, and a closed

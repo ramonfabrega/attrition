@@ -106,7 +106,9 @@ pub enum Cheat {
     /// `die [o[,who] | select]` (`run_cmd`'s `die` arm, `007dde60`–
     /// `007ddf1d`): the object's vslot `+0x158` with `(0, −1, 0)` — a
     /// building's `Wall::die` → `Object::die`, which is `close` and the
-    /// hold ([`sim::Sim::die_building`]; item 3901, `docs/GOLDEN.md` §157).
+    /// hold ([`sim::Sim::die_building`]; item 3901, `docs/GOLDEN.md` §157),
+    /// a unit's `Unit::die` with `dtype` 0 ([`sim::Sim::cheat_die_unit`];
+    /// item 3989, §182).
     /// `who` is `parse_who(·, console->who)`, so a bare number is a
     /// player. `None` is the `select` form (and the bare `die`): every
     /// selected object.
@@ -2300,12 +2302,17 @@ fn run(
                 if let Some(b) = built.sim.building_by_o(who as sim::Player, o) {
                     built.sim.die_building(b);
                     any = true;
+                } else if let Some(u) = built.sim.unit_by_o(who as sim::Player, o) {
+                    // The unit arm (item 3989): `Unit::die@0060eda0` with
+                    // `dtype` 0 — `close`, no death draw, and the hold.
+                    built.sim.cheat_die_unit(u);
+                    any = true;
                 }
             }
             if any {
                 done.ran += 1;
             } else {
-                done.skip(&word, "no live building (the unit arm is not modelled)");
+                done.skip(&word, "no live object");
             }
         }
         Cheat::Unmapped(w) => done.skip(&w, "not in the interpreter's cheat set"),
