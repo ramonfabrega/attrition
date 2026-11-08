@@ -425,9 +425,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
 /// the measured line into `docs/QUEUE.md` at the booking and sets this to
 /// `None`; once `None`, only the measured line passes.
 #[cfg(test)]
-pub const STRUCTURE_LINE_BEFORE_SHAPE: Option<&str> = Some(
-    "Structure: flat 203 \u{b7} test-tails 65k \u{b7} sweep-lines 149.5k \u{b7} names 130 \u{b7} fields 92 \u{b7} largest 14223",
-);
+pub const STRUCTURE_LINE_BEFORE_SHAPE: Option<&str> = None;
 
 /// The queue's `Structure:` line for `counts`, exactly as `tools/shape.py`
 /// prints it: the counts in order, parted by a middle dot, `test-tails` and
