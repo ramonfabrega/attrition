@@ -24,7 +24,7 @@
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch128g \
 #       --map 14 --end-frame 780 --log-window 630 780 --timeout 3600 --no-ffwd --twin ~/ron-golden/ch128 \
 #       --cover $'cover=1\nwindow=636-770' \
-#       --detail end:UNITS=3,DEATHS=1,LEADERS=2,BUILDS=7,GROUPS=1 \
+#       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter128.cmd
 # Readings and their killers, before the take: (A) theirs closes or leaves army 1/0's group on 764 (the slot's list
