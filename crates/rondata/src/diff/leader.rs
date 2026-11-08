@@ -468,6 +468,12 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     out.push(("ages".to_string(), i64::from(t.ages)));
     out.push(("epochs".to_string(), i64::from(t.epochs)));
     out.push(("discovered".to_string(), i64::from(t.discovered)));
+    // **And the two queued counters beside them** (item 3982, `docs/AI.md`
+    // §414): `ages_queued` (`+0x67f4`) and `epochs_queued` (`+0x67f5`),
+    // the bytes `Build::queue_up` raises for an age or an epoch and
+    // `Build::unqueue` and `Build::clean_queue` take down.
+    out.push(("ages_queued".to_string(), i64::from(t.ages_queued)));
+    out.push(("epochs_queued".to_string(), i64::from(t.epochs_queued)));
     // **The government** (item 706): `LeaderData::gov`, the last one
     // `gain_tech` step 9 wrote, as the dump's `TypeIndex`. It sat on
     // [`UNMODELLED`] as "governments are not modelled" while
@@ -767,6 +773,8 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "territory",
         "city_num",
         "known_rares",
+        "ages_queued",
+        "epochs_queued",
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);

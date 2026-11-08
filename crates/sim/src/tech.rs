@@ -731,6 +731,12 @@ pub struct PlayerTech {
     pub epochs: i32,
     /// `discovered`: everything else `gain_tech` counted.
     pub discovered: i32,
+    /// `ages_queued` (`LeaderData +0x67f4`): the ages queued anywhere, a
+    /// byte `Build::queue_up` raises and `Build::unqueue` and
+    /// `Build::clean_queue` take down unguarded (item 3982).
+    pub ages_queued: u8,
+    /// `epochs_queued` (`+0x67f5`): the same for the 28 library techs.
+    pub epochs_queued: u8,
     /// `epoch[cat]`: the level on each line, indexed by [`Line`].
     pub epoch: [i32; 4],
     /// `age_stamp`: the frame each age was gained on.
@@ -781,6 +787,8 @@ impl PlayerTech {
             ages: 0,
             epochs: 0,
             discovered: 0,
+            ages_queued: 0,
+            epochs_queued: 0,
             epoch: [0; 4],
             age_stamp: [None; LEVELS],
             tribe: 0,
