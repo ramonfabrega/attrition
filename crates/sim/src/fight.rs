@@ -3399,6 +3399,9 @@ impl Sim {
     /// is not carried: no building flag is compared.
     pub(crate) fn struck_alive(&mut self, i: usize) {
         let c = self.captain_of(i);
+        if let Ok(w) = std::env::var("RON_CR_PROBE") && w == format!("{}/{}", self.units[c].owner, self.units[c].index) {
+            eprintln!("CRPROBE {} struck {}/{} -> captain {}/{} idle {} hp {}", self.frame, self.units[i].owner, self.units[i].index, self.units[c].owner, self.units[c].index, self.units[c].idle, self.units[i].health);
+        }
         self.units[c].cant_reach = true;
     }
 
