@@ -10248,7 +10248,7 @@ consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so
 
 ## Parked by item 3969, 2026-11-07 — a Library closed with a technology queued
 
-- **3969a. `ages_queued` and `epochs_queued` are kept by nobody here.** `Build::queue_up` raises the leader's
+- **3969a. ~~`ages_queued` and `epochs_queued` are kept by nobody here.~~** Carried, compared and read by item 3982 (`docs/AI.md` §414). `Build::queue_up` raises the leader's
   `ages_queued` (`+0x67f4`) for an age and `epochs_queued` (`+0x67f5`) for an epoch, and `Build::unqueue` and
   `Build::clean_queue@00620b60:132`–`:158` take them down. run1540 prints `epochs_queued` 0 → 1 on 622 and → 0 on 681,
   beside `num_queued[551]` (`docs/GOLDEN.md` §175). This crate carries neither, and both keys stand on
@@ -12910,7 +12910,7 @@ score.
 - **3783a. The age and epoch catch-up terms** (`docs/GOLDEN.md` §149.9): `train_time@006508c0`'s `LAB_00651454`
   (an age, against every leader's `ages + ages_queued`) and `LAB_00651510` (an epoch, against `ages + epochs`),
   `t × (2·num_nations − k + 2) / (2·num_nations + 2)` with `k` counting a leader ahead once as a teammate and twice
-  otherwise. ~~The epoch's~~ is built by item 3790 (`Sim::epoch_catch_up`, `docs/GOLDEN.md` §150.4); the age's stays. They are the held-elsewhere term's siblings and stay `research_rares`' SEAM. 3783's predicate
+  otherwise. ~~The epoch's~~ is built by item 3790 (`Sim::epoch_catch_up`, `docs/GOLDEN.md` §150.4); ~~the age's stays~~ the age's by item 3982 (`Sim::age_catch_up`, `docs/AI.md` §414). They are the held-elsewhere term's siblings and stay `research_rares`' SEAM. 3783's predicate
   mutation (the term widened to ages and epochs) failed none of the 114 `first_parting`s: no floor on file
   researches an age or an epoch another seat leads in where the term would land. It names no score.
 - **3783b. `num_players` read as the seat count** (§149.9): `Sim::held_elsewhere` takes `players.len()` for

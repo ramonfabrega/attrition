@@ -42,7 +42,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            657600,
+            // Item 3982: 657600 -> 658080, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            658080,
             "120 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
@@ -248,7 +249,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1879640,
+            // Item 3982: 1879640 -> 1881012, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            1881012,
             "343 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -432,7 +434,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            3863400,
+            // Item 3982: 3863400 -> 3866220, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            3866220,
             "705 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -629,7 +632,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            2805760,
+            // Item 3982: 2805760 -> 2807808, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            2807808,
             "512 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -893,7 +897,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1408360,
+            // Item 3982: 1408360 -> 1409388, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            1409388,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1021,7 +1026,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1408360,
+            // Item 3982: 1408360 -> 1409388, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            1409388,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1171,7 +1177,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1408360,
+            // Item 3982: 1408360 -> 1409388, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            1409388,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1411,7 +1418,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1408360,
+            // Item 3982: 1408360 -> 1409388, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            1409388,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
@@ -1557,7 +1565,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1408360,
+            // Item 3982: 1408360 -> 1409388, two more keys a leader a block (`ages_queued`, `epochs_queued`).
+            1409388,
             "257 blocks x 2 leaders x (1,065 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {

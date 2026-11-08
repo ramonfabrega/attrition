@@ -15283,7 +15283,8 @@ new test fail. Held. Every lobby's `first_parting` holds (116).
 **The next word, frame 1382**: ours 20 draws against theirs' 21, parting at index 2: ours
 `Leader::produce_building+0x1805` where theirs spends `Leader::make_stuff+0x63d` (closed, §150.5).
 
-**What is not established**: the age's catch-up (`LAB_00651454`, `ages_queued`) stays 3783a; `is_team`'s
+**What is not established**: ~~the age's catch-up (`LAB_00651454`, `ages_queued`) stays 3783a~~ (built by item 3982,
+`docs/AI.md` §414); `is_team`'s
 team-style-7 arm is a `SEAM` (3790a); the frame theirs gains City State is inferred from the replans and the queue
 frames, never printed.
 
@@ -18624,9 +18625,9 @@ windows' compared counts each rose by 85 keys a block, and nothing parted.
 **Mutations**: the journal's (`docs/journal/2026-11-07-item-3969.md`), on the committed tree.
 
 **Not established.**
-- `ages_queued` and `epochs_queued`. This crate keeps neither. Every Library technology is an age or an epoch, and
+- ~~`ages_queued` and `epochs_queued`. This crate keeps neither. Every Library technology is an age or an epoch, and
   run1540 moves `epochs_queued` 0 → 1 → 1 → 0 beside `num_queued`. Both keys stand on the coverage pin's unread list
-  (parked 3969a).
+  (parked 3969a).~~ Carried and compared by item 3982 (`docs/AI.md` §414): 0 → 1 → 1 → 0 on both sides.
 - The Disband-at-the-head exception and a hand-off past the next Library's capacity. Both are built, and no staging
   reaches either.
 - `get_first_library`'s `alive` term. It is built and held by nothing: a closed building has left its city before
