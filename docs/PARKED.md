@@ -3825,6 +3825,15 @@ test that said so was outside the lane's filters, so the first whole gate found 
 melee or a word item adds `audit::` (the seventy-third's AI items carry it by hand), and `brief.py` adds it for the `residue`
 kind on a `Melee:` row; red first on 3975's filters. Names no score; the loop's.
 
+## Loop, filed 2026-11-08 — the seventy-third tranche's
+
+(4001) **A bit's writer is grepped in the executable before a packet is booked for it** (3983's "for the Loop"): the booking ordered a
+packet off run547's 10363 to name who writes the decoys' `flags` `0x10`; an instruction-level grep of the executable (`or byte
+[r+8], 0x10`) and the decompile's `| 0x18` named `check_idle@006032c0:69` in two commands, no packet taken and the capture lane
+not held — and would for any bit at a known offset. Candidate: a row of the brief checklist and `tools/brief/frame.md` (a "who
+writes this bit" question takes the grep before the packet), red first on a brief that books a packet for a bit. Names no score;
+the loop's.
+
 ## Loop, filed 2026-11-07 — the seventy-second tranche's
 
 **3977** (`frame.py` cut from the frame to the dump's end; 3975's "for the Loop") — **built** by the seventy-third pass, an Opus 5.5 subagent's, red first (run1542's 651: 2,013,317 lines cut → 65,256; the cut ends at the next `BEGIN FRAME` whatever its number, a strided dump writing one every 50 frames; `tools/explore/test_frame_cut.py`), its text kept in `docs/audit/2026-11-07-fable-pass-73.md` ("Rulings"). The row as filed: (3977) **`tools/gamelog/frame.py` cuts from the frame to the dump's end, not to the next frame** (3975's "for the Loop"):
