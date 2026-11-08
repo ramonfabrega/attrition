@@ -7059,6 +7059,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO: i64 = 1400;
 /// `chapter_one_hundred_and_thirty_two_s_window_is_widened_whole`'s
 /// window: run1548.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO: (i64, i64) = (604, 1401);
+/// **Chapter one hundred and thirty-three** (item 3992, `docs/GOLDEN.md`
+/// §185, run1550): who=1's Dock `1/2006` on who=0's water with one unowned
+/// shore tile in its ring does not bleed (`check_enemy_adjacent@00638d70`
+/// in place of the own cell), its control `1/2007` bleeds 8 every 32
+/// frames, and the Fort `1/2008` with Fortification and a General inside
+/// takes `0/6` at `attack_dist` 2520 on block 649, inside 14 tiles.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE: i64 = 1000;
+
+/// `chapter_one_hundred_and_thirty_three_s_window_is_widened_whole`'s
+/// window: run1550.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE: (i64, i64) = (599, 1001);
 
 /// **Chapter one hundred and thirty-four** (item 3991, `docs/GOLDEN.md`
 /// §184, run1549): land-based air, the second three. A mixed strike's

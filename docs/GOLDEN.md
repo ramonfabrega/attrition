@@ -19385,12 +19385,88 @@ driver takes 605..1400, 795 blocks.
 
 No cover twin was taken.
 
-## 185. Reserved for the next item on the rules track
+## 185. Chapter one hundred and thirty-three — a dock astride a border bleeds by its ring, and a Fort's upgraded reach with a General inside; closed at 1000 (item 3992, run1550)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** named three arms: adjudication 5 row 36 (`BuildTypeData::check_enemy_adjacent@00638d70`, the dock's
+ring in `Wall::process@00640450:209`–`:219`), parked 3970b with adjudication 5 row 39 (`FORT_UPGRADE_RANGE` and
+`GENERAL_BUILDING_RANGE`, built in `sim::build_family` and bound by no walk), and adjudication 4 row 64
+(`WorldData::is_really_seen`, `in_enemy_territory`'s last arm, parked 2250). The dock was to be a harness
+probe first, staged only if no dump answered.
+
+**The dock: the disk answers nothing.** An env-guarded probe (`RON_PROBE_DOCK`, reverted whole) set each dock's
+own-cell owner beside the ring on every 32-frame step of every `diff::` replay: 218,820 visits over 34 docks, **0
+disagreements**. Every ring ended on its first land tile, always the dock owner's own; 28 visits found no land in
+the ring. So it was staged.
+
+**The Fort: the disk answers nothing either.** Forts on disk hold `FORT_UPGRADE_RANGE` levels 1–2 (AI games), but
+none has a General inside, and none has a target between the two reaches. Only chapter 126's Tower holds a General.
+Staged.
+
+**The cityless placer: not staged** (parked 3992a). `in_enemy_territory@00638b40` reaches `is_really_seen` only for
+a placer with no city (`+0x3f8 == 0`); the probe saw it on no replay. In a golden lobby the last city's loser is
+defeated (`Leader::lost_a_city@006dc6d0`: elimination not 2 or 3, `field_0x4 & 1` clear, `+0x3f8 == 0` →
+`defeat`). Only a Nomad lobby holds a cityless player (run1068, `STARTING_TOWN=0`), and no word walks one.
+
+```text
+check_enemy_adjacent(dock):                                  # BuildTypeData::check_enemy_adjacent@00638d70
+    last = -1
+    for x in corner.x-1 ..= corner.x+xs:                     # x outer
+        for y in corner.y-1 ..= corner.y+ys:                 # y inner
+            skip the footprint, the ring's four corners, off-map tiles, ocean tiles (mask & 0x30 == 0x20)
+            o = owner(x, y)
+            if o < 0 or o == who or allied both ways: return o      # Wall::process refuses each
+            last = o                                         # a rival's: remembered, passed
+    return last                                              # every land tile a rival's, or -1: no land
+
+Wall::process enemy-land owner:  is_dock(type) (vslot +0x108) ? check_enemy_adjacent : owner of own cell
+```
+
+So a dock on a rival's water with one unowned or friendly shore tile in its ring does not bleed.
+`get_damage`'s armour read (`WallData::in_unfriendly_territory`) still asks the own cell for a dock.
+
+**Built.**
+- `Sim::check_enemy_adjacent` (`place.rs`), the ring as above.
+- `Sim::bleeds_in_enemy_land` (`fight.rs`), `Wall::process`'s owner: a dock asks the ring, anything else its own
+  cell. `process_building`'s enemy-land hit calls it.
+- Test: `cities_tests::a_dock_bleeds_only_when_every_shore_tile_of_its_ring_is_a_rival_s`.
+- Harness: chapter 133's two tests (`cases_80_89`), `WANT_CH133`, `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE`,
+  its widening, the floors, and the coverage driver (600..1000, 400 blocks).
+
+**The staging** (`tools/gamelog/golden/chapter133.cmd`, chapter 125's lobby, map 14). A staging map (part of the
+probe) showed who=0's border along the lake at x≈60.
+- Dock `1/2006` at tile (59, 152), (11328, 29184): its own cell is who=0's water, and its ring's last tile is
+  unowned shore. Dock `1/2007` at (57, 154) is the control: its ring is all who=0's land.
+- Fort `1/2008` at (200, 104) (608), Fortification on for who=1 (610), a General garrisoned in it (612, 620).
+- Lookout `1/2009` at (182, 96) (636) lights the ground, and who=0's Citizen `0/6` stands at (35448, 20088) (642),
+  `attack_dist` 2520: inside 14 tiles (2688), outside 13 (2496).
+
+The Fort took six walks. A building's `do_attack` runs every 32 frames and searches only what its owner's fog shows:
+a who=1 Citizen as spotter lit nothing (seen false at `attack_dist` 2328), and an approaching unit was first seen
+inside 13 tiles, which made the reach moot. A Lookout and a target that stands still did it. On ours the full walk
+targets `0/6` on 648; with either term off it never does.
+
+**Killers, before the take**: (1) `1/2006`'s `damage` rises by 8 on a step; (2) `1/2007`'s never rises; (3) the
+Fort never names `0/6` in `attack_ox`; (4) the Fort's first target block is later than ours (648). **None fired.**
+`1/2006` reads `damage` 0 to the end, which the own-cell tree bled to 96. `1/2007` reads 8 on block 618, then +8
+every 32 frames, 96 on 970. `1/2008` names `attack_ox 6 attack_whom 0` on block 649 (frame 648), as ours.
+
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE` = **1000 of 1,000**, closed whole. The widening over
+600..1000 parts only chapter 125's eleven standing `form` rows (`WANT_CH133`).
+
+**Mutations** (`tools/mutate.py`):
+- the hit asks `in_unfriendly_territory` (the ring off): the word holds at 1000; the widening parts
+  `619 1/2006 build:damage`, ours 8, theirs 0; the unit test fails.
+- `GENERAL_BUILDING_RANGE` off: the word falls 1000 → 648, the values parting at 649.
+- `FORT_UPGRADE_RANGE` off: the word falls 1000 → 648.
+
+The ring is held by the widening and the unit test, not the word: a building's `damage` is not what the word
+compares.
+
+**What is not established**: the cityless placer's `is_really_seen` (parked 3992a); `Wall::process`'s ever-seen
+marking of enemy land (parked 3992b); the ring's tie-breaks a capture does not reach — a ring of two rivals (the
+walk answers the last one, x outer), an ally one way only, and a ring with no land (−1, no bleed) rest on the
+reading and the unit test. The Roman, Colosseum and Tikal range terms stay unbound (3970b). No cover twin was
+taken.
 
 ## 186. Chapter one hundred and twenty-nine, 862 → 911 — a squad short a figure regrows it under the heal; the reload counts down inside (item 3993, run1545)
 

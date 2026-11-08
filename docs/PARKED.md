@@ -5345,7 +5345,8 @@ with no change of answer.
 (2250) **Three arms the ten's sweeps draw away from, each a SEAM or a shape** (names no score).
 `UnitTypeData::can_attack_ground`'s rush-rules gate (`game+0x32`, `current_age`, the frame against
 `rush_rules[n]+0x3c · 900`) is drawn off: this crate plays without rush rules. `BuildTypeData::in_enemy_territory`'s
-`WorldData::is_really_seen` is answered a row in the sweep, but the port's `Sim::in_enemy_territory` takes it false.
+`WorldData::is_really_seen` is answered a row in the sweep, but the port's `Sim::in_enemy_territory` takes it false (a cityless placer only; no golden lobby has one, parked
+3992a, `docs/GOLDEN.md` §185).
 `UnitData::curr_uber_size`'s overridden `is_captain` slot is drawn off (every figure carries `Unit::vftable`); and
 swapping `ground_attacker`'s four `has_objmask` masks passes, the answer being an OR of pure predicates with the
 stubbed slot answered in call order (2219's call log would see it).
@@ -10683,7 +10684,9 @@ a site. Not booked: no score names it.
 - **3970b. The range terms the walk cannot part.** `building_range_terms`' `FORT_UPGRADE_RANGE`, Roman, Colosseum and
   Tikal terms, and the General's `GENERAL_BUILDING_RANGE` in both blocks. Chapter 126's Tower first takes `0/6` at 7.6
   tiles, its reach never binding, and its City shoots `0/7` inside 8. The Militia and temple terms stand on
-  `cities_tests::a_militia_tower_and_a_templed_city_reach_a_tile_further`. It names no score.
+  `cities_tests::a_militia_tower_and_a_templed_city_reach_a_tile_further`. It names no score. ~~`FORT_UPGRADE_RANGE`
+  and the General's `GENERAL_BUILDING_RANGE`~~ bound by item 3992 (`docs/GOLDEN.md` §185, run1550: either off, the
+  word 1000 → 648); the Roman, Colosseum and Tikal terms stay unbound.
 - **3970c. `BuildData::hits`' single-precision loss while a Disband runs** (T71-8's third row, run1512's take to widen)
   is not built. No widening parts on it. It names no score.
 - **3970d. A cell's own building chain order.** `Sim::building_under` walks the nine cells in `move_x`/`move_y` order
@@ -15536,13 +15539,17 @@ words and edits nothing here; a refill lands when two remain.
   point. A staging is an Airbase filled to `num_aircraft_limit` before the `@garrison`, and an Airbase razed under a
   Helicopter on a strafe home. It names no score.
 
-## Parked by the next landing, slot DE — reserved
+## Parked by item 3992, 2026-11-08 — the building defence remainder
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3992a. The cityless placer's `WorldData::is_really_seen`** (`docs/GOLDEN.md` §185; adjudication 4
+  row 64, parked 2250). `in_enemy_territory@00638b40`'s last arm asks it only for a placer with no city (`+0x3f8 ==
+  0`), reached on no replay; `Sim::in_enemy_territory` takes it false (`place.rs`). A golden lobby defeats the last
+  city's loser (`Leader::lost_a_city@006dc6d0`), so the route is a Nomad lobby (`STARTING_TOWN=0`, run1068's), which
+  no word walks. Unread with it: `is_really_seen`'s `World +0x15c` read, its `0x800` and `num_units[0x141]` exits, and
+  the Spanish `0x2000` own-tile shortcut. Score: none — a Nomad lobby's word, if one is booked.
+- **3992b. `Wall::process@00640450`'s ever-seen marking on enemy land** (`docs/GOLDEN.md` §185). The enemy-land arm
+  also sets a `field_0x62` bit and calls `check_ever_seen(1)`; this crate carries neither. No dumped field is known to
+  print it. Score: none.
 
 ## Parked by item 3991, 2026-11-08 — land-based air, the second three
 

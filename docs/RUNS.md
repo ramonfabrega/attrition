@@ -36194,6 +36194,23 @@ and who 1 (flags 1, tribe 11). `~/ron-golden/run1547` links to `ch131`.
 - The Disband: `0/2008` reads `queued 1 [666 DISBAND]` from 632 at 100 a frame, and `queued 0` on 652; `0/2005`
   stays empty, and `0/2008` stands to the end. The City's next Citizen is `0/4` again from 782.
 
+## run1550 — chapter one hundred and thirty-three: a dock astride a border, and a Fort's upgraded reach with a General inside (2026-11-08, item 3992, `att-3992`)
+
+`docs/GOLDEN.md` §185. **What the disk could not answer**: a probe over every `diff::` replay (`RON_PROBE_DOCK`,
+reverted) set each dock's own-cell owner beside `check_enemy_adjacent@00638d70`'s ring on every 32-frame step, and
+found 0 disagreements in 218,820 visits over 34 docks. No Fort on disk holds a General, and none has a target between
+the base and the upgraded reach.
+
+Recipe `tools/gamelog/golden/chapter133.cmd`, chapter 125's lobby: who=1 Docks `1/2006` at tile (59, 152) (604) and
+`1/2007` at (57, 154) (606); a Fort `1/2008` at (200, 104) (608), Fortification on (610), a General garrisoned in it
+(612, 620); a Lookout `1/2009` at (182, 96) (636); who=0's Citizen `0/6` at (184, 104) (642).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch133 --map 14 --end-frame 1000
+--log-window 600 1000 --timeout 3600` with the cmd header's three detail sets. `success`, lifecycle verified,
+`map_verified`, map style 14, 1001 frames, `last_frame` 1000, seed 12345. `~/ron-golden/run1550` links to `ch133`.
+- run1550 (`ch133`, `cover=0`, pool lane 1): 34.0 s launch to exit, no relaunch. The word's. No cover twin was taken.
+- The docks: `1/2006` reads `damage` 0 to the end; `1/2007` reads 8 on block 618, then +8 every 32 frames, 96 on 970.
+- The Fort: `1/2008` names `attack_ox 6 attack_whom 0` on block 649 (frame 648).
 ## run1548 — chapter one hundred and thirty-two: land-based air — a blow on an Airbase scrambles its Fighter, its homes razed under its planes, and a Helicopter flown into its own Airbase (2026-11-08, item 3990, `att-3990`)
 
 `docs/GOLDEN.md` §183. **What the disk could not answer**: no pinned capture holds a plane inside a struck base.

@@ -643,6 +643,55 @@ impl Sim {
         false
     }
 
+    /// `BuildTypeData::check_enemy_adjacent@00638d70` on a standing dock:
+    /// the owner `Wall::process@00640450:209`–`:219` takes **in place of
+    /// its own cell's** for a type whose vslot `+0x108` (`is_dock`)
+    /// answers (item 3992, `docs/GOLDEN.md` §185). The ring is one tile
+    /// round the footprint at the building's `tile_corner`, corners and
+    /// off-map tiles skipped and ocean tiles (`mask & 0x30 == 0x20`) too,
+    /// walked **x outer, y inner**. The first land tile whose cell is
+    /// nobody's (below 0), the dock owner's own or an ally's both ways is
+    /// handed back at once — `Wall::process`'s three refusals take each —
+    /// and a rival's is remembered and passed; so the walk answers the
+    /// last rival's owner only when every land tile of the ring is a
+    /// rival's, and −1 when the ring holds no land. A dock on a rival's
+    /// water with one unowned shore tile beside it does not bleed.
+    pub(crate) fn check_enemy_adjacent(&self, b: usize) -> i32 {
+        let bd = &self.buildings[b];
+        let Some(ty) = bd.ty else {
+            return -1;
+        };
+        let who = bd.owner;
+        let corner = self.tile_corner(ty, bd.pos);
+        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (x0, y0, x1, y1) = (corner.x - 1, corner.y - 1, corner.x + xs, corner.y + ys);
+        let mut last = -1;
+        for x in x0..=x1 {
+            for y in y0..=y1 {
+                let t = Pos::new(x, y);
+                let inside = x >= corner.x && x < x1 && y >= corner.y && y < y1;
+                let ring_corner = (x == x0 || x == x1) && (y == y0 || y == y1);
+                if inside || ring_corner || !self.world.tile_in_bounds(t) || self.is_ocean_tile(t) {
+                    continue;
+                }
+                let o = owner_byte(self.tile_owner(t));
+                let Ok(p) = u8::try_from(o) else {
+                    return o;
+                };
+                if friendly_ground(
+                    o,
+                    i32::from(who),
+                    self.allied_with(who, p),
+                    self.allied_with(p, who),
+                ) {
+                    return o;
+                }
+                last = o;
+            }
+        }
+        last
+    }
+
     /// `BuildTypeData::count_water`: footprint tiles that are ocean.
     pub(crate) fn count_water(&self, ty: usize, corner: Pos) -> i32 {
         self.footprint(ty, corner)
