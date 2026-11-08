@@ -568,7 +568,8 @@ mod tests {
         // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
         // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
         // item 3969: +85 keys a leader (`num_queued` for every technology).
-        pin_eq!(w.missing.len(), 1210, "the keys run382 does not print");
+        // item 3982: +2 keys a leader (`ages_queued`, `epochs_queued`), which this record does not print.
+        pin_eq!(w.missing.len(), 1212, "the keys run382 does not print");
         pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"

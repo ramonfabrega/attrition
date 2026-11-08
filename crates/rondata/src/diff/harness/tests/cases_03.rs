@@ -1605,7 +1605,8 @@ mod bodies {
             // item 3255: +47 keys a leader (the rare masks and `rares_collected`).
             // item 3964: +5 keys a leader (`retargets` and the four garrison counts).
             // item 3969: +85 keys a leader (`num_queued` for every technology).
-            1208,
+            // item 3982: +2 keys a leader (`ages_queued`, `epochs_queued`), which this record does not print.
+            1210,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -1684,8 +1685,9 @@ mod bodies {
             // does not print. Item 3255: +47, the rare masks and
             // `rares_collected`. Item 3964: +5, `retargets` and the four
             // garrison counts. Item 3969: +85, `num_queued` for every
-            // technology.
-            1_208 + 1_531 + 2,
+            // technology. Item 3982: +2, `ages_queued` and
+            // `epochs_queued`.
+            1_210 + 1_531 + 2,
             "the keys run96's records do not carry"
         );
         pin_eq!(
