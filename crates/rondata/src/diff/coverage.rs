@@ -3765,6 +3765,8 @@ fn a_key_family_strips_every_index() {
 fn mask_and_skip_failures(
     masks: &BTreeMap<String, (u64, u64)>,
     skipped: &BTreeSet<(String, String)>,
+    bits_pin: &[(&str, u64)],
+    skips_pin: &[(&str, &str, usize)],
 ) -> Vec<String> {
     let mut wrong = Vec::new();
     let unread_bits: BTreeMap<&str, u64> = masks
@@ -3772,7 +3774,7 @@ fn mask_and_skip_failures(
         .map(|(k, (set, read))| (k.as_str(), set & !read))
         .filter(|(_, bits)| *bits != 0)
         .collect();
-    let pinned_bits: BTreeMap<&str, u64> = UNREAD_BITS.iter().copied().collect();
+    let pinned_bits: BTreeMap<&str, u64> = bits_pin.iter().copied().collect();
     for (k, &bits) in &unread_bits {
         let pin = pinned_bits.get(k).copied().unwrap_or(0);
         if bits & !pin != 0 {
@@ -3798,10 +3800,8 @@ fn mask_and_skip_failures(
             .or_default()
             .push(key.as_str());
     }
-    let pinned_skips: BTreeMap<(&str, &str), usize> = SKIPPED_BY_THE_LEADER_COMPARATOR
-        .iter()
-        .map(|&(r, k, n)| ((r, k), n))
-        .collect();
+    let pinned_skips: BTreeMap<(&str, &str), usize> =
+        skips_pin.iter().map(|&(r, k, n)| ((r, k), n)).collect();
     for ((record, family), keys) in &families {
         let pin = pinned_skips
             .get(&(*record, family.as_str()))
@@ -3836,7 +3836,8 @@ fn mask_and_skip_failures(
 }
 
 /// The two pins' arithmetic on a synthetic walk: a bit set and unread is
-/// named, a skipped key family is counted.
+/// named, a skipped key family is counted, and a pin row the walk no
+/// longer measures is named stale.
 #[test]
 fn the_mask_and_skip_pins_name_what_they_measure() {
     let masks = BTreeMap::from([("Synthetic.mask".to_string(), (0b1011u64, 0b0011u64))]);
@@ -3844,13 +3845,30 @@ fn the_mask_and_skip_pins_name_what_they_measure() {
         ("SYNTH".to_string(), "num_queued[505]".to_string()),
         ("SYNTH".to_string(), "num_queued[512]".to_string()),
     ]);
-    let wrong = mask_and_skip_failures(&masks, &skipped);
+    let wrong = mask_and_skip_failures(&masks, &skipped, &[], &[]);
     assert_eq!(wrong.len(), 2, "{wrong:#?}");
     assert!(wrong[0].contains("Synthetic.mask: bits 0x8"), "{wrong:#?}");
     assert!(
         wrong[1].contains("SYNTH `num_queued[]`: 2 keys skipped"),
         "{wrong:#?}"
     );
+    // The measured pins hold; a stale bit and a stale family are named.
+    let exact = mask_and_skip_failures(
+        &masks,
+        &skipped,
+        &[("Synthetic.mask", 0x8)],
+        &[("SYNTH", "num_queued[]", 2)],
+    );
+    assert!(exact.is_empty(), "{exact:#?}");
+    let stale = mask_and_skip_failures(
+        &masks,
+        &skipped,
+        &[("Synthetic.mask", 0x8 | 0x4)],
+        &[("SYNTH", "num_queued[]", 2), ("SYNTH", "agendas[]", 6)],
+    );
+    assert_eq!(stale.len(), 2, "{stale:#?}");
+    assert!(stale[0].contains("bits 0x4 are compared now"), "{stale:#?}");
+    assert!(stale[1].contains("`agendas[]`: pinned 6"), "{stale:#?}");
 }
 
 /// **Every field the parser carries is compared by the shared instrument
@@ -4404,7 +4422,12 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         masks.contains_key("UnitDump.unit_masks"),
         "the mask recorder saw no `unit_masks` on {total_blocks} blocks"
     );
-    wrong.extend(mask_and_skip_failures(&masks, &skipped));
+    wrong.extend(mask_and_skip_failures(
+        &masks,
+        &skipped,
+        UNREAD_BITS,
+        SKIPPED_BY_THE_LEADER_COMPARATOR,
+    ));
     assert!(
         wrong.is_empty(),
         "the compared pin, over {} blocks and {} registrations:\n  {}",
