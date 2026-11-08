@@ -145,7 +145,9 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 3961 took `healing` off both `UNITDATA` paths and off
     // `BUILDDATA`**: `ObjectData::healing` as each record prints it on its
     // own level — the unit's against `sim::Unit::healing`, the building's
-    // against this crate's 0 (`docs/AI.md` §405). The `OBJECT` levels
+    // against this crate's 0 (`docs/AI.md` §405), and against
+    // `sim::Building::healing` since item 3987 (`docs/GOLDEN.md` §180). The
+    // `OBJECT` levels
     // print the same short and stay pinned.
     //
     // **Item 3960 took `num_queued` and `queue_time` off both `UNITDATA`

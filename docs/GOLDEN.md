@@ -18904,12 +18904,111 @@ them: a blow's size spends no draw.
 the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
 `blind::` is unmoved: run1544b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 180. Reserved for the next item on the rules track
+## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3961b, 3959a) named two arms: a Monarch, Comrade or CEO beside a damaged own building
+(`Build::process@0061edf0`'s arm to `0061f3b9`), and a wounded unit garrisoned by a player holding Herbal Lore. **The
+first arm's patriots are not those**: the arm's gate reads the leader's per-type counts at `+0x59c0`, `+0x59c8` and
+`+0x59c4` — `+0x56fe + ti × 2` at `0x161` THESENATOR, `0x165` THECEO and `0x163` THEPRESIDENT — and its walks ask
+`has_general` of the same three. The Monarch (`0x162`) and the Comrade (`0x164`) never reach it. All three types are
+shipped (`unitrules.xml`: The Senator, The President, The CEO). `FRENCH_SUPPLY_HEAL_RATE` is 20 and `UNIT_HEAL_RATE` is
+20/15/10/5. **The second arm was already built**: item 3961 ported `get_heal_level@006e12e0` and pointed the garrison heal
+at it (`Sim::heal_level`), so 3959a's level was read before this item. The chapter only measures it.
+
+**The arm, read off the decompile** (`Build::process:248`–`:291`). It runs after the tower's attack and before
+`do_queue`, on an active building:
+
+```text
+if (count[0x161] || count[0x165] || count[0x163]) && (damage || damage_frac)
+   && FRENCH_SUPPLY_HEAL_RATE && (o + frame) % rate == 0:
+    t = the cell's owner byte (+0xf) under the building, −1 for none
+    if has_general(0, 0x163) >= 0:                       # a President in reach
+        repair if t < 0 or is_ally(t)
+    elif t >= 0 and is_ally(t):
+        repair if has_general(0, 0x161) >= 0 or has_general(0, 0x165) >= 0
+repair: vslot +0x168(1, 0, 1) = Build::repair_damage — one point, the fraction cleared;
+        healing = max(rate, healing)
+```
+
+On a building, `has_general` is `find_hero` with `(x_size + y_size) × 0x60` of slack (`ObjectData::has_general@
+00646b00`'s vslot `+0x20` arm). The head of `Build::process` (`:71`) takes one off `healing` on every frame of an active
+building. A found President closes the second branch, so on an enemy's ground a Senator beside him repairs nothing.
+
+**The disk first.** run1544 (chapter 128, §179) already held a Senator three tiles from its struck Barracks `0/2007`,
+and the 11-07 scan predates it. Theirs never repairs that Barracks: `damage` climbs 4, 6, 11, … in 32-frame steps to
+94, and `healing` prints 0 on all 483 of its records. The arm read off the decompile says why: tile (131, 120) is
+nobody's (`ground=None` on the walk), and a Senator repairs only on allied ground. Built, run1544 stays whole at 1100
+— this crate's arm refuses there too — and that is the first killer, held on disk.
+
+**Staging** (`tools/gamelog/golden/chapter129.cmd`, chapter 128's golden start). Everything struck is who=0's;
+who=1's Hoplites strike it. The four killers are in the cmd file's header, written before the take. The staging was
+walked before the capture (`RON_STAGE=ch128:chapter129:900`). The first walk put arm one's Barracks at (24, 150),
+beside who=0's gatherers at (22, 149), and its attackers were drawn off onto them. It was moved to (36, 152).
+- **Arm 1, the Senator's branch on own ground**: Barracks `0/2007` at (36, 152), `ground=Player(0)`; Senator `0/6`
+  three tiles west; who=1's `1/6` squad three tiles east.
+- **Arm 2, the President's branch on nobody's ground**: Barracks `0/2008` at (131, 120), `ground=None`; President
+  `0/7` at (128, 120); who=1's `1/9` squad at (140, 120).
+- **Arm 3, the garrison heal at level 1**: `tech who=0 herbal_lore on` on 600. Hoplites `0/8..0/10` at (30, 172) are
+  struck by who=1's `1/12` from 640 and garrisoned in the capital `0/2000` (`@garrison` on 700, inside on 853).
+
+**What the original does** (run1545 `cover=0`, run1545b `cover=1 --no-ffwd --twin`; `docs/RUNS.md`).
+- **Arm 1**: `0/2007` is struck from block 636 (2 + 5/16, then 4 + 10/16 on 642) and prints 3/0 with `healing` 20 on
+  block 654: the repair on game frame 653, `(2007 + 653) % 20 == 0`. It counts down a point a block.
+- **Arm 2**: `0/2008` is struck to 4 on block 669 and prints 7/0 with `healing` 20 on block 673: a blow of 4 and the
+  repair on game frame 672, `(2008 + 672) % 20 == 0`, on the same frame.
+- **Arm 3**: `0/8` is inside on block 855 (`inside_up 2000`) and prints `healing` **15** on block 863, the heal on
+  game frame 862, and 15 again every fifteen frames.
+- The twin enters `Build::repair_damage` first on 653, `HeroesData::find_hero` on 608, `LeaderData::get_heal_level`
+  on 855 and `Unit::repair_damage` on 862. `rngcmp` 1101 of 1101 identical. No killer fired.
+
+**What this crate does** (built):
+- `Sim::patriot_repair` (`sim::heal`), called from `Sim::tick` between `process_building_combat` and the queue. The
+  gate reads `Sim::hero_counted` (the muster's count, split out of `Sim::hero_near`); the walks are `Sim::hero_near`
+  with the footprint slack; the ground is `World::owner_at` of the building's point and `Sim::is_ally`.
+- `Building::healing`, counted down in `process_building` past the active gate and before the ejection.
+- `BUILDDATA healing` is compared against it (`diff::harness`), and the `SEAM` is gone.
+- The stage walk prints a building's `healing` and `ground` and a unit's `heal`.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE` = **827**, open. The frame is not a repair or a heal
+  row. Ours spends ten draws to theirs' nine, the extra one `Guy::set_anim < Unit::move_step+0x823` at index 1. The
+  state parts first on 810, on who=1's `1/14`, arm three's attacker, as its target walks to the garrison. Theirs holds
+  order kind 1 with two orders, `orders_x/y` (5352, 31704) and `near` (−1, −1). Ours holds kind 10 at `0/10`, one
+  order, (5928, 32904) and `near` (10, 0) (parked 3987a).
+- **The widening.** Over 605..1100 (`(604, 1101)`, both directions) it parts on the eleven standing `form` rows, then
+  nothing until 810 (`WANT_CH129`, 345 rows). No `healing` or `damage` row on `0/2007` or `0/2008` parts in the
+  window: both repairs and both clocks agree to 1100. The `cant_reach` tally 8.
+- **Arm 3 is not held by the walk.** `UNITDATA healing` sat under the comparator's on-map gate, so a garrisoned unit's
+  clock was never compared. The level-0 mutation parted nothing, and that is how it was found. It is compared on or off
+  the map now (`diff::harness`), and no other window on disk moves. On run1545 it parts on 863: `0/8` heals inside at
+  theirs' 15 and not at all in ours. Both sides lose the struck figure `0/9` on block 810. On 863 theirs' squad holds a
+  new `0/9`, uid 20, born inside with 39 damage — a regrown figure, which this crate does not build (parked 3987b; item
+  3993's subject). Ours' squad is whole and does not heal. The level is held by
+  `cities_tests::the_garrison_heal_takes_the_heal_level_s_period` (Herbal Lore, 15 frames), and theirs' 15 on 863 is
+  the period that test asserts.
+- **Tests.** `heal::tests::a_patriot_repairs_its_leader_s_building_by_the_ground_under_it` (the two branches, the
+  phase, the count, a found President closing the Senator's branch),
+  `cities_tests::the_garrison_heal_takes_the_heal_level_s_period`, and the chapter's word and widening.
+- **Coverage.** The driver drives 638..1100, 462 blocks.
+
+**Mutations** (`tools/mutate.py`, each scored by the widening named):
+the Senator's branch ignoring the ground (run1544's widening, `0/2007` on 694: the count is carried, and the
+ground is what refuses there); the President's branch asking allied ground (run1545, `0/2008` on 673); the repair
+dropped (run1545, `0/2007` on 654); the building's clock frozen (run1545, `healing` on 654). The garrison heal read at
+level 0 failed nothing on the walk; it is held by the level test. The golden word holds none of them: a repair spends
+no draw.
+
+**Not established.**
+- The President's branch on an enemy's ground, and a found President closing the Senator's branch: the unit test only.
+  No capture holds a patriot beside its building on another player's ground.
+- The CEO's walk: it is the Senator's branch, and no capture fields a CEO beside a damaged building.
+- A patriot counted and off the map (the count gates, the walk finds none): no staging holds one.
+- The 810 parting (parked 3987a) and the regrown figure on 863 (parked 3987b).
+- The garrison heal at level 1 on a squad this crate holds the same as theirs: no walk holds one.
+
+**Coverage.** Diff-backed: the Senator's branch on own ground (arm 1), its refusal on nobody's ground (run1544's
+Barracks, §179's capture), the President's branch on nobody's ground (arm 2), the clock's write and countdown on a
+building. Theirs' garrison heal at heal level 1 prints the 15 the unit test asserts (arm 3); ours is not compared
+against it on a matching squad. Reading only: the rows under "Not established".
+`blind::` is unmoved: run1545b joins `TRACES`, and nothing it enters was `NEVER`.
 
 ## 181. Reserved for the next item on the rules track
 

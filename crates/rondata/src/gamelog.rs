@@ -2329,7 +2329,8 @@ pub struct BuildDump {
     /// `ObjectData::healing` (`+0x38`) as `BuildData::log_data` prints it on
     /// the record's own level (item 3961, `docs/AI.md` §405): written only
     /// by `Build::process`'s patriot repair and counted down there; 0 on
-    /// every building of every dump on disk.
+    /// every building of every dump on disk until run1545's two Barracks
+    /// (item 3987, `docs/GOLDEN.md` §180).
     pub healing: Option<i64>,
     /// `ObjectData::mylos` (`+0x3c`) as the `OBJECT` level under `WALLDATA`
     /// prints it (item 3965, `docs/AI.md` §409): the byte

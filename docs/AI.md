@@ -40309,7 +40309,8 @@ display clock, not a heal:
   (`(2r + 2) / 3`) for the Bomber's lineage (`is(0x130, 0)`, listing
   `6110b7`), and then writes the literal **1**, not the rate;
 - on a building, only `Build::process@0061edf0`'s patriot repair writes it
-  (a Monarch, Comrade or CEO arm on `FRENCH_SUPPLY_HEAL_RATE`), and the same
+  (~~a Monarch, Comrade or CEO arm~~ a Senator, President or CEO arm, item
+  3987, `docs/GOLDEN.md` §180, on `FRENCH_SUPPLY_HEAL_RATE`), and the same
   function counts it down.
 
 **The disk first.** A scan of the 1182 dumps on disk (2026-11-07) finds a
@@ -40362,8 +40363,9 @@ merge with item 3959's heals, and its `firsts` stands at their 57.
 The three building-field counts (run56, run57, run58) gain one field per
 linked building-frame, all agreeing.
 
-**What is not established.** The rate-10 arm's identity; the patriot repair
-on a building (parked 3961b: no dump holds one); the sea arm and the
+**What is not established.** The rate-10 arm's identity; ~~the patriot repair
+on a building (parked 3961b: no dump holds one)~~ built and diff-backed by
+item 3987 (`docs/GOLDEN.md` §180, run1545); the sea arm and the
 Antipater, hero and French-general arms of `process_healing`, which the crate
 does not build and which write the clock too.
 
