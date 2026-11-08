@@ -40918,12 +40918,59 @@ pace and its threshold (816, 817), the plane's birth inside the carrier
 0's `bucket`). Reading-only: the arm's three refusals (castable, ten, the
 aircraft limit), the pop-cap hold, the refund's ramp count.
 
-## 414. Reserved for the next item on the AI track
+## 414. `ages_queued` and `epochs_queued`, carried with their reader: run1540's 622 (item 3982, 2026-11-08)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+Parked 3969a: the leader's two queued bytes printed at `LEADERS=9` and stood
+on `coverage.rs`'s unread list, and this crate kept neither.
+
+**The writers**, read in the decompile, at every site this crate has:
+
+- `Build::queue_up@00620f40:518`–`:541`: `+0x67f4 += 1` for an age
+  (`TypeIndex` `0x220..0x226`), `+0x67f5 += 1` for an epoch
+  (`0x227..0x242`) — [`Sim::queue_tech_with`].
+- `Build::unqueue@006207c0:139`–`:164`: each `− 1`, a bare byte decrement
+  with no zero test (the `num_queued` beside it has one). Reached by a
+  cancel ([`Sim::cancel`]) and by a finished research (the tech arm of the
+  queue tick).
+- `Build::clean_queue@00620b60:132`–`:158`: the same, per entry — the
+  closes, `swap_team`, defeat ([`Sim::untrack_item`]'s technology arm).
+- `Leader::init@006e3930:838` zeroes both as one `short`.
+
+A library's hand-off (`Build::close:468`–`:521`, §175 of `docs/GOLDEN.md`)
+moves the entries and neither count. The one helper,
+`Sim::track_age_epoch_queued`, sits beside each `PlayerTech::queued[t]` write
+on the technology paths; a unit's tree entry is never an age or an epoch.
+
+**The reader** — `ObjectData::train_time@006508c0`'s `LAB_00651454`
+(decompile lines 424–449): for an age, over the eight leader slots in use,
+`n` gains 1 (an ally by `is_team`) or 2 for each leader with
+`ages_queued(me) + 1 + ages(me) < ages(p) + ages_queued(p)`, and the time
+takes `(2N − n + 2) / (2N + 2)`, `N` the game's `num_nations`; it then
+falls to the Greeks' arm. `Sim::age_catch_up`, ahead of
+`epoch_catch_up` in [`Sim::tech_time`]. The epoch's term (item 3790) reads
+`ages + epochs` and no queued count. The `SEAM` that stood at
+`greek_research` is gone.
+
+**The value diff.** run1540 (`ch125`), leader 0's `epochs_queued`: on 622
+ours 0 against theirs 1 with only the comparator wired (the red, the
+window's one parted key), then ours 1 = theirs 1 on 622 and 641 (the
+hand-off) and 0 = 0 on 681 (the last Library's close and refund). Its
+widening's `LEADERS_NINE_KEYS` 1209 → 1211: the two keys print at that
+level alone, so a `LEADERS=2` window reads neither.
+
+**What is not established.**
+- The byte's wrap: a decrement past zero is the original's (`255`), and no
+  capture holds one.
+- The age catch-up's reach in a measured game: its effect needs a leader
+  two ages ahead counting queued ones, and which pair windows hold one is
+  the gate's to say (the journal).
+- `is_team`'s team-style-7 arm, as the epoch's (`SEAM`).
+
+**Coverage.** Diff-backed: the raise on 621/622, the hand-off's no-move on
+641, the close's take-down on 681 (run1540). Reading-only: the cancel's and
+the finished research's take-down (held by
+`ages_and_epochs_queued_follow_the_queue`), and the catch-up's arithmetic
+(held by `the_age_catch_up_reads_the_queued_ages`).
 
 ## 415. Reserved for the next item on the AI track
 
