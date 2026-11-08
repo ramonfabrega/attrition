@@ -2042,52 +2042,199 @@ fn run717_s_missiles_fly_their_spline_s_count() {
 pub(crate) const RUN1066: &str =
     "gamelog-run1066-eastindies-persian-alltech-carrier-window-594-1300-cover1.txt";
 
-/// **A unit's own queue, against this crate's 0** (item 3960, `docs/AI.md`
-/// §404): `widen_block` compares `num_queued` and `queue_time` with this
-/// crate's side 0, since it holds no unit queue. Every walked window
-/// prints 0 on every unit; run1066's carrier `0/14` is the only record on
-/// disk that does not, and this pins where it parts: block **614**, theirs
-/// `num_queued 1` and `queue_time 100` against 0, then 203 blocks (614..816,
-/// the FIGHTERBOMBER's 20300-tick clock) until the plane is out on 817.
-/// Killed by a port of the carrier's queue, whose landing re-pins it to 0.
+/// **A unit's own queue, ours against theirs** (item 3960, `docs/AI.md`
+/// §404; item 3981, §413): run1066 walked from the coverage pair's start
+/// with its staging ([`carrier_script`]), and on every dumped block of
+/// 600..830 each unit's `num_queued` and `queue_time` read on both sides.
+/// The dump's carrier `0/14` holds a queue on 203 blocks — 1/100 on 614,
+/// 2 on 616..621, the cancel's 1/900 on 622 and 1/20300 on 816 — and the
+/// plane is out of the clock on 817.
+///
+/// Item 3960 pinned **203** parted records against this crate's 0, the
+/// crate holding no unit queue. Item 3981 ported the three writers
+/// (`sim::carrier_queue`) and taught the harness `@unqueueunit`: **203 →
+/// 0**, every record agreeing (on 614 both 1/100, on 816 both 1/20300, on
+/// 817 both 0/0 with the plane `0/15` aboard).
 #[test]
 fn run1066_s_carrier_queue_parts_against_the_crate_s_zero() {
-    let Some(path) = dump(RUN1066) else {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(start), Some(path)) = (dump(COVERAGE.start), dump(RUN1066)) else {
         return;
     };
     let mut ix = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
-    let at: Vec<usize> = ix
-        .frames()
-        .iter()
-        .enumerate()
-        .filter(|(_, f)| (600..=830).contains(&f.number))
-        .map(|(i, _)| i)
-        .collect();
-    // (block, who, o, num_queued, queue_time) of every unit that parts.
-    let mut parted = Vec::new();
-    for i in at {
-        let frame = ix.frame_state(i).unwrap();
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut built = crate::diff::testkit::with_named_sibling_initials(&[COVERAGE.start], |refs| {
+        let mut source = crate::capture::indexed::IndexedCapture::open(&start).unwrap();
+        let text = source.read_replay_setup().unwrap();
+        let log = Log::parse(&text);
+        let mut init = log.replay_initial().unwrap();
+        borrow_from_siblings(&mut init, refs);
+        if let Some(t) = trace(COVERAGE.long.1) {
+            borrow_pasture(&mut init, &t);
+        }
+        crate::diff::setup::with_staged_script(carrier_script(), || {
+            build_sim(&loaded, &init, Tuning::RON)
+        })
+    });
+    // (block, who, o, theirs, ours) of every unit whose queue the dump
+    // prints non-zero or this crate holds non-zero, and of every one that
+    // parts.
+    let (mut held, mut parted) = (Vec::new(), Vec::new());
+    while built.sim.frame < 830 {
+        built.tick();
+        let n = built.sim.frame;
+        if n < 600 {
+            continue;
+        }
+        let Some(at) = ix.frames().iter().position(|f| f.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
         for u in &frame.units {
-            let (nq, qt) = (u.num_queued.unwrap(), u.queue_time.unwrap());
-            if nq != 0 || qt != 0 {
-                parted.push((frame.n, u.who, u.o, nq, qt));
+            let theirs = (u.num_queued.unwrap(), u.queue_time.unwrap());
+            let ours = built
+                .sim
+                .unit_by_o(u.who as sim::Player, u.o as i16)
+                .map_or((0, 0), |i| {
+                    let x = &built.sim.units[i];
+                    (i64::from(x.num_queued), i64::from(x.queue_time))
+                });
+            if theirs != (0, 0) {
+                held.push((n, u.who, u.o, theirs));
+            }
+            if theirs != ours {
+                parted.push((n, u.who, u.o, theirs, ours));
             }
         }
     }
     assert_eq!(
-        parted.first(),
-        Some(&(614, 0, 14, 1, 100)),
-        "the first parting: the carrier 0/14 on block 614"
+        held.first(),
+        Some(&(614, 0, 14, (1, 100))),
+        "theirs: the queue opens on 614"
     );
-    assert_eq!(parted.len(), 203, "614..816, one record a block");
+    assert_eq!(held.len(), 203, "theirs: 614..816, one record a block");
     assert!(
-        parted.iter().all(|&(_, who, o, _, _)| (who, o) == (0, 14)),
-        "only the carrier parts"
+        held.iter().all(|r| (r.1, r.2) == (0, 14)),
+        "theirs: only the carrier"
     );
     assert_eq!(
-        parted.iter().find(|r| r.0 == 622),
-        Some(&(622, 0, 14, 1, 900)),
-        "the cancel on 620 takes num_queued 2 → 1 and leaves the clock"
+        held.iter().find(|r| r.0 == 622),
+        Some(&(622, 0, 14, (1, 900)))
     );
-    assert_eq!(parted.last(), Some(&(816, 0, 14, 1, 20300)));
+    assert_eq!(held.last(), Some(&(816, 0, 14, (1, 20300))));
+    eprintln!("run1066 queue parted: {:?}", parted.first());
+    // 203 before item 3981, the crate's side 0 on every record.
+    pin_eq!(parted.len(), 0, "the queue's parted records");
+}
+
+/// run1066's staging, `tools/gamelog/coverage/carrier3446.cmd`, read from
+/// the tree (item 3981).
+pub(crate) fn carrier_script() -> crate::golden::Script {
+    let path = format!(
+        "{}/../../tools/gamelog/coverage/carrier3446.cmd",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    crate::golden::Script::read(std::path::Path::new(&path))
+        .unwrap_or_else(|e| panic!("tools/gamelog/coverage/carrier3446.cmd: {e}"))
+}
+
+/// **run1066's staging, walked** (item 3981): the coverage pair's start
+/// stood up with the carrier's script staged by the harness's own tick, to
+/// `RON_CARRIER_STAGE` (default 830). Prints what each line did and the
+/// carrier's queue on each frame it moves.
+#[test]
+fn carrier_staging_walk() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some(path) = dump(COVERAGE.start) else {
+        return;
+    };
+    let to: i64 = std::env::var("RON_CARRIER_STAGE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(830);
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut built = crate::diff::testkit::with_named_sibling_initials(&[COVERAGE.start], |refs| {
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let text = source.read_replay_setup().unwrap();
+        let log = Log::parse(&text);
+        let mut init = log.replay_initial().unwrap();
+        borrow_from_siblings(&mut init, refs);
+        if let Some(t) = trace(COVERAGE.long.1) {
+            borrow_pasture(&mut init, &t);
+        }
+        crate::diff::setup::with_staged_script(carrier_script(), || {
+            build_sim(&loaded, &init, Tuning::RON)
+        })
+    });
+    while built.sim.frame < to {
+        built.tick();
+    }
+    let st = built.staged.as_ref().expect("the script is staged");
+    eprintln!(
+        "carrier staged to {to}: {} ran, {} unit(s), {} building(s); {} not acted on",
+        st.applied.ran,
+        st.applied.units,
+        st.applied.buildings,
+        st.applied.skipped_total()
+    );
+    for ((word, why), k) in &st.applied.skipped {
+        eprintln!("  {k:5} {word}: {why}");
+    }
+    for line in st.applied.landed.iter().chain(&st.applied.reached) {
+        eprintln!("  {line}");
+    }
+    // Every line runs: the `add`s land (the carrier `0/14` where the
+    // dump's stands, (1272, 7224)), and `@unqueueunit` is a staging verb.
+    assert_eq!(st.applied.skipped_total(), 0, "the staging refuses nothing");
+    // Fourteen of the fifteen by 830: the `@strike` written on 830 acts at
+    // the pump of 831 (`Script::apply`'s one frame late).
+    assert_eq!(st.applied.ran, 14, "the script's lines through 830");
+}
+
+/// run1066's window, 594..830: the six blocks before the staging's first
+/// line (600) and the plane's launch order on 830 (item 3981).
+pub(crate) const WIDENING_CARRIER_1066: (i64, i64) = (594, 830);
+
+/// run1066 walked from run651's start with `carrier3446.cmd` staged by the
+/// harness's own tick (item 3981): the carrier's two presses, the cancel
+/// and the plane's clock, every dumped record compared both directions.
+pub(crate) fn carrier_1066_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(carrier_script(), || {
+        harness::tests::widen_on_siblings(
+            &[COVERAGE.start],
+            true,
+            COVERAGE.long,
+            "run1066",
+            &[(RUN1066, WIDENING_CARRIER_1066.0)],
+            WIDENING_CARRIER_1066,
+            1,
+            &[614, 622, 817],
+            true,
+        )
+    })
+}
+
+/// **run1066's window, widened whole with its staging** (item 3981): the
+/// carrier `0/14`'s queue against the port (`sim::carrier_queue`).
+#[test]
+fn run1066_s_carrier_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = carrier_1066_window() else {
+        return;
+    };
+    let queue: Vec<_> = w
+        .firsts
+        .iter()
+        .filter(|((_, _, f), _)| f == "num_queued" || f == "queue_time")
+        .map(|(k, v)| format!("{k:?} {v:?}"))
+        .collect();
+    eprintln!("run1066 queue rows: {queue:#?}");
+    pin_eq!(w.blocks, 237, "every captured block");
+    pin_eq!(queue.len(), 0, "the carrier's queue parts nowhere");
+    pin_eq!(w.firsts.len(), 101, "initial run1066 baseline");
 }

@@ -2614,7 +2614,7 @@ fn unscanned_seams(text: &str) -> Vec<(usize, String)> {
 const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("rondata/src/artdata.rs", 1),
     ("rondata/src/golden.rs", 1),
-    ("rondata/src/input.rs", 2),
+    ("rondata/src/input.rs", 1),
     ("sim/src/ai_census.rs", 1),
     ("sim/src/air.rs", 2),
     ("sim/src/airbase.rs", 1),

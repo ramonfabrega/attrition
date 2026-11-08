@@ -1142,7 +1142,7 @@ pub fn group_city_gather(built: &mut Built, who: i32, buildings: &[i16], kind: i
 /// processed as [`sim::Sim::group_action_stop_spell`].
 ///
 /// SEAM: a unit's own queue (a carrier's `num_queued`), whose member takes
-/// `UnitOut::issue_unqueue` instead; no unit this crate stages has one.
+/// `UnitOut::issue_unqueue` instead; no staging presses stop on run1066's carrier.
 ///
 /// Returns the number of commands processed.
 pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
@@ -1261,8 +1261,8 @@ pub fn group_launch_flight(
 /// emulator — so it seats nothing in the pool. `p` is the slot, or the
 /// selector's negatives (−1 the last, −5 five, −10 all).
 ///
-/// SEAM: `process_unqueue`'s unit arm (`Unit::action_unqueue@005e1f20`, a
-/// unit's own queue) and its `uid` test; no capture cancels either.
+/// `process_unqueue`'s unit arm is [`unqueue_unit`] (item 3981).
+/// SEAM: the `uid` test.
 ///
 /// Returns the number of the player's live buildings named, 0 or 1: a
 /// single cancel on an infinite queue acts and removes nothing.
@@ -1274,6 +1274,25 @@ pub fn unqueue(built: &mut Built, who: i32, o: i32, p: i32) -> usize {
         return 0;
     };
     built.sim.action_unqueue(b, p);
+    1
+}
+
+/// **`CommandPackage::process_unqueue@009466f0`'s unit arm** (item 3981,
+/// `docs/AI.md` §413): `units[who][o]` active, then `Unit::action_unqueue
+/// @005e1f20(1)` ([`sim::Sim::unit_action_unqueue`]) — one plane off a
+/// carrier's own queue, its price back. `@unqueueunit`'s entry.
+///
+/// SEAM: the command's `uid` test; the staging names the unit it means.
+///
+/// Returns 1 for a live unit of `who`, else 0.
+pub fn unqueue_unit(built: &mut Built, who: i32, o: i16) -> usize {
+    let Some(u) = built.sim.unit_by_o(who as sim::Player, o) else {
+        return 0;
+    };
+    if !built.sim.units[u].alive() {
+        return 0;
+    }
+    built.sim.unit_action_unqueue(u, true);
     1
 }
 
