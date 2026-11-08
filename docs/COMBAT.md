@@ -5315,9 +5315,10 @@ which is read off the dump rather than the code~~ — struck by item 465;
 the `oxx` pair is group-wide and its reading is `docs/ORDERS.md` §16's.
 
 **Not established.** The packing latch `local_8` and the `unit_flags & 4`
-packer arm are unmodelled, and so are the hero and supply rings — the
+packer arm are unmodelled. ~~and so are the hero and supply rings — the
 latter need `is_hero`/`is_supply` and the attacker's vslot `+0x130`, and
-no capture on disk has either unit taking a hit. The group arm at the head
+no capture on disk has either unit taking a hit.~~ Built by item 4005
+(§34.6). The group arm at the head
 of `target_opportunity` — a grouped, non-combat-role victim forwarding to
 `Group::target_opportunity` — is still the seam `docs/GROUPS.md` §13
 names. And `0/5`'s gather residue above is named, not explained: whether
@@ -5325,6 +5326,35 @@ the original's human citizen is kept from the job by the leader flag
 `Unit::think@005f6e40` tests at `5f7179`, by its own idle threshold, or by a
 `find_gather_spot` that simply finds nothing, is the next question and is
 not answered here.
+
+### 34.6 The hero and supply rings (item 4005, `docs/GOLDEN.md` §193)
+
+`6006c1`–`600785`, past the gate. A hero (`+0xc4`, `UnitData::is_hero@
+0046ce60`: `unit_flags2 & 0x20`, the type's `+0x2b8`) with `unit_masks &
+0xa000` set (an Ambush `0x2000`, a Forced March `0x8000`) skips the arm
+and does not flee. Otherwise the ring is:
+
+```text
+if !is_hero && !is_supply (+0xcc, & 0x40):   ring = 0x600
+elif attacker vslot +0x20 == 0
+     && attacker vslot +0x130 != 0:          ring = 0x180
+else:                                        ring = 0x300
+```
+
+On `Unit::vftable` the attacker's `+0x20` is the folded
+`Window::get_button`, which returns 0, and `+0x130` is
+`UnitData::max_range`. On `Build::vftable` `+0x20` is the folded
+`Buffer::is_pending_load` and `+0x130` is `BuildData::max_range`. So a
+unit that shoots gives `0x180`, and a melee unit or any building gives
+`0x300`. `Sim::flee_from` reads `is_hero_unit`, `is_supply_unit`,
+`ambushing`/`marching` and `max_range_of`.
+
+**Diff-backed** on run1545 (chapter 129): the Senator `0/6` (TY 303, TI
+353), a hero, struck by who=1's Hoplite `1/12` on 946, takes `FLEETOORDER`
+to `(6792, 28632)` with `dest_angle` 317063168 on 947. That is 751 units
+out, the `0x300` ring. The `0x600` ring had put ours at `(7128, 27912)`.
+**Unit test only**: the `0x180` ring, a building attacker, the supply unit
+and the Ambush refusal (parked 4005b).
 
 ---
 

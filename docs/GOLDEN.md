@@ -18904,7 +18904,7 @@ them: a blow's size spends no draw.
 the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
 `blind::` is unmoved: run1544b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191; 911 since item 3993, §186; 997 since item 4004, §192)
+## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191; 911 since item 3993, §186; 997 since item 4004, §192; closed at 1100 since item 4005, §193)
 
 **The booking** (parked 3961b, 3959a) named two arms: a Monarch, Comrade or CEO beside a damaged own building
 (`Build::process@0061edf0`'s arm to `0061f3b9`), and a wounded unit garrisoned by a player holding Herbal Lore. **The
@@ -19451,12 +19451,59 @@ search's gate, not `do_attack`'s.
 
 **Coverage.** Diff-backed: the gate's skip, on run1545's capital on 911. Reading only: nothing new.
 
-## 193. Reserved for the next item on the rules track
+## 193. Chapter one hundred and twenty-nine closed at 1100 — a hero flees on the attacker's ring (item 4005, run1545)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: ch129's word 997. Theirs draws three `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (the Senator `0/6`'s
+figures going idle as its order list empties) and ours none, 2 draws to 5. `0/6` had stood parted since 947, so the
+cause was upstream. No run was taken (1558 unused): the disk answered it.
+
+**The unit.** `0/6` is TY 303, TI 353, The Senator: a land unit with three figures, a hero, and `attack` 0. It
+stands at (6456, 29304).
+
+**The first parting, 947, both sides.** On 946 who=1's Hoplite `1/12` strikes it. Both sides print `damage` 6,
+`damage_frac` 10, `damage_frame` 946 and `damage_o` 12 with `damage_who` 1, so the blow agrees. On 947 both take a
+`FLEETOORDER` at `QUEUE_FIRST`, `target_opportunity`'s flee arm (`docs/COMBAT.md` §34.2), but to different places:
+
+| field, block 947 | theirs | ours before |
+|---|---|---|
+| `orders_x/y` | (6792, 28632) | (7128, 27912) |
+| `dest_angle` | 317063168 | 307691520 |
+| distance out | 751 | 1,546 |
+
+Theirs flees 751 units, the `0x300` ring. Ours fled on the `0x600` that every other victim takes, and its longer
+path ran south around an obstacle. Its order list still held the flight on 997, when theirs' Senator stood at its
+spot and went idle.
+
+**The listing** (`Unit::target_opportunity@005fffc0`, `6006c1`–`600785`; `docs/COMBAT.md` §34.6). A hero whose
+`unit_masks & 0xa000` is set (an Ambush or a Forced March) does not flee. A hero or a supply unit then asks the
+attacker's vslot `+0x20`, which is 0 on a unit and true on a building, and then its `+0x130`, `max_range`. A unit
+attacker with a range gives `0x180`, and a melee unit or a building gives `0x300`. COMBAT §34.5 had listed the
+rings as unmodelled.
+
+**Built** (`sim::fight`, `Sim::flee_from`): the ring by `is_hero_unit`, `is_supply_unit` and the attacker's
+`max_range_of`, and the hero's `ambushing`/`marching` refusal. Test
+`fight::tests::a_hero_or_supply_unit_flees_on_the_attacker_s_ring`.
+
+**The value diff, 947**: ours' `0/6` takes `FLEETOORDER` to (6792, 28632) with `dest_angle` 317063168, and on 948 the
+two-node path [(6792, 28632), (6420, 28668)] as theirs. **The word moves 997 → 1100 of 1,100, closed whole**
+(`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE`). `WANT_CH129` goes from 116 rows to 24. Every `0/6` row leaves, and
+with them the rows its flight moved: `1/5` on 1009–1031, `1/12` on 1012–1017, `1/4` on 1056, `0/4` on 1064–1087, `1/13`
+on 1086, `1/2` on 1087 and `1/3` on 1095. The `cant_reach` tally goes from 1 to 0.
+
+**What stays**: the eleven `form` rows, and who=1's scout `1/0` (uid 6, group 64). Theirs swaps its `EXPLORETOORDER`
+for an `ATTACKTOORDER` to (38664, 13320) on 1021, and ours keeps the explore (`order:kind` 3 to theirs' 2). That is
+13 rows on 1021 and 1096 with no draw beside them, standing since 3987's first pin (parked 4005a).
+
+**Mutations** (`tools/mutate.py`): see the journal (`docs/journal/2026-11-08-item-4005.md`).
+
+**Floors**: `golden` 335 of 337 before the re-pin (ch129's two alone), `coverage::` 21 of 21.
+
+**What is not established**: the `0x180` ring, a building attacker, a supply unit's ring and the Ambush/March
+refusal rest on the unit test alone (parked 4005b). The packing latch and the `unit_flags & 4` packer arm are still
+seams.
+
+**Coverage.** Diff-backed: the hero's `0x300` ring from a melee unit (run1545, `0/6` on 947). Reading only: the
+rows above.
 
 ## 194. Reserved for the next item on the rules track
 

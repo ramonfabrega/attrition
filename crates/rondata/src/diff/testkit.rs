@@ -7011,7 +7011,11 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL: (i64, i64) 
 /// the capital `0/2000` leaves the departing `1/14` for `1/12` and fires;
 /// the word is now theirs' Senator `0/6` going idle, three
 /// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, ours 2 draws to theirs' 5.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 997;
+/// 997 → 1100 (+103, closed whole, item 4005, GOLDEN §193): a hero or a
+/// supply unit flees on the attacker's ring, `0x180` or `0x300`
+/// (`Unit::target_opportunity@005fffc0:6006e2`), so the Senator takes
+/// theirs' `FLEETOORDER` to `(6792, 28632)` on 947 and goes idle on 997.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 1100;
 
 /// `chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole`'s
 /// window: run1545.

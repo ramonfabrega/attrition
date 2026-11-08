@@ -4832,7 +4832,7 @@ impl Sim {
     /// issues a `FLEE_TO` — to where the unit already stands.
     ///
     /// **The hero and supply rings** (item 4005, `docs/COMBAT.md` §34.2,
-    /// `600752`–`60078c`): a hero (`+0xc4`, `unit_flags & 0x20`) or a
+    /// `6006e2`–`600785`): a hero (`+0xc4`, `unit_flags2 & 0x20`) or a
     /// supply unit (`+0xcc`, `& 0x40`) asks the attacker's vslot `+0x20`
     /// — the folded `Window::get_button` on a unit, answering 0, and
     /// `Buffer::is_pending_load` on a building — and then its `+0x130`,
@@ -8637,7 +8637,7 @@ mod tests {
 
     /// **A hero or a supply unit flees on a shorter ring** (item 4005,
     /// `docs/COMBAT.md` §34.2, `Unit::target_opportunity@005fffc0`,
-    /// `600752`–`60078c`): `0x180` from a unit attacker with a range
+    /// `6006e2`–`600785`): `0x180` from a unit attacker with a range
     /// (vslot `+0x130`, `max_range`), `0x300` from a melee one, and the
     /// `0x600` of anything else; a hero in an Ambush or on a Forced March
     /// (`unit_masks & 0xa000`) does not flee. Chapter 129's Senator `0/6`,
