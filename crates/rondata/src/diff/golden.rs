@@ -6860,6 +6860,40 @@ const WANT_CH131: &[&str] = &[
     "605 1/5 form",
 ];
 
+/// **Chapter one hundred and thirty-three** (item 3992, `docs/GOLDEN.md`
+/// §185, run1550): a dock astride a border, and a Fort's upgraded reach
+/// with a General inside.
+#[test]
+fn chapter_one_hundred_and_thirty_three_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_three_holds_to_the_golden_word();
+}
+
+/// **run1550 whole, both directions** (item 3992, `docs/GOLDEN.md` §185).
+#[test]
+fn chapter_one_hundred_and_thirty_three_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_three_s_window_is_widened_whole();
+}
+
+/// What parts in run1550's window, blocks 600–1000 (item 3992): the
+/// eleven `form` rows every golden start carries, and nothing else. Nothing
+/// parts on the Dock `1/2006`'s `damage` (0 to the end, the ring's one
+/// unowned shore tile refusing the bleed), on the control `1/2007`'s (8 from
+/// 618, 96 on 970), or on the Fort `1/2008`'s `attack_ox`/`attack_whom`
+/// (6/0 from 649).
+const WANT_CH133: &[&str] = &[
+    "600 0/0 form",
+    "600 0/1 form",
+    "600 0/2 form",
+    "600 0/3 form",
+    "600 0/4 form",
+    "600 0/5 form",
+    "600 1/1 form",
+    "600 1/2 form",
+    "600 1/3 form",
+    "600 1/4 form",
+    "600 1/5 form",
+];
+
 /// What parts in run1546's window, blocks 1095–1500 (item 3988): the
 /// eleven `form` rows every golden start carries, and nothing else. The
 /// lone Spy `0/6`, casting Bribe on block 1115, holds theirs'

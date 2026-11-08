@@ -713,6 +713,32 @@ impl Sim {
                 i32::from(t), i32::from(who), self.allied_with(who, t), self.allied_with(t, who)))
     }
 
+    /// `Wall::process@00640450`'s enemy-land owner, `:209`–`:219`: the
+    /// cell under the building, or for a dock (`is_dock`, the type's vslot
+    /// `+0x108`) [`Sim::check_enemy_adjacent`]'s ring in its place; then
+    /// the same three refusals — below 0, the owner's own, an ally both
+    /// ways (item 3992, `docs/GOLDEN.md` §185). `get_damage`'s armour read
+    /// ([`Self::in_unfriendly_territory`], `WallData::in_unfriendly_territory`)
+    /// asks the own cell for a dock too.
+    pub(crate) fn bleeds_in_enemy_land(&self, b: usize) -> bool {
+        let dock = self.buildings[b]
+            .ty
+            .is_some_and(|t| crate::build::is_dock(&self.build_types, t));
+        if !dock {
+            return self.in_unfriendly_territory(b);
+        }
+        let who = self.buildings[b].owner;
+        let o = self.check_enemy_adjacent(b);
+        u8::try_from(o).is_ok_and(|p| {
+            !crate::place::friendly_ground(
+                o,
+                i32::from(who),
+                self.allied_with(who, p),
+                self.allied_with(p, who),
+            )
+        })
+    }
+
     /// The side of the damage formula an object presents as a **target**.
     fn target_side(&self, o: Obj, attacker: Obj) -> Side {
         match o {
