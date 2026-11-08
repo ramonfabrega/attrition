@@ -3789,6 +3789,37 @@ mod launch_tests {
         assert_eq!(s.strike_altitude(u, 0, -0x5f0, 1600, 0), 700 - 80);
     }
 
+    /// **A flying target farther than `0xc00` is led** (`do_strafe`,
+    /// `0x5eb05b`–`0x5eb0a8`; `docs/GOLDEN.md` §184): the strike aims
+    /// `(dist − 0xc00) / 3` ahead along the target's own heading, and at
+    /// the target itself from `0xc00` in. 4,096 off gives 341. Made to
+    /// fail with the lead dropped and with its divisor at 2 (item 3991's
+    /// mutations 6 and 7, which only the chapter had caught).
+    #[test]
+    fn a_flying_target_farther_than_0xc00_is_led_a_third_of_the_excess() {
+        let mut s = sim();
+        let (u, _, _, _) = striking_fighter(&mut s, true);
+        let ty = s.units[u].ty.unwrap();
+        s.units[u].pos = Pos::new(8000, 16000);
+        let mut e = Unit::new(1, s.units[u].index, Pos::new(8000, 16000 - 0x1000), 100);
+        e.ty = Some(ty);
+        e.on_map = true;
+        let e = s.add_unit(e);
+        s.units[e].airframe.z = 700;
+        let h = crate::movement::find_angle(1, 0);
+        s.units[e].movement.heading = h;
+        let at = s.units[e].pos;
+        let lead = s.strafe_lead(u, Obj::Unit(e));
+        let want = Pos::new(
+            at.x + crate::movement::sin_component(h, 341),
+            at.y - crate::movement::cos_component(h, 341),
+        );
+        assert_ne!(want, at, "the heading must move the point");
+        assert_eq!(lead, want, "a third of 4,096 − 0xc00 ahead");
+        s.units[e].pos = Pos::new(8000, 16000 - 0xc00);
+        assert_eq!(s.strafe_lead(u, Obj::Unit(e)), s.units[e].pos, "0xc00 in");
+    }
+
     /// **run265's 798**: the Fighter at pitch 40 and `z` 677 comes down
     /// two, where the whole 1600 over the ground held it at 40 (40.0 here
     /// against 38.0 there, before item 842). Flat ground at 0: the target

@@ -3093,7 +3093,7 @@ impl Sim {
     ///
     /// SEAM: a helicopter striker inside its reach, which aims at a point
     /// projected from its own.
-    fn strafe_lead(&self, u: usize, target: crate::combat::Obj) -> crate::world::Pos {
+    pub(crate) fn strafe_lead(&self, u: usize, target: crate::combat::Obj) -> crate::world::Pos {
         let at = self.pos_of(target);
         let crate::combat::Obj::Unit(t) = target else {
             return at;
