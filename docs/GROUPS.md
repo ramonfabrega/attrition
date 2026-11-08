@@ -3212,8 +3212,19 @@ group" test (`5e7c8c`, the two pointers equal).
 A seated group's list follows the original's own operations:
 `seat_add` (`get_num`'s normalize per step), `seat_kill`,
 `seat_normalize` and `seat_sort`. `army_add_unit` goes through
-`seat_add` for an army with a live group. An army with none still
+`seat_add` for an army with a group. An army with none still
 builds a stack group, which is never normalized, and pushes it.
+~~live group~~ — **an army keeps a group `Group::kill` emptied**
+(item 4000, `docs/GOLDEN.md` §190): `Group::clear(-1)` writes the
+record's `+0x8 army` −1, and `Army::remove_group@006f8b50` takes off
+only a record that names the army. A group whose members died is
+pruned by `Group::normalize`, keeps the link and leaves the army, so
+the next join pushes (`GroupState::unlinked`). And `compute_form`'s
+`Form::categorize` → `Group::sort` (`:72`) runs **before** §6.3's
+mirror test (`:103`): a sort that kills a follower-first list whole
+runs `Group::clear(-1)`, so the test reads `facing` 0 and every pointer
+is −1. `action_move_near` writes `form` before `compute_form`
+(`00704990:354`) and `ox`/`oy`/`o_angle` after it (`:464–466`).
 `Group::sort` runs where `Form::categorize` does, in
 `group_action_move_to`'s layout, after the `QUEUE_NEW` clear and before
 the order loop. So a member the sort brought in is decided by the

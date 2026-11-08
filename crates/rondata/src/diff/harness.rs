@@ -1684,11 +1684,12 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
                 .map(|&u| format!("{}", built.sim.units[u].index))
                 .collect();
             eprintln!(
-                "  f{frame} army {w}/{slot} cap {}/{} pool {:?} march {} leader {:?} list [{}]",
+                "  f{frame} army {w}/{slot} cap {}/{} pool {:?} march {} facing {} leader {:?} list [{}]",
                 a.group.speed,
                 a.group.new_speed,
                 a.group.pool,
                 a.group.march,
+                a.group.facing,
                 leader,
                 list.join(" ")
             );

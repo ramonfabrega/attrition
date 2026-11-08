@@ -19,6 +19,19 @@
 #       --detail end:UNITS=3,DEATHS=1,LEADERS=2,BUILDS=7 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter128.cmd
+# run1555 (item 4000, GOLDEN 190): the 765 group parting. run1544 prints no GROUPS, so pool slot 64's list, army and
+# facing over 764 are unseen, and its coverage is first-entry only. cover=1 re-armed over 636..770, GROUPS=1:
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch128g \
+#       --map 14 --end-frame 780 --log-window 630 780 --timeout 3600 --no-ffwd --twin ~/ron-golden/ch128 \
+#       --cover $'cover=1\nwindow=636-770' \
+#       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+#       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+#       --detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter128.cmd
+# Readings and their killers, before the take: (A) theirs closes or leaves army 1/0's group on 764 (the slot's list
+# drops 6..8, or its army goes -1) -- killed if slot 64 lists 6, 7, 8 with its army set on 765; (B) only the members'
+# back-pointers go before the army's move, so the leader's turn writes no facing -- killed if slot 64's facing reads 1
+# on 765, or if no function that writes +0x80 is entered on 764; (C) the parting starts at 642's Army::remove_group --
+# killed if slot 64's army field agrees with ours (army 0) over 643..763.
 0 !ai off
 606 add the_comrade who=0 100,100
 608 add hoplite who=0 101,100

@@ -1874,6 +1874,46 @@ pub(super) fn chapter_one_hundred_and_twenty_eight_s_window_is_widened_whole() {
     pin_eq!(got, want, "ch128: what parts in the window moved");
 }
 
+/// **run1555's group pool, both directions** (item 4000, `docs/GOLDEN.md`
+/// §190): run1544's twin with `GROUPS=1` over 630..780, so the squad
+/// `1/6..1/8`'s record — slot 64, emptied on 642, listed `[8]` on 643 and
+/// `[8 6 7]` on 667, its `facing` toggled on 668 and cleared by the 764
+/// move's sort, `[6 7 8]` on 765 — is compared slot for slot.
+pub(super) fn chapter_one_hundred_and_twenty_eight_s_group_pool_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some((firsts, pool)) = widen_civilians_and_pool(
+        "ch128g",
+        "chapter128",
+        WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL,
+        0,
+        1,
+        (640, 780),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch128g f{f} {w}/{o} {what}: {row}");
+    }
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch128g pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .chain(
+            pool.iter()
+                .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}")),
+        )
+        .collect();
+    got.sort();
+    eprintln!("ch128g: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH128G.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch128g: what parts in the pool window moved");
+}
+
 pub(super) fn chapter_one_hundred_and_twenty_eight_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch128", "chapter128", 128, 15, 1100) else {
         return;
