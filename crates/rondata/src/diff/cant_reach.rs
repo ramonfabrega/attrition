@@ -122,8 +122,9 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         73,
     ),
     (
+        // 3 → 1, item 4004 (GOLDEN §192): the capital takes `1/12` on 911.
         "diff::golden::chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole",
-        3,
+        1,
     ),
     (
         "diff::golden::chapter_thirty_eight_s_word_frame_is_widened_whole",

@@ -5224,6 +5224,53 @@ mod flak_tests {
         );
     }
 
+    /// **A building's search must reach what it takes** (item 4004,
+    /// `docs/GOLDEN.md` §192, `find_nearby_target@00648da0`'s `local_24`):
+    /// its current target walking out of range is skipped, not kept on its
+    /// current-target `×2`, so the building takes the one in range and
+    /// fires on the same call. run1545's capital `0/2000` left `1/14` for
+    /// `1/12` on game frame 911.
+    #[test]
+    fn a_building_s_search_skips_a_unit_out_of_its_range() {
+        let mut s = sim();
+        let (b, gone) = stockade_and_scout(&mut s);
+        let near = unit(
+            &mut s,
+            0,
+            Pos::new(22272 + 8 * 192, 16512),
+            combat::Profile {
+                domain: Domain::Land,
+                ..combat::Profile::default()
+            },
+        );
+        for u in [gone, near] {
+            let t = s.units[u].ty.unwrap();
+            s.unit_types[t].combat.cost = 20_000;
+        }
+        // The departing one inside the search's radius and out of range;
+        // the near one walks (`/4`); the departing one is the target (`×2`).
+        let me = Obj::Building(b);
+        let edge = (2000..3000)
+            .find(|&dx| {
+                s.units[gone].pos = Pos::new(22272 + dx, 16512);
+                !s.is_in_range(me, Obj::Unit(gone))
+            })
+            .unwrap();
+        s.units[gone].pos = Pos::new(22272 + edge, 16512);
+        assert!(
+            s.attack_dist(Obj::Building(b), Obj::Unit(gone)) <= (2 + 2 * 11) * 0x60,
+            "a candidate"
+        );
+        s.units[near].movement.dest = Some(Pos::new(22272 + 9 * 192, 16512));
+        s.buildings[b].target = Some(Obj::Unit(gone));
+        assert!(!s.is_in_range(me, Obj::Unit(gone)), "the departing unit");
+        assert!(s.is_in_range(me, Obj::Unit(near)), "the near one");
+        let phase0 = (32 - i64::from(s.buildings[b].index)).rem_euclid(32);
+        s.process_building_combat(b, phase0);
+        assert_eq!(s.buildings[b].target, Some(Obj::Unit(near)), "taken");
+        assert!(!s.projectiles.is_empty(), "and fired on the same call");
+    }
+
     #[test]
     fn a_building_keeps_a_dead_target_until_do_attack_replaces_it() {
         let mut s = sim();
