@@ -2634,6 +2634,11 @@ mod tests {
         // Senator and a President, and the garrison heal under Herbal Lore
         // (item 3987, `docs/GOLDEN.md` §180).
         ("chapter129.cmd", &[]),
+        // Chapter one hundred and thirty: a lone Spy patrolled mid-Bribe
+        // (`UnitData::is_busy`'s spell half), and a mandatory attack with a
+        // queued move whose target another squad kills (`Unit::fight`'s
+        // kill-only tail; item 3988, `docs/GOLDEN.md` §181).
+        ("chapter130.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

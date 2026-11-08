@@ -855,6 +855,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch128 = golden_dump("ch128");
     let ch128g = golden_dump("ch128g");
     let ch129 = golden_dump("ch129");
+    let ch130 = golden_dump("ch130");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3171,6 +3172,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 462,
             "chapter one hundred and twenty-nine carries 462 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirty, on run1546** (item 3988): the lone
+    // Spy patrolled mid-Bribe on 1114, and the mandatory attack's kill-only
+    // tail on 1301–1304, to the trace's end.
+    if let Some(p) = &ch130 {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY;
+        let n = drive_capture(p, 1095, 1500, &mut paths);
+        assert_eq!(
+            n, 405,
+            "chapter one hundred and thirty carries 405 blocks in the window"
         );
         frames += n;
     }

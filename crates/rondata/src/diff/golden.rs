@@ -6791,6 +6791,42 @@ fn chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole();
 }
 
+/// **Chapter one hundred and thirty** (item 3988, `docs/GOLDEN.md` §181,
+/// run1546): a lone Spy patrolled mid-Bribe, and a mandatory attack's
+/// kill-only tail.
+#[test]
+fn chapter_one_hundred_and_thirty_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_thirty_holds_to_the_golden_word();
+}
+
+/// **run1546 whole, both directions** (item 3988, `docs/GOLDEN.md` §181).
+#[test]
+fn chapter_one_hundred_and_thirty_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_thirty_s_window_is_widened_whole();
+}
+
+/// What parts in run1546's window, blocks 1095–1500 (item 3988): the
+/// eleven `form` rows every golden start carries, and nothing else. The
+/// lone Spy `0/6`, casting Bribe on block 1115, holds theirs'
+/// `GroupPatrolOrder` on 1116 as ours does (`Sim::is_busy`: a cast that is
+/// no pack or unpack is not busy), and the who=1 Hoplite `1/6` stays
+/// who=1; the Catapult `1/9` dies on 1301 to `0/10`'s squad, and `0/7`'s
+/// squad holds its queued move alone on 1304 with no search
+/// (`Sim::mandatory_substitute`'s tail, parked 4002a).
+const WANT_CH130: &[&str] = &[
+    "1095 0/0 form",
+    "1095 0/1 form",
+    "1095 0/2 form",
+    "1095 0/3 form",
+    "1095 0/4 form",
+    "1095 0/5 form",
+    "1095 1/1 form",
+    "1095 1/2 form",
+    "1095 1/3 form",
+    "1095 1/4 form",
+    "1095 1/5 form",
+];
+
 /// What parts in run1545's window, blocks 605–1100 (item 3987): the
 /// eleven `form` rows every golden start carries, then nothing through
 /// 862 — the patriot repair's two Barracks, `0/2007` repaired on 653 and
