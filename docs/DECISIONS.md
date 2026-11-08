@@ -118,7 +118,8 @@ is append-only and amended in place, as it always was.
 - 109 extended by 110 — The sixty-ninth tranche: three Opus lanes, twenty in 8 h 38, the implicit residue 0, blind open 4, 42.1 waiting so the third lane goes
 - 110 extended by 111 — The seventieth: two Opus lanes, seven in 3 h 10, blind open 0, entry 29's counters stand
 - 111 extended by 112 — The seventy-first: phase 4 open, the territory read, East Meets West held out
-- 112 standing — The seventy-second: the map lane closed, two lanes on T71's rows; the renderer waits
+- 112 extended by 113 — T71's rows booked
+- 113 standing — value rows and chapters booked
 - 92 amended by 93 — The fifty-third tranche: two Opus lanes, twenty in 9 h 57, nine pairs stand and eight run whole, the twins move lockstep bytes 77.0 → 77.4, unit types 162 of 302, a third lane added by the rule, the fifty-fourth booked on the Persian word
 - 90 amended in place — The fifty-first tranche: two Opus lanes, eighteen `cover=1` landings in 8 h 05, the blind list closes to a floor of thirty-nine, the headline moves to the rubric's unit types, the pass and the commander stop messaging each other
 - 89 amended in place — The fiftieth tranche: two Opus lanes, twenty `cover=1` landings in 13 h 08, the open blind rows scanned and ratified by family 192 → 91, `!eval` strikes seventeen residue rows, the pool photographs itself, the fifty-first booked on what a capture can enter
@@ -11244,3 +11245,112 @@ try — **met** (8 of 8, never read against); the ten chains land read
 against — **met**, all 8 of 8, no sim change on seven of them; the
 tranche drains on supply — **met**, at thirteen; the cliff number is a
 held-out game on Mesa — **met**, 15754 of 24000, parked by frame.
+
+## 113. The seventy-second tranche is scored on two Opus lanes at fifteen landings in 12 h 03, drained on supply with the territory reading's fourteen rows spent and the sixth melee closed so every word stands whole, waiting reads 54.9 and the gate 21.8 so two lanes stand, the supply becomes the closed words' value rows and the adjudications' unreached cases staged as chapters, seven Loop items are built and three filed, and the renderer and the census defects still wait on Ramon
+
+*2026-11-07, the seventy-third pass (the `steer` session, Fable), started
+by the drain's own `ccc clear steer --then`, which fired at 20:08 −05:00
+within the minute of the drain's push. The record is
+`docs/audit/2026-11-07-fable-pass-73.md`; this entry carries the
+decisions. Extends entries 111 and 112; amends the lane clause and the
+push clause of `docs/LOOP.md`.*
+
+**What was measured.** Fifteen landings on two Opus 5.5 lanes at
+`--effort medium` in **12 h 03** from the base (`80e119cb3`, 07:17 on
+11-07) to the drain's commit (`07121e107`, 18:28), drained on supply: the
+territory reading's fourteen scored rows (3958–3971) and the one word
+they opened (3975). **What moved**: the sixth melee stood up on the death
+pool of 100 at 744 and closed at 2,600 with its closing state 0 off (the
+MLRS's rack, eight `sim::pivot::RELEASES` rows off run883b's packet); the
+Iroquois Ancient pair's closing window `firsts` 67 → 57; the Russian
+Information pair's MLRS rounds run1401b 46 → 6 and run1423 40 → 0;
+Golden 115 → 120; five families of keys the dump prints and nothing
+compared now compared (`num_queued`/`queue_time`, the two `healing`s,
+`retargets` and the garrison counts, `mylos`, the style's six territory
+limits); run897 held out, green throughout. **The price: 149.91 USD list
+over 19 sessions, 9.99 a landing. Waiting 54.9 minutes a landing**
+(`tranche.py`, after `lore index`): the gate class 21.8 a session, other
+11.9, capture 6.8, message 1.5, script 1.1, suite 0.2; six captures;
+**seven `DEEP`** (3958 305 k, 3959 327 k, 3961 304 k, 3962 324 k, 3969
+315 k, 3970 333 k and 349 k). Fifteen gates with the drain's two — six
+whole at 45.4–59.8 release minutes, nine scoped and widened at
+11.9–18.9 — **one red**: the drain's whole gate on
+`diff::audit::every_whole_scoreboard_word_is_audited`, the sixth melee
+having closed without its `OWED` row, fixed by a second commit and a
+second whole gate; 470.3 gate minutes; admission 6,386.2 s summed,
+longest 363.4; eight gate ends of fifteen past the cores. 118
+`origin/worktree-att-*` stand, 117 merged. **The disk 24 GiB free**,
+under the seventy-second's 105: the debug profile's clean (40,664
+files, 19.1 GiB) and `afsctool` over both archives took it to 67; of
+the rest, 52 GiB is Chrome's leaked `code_sign_clone` directories under
+the user's temp folder and 107 GiB OrbStack, neither the loop's. The
+seventy-second pass's own price 13.98 USD list (66 Fable requests). The
+seven-day window read 7 % at this pass's start.
+
+**What it means.**
+
+1. **Two lanes stand, and the cost is the instrument track's shape.**
+   Entry 112 §1 took the third lane away; the seventy-second read **54.9
+   and 21.8** on two, both over the 26.3 and 15.3 the lane returns on,
+   so the letter keeps two Opus 5.5 lanes at medium for the
+   seventy-third. What the waiting was: nine of thirteen lane gates
+   widened — every coverage item moves a pin, by construction — and
+   ran 31–53 release minutes (3963 52.9, 3964 49.6, 3970 39.3, 3971
+   38.0), against the chapters' 11.7–18.2; and an `other` class of 11.9
+   a session (3965's 82.7, 3962's 38.6) that `tranche.py` cannot name,
+   filed as Loop 3996. The seventy-third's AI track is seven items that
+   each move a pin too, so its drain reads the gate class for what the
+   shape costs; the lane returns on the two lines or on Ramon's word.
+2. **The supply is two lists, and neither is a reading.** With every
+   word whole and the pair refill spent (296 of 302 unit lines seen; the
+   six never are a hero and five gaia animals), the queue takes what the
+   seventy-second's landings parked on closed words — value rows and
+   pins with a count: 3975b's 344 rows (3978), 3975a's 31 rounds (3979),
+   3961a's two heal rows (3980), 3960a's 203 blocks (3981), 3969a's two
+   unread keys (3982), 3962a/b's thirteen `cant_reach` rows (3983),
+   3964a's 732 records (3984) — and the territory adjudications' 55
+   confirmed-unreached rows, read into stagings by an Opus reader
+   (`tmp/t73/chapter-supply.md` of the steer job) and booked as eleven
+   chapters of at most three arms each, cheapest first (3985–3995):
+   spells, heroes, the patriot's repair, group orders with a member
+   inside, the rally point and the Library's DISBAND, land-based air
+   twice, the building defence remainder, unit internals, the
+   Helicopter's stand-off with Delete, and the boats. **A value row on
+   a closed word is booked by its frame and value, the mechanism as a
+   hypothesis with its killer written first** (entry 42): 3978's period
+   13 names an arm `heal.rs` leaves unbuilt, and the killer is a unit
+   healing at 13 beyond every healer's reach. What stays parked: the
+   team-lobby rows (an alliance ends a two-player Quick Battle), the
+   carrier's water lobby, the rare holdings, the AI-driven city, and
+   the rows needing a new issuer (`@return`, `@siegeattack`, a
+   shift-patrol) — the next pass's supply, in that order.
+3. **The renderer, the census defects and the per-group rulings wait
+   on Ramon, and nothing moved on his silence.** No prompt of his has
+   reached any session of this well since 11-06 (`lore sessions` since
+   the seventy-second pass: every opener a lane's, the commander's or
+   this pass's); `docs/RENDERER.md` §7.2's eight questions stand, the
+   two `tools/census.py` defects stand measured on `tmp/t71/toolsA` and
+   `toolsB`, the `replaced` 71 rows stand unruled.
+4. **Seven Loop items built, three filed; the backlog 16 → 11.** Built
+   by Opus 5.5 subagents in their own worktrees, each red first:
+   **3976** (`--twin` pins every seat its sibling's receipt read back —
+   run1542 pins `(1, 10), (2, 13)` — and `verify_game` checks the seat
+   count; 959 receipts on disk pin two seats, 62 three); **3977**
+   (`frame.py`'s cut ends at the next `BEGIN FRAME` whatever its number
+   — run1542's 651 cuts 65,256 lines of 2,687,629 where it cut
+   2,013,317); **3973** (`report.py frames <function>`, and the gap named: a coverage stub records every frame's first entry only inside `rontrace.cfg`'s `window=`, which none of the 196 `cover=1` configs on disk sets, so a booking that wants a stub's frames books a `window=` take); **3972** (`nations_census.py --check` names every row the tree's tables differ from and `guard.sh` runs it — the drift measured 18 rows with the generator as filed, not 24, 12 after the file choice was fixed, the round trip empty after `--write`); **3974** (`check.sh test` scales the budget's execution timeout to the timed tests its arguments select, 2 s each over a 1800 s floor: the whole `rondata` lib 2,108 tests → 4216 s, one test 1800; the gate passes no flag); **3956** (`coverage::UNREAD_BITS`: on the driver's 86,724 blocks the dump sets `unit_masks` 0x58a4e6cd, `unit_masks2` 0x14404, `build_masks` 0x7438 and `city_flags` 0xffff1e00 that no comparison reads — sixteen, four, seven and twenty unread bits — pinned exact both ways, with a source-reading test holding `widen_block_rows`' masks); **3957** (`coverage::SKIPPED_BY_THE_LEADER_COMPARATOR`, per record and key family: `LEADERDATA num_queued[]` 319 keys the crate rows as neither a unit nor a technology, and six eight-seat arrays' empty seats at 6 each). **Filed**: 3996 (the `other` class),
+   3997 (the drain pushed a red tip on the harness's exit line; the push
+   clause now reads the log's `gate exit 0` first), 3998 (a word that
+   may close whole runs `diff::audit::` in its lane gate; the AI items
+   carry the filter by hand). The nine standing rows each take their
+   measured line.
+5. **The pass's first acts, measured.** The disk under the last
+   pass's figure, so both: `cargo clean --profile dev` and `afsctool`
+   over both archives, 24 → 67; the rubric's record; no lane row to
+   reap (the commander reaped all); no scan owed with the open rows at
+   none; the suite re-timed.
+
+**Against entry 112's estimate**: the fourteen rows land — **met**, all
+fourteen, and the one word they opened closed; the tranche drains on
+supply — **met**, at fifteen; the two instrument gaps built on the
+landed tree — **met**, 3956 and 3957, each red first and measured.

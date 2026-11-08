@@ -181,7 +181,12 @@ origin/worktree-replan-pdb`** — `ccc push <ref> --base` pushes the
 row's *base*, which for the integration row is `main` (parked 1742),
 and the bare verb once answered "nothing to push" with origin two
 commits behind (parked 1492) —
-`ccc rm <ref>`, and `git push origin --delete <the lane's branch>` — a
+`ccc rm <ref>`, and `git push origin --delete <the lane's branch>` —
+**the push reads the gate log's own `gate exit 0` line first, never
+the background task's exit** (Loop 3997: the seventy-second's drain
+pushed a tip whose whole gate was red on `diff::audit::`, its check
+keyed on the harness's exit line; a red tip on origin is a red tip the
+next spawn inherits) — a
 worker pushes its branch, `ccc rm` deletes only the worktree and the local
 branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
 (parked 727); **the classifier may refuse that delete** (`[Git
@@ -478,7 +483,18 @@ since every one of those conflicts also touched code (`mapgen.rs`,
 door 5,594.7 s and eight gate ends of twelve past the cores, the whole
 gates 45.9–64.4 release minutes. The lane returns when a two-lane
 tranche reads waiting under 26.3 and the gate under 15.3, or on
-Ramon's word; a
+Ramon's word — **and the seventy-second read 54.9 waiting and 21.8
+gate a session on two lanes** (DECISIONS 113 §1; fifteen landings,
+drained on supply): both over, **so two lanes stand for the
+seventy-third**. What it cost was the instrument track by
+construction: nine of thirteen lane gates widened — every coverage item
+moves a pin — and ran 31–53 release minutes (3963 52.9, 3964 49.6,
+3970 39.3, 3971 38.0), the `other` class 11.9 a session that
+`tranche.py` cannot name (3965 82.7; Loop 3996), one capture class of
+65.5 (3961), the door 6,386.2 s and eight gate ends of fifteen past the
+cores; the seventy-third's AI track is seven items that each move a pin
+too, so its gate class is read for what the shape costs, not the lane
+count. The lane returns on the same two lines or on Ramon's word; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

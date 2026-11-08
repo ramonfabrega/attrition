@@ -327,9 +327,9 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// `sim::map_east_indies`, items 3843 and 3820). Item 3943: ported 545,
 /// open 1290 — measured on its base `1bc2e2e0` as on its tip, so the move
 /// is item 3942's (`sim::cliff_mine`), re-pinned here.
-pub const RUBRIC_TERRITORY_PORTED: usize = 545;
+pub const RUBRIC_TERRITORY_PORTED: usize = 546;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 318;
-pub const RUBRIC_TERRITORY_OPEN: usize = 1290;
+pub const RUBRIC_TERRITORY_OPEN: usize = 1289;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose
