@@ -2648,23 +2648,23 @@ const CITATIONS_NAMING_NOTHING: &[(&str, &str)] = &[
     ),
     (
         "docs/journal/2026-10-17-item-3014.md",
-        "crates/sim/src/sweep/command_package_process_{cheat_ai_speed_increase,ping,sell,trade,cheat_init_unit,quit,speed_set,console_cmd,hotkey,turn_data}.rs",
+        "crates/sim/src/sweep/command_package_process_{cheat_ai_speed_increase,ping,trade,cheat_init_unit,quit,speed_set,console_cmd,hotkey,turn_data}.rs",
     ),
     (
         "docs/journal/2026-10-17-item-3030.md",
-        "crates/sim/src/sweep/{tribes_find,signposts_add,objects_data_find_city_at,objects_data_find_city,object_poor_target,command_package_process_rename_city,unit_update_local_seen,wall_swap_team}.rs",
+        "crates/sim/src/sweep/command_package_process_rename_city.rs",
     ),
     (
         "docs/journal/2026-10-17-item-3058.md",
-        "crates/sim/src/sweep/{unit_update_armor,build_swap_team,sub_object_swap_team,ammo_data_walk_data,game_walk_data,turn_control_end_cannon_time,tribes_find}.rs",
+        "crates/sim/src/sweep/turn_control_end_cannon_time.rs",
     ),
     (
         "docs/journal/2026-10-20-item-3396.md",
-        "crates/sim/src/sweep/{army_do_defending,groups_process_driver,groups_process_body,hero_data_get_radius,unit_land_plane,command_manager_start,guy_process,standalone_a_f,standalone_g_o,standalone_u_z}.rs",
+        "crates/sim/src/sweep/command_manager_start.rs",
     ),
     (
         "docs/journal/2026-10-21-item-3403.md",
-        "crates/sim/src/sweep/{command_package_process,command_package_process_default_arm,unit_process_head,unit_process_onmap,unit_process_inside,unit_process_train,build_process_head,build_process_supply,build_process_wonders,build_process_messages,build_process_city,standalone_a_f,standalone_u_z}.rs",
+        "crates/sim/src/sweep/{command_package_process,command_package_process_default_arm}.rs",
     ),
 ];
 

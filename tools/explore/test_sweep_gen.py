@@ -1435,7 +1435,7 @@ class Shapes(unittest.TestCase):
             sweep_gen.generate_obj('Foo::bar@00401000', item=2336, win=0x20, bias=[], ret='ax')
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             try:
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--ret', 'al']), 0)
                 self.assertIn('assert_eq!(got & 0xff, want_eax & 0xff', (Path(tmp) / 'x_y.rs').read_text())
@@ -1443,6 +1443,7 @@ class Shapes(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_stub_may_be_laid_in_an_import_cell(self):
         # Item 2336 (parked 2327): `TurnControl::get_lag_time` calls
@@ -1821,7 +1822,7 @@ class Shapes(unittest.TestCase):
     def test_a_generated_sweep_is_written_once(self):
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             try:
                 self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1']), 0)
                 self.assertEqual(sweep_gen.main(['const', 'X::y@00401000', '--item', '1']), 2)
@@ -1830,6 +1831,7 @@ class Shapes(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_generated_sweep_is_redrawn_in_place(self):
         # Item 2298 (Loop 2003, 2222): a starved draw was redrawn by deleting
@@ -1838,7 +1840,7 @@ class Shapes(unittest.TestCase):
         # and leaves `mod.rs` alone; it refuses a sweep that was never written.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             mod = Path(tmp) / 'mod.rs'
             mod.write_text('')
             try:
@@ -1854,6 +1856,7 @@ class Shapes(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_regen_refuses_to_reset_a_hand_written_port(self):
         # Loop 2792 (2783's, 2807's, 2818's and 2844's lines, the thirty-eighth
@@ -1865,7 +1868,7 @@ class Shapes(unittest.TestCase):
         # fit a command), and an `@file` holds flags one a line.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
@@ -1899,6 +1902,7 @@ class Shapes(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
         self.assertEqual(sweep_gen.expand_argfiles(['a', '@/no/such/file', '--x']), ['a', '@/no/such/file', '--x'],
                          'a missing @file is left as it stands')
 
@@ -1929,7 +1933,7 @@ class Shapes(unittest.TestCase):
         # wins, one it leaves out is kept.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
@@ -1948,6 +1952,7 @@ class Shapes(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_regen_keeps_a_hand_item_outside_the_port_block(self):
         # Loop 3013's fourth reach (3260, the forty-third pass): 3250's
@@ -2020,7 +2025,7 @@ fn x_port(a: &[i32]) -> i64 {
         # fmt` that split the anchor's line still finds it.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
@@ -2063,6 +2068,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_regen_writes_no_port_after_a_fence_that_stands_where_the_port_does(self):
         # Loop 3407 (the forty-seventh pass): 3403's `Unit::process` slices
@@ -2081,7 +2087,7 @@ fn x_port(a: &[i32]) -> i64 {
                             ('todo!()', []), ('0', None)):
             with self.subTest(port=port, regen=regen), tempfile.TemporaryDirectory() as tmp:
                 sweep_gen.EMU = Path(tmp)
-                sweep_gen.SWEEP = Path(tmp)
+                sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
                 (Path(tmp) / 'mod.rs').write_text('')
                 try:
                     line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--port', port]
@@ -2109,6 +2115,7 @@ fn x_port(a: &[i32]) -> i64 {
                 finally:
                     sweep_gen.EMU = ROOT / 'tools/emu'
                     sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                    sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_dry_run_regen_by_name_prints_the_carried_test_and_writes_nothing(self):
         # Loop 3407's check (the forty-seventh pass): `--regen <snake>
@@ -2118,7 +2125,7 @@ fn x_port(a: &[i32]) -> i64 {
         # could not show what a regen would write.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20',
@@ -2139,6 +2146,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_fence_left_open_is_refused(self):
         with self.assertRaises(ValueError):
@@ -2150,7 +2158,7 @@ fn x_port(a: &[i32]) -> i64 {
         # overload's sweep, which shares its snake name (restored by hand).
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
@@ -2170,6 +2178,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_regen_replaces_an_option_given_in_equals_form_and_never_takes_the_kept_port(self):
         # Loop 2886 (five reaches, the thirty-ninth pass). 2946: `--rows=2400`
@@ -2180,7 +2189,7 @@ fn x_port(a: &[i32]) -> i64 {
         # and what is merged is said.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1']
@@ -2207,6 +2216,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_the_header_names_the_p_windows_in_the_script_s_order(self):
         # Loop 2892 (three reaches): sparse slices are `p` windows before the
@@ -2227,7 +2237,7 @@ fn x_port(a: &[i32]) -> i64 {
         # merged arm 0's stubs and port. With `--name` the sweep is that name's script, no other.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
@@ -2241,6 +2251,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_write_mod_inserts_its_line_in_sorted_order(self):
         # Item 2379 (Loop 2003; parked 2318, 2375): `--write-mod` appended its
@@ -2249,7 +2260,7 @@ fn x_port(a: &[i32]) -> i64 {
         # name's place, the helpers and the first run left as they stand.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             mod = Path(tmp) / 'mod.rs'
             head = '//! doc\n\nmod zz_first_run;\n\nfn helper() {}\n\n'
             mod.write_text(head + 'mod a_b;\nmod y_z;\n')
@@ -2263,6 +2274,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_generated_sweep_keeps_its_own_line(self):
         # Item 2325 (parked 2311, Loop 2003): `--regen` wants the line that
@@ -2271,7 +2283,7 @@ fn x_port(a: &[i32]) -> i64 {
         # script alone redraws it from that line.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--argrange', '0:0:2',
@@ -2307,6 +2319,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_regen_keeps_the_hand_written_port(self):
         # Item 2368 (parked 2342, Loop 2003): `--regen` with no `--port`
@@ -2316,7 +2329,7 @@ fn x_port(a: &[i32]) -> i64 {
         # generated halves; one given `--port` still replaces it.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('')
             try:
                 line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--stub', '0x401100:0']
@@ -2343,6 +2356,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_seq_may_end_on_a_terminating_answer(self):
         # Item 2368 (parked 2342, Loop 2003): `--seq` repeats its last answer
@@ -2426,7 +2440,7 @@ fn x_port(a: &[i32]) -> i64 {
         # sweeps stood on their bytes alone, one of them reading the wrong field.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             try:
                 self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
                 self.assertIn('assert_eq!(got, want_eax', (Path(tmp) / 'x_y.rs').read_text())
@@ -2437,6 +2451,7 @@ fn x_port(a: &[i32]) -> i64 {
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_mix_step_names_the_slot_4_callees_stale_ecx(self):
         # parked 2498: Tribes::walk_data hands Array::walk_data the `ecx` the
@@ -2757,7 +2772,8 @@ class FamilyRegistrations(unittest.TestCase):
             self.assertLessEqual(set(row), names, snake)
             self.assertIn('ENTRY', row, snake)
             self.assertFalse((ROOT / f'tools/emu/sweep_{snake}.py').exists(), f'{snake}: a row and a script')
-            self.assertIn(f'emu_obj("{snake}")', (ROOT / f'crates/sim/src/sweep/{snake}.rs').read_text(), snake)
+            test = next(p for p in (sweep_gen.SWEEP / f'{snake}.rs', sweep_gen.STANDALONE / f'{snake}.rs') if p.exists())
+            self.assertIn(f'emu_obj("{snake}")', test.read_text(), snake)
 
     def test_new_independent_sweeps_route_to_stable_partitions(self):
         from unittest.mock import patch
@@ -2766,7 +2782,7 @@ class FamilyRegistrations(unittest.TestCase):
             for family in sweep_gen.SWEEP_FAMILIES:
                 (root / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
             (root / 'mod.rs').write_text('mod existing;\n')
-            with patch.object(sweep_gen, 'SWEEP', root):
+            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'STANDALONE', root):
                 for name, family in [('apple', 'a_f'), ('group', 'g_o'), ('path', 'p_t'), ('world', 'u_z')]:
                     self.assertEqual(sweep_gen.sweep_registry(f'mod {name};', 'let got = 1;'), root / f'standalone_{family}.rs')
                 self.assertEqual(sweep_gen.sweep_registry('mod private;', 'crate::internal()'), root / 'mod.rs')
@@ -2779,7 +2795,7 @@ class FamilyRegistrations(unittest.TestCase):
             (root / 'mod.rs').write_text('')
             for family in sweep_gen.SWEEP_FAMILIES:
                 (root / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
-            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'EMU', root):
+            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'STANDALONE', root), patch.object(sweep_gen, 'EMU', root):
                 command = ['const', 'World::probe@00401000', '--item', '1', '--port', '7']
                 self.assertEqual(sweep_gen.main(command + ['--write-mod']), 0)
                 registry = root / 'standalone_u_z.rs'
@@ -2797,7 +2813,7 @@ class FamilyRegistrations(unittest.TestCase):
             for family in sweep_gen.SWEEP_FAMILIES:
                 (root / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
             (root / 'standalone_u_z.rs').write_text(sweep_gen.REGISTRY_MARKER + 'unexpected_content();\n')
-            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'EMU', root):
+            with patch.object(sweep_gen, 'SWEEP', root), patch.object(sweep_gen, 'STANDALONE', root), patch.object(sweep_gen, 'EMU', root):
                 self.assertEqual(sweep_gen.main(['const', 'World::probe@00401000', '--item', '1', '--write-mod']), 2)
                 self.assertFalse((root / 'world_probe.rs').exists())
                 self.assertFalse((root / 'sweep_world_probe.py').exists())
@@ -2821,27 +2837,28 @@ class FamilyRegistrations(unittest.TestCase):
             root = Path(tmp)
             folder = root / 'src/sweep'
             folder.mkdir(parents=True)
-            (root / 'tests').mkdir()
+            standalone = root / 'tests/sweep'
+            standalone.mkdir(parents=True)
             (folder / 'mod.rs').write_text('mod private;\n')
             (folder / 'private.rs').write_text('crate::private();')
-            (folder / 'apple.rs').write_text('#[test] fn check() {}')
+            (standalone / 'apple.rs').write_text('#[test] fn check() {}')
             for family in sweep_gen.SWEEP_FAMILIES:
-                (folder / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
-                (root / 'tests' / f'sweep_{family}.rs').write_text(f'#[path = "../src/sweep/standalone_{family}.rs"]\nmod sweep;\n')
+                (standalone / f'standalone_{family}.rs').write_text(sweep_gen.REGISTRY_MARKER)
+                (root / 'tests' / f'sweep_{family}.rs').write_text(f'#[path = "sweep/standalone_{family}.rs"]\nmod sweep;\n')
             with self.assertRaises(ValueError):
                 sweep_gen.validate_sweep_registrations(root)
-            path = folder / 'standalone_a_f.rs'
+            path = standalone / 'standalone_a_f.rs'
             path.write_text(sweep_gen.insert_standalone(path.read_text(), 'mod apple;'))
             sweep_gen.validate_sweep_registrations(root)
             # A crate:: path may name a public API. Preserve its body and let
             # Rust enforce visibility through the integration target bridge.
-            (folder / 'apple.rs').write_text('crate::public_api();')
+            (standalone / 'apple.rs').write_text('crate::public_api();')
             with self.assertRaisesRegex(ValueError, 'public API bridge missing'):
                 sweep_gen.validate_sweep_registrations(root)
             entry = root / 'tests/sweep_a_f.rs'
             entry.write_text('pub use sim::*;\n' + entry.read_text())
             sweep_gen.validate_sweep_registrations(root)
-            (folder / 'apple.rs').write_text('#[test] fn check() {}')
+            (standalone / 'apple.rs').write_text('#[test] fn check() {}')
             manifest = root / 'Cargo.toml'
             manifest.write_text('[package]\nautotests = false\n')
             with self.assertRaises(ValueError):
@@ -2854,7 +2871,7 @@ class FamilyRegistrations(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sweep_gen.validate_sweep_registrations(root)
             (folder / 'mod.rs').write_text('mod private;\n')
-            (folder / 'standalone_u_z.rs').write_text(path.read_text())
+            (standalone / 'standalone_u_z.rs').write_text(path.read_text())
             path.write_text(sweep_gen.REGISTRY_MARKER)
             with self.assertRaises(ValueError):
                 sweep_gen.validate_sweep_registrations(root)
@@ -2865,7 +2882,7 @@ class FamilyRegistrations(unittest.TestCase):
         # answer; every window and stub the line names reaches the script.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             (Path(tmp) / 'mod.rs').write_text('mod a_b;\n')
             try:
                 line = ['void', 'Foo::bar@00401000', '--item', '2887', '--own', '1',
@@ -2890,6 +2907,7 @@ class FamilyRegistrations(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_new_sweep_is_registered_without_the_flag(self):
         # Item 2887 (parked 2872): `--write-mod` was added by hand to
@@ -2898,7 +2916,7 @@ class FamilyRegistrations(unittest.TestCase):
         # leaves `mod.rs` alone.
         with tempfile.TemporaryDirectory() as tmp:
             sweep_gen.EMU = Path(tmp)
-            sweep_gen.SWEEP = Path(tmp)
+            sweep_gen.SWEEP = sweep_gen.STANDALONE = Path(tmp)
             mod = Path(tmp) / 'mod.rs'
             mod.write_text('mod a_b;\n')
             try:
@@ -2915,6 +2933,7 @@ class FamilyRegistrations(unittest.TestCase):
             finally:
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+                sweep_gen.STANDALONE = ROOT / 'crates/sim/tests/sweep'
 
     def test_a_place_null_past_the_first_place_nulls_that_place_alone(self):
         # Item 2887 (parked 2885): `--place-null K` for K past 0 lays place K

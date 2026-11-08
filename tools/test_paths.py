@@ -122,6 +122,23 @@ class PathsTest(unittest.TestCase):
         self.assertEqual((text, n), ('crates/sim/src/{air,airbase}.rs', 0))
         self.assertEqual(unmoved, ['crates/sim/src/{air,airbase}.rs'])
 
+    def test_the_crate_s_tests_are_cited_and_checked(self):
+        self.assertEqual(paths.citations('crates/sim/tests/sweep/one.rs crates/sim/tests/'),
+                         [(1, 'crates/sim/tests/sweep/one.rs')])
+        (self.root / 'docs/MORE.md').write_text('crates/sim/tests/sweep/gone.rs\n')
+        self.assertEqual(self.check(), (1, ['docs/MORE.md:1: crates/sim/tests/sweep/gone.rs']))
+
+    def test_a_brace_list_splits_where_its_alternatives_part(self):
+        moves = [('crates/sim/src/sweep/a.rs', 'crates/sim/tests/sweep/a.rs'),
+                 ('crates/sim/src/sweep/c.rs', 'crates/sim/tests/sweep/c.rs'),
+                 ('crates/sim/src/sweep/d.rs', 'crates/sim/tests/sweep/d.rs')]
+        text, n = paths.rewrite('see crates/sim/src/sweep/{a,mod,c}.rs.', moves)
+        self.assertEqual((text, n), ('see crates/sim/tests/sweep/{a,c}.rs, crates/sim/src/sweep/mod.rs.', 1))
+        text, n = paths.rewrite('crates/sim/src/sweep/{a,d}.rs', moves)
+        self.assertEqual((text, n), ('crates/sim/tests/sweep/{a,d}.rs', 1))
+        self.assertEqual(paths.rewrite('crates/sim/src/sweep/{d,b}_x.rs', moves)[0],
+                         'crates/sim/src/sweep/{d,b}_x.rs')
+
     def test_a_file_does_not_move_to_a_directory(self):
         with self.assertRaises(SystemExit):
             paths.move(self.root, [('crates/sim/src/air.rs', 'crates/sim/src/air/')])
