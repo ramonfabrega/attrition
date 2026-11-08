@@ -3827,6 +3827,10 @@ section with the frame's shared sections. Candidate: a `structure` kind (opening
 rule and the shape counter's line, landing) and a `render` kind (opening, booked, lanes, a `render` section carrying the counter and
 the oracle's rungs, landing), each under the frame's ceiling, red first on 4008's and 4018's lines. Names no score; the loop's.
 
+ **4018's "for the Loop"** (the seventy-fifth tranche, 2026-11-08): the `render` kind's section names the render tests'
+preconditions — `RON_INSTALL` exported (a worktree has no `../../game`) and `uv` on the path for the unicorn oracle — or a lane
+reads a vacuous pass. Folded into this row; no new number.
+
 ## Loop, filed 2026-11-07 — the seventy-third pass's own
 
 **3996** (`tranche.py`'s `other` class names nothing, and it read 11.9 a session) — **built by the seventy-fourth pass, an Opus 5.5 subagent's, red first (`KeyError: 'other_heads'`; `tools/explore/test_tranche.py` 16 green): `tranche.py` names the call a wake waited on and prints the top three heads under a session whose `other` is 10 minutes or at or above its gate. The class was the suite under another spelling — `zsh tools/check.sh test` 127.9 of the seventy-third's 220.1 `other` minutes (58 %), `python3 -` heredocs chained to a test 32.6, `git` 17.8 — and the pass added `check.sh test` to the `suite` class: gate 18.2 · suite 10.1 · other 2.9 a session.** The row as filed: (3996) **`tranche.py`'s `other` class names nothing, and it read 11.9 a session** (the seventy-third pass, DECISIONS 113 §1):
@@ -15624,13 +15628,19 @@ closure), so it refuses as Loop 2792 says it should, unless `--port`, `--port-fi
 given. The fix: the template emits the `obj_rows` call and `kept_port` reads both forms. It moves no count:
 the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 
-## Parked by the next landing, slot DI — reserved
+## Parked by item 4018, 2026-11-08 — the camera's motion and its start
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4018a. The camera's per-frame motion** (`docs/RENDERER.md` §3.4, "What is not established").
+  `crates/render` takes `zoom_distance`, `parallel_distance` and `tilt_angle` as state.
+  `Camera::adjust_tilt@00843970` interpolates the tilt between `fixed_angles`, and its decompile reads
+  `(zoom − angle)` where `(zoom − zoom₀)` would be expected; the listing settles which.
+  `Camera::zoom_to_level` only arms a zoom, and the step that moves the two distances is not read.
+  run1484's packet has every `fixed_angles` entry at 60, so no capture on disk exercises the interpolation.
+  It names no score until a client animates the camera. A sweep of the step under `tools/render/camera_oracle.py`'s
+  harness would book it.
+- **4018b. The starting camera and the clip planes** (`docs/RENDERER.md` §3.4). `Game::init_camera@00590bc0` is
+  unread. `Camera::compute_clip_planes@00842950` was stubbed in the oracle, not read. A replay viewer takes the
+  packet's camera until the draw list (`docs/RENDERER.md` §6 item 3) needs culling. It names no score.
 
 ## Parked by the next landing, slot DJ — reserved
 
