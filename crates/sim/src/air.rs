@@ -3793,8 +3793,9 @@ mod launch_tests {
     /// `0x5eb05b`–`0x5eb0a8`; `docs/GOLDEN.md` §184): the strike aims
     /// `(dist − 0xc00) / 3` ahead along the target's own heading, and at
     /// the target itself from `0xc00` in. 4,096 off gives 341. Made to
-    /// fail with the lead dropped and with its divisor at 2 (item 3991's
-    /// mutations 6 and 7, which only the chapter had caught).
+    /// fail with the divisor at 2 (item 3991's seventh mutation, which only
+    /// the chapter had caught); the call site in `do_strafe` dropped is the
+    /// chapter's alone.
     #[test]
     fn a_flying_target_farther_than_0xc00_is_led_a_third_of_the_excess() {
         let mut s = sim();

@@ -19373,7 +19373,7 @@ Each arm, where the word reaches it, parts nothing:
 `GROUND_INEXACT` holds both tests at 33: chapter seventeen's Bombers. The `cant_reach` tally is 1. The coverage
 driver takes 605..1400, 795 blocks.
 
-**Mutations** (`tools/mutate.py --batch`, seven breaks): four of seven breaks ran before the session was cleared, and all four held, each by both its unit test and the chapter: the split dropped, the room counting the garrison, the `MOVE_TO` gate dropped, and the flier arm dropped. Three remain: the arm's sense turned, the lead point dropped, and its divisor at 2.
+**Mutations** (`tools/mutate.py --batch`, seven breaks): all seven held. Four were caught by both their unit test and the chapter: the split dropped, the room counting the garrison, the `MOVE_TO` gate dropped, and the flier arm dropped. The arm's sense turned was caught the same way (the widening went from 691 rows to 637). The lead point dropped at `do_strafe`'s call site, and its divisor at 2, were caught by the widening alone: the word stays 969 and the row count stays 691, but the rows differ. A unit test for `strafe_lead` was then added, and it catches the divisor. The call site dropped is still the chapter's alone.
 
 **What is not established**:
 - the 969 parting (parked 3991a);
