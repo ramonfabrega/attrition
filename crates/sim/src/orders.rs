@@ -2387,15 +2387,15 @@ impl Sim {
             // clears `paid` before its own kill, so only an interrupted cast
             // reaches it: run346's `1/98`, whose Create Decoys the army's
             // tick replaced with an `ATTACK_TO` on 11508, `mana_burn` 903 →
-            // 0 (item 1302). SEAM: the refund's resources (the cost
-            // type's unpay), which `pay_cast_costs` is not modelled as taking either.
-            Body::Cast(c) if c.paid && !closing => {
-                if let Some(d) = self.spell(c.spell) {
-                    let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
-                    let burn = self.units[u].mana_burn;
-                    self.units[u].mana_burn = burn - back.min(burn);
-                }
-            }
+            // 0 (item 1302). The refund's resource half (the craft's
+            // `Type::unpay_cost`, vslot `+0xd8`) moves nothing on shipped
+            // data: every craft whose `COST2` is not empty — Restock
+            // Supplies, Research Project, Move Capital, Morph, Upgrade,
+            // the diplomacy crafts — has `FROM` and `FROM2` `none`, so
+            // `SpellTypeData::is_castable@00675bc0` refuses it to every
+            // caster and no unit holds it as a cast (item 3985,
+            // `docs/GOLDEN.md` §178).
+            Body::Cast(c) if c.paid && !closing => self.unpay_cast_mana(u, c.spell),
             _ => {}
         }
         // `kill_current_order@005e2cb0:30`: `unit_masks &= ~0x20000`, a

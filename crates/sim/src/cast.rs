@@ -514,23 +514,52 @@ impl Sim {
             || self.unit_domain_of(v) != crate::attrition::Domain::Land)
     }
 
-    /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`: the row's
-    /// range, and the Informer's halved on a building.
+    /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`, whole
+    /// (item 3985, `docs/GOLDEN.md` §178). A zero row stays zero. Then:
     ///
-    /// SEAM: the spy upgrade's steps (`get_spy_upgrade × spy_*_upgrade_
-    /// range × 192`) and Terra Cotta's; Bribe's and Counterintelligence's
-    /// one-tile range on a hero, a supply wagon or a building; Sabotage's
-    /// on an objmask-`0x200000` unit.
-    pub(crate) fn spell_range(&self, s: i32, t: Obj) -> i32 {
-        let r = self.spell(s).map_or(0, |d| d.range);
+    /// - Bribe and Counterintelligence (`0x275`, `0x277`) add
+    ///   `get_spy_upgrade(who) × SPY_BRIBE_UPGRADE_RANGE × 192`, and Terra
+    ///   Cotta's `TERRA_COTTA_RANGE × 192` (`has_wonder(0x211)`; it ships
+    ///   0). A target whose type is siege (vslot `+0x10c`), which is a
+    ///   supply unit (`+0xcc`) or which is a building (`+0x1c`) takes one
+    ///   tile, 192, instead of all of it.
+    /// - The Informer (`0x27f`) adds `get_spy_upgrade(who) ×
+    ///   SPY_INFORMER_UPGRADE_RANGE × 192`, and **then** halves the sum,
+    ///   `(r + 1) / 2`, on a building.
+    /// - The Sniper (`0x281`) takes one tile on a unit with the `VEHICLE`
+    ///   objmask (`has_objmask(0x200000)`).
+    ///
+    /// SEAM: `has_wonder(0x211)` is read as absent — the term adds 0 with
+    /// the shipped `TERRA_COTTA_RANGE` either way.
+    pub(crate) fn spell_range(&self, s: i32, who: crate::Player, t: Obj) -> i32 {
+        let mut r = self.spell(s).map_or(0, |d| d.range);
         if r == 0 {
             return 0;
         }
-        if s == spell::INFORMER && matches!(t, Obj::Building(_)) {
-            (r + 1) / 2
-        } else {
-            r
+        let ups = self.spy_upgrade_level(who);
+        if s == spell::BRIBE || s == spell::COUNTERINTEL {
+            r += ups * self.tuning.spy_bribe_upgrade_range * 0xc0;
+            let one_tile = match t {
+                Obj::Unit(v) => self.is_siege_unit(v) || self.is_supply_unit(v),
+                Obj::Building(_) => true,
+            };
+            if one_tile {
+                r = 0xc0;
+            }
         }
+        if s == spell::INFORMER {
+            r += ups * self.tuning.spy_informer_upgrade_range * 0xc0;
+            if matches!(t, Obj::Building(_)) {
+                r = (r + 1) / 2;
+            }
+        }
+        if s == 0x281
+            && let Obj::Unit(_) = t
+            && self.profile(t).obj_masks & crate::combat::mask::VEHICLE != 0
+        {
+            r = 0xc0;
+        }
+        r
     }
 
     /// `Group::action_spell@006fe1a0`, the arm a craft that is neither a
@@ -755,7 +784,7 @@ impl Sim {
         } else {
             (order.at, 0)
         };
-        let range = self.spell_range(s, t);
+        let range = self.spell_range(s, who, t);
         let here = self.units[u].pos;
         if range != 0
             && crate::world::vector_dist(centre.x - here.x, centre.y - here.y) > range + radius
@@ -903,6 +932,14 @@ impl Sim {
             && let Obj::Unit(v) = t
             && self.spell_castable(s, u)
         {
+            // `cast_bribe@00672d00`'s refusals hand the craft back
+            // through `unpay_cast_costs`: a target of the caster's own, or
+            // one standing in its owner's CEO's radius
+            // (`has_general(0, 0x165)`; item 3985, `docs/GOLDEN.md` §178).
+            if self.units[v].owner == self.units[u].owner || self.has_general(v, 0x165) {
+                self.unpay_cast_mana(u, s);
+                return;
+            }
             self.cast_bribe_unit(u, v);
             return;
         }
@@ -1475,6 +1512,18 @@ impl Sim {
     /// in [`Sim::hero_radius`].
     pub(crate) fn near_monarch(&self, u: usize) -> bool {
         self.has_general(u, 0x162)
+    }
+
+    /// `SpellType::unpay_cast_costs@00676ff0`'s mana half: `mana_burn -=
+    /// min(mana_burn, MANA)`. Its resource half moves nothing on shipped
+    /// data (no castable craft has a `COST2`; `orders.rs`'
+    /// `kill_current_order` arm says why).
+    pub(crate) fn unpay_cast_mana(&mut self, u: usize, s: i32) {
+        if let Some(d) = self.spell(s) {
+            let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
+            let burn = self.units[u].mana_burn;
+            self.units[u].mana_burn = burn - back.min(burn);
+        }
     }
 
     /// `ObjectData::has_general(u, 0, ty) >= 0` (`00646b00`) for a hero
