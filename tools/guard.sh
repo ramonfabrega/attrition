@@ -50,6 +50,11 @@ cargo test -q "${PROFILE[@]}" -p sim no_float
 RON_DIFF_DEBUG=1 cargo test -q "${PROFILE[@]}" -p rondata blind::tests::the_blind_list_is_the_pinned_residue
 if [ -z "$RON_LANE" ]; then cargo test -q "${PROFILE[@]}" -p rondata the_handoff; fi
 python3 tools/queueledger.py
+# The nations census round-trips (Loop 3972): `docs/NATIONS.md`'s generated
+# tables are what `nations_census.py` emits on this tree, so a lane that runs
+# `--write` to re-pin its row carries no churn it did not cause. ~3 s; it
+# skips, exit 0, without the decompile export or the install's rules.
+python3 -I tools/nations_census.py --check
 for f in "$@"; do
   cargo test -q "${PROFILE[@]}" -p sim "$f"
 done

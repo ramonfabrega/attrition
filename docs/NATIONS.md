@@ -23,7 +23,8 @@ against the sim (§3). (5) The difficulty reads were listed from every
 function the export holds that calls `LeaderData::get_diff@006ec000` or
 reads `info.difficulty` (§6). Regenerate the tables with
 `python3 -I tools/nations_census.py <export> <rules.xml> --write`;
-a hand judgement is an entry in that script's `HAND` or `OVERRIDES`.
+a hand judgement is an entry in that script's `HAND` or `OVERRIDES`, and
+`--check`, which `tools/guard.sh` runs, names every row that differs (3972).
 
 **The vocabulary.** The last two cells of a guarded row are a status and a
 witness, and the guard checks the pair:
@@ -157,7 +158,7 @@ left out; a constant with no reader in the export is dead there too.
 | `MAYA_BUILDING_SPEED` | 20 | Wall::update_construct_time | modelled at build.rs | `maya_building_speed` |
 | `INCA_WEALTH_CAP` | 33 | Leader::calc_resource_caps | modelled at economy.rs | `inca_wealth_cap` |
 | `INCA_WEALTH_PER_MINER` | 10 | BuildTypeData::calc_gather, Leader::calc_gather | modelled at holdings.rs | `inca_wealth_per_miner` |
-| `INCA_REFUND` | 25 | Object::take_damage, Unit::plunder | modelled at fight.rs | `inca_refund` |
+| `INCA_REFUND` | 25 | Object::take_damage, Unit::plunder | modelled at plunder.rs | `inca_refund` |
 | `BANTU_CITY_LIMIT` | 1 | Leader::found_cities, LeaderData::get_city_limit | modelled at place.rs | `bantu_city_limit` |
 | `BANTU_POP_CAP` | 100 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_pop_cap` |
 | `BANTU_FINAL_POP_CAP` | 25 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_final_pop_cap` |
@@ -168,7 +169,7 @@ left out; a constant with no reader in the export is dead there too.
 | `NUBIAN_CARAVAN_LIMIT` | 1 | LeaderData::get_caravan_limit | modelled at ai_units.rs | `nubian_caravan_limit` |
 | `NUBIAN_FREE_CARAVAN` | 0 | Build::activate | modelled at nations.rs | `nubian_free_caravan` |
 | `NUBIAN_MERCHANTS` | 10 | TypeData::get_cost | not carried | `nubian_merchants` |
-| `NUBIAN_HIT_POINTS` | 50 | Unit::update_hits, Wall::update_hits | modelled at cast.rs | `nubian_hit_points` |
+| `NUBIAN_HIT_POINTS` | 50 | Unit::update_hits, Wall::update_hits | modelled at build.rs | `nubian_hit_points` |
 | `NUBIAN_MARKET_PRICES` | 20 | LeaderData::calc_market_prices | modelled at ai_make.rs | `nubian_market_prices` |
 | `GREEK_RESEARCH_SPEED` | 100 | ObjectData::train_time | modelled at lib.rs | `greek_research_speed` |
 | `GREEK_RESEARCH_COST` | 10 | TypeData::get_cost | modelled at lib.rs | `greek_research_cost` |
@@ -225,7 +226,7 @@ left out; a constant with no reader in the export is dead there too.
 | `SPANISH_RUINS` | 26 | Unit::explore_goody | modelled at goody.rs | `spanish_ruins` |
 | `SPANISH_COMMANDOS` | 1 | no reader in the export | not carried | `spanish_commandos` |
 | `SPANISH_SCOUT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `spanish_scout_upgrades` |
-| `FRENCH_SUPPLY_HEAL_RATE` | 20 | Build::process, Unit::process_healing | modelled at supply.rs | `french_supply_heal_rate` |
+| `FRENCH_SUPPLY_HEAL_RATE` | 20 | Build::process, Unit::process_healing | modelled at heal.rs | `french_supply_heal_rate` |
 | `FRENCH_SPECIAL_CRAFT` | 0 | UnitData::mana | modelled at cast.rs | `french_special_craft` |
 | `FRENCH_SPECIAL_COST` | 0 | TypeData::get_cost | not carried | `french_special_cost` |
 | `FRENCH_SPECIAL_SPEED` | 0 | ObjectData::train_time | not carried | `french_special_speed` |
@@ -297,7 +298,7 @@ left out; a constant with no reader in the export is dead there too.
 | `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | modelled at lib.rs | `japanese_barracks_speed` |
 | `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | modelled at lib.rs | `japanese_ship_cost` |
 | `JAPANESE_AIRCRAFT_CARRIERS_SPEED` | 33 | no reader in the export | not carried | `japanese_aircraft_carriers_speed` |
-| `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | modelled at holdings.rs | `japanese_fishing_boats` |
+| `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | modelled at economy.rs | `japanese_fishing_boats` |
 | `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `japanese_carrier_speed` |
 | `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | modelled at cost.rs | `japanese_farms_cheaper` |
 | `KOREAN_START_CITIZEN` | 3 | no reader in the export | not carried | `korean_start_citizen` |
@@ -344,7 +345,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_AIRCRAFT` | 20 | TypeData::get_cost | modelled at cost.rs | `americans_aircraft` |
 | `AMERICANS_MARINE_SPEED_BONUS` | 2 | Unit::update_speed | modelled at rares.rs | `americans_marine_speed_bonus` |
 | `AMERICANS_MARINE_HP_BONUS` | 70 | Unit::update_hits | modelled at cast.rs | `americans_marine_hp_bonus` |
-| `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | modelled at tuning.rs | `americans_marine_entrench` |
+| `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | carried, unread | `americans_marine_entrench` |
 | `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | not carried | `americans_starting_farms` |
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
 | `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at lib.rs | `americans_science_discount` |
@@ -361,7 +362,7 @@ left out; a constant with no reader in the export is dead there too.
 | `DUTCH_INTEREST_CAP` | 50 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest_cap` |
 | `DUTCH_FREE_LIGHT_SHIP` | 1 | Build::activate | modelled at nations.rs | `dutch_free_light_ship` |
 | `DUTCH_FORT_SPEED` | 0 | Wall::update_construct_time | modelled at build.rs | `dutch_fort_speed` |
-| `DUTCH_ATTACK_BONUS` | 1 | ObjectData::armor, ObjectData::attack | modelled at fight.rs | `dutch_attack_bonus` |
+| `DUTCH_ATTACK_BONUS` | 1 | ObjectData::armor, ObjectData::attack | modelled at merchant.rs | `dutch_attack_bonus` |
 | `DUTCH_HP_BONUS` | 10 | Unit::update_hits | modelled at cast.rs | `dutch_hp_bonus` |
 | `DUTCH_SHIP_DISCOUNT` | 10 | TypeData::get_cost | modelled at cost.rs | `dutch_ship_discount` |
 | `PERSIANS_DESPOTISM` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `persians_despotism` |
@@ -389,7 +390,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Setup::build_civ_specific@005ab760` | 4 5 7 10 16 18 22 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_cities@005ab910` | 14 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_empire@005abb80` | 9 | modelled at ai_sites.rs | `sees_every_cell` |
-| `AnimalData::is_seen@005d8160` | 4 9 | carried at fight.rs | `005d8160` |
+| `AnimalData::is_seen@005d8160` | 4 9 | carried at animal_data_is_seen.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
 | `Unit::process_cloak@005e1c20` | 18 | carried at lib.rs | `005e1c20` |
 | `Unit::do_build@005eebf0` | 16 | carried at orders.rs | `005eebf0` |
@@ -398,7 +399,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Unit::update_speed@006055c0` | 0 3 10 | carried at rares.rs | `006055c0` |
 | `Unit::plunder@00605b00` | 0 | modelled at plunder.rs | `aztec_slay_bonus` |
 | `Unit::update_los@0060e4d0` | 8 9 18 | carried at vision.rs | `0060e4d0` |
-| `Unit::update_hits@0060e930` | 4 18 22 | carried at cast.rs | `0060e930` |
+| `Unit::update_hits@0060e930` | 4 18 22 | carried at unit_update_hits.rs | `0060e930` |
 | `Unit::close@0060ee50` | 19 20 | carried at fight.rs | `0060ee50` |
 | `UnitData::max_range@0060fe90` | 8 | carried at fight.rs | `0060fe90` |
 | `Unit::init@00612100` | 18 19 20 | carried at lib.rs | `00612100` |
@@ -415,7 +416,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at damage.rs | `00644130` |
-| `Object::disband@006455c0` | 0 19 | carried at object_disband.rs | `006455c0` |
+| `Object::disband@006455c0` | 0 19 | carried at disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at object_remove_from_inside.rs | `006480f0` |
 | `ObjectData::train_time@006508c0` | 5 15 | carried at lib.rs | `006508c0` |
@@ -423,8 +424,8 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `TypeData::get_desc_parsed@006626e0` | 11 | not sim | `interface or render side` |
 | `TypeData::get_cost@00664090` | 5 7 8 12 14 15 20 22 23 | carried at lib.rs | `00664090` |
 | `GoodData::is_seen@0066e4c0` | 4 9 | carried at good_data_is_seen.rs | `0066e4c0` |
-| `SpellTypeData::get_job_time@00675800` | 9 | carried at lib.rs | `00675800` |
-| `World::compute_reg_territory@006b0bb0` | 6 13 | carried at ai.rs | `006b0bb0` |
+| `SpellTypeData::get_job_time@00675800` | 9 | carried at spell_type_get_job_time.rs | `00675800` |
+| `World::compute_reg_territory@006b0bb0` | 6 13 | carried at border_pass.rs | `006b0bb0` |
 | `Leader::plan_strategy@006b9620` | 21 | carried at ai_census.rs | `006b9620` |
 | `Leader::create_buildings@006c1be0` | 19 | carried at ai_build.rs | `006c1be0` |
 | `Leader::create_units@006c40a0` | 19 | carried at ai_units.rs | `006c40a0` |
@@ -470,7 +471,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_spy_upgrade@006e1090` | 4 | carried at supply.rs | `006e1090` |
 | `LeaderData::get_troops_los_upgrade@006e1110` | 4 | carried at tech.rs | `006e1110` |
 | `LeaderData::get_heal_level@006e12e0` | 4 | carried at heal.rs | `006e12e0` |
-| `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at borders_is_border_hidden.rs | `006e1370` |
+| `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at animal_data_is_seen.rs | `006e1370` |
 | `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at lib.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at cities_capture_city.rs | `00733380` |
