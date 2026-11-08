@@ -4831,11 +4831,18 @@ impl Sim {
     /// finds nothing (`docs/ORDERS.md` §10), so a failed sweep still
     /// issues a `FLEE_TO` — to where the unit already stands.
     ///
+    /// **The hero and supply rings** (item 4005, `docs/COMBAT.md` §34.2,
+    /// `600752`–`60078c`): a hero (`+0xc4`, `unit_flags & 0x20`) or a
+    /// supply unit (`+0xcc`, `& 0x40`) asks the attacker's vslot `+0x20`
+    /// — the folded `Window::get_button` on a unit, answering 0, and
+    /// `Buffer::is_pending_load` on a building — and then its `+0x130`,
+    /// `max_range`: `0x180` from a unit that shoots, `0x300` from a
+    /// building or a unit that does not. A hero in an Ambush or on a
+    /// Forced March (`unit_masks & 0xa000`) does not flee at all.
+    ///
     /// SEAMS, each a clause this crate cannot yet ask and no capture on
     /// disk reaches: the packing latch `local_8` (a packer mid-pack, set
-    /// at `600130`); the `unit_flags & 4` packer arm; and the hero and
-    /// supply radii, which need `is_hero`/`is_supply` and the attacker's
-    /// vslot `+0x130`.
+    /// at `600130`); and the `unit_flags & 4` packer arm.
     /// **The counter-craft arms** — `Unit::target_opportunity@005fffc0`,
     /// `60051b`..`60061e`, between the action block and the flee arm
     /// (`docs/AI.md` §366.2, item 3739). Returns whether the hit was
@@ -4937,11 +4944,23 @@ impl Sim {
         if p.packs {
             return false;
         }
+        let hero = self.is_hero_unit(u);
+        if hero && (self.units[u].ambushing.is_some() || self.units[u].marching.is_some()) {
+            return false;
+        }
+        let ring = if !hero && !self.is_supply_unit(u) {
+            0x600
+        } else {
+            match attacker {
+                Obj::Unit(_) if self.max_range_of(attacker) != 0 => 0x180,
+                _ => 0x300,
+            }
+        };
         let here = self.units[u].pos;
         let from = self.pos_of(attacker);
         let angle = find_angle(here.x - from.x, here.y - from.y);
         let spot = self
-            .find_nearby_spot(u, here, 0x600, -1, 0, angle, None)
+            .find_nearby_spot(u, here, ring, -1, 0, angle, None)
             .unwrap_or(here);
         self.add_move_order(
             u,
@@ -8614,6 +8633,81 @@ mod tests {
         assert_eq!(blow(true, 120, false).0, 2 * base, "the sum is inclusive");
         // Attacking a target inside twice the sum: the arm refuses.
         assert_eq!(blow(true, 100, true).0, base, "its own target is near");
+    }
+
+    /// **A hero or a supply unit flees on a shorter ring** (item 4005,
+    /// `docs/COMBAT.md` §34.2, `Unit::target_opportunity@005fffc0`,
+    /// `600752`–`60078c`): `0x180` from a unit attacker with a range
+    /// (vslot `+0x130`, `max_range`), `0x300` from a melee one, and the
+    /// `0x600` of anything else; a hero in an Ambush or on a Forced March
+    /// (`unit_masks & 0xa000`) does not flee. Chapter 129's Senator `0/6`,
+    /// struck by a Hoplite on 946, flees 751 units on 947 to
+    /// `(6792, 28632)`, the `0x300` ring.
+    #[test]
+    fn a_hero_or_supply_unit_flees_on_the_attacker_s_ring() {
+        let (mut sim, archer) = at_war();
+        let melee = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 0,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let mk = |sim: &mut Sim, flags2: u32| {
+            let mut t = crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 0,
+                    uber_size: 1,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            };
+            t.cols.unit_flags2 = flags2;
+            sim.add_unit_type(t)
+        };
+        let hero = mk(&mut sim, crate::ai_load::uflags2::GENERAL);
+        let supply = mk(&mut sim, crate::ai_load::uflags2::SUPPLY_OR_HERO);
+        let plain = mk(&mut sim, 0);
+        let flight = |sim: &mut Sim, ty: usize, foe_ty: usize, y: i32, ambush: bool| {
+            let me = put(sim, 0, ty, Pos::new(0x4000, y));
+            sim.units[me].ambushing = ambush.then_some(i64::MAX);
+            let foe = put(sim, 1, foe_ty, Pos::new(0x4300, y));
+            sim.do_damage(
+                Obj::Unit(foe),
+                Obj::Unit(me),
+                crate::movement::Angle(0),
+                false,
+                1,
+                false,
+                false,
+                10,
+            );
+            match sim.units[me].orders.front().map(|o| o.body) {
+                Some(crate::orders::Body::Move(m)) => {
+                    assert_eq!(m.kind, crate::orders::MoveKind::FleeTo);
+                    Some(0x4000 - m.dest.x)
+                }
+                _ => None,
+            }
+        };
+        let near = |d: Option<i32>, ring: i32| d.is_some_and(|d| (d - ring).abs() <= 0x60);
+        let d = flight(&mut sim, hero, melee, 0x2000, false);
+        assert!(near(d, 0x300), "a hero struck by a melee unit: {d:?}");
+        let d = flight(&mut sim, hero, archer, 0x3000, false);
+        assert!(near(d, 0x180), "a hero struck by a unit that shoots: {d:?}");
+        let d = flight(&mut sim, supply, melee, 0x4000, false);
+        assert!(
+            near(d, 0x300),
+            "a supply unit struck by a melee unit: {d:?}"
+        );
+        let d = flight(&mut sim, plain, melee, 0x5000, false);
+        assert!(near(d, 0x600), "anything else flees on 0x600: {d:?}");
+        let d = flight(&mut sim, hero, melee, 0x6000, true);
+        assert_eq!(d, None, "a hero in an Ambush does not flee");
     }
 
     /// **A hit civilian runs away from whoever hit it** —
