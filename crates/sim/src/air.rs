@@ -3974,6 +3974,111 @@ mod launch_tests {
         };
         assert!(sf.returning);
     }
+
+    /// A Fighter inside `base` on the Biplane line (`is(BIPLANE)`), tank
+    /// full.
+    fn biplane_inside(s: &mut Sim, base: usize) -> usize {
+        let u = fighter_inside(s, base, 400);
+        let ty = s.units[u].ty.unwrap();
+        s.unit_types[ty].tree = Some(crate::airbase::BIPLANE);
+        s.units[u].mana_burn = 0;
+        u
+    }
+
+    /// **A blow on a base scrambles its last full Biplane** (item 3990,
+    /// `Object::attempt_launch@00643a10`; run1548's 795–796: `0/6` takes
+    /// one `AIRPATROLORDER` at the hoplite's point). Under
+    /// `FRAMES_BETWEEN_LAUNCHES` nothing; a tank not full is passed over;
+    /// an occupant with an order and a full tank ends the walk. Made to
+    /// fail with the launch-frames gate dropped (the first assertion), with
+    /// the first candidate kept (the second) and with the walk's return
+    /// dropped (the last).
+    #[test]
+    fn a_blow_on_a_base_sends_its_last_full_biplane_at_the_striker() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let a = biplane_inside(&mut s, base);
+        let b = biplane_inside(&mut s, base);
+        let c = biplane_inside(&mut s, base);
+        s.units[c].mana_burn = 1;
+        let at = Pos::new(12408, 14712);
+        s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES - 1;
+        s.attempt_launch(base, at);
+        assert!(
+            [a, b, c].iter().all(|&u| s.units[u].orders.is_empty()),
+            "too soon after a launch"
+        );
+        s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
+        s.attempt_launch(base, at);
+        assert!(s.units[a].orders.is_empty(), "not the first full one");
+        assert!(s.units[c].orders.is_empty(), "nor the one refuelling");
+        let o = s.units[b].orders.front().copied().expect("a patrol");
+        assert_eq!(o.flags & flag::ACTION, flag::ACTION, "the action bit");
+        let Body::AirPatrol(p) = o.body else {
+            panic!("an air patrol")
+        };
+        assert_eq!((p.points[0], p.home), (at, Some(base)));
+        assert_eq!(s.units[b].inside, Some(base), "out on the next launch");
+        s.units[a].mana_burn = 0;
+        s.units[c].mana_burn = 0;
+        s.units[b].orders.clear();
+        s.add_air_patrol_order(a, at, Some(base), true);
+        s.attempt_launch(base, at);
+        assert!(
+            s.units[b].orders.is_empty() && s.units[c].orders.is_empty(),
+            "a full occupant with an order ends the walk"
+        );
+    }
+
+    /// A Fighter out on a patrol from `base`, its tank empty: the flight
+    /// home.
+    fn returning_from(s: &mut Sim, base: usize, at: Pos) -> usize {
+        let u = fighter_inside(s, base, 400);
+        s.come_out(u);
+        s.units[u].pos = at;
+        s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+        if let Some(Body::AirPatrol(p)) = s.units[u].orders.front_mut().map(|o| &mut o.body) {
+            p.returning = true;
+        }
+        s.units[u].mana_burn = 400;
+        u
+    }
+
+    fn patrol_home(s: &Sim, u: usize) -> Option<usize> {
+        match s.units[u].orders.front().map(|o| o.body) {
+            Some(Body::AirPatrol(p)) => p.home,
+            _ => None,
+        }
+    }
+
+    /// **A plane whose home is razed re-homes to the nearest base, and
+    /// with none dies** (item 3990, `Unit::check_fuel@005e9be0:60`–`:136`;
+    /// run1548: the three planes' `oxx` 2008 by 1216, all gone on 1231).
+    /// Of two live Airbases the nearer is written into the order; a base
+    /// of the other side is never one. Made to fail with `rehome` answering
+    /// none (the first assertion), with the first base kept over the
+    /// nearer (the same), and with `out_of_fuel` dropped (the last).
+    #[test]
+    fn a_plane_whose_home_is_razed_flies_to_the_nearest_base_or_dies() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let airbase = s.buildings[base].ty;
+        let far = s.add_building(0, Pos::new(11616, 30000), 0);
+        s.buildings[far].ty = airbase;
+        let near = s.add_building(0, Pos::new(11616, 21000), 0);
+        s.buildings[near].ty = airbase;
+        let theirs = s.add_building(1, Pos::new(11616, 18000), 0);
+        s.buildings[theirs].ty = airbase;
+        let u = returning_from(&mut s, base, Pos::new(11616, 17000));
+        s.buildings[base].alive = false;
+        s.plane_air_physics(u, None, 1201);
+        assert_eq!(patrol_home(&s, u), Some(near), "the nearest of its own");
+        assert!(s.obj_alive(Obj::Unit(u)), "flying on");
+        s.buildings[near].alive = false;
+        s.buildings[far].alive = false;
+        s.plane_air_physics(u, None, 1202);
+        assert!(!s.obj_alive(Obj::Unit(u)), "no base: it dies");
+    }
 }
 
 /// `Ammo::init@0067bbf0`'s air arm (`67bef8`..`67c16a`, item 1102,
