@@ -15409,7 +15409,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
 
 ## Parked by item 3987, 2026-11-08 — the patriot repair and the garrison heal's level
 
-- **3987a. who=1's `1/14` on 810 in chapter 129** (`WANT_CH129`, run1545, `docs/GOLDEN.md` §180). The word is 827:
+- ~~**3987a. who=1's `1/14` on 810 in chapter 129** (`WANT_CH129`, run1545, `docs/GOLDEN.md` §180). The word is 827:
   ours spends ten draws to theirs' nine, the extra one `Guy::set_anim < Unit::move_step+0x823` at index 1. The state
   parts first on 810, on one unit, a Hoplite of arm three's attacking squad. Its squad's target, who=0's Hoplites
   `0/8..0/10`, is walking to the capital on the 700 `@garrison`, and the struck figure `0/9` is gone on 810 on both
@@ -15417,7 +15417,9 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `orders_x/y` (5352, 31704) and `near` (−1, −1); ours holds kind 10 at `0/10`, one order, (5928, 32904) and `near`
   (10, 0). On 811 its move, path and position part; on 813 its captain `1/12`'s move `dest_y` (31800 ours, 31848
   theirs). Not read: the order chain on 809–810 either side (`RON_STACKS`, the `kill_current_order` caller), nor
-  whether the walk-in to a garrison is what ends theirs' attack. Score: ch129 w827 of 1,100.
+  whether the walk-in to a garrison is what ends theirs' attack. Score: ch129 w827 of 1,100.~~ Closed by item 4002
+  (`docs/GOLDEN.md` §191): not the walk-in. `1/14` is a follower with a mandatory attack, and `Unit::fight`'s
+  invalid-target branch hands it the dead `0/9`'s captain `0/8` in the same order; ch129 827 → 862.
 - **3987b. A regrown figure inside a garrison** (run1545, `docs/GOLDEN.md` §180, `WANT_CH129`'s `863 0/8 healing`).
   who=0's Hoplites `0/8..0/10` lose the struck `0/9` on block 810, both sides. Theirs' squad then holds a new `0/9`
   (uid 20, inside, `damage` 39) by block 863, and its garrison heal lands at 15 on game frame 862. Ours' squad stays two
@@ -15433,13 +15435,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CX — reserved
+## Parked by item 4002, 2026-11-08 — a mandatory attack on a dead figure takes its squad's captain
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4002a. `Unit::fight`'s `LAB_005fe0e5` tail is held by no walk** (`docs/GOLDEN.md` §191, `Sim::mandatory_substitute`).
+  A mandatory attack whose dead target has no other captain, and whose next action is not `NONE`, `ATTACK_TO` or
+  `GROUP_ATTACK_TO`, ends at `kill_current_order` with no search. Built from the listing (`fight@005fd4d0:333`–`:335`,
+  `:498`–`:500`); mutated to the search, it fails nothing in the 335 golden tests. `docs/ORDERS.md` §7.12's raiders on
+  run100 (a `GROUP_MOVE` under a mandatory attack on the dead `0/2004`) are the reading's witness; whether their
+  `GROUP_MOVE` carries the action bit, which `get_next_action` reads, is not read. Not read: the tail on run100's
+  blocks past 10231 with `RON_STACKS`. Score: none yet — a unit test that fails without the tail, then a walk.
 
 ## Parked by the next landing, slot CY — reserved
 

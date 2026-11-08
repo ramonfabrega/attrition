@@ -18904,7 +18904,7 @@ them: a blow's size spends no draw.
 the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
 `blind::` is unmoved: run1544b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b)
+## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191)
 
 **The booking** (parked 3961b, 3959a) named two arms: a Monarch, Comrade or CEO beside a damaged own building
 (`Build::process@0061edf0`'s arm to `0061f3b9`), and a wounded unit garrisoned by a player holding Herbal Lore. **The
@@ -19192,12 +19192,66 @@ the join, the original at the next normalize after `remove_group`. run146's gap 
 order, the push arrays (run1555's pool), and the dead-army push (run146, chapter 103). Reading only: `remove_group`'s
 link test, inferred from run146's push and run1555's rejoin together.
 
-## 191. Reserved for the next item on the rules track
+## 191. Chapter one hundred and twenty-nine, 827 → 862 — a mandatory attack on a dead figure takes its squad's captain in the same order (item 4002, run1545)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3987a): the word 827, ours ten draws to theirs' nine; the state parting first on 810 on
+who=1's Hoplite `1/14`, theirs order kind 1 with two orders, `orders_x/y` (5352, 31704), `near` (−1, −1), ours
+kind 10 at `0/10`, one order, (5928, 32904), `near` (10, 0). The hypothesis it carried — that the target's walk-in
+to the garrison ends theirs' attack — was killed by the first read: the walk-in is not on the frame.
+
+**The disk answered it; no run was taken (1556 unused).**
+- **Who is who** (`one.py UNITDATA` on blocks 809–810, run1545): the dump's `up`/`down` are not the squad chain.
+  The chain is `o_up`/`o_down`. `1/14` is a **follower** (`o_up` 13), under the captain `1/12` (`o_up` −1). The
+  struck squad is `0/8` → `0/9` → `0/10`, `0/8` its head. All are Hoplites (TI 132, TY 82, land).
+- **`0/9` died on game frame 809** on both sides: `DEATH_OBJS` on block 810 carries `who 0 o 9 first_frame 809`
+  (its `hits 120` is the type's maximum; `damage` 34 on 809). On 810 `0/10` reads `o_up` 8, `o_down` 9: the relink
+  sent the dead middle figure to the tail, so its `o_up` is 10.
+- **Theirs keeps the order.** On 810 `1/14`'s `ATTACKORDER` names `ox 8 uid 17` with `mandatory 1`,
+  `ever_in_range 1`, `new_ord 0` — the same order object, retargeted — under a `MOVEORDER` to (5352, 31704),
+  `flags 0`, `dest 0`. Ours dropped it: `ATTACK 0/10`, `new_ord 1`, `ever_in_range 0`, flags 0.
+- **The draws do not tell them apart**: 809–826 agree, and the cover twin's first-entry coverage enters nothing on
+  810.
+
+**The arm** (`Unit::fight@005fd4d0:300`–`:335`, the invalid-target branch with `param_5 == 0`, past the capture
+approach):
+
+```text
+action = get_action(); if !action || action.type != ATTACK: return 0
+if !mandatory || ox < 0:                        goto LAB_005fdb9e     ; find_new_target
+c = objects[whom][ox]->get_captain()             ; vslot +0xe4, UnitData::get_captain@00610ab0
+if c != ox && valid_target(c, whom):
+    order.target = (c, whom, uid(c))             ; mandatory, ever_in_range, new_ord untouched
+    flags ^= 0x10; if now set: work()            ; vslot +0x188, Unit::work
+    return 0
+if next_action_type() in (NONE, ATTACK_TO, GROUP_ATTACK_TO): goto LAB_005fdb9e
+LAB_005fe0e5: kill_current_order(0); return 0
+```
+
+`get_captain` walks `o_up` and asks nothing of life, so from the dead `0/9` it walks 10 → 8: `0/8`, theirs' target.
+The re-entered `work` dispatches the attack again and its chase lays the move to (5352, 31704).
+
+**Built** (`sim::orders`, `Sim::mandatory_substitute`, called from `do_attack_fight` after `capture_approach`):
+the action check, the substitute and its latch, and the `next_action_type` tail
+(`UnitData::get_next_action@00608230`: the orders past the head, skipping transit moves and `CHANGE_FORM`).
+
+**The value diff, 810** (`RON_DEBUG_UNIT=1/14@809-812` on the walk): ours' `1/14` names `0/8` under a move to
+(5352, 31704), `dest_angle` −306184192, the attack's flags 4 — theirs' `orders_x/y` (5352, 31704) and
+`dest_angle` −306184192. On 811 both stand at (5915, 32879) with the path's one leg at (5352, 31704).
+
+**The word moves 827 → 862** (`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE`). Every `1/14` and `1/12` row of 810–
+862 leaves `WANT_CH129` (345 → 249). The new word is the garrison heal's regrown figure: theirs' first draw on 862 is
+`Guy::init_real+0x52 < Unit::init+0xb97 < Unit::repair_damage+0x33d`, ours spends seven to theirs' eight. That is
+parked 3987b, item 3993's booking; the widening's first non-standing rows are its four on 863 (`0/8 healing`,
+`0/8 group`, `0/10 group`, `0/9 unlinked`).
+
+**Killers.** The substitute switched off (`tools/mutate.py`, `if false && c != t …`): the word falls back to 827, and
+`fight::tests::a_mandatory_attack_on_a_dead_figure_takes_its_squad_s_captain` fails. **The `LAB_005fe0e5` tail is
+held by no walk**: its mutation to the search fails nothing in the 335 golden tests. It is built from the listing
+alone; `docs/ORDERS.md` §7.12's raiders (a `GROUP_MOVE` under a mandatory attack on a dead building) are its
+reading's witness, and run100's window does not reach it after the reload. Its unit test is owed (parked 4002a).
+
+**What is not established**: the `ox < 0` arm (the order's `uid` no longer the slot's) — this crate keeps no slot
+reuse; and whether the action check's early return (an action that is not an `ATTACK`) is reached by any capture.
 
 ## 192. Reserved for the next item on the rules track
 
