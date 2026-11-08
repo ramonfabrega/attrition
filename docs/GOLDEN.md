@@ -18975,7 +18975,7 @@ beside who=0's gatherers at (22, 149), and its attackers were drawn off onto the
   order, (5928, 32904) and `near` (10, 0) (parked 3987a).
 - **The widening.** Over 605..1100 (`(604, 1101)`, both directions) it parts on the eleven standing `form` rows, then
   nothing until 810 (`WANT_CH129`, 345 rows). No `healing` or `damage` row on `0/2007` or `0/2008` parts in the
-  window: both repairs and both clocks agree to 1100. The `cant_reach` tally 8.
+  window: both repairs and both clocks agree to 1100. The `cant_reach` tally 3 (8 before item 3983 merged).
 - **Arm 3 is not held by the walk.** `UNITDATA healing` sat under the comparator's on-map gate, so a garrisoned unit's
   clock was never compared. The level-0 mutation parted nothing, and that is how it was found. It is compared on or off
   the map now (`diff::harness`), and no other window on disk moves. On run1545 it parts on 863: `0/8` heals inside at
