@@ -4057,6 +4057,7 @@ impl Sim {
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
         let mut tail = self.held_elsewhere(t);
+        tail.extend(self.age_catch_up(who, t));
         tail.extend(self.epoch_catch_up(who, t));
         tail.extend(self.greek_research(who, t));
         tail.extend(self.research_rares(who));
@@ -4143,6 +4144,38 @@ impl Sim {
         vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
     }
 
+    /// **The age's catch-up term** of `ObjectData::train_time@006508c0`'s
+    /// research block (`LAB_00651454`, the decompile's lines 424–449): an
+    /// age (`0x220..0x226`) counts, over the eight leader slots in use, the
+    /// leaders whose `ages + ages_queued` exceed this leader's by more than
+    /// one — 1 for an ally, 2 for anyone else, as the epoch's — and with `n`
+    /// of them takes `t × (2N − n + 2) / (2N + 2)`, then falls to the
+    /// Greeks' arm. The epoch's term reads `ages + epochs` and no queued
+    /// count; this one reads the queued ages on both sides of the test, so
+    /// another leader's age queued shortens a job already running, and its
+    /// cancel lengthens it again (item 3982, `docs/AI.md` §414).
+    ///
+    /// SEAM: `is_team`'s team-style-7 arm, as the epoch's.
+    pub(crate) fn age_catch_up(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+        if !matches!(self.tech_tree.kind(t), tech::Kind::Age(_)) {
+            return Vec::new();
+        }
+        let me = &self.tech[who as usize];
+        let mine = me.ages + i32::from(me.ages_queued);
+        let n: i32 = (0..self.players.len().min(8))
+            .filter(|&p| {
+                let o = &self.tech[p];
+                mine + 1 < o.ages + i32::from(o.ages_queued)
+            })
+            .map(|p| if self.is_ally(p as Player, who) { 1 } else { 2 })
+            .sum();
+        if n == 0 {
+            return Vec::new();
+        }
+        let nations = 2 * self.players.len() as i32;
+        vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
+    }
+
     /// **The Greeks' arm** of `ObjectData::train_time@006508c0`'s research
     /// block (`LAB_006515d7`, `:453`–`458`): for a leader with
     /// `has_tribe_bonus(5)`, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`. The
@@ -4156,8 +4189,8 @@ impl Sim {
     /// its second city five times there; without the arm ours is still
     /// researching it (item 3326, `docs/AI.md` §266).
     ///
-    /// SEAM: the age's catch-up term ahead of it (`ages_queued`) is not
-    /// carried; the epoch's is built (item 3790).
+    /// The age's catch-up term ahead of it is built (item 3982), as the
+    /// epoch's is (item 3790).
     pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
         let age_or_epoch = matches!(
             self.tech_tree.kind(t),
@@ -4187,9 +4220,9 @@ impl Sim {
     ///
     /// SEAM: the block's other steps — `has_preq(RESEARCH_FASTER)`'s three
     /// quarters, Angkor Wat's `ANGKOR_RESEARCH` (0% shipped), Conquer the
-    /// World's cards, the handicap, the lobby's `tech_cost`, and the
-    /// head's age catch-up term — are not carried (the epoch's is built,
-    /// item 3790).
+    /// World's cards, the handicap and the lobby's `tech_cost` — are not
+    /// carried (the age's and the epoch's catch-up terms are built, items
+    /// 3982 and 3790).
     pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
         if self.has_rare(who, economy::RELICS) {
             vec![production::Adjust::Scale(
@@ -4271,6 +4304,7 @@ impl Sim {
         );
         let slot = self.buildings[at].queue.push_tech(t, &charges);
         self.tech[who as usize].queued[t] += 1;
+        self.track_age_epoch_queued(who, t, 1);
         // `Build::queue_up@00620f40` stamps the leader's `tech_frame` (`+0x7c4`)
         // and its category's `tech_cat_frame[cat]` (`+0x7c8 + 4 cat`) with the
         // frame, for every technology queued (item 1496: run656's block 5
@@ -4299,6 +4333,7 @@ impl Sim {
         };
         if let Some(t) = item.tech {
             self.tech[who as usize].queued[t] -= 1;
+            self.track_age_epoch_queued(who, t, -1);
         } else {
             self.untrack_queued(who, item.ty);
         }
@@ -4892,6 +4927,7 @@ impl Sim {
             let mut ledger = economy::Ledger::default();
             self.buildings[at].queue.unqueue(slot, false, &mut ledger);
             self.tech[who as usize].queued[t] -= 1;
+            self.track_age_epoch_queued(who, t, -1);
             self.gain_tech(who, t);
             self.economy_changed(who);
             self.senate_gov_hero(at);
@@ -6367,9 +6403,29 @@ impl Sim {
             if *q != 0 {
                 *q -= 1;
             }
+            self.track_age_epoch_queued(who, t, -1);
         } else {
             self.untrack_queued(who, item.ty);
         }
+    }
+
+    /// **`ages_queued` and `epochs_queued`** (`LeaderData +0x67f4`,
+    /// `+0x67f5`; item 3982, `docs/AI.md` §414): the byte for an age
+    /// (`0x220..0x226`) or an epoch (`0x227..0x242`) moved by `delta` beside
+    /// the technology's own `num_queued` — raised by `Build::queue_up
+    /// @00620f40:518`–`:541`, taken down by `Build::unqueue@006207c0:139`–
+    /// `:164` (a cancel, and a finished research) and `Build::clean_queue
+    /// @00620b60:132`–`:158`. The decrement is a bare byte `− 1`, no zero
+    /// test, where `num_queued`'s beside it has one; a library's hand-off
+    /// moves the entries and neither count.
+    fn track_age_epoch_queued(&mut self, who: Player, t: tech::TypeId, delta: i8) {
+        let p = &mut self.tech[who as usize];
+        let c = match self.tech_tree.kind(t) {
+            tech::Kind::Age(_) => &mut p.ages_queued,
+            tech::Kind::Epoch { .. } => &mut p.epochs_queued,
+            _ => return,
+        };
+        *c = c.wrapping_add_signed(delta);
     }
 
     /// **One off the queued count, never below zero** — the decrement
