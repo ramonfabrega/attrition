@@ -1855,6 +1855,13 @@ pub struct Building {
     /// it where the original calls the vslot `+0x160` on a building;
     /// [`Sim::build_los`] is the derivation.
     pub mylos: i32,
+    /// **`ObjectData::healing` (`+0x38`) of a building** — the heal's
+    /// display clock, as a unit's is (item 3987, `docs/GOLDEN.md` §180).
+    /// Its one writer on a building is `Build::process@0061edf0`'s patriot
+    /// repair ([`Sim::patriot_repair`]), `max(rate, healing)` with
+    /// `FRENCH_SUPPLY_HEAL_RATE`; `Build::process` takes one off it each
+    /// frame of an active building, before the ejection.
+    pub healing: i16,
     /// **`ObjectData::visible` (`+0x40`) of a building** — the players it
     /// has shown itself to by shooting them (`Build::do_attack@006228f0`,
     /// `622b5b`..`622bd0`, `docs/GOLDEN.md` §59): the fallback arm of
@@ -3588,6 +3595,7 @@ impl Sim {
             ever_seen: 0,
             ever_seen_completed: 0,
             mylos: 0,
+            healing: 0,
             visible: 0,
             attacking: false,
         });
@@ -7364,6 +7372,7 @@ impl Sim {
             if live {
                 self.log_building_step(b, "tower");
                 self.process_building_combat(b, frame);
+                self.patriot_repair(b, frame);
             }
             self.log_building_step(b, "queue");
             self.process_queue(b, &mut trained);

@@ -3138,6 +3138,38 @@ fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
     assert_eq!(sim.units[h].health, 60);
 }
 
+/// **The garrison heal's period is `UNIT_HEAL_RATE[get_heal_level]`**
+/// (item 3987, `docs/GOLDEN.md` §180; parked 3959a): with Herbal Lore held
+/// the trained Hoplite heals every 15 frames, and `healing` reads 15.
+/// run1545's `0/8` prints 15 inside its capital; its squad there is not
+/// this crate's, so the walk does not hold the level, and this does.
+#[test]
+fn the_garrison_heal_takes_the_heal_level_s_period() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut tree = sim.tech_tree.clone();
+    let herbal = tree.add(crate::tech::TypeDef::plain("Herbal Lore", 0));
+    tree.roles.heal_faster_preq = [Some(herbal), None, None];
+    sim.set_tech_tree(tree);
+    sim.tech[0].tech[herbal] = true;
+    assert_eq!(sim.heal_level(0), 1, "Herbal Lore is the first rung");
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+    sim.units[h].health = 50;
+    assert_eq!(sim.garrison(h, b), Ok(()));
+    for _ in 0..90 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.units[h].health, 56,
+        "UNIT_HEAL_RATE[1] 15: six steps in ninety frames"
+    );
+    assert!(sim.units[h].healing <= 15 && sim.units[h].healing > 0);
+}
+
 #[test]
 fn a_garrisoned_tower_reloads_faster() {
     let mut sim = world_sim();

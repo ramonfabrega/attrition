@@ -15128,7 +15128,9 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   indexes it by `get_heal_level@006e12e0`, now `Sim::heal_level` (Herbal Lore, Medicine,
   Pharmaceuticals). A garrisoned unit of a player holding Herbal Lore heals every 15 frames in theirs
   and every 20 in ours. The score is the first window where a garrisoned unit of such a player parts
-  on `hits:damage`. No window was scanned for one.
+  on `hits:damage`. No window was scanned for one. **Closed by item 3987** (`docs/GOLDEN.md` §180): item 3961 had
+  already pointed the garrison heal at `Sim::heal_level`; run1545's `0/8` prints theirs' 15 inside its capital, and
+  `cities_tests::the_garrison_heal_takes_the_heal_level_s_period` holds the level (the walk cannot, parked 3987b).
 
 ## Parked by item 3960, 2026-11-07 — a unit's own queue, compared against the crate's 0
 
@@ -15154,7 +15156,9 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   of a leader holding one repairs it on `FRENCH_SUPPLY_HEAL_RATE`'s phase and writes the building's `healing`; this crate
   compares `BUILDDATA healing` against 0 under a `SEAM`, and 0 is what every building of the 1182 dumps on disk prints
   (the 2026-11-07 scan, every record-level non-zero `healing` a unit's). **Score**: none until a capture holds a patriot
-  beside a damaged building; the compare reds at once when one does.
+  beside a damaged building; the compare reds at once when one does. **Closed by item 3987** (`docs/GOLDEN.md` §180,
+  run1545): the arm's patriots are the Senator, the President and the CEO, the President's reach repairing on nobody's
+  ground too; `Sim::patriot_repair` is built and both branches agree.
 
 ## Parked by item 3962, 2026-11-07 — the two `cant_reach` writers this crate lacks
 
@@ -15398,13 +15402,23 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   (42673, 8196). It reads as `1/0` joining army 0's group and taking its move, the shape of run146's 847 (`1/0` to
   64). No draw is spent. Not read: the join's caller on 1020 either side. Score: `WANT_CH128` 23 → 11 when it lands.
 
-## Parked by the next landing, slot CV — reserved
+## Parked by item 3987, 2026-11-08 — the patriot repair and the garrison heal's level
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3987a. who=1's `1/14` on 810 in chapter 129** (`WANT_CH129`, run1545, `docs/GOLDEN.md` §180). The word is 827:
+  ours spends ten draws to theirs' nine, the extra one `Guy::set_anim < Unit::move_step+0x823` at index 1. The state
+  parts first on 810, on one unit, a Hoplite of arm three's attacking squad. Its squad's target, who=0's Hoplites
+  `0/8..0/10`, is walking to the capital on the 700 `@garrison`, and the struck figure `0/9` is gone on 810 on both
+  sides (3987b). Theirs holds order kind 1 with two orders,
+  `orders_x/y` (5352, 31704) and `near` (−1, −1); ours holds kind 10 at `0/10`, one order, (5928, 32904) and `near`
+  (10, 0). On 811 its move, path and position part; on 813 its captain `1/12`'s move `dest_y` (31800 ours, 31848
+  theirs). Not read: the order chain on 809–810 either side (`RON_STACKS`, the `kill_current_order` caller), nor
+  whether the walk-in to a garrison is what ends theirs' attack. Score: ch129 w827 of 1,100.
+- **3987b. A regrown figure inside a garrison** (run1545, `docs/GOLDEN.md` §180, `WANT_CH129`'s `863 0/8 healing`).
+  who=0's Hoplites `0/8..0/10` lose the struck `0/9` on block 810, both sides. Theirs' squad then holds a new `0/9`
+  (uid 20, inside, `damage` 39) by block 863, and its garrison heal lands at 15 on game frame 862. Ours' squad stays two
+  figures at full hits and never heals. It reads as the regrown figure of item 3993's booking. Not read: where theirs'
+  uid-20 figure is born (854–862, `births.py`). Score: the `0/8 healing` and `0/9 unlinked` rows of `WANT_CH129`, −1
+  each when it lands.
 
 ## Parked by the next landing, slot CW — reserved
 

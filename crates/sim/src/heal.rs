@@ -190,6 +190,73 @@ impl Sim {
         }
     }
 
+    /// **`Build::process@0061edf0`'s patriot repair** (`0061f2a0`..
+    /// `LAB_0061f3b9`, item 3987, `docs/GOLDEN.md` §180): after the tower's
+    /// attack and before `do_queue`, an active building of a leader who
+    /// counts a Senator, a President or a CEO (`+0x59c0`, `+0x59c4`,
+    /// `+0x59c8`: `+0x56fe + ti × 2` at `0x161`, `0x163`, `0x165`), damaged
+    /// (`damage` or `damage_frac` non-zero), on `FRENCH_SUPPLY_HEAL_RATE`'s
+    /// phase `(o + frame) % rate == 0`, takes one point:
+    ///
+    /// ```text
+    /// t = owner of the cell under the building (−1 for none)
+    /// if has_general(0, 0x163) >= 0:            # a President's reach
+    ///     repair if t < 0 or is_ally(t)
+    /// elif t >= 0 and is_ally(t):
+    ///     repair if has_general(0, 0x161) >= 0 or has_general(0, 0x165) >= 0
+    /// repair: vslot +0x168(1, 0, 1) = Build::repair_damage;
+    ///         healing = max(rate, healing)
+    /// ```
+    ///
+    /// `has_general` on a building is `find_hero` with the footprint's
+    /// `(x_size + y_size) × 0x60` as slack, behind the leader's count of
+    /// the type ([`Sim::hero_near`]). A President on an enemy's ground
+    /// repairs nothing, and neither does a Senator or a CEO off allied
+    /// ground: run1544's Barracks `0/2007`, struck beside its Senator, is
+    /// never repaired and prints `healing 0` on every block.
+    pub(crate) fn patriot_repair(&mut self, b: usize, frame: i64) {
+        const THESENATOR: i32 = 0x161;
+        const THEPRESIDENT: i32 = 0x163;
+        const THECEO: i32 = 0x165;
+        let bd = &self.buildings[b];
+        let who = bd.owner;
+        if ![THESENATOR, THEPRESIDENT, THECEO]
+            .iter()
+            .any(|&ti| self.hero_counted(who, ti))
+        {
+            return;
+        }
+        if bd.damage == 0 && bd.damage_frac == 0 {
+            return;
+        }
+        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        if rate == 0 || bd.phase(frame) % rate != 0 {
+            return;
+        }
+        let Some(ty) = bd.ty else {
+            return;
+        };
+        let at = bd.pos;
+        let reach = (self.build_types[ty].x_size + self.build_types[ty].y_size) * 0x60;
+        let ally_ground = match self.world.owner_at(at) {
+            crate::Owner::Player(t) => Some(self.is_ally(who, t)),
+            _ => None,
+        };
+        let repair = if self.hero_near(who, THEPRESIDENT, at, reach) {
+            ally_ground != Some(false)
+        } else {
+            ally_ground == Some(true)
+                && (self.hero_near(who, THESENATOR, at, reach)
+                    || self.hero_near(who, THECEO, at, reach))
+        };
+        if repair {
+            self.repair_building(b, 1);
+            let rate = i16::try_from(rate).unwrap_or(i16::MAX);
+            let bd = &mut self.buildings[b];
+            bd.healing = bd.healing.max(rate);
+        }
+    }
+
     /// `healing = max(rate, healing)`, the write every arm of
     /// `Unit::process_healing@005e0670` makes after its `repair_damage`,
     /// with the arm's own period (item 3961, `docs/AI.md` §405).
@@ -941,5 +1008,101 @@ mod tests {
         sim.world.set_owner(cell, Owner::None, Owner::None);
         sim.senator_heal(c, 8210);
         assert_eq!(state(&sim), (38, 0), "nobody's ground, nothing");
+    }
+
+    /// **A patriot repairs its leader's damaged building by the ground under
+    /// it** (item 3987, `docs/GOLDEN.md` §180; `Build::process@0061edf0`'s
+    /// arm to `0061f3b9`): a President's reach repairs on unowned or allied
+    /// ground and nowhere else — and, found, it closes the Senator's branch
+    /// even where that one would repair; a Senator's only on allied ground;
+    /// a point on the phase `(o + frame) % 20`, the fraction cleared,
+    /// `healing` 20; nothing without the leader's count of the type.
+    #[test]
+    fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
+        use crate::ai_load::{UnitCols, uflags2};
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.build_types.push(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(9000, 9000);
+        let b = sim.add_building(1, at, 0);
+        sim.buildings[b].ty = Some(sim.build_types.len() - 1);
+        sim.buildings[b].index = 2007;
+        sim.buildings[b].active = true;
+        sim.buildings[b].hits = 1200;
+        let hero = |sim: &mut crate::Sim, type_index: i32| {
+            let t = sim.add_unit_type(crate::UnitType {
+                hits: 110,
+                type_index,
+                cols: UnitCols {
+                    unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                    ..UnitCols::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let mut u = crate::Unit::new(1, 6 + type_index as i16, at, 110);
+            u.ty = Some(t);
+            u.type_index = type_index;
+            u.on_map = true;
+            u.captain = true;
+            u.kind = sim.unit_types[t].kind;
+            (sim.add_unit(u), t)
+        };
+        let (senator, st) = hero(&mut sim, 0x161);
+        let (president, pt) = hero(&mut sim, 0x163);
+        sim.units[president].pos.x += 40 * 192;
+        let n = sim.unit_types.len();
+        sim.muster[1].by_type.resize(n, 0);
+        let cell = at.cell();
+        let run = |sim: &mut crate::Sim, frame: i64, ground: Owner| {
+            sim.world.set_owner(cell, ground, Owner::None);
+            let bd = &mut sim.buildings[b];
+            (bd.damage, bd.damage_frac, bd.healing) = (10, 5, 0);
+            sim.patriot_repair(b, frame);
+            let bd = &sim.buildings[b];
+            (bd.damage, bd.damage_frac, bd.healing)
+        };
+        let own = Owner::Player(1);
+        assert_eq!(run(&mut sim, 13, own), (10, 5, 0), "no patriot counted");
+        sim.muster[1].by_type[st] = 1;
+        assert_eq!(
+            run(&mut sim, 13, own),
+            (9, 0, 20),
+            "a Senator on its own ground"
+        );
+        assert_eq!(run(&mut sim, 14, own), (10, 5, 0), "off the phase");
+        assert_eq!(
+            run(&mut sim, 13, Owner::None),
+            (10, 5, 0),
+            "a Senator on nobody's ground"
+        );
+        assert_eq!(
+            run(&mut sim, 13, Owner::Player(0)),
+            (10, 5, 0),
+            "a Senator on an enemy's"
+        );
+        sim.muster[1].by_type[pt] = 1;
+        sim.units[president].pos = at;
+        assert_eq!(
+            run(&mut sim, 33, Owner::None),
+            (9, 0, 20),
+            "a President on nobody's ground"
+        );
+        assert_eq!(run(&mut sim, 33, own), (9, 0, 20), "a President on its own");
+        sim.units[senator].pos.x += 40 * 192;
+        assert_eq!(
+            run(&mut sim, 33, Owner::Player(0)),
+            (10, 5, 0),
+            "a President on an enemy's"
+        );
+        sim.units[senator].pos = at;
+        assert_eq!(
+            run(&mut sim, 33, Owner::Player(0)),
+            (10, 5, 0),
+            "a President found closes the Senator's branch"
+        );
     }
 }
