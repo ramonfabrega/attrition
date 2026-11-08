@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerates the census tables in docs/NATIONS.md (item 2976).
 
-    python3 -I tools/nations_census.py ~/ghidra-projects/decomp ~/code/fun/attrition/game/Data/rules.xml
+    python3 -I tools/nations_census.py [<export> <rules.xml>] [--write | --check]
 
 It reads the decompile export (a reading tool, never a source) for every
 `has_tribe_bonus` call and every `constants->name` read, the install's rules
@@ -10,14 +10,25 @@ and prints the machine-checked tables (`nations::tests::the_audit_table_*`
 reads the same rows). Hand judgements live in HAND and OVERRIDES below, not in
 the output: edit those, re-run, paste. Nothing from the install or the export
 is written beyond a name, an address and a number.
+
+The export defaults to `RON_DECOMP` or `~/ghidra-projects/decomp`, the rules
+to `RON_INSTALL`'s (or the main checkout's `game/`) `Data/rules.xml`.
+`--write` splices the tables into `docs/NATIONS.md`; `--check` (Loop 3972)
+splices nothing and exits 1 naming every row the tree's tables differ from
+the generator's — the round trip is empty or the guard says which rows are
+not — and skips with exit 0 on a machine without the export or the install.
+`tools/guard.sh` runs it.
 """
+import argparse
 import glob
 import os
 import re
 import sys
+from pathlib import Path
 
-EXPORT, RULES = sys.argv[1], sys.argv[2]
-SIM = "crates/sim/src"
+ROOT = Path(__file__).resolve().parents[1]
+SIM = str(ROOT / "crates/sim/src")
+DOC = ROOT / "docs/NATIONS.md"
 
 PREFIX = [
     ("AZTEC", 0), ("MAYA", 1), ("INCA", 2), ("BANTU", 3), ("NUBIAN", 4),
@@ -28,20 +39,26 @@ PREFIX = [
     ("DUTCH", 22), ("PERSIAN", 23),
 ]
 
-src_raw = {os.path.basename(p): open(p, errors="replace").read()
-           for p in glob.glob(SIM + "/**/*.rs", recursive=True)}
-load_code = re.sub(r"//[^\n]*", "", open("crates/rondata/src/load.rs", errors="replace").read())
-src_code = {k: re.sub(r"//[^\n]*", "", v) for k, v in src_raw.items()}
+src_raw, src_code, load_code = {}, {}, ""
+sweep_only = set()  # file names found only under `crates/sim/src/sweep/`
 
 
-def best_file(pattern, code=True):
-    """The non-test file holding `pattern` most often."""
+def best_file(pattern, code=True, literal=None):
+    """The non-test file holding `pattern` most often. `literal`, a
+    substring every match contains, skips the files that cannot hold it
+    (the regex over every file was 16 of the tool's 23 seconds). A test,
+    a harness or a `_view` module (a function's control flow over a view
+    the emulator sweep answers) comes last; and for a field witness (a
+    `modelled at` row) so does a module only `sweep/` holds — the
+    document's `modelled at` names the live sim's module, its `carried at`
+    may name a sweep's (Loop 3222, Loop 3972)."""
     pool = src_code if code else src_raw
     hits = [(len(re.findall(pattern, t)), k) for k, t in pool.items()
-            if k != "tuning.rs" and re.search(pattern, t)]
+            if k != "tuning.rs" and (literal is None or literal in t) and re.search(pattern, t)]
     if not hits:
         return None
-    hits.sort(key=lambda h: ("test" in h[1] or "harness" in h[1], -h[0], h[1]))
+    hits.sort(key=lambda h: ("test" in h[1] or "harness" in h[1] or h[1].endswith("_view.rs")
+                             or (code and h[1] in sweep_only), -h[0], h[1]))
     return hits[0][1]
 
 
@@ -60,30 +77,56 @@ def balanced(t, i):
 
 funcs = {}  # "Class::name@addr" -> (indices set, var flag)
 const_readers = {}  # field -> set of Class::name@addr
-for path in glob.glob(EXPORT + "/funcs/*/*.c"):
-    cls = path.split("/")[-2]
-    base = os.path.basename(path)[:-2]
-    name, addr = base.split("@")
-    full = f"{cls}::{name}@{addr}"
-    t = open(path, errors="replace").read()
-    idx, var = set(), False
-    for m in re.finditer(r"has_tribe_bonus", t):
-        k = t.find("(", m.end())
-        if k < 0 or k - m.end() > 8:
-            continue
-        last = t[k + 1:balanced(t, k)].split(",")[-1].strip()
-        if re.fullmatch(r"0x[0-9a-fA-F]+|\d+", last) and int(last, 0) < 24:
-            idx.add(int(last, 0))
-        elif re.fullmatch(r"0x[0-9a-fA-F]+|\d+", last):
-            pass  # a stray number, not a roster index
-        else:
-            var = True
-    if idx or var:
-        funcs[full] = (idx, var)
-    if name in ("parse", "load", "init_constants") or cls in ("Tribe", "Constants", "ConstantsData"):
-        continue  # the loaders write the constant; they do not consume it
-    for m in re.finditer(r"->([a-z_0-9]+)\b", t):
-        const_readers.setdefault(m.group(1), set()).add(full)
+rules, consts, tuning = "", [], ""
+
+
+def load(export, rules_path):
+    """Reads the sim's sources, the export and the rules into the module's
+    tables (the tool was a script; its tables stay module-level)."""
+    global src_raw, src_code, load_code, rules, consts, tuning, sweep_only
+    paths = glob.glob(SIM + "/**/*.rs", recursive=True)
+    src_raw = {os.path.basename(p): open(p, errors="replace").read() for p in paths}
+    dirs = {}
+    for p in paths:
+        dirs.setdefault(os.path.basename(p), set()).add(os.path.basename(os.path.dirname(p)) == "sweep")
+    sweep_only = {k for k, v in dirs.items() if v == {True}}
+    load_code = re.sub(r"//[^\n]*", "", open(ROOT / "crates/rondata/src/load.rs", errors="replace").read())
+    src_code = {k: re.sub(r"//[^\n]*", "", v) for k, v in src_raw.items()}
+    funcs.clear()
+    const_readers.clear()
+    scan_export(str(export))
+    rules = open(rules_path, errors="replace").read()
+    consts = [(n, v or ("[" + e + ", ...]"))
+              for n, v, e in re.findall(r'<([A-Z][A-Z_0-9]*) (?:value="([^"]*)"|entry0="([^"]*)")', rules)
+              if any(n.startswith(p) for p, _ in PREFIX)]
+    tuning = src_raw["tuning.rs"]
+
+
+def scan_export(export):
+    for path in glob.glob(export + "/funcs/*/*.c"):
+        cls = path.split("/")[-2]
+        base = os.path.basename(path)[:-2]
+        name, addr = base.split("@")
+        full = f"{cls}::{name}@{addr}"
+        t = open(path, errors="replace").read()
+        idx, var = set(), False
+        for m in re.finditer(r"has_tribe_bonus", t):
+            k = t.find("(", m.end())
+            if k < 0 or k - m.end() > 8:
+                continue
+            last = t[k + 1:balanced(t, k)].split(",")[-1].strip()
+            if re.fullmatch(r"0x[0-9a-fA-F]+|\d+", last) and int(last, 0) < 24:
+                idx.add(int(last, 0))
+            elif re.fullmatch(r"0x[0-9a-fA-F]+|\d+", last):
+                pass  # a stray number, not a roster index
+            else:
+                var = True
+        if idx or var:
+            funcs[full] = (idx, var)
+        if name in ("parse", "load", "init_constants") or cls in ("Tribe", "Constants", "ConstantsData"):
+            continue  # the loaders write the constant; they do not consume it
+        for m in re.finditer(r"->([a-z_0-9]+)\b", t):
+            const_readers.setdefault(m.group(1), set()).add(full)
 
 
 def addr_of(full):
@@ -91,11 +134,6 @@ def addr_of(full):
 
 
 # ---- the rules ----------------------------------------------------------
-rules = open(RULES, errors="replace").read()
-consts = [(n, v or ("[" + e + ", ...]"))
-          for n, v, e in re.findall(r'<([A-Z][A-Z_0-9]*) (?:value="([^"]*)"|entry0="([^"]*)")', rules)
-          if any(n.startswith(p) for p, _ in PREFIX)]
-tuning = src_raw["tuning.rs"]
 
 
 def nation_of(n):
@@ -122,7 +160,7 @@ def const_row(n, v):
     if not re.search(r"pub " + fld + r"\s*:", tuning):
         st, wit = "not carried", fld
     else:
-        f = best_file(r"\b" + fld + r"\b")
+        f = best_file(r"\b" + fld + r"\b", literal=fld)
         if f:
             st, wit = f"modelled at {f}", fld
         elif re.search(r"\b" + fld + r"\b", load_code):
@@ -172,13 +210,13 @@ HAND += [
     ("French", "special (general) units train faster, 0 in the rules", "ObjectData::train_time@006508c0", "not modelled", "french_special_speed"),
     ("Germans", "aircraft train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_air_speed"),
     ("Germans", "submarines train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_submarine_speed"),
-    ("Japanese", "barracks units train faster (negative in the rules)", "ObjectData::train_time@006508c0", "not modelled", "japanese_barracks_speed"),
-    ("Japanese", "carriers train faster", "ObjectData::train_time@006508c0", "not modelled", "japanese_carrier_speed"),
+    ("Japanese", "barracks units train faster (negative in the rules)", "ObjectData::train_time@006508c0", "modelled at lib.rs", "japanese_barracks_speed"),
+    ("Japanese", "carriers train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "japanese_carrier_speed"),
     ("Japanese", "a Farm costs 50% less", "TypeData::get_cost@00664090", "modelled at city.rs", "japanese_farms_cheaper"),
     ("Japanese", "a farmer gathers 25% more food (calc_gather's flat branch)", "BuildTypeData::calc_gather@00639e40", "modelled at holdings.rs", "japanese_fishing_boats"),
     ("Indians", "a building's support ramp zeroed, halved rounding up for a wonder or a defence", "TypeData::get_cost@00664090", "modelled at cost.rs", "indian_ramp"),
     ("Indians", "an elephant-line unit costs 15% less, the last step", "TypeData::get_cost@00664090", "modelled at cost.rs", "indian_elephant"),
-    ("Lakota", "raze speed (train_time's tail)", "ObjectData::train_time@006508c0", "not modelled", "lakota_raze_speed"),
+    ("Lakota", "raze speed (train_time's tail)", "ObjectData::train_time@006508c0", "modelled at queue_disband.rs", "lakota_raze_speed"),
     ("Mongols", "stable units train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "mongol_stable_speed"),
     ("British", "ships, archers and anti-air train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "british_ship_speed"),
 ]
@@ -221,7 +259,7 @@ def census_row(full, idx, var):
         why = next((w for p, w in NOT_SIM_WHY.items() if full.startswith(p)), "interface or render side")
         return f"| `{full}` | {ids} | not sim | `{why}` |"
     else:
-        f = best_file(addr, code=False)
+        f = best_file(addr, code=False, literal=addr)
         if f:
             st, wit = f"carried at {f}", addr
         else:
@@ -249,7 +287,9 @@ FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans"
         16: "koreans", 17: "mongols", 19: "lakota", 21: "indians", 22: "dutch"}
 
 
-def main():
+def generate(export, rules_path):
+    """The generated tables, each block under its `GENERATED` marker."""
+    load(export, rules_path)
     out = []
     w = out.append
 
@@ -307,10 +347,109 @@ def splice(doc, generated):
     return doc
 
 
-gen = main()
-if len(sys.argv) > 3 and sys.argv[3] == "--write":
-    path = "docs/NATIONS.md"
-    doc = splice(open(path).read(), gen)
-    open(path, "w").write(doc)
-else:
-    print(gen)
+def blocks_of(text):
+    """`{marker: [row, ...]}` for every `GENERATED` block in `text`: the
+    table rows that follow the marker, as `splice` replaces them."""
+    blocks, cur = {}, None
+    for line in text.split("\n"):
+        m = re.fullmatch(r"<!-- GENERATED:(\w+) -->", line)
+        if m:
+            cur = m.group(1)
+            blocks[cur] = []
+        elif cur and line.startswith("|"):
+            blocks[cur].append(line)
+        else:
+            cur = None
+    return blocks
+
+
+def row_key(row):
+    """A row's identity: its first cell, and the second where the first
+    repeats (a hand arm's nation)."""
+    cells = [c.strip() for c in row.strip().strip("|").split("|")]
+    return cells[0] if cells[0].startswith("`") or cells[0].isdigit() else " | ".join(cells[:2])
+
+
+def keyed(rows):
+    """`{key: row}`, a key that repeats numbered by its occurrence (`#2`),
+    so that a second row under one key is never hidden by the first."""
+    out, seen = {}, {}
+    for r in rows:
+        k = row_key(r)
+        seen[k] = seen.get(k, 0) + 1
+        out[k if seen[k] == 1 else f"{k} #{seen[k]}"] = r
+    return out
+
+
+def drift(doc, generated):
+    """Every row the document's tables and the generator's disagree on, as
+    `(block, key, tree row or None, generated row or None)` in the
+    generator's block order; a block the document lacks is `(block, None,
+    None, None)`. The two header rows never count."""
+    tree, gen = blocks_of(doc), blocks_of(generated)
+    out = []
+    for b, rows in gen.items():
+        if b not in tree:
+            out.append((b, None, None, None))
+            continue
+        t, g = keyed(tree[b][2:]), keyed(rows[2:])
+        for k in list(t) + [k for k in g if k not in t]:
+            if t.get(k) != g.get(k):
+                out.append((b, k, t.get(k), g.get(k)))
+    return out
+
+
+def check(export, rules_path, doc_path=DOC, generate=generate):
+    """The guard: 0 when the round trip is empty, 1 naming every row it is
+    not, 0 with `skipped` when the export or the rules are not here."""
+    export, rules_path = Path(export), Path(rules_path)
+    if not (export / "funcs").is_dir():
+        print(f"nations_census --check: skipped, no decompile export at {export}")
+        return 0
+    if not rules_path.is_file():
+        print(f"nations_census --check: skipped, no install rules at {rules_path}")
+        return 0
+    rows = drift(Path(doc_path).read_text(), generate(export, rules_path))
+    if not rows:
+        print("nations_census --check: the round trip is empty")
+        return 0
+    for b, k, t, g in rows:
+        if k is None:
+            print(f"[{b}] the document has no GENERATED:{b} block")
+            continue
+        print(f"[{b}] {k}")
+        print(f"  tree: {t if t is not None else '(absent)'}")
+        print(f"  gen:  {g if g is not None else '(absent)'}")
+    print(f"nations_census --check: {len(rows)} rows differ from the generator — "
+          "re-run with --write, or move a hand judgement into HAND/OVERRIDES")
+    return 1
+
+
+def default_rules():
+    inst = os.environ.get("RON_INSTALL")
+    base = Path(inst) if inst else ROOT.parents[2] / "game" if ROOT.parent.name == "worktrees" else ROOT / "game"
+    return base / "Data/rules.xml"
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("export", nargs="?",
+                    default=os.environ.get("RON_DECOMP") or str(Path.home() / "ghidra-projects/decomp"))
+    ap.add_argument("rules", nargs="?", default=None)
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--write", action="store_true", help="splice the tables into docs/NATIONS.md")
+    mode.add_argument("--check", action="store_true", help="exit 1 naming every row that differs")
+    a = ap.parse_args(argv)
+    rules_path = a.rules or default_rules()
+    if a.check:
+        return check(a.export, rules_path)
+    gen = generate(a.export, rules_path)
+    if a.write:
+        DOC.write_text(splice(DOC.read_text(), gen))
+    else:
+        print(gen)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
