@@ -11164,7 +11164,9 @@ closing block 6107 it holds `hits_left` 68 and `damage` 5 in ours, against
 on 5601 an `ATTACKTOORDER`. The draw stream agrees to the game's end, so the
 row names no score (`docs/AI.md` §328). The first read is a window over
 5501..5601 with `AMMO=5`, both sides' `RON_DEBUG_UNIT=1/50`, to tell a blow
-landed only in ours from a heal only theirs made.
+landed only in ours from a heal only theirs made. **Closed by item 3978**: a heal
+only theirs made, the supply heal on the French period with Versailles (10;
+`docs/AI.md` §410); 5601's three rows agree.
 
 ## Parked by item 3609, 2026-10-24 — the Korean Classical word: the Elite Hwarang's bays, whole at 8777
 
@@ -11953,7 +11955,8 @@ Each is a residue of run1344b's window (4495..4756) after piece 49's bays.
 - **3691c. The Horse Guard Grenadier `1/29`'s `damage_frac`, 4552.** Ours
   5, theirs 0 (TY 238). This is the window's one unit row after 4495
   besides group 77's `held` on 4518. It still stands at run1360's first
-  block, 4685, with `hits_left` 156 against 161.
+  block, 4685, with `hits_left` 156 against 161. **Closed by item 3978**: the
+  supply heal (`docs/AI.md` §410); both blocks' rows agree.
 
 ## Parked by item 3692, 2026-10-27 — what run1346c still parts once the Mongol word closes
 
@@ -15134,7 +15137,7 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   `FRENCH_SUPPLY_HEAL_RATE` arm: item 3959 built the Senator's, so the President's, parked 3686a, or the Senator's gate).
   run1228b's two rows (theirs 20) closed at the merge with item 3959's Senator and Iroquois heals. The rate a unit's
   `healing` prints is the arm's period, so each row names its arm without a packet. **Score**: none of them is a word's frame; each is its widening's `firsts` pin, −1 a
-  row, when the arm lands.
+  row, when the arm lands. **Closed by item 3978** (3978a): both rows are the supply heal (`docs/AI.md` §410).
 - **3961b. `Build::process`'s patriot repair** (`Build::process@0061edf0`, the arm ending at `0061f3b9`): a Monarch, Comrade or CEO near a damaged building
   of a leader holding one repairs it on `FRENCH_SUPPLY_HEAL_RATE`'s phase and writes the building's `healing`; this crate
   compares `BUILDDATA healing` against 0 under a `SEAM`, and 0 is what every building of the 1182 dumps on disk prints
@@ -15281,14 +15284,17 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   9797)) reads `healing` theirs 13 against ours 0, `damage_frac` 0 against 4, `hits:damage` 8 against 11; the MLRS
   `1/162` (TI 273) on 1251, `1/22` on 1301, 29 units by 2501. No draw is spent and the close is 0 off, so it is a
   value row. Not read: which heal (`healing`'s writers). **Score**: the closing window's 344 rows.
+  **Closed by item 3978** (`docs/AI.md` §410): the supply heal, the French period in the Despot `1/164`'s radius; 344 → 276.
 
-## Parked by the next landing, slot CN — reserved
+## Parked by item 3978, 2026-11-07 — the supply heal, and what it closed
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3978a. 3961a's two rows close with the supply heal** (`docs/AI.md` §410): run1262's `1/50` on 5601 (theirs
+  `healing` 10, the French period folded with Versailles) and run1344b's `1/29` on 4552 (20, the French period, not
+  a patriot's) agree, with 3607a and 3691c beside them. 3961a is spent; item 3980, booked on it, has no row left of
+  those two. **Score**: none (the widenings re-pinned here).
+- **3978b. A supplying general's aura heals nobody — a reading** (`Supplies::find_supply@0073aba0` walks
+  `supplies.lists[who]` alone): built so, and no capture holds a Darius, Kutosov or Chandragupta beside a hurt French
+  unit with no wagon near. **Score**: none until one does; the falsifier is a `healing` 20 on such a unit.
 
 ## Parked by the next landing, slot CO — reserved
 

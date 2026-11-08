@@ -18766,7 +18766,8 @@ heights are 240, 237, 240, 240, 237, 232, 226, 226 over the figure, and a volley
 (`corpse_melee_run1542_s_word_window_is_widened_whole`): 344 rows, the rounds read (30, 30), 31 parting. The rounds
 part on `angle` alone (parked 3975a). The units part on `hits` where theirs heals out of the fight and ours does not,
 first on 1151, the French Elite Special Forces `1/17`: `healing` 13 against 0 (parked 3975b). The seats part on 1 key
-(176 before).
+(176 before). **Item 3978: 344 → 276**, the supply heal built (`docs/AI.md` §410): `1/17` heals in its Despot's supply
+radius on the French period, and every unit's `hits` agrees on the window.
 
 **The pool, past the word** (`corpse_melee_s_death_pool_stops_at_a_hundred_on_both_sides`). After 744 the two games
 were not one game, so this test is a census, not a lockstep comparison. With the draws whole (item 3975), ours is full
@@ -18779,7 +18780,7 @@ reads 101 on 1001 and 135 on 1251 against theirs' 100, and the census fails. So 
 the cap removed.
 
 **What is not established.** The order of slots: the census compares counts, never which record sits in which
-slot. The MLRS round's `angle` (3975a) and the heal out of the fight (3975b). The rack's rows for another nation's
+slot. The MLRS round's `angle` (3975a). ~~The heal out of the fight (3975b)~~ — the supply heal, `docs/AI.md` §410. The rack's rows for another nation's
 MLRS piece (`MLRS-ARAB-AGE0`): only piece 223 is measured. The fallback's `clear_blocking` (3971c). Whether the pool's eviction ever reaches a number's
 `hold_frames` on a capture. An evicted record stops bumping, but no dump prints a dead object's hold, and run1542's
 numbers are not reused inside the window.

@@ -40666,12 +40666,87 @@ on every walked window (the Persian all-tech windows' wonder sites and
 city, run99's Tower). Reading-only: that no other function writes a
 building's `+0x3c`, and the four terms above.
 
-## 410. Reserved for the next item on the AI track
+## 410. The supply heal: a French unit in its Despot's radius, run1542's closing window 344 → 276 (item 3978, 2026-11-07)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking and its killer.** Parked 3975b: on run1542 (the sixth melee,
+closed) the French Elite Special Forces `1/17` (TI 77, land) reads
+`healing` theirs 13 / ours 0 on block 1151, with `damage_frac` 0 / 4 and
+`hits:damage` 8 / 11; the MLRS `1/162` (TI 273) on 1251, `1/22` on 1301.
+The booking read 13 as a period. It is not one: `healing` is a clock that
+`Unit::process` takes one off a frame (§405), so 13 is what is left of a
+heal some frames before. With `(o + frame) % 20 == 0`, `o` 17, the heal
+was on 1143, and 20 less the frames since is 13 on logger block 1151.
+
+The killer, read off the dump before any arm was built: on 1151 the
+map holds 194 Elite Special Forces, 20 Advanced Machine Guns, 13 MLRS,
+26 Citizens and two Despots (TI 352), one a side. **No Supply Wagon and
+no General.** But who=1's Despot `1/164` prints `supply 0`: a military
+patriot holds a supply slot (`docs/SUPPLY.md`, the patriots' bit). From
+`1/17` at (25157, 9797) to him at (23448, 11662) `vector_dist(1709, 1865)`
+is 2648, inside 14 tiles' 2688 (`SupplyData::get_radius × 0xc0`, no
+upgrade). So the killer did not fire. Only one record in the block has
+`healing` non-zero, and many of who=1's hurt units stand outside that
+radius.
+
+**The arm.** `Unit::process_healing@005e0670`'s on-map step after the
+three economic patriots (`LAB_005e0f1a`), `docs/SUPPLY.md` Consumer 2:
+
+```text
+rate = SUPPLY_HEAL_RATE (0) + FRENCH_SUPPLY_HEAL_RATE (20) with has_tribe_bonus(10)
+has_wonder(0x218) and VERSAILLES_SUPPLY_HEAL_RATE: rate = rate ? (V + rate) / 4 : V
+rate and (o + frame) % rate == 0 and Supplies::find_supply(x, y, who) >= 0:
+    repair_damage(1, 1, 1); healing = max(rate, healing)
+```
+
+`supply::heal_period` already held the fold; nothing called it. Built as
+`Sim::supply_heal` (`sim::heal`), between `ceo_heal` and `civilian_heal`
+in `Unit::process`'s order. Its head is the CEO's: a live land captain on
+the map, the squad hurt, not a supply or hero type. `find_supply` is the
+supply list's own walk (`SupplyList::find`, the radius read now). A
+supplying general's aura, which `Sim::supplied_at` adds for attrition, is
+not asked: `find_supply@0073aba0` walks `supplies.lists[who]` and nothing
+else. It asks nothing of the cell's owner or the unit's motion: `1/17` was
+walking off under an `EXPLORETOORDER`.
+
+**What else it closed.** The full `rondata` suite moved three French pairs'
+widenings, each by rows removed and none added (each diffed with the call
+out through `tools/mutate.py`). All three were parked 3961a's heal rows:
+
+| widening | block | unit | rows | theirs |
+|---|---|---|---|---|
+| run1262 (Classical) | 5601 | Light Horse `1/50` | 158 → 155 | `healing` 10: French plus Versailles, `(20 + 20) / 4` |
+| run1344b (Enlightenment) | 4552 | Horse Guard Grenadier `1/29` | 123 → 118 | `healing` 20 |
+| run1360 (Enlightenment) | 4685 | the same `1/29` | 117 → 113 | `hits_left` 161 |
+
+3961a guessed at a patriot's arm for run1344b's 20. It was the supply heal.
+Parked 3607a and 3691c, the same units' damage, close with it.
+
+**The value diff.** run1542, block 1151, `1/17`: `healing` ours 0 → 13
+(theirs 13), `damage_frac` 4 → 0, `hits:damage` 11 → 8, `hits_left` 119 → 122.
+Read on a one-run window over 1101..1301 (`tools/mutate.py`, the window
+moved, not kept). With the heal on, no unit row is left there. With it off,
+the three units the booking named come back exactly. On the kept closing
+window 2501..2601, **344 → 276**: the 68 `hits` rows of 2501 agree. What
+stands is the first block's standing families (`group` 90, `build:extra`
+73, `pool` 45, `form` 40) and who=0's seven units' orders on the closing
+block 2601 (28 rows). Both stood before. The draws were whole before and
+still are. The close stays 0 off.
+
+**Made to fail** (`tools/mutate.py`, each exit 101):
+
+- `supply_heal`'s call out of `Unit::process`:
+  `corpse_melee_run1542_s_word_window_is_widened_whole` fails, 344 against
+  276.
+- The radius one tile short:
+  `a_french_unit_heals_within_its_supply_radius_every_20_frames` fails on
+  its 2648 case.
+
+**What is not established.** That a general's aura heals nobody rests on
+the reading alone (parked 3978b). The heal's sparkle draw, for the
+console's allies, is not a stream this crate keeps. The `0x4000` clear is
+not carried. `process_healing`'s Antipater and Conquer-the-World hero arms
+stay unbuilt. Only the heal half of a Despot's supply radius is confirmed
+here; the attrition half reads the same `find_supply` and has no capture.
 
 ## 411. Reserved for the next item on the AI track
 
