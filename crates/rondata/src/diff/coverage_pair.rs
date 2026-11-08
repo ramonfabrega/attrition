@@ -2352,13 +2352,18 @@ fn run1075_s_garrison_counts_part_by_the_record() {
         parted.first(),
         parted.last()
     );
-    pin_eq!(held.len(), 726, "theirs: the non-zero records, one a block 2095..2820");
+    pin_eq!(
+        held.len(),
+        726,
+        "theirs: the non-zero records, one a block 2095..2820"
+    );
     pin_eq!(parted.len(), 726, "the garrison counts' parted records");
 }
 
-/// run1075's window, 2089..2820: six blocks before the first citizen goes
-/// in (2095) and the capture's last block (item 3984).
-pub(crate) const WIDENING_GARRISON_1075: (i64, i64) = (2089, 2820);
+/// run1075's window, 2034..2820: the capture whole — the citizens' orders
+/// part on 2073, before the first goes in (2095), and the staging's first
+/// line is 2050 (item 3984).
+pub(crate) const WIDENING_GARRISON_1075: (i64, i64) = (2034, 2820);
 
 /// run1075 walked from run651's start with `disband3455-navy.cmd` staged
 /// by the harness's own tick (item 3984): the Battleships, the navy's
@@ -2374,7 +2379,7 @@ pub(crate) fn garrison_1075_window() -> Option<harness::tests::Widened> {
             &[(RUN1075, WIDENING_GARRISON_1075.0)],
             WIDENING_GARRISON_1075,
             1,
-            &[2095, 2820],
+            &[2073, 2095, 2820],
             true,
         )
     })
@@ -2391,7 +2396,7 @@ fn run1075_s_garrison_window_is_widened_whole() {
     let garr: Vec<_> = w
         .firsts
         .iter()
-        .filter(|((_, _, f), _)| GARRISON_KEYS.contains(&f.as_str()))
+        .filter(|((_, _, f), _)| GARRISON_KEYS.iter().any(|k| f.ends_with(k)))
         .map(|(k, v)| format!("{k:?} {v:?}"))
         .collect();
     eprintln!("run1075 garrison rows: {garr:#?}");
@@ -2404,7 +2409,7 @@ fn run1075_s_garrison_window_is_widened_whole() {
     for r in first
         .iter()
         .filter(|r| r.0 > WIDENING_GARRISON_1075.0)
-        .take(40)
+        .take(80)
     {
         eprintln!("run1075 first: {r:?}");
     }
