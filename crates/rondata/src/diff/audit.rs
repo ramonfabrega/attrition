@@ -430,33 +430,14 @@ const UNAUDITED_LINES: &[&str] = &["Scoreboard"];
 fn every_whole_scoreboard_word_is_audited() {
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
     let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
-    let mut missing = Vec::new();
     for prefix in AUDITED_LINES {
         let head = format!("{prefix}:");
-        let line = q
-            .lines()
-            .find(|l| l.starts_with(&head))
-            .unwrap_or_else(|| panic!("docs/QUEUE.md has no `{head}` line"));
-        let parts = super::floors::ai_line_parts(line, prefix).unwrap_or_else(|e| panic!("{e}"));
-        for (word, w, length) in parts {
-            if w < length {
-                continue;
-            }
-            let audited = AUDITED_ROWS.contains(&word.as_str())
-                || HAND_AUDITED.contains(&(*prefix, word.as_str()));
-            let owed = OWED.iter().any(|(l, w, _)| l == prefix && *w == word);
-            if audited == owed {
-                missing.push(format!(
-                    "{prefix}: {word} ({})",
-                    if owed {
-                        "audited and still OWED"
-                    } else {
-                        "no audit"
-                    }
-                ));
-            }
-        }
+        assert!(
+            q.lines().any(|l| l.starts_with(&head)),
+            "docs/QUEUE.md has no `{head}` line"
+        );
     }
+    let (missing, stale) = audit_gaps(&q, AUDITED_LINES, AI_WORDS, OWED);
     // Any other line the same parser reads whole is a scoreboard line too.
     let unlisted: Vec<&str> = q
         .lines()
@@ -477,17 +458,106 @@ fn every_whole_scoreboard_word_is_audited() {
          each an `audited!` row (or a hand-written audit in HAND_AUDITED), its \
          tuple measured by the replay, and strike an audited word from OWED"
     );
-    let stale: Vec<_> = OWED
-        .iter()
-        .filter(|(l, w, _)| {
-            let line = q.lines().find(|x| x.starts_with(&format!("{l}:")));
-            let parts = line.and_then(|x| super::floors::ai_line_parts(x, l).ok());
-            !parts.is_some_and(|ps| ps.iter().any(|(m, a, n)| m == w && a >= n))
-        })
-        .collect();
     assert!(
         stale.is_empty(),
         "OWED names words that are not whole on the handoff: {stale:?}"
+    );
+}
+
+/// The words whole on `prefix`'s line: the handoff's `w<N> of <N>` parts,
+/// and every `pinned` row of that line whose word has reached its length
+/// (Loop 3998). The line is the commander's, written at the merge; the pin
+/// is the lane's own, so a word its lane closes is owed its audit there.
+fn whole_words(q: &str, prefix: &str, pinned: &[AiWord]) -> Vec<String> {
+    let line = q.lines().find(|l| l.starts_with(&format!("{prefix}:")));
+    let parts =
+        line.map(|l| super::floors::ai_line_parts(l, prefix).unwrap_or_else(|e| panic!("{e}")));
+    let mut out: Vec<String> = parts
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|(_, w, length)| w >= length)
+        .map(|(word, _, _)| word)
+        .collect();
+    for row in pinned.iter().filter(|r| r.line == prefix && r.closed()) {
+        if !out.iter().any(|w| w == row.map) {
+            out.push(row.map.to_string());
+        }
+    }
+    out
+}
+
+/// `(missing, stale)`: the whole words on `lines` with neither an audit nor
+/// an `owed` line (or with both), and the `owed` lines whose word is not
+/// whole.
+fn audit_gaps(
+    q: &str,
+    lines: &[&str],
+    pinned: &[AiWord],
+    owed: &[(&str, &str, &str)],
+) -> (Vec<String>, Vec<String>) {
+    let mut missing = Vec::new();
+    for prefix in lines {
+        for word in whole_words(q, prefix, pinned) {
+            let audited = AUDITED_ROWS.contains(&word.as_str())
+                || HAND_AUDITED.contains(&(*prefix, word.as_str()));
+            let is_owed = owed.iter().any(|(l, w, _)| l == prefix && *w == word);
+            if audited == is_owed {
+                missing.push(format!(
+                    "{prefix}: {word} ({})",
+                    if is_owed {
+                        "audited and still OWED"
+                    } else {
+                        "no audit"
+                    }
+                ));
+            }
+        }
+    }
+    let stale = owed
+        .iter()
+        .filter(|(l, w, _)| !whole_words(q, l, pinned).iter().any(|m| m == w))
+        .map(|(l, w, _)| format!("{l}: {w}"))
+        .collect();
+    (missing, stale)
+}
+
+/// **A word the pin closes is owed its audit in the lane that closes it**
+/// (Loop 3998): 3975 re-pinned `GreatSaharaCorpseMelee` to w2600 of 2,600
+/// while the queue's `Melee:` line — the commander's, written at the
+/// merge — still read w744, so the guard above, in its lane gate's filters
+/// since Loop 3880, was green there and red only at the drain's whole gate.
+/// The guard reads the pinned `AI_WORDS` row beside the handoff's line.
+#[test]
+fn a_word_the_pin_closes_is_owed_before_the_handoff_says_so() {
+    let row = |word| AiWord {
+        line: "Melee",
+        map: "GreatSaharaCorpseMelee",
+        named: "",
+        word,
+        length: 2_600,
+        endpoint: None,
+        window: None,
+    };
+    let q = "Melee: GreatSaharaCorpseMelee w744 of 2,600 420 off\n";
+    let staged = [("Melee", "GreatSaharaCorpseMelee", "a staged game")];
+    // 3975's tip: the pin closed, the handoff not yet, no OWED line.
+    let (missing, stale) = audit_gaps(q, &["Melee"], &[row(2_600)], &[]);
+    assert_eq!(missing, ["Melee: GreatSaharaCorpseMelee (no audit)"]);
+    assert!(stale.is_empty());
+    // The lane's own fix, the OWED line, is green before the handoff moves.
+    assert_eq!(
+        audit_gaps(q, &["Melee"], &[row(2_600)], &staged),
+        (vec![], vec![])
+    );
+    // An open pin under an open line owes nothing, and an OWED line on it
+    // is stale.
+    assert_eq!(
+        audit_gaps(q, &["Melee"], &[row(744)], &[]),
+        (vec![], vec![])
+    );
+    assert_eq!(
+        audit_gaps(q, &["Melee"], &[row(744)], &staged).1,
+        ["Melee: GreatSaharaCorpseMelee"]
     );
 }
 
