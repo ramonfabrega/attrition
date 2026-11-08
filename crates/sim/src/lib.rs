@@ -38,7 +38,6 @@
 pub mod action_gather_view;
 pub mod action_spell_view;
 pub mod activate;
-pub mod carrier_queue;
 pub mod add_to_world_view;
 pub mod ai;
 pub mod ai_build;
@@ -83,6 +82,7 @@ pub mod calc_gather_type_view;
 pub mod capture;
 pub mod capture_view;
 pub mod caravan;
+pub mod carrier_queue;
 pub mod carry_civ;
 pub mod carry_idle;
 pub mod carry_mil;
@@ -4387,8 +4387,7 @@ impl Sim {
         // Nuclear Missile line (`is(0x13b, 0)`) of a player holding Uranium
         // divides its base by `(URANIUM_NUKE_SPEED + 100) / 100`
         // (`docs/AI.md` §184).
-        let base_faster = if self.is_nuke_line_type(ty) && self.has_rare(who, economy::URANIUM)
-        {
+        let base_faster = if self.is_nuke_line_type(ty) && self.has_rare(who, economy::URANIUM) {
             self.tuning.uranium_nuke_speed
         } else {
             0

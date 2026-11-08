@@ -357,6 +357,10 @@ pub(crate) const PINNED: &[(&str, usize)] = &[
         20,
     ),
     (
+        "diff::coverage_pair::run1066_s_carrier_window_is_widened_whole",
+        4,
+    ),
+    (
         "diff::coverage_pair::run672_s_word_frame_is_widened_whole",
         2,
     ),

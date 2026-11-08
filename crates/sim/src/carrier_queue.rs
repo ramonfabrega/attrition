@@ -85,7 +85,8 @@ impl Sim {
             };
             let charges = self.price_of(who, t);
             let available = self.holdings[who as usize].available;
-            if crate::cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1 {
+            if crate::cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1
+            {
                 return Some(queued);
             }
             crate::cost::pay(&charges, &mut self.ledgers[who as usize], &available, true);
@@ -104,9 +105,8 @@ impl Sim {
             .filter(|p| {
                 p.alive()
                     && p.inside_unit == Some(carrier)
-                    && p.ty.is_some_and(|t| {
-                        self.unit_types[t].combat.domain == attrition::Domain::Air
-                    })
+                    && p.ty
+                        .is_some_and(|t| self.unit_types[t].combat.domain == attrition::Domain::Air)
             })
             .count() as i32
     }
