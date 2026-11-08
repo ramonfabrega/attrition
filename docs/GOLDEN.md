@@ -19475,7 +19475,7 @@ path ran south around an obstacle. Its order list still held the flight on 997, 
 spot and went idle.
 
 **The listing** (`Unit::target_opportunity@005fffc0`, `6006c1`–`600785`; `docs/COMBAT.md` §34.6). A hero whose
-`unit_masks & 0xa000` is set (an Ambush or a Forced March) does not flee. A hero or a supply unit then asks the
+`unit_masks` carries the Ambush bit (`0x2000`) or the Forced March bit (`0x8000`) does not flee. A hero or a supply unit then asks the
 attacker's vslot `+0x20`, which is 0 on a unit and true on a building, and then its `+0x130`, `max_range`. A unit
 attacker with a range gives `0x180`, and a melee unit or a building gives `0x300`. COMBAT §34.5 had listed the
 rings as unmodelled.
