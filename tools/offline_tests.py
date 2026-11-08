@@ -75,6 +75,7 @@ SUITES = (
     'test_offline_tests',
     'test_archive_census',
     'test_rubric',  # the forty-eighth pass's scorecard
+    'test_frame_cut',  # item 3977
 )
 
 # The lab's suites (`docs/DECISIONS.md` entry 38: merged whole, its ledger
