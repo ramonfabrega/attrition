@@ -190,6 +190,7 @@ class SharedEntryPoints(unittest.TestCase):
                 (tools/'explore'/f'{name}.py').write_text('import unittest\nclass Authored(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
             (tools/'explore'/'test_sweep_gen.py').write_text('import unittest\nclass FamilyRegistrations(unittest.TestCase):\n def test_ok(self): self.assertTrue(True)\n')
             (tools/'queueledger.py').write_text('')
+            (tools/'nations_census.py').write_text('')  # the guard's --check (Loop 3972); a stub answers 0
             cargo = root/'bin/cargo'
             cargo.write_text('#!/bin/sh\nprintf "%s|%s|%s|%s\\n" "$*" "$CARGO_BUILD_JOBS" "$RUST_TEST_THREADS" "$RON_LANE" >> cargo-calls\n')
             cargo.chmod(0o700)
