@@ -2352,8 +2352,8 @@ fn run1075_s_garrison_counts_part_by_the_record() {
         parted.first(),
         parted.last()
     );
-    pin_eq!(held.len(), 732, "theirs: the non-zero records");
-    pin_eq!(parted.len(), 0, "the garrison counts' parted records");
+    pin_eq!(held.len(), 726, "theirs: the non-zero records, one a block 2095..2820");
+    pin_eq!(parted.len(), 726, "the garrison counts' parted records");
 }
 
 /// run1075's window, 2089..2820: six blocks before the first citizen goes
