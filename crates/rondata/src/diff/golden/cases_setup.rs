@@ -1483,6 +1483,44 @@ pub(super) fn stage_walk() {
             }
             last_owners = now;
         }
+        if let Ok(m) = std::env::var("RON_STAGE_MAP") {
+            let v: Vec<i32> = m.split(':').map(|t| t.parse().unwrap()).collect();
+            if i64::from(v[0]) == f {
+                for y in v[3]..=v[4] {
+                    let mut row = format!("{y:4} ");
+                    for x in v[1]..=v[2] {
+                        let t = sim::Pos::new(x, y);
+                        if !built.sim.world.tile_in_bounds(t) {
+                            row.push(' ');
+                            continue;
+                        }
+                        let ocean = built.sim.world.tile_mask(t) & sim::world::tile::SURFACE
+                            == sim::world::tile::SURFACE_OCEAN;
+                        let o = built.sim.world.owner(sim::World::cell_of_tile(t));
+                        let c = match (o, ocean) {
+                            (sim::world::Owner::Player(p), false) => (b'0' + p) as char,
+                            (sim::world::Owner::Player(p), true) => (b'a' + p) as char,
+                            (sim::world::Owner::None, false) => '.',
+                            (sim::world::Owner::None, true) => '~',
+                            (_, _) => '?',
+                        };
+                        row.push(c);
+                    }
+                    eprintln!("MAP {row}");
+                }
+                for (i, b) in built.sim.buildings.iter().enumerate() {
+                    if b.alive {
+                        eprintln!(
+                            "MAPB {i} who={} tile=({},{}) ty={:?}",
+                            b.owner,
+                            b.pos.x / 192,
+                            b.pos.y / 192,
+                            build_name(b.ty)
+                        );
+                    }
+                }
+            }
+        }
         if draws {
             let ours = built.frame_sites.last().map_or(&[][..], |(_, v)| v);
             eprintln!("draws f{f} {} {}", ours.len(), ours.join(" "));
