@@ -4870,7 +4870,7 @@ pub(crate) mod tests {
             .map(|p| crate::capture::indexed::IndexedCapture::open(p).unwrap())
             .collect();
         let (first_block, tail) = window;
-        let prefix = prefix && super::prefix::enabled();
+        let prefix = prefix && super::prefix::enabled() && !crate::diff::setup::script_staged();
         let loaded = if prefix {
             super::prefix::loaded(&inst)
         } else {

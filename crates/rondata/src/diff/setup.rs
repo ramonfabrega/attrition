@@ -82,6 +82,13 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
+/// Whether [`with_staged_script`] has a script waiting on this thread: a
+/// staged walk takes no shared prefix (item 3981), since a prefix put by an
+/// unstaged walk of the same start carries no [`Built::staged`].
+pub(crate) fn script_staged() -> bool {
+    STAGED_SCRIPT.with(|s| s.borrow().is_some())
+}
+
 /// Run `f` with `script` handed to every [`build_sim`] on this thread
 /// (item 3733): the walk and the widening stand their own simulation up,
 /// and this is how a staged lobby reaches it without a parameter.

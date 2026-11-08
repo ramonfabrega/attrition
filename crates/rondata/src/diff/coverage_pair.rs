@@ -2151,3 +2151,46 @@ fn carrier_staging_walk() {
         eprintln!("  {line}");
     }
 }
+
+/// run1066's window, 594..830: the six blocks before the staging's first
+/// line (600) and the plane's launch order on 830 (item 3981).
+pub(crate) const WIDENING_CARRIER_1066: (i64, i64) = (594, 830);
+
+/// run1066 walked from run651's start with `carrier3446.cmd` staged by the
+/// harness's own tick (item 3981): the carrier's two presses, the cancel
+/// and the plane's clock, every dumped record compared both directions.
+pub(crate) fn carrier_1066_window() -> Option<harness::tests::Widened> {
+    crate::diff::setup::with_staged_script(carrier_script(), || {
+        harness::tests::widen_on_siblings(
+            &[COVERAGE.start],
+            true,
+            COVERAGE.long,
+            "run1066",
+            &[(RUN1066, WIDENING_CARRIER_1066.0)],
+            WIDENING_CARRIER_1066,
+            1,
+            &[614, 622, 817],
+            true,
+        )
+    })
+}
+
+/// **run1066's window, widened whole with its staging** (item 3981): the
+/// carrier `0/14`'s queue against the port (`sim::carrier_queue`).
+#[test]
+fn run1066_s_carrier_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = carrier_1066_window() else {
+        return;
+    };
+    let queue: Vec<_> = w
+        .firsts
+        .iter()
+        .filter(|((_, _, f), _)| f == "num_queued" || f == "queue_time")
+        .map(|(k, v)| format!("{k:?} {v:?}"))
+        .collect();
+    eprintln!("run1066 queue rows: {queue:#?}");
+    pin_eq!(w.blocks, 237, "every captured block");
+    pin_eq!(queue.len(), 0, "the carrier's queue parts nowhere");
+    pin_eq!(w.firsts.len(), 0, "initial run1066 baseline");
+}
