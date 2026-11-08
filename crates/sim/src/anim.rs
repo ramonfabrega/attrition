@@ -1481,6 +1481,9 @@ impl Sim {
     /// (`docs/ANIM.md` §4). Returns whether the stream was drawn from.
     pub(crate) fn guy_set_anim(&mut self, u: usize, g: usize, anim: i8, force: bool, p3: bool) {
         let frame = self.frame;
+        if std::env::var("RON_PROBE_3999").is_ok() && (1293..=1295).contains(&frame) && self.units[u].owner == 0 && self.units[u].index == 6 {
+            eprintln!("PROBE f{frame} 0/6 g{g} set_anim({anim},{force},{p3}) cur a{} t{}/{} {}", self.units[u].guys[g].anim, self.units[u].guys[g].cur_time, self.units[u].guys[g].end_time, std::backtrace::Backtrace::force_capture());
+        }
         let guy = self.units[u].guys[g];
         // **`Guy::set_anim@005da300`'s head** (`docs/GOLDEN.md` §65): a
         // request for `CHAR_ATTACKWALK` from any other animation asks the
