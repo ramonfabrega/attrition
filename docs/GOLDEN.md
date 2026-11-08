@@ -19186,7 +19186,7 @@ the heading and writes the section.
 **The booking** named three arms: adjudication 5 row 36 (`BuildTypeData::check_enemy_adjacent@00638d70`, the dock's
 ring in `Wall::process@00640450:209`–`:219`), parked 3970b with adjudication 5 row 39 (`FORT_UPGRADE_RANGE` and
 `GENERAL_BUILDING_RANGE`, built in `sim::build_family` and bound by no walk), and adjudication 4 row 64
-(`WorldData::is_really_seen@006b42c0`, `in_enemy_territory`'s last arm, parked 2250). The dock was to be a harness
+(`WorldData::is_really_seen`, `in_enemy_territory`'s last arm, parked 2250). The dock was to be a harness
 probe first, staged only if no dump answered.
 
 **The dock: the disk answers nothing.** An env-guarded probe (`RON_PROBE_DOCK`, reverted whole) set each dock's

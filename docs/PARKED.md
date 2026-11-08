@@ -15537,7 +15537,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3992, 2026-11-08 — the building defence remainder
 
-- **3992a. The cityless placer's `WorldData::is_really_seen@006b42c0`** (`docs/GOLDEN.md` §185; adjudication 4
+- **3992a. The cityless placer's `WorldData::is_really_seen`** (`docs/GOLDEN.md` §185; adjudication 4
   row 64, parked 2250). `in_enemy_territory@00638b40`'s last arm asks it only for a placer with no city (`+0x3f8 ==
   0`), reached on no replay; `Sim::in_enemy_territory` takes it false (`place.rs`). A golden lobby defeats the last
   city's loser (`Leader::lost_a_city@006dc6d0`), so the route is a Nomad lobby (`STARTING_TOWN=0`, run1068's), which
