@@ -475,6 +475,7 @@ pub(crate) mod compared {
     #[derive(Default)]
     struct Masks {
         words: std::collections::BTreeMap<(&'static str, &'static str), (u64, u64)>,
+        #[cfg(test)]
         skipped: std::collections::HashSet<(&'static str, String)>,
     }
     thread_local! {
@@ -511,12 +512,13 @@ pub(crate) mod compared {
 
     /// A dump key of `record` the comparator skipped: the crate emits no
     /// row under that name.
+    #[cfg(test)]
     pub(crate) fn skipped(record: &'static str, key: &str) {
         MASKS.with(|r| {
-            if let Some(m) = r.borrow_mut().as_mut() {
-                if !m.skipped.contains(&(record, key.to_string())) {
-                    m.skipped.insert((record, key.to_string()));
-                }
+            if let Some(m) = r.borrow_mut().as_mut()
+                && !m.skipped.contains(&(record, key.to_string()))
+            {
+                m.skipped.insert((record, key.to_string()));
             }
         });
     }
