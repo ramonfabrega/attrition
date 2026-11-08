@@ -47,7 +47,7 @@ the how-to.
 | `funcs.py` | `INDEX.tsv` + the executable → `rontrace.funcs`, the coverage table: one 52-byte record per entry with the displaced prologue (capstone, via `uv run`), its branches rewritten to rel32 with fixups for the DLL, and `rontrace.funcs.excluded.txt` beside it naming every entry coverage cannot take and why |
 | `patch_exe.py` | `riseofnations.exe` → `riseofnations_trace.exe`: a copy with one added section carrying a copy of the import table plus one descriptor for `rontrace.dll`. The install's own exe is never modified. |
 | `wow64bop.c`, `.def`, `.sh` | **not part of a trace** — the standalone that reproduced `cover=1`'s fault and, shape by shape, found what it is: a thread running `popad`/`popfd` or writing code while another thread is mid-syscall breaks that thread's 32→64 switch under free Wine on Apple Silicon. Its header lists every shape and its verdict; `docs/ORACLE.md`, "Coverage is back". |
-| `report.py` | the reader: `summary`, `draws`, `sites`, `coverage`, `functions`, `blind`, and `refs`, which reads the executable instead of a trace: every `rel32`, `rel8` and embedded-address reference to a function, each jump site confirmed against llvm-objdump's listing, `dead` when there is none (`report.py <exe> refs - < addresses`; item 940). `draws` prints **the value each draw returned**: the record carries the seed *before* the step, so stepping the LCG once and applying `Random::get`'s scaling recovers an outcome no dump holds — a setup coin, a direction. |
+| `report.py` | the reader: `summary`, `draws`, `sites`, `coverage`, `functions`, `blind`, and `refs`, which reads the executable instead of a trace: every `rel32`, `rel8` and embedded-address reference to a function, each jump site confirmed against llvm-objdump's listing, `dead` when there is none (`report.py <exe> refs - < addresses`; item 940). `draws` prints **the value each draw returned**: the record carries the seed *before* the step, so stepping the LCG once and applying `Random::get`'s scaling recovers an outcome no dump holds — a setup coin, a direction. `frames NAME|ADDR` (item 3973) prints every frame the trace holds one function on, and which source says so: a coverage record is the run's **first entry only** outside a `window=` (none of the 196 `cover=1` `rontrace.cfg`s under `~/ron-golden` and `~/ron-data` sets one on 2026-11-07 — run1542b's header reads `-1..-2`), every frame entered inside it; a hooked or proxied function's own records are every call; a draw made from it, or with it on the ebp chain, dates a frame it ran — a lower bound. "The frames a function ran" for a stub-only function that draws nothing needs a capture with `window=` over those frames. |
 
 Everything staged lands in the install directory (`/game`, gitignored):
 `rontrace.dll`, `rontrace.funcs`, `rontrace.cfg`, `riseofnations_trace.exe`,
@@ -73,7 +73,9 @@ loses at most the current frame.
 - `window=LO-HI` — sim-frames (inclusive) at whose start every function is
   re-armed, giving a per-frame entered set for each. Outside the window the
   arming is one-shot from attach, so the cumulative set is still complete;
-  each function's record carries the frame it was first entered on.
+  each function's record carries the frame it was first entered on — so a
+  trace with no window cannot say which later frames a function ran
+  (`report.py frames` says which of its sources can).
 - `cover=0` — draws only, no coverage stubs. Fast; use it when the question
   is only the stream. `cover=1` runs again on this machine since 2026-09-08
   (`docs/ORACLE.md`, "Coverage is back"): the stubs write nothing after
