@@ -40788,6 +40788,13 @@ landing. Both sides' order point on 2601 is (2658, 24408), and that row
 agrees. The landing parting stood before this item (parked 3979a). Of the
 276 unit and standing rows, none moved.
 
+The same arm closes run146's row on chapter three's restage
+(`chapter_three_s_restage_is_widened_whole`, `docs/GOLDEN.md` chapter
+three). On 798 the catapult `0/6`'s round under its pushed
+`ATTACKGROUNDORDER` reads `angle` theirs 1192951808 on both sides; it was
+ours 1130823680. Its row leaves the pinned list, which keeps 736's round
+target and 847's scout facing.
+
 **Made to fail** (`tools/mutate.py`): with the ground arm's angle put back
 to the bearing passed in, `corpse_melee_run1542_s_word_window_is_widened_whole`
 fails with 31 against 6 (exit 101).
