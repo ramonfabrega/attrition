@@ -19081,6 +19081,10 @@ both directions, 641 slot records and 11,395 pool rows, with **no pool row parti
 standing `form` rows on 630 and three `death:extra` rows (run1555's end detail drops `DEATHS`). The `cant_reach` tally
 is 9. The coverage driver walks 630..780, 150 blocks.
 
+**Mutations** (`tools/mutate.py`, each held): the push arm ignoring the link (ch128's word and the pool widening);
+`seat_kill` not clearing an emptied record (the same two); a dead army never pushing (chapter three's restage and
+chapter 103); `form` written after the sort (the pool widening); a push's arrays left empty (the pool widening).
+
 **Not established.** When `Army::normalize` runs between a squad's last death and the next join: the crate pushes at
 the join, the original at the next normalize after `remove_group`. run146's gap (735 → 771) is wide enough for either.
 
