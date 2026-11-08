@@ -38,6 +38,7 @@
 pub mod action_gather_view;
 pub mod action_spell_view;
 pub mod activate;
+pub mod carrier_queue;
 pub mod add_to_world_view;
 pub mod ai;
 pub mod ai_build;
@@ -353,6 +354,11 @@ pub struct Unit {
     /// `on_map == false`, and it is the whole reason a passenger's orders
     /// stop being stepped (`docs/TRANSPORT.md` §6).
     pub inside_unit: Option<usize>,
+    /// **A unit's own training queue** (item 3981, `docs/AI.md` §413): the
+    /// Aircraft Carrier's planes, `UnitData +0xa0 num_queued` (a short)
+    /// and `+0x64 queue_time`, the clock (`crate::carrier_queue`).
+    pub num_queued: i16,
+    pub queue_time: i32,
     /// The hit points a whole figure carries, what the garrison heal repairs
     /// up to.
     pub max_health: i32,
@@ -1142,6 +1148,8 @@ impl Unit {
             supply_slot: None,
             caravan: None,
             attrition: 0,
+            num_queued: 0,
+            queue_time: 0,
             ignores_supply: false,
             sheltered: false,
             movement: Movement::at(pos),
@@ -4312,8 +4320,16 @@ impl Sim {
         if item.disband {
             return self.disband_time(at);
         }
+        self.unit_train_target(who, item.ty, self.president_near_building(at))
+    }
+
+    /// `ObjectData::train_time` of unit type `ty` for `who`, the trainer
+    /// reduced to the one thing a unit's clock reads of it: whether The
+    /// President stands in reach (`president`). [`Sim::queue_target`]'s
+    /// unit arm, and a carrier's plane's clock (item 3981).
+    pub(crate) fn unit_train_target(&self, who: Player, ty: usize, president: bool) -> i32 {
         let muster = &self.muster[who as usize];
-        let researched = muster.researched[item.ty];
+        let researched = muster.researched[ty];
         // **The Kremlin's Spy** (`train_time@006508c0:344`–`354`), the
         // train block's last step: a type of the Spy line (`is(0x3a, 1)`)
         // whose leader holds the Kremlin (`has_wonder(0x21a)`) returns
@@ -4321,7 +4337,7 @@ impl Sim {
         // after it — so the job completes on its sixth call. The Russian
         // pair's Redoubt `1/2034` trains its Spy in 499 on 5646..5652 with
         // who=1's Kremlin `1/2021` standing (item 3527, `docs/AI.md` §304).
-        if researched && self.kremlin_trains_fast(who, item.ty) {
+        if researched && self.kremlin_trains_fast(who, ty) {
             return self.tuning.accel_train * 5 - 1;
         }
         // **The tail is partitioned and the two halves never mix**
@@ -4345,16 +4361,16 @@ impl Sim {
             // 200`, with who=1's President in reach (run865's packet,
             // `docs/AI.md` §225).
             let mut tail = Vec::new();
-            if self.president_near_building(at) {
+            if president {
                 tail.push(production::Adjust::Faster(
                     self.tuning.thepresident_unit_build_speed,
                 ));
             }
-            tail.extend(self.train_tail(who, item.ty));
+            tail.extend(self.train_tail(who, ty));
             tail
         } else {
             let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-            let level = match self.unit_types[item.ty]
+            let level = match self.unit_types[ty]
                 .tree
                 .map(|id| self.tech_tree.types[id].preq[0])
             {
@@ -4371,7 +4387,7 @@ impl Sim {
         // Nuclear Missile line (`is(0x13b, 0)`) of a player holding Uranium
         // divides its base by `(URANIUM_NUKE_SPEED + 100) / 100`
         // (`docs/AI.md` §184).
-        let base_faster = if self.is_nuke_line_type(item.ty) && self.has_rare(who, economy::URANIUM)
+        let base_faster = if self.is_nuke_line_type(ty) && self.has_rare(who, economy::URANIUM)
         {
             self.tuning.uranium_nuke_speed
         } else {
@@ -4379,9 +4395,9 @@ impl Sim {
         };
         production::train_time_from(
             &self.tuning,
-            &self.unit_types[item.ty].times,
+            &self.unit_types[ty].times,
             researched,
-            muster.by_type[item.ty],
+            muster.by_type[ty],
             base_faster,
             &tail,
         )
@@ -7433,6 +7449,9 @@ impl Sim {
         // `process_healing` runs for every unit, inside or out: the
         // garrison branch inside, and on the map the civilian heal
         // (`crate::heal`, `docs/COMBAT.md` §72).
+        // `Unit::process@00610bc0:288`–`:420`, after the attrition and
+        // before the heal: a unit's own queue (item 3981).
+        self.carrier_queue_tick(i);
         self.garrison_heal(i, frame);
         self.ship_heal(i, frame);
         self.iroquois_heal(i, frame);
