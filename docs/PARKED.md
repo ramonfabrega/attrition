@@ -15306,11 +15306,11 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3985, 2026-11-07 — three spells on a spy-upgraded lobby
 
-- **3985a. The idle roll on 1294.** Chapter 127's word: theirs spends a ninth draw, a second `Guy::set_anim <
+- ~~**3985a. The idle roll on 1294.** Chapter 127's word: theirs spends a ninth draw, a second `Guy::set_anim <
   Unit::do_idle`, on one of Bribe's copies `0/9..0/11` the frame after they are born (1293); ours eight. Every
   compared field agrees on 1294 (`docs/GOLDEN.md` §178), and run1543's end detail prints no `GUYS`, so nothing on disk
   names the figure or its animation. A `GUYS=4` recapture of chapter 127 over 1290..1296 names it. Returns as the
-  word's next brief.
+  word's next brief.~~ Closed by item 3999 (run1554, `docs/GOLDEN.md` §189): the copy `0/10` of a figure still turning.
 - **3985b. Blow Tread, Restock Supplies and `TypeData::get_cost@00664090`'s spell arm are dead on shipped data.**
   `craftrules.xml` gives both crafts `FROM none`, `FROM2 None`, `PREQ0 Disable`; every craft with a `COST2` is
   `FROM none`, so `unpay_cast_costs@00676ff0`'s resource half and `COST2 × spell_cost_factor` move nothing a unit's
@@ -15321,13 +15321,13 @@ words and edits nothing here; a refill lands when two remain.
   refusals, so the cast dies through `kill_current_order`'s refund first. Built in `cast_on` and held by
   `cast::tests::a_refused_bribe_hands_its_mana_back` only. It names no score.
 
-## Parked by the next landing, slot CQ — reserved
+## Parked by item 3999, 2026-11-08 — chapter 127's idle roll
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3999a. The rest of `Unit::swap_team@006118d0`'s figure copy.** The do-while copies the old figure's `+0x0c..+0x18`
+  and `+0x20..+0x40` (position, `angle`, the turret words, `node_flags`, bank and pitch) and its `stopped` (`+0x9d`) and
+  `+0xa2` byte; `bribe.rs`' `copy_figure` carries `facing`, `stopped` and the turret. No staged figure parts on the
+  others (run1554's copies are foot units with no turret, bank or pitch). Returns with a Bribe on a figure that banks
+  or pitches. It names no score.
 
 ## Parked by the next landing, slot CR — reserved
 
