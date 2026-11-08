@@ -37,4 +37,3 @@
 640 @attack 1 8 0 12
 641 be 0
 700 @garrison 0 2000 0 8
-1100 !quit

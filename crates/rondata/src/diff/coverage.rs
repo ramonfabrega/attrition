@@ -852,6 +852,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch127 = golden_dump("ch127");
     let ch128 = golden_dump("ch128");
     let ch128g = golden_dump("ch128g");
+    let ch129 = golden_dump("ch129");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3155,6 +3156,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 462,
             "chapter one hundred and twenty-eight carries 462 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-nine, on run1545** (item 3987): the
+    // patriot repair's two Barracks, `0/2007` on 653 and `0/2008` on 672,
+    // and the Hoplites garrisoned under Herbal Lore, healing from 862, to
+    // the trace's end.
+    if let Some(p) = &ch129 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE;
+        let n = drive_capture(p, 638, 1100, &mut paths);
+        assert_eq!(
+            n, 462,
+            "chapter one hundred and twenty-nine carries 462 blocks in the window"
         );
         frames += n;
     }

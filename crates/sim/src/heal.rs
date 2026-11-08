@@ -1009,4 +1009,100 @@ mod tests {
         sim.senator_heal(c, 8210);
         assert_eq!(state(&sim), (38, 0), "nobody's ground, nothing");
     }
+
+    /// **A patriot repairs its leader's damaged building by the ground under
+    /// it** (item 3987, `docs/GOLDEN.md` §180; `Build::process@0061edf0`'s
+    /// arm to `0061f3b9`): a President's reach repairs on unowned or allied
+    /// ground and nowhere else — and, found, it closes the Senator's branch
+    /// even where that one would repair; a Senator's only on allied ground;
+    /// a point on the phase `(o + frame) % 20`, the fraction cleared,
+    /// `healing` 20; nothing without the leader's count of the type.
+    #[test]
+    fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
+        use crate::ai_load::{UnitCols, uflags2};
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.build_types.push(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(9000, 9000);
+        let b = sim.add_building(1, at, 0);
+        sim.buildings[b].ty = Some(sim.build_types.len() - 1);
+        sim.buildings[b].index = 2007;
+        sim.buildings[b].active = true;
+        sim.buildings[b].hits = 1200;
+        let hero = |sim: &mut crate::Sim, type_index: i32| {
+            let t = sim.add_unit_type(crate::UnitType {
+                hits: 110,
+                type_index,
+                cols: UnitCols {
+                    unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                    ..UnitCols::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let mut u = crate::Unit::new(1, 6 + type_index as i16, at, 110);
+            u.ty = Some(t);
+            u.type_index = type_index;
+            u.on_map = true;
+            u.captain = true;
+            u.kind = sim.unit_types[t].kind;
+            (sim.add_unit(u), t)
+        };
+        let (senator, st) = hero(&mut sim, 0x161);
+        let (president, pt) = hero(&mut sim, 0x163);
+        sim.units[president].pos.x += 40 * 192;
+        let n = sim.unit_types.len();
+        sim.muster[1].by_type.resize(n, 0);
+        let cell = at.cell();
+        let mut run = |sim: &mut crate::Sim, frame: i64, ground: Owner| {
+            sim.world.set_owner(cell, ground, Owner::None);
+            let bd = &mut sim.buildings[b];
+            (bd.damage, bd.damage_frac, bd.healing) = (10, 5, 0);
+            sim.patriot_repair(b, frame);
+            let bd = &sim.buildings[b];
+            (bd.damage, bd.damage_frac, bd.healing)
+        };
+        let own = Owner::Player(1);
+        assert_eq!(run(&mut sim, 13, own), (10, 5, 0), "no patriot counted");
+        sim.muster[1].by_type[st] = 1;
+        assert_eq!(
+            run(&mut sim, 13, own),
+            (9, 0, 20),
+            "a Senator on its own ground"
+        );
+        assert_eq!(run(&mut sim, 14, own), (10, 5, 0), "off the phase");
+        assert_eq!(
+            run(&mut sim, 13, Owner::None),
+            (10, 5, 0),
+            "a Senator on nobody's ground"
+        );
+        assert_eq!(
+            run(&mut sim, 13, Owner::Player(0)),
+            (10, 5, 0),
+            "a Senator on an enemy's"
+        );
+        sim.muster[1].by_type[pt] = 1;
+        sim.units[president].pos = at;
+        assert_eq!(
+            run(&mut sim, 33, Owner::None),
+            (9, 0, 20),
+            "a President on nobody's ground"
+        );
+        assert_eq!(run(&mut sim, 33, own), (9, 0, 20), "a President on its own");
+        sim.units[senator].pos.x += 40 * 192;
+        assert_eq!(
+            run(&mut sim, 33, Owner::Player(0)),
+            (10, 5, 0),
+            "a President on an enemy's"
+        );
+        sim.units[senator].pos = at;
+        assert_eq!(
+            run(&mut sim, 33, Owner::Player(0)),
+            (10, 5, 0),
+            "a President found closes the Senator's branch"
+        );
+    }
 }
