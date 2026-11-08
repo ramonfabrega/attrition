@@ -230,6 +230,13 @@ fn corpse_melee_run1542_s_word_window_is_widened_whole() {
     // rows of 2501 agree; on 1151 `1/17` reads `healing` 13, `damage_frac`
     // 0 and `hits:damage` 8 both. What stands is the first block's standing
     // families (248) and who=0's seven orders on the closing block (28).
+    // Item 3979: the rounds 31 → **6**, with a ground round's `angle` the
+    // scattered landing's (`Ammo::init@0067bbf0`, `67c747`–`67c75a`): on
+    // 2551 `2/159`'s `ammo[0]` reads theirs' -1128988672 both, every round
+    // fired before 2600 agrees whole. What parts is the two fired on 2600
+    // (`cur_time 1` on 2601): `2/159`'s `ammo[12]` lands (2697, 24408)
+    // against (2656, 24424) and `2/160`'s `ammo[13]` (2654, 24414) against
+    // (2661, 24406), each `angle` following its own landing (parked 3979a).
     pin_eq!(w.blocks, 3, "every stride block in the window");
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
@@ -238,7 +245,7 @@ fn corpse_melee_run1542_s_word_window_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 276, "run1542's word window");
     pin_eq!(w.rounds_read, (30, 30), "the rounds read");
-    pin_eq!(w.rounds.len(), 31, "the rounds that part");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
 /// **Every seat's leader** (the shape item 3791 gave the first two,

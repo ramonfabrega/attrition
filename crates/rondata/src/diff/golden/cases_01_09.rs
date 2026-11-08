@@ -4846,11 +4846,15 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
     // (`docs/COMBAT.md` §46.7), so the catapult's round takes slot 1 on
     // both sides on 798, and what the slot had hidden is its `angle`: ours
     // 1130823680, theirs 1192951808, the rest of the record agreeing.
+    //
+    // **Item 3979**: the catapult's round is the attack-ground arm's, whose
+    // `+0x2c` is the scattered landing's bearing (`Ammo::init@0067bbf0`,
+    // `67c747`–`67c75a`; `docs/AI.md` §411): 798's `angle` reads theirs'
+    // 1192951808 both, and the row goes.
     pin_eq!(first, Some(736), "run146's first value parting moved");
     pin_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
-            "798 0/6 ammo[1].angle: ours 1130823680 theirs 1192951808",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
             "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }"
