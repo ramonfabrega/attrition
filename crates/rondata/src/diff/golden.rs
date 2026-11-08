@@ -6794,11 +6794,13 @@ fn chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole() {
 /// What parts in run1545's window, blocks 605–1100 (item 3987): the
 /// eleven `form` rows every golden start carries, then nothing through
 /// 809 — the patriot repair's two Barracks, `0/2007` repaired on 653 and
-/// `0/2008` on 672, and arm three's garrisoned Hoplites `0/8` healing on
-/// 15 from 862 agree on every `healing` and `hits:damage` block. From 810
-/// who=1's `1/14`, arm three's attacker as its target walks to the
-/// garrison: theirs' order kind 1 with two orders to (5352, 31704), ours
+/// `0/2008` on 672, agree on every `healing` and `damage` block. From 810
+/// who=1's `1/14`, arm three's attacker, its target `0/9` gone on both
+/// sides: theirs' order kind 1 with two orders to (5352, 31704), ours
 /// kind 10 at `0/10` to (5928, 32904) (parked 3987a); the rest follows it.
+/// On 863 `0/8` heals inside at theirs' 15 and not at all in ours: theirs'
+/// squad holds an `0/9` again, inside with 39 damage, and ours' squad is
+/// whole (`0/9 unlinked`, parked 3987b).
 const WANT_CH129: &[&str] = &[
     "1010 1/5 mirror",
     "1020 1/5 order:flags",
@@ -6969,6 +6971,7 @@ const WANT_CH129: &[&str] = &[
     "863 0/3 order:move.dest_y",
     "863 0/3 path[0].to",
     "863 0/8 group",
+    "863 0/8 healing",
     "863 0/9 unlinked",
     "863 1/3 order:kind",
     "863 1/3 order:length",
