@@ -29,7 +29,9 @@ transcript field `lore` already carries, folded.
     python3 tools/tranche.py --base 2249e2c0           # the tranche's Book commits, and the handoff's line
 
 The classes are read off the Bash command's text, and `--show-gaps`
-prints each gap with its command so a class can be checked by eye.
+prints each gap with its command so a class can be checked by eye. An
+`other:` line under a session names its `other` minutes' top three waited-call
+heads (Loop 3996; at 10 minutes, or at the session's `gate` minutes and 2).
 """
 
 from __future__ import annotations
@@ -81,6 +83,78 @@ def classify(instruction: dict | None) -> str:
         if rx.search(text):
             return name
     return "other"
+
+
+# Loop 3996 (the seventy-third pass, DECISIONS 113 §1): `other` read 11.9
+# minutes a session and named nothing. Its minutes are split by the waited
+# call's head: a Bash command's first word with its env exports, `cd`s and
+# assignments stripped (an interpreter keeps its script's basename), or a
+# non-Bash tool's name.
+INTERPRETERS = {"python3", "python", "zsh", "bash", "sh", "uv", "node", "bun", "swift"}
+TASK_ID = re.compile(r"background with ID: (\w+)")
+TASK_READ = re.compile(r"tasks/(\w+)\.output")
+
+
+def head_of(instruction: dict | None) -> str:
+    if not instruction:
+        return "?"
+    tool = instruction.get("tool") or "?"
+    if tool != "Bash":
+        return tool
+    text = instruction.get("input") or ""
+    try:
+        command = json.loads(text).get("command", "")
+    except (ValueError, AttributeError):
+        # `lore trace --head 200` cuts the input mid-string: read the
+        # command's prefix and its escapes by hand.
+        m = re.match(r'\s*\{\s*"command"\s*:\s*"(.*)', text, re.S)
+        command = m.group(1) if m else text
+        command = re.sub(r'\\(["\\nt])', lambda e: {"n": "\n", "t": " "}.get(e.group(1), e.group(1)), command)
+    for segment in re.split(r"\n|;|&&|\|\||\|", command):
+        words = segment.split()
+        while words and (re.match(r"^[A-Za-z_]\w*=", words[0])
+                         or words[0] in ("env", "time", "nohup", "exec", "do", "then", "else", "{", "(")):
+            words.pop(0)
+        if not words or words[0] in ("export", "cd", "set", "source", ".", "unset",
+                                     "for", "while", "until", "if", "elif", "done", "fi", "}", ")"):
+            continue
+        head = words[0].rsplit("/", 1)[-1]
+        if head not in INTERPRETERS:
+            return head
+        rest = words[1:]
+        if head == "uv" and rest[:1] == ["run"]:
+            rest = rest[1:]
+        while rest and rest[0].startswith("-") and rest[0] not in ("-", "-c", "-m"):
+            rest = rest[1:]
+        if not rest:
+            return head
+        if rest[0] == "-m" and len(rest) > 1:
+            return f"{head} {rest[1]}"
+        return f"{head} {rest[0].rsplit('/', 1)[-1]}"
+    return "?"
+
+
+def waited_call(pre: list[dict], wake: list[dict] = ()) -> dict | None:
+    """The call a gap waited on. The backgrounded call whose output file
+    (the harness's `tasks/<id>.output`) the wake's first calls read
+    (6532f55d's 17.6 minutes were a suite launched in the background and
+    the `cat` of its file the wake's first call; d9275b73 had `tail`ed the
+    same file mid-run); else, within the last dozen calls before the wake,
+    the newest backgrounded call whose output nothing read; else the last
+    call."""
+    for ins in wake[:3]:
+        m = TASK_READ.search(ins.get("input") or "")
+        if m:
+            for launch in reversed(pre):
+                n = TASK_ID.search(str(launch.get("result") or ""))
+                if n and n.group(1) == m.group(1):
+                    return launch
+    window = pre[-12:]
+    for k in range(len(window) - 1, -1, -1):
+        m = TASK_ID.search(str(window[k].get("result") or ""))
+        if m and not any(m.group(1) in (later.get("input") or "") for later in window[k + 1:]):
+            return window[k]
+    return window[-1] if window else None
 
 
 RUNS = Path(__file__).resolve().parent.parent / "docs" / "RUNS.md"
@@ -140,6 +214,7 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
     deep = sum(r.get("listUsd", 0) for r, c in zip(requests, contexts) if c > deep_k * 1000)
     waiting = 0.0
     on: dict[str, float] = {}
+    heads: dict[str, float] = {}
     gaps: list[tuple[str, float, str]] = []
     for a, b in zip(requests, requests[1:]):
         secs = (ts(b["ts"]) - ts(a["ts"])).total_seconds()
@@ -166,6 +241,13 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
             cls = "message"
         waiting += secs / 60
         on[cls] = on.get(cls, 0.0) + secs / 60
+        if cls == "other":
+            # The waited call was issued before the wake: the wake's own
+            # first call carries the wake request's ts and is not in it.
+            pre = [ins for ins in before if ins["ts"] < b["ts"] and ins.get("requestId") != b.get("requestId")]
+            wake = [ins for ins in instructions if ins["ts"] >= b["ts"]][:3]
+            head = head_of(waited_call(pre, wake))
+            heads[head] = heads.get(head, 0.0) + secs / 60
         gaps.append((a["ts"], secs / 60, (last or {}).get("input", "")[:120]))
     clock = (ts(requests[-1]["ts"]) - ts(requests[0]["ts"])).total_seconds() / 60 if requests else 0.0
     models = {}
@@ -180,9 +262,22 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
         "waiting_min": round(waiting, 1),
         "working_min": round(clock - waiting, 1),
         "on": {k: round(v, 1) for k, v in sorted(on.items(), key=lambda kv: -kv[1])},
+        "other_heads": {k: round(v, 1) for k, v in sorted(heads.items(), key=lambda kv: -kv[1])},
         "models": models,
         "gaps": gaps,
     }
+
+
+def other_heads_line(row: dict, floor: float = 10.0, top: int = 3) -> str | None:
+    """The `other` class's top heads, one indented line under the session —
+    printed when `other` reaches `floor` minutes, or reaches the session's
+    `gate` minutes and 2 (the lane rule's blind spot is a class that stays
+    unnamed above the gate's; Loop 3996)."""
+    other = row["on"].get("other", 0.0)
+    if not (other >= floor or (other >= 2.0 and other >= row["on"].get("gate", 0.0))):
+        return None
+    heads = list(row.get("other_heads", {}).items())[:top]
+    return "         other: " + " · ".join(f"{k} {v}" for k, v in heads)
 
 
 # A `, 19 of 20` after the items is the landing count, never an item (the
@@ -271,6 +366,8 @@ def main() -> int:
         caps = str(len(r["captures"])) if r["captures"] else ""
         print(f"{str(r['item'] or '-'):>6} {r['session']:8} {r['price']:7.2f} {r['requests']:4d} {r['peak_k']:6d} "
               f"{r['deep_share']:5.2f} {r['clock_min']:6.1f} {r['working_min']:6.1f} {r['waiting_min']:6.1f} {caps:>4}  {on}")
+        if (heads_line := other_heads_line(r)) is not None:
+            print(heads_line)
         if args.show_gaps:
             for at, mins, cmd in r["gaps"]:
                 print(f"         {at[11:19]} {mins:6.1f}  {cmd}")
