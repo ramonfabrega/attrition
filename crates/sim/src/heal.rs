@@ -382,8 +382,8 @@ impl Sim {
     /// `damage` 39 — 120 / 3, less the heal's one point — inside behind
     /// `0/10`, and `group` −1 on all three.
     ///
-    /// SEAM: the outside arm's `find_nearby_spot` and move order — the
-    /// figure stays on the tail's point; the console's selection and the
+    /// SEAM: the outside arm's spot search and its move order are not
+    /// called — the figure stays on the tail's point; the console's selection and the
     /// hotkey groups, which this crate does not carry; and a chain with
     /// no dead tail (`o_down < 0`, the listing's error report), where the
     /// original numbers a fresh object — none is regrown here.
