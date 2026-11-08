@@ -8,7 +8,8 @@
 //! need a nation bonus, a wonder, a general, a Conquer-the-World hero or
 //! a supply period that ships as zero (`docs/SUPPLY.md`, "Consumer 2");
 //! the seventh, the **civilian heal**, needs none of these, and it is the
-//! one a capture reaches.
+//! one a capture reaches. The supply heal (item 3978, `docs/AI.md` §410)
+//! is built beside it: the French bonus and Versailles give it a period.
 
 use crate::Sim;
 use crate::ai_load::uflags2;
@@ -113,6 +114,80 @@ impl Sim {
         }
         self.repair_unit_damage(i, 1);
         self.mark_healed(i, rate);
+    }
+
+    /// **The supply heal** — `process_healing`'s on-map arm after the
+    /// three economic patriots' (`005e0670`, `LAB_005e0f1a`; item 3978,
+    /// `docs/AI.md` §410):
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// rate = SUPPLY_HEAL_RATE
+    ///   (+ FRENCH_SUPPLY_HEAL_RATE with has_tribe_bonus(10))
+    /// has_wonder(VERSAILLES) and VERSAILLES_SUPPLY_HEAL_RATE != 0:
+    ///   rate = rate == 0 ? VERSAILLES : (VERSAILLES + rate) / 4
+    /// rate != 0 and (o + frame) % rate == 0
+    ///   and Supplies::find_supply(x, y, who) >= 0:
+    ///     repair_damage(1, 1, 1); healing = max(rate, healing)
+    /// ```
+    ///
+    /// The period is [`crate::supply::heal_period`]; `find_supply` walks
+    /// the player's supply list alone — a source alive and on the map
+    /// within `SupplyData::get_radius × 0xc0` by `vector_dist` — so a
+    /// supplying general's aura, which [`Sim::supplied_at`] reads for
+    /// attrition, heals nobody here. It asks nothing of the cell's owner
+    /// or the unit's motion. run1542's French Elite Special Forces `1/17`
+    /// (TI 77), walking off under an `EXPLORETOORDER`, is 2648 from its
+    /// Despot `1/164` (TI 352, `supply 0`) on block 1151 — inside 14
+    /// tiles' 2688 — and prints `healing 13`: 20 set on 1143, `(17 +
+    /// 1143) % 20 == 0`.
+    ///
+    /// The sparkle arm draws only for the console's allies, which is no
+    /// stream this crate keeps; the `0x4000` clear is not carried.
+    pub(crate) fn supply_heal(&mut self, i: usize, frame: i64) {
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if !u.captain || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let owner = u.owner;
+        let french = self.tech.get(owner as usize).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::FRENCH)
+        });
+        let versailles = self.wonders_held(owner) & (1 << crate::tech::wonder::VERSAILLES) != 0;
+        let rate = i64::from(crate::supply::heal_period(&self.tuning, french, versailles));
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let damaged = self.squad_members(i).iter().any(|&f| {
+            let f = &self.units[f];
+            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
+        });
+        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+            return;
+        }
+        let at = self.units[i].pos;
+        let upgrades = self.supply_upgrade_level(owner);
+        let terra_cotta = self.supply[owner as usize].player.terra_cotta;
+        let radius = crate::supply::supply_radius(&self.tuning, upgrades, terra_cotta);
+        let found = self.supply[owner as usize].list.find(at, radius, |w| {
+            self.units.get(w).map(|w| crate::supply::Wagon {
+                pos: w.pos,
+                active: w.alive(),
+                on_map: w.on_map,
+            })
+        });
+        if found.is_some() {
+            self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
+        }
     }
 
     /// `healing = max(rate, healing)`, the write every arm of
@@ -721,6 +796,79 @@ mod tests {
     /// or for a leader without the bonus. run1228b's `1/50` was refused
     /// on 8186, 8201 and 8216 under its `ATTACKTOORDER` and healed on 8246
     /// under its `GUARDORDER`.
+    /// **A French unit heals within its own supply source's radius, on
+    /// its phase, walking** (item 3978, `docs/AI.md` §410): the supply
+    /// heal's period is `SUPPLY_HEAL_RATE` (0) plus the French bonus's 20,
+    /// and `find_supply` asks only the supply list's reach — 14 tiles,
+    /// 2688 by `vector_dist`. run1542's Elite Special Forces `1/17` stood
+    /// (1709, 1865) off the Despot `1/164`, 2648, and healed on 1143
+    /// under an explore order; its `healing` read 13 on block 1151.
+    #[test]
+    fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.set_tech_tree(crate::tech::TechTree::new());
+        let esf = sim.add_unit_type(crate::UnitType {
+            hits: 130,
+            type_index: 77,
+            combat: crate::combat::Profile {
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let despot = sim.add_unit_type(crate::UnitType {
+            hits: 109,
+            type_index: 352,
+            kind: crate::attrition::UnitKind {
+                supply_unit: true,
+                ..crate::attrition::UnitKind::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(25157, 9797);
+        let put = |sim: &mut crate::Sim, t: usize, index: i16, pos: Pos| {
+            let mut u = crate::Unit::new(1, index, pos, sim.unit_types[t].hits);
+            u.ty = Some(t);
+            u.type_index = sim.unit_types[t].type_index;
+            u.on_map = true;
+            u.captain = true;
+            u.kind = sim.unit_types[t].kind;
+            sim.add_unit(u)
+        };
+        let c = put(&mut sim, esf, 17, at);
+        sim.units[c].health = 130 - 11;
+        sim.units[c].damage_frac = 4;
+        let state = |sim: &crate::Sim| {
+            let u = &sim.units[c];
+            (u.health, u.damage_frac, u.healing)
+        };
+        sim.supply_heal(c, 1143);
+        assert_eq!(state(&sim), (119, 4, 0), "no bonus, no period");
+        sim.tech[1].power = Some(crate::nations::power::FRENCH);
+        sim.supply_heal(c, 1143);
+        assert_eq!(state(&sim), (119, 4, 0), "no supply source, nothing");
+        let d = put(&mut sim, despot, 164, Pos::new(at.x - 1709, at.y + 1865));
+        assert!(
+            sim.units[d].supply_slot.is_some(),
+            "the Despot holds a slot"
+        );
+        sim.supply_heal(c, 1142);
+        assert_eq!(state(&sim), (119, 4, 0), "off the phase, nothing");
+        sim.units[c]
+            .orders
+            .push_front(attack_to(Pos::new(25848, 10488)));
+        sim.supply_heal(c, 1143);
+        assert_eq!(
+            state(&sim),
+            (120, 0, 20),
+            "(17 + 1143) % 20, walking, 2648 off: a point and the fraction"
+        );
+        sim.units[d].pos = Pos::new(at.x - 1709 - 60, at.y + 1865);
+        sim.supply_heal(c, 1163);
+        assert_eq!(state(&sim), (120, 0, 20), "past 2688, nothing");
+    }
+
     #[test]
     fn an_iroquois_captain_heals_standing_on_its_own_ground() {
         let (mut sim, c, herbal) = iroquois_captain(167);

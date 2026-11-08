@@ -11,12 +11,12 @@ it by items (18 at 8 lines, the handoff 32). **A finding that names no
 score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
-*2026-11-07, **the seventy-third steering pass (steer, Fable) booked the seventy-third tranche from `3f3a403b5`: two Opus 5.5 lanes at `--effort medium` on two tracks — the closed words' value rows and pinned partings (the AI track, seven items) and the territory adjudications' unreached cases staged as chapters (the rules track, eleven)**. The pass's record is `docs/audit/2026-11-07-fable-pass-73.md`, its decisions DECISIONS 113; `docs/RENDERER.md`, the two census defects and the per-group rulings still wait on Ramon (no prompt since 11-06).*
+*2026-11-08, **the seventy-third tranche is underway: 1 of 20 landed from `3f3a403b5`; 3979 and 3985 live.** The seventy-third steering pass (steer, Fable) booked it: two Opus 5.5 lanes at `--effort medium` on two tracks — the closed words' value rows and pinned partings (the AI track, seven items) and the territory adjudications' unreached cases staged as chapters (the rules track, eleven)**. The pass's record is `docs/audit/2026-11-07-fable-pass-73.md`, its decisions DECISIONS 113; `docs/RENDERER.md`, the two census defects and the per-group rulings still wait on Ramon (no prompt since 11-06).*
 - **Words: none open** — every melee, `Late ages` word, pair, battery game and long word stands whole; lower map first — closed; 296 of 302 fieldable lines seen (the six never are a hero and five gaia animals, so the pair refill is spent). **The supply is two lists** (DECISIONS 113 §2): the value rows and pins the seventy-second's landings parked on closed words (3975b's 344 rows, 3975a's 31 rounds, 3961a's two heal rows, 3960a's 203 blocks, 3969a's two unread keys, 3962a/b's 13 `cant_reach` rows, 3964a's 732 records), and the adjudications' 55 confirmed-unreached rows grouped by staging (`tmp/t73/chapter-supply.md` of the steer job), eleven chapters of at most three arms each, cheapest first.
 - **The lane rule** (113 §1): two lanes read 54.9 waiting a landing and the gate class 21.8 a session, both over the 26.3 and 15.3 the third lane returns on, so two lanes stand. The class was nine widened lane gates of 31–53 release minutes on the instrument track — every coverage item moves a pin by construction — and the `other` class at 11.9 (3965's 82.7) that `tranche.py` cannot name (Loop 3996).
 - **Fable backlog: 12 Loop items** (3996, `tranche.py`'s `other` class; 3997, the drain pushed a red tip on the harness's exit line; 3998, a word that may close whole runs `diff::audit::` in its lane gate; 3848; 3821, 3799, 3382, 3350, 3237, 3188, 3143, 3118); seven built this pass by Opus 5.5 subagents, red first — 3956 and 3957 (`coverage::UNREAD_BITS`, `SKIPPED_BY_THE_LEADER_COMPARATOR`), 3972 (`nations_census.py --check`, in `guard.sh`), 3973 (`report.py frames`), 3974 (`check.sh test`'s scaled timeout), 3976 (`--twin`'s seats), 3977 (`frame.py`'s cut); no `FABLE:` row open.
 - **The blind list: open 0** (never 331 · residue 331; DECISIONS 110 §1). The implicit residue: **0 of 679**. **The finish line — entry 29's three counters stand, and phase 4 is open on Ramon's word (DECISIONS 111 §2)**; nothing of it is booked until he answers `docs/RENDERER.md` §7.2 (112 §3). The territory (ported 546 · replaced by design 318 · open 1289 of 3611) waits on his per-group rulings and the two `tools/census.py` defects (A 82 rows, B 272; the steer job's `tmp/t71/toolsA`, `toolsB`).
-- **Lanes: none live** — spawn two: lane A on 3978 (the AI track, in order), lane B on 3985 (the rules track, in order). `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`. A `cover=1` twin passes `--twin <its sibling's output dir>` (Loop 3928). Next 3999, run 1554. Pools: AI §416–§419; GOLDEN §189–§192; MAPGEN §35–§37; park CP–CZ free. **For the pass**: `tranche.py --base 3f3a403b5` and `gates.py <the commander's t73 dir> --since …/d388900a/tmp/t73/gate-pass73.log`, after `lore index`.
+- **Lanes: two live** — lane A took 3978, which landed (`Sim::supply_heal` in `sim::heal` on `supply::heal_period`, the French 20 and the Versailles fold: the Elite Special Forces `1/17` on 1151 stands 2648 from who=1's Despot `1/164`, a supply source, inside 2688; the killer did not fire, `healing` 13 a countdown from 20 on 1143; `WIDENING_CORPSE_MELEE` 344 → 276, the melee 0 off; the French windows' firsts run1262 158 → 155, run1344b 123 → 118, run1360 117 → 113; AI §410), and **3980 closes with it**: its two rows were 3961a's, both the supply heal (parked 3978a); 3979 spawned in its place. Lane B on 3985 (a draft at 330 k, cleared into a fresh session; run1543 captured; arms 1 and 2 dead in shipped data, the staging Bribe and the Informer from range). Lane A takes 3981 next, lane B 3986. `ccc spawn --name lane-<N> --worktree=att-<N> --model 'claude-opus-5-5[1m]' --effort medium`. A `cover=1` twin passes `--twin <its sibling's output dir>` (Loop 3928). Next 3999, run 1554. Pools: AI §416–§419; GOLDEN §189–§192; MAPGEN §35–§37; park CP–CZ free. **For the pass**: `tranche.py --base 3f3a403b5` and `gates.py <the commander's t73 dir> --since …/d388900a/tmp/t73/gate-pass73.log`, after `lore index`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -46,13 +46,6 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84–93). The shapes a
 and value or draw delta), a pair stood up (`mongol_pair.rs`'s shape; the refill is spent, 113 §2), a `melee` (GOLDEN §155), a `chapter`
 (at most three arms of one staging, `tools/brief/frame.md`).
 
-3978. **Theirs heals units out of the fight on the closed sixth melee, ours does not** (a `residue` item on `GreatSaharaCorpseMelee`'s
-closing window, a value row with the draws whole; parked 3975b; `docs/GOLDEN.md` §177): the state's first value parting is 1151, the
-French Elite Special Forces `1/17` (TI 77) `healing` theirs 13 / ours 0, `damage_frac` 0 / 4, `hits:damage` 8 / 11; the MLRS `1/162` on
-1251, `1/22` on 1301, 29 units by 2501. The period 13 names the arm (3961a): one of `process_healing@005e0670`'s six heals `heal.rs`
-leaves unbuilt — a bonus, a wonder or a hero's — is the hypothesis; the killer is a unit healing at 13 beyond every Supply Wagon's,
-General's and hero's reach on 1151, read off the dump before any arm is built. The score is `WIDENING_CORPSE_MELEE`'s 344 rows,
-re-pinned; no run booked, run1542 answers it; AI §410; gate `--tests corpse_melee coverage:: audit:: first_parting`; park CN.
 
 3979. **The MLRS round's `angle`, 31 rows on the same window** (a `residue` item, after 3978 has merged; parked 3975a; GOLDEN §177):
 with the rack's rows in, every MLRS round agrees on `sx, sy, sz, ex, ey, ez, v1z` and parts on `angle` alone from 651 (`2/155`'s
@@ -62,13 +55,6 @@ or the landing's. Not read: `Ammo::init`'s writer of `+0x2c` on the release arm 
 listing does not settle it (`docs/EMULATOR.md`). The score is the window's 31 `angle` rows; no run booked; AI §411; gate `--tests
 corpse_melee coverage:: audit:: first_parting`; park CO.
 
-3980. **The two on-map heals dated by `healing` on the French pairs' windows** (a `residue` item, after 3978 has merged — it shares
-`heal.rs`; parked 3961a; AI §405): run1262's `1/50` on 5601, theirs 10 (the French Classical pair's long, widened whole), and run1344b's
-`1/29` on 4552, theirs 20 (the French Enlightenment pair's window 4495..4756). The period names the arm: 10 is no arm the crate builds —
-the supply arm with the French bonus and Versailles, `(VERSAILLES + SUPPLY + FRENCH) / 4`, is the candidate, unread; 20 is a
-`FRENCH_SUPPLY_HEAL_RATE` arm — the President's (parked 3686a) or the Senator's gate, item 3959 having built the Senator's. Each row off
-is one off its window's `firsts` pin; no run booked, the disk answers both; AI §412; gate `--tests french_classical_pair
-french_enlightenment_pair coverage:: first_parting`; park: the commander's next free slot.
 
 3981. **The carrier's training queue, run1066's 203 blocks** (a `residue` item on the instrument track; parked 3960a; AI §404;
 `coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero`): the one parting on disk is run1066's carrier `0/14`, block 614,
