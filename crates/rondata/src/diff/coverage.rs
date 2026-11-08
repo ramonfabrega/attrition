@@ -3948,6 +3948,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::coverage_pair::coverage_frame_3963_window(),
         || super::coverage_pair::coverage_frame_4582_window(),
         || super::coverage_pair::coverage_closing_window(),
+        || super::coverage_pair::carrier_1066_window(),
         || super::sahara_coverage::sahara_coverage_frame_12_window(),
         || super::sahara_coverage::sahara_coverage_frame_720_window(),
         || super::sahara_coverage::sahara_coverage_frame_1250_window(),
