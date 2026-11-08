@@ -431,7 +431,7 @@ impl Sim {
     /// aircraft: not a missile; a helicopter only into an Airbase, a plane
     /// not into a Missile Silo; then its own home, or room under
     /// `num_aircraft_limit`.
-    fn base_can_carry(&self, base: usize, u: usize) -> bool {
+    pub(crate) fn base_can_carry(&self, base: usize, u: usize) -> bool {
         let Some(t) = self.buildings[base].ty else {
             return false;
         };

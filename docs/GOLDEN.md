@@ -19167,12 +19167,124 @@ hotkey group, parked 3989a); `unqueue`'s library offset `p1 − count`, which st
 only its own Disband; the adjudication's `ages_queued`/`epochs_queued` bytes (row 31, A's half). No cover twin was
 taken.
 
-## 183. Reserved for the next item on the rules track
+## 183. Chapter one hundred and thirty-two — land-based air: a blow on an Airbase scrambles its Fighter, its homes razed under its planes, and a Helicopter flown into its own Airbase; closed at 1400 (item 3990, run1548)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** named three arms from the territory adjudications: the third's row 35 (`Object::attempt_launch@
+00643a10`) and the fourth's rows 48 (`Unit::check_fuel@005e9be0`'s re-home and death) and 46 (`Unit::do_garrison@
+005e6b80`'s helicopter arm). No pinned capture holds any of them. Each adjudication read its arm as unreached: no
+staged base held a plane when struck, no home was razed under a returning plane, and no lockstep game entered
+`do_garrison` at all. So all three were staged on one chapter, in chapter seventeen's lobby (§25, run223), with the
+new lines from 780.
+
+```text
+attempt_launch(base, x, y):                                  # Object::attempt_launch@00643a10
+    if launch_frames < FRAMES_BETWEEN_LAUNCHES or inside_down < 0 or !can_carry(AIR)
+       or launching non-empty or !count_inside(COUNT_TYPE, BIPLANE 0x11f): return
+    for p in chain(inside_down):
+        if p.order and p.mana_burn == 0: return
+        if p.is(BIPLANE) and p.mana_burn == 0: pick = p             # the last one wins
+    pick?.add_air_patrol_order(x, y, base, owner, action 1)      # the seventh argument unused
+
+check_fuel, a returning plane:                               # Unit::check_fuel@005e9be0:60–136
+    home alive (+0x4c) and can_carry(plane): fly home
+    else the owner's buildings in object order, alive and can_carry, nearest by vector_dist (a tie keeps the
+         first) -> the order's oxx/whose; then the owner's units (a carrier)
+    none: fixed wing -> vslot +0x158 = Unit::die(2, -1, 0), return 1;  a helicopter aims at its own point
+
+do_garrison, type +0x2b4 & 0x20 and target is(AIRBASE 0x1bf):  # Unit::do_garrison@005e6b80:63–83
+    can_carry -> kill_current_order; add_strafe_order(none, base, mandatory 1, QUEUE_FIRST, action 1); +0x3c = 1
+    else      -> QUEUE_FIRST move to the base, red feedback
+```
+
+`Object::do_damage@0064a480:194`–`:198` calls `attempt_launch` on the struck object for every blow whose attacker
+is alive (`+0x8 & 1`) and not a missile (`type +0x1e4 & 0x8000000`), after the struck unit's opportunity and before
+the scale, with the attacker's point.
+
+**Built** (commit `0511c975a`, and `ffc9d3bd0` for the garrison stub):
+- `Sim::attempt_launch` (`air.rs`), called from `do_damage_round`. SEAM: a carrier struck, since this crate keeps no
+  unit hangar.
+- `check_fuel`'s re-home and death (`air.rs`: `plane_air_physics`, `rehome`, `home_carries`, `out_of_fuel`). A
+  returning plane whose home is dead or will not `can_carry` it takes the owner's nearest carrying building. With
+  none, a fixed-wing plane dies (`die_with(u, 2)`) and a helicopter aims at its own point. SEAM: the carrier loop.
+- `do_garrison`'s helicopter arm (`orders.rs`, `do_garrison_order`), on `is(AIRBASE 0x1bf)` read off the listing at
+  `5e6bf4`. A base that will not take the helicopter gives a `QUEUE_FIRST` move; that rests on a reading alone.
+- The helicopter's flight home (`plane_air_physics`, `pitch_plane`):
+  - The cruise holds at 0x640 with no draw. There is no approach: the aim is the base's point less 0xc0, at the base's
+    height. The landing also needs `z − aim_z < 0x96`. There is no keep-heading, and the bank is
+    `bank_plane_as(heli)`.
+  - Inside 0x30 of its aim (0xc0 on a flight with a point) it hovers, and kills the order when another stands behind it.
+  - The pitch takes no halving and no −20. It steps 25 a frame by its sign, snaps inside 25, and is stored as 0.
+- `SimGarrison::data_is_1bf` (`garrison_view.rs`) was a stub answering false. Its SEAM read the zero-limit arm's second
+  test as a refusal, so `Group::action_garrison` refused a helicopter at an Airbase, whose garrison column is 0. It
+  now answers the type's Airbase identity. The walk found the stub: `@garrison` ran and the Helicopter took no order.
+- Tests: `launch_tests::a_blow_on_a_base_sends_its_last_full_biplane_at_the_striker`,
+  `launch_tests::a_plane_whose_home_is_razed_flies_to_the_nearest_base_or_dies`,
+  `helicopter_garrison_tests::a_helicopter_ordered_into_an_airbase_takes_a_strafe_home_to_it` and
+  `helicopter_garrison_tests::an_airbase_s_zero_limit_admits_a_helicopter_s_garrison`.
+
+**The staging** (`tools/gamelog/golden/chapter132.cmd`, chapter seventeen's lines and five more, map 14). It was walked
+first on run223's start (`RON_STAGE=ch17:chapter132:1400`):
+- a Hoplite squad of who=1's beside the Airbase `0/2007` (780), which strikes it by its own opportunity while it holds
+  `0/6` refuelled with no order;
+- a second Airbase `0/2008`, 28 tiles south (786);
+- `die 2007,0` (900), with all three planes out, and `die 2008,0` (1230), before any of them lands;
+- an Airbase that takes the number `0/2007` again (1250), a Helicopter `0/9` (1254), and `@garrison 0 2007 0 9` (1260).
+
+The first launch was refused before the game: `GROUPS` beside `DEATHS` at `end` (parked 1885). `DEATHS` moved to
+`start`.
+
+**Killers, before the take** (a cheat on trace frame F shows on block F+2): (1) no `AIRPATROLORDER` on `0/6` while it
+is inside `0/2007`, between the first blow and its launch; (2) `0/6` leaves with no order, or with anything but the
+patrol at a hoplite's point; (3) any plane's `AIRORDER oxx` other than 2008 on the block after its tank reads empty;
+(4) a plane alive past 1234, or one dead before 1232; (5) `0/9` with a `GARRISONORDER` on 1262, or no `STRAFEORDER`
+with `returning 1`; (6) `0/9` not inside `0/2007` by 1399. **None fired.**
+- `0/6` is inside with no order up to 795. It is on the map on 796, with one `AIRPATROLORDER` at (12408, 14712), which
+  is the hoplite `1/6`'s point, with `oxx 2007` and `returning 0`.
+- `0/6` reads `oxx 2008 returning 1` by 1196, `0/7` by 1213 and `0/8` by 1216. All three are gone on 1231.
+- On 1262 `0/9` holds a `STRAFEORDER` with `xx/yy −1` and `mandatory 1`. On 1316 it is at (7569, 19308), the walk's
+  own point, and it reads `inside_up 2007` from 1318 to the end.
+
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO` = **1400 of 1,400**, closed whole on its first run.
+The walk's frame labels run a frame ahead of the dump's (797 against 798, 1317 against 1318), and the word does not
+part on them. The widening over 605..1400 (`ammo` on) parts 47 rows in `WANT_CH132`, every one from a standing family:
+- the eleven `form` rows on 605;
+- the Bombers' `accuracy`: 0 here, against the slot's recycled value there (`docs/ORDERS.md` §35.3's SEAM, run265's
+  family);
+- the Fighter's crash round on 1231 (`rolling −3`, `accuracy` 288), the same seam on a crash arm;
+- the rounds in flight at a target's death, which keep the target there and lose it here (run235's family): the
+  Barracks on 1080, and the Hoplites `1/6` on 904 and `1/7` on 1094;
+- the `death:extra` instrument on the three Hoplites (parked 1830).
+
+Nothing parts on the scramble, the re-homes, the deaths or the Helicopter's flight home. `GROUND_INEXACT` holds both
+tests at 40: chapter seventeen's Bombers' bombs read corners the zero stands over before their homes are razed. The
+coverage driver takes 605..1400, 795 blocks.
+
+**Mutations** (`tools/mutate.py --batch`, ten breaks, all held):
+- the `attempt_launch` call dropped: the word falls 1400 → 802 and the widening parts 515 rows; no unit test
+  calls through `do_damage`, so the chapter alone holds the call;
+- `rehome` answering none: the word falls → 1195 (289 rows), and the re-home test fails;
+- the walk's return on a full occupant with an order dropped: the word holds, and the scramble test fails;
+- the launch-frames gate dropped: the word holds, and the scramble test fails;
+- `out_of_fuel`'s death dropped: the word falls → 1230 (244 rows), and the re-home test fails;
+- the helicopter arm dropped: the word falls → 1265 (252 rows), and the strafe-home test fails;
+- `data_is_1bf` back to false: the word falls → 1265 (252 rows), and the zero-limit test fails;
+- the helicopter's flight home dropped (`if heli`): the word falls → 1265 (251 rows), with no unit test;
+- the nearest base turned into the first: the word holds (run1548 razes the near base first, so only one base is
+  ever left to find), and the re-home test fails;
+- the helicopter's pitch stored rather than 0: the word falls → 1293 (196 rows), with no unit test.
+
+**For item 3991**: the re-homed planes are counted by `base_can_carry`'s room test, which counts the garrison alone.
+`num_aircraft_here` counts the planes homed there and flying too, which matters once a base fills.
+
+**What is not established**:
+- the carrier arms: `attempt_launch` on a struck carrier, and `check_fuel`'s second loop over the owner's units;
+- a helicopter's out-of-fuel aim at its own point;
+- `do_garrison`'s move when the Airbase will not take the helicopter;
+- a helicopter's flight with a point (`0xc0` hover), which no adder here gives one;
+- `do_garrison`'s three other deltas the fourth adjudication confirmed (the `nocoll` retry, the dock ring, the redirect
+  on a zero limit), which stay unbuilt.
+
+No cover twin was taken.
 
 ## 184. Reserved for the next item on the rules track
 

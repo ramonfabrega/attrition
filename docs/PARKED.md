@@ -15527,13 +15527,17 @@ words and edits nothing here; a refill lands when two remain.
   `fight::tests::a_hero_or_supply_unit_flees_on_the_attacker_s_ring` alone. A staging is a Supply Wagon struck
   by an archer, and a General in an Ambush struck by a Hoplite. It names no score.
 
-## Parked by the next landing, slot DD — reserved
+## Parked by item 3990, 2026-11-08 — land-based air, the first three arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3990a. The carrier arms of the scramble and the re-home** (`docs/GOLDEN.md` §183).
+  `Object::attempt_launch@00643a10` on a struck carrier, and `Unit::check_fuel@005e9be0`'s second loop over the
+  owner's units, are SEAMs: this crate keeps no unit hangar. A staging is a Carrier holding a Fighter, struck, with
+  its Airbase razed while a plane is out. It names no score.
+- **3990b. The helicopter's arms a walk does not hold** (`docs/GOLDEN.md` §183). Three rest on a reading alone:
+  `do_garrison@005e6b80`'s `QUEUE_FIRST` move when the Airbase will not take the helicopter; `check_fuel`'s
+  helicopter aiming at its own point when no base carries it; and the `0xc0` hover of a helicopter's flight with a
+  point. A staging is an Airbase filled to `num_aircraft_limit` before the `@garrison`, and an Airbase razed under a
+  Helicopter on a strafe home. It names no score.
 
 ## Parked by item 3992, 2026-11-08 — the building defence remainder
 

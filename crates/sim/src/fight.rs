@@ -2978,6 +2978,15 @@ impl Sim {
                 u.combat.damage_who = i32::try_from(owner).unwrap_or(-1);
             }
         }
+        // `do_damage@0064a480:194`–`:198`: a live, non-missile attacker's
+        // blow scrambles a base's fighter (item 3990).
+        if let Obj::Building(b) = target
+            && !ap.has(combat::mask::MISSILE)
+            && self.obj_alive(attacker)
+        {
+            let at = self.pos_of(attacker);
+            self.attempt_launch(b, at);
+        }
         // Step 5: scale.
         let dealt = combat::scale(
             dmg,

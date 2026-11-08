@@ -7047,6 +7047,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE: i64 = 1000;
 /// window: run1547.
 pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE: (i64, i64) = (604, 1001);
 
+/// **Chapter one hundred and thirty-two** (item 3990, `docs/GOLDEN.md`
+/// §183, run1548): land-based air. The hoplites' blow on the Airbase
+/// `0/2007` scrambles the Fighter `0/6` (`Object::attempt_launch@00643a10`),
+/// its home and then its second home razed while it and the two Bombers are
+/// out (`Unit::check_fuel@005e9be0`'s re-home and its death), and a
+/// Helicopter ordered into its own Airbase (`Unit::do_garrison@005e6b80`'s
+/// helicopter arm).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO: i64 = 1400;
+
+/// `chapter_one_hundred_and_thirty_two_s_window_is_widened_whole`'s
+/// window: run1548.
+pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO: (i64, i64) = (604, 1401);
 /// **Chapter one hundred and thirty-three** (item 3992, `docs/GOLDEN.md`
 /// §185, run1550): who=1's Dock `1/2006` on who=0's water with one unowned
 /// shore tile in its ring does not bleed (`check_enemy_adjacent@00638d70`
@@ -8064,6 +8076,17 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the Barracks' point from 863 read four corners more.
     ("chapter_seventeen_airground_holds_to_the_golden_word", 27),
     ("chapter_seventeen_airground_s_window_is_widened_whole", 27),
+    // Item 3990: chapter one hundred and thirty-two, run1548 walked to
+    // 1400 — chapter seventeen's Bombers on the Barracks before their
+    // homes are razed.
+    (
+        "chapter_one_hundred_and_thirty_two_holds_to_the_golden_word",
+        40,
+    ),
+    (
+        "chapter_one_hundred_and_thirty_two_s_window_is_widened_whole",
+        40,
+    ),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
     // Chapter twenty-two is chapter seventeen's game with the Fighter

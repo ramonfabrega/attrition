@@ -36211,3 +36211,28 @@ Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch13
 - run1550 (`ch133`, `cover=0`, pool lane 1): 34.0 s launch to exit, no relaunch. The word's. No cover twin was taken.
 - The docks: `1/2006` reads `damage` 0 to the end; `1/2007` reads 8 on block 618, then +8 every 32 frames, 96 on 970.
 - The Fort: `1/2008` names `attack_ox 6 attack_whom 0` on block 649 (frame 648).
+## run1548 — chapter one hundred and thirty-two: land-based air — a blow on an Airbase scrambles its Fighter, its homes razed under its planes, and a Helicopter flown into its own Airbase (2026-11-08, item 3990, `att-3990`)
+
+`docs/GOLDEN.md` §183. **What the disk could not answer**: no pinned capture holds a plane inside a struck base.
+GOLDEN chapter 6b's Airbases stayed empty, and run1188 enters `Object::attempt_launch@00643a10` only at its gate. No
+capture razes a home under a returning plane (`Unit::check_fuel@005e9be0`'s re-home and death), and no lockstep game
+entered `Unit::do_garrison@005e6b80` at all.
+
+Recipe `tools/gamelog/golden/chapter132.cmd`, chapter seventeen's lobby and lines (run223): a Hoplite squad of
+who=1's beside the Airbase `0/2007` (780); a second Airbase `0/2008` (786); `die 2007,0` (900) and `die 2008,0`
+(1230); an Airbase `0/2007` again (1250), a Helicopter `0/9` (1254) and `@garrison 0 2007 0 9` (1260). The staging was
+walked first on run223's start (`RON_STAGE=ch17:chapter132:1400`).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch132 --map 14 --end-frame 1400
+--log-window 605 1400 --timeout 3600` with the cmd header's three detail sets. The first launch was refused before
+the game, for `GROUPS` beside `DEATHS` at `end` (parked 1885); `DEATHS` moved to `start`. `success`, lifecycle
+verified, `map_verified`, map style 14, 1401 frames, `last_frame` 1400, seed 12345. PLAYER records: who 0 (flags 7,
+tribe 4) and who 1 (flags 1, tribe 11). `~/ron-golden/run1548` links to `ch132`.
+- run1548 (`ch132`, `cover=0`, pool lane 1): 10:45:40–10:46:27, 47.1 s launch to exit, no relaunch. The word's.
+  No cover twin was taken.
+- The scramble: `0/6` is inside with no order up to 795, and on the map on 796 with one `AIRPATROLORDER` at (12408,
+  14712), the hoplite `1/6`'s point, with `oxx 2007` and `returning 0`.
+- The re-home: `0/6` reads `oxx 2008 returning 1` by 1196, `0/7` by 1213 and `0/8` by 1216. The death: all three are
+  gone on 1231.
+- The Helicopter: on 1262 `0/9` holds a `STRAFEORDER` with `xx/yy −1` and `mandatory 1`. It is at (7569, 19308) on
+  1316, and it reads `inside_up 2007` from 1318 to the end.

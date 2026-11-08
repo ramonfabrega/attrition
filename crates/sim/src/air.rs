@@ -853,16 +853,22 @@ impl Sim {
     /// the keep-heading radius is the type's `min_range · 0xc0`, and the
     /// bank and the pitch take their non-returning arms.
     ///
-    /// SEAMs: a helicopter (`unit_flags & 0x20`), which hovers rather
-    /// than banks and is not flown here; a flying target's lead
-    /// (`local_20`, the doubled bank); the tank (`check_fuel`'s empty-tank
-    /// arm, §32 piece 4); a home that is not a live building, whose
-    /// nearest-base search is not built; and a carrier as the home.
+    /// A helicopter (`unit_flags & 0x20`) is flown on its flight home
+    /// alone (item 3990, `docs/GOLDEN.md` §183), and a home that is dead
+    /// or will not carry the plane is re-homed or the plane dies
+    /// (`rehome`, `out_of_fuel`). SEAMs: a helicopter's flight with a
+    /// point; a flying target's lead (`local_20`, the doubled bank); and a
+    /// carrier as the home.
     pub(crate) fn plane_air_physics(&mut self, u: usize, goal: Option<Pos>, frame: i64) -> Flew {
         let Some(mut air) = self.current_air(u) else {
             return Flew::Done;
         };
-        if self.is_helicopter(u) {
+        // **A helicopter flies home alone** (item 3990): `do_garrison`'s
+        // helicopter arm gives it a strafe with no target, which is
+        // `returning` from its birth. SEAM: a helicopter's flight with a
+        // point, which no adder here gives one.
+        let heli = self.is_helicopter(u);
+        if heli && !air.returning {
             return Flew::Done;
         }
         // **`check_fuel`'s first arm, the empty tank** (`docs/ORDERS.md`
@@ -882,15 +888,37 @@ impl Sim {
             air.returning = true;
         }
         let aim = if air.returning {
-            let Some(home) = air.home.filter(|&b| self.buildings[b].alive) else {
-                return Flew::Done;
+            let home = match air.home.filter(|&b| self.home_carries(b, u)) {
+                Some(b) => Some(b),
+                None => self.rehome(u),
             };
-            Some((home, self.home_approach(u, home)))
+            match home {
+                // `check_fuel:192`–`:236`: no approach for a helicopter; the
+                // base's point less `0xc0`, at the base's height.
+                Some(b) if heli => {
+                    let p = self.buildings[b].pos;
+                    Some(Approach {
+                        at: Pos::new(p.x - 0xc0, p.y),
+                        z: self.world.tile_z(p.tile()).max(0),
+                    })
+                }
+                Some(b) => Some(self.home_approach(u, b)),
+                // `check_fuel:120`–`:136`: no base. A helicopter aims at its
+                // own point, at height 0; a plane dies.
+                None if heli => Some(Approach {
+                    at: self.units[u].pos,
+                    z: 0,
+                }),
+                None => {
+                    self.out_of_fuel(u);
+                    return Flew::Done;
+                }
+            }
         } else {
             None
         };
         let (point, aim_z) = match (aim, goal) {
-            (Some((_, a)), _) => (a.at, a.z),
+            (Some(a), _) => (a.at, a.z),
             (None, Some(g)) => (g, 0),
             (None, None) => return Flew::Done,
         };
@@ -898,7 +926,9 @@ impl Sim {
         // signed-modulo fix-up, which a non-negative sum never takes. A
         // Bomber holds `0x640` flat.
         if (i64::from(self.units[u].index) + frame) & 7 == 0 {
-            let alt = if self.is_bomber(u) {
+            // `+0x5e`: a Bomber, and a helicopter, hold `0x640` and draw
+            // nothing.
+            let alt = if self.is_bomber(u) || heli {
                 CRUISING_ALT
             } else {
                 self.mark(SITE_AIR_ALT);
@@ -922,7 +952,13 @@ impl Sim {
         // **The landing test** (`+0x1ea`), a flight home's alone:
         // Manhattan inside a step and a half, the point not clamped. The
         // helicopter's altitude half is not reached.
-        if air.returning && dx.abs() + dy.abs() < speed * 3 / 2 && !clamped {
+        // A helicopter's half (`+0x1ef`): its figure under `0x96` above
+        // the height it aims at.
+        if air.returning
+            && dx.abs() + dy.abs() < speed * 3 / 2
+            && !clamped
+            && (!heli || self.units[u].airframe.z - aim_z < 0x96)
+        {
             self.land_plane(u);
             return Flew::Done;
         }
@@ -941,17 +977,37 @@ impl Sim {
         } else {
             self.profile(crate::combat::Obj::Unit(u)).min_range * 0xc0
         };
-        if owed(heading, des) > HALF_QUARTER && vector_dist(dx, dy) < radius + 0x300 {
+        if !heli && owed(heading, des) > HALF_QUARTER && vector_dist(dx, dy) < radius + 0x300 {
             des = heading;
         }
         let turn = air.sharp_turn;
         if turn != 0 {
             des = Angle(heading.0.wrapping_add(turn.wrapping_shl(30)));
         }
-        self.bank_plane(u, des, &mut speed, air.returning);
+        if heli {
+            self.bank_plane_as(u, des, &mut speed, air.returning, false, true);
+        } else {
+            self.bank_plane(u, des, &mut speed, air.returning);
+        }
         self.pitch_plane(u, dx, dy, aim_z, &mut speed, air.returning);
         let heading = self.units[u].movement.heading;
         self.units[u].movement.facing = heading;
+        // **A helicopter hovers at its point** (`+0x56a`..`+0x5a0`): inside
+        // `0x30` of a flight home (`0xc0` of a point) it takes no step; an
+        // order behind this one is reached by killing it.
+        if heli {
+            let reach = if air.returning { 0x30 } else { 0xc0 };
+            if vector_dist(dx, dy) < reach {
+                if self.units[u].orders.len() > 1 {
+                    self.kill_current_order(u);
+                    return Flew::Done;
+                }
+                if self.units[u].combat.recharging == 0 {
+                    self.set_anim(u, crate::anim::WALK, false, true);
+                }
+                return Flew::On;
+            }
+        }
         let nx = at.x + sin_component(heading, speed);
         let ny = at.y - cos_component(heading, speed);
         if nx >= 0 && ny >= 0 && nx < xs && ny < ys {
@@ -1430,6 +1486,57 @@ impl Sim {
             }
         }
         self.computer_sortie(b);
+    }
+
+    /// **`Object::attempt_launch(x, y)@00643a10`** (item 3990,
+    /// `docs/GOLDEN.md` §183): a blow on a base scrambles its fighter.
+    /// `Object::do_damage@0064a480:194`–`:198` calls it on the struck
+    /// object for every blow whose attacker is not a missile (`type
+    /// +0x1e4 & 0x8000000`) and is alive (`+0x8 & 1`), after the struck
+    /// unit's opportunity and before the scale, with the attacker's point.
+    ///
+    /// ```text
+    /// launch_frames >= FRAMES_BETWEEN_LAUNCHES, inside_down >= 0,
+    /// can_carry(AIR), launching empty, count_inside(COUNT_TYPE, BIPLANE):
+    ///   walk the chain from inside_down:
+    ///     an occupant with an order and a full tank (mana_burn 0): return
+    ///     is(BIPLANE) and a full tank: the candidate (the last one wins)
+    ///   the candidate: add_air_patrol_order(x, y, this, owner, action 1)
+    /// ```
+    ///
+    /// The order is a patrol at the attacker with the action bit, so the
+    /// base's next `do_launch` puts it out. SEAM: a carrier struck (a unit
+    /// whose `inside_down` holds planes); this crate keeps no unit hangar.
+    /// The chain's order is the garrison list's, as in [`Sim::do_launch`].
+    pub(crate) fn attempt_launch(&mut self, b: usize, at: Pos) {
+        let bd = &self.buildings[b];
+        if bd.launch_frames < FRAMES_BETWEEN_LAUNCHES
+            || bd.garrison.is_empty()
+            || !bd.launching.is_empty()
+            || !bd.ty.is_some_and(|t| self.is_hangar(t))
+        {
+            return;
+        }
+        let chain = bd.garrison.clone();
+        if !chain
+            .iter()
+            .any(|&u| self.air_line_is(u, crate::airbase::BIPLANE))
+        {
+            return;
+        }
+        let mut pick = None;
+        for u in chain {
+            let full = self.units[u].mana_burn == 0;
+            if full && !self.units[u].orders.is_empty() {
+                return;
+            }
+            if full && self.air_line_is(u, crate::airbase::BIPLANE) {
+                pick = Some(u);
+            }
+        }
+        if let Some(u) = pick {
+            self.add_air_patrol_order(u, at, Some(b), true);
+        }
     }
 
     /// **The computer's sortie** (`Object::do_launch@0064f3b0`, `64f81c`..
@@ -1960,6 +2067,51 @@ impl Sim {
         self.work(u, frame);
     }
 
+    /// `check_fuel@005e9be0:150`–`:156`'s test of the order's home: the
+    /// object answers vslot `+0x4c` (alive) and `can_carry`s the plane.
+    fn home_carries(&self, b: usize, u: usize) -> bool {
+        self.buildings[b].alive && self.base_can_carry(b, u)
+    }
+
+    /// **`Unit::check_fuel@005e9be0`'s re-home** (`:60`–`:136`, item 3990,
+    /// `docs/GOLDEN.md` §183): a returning plane whose home is gone or will
+    /// not take it searches its owner's buildings in object order (from
+    /// 2000) for one alive that `can_carry`s it, the nearest by
+    /// `vector_dist` from the plane (a tie keeps the first), and writes it
+    /// into the order's `oxx`/`whose`. SEAM: the second loop, over the
+    /// owner's units (a carrier home), which this crate keeps no hangar for.
+    fn rehome(&mut self, u: usize) -> Option<usize> {
+        let who = self.units[u].owner;
+        let at = self.units[u].pos;
+        let mut bases: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| self.buildings[b].owner == who && self.home_carries(b, u))
+            .collect();
+        bases.sort_by_key(|&b| self.buildings[b].index);
+        let mut best: Option<(i32, usize)> = None;
+        for b in bases {
+            let p = self.buildings[b].pos;
+            let d = vector_dist(p.x - at.x, p.y - at.y);
+            if best.is_none_or(|(bd, _)| d < bd) {
+                best = Some((d, b));
+            }
+        }
+        let (_, b) = best?;
+        match self.units[u].orders.front_mut().map(|o| &mut o.body) {
+            Some(crate::orders::Body::Strafe(sf)) => sf.home = Some(b),
+            Some(crate::orders::Body::AirPatrol(p)) => p.home = Some(b),
+            Some(crate::orders::Body::AirAttackGround(g)) => g.home = Some(b),
+            _ => {}
+        }
+        Some(b)
+    }
+
+    /// `check_fuel@005e9be0:120`–`:131`: no base takes a fixed-wing plane
+    /// whose tank is empty, and it dies — vslot `+0x158`, `Unit::die(2, −1,
+    /// 0)`. The message and the sound are the console's alone.
+    fn out_of_fuel(&mut self, u: usize) {
+        self.die_with(u, 2);
+    }
+
     fn land_plane(&mut self, u: usize) {
         crate::land_plane_view::land_plane_steps(&mut SimLand { sim: self, u });
     }
@@ -2263,6 +2415,11 @@ impl Sim {
         // cut. The returning arm's halving inside `0x600` is not behind
         // the test and is taken.
         let animal = self.units[u].is_gaia();
+        // **A helicopter** (`local_20`, `type +0x2b4 & 0x20`; item 3990):
+        // no halving inside `0x600`, no `−20` toward the ground, a step of
+        // 25 a frame by the pitch's sign that lands on the altitude wanted
+        // inside 25, and its pitch stored 0.
+        let heli = self.is_helicopter(u);
         if animal
             && self.units[u].airframe.pitch.is_zero()
             && self.units[u].spell_time >= 0
@@ -2284,7 +2441,7 @@ impl Sim {
         let (want, dist) = if returning {
             let dist = vector_dist(dx, dy);
             let want = (ahead + 100).max(aim_z + (dist / *speed) * 25);
-            if dist < 0x600 {
+            if dist < 0x600 && !heli {
                 *speed /= 2;
             }
             (want, dist)
@@ -2299,7 +2456,7 @@ impl Sim {
         let ground = self.world.tile_z(at.tile());
         let target = want.max(ground + if returning { 50 } else { 200 });
         let mut pitch = self.units[u].airframe.pitch;
-        let extra = if returning && target < ground + 500 {
+        let extra = if returning && !heli && target < ground + 500 {
             F20_NEG
         } else {
             Single::ZERO
@@ -2332,7 +2489,16 @@ impl Sim {
             pitch = extra.neg();
         }
         let sum = extra.addss(pitch);
-        if !sum.eq_value(Single::ZERO) {
+        if heli && !sum.eq_value(Single::ZERO) {
+            let step = if sum.gt(Single::ZERO) { 25 } else { -25 };
+            let af = &mut self.units[u].airframe;
+            af.last_z = af.z;
+            af.z = if (af.z - target).abs() < 25 {
+                target
+            } else {
+                af.z + step
+            };
+        } else if !sum.eq_value(Single::ZERO) {
             let step = sum.mulss(F25).divss(F20).to_i32();
             let af = &mut self.units[u].airframe;
             af.last_z = af.z;
@@ -2345,7 +2511,7 @@ impl Sim {
         }
         let af = &mut self.units[u].airframe;
         af.last_pitch = af.pitch;
-        af.pitch = pitch;
+        af.pitch = if heli { Single::ZERO } else { pitch };
     }
 }
 
@@ -3808,6 +3974,111 @@ mod launch_tests {
             panic!("a strafe")
         };
         assert!(sf.returning);
+    }
+
+    /// A Fighter inside `base` on the Biplane line (`is(BIPLANE)`), tank
+    /// full.
+    fn biplane_inside(s: &mut Sim, base: usize) -> usize {
+        let u = fighter_inside(s, base, 400);
+        let ty = s.units[u].ty.unwrap();
+        s.unit_types[ty].tree = Some(crate::airbase::BIPLANE);
+        s.units[u].mana_burn = 0;
+        u
+    }
+
+    /// **A blow on a base scrambles its last full Biplane** (item 3990,
+    /// `Object::attempt_launch@00643a10`; run1548's 795–796: `0/6` takes
+    /// one `AIRPATROLORDER` at the hoplite's point). Under
+    /// `FRAMES_BETWEEN_LAUNCHES` nothing; a tank not full is passed over;
+    /// an occupant with an order and a full tank ends the walk. Made to
+    /// fail with the launch-frames gate dropped (the first assertion), with
+    /// the first candidate kept (the second) and with the walk's return
+    /// dropped (the last).
+    #[test]
+    fn a_blow_on_a_base_sends_its_last_full_biplane_at_the_striker() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let a = biplane_inside(&mut s, base);
+        let b = biplane_inside(&mut s, base);
+        let c = biplane_inside(&mut s, base);
+        s.units[c].mana_burn = 1;
+        let at = Pos::new(12408, 14712);
+        s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES - 1;
+        s.attempt_launch(base, at);
+        assert!(
+            [a, b, c].iter().all(|&u| s.units[u].orders.is_empty()),
+            "too soon after a launch"
+        );
+        s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
+        s.attempt_launch(base, at);
+        assert!(s.units[a].orders.is_empty(), "not the first full one");
+        assert!(s.units[c].orders.is_empty(), "nor the one refuelling");
+        let o = s.units[b].orders.front().copied().expect("a patrol");
+        assert_eq!(o.flags & flag::ACTION, flag::ACTION, "the action bit");
+        let Body::AirPatrol(p) = o.body else {
+            panic!("an air patrol")
+        };
+        assert_eq!((p.points[0], p.home), (at, Some(base)));
+        assert_eq!(s.units[b].inside, Some(base), "out on the next launch");
+        s.units[a].mana_burn = 0;
+        s.units[c].mana_burn = 0;
+        s.units[b].orders.clear();
+        s.add_air_patrol_order(a, at, Some(base), true);
+        s.attempt_launch(base, at);
+        assert!(
+            s.units[b].orders.is_empty() && s.units[c].orders.is_empty(),
+            "a full occupant with an order ends the walk"
+        );
+    }
+
+    /// A Fighter out on a patrol from `base`, its tank empty: the flight
+    /// home.
+    fn returning_from(s: &mut Sim, base: usize, at: Pos) -> usize {
+        let u = fighter_inside(s, base, 400);
+        s.come_out(u);
+        s.units[u].pos = at;
+        s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+        if let Some(Body::AirPatrol(p)) = s.units[u].orders.front_mut().map(|o| &mut o.body) {
+            p.returning = true;
+        }
+        s.units[u].mana_burn = 400;
+        u
+    }
+
+    fn patrol_home(s: &Sim, u: usize) -> Option<usize> {
+        match s.units[u].orders.front().map(|o| o.body) {
+            Some(Body::AirPatrol(p)) => p.home,
+            _ => None,
+        }
+    }
+
+    /// **A plane whose home is razed re-homes to the nearest base, and
+    /// with none dies** (item 3990, `Unit::check_fuel@005e9be0:60`–`:136`;
+    /// run1548: the three planes' `oxx` 2008 by 1216, all gone on 1231).
+    /// Of two live Airbases the nearer is written into the order; a base
+    /// of the other side is never one. Made to fail with `rehome` answering
+    /// none (the first assertion), with the first base kept over the
+    /// nearer (the same), and with `out_of_fuel` dropped (the last).
+    #[test]
+    fn a_plane_whose_home_is_razed_flies_to_the_nearest_base_or_dies() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let airbase = s.buildings[base].ty;
+        let far = s.add_building(0, Pos::new(11616, 30000), 0);
+        s.buildings[far].ty = airbase;
+        let near = s.add_building(0, Pos::new(11616, 21000), 0);
+        s.buildings[near].ty = airbase;
+        let theirs = s.add_building(1, Pos::new(11616, 18000), 0);
+        s.buildings[theirs].ty = airbase;
+        let u = returning_from(&mut s, base, Pos::new(11616, 17000));
+        s.buildings[base].alive = false;
+        s.plane_air_physics(u, None, 1201);
+        assert_eq!(patrol_home(&s, u), Some(near), "the nearest of its own");
+        assert!(s.obj_alive(Obj::Unit(u)), "flying on");
+        s.buildings[near].alive = false;
+        s.buildings[far].alive = false;
+        s.plane_air_physics(u, None, 1202);
+        assert!(!s.obj_alive(Obj::Unit(u)), "no base: it dies");
     }
 }
 
