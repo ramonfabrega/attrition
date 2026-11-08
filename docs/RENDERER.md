@@ -2,7 +2,8 @@
 
 *2026-11-06. A proposal, not a decision: Ramon decides what phase 4's first
 items are, and this document is what he decides from. Every choice below is
-marked **Choice**, with the alternative beside it. Nothing here is built.
+marked **Choice**, with the alternative beside it. Nothing here was built
+when it was written; item 4018 built the camera (§3.4).
 Written by a worker on Opus 5.5 from the tree at `4314ac355`.*
 
 **Why now.** Entry 29's three counters stand (`docs/DECISIONS.md` entry 29;
@@ -358,6 +359,145 @@ transforms and filtering. A pixel difference against that measures the
 translation stack as much as the port. Rung 4 is for the art phase's eyes and
 for the silhouette metric in §5's third candidate. It is not a gate.
 
+### 3.4 The camera, read and in register (item 4018)
+
+*2026-11-08, Opus 5.5. Built in `crates/render/src/camera.rs`; checked by
+`crates/render/tests/camera_sweep.rs` and `camera_packet.rs`.*
+
+**The score.** Camera states in register: **240 of 240** on the sweep,
+9,600 of 9,600 points within one pixel and with the same off-screen flag,
+and every `to_screen_matrix` element bit-identical to the original's. On
+run1484's packet: **394 of 394** points (197 dumped positions, each at
+two screen sizes), the matrix bit-identical. Both are pinned
+(`IN_REGISTER`). The sweep was made to fail once on purpose: with the
+negative-angle reduction read the obvious way it read 160 of 240.
+
+**How it was established.** Every claim below was read off the decompile
+export and the listing, and then checked by running the original's own
+functions on the same inputs. Nothing was transcribed (`CLAUDE.md`).
+
+- **The view.** `Camera::update_transforms@008430a0` builds the eye from
+  two transforms.
+  - The local transform is a translation of `(0, 0, −zoom_distance)`. For
+    the game's own camera (`MiscAccess::camera`) the distance is first
+    multiplied by the global `camera_scale`.
+  - `axis_transform` is reset, then rotated by `rotate_x((int)(tilt_angle
+    + 180))` and `rotate_z((int)dir_angle)`. Both angles are **truncated
+    to whole degrees** (`cvttss2si`). It is then moved to `loc + adjust`,
+    at height `loc_z_adjust`.
+  - `BaseCamera::update_transforms@00537cc0` composes the two, `axis ∗
+    local`. `Transform<float>::operator*@004217b0` applies the right-hand
+    operand first. It writes `render_matrix` as the rigid inverse of the
+    result: the rotation transposed, the translation `−t·Rᵀ`, inline.
+  - The camera's parent is a `HierObj` whose world transform has type 0,
+    so it composes as the identity. On the packet its bytes are stale.
+- **The rotations.** `Quat<float>::set@00420c70` takes a whole-degree
+  angle. It sets `w = cos(a/2)` and the axis times `sin(a/2)`, both from
+  the half-degree tables (`fast_half_degree_to_cosine@00a29010` and its
+  sine twin). Each table entry is `cosf(i · ½ · DEG)` with `DEG` =
+  `0x3c8efa35`. A later rotation composes as `existing ⊗ new`.
+  `Matrix<float>::fill@00420df0` writes the standard matrix of `q`,
+  row-major, for row vectors.
+  - **The quirk**: a negative angle reduces to `359 − (−a mod 360)`, not
+    `360 − …`. So `−1°` turns as `−2°`, and `−360°` as `−1°`. The sweep's
+    negative `dir_angle` and `tilt + 180` states depend on it.
+- **The projection lives in the graphics DLL.** `graphsys` is not built by
+  the executable. `GraphSys::init_system@0054abf0` loads a DLL and calls
+  its export `get_graphsy_object_ptr`. The install's `d3dgl.dll` is that
+  DLL, and it ships its own `d3dgl.pdb` and `d3dgl.map`. Vtable slots
+  `0x198` and `0x19c` are `D3D11GLSys::set_projection` (DLL `0x10020700`)
+  and `set_projection_parallel` (`0x10020830`). Slot `0x194`
+  (`set_camera_transform`) only uploads the matrix.
+  - Both take the tangent of the half angle the same way: the half angle in
+    single precision (`angle · π/180 · ½`), the tangent in double
+    (`__libm_sse2_tan_precise`), converted back to single. Both write
+    `m0 = 1/t` and `m5 = 1/(t · view_ratio)`.
+  - Perspective sets `m10 = f/(f−n)`, `m11 = 1`, `m14 = −m10 · n` and
+    `m15 = 0`.
+  - Parallel sets `m10 = pd/(f−n)`, `m11 = 0`, `m14 = −(n · pd)/(f−n)` and
+    `m15 = pd`, where `pd` is `parallel_distance`.
+  - Either one leaves the identity unless `angle > 0` and `far > near`.
+- **The game's camera is the parallel one.** run1484's packet holds
+  `parallel = 1`, with `parallel_distance` equal to `zoom_distance / 2`
+  (10,429.4 against 20,858.8). Its `fixed_zooms` are the seven levels the
+  sweep draws from, and every `fixed_angles` entry is 60. So the zoom
+  scales the picture only through `parallel_distance`. The eye's distance
+  moves depth and nothing on screen.
+- **`to_screen_matrix` is `render · projection`.** `Matrix<float>::operator*@00420f30`
+  called as `projection.operator*(render)` returns `render · projection`,
+  each element summed left to right.
+- **The screen point.** `MiscAccess::world_to_console@00583840` is
+  `__cdecl (x, y, z, w, h)`, with the outputs through `ecx` and `edx`
+  (the listing, not the decompile, says so).
+  - Height enters as the third integer, directly. This settles §7.1's
+    question.
+  - The point goes through `to_screen`, in the order `m4·y + m0·x + m8·z +
+    m12`. It is divided by `w` unless `w` is 0 or 1.
+  - It is mapped as `(x′ + 1) · w · ½` and `(1 − y′) · h · ½`. Each result
+    is truncated, then stepped up when the dropped fraction is at least
+    ½, which a negative coordinate's fraction never is.
+  - A `w` or `h` below 1 takes `graphsys`'s `scaled_screen_xs` and
+    `(int)(scaled_screen_ys · natural_ratio)`.
+  - The return is 1 only in that case, and only when the point falls
+    outside [−1, 1].
+  - `world_to_screen@00583810` adds the console's short at `+0x12a` to y.
+- **Units.** The dump's `x_internal`, `y_internal` and `z_internal` are the
+  world integers `world_to_screen` takes. The camera's `loc_x` and `loc_y`
+  are in the same units.
+
+**The two checks.**
+
+- **The sweep** (`tools/render/camera_oracle.py`, seed 4018). It runs 240
+  synthesized states over every field `update_transforms` reads:
+  - the seven `fixed_zooms` and random zooms, and `camera_scale` off 1.0;
+  - tilts from −260 to 120 and directions from −720 to 720, the negative
+    ones included;
+  - adjusts, both projections, four screen sizes and console offsets.
+
+  Each state carries 40 integer points, heights up to 6,000. Half are
+  projected at an explicit size, half at `graphsys`'s. The oracle lays
+  out a `Camera` at the PDB's offsets and maps `d3dgl.dll` beside the
+  executable. It enters the original's `update_transforms`, then its
+  `world_to_screen`, under `tools/emu`'s harness, which it imports and
+  never edits.
+  - It answers four imports with Python's double libm: the CRT's `cos` and
+    `sin`, the DLL's tangent, and `memset`.
+  - It stubs three callees that write no matrix the projection reads:
+    `D3D11Context::set_projection`, slot `0x194`, and
+    `Camera::compute_clip_planes@00842950`.
+  - A perspective point with the original's own `w < 1` is not drawn as
+    an input, since it has no pixel. No state is dropped.
+- **The packet** (`tools/render/packet_points.py`). It maps run1484's
+  packet, logger frame 676, lazily, a page at a time. It calls the
+  original's `world_to_screen` on the game's own camera, `graphsys` and
+  console, for every `SUBOBJECT` on dump block 676. No packet was booked.
+  run1484's was already on disk, and its camera is the in-game one.
+
+**Diff-backed**: every bullet above. The sweep and the packet run the
+original's code on the inputs, so a reading error in any of them fails a
+pinned test.
+
+**What is not established.**
+
+- **The two imports' last bits.** The bottle resolves `cos`, `sin` and
+  `tan` to Wine's `ucrtbase`. The oracle and this crate both use the host's
+  libm. A one-ulp disagreement there could move a table entry. The packet
+  check, whose matrix the bottle built, is bit-identical. That is one
+  camera, not a proof.
+- **The camera's animation.** `Camera::adjust_tilt@00843970` interpolates
+  `tilt_angle` between `fixed_angles`, and `Camera::zoom_to_level` only
+  arms a zoom. The per-frame step that moves `zoom_distance` and
+  `parallel_distance` is not read. This crate takes the fields as state.
+  Every `fixed_angles` entry on the packet is 60, so the interpolation is
+  unexercised. Its decompile reads `(zoom − angle)` where `(zoom − zoom₀)`
+  would be expected. The listing settles which, when an item needs it.
+- **`Game::init_camera@00590bc0`**, the starting state, is not read. A
+  replay viewer will take its camera from the packet's values, or from a
+  user, until something books it.
+- **Culling.** `compute_clip_planes` was stubbed, not read.
+- **Points behind a perspective eye.** They are outside the sweep's domain.
+  The game's camera is parallel, where they do not arise.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it
@@ -561,6 +701,8 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
 - *Score:* camera states in register, K of the sweep, with every point within
   1 pixel.
 - *Needs from `sim`:* nothing.
+- *Built by item 4018* (§3.4): 240 of 240, and 394 of 394 points on
+  run1484's packet.
 
 **3. The draw list, and frames in register.**
 
@@ -623,9 +765,11 @@ Each line names what would settle it.
   when it draws. `GuyOut::draw` is the place to read. It does not affect the
   counter, which compares at frame boundaries. It does decide whether the
   client's motion looks like the original's.
-- **`world_to_screen`'s inputs beyond the camera.** It takes two `Coord`s and
+- ~~**`world_to_screen`'s inputs beyond the camera.** It takes two `Coord`s and
   two more integers. Whether height enters through those, or through a
-  lookup inside, is a reading item 2 owes.
+  lookup inside, is a reading item 2 owes.~~ Settled by item 4018 (§3.4):
+  `(x, y, z, w, h)`, the height the third integer, the outputs in `ecx`
+  and `edx`.
 - **The `.BH3` encoding, every TGA variant past type 10, the terrain
   textures' mapping, and the 16 PNGs** (§3.2).
 - **Whether `sim` builds for `wasm32-unknown-unknown`.** It is untried, and
