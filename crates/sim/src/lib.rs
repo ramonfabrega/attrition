@@ -6833,8 +6833,9 @@ impl Sim {
     ///
     /// SEAM, and it is a list rather than a shrug: the function adjusts
     /// nine of the fifty-five rows. `0x27d` Entrench takes the French
-    /// tribe bonus and Antipater's rate; `0x275` Bribe and `0x27f`
-    /// Informer halve under `SPIES_CRAFT_FASTER`; `0x280`/`0x281`,
+    /// tribe bonus and Antipater's rate; ~~`0x275` Bribe and `0x27f`
+    /// Informer halve under `SPIES_CRAFT_FASTER`~~ ([`Sim::cast_job_time`],
+    /// item 3985); `0x280`/`0x281`,
     /// Sabotage and Sniper, halve under a tribe bonus and flatten to 10 for
     /// one mask; and the siege pair's Turkish `turk_pack` and Napoleon's
     /// `napoleon_pack` — none of them reached, and neither constant loaded.
@@ -6902,8 +6903,22 @@ impl Sim {
                 t / 2
             }
             spell::ENTRENCH => self.entrench_job_time(u, t),
+            spell::BRIBE | spell::INFORMER if self.spies_craft_faster(u) => t / 2,
             _ => t,
         }
+    }
+
+    /// `get_job_time`'s spy arm (`0x275`, `0x27f`; item 3985,
+    /// `docs/GOLDEN.md` §178): the caster's leader `has_preq
+    /// (SPIES_CRAFT_FASTER)` — Strategy, `TECHBONUSES` row 88 — halves the
+    /// hold. run1543's Informer, 40 frames in the row, lands 20 frames
+    /// after its Spy stands.
+    fn spies_craft_faster(&self, u: usize) -> bool {
+        let who = self.units[u].owner as usize;
+        self.tech_tree
+            .roles
+            .spies_craft_faster_preq
+            .is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[who], t))
     }
 
     /// `GameAccess::rnd(n)@0043cca0` — `Random::get(game_random, 0, 0xffff)

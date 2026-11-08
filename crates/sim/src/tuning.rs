@@ -157,6 +157,13 @@ pub struct Tuning {
     pub spy_upgrade_hp: [i32; 4],
     /// Sight a Spy gains per spy-upgrade level (`SPY_UPGRADE_LOS`).
     pub spy_upgrade_los: i32,
+    /// Tiles a Bribe or Counterintelligence reaches further per
+    /// spy-upgrade level (`SPY_BRIBE_UPGRADE_RANGE`,
+    /// `SpellTypeData::get_range@00676a80`).
+    pub spy_bribe_upgrade_range: i32,
+    /// Tiles an Informer reaches further per spy-upgrade level
+    /// (`SPY_INFORMER_UPGRADE_RANGE`, the same function).
+    pub spy_informer_upgrade_range: i32,
     /// Sight a hero gains per General upgrade (`GENERAL_UPGRADE_LOS`).
     pub general_upgrade_los: i32,
     /// Added to a supply or general radius by the Terra Cotta Army. Ships as
@@ -1448,6 +1455,8 @@ impl Tuning {
         supply_hp_upgrade: [0, 20, 40, 60],
         spy_upgrade_hp: [15, 45, 90, 150],
         spy_upgrade_los: 2,
+        spy_bribe_upgrade_range: 2,
+        spy_informer_upgrade_range: 3,
         general_upgrade_los: 2,
         terra_cotta_range: 0,
         terra_cotta_free: 30,
@@ -2001,6 +2010,14 @@ impl Tuning {
             ("SUPPLY_HP_UPGRADE", Slot::Entries(&T.supply_hp_upgrade)),
             ("SPY_UPGRADE_HP", Slot::Entries(&T.spy_upgrade_hp)),
             ("SPY_UPGRADE_LOS", Slot::Value(T.spy_upgrade_los)),
+            (
+                "SPY_BRIBE_UPGRADE_RANGE",
+                Slot::Value(T.spy_bribe_upgrade_range),
+            ),
+            (
+                "SPY_INFORMER_UPGRADE_RANGE",
+                Slot::Value(T.spy_informer_upgrade_range),
+            ),
             ("GENERAL_UPGRADE_LOS", Slot::Value(T.general_upgrade_los)),
             ("TERRA_COTTA_RANGE", Slot::Value(T.terra_cotta_range)),
             ("TERRA_COTTA_FREE", Slot::Value(T.terra_cotta_free)),

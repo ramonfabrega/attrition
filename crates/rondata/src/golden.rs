@@ -2605,6 +2605,10 @@ mod tests {
         // Tower on the Militia bit with a General inside, and two Chariots
         // at them (item 3970, `docs/GOLDEN.md` §176).
         ("chapter126.cmd", &[]),
+        // Chapter one hundred and twenty-seven: a Spy's Bribe and Informer
+        // from range with every spy upgrade held, and a Bribe on a Catapult
+        // (item 3985, `docs/GOLDEN.md` §178).
+        ("chapter127.cmd", &[]),
         // Chapter thirteen's lobby and an `@comeout`, a coverage staging
         // (item 3425, `docs/GOLDEN.md` §145).
         ("chapter13-comeout.cmd", &[]),

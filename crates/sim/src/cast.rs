@@ -514,23 +514,52 @@ impl Sim {
             || self.unit_domain_of(v) != crate::attrition::Domain::Land)
     }
 
-    /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`: the row's
-    /// range, and the Informer's halved on a building.
+    /// `SpellTypeData::get_range@00676a80(spell, who, o, whom)`, whole
+    /// (item 3985, `docs/GOLDEN.md` §178). A zero row stays zero. Then:
     ///
-    /// SEAM: the spy upgrade's steps (`get_spy_upgrade × spy_*_upgrade_
-    /// range × 192`) and Terra Cotta's; Bribe's and Counterintelligence's
-    /// one-tile range on a hero, a supply wagon or a building; Sabotage's
-    /// on an objmask-`0x200000` unit.
-    pub(crate) fn spell_range(&self, s: i32, t: Obj) -> i32 {
-        let r = self.spell(s).map_or(0, |d| d.range);
+    /// - Bribe and Counterintelligence (`0x275`, `0x277`) add
+    ///   `get_spy_upgrade(who) × SPY_BRIBE_UPGRADE_RANGE × 192`, and Terra
+    ///   Cotta's `TERRA_COTTA_RANGE × 192` (`has_wonder(0x211)`; it ships
+    ///   0). A target whose type is siege (vslot `+0x10c`), which is a
+    ///   supply unit (`+0xcc`) or which is a building (`+0x1c`) takes one
+    ///   tile, 192, instead of all of it.
+    /// - The Informer (`0x27f`) adds `get_spy_upgrade(who) ×
+    ///   SPY_INFORMER_UPGRADE_RANGE × 192`, and **then** halves the sum,
+    ///   `(r + 1) / 2`, on a building.
+    /// - The Sniper (`0x281`) takes one tile on a unit with the `VEHICLE`
+    ///   objmask (`has_objmask(0x200000)`).
+    ///
+    /// SEAM: `has_wonder(0x211)` is read as absent — the term adds 0 with
+    /// the shipped `TERRA_COTTA_RANGE` either way.
+    pub(crate) fn spell_range(&self, s: i32, who: crate::Player, t: Obj) -> i32 {
+        let mut r = self.spell(s).map_or(0, |d| d.range);
         if r == 0 {
             return 0;
         }
-        if s == spell::INFORMER && matches!(t, Obj::Building(_)) {
-            (r + 1) / 2
-        } else {
-            r
+        let ups = self.spy_upgrade_level(who);
+        if s == spell::BRIBE || s == spell::COUNTERINTEL {
+            r += ups * self.tuning.spy_bribe_upgrade_range * 0xc0;
+            let one_tile = match t {
+                Obj::Unit(v) => self.is_siege_unit(v) || self.is_supply_unit(v),
+                Obj::Building(_) => true,
+            };
+            if one_tile {
+                r = 0xc0;
+            }
         }
+        if s == spell::INFORMER {
+            r += ups * self.tuning.spy_informer_upgrade_range * 0xc0;
+            if matches!(t, Obj::Building(_)) {
+                r = (r + 1) / 2;
+            }
+        }
+        if s == 0x281
+            && let Obj::Unit(_) = t
+            && self.profile(t).obj_masks & crate::combat::mask::VEHICLE != 0
+        {
+            r = 0xc0;
+        }
+        r
     }
 
     /// `Group::action_spell@006fe1a0`, the arm a craft that is neither a
@@ -755,7 +784,7 @@ impl Sim {
         } else {
             (order.at, 0)
         };
-        let range = self.spell_range(s, t);
+        let range = self.spell_range(s, who, t);
         let here = self.units[u].pos;
         if range != 0
             && crate::world::vector_dist(centre.x - here.x, centre.y - here.y) > range + radius
@@ -832,7 +861,7 @@ impl Sim {
         self.units[u].casting = true;
         self.cast_blow(u, s, true);
         self.units[u].spell_time += 1;
-        if self.units[u].spell_time < self.spell_job_time(s) {
+        if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;
         }
         self.cast_blow(u, s, false);
@@ -903,6 +932,14 @@ impl Sim {
             && let Obj::Unit(v) = t
             && self.spell_castable(s, u)
         {
+            // `cast_bribe@00672d00`'s refusals hand the craft back
+            // through `unpay_cast_costs`: a target of the caster's own, or
+            // one standing in its owner's CEO's radius
+            // (`has_general(0, 0x165)`; item 3985, `docs/GOLDEN.md` §178).
+            if self.units[v].owner == self.units[u].owner || self.has_general(v, 0x165) {
+                self.unpay_cast_mana(u, s);
+                return;
+            }
             self.cast_bribe_unit(u, v);
             return;
         }
@@ -1477,6 +1514,18 @@ impl Sim {
         self.has_general(u, 0x162)
     }
 
+    /// `SpellType::unpay_cast_costs@00676ff0`'s mana half: `mana_burn -=
+    /// min(mana_burn, MANA)`. Its resource half moves nothing on shipped
+    /// data (no castable craft has a `COST2`; `orders.rs`'
+    /// `kill_current_order` arm says why).
+    pub(crate) fn unpay_cast_mana(&mut self, u: usize, s: i32) {
+        if let Some(d) = self.spell(s) {
+            let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
+            let burn = self.units[u].mana_burn;
+            self.units[u].mana_burn = burn - back.min(burn);
+        }
+    }
+
     /// `ObjectData::has_general(u, 0, ty) >= 0` (`00646b00`) for a hero
     /// type `ty`: [`Sim::near_monarch`]'s walk with the type a parameter —
     /// `u` itself a hero of `ty`, or one of its owner's on the map whose
@@ -1901,6 +1950,153 @@ mod tests {
         (s, units)
     }
 
+    /// **`get_range` whole** (`SpellTypeData::get_range@00676a80`, item
+    /// 3985, `docs/GOLDEN.md` §178). With every spy upgrade held, a Bribe
+    /// and Counterintelligence reach `3 × 2 × 192` further and an Informer
+    /// `3 × 3 × 192`; the Informer's halving on a building is of that sum;
+    /// a siege unit, a supply unit or a building takes one tile for Bribe
+    /// whatever the upgrades; the Sniper takes one tile on a vehicle; and
+    /// another leader's upgrades count nothing. Made to fail with the
+    /// upgrade terms dropped, with the halving taken before them, and with
+    /// the one-tile collapse dropped.
+    #[test]
+    fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].range = 6 * 192;
+        s.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
+        s.spells[at(spell::INFORMER)].range = 10 * 192;
+        s.spells[at(0x281)].range = 12 * 192;
+        let mut tree = s.tech_tree.clone();
+        let steps = ["one", "two", "three"].map(|n| tree.add(crate::tech::TypeDef::plain(n, 0)));
+        tree.roles.spy_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let who = s.units[spy].owner;
+        let b = s.add_building(0, Pos::new(768, 768), 0);
+        let (u, bld) = (
+            crate::combat::Obj::Unit(filler),
+            crate::combat::Obj::Building(b),
+        );
+        let row = |s: &Sim| {
+            [
+                s.spell_range(spell::BRIBE, who, u),
+                s.spell_range(spell::COUNTERINTEL, who, u),
+                s.spell_range(spell::INFORMER, who, u),
+                s.spell_range(spell::INFORMER, who, bld),
+                s.spell_range(spell::BRIBE, who, bld),
+            ]
+        };
+        assert_eq!(row(&s), [1152, 1920, 1920, 960, 192], "no upgrade");
+        for t in steps {
+            s.gain_tech(who, t);
+        }
+        assert_eq!(
+            row(&s),
+            [2304, 3072, 3648, 1824, 192],
+            "three upgrades: the Informer halved after its term"
+        );
+        assert_eq!(
+            s.spell_range(spell::BRIBE, 1 - who, u),
+            1152,
+            "another leader"
+        );
+        let t = s.units[filler].ty.unwrap();
+        s.unit_types[t].combat.siege = true;
+        assert_eq!(s.spell_range(spell::BRIBE, who, u), 192, "a siege unit");
+        assert_eq!(
+            s.spell_range(spell::INFORMER, who, u),
+            3648,
+            "not the Informer's"
+        );
+        s.unit_types[t].combat.siege = false;
+        s.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
+        assert_eq!(
+            s.spell_range(spell::COUNTERINTEL, who, u),
+            192,
+            "a supply unit"
+        );
+        assert_eq!(
+            s.spell_range(0x281, who, u),
+            12 * 192,
+            "the Sniper, no vehicle"
+        );
+        s.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
+        assert_eq!(s.spell_range(0x281, who, u), 192, "the Sniper on a vehicle");
+    }
+
+    /// **`get_job_time`'s spy arm** (`00675800`, item 3985, `docs/GOLDEN.md`
+    /// §178): with `SPIES_CRAFT_FASTER`'s prerequisite held, Bribe's and
+    /// the Informer's hold is halved for the caster's leader and no other,
+    /// and Counterintelligence's is not. Made to fail with the arm dropped
+    /// and with Counterintelligence let in.
+    #[test]
+    fn strategy_halves_bribe_and_the_informer_s_hold() {
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, _]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].job_time = 100;
+        s.spells[at(spell::INFORMER)].job_time = 40;
+        s.spells[at(spell::COUNTERINTEL)].job_time = 40;
+        let mut tree = s.tech_tree.clone();
+        let strategy = tree.add(crate::tech::TypeDef::plain("strategy", 0));
+        tree.roles.spies_craft_faster_preq = Some(strategy);
+        s.set_tech_tree(tree);
+        let row = |s: &Sim| {
+            [spell::BRIBE, spell::INFORMER, spell::COUNTERINTEL].map(|c| s.cast_job_time(spy, c))
+        };
+        assert_eq!(row(&s), [100, 40, 40]);
+        let who = s.units[spy].owner;
+        s.gain_tech(1 - who, strategy);
+        assert_eq!(row(&s), [100, 40, 40], "another leader's");
+        s.gain_tech(who, strategy);
+        assert_eq!(row(&s), [50, 20, 40]);
+    }
+
+    /// **`cast_bribe`'s refusal refunds** (`00672d00`, item 3985,
+    /// `docs/GOLDEN.md` §178): a Bribe landing on a target of the caster's
+    /// own, or on one inside its owner's CEO's reach (`has_general(0,
+    /// 0x165)`), hands the craft's `MANA` back through `unpay_cast_costs`'
+    /// mana half, floored at 0, and copies no unit. Dead from a unit's
+    /// cast — `do_cast` asks `is_valid_target` on the land frame first —
+    /// and held here so the arm stays faithful. Made to fail with the
+    /// refund dropped and with the CEO test dropped.
+    #[test]
+    fn a_refused_bribe_hands_its_mana_back() {
+        use crate::ai_load::{UnitCols, uflags2};
+        use crate::orders::{SpellType, spell};
+        let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+        s.spells =
+            vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+        let at = |c: i32| usize::try_from(c - spell::FIRST).unwrap();
+        s.spells[at(spell::BRIBE)].mana = 200;
+        s.spells[at(spell::BRIBE)].from = [Some(super::SPY), None];
+        let units = s.units.len();
+        let t = crate::combat::Obj::Unit(filler);
+        s.units[spy].mana_burn = 500;
+        s.cast_on(spy, spell::BRIBE, t);
+        assert_eq!(s.units[spy].mana_burn, 300, "its own target");
+        s.units[spy].mana_burn = 150;
+        s.cast_on(spy, spell::BRIBE, t);
+        assert_eq!(s.units[spy].mana_burn, 0, "floored at 0");
+        s.units[filler].owner = 0;
+        s.units[filler].type_index = 0x165;
+        let ty = s.units[filler].ty.unwrap();
+        s.unit_types[ty].cols = UnitCols {
+            unit_flags2: uflags2::GENERAL,
+            ..UnitCols::default()
+        };
+        s.units[spy].mana_burn = 500;
+        s.cast_on(spy, spell::BRIBE, t);
+        assert_eq!(s.units[spy].mana_burn, 300, "the CEO's reach");
+        assert_eq!(s.units.len(), units, "no copy");
+        assert_eq!(s.units[filler].owner, 0, "not taken");
+    }
+
     /// **`do_cast`'s two `0x11000` writes** (`005ec932`, `005ec9a7`; item
     /// 2804, `docs/GOLDEN.md` §105): a cloaked caster of a craft without
     /// `l` is blown and fought — on the first, every-frame site not a Spy
@@ -2126,8 +2322,10 @@ mod tests {
     /// `Unit::swap_team@006118d0`, item 2823): a copy is born under the
     /// caster's owner carrying the damage and the facing, the old unit is
     /// closed without a death and held thirty frames, and the caster's
-    /// leader counts one. Made to fail with the counter dropped, with the
-    /// old unit left standing, and with the damage not carried.
+    /// leader counts one. The angle copied is the figure's (`heading`), not
+    /// a still-turning unit's `facing` (item 3985). Made to fail with the
+    /// counter dropped, with the old unit left standing, with the damage not
+    /// carried, and with `facing` copied.
     #[test]
     fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
         let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
@@ -2139,7 +2337,8 @@ mod tests {
         s.units[spy].owner = 1;
         s.units[target].health = 15;
         s.units[target].max_health = 20;
-        s.units[target].movement.facing = crate::movement::Angle(0x1200_0000);
+        s.units[target].movement.heading = crate::movement::Angle(0x1200_0000);
+        s.units[target].movement.facing = crate::movement::Angle(0x5555_5555);
         let bribes = s.tech[1].bribes;
         let before = s.units.len();
         let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
@@ -2156,7 +2355,8 @@ mod tests {
         );
         assert_eq!(
             s.units[n].movement.facing,
-            crate::movement::Angle(0x1200_0000)
+            crate::movement::Angle(0x1200_0000),
+            "the figure's angle, not the turning unit's"
         );
         assert!(!s.units[target].alive(), "the old one is closed");
         assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);

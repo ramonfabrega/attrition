@@ -725,6 +725,13 @@ pub const TRACES: &[&str] = &[
     // click-free pool, to 2600 (`docs/RUNS.md` run1542b): run1542's game
     // on every frame (rngcmp 2601 identical, 0 differing).
     "rontrace-run1542b.log",
+    // Item 3985: golden chapter one hundred and twenty-seven
+    // (`chapter127.cmd`, Bribe and the Informer with every spy upgrade, and
+    // Bribe on a Catapult) at `cover=1` on the click-free pool, to 1600
+    // (`docs/RUNS.md` run1543b): `get_range`, `get_spy_upgrade`,
+    // `get_job_time`, `cast_bribe` and `swap_team` entered (`docs/GOLDEN.md`
+    // §178); run1543's game on every frame (rngcmp 1601 identical).
+    "rontrace-run1543b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and

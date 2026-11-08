@@ -15304,13 +15304,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CP — reserved
+## Parked by item 3985, 2026-11-07 — three spells on a spy-upgraded lobby
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3985a. The idle roll on 1294.** Chapter 127's word: theirs spends a ninth draw, a second `Guy::set_anim <
+  Unit::do_idle`, on one of Bribe's copies `0/9..0/11` the frame after they are born (1293); ours eight. Every
+  compared field agrees on 1294 (`docs/GOLDEN.md` §178), and run1543's end detail prints no `GUYS`, so nothing on disk
+  names the figure or its animation. A `GUYS=4` recapture of chapter 127 over 1290..1296 names it. Returns as the
+  word's next brief.
+- **3985b. Blow Tread, Restock Supplies and `TypeData::get_cost@00664090`'s spell arm are dead on shipped data.**
+  `craftrules.xml` gives both crafts `FROM none`, `FROM2 None`, `PREQ0 Disable`; every craft with a `COST2` is
+  `FROM none`, so `unpay_cast_costs@00676ff0`'s resource half and `COST2 × spell_cost_factor` move nothing a unit's
+  cast reaches. Adjudication 3 rows 46 and 58 close as unreachable; `cast_blow_tread` stays never-entered. Returns only
+  with a mod that ships a castable `COST2` craft. It names no score.
+- **3985c. `cast_bribe`'s refusal refunds are dead from `do_cast`.** `Unit::do_cast@005ebfe0:422` asks
+  `is_valid_target` on the land frame, whose Bribe arm opens with the same own-target and `has_general(0, 0x165)`
+  refusals, so the cast dies through `kill_current_order`'s refund first. Built in `cast_on` and held by
+  `cast::tests::a_refused_bribe_hands_its_mana_back` only. It names no score.
 
 ## Parked by the next landing, slot CQ — reserved
 

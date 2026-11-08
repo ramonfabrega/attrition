@@ -1942,6 +1942,9 @@ pub fn load_tables(
     tree.roles.heal_faster_preq = [bonus_at(67), bonus_at(68), bonus_at(69)];
     tree.roles.supply_upgrade_preq = [bonus_at(79), bonus_at(80), bonus_at(81)];
     tree.roles.spy_upgrade_preq = [bonus_at(92), bonus_at(93), bonus_at(94)];
+    // `SPIES_CRAFT_FASTER` (`0x304`), row 88: Bribe's and the Informer's
+    // hold halved (`get_job_time`, item 3985).
+    tree.roles.spies_craft_faster_preq = bonus_at(88);
     // `GENERALS_UPGRADE_1..3` (`0x305`): the level `get_general_upgrade`
     // counts — a hero's speed, hits, sight and radius (`docs/AI.md` §172).
     tree.roles.general_upgrade_preq = [bonus_at(89), bonus_at(90), bonus_at(91)];

@@ -36030,3 +36030,28 @@ No minutes were waited on another lane. `~/ron-golden/run1541` links to `ch126` 
 - On 753 the City `1/2000` names `0/7`; the Tower `1/2007` (`mylos 11`) names `0/6` from 778; `0/6` reads `visible 2`
   from 764; on 805 the Temple `1/2006` reads `damage 8`, the Library `1/2005` 0.
 - `rngcmp`: run1541 against run1541b, 1101 of 1101 identical.
+
+## run1543 and run1543b — chapter one hundred and twenty-seven: Bribe and the Informer from range with every spy upgrade held, and Bribe on a Catapult (2026-11-07, item 3985, `att-3985`)
+
+`docs/GOLDEN.md` §178. **What the disk could not answer**: no capture on disk held a spy upgrade, so no dump showed
+`SpellTypeData::get_range@00676a80`'s upgrade terms, the Informer's halving taken against them, a siege target's
+one-tile Bribe, or `get_job_time`'s `SPIES_CRAFT_FASTER` arm (adjudication 3 row 47).
+
+Recipe `tools/gamelog/golden/chapter127.cmd`: who=0 granted Tactics, Operations and Strategy (603–605); three Spies
+(608–610); a who=1 Hoplite, Barracks and Catapult (1100–1102); three `@spell`s on 1112 — Bribe from 28 half-tiles,
+the Informer from 30, Bribe on the Catapult from 20.
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch127 --map 14 --end-frame 1600
+--log-window 1095 1600 --timeout 3600` with the cmd header's three detail sets. The twin is the same line at `--cover
+cover=1 --no-ffwd --twin ~/ron-golden/ch127`, into `~/ron-golden/ch127b`.
+
+55 GiB free before the twin. Both `success`, lifecycle verified, `map_verified`, map style 14, 1601 frames,
+`last_frame` 1600, seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes were
+waited on another lane. `~/ron-golden/run1543` links to `ch127` and `run1543b` to `ch127b`.
+- run1543 (`ch127`, `cover=0`, pool lane 1): 22:36:25–22:37:16, 51.3 s launch to exit, no relaunch. The word's.
+- run1543b (`ch127b`, `cover=1`, pool lane 1): 23:04:28–23:07:29, 180.9 s launch to exit, no relaunch. Filed by
+  `filerun.py run1543b ch127-spy-upgrades-cover`. Enters `get_range`, `get_spy_upgrade`, `get_job_time`,
+  `cast_bribe` and `swap_team`.
+- `0/6` stands at (22728, 18984), `0/7` at (22968, 26904); the Informer lands on 1239, 20 frames after its Spy stands;
+  Bribe's copies `0/9..0/11` are born on 1293, reading `unit_masks` 0x10000a against the old units' 0x14000a.
+- `rngcmp`: run1543 against run1543b, 1601 of 1601 identical.

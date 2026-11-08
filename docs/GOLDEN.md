@@ -18785,12 +18785,67 @@ MLRS piece (`MLRS-ARAB-AGE0`): only piece 223 is measured. The fallback's `clear
 `hold_frames` on a capture. An evicted record stops bumping, but no dump prints a dead object's hold, and run1542's
 numbers are not reused inside the window.
 
-## 178. Reserved for the next item on the rules track
+## 178. Chapter one hundred and twenty-seven — Bribe and the Informer with every spy upgrade held; a siege target takes one tile; Strategy halves the hold; pinned open at 1294 (item 3985, run1543, run1543b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (adjudication 3 rows 46, 49, 58, 47) named three arms: Blow Tread on a full-health vehicle, a paid
+Restock Supplies interrupted, and a Spy's Bribe from beyond base range. **Two are castable by no unit on shipped
+data**: `craftrules.xml` gives Blow Tread and Restock `FROM none`, `FROM2 None`, `PREQ0 Disable`;
+`SpellTypeData::is_castable@00675bc0` refuses a caster that is neither, and `Build::finished`'s spell arm needs
+`LeaderData::has_spell`, which `PREQ0 Disable` refuses (`Preq::Disabled`). Every craft with a `COST2` is `FROM none`,
+so `unpay_cast_costs@00676ff0`'s resource half and `get_cost`'s spell arm move nothing a unit's cast reaches; the
+`orders.rs` `SEAM` now says so (parked 3985b). `cast_bribe@00672d00`'s own refusal refunds (row 49's second caller)
+are dead too: `Unit::do_cast@005ebfe0:422` asks `is_valid_target` on the land frame, whose Bribe arm makes the same
+own-target and `has_general(0, 0x165)` refusals first (parked 3985c).
+
+**Staging** (`tools/gamelog/golden/chapter127.cmd`, on chapter 88's lobby). who=0 holds Tactics, Operations and
+Strategy, so `LeaderData::get_spy_upgrade@006e1090` answers 3. Spy `0/6` Bribes a Hoplite 28 half-tiles off; `0/7`
+casts the Informer on a Barracks 30 half-tiles off; `0/8` Bribes a Catapult 20 half-tiles off. The four killers are in
+the cmd file's header, written before the take.
+
+**What the original does** (run1543 `cover=0`, run1543b `cover=1 --no-ffwd --twin`; `docs/RUNS.md`).
+- **`SpellTypeData::get_range@00676a80` whole**: Bribe and Counterintelligence add `ups × SPY_BRIBE_UPGRADE_RANGE (2)
+  × 192`, the Informer `ups × SPY_INFORMER_UPGRADE_RANGE (3) × 192`, and the Informer's halving on a building is taken
+  **after** its term. A siege, supply or building target collapses Bribe's reach to one tile, 192. The Sniper takes
+  one tile on a `VEHICLE`. Terra Cotta's term ships 0. `0/6` stands at (22728, 18984), `0/7` at (22968, 26904), `0/8`
+  closes on the Catapult — value for value both sides.
+- **`get_job_time@00675800`'s spy arm**: `SPIES_CRAFT_FASTER` (0x304, `TECHBONUSES` row 88, Strategy) halves Bribe's
+  and the Informer's hold. The Informer lands 20 frames after its Spy stands (1239).
+- **`Unit::swap_team@006118d0`'s figure copy** carries `unit_masks & 2` (the mirror) and `& 0x100000` (the half step):
+  the bribed Hoplites read 0x14000a old, 0x10000a new. The angle copied is the guy's `angle`, not the unit's facing;
+  they differ on a figure still turning (`1/7` on 1294).
+- The twin enters `get_range`, `get_spy_upgrade`, `get_job_time`, `cast_bribe` and `swap_team` (killer 4 did not fire);
+  `rngcmp` 1601 of 1601 identical with run1543.
+
+**What this crate does** (built):
+- `Sim::spell_range` is `get_range` whole; `tuning.rs` carries the two upgrade constants. The word 1239 → 1294 came
+  with the hold: ours landed the Informer 40 frames after the stand.
+- `Sim::cast_job_time` takes the spy arm (`roles.spies_craft_faster_preq`); `do_cast`'s targeted hold reads it.
+- `bribe.rs`' `copy_figure` copies `mirror`, `half_step` and the figure's `heading`. On 1294, `0/9..0/11` read
+  `mirror`/`half_step` 0 ours / 1 theirs and `0/10`'s `heading` −420955942 / −118161408; after, every compared field
+  agrees.
+- `cast_on`'s Bribe arm refunds through `Sim::unpay_cast_mana`, which `kill_current_order` now shares.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN` = **1294**, open: theirs spends a ninth draw, a
+  second `Guy::set_anim < Unit::do_idle` on one of Bribe's copies, ours eight; 1293's draws agree. No `GUYS` in the end
+  detail names the figure (parked 3985a).
+- **The widening.** Over 1095..1600 (`(1094, 1601)`, both directions) it parts on the eleven standing `form` rows, then
+  nothing until 1297 (`WANT_CH127`, 161 rows). The `cant_reach` tally 4.
+- **Tests.** `cast::tests::get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings`,
+  `…::strategy_halves_bribe_and_the_informer_s_hold`, `…::a_refused_bribe_hands_its_mana_back`, and
+  `…::bribe_swaps_a_unit_s_team_and_closes_the_old_one` holding the figure's angle.
+- **Coverage.** The driver drives 1110..1296, 187 blocks.
+
+**Mutations** (`tools/mutate.py`, each held red): the Bribe upgrade term dropped; the Informer's halving taken before
+its term; the job-time arm dropped; the mirror copy dropped; `facing` copied for the figure's angle; the refusal
+refund dropped.
+
+**Not established.**
+- The 1294 idle roll (parked 3985a).
+- Counterintelligence's upgrade term and the supply-unit collapse are built from the reading and held by the unit test
+  only; no staged target parts on them.
+
+**Coverage.** Diff-backed: Bribe's and the Informer's upgraded reach, the halving's order, the siege collapse, the
+Strategy halving and the figure copy's three fields. Reading only: the Sniper's vehicle tile and the dead refunds.
+`blind::` is unmoved: run1543b joins `TRACES`, and nothing it enters was `NEVER`.
 
 ## 179. Reserved for the next item on the rules track
 
