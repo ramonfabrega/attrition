@@ -115,6 +115,81 @@ impl Sim {
         self.mark_healed(i, rate);
     }
 
+    /// **The supply heal** — `process_healing`'s on-map arm after the
+    /// three economic patriots' (`005e0670`, `LAB_005e0f1a`; item 3978,
+    /// `docs/AI.md` §410):
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// rate = SUPPLY_HEAL_RATE
+    ///   (+ FRENCH_SUPPLY_HEAL_RATE with has_tribe_bonus(10))
+    /// has_wonder(VERSAILLES) and VERSAILLES_SUPPLY_HEAL_RATE != 0:
+    ///   rate = rate == 0 ? VERSAILLES : (VERSAILLES + rate) / 4
+    /// rate != 0 and (o + frame) % rate == 0
+    ///   and Supplies::find_supply(x, y, who) >= 0:
+    ///     repair_damage(1, 1, 1); healing = max(rate, healing)
+    /// ```
+    ///
+    /// The period is [`crate::supply::heal_period`]; `find_supply` walks
+    /// the player's supply list alone — a source alive and on the map
+    /// within `SupplyData::get_radius × 0xc0` by `vector_dist` — so a
+    /// supplying general's aura, which [`Sim::supplied_at`] reads for
+    /// attrition, heals nobody here. It asks nothing of the cell's owner
+    /// or the unit's motion. run1542's French Elite Special Forces `1/17`
+    /// (TI 77), walking off under an `EXPLORETOORDER`, is 2648 from its
+    /// Despot `1/164` (TI 352, `supply 0`) on block 1151 — inside 14
+    /// tiles' 2688 — and prints `healing 13`: 20 set on 1143, `(17 +
+    /// 1143) % 20 == 0`.
+    ///
+    /// The sparkle arm draws only for the console's allies, which is no
+    /// stream this crate keeps; the `0x4000` clear is not carried.
+    pub(crate) fn supply_heal(&mut self, i: usize, frame: i64) {
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if !u.captain || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let owner = u.owner;
+        let french = self.tech.get(owner as usize).is_some_and(|p| {
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::FRENCH)
+        });
+        let versailles =
+            self.wonders_held(owner) & (1 << crate::tech::wonder::VERSAILLES) != 0;
+        let rate = i64::from(crate::supply::heal_period(&self.tuning, french, versailles));
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let damaged = self.squad_members(i).iter().any(|&f| {
+            let f = &self.units[f];
+            f.alive() && (f.health < f.max_health || f.damage_frac != 0)
+        });
+        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+            return;
+        }
+        let at = self.units[i].pos;
+        let upgrades = self.supply_upgrade_level(owner);
+        let terra_cotta = self.supply[owner as usize].player.terra_cotta;
+        let radius = crate::supply::supply_radius(&self.tuning, upgrades, terra_cotta);
+        let found = self.supply[owner as usize].list.find(at, radius, |w| {
+            self.units.get(w).map(|w| crate::supply::Wagon {
+                pos: w.pos,
+                active: w.alive(),
+                on_map: w.on_map,
+            })
+        });
+        if found.is_some() {
+            self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
+        }
+    }
+
     /// `healing = max(rate, healing)`, the write every arm of
     /// `Unit::process_healing@005e0670` makes after its `repair_damage`,
     /// with the arm's own period (item 3961, `docs/AI.md` §405).
