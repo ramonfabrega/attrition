@@ -2351,11 +2351,14 @@ impl Sim {
     /// pitch 40 → 38 with `z` 677 under 800 + 191, where the whole 1600
     /// would have held it at 40.
     ///
-    /// SEAM: a **flying** target's arm, which wants the target figure's
-    /// own `z` less or plus `min(300, max(0, (0x600 − dist)·5))` by the
-    /// order of the two objects' numbers (`0x5e9114`–`0x5e9206`); it is
-    /// flown here on the whole `cruising_alt`.
-    fn strike_altitude(&self, u: usize, dx: i32, dy: i32, cruise: i32) -> i32 {
+    /// **A flying target** (`0x5e9114`–`0x5e9206`, item 3991,
+    /// `docs/GOLDEN.md` §184) wants the target figure's own `z`
+    /// (`guys[0] +0x14`), plus or less `min(300, max(0, (0x600 −
+    /// vector_dist(dx, dy))·5))`: plus when the target's object number is
+    /// below the striker's, or, the numbers equal, its owner is; the caller
+    /// caps it at `cruising_alt` over the ground ahead. The answer is over
+    /// `ahead`, as the other two are.
+    fn strike_altitude(&self, u: usize, dx: i32, dy: i32, cruise: i32, ahead: i32) -> i32 {
         let strafes = self.strafes(crate::combat::Obj::Unit(u));
         let Some(t) = self
             .current_strafe(u)
@@ -2377,7 +2380,18 @@ impl Sim {
             return cruise;
         }
         if matches!(self.profile(t).domain, crate::attrition::Domain::Air) {
-            return cruise;
+            let crate::combat::Obj::Unit(tu) = t else {
+                return cruise;
+            };
+            let off = ((0x600 - vector_dist(dx, dy)) * 5).clamp(0, 300);
+            let (mine, theirs) = (&self.units[u], &self.units[tu]);
+            let up = if theirs.index == mine.index {
+                (theirs.owner as i32) < (mine.owner as i32)
+            } else {
+                theirs.index < mine.index
+            };
+            let z = theirs.airframe.z + if up { off } else { -off };
+            return z - ahead;
         }
         cruise / 2
     }
@@ -2395,8 +2409,8 @@ impl Sim {
     /// `project` was handed, because only the returning arm overwrites it
     /// with the distance (`0x5e8fae`).
     ///
-    /// SEAM: the `0x400000` type arm's flying target
-    /// ([`Sim::strike_altitude`]).
+    /// The `0x400000` type arm's flying target is
+    /// [`Sim::strike_altitude`]'s (item 3991).
     pub(crate) fn pitch_plane(
         &mut self,
         u: usize,
@@ -2446,7 +2460,7 @@ impl Sim {
             }
             (want, dist)
         } else {
-            (self.strike_altitude(u, dx, dy, cruise) + ahead, 0x240)
+            (self.strike_altitude(u, dx, dy, cruise, ahead) + ahead, 0x240)
         };
         let want = if animal {
             want
@@ -3700,27 +3714,27 @@ mod launch_tests {
     fn a_strafing_type_on_a_strike_wants_half_its_cruising_altitude() {
         let mut s = sim();
         let (u, target, dx, dy) = striking_fighter(&mut s, true);
-        assert_eq!(s.strike_altitude(u, dx, dy, 1600), 800, "half, on a strike");
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 0), 800, "half, on a strike");
         let mut plain = sim();
         let (v, _, vdx, vdy) = striking_fighter(&mut plain, false);
         assert_eq!(
-            plain.strike_altitude(v, vdx, vdy, 1600),
+            plain.strike_altitude(v, vdx, vdy, 1600, 0),
             1600,
             "no w, no half"
         );
         let h = s.units[u].movement.heading;
         s.units[u].movement.heading = Angle(h.0.wrapping_add(0x4000_0000));
-        assert_eq!(s.strike_altitude(u, dx, dy, 1600), 800, "90° off is inside");
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600, 0), 800, "90° off is inside");
         s.units[u].movement.heading = Angle(h.0.wrapping_add(0x4000_0000 + 0x100_0000));
         assert_eq!(
-            s.strike_altitude(u, dx, dy, 1600),
+            s.strike_altitude(u, dx, dy, 1600, 0),
             1600,
             "past 90°, the whole"
         );
         s.units[u].movement.heading = h;
         s.buildings[target].alive = false;
         assert_eq!(
-            s.strike_altitude(u, dx, dy, 1300),
+            s.strike_altitude(u, dx, dy, 1300, 0),
             1300,
             "no target, the whole"
         );

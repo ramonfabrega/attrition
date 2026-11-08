@@ -72,7 +72,7 @@ impl Sim {
         v
     }
 
-    fn is_air_unit(&self, u: usize) -> bool {
+    pub(crate) fn is_air_unit(&self, u: usize) -> bool {
         matches!(
             self.profile(Obj::Unit(u)).domain,
             crate::attrition::Domain::Air
@@ -448,12 +448,9 @@ impl Sim {
         if self.home_base(u) == Some(base) {
             return true;
         }
-        let here = self.buildings[base]
-            .garrison
-            .iter()
-            .filter(|&&p| self.is_air_unit(p))
-            .count();
-        here < 10
+        // `num_aircraft_here(0) < num_aircraft_limit` (`006483c0:137`):
+        // every plane homed here, standing or flying (item 3991).
+        self.aircraft_homed(base) < 10
     }
 
     /// **`Group::action_launch_flight(ox, whom, orders, shift, ctrl, alt)@

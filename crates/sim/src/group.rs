@@ -47,9 +47,6 @@ use crate::world::{Pos, vector_dist};
 const GROUP_LOC_NEAR: i32 = 0x180;
 use crate::{Player, Sim};
 
-/// `MAX_AIRCRAFT_PER_AIRBASE` (`rules.xml`, 10): `ObjectData::can_carry`'s
-/// room for aircraft in an Airbase.
-const MAX_AIRCRAFT_PER_AIRBASE: usize = 10;
 
 /// The flight command's `orders` (`docs/ORDERS.md` §32): `MOVE_TO` (1),
 /// home to one's own base, or `ATTACK` (10), at an enemy.
@@ -3867,9 +3864,13 @@ impl Sim {
     /// So **an aircraft on the ground outside a base takes no strike at
     /// all**, and no feedback beyond the console's: run223's block 622.
     ///
-    /// SEAMs, none reached by run223: the split of a strike's non-air
-    /// members into `action_attack` (every member is air here), the
-    /// `NUCLEARMISSILE` arm, the missile arm of each gate, the empty-tank
+    /// **A strike on a mixed group splits first**: the planes are flown by
+    /// this call on a group of their own, and the rest take
+    /// `action_attack(o, whom, mandatory 1, QUEUE_NEW)` (item 3991,
+    /// `docs/GOLDEN.md` §184). **A flight home asks `can_carry` of each
+    /// member**, which counts the base's homed planes in the air too.
+    ///
+    /// SEAMs, none reached by run223: the `NUCLEARMISSILE` arm, the missile arm of each gate, the empty-tank
     /// arms (this crate carries no fuel, so a tank is never empty), the
     /// `FIGHTERBOMBER` `home_base` gate, a carrier as the base, the
     /// `AIR_PATROL`/`AIR_ATTACK_GROUND` home as the "inside" (no member
@@ -3896,13 +3897,51 @@ impl Sim {
             (Flight::Home, _) => return,
             (Flight::Strike, _) => None,
         };
+        // **The split** (`6fb3f9`..`6fb53f`, item 3991, `docs/GOLDEN.md`
+        // §184): a strike whose live members are not all planes
+        // (`UnitData::is_plane`, vslot `+0xc0`: a helicopter is no plane)
+        // hands the planes to this call again on a group of their own, and
+        // the rest to `action_attack(o, whom, 1, QUEUE_NEW, 0)` — or
+        // `action_guard` on an ally's target — and returns.
+        if kind == Flight::Strike {
+            let mut air = Group::stack(g.who);
+            let mut rest = Group::stack(g.who);
+            for &u in &g.list {
+                if !self.units[u].alive() {
+                    continue;
+                }
+                if self.is_plane(u) {
+                    self.group_add(&mut air, u);
+                } else {
+                    self.group_add(&mut rest, u);
+                }
+            }
+            if !rest.list.is_empty() {
+                self.group_action_flight(&air, target, Flight::Strike);
+                let whom = self.owner_of(target);
+                if whom < crate::world::PLAYER_SLOTS && self.is_ally(g.who, whom) {
+                    // SEAM: `action_guard` on an ally's building, which
+                    // this crate's guard does not take.
+                    if let Obj::Unit(t) = target {
+                        self.group_action_guard(&rest, t, QueuePos::New, false);
+                    }
+                } else {
+                    self.group_action_attack(&rest, target, true, QueuePos::New, 0);
+                }
+                return;
+            }
+        }
         let point = self.pos_of(target);
         for &u in &g.list {
             if !self.units[u].alive() {
                 continue;
             }
+            // `MOVE_TO`'s gate (`6fb5f0`..`6fb67b`): `ObjectData::can_carry`
+            // on each member, whose room counts every plane homed on the
+            // base, flying or standing (`num_aircraft_here(0)`, item 3991).
             if let Some(b) = base
-                && self.aircraft_inside(b) >= MAX_AIRCRAFT_PER_AIRBASE
+                && self.is_air_unit(u)
+                && !self.base_can_carry(b, u)
             {
                 continue;
             }
@@ -3942,16 +3981,6 @@ impl Sim {
                 }
             }
         }
-    }
-
-    /// `ObjectData::num_aircraft_here`: the planes standing in a base,
-    /// its `inside_up` chain's aircraft.
-    fn aircraft_inside(&self, b: usize) -> usize {
-        self.buildings[b]
-            .garrison
-            .iter()
-            .filter(|&&u| self.group_domain(u) == Domain::Air)
-            .count()
     }
 
     /// `Group::action_attack(o, whom, mandatory, queue, ignore)` (§10):
