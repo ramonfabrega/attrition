@@ -86,12 +86,32 @@ class Runners(unittest.TestCase):
     def test_no_other_runner_starts_uv_bare(self):
         # Every `uv run` of a tools/emu script goes through `uv_command`;
         # `tool_versions` asks uv its versions and is the one other caller.
-        offenders = []
-        for rs in sorted((ROOT / 'crates').rglob('*.rs')):
-            for n, line in enumerate(rs.read_text().splitlines(), 1):
-                if 'Command::new("uv")' in line and rs != SUPPORT:
-                    offenders.append(f'{rs.relative_to(ROOT)}:{n}')
-        self.assertEqual(offenders, [])
+        # A crate that cannot reach `sim` (`render`, item 4018) may spell the
+        # same project form itself: `--locked --project` within the next
+        # three lines. A bare `uv run <script>` is still an offender.
+        self.assertEqual(bare_uv_runners(sorted((ROOT / 'crates').rglob('*.rs'))), [])
+
+    def test_a_bare_runner_is_an_offender(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bare, project = Path(tmp) / 'bare.rs', Path(tmp) / 'project.rs'
+            bare.write_text('let c = Command::new("uv")\n    .args(["run"])\n    .arg(script);\n')
+            project.write_text('let c = Command::new("uv")\n    .args(["run", "--locked", "--project"])\n')
+            self.assertEqual(bare_uv_runners([bare, project], root=Path(tmp)), ['bare.rs:1'])
+
+
+def bare_uv_runners(files, root=None):
+    """`path:line` of each `Command::new("uv")` outside `support.rs` whose
+    next three lines do not name `--locked` and `--project`."""
+    root = root or ROOT
+    out = []
+    for rs in files:
+        lines = rs.read_text().splitlines()
+        for n, line in enumerate(lines, 1):
+            if 'Command::new("uv")' in line and rs != SUPPORT:
+                near = ' '.join(lines[n - 1:n + 3])
+                if '"--locked"' not in near or '"--project"' not in near:
+                    out.append(f'{rs.relative_to(root)}:{n}')
+    return out
 
 
 @unittest.skipUnless(shutil.which('uv'), 'uv is not on PATH')
