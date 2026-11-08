@@ -194,6 +194,9 @@ COMMANDERS_LINES = (
     'the_handoff_s_held_out_line_is_the_pinned_battery',
     # The rubric's line (the forty-ninth pass, Ramon's: the steer's pin).
     'the_handoff_s_rubric_is_the_pinned_scorecard',
+    # The structure track's line (item 4008, STRUCTURE §2); the pin's own
+    # half, `the_pinned_shape_is_the_tree_s`, is a worker's and not here.
+    'the_handoff_s_structure_line_is_the_pinned_shape',
     'the_handoff_s_golden_line_is_the_pinned_word',
     'the_handoff_s_default_map_is_the_lower_word',
     'the_handoff_s_endpoint_is_the_pinned_counts',

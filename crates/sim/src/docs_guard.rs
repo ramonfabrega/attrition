@@ -1922,21 +1922,17 @@ fn named_constant_lines(code: &str) -> String {
     out
 }
 
-/// The files `lib.rs` mounts only under `#[cfg(test)]`: `mod name;` on the
-/// line after the attribute.
-fn test_only_files(lib: &str) -> Vec<String> {
-    let lines: Vec<&str> = lib.lines().collect();
-    lines
-        .windows(2)
-        .filter(|w| w[0].trim() == "#[cfg(test)]")
-        .filter_map(|w| {
-            w[1].trim()
-                .strip_prefix("mod ")
-                .or_else(|| w[1].trim().strip_prefix("pub mod "))
-                .or_else(|| w[1].trim().strip_prefix("pub(crate) mod "))
-                .and_then(|m| m.strip_suffix(';'))
-                .map(|m| format!("{m}.rs"))
-        })
+/// The files the module tree mounts only under `#[cfg(test)]`, as paths
+/// under `src`: read from `lib.rs` down through every nested `mod.rs` and
+/// `#[path]` (`crate::no_float::module_tree`), so a test file a structure
+/// landing moves into a directory stays a test file (item 4008; it read
+/// `lib.rs`'s `#[cfg(test)]`-then-`mod x;` line pairs, by file name, and
+/// missed the three `#[path]` mounts).
+fn test_only_files(src: &std::path::Path) -> std::collections::BTreeSet<PathBuf> {
+    crate::no_float::module_tree(src)
+        .into_iter()
+        .filter(|(_, test)| *test)
+        .map(|(rel, _)| src.join(rel))
         .collect()
 }
 
@@ -1953,10 +1949,24 @@ fn the_decimal_spelling_is_read_from_production_code() {
         !code.contains("11520"),
         "a fixture's number read as the simulation's: {code}"
     );
-    let lib = "mod a;\n#[cfg(test)]\nmod harness_tests;\n#[cfg(test)]\nmod no_float;\npub mod b;\n";
+    let lib = "mod a;\n#[cfg(test)]\n#[path = \"harness_tests.rs\"]\nmod tests;\n\
+               #[cfg(test)]\nmod no_float;\npub mod b;\nfn f() {}\n";
+    let decls: Vec<(String, bool, Option<String>)> = crate::no_float::mod_decls(lib)
+        .into_iter()
+        .map(|d| (d.name, d.test, d.path))
+        .collect();
     assert_eq!(
-        test_only_files(lib),
-        vec!["harness_tests.rs".to_string(), "no_float.rs".to_string()]
+        decls,
+        vec![
+            ("a".to_string(), false, None),
+            (
+                "tests".to_string(),
+                true,
+                Some("harness_tests.rs".to_string())
+            ),
+            ("no_float".to_string(), true, None),
+            ("b".to_string(), false, None),
+        ]
     );
 }
 
@@ -2000,8 +2010,7 @@ fn a_constant_a_document_names_is_built_or_pinned() {
     // decimal spelling is read from the simulation's production code —
     // `#[cfg(test)]` items and the files `lib.rs` mounts under one are out.
     let mut sim_code = String::new();
-    let test_files =
-        test_only_files(&std::fs::read_to_string(sim.join("src/lib.rs")).expect("lib.rs"));
+    let test_files = test_only_files(&sim.join("src"));
     let mut stack = vec![crates];
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("crates/") {
@@ -2039,10 +2048,7 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                     }
                     file_code.push('\n');
                 }
-                let mounted_for_tests = path
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .is_some_and(|n| test_files.iter().any(|t| t == n));
+                let mounted_for_tests = test_files.contains(&path);
                 if path.starts_with(&sim) && !mounted_for_tests {
                     let raw = std::fs::read_to_string(&path).expect("read");
                     sim_code.push_str(&named_constant_lines(&production_code(&raw)).to_lowercase());
@@ -2605,27 +2611,144 @@ fn unscanned_seams(text: &str) -> Vec<(usize, String)> {
     out
 }
 
-/// `(file under crates/, seams)` — every `SEAM` that says no capture holds
+/// `(file, citation)` — every citation of `crates/sim/src/` in the tree that
+/// names nothing, on the day of the pin. **Exact, and it may only shrink.**
+/// At item 4008 these were the twelve journals that cite sweeps item 3731
+/// folded into `tools/emu/sweep_obj.py`'s row table: dated history, not
+/// typos, and a journal is its worker's alone (`docs/COMMANDS.md`'s one
+/// such citation, a specification's, was amended instead).
+const CITATIONS_NAMING_NOTHING: &[(&str, &str)] = &[
+    (
+        "docs/journal/2026-10-14-item-2379.md",
+        "crates/sim/src/sweep/command_manager_issue_*.rs",
+    ),
+    (
+        "docs/journal/2026-10-14-item-2395.md",
+        "crates/sim/src/sweep/command_manager_issue_{scramble,stop_spell,mp_log,cheat_view_all,spline,ping}.rs",
+    ),
+    (
+        "docs/journal/2026-10-14-item-2464.md",
+        "crates/sim/src/sweep/command_manager_issue_*.rs",
+    ),
+    (
+        "docs/journal/2026-10-15-item-2469.md",
+        "crates/sim/src/sweep/command_manager_issue_*.rs",
+    ),
+    (
+        "docs/journal/2026-10-17-item-2953.md",
+        "crates/sim/src/sweep/command_package_process_{clear_all,clear_tributes,demand_tribute,propose_attack,city_gather,transport,set_transport,patrol,attack_ground,eject_all}.rs",
+    ),
+    (
+        "docs/journal/2026-10-17-item-2959.md",
+        "crates/sim/src/sweep/command_package_process_{reject,come_out,cannon_time,begin,queue_up,form,gather_point,repair,garrison,gather}.rs",
+    ),
+    (
+        "docs/journal/2026-10-17-item-2990.md",
+        "crates/sim/src/sweep/command_package_process_{board_ship,siege_attack,swarm_around,attack,launch_patrol,flight,mp_log,build,move_near,chat_set}.rs",
+    ),
+    (
+        "docs/journal/2026-10-17-item-3014.md",
+        "crates/sim/src/sweep/command_package_process_{cheat_ai_speed_increase,ping,sell,trade,cheat_init_unit,quit,speed_set,console_cmd,hotkey,turn_data}.rs",
+    ),
+    (
+        "docs/journal/2026-10-17-item-3030.md",
+        "crates/sim/src/sweep/{tribes_find,signposts_add,objects_data_find_city_at,objects_data_find_city,object_poor_target,command_package_process_rename_city,unit_update_local_seen,wall_swap_team}.rs",
+    ),
+    (
+        "docs/journal/2026-10-17-item-3058.md",
+        "crates/sim/src/sweep/{unit_update_armor,build_swap_team,sub_object_swap_team,ammo_data_walk_data,game_walk_data,turn_control_end_cannon_time,tribes_find}.rs",
+    ),
+    (
+        "docs/journal/2026-10-20-item-3396.md",
+        "crates/sim/src/sweep/{army_do_defending,groups_process_driver,groups_process_body,hero_data_get_radius,unit_land_plane,command_manager_start,guy_process,standalone_a_f,standalone_g_o,standalone_u_z}.rs",
+    ),
+    (
+        "docs/journal/2026-10-21-item-3403.md",
+        "crates/sim/src/sweep/{command_package_process,command_package_process_default_arm,unit_process_head,unit_process_onmap,unit_process_inside,unit_process_train,build_process_head,build_process_supply,build_process_wonders,build_process_messages,build_process_city,standalone_a_f,standalone_u_z}.rs",
+    ),
+];
+
+/// **Every `crates/sim/src/…` path the tree cites names a file** (item
+/// 4008, `docs/STRUCTURE.md` §5, move 1): `docs/` cites the simulation's
+/// source by path about three thousand times, and the structure track
+/// moves every one of those files. `tools/paths.py --check` lists each
+/// citation that resolves to nothing — in `docs/`, `crates/` and
+/// `CLAUDE.md`, globs and brace lists spelt out — and `tools/paths.py move
+/// OLD NEW` is how a landing that moves a file takes its citations along.
+/// Made to fail first in a scratch copy of the tree with `air.rs` renamed.
+#[test]
+fn every_cited_sim_path_names_a_file() {
+    let root = docs().join("..");
+    let out = std::process::Command::new("python3")
+        .arg(root.join("tools/paths.py"))
+        .arg("--check")
+        .output()
+        .expect("python3 runs tools/paths.py");
+    let text = String::from_utf8_lossy(&out.stdout);
+    let found: std::collections::BTreeSet<(String, String)> = text
+        .lines()
+        .filter_map(|l| {
+            let (file, rest) = l.split_once(':')?;
+            let (_, cite) = rest.split_once(": ")?;
+            Some((file.to_string(), cite.to_string()))
+        })
+        .collect();
+    assert!(
+        out.status.success() || !found.is_empty(),
+        "tools/paths.py --check failed without a citation: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let pinned: std::collections::BTreeSet<(String, String)> = CITATIONS_NAMING_NOTHING
+        .iter()
+        .map(|(f, c)| (f.to_string(), c.to_string()))
+        .collect();
+    let new: Vec<String> = text
+        .lines()
+        .filter(|l| {
+            l.split_once(':')
+                .and_then(|(f, r)| r.split_once(": ").map(|(_, c)| (f, c)))
+                .is_some_and(|(f, c)| !pinned.contains(&(f.to_string(), c.to_string())))
+        })
+        .map(str::to_string)
+        .collect();
+    let mended: Vec<String> = pinned
+        .difference(&found)
+        .map(|(f, c)| format!("{f}: {c}"))
+        .collect();
+    assert!(
+        new.is_empty(),
+        "citations of crates/sim/src/ that name nothing — a moved file's \
+         citations move with it (`python3 tools/paths.py move OLD NEW`):\n  {}",
+        new.join("\n  ")
+    );
+    assert!(
+        mended.is_empty(),
+        "these resolve now or are gone; delete their CITATIONS_NAMING_NOTHING rows:\n  {}",
+        mended.join("\n  ")
+    );
+}
+
+/// `(file, seams)` — every `SEAM` that says no capture holds
 /// its arm and names no scan that looked, on the day of the pin. **Exact,
 /// and it may only fall**: a seam that gains its scan, or is built, lowers
 /// its row. The forty-nine are parked as item 1135, to be scanned against
 /// an archive that has grown a war and a second pair since most were
 /// written.
 const UNSCANNED_SEAMS: &[(&str, usize)] = &[
-    ("rondata/src/artdata.rs", 1),
-    ("rondata/src/golden.rs", 1),
-    ("rondata/src/input.rs", 1),
-    ("sim/src/ai_census.rs", 1),
-    ("sim/src/air.rs", 2),
-    ("sim/src/airbase.rs", 1),
-    ("sim/src/cast.rs", 1),
-    ("sim/src/collide.rs", 1),
-    ("sim/src/fight.rs", 4),
-    ("sim/src/group.rs", 3),
-    ("sim/src/lib.rs", 1),
-    ("sim/src/orders.rs", 7),
-    ("sim/src/rally.rs", 3),
-    ("sim/src/site_recruit.rs", 1),
+    ("crates/rondata/src/artdata.rs", 1),
+    ("crates/rondata/src/golden.rs", 1),
+    ("crates/rondata/src/input.rs", 1),
+    ("crates/sim/src/ai_census.rs", 1),
+    ("crates/sim/src/air.rs", 2),
+    ("crates/sim/src/airbase.rs", 1),
+    ("crates/sim/src/cast.rs", 1),
+    ("crates/sim/src/collide.rs", 1),
+    ("crates/sim/src/fight.rs", 4),
+    ("crates/sim/src/group.rs", 3),
+    ("crates/sim/src/lib.rs", 1),
+    ("crates/sim/src/orders.rs", 7),
+    ("crates/sim/src/rally.rs", 3),
+    ("crates/sim/src/site_recruit.rs", 1),
 ];
 
 /// **A `SEAM` that says "no capture has X" names the scan that found
@@ -2670,11 +2793,12 @@ fn a_seam_that_cites_the_disk_names_its_scan() {
     files.sort();
     let mut per_file: Vec<(String, Vec<(usize, String)>)> = Vec::new();
     for path in &files {
-        let name = path
-            .strip_prefix(&root)
-            .unwrap_or(path)
-            .to_string_lossy()
-            .to_string();
+        // The repository path, `crates/sim/src/…`, so `tools/paths.py`
+        // rewrites a row when its file moves (item 4008).
+        let name = format!(
+            "crates/{}",
+            path.strip_prefix(&root).unwrap_or(path).to_string_lossy()
+        );
         // This file quotes the phrases it looks for.
         if name.ends_with("docs_guard.rs") {
             continue;
@@ -2692,7 +2816,7 @@ fn a_seam_that_cites_the_disk_names_its_scan() {
             .map_or(0, |(_, c)| *c);
         if found.len() > pin {
             failures.push(format!(
-                "crates/{name} holds {} seams that cite the disk and name no scan, pinned at \
+                "{name} holds {} seams that cite the disk and name no scan, pinned at \
                  {pin} — write `scan: ` and the command in backticks, with what it found and \
                  over how many dumps:\n{}",
                 found.len(),
@@ -2704,7 +2828,7 @@ fn a_seam_that_cites_the_disk_names_its_scan() {
             ));
         } else if found.len() < pin {
             failures.push(format!(
-                "crates/{name} is down to {} unscanned seams from a pin of {pin}; lower the \
+                "{name} is down to {} unscanned seams from a pin of {pin}; lower the \
                  pin in UNSCANNED_SEAMS to bank it",
                 found.len()
             ));
@@ -2713,7 +2837,7 @@ fn a_seam_that_cites_the_disk_names_its_scan() {
     for (name, pin) in UNSCANNED_SEAMS {
         if *pin > 0 && !per_file.iter().any(|(n, _)| n == name) {
             failures.push(format!(
-                "crates/{name} has no unscanned seam; delete its UNSCANNED_SEAMS row"
+                "{name} has no unscanned seam; delete its UNSCANNED_SEAMS row"
             ));
         }
     }
