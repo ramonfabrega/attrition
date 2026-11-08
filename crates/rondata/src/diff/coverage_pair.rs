@@ -2429,5 +2429,10 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // `healing` rows arrive — the garrisoned Citizen `1/37` inside
     // `1/2000` on 2169, ours 0 against theirs' 5, and eight units 1
     // against 0 from 2389 (parked 3984b).
-    pin_eq!(w.firsts.len(), 9071, "initial run1075 baseline");
+    // **9070** with item 3993: `1/37`'s `healing` row leaves (the
+    // garrison heal now reads `has_damage` and gives one point down the
+    // chain, as theirs), and the reload compared on or off the map moves
+    // `1/108`'s `recharging` first from 2408 (ours 0, theirs 13) to 2389
+    // (ours 0, theirs 32). Every other first is the base's, row for row.
+    pin_eq!(w.firsts.len(), 9070, "initial run1075 baseline");
 }

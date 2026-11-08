@@ -18904,7 +18904,7 @@ them: a blow's size spends no draw.
 the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
 `blind::` is unmoved: run1544b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191)
+## 180. Chapter one hundred and twenty-nine — the patriot repair beside a Senator and a President, and the garrison heal under Herbal Lore; pinned open at 827 (item 3987, run1545, run1545b; 862 since item 4002, §191; 911 since item 3993, §186)
 
 **The booking** (parked 3961b, 3959a) named two arms: a Monarch, Comrade or CEO beside a damaged own building
 (`Build::process@0061edf0`'s arm to `0061f3b9`), and a wounded unit garrisoned by a player holding Herbal Lore. **The
@@ -19112,12 +19112,84 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 186. Reserved for the next item on the rules track
+## 186. Chapter one hundred and twenty-nine, 862 → 911 — a squad short a figure regrows it under the heal; the reload counts down inside (item 3993, run1545)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: ch129's word 862, theirs' first draw `Guy::init_real+0x52 < Unit::init+0xb97 <
+Unit::repair_damage+0x33d`, ours seven to theirs' eight (parked 3987b); with it the chapter's two other arms, a
+squad-shrinking technology on a short squad (`UnitData::total_damage@00609c00`) and a unit garrisoned inside its
+reload. No run was taken (1551 unused): the disk answered the word.
+
+**The widening on 863** (`chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole` on the base): four rows,
+`0/8 healing` ours 0 theirs 15, `0/8 group` and `0/10 group` ours 1 theirs −1, `0/9 unlinked` (the dump holds it
+alone). run1545 prints the squad `0/8` → `0/10` → `0/9` inside `0/2000` (Hoplites, TI 132, land): `0/9` uid 20,
+`hits` 120, `damage` 39, `inside_up` 10; `0/10` `inside_down` 9. The `0/9` that died on 809 was uid 18.
+
+**The chain** (`Unit::process_healing@005e0670`, its garrison arm at `005e08c5`):
+
+```text
+captain, not air, UnitData::has_damage(this, 1)          # :34, every arm's gate
+  has_damage walks o_down: a figure with flags & 1 clear → 1   # 00609b50 — the dead tail counts
+inside a building that heals the kind, (o + frame) % rate == 0:
+  repair_damage(1, 1, 1); unit_masks &= ~0x4000; healing = max(rate, healing)
+```
+
+`Unit::repair_damage@0060de10` gives one point down the chain from the captain: `left = amount − damage`, the
+figure's damage cut, and while `left > 0` the call recurses on `o_down` **only if that figure is alive**. Past the
+last live one:
+
+```text
+uber_size (+0x308) > curr_uber_size(this, 0) and (inside_up >= 0 or !(unit_masks & 4)):
+  n = Objects::find_free(who, 0, 2000, &mark, o_down)    # param_5 >= 0: that number, unconditionally
+  n.init(who, type, n, x, y)                              # vslot +0x8c, Unit::init — Guy::init_real's draw
+  n.o_up, n.o_down = the dead tail's (+0x8e, +0x90)       # saved before init, restored over its −1s
+  n.damage = hits(this) / uber_size; n.stance = this.stance; n.unit_masks = this.unit_masks
+  inside: Object::insert_inside(n, host)  else: find_nearby_spot, add_move_order(QUEUE_NEW)
+  console selection, this.group, the hotkey groups: member(this.o) → Group::kill(this.o); Group::add(this.o)
+  n.repair_damage(left, sparkle, 0)
+```
+
+`Group::kill@00714110` takes the whole squad out and clears each `+0x80` that names the group; `Group::add@00714350`
+puts it back in the list and **writes no `+0x80`**: the three figures read `group` −1. On 862 the heal's point
+passes the whole `0/8` and `0/10`, regrows `0/9` at 40 down (120 / 3) and lands on it: 39.
+
+**Built** (`sim::heal`): `Sim::repair_unit_damage` recurses only through live figures; `Sim::regrow_figure` is the
+block above, born through `Sim::init_figure` (one `Unit::init`, split out of `Sim::init_unit`'s loop) into the
+dead tail's number. This crate keeps the dead occupant as its own entry, so the figures either side are pointed at
+the new one and the old is unlinked. `Sim::has_damage` is `00609b50`, and **every heal arm** reads it now
+(`process_healing:34` is one gate for all of them); the garrison heal gives `repair_damage(1)`'s one point down the
+chain where it gave every hurt figure a point.
+
+**The value diff, 863**: ours' new `0/9` stands inside `0/2000` behind `0/10`, `damage` 39, `group` −1 on all
+three, `0/8 healing` 15 — the four rows leave, and the window agrees through 911. `WANT_CH129` 249 → 237: the four,
+`0/5`'s rows of 877–879, `1/5`'s of 896–907 and `1/14`'s of 908 leave; the later rows are re-dated.
+
+**The word moves 862 → 911** (`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE`). On 911 theirs draws the Barracks
+`0/2000`'s shot at `1/12` — `Object::fire_ammo+0x3d5`, `+0x406`, `Ammo::init+0xcd9`, `+0xd0b` after `1/10`'s
+`Unit::set_anim` — and two gaia `Guy::set_anim+0x104b`; ours draws no shot and five gaia rolls: 12 to 13. The
+widening's first rows are `912 0/2000 build:attack_ox` (ours −1, theirs 12) and `attack_whom` (−1, 1), standing
+since 3987.
+
+**The reload inside** (`Unit::process@00610bc0:59`–`:61`): `UnitData +0xae` is counted down at the head, before
+`inside_up` splits the frame, so a unit garrisoned inside its reload spends it inside. This crate counted it after
+the `!on_map` return. Moved to the head beside `full` and `waiting`, and `UNITDATA recharging` is compared on or
+off the map (`diff::harness`), as `healing` has been since 3987. The ungated compare parted nothing on any golden
+widening or the coverage driver: **no capture on disk holds a unit inside its reload**, so the arm is held by
+`cities_tests::a_unit_garrisoned_inside_its_reload_counts_it_down_inside` alone (parked 3993a).
+
+**The short squad's `total_damage`** is read, not built (parked 3993b): the captain's damage, each live
+follower's, `(uber_size − curr_uber_size(this, 1)) × hits / uber_size` for the missing figures, and the fractions'
+sum `>> 4` past 15 — where `Sim::upgrade_units_to` sums `max_health − health` over every linked figure, a dead tail's
+whole hits included. No dump on disk shrinks a squad.
+
+**Killers** (`tools/mutate.py`): see the journal's table — the regrow switched off, `has_damage` blind to the dead,
+the group pair off, and the reload counted outside only.
+
+**What is not established**: the outside arm (`find_nearby_spot` and the move order — the figure stays on the
+tail's point here); the console's selection and the hotkey groups, which this crate does not carry; a chain with no
+dead tail (`o_down < 0`, the listing's error report, where the original numbers a fresh object); and whether the
+regrown figure counts in the leader's `num_units` (`Unit::init`'s `set_type` runs before the links are restored,
+and run1545's `LEADERS=2` prints no count).
+
 
 ## 187. Reserved for the next item on the rules track
 
