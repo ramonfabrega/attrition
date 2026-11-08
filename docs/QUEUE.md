@@ -103,7 +103,7 @@ widening's row count; no run booked; AI §416; gate `--tests coverage_pair cover
 slot.
 
 3985. **Three spells on an All-Technologies lobby** (a `chapter` item on the rules track; adjudication 3 rows 46, 49, 58, 47): Blow Tread
-on a full-health enemy vehicle (`SpellType::cast_blow_tread@00672cb0` sets the target's `+0x24` damage to 1 if 0; no `0x282` arm in
+on a full-health enemy vehicle (`SpellType::cast_blow_tread`, 00672cb0 in the adjudication, sets the target's `+0x24` damage to 1 if 0; no `0x282` arm in
 `cast_on`), a paid Restock Supplies cast interrupted before it lands (`unpay_cast_costs@00676ff0`'s resource half is a `SEAM` at
 `orders.rs:2390`; `TypeData::get_cost@00664090`'s spell arm, `COST2 × spell_cost_factor`, has no caller at `cost.rs:37`), and a Spy's
 Bribe from beyond base range (`SpellTypeData::get_range@00676a80`'s upgrade terms; `cast.rs:524–533` carries the row and the Informer
@@ -159,7 +159,7 @@ declared seam at `group.rs:3793`); `inside`, the figure's `z` and the ground mem
 3992. **The building defence remainder** (a `chapter` item; parked 3970b; adjudication 4 row 64, adjudication 5 row 36): a Fort of a
 FORTRANGE2 holder with a garrisoned General and a target between the base and the upgraded range (`FORT_UPGRADE_RANGE` and
 `GENERAL_BUILDING_RANGE` are built in `sim::build_family` and no walk binds them), a cityless player placing on a rival's seen ground
-(`WorldData::is_really_seen@006b42c0`, `in_enemy_territory`'s last arm; `place.rs:620–641` takes it false, parked 2250), and a dock
+(`WorldData::is_really_seen`, 006b42c0 in the adjudication,, `in_enemy_territory`'s last arm; `place.rs:620–641` takes it false, parked 2250), and a dock
 astride a border (`check_enemy_adjacent@00638d70`'s ring probe replaces the own-cell owner, `Wall::process:209–219`; `fight.rs:670` takes
 the own cell) — the dock first as a harness probe over every dock on every dumped frame, staged only if no dump answers;
 `attack_ox`/`attack_whom`, `build_unlinked`, dock `damage` compared; run 1550; GOLDEN §185; gate `--tests golden coverage::

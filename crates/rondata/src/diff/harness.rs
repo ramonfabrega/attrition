@@ -2616,11 +2616,11 @@ fn widened_bits_match_the_rows() {
         .next()
         .unwrap();
     let mut rows = 0;
-    for (label, mask) in [
-        ("unit_masks", "unit_masks.map(|m| i64::from(m & "),
-        ("unit_masks2", "unit_masks2.map(|m| i64::from(m & "),
-    ] {
-        for (at, _) in body.match_indices(mask) {
+    // Not the `("name", ours, theirs)` idiom: `writers::compared_fields_have_writers`
+    // reads every such tuple in this file as a comparison row.
+    for label in ["unit_masks", "unit_masks2"] {
+        let mask = format!("{label}.map(|m| i64::from(m & ");
+        for (at, _) in body.match_indices(mask.as_str()) {
             let digits = body[at + mask.len()..].split(' ').next().unwrap();
             let bit =
                 i64::from_str_radix(&digits.trim_start_matches("0x").replace('_', ""), 16).unwrap();
