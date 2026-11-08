@@ -2622,8 +2622,8 @@ fn widened_bits_match_the_rows() {
     ] {
         for (at, _) in body.match_indices(mask) {
             let digits = body[at + mask.len()..].split(' ').next().unwrap();
-            let bit = i64::from_str_radix(&digits.trim_start_matches("0x").replace('_', ""), 16)
-                .unwrap();
+            let bit =
+                i64::from_str_radix(&digits.trim_start_matches("0x").replace('_', ""), 16).unwrap();
             // The row's label is the last string literal before the mask.
             let name = body[..at].rsplit('"').nth(1).unwrap();
             assert_eq!(
@@ -7599,7 +7599,10 @@ pub(crate) mod tests {
                 let region = cached
                     .as_ref()
                     .and_then(|value| value.regions.get(who).and_then(Option::as_ref));
-                note_leader_skips(&mine, t.keys().chain(region.into_iter().flat_map(|r| r.keys())));
+                note_leader_skips(
+                    &mine,
+                    t.keys().chain(region.into_iter().flat_map(|r| r.keys())),
+                );
             }
             // **Gaia's animals** (parked 577): [`widen_gaia`].
             if gaia {
