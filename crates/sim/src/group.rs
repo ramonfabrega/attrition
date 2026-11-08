@@ -3569,9 +3569,10 @@ impl Sim {
     /// existing patrol (`update_patrol_order`) instead of issuing one —
     /// here it issues; a member off the map with type flag `0x20` gets a
     /// plain move; the scenario's `ignore_orders` filter; a buildings
-    /// group. `UnitData::is_busy@0060a370` is a head `CastOrder` here — the
-    /// original also asks the spell's type two questions, and whether the
-    /// unit is entering or exiting a building.
+    /// group. `UnitData::is_busy@0060a370` is [`Self::is_busy`]: a head pack
+    /// or unpack, never another cast — and a lone member's alone, since a
+    /// group's leader halts every member in `do_patrol`'s `QUEUE_FIRST`
+    /// move the same frame (item 3988, `docs/GOLDEN.md` §181).
     pub fn group_action_patrol(&mut self, g: &Group, to: Pos, queue: QueuePos) {
         let to = self.restrict_pos(to);
         let queue = if queue == QueuePos::First {
@@ -3610,7 +3611,7 @@ impl Sim {
             if !self.group_member_orderable(m) {
                 continue;
             }
-            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            let busy = self.is_busy(m);
             if busy {
                 continue;
             }
@@ -3644,7 +3645,7 @@ impl Sim {
             if !self.units[m].alive() || !self.is_plane(m) {
                 continue;
             }
-            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            let busy = self.is_busy(m);
             if busy || self.profile(Obj::Unit(m)).has(crate::combat::mask::MISSILE) {
                 continue;
             }
@@ -3733,7 +3734,7 @@ impl Sim {
             if self.profile(Obj::Unit(m)).has(crate::combat::mask::MISSILE) {
                 continue;
             }
-            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            let busy = self.is_busy(m);
             if busy {
                 continue;
             }
