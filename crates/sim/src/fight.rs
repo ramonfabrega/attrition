@@ -3318,6 +3318,9 @@ impl Sim {
                 // hands on to its captain below.
                 let overflow = u.max_health - u.health - share;
                 let decoy = u.decoy;
+                // `take_damage@00652020:176`-`:214`: a Citizen struck rings
+                // its city's bell before the kill arm (item 3984).
+                self.peasant_alarm(i);
                 if matches!(taken, Taken::Alive { .. }) {
                     self.struck_alive(i);
                 }

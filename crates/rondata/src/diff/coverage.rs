@@ -3678,10 +3678,12 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // on the tree after `ccc update`'s base).
     // Item 1598: run714's window carries a paired strafe; `strafe_xx` and
     // `strafe_yy` leave the pin.
+    // Item 3984: run1075's window holds who=1's citizens on the bell's
+    // `GARRISONORDER search=1` from 2073 on both sides, so
+    // `garrison_search` leaves the pin.
     (
         "OrderDump",
         "build_type \
-         garrison_search \
          metric non_flat_gather \
          orig_x orig_y \
          tolerance uid ",
@@ -3993,6 +3995,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::coverage_pair::coverage_frame_4582_window(),
         || super::coverage_pair::coverage_closing_window(),
         || super::coverage_pair::carrier_1066_window(),
+        || super::coverage_pair::garrison_1075_window(),
         || super::sahara_coverage::sahara_coverage_frame_12_window(),
         || super::sahara_coverage::sahara_coverage_frame_720_window(),
         || super::sahara_coverage::sahara_coverage_frame_1250_window(),

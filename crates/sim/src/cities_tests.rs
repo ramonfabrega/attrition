@@ -8388,6 +8388,71 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     assert!(sim.buildings[b].garrison.is_empty());
 }
 
+/// **A Citizen struck rings its city's bell, and only a computer's, once**
+/// (item 3984, `docs/AI.md` §416; `Object::take_damage@00652020:176`-`:214`,
+/// [`Sim::peasant_alarm`]): run1075's 2072, where the first of `1/2033`'s
+/// four repairers to take the Battleship's spill sends every Citizen in the
+/// city's radius to garrison. A human's Citizen, a computer under
+/// difficulty 2, a Militia, a Citizen outside every city's radius and a
+/// city whose bell is already rung ring nothing — the last does not sound
+/// the all-clear, which a second `action_alarm` would.
+///
+/// Made to fail with the human gate dropped, with the difficulty gate at
+/// `< 1`, and with the bell gate dropped.
+#[test]
+fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
+    use crate::orders::{Body, index};
+    let fresh = || {
+        let (mut sim, t, citizen, militia) = alarm_sim();
+        // `ObjectData::is_peasant`: the type's `+0x4` is `0x32`.
+        sim.unit_types[citizen].worker = crate::orders::Worker::Citizen;
+        let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+        sim.nation[0].human = false;
+        sim.lobby.difficulty = 2;
+        let near = sim.init_unit(0, citizen, tile_pos(38, 32));
+        let other = sim.init_unit(0, citizen, tile_pos(34, 30));
+        let far = sim.init_unit(0, citizen, tile_pos(60, 60));
+        let m = sim.init_unit(0, militia, tile_pos(36, 36));
+        (sim, b, c, near, other, far, m)
+    };
+    let garrisoning = |sim: &Sim, u: usize, b: usize| {
+        matches!(sim.units[u].orders.front().map(|o| o.body),
+            Some(Body::Garrison { building, search: true }) if building == b)
+    };
+
+    let (mut sim, b, c, near, other, _, _) = fresh();
+    sim.peasant_alarm(near);
+    assert!(sim.cities[c].alarm, "the bell");
+    assert!(garrisoning(&sim, near, b), "{:?}", sim.units[near].orders);
+    assert!(garrisoning(&sim, other, b), "every Citizen in the radius");
+    // A second blow: the bell is rung, nothing toggles.
+    sim.peasant_alarm(other);
+    assert!(sim.cities[c].alarm, "no all-clear from a blow");
+    assert!(garrisoning(&sim, other, b));
+
+    let (mut sim, _, c, near, other, _, _) = fresh();
+    sim.nation[0].human = true;
+    sim.peasant_alarm(near);
+    assert!(!sim.cities[c].alarm, "a human's Citizen rings nothing");
+    assert!(
+        sim.units[other]
+            .orders
+            .iter()
+            .all(|o| o.index() != index::GARRISON)
+    );
+
+    let (mut sim, _, c, near, _, _, _) = fresh();
+    sim.lobby.difficulty = 1;
+    sim.peasant_alarm(near);
+    assert!(!sim.cities[c].alarm, "get_diff > 1");
+
+    let (mut sim, _, c, _, _, far, m) = fresh();
+    sim.peasant_alarm(m);
+    assert!(!sim.cities[c].alarm, "a Militia is no peasant");
+    sim.peasant_alarm(far);
+    assert!(!sim.cities[c].alarm, "outside every city");
+}
+
 /// **A peasant alarm sends each selected Citizen to the nearest building
 /// it can garrison, however far** (item 3916, `docs/GOLDEN.md` §163;
 /// `Group::action_alarm_peasant@006fd980`, run1510c): the search's range is

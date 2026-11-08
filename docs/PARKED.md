@@ -15425,13 +15425,25 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   uid-20 figure is born (854–862, `births.py`). Score: the `0/8 healing` and `0/9 unlinked` rows of `WANT_CH129`, −1
   each when it lands.
 
-## Parked by the next landing, slot CW — reserved
+## Parked by item 3984, 2026-11-08 — a Citizen struck rings its city's bell
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3984a. run1075's garrison count parts on 2188, on a stream parted since 2060** (`docs/AI.md` §416.3;
+  `coverage_pair::run1075_s_garrison_counts_part_by_the_record`, 432 parted records;
+  `run1075_s_garrison_window_is_widened_whole`, 9062 firsts). On 2188 theirs' citizen `1/5` goes into
+  `1/2000` behind `1/3` (`peasants_garr` 4) and ours' is still walking (3). Ours' `1/5` parts on 2089
+  on `move.pause`, 5 against 2, which is the collision stagger's draw (`roll() % 9 + 1`), as the soldier
+  `1/62`'s does on 2076 (9 against 2). So the draw stream had parted before the garrison chain moved.
+  The window's first gameplay parting is **2060**: the staged Battleships strike who=1's ships in ours
+  alone (`1/59` `hits:damage` 10 against 0, `damage_frame` 2059; `1/75` on 2061, `1/61` on 2062). No
+  `AMMO` prints at the capture's detail (`MISC,UNITS=3,LEADERS=9`), so the shot's own record is not on
+  disk; the trace's draws on 2059 are the next instrument. **Score**: the tally's 432 and the widening's
+  9062, by the frame 2060.
+- **3984b. run1075's `healing` rows after 3987's garrison heal** (`run1075_s_garrison_window_is_widened_whole`,
+  9062 → 9071 on the merge of item 3987). The garrisoned Citizen `1/37` inside `1/2000` reads `healing` 0 against
+  theirs' 5 on 2169, so the new garrison heal does not reach a Citizen there. Eight units read 1 against 0 from
+  2389: `1/108` 2389, `1/113` 2432, `1/120` 2485, `1/122` 2511, `1/59` 2534, `1/135` 2610, `1/138` 2631,
+  `1/132` 2797. run1075 is the one walk on disk with a computer's Citizen garrisoned. **Score**: those nine
+  rows of the widening, by the frame 2169.
 
 ## Parked by the next landing, slot CX — reserved
 
