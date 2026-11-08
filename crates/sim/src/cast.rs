@@ -708,7 +708,9 @@ impl Sim {
     /// back the order) of type 0 or 1, added by `Unit::land_plane` and
     /// `Unit::come_out` alone, and `Unit::do_spec_anim` ends it on its
     /// first call, so no command meets one at a frame boundary; no dump on
-    /// disk prints a `SPECIALANIMORDER` (`docs/GOLDEN.md` §30).
+    /// disk prints a `SPECIALANIMORDER` (`docs/GOLDEN.md` §30; scan: `find
+    /// -L ~/ron-golden -maxdepth 4 -name 'gamelog*.txt' | xargs grep -l
+    /// SPECIALANIMORDER`, none of 2362 files, links followed, 2026-11-08).
     pub(crate) fn is_busy(&self, u: usize) -> bool {
         self.is_packing_or_unpacking(u)
     }
