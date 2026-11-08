@@ -1,4 +1,4 @@
-# Golden record, chapter one hundred and thirty-two -- the building defence remainder: a dock astride a border, and a
+# Golden record, chapter one hundred and thirty-three -- the building defence remainder: a dock astride a border, and a
 # Fort's upgraded reach with a General inside (item 3992, GOLDEN 185; parked 3970b; adjudication 4 row 64, adjudication 5
 # row 36). Chapter one hundred and twenty-five's lobby (GOLDEN 175: the golden start, map 14, who=1 the British).
 #   Arm 1: `Wall::process@00640450:209`-`:219` -- a dock (`is_dock`, the type's vslot `+0x108`) asks
@@ -22,13 +22,13 @@
 #   (3) the Fort never names `0/6` in `attack_ox` -- the staging did not reach the reach test;
 #   (4) the Fort's first target block is later than the crate's (648) -- the reach is 13 tiles or less in theirs.
 #   run1550 (cover=0), with chapter one hundred and twenty-five's lobby:
-#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch132 \
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch133 \
 #       --map 14 --end-frame 1000 --log-window 600 1000 --timeout 3600 \
 #       --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,GROUPS=1,AMMO=5 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1 --ai-tribe 11 --profile DIFFICULTY=0 --profile STARTING_RESOURCES=1 \
 #       --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=7 \
-#       --cmd-file tools/gamelog/golden/chapter132.cmd
+#       --cmd-file tools/gamelog/golden/chapter133.cmd
 0 !ai off
 604 add dock who=1 59,152
 606 add dock who=1 57,154
