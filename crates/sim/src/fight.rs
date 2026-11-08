@@ -5254,7 +5254,14 @@ impl Sim {
                         || self.hard_trench(i)
                         || (ap.packs && !c.packed)
                 }
-                Obj::Building(_) => false,
+                // **A building must reach what it takes** (item 4004,
+                // `docs/COMBAT.md` §60.2, `docs/GOLDEN.md` §192): vslot
+                // `+0x18` answers 0 for a non-unit, so `64911b`'s first arm
+                // sets `local_24` to 1 and `local_5c` stays 0, and the range
+                // gate skips every candidate out of range. Ours kept an
+                // armed or unit one untested; run1545's capital `0/2000`
+                // held the departing `1/14` over `1/12` on 911 and cleared.
+                Obj::Building(_) => true,
             };
         let minr = ap.min_range * 0xc0;
         let maxr = self.max_range_of(attacker) * 0xc0;
@@ -5401,8 +5408,8 @@ impl Sim {
                         // One that must is tested, and a candidate out of
                         // range is skipped: `local_5c`, the one exception,
                         // is a computer's packed siege engine, which this
-                        // crate does not flag (§60.4). A building needs the
-                        // target in range or worth waiting for.
+                        // crate does not flag (§60.4). A building must
+                        // reach (item 4004).
                         // A guard deems in range only an armed candidate,
                         // and under `unit_masks & 0x40000` only one without
                         // `ANTI_AIR` (`:346`–`352`); the rest it must reach.
@@ -5422,13 +5429,8 @@ impl Sim {
                                 }
                             }
                             false
-                        } else if matches!(attacker, Obj::Unit(_)) || self.is_in_range(attacker, o)
-                        {
-                            true
-                        } else if is_unit || self.attack_of(o) != 0 {
-                            false
                         } else {
-                            continue;
+                            true
                         };
                         if matches!(attacker, Obj::Unit(_)) {
                             if minr == 0 && maxr != 0 && dist + 0x180 < maxr {

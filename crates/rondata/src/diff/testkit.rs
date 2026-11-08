@@ -7006,8 +7006,12 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL: (i64, i64) 
 /// `Unit::repair_damage` regrows the figure past the chain's last live one
 /// into the dead tail's number; the word is now theirs' Barracks `0/2000`
 /// firing on `1/12` (`Object::fire_ammo`, `Ammo::init`), ours 12 draws to
-/// theirs' 13.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 911;
+/// theirs' 13. 911 → 997 (+86, item 4004, GOLDEN §192): a building's
+/// search must reach what it takes (`find_nearby_target`'s `local_24`), so
+/// the capital `0/2000` leaves the departing `1/14` for `1/12` and fires;
+/// the word is now theirs' Senator `0/6` going idle, three
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, ours 2 draws to theirs' 5.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 997;
 
 /// `chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole`'s
 /// window: run1545.

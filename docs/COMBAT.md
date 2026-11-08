@@ -10548,7 +10548,7 @@ before the tail, and it still stands.
 
 ### 60.4 The build, and what moved
 
-- `Sim::find_nearby_target`: `must_reach` is `local_24` for a unit.
+- `Sim::find_nearby_target`: `must_reach` is `local_24` for a unit, and for a building since item 4004 (`docs/GOLDEN.md` §192).
   Those units test `is_in_range` and skip a miss, and they score with
   `in_range = false`.
 - `Sim::do_attack`'s tail: a packer kills the attack and runs
