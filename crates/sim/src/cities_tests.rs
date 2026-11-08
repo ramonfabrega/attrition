@@ -10325,7 +10325,8 @@ fn an_obsidian_holder_s_tower_hits_harder() {
 ///
 /// Made to fail by [`Sim::unqueue_home`]'s Disband test removed from
 /// `action_unqueue` (the first library's technology goes, the Disband
-/// stays).
+/// stays), and by [`Sim::cancel`] taking a Disband's `ty` 0 off as a unit's
+/// count (the fixture holds no unit type, so the take panics).
 #[test]
 fn a_second_library_s_own_disband_is_cancelled_where_it_stands() {
     let mut sim = world_sim();

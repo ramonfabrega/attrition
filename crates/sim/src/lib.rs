@@ -4362,7 +4362,10 @@ impl Sim {
         if let Some(t) = item.tech {
             self.tech[who as usize].queued[t] -= 1;
             self.track_age_epoch_queued(who, t, -1);
-        } else {
+        } else if !item.disband {
+            // A `DISBAND` entry's tally is `num_queued[0x29a]`, a craft's,
+            // which this crate never raised ([`Sim::queue_disband`]); its
+            // `ty` 0 is no unit's (item 3989).
             self.untrack_queued(who, item.ty);
         }
         Some(item)
