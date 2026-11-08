@@ -2400,18 +2400,12 @@ fn run1075_s_garrison_window_is_widened_whole() {
         .map(|(k, v)| format!("{k:?} {v:?}"))
         .collect();
     eprintln!("run1075 garrison rows: {garr:#?}");
-    let mut first: Vec<_> = w
-        .firsts
-        .iter()
-        .map(|(k, v)| (v.0, k.clone(), v.1.clone()))
-        .collect();
-    first.sort();
-    for r in first
-        .iter()
-        .filter(|r| r.0 > WIDENING_GARRISON_1075.0)
-        .take(80)
-    {
-        eprintln!("run1075 first: {r:?}");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
     }
     pin_eq!(w.blocks, 732, "every captured block");
     pin_eq!(garr.len(), 0, "the garrison counts part nowhere");

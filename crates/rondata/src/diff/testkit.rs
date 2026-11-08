@@ -7520,9 +7520,9 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3984: run1075 walked from the coverage pair's start with its
     // eleven staged Battleships, whose shells land on the corners the zero
-    // stands over: 77 to the capture's last block 2820.
-    ("run1075_s_garrison_counts_part_by_the_record", 77),
-    ("run1075_s_garrison_window_is_widened_whole", 77),
+    // stands over: 85 to the capture's last block 2820.
+    ("run1075_s_garrison_counts_part_by_the_record", 85),
+    ("run1075_s_garrison_window_is_widened_whole", 85),
     // Item 3970: chapter one hundred and twenty-six, run1541 walked to its
     // end 1100 — one inexact corner under the Chariots' and the arrows'
     // reads (three before the City's arrow struck the Temple, 804).
