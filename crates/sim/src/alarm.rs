@@ -111,8 +111,8 @@ impl Sim {
     /// `GARRISONORDER` in front of its REPAIR, so the spill passes the other
     /// three by. `leader_flags2 & 8` is the combat AI's scenario switch,
     /// never set here (`docs/ARMY.md` §18). SEAMS: the group is not pushed
-    /// on the player's pool (`Groups::push_group`'s slot, which no dump
-    /// shows held past the frame); attrition's blow (`Unit::suffer_attrition`
+    /// on the player's pool (`Groups::push_group`'s slot; run1075's
+    /// widening parts no pool row on 2073 without it); attrition's blow (`Unit::suffer_attrition`
     /// calls `take_damage` with `param_5` 1, which this arm does not read)
     /// does not come through here, and needs a computer Citizen bleeding
     /// on a cell `find_city_at` accepts for its own city — neutral

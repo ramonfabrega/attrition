@@ -41126,7 +41126,7 @@ The window's first gameplay parting is 2060: the staged Battleships strike who=1
   agreeing) and the counts' agreement through 2187.
 - **Reading alone:** the `leader_flags2 & 8` gate (never set in this crate); the city building's
   `finished` test, read as `alive && active`; the group the arm pushes on the player's pool, which is
-  not pushed here (no dump shows a slot held past the frame).
+  not pushed here (run1075's widening parts no pool row on 2073 without it).
 - **The sister arm, the wall notice** (lines 220–290, a city building struck from outside rings its
   city's bell), is not wired either. Theirs' 2072 shows it did not fire on `1/2033`'s splash, since its
   repairers were still spilled on, so no walk on disk asks for it.
