@@ -3712,7 +3712,7 @@ const SKIPPED_BY_THE_LEADER_COMPARATOR: &[(&str, &str, usize)] = &[
     // Pinned 2026-11-07, items 3956/3957, on the coverage driver's 86,724
     // blocks, with item 3969's technology `num_queued` rows emitted. The
     // six per-seat arrays are rowed for the game's own seats alone
-    // (`leader::rows`' `for i in 0..players`), so the eight-seat array's
+    // (`leader::rows`' loop over `built.sim.players`), so the eight-seat array's
     // empty slots are skipped — six keys, `[2]` and up on a two-seat
     // lobby; `num_queued` on 319 indices, the first `[352]`, that the
     // crate rows as neither a unit record (`MUSTER_WIDTH`) nor a
