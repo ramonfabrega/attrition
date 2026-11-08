@@ -207,3 +207,100 @@ class RuntimePolicy(unittest.TestCase):
             policy = json.loads((report / 'gate-policy.json').read_text())['test_allocator']
             self.assertEqual(policy['requested'], 'auto')
             self.assertIsNone(policy['MallocLargeCache'])
+
+
+class CheckTimeout(unittest.TestCase):
+    """Item 3974: `tools/check.sh test` scales the budget's execution timeout
+    to the count of timed tests its Cargo arguments select, 1800 s the floor;
+    the whole rondata lib was killed at 1800 s (`third_pair::run661`)."""
+
+    TIMED = ['diff::golden::a', 'diff::golden::b', 'diff::third_pair::run661',
+             'diff::third_pair::run662', 'survey::z']
+
+    def timeout(self, *args, names=None):
+        return runtime.check_timeout(['cargo', 'test', '--jobs', '8', *args],
+                                     self.TIMED if names is None else names)
+
+    def test_the_floor_holds_for_a_small_selection(self):
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', 'run661'), 1800)
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', '--', '--exact', 'survey::z'), 1800)
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', 'no_such_test'), 1800)
+
+    def test_the_count_is_libtest_s_selection(self):
+        names = [f'diff::golden::t{i}' for i in range(2000)] + [f'diff::harness::t{i}' for i in range(1000)]
+        per = runtime.CHECK_SECONDS_PER_TEST
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', '--lib', names=names), 3000 * per)
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', 'golden', names=names), max(1800, 2000 * per))
+        # A filter after `--` selects too; a `--skip` takes away; any filter matching admits.
+        self.assertEqual(self.timeout('--release', '--package=rondata', '--', 'diff::', '--skip', 'harness',
+                                      names=names), max(1800, 2000 * per))
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', '--', 'golden', 'harness', '--test-threads', '2',
+                                      names=names), 3000 * per)
+        # The workspace selects rondata; another package alone does not.
+        self.assertEqual(self.timeout('--release', names=names), 3000 * per)
+        self.assertEqual(self.timeout('--release', '-p', 'sim', names=names), 1800)
+        self.assertEqual(self.timeout('--release', '--workspace', '--exclude', 'rondata', names=names), 1800)
+        # Option values are not filters.
+        self.assertEqual(self.timeout('--release', '-p', 'rondata', '--features', 'golden', names=names), 3000 * per)
+        # Not a test run: the floor.
+        self.assertEqual(runtime.check_timeout(['cargo', 'build', '--release'], names), 1800)
+
+    def test_the_whole_lib_on_the_live_timings_outruns_the_old_1800(self):
+        # Today's computation (`resource_budget.py`'s fixed default) is 1800
+        # for every selection; the whole lib's count asks for more.
+        names = list(runtime.timed_names())
+        self.assertGreater(len(names), 1000)
+        whole = self.timeout('--release', '-p', 'rondata', '--lib', names=names)
+        self.assertEqual(whole, len(names) * runtime.CHECK_SECONDS_PER_TEST)
+        self.assertGreater(whole, 1800)
+
+    def test_check_sh_test_asks_the_budget_to_scale_and_nothing_else_does(self):
+        root = Path(__file__).resolve().parents[2]
+        check = (root / 'tools/check.sh').read_text()
+        self.assertIn('--test-count-timeout', check)
+        # The gate and the isolated runner keep the budget's fixed default.
+        for other in ('tools/release_gate.py', 'tools/isolated_tests.py', 'tools/guard.sh'):
+            self.assertNotIn('--test-count-timeout', (root / other).read_text())
+
+    def test_check_sh_passes_the_flag_for_test_alone(self):
+        # A copy of check.sh beside a stand-in budget that prints its argv:
+        # nothing is built or admitted.
+        import shutil
+        import subprocess
+        root = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / 'tools').mkdir()
+            shutil.copy(root / 'tools/check.sh', Path(d) / 'tools/check.sh')
+            (Path(d) / 'tools/resource_budget.py').write_text('import sys\nprint(sys.argv[1:])\n')
+            def argv(*args):
+                done = subprocess.run(['zsh', str(Path(d) / 'tools/check.sh'), *args],
+                                      capture_output=True, text=True, check=True)
+                return eval(done.stdout)
+            self.assertEqual(argv('test', '-p', 'rondata', 'x'),
+                             ['--cpu', '8', '--memory-mib', '32768', '--test-count-timeout', '--',
+                              'cargo', 'test', '--jobs', '8', '-p', 'rondata', 'x'])
+            self.assertEqual(argv('build', '--release'),
+                             ['--cpu', '8', '--memory-mib', '32768', '--',
+                              'cargo', 'build', '--jobs', '8', '--release'])
+
+    def test_the_budget_takes_the_scaled_timeout_and_an_explicit_one_wins(self):
+        import resource_budget as budget
+        seen = {}
+        def supervise(command, **kwargs):
+            seen.update(kwargs)
+            return 0
+        command = ['cargo', 'test', '--release', '-p', 'rondata', '--lib']
+        with patch.object(budget, 'supervise', supervise), \
+                patch.object(runtime, 'timed_names', lambda: [f't{i}' for i in range(5000)]), \
+                patch.object(sys, 'argv', ['resource_budget.py', '--test-count-timeout', '--', *command]):
+            self.assertEqual(budget.main(), 0)
+        self.assertEqual(seen['timeout'], 5000 * runtime.CHECK_SECONDS_PER_TEST)
+        with patch.object(budget, 'supervise', supervise), \
+                patch.object(runtime, 'timed_names', lambda: [f't{i}' for i in range(5000)]), \
+                patch.object(sys, 'argv', ['resource_budget.py', '--test-count-timeout', '--timeout', '60', '--', *command]):
+            self.assertEqual(budget.main(), 0)
+        self.assertEqual(seen['timeout'], 60)
+        with patch.object(budget, 'supervise', supervise), \
+                patch.object(sys, 'argv', ['resource_budget.py', '--', *command]):
+            self.assertEqual(budget.main(), 0)
+        self.assertEqual(seen['timeout'], 1800)

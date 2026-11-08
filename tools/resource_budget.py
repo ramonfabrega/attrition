@@ -304,13 +304,26 @@ def main():
     parser.add_argument('--cpu', type=int, default=1)
     parser.add_argument('--memory-mib', type=int, default=MEMORY_MIB)
     parser.add_argument('--limit-mib', type=int, help='hard sampled RSS ceiling; defaults to reservation')
-    parser.add_argument('--timeout', type=float, default=1800)
+    parser.add_argument('--timeout', type=float,
+                        help='execution seconds; default 1800, or with --test-count-timeout the scaled count')
+    parser.add_argument('--test-count-timeout', action='store_true',
+                        help='scale the timeout to the timed tests a `cargo test` command selects (check.sh, item 3974)')
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     if args.status:
         print(json.dumps(status(args.directory), indent=2))
         return 0
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
+    if args.timeout is None:
+        args.timeout = 1800
+        if args.test_count_timeout and command:
+            import test_runtime
+            names = test_runtime.timed_names()
+            args.timeout = test_runtime.check_timeout(command, names)
+            count = len(test_runtime.selected(command[2:], names)) if command[:2] == ['cargo', 'test'] else 0
+            print(f'resource budget: execution timeout {args.timeout}s ({count} timed tests selected x '
+                  f'{test_runtime.CHECK_SECONDS_PER_TEST} s, floor {test_runtime.CHECK_FLOOR_SECONDS} s)',
+                  file=sys.stderr)
     if not command or args.timeout <= 0:
         parser.error('a command and positive timeout are required')
     try:
