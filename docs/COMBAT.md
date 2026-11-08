@@ -849,7 +849,8 @@ every path: a round a decoy fired that lands after its shooter closed is a
    A.who`. (So the window belongs to whoever hit first; a later hit inside
    it neither takes it over nor extends it.)
 3. If A is not a missile and is active: `Object::attempt_launch(T, A.pos)` —
-   the target, if it holds aircraft, may scramble them. Not modelled.
+   the target, if it holds aircraft, may scramble them. ~~Not modelled.~~
+   Built by item 3990 (`Sim::attempt_launch`, `docs/GOLDEN.md` §183).
 4. Sound, unless `splash`.
 5. **Scale**, branching on what A is:
    - A is **not a unit** (a building): `s = dmg * count / A.type.ammo_per_att`.

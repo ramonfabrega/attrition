@@ -853,11 +853,12 @@ impl Sim {
     /// the keep-heading radius is the type's `min_range · 0xc0`, and the
     /// bank and the pitch take their non-returning arms.
     ///
-    /// SEAMs: a helicopter (`unit_flags & 0x20`), which hovers rather
-    /// than banks and is not flown here; a flying target's lead
-    /// (`local_20`, the doubled bank); the tank (`check_fuel`'s empty-tank
-    /// arm, §32 piece 4); a home that is not a live building, whose
-    /// nearest-base search is not built; and a carrier as the home.
+    /// A helicopter (`unit_flags & 0x20`) is flown on its flight home
+    /// alone (item 3990, `docs/GOLDEN.md` §183), and a home that is dead
+    /// or will not carry the plane is re-homed or the plane dies
+    /// (`rehome`, `out_of_fuel`). SEAMs: a helicopter's flight with a
+    /// point; a flying target's lead (`local_20`, the doubled bank); and a
+    /// carrier as the home.
     pub(crate) fn plane_air_physics(&mut self, u: usize, goal: Option<Pos>, frame: i64) -> Flew {
         let Some(mut air) = self.current_air(u) else {
             return Flew::Done;

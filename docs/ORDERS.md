@@ -7081,8 +7081,10 @@ that one frame to an aircraft alone (`Sim::process_unit`).
   with a target never turns for home on an empty tank (`check_fuel`'s
   first arm), and the refill inside is not modelled.~~ Built by item
   836, §38.1.
-- SEAMs: a helicopter (hover arms at `0x20`); a home that is dead, full or
-  missing (the nearest-base search, and the out-of-fuel death); a carrier
+- SEAMs: ~~a helicopter (hover arms at `0x20`); a home that is dead, full or
+  missing (the nearest-base search, and the out-of-fuel death);~~ the
+  helicopter's flight home and the re-home and death built by item 3990
+  (`docs/GOLDEN.md` §183); a helicopter's flight with a point; a carrier
   as home (the `+0x100000` mark, `local_2c`, the carrier's landing
   point); ~~the `0x400000` type arm of the pitch~~ (§39.1, item 842); a Gull (`0x193`).
 - **A squad garrisoning in its own `work`** is owed `Guy::process` on
