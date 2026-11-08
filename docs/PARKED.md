@@ -15372,7 +15372,11 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 4000, 2026-11-08 — chapter 128's group on 765
 
-Nothing parked: the word closed at the trace's end with no value parting.
+- **4000a. who=1's `1/0` on 1021 in chapter 128** (`WANT_CH128`, run1544, `docs/GOLDEN.md` §190). The word is
+  closed at 1100, but run1544's widening parts on 1021 on one unit: theirs' order is kind 2 to (38664, 13320),
+  path to (38646, 13305) — slot 64's own `ox/oy` — ours kind 3 to (38136, 11256); `pos` (42673, 8198) against
+  (42673, 8196). It reads as `1/0` joining army 0's group and taking its move, the shape of run146's 847 (`1/0` to
+  64). No draw is spent. Not read: the join's caller on 1020 either side. Score: `WANT_CH128` 23 → 11 when it lands.
 
 ## Parked by the next landing, slot CV — reserved
 

@@ -465,6 +465,12 @@ clamped up to 0; `group.form = form`. `width = param_10`, or
   caller's angle stands, and `reverse = |find_angle(dx, dy) − angle| ≥ 90°`.
   The idiom is `0x3fffffff < d && d < 0xc0000001` at `707e09`–`707e1a`, so
   **both bounds are inclusive**;
+- `Form::categorize` → `Group::sort@00708090` (`:72`), **before** the
+  mirror test: a list with a follower first is killed and re-added, and
+  a kill that empties it runs `Group::clear(-1)`, so the `facing` the
+  test reads next is 0 and every back-pointer is −1 (item 4000,
+  `docs/GOLDEN.md` §190). `action_move_near` wrote `form` before the call
+  (`00704990:354`) and writes `ox`/`oy`/`o_angle` after it (`:464–466`);
 - if the leader's facing, **minus its slot's packed angle byte**, minus the
   given angle is `≥ 90°` by the same idiom, `group.facing` is **toggled**
   around the `Form::compute` call and toggled back afterwards — and the two
@@ -3212,8 +3218,14 @@ group" test (`5e7c8c`, the two pointers equal).
 A seated group's list follows the original's own operations:
 `seat_add` (`get_num`'s normalize per step), `seat_kill`,
 `seat_normalize` and `seat_sort`. `army_add_unit` goes through
-`seat_add` for an army with a live group. An army with none still
+`seat_add` for an army with a group. An army with none still
 builds a stack group, which is never normalized, and pushes it.
+~~live group~~ — **an army keeps a group `Group::kill` emptied**
+(item 4000, `docs/GOLDEN.md` §190): `Group::clear(-1)` writes the
+record's `+0x8 army` −1, and `Army::remove_group@006f8b50` takes off
+only a record that names the army. A group whose members died is
+pruned by `Group::normalize`, keeps the link and leaves the army, so
+the next join pushes (`GroupState::unlinked`).
 `Group::sort` runs where `Form::categorize` does, in
 `group_action_move_to`'s layout, after the `QUEUE_NEW` clear and before
 the order loop. So a member the sort brought in is decided by the

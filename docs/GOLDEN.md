@@ -18897,7 +18897,7 @@ them: a blow's size spends no draw.
 **Not established.**
 - The leader's per-type counts (`+0x59c0` for the Senator, `has_general`'s `+0x56fe`): a live hero the walk finds
   implies them, and no staging holds one counted and off the map.
-- The 765 group (parked 3986a).
+- ~~The 765 group (parked 3986a).~~ Closed by item 4000, §190: the word is 1100.
 
 **Coverage.** Diff-backed: all three terms, and the Senator's taken before the halving's place (an active building;
 the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
@@ -19017,12 +19017,76 @@ the turret this crate carries; no staged figure parts on them (parked 3999a).
 
 **Coverage.** Diff-backed: the copy's two angles and its birth-frame turn, by run1554's `GUY` blocks and the word.
 
-## 190. Reserved for the next item on the rules track
+## 190. Chapter one hundred and twenty-eight closed at 1100 — an emptied army group takes its squad back by `Group::add`, and the move's sort clears it (item 4000, run1555)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3986a): on 765 who=1's squad `1/6..1/8` reads `group` 64 ours and −1 theirs, its move's
+`facing` 1 against 0, and `1/7` and `1/8` take each other's slots (`off` (168, 360) against (360, 168)); the draw stream
+parts on 765 (`Guy::set_anim < Unit::move_step`, `1/6` colliding with `1/7` on 766 theirs only). On 764 both sides run
+army 0's `do_forming` → `siege_attack_to` → `action_move_to` on the squad, with the same dests and angle. The booking
+named a crate path that *pushes* a group. None does: theirs *drops* the back-pointers, and its layout is unmirrored.
+The two candidates it named are killed: the move is `do_forming`'s, not a `go_to` squad walk, and
+`group_target_opportunity` is not on 764's path.
+
+**What the disk could not answer, and run1555 did** (`GROUPS=1` over 630–780, `cover=1` over 636–770;
+`docs/RUNS.md`; `rngcmp` 781 of 781 with run1544). Slot 64, who=1:
+
+| block | list | army | facing | form |
+|---|---|---|---|---|
+| 641 | the nine Hoplites | 0 | 0 | |
+| 642 | empty (the `@attack` pushes 6–8 → 66, 9–11 → 67) | | | |
+| 643 | `[8]`, all three pointers 64 | −1 | 0 | |
+| 667 | `[8 6 7]` | −1 | 0 | |
+| 668 | `[8 6 7]` (the leader's `set_angle` toggle, both sides) | −1 | 1 | |
+| 765 | `[6 7 8]`, `form_num` 3, `ox/oy` (38646, 13305), every pointer −1 | −1 | 0 | −1 |
+
+**The mechanism**, read off the decompile and held by the diff:
+1. **The join.** `Army::add_unit@006f9f40` pushes a fresh group only when the army holds none (`+0x96 < 1 ||
+   list[0] < 0`). An army loses a group only through `Army::normalize@006f9b50`'s `remove_group@006f8b50` on an empty
+   one, and `remove_group` asks the record's `+0x8 army` to name the army. `Group::kill@00714110`'s empty tail runs
+   `Group::clear(-1)@00713e80`, which writes that link −1. So the squad's 642 rejoin
+   (`think_attack_join_army` → `add_to_army` → `add_unit(6)`) goes through the emptied record's own `Group::add`. Its
+   `get_num` normalize at each step of the squad walk prunes the figure added the step before, because that figure's
+   `+0x80` still names 66, and only `8` stays listed. `set_group` then points all three at 64.
+2. **The sort.** `compute_form@00707c80` finds the leader (`:37`), runs `Form::categorize` → `Group::sort` (`:72`),
+   then the mirror test reads `facing` (`:103`) before `Form::compute`. `[8 6 7]` has a follower first, so the sort
+   kills the squad whole (`clear(-1)`: `facing` 0, `form` −1, `form_num` 0, every pointer −1) and re-adds it with
+   `Group::add`, which writes no pointer. The layout's mirror is 0, and so is the orders' `facing` (`Form +0xe88`).
+3. **The record's order of writes.** `action_move_near@00704990` writes `form` at `:354`, ahead of `compute_form`
+   (`:460`), and `o_angle`, `ox`, `oy` after it (`:464–466`). So the cleared `form` stays −1 and the origin is the move's.
+4. **A push's arrays.** `Group::add` zeroes the new member's `off`, `curr` and `angle` (`00714350:71–75`), and
+   `copy_group` copies `num` of each, so the pushes 66 and 67 on 642 print three zero slots each.
+
+**The army link, both ways.** Item 518 pushed whenever the army's list held no live unit. That was the dying case,
+run146's (chapter three's restage): `1/6..1/8` die by 735, `Group::normalize` prunes them without a clear, the link
+survives, `remove_group` takes the group off the army, and `1/9..1/11` push onto 66 on 771. Dropping 518's arm alone
+broke run146 (771, 780–781, 865–869) and chapter 103 (801, 847). The arm now pushes on a dead army only while the
+record is linked.
+
+**Built** (`sim`):
+- `GroupState::unlinked` (`+0x8 army` −1): set by `GroupState::clear` and `GroupState::emptied`; cleared by a push.
+- `army_add_unit` pushes when `pool.is_none() || (!live && !unlinked)`.
+- `GroupState::emptied`: `Group::clear`'s fields on a seated record, called by `seat_kill` when the list empties.
+- `group_action_move_to`: the leader's bearing (`away`) is taken before the sort, `facing` read after it, and `form`
+  written before the sort; `record_move` keeps the origin and its angle.
+- `GroupState::copied(prev, pool, frame, n)`: `n` zeroed slots.
+- `RON_DEBUG_ARMIES` on the golden walk; the armies line prints `facing`.
+
+**The word** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT` 765 → **1100**, the trace's end, `values None`.
+The value diff on 765: run1544's widening carries no `group` row and none of `1/6..1/8`'s `facing`, `off`, dest or
+path rows. `WANT_CH128` 354 → 23: the eleven standing `form` rows, and from 1021 who=1's `1/0` alone (theirs' order
+kind 2 to slot 64's `ox/oy`, ours kind 3; it spends no draw; parked 4000a).
+
+**The widening.** `chapter_one_hundred_and_twenty_eight_s_group_pool_is_widened_whole` walks run1555's 150 blocks
+both directions, 641 slot records and 11,395 pool rows, with **no pool row parting**. `WANT_CH128G` holds the eleven
+standing `form` rows on 630 and three `death:extra` rows (run1555's end detail drops `DEATHS`). The `cant_reach` tally
+is 9. The coverage driver walks 630..780, 150 blocks.
+
+**Not established.** When `Army::normalize` runs between a squad's last death and the next join: the crate pushes at
+the join, the original at the next normalize after `remove_group`. run146's gap (735 → 771) is wide enough for either.
+
+**Coverage.** Diff-backed: the join through the record, the sort's clear (`facing`, `form`, the pointers), the write
+order, the push arrays (run1555's pool), and the dead-army push (run146, chapter 103). Reading only: `remove_group`'s
+link test, inferred from run146's push and run1555's rejoin together.
 
 ## 191. Reserved for the next item on the rules track
 

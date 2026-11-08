@@ -36101,3 +36101,24 @@ another lane. `~/ron-golden/run1554` links to `ch127g`; filed by `filerun.py run
   `0/9` and `0/11` read idle 1 of 33. Block 1295: `0/10` idle 1 of 33.
 - `0/6` (the Spy) reads `ATTACK3` 50 of 100 with `queued_attack` 13 on 1294, and `ATTACK3` 0 of 100 on 1295.
 - `rngcmp`: run1543 against run1554, 1301 of 1301 identical.
+
+## run1555 — chapter one hundred and twenty-eight's group pool over 630–780 (2026-11-08, item 4000, `att-4000`)
+
+`docs/GOLDEN.md` §190. **What the disk could not answer**: run1544's end detail prints no `GROUPS`, so nothing on
+disk showed pool slot 64's list, army link or `facing` on 764–765 (parked 3986a); its `cover=0` and run1544b's
+first-entry coverage could not say which functions ran on 642 or 764.
+
+Recipe `tools/gamelog/golden/chapter128.cmd`, unchanged, ended at 780; the launch line and the three readings' killers
+(A)–(C) are in its header, written before the take. `--no-ffwd --twin ~/ron-golden/ch128`, `cover=1` re-armed over
+636–770, end detail `UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1` (chapter 109's). Two earlier takes were refused by the
+runner and cost nothing: `GROUPS` beside `DEATHS` in one section, and a pool dropped by the inherited detail filter.
+
+`success`, lifecycle verified, 781 frames, `end_frame` 780, seed 12345. Pool lane 1, 02:45:41–02:49:09, 208.3 s launch
+to exit, no relaunch. No minutes were waited on another lane. `~/ron-golden/run1555` links to `ch128g`; filed by
+`filerun.py run1555 ch128-group-pool`.
+- Slot 64 (who=1): 641 lists all nine Hoplites, army 0; 642 empty (the `@attack` pushes 6–8 to 66 and 9–11 to 67);
+  643 `[8]`, army −1; 667 `[8 6 7]`; 668 `facing` 1; 765 `[6 7 8]`, `form` −1, `facing` 0, `form_num` 3, `order_num` 1,
+  `ox/oy` (38646, 13305), `stamp` 764, every member's `group` −1.
+- On 642 theirs enters no `push_group`, `get_open_slot` or `copy_group` for the rejoin.
+- Killers: (A) and (C) fired as written (army −1 from 643); (B) did not (no `facing` 1 on 765).
+- `rngcmp`: run1544 against run1555, 781 of 781 identical.
