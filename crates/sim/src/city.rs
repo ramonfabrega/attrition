@@ -2879,7 +2879,7 @@ impl Sim {
         let who = self.buildings[b].owner;
         if phase % build::ENEMY_TERRITORY_PERIOD == 0
             && !self.nation[who as usize].disable_building_attrition
-            && self.in_unfriendly_territory(b)
+            && self.bleeds_in_enemy_land(b)
         {
             if !self.buildings[b].started {
                 self.disband_building(b, false);

@@ -858,6 +858,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch130 = golden_dump("ch130");
     let ch131 = golden_dump("ch131");
     let ch132 = golden_dump("ch132");
+    let ch133 = golden_dump("ch133");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3210,6 +3211,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 795,
             "chapter one hundred and thirty-two carries 795 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirty-three, on run1550** (item 3992): the
+    // two Docks' bleed from 604 and the Fort's reach on 649, to the trace's
+    // end.
+    if let Some(p) = &ch133 {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_THREE;
+        let n = drive_capture(p, 600, 1000, &mut paths);
+        assert_eq!(
+            n, 400,
+            "chapter one hundred and thirty-three carries 400 blocks in the window"
         );
         frames += n;
     }

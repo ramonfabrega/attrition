@@ -10545,3 +10545,74 @@ fn the_age_catch_up_reads_the_queued_ages() {
         "and its own queued age counts"
     );
 }
+
+/// **A dock asks its ring, not its own cell** (item 3992, `docs/GOLDEN.md`
+/// §185): `Wall::process@00640450:209`–`:219` takes
+/// `BuildTypeData::check_enemy_adjacent@00638d70`'s owner for a dock. The
+/// ring is one tile round the footprint, corners and ocean skipped; the
+/// first land tile that is nobody's, the dock's own player's or an ally's
+/// ends the walk with no hit, and only a ring of rival land bleeds. run1550's
+/// `1/2006` stands on who=0's water with one unowned shore tile beside it and
+/// takes no hit to the end; its control `1/2007` bleeds 8 every 32 frames.
+#[test]
+fn a_dock_bleeds_only_when_every_shore_tile_of_its_ring_is_a_rival_s() {
+    let mut sim = world_sim();
+    let dock = sim.add_build_type(bt(Ident::Dock, None, "", 4, 4, 2000, 2000, 0));
+    // The sea from tile column 16 east; the shore is column 15.
+    for y in 0..64 {
+        for x in 16..64 {
+            let p = Pos::new(x, y);
+            let m = sim.world.tile_mask(p);
+            sim.world
+                .set_tile_mask(p, (m & !tile::SURFACE) | tile::SURFACE_OCEAN);
+        }
+    }
+    let own =
+        |sim: &mut Sim, cx: i32, cy: i32, o: Owner| sim.world.set_owner(Cell::new(cx, cy), o, o);
+    for cy in 0..16 {
+        for cx in 0..16 {
+            own(&mut sim, cx, cy, Owner::Player(0));
+        }
+    }
+    // who=1's dock centred on tile (18, 32): corner (16, 30), its ring's
+    // only land the column x = 15, rows 30..33 — cells (3, 7) and (3, 8).
+    let b = sim.init_build(1, dock, tile_pos(18, 32), false);
+    sim.activate(b, false, false);
+    assert_eq!(sim.check_enemy_adjacent(b), 0, "a ring of who=0's land");
+    assert!(
+        sim.bleeds_in_enemy_land(b),
+        "the control: every shore tile a rival's"
+    );
+
+    // One unowned shore cell: the ring answers −1 though the dock's own cell
+    // is still who=0's — the own-cell reading would bleed it.
+    own(&mut sim, 3, 8, Owner::None);
+    assert!(sim.in_unfriendly_territory(b), "its own cell is a rival's");
+    assert_eq!(sim.check_enemy_adjacent(b), -1);
+    assert!(
+        !sim.bleeds_in_enemy_land(b),
+        "one unowned shore tile refuses the bleed"
+    );
+    let f = (1000..)
+        .find(|f| sim.buildings[b].phase(*f) % 32 == 0)
+        .unwrap();
+    sim.process_building(b, f);
+    assert_eq!(sim.buildings[b].damage, 0, "no hit on the 32-frame step");
+
+    // The other way: the dock's own cell nobody's, its ring all who=0's.
+    own(&mut sim, 3, 8, Owner::Player(0));
+    own(&mut sim, 4, 7, Owner::None);
+    own(&mut sim, 4, 8, Owner::None);
+    assert!(!sim.in_unfriendly_territory(b), "its own cell is nobody's");
+    assert!(
+        sim.bleeds_in_enemy_land(b),
+        "the ring is the owner the bleed asks"
+    );
+    sim.process_building(b, f + 32);
+    assert_eq!(sim.buildings[b].damage, 8, "eight on the step");
+
+    // A shore tile of its own player's ends the walk too.
+    own(&mut sim, 3, 7, Owner::Player(1));
+    assert_eq!(sim.check_enemy_adjacent(b), 1);
+    assert!(!sim.bleeds_in_enemy_land(b));
+}

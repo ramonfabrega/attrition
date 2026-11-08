@@ -2662,6 +2662,10 @@ mod tests {
         // and a Helicopter ordered into its own Airbase (item 3990,
         // `docs/GOLDEN.md` §183).
         ("chapter132.cmd", &[]),
+        // Chapter one hundred and thirty-three: a dock astride a border
+        // (`check_enemy_adjacent`'s ring), and a Fort's upgraded reach with a
+        // General inside (item 3992, `docs/GOLDEN.md` §185).
+        ("chapter133.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),

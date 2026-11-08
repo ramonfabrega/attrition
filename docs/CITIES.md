@@ -2040,7 +2040,9 @@ tile with a full refund. A started one stops the sweep.
 32-frame phase** (the decompile reads `if (rush_rules == 0 || war_allowed)
 require (frame + o) & 0x1f == 0`; a first draft had the two cases inverted,
 the second reading caught it): the territory owner `t` of the building's
-tile (a dock: `check_enemy_adjacent`); `t ≥ 0`, `t != who`, not allied —
+tile (a dock: `check_enemy_adjacent`'s ring in its place — the first land
+tile round the footprint that is unowned, the owner's own or an ally's
+answers, so only a ring of rival land bleeds; `docs/GOLDEN.md` §185); `t ≥ 0`, `t != who`, not allied —
 **not started → `Object::disband(0)`** (a ghost in enemy land is removed,
 full refund); **started → `take_damage(8, 0, 1, …, attrition = 1)`** — eight
 hit points **every thirty-two frames** in a normal game (sixteen under rush
@@ -2056,8 +2058,11 @@ on block 683, and its `job_counter` rises by one frame's work, so the
 attrition flag costs no progress (`docs/COMBAT.md` §7.2 step 5). The
 chapter's widening holds that exemption: removing it moves the widening
 (683, `job_counter`) and leaves the walk's word where it stands.
-Not reached: the rush-rules phase, a ghost's `disband`, and a dock's
-`check_enemy_adjacent`.
+Not reached: the rush-rules phase and a ghost's `disband`. **A dock's ring
+is diff-backed since run1550** (item 3992, `docs/GOLDEN.md` §185): a who=1
+Dock on who=0's water with one unowned shore tile in its ring never bleeds,
+and its control, ringed by who=0's land, bleeds 8 every 32 frames; the
+ring off parts the chapter's widening on 619.
 
 ---
 
