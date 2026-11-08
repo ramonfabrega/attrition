@@ -40961,9 +40961,14 @@ level alone, so a `LEADERS=2` window reads neither.
 **What is not established.**
 - The byte's wrap: a decrement past zero is the original's (`255`), and no
   capture holds one.
-- The age catch-up's reach in a measured game: its effect needs a leader
-  two ages ahead counting queued ones, and which pair windows hold one is
-  the gate's to say (the journal).
+- The age catch-up's reach in a measured game: it needs a leader two ages
+  ahead counting queued ones, and with it built no floor and no
+  `first_parting` moved — no walk on file reaches it where it changes a
+  frame.
+- The closing blocks of run1262, run1200, run1250, run594 and run667 part
+  `epochs_queued` ours 1–3 against theirs 0, beside item 3969's technology
+  `num_queued` rows: the original's victory and defeat clean every queue,
+  and the harness replays neither (each baseline +1).
 - `is_team`'s team-style-7 arm, as the epoch's (`SEAM`).
 
 **Coverage.** Diff-backed: the raise on 621/622, the hand-off's no-move on

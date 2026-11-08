@@ -312,5 +312,6 @@ fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
     // Item 3969: +3, who=1's technology `num_queued[506]`, `[528]` and
     // `[542]`, ours 1 against theirs 0 on 8778: the same emptied queue,
     // now that the leader emits a technology's count.
-    pin_eq!(w.firsts.len(), 176, "the closing walk's baseline");
+    // Item 3982: +1, who=1's `epochs_queued` on the closing block 8778, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
+    pin_eq!(w.firsts.len(), 177, "the closing walk's baseline");
 }

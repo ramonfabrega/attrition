@@ -437,7 +437,8 @@ fn run667_s_closing_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 190 -> 166.
     // Item 3603: piece 48's bays (the Arquebusiers' art, run1254c) moved this pin: 166 -> 164.
     // Item 3969: +1, who=1's technology `num_queued[526]` on the closing block 17380, ours 1 theirs 0: the defeat's emptied queue.
-    pin_eq!(w.firsts.len(), 165, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 3982: +1, who=1's `epochs_queued` on the closing block 17380, ours >0 theirs 0, beside the technology `num_queued` rows: the same emptied queue.
+    pin_eq!(w.firsts.len(), 166, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
