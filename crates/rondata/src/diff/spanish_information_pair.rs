@@ -222,8 +222,10 @@ fn spanish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // and `1/109` from 3101 and on `1/115` from 3401 (ours 0, theirs 1);
     // and one value row, the Assault Infantry `1/18`'s (type 104, land, at
     // its full 180 hits) `damage_frac`, ours 13 against theirs 12 from 3101
-    // (parked 3866b). No draw parts.
-    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
+    // (parked 3866b). No draw parts. 102 → 100 (item 3986): the two
+    // `damage_frac` rows of `1/18` agree once `UnitData::armor@00610160`'s
+    // patriot terms are carried (`docs/GOLDEN.md` §179).
+    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
 }
 
 /// run1489b: the pair's last blocks, 3244..3501 at the long's detail with
