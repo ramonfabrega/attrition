@@ -347,8 +347,10 @@ class TheLiveTree(unittest.TestCase):
     # built `compare_target`'s empty-city gate (`64f171`), whose SEAM in
     # the armed weight named `num_inside` as not carried. 14 → 13: item
     # 3779 built `find_new_target`'s defensive-post arm (`bVar3`), whose
-    # SEAM named `find_def_pos` as unread.
-    DOORS = 13
+    # SEAM named `find_def_pos` as unread. 13 → 12: item 3985 built
+    # `get_range`'s spy-upgrade terms, whose SEAM in `spell_range` named
+    # `get_spy_upgrade` as missing.
+    DOORS = 12
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
