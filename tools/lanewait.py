@@ -278,6 +278,12 @@ fourteen of the sixtieth tranche's thirty-four logs and nine of the
 sixty-first's sixteen were empty, a waiter replaced, a quiet one and a
 dead one alike. `WAITING` names each lane, its branch and its pushed
 tip, the time and the pid, flushed before the first poll.
+
+And a row is out of `working` only when its turn is not running (Loop
+4006): a job tempo of `active` (ccc 0.1.40's word for a running turn),
+`working` or `busy` reads as working whatever the row's state says, so a
+cleared lane's fresh session at work under its old turn's `done` is never
+ENDED; a row at `tempo=idle` ends as before.
 """
 import os
 import argparse
@@ -293,6 +299,9 @@ BLOCKED = 'blocked'
 # background task's exit re-invokes a session, and one poll can fall in
 # the gap between the turn that ended and the turn that follows.
 STILL = 2
+# A job tempo that means the turn is running (Loop 4006): `active` is
+# ccc 0.1.40's word, `working` the earlier one, `busy` the brief's.
+TURN_RUNNING = (WORKING, 'active', 'busy')
 
 
 def ends_on_clear(tail):
@@ -829,9 +838,17 @@ def state_of(session, job=None):
     the job's `tempo` (ccc's word, 2026-10-07: `session.status` is only
     "something is attached" — a Monitor or a background bash keeps a
     resting commander `busy` indefinitely, and ccc's own clear gate had
-    to switch fields); `state` is the lane's own word, the fallback."""
+    to switch fields); `state` is the lane's own word, the fallback.
+
+    A running turn's tempo is `active` in ccc 0.1.40 (the steer row at
+    work, 2026-11-08: `state=working status=busy tempo=active`), and only
+    `working` was read: a cleared lane's fresh session that built and
+    committed under its old turn's `done` exited the waiter `ENDED` twice
+    within a minute of each start (Loop 4006, lane-3990). `TURN_RUNNING`
+    holds every tempo that means the turn runs; `idle` and `blocked` keep
+    the row's own word, and `session.status` is never read."""
     state = session.get('state')
-    if state != WORKING and (job or {}).get('tempo') == WORKING:
+    if state != WORKING and (job or {}).get('tempo') in TURN_RUNNING:
         return WORKING
     return state
 

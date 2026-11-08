@@ -268,6 +268,47 @@ class StateOf(unittest.TestCase):
         self.assertEqual(lanewait.state_of({'state': 'done'}), 'done')
         self.assertIsNone(lanewait.state_of({}))
 
+    def test_a_cleared_lane_s_fresh_session_at_work_is_working_not_ended(self):
+        # Loop 4006 (the seventy-third's commander): lane-3990's armed clear
+        # fired and its fresh session built, edited `air.rs` and committed,
+        # while `ccc list` read the row `done busy` with the old turn's
+        # detail, and the waiter exited `ENDED lane-3990 done` twice within
+        # a minute of each start. ccc 0.1.40 writes a running turn's tempo
+        # as `active` (the steer row at work, 2026-11-08: `state=working
+        # status=busy tempo=active`), never `working`; `busy` is the brief's
+        # word for it and reads the same. The fresh session's id is the
+        # clear's, its transcript newer than the old turn's detail.
+        import subprocess
+        row = {'session': {'name': 'lane-3990', 'state': 'done', 'status': 'busy', 'pid': 41,
+                           'sessionId': 'fresh-after-clear', 'cwd': '/w/lane-3990',
+                           'startedAt': '2026-11-08T18:00:00Z',
+                           'detail': 'journal drafted for the clear; committed'},
+               'worktree': {'branch': 'worktree-lane-3990'},
+               'job': {'tempo': 'active', 'updatedAt': '2026-11-08T18:40:00Z'}}
+        for tempo in ('active', 'busy'):
+            row['job']['tempo'] = tempo
+            self.assertEqual(lanewait.state_of(row['session'], row['job']), 'working', tempo)
+            listed = subprocess.CompletedProcess([], 0, stdout=__import__('json').dumps([row]), stderr='')
+            real, lanewait.subprocess.run = lanewait.subprocess.run, lambda *a, **k: listed
+            try:
+                rows = lanewait.roster()
+            finally:
+                lanewait.subprocess.run = real
+            self.assertEqual(rows['lane-3990'][0], 'working', tempo)
+            watch = watching(**{'lane-3990': '1' * 40})
+            states, tips = {'lane-3990': rows['lane-3990'][0]}, {'lane-3990': '1' * 40}
+            self.assertIsNone(lanewait.event(watch, states, tips, 1, 100, sessions={'lane-3990': 'fresh-after-clear'}))
+            self.assertIsNone(lanewait.event(watch, states, tips, 2, 100, sessions={'lane-3990': 'fresh-after-clear'}))
+
+    def test_a_row_at_rest_after_its_turn_still_ends(self):
+        # And the rule is the tempo's alone: `tempo=idle` keeps the row's
+        # own word, `status: busy` or not, and two polls of it are ENDED.
+        self.assertEqual(lanewait.state_of({'state': 'done', 'status': 'busy'}, {'tempo': 'idle'}), 'done')
+        watch = watching(a='1' * 40)
+        states, tips = {'a': lanewait.state_of({'state': 'done', 'status': 'busy'}, {'tempo': 'idle'})}, {'a': '1' * 40}
+        self.assertIsNone(lanewait.event(watch, states, tips, 5, 100))
+        self.assertEqual(lanewait.event(watch, states, tips, 6, 100), (3, 'ENDED a done'))
+
 class SecondRowOnATree(unittest.TestCase):
     # Parked 1671: the commander gave a racer its second landing with
     # `ccc spawn --cwd <its tree> --name att-1648-sm-2`, so one tree carried
