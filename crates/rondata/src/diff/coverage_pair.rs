@@ -2302,21 +2302,6 @@ fn run1075_s_garrison_counts_part_by_the_record() {
     while built.sim.frame < 2820 {
         built.tick();
         let n = built.sim.frame;
-        if std::env::var_os("RON_PROBE_3984").is_some() && (2093..=2095).contains(&n) {
-            let s = &built.sim;
-            let u = s.unit_by_o(1, 73).unwrap();
-            let b = (0..s.buildings.len())
-                .find(|&b| s.buildings[b].owner == 1 && s.buildings[b].index == 2020)
-                .unwrap();
-            let mut c = s.clone();
-            eprintln!(
-                "PROBE {n}: 1/73 pos {:?} inside {:?} orders {:?} ty {:?}; 1/2020 ty {:?} pos {:?} alive {} active {} garrison {:?} limit {} num_inside {} owner_at {:?} adjacent {} -> {:?}",
-                s.units[u].pos, s.units[u].inside, s.units[u].orders, s.units[u].type_index,
-                s.buildings[b].ty, s.buildings[b].pos, s.buildings[b].alive, s.buildings[b].active,
-                s.buildings[b].garrison, s.garrison_limit(b), s.num_inside(b),
-                s.world.owner_at(s.buildings[b].pos), s.adjacent_to(u, b), c.garrison(u, b)
-            );
-        }
         if n < 2034 {
             continue;
         }
