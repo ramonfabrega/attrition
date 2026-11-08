@@ -5243,10 +5243,22 @@ mod flak_tests {
                 ..combat::Profile::default()
             },
         );
-        // The near one walks (`/4`); the departing one is the target (`×2`).
+        // The departing one inside the search's radius and out of range;
+        // the near one walks (`/4`); the departing one is the target (`×2`).
+        let me = Obj::Building(b);
+        let edge = (2000..3000)
+            .find(|&dx| {
+                s.units[gone].pos = Pos::new(22272 + dx, 16512);
+                !s.is_in_range(me, Obj::Unit(gone))
+            })
+            .unwrap();
+        s.units[gone].pos = Pos::new(22272 + edge, 16512);
+        assert!(
+            s.attack_dist(Obj::Building(b), Obj::Unit(gone)) <= (2 + 2 * 11) * 0x60,
+            "a candidate"
+        );
         s.units[near].movement.dest = Some(Pos::new(22272 + 9 * 192, 16512));
         s.buildings[b].target = Some(Obj::Unit(gone));
-        let me = Obj::Building(b);
         assert!(!s.is_in_range(me, Obj::Unit(gone)), "the departing unit");
         assert!(s.is_in_range(me, Obj::Unit(near)), "the near one");
         let phase0 = (32 - i64::from(s.buildings[b].index)).rem_euclid(32);
