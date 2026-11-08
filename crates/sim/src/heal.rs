@@ -796,6 +796,74 @@ mod tests {
     /// or for a leader without the bonus. run1228b's `1/50` was refused
     /// on 8186, 8201 and 8216 under its `ATTACKTOORDER` and healed on 8246
     /// under its `GUARDORDER`.
+    /// **A French unit heals within its own supply source's radius, on
+    /// its phase, walking** (item 3978, `docs/AI.md` §410): the supply
+    /// heal's period is `SUPPLY_HEAL_RATE` (0) plus the French bonus's 20,
+    /// and `find_supply` asks only the supply list's reach — 14 tiles,
+    /// 2688 by `vector_dist`. run1542's Elite Special Forces `1/17` stood
+    /// (1709, 1865) off the Despot `1/164`, 2648, and healed on 1143
+    /// under an explore order; its `healing` read 13 on block 1151.
+    #[test]
+    fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.set_tech_tree(crate::tech::TechTree::new());
+        let esf = sim.add_unit_type(crate::UnitType {
+            hits: 130,
+            type_index: 77,
+            combat: crate::combat::Profile {
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let despot = sim.add_unit_type(crate::UnitType {
+            hits: 109,
+            type_index: 352,
+            kind: crate::attrition::UnitKind {
+                supply_unit: true,
+                ..crate::attrition::UnitKind::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(25157, 9797);
+        let put = |sim: &mut crate::Sim, t: usize, index: i16, pos: Pos| {
+            let mut u = crate::Unit::new(1, index, pos, sim.unit_types[t].hits);
+            u.ty = Some(t);
+            u.type_index = sim.unit_types[t].type_index;
+            u.on_map = true;
+            u.captain = true;
+            u.kind = sim.unit_types[t].kind;
+            sim.add_unit(u)
+        };
+        let c = put(&mut sim, esf, 17, at);
+        sim.units[c].health = 130 - 11;
+        sim.units[c].damage_frac = 4;
+        let state = |sim: &crate::Sim| {
+            let u = &sim.units[c];
+            (u.health, u.damage_frac, u.healing)
+        };
+        sim.supply_heal(c, 1143);
+        assert_eq!(state(&sim), (119, 4, 0), "no bonus, no period");
+        sim.tech[1].power = Some(crate::nations::power::FRENCH);
+        sim.supply_heal(c, 1143);
+        assert_eq!(state(&sim), (119, 4, 0), "no supply source, nothing");
+        let d = put(&mut sim, despot, 164, Pos::new(at.x - 1709, at.y + 1865));
+        assert!(sim.units[d].supply_slot.is_some(), "the Despot holds a slot");
+        sim.supply_heal(c, 1142);
+        assert_eq!(state(&sim), (119, 4, 0), "off the phase, nothing");
+        sim.units[c].orders.push_front(attack_to(Pos::new(25848, 10488)));
+        sim.supply_heal(c, 1143);
+        assert_eq!(
+            state(&sim),
+            (120, 0, 20),
+            "(17 + 1143) % 20, walking, 2648 off: a point and the fraction"
+        );
+        sim.units[d].pos = Pos::new(at.x - 1709 - 60, at.y + 1865);
+        sim.supply_heal(c, 1163);
+        assert_eq!(state(&sim), (120, 0, 20), "past 2688, nothing");
+    }
+
     #[test]
     fn an_iroquois_captain_heals_standing_on_its_own_ground() {
         let (mut sim, c, herbal) = iroquois_captain(167);
