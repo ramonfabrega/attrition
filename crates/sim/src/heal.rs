@@ -1057,7 +1057,7 @@ mod tests {
         let n = sim.unit_types.len();
         sim.muster[1].by_type.resize(n, 0);
         let cell = at.cell();
-        let mut run = |sim: &mut crate::Sim, frame: i64, ground: Owner| {
+        let run = |sim: &mut crate::Sim, frame: i64, ground: Owner| {
             sim.world.set_owner(cell, ground, Owner::None);
             let bd = &mut sim.buildings[b];
             (bd.damage, bd.damage_frac, bd.healing) = (10, 5, 0);
