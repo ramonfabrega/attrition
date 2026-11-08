@@ -8065,6 +8065,17 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the Barracks' point from 863 read four corners more.
     ("chapter_seventeen_airground_holds_to_the_golden_word", 27),
     ("chapter_seventeen_airground_s_window_is_widened_whole", 27),
+    // Item 3990: chapter one hundred and thirty-two, run1548 walked to
+    // 1400 — chapter seventeen's Bombers on the Barracks before their
+    // homes are razed.
+    (
+        "chapter_one_hundred_and_thirty_two_holds_to_the_golden_word",
+        40,
+    ),
+    (
+        "chapter_one_hundred_and_thirty_two_s_window_is_widened_whole",
+        40,
+    ),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
     // Chapter twenty-two is chapter seventeen's game with the Fighter

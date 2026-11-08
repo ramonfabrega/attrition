@@ -2103,7 +2103,7 @@ pub(super) fn chapter_one_hundred_and_thirty_two_s_window_is_widened_whole() {
 }
 
 pub(super) fn chapter_one_hundred_and_thirty_two_holds_to_the_golden_word() {
-    let Some(w) = walk_script("ch132", "chapter132", 132, 19, 1400) else {
+    let Some(w) = walk_script("ch132", "chapter132", 132, 18, 1400) else {
         return;
     };
     eprintln!(

@@ -6834,8 +6834,65 @@ fn chapter_one_hundred_and_thirty_two_s_window_is_widened_whole() {
     cases_80_89::chapter_one_hundred_and_thirty_two_s_window_is_widened_whole();
 }
 
-/// What parts in run1548's window, blocks 605–1400 (item 3990).
-const WANT_CH132: &[&str] = &[];
+/// What parts in run1548's window, blocks 605–1400 (item 3990): the
+/// eleven standing `form` rows; the Bombers' `accuracy`, 0 here against
+/// the slot's recycled value there (`docs/ORDERS.md` §35.3's SEAM, run265's
+/// family), and the Fighter's crash round on 1231 (`rolling −3`, 288) the
+/// same seam; the rounds in flight at a target's death keeping it there
+/// and losing it here (run235's family: the Barracks on 1080, the
+/// Hoplites `1/6` on 904 and `1/7` on 1094); and the `death:extra`
+/// instrument on the three Hoplites (parked 1830). Nothing parts on the
+/// scramble (796), the re-homes, the deaths (1231) or the Helicopter's
+/// flight home (1262–1318).
+const WANT_CH132: &[&str] = &[
+    "1075 0/8 ammo[6].accuracy",
+    "1080 0/8 ammo[0].ox",
+    "1080 0/8 ammo[0].whom",
+    "1080 0/8 ammo[1].ox",
+    "1080 0/8 ammo[1].whom",
+    "1080 0/8 ammo[3].ox",
+    "1080 0/8 ammo[3].whom",
+    "1080 0/8 ammo[4].ox",
+    "1080 0/8 ammo[4].whom",
+    "1080 0/8 ammo[5].ox",
+    "1080 0/8 ammo[5].whom",
+    "1080 0/8 ammo[6].ox",
+    "1080 0/8 ammo[6].whom",
+    "1094 0/6 ammo[0].ox",
+    "1094 0/6 ammo[0].whom",
+    "1094 1/7 death:extra",
+    "1231 0/6 ammo[0].accuracy",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "852 0/7 ammo[0].accuracy",
+    "853 0/7 ammo[2].accuracy",
+    "856 0/7 ammo[4].accuracy",
+    "859 0/7 ammo[1].accuracy",
+    "861 0/7 ammo[3].accuracy",
+    "864 0/7 ammo[5].accuracy",
+    "904 0/6 ammo[2].ox",
+    "904 0/6 ammo[2].whom",
+    "904 0/6 ammo[3].ox",
+    "904 0/6 ammo[3].whom",
+    "904 1/6 death:extra",
+    "935 0/8 ammo[0].accuracy",
+    "936 0/8 ammo[1].accuracy",
+    "939 0/8 ammo[2].accuracy",
+    "942 0/8 ammo[3].accuracy",
+    "944 0/8 ammo[4].accuracy",
+    "947 0/8 ammo[5].accuracy",
+    "987 1/8 death:extra",
+    "995 0/7 ammo[6].accuracy",
+];
 
 /// What parts in run1547's window, blocks 605–1000 (item 3989): chapter
 /// one hundred and twenty-five's standing rows on the first block alone —
