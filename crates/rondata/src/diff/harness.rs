@@ -2185,6 +2185,15 @@ fn widen_block_rows(
             // the on-map gate (the garrison heal read at level 0 parted
             // nothing on run1545).
             ("healing".into(), i64::from(un.healing), them.healing),
+            // **The reload, on or off the map** (item 3993, `docs/GOLDEN.md`
+            // §186): `Unit::process`'s head counts `UnitData +0xae` down for
+            // every unit, and a unit inside prints it, so it sat blind under
+            // the on-map gate as `healing` did.
+            (
+                "recharging".into(),
+                i64::from(un.combat.recharging),
+                them.recharging,
+            ),
         ];
         // The collision block and the two masks, **ungated by the
         // position** — the whole point of this test.
@@ -2195,11 +2204,6 @@ fn widen_block_rows(
                 ("collide_who", i64::from(un.collide_who), them.collide_who),
                 ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
                 ("safe", i64::from(un.safe), them.safe),
-                (
-                    "recharging",
-                    i64::from(un.combat.recharging),
-                    them.recharging,
-                ),
                 // **The fire on the move's target** (item 1508,
                 // `docs/AI.md` §134): −1, −2 while the search waits for
                 // its phase, or what a `v` type shoots at beside its walk.

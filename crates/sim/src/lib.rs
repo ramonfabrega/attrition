@@ -7498,8 +7498,14 @@ impl Sim {
             }
             return;
         }
-        // `Unit::process@00610bc0`'s head counts `full` down with the
-        // reload and the wait (`:63`–`65`), inside or out.
+        // `Unit::process@00610bc0`'s head counts the reload down first
+        // (`:59`–`:61`, `UnitData +0xae`), for every unit **inside or out**
+        // (item 3993, `docs/GOLDEN.md` §186): a unit that garrisons inside
+        // its reload comes out with the frames it spent inside spent.
+        if self.units[i].combat.recharging > 0 {
+            self.units[i].combat.recharging -= 1;
+        }
+        // `:63`–`65`: `full` and the wait, beside it.
         if self.units[i].full != 0 {
             self.units[i].full -= 1;
         }
@@ -7584,11 +7590,6 @@ impl Sim {
             let af = &mut self.units[i].airframe;
             af.last_z = af.z;
             return;
-        }
-        // `Unit::process` begins by counting the reload down, before
-        // anything else the unit does this frame.
-        if self.units[i].combat.recharging > 0 {
-            self.units[i].combat.recharging -= 1;
         }
         // **`ObjectData::targeted` decays**, and its slot is the one the
         // attrition refresh is nested inside. `Unit::process@00610bc0`

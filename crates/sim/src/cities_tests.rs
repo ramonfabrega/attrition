@@ -3194,7 +3194,11 @@ fn a_squad_short_a_figure_regrows_it_under_the_garrison_heal() {
     let number = sim.units[mid].index;
     sim.units[mid].health = 0;
     sim.relink_squad(mid);
-    assert_eq!(sim.units[tail].o_down, Some(mid), "the dead figure goes to the tail");
+    assert_eq!(
+        sim.units[tail].o_down,
+        Some(mid),
+        "the dead figure goes to the tail"
+    );
     assert_eq!(sim.curr_uber_size(cap), 2);
     assert!(sim.has_damage(cap), "a dead figure still linked is damage");
     sim.go_inside(cap, b);
@@ -3210,9 +3214,16 @@ fn a_squad_short_a_figure_regrows_it_under_the_garrison_heal() {
     }
     let n = born.expect("the heal regrows a figure");
     let max = sim.units[n].max_health;
-    assert_eq!(sim.units[n].index, number, "born into the dead tail's number");
+    assert_eq!(
+        sim.units[n].index, number,
+        "born into the dead tail's number"
+    );
     assert!(sim.units[n].alive() && !sim.units[n].captain);
-    assert_eq!(sim.units[n].health, max - max / 3 + 1, "hits / uber down, less the point");
+    assert_eq!(
+        sim.units[n].health,
+        max - max / 3 + 1,
+        "hits / uber down, less the point"
+    );
     assert_eq!(sim.units[n].inside, Some(b));
     assert!(!sim.units[n].on_map);
     assert_eq!(sim.units[n].o_up, Some(tail));
@@ -3220,6 +3231,27 @@ fn a_squad_short_a_figure_regrows_it_under_the_garrison_heal() {
     assert_eq!(sim.units[mid].o_up, None, "the dead occupant is unlinked");
     assert_eq!(sim.curr_uber_size(cap), 3);
     assert!(sim.units[cap].healing > 0);
+}
+
+/// **A unit garrisoned inside its reload counts it down inside** (item
+/// 3993, `docs/GOLDEN.md` §186): `Unit::process@00610bc0`'s head takes a
+/// frame off `recharging` (`UnitData +0xae`) for every unit, before the
+/// `inside_up` split.
+#[test]
+fn a_unit_garrisoned_inside_its_reload_counts_it_down_inside() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+    assert_eq!(sim.garrison(h, b), Ok(()));
+    sim.units[h].combat.recharging = 10;
+    for _ in 0..4 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[h].combat.recharging, 6, "one a frame, inside");
 }
 
 #[test]
