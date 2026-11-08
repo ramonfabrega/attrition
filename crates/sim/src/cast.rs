@@ -2327,10 +2327,16 @@ mod tests {
     /// `Unit::swap_team@006118d0`, item 2823): a copy is born under the
     /// caster's owner carrying the damage and the facing, the old unit is
     /// closed without a death and held thirty frames, and the caster's
-    /// leader counts one. The angle copied is the figure's (`heading`), not
-    /// a still-turning unit's `facing` (item 3985). Made to fail with the
-    /// counter dropped, with the old unit left standing, with the damage not
-    /// carried, and with `facing` copied.
+    /// leader counts one. **The two angles are copied each from its own**
+    /// (item 3999, run1554's `1/7` → `0/10`): the figure's `angle`
+    /// (`facing`) and the unit's (`heading`), so a copy of a figure still
+    /// turning is born still turning — and with `guy_flags & 2` clear
+    /// (`frame_facing` on its `facing`), so its first `Guy::move` turns it.
+    /// Made to fail with the counter dropped, with the old unit left
+    /// standing, with the damage not carried, with `heading` copied into
+    /// both (item 3985's reading), with `facing` copied into both, and with
+    /// `frame_facing` left at the birth's (the seeded facing is not
+    /// [`crate::movement::Angle::INITIAL`], or that one passes).
     #[test]
     fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
         let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
@@ -2343,7 +2349,7 @@ mod tests {
         s.units[target].health = 15;
         s.units[target].max_health = 20;
         s.units[target].movement.heading = crate::movement::Angle(0x1200_0000);
-        s.units[target].movement.facing = crate::movement::Angle(0x5555_5555);
+        s.units[target].movement.facing = crate::movement::Angle(0x6600_0000);
         let bribes = s.tech[1].bribes;
         let before = s.units.len();
         let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
@@ -2355,13 +2361,18 @@ mod tests {
             "damage carried"
         );
         assert_eq!(
-            s.units[n].movement.heading, s.units[n].movement.facing,
-            "the figure is settled: `dest_angle` equals `angle` (run880)"
+            s.units[n].movement.facing,
+            crate::movement::Angle(0x6600_0000),
+            "the figure's angle (`GuyData +0x18`)"
         );
         assert_eq!(
-            s.units[n].movement.facing,
+            s.units[n].movement.heading,
             crate::movement::Angle(0x1200_0000),
-            "the figure's angle, not the turning unit's"
+            "the unit's angle (`UnitData +0x50`)"
+        );
+        assert_eq!(
+            s.units[n].movement.frame_facing, s.units[n].movement.facing,
+            "the copy is no turn: `guy_flags & 2` clear"
         );
         assert!(!s.units[target].alive(), "the old one is closed");
         assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);

@@ -6956,11 +6956,13 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_SIX: (i64, i64) = (604,
 
 /// **Chapter one hundred and twenty-seven** (item 3985, `docs/GOLDEN.md`
 /// §178, run1543): a Spy's Bribe and Informer from beyond the row's range
-/// with every spy upgrade held, and a Bribe on a Catapult. Open at 1294
-/// (first try 1239: the Informer's hold, `SPIES_CRAFT_FASTER`, built
-/// here): the frame after Bribe's copies are born, theirs spends a
-/// second `Unit::do_idle` roll on one of them (parked CP-a).
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN: i64 = 1294;
+/// with every spy upgrade held, and a Bribe on a Catapult. Closed at 1600,
+/// the trace's end (word 1239 → 1294 → 1600): 1239 was the Informer's
+/// hold (`SPIES_CRAFT_FASTER`, item 3985); 1294 was the copy `0/10` of a
+/// Hoplite still turning, which takes the figure's angle and the unit's
+/// apart, finishes its turn on the walk on its birth frame and rolls back
+/// to the idle on 1294 (item 3999, run1554, `docs/GOLDEN.md` §189).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN: i64 = 1600;
 
 /// `chapter_one_hundred_and_twenty_seven_s_window_is_widened_whole`'s
 /// window: run1543.

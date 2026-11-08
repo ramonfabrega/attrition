@@ -18842,7 +18842,7 @@ its term; the job-time arm dropped; the mirror copy dropped; `facing` copied for
 refund dropped.
 
 **Not established.**
-- The 1294 idle roll (parked 3985a).
+- ~~The 1294 idle roll (parked 3985a).~~ The copy `0/10` of a figure still turning: §189.
 - Counterintelligence's upgrade term and the supply-unit collapse are built from the reading and held by the unit test
   only; no staged target parts on them.
 
@@ -18920,12 +18920,56 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 189. Reserved for the next item on the rules track
+## 189. Chapter one hundred and twenty-seven closed at 1600 — Bribe's copy keeps the figure's angle and the unit's apart, and finishes its turn on its birth frame (item 3999, run1554)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3985a): on 1294 theirs spends a ninth draw, a second `Guy::set_anim < Unit::do_idle`, ours
+eight; nothing on disk named the figure, because run1543's end detail prints no `GUYS`.
+
+**The draws on 1294** (`RON_GOLDEN_SITES=1293-1300`, seed `0x96483df7`): both sides spend `0/3`'s two `do_job` rolls,
+then `0/6`'s idle (the Spy leaving its cast slot, `ATTACK3` at 50 of 100), `9/0`'s `set_anim+0x104b` and four
+`Farms::inc_time`. Theirs has a second `do_idle` roll beside `0/6`'s. 1293's draws agree: three `init_real` and three
+`do_idle` on Bribe's copies `0/9..0/11`.
+
+**What the disk could not answer, and run1554 did** (`GUYS=4` over 1286–1300, `docs/RUNS.md`; `rngcmp` 1301 of 1301
+identical with run1543). The value diff, block 1294 (the state after tick 1293):
+
+| figure | field | ours | theirs |
+|---|---|---|---|
+| `0/10` | `cur_anim` | 0 | 7 (`SLOG`) |
+| `0/10` | `cur_time` / `end_time` | 1 / 33 | 1 / 15 |
+| `0/10` | `stopped` | 1 | 0 |
+
+The figure is `0/10`, Hoplites (`TypeIndex` 132, land). It is the copy of who=1's `1/7`, whose figure on block 1293 was
+still turning: guy `angle` −420955942, `des_angle` −118161408, `cur_anim` 8, and the unit's `angle` −118161408. On
+block 1294 the copy reads `angle` = `des_angle` = −118161408 on `SLOG`. So its birth frame turned it: `Guy::move`'s
+owed-turn arm (`Guy::move@005d9240`, `des == pos`, `des_angle != angle`) asks for `CHAR_WALK` (the walk variant
+answers `SLOG` at speed 0), marks the figure unstopped and calls `turn_towards(des_angle, …, 1)`, which a standing
+foot figure takes whole. On 1294, `do_idle`'s `set_anim(CHAR_DEFAULT, 0, 1)` finds the walk category on a figure at its
+destination, passes the early returns and rolls. That roll is the ninth draw.
+
+**`Unit::swap_team@006118d0`'s copy** writes two angles, each from its own owner. The unit's `angle` (`UnitData +0x50`,
+this crate's `heading`) comes from the old unit. The figure's `+0x0c..+0x40` come from the old figure, its `angle`
+(`GuyData +0x18`, this crate's `facing`) among them. The figure's `des_angle` (`+0x64`) and `guy_flags` (`+0x9a`) are
+not copied. Item 3985 copied the old `heading` into both, so the copy was born settled; before it, `facing` went into
+both.
+
+**Built** (`bribe.rs`' `copy_figure`): `facing` ← the old `facing`, `heading` ← the old `heading`, and
+`frame_facing` on the new `facing`. That last one is this crate's stand-in for `guy_flags & 2`: the copy is no
+`Guy::do_turn`, so the fresh figure's bit stays clear and `process_movement`'s turn gate lets its first `Guy::move`
+turn it. Without it, ours put the copy on `SLOG` but turned it a frame late, and the word went to 1295.
+
+**The word** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN` 1294 → **1600**, the trace's end: closed, with no value
+parting (`values at None`). `WANT_CH127` 161 → the eleven standing `form` rows on 1095. The coverage driver walks
+1110..1600, 490 blocks (was 1110..1296, 187).
+
+**Tests.** `cast::tests::bribe_swaps_a_unit_s_team_and_closes_the_old_one` seeds the two angles apart and asserts each
+copied from its own, with `frame_facing` on the copy's `facing`. The golden walk takes `RON_DEBUG_UNIT`, so a one-draw
+idle parting reads its figures' clocks on our side.
+
+**Not established.** The rest of the copied figure range (`+0x20..+0x40`: turret, node, bank and pitch words) beyond
+the turret this crate carries; no staged figure parts on them (parked 3999a).
+
+**Coverage.** Diff-backed: the copy's two angles and its birth-frame turn, by run1554's `GUY` blocks and the word.
 
 ## 190. Reserved for the next item on the rules track
 

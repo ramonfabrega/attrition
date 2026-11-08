@@ -36055,3 +36055,24 @@ waited on another lane. `~/ron-golden/run1543` links to `ch127` and `run1543b` t
 - `0/6` stands at (22728, 18984), `0/7` at (22968, 26904); the Informer lands on 1239, 20 frames after its Spy stands;
   Bribe's copies `0/9..0/11` are born on 1293, reading `unit_masks` 0x10000a against the old units' 0x14000a.
 - `rngcmp`: run1543 against run1543b, 1601 of 1601 identical.
+
+## run1554 — chapter one hundred and twenty-seven's idle roll: the figure clocks over 1286–1300 (2026-11-07, item 3999, `att-3999`)
+
+`docs/GOLDEN.md` §189. **What the disk could not answer**: run1543's end detail prints no `GUYS`, so no block on disk
+said which figure spent theirs' ninth draw on 1294 or what it was playing (parked 3985a); every compared unit field
+agreed on that frame.
+
+Recipe `tools/gamelog/golden/chapter127.cmd`, unchanged, ended at 1300. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/ch127g --map 14 --end-frame 1300 --log-window 1286 1300 --timeout 3600
+--detail end:UNITS=3,GUYS=4,DEATHS=1,LEADERS=2,BUILDS=7` with the cmd header's `start:` and `misc:` sets.
+
+55 GiB free before the take. `success`, lifecycle verified, `map_verified`, map style 14, 1301 frames, `last_frame`
+1300, seed 12345; PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). Pool lane 1,
+23:45:21–23:45:54, 33.3 s launch to exit, one relaunch (`exit_before_frame_zero` at 6.5 s). No minutes were waited on
+another lane. `~/ron-golden/run1554` links to `ch127g`; filed by `filerun.py run1554 ch127-guys-window-1286-1300`.
+- Block 1293: who=1's `1/7` figure reads `angle` −420955942, `des_angle` −118161408, `cur_anim` 8, and the unit's
+  `angle` −118161408.
+- Block 1294: its copy `0/10` reads `cur_anim` 7 (`SLOG`), `cur_time` 1 of 15, `angle` = `des_angle` −118161408;
+  `0/9` and `0/11` read idle 1 of 33. Block 1295: `0/10` idle 1 of 33.
+- `0/6` (the Spy) reads `ATTACK3` 50 of 100 with `queued_attack` 13 on 1294, and `ATTACK3` 0 of 100 on 1295.
+- `rngcmp`: run1543 against run1554, 1301 of 1301 identical.

@@ -3130,15 +3130,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
-    // **Chapter one hundred and twenty-seven, on run1543** (item 3985): the
-    // three spells' orders on 1114, the Informer's hold from 1219 and its
-    // landing on 1239, Bribe's copies born on 1293 and the word on 1294.
+    // **Chapter one hundred and twenty-seven, on run1543** (items 3985,
+    // 3999): the three spells' orders on 1114, the Informer's hold from 1219
+    // and its landing on 1239, Bribe's copies born on 1293, their first idle
+    // on 1294 and the Catapult's Bribe after it, to the word at 1600.
     if let Some(p) = &ch127 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN;
-        let n = drive_capture(p, 1110, 1296, &mut paths);
+        let n = drive_capture(p, 1110, 1600, &mut paths);
         assert_eq!(
-            n, 187,
-            "chapter one hundred and twenty-seven carries 187 blocks in the window"
+            n, 490,
+            "chapter one hundred and twenty-seven carries 490 blocks in the window"
         );
         frames += n;
     }
