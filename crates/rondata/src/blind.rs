@@ -732,6 +732,13 @@ pub const TRACES: &[&str] = &[
     // `get_job_time`, `cast_bribe` and `swap_team` entered (`docs/GOLDEN.md`
     // §178); run1543's game on every frame (rngcmp 1601 identical).
     "rontrace-run1543b.log",
+    // Item 3986: golden chapter one hundred and twenty-eight
+    // (`chapter128.cmd`, the patriots' armour beside a fight) at `cover=1`
+    // on the click-free pool, to 1100 (`docs/RUNS.md` run1544b):
+    // `UnitData::armor`, `WallData::armor`, `has_general` and `find_hero`
+    // entered (`docs/GOLDEN.md` §179); run1544's game on every frame
+    // (rngcmp 1101 identical).
+    "rontrace-run1544b.log",
     // Item 3911: chapter seventeen's air group actions at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1505, run1505b;
     // `tools/gamelog/golden/chapter17-air.cmd` to 1100 and

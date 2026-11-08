@@ -222,8 +222,10 @@ fn spanish_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // and `1/109` from 3101 and on `1/115` from 3401 (ours 0, theirs 1);
     // and one value row, the Assault Infantry `1/18`'s (type 104, land, at
     // its full 180 hits) `damage_frac`, ours 13 against theirs 12 from 3101
-    // (parked 3866b). No draw parts.
-    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
+    // (parked 3866b). No draw parts. 102 → 100 (item 3986): the two
+    // `damage_frac` rows of `1/18` agree once `UnitData::armor@00610160`'s
+    // patriot terms are carried (`docs/GOLDEN.md` §179).
+    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
 }
 
 /// run1489b: the pair's last blocks, 3244..3501 at the long's detail with
@@ -288,8 +290,10 @@ fn spanish_information_pair_run1489b_s_closing_frame_is_widened_whole() {
     // against 1), `mirror` on `1/63`, `1/75`, `1/87`, `1/102`, `1/109` and
     // (from 3324) `1/115` (ours 0, theirs 1) — and the one value row the
     // stride carries, the Assault Infantry `1/18`'s `damage_frac`, ours 13
-    // against theirs 12 (parked 3866b). No draw parts to 3500.
-    pin_eq!(w.firsts.len(), 47, "run1489b baseline");
+    // against theirs 12 (parked 3866b). No draw parts to 3500. 47 → 45
+    // (item 3986): `1/18`'s two `damage_frac` rows agree once the
+    // patriots' armour terms are carried (`docs/GOLDEN.md` §179).
+    pin_eq!(w.firsts.len(), 45, "run1489b baseline");
     // Every round, both directions: 85 against 85, none parting.
     pin_eq!(w.rounds_read, (85, 85), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

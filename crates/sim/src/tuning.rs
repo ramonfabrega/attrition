@@ -1048,6 +1048,17 @@ pub struct Tuning {
     /// Stable-trained unit within one of its owner's Monarchs' radii adds
     /// (`UnitData::attack@006103c0`, ×10 there).
     pub themonarch_cav_attack: i32,
+    /// `THECITIZEN_ARMOR_BONUS`: the armour a unit with one of its owner's
+    /// `THECITIZEN` (`0x164`, shipped as The Comrade) in reach adds, inside
+    /// `UnitData::armor@00610160`'s rally arm.
+    pub thecitizen_armor_bonus: i32,
+    /// `THEMONARCH_CAV_ARMOR`: the armour a Stable-trained unit with one of
+    /// its owner's Monarchs in reach adds, inside the same arm.
+    pub themonarch_cav_armor: i32,
+    /// `THESENATOR_BUILD_ARMOR`: the armour a building within one of its
+    /// owner's Senators' reach adds, before `WallData::armor@0063fa60`'s
+    /// unfinished halving.
+    pub thesenator_build_armor: i32,
     /// Frames between a city's self-repair steps.
     pub city_heal_rate: i32,
     /// Whether Chinese cities are founded as Large Cities.
@@ -1789,6 +1800,9 @@ impl Tuning {
         thecitizen_assimilation_speed: 4,
         thecitizen_attack_bonus: 2,
         themonarch_cav_attack: 2,
+        thecitizen_armor_bonus: 2,
+        themonarch_cav_armor: 2,
+        thesenator_build_armor: 5,
         city_heal_rate: 4,
         chinese_large_cities: 1,
         maya_building_speed: 20,
@@ -2685,6 +2699,15 @@ impl Tuning {
             (
                 "THEMONARCH_CAV_ATTACK",
                 Slot::Value(T.themonarch_cav_attack),
+            ),
+            (
+                "THECITIZEN_ARMOR_BONUS",
+                Slot::Value(T.thecitizen_armor_bonus),
+            ),
+            ("THEMONARCH_CAV_ARMOR", Slot::Value(T.themonarch_cav_armor)),
+            (
+                "THESENATOR_BUILD_ARMOR",
+                Slot::Value(T.thesenator_build_armor),
             ),
             ("CITY_HEAL_RATE", Slot::Value(T.city_heal_rate)),
             ("CHINESE_LARGE_CITIES", Slot::Value(T.chinese_large_cities)),

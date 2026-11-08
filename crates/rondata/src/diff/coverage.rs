@@ -849,6 +849,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch125 = golden_dump("ch125");
     let ch126 = golden_dump("ch126");
     let ch127 = golden_dump("ch127");
+    let ch128 = golden_dump("ch128");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3140,6 +3141,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 490,
             "chapter one hundred and twenty-seven carries 490 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and twenty-eight, on run1544** (item 3986): the
+    // three arms' attack orders on 640, the Heavy Knight's first blow on
+    // 655, the Hoplites' and the Barracks' after it, to the word at 1100.
+    if let Some(p) = &ch128 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT;
+        let n = drive_capture(p, 638, 1100, &mut paths);
+        assert_eq!(
+            n, 462,
+            "chapter one hundred and twenty-eight carries 462 blocks in the window"
         );
         frames += n;
     }

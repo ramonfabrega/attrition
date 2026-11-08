@@ -1697,6 +1697,16 @@ impl Sim {
     /// `return -1` on a zero) is not read; `find_hero` finds none either
     /// without a live President.
     pub(crate) fn president_near_building(&self, b: usize) -> bool {
+        self.hero_near_building(b, PRESIDENT)
+    }
+
+    /// `HeroesData::find_hero@0073a1b0(x, y, who, 0, ty, (x_size + y_size)
+    /// × 0x60)` on building `b`: one of its owner's heroes of type `ty`,
+    /// active and on the map, whose `get_radius × 0xc0` covers the
+    /// building's centre less its footprint's reach. The President's clause
+    /// above and `WallData::armor@0063fa60`'s Senator term (item 3986) ask
+    /// it. The same SEAM: the leader's per-type count is not read.
+    pub(crate) fn hero_near_building(&self, b: usize, hero: i32) -> bool {
         let bd = &self.buildings[b];
         let Some(ty) = bd.ty else {
             return false;
@@ -1705,7 +1715,7 @@ impl Sim {
         (0..self.units.len()).any(|h| {
             let x = &self.units[h];
             x.owner == bd.owner
-                && x.type_index == PRESIDENT
+                && x.type_index == hero
                 && x.alive()
                 && x.on_map
                 && self.is_hero_unit(h)

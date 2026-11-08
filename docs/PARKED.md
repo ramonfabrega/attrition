@@ -494,11 +494,12 @@ sight refresh.
 
 ## Parked by item 1350, 2026-09-30 — the site's armour
 
-(1359) **The Senator's building armour** (`WallData::armor`'s
+~~(1359) **The Senator's building armour** (`WallData::armor`'s
 `63fab0`–`63fb1f`, `thesenator_build_armor`): the `SEAM` is in
 `Sim::armor_of`; its scan is a building struck within a who's Senator's
 reach. East Indies (`1/60`) and run470 (`1/80`) have Senators, and
-neither long capture shows such a strike.
+neither long capture shows such a strike.~~ Built and diff-backed by item
+3986 on run1544 (`docs/GOLDEN.md` §179).
 
 (1360) **who=1's squad's `order:target` on chapter forty-seven's 682**:
 ours none against the site, `order:kind` agreeing; a standing row to
@@ -11805,9 +11806,9 @@ it.
   stride block (3001), each parked in its airport (`docs/AI.md` §346). Draw-silent to 4348 and unread here: it names
   no frame the draws part on. `UnitData::speed`'s terms (`unit_speed_view`) are the first reading.~~ Closed by item
   3742: `update_speed`'s Aluminum arm (`docs/AI.md` §366.3).
-- **3677b. The Citizen's armour arm** (`UnitData::armor@00610160`, `has_general(0, 0x164)`, `THECITIZEN_ARMOR_BONUS`
+- ~~**3677b. The Citizen's armour arm** (`UnitData::armor@00610160`, `has_general(0, 0x164)`, `THECITIZEN_ARMOR_BONUS`
   2), read beside the attack arm item 3677 built and not built: no window on disk holds a blow on a unit beside a
-  Citizen that parts. Names no score.
+  Citizen that parts. Names no score.~~ Built and diff-backed by item 3986 on run1544 (`docs/GOLDEN.md` §179).
 
 ## Parked by item 3678, 2026-10-26 — the British Industrial word: the AA Gun's British discount
 
@@ -11897,9 +11898,9 @@ draw parts; it names no score.
   (6308, 30738) on 5237) and `1/59` (5275), and `dest_angle` on `1/65` (5239) and the Arquebusiers `1/75` (TY 98,
   5271): draw-silent to the close; run1357c's Pike Legion `1/68` (`orders_x` 8424 against 8471 on 3987) and Spy
   `1/98`'s `dest_angle` (4048) likewise. Names no score.
-- **3688c. `UnitData::armor`'s Monarch arm** (`THEMONARCH_CAV_ARMOR`, rules.xml 2), the armour twin of the attack
+- ~~**3688c. `UnitData::armor`'s Monarch arm** (`THEMONARCH_CAV_ARMOR`, rules.xml 2), the armour twin of the attack
   term item 3688 built; `fight.rs`'s `rally_armor` SEAM names it. No blow on disk strikes a Stable unit by a
-  Monarch. Names no score.
+  Monarch. Names no score.~~ Built and diff-backed by item 3986 on run1544 (`docs/GOLDEN.md` §179).
 
 ## Parked by item 3693, 2026-10-27 — the American Industrial close: an unarmed member's stand-off
 
@@ -13944,11 +13945,12 @@ read, would lack one unit. Names no score until a Spanish lobby's start is simul
   3699a's, 3742c's and 3760d's family on a fourth lobby: a city stamp three frames apart at the game's last
   frame. No draw reads it to 3500. **Score**: none while the pair stays whole; it joins whichever item reads the
   family's writer.
-- **3866b. The Assault Infantry `1/18`'s `damage_frac`, ours 13 against theirs 12, from block 3101 to the close**
+- ~~**3866b. The Assault Infantry `1/18`'s `damage_frac`, ours 13 against theirs 12, from block 3101 to the close**
   (TI 104, land, group 65, at its full 180 hits; run1489's stride and run1489b's window). This is a sixteenth of
   carried damage, the same quiet family as 3691c and the Egyptian Gunpowder pair's `1/47`. It spends no draw. The
   stride cannot place the blow between 3001 and 3101. **Score**: none; a window over 3001..3101 with `AMMO=5`
-  would name the round if a later word reads it.
+  would name the round if a later word reads it.~~ Item 3986: both `damage_frac` rows agree once the patriots'
+  armour terms are carried (`docs/GOLDEN.md` §179); the stride's baseline 102 → 100.
 
 ## Parked by item 3867, 2026-11-05 — the German Industrial Moderate pair whole at 4784
 
@@ -15348,13 +15350,15 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
 - **3981c. Leader 0's `gather_stamp` after the `resource` line**: on 601 ours 600, theirs 496. The staging's
   `resource who=0 all +100000` moves this crate's stamp and not the original's. **Score**: the same pin, −1.
 
-## Parked by the next landing, slot CS — reserved
+## Parked by item 3986, 2026-11-08 — the patriots' armour beside a fight
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3986a. Chapter 128's word at 765: who=1's arm-one Hoplites take a group ours alone** (`GOLDEN_WORD_CHAPTER_ONE_
+  HUNDRED_AND_TWENTY_EIGHT`, run1544, `docs/GOLDEN.md` §179). Every blow of the three arms agrees through 764. On 765
+  the squad `1/6..1/8` (who=1's, on an `@attack` at who=0's Hoplites `0/7` since 640) reads `group` 64 ours and −1
+  theirs. Its move's `facing`, `dest`/`off` and `orders_x/y` part on the same block, and `1/6` collides with `1/7` on
+  766 theirs only. The draw stream parts on 765 too (sequence 765, values 766). Not read: which crate path pushes the
+  group (a `go_to`'s squad walk and `group_target_opportunity` are the candidates). The first brief is the draws on
+  764–765 both sides and `RON_DEBUG_ARMIES`. Score: ch128 w765 of 1,100.
 
 ## Parked by the next landing, slot CT — reserved
 
