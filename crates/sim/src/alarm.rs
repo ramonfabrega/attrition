@@ -89,6 +89,50 @@ impl Sim {
         }
     }
 
+    /// **A Citizen struck rings its city's bell** — `Object::take_damage
+    /// @00652020`'s arm for an object that is not a city building (vslot
+    /// `+0x20` answers 0; the decompile's lines 176–214), after the
+    /// accumulate and before the kill arm, on every blow (item 3984,
+    /// `docs/AI.md` §416; the swept walk is
+    /// [`crate::take_damage_view`]'s `peasant_alarm`).
+    ///
+    /// ```text
+    /// leader_flags & 4 clear (a computer), leader_flags2 & 8 clear,
+    /// get_diff > 1, ObjectData::is_peasant(this),
+    /// c = find_city_at(this's point, who, -1, 0) >= 0,
+    /// c's building finished, and c's flags & 0x40 (the bell) clear:
+    ///   a group of c's building alone, pushed on who's groups, and
+    ///   Group::action_alarm on it
+    /// ```
+    ///
+    /// run1075's Battleship `0/23` strikes `1/2033` on 2072, and the spill
+    /// reaches its four repairers in chain order: the first, `1/37`, rings
+    /// the bell, and every Citizen in the city's radius takes a
+    /// `GARRISONORDER` in front of its REPAIR, so the spill passes the other
+    /// three by. `leader_flags2 & 8` is the combat AI's scenario switch,
+    /// never set here (`docs/ARMY.md` §18). SEAMS: the group is not pushed
+    /// on the player's pool (`Groups::push_group`'s slot, which no dump
+    /// shows held past the frame); attrition's blow (`Unit::suffer_attrition`
+    /// calls `take_damage` with `param_5` 1, which this arm does not read)
+    /// does not come through here, and needs a computer Citizen bleeding
+    /// on a cell `find_city_at` accepts for its own city — neutral
+    /// attrition, which no shipped scenario sets.
+    pub(crate) fn peasant_alarm(&mut self, u: usize) {
+        let who = self.units[u].owner;
+        if self.nation[who as usize].human || self.ai_difficulty() < 2 || !self.is_peasant(u) {
+            return;
+        }
+        let Some(c) = self.find_city_at(who, self.units[u].pos, None) else {
+            return;
+        };
+        let b = self.cities[c].building;
+        let bd = &self.buildings[b];
+        if !(bd.alive && bd.active) || self.cities[c].alarm {
+            return;
+        }
+        self.action_alarm(who, &[b]);
+    }
+
     /// `ObjectsData::find_building@0065d260(pos, SEARCH_FRIENDLY, who, -1,
     /// 0x200, FILTER_CAN_GARRISON, u, who)`: the list walk (a negative
     /// range), every player that is `who` or an ally in object order, each
