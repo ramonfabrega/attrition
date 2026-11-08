@@ -740,14 +740,12 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // to 45 on block 822 (`docs/GOLDEN.md` §25).
         // **And the heal's clock** (item 3961, `docs/AI.md` §405):
         // `ObjectData::healing` on a building is written only by
-        // `Build::process`'s patriot repair — a Monarch, Comrade or CEO
-        // near a damaged building of a French-supply leader. SEAM: that
-        // arm is not built, so this crate's side is 0, which every
-        // building of every dump on disk prints.
+        // `Build::process`'s patriot repair — a Senator, President or CEO
+        // near a damaged building (item 3987, `Sim::patriot_repair`).
         for (field, mine, theirs) in [
             ("damage", i64::from(ours.damage), b.damage),
             ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
-            ("healing", 0, b.healing),
+            ("healing", i64::from(ours.healing), b.healing),
             // **Its line of sight** (item 3965, `docs/AI.md` §409):
             // `ObjectData::mylos`, the cache `Wall::update_los` last left,
             // against `Building::mylos`, written at the original's five

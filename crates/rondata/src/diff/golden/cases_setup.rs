@@ -1512,12 +1512,13 @@ pub(super) fn stage_walk() {
             now.push((
                 format!("u{i}"),
                 format!(
-                    "{}/{} {} alive={} hp={} in={:?} ride={:?} avg={} pos=({}, {}) z={} mana_burn={} head={} des={} [{}]",
+                    "{}/{} {} alive={} hp={} heal={} in={:?} ride={:?} avg={} pos=({}, {}) z={} mana_burn={} head={} des={} [{}]",
                     u.owner,
                     u.index,
                     unit_name(u.ty),
                     u.alive(),
                     u.health,
+                    u.healing,
                     u.inside.map(|b| s.buildings[b].index),
                     // Item 1223: the boat a passenger rides, and the
                     // figure's running average — the repaint's standing
@@ -1562,7 +1563,7 @@ pub(super) fn stage_walk() {
             now.push((
                 format!("b{i}"),
                 format!(
-                    "B {}/{} {} alive={} hp={} active={} damage={}/{} job={} under_attack={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={} target={target:?} city={:?} range={} attack={}",
+                    "B {}/{} {} alive={} hp={} active={} damage={}/{} healing={} ground={:?} job={} under_attack={} pos=({}, {}) queue={:?} gather={:?} chain={chain:?} inside={inside:?} launch={} target={target:?} city={:?} range={} attack={}",
                     b.owner,
                     b.index,
                     build_name(b.ty),
@@ -1573,6 +1574,10 @@ pub(super) fn stage_walk() {
                     b.active,
                     b.damage,
                     b.damage_frac,
+                    // Item 3987: the patriot repair's clock, and who owns
+                    // the cell under the building, which its arms read.
+                    b.healing,
+                    s.world.owner_at(b.pos),
                     b.job_counter,
                     b.under_attack,
                     b.pos.x,

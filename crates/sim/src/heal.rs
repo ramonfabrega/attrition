@@ -190,6 +190,73 @@ impl Sim {
         }
     }
 
+    /// **`Build::process@0061edf0`'s patriot repair** (`0061f2a0`..
+    /// `LAB_0061f3b9`, item 3987, `docs/GOLDEN.md` §180): after the tower's
+    /// attack and before `do_queue`, an active building of a leader who
+    /// counts a Senator, a President or a CEO (`+0x59c0`, `+0x59c4`,
+    /// `+0x59c8`: `+0x56fe + ti × 2` at `0x161`, `0x163`, `0x165`), damaged
+    /// (`damage` or `damage_frac` non-zero), on `FRENCH_SUPPLY_HEAL_RATE`'s
+    /// phase `(o + frame) % rate == 0`, takes one point:
+    ///
+    /// ```text
+    /// t = owner of the cell under the building (−1 for none)
+    /// if has_general(0, 0x163) >= 0:            # a President's reach
+    ///     repair if t < 0 or is_ally(t)
+    /// elif t >= 0 and is_ally(t):
+    ///     repair if has_general(0, 0x161) >= 0 or has_general(0, 0x165) >= 0
+    /// repair: vslot +0x168(1, 0, 1) = Build::repair_damage;
+    ///         healing = max(rate, healing)
+    /// ```
+    ///
+    /// `has_general` on a building is `find_hero` with the footprint's
+    /// `(x_size + y_size) × 0x60` as slack, behind the leader's count of
+    /// the type ([`Sim::hero_near`]). A President on an enemy's ground
+    /// repairs nothing, and neither does a Senator or a CEO off allied
+    /// ground: run1544's Barracks `0/2007`, struck beside its Senator, is
+    /// never repaired and prints `healing 0` on every block.
+    pub(crate) fn patriot_repair(&mut self, b: usize, frame: i64) {
+        const THESENATOR: i32 = 0x161;
+        const THEPRESIDENT: i32 = 0x163;
+        const THECEO: i32 = 0x165;
+        let bd = &self.buildings[b];
+        let who = bd.owner;
+        if ![THESENATOR, THEPRESIDENT, THECEO]
+            .iter()
+            .any(|&ti| self.hero_counted(who, ti))
+        {
+            return;
+        }
+        if bd.damage == 0 && bd.damage_frac == 0 {
+            return;
+        }
+        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        if rate == 0 || bd.phase(frame) % rate != 0 {
+            return;
+        }
+        let Some(ty) = bd.ty else {
+            return;
+        };
+        let at = bd.pos;
+        let reach = (self.build_types[ty].x_size + self.build_types[ty].y_size) * 0x60;
+        let ally_ground = match self.world.owner_at(at) {
+            crate::Owner::Player(t) => Some(self.is_ally(who, t)),
+            _ => None,
+        };
+        let repair = if self.hero_near(who, THEPRESIDENT, at, reach) {
+            ally_ground != Some(false)
+        } else {
+            ally_ground == Some(true)
+                && (self.hero_near(who, THESENATOR, at, reach)
+                    || self.hero_near(who, THECEO, at, reach))
+        };
+        if repair {
+            self.repair_building(b, 1);
+            let rate = i16::try_from(rate).unwrap_or(i16::MAX);
+            let bd = &mut self.buildings[b];
+            bd.healing = bd.healing.max(rate);
+        }
+    }
+
     /// `healing = max(rate, healing)`, the write every arm of
     /// `Unit::process_healing@005e0670` makes after its `repair_damage`,
     /// with the arm's own period (item 3961, `docs/AI.md` §405).
