@@ -412,8 +412,9 @@ fn seeker_type<V: SwarmView>(v: &mut V, p: i32, m: i32, b: i32, who: i32) -> i32
 ///   by the original and sent `MOVE_TO` the site at `QUEUE_NEW`; here they
 ///   are left alone, as the member arm always has (the orders this
 ///   crate issues swarm builders only).
-/// - SEAM: the busy test (`is_busy`, a unit mid-cast or boarding), the
-///   idle-citizens filter (the site's type's slot `+0x90` is not carried, so
+/// - The busy test is the crate's own (item 3988): a pack or unpack at the
+///   head, its entering/exiting half a SEAM where it is defined.
+/// - SEAM: the idle-citizens filter (the site's type's slot `+0x90` is not carried, so
 ///   `idle` stays 0), a unit carrying citizens (the inside count) and the
 ///   `GATHER` arm's predicate (`is(0x1a4)`; this crate swarms `Build` and
 ///   `Repair` only) answer no; the report of an illegal order is not
@@ -581,8 +582,8 @@ impl SwarmView for SimSwarm<'_> {
             }
         })
     }
-    fn m_busy(&mut self, _p: i32, _m: i32) -> bool {
-        false
+    fn m_busy(&mut self, _p: i32, m: i32) -> bool {
+        self.sim.is_busy(m as usize)
     }
     fn m_type(&self, _p: i32, m: i32) -> i32 {
         if self.sim.worker_of(m as usize) == crate::orders::Worker::Citizen {

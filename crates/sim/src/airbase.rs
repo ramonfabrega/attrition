@@ -107,7 +107,7 @@ impl Sim {
     /// **`Group::action_launch_patrol(x, y, queue, shift, ctrl, alt)@
     /// 00703580`** on a group of buildings: a right-click on the ground
     /// with an Airbase selected. Of each member's planes that are air,
-    /// not busy (`UnitData::is_busy@0060a370`, a head cast here) and not
+    /// not busy ([`Sim::is_busy`]: a plane inside holds no order) and not
     /// missiles, and pass the ctrl/alt filter:
     ///
     /// - **without shift, a plane still refuelling** (`mana_burn != 0`,
@@ -272,8 +272,9 @@ impl Sim {
     ///   host's cell centre with the action bit: [`Sim::launch_one`]'s
     ///   helicopter arm. Read only: no capture holds a helicopter here.
     ///
-    /// SEAM: `is_busy`, as in [`Sim::group_action_launch_patrol`] — a plane
-    /// inside holds no craft order and is never entering or exiting here.
+    /// SEAM: [`Sim::is_busy`] is not called, as in
+    /// [`Sim::group_action_launch_patrol`] — a plane inside holds no pack
+    /// or unpack and is never entering or exiting here.
     pub fn group_action_scramble(&mut self, buildings: &[usize]) {
         for (b, u) in self.planes_inside(buildings) {
             if !self.is_air_unit(u) || self.units[u].mana_burn != 0 || self.is_missile(u) {

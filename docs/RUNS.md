@@ -36148,3 +36148,25 @@ waited on another lane. `~/ron-golden/run1545` links to `ch129` and `run1545b` t
 - The repairs: `0/2007` on game frame 653 (block 654, 3/0, `healing` 20); `0/2008` on 672 (block 673, 7/0, `healing`
   20). The heal: `0/8` inside `0/2000` from block 855, `healing` 15 on block 863.
 - `rngcmp`: run1545 against run1545b, 1101 of 1101 identical.
+
+## run1546 — chapter one hundred and thirty: a Spy mid-Bribe under a patrol, and a mandatory attack's kill-only tail (2026-11-08, item 3988, `att-3988`)
+
+`docs/GOLDEN.md` §181. **What the disk could not answer**: no window on disk held a group order issued over a member
+whose head order is a cast that is no pack or unpack, so nothing showed whether `UnitData::is_busy@0060a370` refuses
+it. And no walk held `Unit::fight@005fd4d0`'s `LAB_005fe0e5` tail (parked 4002a: its mutation to the search failed
+nothing in the 335 golden tests).
+
+Recipe `tools/gamelog/golden/chapter130.cmd`, chapter 128's lobby: Libraries for both (600–602); Spy `0/6` (606);
+the who=1 Hoplite `1/6` beside it (1104); Bribe on it (1108) and a patrol over `0/6` alone (1114); Hoplites
+`0/7` and `0/10`, Catapults `1/9` and `1/10` (1190–1196); both squads `@attack` `1/9` (1200), and a move queued behind
+`0/7`'s (1201).
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch130 --map 14 --end-frame 1500
+--log-window 1095 1500 --timeout 3600` with the cmd header's three detail sets. `success`, lifecycle verified,
+`map_verified`, map style 14, 1501 frames, `last_frame` 1500, seed 12345. PLAYER records: who 0 (flags 7, tribe 4)
+and who 1 (flags 1, tribe 11). No minutes were waited on another lane. `~/ron-golden/run1546` links to `ch130`.
+- run1546 (`ch130`, `cover=0`, pool lane 1): 07:38:07–07:39:00, 53.3 s launch to exit, no relaunch. The word's.
+  No cover twin was taken.
+- The Spy: `0/6` holds its CASTORDER on block 1115 and a `GroupPatrolOrder` on 1116; `1/6` stays who=1.
+- The tail: `1/9` dies on 1301 (`DEATH_OBJS`) to `0/10`'s squad; on 1304 `0/7`'s squad holds the queued MOVEORDER
+  alone, with no attack on `1/10`.
