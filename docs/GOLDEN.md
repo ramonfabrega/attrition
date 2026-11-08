@@ -18851,12 +18851,58 @@ refund dropped.
 Strategy halving and the figure copy's three fields. Reading only: the Sniper's vehicle tile and the dead refunds.
 `blind::` is unmoved: run1543b joins `TRACES`, and nothing it enters was `NEVER`.
 
-## 179. Reserved for the next item on the rules track
+## 179. Chapter one hundred and twenty-eight — the patriots' armour beside a fight: a Comrade's Hoplites, a Monarch's Heavy Knight and a Senator's Barracks struck; pinned open at 765 (item 3986, run1544, run1544b)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (adjudication 4 rows 61, 63) named three arms: a Democracy Citizen beside a struck unit, the Monarch
+beside struck cavalry, and a Republic building struck within its Senator's reach. **The first arm's unit is not
+Democracy's**: `0x164` is `THECITIZEN` in the type enum, and the shipped unit at that index is **The Comrade**
+(`PREQ0 Socialism`); Democracy's patriot is The President (`0x163`). All three constants live on shipped data:
+`THECITIZEN_ARMOR_BONUS` 2, `THEMONARCH_CAV_ARMOR` 2, `THESENATOR_BUILD_ARMOR` 5. `UnitData::armor@00610160` and
+`WallData::armor@0063fa60` gate on no government, so no `civic` or `tech` line is staged.
+
+**Staging** (`tools/gamelog/golden/chapter128.cmd`, chapter 127's golden start). The patriots and the struck units are
+who=0's. The first walk gave them to who=1, and its per-unit think marched each later squad at birth to the first one
+(`go_to_unit`'s `AttackTo`), which broke the arms' geometry. who=0's Hoplites `0/7..0/9` stand a tile from its
+Comrade `0/6`; its Heavy Knight `0/11` two tiles from its Monarch `0/10`; its Barracks `0/2007` three tiles from its
+Senator `0/12`. Three who=1 Hoplite squads (`1/6`, `1/9`, `1/12`, captains alone: an `@attack` naming a squad's other
+figures is the DLL's refusal 3) are ordered at them on 640. The five killers are in the cmd file's header, written
+before the take.
+
+**What the original does** (run1544 `cover=0`, run1544b `cover=1 --no-ffwd --twin`; `docs/RUNS.md`).
+- **The Monarch's term**: the knight's first blow on 656 is `damage` 4 + 5/16 (131 left). Without the term it is 5.
+- **The Comrade's term**: `0/8`'s first blow on 668 is 1 + 10/16 (119 left). Without the term it is 2 + 5/16.
+- **The Senator's term**: the Barracks' first blow on 679 is 4 + 10/16. Without the term it is 8.
+- Every later blow of the three arms agrees through 764. The twin enters `UnitData::armor`, `WallData::armor`,
+  `ObjectData::has_general` and `HeroesData::find_hero` (killer 5 did not fire); `rngcmp` 1101 of 1101 identical.
+
+**What this crate does** (built):
+- `Sim::rally_armor` adds the two patriots' terms after the rally term, each its own `has_general` walk; the Monarch's
+  asks the Stable trainer (`trainer_ident`), as the attack twin does. The generals between them (Ptolemy, Darius,
+  Wellington, Blücher, Memnon) stay a `SEAM`.
+- `Sim::armor_of` adds `Sim::senator_build_armor` before the unfinished halving; its walk is the President's
+  (`Sim::hero_near_building`, the radius less `(x_size + y_size) × 0x60`).
+- `tuning.rs` carries the three constants.
+- **The word.** `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT` = **765**, open. That frame is not an armour row:
+  who=1's arm-one Hoplites `1/6..1/8` read `group` 64 ours and −1 theirs, their move's `facing` and the orders behind it
+  part, and `1/6` collides on 766 theirs only (parked 3986a).
+- **The widening.** Over 605..1100 (`(604, 1101)`, both directions) it parts on the eleven standing `form` rows, then
+  nothing until 765 (`WANT_CH128`, 354 rows). The `cant_reach` tally 10.
+- **Tests.** `fight::tests::a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm` and
+  `…::a_senator_armours_its_buildings_before_the_halving`.
+- **Coverage.** The driver drives 638..1100, 462 blocks.
+
+**Mutations** (`tools/mutate.py`, each held red by the widening, at its own first blow): the Comrade's term dropped
+(668, `0/8`), the Monarch's dropped (656, `0/11`), the Senator's dropped (679, `0/2007`). The golden word does not hold
+them: a blow's size spends no draw.
+
+**Not established.**
+- The leader's per-type counts (`+0x59c0` for the Senator, `has_general`'s `+0x56fe`): a live hero the walk finds
+  implies them, and no staging holds one counted and off the map.
+- The 765 group (parked 3986a).
+
+**Coverage.** Diff-backed: all three terms, and the Senator's taken before the halving's place (an active building;
+the order is the unit test's). Reading only: the halving's order on an unfinished site under a Senator.
+`blind::` is unmoved: run1544b joins `TRACES`, and nothing it enters was `NEVER`.
 
 ## 180. Reserved for the next item on the rules track
 

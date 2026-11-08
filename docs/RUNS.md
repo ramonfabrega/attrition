@@ -36056,6 +36056,31 @@ waited on another lane. `~/ron-golden/run1543` links to `ch127` and `run1543b` t
   Bribe's copies `0/9..0/11` are born on 1293, reading `unit_masks` 0x10000a against the old units' 0x14000a.
 - `rngcmp`: run1543 against run1543b, 1601 of 1601 identical.
 
+## run1544 and run1544b — chapter one hundred and twenty-eight: the patriots' armour beside a fight (2026-11-08, item 3986, `att-3986`)
+
+`docs/GOLDEN.md` §179. **What the disk could not answer**: no window on disk held a blow on a unit beside a Comrade
+(parked 3677b), on Stable cavalry beside a Monarch (3688c) or on a building within a Senator's reach (1359), so no
+dump showed `UnitData::armor@00610160`'s two patriot terms or `WallData::armor@0063fa60`'s Senator term
+(adjudication 4 rows 61, 63).
+
+Recipe `tools/gamelog/golden/chapter128.cmd`: who=0's Comrade, Hoplites, Monarch, Heavy Knight, Senator and Barracks
+(606–616); three who=1 Hoplite squads (620–624); three `@attack`s as who=1 on 640.
+
+Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch128 --map 14 --end-frame 1100
+--log-window 605 1100 --timeout 3600` with the cmd header's three detail sets. The twin is the same line at `--cover
+cover=1 --no-ffwd --twin ~/ron-golden/ch128`, into `~/ron-golden/ch128b`.
+
+47 GiB free before the take. Both `success`, lifecycle verified, `map_verified`, map style 14, 1101 frames,
+`last_frame` 1100, seed 12345. PLAYER records: who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). No minutes were
+waited on another lane. `~/ron-golden/run1544` links to `ch128` and `run1544b` to `ch128b`.
+- run1544 (`ch128`, `cover=0`, pool lane 1): 01:35:09–01:39:26, 256.5 s launch to exit, no relaunch. The word's.
+- run1544b (`ch128b`, `cover=1`, pool lane 1): 98.4 s launch to exit, one relaunch (`exit_before_frame_zero` after
+  2.7 s). Filed by `filerun.py run1544b ch128-patriot-armour-cover`. Enters `UnitData::armor`, `WallData::armor`,
+  `ObjectData::has_general` and `HeroesData::find_hero`.
+- First blows: the Heavy Knight `0/11` on 656, `damage` 4 + 5/16; the Hoplite `0/8` on 668, 1 + 10/16; the Barracks
+  `0/2007` on 679, 4 + 10/16.
+- `rngcmp`: run1544 against run1544b, 1101 of 1101 identical.
+
 ## run1554 — chapter one hundred and twenty-seven's idle roll: the figure clocks over 1286–1300 (2026-11-07, item 3999, `att-3999`)
 
 `docs/GOLDEN.md` §189. **What the disk could not answer**: run1543's end detail prints no `GUYS`, so no block on disk
