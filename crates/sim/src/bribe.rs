@@ -94,11 +94,18 @@ impl Sim {
     fn copy_figure(&mut self, o: usize, m: usize) {
         let old = &self.units[o];
         let damage = old.max_health - old.health;
-        // `swap_team` copies the figure's guy `angle` — the dump's `angle`,
-        // this crate's `heading` — not the unit's facing: they differ on a
-        // figure still turning, run1543's `1/7` on 1294 (item 3985).
-        let (frac, facing, form, recharging) = (
+        // `swap_team` copies two angles, each from its own owner: the
+        // unit's `angle` (`UnitData +0x50`, this crate's `heading`) and the
+        // figure's `angle` (`GuyData +0x18`, this crate's `facing`); the
+        // figure's `des_angle` (`+0x64`) is not copied. They differ on a
+        // figure still turning, run1554's `1/7` on 1293 (the figure's
+        // −420955942 against the unit's −118161408), and the copy then
+        // finishes that turn on its birth frame: `Guy::move`'s owed-turn
+        // arm puts it on the walk, and the next frame's `do_idle` rolls
+        // it back (item 3999, `docs/GOLDEN.md` §189).
+        let (frac, facing, heading, form, recharging) = (
             old.damage_frac,
+            old.movement.facing,
             old.movement.heading,
             old.form,
             old.combat.recharging,
@@ -115,8 +122,11 @@ impl Sim {
         n.health = n.max_health - damage;
         n.damage_frac = frac;
         n.movement.facing = facing;
-        // `update_gpiece` leaves the figure's `des_angle` on its angle (the dump's `dest_angle` equals `angle` on every swapped figure, run880).
-        n.movement.heading = facing;
+        // The copy is no `Guy::do_turn`: `guy_flags` (`+0x9a`) is outside
+        // the copied range, so the fresh figure's `& 2` stays clear and its
+        // first `Guy::move` turns it ([`crate::Movement::frame_facing`]).
+        n.movement.frame_facing = facing;
+        n.movement.heading = heading;
         n.form = form;
         n.combat.recharging = recharging;
         n.in_danger = in_danger;
