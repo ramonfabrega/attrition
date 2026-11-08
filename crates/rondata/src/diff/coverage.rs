@@ -3662,10 +3662,12 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // on the tree after `ccc update`'s base).
     // Item 1598: run714's window carries a paired strafe; `strafe_xx` and
     // `strafe_yy` leave the pin.
+    // Item 3984: run1075's window holds who=1's citizens on the bell's
+    // `GARRISONORDER search=1` from 2073 on both sides, so
+    // `garrison_search` leaves the pin.
     (
         "OrderDump",
         "build_type \
-         garrison_search \
          metric non_flat_gather \
          orig_x orig_y \
          tolerance uid ",
