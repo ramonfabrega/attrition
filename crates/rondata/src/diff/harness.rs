@@ -2215,14 +2215,11 @@ fn widen_block_rows(
                 ("rare", i64::from(un.rare), them.rare),
                 ("good_obj", i64::from(un.good_obj), them.good_obj),
                 // **A unit's own queue** (item 3960, `docs/AI.md` §404):
-                // an Aircraft Carrier's planes and their clock. SEAM: this
-                // crate holds no unit queue — `Group::action_spell`'s
-                // carrier arm, `Unit::process`'s tick and
-                // `Unit::action_unqueue(1)` are unmodelled — so its side is
-                // 0, which every walked window prints; run1066's carrier
-                // parts both on 614, which no walk holds.
-                ("num_queued", 0, them.num_queued),
-                ("queue_time", 0, them.queue_time),
+                // an Aircraft Carrier's planes and their clock, ported by
+                // item 3981 (`sim::carrier_queue`, §413) and walked on
+                // run1066, the one capture that holds a carrier's queue.
+                ("num_queued", i64::from(un.num_queued), them.num_queued),
+                ("queue_time", i64::from(un.queue_time), them.queue_time),
                 // **The heal's clock** (item 3961, `docs/AI.md` §405):
                 // `ObjectData::healing`, `max(rate, ·)` on each heal the
                 // crate lands and one off a frame at the head.
@@ -4873,7 +4870,7 @@ pub(crate) mod tests {
             .map(|p| crate::capture::indexed::IndexedCapture::open(p).unwrap())
             .collect();
         let (first_block, tail) = window;
-        let prefix = prefix && super::prefix::enabled();
+        let prefix = prefix && super::prefix::enabled() && !crate::diff::setup::script_staged();
         let loaded = if prefix {
             super::prefix::loaded(&inst)
         } else {

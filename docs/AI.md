@@ -40278,12 +40278,13 @@ pins that parting against the crate's 0:
 carrier on 817 (§147). The clock climbs 100 a block and a cancel does not
 reset it.
 
-**What is not established.** The queue's tick and its delivery (who writes
+**What is not established.** ~~The queue's tick and its delivery (who writes
 `+0x64` in `Unit::process`, what threshold the 20300 is, whether the clock
 resets on delivery or on the next order) are not read; nor is the unit's
 `num_queued` write in `action_spell` beyond §147's account. A port has no
 walk to be diffed on until a harness replays run1066's staging (parked
-3960a).
+3960a).~~ Ported and walked by item 3981, §413: the clock resets on
+delivery, 817, and the 203 records agree.
 
 **Coverage.** Diff-backed: the zero on every walked window (the compare),
 and run1066's values (the pinned test, read off the dump). Reading-only: the
@@ -40815,12 +40816,109 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 413. Reserved for the next item on the AI track
+## 413. The carrier's queue, ported and walked: run1066 staged by the harness, its 203 parted records → 0 (item 3981, 2026-11-08)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** §404's three unmodelled writers of a unit's own queue
+(`UnitData +0xa0 num_queued`, `+0x64 queue_time`), ported in
+`sim::carrier_queue`, and run1066 (§147's staging, `carrier3446.cmd`) walked
+by the harness for the first time, so the port has a diff.
+
+**The harness first.** The booking said run1066's console `add` lines and
+`@unqueueunit` were not staging verbs. The first half was wrong: `golden.rs`
+has staged `add` since the rules track began, and `with_staged_script` (item
+3733) hands a script to any pair-shaped walk. A staging walk of the coverage
+lobby (`coverage_pair::carrier_staging_walk`) ran thirteen of the fifteen
+lines on its first try — the carrier `0/14` lands at (1272, 7224), the dump's
+own spot — and refused only `@unqueueunit`, an issuer this crate did not
+know. `golden::Issued::UnqueueUnit` is `@comeout`'s shape on units, and its
+entry `input::unqueue_unit` is `process_unqueue@009466f0`'s unit arm:
+`units[who][o]` live, then `Unit::action_unqueue(1)`. The `uid` test is a
+`SEAM`. Now every line runs: fourteen by 830, the `@strike` written on 830 acting on 831 (the walk asserts it). A staged walk takes
+no shared prefix (`setup::script_staged`), since a prefix an unstaged walk
+of the same start put carries no staging.
+
+**The three writers** (`crates/sim/src/carrier_queue.rs`, its header has the
+pseudocode):
+
+- `Group::action_spell@006fe1a0:171`, the carrier arm, taken when the
+  pressed `TypeIndex` is a unit type (`0x32..0x19e`) whose domain is air
+  (`+0x218 == 2`): per member, active and on the map,
+  `is_castable(BUILDAIR 0x295)`, `num_queued < 10`, `num_aircraft_here(0) <
+  num_aircraft_limit` (`MAX_AIRCRAFT_PER_CARRIER`, 7, a new tuning row); then
+  `t = current_upgrade(FIGHTERBOMBER)` whatever plane was pressed;
+  `can_pay_cost(who, −1, −1, 1)` else the whole call returns (listing
+  `6fe74b`..`6fe75f`); `pay_cost(who, −1, −1, 1, 0)`, escrowed (`6fe76a`..
+  `6fe77c`); `+0xa0` one up, the leader's `num_queued[t]` and the trainer
+  tally (`queue_up_with`'s two calls). Wired at the head of
+  `Sim::group_action_spell`.
+- `Unit::process@00610bc0:288`–`:420`, after the attrition and before the
+  heal: with a queue and the leader in play, `queue_time += ACCEL_TRAIN`;
+  at `train_time(t)` the pop cap holds it (`cap < pop(t) + control`: the
+  clock steps back), else `num_queued −1`, `queue_time = 0`, the tallies
+  down, `init_unit(who, t, here)` and `go_inside(this)` (here
+  `Sim::board`). The clock is `ObjectData::train_time`, which this crate had
+  only for a building's slot: `Sim::unit_train_target(who, ty, president)`
+  is `queue_target`'s unit arm factored out, the trainer reduced to its
+  President clause.
+- `Unit::action_unqueue@005e1f20(1)`: `num_queued −1`, `queue_time = 0`
+  only at zero, the tallies down, and `unpay_cost(who, −1, −1)`.
+  `sim::unit_unqueue_view` (item 3391) is the swept walk of the same
+  function; the port follows it and is not wired through it.
+
+**The value diff.** `coverage_pair::run1066_s_carrier_queue_parts_against_the_crate_s_zero`
+now walks run1066 from the coverage pair's start with the staging and reads
+every unit's two keys on both sides on each dumped block of 600..830:
+
+| block | `0/14` theirs | ours, item 3960 | ours, item 3981 |
+|---|---|---|---|
+| 614 (the first press's) | 1 / 100 | 0 / 0 | 1 / 100 |
+| 616 | 2 / 300 | 0 / 0 | 2 / 300 |
+| 622 (the cancel on 620) | 1 / 900 | 0 / 0 | 1 / 900 |
+| 816 (the last) | 1 / 20300 | 0 / 0 | 1 / 20300 |
+| 817 | 0 / 0, `0/15` aboard | 0 / 0 | 0 / 0, `0/15` aboard |
+
+**203 parted records → 0.** The plane `0/15` is born on 817 inside the
+carrier and parts on no compared key through 830.
+
+**The window, widened** (`run1066_s_carrier_window_is_widened_whole`, in
+the coverage driver's slice): 237 blocks, **101** first partings, none on
+the queue. They are, by kind:
+
+- the lobby's standing set on block 594 (the `SITE` slots' `reg`, `form`,
+  `aggression`), as on run672's 577;
+- the console's selection groups, which the capture does not print (its
+  detail has no `GROUPS`): `group:N.held`/`pool:N` on 594, 607, 612, 614,
+  624 and 626;
+- leader 0's `gather_stamp` on 601 (ours 600, theirs 496), the block after
+  the `resource` line (parked 3981c);
+- the two barges `1/19` and `1/20`: `think_carry_military` on 770 and
+  `think_carry_idle` on 793 lay a `MOVEORDER` in theirs and nothing in ours
+  (771, 794, and their walks after; parked 3981b);
+- the Dock's trained carrier `0/16` on 828: theirs is born with seven
+  planes `0/17`..`0/23` aboard (leader 0's `num_units[259]` 8 against 1,
+  `active` and `control` 7 up), ours with none (parked 3981a);
+- a bird `8/1`'s position on 811, and `SITE[7].reg` on 776.
+
+The `cant_reach` tally of the window is 4 (607 and 742, rows of
+§406's kind).
+
+**What is not established.**
+- `unpay_cost`'s ramp: `get_cost(…, 1, 1, −1)`'s fourth argument counts one
+  fewer in the ramp, and the refund is priced here at the count as it
+  stands. On run1066 the two agree: leader 0's `bucket` agrees on every
+  block, and a mutation dropping the refund parts two `bucket` rows (101 →
+  103), as one dropping the pay does. A ramp step the Fighter-Bomber's
+  price moves on is not reached.
+- The pop cap's hold and its message, `ai_speed` above 1, and the trainer's
+  President clause: no capture reaches them.
+- `go_inside`'s selection and cast branches, beyond `Sim::board`.
+
+**Coverage.** Diff-backed on run1066: the arm's increment and its trigger
+(614, 616), the cancel's decrement and its kept clock (622), the tick's
+pace and its threshold (816, 817), the plane's birth inside the carrier
+(817 onward), the price paid on 612 and 614 and refunded on 620 (leader
+0's `bucket`). Reading-only: the arm's three refusals (castable, ten, the
+aircraft limit), the pop-cap hold, the refund's ramp count.
 
 ## 414. Reserved for the next item on the AI track
 

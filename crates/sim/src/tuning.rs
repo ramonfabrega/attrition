@@ -942,6 +942,9 @@ pub struct Tuning {
     /// `AIRCRAFT_RESPOND_RANGE`, 10: a strike's leash is this × `0x100`
     /// from its patrol's point (`Unit::do_strafe`, `docs/ORDERS.md` §34.3).
     pub aircraft_respond_range: i32,
+    /// `MAX_AIRCRAFT_PER_CARRIER`, 7: `ObjectData::num_aircraft_limit@
+    /// 006454a0` on a unit of the Aircraft Carrier's lineage (`is(0x15f)`).
+    pub max_aircraft_per_carrier: i32,
     /// `BOMBER_RESPOND_RANGE`, 12: `find_new_bomber_target`'s circle is
     /// this × `0xc0` round the point, and this × `0x3c0` its reach from
     /// the plane (`docs/ORDERS.md` §34.5).
@@ -1750,6 +1753,7 @@ impl Tuning {
         unit_build_respond_range: 12,
         unit_gather_respond_range: 32,
         aircraft_respond_range: 10,
+        max_aircraft_per_carrier: 7,
         bomber_respond_range: 12,
         capital_build_time: 300,
         building_hp_upgrade: 10,
@@ -2612,6 +2616,10 @@ impl Tuning {
             (
                 "AIRCRAFT_RESPOND_RANGE",
                 Slot::Value(T.aircraft_respond_range),
+            ),
+            (
+                "MAX_AIRCRAFT_PER_CARRIER",
+                Slot::Value(T.max_aircraft_per_carrier),
             ),
             ("BOMBER_RESPOND_RANGE", Slot::Value(T.bomber_respond_range)),
             ("CAPITAL_BUILD_TIME", Slot::Value(T.capital_build_time)),

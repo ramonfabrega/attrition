@@ -577,6 +577,11 @@ impl Sim {
     /// queue, the feedback and the sounds; and the unit-type and transport
     /// arms. No capture reaches one.
     pub fn group_action_spell(&mut self, g: &Group, s: i32, target: Option<Obj>, at: Pos) -> usize {
+        // `:171`: a unit type whose `+0x218` is 2 is the carrier's button,
+        // the plane's own type on the wire (item 3981, `crate::carrier_queue`).
+        if let Some(n) = self.carrier_action_spell(&g.list, s) {
+            return n;
+        }
         let Some(d) = self.spell(s) else {
             return 0;
         };

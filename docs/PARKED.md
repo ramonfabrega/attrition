@@ -15128,6 +15128,7 @@ lobby, or on a map under 40 cells a side. No such lobby is known. Names no score
   No harness replays run1066's staging (console `add` lines and `@unqueueunit` are not staging verbs), so a port of
   `Group::action_spell`'s carrier arm, the `Unit::process` tick and `action_unqueue(1)` would have no diff. **Score**:
   none until a walk holds a carrier; a lobby whose AI builds a carrier (an Industrial-or-later sea game) would name one.
+  **Closed by item 3981** (`docs/AI.md` §413): the harness walks run1066 with its staging, the port lands, 203 → 0.
 
 ## Parked by item 3961, 2026-11-07 — the heal's clock, `UNITDATA` and `BUILDDATA healing`, compared
 
@@ -15334,13 +15335,19 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   others (run1554's copies are foot units with no turret, bank or pitch). Returns with a Bribe on a figure that banks
   or pitches. It names no score.
 
-## Parked by the next landing, slot CR — reserved
+## Parked by item 3981, 2026-11-08 — the carrier's queue walked on run1066
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3981a. The Dock's trained carrier is born with its planes** (`docs/AI.md` §413): run1066's Dock `0/2007`
+  trains the Carrier `0/16` on 828, and theirs holds seven planes `0/17`..`0/23` aboard from its birth (leader 0's
+  `num_units[259]` 8, `active` 24, `control` 26); ours is born empty (1, 17, 19). `Build::train`'s carrier arm, or
+  `Unit::init`'s, fills `MAX_AIRCRAFT_PER_CARRIER` (7) with the leader's current Fighter-Bomber; unread. **Score**:
+  `run1066_s_carrier_window_is_widened_whole`'s `firsts` (101), −10 when it lands.
+- **3981b. The two barges' `think_carry` arms** (AI §296 row 5, GOLDEN §147): `1/19` (`think_carry_military`, 770)
+  and `1/20` (`think_carry_idle`, 793) each lay a `MOVEORDER` in theirs on the next block (to (34968, 36504) and
+  (43416, 40584)) and hold nothing in ours; their walks part from there. **Score**: the same pin, −22 (eleven rows a
+  barge) when both arms land.
+- **3981c. Leader 0's `gather_stamp` after the `resource` line**: on 601 ours 600, theirs 496. The staging's
+  `resource who=0 all +100000` moves this crate's stamp and not the original's. **Score**: the same pin, −1.
 
 ## Parked by item 3986, 2026-11-08 — the patriots' armour beside a fight
 

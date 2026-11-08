@@ -855,6 +855,12 @@ pub enum Issued {
     /// `group`: the unit panel's button, whose `UnitOut::issue_come_out@
     /// 00607be0` is the manager's twin (item 3425, `docs/GOLDEN.md` §145).
     ComeOut { who: i32, objects: Vec<i16> },
+    /// `@unqueueunit <who> <o>…` — `issue_unqueue@00942ce0(unit, 0)` once
+    /// per unit, the `UnitOut` overload a carrier's cancel button calls: a
+    /// 15-byte `unqueue` (0x30) with `p` 0 and no `group`, which
+    /// `process_unqueue@009466f0`'s unit arm hands to `Unit::action_unqueue
+    /// @005e1f20(1)` (item 3446, `docs/GOLDEN.md` §147; item 3981).
+    UnqueueUnit { who: i32, objects: Vec<i16> },
     /// **Not a DLL verb**: the harness's own spelling of an `@key` bound to
     /// `OPTION_RETURN` on the console's selection (item 3911,
     /// `docs/GOLDEN.md` §158) — `Options::recall_aircraft@0071c670`'s
@@ -967,6 +973,7 @@ impl Issued {
             | Issued::Stance { who, objects, .. }
             | Issued::AttackGround { who, objects, .. }
             | Issued::ComeOut { who, objects }
+            | Issued::UnqueueUnit { who, objects }
             | Issued::Recall { who, objects } => (*who, objects, false),
             Issued::Eject { who, buildings }
             | Issued::Alarm { who, buildings }
@@ -1077,6 +1084,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "stance"
             | "attackground"
             | "comeout"
+            | "unqueueunit"
             | "recall"
     ) {
         return None;
@@ -1129,7 +1137,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
     }
     // `@comeout` has no number but `who`, and its objects are units, each
     // its own command.
-    if verb == "comeout" || verb == "recall" {
+    if verb == "comeout" || verb == "recall" || verb == "unqueueunit" {
         let [who, ref objects @ ..] = nums[..] else {
             return None;
         };
@@ -1143,6 +1151,8 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
         }
         return Some(if verb == "recall" {
             Issued::Recall { who, objects }
+        } else if verb == "unqueueunit" {
+            Issued::UnqueueUnit { who, objects }
         } else {
             Issued::ComeOut { who, objects }
         });
@@ -1625,6 +1635,13 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `Group::action_attack_ground@00704520`'s ground arm is walked
         // (`sim::attack_ground_view`) and not wired, and
         // `Unit::action_come_out@005e20b0` has no port (parked 3425a).
+        // `@unqueueunit` is `issue_unqueue@00942ce0` once per unit, an
+        // `unqueue` with no `group`, whose entry is
+        // [`crate::input::unqueue_unit`] (item 3981).
+        Some(Issued::UnqueueUnit { who, objects }) => objects
+            .iter()
+            .map(|&o| crate::input::unqueue_unit(built, who, o))
+            .sum(),
         // `recall` is the harness's spelling of `OPTION_RETURN`'s key (item
         // 3911): `process_recall@00947bd0` → `Group::action_recall`.
         Some(Issued::Recall { who, objects }) => {
@@ -3293,6 +3310,15 @@ mod tests {
             })
         );
         assert_eq!(parse_issuer("@comeout 0"), None);
+        // `@unqueueunit` is `@comeout`'s shape (item 3981).
+        assert_eq!(
+            parse_issuer("@unqueueunit 0 14"),
+            Some(Issued::UnqueueUnit {
+                who: 0,
+                objects: vec![14],
+            })
+        );
+        assert_eq!(parse_issuer("@unqueueunit 0"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,
