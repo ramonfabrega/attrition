@@ -3834,6 +3834,12 @@ not held — and would for any bit at a known offset. Candidate: a row of the br
 writes this bit" question takes the grep before the packet), red first on a brief that books a packet for a bit. Names no score;
 the loop's.
 
+(4006) **The waiter reads a cleared lane's job state, not its session** (the seventy-third's commander): after lane-3990's
+armed clear fired, its fresh session worked on, building, editing `air.rs` and committing `680c411ae`, while `ccc list` read the row
+`done busy` with the old turn's detail; `lanewait.py` exited `ENDED lane-3990 done` twice within a minute of each start, so the lane
+could not be watched and the commander waited on its done line alone. Candidate: `lanewait.py` reads the row's tempo (`busy`) or the
+transcript's last record before calling a row out of `working`; red first on this shape. Names no score; the loop's.
+
 (4003) **A gate on a field's position is mutation-checked when it is added** (3987's "for the Loop"): the comparator gated `UNITDATA
 healing` behind `on_map` for 26 items, so a heal written inside a garrison was a field nobody compared. Candidate: a guard or a
 brief row that a comparator's `on_map`-style gate on a field lands with a mutation that writes the field off the gate and is caught;
