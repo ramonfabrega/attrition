@@ -15279,6 +15279,8 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   may be another event's bearing, or the landing's. Not read: `Ammo::init`'s writer of `+0x2c` on the release arm.
   The draws and the close agree without it. **Score**: none (the word is closed); a widening row on the closing
   window, 31 rounds.
+  **Closed by item 3979** (`docs/AI.md` §411): the order arm's `+0x2c` is the scattered landing's bearing
+  (`Ammo::init`, `67c747`–`67c75a`); 31 → 6, the rest parked 3979a.
 - **3975b. Theirs heals units out of the fight, ours does not** (run1542; `docs/GOLDEN.md` §177): the first value
   parting of the closed game, 1151: the French Elite Special Forces `1/17` (TI 77, land, walking off at (25157,
   9797)) reads `healing` theirs 13 against ours 0, `damage_frac` 0 against 4, `hits:damage` 8 against 11; the MLRS
@@ -15296,13 +15298,15 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   `supplies.lists[who]` alone): built so, and no capture holds a Darius, Kutosov or Chandragupta beside a hurt French
   unit with no wagon near. **Score**: none until one does; the falsifier is a `healing` 20 on such a unit.
 
-## Parked by the next landing, slot CO — reserved
+## Parked by item 3979, 2026-11-07 — the MLRS round's angle, and the two rounds of the closing frame
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3979a. Two MLRS rounds fired on 2600 land apart** (run1542; `docs/AI.md` §411, `docs/GOLDEN.md` §177): on
+  the closing block 2601, `2/159`'s `ammo[12]` (`cur_time 1`) lands at ours (2697, 24408) against theirs (2656,
+  24424), and `2/160`'s `ammo[13]` at (2654, 24414) against (2661, 24406). Each `angle` follows its own landing.
+  This stood before item 3979, and every round fired earlier agrees whole. Both sides' `ATTACKGROUNDORDER` reads
+  (2658, 24408) on 2601 with `attack_unit=1`, which re-reads the attacked unit `1/35`. Not read: whether the
+  difference is the scatter's two draws on 2600 or the point at the moment of fire, before or after the
+  re-read. **Score**: the closing window's 6 round rows (`WIDENING_CORPSE_MELEE`); the word is closed.
 
 ## Parked by the next landing, slot CP — reserved
 
