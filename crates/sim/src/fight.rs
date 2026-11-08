@@ -3318,7 +3318,11 @@ impl Sim {
                 // hands on to its captain below.
                 let overflow = u.max_health - u.health - share;
                 let decoy = u.decoy;
+                if matches!(taken, Taken::Alive { .. }) {
+                    self.struck_alive(i);
+                }
                 if matches!(taken, Taken::Died { .. }) {
+                    let u = &mut self.units[i];
                     u.health = u.health.min(0);
                     // `take_damage@00652020:607`, before `die` (vslot
                     // `+0x158`): the kill's plunder (`docs/AI.md` §259).
@@ -3381,6 +3385,21 @@ impl Sim {
             }
             Obj::Building(b) => self.damage_building(b, hit, Some(_by), _frame, false),
         }
+    }
+
+    /// **A struck unit that survives raises `0x10` on its captain**
+    /// (`Object::take_damage@00652020:345`–`350`, item 3983, `docs/AI.md`
+    /// §415): after the hit is accumulated, a unit whose whole points taken
+    /// (`+0x24`) are still under its figure's share sets
+    /// `SubObjectData::flags |= 0x10` on `get_captain` (vslot `+0xe4`) —
+    /// the bit `Unit::think`'s idle gate reads, carried as `cant_reach`.
+    /// Attrition comes through here too (`suffer_attrition`'s slot `0x16c`
+    /// is this function), so [`crate::suffer_view::SimSuffer`] calls it as
+    /// well. A building's own arm (the same write on its captain, itself)
+    /// is not carried: no building flag is compared.
+    pub(crate) fn struck_alive(&mut self, i: usize) {
+        let c = self.captain_of(i);
+        self.units[c].cant_reach = true;
     }
 
     /// **The Despot's unit plunder** (`docs/AI.md` §259): `Object::take_damage
