@@ -6136,10 +6136,7 @@ impl Sim {
                     let o = Obj::Unit(i);
                     let r = self.is_in_range(me, o);
                     let v = self.valid_target(me, o);
-                    let c1 = self.compare_target(me, o, true, false);
-                    let c0 = self.compare_target(me, o, false, false);
-                    let (h, df, dest) = (self.units[i].health, self.units[i].damage_frac, self.units[i].movement.dest);
-                    eprintln!("  P4004 1/{ix} pos {pos:?} in_range {r} valid {v} cmp(in) {c1} cmp(no) {c0} health {h} frac {df} dest {dest:?}");
+                    eprintln!("  P4004 1/{ix} pos {pos:?} in_range {r} valid {v}");
                 }
             }
         }
