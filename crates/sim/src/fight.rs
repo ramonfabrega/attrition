@@ -578,7 +578,9 @@ impl Sim {
         } else {
             0
         };
-        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1) + citizen + monarch
+        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1)
+            + citizen
+            + monarch
     }
 
     /// `max_range()` (§4.4): zero stays zero.
@@ -7788,13 +7790,21 @@ mod tests {
         let c = put(&mut sim, 1, comrade, Pos::new(9192, 9000));
         sim.units[c].type_index = 0x164;
         assert_eq!(armour(&sim, foot), 1 + rally + 2, "a Comrade beside it");
-        assert_eq!(armour(&sim, knight), 1 + rally + 2, "the knight, the Comrade's term alone");
+        assert_eq!(
+            armour(&sim, knight),
+            1 + rally + 2,
+            "the knight, the Comrade's term alone"
+        );
         sim.units[c].owner = 0;
         assert_eq!(armour(&sim, foot), 1, "another player's Comrade");
         let m = put(&mut sim, 1, monarch, Pos::new(9192, 9000));
         sim.units[m].type_index = 0x162;
         assert_eq!(armour(&sim, foot), 1 + rally, "a Monarch: no term on foot");
-        assert_eq!(armour(&sim, knight), 1 + rally + 2, "a Monarch beside Stable cavalry");
+        assert_eq!(
+            armour(&sim, knight),
+            1 + rally + 2,
+            "a Monarch beside Stable cavalry"
+        );
         sim.units[m].pos.x += sim.hero_radius(m) * 0xc0;
         assert_eq!(armour(&sim, knight), 1, "the Monarch out of reach");
     }
@@ -7810,7 +7820,10 @@ mod tests {
     fn a_senator_armours_its_buildings_before_the_halving() {
         use crate::ai_load::uflags2;
         let (mut sim, _) = at_war();
-        assert_eq!(sim.tuning.thesenator_build_armor, 5, "the shipped THESENATOR_BUILD_ARMOR");
+        assert_eq!(
+            sim.tuning.thesenator_build_armor, 5,
+            "the shipped THESENATOR_BUILD_ARMOR"
+        );
         sim.build_types.push(crate::build::BuildType {
             x_size: 3,
             y_size: 3,

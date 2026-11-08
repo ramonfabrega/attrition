@@ -6971,8 +6971,10 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_SEVEN: (i64, i64) = (10
 /// **Chapter one hundred and twenty-eight** (item 3986, `docs/GOLDEN.md`
 /// §179, run1544): who=0's Hoplites beside its Comrade, its Heavy Knight
 /// beside its Monarch and its Barracks beside its Senator, each struck by
-/// who=1's Hoplites. Closed at 1100, the trace's end.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: i64 = 1100;
+/// who=1's Hoplites. Open at 765 (1100 → 765, the first pin): every blow
+/// of the three arms agrees through 764, and on 765 who=1's arm-one
+/// Hoplites `1/6..1/8` read `group` 64 ours, −1 theirs (parked 3986a).
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT: i64 = 765;
 
 /// `chapter_one_hundred_and_twenty_eight_s_window_is_widened_whole`'s
 /// window: run1544.

@@ -2696,10 +2696,7 @@ impl Tuning {
                 "THECITIZEN_ARMOR_BONUS",
                 Slot::Value(T.thecitizen_armor_bonus),
             ),
-            (
-                "THEMONARCH_CAV_ARMOR",
-                Slot::Value(T.themonarch_cav_armor),
-            ),
+            ("THEMONARCH_CAV_ARMOR", Slot::Value(T.themonarch_cav_armor)),
             (
                 "THESENATOR_BUILD_ARMOR",
                 Slot::Value(T.thesenator_build_armor),
