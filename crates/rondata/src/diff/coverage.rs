@@ -857,6 +857,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch129 = golden_dump("ch129");
     let ch130 = golden_dump("ch130");
     let ch131 = golden_dump("ch131");
+    let ch132 = golden_dump("ch132");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -3197,6 +3198,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 395,
             "chapter one hundred and thirty-one carries 395 blocks in the window"
+        );
+        frames += n;
+    }
+    // **Chapter one hundred and thirty-two, on run1548** (item 3990): the
+    // Airbase's scramble on the hoplites' blow, the two razed homes and the
+    // planes' re-home and death, and the Helicopter flown into its base.
+    if let Some(p) = &ch132 {
+        let _ = super::testkit::WIDENING_CHAPTER_ONE_HUNDRED_AND_THIRTY_TWO;
+        let n = drive_capture(p, 605, 1400, &mut paths);
+        assert_eq!(
+            n, 795,
+            "chapter one hundred and thirty-two carries 795 blocks in the window"
         );
         frames += n;
     }

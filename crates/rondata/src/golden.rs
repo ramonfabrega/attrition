@@ -2657,6 +2657,11 @@ mod tests {
         // second Library then cancelled where it stands (item 3989,
         // `docs/GOLDEN.md` §182).
         ("chapter131.cmd", &[]),
+        // Chapter one hundred and thirty-two: land-based air — a blow on an
+        // Airbase scrambles its Fighter, its homes razed under its planes,
+        // and a Helicopter ordered into its own Airbase (item 3990,
+        // `docs/GOLDEN.md` §183).
+        ("chapter132.cmd", &[]),
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),
