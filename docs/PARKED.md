@@ -11890,7 +11890,7 @@ draw parts; it names no score.
   allied cell. ~~They are read and not built~~ The Senator's is built
   (item 3959, `docs/AI.md` §403.3: run1228b reaches it); the President's
   stays read and not built (`heal.rs`'s SEAM), and names no score.
-- **3686b — `repair_damage`'s reinforcement.** Past a squad's last live
+- **3686b — ~~`repair_damage`'s reinforcement~~ built by item 3993 (`docs/GOLDEN.md` §186), its outside arm still a `SEAM`.** Past a squad's last live
   figure, a squad under its `uber_size` trains a figure back:
   `Objects::find_free`, `init`, a spot, a move order, and the groups
   rejoin it (`0060de10`). `Sim::repair_unit_damage` drops the remainder
@@ -15420,7 +15420,7 @@ on a closed pair's closing window, whose `firsts` count is the score (DECISIONS 
   whether the walk-in to a garrison is what ends theirs' attack. Score: ch129 w827 of 1,100.~~ Closed by item 4002
   (`docs/GOLDEN.md` §191): not the walk-in. `1/14` is a follower with a mandatory attack, and `Unit::fight`'s
   invalid-target branch hands it the dead `0/9`'s captain `0/8` in the same order; ch129 827 → 862.
-- **3987b. A regrown figure inside a garrison** (run1545, `docs/GOLDEN.md` §180, `WANT_CH129`'s `863 0/8 healing`).
+- **3987b. ~~A regrown figure inside a garrison~~ Closed by item 3993 (`docs/GOLDEN.md` §186): `Unit::repair_damage` regrows it into the dead tail's number; ch129 862 → 911.** (run1545, `docs/GOLDEN.md` §180, `WANT_CH129`'s `863 0/8 healing`).
   who=0's Hoplites `0/8..0/10` lose the struck `0/9` on block 810, both sides. Theirs' squad then holds a new `0/9`
   (uid 20, inside, `damage` 39) by block 863, and its garrison heal lands at 15 on game frame 862. Ours' squad stays two
   figures at full hits and never heals. It reads as the regrown figure of item 3993's booking. Not read: where theirs'
@@ -15465,13 +15465,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot CZ — reserved
+## Parked by item 3993, 2026-11-08 — the regrown figure, and the chapter's two unstaged arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot CZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3993a. The reload inside is held by no walk** (`docs/GOLDEN.md` §186). `Unit::process@00610bc0:59`–`:61`
+  counts `recharging` down for every unit; built and compared on or off the map, it parted nothing on any golden
+  widening or the coverage driver. A staging — a unit that fires and garrisons within its reload, then comes out
+  — would hold it. It names no score.
+- **3993b. The short squad's `total_damage`, read and not built** (`UnitData::total_damage@00609c00`, reached
+  from `Leader::gain_tech@006dcb60:702`): the captain's damage, each live follower's, `(uber_size −
+  curr_uber_size(this, 1)) × hits / uber_size` for the figures missing, and the followers' and captain's
+  fractions `>> 4` past 15. `Sim::upgrade_units_to` sums `max_health − health` over every linked figure, so a
+  dead tail adds its whole hits where the original adds a third. No dump on disk shrinks a squad; a staging is
+  a squad of three short one figure under a technology whose unit is one figure. It names no score.
 
 ## Parked by the next landing, slot DA — reserved
 
