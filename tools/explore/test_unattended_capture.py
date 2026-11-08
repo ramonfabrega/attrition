@@ -349,17 +349,18 @@ class RunnerTest(unittest.TestCase):
         report = {'success': True, 'map_style': 14, 'gamelog': 'gamelog.txt', 'ai_tribe_requested': None,
                   'lobby': [], 'players': [{'who': 0, 'tribe': 4, 'flags': 7}, {'who': 1, 'tribe': 11, 'flags': 1}]}
         (sib/'receipt.json').write_text(json.dumps([report]))
-        self.assertEqual(runner.twin_pins(sib), (11, {'DIFFICULTY': 0, 'STARTING_RESOURCES': 1,
-                                                      'STARTING_TECHNOLOGY': 0, 'ENDING_TECHNOLOGY': 7}))
-        # The pins fill what the take did not pass, and never override what it did.
+        self.assertEqual(runner.twin_pins(sib), (((1, 11),), {'PLAYERS': 1, 'DIFFICULTY': 0, 'STARTING_RESOURCES': 1,
+                                                             'STARTING_TECHNOLOGY': 0, 'ENDING_TECHNOLOGY': 7}))
+        # The pins fill what the take did not pass, and never override what it did;
+        # a two-seat sibling still pins slot 1 as `--ai-tribe` (item 3976).
         args = SimpleNamespace(ai_tribe=None, lobby=['DIFFICULTY=5'], twin=sib)
         runner.apply_twin(args)
-        self.assertEqual(args.ai_tribe, 11)
-        self.assertEqual(args.lobby, ['DIFFICULTY=5', 'STARTING_RESOURCES=1', 'STARTING_TECHNOLOGY=0',
+        self.assertEqual((args.ai_tribe, args.seats), (11, 2))
+        self.assertEqual(args.lobby, ['DIFFICULTY=5', 'PLAYERS=1', 'STARTING_RESOURCES=1', 'STARTING_TECHNOLOGY=0',
                                       'ENDING_TECHNOLOGY=7'])
         args = SimpleNamespace(ai_tribe=3, lobby=None, twin=sib)
         runner.apply_twin(args)
-        self.assertEqual((args.ai_tribe, len(args.lobby)), (3, 4))
+        self.assertEqual((args.ai_tribe, len(args.lobby)), (3, 5))
         # A sibling with no successful take, no computer slot, or a gamelog
         # short of a field is refused by name.
         (sib/'receipt.json').write_text(json.dumps([dict(report, success=False)]))
@@ -370,6 +371,60 @@ class RunnerTest(unittest.TestCase):
         (sib/'map-14'/'gamelog.txt').write_text('BEGIN GAMEINFO\n  DIFFICULTY 0\nBEGIN GAME\n')
         with self.assertRaisesRegex(ValueError, 'STARTING_RESOURCES'): runner.twin_pins(sib)
         with self.assertRaisesRegex(ValueError, 'receipt'): runner.twin_pins(self.root/'nowhere')
+
+    def test_a_twin_pins_every_seat_of_run1542_s_three_seat_lobby(self):
+        # Item 3976 (3971's "for the Loop"): run1542b's first take passed
+        # `--twin` on run1542's three-seat lobby (human Nubians, computers
+        # 10 and 13); `twin_pins` pinned slot 1 alone as a two-seat
+        # `--ai-tribe`, and `verify_game` raised `player read-back mismatch`
+        # after the game had run, with no receipt. The twin pins every seat
+        # the sibling read back, and the seat count as the lobby's PLAYERS.
+        sib = Path.home()/'ron-golden'/'run1542'
+        if not (sib/'receipt.json').is_file():
+            self.skipTest(f'{sib} is not on this machine (the golden archive holds run1542)')
+        seats, lobby = runner.twin_pins(sib)
+        self.assertEqual(seats, ((1, 10), (2, 13)))
+        self.assertEqual(lobby, {'PLAYERS': 2, 'DIFFICULTY': 0, 'STARTING_RESOURCES': 7,
+                                 'STARTING_TECHNOLOGY': 7, 'ENDING_TECHNOLOGY': 7})
+        args = SimpleNamespace(ai_tribe=None, seat_tribes=None, lobby=None, twin=sib)
+        runner.apply_twin(args)
+        self.assertIsNone(args.ai_tribe)
+        self.assertEqual(args.seat_tribes, [(1, 10), (2, 13)])
+        self.assertEqual(args.seats, 3)
+        self.assertIn('PLAYERS=2', args.lobby)
+        # The sibling's own gamelog passes the read-back the twin's pins ask for.
+        got = runner.verify_game(sib/'map-7'/'gamelog.txt', 7, 2600, 12345, ai_tribe=args.ai_tribe,
+                                 seat_tribes=args.seat_tribes, lobby=args.lobby, seats=args.seats)
+        self.assertEqual(len(got['players']), 3)
+
+    def test_a_three_seat_twin_pins_each_seat_and_verifies_the_count(self):
+        # Item 3976, authored: a sibling with two computer seats pins both
+        # as seat tribes (never `--ai-tribe`, whose read-back demands two
+        # players), keeps a seat the take passed itself, refuses an
+        # `--ai-tribe` beside it, and `verify_game` reads the count back.
+        sib = self.root/'ch127'
+        (sib/'map-7').mkdir(parents=True)
+        (sib/'map-7'/'gamelog.txt').write_text(
+            ' BEGIN GAMEINFO\n  PLAYERS 2\n  DIFFICULTY 0\n  STARTING_RESOURCES 7\n  STARTING_TECHNOLOGY 7\n'
+            '  ENDING_TECHNOLOGY 7\n'
+            '  BEGIN PLAYER\n   flags 7\n   tribe 4\n   who 0\n  BEGIN PLAYER\n   flags 1\n   tribe 10\n   who 1\n'
+            '  BEGIN PLAYER\n   flags 1\n   tribe 13\n   who 2\n'
+            'BEGIN GAME\n MAP_STYLE 7\n (int)seed 12345\nBEGIN FRAME 37\n GameInfo closing\n')
+        players = [{'who': 0, 'tribe': 4, 'flags': 7}, {'who': 1, 'tribe': 10, 'flags': 1},
+                   {'who': 2, 'tribe': 13, 'flags': 1}]
+        report = {'success': True, 'map_style': 7, 'gamelog': 'gamelog.txt', 'players': players}
+        (sib/'receipt.json').write_text(json.dumps([report]))
+        args = SimpleNamespace(ai_tribe=None, seat_tribes=[(2, 5)], lobby=['PLAYERS=2'], twin=sib)
+        runner.apply_twin(args)
+        self.assertEqual((args.ai_tribe, args.seat_tribes, args.seats), (None, [(2, 5), (1, 10)], 3))
+        self.assertEqual(args.lobby.count('PLAYERS=2'), 1)
+        with self.assertRaisesRegex(ValueError, 'ai-tribe'):
+            runner.apply_twin(SimpleNamespace(ai_tribe=3, seat_tribes=None, lobby=None, twin=sib))
+        log = sib/'map-7'/'gamelog.txt'
+        self.assertEqual(len(runner.verify_game(log, 7, 36, 12345, seat_tribes=[(1, 10), (2, 13)],
+                                                seats=3)['players']), 3)
+        with self.assertRaisesRegex(ValueError, 'seat'):
+            runner.verify_game(log, 7, 36, 12345, seats=2)
 
     def test_a_lobby_pair_is_read_back_from_the_gamelog(self):
         # Loop 3928: a take that asked for a lobby field verifies the
