@@ -8,7 +8,8 @@
 //! need a nation bonus, a wonder, a general, a Conquer-the-World hero or
 //! a supply period that ships as zero (`docs/SUPPLY.md`, "Consumer 2");
 //! the seventh, the **civilian heal**, needs none of these, and it is the
-//! one a capture reaches.
+//! one a capture reaches. The supply heal (item 3978, `docs/AI.md` §410)
+//! is built beside it: the French bonus and Versailles give it a period.
 
 use crate::Sim;
 use crate::ai_load::uflags2;
@@ -160,8 +161,7 @@ impl Sim {
             self.tech_tree
                 .has_tribe_bonus(&self.setup, p, crate::ai::tribe::FRENCH)
         });
-        let versailles =
-            self.wonders_held(owner) & (1 << crate::tech::wonder::VERSAILLES) != 0;
+        let versailles = self.wonders_held(owner) & (1 << crate::tech::wonder::VERSAILLES) != 0;
         let rate = i64::from(crate::supply::heal_period(&self.tuning, french, versailles));
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
@@ -849,10 +849,15 @@ mod tests {
         sim.supply_heal(c, 1143);
         assert_eq!(state(&sim), (119, 4, 0), "no supply source, nothing");
         let d = put(&mut sim, despot, 164, Pos::new(at.x - 1709, at.y + 1865));
-        assert!(sim.units[d].supply_slot.is_some(), "the Despot holds a slot");
+        assert!(
+            sim.units[d].supply_slot.is_some(),
+            "the Despot holds a slot"
+        );
         sim.supply_heal(c, 1142);
         assert_eq!(state(&sim), (119, 4, 0), "off the phase, nothing");
-        sim.units[c].orders.push_front(attack_to(Pos::new(25848, 10488)));
+        sim.units[c]
+            .orders
+            .push_front(attack_to(Pos::new(25848, 10488)));
         sim.supply_heal(c, 1143);
         assert_eq!(
             state(&sim),
