@@ -34,7 +34,7 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: ch134 w969 of 1,400 · 127 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 331 · residue 331 · open 0
-Rubric: ported 546 · replaced by design 318 · open 1289 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
+Rubric: ported 549 · replaced by design 318 · open 1286 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
 
 

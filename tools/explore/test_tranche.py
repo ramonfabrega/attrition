@@ -123,6 +123,8 @@ def bg(ts, command, request, task):
                       '/private/tmp/claude-501/x/s/tasks/%s.output' % (task, task)}
 
 
+# The fixtures wait on `zsh tools/probe.sh`, a script no class names: since the
+# seventy-fourth pass `check.sh test` is the `suite` class (Loop 3996's finding).
 class OtherHeads(unittest.TestCase):
     """Loop 3996 (the seventy-third pass, DECISIONS 113 §1): `other` read 11.9
     minutes a session, 3965's session waited 82.7 minutes in it, and the table
@@ -138,7 +140,7 @@ class OtherHeads(unittest.TestCase):
         return {'transactions': [
             {'ts': t0, 'kind': 'prompt', 'requests': [req(t0)],
              'instructions': [bg('2026-11-08T09:56:01.000Z',
-                                 'RON_INSTALL=~/game zsh tools/check.sh test --release -p rondata --lib > '
+                                 'RON_INSTALL=~/game zsh tools/probe.sh test --release -p rondata --lib > '
                                  '$CLAUDE_JOB_DIR/tmp/full.log 2>&1', t0, 'bxiul41l3')]},
             # The wake reads the task's output file, stamped with the wake
             # request's own ts: the waited call is the backgrounded suite,
@@ -158,7 +160,7 @@ class OtherHeads(unittest.TestCase):
     def test_the_heads_name_what_the_other_minutes_waited_on(self):
         row = tranche.fold(self.trace(), gap_s=90, deep_k=300)
         self.assertEqual(row['on'], {'other': 44.0})
-        self.assertEqual(row['other_heads'], {'zsh check.sh': 18.0, 'python3 cant_reach_pins.py': 16.0,
+        self.assertEqual(row['other_heads'], {'zsh probe.sh': 18.0, 'python3 cant_reach_pins.py': 16.0,
                                               'Write': 10.0})
 
     def test_a_peek_at_a_running_task_does_not_hide_it_from_the_wake_that_reads_it(self):
@@ -169,7 +171,7 @@ class OtherHeads(unittest.TestCase):
         out = '/private/tmp/claude-501/x/s/tasks/bix1abc.output'
         trace = {'transactions': [
             {'ts': t0, 'kind': 'prompt', 'requests': [req(t0)],
-             'instructions': [bg('2026-11-08T03:30:01.000Z', 'zsh tools/check.sh test --release', t0, 'bix1abc')]},
+             'instructions': [bg('2026-11-08T03:30:01.000Z', 'zsh tools/probe.sh test --release', t0, 'bix1abc')]},
             {'ts': t1, 'kind': 'meta', 'requests': [req(t1)],
              'instructions': [ins('2026-11-08T03:31:45.000Z', 'tail -5 ' + out, t1),
                               {'tool': 'Edit', 'input': '{"file_path":"docs/SUPPLY.md"}',
@@ -178,12 +180,12 @@ class OtherHeads(unittest.TestCase):
              'instructions': [ins(t2, 'cat ' + out, t2)]},
         ]}
         row = tranche.fold(trace, gap_s=90, deep_k=300)
-        self.assertEqual(row['other_heads'], {'zsh check.sh': 15.5})
+        self.assertEqual(row['other_heads'], {'zsh probe.sh': 15.5})
 
     def test_a_large_other_prints_its_heads_line_and_a_small_one_does_not(self):
         row = tranche.fold(self.trace(), gap_s=90, deep_k=300)
         self.assertEqual(tranche.other_heads_line(row),
-                         '         other: zsh check.sh 18.0 · python3 cant_reach_pins.py 16.0 · Write 10.0')
+                         '         other: zsh probe.sh 18.0 · python3 cant_reach_pins.py 16.0 · Write 10.0')
         # Under the 10-minute floor and under the gate's: no line.
         small = {'on': {'gate': 30.0, 'other': 4.0}, 'other_heads': {'cat': 4.0}}
         self.assertIsNone(tranche.other_heads_line(small))
@@ -194,7 +196,7 @@ class OtherHeads(unittest.TestCase):
 
     def test_a_command_s_head(self):
         for command, head in [('export A=1; cd /x && T=$J/tmp; grep -c x y', 'grep'),
-                              ('RON_INSTALL=~/g zsh tools/check.sh test --release', 'zsh check.sh'),
+                              ('RON_INSTALL=~/g zsh tools/probe.sh test --release', 'zsh probe.sh'),
                               ("python3 - <<'PYEOF'\np=1\nPYEOF", 'python3 -'),
                               ('python3 -I tools/nations_census.py --check', 'python3 nations_census.py'),
                               ('uv run tools/emu/callfn.py 0x1', 'uv callfn.py'),
@@ -206,8 +208,8 @@ class OtherHeads(unittest.TestCase):
         self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': json.dumps(
             {'command': 'for f in a b; do cargo test -q $f; done'})}), 'cargo')
         # `lore trace --head 200` cuts the input mid-string: the prefix still names the head.
-        cut = json.dumps({'command': 'RON_INSTALL=~/code/fun/attrition/game zsh tools/check.sh test ' + 'x' * 300})
-        self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': cut[:200]}), 'zsh check.sh')
+        cut = json.dumps({'command': 'RON_INSTALL=~/code/fun/attrition/game zsh tools/probe.sh test ' + 'x' * 300})
+        self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': cut[:200]}), 'zsh probe.sh')
         self.assertEqual(tranche.head_of({'tool': 'Bash', 'input': '{"command":"cd /a && python3 -I tools/x.py \\"q'}),
                          'python3 x.py')
         self.assertEqual(tranche.head_of({'tool': 'Monitor', 'input': '{}'}), 'Monitor')

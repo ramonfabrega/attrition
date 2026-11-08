@@ -60,7 +60,9 @@ CLASSES = [
         r"viadriver|clickdriver\.sh|winelaunch|golden/.*\.sh|frame_snapshot|"
         r"chain\d*\.log|cap\w*\.log|pgrep.*capture|[Cc]apture run|Logs")),
     ("emulator", re.compile(r"callfn\.py|step4\.py|lift\.py")),
-    ("suite", re.compile(r"cargo (test|clippy|build|run)|guard\.sh|offline_tests|memcap\.sh|mut\w*\.(sh|log)")),
+    # `check.sh test` is the budgeted `cargo test` (Loop 3996: 127.9 of the
+    # seventy-third tranche's 220.1 `other` minutes were it, under this spelling).
+    ("suite", re.compile(r"cargo (test|clippy|build|run)|check\.sh test|guard\.sh|offline_tests|memcap\.sh|mut\w*\.(sh|log)")),
     # A status line to the commander, then nothing: the wait is on whatever
     # the worker had backgrounded, and the message says which.
     ("status", re.compile(r'"to":"attrition"')),

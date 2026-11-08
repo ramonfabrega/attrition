@@ -33,32 +33,29 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
 
 1. **The draw delta on the word's frame**, both sides, from the trace,
    **and its seeds** (922); a completion's draws take two
-   blocks' `BUILDDATA` (926); **a one-draw `Guy::inc_time` delta is
-   placed by `Unit::inc_time`'s `+0x3e`/`+0x6e` callers in theirs'
+   blocks' `BUILDDATA` (926); **a one-draw `inc_time` delta: its callers in theirs'
    trace** (2639); **the `cover=1` twin's per-frame coverage on the
    frame names theirs' arm, before any packet** (3763, 3768).
 2. **Both sides' event on the word's frame** (1076, 1085, 1088, 1097):
-   `RON_STACKS` on both; the parting call's arguments; rounds
-   whose first row is a wound (`RON_DEBUG_AMMO`); the
+   `RON_STACKS` on both; the parting call's arguments; wound-first
+   rounds: `RON_DEBUG_AMMO`; the
    `kill_current_order` caller; a `Group::` caller adds
    `RON_DEBUG_ARMIES` (2610); **index-0 sites in different callers:
-   theirs' first; a reach gap at equal distance is `max_range`'s** (2847).
+   theirs' first** (2847).
 3. **Every instance of the parting event on disk** (1058), **each value
    the booking names grepped in the dump** (737); **two
    destinations: both sides' `RON_DEBUG_UNIT`, the unit's firsts**
-   (1622); **a birth no queue holds is `births.py`'s** (1674); **a birth
-   on the frame: `RON_DEBUG_BUILDS` over `<word−1>–<word>`** (2319);
+   (1622); **a birth: `births.py`, `RON_DEBUG_BUILDS` over the word's
+   two frames** (1674, 2319);
    **the make list's head: `RON_DEBUG_MAKE=<frame>`** (2955);
    **a value the dump prints and no reading produces: the export**
    (2577); **one ours does not compute: a packet** (2527).
 4. **The first parting's field list, not its unit** (758), both
    directions, every unit on the block; **walk the object back to its
-   first parted field before calling a block quiet** (1046); **a first
-   row is no cause until its key is read on every unit in the window**
-   (1155); **a gone actor parts no key** (1199); **a projectile's
-   landing reads the shooter's firsts; swapped numbers are births, by
-   `uid`** (1597); numbering or state: `unitat.py`, an earlier window
-   (2154); **a fallback's parting asks which gate input differs**
+   first parted field** (1046); **a first
+   row is no cause until its key is read on every unit** (1155); **a gone actor parts no key** (1199); **a projectile's
+   landing: the shooter's firsts; swapped numbers are births, by
+   `uid`** (1597, 2154); **a fallback's parting asks which gate input differs**
    (2726); **a one-field path parting lists the writers that copy it**
    (2762).
 5. **Count the writers of the parted field**, by offset in every
@@ -67,7 +64,8 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
    them first (889).
 6. **Grep the compared pin for the word's record** (772) **and
    `coverage.rs`'s unread list for the parted field** — quiet is blind
-   (1475; `standing.py --unread`, 3547) — **pipe the widening's
+   (1475; `standing.py --unread`, 3547; **a comparator's gate on a field
+   lands with a mutation that writes it off the gate**, 4003) — **pipe the widening's
    `RON_FIRSTS=1` print through `standing.py`** (1250, 1471): a field
    this crate reads: both values (769, 834, 1162, 1187); **agreeing is
    quiet, not proven** (898, 1039). **A standing
@@ -122,7 +120,9 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   §8), the entered function named, never `Game::do_frame` (1026, 685);
   **the unit's whole `process` first** (1526), `step4.py
   --poke`/`--hook` (1869), **hooked at the caller's return** (2903), the
-  address off `unitaddr.py <packet> <x> <y>` (1953).
+  address off `unitaddr.py <packet> <x> <y>` (1953); **a bit's writer at
+  a known offset is grepped in the executable before any packet** (two
+  greps named `check_idle`'s `| 0x18` where a packet was booked, 4001).
 - **The window is sized to the word**: six blocks before for
   `samegame.py`, 250 after (799), **from the last dumped block when a
   gap leaves it near** (3155); a `check:` wraps its count in `(… ||
