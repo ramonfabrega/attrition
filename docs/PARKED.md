@@ -15492,13 +15492,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DB — reserved
+## Parked by item 3989, 2026-11-08 — the rally point's hotkey arm, and the unit `die` the stager now stages
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3989a. `Build::replace_gather@00622d10`'s hotkey-successor arm is unbuilt** (`docs/GOLDEN.md` §182). When the
+  dying unit is in a hotkey group, `HotKeyGroups::kill@00714e30` names a successor and the action-3 point moves to
+  it rather than to the ground. `Sim::replace_gather` carries a SEAM for it: this crate keeps no hotkey groups, and
+  no console or `@` command the stager speaks makes one. Score: none — a command that forms a hotkey group, if one
+  exists.
+- **3989b. `tools/gamelog/coverage/disband3455-die.cmd`'s nine `die o,1` now stage** (`docs/GOLDEN.md` §182). The
+  stager (`rondata::golden`) took the `die` cheat's building arm alone; item 3989 added its unit arm
+  (`Sim::cheat_die_unit`). The coverage pair that replays run1075b's 2284 (`rondata::diff::coverage_pair`,
+  `blind.rs`) was green on the gate with the dies on, but nothing pins what they now change in its window. Score:
+  none — the pair's own window, if a later item widens it.
 
 ## Parked by the next landing, slot DC — reserved
 

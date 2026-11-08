@@ -19084,12 +19084,88 @@ a CASTORDER past 1114 — the Spy was busy; (2) `0/6` takes no patrol on 1115 �
 of a mixed group, which the group halt makes unobservable on any command this item found; a pack or unpack cast under
 a group order on a walk (the unit test alone holds the busy arm). No cover twin was taken.
 
-## 182. Reserved for the next item on the rules track
+## 182. Chapter one hundred and thirty-one — a gather point on a unit that dies, and a second Library's own Disband cancelled; closed at 1000 (item 3989, run1547)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** named three arms from the second territory adjudication: rows 32 (`Build::replace_gather@00622d10`),
+31 (`Build::unqueue@006207c0`, with `Build::action_unqueue@00620280`) and 50 (`Group::kill@00714110`'s emptied slot).
+The disk answered one of them and refused the other two.
+
+**Arm 3 is answered on disk; nothing staged.** A scan of the 86 golden dumps that print `GROUPDATA` for a pool slot
+going `num > 0 → 0 → > 0`, with the fields `Group::clear(-1)@00713e80` writes, found 33 sequences on two paths. Both
+are on closed words whose pools are widened whole (`widen_civilians_and_pool`). `Group::kill`'s empty tail clears the
+slot: ch40, the town-bell chapter, empties slot 0 on 702 (`form` −1, `order_num` 0, `stamp` 701) and re-pushes it on
+882; ch16 clears slot 0 on 804 and re-pushes it on 902 with `order_num` 1. And `Group::normalize`'s prune keeps them:
+ch43/ch46 slot 0 keeps `order_num` 2 at `num` 0 on 1281 and is re-pushed on 1562 with 3; ch53a slot 64 is the same.
+The crate's `seat_kill` → `GroupState::emptied` (item 4000) is the clear, and `copied(prev, …)` inherits it.
+
+**Arm 1's disk scan came back empty.** run341's 700 prints 1,750 `GATHERPOINT` records, every one action 0, so
+`replace_gather` ran there with no action-3 point. Only ch33 and ch34 hold action-3 points, both on Citizen `0/1`,
+which lives. **Arm 2** reads as booked: `action_unqueue` and `unqueue` both skip the forward to `get_first_library`
+when the slot they name, at the building pressed, holds `DISBAND` (0x29a; `action_unqueue` reads slot `max(p, 0)`).
+Both were staged.
+
+```text
+replace_gather(b, o, who, succ_o, succ_who):               # Build::replace_gather@00622d10
+    for point in b.gather:
+        if point.action == 3 and point.y == who and captain(point.x, who) == captain(o, who):   # vslot +0xe4
+            if succ_o < 0:  point = (dying.x, dying.y, action 0)                 # the ground where it stood
+            else:           point = (captain(succ_o, succ_who), succ_who, 3)     # the hotkey successor
+```
+
+`Unit::close@0060ee50:287`–`:289` reaches it through `HotKeyGroups::kill@00714e30`, for every building of the
+owner's with a list, on the squad gate alone (no `o_up`, no live `o_down`), below the count's decoy and population
+tests.
+
+**Built.**
+- `Sim::replace_gather` (`rally.rs`), called from `close_count` on the squad gate alone, ground arm only. SEAM: the
+  hotkey-successor arm, since this crate keeps no hotkey groups (parked 3989a).
+- `Sim::unqueue_home` (`lib.rs`): `cancel` and `action_unqueue` keep a slot holding `DISBAND` at home.
+- `process_queue`: `do_queue@0061e410`'s non-first-library gate passes a `DISBAND` slot (`TVar21 != DISBAND`).
+  Found by the widening: run1547's `0/2008` ran its Disband at 100 a frame from 632, and ours held 0.
+- `cancel` of a Disband takes no unit count off (its `ty` 0 is no unit's). Found by the test fixture's panic.
+- The stager's `die o,who` on a unit (`rondata::golden`): `Sim::cheat_die_unit`, `Unit::die` at `dtype` 0 (parked
+  3989b).
+- The harness (`diff::harness::compare`): a starting unit's link to a dead slot yields to a live unit holding the same
+  number, since `Objects::find_free` hands the number out again. run1547's City trains the next `0/4` on 782.
+- Tests: `cities_tests::a_second_library_s_own_disband_is_cancelled_where_it_stands` and
+  `cities_tests::a_gather_point_on_a_unit_that_dies_falls_to_the_ground_where_it_stood`.
+
+**The staging** (`tools/gamelog/golden/chapter131.cmd`, chapter 125's lobby, map 14). It was walked first on ch125's
+start (`RON_STAGE=ch125:chapter131:1000`):
+- a Small City `0/2007` at (40, 160) (603) and a second Library `0/2008` in it (606);
+- the City `0/2000` takes an action-3 point on Citizen `0/4` (610), and `die 4,0` closes the Citizen (670);
+- `0/2008` queues `DISBAND` (630) and cancels its slot 0 (650);
+- a Citizen is queued at `0/2000` (690).
+
+**Killers, before the take** (a cheat on trace frame F shows on block F+2): (1) the point is not `(4, 0, action 3)`
+on 612; (2) `0/2008` reads `queued` other than 1 on 632; (3) `0/2008` reads `queued` 1 on 652, or `0/2005` moves;
+(4) the point is still action 3 on 672, or action 0 anywhere but `0/4`'s last position; (5) `0/2008` is gone before
+the end. **None fired.** `0/2000` holds `(4, 0, action 3)` from 612 and `(1656, 32376, action 0)` from 671, which is
+`0/4`'s last position. `0/2008` reads `queued 1 [666 DISBAND]` from 632 at 100 a frame, and `queued 0` on 652.
+`0/2005` stays empty, and `0/2008` stands to the end.
+
+**The word**: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_THIRTY_ONE` = **1000 of 1,000**, closed whole. The widening over
+605..1000 parts only ch125's 30 standing first-block rows (`WANT_CH131`). Before the last two fixes it also parted
+`0/2008` `queue[0].job_counter` on 632 (ours 0, theirs 100) and `0/4` on 782 (ours the corpse at (1656, 32376),
+theirs the reborn Citizen at (2280, 31176)). The coverage driver takes 605..1000, 395 blocks.
+
+**Mutations** (each run against both ch131 tests and both unit tests):
+- the `replace_gather` call removed: the word falls 1000 → 813. On 671, `0/2000` `gather[0]` reads `(4, 0, 3)` to
+  theirs' `(1656, 32376, 0)`; the unit test fails.
+- `action_unqueue` back on `queue_home`: the word holds; the widening parts `0/2008` `queue:queued` on 652 (ours 1,
+  theirs 0); the unit test fails.
+- `process_queue`'s Disband exemption removed: the word holds; the widening parts `0/2008` `queue[0].job_counter`
+  on 632 (ours 0, theirs 100). The unit tests pass, so the widening alone holds this arm.
+- the harness link filter made `true`: the widening parts `0/4` on 782 (`pos` (1656, 32376) to theirs'
+  (2280, 31176), `hits:damage` 40 to 0, `order:length` 0 to 1).
+
+Three of the four hold the word at 1000: a queue's `job_counter`, a cancel's `queued` and a dead unit's record are not
+what the word compares. The widening is the instrument that holds them.
+
+**What is not established**: `replace_gather`'s hotkey-successor arm (a SEAM; no command the stager speaks makes a
+hotkey group, parked 3989a); `unqueue`'s library offset `p1 − count`, which stays inert while a non-first library holds
+only its own Disband; the adjudication's `ages_queued`/`epochs_queued` bytes (row 31, A's half). No cover twin was
+taken.
 
 ## 183. Reserved for the next item on the rules track
 
