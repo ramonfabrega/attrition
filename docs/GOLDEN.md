@@ -19336,7 +19336,7 @@ arrow on 911 with the squad inside. No run was taken (1557 unused): the disk and
 **The disk.** run1545 prints the capital's `attack_ox`/`attack_whom` at 14/1 with `recharging` 30 from block 881. It counts
 down to 0 on 911 and reads 12/1 with `recharging` 30 on 912. So theirs fired on `1/14` on game frame 880, which ours did
 as well (the window agreed there), and on 911 it fired at `1/12`. `1/14` (uid 20) walks north-east to (6264, 29736), and
-`1/12` (uid 18) walks west to (4392, 31464). Both are who=1's Hoplites captains.
+`1/12` (uid 18) walks west to (4392, 31464).
 
 **Ours on game frame 911** (a probe, reverted whole): `find_nearby_target` hands back `1/14` at (5940, 30422), and
 `is_in_range` refuses it, so the target is cleared and nothing fires. `1/12` at (5579, 31649) is in range. Scored with the
@@ -19354,9 +19354,9 @@ armed candidate untested, with no `/5`.
 were reachable only by a building, so they are folded into the one `true`.
 
 **The value diff, 912** (block; game frame 911): ours' capital reads `attack_ox` 12, `attack_whom` 1, as theirs. The
-shot draws `Object::fire_ammo`'s and `Ammo::init`'s four on 911 in both. The window agrees through 996. `WANT_CH129` goes
+shot draws `Object::fire_ammo`'s and `Ammo::init`'s four on 911 in both, and the draws agree through 996. `WANT_CH129` goes
 from 237 rows to 116. The 912 pair leaves, with the rows it moved: `1/12`'s wounds on 937 and later, `1/4`'s and `0/4`'s
-moves of 937–939, `0/3`'s of 987–991, and the block of 1064–1066. The standing `0/6` rows of 947–968 stay. The
+moves of 937–939, `0/3`'s of 987–991, and the rows of 1064–1066 on `0/0`, `0/3`, `1/12` and `1/13`. The standing `0/6` rows of 947–968 stay. The
 `cant_reach` tally goes from 3 to 1.
 
 **The word moves 911 → 997** (`GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE`). On 997 theirs draws three
