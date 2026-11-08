@@ -2322,8 +2322,10 @@ mod tests {
     /// `Unit::swap_team@006118d0`, item 2823): a copy is born under the
     /// caster's owner carrying the damage and the facing, the old unit is
     /// closed without a death and held thirty frames, and the caster's
-    /// leader counts one. Made to fail with the counter dropped, with the
-    /// old unit left standing, and with the damage not carried.
+    /// leader counts one. The angle copied is the figure's (`heading`), not
+    /// a still-turning unit's `facing` (item 3985). Made to fail with the
+    /// counter dropped, with the old unit left standing, with the damage not
+    /// carried, and with `facing` copied.
     #[test]
     fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
         let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
@@ -2335,7 +2337,8 @@ mod tests {
         s.units[spy].owner = 1;
         s.units[target].health = 15;
         s.units[target].max_health = 20;
-        s.units[target].movement.facing = crate::movement::Angle(0x1200_0000);
+        s.units[target].movement.heading = crate::movement::Angle(0x1200_0000);
+        s.units[target].movement.facing = crate::movement::Angle(0x5555_5555);
         let bribes = s.tech[1].bribes;
         let before = s.units.len();
         let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
@@ -2352,7 +2355,8 @@ mod tests {
         );
         assert_eq!(
             s.units[n].movement.facing,
-            crate::movement::Angle(0x1200_0000)
+            crate::movement::Angle(0x1200_0000),
+            "the figure's angle, not the turning unit's"
         );
         assert!(!s.units[target].alive(), "the old one is closed");
         assert_eq!(s.units[target].hold_frames, Sim::CLOSE_HOLD);
