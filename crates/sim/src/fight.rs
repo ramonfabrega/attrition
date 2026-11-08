@@ -485,11 +485,14 @@ impl Sim {
     /// — toward zero, as `/ 2` does here. run514's Keep site, armour 4,
     /// took a Hoplite's blow at 2: 13 whole hits, 69 sixteenths a figure.
     ///
-    /// SEAM: the Senator's arm above the halving (`63fab0`–`63fb1f`):
-    /// with a leader whose `+0x59c0` is set, the hero search at `0073a1b0` for a
-    /// `THESENATOR` (`0x161`) within `(type +0x234 + +0x238) × 96` adds
-    /// `thesenator_build_armor` before the halving. Not modelled; scan:
-    /// a building struck in a capture whose `GUY` blocks hold type 353.
+    /// **The Senator's arm above the halving** (`63fab0`–`63fb1f`, item
+    /// 3986, `docs/GOLDEN.md` §179): with a leader whose `+0x59c0` is set
+    /// (`+0x56fe`'s per-type count at `0x161`), `HeroesData::find_hero@
+    /// 0073a1b0` for one of the owner's `THESENATOR`s (`0x161`) whose
+    /// radius covers the building less its footprint's `(type +0x234 +
+    /// +0x238) × 96` adds `THESENATOR_BUILD_ARMOR` — before the halving,
+    /// so an unfinished building under a Senator holds half the sum
+    /// ([`Sim::hero_near_building`]).
     pub fn armor_of(&self, o: Obj) -> i32 {
         // `ObjectData::armor@00647db0`'s Dutch term (item 3329): `ages ×
         // DUTCH_ATTACK_BONUS` on a Dutch kind.
@@ -497,9 +500,28 @@ impl Sim {
             + self.dutch_term(o)
             + self.mods_of(self.owner_of(o) as usize).armor;
         match o {
-            Obj::Building(b) if !self.buildings[b].active => armor / 2,
             Obj::Unit(u) => armor + self.rally_armor(u),
-            Obj::Building(_) => armor,
+            Obj::Building(b) => {
+                let armor = armor + self.senator_build_armor(b);
+                if self.buildings[b].active {
+                    armor
+                } else {
+                    armor / 2
+                }
+            }
+        }
+    }
+
+    /// `WallData::armor@0063fa60`'s Senator term: `THESENATOR_BUILD_ARMOR`
+    /// when one of the owner's Senators stands within reach of `b`. The
+    /// arm's first branch — the object itself `is(0x161)` behind vslot
+    /// `+0x18` — is a unit's, never a building's.
+    fn senator_build_armor(&self, b: usize) -> i32 {
+        const THESENATOR: i32 = 0x161;
+        if self.hero_near_building(b, THESENATOR) {
+            self.tuning.thesenator_build_armor
+        } else {
+            0
         }
     }
 
@@ -513,9 +535,18 @@ impl Sim {
     /// the Inti Maceman `1/61` on 13297, `get_damage` 13 at armour 4 (the
     /// cached `myarmor` 2 and the General's 2) where this crate dealt 15.
     ///
-    /// SEAM: the arm's named heroes after it — Ptolemy, Darius,
-    /// Wellington, Blücher, Memnon, The Citizen and The Monarch's armour —
-    /// are not carried.
+    /// **The patriots' terms inside it** (item 3986, `docs/GOLDEN.md`
+    /// §179), each its own `has_general` walk: `has_general(0, 0x164)`
+    /// (`THECITIZEN`, shipped as The Comrade) adds
+    /// `THECITIZEN_ARMOR_BONUS`, and a Stable-trained unit (`type +0x40 ==
+    /// 0x1ac`, [`Sim::trainer_ident`]) with `has_general(0, 0x162)` (The
+    /// Monarch) adds `THEMONARCH_CAV_ARMOR`. Either hero in reach opens
+    /// the gate itself, so the rally term is always beside them.
+    ///
+    /// SEAM: the arm's named generals between the two — Ptolemy, Darius,
+    /// Wellington, Blücher, Memnon — are not carried; each is gated on a
+    /// leader's counter of its own a skirmish leaves at 0 (territory
+    /// adjudication 4, row 61).
     fn rally_armor(&self, u: usize) -> i32 {
         let me = &self.units[u];
         let rallied = (me.alive() && self.is_hero_unit(u))
@@ -533,7 +564,21 @@ impl Sim {
         if !rallied {
             return 0;
         }
-        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1)
+        let citizen = if self.has_general(u, 0x164) {
+            self.tuning.thecitizen_armor_bonus
+        } else {
+            0
+        };
+        let monarch = if me
+            .ty
+            .is_some_and(|ty| self.trainer_ident(ty) == Some(crate::build::Ident::Stable))
+            && self.has_general(u, 0x162)
+        {
+            self.tuning.themonarch_cav_armor
+        } else {
+            0
+        };
+        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1) + citizen + monarch
     }
 
     /// `max_range()` (§4.4): zero stays zero.
@@ -7675,6 +7720,133 @@ mod tests {
         sim.units[hero].pos.x -= 1;
         sim.units[hero].owner = 0;
         assert_eq!(armour(&sim), 2, "another player's hero");
+    }
+
+    /// **The patriots' armour inside the rally arm** (item 3986,
+    /// `UnitData::armor@00610160`'s two last terms, `docs/GOLDEN.md` §179):
+    /// a unit in reach of one of its owner's `THECITIZEN`s (`0x164`, The
+    /// Comrade) adds `THECITIZEN_ARMOR_BONUS` beside the rally term; a
+    /// Stable-trained unit in reach of its owner's Monarch (`0x162`) adds
+    /// `THEMONARCH_CAV_ARMOR`, and a unit of any other trainer does not.
+    /// Made to fail with either term dropped.
+    #[test]
+    fn a_comrade_and_a_monarch_add_their_armour_inside_the_rally_arm() {
+        use crate::ai_load::uflags2;
+        use crate::build::{BuildType, Ident};
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].combat.armor = 1;
+        let rally = sim.tuning.general_rally_armor;
+        assert_eq!(
+            (
+                sim.tuning.thecitizen_armor_bonus,
+                sim.tuning.themonarch_cav_armor
+            ),
+            (2, 2),
+            "the shipped THECITIZEN_ARMOR_BONUS and THEMONARCH_CAV_ARMOR"
+        );
+        let hero = |sim: &mut Sim, type_index: i32| {
+            let mut t = crate::UnitType {
+                type_index,
+                hits: 100,
+                ..crate::UnitType::default()
+            };
+            t.cols.unit_flags2 = uflags2::GENERAL;
+            sim.add_unit_type(t)
+        };
+        let comrade = hero(&mut sim, 0x164);
+        let monarch = hero(&mut sim, 0x162);
+        // A Stable type: its tree row's `where_` is a building type whose
+        // ident is the Stable.
+        let mut tree = crate::tech::TechTree::new();
+        let horse = tree.add(crate::tech::TypeDef::unit(
+            "Heavy Knight",
+            crate::tech::UnitTraits::default(),
+        ));
+        let stab = tree.add(crate::tech::TypeDef::building("Stable"));
+        tree.types[horse].where_ = Some(stab);
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        sim.build_types.push(BuildType {
+            ident: Ident::Stable,
+            tree: Some(stab),
+            ..BuildType::default()
+        });
+        let knight_t = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            tree: Some(horse),
+            combat: Profile {
+                armor: 1,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        assert_eq!(sim.trainer_ident(knight_t), Some(Ident::Stable));
+        let foot = put(&mut sim, 1, ty, Pos::new(9000, 9000));
+        let knight = put(&mut sim, 1, knight_t, Pos::new(9000, 9000));
+        let armour = |s: &Sim, u: usize| s.armor_of(Obj::Unit(u));
+        let c = put(&mut sim, 1, comrade, Pos::new(9192, 9000));
+        sim.units[c].type_index = 0x164;
+        assert_eq!(armour(&sim, foot), 1 + rally + 2, "a Comrade beside it");
+        assert_eq!(armour(&sim, knight), 1 + rally + 2, "the knight, the Comrade's term alone");
+        sim.units[c].owner = 0;
+        assert_eq!(armour(&sim, foot), 1, "another player's Comrade");
+        let m = put(&mut sim, 1, monarch, Pos::new(9192, 9000));
+        sim.units[m].type_index = 0x162;
+        assert_eq!(armour(&sim, foot), 1 + rally, "a Monarch: no term on foot");
+        assert_eq!(armour(&sim, knight), 1 + rally + 2, "a Monarch beside Stable cavalry");
+        sim.units[m].pos.x += sim.hero_radius(m) * 0xc0;
+        assert_eq!(armour(&sim, knight), 1, "the Monarch out of reach");
+    }
+
+    /// **A Senator armours its own buildings in reach** (item 3986,
+    /// `WallData::armor@0063fa60`'s Senator term, `docs/GOLDEN.md` §179):
+    /// one of the owner's `THESENATOR`s (`0x161`) whose radius covers the
+    /// building less its footprint's `(x_size + y_size) × 0x60` adds
+    /// `THESENATOR_BUILD_ARMOR` — and before the unfinished halving, so a
+    /// site holds half the sum. Made to fail with the term dropped, and
+    /// with it taken after the halving.
+    #[test]
+    fn a_senator_armours_its_buildings_before_the_halving() {
+        use crate::ai_load::uflags2;
+        let (mut sim, _) = at_war();
+        assert_eq!(sim.tuning.thesenator_build_armor, 5, "the shipped THESENATOR_BUILD_ARMOR");
+        sim.build_types.push(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        let bt = sim.build_types.len() - 1;
+        let b = sim.add_building(1, Pos::new(9000, 9000), 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].combat = Some(Profile {
+            armor: 4,
+            x_size: 3,
+            y_size: 3,
+            ..Profile::default()
+        });
+        let armour = |s: &Sim| s.armor_of(Obj::Building(b));
+        assert_eq!(armour(&sim), 4, "no Senator");
+        let mut t = crate::UnitType {
+            type_index: 0x161,
+            hits: 100,
+            ..crate::UnitType::default()
+        };
+        t.cols.unit_flags2 = uflags2::GENERAL;
+        let senator = sim.add_unit_type(t);
+        let reach = (3 + 3) * 0x60;
+        let h = put(&mut sim, 1, senator, Pos::new(9000, 9000));
+        sim.units[h].type_index = 0x161;
+        sim.units[h].pos.x += sim.hero_radius(h) * 0xc0 + reach;
+        assert_eq!(armour(&sim), 9, "on the reach, the footprint's slack");
+        sim.buildings[b].active = false;
+        assert_eq!(armour(&sim), 4, "a site: (4 + 5) / 2");
+        sim.buildings[b].active = true;
+        sim.units[h].pos.x += 1;
+        assert_eq!(armour(&sim), 4, "one past it");
+        sim.units[h].pos.x -= 1;
+        sim.units[h].owner = 0;
+        assert_eq!(armour(&sim), 4, "another player's Senator");
     }
 
     /// **A decoy's round strikes nothing** (`Object::do_damage@0064a480`,

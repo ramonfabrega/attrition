@@ -6700,6 +6700,22 @@ fn chapter_one_hundred_and_twenty_seven_holds_to_the_golden_word() {
     cases_80_89::chapter_one_hundred_and_twenty_seven_holds_to_the_golden_word();
 }
 
+/// **run1544 whole, both directions** (item 3986, `docs/GOLDEN.md` §179).
+#[test]
+fn chapter_one_hundred_and_twenty_eight_s_window_is_widened_whole() {
+    cases_80_89::chapter_one_hundred_and_twenty_eight_s_window_is_widened_whole();
+}
+
+/// What parts in run1544's window, blocks 605–1100 (item 3986).
+const WANT_CH128: &[&str] = &[];
+
+/// Chapter one hundred and twenty-eight holds to its golden word (item
+/// 3986, run1544).
+#[test]
+fn chapter_one_hundred_and_twenty_eight_holds_to_the_golden_word() {
+    cases_80_89::chapter_one_hundred_and_twenty_eight_holds_to_the_golden_word();
+}
+
 /// **run1540 whole, both directions** (item 3969, `docs/GOLDEN.md` §175).
 #[test]
 fn chapter_one_hundred_and_twenty_five_s_window_is_widened_whole() {
