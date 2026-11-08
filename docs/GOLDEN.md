@@ -19494,9 +19494,12 @@ on 1086, `1/2` on 1087 and `1/3` on 1095. The `cant_reach` tally goes from 1 to 
 for an `ATTACKTOORDER` to (38664, 13320) on 1021, and ours keeps the explore (`order:kind` 3 to theirs' 2). That is
 13 rows on 1021 and 1096 with no draw beside them, standing since 3987's first pin (parked 4005a).
 
-**Mutations** (`tools/mutate.py`): see the journal (`docs/journal/2026-11-08-item-4005.md`).
+**Mutations** (`tools/mutate.py --edit`, each held): the ring `0x600` for everyone fails ch129's word, back to 997,
+and its widening, and the unit test; the `0x180` arm turned to `0x300` fails the unit test; the Ambush refusal
+dropped fails the unit test. The last two are the unit test's alone (parked 4005b).
 
-**Floors**: `golden` 335 of 337 before the re-pin (ch129's two alone), `coverage::` 21 of 21.
+**Floors**: `golden` 335 of 337 before the re-pin (ch129's two alone), `coverage::` 21 of 21, `first_parting` 122 of
+122, `battery_floors` 1 of 1.
 
 **What is not established**: the `0x180` ring, a building attacker, a supply unit's ring and the Ambush/March
 refusal rest on the unit test alone (parked 4005b). The packing latch and the `unit_flags & 4` packer arm are still
