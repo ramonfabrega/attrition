@@ -3170,6 +3170,90 @@ fn the_garrison_heal_takes_the_heal_level_s_period() {
     assert!(sim.units[h].healing <= 15 && sim.units[h].healing > 0);
 }
 
+/// **A squad short a figure regrows it under the garrison heal** (item
+/// 3993, `docs/GOLDEN.md` §186): `process_healing`'s `has_damage(1)`
+/// counts the dead tail `Unit::close` relinks, and `Unit::repair_damage`
+/// hands the point past the last live figure to `Unit::init` on the dead
+/// tail's number, born `hits / uber_size` down and inside behind the tail.
+/// run1545's `0/9` (uid 20) on block 863: `damage` 39 of 120, `0/10`'s
+/// `o_down` 9.
+#[test]
+fn a_squad_short_a_figure_regrows_it_under_the_garrison_heal() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    let squad = sim.add_unit_type(squad);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let cap = sim.build_train(b, squad).unit;
+    let members = sim.squad_members(cap);
+    assert_eq!(members.len(), 3);
+    let (mid, tail) = (members[1], members[2]);
+    let number = sim.units[mid].index;
+    sim.units[mid].health = 0;
+    sim.relink_squad(mid);
+    assert_eq!(
+        sim.units[tail].o_down,
+        Some(mid),
+        "the dead figure goes to the tail"
+    );
+    assert_eq!(sim.curr_uber_size(cap), 2);
+    assert!(sim.has_damage(cap), "a dead figure still linked is damage");
+    sim.go_inside(cap, b);
+    assert_eq!(sim.units[tail].inside, Some(b));
+    let before = sim.units.len();
+    let mut born = None;
+    for _ in 0..600 {
+        sim.tick();
+        if sim.units.len() > before {
+            born = Some(before);
+            break;
+        }
+    }
+    let n = born.expect("the heal regrows a figure");
+    let max = sim.units[n].max_health;
+    assert_eq!(
+        sim.units[n].index, number,
+        "born into the dead tail's number"
+    );
+    assert!(sim.units[n].alive() && !sim.units[n].captain);
+    assert_eq!(
+        sim.units[n].health,
+        max - max / 3 + 1,
+        "hits / uber down, less the point"
+    );
+    assert_eq!(sim.units[n].inside, Some(b));
+    assert!(!sim.units[n].on_map);
+    assert_eq!(sim.units[n].o_up, Some(tail));
+    assert_eq!(sim.units[tail].o_down, Some(n));
+    assert_eq!(sim.units[mid].o_up, None, "the dead occupant is unlinked");
+    assert_eq!(sim.curr_uber_size(cap), 3);
+    assert!(sim.units[cap].healing > 0);
+}
+
+/// **A unit garrisoned inside its reload counts it down inside** (item
+/// 3993, `docs/GOLDEN.md` §186): `Unit::process@00610bc0`'s head takes a
+/// frame off `recharging` (`UnitData +0xae`) for every unit, before the
+/// `inside_up` split.
+#[test]
+fn a_unit_garrisoned_inside_its_reload_counts_it_down_inside() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+    assert_eq!(sim.garrison(h, b), Ok(()));
+    sim.units[h].combat.recharging = 10;
+    for _ in 0..4 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[h].combat.recharging, 6, "one a frame, inside");
+}
+
 #[test]
 fn a_garrisoned_tower_reloads_faster() {
     let mut sim = world_sim();

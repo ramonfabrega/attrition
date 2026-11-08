@@ -742,13 +742,12 @@ impl Sim {
         if !u.alive() || self.captain_of(i) != i || matches!(u.kind.domain, Domain::Air) {
             return;
         }
-        let damaged = self
-            .squad_of(i)
-            .iter()
-            .any(|&f| self.units[f].health < self.units[f].max_health);
-        if !damaged {
+        // `UnitData::has_damage(this, 1)` (`005e0670:34`): a dead figure
+        // still linked counts, which is what regrows it (item 3993).
+        if !self.has_damage(i) {
             return;
         }
+        let u = &self.units[i];
         let bd = &self.buildings[b];
         let Some(bty) = bd.ty else {
             return;
@@ -778,12 +777,9 @@ impl Sim {
         if !eligible {
             return;
         }
-        for f in self.squad_of(i) {
-            let u = &mut self.units[f];
-            if u.health < u.max_health {
-                u.health += 1;
-            }
-        }
+        // `repair_damage(1, 1, 1)` (`005e08c5`): one point, down the chain
+        // from the captain.
+        self.repair_unit_damage(i, 1);
         self.mark_healed(i, period);
     }
 

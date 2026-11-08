@@ -5243,6 +5243,95 @@ impl Sim {
         Produced { unit, ty, at }
     }
 
+    /// `Unit::init@00612100` on one object number — the pass of
+    /// [`Sim::init_unit`]'s loop, and what `Unit::repair_damage@0060de10`
+    /// calls through vslot `+0x8c` when it regrows a figure (item 3993,
+    /// `docs/GOLDEN.md` §186): the unit, its stance, its birth masks, and
+    /// `Guy::init_real`'s draw. `pos` is the snapped birth point.
+    pub(crate) fn init_figure(&mut self, who: Player, ty: usize, index: i16, pos: Pos) -> usize {
+        let mut unit = Unit::new(who, index, pos, self.unit_hits(who, ty));
+        unit.kind = self.unit_types[ty].kind;
+        unit.ty = Some(ty);
+        unit.type_index = self.unit_types[ty].type_index;
+        unit.form = init_form(unit.type_index);
+        // The stance is a switch on the *type's* stance kind and then,
+        // when the trainer shares that kind, the trainer's own byte —
+        // `Unit::init@00612100:282–309` and `Build::train@0062f9b0:86`
+        // (`crate::stance`, `docs/ORDERS.md` §5.10). A trainer is what
+        // [`Sim::build_train`] passes; a free-standing spawn has none.
+        unit.stance = self.init_stance(who, ty);
+        unit.movement.speed = self.type_speed(who, ty);
+        unit.movement.turning = self.turning_for(ty);
+        let u = self.add_unit(unit);
+        // `Unit::init@00612100:592`: a spy (`is(SPY, 0)`, the lineage)
+        // is born with half its pool spent.
+        if self.unit_is_spy(u) {
+            self.units[u].mana_burn = i16::try_from(self.unit_mana(u) / 2).unwrap_or(0);
+        }
+        // `Unit::init@00612100:598-611` (item 2165, `docs/GOLDEN.md`
+        // §79): a unit of the Bark line (`is(BARK)`, the lineage) takes
+        // `unit_masks2 |= 4`, and a computer's (`leader_flags & 4`
+        // clear, `is_human` inlined) `Unit::set_stance@00605310(3, 0)`,
+        // RAID, over the stance the switch above gave it. run835's
+        // `1/8` is born `stance 3`, the human `0/6` and `0/7` at 0;
+        // every AI Bark on disk carries both.
+        if self.unit_line_is(u, crate::army::BARK) {
+            self.units[u].unit_masks2 |= crate::combat::umask2::BARK;
+            if !self.nation.get(who as usize).is_some_and(|n| n.human) {
+                self.units[u].stance = 3;
+                self.units[u].combat.stance = crate::combat::Stance::Raid;
+            }
+        }
+        self.init_iroquois_masks(u);
+        // `Unit::init@00612100:613-626` (item 2351, `docs/AI.md` §219):
+        // a Lakota unit the food term counts — a citizen (`TypeIndex`
+        // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
+        // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
+        if self.nation.get(who as usize).is_some_and(|n| n.lakota)
+            && self.tuning.lakota_food != 0
+            && (matches!(self.unit_types[ty].type_index, 0x32 | 0x33)
+                || self.unit_line_is(u, 0x45)
+                || self.trainer_ident(ty) == Some(build::Ident::Stable))
+        {
+            self.economy_changed(who);
+        }
+        // `Unit::init@00612100:629-641` (item 3384, `docs/AI.md` §292):
+        // an American Barracks type (`+0x40 == 0x1ab`) that is not a
+        // scout, with `AMERICANS_BARRACKS_GATHER` set, raises it too.
+        if self.american_barracks_unit(who, u, ty) {
+            self.economy_changed(who);
+        }
+        // `Unit::init` → `Guy::init_real`: the figure's one draw.
+        // (The unit's `ty` stays unset here, as it always has; the
+        // piece lookup takes the type directly.)
+        self.init_guys(u, Some(ty));
+        // **`Unit::init@00612100:549`'s `set_new_location(x, y, 1, 1)`**
+        // (item 3804, `docs/GOLDEN.md` §152.3): its guy half is
+        // `Guy::set_new_location`'s, so a helicopter's figure takes
+        // its first climb at birth ([`Sim::helicopter_climb`], read
+        // here off the type, which the unit does not carry yet).
+        // run1469's Attack Helicopters fly 30 higher than ours did
+        // from their first frame, and their rounds aim at that.
+        if self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::HELICOPTER != 0
+            && self.unit_types[ty].combat.domain == crate::attrition::Domain::Air
+        {
+            let ground = self.ground_z(self.units[u].pos);
+            let af = &mut self.units[u].airframe;
+            af.z += (ground - af.z + 1000).clamp(-30, 30);
+            af.last_z = af.z;
+        }
+        // `Unit::init@00612100:467`: a government patriot's birth is
+        // stamped on its leader, and that stamp is what keeps a
+        // Senate from training a second one.
+        if self.unit_types[ty]
+            .tree
+            .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
+        {
+            self.tech[who as usize].gov_hero_frame = self.frame;
+        }
+        u
+    }
+
     /// `Objects::init_unit@0065e0c0` — **a squad is `uber_size` units, not
     /// one unit with three figures.**
     ///
@@ -5279,86 +5368,7 @@ impl Sim {
             let index = self
                 .find_free(who, UNIT_BASE, BUILD_BASE)
                 .unwrap_or(i16::MAX);
-            let mut unit = Unit::new(who, index, pos, self.unit_hits(who, ty));
-            unit.kind = self.unit_types[ty].kind;
-            unit.ty = Some(ty);
-            unit.type_index = self.unit_types[ty].type_index;
-            unit.form = init_form(unit.type_index);
-            // The stance is a switch on the *type's* stance kind and then,
-            // when the trainer shares that kind, the trainer's own byte —
-            // `Unit::init@00612100:282–309` and `Build::train@0062f9b0:86`
-            // (`crate::stance`, `docs/ORDERS.md` §5.10). A trainer is what
-            // [`Sim::build_train`] passes; a free-standing spawn has none.
-            unit.stance = self.init_stance(who, ty);
-            unit.movement.speed = self.type_speed(who, ty);
-            unit.movement.turning = self.turning_for(ty);
-            let u = self.add_unit(unit);
-            // `Unit::init@00612100:592`: a spy (`is(SPY, 0)`, the lineage)
-            // is born with half its pool spent.
-            if self.unit_is_spy(u) {
-                self.units[u].mana_burn = i16::try_from(self.unit_mana(u) / 2).unwrap_or(0);
-            }
-            // `Unit::init@00612100:598-611` (item 2165, `docs/GOLDEN.md`
-            // §79): a unit of the Bark line (`is(BARK)`, the lineage) takes
-            // `unit_masks2 |= 4`, and a computer's (`leader_flags & 4`
-            // clear, `is_human` inlined) `Unit::set_stance@00605310(3, 0)`,
-            // RAID, over the stance the switch above gave it. run835's
-            // `1/8` is born `stance 3`, the human `0/6` and `0/7` at 0;
-            // every AI Bark on disk carries both.
-            if self.unit_line_is(u, crate::army::BARK) {
-                self.units[u].unit_masks2 |= crate::combat::umask2::BARK;
-                if !self.nation.get(who as usize).is_some_and(|n| n.human) {
-                    self.units[u].stance = 3;
-                    self.units[u].combat.stance = crate::combat::Stance::Raid;
-                }
-            }
-            self.init_iroquois_masks(u);
-            // `Unit::init@00612100:613-626` (item 2351, `docs/AI.md` §219):
-            // a Lakota unit the food term counts — a citizen (`TypeIndex`
-            // `0x32`, `0x33`), a scout (`is(SCOUT, 0)`) or a Stable type
-            // (`+0x40 == 0x1ac`) — raises the leader's `0x2000000`.
-            if self.nation.get(who as usize).is_some_and(|n| n.lakota)
-                && self.tuning.lakota_food != 0
-                && (matches!(self.unit_types[ty].type_index, 0x32 | 0x33)
-                    || self.unit_line_is(u, 0x45)
-                    || self.trainer_ident(ty) == Some(build::Ident::Stable))
-            {
-                self.economy_changed(who);
-            }
-            // `Unit::init@00612100:629-641` (item 3384, `docs/AI.md` §292):
-            // an American Barracks type (`+0x40 == 0x1ab`) that is not a
-            // scout, with `AMERICANS_BARRACKS_GATHER` set, raises it too.
-            if self.american_barracks_unit(who, u, ty) {
-                self.economy_changed(who);
-            }
-            // `Unit::init` → `Guy::init_real`: the figure's one draw.
-            // (The unit's `ty` stays unset here, as it always has; the
-            // piece lookup takes the type directly.)
-            self.init_guys(u, Some(ty));
-            // **`Unit::init@00612100:549`'s `set_new_location(x, y, 1, 1)`**
-            // (item 3804, `docs/GOLDEN.md` §152.3): its guy half is
-            // `Guy::set_new_location`'s, so a helicopter's figure takes
-            // its first climb at birth ([`Sim::helicopter_climb`], read
-            // here off the type, which the unit does not carry yet).
-            // run1469's Attack Helicopters fly 30 higher than ours did
-            // from their first frame, and their rounds aim at that.
-            if self.unit_types[ty].cols.unit_flags & crate::ai_load::uflags::HELICOPTER != 0
-                && self.unit_types[ty].combat.domain == crate::attrition::Domain::Air
-            {
-                let ground = self.ground_z(self.units[u].pos);
-                let af = &mut self.units[u].airframe;
-                af.z += (ground - af.z + 1000).clamp(-30, 30);
-                af.last_z = af.z;
-            }
-            // `Unit::init@00612100:467`: a government patriot's birth is
-            // stamped on its leader, and that stamp is what keeps a
-            // Senate from training a second one.
-            if self.unit_types[ty]
-                .tree
-                .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
-            {
-                self.tech[who as usize].gov_hero_frame = self.frame;
-            }
+            let u = self.init_figure(who, ty, index, pos);
             match (head, prev) {
                 (None, _) => {
                     head = Some(u);
@@ -7488,8 +7498,14 @@ impl Sim {
             }
             return;
         }
-        // `Unit::process@00610bc0`'s head counts `full` down with the
-        // reload and the wait (`:63`–`65`), inside or out.
+        // `Unit::process@00610bc0`'s head counts the reload down first
+        // (`:59`–`:61`, `UnitData +0xae`), for every unit **inside or out**
+        // (item 3993, `docs/GOLDEN.md` §186): a unit that garrisons inside
+        // its reload comes out with the frames it spent inside spent.
+        if self.units[i].combat.recharging > 0 {
+            self.units[i].combat.recharging -= 1;
+        }
+        // `:63`–`65`: `full` and the wait, beside it.
         if self.units[i].full != 0 {
             self.units[i].full -= 1;
         }
@@ -7574,11 +7590,6 @@ impl Sim {
             let af = &mut self.units[i].airframe;
             af.last_z = af.z;
             return;
-        }
-        // `Unit::process` begins by counting the reload down, before
-        // anything else the unit does this frame.
-        if self.units[i].combat.recharging > 0 {
-            self.units[i].combat.recharging -= 1;
         }
         // **`ObjectData::targeted` decays**, and its slot is the one the
         // attrition refresh is nested inside. `Unit::process@00610bc0`

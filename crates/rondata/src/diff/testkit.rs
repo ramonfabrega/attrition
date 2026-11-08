@@ -7002,8 +7002,12 @@ pub(crate) const WIDENING_CHAPTER_ONE_HUNDRED_AND_TWENTY_EIGHT_POOL: (i64, i64) 
 /// §191): a mandatory attack on a dead figure takes its squad's captain in
 /// the same order; the word is now the garrison heal's regrown figure,
 /// theirs' first draw `Guy::init_real < Unit::init < Unit::repair_damage+0x33d`
-/// (parked 3987b, item 3993's).
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 862;
+/// (parked 3987b, item 3993's). 862 → 911 (+49, item 3993, GOLDEN §186):
+/// `Unit::repair_damage` regrows the figure past the chain's last live one
+/// into the dead tail's number; the word is now theirs' Barracks `0/2000`
+/// firing on `1/12` (`Object::fire_ammo`, `Ammo::init`), ours 12 draws to
+/// theirs' 13.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_TWENTY_NINE: i64 = 911;
 
 /// `chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole`'s
 /// window: run1545.
