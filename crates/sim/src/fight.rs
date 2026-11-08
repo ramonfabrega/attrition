@@ -8431,6 +8431,40 @@ mod tests {
         assert_eq!(sim.units[me].max_health, 120);
     }
 
+    /// **A struck unit that survives raises `0x10` on its captain** (item
+    /// 3983, `Object::take_damage@00652020:345`–`350`, `docs/AI.md` §415):
+    /// the member is struck, the captain takes the bit; a blow that kills
+    /// the figure does not reach the write.
+    #[test]
+    fn a_survived_blow_raises_the_captain_s_cant_reach() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 120,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 3,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let cap = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let mem = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let c = i32::from(sim.units[cap].index);
+        for u in [cap, mem] {
+            sim.units[u].combat.captain = c;
+        }
+        let hit = combat::Sixteenths { whole: 15, frac: 0 };
+        sim.take_damage(Obj::Unit(mem), hit, Obj::Unit(foe), 10);
+        assert!(sim.units[cap].cant_reach, "the captain takes it");
+        assert!(!sim.units[mem].cant_reach, "the struck member does not");
+        sim.units[cap].cant_reach = false;
+        let kill = combat::Sixteenths { whole: 40, frac: 0 };
+        sim.take_damage(Obj::Unit(mem), kill, Obj::Unit(foe), 11);
+        assert!(!sim.units[cap].cant_reach, "a kill is past the write");
+    }
+
     /// **The remainder share is the last figure's** (item 3618,
     /// `docs/AI.md` §326.2): `Object::take_damage` gives a squad figure
     /// `hits − (uber − 1) · hits / uber` only when it is a captain whose

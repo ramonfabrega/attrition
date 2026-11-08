@@ -1924,6 +1924,20 @@ mod tests {
         assert!(!s.ledgers[1].dirty, "one transition, one mark");
     }
 
+    /// **The idle latch is `0x18`** (item 3983, `check_idle@006032c0:69`,
+    /// `docs/AI.md` §415): the frame it is taken also raises `0x10`, the
+    /// bit `think`'s gate reads as `cant_reach`.
+    #[test]
+    fn the_idle_latch_raises_cant_reach_with_it() {
+        let (mut s, u) = sea_sim();
+        s.units[u].idle_latch = false;
+        s.units[u].cant_reach = false;
+        s.units[u].captain = false;
+        s.tick();
+        assert!(s.units[u].idle_latch);
+        assert!(s.units[u].cant_reach, "a non-captain keeps it past think");
+    }
+
     /// **A unit's cached speed comes from [`Sim::type_speed`], and the
     /// rule is a guard rather than a sentence.**
     ///

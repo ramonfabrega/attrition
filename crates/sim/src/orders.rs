@@ -4434,8 +4434,17 @@ impl Sim {
         // drops the recompute period from 512 frames to 8 and puts a
         // newly-arrived boat's deposit on the books within the same
         // handful of frames ([`crate::rares`]).
+        //
+        // **The latch is `0x18`, not `8`** (`check_idle@006032c0:69`, item
+        // 3983, `docs/AI.md` §415): the same write raises `0x10`, the bit
+        // `think`'s cadence gate reads as `cant_reach`. A captain drops it
+        // past the gate on its next think; a non-captain returns before the
+        // gate and keeps it until something else clears it — run547's
+        // decoy members print `flags` 25 against their captains' 9 on the
+        // block they are born.
         if !self.units[u].idle_latch {
             self.units[u].idle_latch = true;
+            self.units[u].cant_reach = true;
             if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
                 self.economy_changed(self.units[u].owner);
             }
