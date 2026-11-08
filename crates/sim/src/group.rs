@@ -7418,6 +7418,24 @@ mod tests {
         assert!(!s.units[b].cant_reach);
     }
 
+    /// **A defeated seat's unit leaves `think` at `:98` and keeps the bit**
+    /// (item 3983, `docs/AI.md` §415): `Leader::defeat` sets
+    /// `leader_flags2 & 2`, the first test past the gate.
+    #[test]
+    fn a_defeated_seat_s_unit_keeps_the_bit_through_think() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        s.units[a].idle = 1;
+        s.units[a].cant_reach = true;
+        s.defeated[1] = true;
+        s.think(a, 17);
+        assert!(s.units[a].cant_reach, "the defeated seat's think returns at :98");
+        s.defeated[1] = false;
+        s.think(a, 18);
+        assert!(!s.units[a].cant_reach, "a live seat's think drops it");
+    }
+
     #[test]
     fn siege_attack_to_is_an_attack_move_when_the_group_has_no_siege() {
         let mut s = sim();
