@@ -22,6 +22,9 @@
 //! projects — and its flat-coloured triangles, and a decoded model posed at
 //! rest and placed at its anchor and facing. The GPU is the `client`
 //! crate's; this stays headless (`docs/RENDERER.md` §3.6).
+//!
+//! The fifth is the image reader (`tga`; item 4037): the install's `.tga`
+//! files read whole and self-checking, first for the farm's wheat.
 
 pub mod bh3;
 pub mod bha;
@@ -30,5 +33,6 @@ pub mod chunk;
 pub mod draw;
 pub mod figure;
 pub mod terrain;
+pub mod tga;
 
 pub use camera::{Camera, Mat4, Projected, Screen};

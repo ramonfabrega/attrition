@@ -15833,13 +15833,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DR — reserved
+## Parked by item 4037, 2026-11-09 — the farm's art
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4037a. The farm's wheat field in the draw list** (`docs/RENDERER.md` §3.5, §5.4). The farm decodes since item
+  4037 (21 of 21), and it is out of §5.4's in-register set. The reason is that `WallOut::draw@00641930` skips a
+  finished farm, while `FarmsOut::draw@008d75f0` draws every one as a field: it snaps the corner off
+  `div_3_table` of `x ^ 0x63637` and the type's footprint (`BuildTypeData +0x234`, `+0x238`), and takes each
+  stalk's base `z` from the farm's `FarmStruct` heights (`farms + 0x64`, written by `Farms::recalc_heights
+  @008d88a0`). The draw list carries no such entry, so none of the lobby's 402 dumped farm records is drawn by
+  either side. An entry at the field's corner, drawn on `FarmsOut`'s own gate (the viewer's check at vtable
+  `+0x17c`), with the door carrying the farm's heights, would put the type in register. It names K +1 (58 →
+  59 of 59).
 
 ## Parked by the next landing, slot DS — reserved
 

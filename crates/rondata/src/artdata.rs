@@ -1556,9 +1556,13 @@ impl BuildLook {
 /// `zbuffer` `.bh3`, the building's own `anim`, each addon's `.bh3` and
 /// `.bha` — decodes under `render`'s readers. `Ok(files decoded)`, or the
 /// failing files; a piece with no `<BUILD>` fails as `Unnamed` its name.
+/// The farm's pieces ([`FARM_TYPE`]) are held, beside their `<BUILD>`, to
+/// the files `FarmsOut::draw@008d75f0` draws them from on `tileset`
+/// ([`farm_decoding`], item 4037).
 pub fn building_decoding(
     install: &Install,
     pieces: &std::collections::BTreeSet<i32>,
+    tileset: &str,
 ) -> BTreeMap<i32, Result<usize, Vec<ArtFailure>>> {
     let read = |rel: &str| -> Result<Vec<u8>, ArtFailure> {
         let path = resolve(install.root(), rel).ok_or_else(|| ArtFailure::Missing(rel.into()))?;
@@ -1607,9 +1611,120 @@ pub fn building_decoding(
                     .map_or(Err(ArtFailure::Unnamed(a.clone())), anim),
             );
         }
+        if art.type_index == FARM_TYPE {
+            match farm_decoding(install, tileset) {
+                Ok(k) => n += k,
+                Err(f) => fails.extend(f),
+            }
+        }
         out.insert(piece, if fails.is_empty() { Ok(n) } else { Err(fails) });
     }
     out
+}
+
+/// **The farm's type**, `TypeIndex 0x1a1` (417): the type
+/// `Build::init@00629740` hands to `Farms::add@008d8a40`, so the type
+/// `FarmsOut::draw@008d75f0` draws (item 4037).
+pub const FARM_TYPE: i32 = 0x1a1;
+
+/// **The farm's art, as the loaders hold it** (item 4037, `docs/FORMATS.md`,
+/// "The gaia pieces and the building pieces"). A farm is not a mesh at a point: its `<BUILD>`
+/// (`FARM-DEFAULT-AGE0`) names no model, and `FarmsOut::draw@008d75f0`
+/// builds a wheat field over the farm's footprint each frame — stalks of
+/// the `<FARM>` element's colour, between its two heights, textured with
+/// the tileset's wheat image.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FarmArt {
+    /// `stalk_red`, `stalk_green`, `stalk_blue`, `stalk_alpha` — strings
+    /// 2674–2677, which `Farms::init@008d9310` reads with
+    /// `get_attrib_num` into four bytes at `farms + 0x40`.
+    pub stalk: [u8; 4],
+    /// `min_height`, `max_height` (strings 2678, 2679), as written: the
+    /// loader reads them with `get_attrib_float` and keeps each × 3.0
+    /// (`farms + 0x50`, `+ 0x4c`).
+    pub heights: [i32; 2],
+    /// The `<FARM>`'s own `texture=` (string 136): `Farms::init` reads it
+    /// into the scratch string `msg` and nothing loads it.
+    pub unread_texture: String,
+    /// The tileset's `FARMTEX/TEXTURE` `file=` (strings 6766, 743), which
+    /// `TileSet::init@0087b370` gives `TileSetData::wheat_texture` and
+    /// `FarmsOut::draw` binds to stage 0.
+    pub wheat: String,
+}
+
+/// [`FarmArt`] for `tileset` (a `<TILESET name>` in `Data/tilesets.xml`,
+/// compared without case): `Root/Buildings/Farm` in
+/// `building_graphics.xml`, walked as `Farms::init@008d9310` walks it
+/// (element names without case), and the tileset's `FARMTEX`. A missing
+/// element or attribute, or one that does not parse, is `Unnamed` its
+/// name — `get_attrib_num`'s `-1` default is not a value the file wrote.
+pub fn farm_art(install: &Install, tileset: &str) -> Result<FarmArt, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    fn child<'a, 'i>(n: roxmltree::Node<'a, 'i>, tag: &str) -> Option<roxmltree::Node<'a, 'i>> {
+        n.children()
+            .find(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case(tag))
+    }
+    let bpath = install.data("building_graphics.xml");
+    let btext = crate::read(&bpath).map_err(|_| unnamed("building_graphics.xml"))?;
+    let bdoc = crate::parse(&bpath, &btext).map_err(|_| unnamed("building_graphics.xml"))?;
+    let root = bdoc.root_element();
+    let farm = child(root, "Buildings")
+        .and_then(|b| child(b, "Farm"))
+        .filter(|_| root.tag_name().name().eq_ignore_ascii_case("Root"))
+        .ok_or_else(|| unnamed("Root/Buildings/Farm"))?;
+    let num = |a: &str| -> Result<i32, ArtFailure> {
+        farm.attribute(a)
+            .and_then(|v| v.trim().parse().ok())
+            .ok_or_else(|| unnamed(a))
+    };
+    let byte =
+        |a: &str| -> Result<u8, ArtFailure> { u8::try_from(num(a)?).map_err(|_| unnamed(a)) };
+    let stalk = [
+        byte("stalk_red")?,
+        byte("stalk_green")?,
+        byte("stalk_blue")?,
+        byte("stalk_alpha")?,
+    ];
+    let heights = [num("min_height")?, num("max_height")?];
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let wheat = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .and_then(|t| child(t, "FARMTEX"))
+        .and_then(|f| child(f, "TEXTURE"))
+        .and_then(|t| t.attribute("file"))
+        .map(|f| f.trim().to_string())
+        .filter(|f| !f.is_empty())
+        .ok_or_else(|| unnamed(&format!("{tileset}/FARMTEX/TEXTURE")))?;
+    Ok(FarmArt {
+        stalk,
+        heights,
+        unread_texture: farm
+            .attribute("texture")
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
+        wheat,
+    })
+}
+
+/// **The farm's condition 1** (item 4037, `docs/RENDERER.md` §5.4): the
+/// `<FARM>` element reads whole ([`farm_art`]) and the tileset's wheat
+/// image decodes under `render::tga`. `Ok(1)`, the one file decoded.
+pub fn farm_decoding(install: &Install, tileset: &str) -> Result<usize, Vec<ArtFailure>> {
+    let art = farm_art(install, tileset).map_err(|f| vec![f])?;
+    let path = resolve(install.root(), &art.wheat)
+        .ok_or_else(|| vec![ArtFailure::Missing(art.wheat.clone())])?;
+    let bytes = std::fs::read(path).map_err(|_| vec![ArtFailure::Missing(art.wheat.clone())])?;
+    render::tga::decode(&bytes)
+        .map(|_| 1)
+        .map_err(|e| vec![ArtFailure::Undecodable(art.wheat.clone(), e.to_string())])
 }
 
 /// Every `.bh3` and `.bha` under `art/` and `terrain art/`, by path —
@@ -1758,6 +1873,81 @@ mod tests {
         assert!(anim_failed.is_empty(), "{anim_failed:#?}");
     }
 
+    /// **Every image the install ships is read whole** (item 4037,
+    /// `docs/FORMATS.md`, the building pieces' section): 2,901 of 2,901 `.tga` under `art/`
+    /// and `terrain art/`, each ending at its last pixel (283) or at a
+    /// version-2 footer — types 2, 3 and 10, no colour map.
+    #[test]
+    fn every_image_the_install_ships_decodes() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let files = art_files(&inst, "tga");
+        let mut kinds = BTreeMap::new();
+        let mut failed = Vec::new();
+        for f in &files {
+            match render::tga::decode(&std::fs::read(f).unwrap()) {
+                Ok(img) => *kinds.entry((img.kind, img.bits, img.footer)).or_insert(0) += 1,
+                Err(e) => failed.push(format!("{}: {e}", f.display())),
+            }
+        }
+        assert!(failed.is_empty(), "{failed:#?}");
+        assert_eq!(
+            kinds.into_iter().collect::<Vec<_>>(),
+            [
+                ((2, 24, true), 4),
+                ((2, 32, false), 283),
+                ((2, 32, true), 499),
+                ((3, 8, true), 1),
+                ((10, 24, true), 1),
+                ((10, 32, true), 2113),
+            ],
+            "(type, bits, footer) → files"
+        );
+    }
+
+    /// **The farm's art reads whole on every tileset** (item 4037): the
+    /// `<FARM>` element as `Farms::init@008d9310` reads it, and each
+    /// `<TILESET>`'s `FARMTEX` image decoding — seventeen tilesets, three
+    /// images. Made to fail once by reading the `<FARM>`'s own `texture=`
+    /// in the tileset's place: it names `.\art\farm_wheat_1.tga` too, so
+    /// the snowy and jungle tilesets parted, which is why the reader
+    /// follows `TileSet::init@0087b370`, not the attribute.
+    #[test]
+    fn the_farm_s_art_reads_whole_on_every_tileset() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let text = std::fs::read_to_string(inst.data("tilesets.xml")).unwrap();
+        let doc = roxmltree::Document::parse(&text).unwrap();
+        let mut wheat = BTreeMap::new();
+        for t in doc.descendants().filter(|n| n.has_tag_name("TILESET")) {
+            let name = t.attribute("name").unwrap();
+            let art = farm_art(&inst, name).unwrap();
+            assert_eq!(
+                (art.stalk, art.heights, art.unread_texture.as_str()),
+                ([166, 216, 188, 173], [10, 36], ".\\art\\farm_wheat_1.tga"),
+                "{name}"
+            );
+            assert_eq!(farm_decoding(&inst, name), Ok(1), "{name}");
+            *wheat.entry(art.wheat).or_insert(0) += 1;
+        }
+        assert_eq!(
+            wheat.into_iter().collect::<Vec<_>>(),
+            [
+                ("./art/farm_jungle_wheat_1.tga".to_string(), 3),
+                ("./art/farm_snowy_wheat_1.tga".to_string(), 2),
+                ("./art/farm_wheat_1.tga".to_string(), 12),
+            ]
+        );
+        assert!(matches!(
+            farm_art(&inst, "no such tileset"),
+            Err(ArtFailure::Unnamed(_))
+        ));
+    }
+
     /// **The whole reader and the simulation's agree on every animation**:
     /// `render::bha`'s first root's times are `key_times`' — which is
     /// diff-backed against every dumped `end_time` — on all 2,062 files.
@@ -1887,16 +2077,19 @@ mod tests {
         );
         let farm = art[&(FIRST_BUILD_PIECE + 3)].as_ref().unwrap();
         assert_eq!((farm.zbuffer.as_ref(), farm.addons.len()), (None, 0));
-        let d = building_decoding(&inst, &pieces);
+        assert_eq!(0x19e + 3, FARM_TYPE);
+        let d = building_decoding(&inst, &pieces, "Dirty");
         assert_eq!(
             d[&57144],
             Ok(5),
             "a zbuffer, two addon models, two animations"
         );
+        // The farm names no model; it is held to its wheat image instead
+        // (item 4037; `Ok(0)` before it).
         assert_eq!(
             d[&(FIRST_BUILD_PIECE + 3)],
-            Ok(0),
-            "the farm names no model"
+            Ok(1),
+            "the farm's one file, the tileset's wheat"
         );
     }
 

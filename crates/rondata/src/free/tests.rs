@@ -256,8 +256,36 @@ pub(crate) const M_PIECES_DECODING: (usize, usize) = (38, 38);
 /// pieces and 80 files (zbuffer models, addon models and their
 /// animations); the one short is the farm (417), whose
 /// `FARM-DEFAULT-AGE0` names no model — its look is the `<FARM>` element's,
-/// which nothing here reads (`docs/RENDERER.md` §5.4).
-pub(crate) const M_BUILDING_TYPES_DECODING: (usize, usize, usize, usize) = (20, 21, 25, 80);
+/// which nothing here reads (`docs/RENDERER.md` §5.4). Item 4037: **21 of
+/// 21**, +1, and 81 files, +1: the farm is held to the files
+/// `FarmsOut::draw@008d75f0` draws it from — the `<FARM>` element read
+/// whole and the lobby's tileset's wheat image decoding
+/// (`artdata::farm_decoding`, [`LOBBY_TILESET`]).
+pub(crate) const M_BUILDING_TYPES_DECODING: (usize, usize, usize, usize) = (21, 21, 25, 81);
+
+/// **The lobby's tileset** (item 4037): Great Lakes draws one of the
+/// thirteen its style's `TILECHANCE`s name, and the draw is the one
+/// `mapgen::tileset_before` reads off the seed the start dump prints at
+/// `map.cpp` 7805. The farm's wheat image is that tileset's `FARMTEX`
+/// (`artdata::farm_art`). Run1428's start prints 2,726,892,157 there (the
+/// seed `mapgen`'s own test of the draw pins), which draws `early_autumn`,
+/// whose wheat is `./art/farm_wheat_1.tga`.
+pub(crate) const LOBBY_TILESET: &str = "early_autumn";
+
+fn lobby_tileset(c: &Captures) -> String {
+    let root = install().unwrap().root().to_path_buf();
+    let head = crate::mapgen::start_head(&c.start)
+        .unwrap()
+        .expect("a start head");
+    let seed = crate::mapgen::start_grid(&head)
+        .at("map.cpp", 7805)
+        .expect("the start prints map.cpp 7805")
+        .2;
+    let chances = crate::mapgen::tile_chances(&root, "GREATLAKES.xml").expect("its tilesets");
+    let tileset = crate::mapgen::tileset_before(&chances, seed).expect("a drawn tileset");
+    pin_eq!(tileset.as_str(), LOBBY_TILESET, "the lobby's tileset");
+    tileset
+}
 
 /// The slots each piece is shown in on a scene: §5.4's "captured
 /// animation slots" (item 4028), read on the runner's scenes, which equal
@@ -446,10 +474,12 @@ fn m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps() {
         .collect();
     // The building half (item 4028): each type's pieces resolved and
     // decoded; a type decodes when every piece the dumps print for it does
-    // and names a model — the farm's `<BUILD>` names none (`texture`,
-    // `zbuffer` and `anim` empty), and an empty list is not a decode.
+    // and names a file — the farm's `<BUILD>` names none (`texture`,
+    // `zbuffer` and `anim` empty), and an empty list is not a decode; since
+    // item 4037 the farm is held to its wheat image instead.
     let all_build: BTreeSet<i32> = type_pieces.values().flatten().copied().collect();
-    let builds = crate::artdata::building_decoding(&install().unwrap(), &all_build);
+    let builds =
+        crate::artdata::building_decoding(&install().unwrap(), &all_build, &lobby_tileset(&c));
     let named = crate::artdata::build_art(&install().unwrap(), &all_build);
     for (t, ps) in &type_pieces {
         for p in ps {
@@ -1067,6 +1097,7 @@ fn fog_visible_is_render_s() -> bool {
 /// **§5.4's K**, both halves: M's pieces' K ([`RENDER_K_PIECES`]) and M's
 /// building types' ([`RENDER_K_BUILDINGS`]). Item 4035: the draw list
 /// carries buildings, so a building type's condition 2 is live.
+/// Item 4037: unchanged at 58; the farm decodes and is not yet drawn.
 pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 
 /// M's building types that count toward K, `(K, decoding, in register,
@@ -1076,8 +1107,13 @@ pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
 /// [`the_draw_list_s_buildings_are_in_register`]). Item 4035: new —
 /// **20 of 21**: all 21 in register, 20 decoding; the farm (417) is short
 /// on condition 1 alone ([`M_BUILDING_TYPES_DECODING`]). With the pieces'
-/// 38, **K 58 of M 59** (+20).
-pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (20, 20, 21, 21);
+/// 38, **K 58 of M 59** (+20). Item 4037: decoding **21 of 21** (+1, the
+/// farm from its wheat image) and in register **20 of 21** (−1): the
+/// farm's 402 records were "drawn by neither" only because `WallOut::draw`
+/// skips a finished farm, while the original draws all of them through
+/// `FarmsOut::draw@008d75f0`, which the draw list does not carry yet
+/// (parked 4037a). So K stays **20**, and **K 58 of M 59**.
+pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (20, 21, 20, 21);
 
 /// The dumped frames that print a building — run1428's two, run1429's
 /// start block and its closing block 3390, and run1429b's 95 — on which
@@ -1251,11 +1287,32 @@ fn the_draw_list_s_buildings_are_in_register() {
     let mut bad_types: BTreeSet<i64> = BTreeSet::new();
     let mut type_pieces: BTreeMap<i64, BTreeSet<i32>> = BTreeMap::new();
     let mut parted_pieces: BTreeMap<(i64, i32, i32), usize> = BTreeMap::new();
+    // The farm's records (item 4037): (records, drawn by both, the first).
+    let mut farm: (usize, usize, Option<String>) = (0, 0, None);
     for (&(i, n), recs) in &printed {
         let mine = ours.get(&n).cloned().unwrap_or_default();
         let mut frame_ok = true;
         for (&id, d) in recs {
             recs_all += 1;
+            if d.orig_type == i64::from(crate::artdata::FARM_TYPE) {
+                let them = theirs.get(&tag(i, n, id)).copied();
+                let m = mine.get(&id);
+                farm.0 += 1;
+                farm.1 += usize::from(them.is_some() && m.is_some_and(|(_, px)| px.is_some()));
+                if farm.2.is_none()
+                    || (them.is_some() && !farm.2.as_ref().unwrap().contains("Some(("))
+                {
+                    farm.2 = Some(format!(
+                        "{} frame {n} {}/{}: dump {:?} gpiece {} → {them:?}; ours {:?}",
+                        names[i],
+                        id.who,
+                        id.o,
+                        d.pos,
+                        d.gpiece,
+                        m.map(|(b, px)| ((b.x, b.y, b.z), b.piece, *px))
+                    ));
+                }
+            }
             type_pieces.entry(d.orig_type).or_default().insert(d.gpiece);
             let them = theirs.get(&tag(i, n, id)).copied();
             let ok = match mine.get(&id) {
@@ -1303,18 +1360,29 @@ fn the_draw_list_s_buildings_are_in_register() {
     }
     // Condition 1, as the M test reads it (item 4028).
     let all_build: BTreeSet<i32> = type_pieces.values().flatten().copied().collect();
-    let builds = crate::artdata::building_decoding(&inst, &all_build);
+    let builds = crate::artdata::building_decoding(&inst, &all_build, &lobby_tileset(&c));
     let decoding: BTreeSet<i64> = type_pieces
         .iter()
         .filter(|(_, ps)| ps.iter().all(|p| matches!(builds[p], Ok(n) if n > 0)))
         .map(|(t, _)| *t)
         .collect();
+    // The farm is not in register (item 4037): `WallOut::draw` draws none
+    // of its finished records, and the original draws every one through
+    // `FarmsOut::draw@008d75f0`'s wheat field, which the draw list does not
+    // carry. "Drawn by neither" is true only of `WallOut`'s half, so it is
+    // not counted (parked 4037a).
     let registered: BTreeSet<i64> = type_pieces
         .keys()
-        .filter(|t| !bad_types.contains(t))
+        .filter(|t| !bad_types.contains(t) && **t != i64::from(crate::artdata::FARM_TYPE))
         .copied()
         .collect();
     let k = decoding.intersection(&registered).count();
+    eprintln!(
+        "FARM records {}, drawn by both {}; {}",
+        farm.0,
+        farm.1,
+        farm.2.unwrap_or_default()
+    );
     eprintln!(
         "BUILDINGS {}: frames in register {frames_ok} of {}, first out {first_out:?}; records {recs_ok} of {recs_all} \
          ({} drawn by the original's predicate); \

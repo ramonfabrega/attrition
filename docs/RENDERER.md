@@ -698,7 +698,9 @@ the list as a `Drawn` whose `Pose` is `Building`. The reference is
   (`job_counter / BuildData::construct_time(0)`, 1 when finished), fades
   in from 0.84, and is inverted for every type but the farm. So an
   unfinished building is drawn past 0.84, a farm only before 0.88, and
-  type `0x1a6` only finished.
+  type `0x1a6` only finished. A finished farm is drawn by another pass,
+  `FarmsOut::draw@008d75f0`'s wheat field, which the list does not carry
+  (item 4037; parked 4037a).
 - *The piece.* `GraphicPieces::get_build_gpiece@0090bce0` from the
   current type, the **founder's** nation (`BuildData::founder`; a captured
   city keeps the art of the nation that built it) and the building's age:
@@ -1011,6 +1013,14 @@ It is the art phase's counter, not the first one.
 
   An entry that names no model does not meet it: an empty list is not a
   decode.
+- **The farm (type 417) is held to the files its own pass draws it
+  from** (item 4037). Its `<BUILD>` names nothing. `FarmsOut::draw
+  @008d75f0` builds a wheat field instead, from the `<FARM>` element and
+  the tileset's wheat image (`docs/FORMATS.md`, the building pieces).
+  So its condition 1 is that element read whole and that image decoding
+  under `render::tga` (`artdata::farm_decoding`), on the tileset the
+  lobby drew. The `<FARM>`'s own `texture=` is read and dropped by the
+  loader, so it is not asked.
 - **A building type's condition 2 is unmet, not vacuous**:
   - the dumps print every building's position on the logged frames, so
     there is a dumped frame to compare against;
@@ -1061,9 +1071,17 @@ corners.*
     they count toward no K.~~ Since item 4028, 20 of the 21 building types
     decode (`M_BUILDING_TYPES_DECODING`: 25 pieces, 80 files). ~~They count
     toward no K, because the draw list does not carry them (the ruling
-    above).~~ Since item 4035 all 21 are in register (§3.5), and the 20
-    that decode count: `RENDER_K_BUILDINGS` 20. The farm is short on
-    condition 1 alone: its `<BUILD>` names no model (item 4037's).
+    above).~~ Since item 4035 ~~all 21~~ are in register (§3.5), and the 20
+    that decode count: `RENDER_K_BUILDINGS` 20. ~~The farm is short on
+    condition 1 alone: its `<BUILD>` names no model (item 4037's).~~
+  - Since item 4037, **21 of 21 decode** (81 files; the farm from
+    `farm_wheat_1.tga`, `early_autumn`'s), and **20 of 21 are in
+    register**. The farm's 402 dumped records were "drawn by neither",
+    but only because `WallOut::draw` skips a finished farm. The original
+    draws every one of them through `FarmsOut::draw`, and the draw list
+    carries no wheat field. Counting it would stub condition 2 true, so
+    it is out: `RENDER_K_BUILDINGS` (20, 21, 20, 21), K unchanged at 58.
+    The field's entry is parked (4037a).
 - **The dumps check every figure they print a `gpiece` for.** Only the
   `DUMP_ALL` states print one: run1428's two, and run1429's start block.
   That is 306 figures on the map, all 306 agreeing, and on each dump's
