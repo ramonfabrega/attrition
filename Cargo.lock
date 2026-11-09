@@ -70,6 +70,7 @@ dependencies = [
  "fixed",
  "flate2",
  "lz4_flex",
+ "render",
  "roxmltree",
  "sim",
 ]

@@ -737,10 +737,13 @@ in the install:
 | `art/*.bha` | the animation, whose root node's key times give the length |
 
 **The container** is a chunk stream. A chunk header is eight bytes —
-`{u32 size; u16 id; u16 version}` — and `size` is measured **from the `size`
-field itself**, which is what `ChunkRead` does (`(int)&header->size +
-header->size`). A `.BHa` is three nested headers deep: the file (id 0) at
-offset 0, the object (id 8) at 8, and the root `AnimObj` node (id 7) at 16.
+`{u32 size; u16 id; u16 num_chunks}` (the PDB's `ChunkHeader`; this
+paragraph called the last field `version` until item 4019 read the type) —
+and `size` is measured **from the `size` field itself**, which is what
+`ChunkRead` does (`(int)&header->size + header->size`). A `.BHa` is three
+nested headers deep: the file (id 0) at offset 0, the root node's wrapper
+(id 8; written "the object" until item 4019 found it is a node) at 8, and
+that node's key chunk (id 7) at 16.
 The node's payload is a `u32` key count at 24 and then that many **36-byte**
 keys from 28.
 
@@ -770,8 +773,9 @@ pieces' (170 / 101 / 116). That agreement is also what pins the `-TYPE<v>`
 suffix in `unit_graphics.xml` to the variant `(seed + o) % 3` picks, which
 is the one link in the chain neither file states.
 
-*What is not read.* The geometry, the bone hierarchy, the child nodes' own
-key arrays, and the whole of `.BH3`. Only the gaia types' rows are built:
+*What is not read.* ~~The geometry, the bone hierarchy, the child nodes' own
+key arrays, and the whole of `.BH3`.~~ All four are read since item 4019:
+"The model files — `.BH3` and `.BHa` read whole", below. Only the gaia types' rows are built:
 a player's unit needs `GraphicPieces::get_unit_gpiece`'s tribe, age and
 gender walk to know which `<UNIT>` entry it plays, and that is unmodelled.
 
@@ -781,6 +785,130 @@ Undocumented publicly. A recorded game is worthless without the map it was
 played on. `game/scenario/` and `game/mapstyles/` are unexamined.
 
 ---
+
+## The model files — `.BH3` and `.BHa` read whole (2026-11-08)
+
+Item 4019. `crates/render/src/bh3.rs` and `bha.rs` decode both files from
+bytes, and `rondata::artdata` resolves a piece to them. **How it was
+established**: the loaders read in the decompile (`BH3Method::load`,
+`load_bh3@009156f0`, `load_vertex_data`, `load_verts`, `load_faces`,
+`load_texs`, `load_hier@00915010`, `BH3LightMethod::load_norms`;
+`AnimMgr::force_load@0053ade0`, `AnimObj::load_hier@0054b700`). The PDB
+types name the fields: `ChunkHeader`, `HierObj`, `Quat<float>`,
+`Transform<float>`, `AnimObj` and `AnimKeyFrame`. A strict walk of every
+file the install ships then proved the reading's arithmetic. ptasev's
+converter was not needed as a reading aid: the loaders and the arithmetic
+left no field unexplained but the ones listed below as not read.
+
+### The chunk container
+
+Both files are the `.BHa` chunk stream above. **`num_chunks` is the count of
+chunks directly inside a container, and zero for a leaf**, in every one of
+the 3,909 files. The readers hold each file to it, and to every chunk
+ending inside its parent, so a file whose sizes do not sum is refused.
+
+### The model file (`.BH3`)
+
+```text
+id 0  file                     num_chunks 2
+  id 1  vertex data            num_chunks 4   load_bh3 → load_vertex_data per child
+    id 2  vertices   u32 n, n × {f32 x, y, z, w}      load_verts: Point<float>, w = 1
+    id 3  normals    u32 n, n × 16 bytes               read only by BH3LightMethod
+    id 4  texcoords  u32 n, n × {f32 u, v}             load_texs: n × 8 bytes
+    id 5  faces      u32 n, n × u16                    load_faces: n × 2 bytes
+  id 6  node                   num_chunks 1 + children   load_bh3 → load_hier
+    id 7  node data  u32 start, u32 num, u32 name_len, name (NUL inside),
+                     f32 quat x, y, z, w, f32 trans x, y, z, w
+    id 6  child node …
+```
+
+- **Each array chunk is exactly `12 + n · stride`**, the strides being the
+  `memcpy` lengths of its loader (`n << 4`, `n · 8`, `n · 2`). Normals are
+  16 bytes on disk, while `load_norms` copies `n · 12`. The size arithmetic
+  settles the stride: all 1,847 files are exact at 16. Normals, vertices
+  and texcoords are one per vertex. Faces are whole triangles whose indices
+  are vertices, in every file.
+- **A vertex's `w` is 1** in every file, which is what pins the 16-byte
+  stride as `Point<float>`.
+- **The normals are unchecked.** `BH3Method::load_vertex_data` returns an
+  error for id 3, so the method that loads a model without lighting never
+  reads them. 749 models carry `0xffffffff` words there.
+- **A node is a `HierObj`.** `start`/`num` land in `HierObj::start` and
+  `num`. They are the node's run of vertices: in 1,844 of the 1,847 files
+  every run lies inside the vertex array and the runs' lengths sum to the
+  vertex count. The data chunk is exactly
+  `20 + name_len + 32` bytes in every file.
+- **`load_hier` truncates the transform** to `(int)(v · 1000) · 0.001` for
+  the quaternion and `(int)(v · 100) · 0.01` for the translation, then
+  treats it as identity within ±0.001 (±0.01 for the translation).
+  `Node::loaded_rotation` and `loaded_translation` give the kept values.
+  The eighth float, read into the point's `w`, equals the quaternion's `x`
+  in every file.
+- **The file stores no bounds.** `Model::bounds` derives them from the
+  vertices.
+- **Two models fail the reader**: `citizen6_fem_Na` (a node's run 219 + 21
+  past 237 vertices) and `granary_3kz` (0 + 104 past 58). The original
+  copies without checking. `merchantfleet` has overlapping runs that stay
+  inside the array, and it passes.
+
+### The animation file (`.BHa`), the rest of it
+
+- **A node is an `id 8` wrapper**: its key chunk (id 7) first, then its
+  child nodes, with `num_chunks` equal to 1 plus the children. This is the
+  same shape as a model's id 6 / id 7.
+- **A key is 36 bytes**: `f32` duration, the quaternion `x y z w`, the
+  translation `x y z` (`AnimKeyFrame::q` and `t`), then one word
+  `load_hier` steps over. The kept values are truncated as a model node's
+  are.
+- **A key chunk's room is whole keys** in all 2,062 files. 269 nodes have
+  room for one key past their count; none has a count that overruns. A
+  count above 100,000 is "Illegal number of nodes".
+- **`force_load` plays the first root**: a later `id 8` (16 files carry
+  two roots, one carries three) and every `id 10` are closed unread. An
+  id 10 is `u32 n, n × 24` bytes in all three files that carry one
+  (`diplomat2_bribe`, `scout_sloop_death`, `nuke_sub_attack`). Any other
+  id there is never closed, and the loop gives up as "Invalid Animation
+  File".
+- **The whole reader agrees with `artdata::key_times`** on the first
+  root's times for all 2,062 files
+  (`the_whole_animation_reader_agrees_with_key_times`). `key_times` is
+  diff-backed against every dumped `end_time`, so that much of this reader
+  is too.
+
+### From a piece to its files
+
+`artdata::unit_art`: a `<UNIT>` entry's `model=` is its `.bh3`. Its `<ANIM>`
+rows name animations, which resolve through `anim_graphics.xml` as the
+lengths' resolution does (the first case-folded match). The pieces an entry
+covers are `entry_pieces`' arithmetic (ANIM §3.2). `artdata::piece_decoding`
+decodes each file once, and the result is the score below.
+
+**Pieces decoding: 1,439 of 1,452** (`artdata::PIECES_DECODING`). The
+1,452 distinct pieces come from 1,399 of the 1,435 entries. The 13 failures,
+named by `the_pieces_decode`, are slots that cite `.bha` files the install
+does not ship (`armsuplytruck_attackwalk`, `ceo_crew3_idle3`,
+`siegeship_ship_walk`) and the one model `citizen6_fem_NA.bh3`.
+`cargo run -p rondata -- <install>` re-derives the file counts and the
+score.
+
+### What is checked, and what is not established
+
+- **Checked by a run over the install**, on every gate that has
+  `RON_INSTALL`: every structural claim above
+  (`every_model_and_animation_the_install_ships_decodes_but_two`, the
+  survey). The `.BHa` root times are diff-backed through `key_times`.
+- **Reading alone**: which field is a quaternion and which a translation,
+  and the order of their components; the truncation; `start`/`num` as a
+  vertex run; texcoords as `u, v`. No packet has been compared with a
+  loaded `HierObj` yet. That comparison is what would back these against
+  the original.
+- **Not established**: how an animation binds to a model whose tree it
+  does not match. Of the 1,439 decoded pieces, 801 have every played
+  animation's tree equal in shape to the model's (`SAME_SHAPE`). The
+  citizen's `peasant.bh3` has 29 nodes, and `man_walk.bha` has 27: the
+  same tree without its two `ammo node` leaves. The normals' fourth word.
+  The 24-byte `id 10` element. The key's ninth word. Which TGA a model
+  binds, beyond the `texture=` attribute.
 
 ## Open questions
 
