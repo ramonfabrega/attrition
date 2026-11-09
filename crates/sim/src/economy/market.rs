@@ -62,7 +62,7 @@ impl Sim {
     /// `GameDaemon::calc_markets`, once a frame from `GameDaemon::
     /// process_all` — between `Leaders::strategy_all` and the objects.
     pub fn calc_markets(&mut self, frame: i64) {
-        let rate = self.tuning.market_cycle_rate;
+        let rate = self.tables.tuning.market_cycle_rate;
         if !(frame == 0 || rate < 2 || frame % i64::from(rate) == 0) {
             return;
         }
@@ -75,13 +75,13 @@ impl Sim {
             // The price step: one good a tick, each good every 256 ticks
             // (the test is on the low byte of `tick + i`).
             if ti & 0xff == 0 {
-                let eq = self.tuning.market_equilibrium;
+                let eq = self.tables.tuning.market_equilibrium;
                 let p = self.market.price[i];
                 if p > eq {
                     self.market.price[i] = if eq == 0 { p - 1 } else { p - p / eq };
                 } else if p < eq {
                     let up = p + 1;
-                    self.market.price[i] = if up < self.tuning.market_basement {
+                    self.market.price[i] = if up < self.tables.tuning.market_basement {
                         p + 2
                     } else {
                         up
@@ -107,7 +107,7 @@ impl Sim {
     /// `GameDaemon::calc_market(i)`: three draws — two for the next flux,
     /// one for the trend's length — and the per-tick step.
     fn calc_market(&mut self, i: usize) {
-        let min_variance = self.tuning.market_min_variance;
+        let min_variance = self.tables.tuning.market_min_variance;
         let mut v = self.market.price[i] / 2;
         if v < min_variance {
             v = min_variance;
@@ -123,14 +123,14 @@ impl Sim {
             (a, b)
         };
         self.market.next_flux[i] = (b - (v + 1)) + a;
-        let range = self.tuning.market_trend_range;
+        let range = self.tables.tuning.market_trend_range;
         let spread = if range <= 1 {
             0
         } else {
             self.mark(SITE_LENGTH);
             self.rng.roll() % range
         };
-        let len = self.tuning.market_min_trend + spread;
+        let len = self.tables.tuning.market_min_trend + spread;
         let diff = self.market.next_flux[i] - self.market.flux[i];
         let sign = if diff < 1 { diff >> 31 } else { 1 };
         self.market.flux_length[i] = len;

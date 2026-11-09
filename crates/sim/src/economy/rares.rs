@@ -68,12 +68,12 @@ impl Sim {
     /// `LeaderData::get_fishermen@006d6e80` — the highest `FISHERMEN`
     /// bonus row whose prerequisite the player holds, 0 for none.
     pub(crate) fn fishermen_level(&self, who: Player) -> usize {
-        self.bonus_level(who, &self.tech_tree.roles.fishermen_preq)
+        self.bonus_level(who, &self.tables.tech_tree.roles.fishermen_preq)
     }
 
     /// `LeaderData::get_merchants_level@006d6dc0`.
     pub(crate) fn merchants_level(&self, who: Player) -> usize {
-        self.bonus_level(who, &self.tech_tree.roles.merchants_preq)
+        self.bonus_level(who, &self.tables.tech_tree.roles.merchants_preq)
     }
 
     /// The shared shape of the two: the rows are tested most advanced
@@ -84,8 +84,9 @@ impl Sim {
     pub(crate) fn bonus_level(&self, who: Player, rows: &[Option<TypeId>]) -> usize {
         top_held(rows.len(), |i| {
             rows[i].is_some_and(|t| {
-                self.tech_tree
-                    .has_tech(&self.setup, &self.tech[who as usize], t)
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who as usize], t)
             })
         })
     }
@@ -104,8 +105,11 @@ impl Sim {
                     return false;
                 };
                 let below = k.checked_sub(1).and_then(|b| rows[b]);
-                self.tech_tree.has_tech(&self.setup, p, t)
-                    && self.tech_tree.bonus_tier_extra(&self.setup, p, k, below)
+                self.tables.tech_tree.has_tech(&self.tables.setup, p, t)
+                    && self
+                        .tables
+                        .tech_tree
+                        .bonus_tier_extra(&self.tables.setup, p, k, below)
             })
         };
         (0..rows.len())
@@ -150,19 +154,19 @@ impl Sim {
             // spiral's, which are the same predicate.
             let ally = self.gather_cell_friendly(u, who);
             let rate = economy::calc_rare(
-                &self.tuning,
+                &self.tables.tuning,
                 good,
                 &g,
                 self.fishermen_level(who),
                 self.merchants_level(who),
                 ally,
-                self.tech_tree.has_tribe_bonus(
-                    &self.setup,
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
                     &self.tech[who as usize],
                     crate::ai::tribe::NUBIANS,
                 ),
-                self.tech_tree.has_tribe_bonus(
-                    &self.setup,
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
                     &self.tech[who as usize],
                     crate::nations::power::JAPANESE,
                 ),
@@ -250,7 +254,7 @@ impl Sim {
     }
 
     fn speed_of(&self, who: Player, ty: usize, marine: bool) -> i32 {
-        let mut speed = self.unit_types[ty].moves;
+        let mut speed = self.tables.unit_types[ty].moves;
         // **The American marines' arm** (item 3661, `update_speed@006055c0`,
         // before the `UNIT_MOVE_SPEED` scale and every percentage): a unit
         // carrying `unit_masks2 & 0x200` adds the Military library level
@@ -259,15 +263,15 @@ impl Sim {
         // who=1 is at Military 3 and its Transport Galleon `1/105` steps 31
         // on a `MOVES` of 25 (`docs/AI.md` §341).
         if marine && let Some(p) = self.tech.get(who as usize) {
-            speed += p.military_level() as i32 * self.tuning.americans_marine_speed_bonus;
+            speed += p.military_level() as i32 * self.tables.tuning.americans_marine_speed_bonus;
         }
-        let naval = self.unit_types[ty].combat.obj_masks & crate::combat::mask::NAVAL != 0;
+        let naval = self.tables.unit_types[ty].combat.obj_masks & crate::combat::mask::NAVAL != 0;
         if naval && self.has_rare(who, economy::WHALES) {
-            speed = (self.tuning.whales_ships_move + 100) * speed / 100;
+            speed = (self.tables.tuning.whales_ships_move + 100) * speed / 100;
         }
         let lineage = |x: i32| {
-            usize::try_from(self.unit_types[ty].type_index)
-                .is_ok_and(|t| self.tech_tree.is(t, x as usize, false))
+            usize::try_from(self.tables.unit_types[ty].type_index)
+                .is_ok_and(|t| self.tables.tech_tree.is(t, x as usize, false))
         };
         let (num, den) = if lineage(MECH_INFANTRY) {
             (36, 32)
@@ -290,13 +294,13 @@ impl Sim {
         // Militia line (`is(0x42, 0)`). The Bantu word's citizens step 31
         // on a `MOVES` of 25 from frame 1 (run978, `docs/AI.md` §276).
         if self.nation.get(who as usize).is_some_and(|n| n.bantu) {
-            let ti = self.unit_types[ty].type_index;
+            let ti = self.tables.unit_types[ty].type_index;
             if self.trainer_where(ty) == Some(BARRACKS)
                 || ti == PEASANTS
                 || ti == PEASANTS_KOREAN
                 || lineage(crate::cast::MILITIA)
             {
-                speed = (self.tuning.bantu_units_move + 100) * speed / 100;
+                speed = (self.tables.tuning.bantu_units_move + 100) * speed / 100;
             }
         }
         // `Unit::update_speed@006055c0`'s trainer arm: a unit whose
@@ -308,10 +312,10 @@ impl Sim {
         // 30 there, 25 here before item 1455.
         if matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
             if self.nation[who as usize].french {
-                speed = (self.tuning.french_siege_move + 100) * speed / 100;
+                speed = (self.tables.tuning.french_siege_move + 100) * speed / 100;
             }
             if self.wonders_held(who) & (1 << crate::tech::wonder::VERSAILLES) != 0 {
-                speed = (self.tuning.versailles_units_move + 100) * speed / 100;
+                speed = (self.tables.tuning.versailles_units_move + 100) * speed / 100;
             }
         }
         // **The Aluminum arm** (`update_speed@006055c0`, after the French
@@ -322,10 +326,10 @@ impl Sim {
         // Modern word's Bombers sit at 75 on a `MOVES` of 60 (run1397's
         // stride from 3101), and the range a sortie asks of them is the
         // speed times the tank (`docs/AI.md` §366.3).
-        if self.unit_types[ty].kind.domain == crate::attrition::Domain::Air
+        if self.tables.unit_types[ty].kind.domain == crate::attrition::Domain::Air
             && self.has_rare(who, economy::ALUMINUM)
         {
-            speed = (self.tuning.aluminum_air_speed + 100) * speed / 100;
+            speed = (self.tables.tuning.aluminum_air_speed + 100) * speed / 100;
         }
         // The Spy's upgrades (`update_speed@006055c0:131`–`134`): a quarter
         // of the speed per level, toward zero (`docs/AI.md` §160).
@@ -336,13 +340,13 @@ impl Sim {
         // General upgrade (`update_speed@006055c0:135`–`144`): the coverage
         // pair's General `1/150` is born at 73 on a `MOVES` of 42 with all
         // three held (`docs/AI.md` §172).
-        if self.unit_types[ty]
+        if self.tables.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
         {
             speed += self.general_upgrade_level(who) * speed / 4;
         }
-        if self.unit_types[ty]
+        if self.tables.unit_types[ty]
             .cols
             .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
         {
@@ -595,8 +599,8 @@ impl Sim {
         let Some(ty) = self.world.goods().get(gi).map(|g| g.ty) else {
             return;
         };
-        if self.tech_tree.is(ty, economy::FISH, false)
-            || self.tech_tree.is(ty, economy::WHALES, false)
+        if self.tables.tech_tree.is(ty, economy::FISH, false)
+            || self.tables.tech_tree.is(ty, economy::WHALES, false)
         {
             return;
         }

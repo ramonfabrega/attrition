@@ -63,12 +63,12 @@ impl Sim {
     /// is `Window::get_button`, the fold's canonical name.
     fn slot64(&self, t: TypeId) -> bool {
         self.build_record(t)
-            .is_some_and(|r| build::is_city(&self.build_types, r))
+            .is_some_and(|r| build::is_city(&self.tables.build_types, r))
     }
 
     /// `TypeData::is(role, strict)` for one of the roles the tree names.
     fn type_is_role(&self, t: TypeId, role: Option<TypeId>, strict: bool) -> bool {
-        role.is_some_and(|x| self.tech_tree.is(t, x, strict))
+        role.is_some_and(|x| self.tables.tech_tree.is(t, x, strict))
     }
 
     /// `TypeData::is_peasant`: exactly `PEASANTS` (`0x32`) or
@@ -76,11 +76,14 @@ impl Sim {
     /// [`Worker::Citizen`].
     fn is_peasant_type(&self, t: TypeId) -> bool {
         self.unit_record(t)
-            .is_some_and(|r| self.unit_types[r].worker == Worker::Citizen)
+            .is_some_and(|r| self.tables.unit_types[r].worker == Worker::Citizen)
     }
 
     fn is_wonder_type(&self, t: TypeId) -> bool {
-        matches!(self.tech_tree.kind(t), Kind::Building { wonder: true, .. })
+        matches!(
+            self.tables.tech_tree.kind(t),
+            Kind::Building { wonder: true, .. }
+        )
     }
 
     /// The expiry verdict for one type: `true` when every slot holding it is
@@ -98,7 +101,7 @@ impl Sim {
     /// Public so the harness can replay a dumped `make_stuff` frame slot
     /// for slot (`rondata::diff`'s make-list window test).
     pub fn expire_all(&self, t: TypeId, head: bool) -> bool {
-        let r = &self.tech_tree.roles;
+        let r = &self.tables.tech_tree.roles;
         if self.type_is_role(t, r.tower, false)
             || self.type_is_role(t, r.fortx, false)
             || self.slot64(t)
@@ -112,7 +115,7 @@ impl Sim {
         if self.type_is_role(t, r.university, true) {
             return true;
         }
-        self.tech_tree.kind(t).is_unit() && !self.is_peasant_type(t)
+        self.tables.tech_tree.kind(t).is_unit() && !self.is_peasant_type(t)
     }
 
     /// `get_cost(t, g, who, o, city, 0, 1, −1)` over the six goods.
@@ -123,7 +126,7 @@ impl Sim {
     fn make_cost(&self, who: Player, t: i32) -> [i32; RESOURCES] {
         usize::try_from(t)
             .ok()
-            .filter(|&t| t < self.tech_tree.types.len())
+            .filter(|&t| t < self.tables.tech_tree.types.len())
             .and_then(|t| self.type_price(who, t))
             .unwrap_or([0; RESOURCES])
     }
@@ -146,7 +149,7 @@ impl Sim {
         }
         let affordable = usize::try_from(head.t)
             .ok()
-            .filter(|&t| t < self.tech_tree.types.len())
+            .filter(|&t| t < self.tables.tech_tree.types.len())
             .map_or(-1, |t| self.type_affordable(who, t, head.escrow != 0));
         Some(make_debug_line(
             self.frame,
@@ -165,7 +168,7 @@ impl Sim {
         let Ok(t) = usize::try_from(m.t) else {
             return false;
         };
-        if t >= self.tech_tree.types.len() {
+        if t >= self.tables.tech_tree.types.len() {
             return false;
         }
         m.num <= self.type_affordable(who, t, m.escrow != 0)
@@ -197,7 +200,7 @@ impl Sim {
         let paid = self.can_pay_slot(who, &head);
         let cost = self.make_cost(who, head.t);
         let head_t = usize::try_from(head.t).unwrap_or(usize::MAX);
-        let valid_head = head_t < self.tech_tree.types.len();
+        let valid_head = head_t < self.tables.tech_tree.types.len();
         if let Some(line) = self.make_debug(who, &head, &cost, paid) {
             eprintln!("{line}");
         }
@@ -251,7 +254,7 @@ impl Sim {
             let Ok(t) = usize::try_from(m.t) else {
                 continue;
             };
-            if t >= self.tech_tree.types.len() {
+            if t >= self.tables.tech_tree.types.len() {
                 continue;
             }
             // From slot 4 on, a slot that repeats a `(t, city)` already in
@@ -348,10 +351,10 @@ impl Sim {
         let Some(rec) = self.build_record(t) else {
             return false;
         };
-        if !self.build_types[rec].has(flags::GATHERER) {
+        if !self.tables.build_types[rec].has(flags::GATHERER) {
             return false;
         }
-        let Some(g) = gather_good(self.build_types[rec].ident) else {
+        let Some(g) = gather_good(self.tables.build_types[rec].ident) else {
             return false;
         };
         self.good_avail(who, g) && self.ai[who as usize].econ[g] & 4 != 0
@@ -369,11 +372,11 @@ impl Sim {
         let Ok(t) = usize::try_from(m.t) else {
             return false;
         };
-        if t >= self.tech_tree.types.len() {
+        if t >= self.tables.tech_tree.types.len() {
             return false;
         }
         let city = usize::try_from(m.city).ok();
-        let kind = self.tech_tree.kind(t);
+        let kind = self.tables.tech_tree.kind(t);
         let bought = if kind.is_building() {
             self.make_build_type(who, t, &m, city)
         } else if kind.is_tech() {
@@ -421,7 +424,7 @@ impl Sim {
         // *upgrade* of the city it stands on, so it must be caught here;
         // without it both are `is_city` and would fall through to
         // `produce_city`, which would try to found a new one.
-        if self.type_is_role(t, self.tech_tree.roles.town, false) {
+        if self.type_is_role(t, self.tables.tech_tree.roles.town, false) {
             return self.produce_upgrade(who, t, city, m.escrow);
         }
         if self.slot64(t) {
@@ -447,7 +450,7 @@ impl Sim {
         let Some(rec) = self.build_record(t) else {
             return false;
         };
-        let bt = &self.build_types[rec];
+        let bt = &self.tables.build_types[rec];
         // `domain == 0` (land) and no `e` flag: the city must have room.
         //
         // CORRECTION to `docs/AI.md` §2.6, which reads `build_flags & 0x10`
@@ -499,7 +502,7 @@ impl Sim {
                 && b.active
                 && b.owner == who
                 && b.ty
-                    .is_some_and(|r| build::is(&self.build_types, r, Ident::Market))
+                    .is_some_and(|r| build::is(&self.tables.build_types, r, Ident::Market))
         })
     }
 
@@ -522,8 +525,9 @@ impl Sim {
     fn market_gate(&self, who: Player) -> bool {
         let w = who as usize;
         let bonus = self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], 4);
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 4);
         (bonus || self.can_buy_sell(who)) && self.has_market(who) && self.nuke_embargo(who) == 0
     }
 
@@ -540,7 +544,7 @@ impl Sim {
         if stamp == 0 || self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
             return 0;
         }
-        let t = &self.tuning;
+        let t = &self.tables.tuning;
         let v = i64::from(t.nuke_embargo_nation) * i64::from(self.nukes.used_of(who)) - self.frame
             + i64::from(t.nuke_embargo_base)
             + stamp;
@@ -718,22 +722,23 @@ impl Sim {
         let flux = self.market.flux[g];
         let mut sell = price + flux;
         let mut buy = price * 2 + flux;
-        let nubian = self.tuning.nubian_market_prices;
+        let nubian = self.tables.tuning.nubian_market_prices;
         let bonus = if nubian != 0
             && self
+                .tables
                 .tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[w], 4)
+                .has_tribe_bonus(&self.tables.setup, &self.tech[w], 4)
         {
             nubian
         } else if self.has_rare(who, crate::economy::AMBER) {
-            self.tuning.amber_market
+            self.tables.tuning.amber_market
         } else {
             0
         };
         sell += bonus;
         buy -= bonus;
         sell = sell.max(1);
-        buy = buy.max(self.tuning.market_basement * 2);
+        buy = buy.max(self.tables.tuning.market_basement * 2);
         buy = buy.max(sell + 10);
         (buy, sell)
     }
@@ -755,7 +760,8 @@ impl Sim {
         self.ledgers[w].bucket[g] -= 100;
         self.ledgers[w].escrow[g] = (self.ledgers[w].escrow[g] - 100).max(0);
         self.ledgers[w].bucket[Resource::Wealth as usize] += sell;
-        self.market.price[g] = (self.market.price[g] - self.tuning.market_supply_demand).max(0);
+        self.market.price[g] =
+            (self.market.price[g] - self.tables.tuning.market_supply_demand).max(0);
         true
     }
 
@@ -774,7 +780,7 @@ impl Sim {
         self.ledgers[w].bucket[wealth] -= buy;
         self.ledgers[w].escrow[wealth] = (self.ledgers[w].escrow[wealth] - 100).max(0);
         self.ledgers[w].bucket[g] += 100;
-        self.market.price[g] += self.tuning.market_supply_demand;
+        self.market.price[g] += self.tables.tuning.market_supply_demand;
         true
     }
 
@@ -902,7 +908,7 @@ impl Sim {
             // another region.
             let land = bd
                 .ty
-                .is_none_or(|r| self.build_types[r].domain() == BuildDomain::Land);
+                .is_none_or(|r| self.tables.build_types[r].domain() == BuildDomain::Land);
             if self.site_has_builder(who, b, site_reg, land) {
                 continue;
             }

@@ -184,12 +184,12 @@ fn plane(s: &mut Sim, at: Pos, heading: Angle, bomber: bool) -> usize {
         // After the add, which indexes the leaders' tech bits by it: a
         // hand-built tree holds no `0x130`, and `is` answers the
         // equality alone.
-        s.unit_types[ty].tree = Some(0x130);
+        s.tables.unit_types[ty].tree = Some(0x130);
     }
     let u = spawn(s, 0, ty, at);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 75;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.units[u].movement.heading = heading;
     s.units[u].movement.facing = heading;
     s.init_guys(u, Some(ty));
@@ -349,11 +349,11 @@ fn bomber(s: &mut Sim, at: Pos, heading: Angle) -> usize {
         ..UnitType::default()
     };
     let ty = s.add_unit_type(t);
-    s.unit_types[ty].tree = Some(0x130);
+    s.tables.unit_types[ty].tree = Some(0x130);
     let u = spawn(s, 0, ty, at);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 60;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.units[u].movement.heading = heading;
     s.units[u].movement.facing = heading;
     s.init_guys(u, Some(ty));
@@ -630,9 +630,9 @@ fn a_flying_plane_lights_the_fog_it_crosses() {
     t.combat.domain = Domain::Air;
     let ty = s.add_unit_type(t);
     let u = spawn(&mut s, 0, ty, Pos::new(10000, 16000));
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 60;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.units[u].movement.heading = Angle::EAST;
     s.init_guys(u, Some(ty));
     s.add_air_patrol_order(u, Pos::new(30000, 16000), Some(base), false);
@@ -667,7 +667,7 @@ fn siege_type(sim: &mut Sim) -> usize {
 
 fn spawn(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
@@ -726,19 +726,19 @@ fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     let mech = typed(&mut s, mask::VEHICLE, 0);
     let human = s.nation[1].human;
     assert_eq!(
-        type_cat(&s.unit_types[mech], mech, human),
+        type_cat(&s.tables.unit_types[mech], mech, human),
         cat::FORM_CAT_MECH
     );
     assert_eq!(
-        type_cat(&s.unit_types[mounted], mounted, human),
+        type_cat(&s.tables.unit_types[mounted], mounted, human),
         cat::FORM_CAT_MOUNTED
     );
     assert_eq!(
-        type_cat(&s.unit_types[foot], foot, human),
+        type_cat(&s.tables.unit_types[foot], foot, human),
         cat::FORM_CAT_FOOT
     );
     assert_eq!(
-        type_cat(&s.unit_types[archer], archer, human),
+        type_cat(&s.tables.unit_types[archer], archer, human),
         cat::FORM_CAT_FOOT_RANGED
     );
 
@@ -1703,8 +1703,8 @@ fn an_army_s_move_is_a_group_order_and_a_selection_s_is_not() {
 fn a_queued_group_move_takes_its_bearing_from_where_the_leader_ends_up() {
     let mut s = sim();
     let t = fighter(&mut s);
-    s.unit_types[t].combat.x_spacing = 0xc0;
-    s.unit_types[t].combat.y_spacing = 0xc0;
+    s.tables.unit_types[t].combat.x_spacing = 0xc0;
+    s.tables.unit_types[t].combat.y_spacing = 0xc0;
     let here = Pos::new(0x8000, 0x4000);
     let a = spawn(&mut s, 1, t, here);
     let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
@@ -1871,8 +1871,8 @@ fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
     let guards = |sorted: bool| {
         let mut s = sim();
         let t = fighter(&mut s);
-        s.unit_types[t].combat.x_spacing = 0xc0;
-        s.unit_types[t].combat.y_spacing = 0xc0;
+        s.tables.unit_types[t].combat.x_spacing = 0xc0;
+        s.tables.unit_types[t].combat.y_spacing = 0xc0;
         let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
         let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
@@ -1943,8 +1943,8 @@ fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
 fn a_group_sent_to_its_own_feet_lays_out_on_the_leader_s_heading() {
     let mut s = sim();
     let t = fighter(&mut s);
-    s.unit_types[t].combat.x_spacing = 0xc0;
-    s.unit_types[t].combat.y_spacing = 0xc0;
+    s.tables.unit_types[t].combat.x_spacing = 0xc0;
+    s.tables.unit_types[t].combat.y_spacing = 0xc0;
     let here = Pos::new(0x8000, 0x4000);
     let a = spawn(&mut s, 1, t, here);
     let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
@@ -2102,8 +2102,8 @@ fn a_group_move_follower_walks_to_the_leader_s_position_plus_its_slot() {
     // A real `X_SPACING`, so `Form::compute` lays the two out side by
     // side rather than both on the origin — the shipped data never
     // leaves it at zero and a hand-built type would.
-    s.unit_types[t].combat.x_spacing = 0xc0;
-    s.unit_types[t].combat.y_spacing = 0xc0;
+    s.tables.unit_types[t].combat.x_spacing = 0xc0;
+    s.tables.unit_types[t].combat.y_spacing = 0xc0;
     // The second stands where the Line's slot for it will be — south
     // of the leader, the move going east — so it walks straight to it
     // rather than crossing behind.
@@ -2585,7 +2585,7 @@ fn a_hurrying_army_stables_its_siege_and_marches_the_rest() {
         "the siege is sent into the city instead, not at it: {}",
         s.order_type(m)
     );
-    s.unit_types[siege].garrison.fortify = true;
+    s.tables.unit_types[siege].garrison.fortify = true;
     s.stable_in_city(m, c, Angle(0));
     assert_eq!(
         s.order_type(m),
@@ -2660,7 +2660,7 @@ fn a_follow_is_one_follow_order_a_member_and_none_on_the_leader_itself() {
 fn a_follower_stands_inside_its_standoff_and_walks_when_the_leader_does() {
     let mut s = sim();
     let t = fighter(&mut s);
-    s.unit_types[t].los = 6;
+    s.tables.unit_types[t].los = 6;
     let lead = spawn(&mut s, 0, t, Pos::new(11640, 11640));
     let f = spawn(&mut s, 0, t, Pos::new(11640, 10872));
     s.units[lead].movement.speed = 29;
@@ -3242,8 +3242,8 @@ fn a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index() {
     let mut s = sim();
     let foot = fighter(&mut s);
     let siege = siege_type(&mut s);
-    s.unit_types[siege].combat.x_spacing = 0x120;
-    s.unit_types[siege].combat.y_spacing = 0x120;
+    s.tables.unit_types[siege].combat.x_spacing = 0x120;
+    s.tables.unit_types[siege].combat.y_spacing = 0x120;
     let slot = s.init_army(1, None);
     let mut all = Vec::new();
     for (i, ty) in [foot, foot, foot, siege, siege].into_iter().enumerate() {

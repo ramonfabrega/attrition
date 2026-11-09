@@ -312,14 +312,16 @@ impl DisbandView for SimDisband<'_> {
         n == 0x13 && self.sim.nation[who as usize].lakota
     }
     fn lakota_raze_price(&mut self) -> i32 {
-        self.sim.tuning.lakota_raze_price
+        self.sim.tables.tuning.lakota_raze_price
     }
     fn console_who(&mut self) -> i32 {
         -1
     }
     fn time(&mut self) -> u32 {
         let ty = self.sim.buildings[self.b].ty;
-        ty.map_or(0, |t| (self.sim.build_types[t].job_time * 100) as u32)
+        ty.map_or(0, |t| {
+            (self.sim.tables.build_types[t].job_time * 100) as u32
+        })
     }
     fn job_counter(&mut self) -> u32 {
         self.sim.buildings[self.b].job_counter as u32
@@ -364,7 +366,7 @@ impl DisbandView for SimDisband<'_> {
         // A tree without the goods at the front (a test's) lets every good
         // through, as the crate did before this was asked.
         let g = good as usize;
-        g >= self.sim.tech_tree.types.len() || self.sim.type_avail(who as u8, g) != 0
+        g >= self.sim.tables.tech_tree.types.len() || self.sim.type_avail(who as u8, g) != 0
     }
     fn orig_type(&mut self) -> i32 {
         -1

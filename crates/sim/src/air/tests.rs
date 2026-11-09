@@ -51,10 +51,10 @@ fn bird(at: crate::world::Pos, heading: i32) -> (crate::Sim, usize) {
     });
     let mut u = crate::Unit::new(crate::gaia::BIRD_OWNER, 0, at, 1);
     u.ty = Some(ty);
-    u.kind = s.unit_types[ty].kind;
+    u.kind = s.tables.unit_types[ty].kind;
     u.type_index = crate::anim::BIRD_TYPE;
     u.movement.speed = 35;
-    u.movement.turning = crate::turning_of(&s.unit_types[ty]);
+    u.movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     u.movement.heading = Angle(heading);
     let b = s.add_unit(u);
     // The figure, because `Guy::move` runs for a bird like anybody

@@ -325,9 +325,11 @@ impl Sim {
     /// search, whose find [`Self::attack_move_add`] adds.
     pub(super) fn attack_move_look(&mut self, u: usize, hurry_gate: bool) {
         let me = Obj::Unit(u);
-        let supply = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO));
+        let supply = self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        });
         if self.profile(me).attack == 0 || supply {
             self.do_attack_to_pause(u);
             return;
@@ -456,7 +458,8 @@ impl Sim {
         let slot = self.army_of(u)?;
         let target = self.armies[who as usize].list.get(slot)?.target?;
         if !self.valid_target(Obj::Unit(u), target)
-            || self.attack_dist(Obj::Unit(u), target) >= self.tuning.unit_respond_range * 0x180
+            || self.attack_dist(Obj::Unit(u), target)
+                >= self.tables.tuning.unit_respond_range * 0x180
         {
             return None;
         }
@@ -511,7 +514,7 @@ impl Sim {
             && self.current_order(u).map(Order::index) == Some(index::GROUP_ATTACK_TO);
         let siege = self.units[u]
             .ty
-            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
+            .is_some_and(|ty| self.tables.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         if group_move
             && !siege
             && let Some(g) = self.group_of(u)
@@ -579,7 +582,7 @@ impl Sim {
                 continue;
             }
             let special = unit.ty.is_some_and(|t| {
-                let c = self.unit_types[t].cols;
+                let c = self.tables.unit_types[t].cols;
                 c.flag2(uflags2::SUPPLY_OR_HERO) || c.flag2(uflags2::FLAG2_GENERAL)
             });
             if special {
@@ -637,7 +640,7 @@ impl Sim {
         };
         let packs = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs);
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs);
         if !packs || self.units[u].combat.packed {
             return PackArm::Not;
         }
@@ -997,7 +1000,7 @@ impl Sim {
         // (`docs/AI.md` §341).
         let unit = &mut self.units[u];
         if unit.unit_masks2 & combat::umask2::MARINE != 0
-            && i32::from(unit.idle) >= self.tuning.marine_entrench_idle()
+            && i32::from(unit.idle) >= self.tables.tuning.marine_entrench_idle()
             && !unit.combat.entrenched
         {
             unit.combat.entrenched = true;
@@ -1144,7 +1147,7 @@ impl Sim {
                 && self.units[u].stance == PACKER_AUTO;
             if self.units[u]
                 .ty
-                .is_some_and(|ty| self.unit_types[ty].combat.packs)
+                .is_some_and(|ty| self.tables.unit_types[ty].combat.packs)
                 && self.units[u].combat.packed
                 && !packer_auto
             {
@@ -1202,7 +1205,7 @@ impl Sim {
         // theirs and idle in ours.
         let dutch = self
             .unit_tree(u)
-            .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true));
+            .is_some_and(|ti| self.tables.tech_tree.is(ti, MERCHANTDUTCH, true));
         if dutch && (unit.idle == 1 || phase & 0x1f == 0) {
             if unit.combat.packed && self.think_merchant(u) {
                 return;
@@ -1390,10 +1393,9 @@ impl Sim {
         // `think_carry`, and a `1` ends the think. It sits between the
         // merchant and the supply/hero/scout tail.
         // SEAM: `leader_flags & 8` (never set) returns above it.
-        if self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.carry != 0 && !self.is_aircraft_carrier(t))
-            && self.think_carry(u)
+        if self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t].cols.carry != 0 && !self.is_aircraft_carrier(t)
+        }) && self.think_carry(u)
         {
             return;
         }
@@ -1452,12 +1454,12 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if !self.unit_types[t].combat.packs || !self.units[u].combat.packed {
+        if !self.tables.unit_types[t].combat.packs || !self.units[u].combat.packed {
             return false;
         }
         if self
             .unit_tree(u)
-            .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+            .is_some_and(|ti| self.tables.tech_tree.is(ti, MERCHANTDUTCH, true))
         {
             return false;
         }
@@ -1583,7 +1585,7 @@ impl Sim {
         let range = if ai {
             -1
         } else {
-            self.tuning.unit_gather_respond_range * TILE
+            self.tables.tuning.unit_gather_respond_range * TILE
         };
         // §5.9's **build arm**, ahead of the gather search: `not a scholar
         // and (unit_masks & 0x400 or worker_stance ∈ {1, 2}) and
@@ -1805,7 +1807,7 @@ impl Sim {
         {
             let centre = Pos::new(qx * SNAP + SNAP_CENTRE, qy * SNAP + SNAP_CENTRE);
             let transport = self.units[u].ty.is_some_and(|ty| {
-                self.unit_types[ty]
+                self.tables.unit_types[ty]
                     .cols
                     .flag(crate::ai_load::uflags::FLAG_TRANSPORT)
             });
@@ -1897,7 +1899,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if !self.unit_types[t].combat.packs
+        if !self.tables.unit_types[t].combat.packs
             || self.unit_stance_type(u) != crate::group::StanceType::Packer
             || self.units[u].stance != PACKER_AUTO
             || !self.units[u].combat.packed

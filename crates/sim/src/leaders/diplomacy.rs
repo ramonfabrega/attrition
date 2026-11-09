@@ -130,7 +130,8 @@ impl Sim {
     /// `LeaderData::get_buildings` over one of [`LINES`]: the finished
     /// buildings of the line's root record and of its `to` chain.
     fn line_buildings(&self, who: Player, ident: Ident) -> i32 {
-        self.build_types
+        self.tables
+            .build_types
             .iter()
             .position(|b| b.ident == ident)
             .map_or(0, |rec| self.buildings_of_line(who, rec))

@@ -137,13 +137,13 @@ fn french_timber_capacity_adds_a_worker_to_survey_and_existing_list() {
     assert_eq!(s.max_gatherers_at(ty, 0, corner), 3);
     s.nation[0].french = true;
     assert_eq!(s.max_gatherers_at(ty, 0, corner), 4);
-    s.tuning.french_woodies = 3;
+    s.tables.tuning.french_woodies = 3;
     assert_eq!(
         s.max_gatherers_at(ty, 0, corner),
         6,
         "the tuning value is used"
     );
-    s.tuning.french_woodies = 1;
+    s.tables.tuning.french_woodies = 1;
     let b = s.init_build(0, ty, tile_pos(21, 21), false);
     assert_eq!(s.max_gatherers(b), 4);
     s.nation[0].french = false;

@@ -38,8 +38,9 @@ impl Sim {
         };
         let pers = ai::Personality::roll(&mut self.rng, tribe, &rivals, &setup);
         let lakota = self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], 0x13);
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], 0x13);
         let team = self.tech[w].team;
         let team_style = self.lobby.team_style;
         let leader = &mut self.ai[w];
@@ -142,11 +143,14 @@ impl Sim {
             return;
         }
         let t = head.t as usize;
-        if t >= self.tech_tree.types.len() || !self.tech_tree.kind(t).is_tech() {
+        if t >= self.tables.tech_tree.types.len() || !self.tables.tech_tree.kind(t).is_tech() {
             return;
         }
         if !self.can_pay_slot(who, &head)
-            || self.tech_tree.has_tech(&self.setup, &self.tech[w], t)
+            || self
+                .tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
             || self.researching(who, t)
         {
             return;
@@ -245,12 +249,15 @@ impl Sim {
         let p = &self.tech[w];
         let next_age = usize::try_from(p.ages)
             .ok()
-            .and_then(|a| self.tech_tree.ages.get(a).copied().flatten());
+            .and_then(|a| self.tables.tech_tree.ages.get(a).copied().flatten());
         GoodsSetup {
             city_num: self.city_num(who),
             difficulty: self.lobby.difficulty,
             resources_unlimited: self.lobby.resources_unlimited(),
-            lakota: self.tech_tree.has_tribe_bonus(&self.setup, p, 0x13),
+            lakota: self
+                .tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, 0x13),
             next_age_cost: next_age.map(|t| self.tech_price(who, t)),
             available: self.holdings[w].available,
             cap: std::array::from_fn(|g| self.mod_resource_cap(who, g)),

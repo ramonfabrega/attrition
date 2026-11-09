@@ -280,7 +280,7 @@ fn force_build(sim: &mut Sim, who: Player, ty: usize, tx: i32, ty_: i32) -> usiz
 
 fn spawn(sim: &mut Sim, who: Player, ty: usize, tx: i32, ty_: i32) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = Unit::new(who, index, tile_pos(tx, ty_), hits);
     u.ty = Some(ty);
     sim.add_unit(u)
@@ -587,7 +587,7 @@ fn a_garrisoned_unit_takes_its_dock_s_sea_region() {
 
     let ship = spawn(&mut f.sim, 1, f.scout, 47, 20);
     let sty = f.sim.units[ship].ty.unwrap();
-    f.sim.unit_types[sty].combat.domain = Domain::Sea;
+    f.sim.tables.unit_types[sty].combat.domain = Domain::Sea;
     f.sim.units[ship].inside = Some(dock_b);
     f.sim.units[ship].on_map = false;
 
@@ -857,13 +857,13 @@ fn the_census_counts_captains_under_the_original_s_role_word() {
 
     // A military type by the original's word, and a caravan by this
     // crate's — whose `1 << 16` the sweep used to read as military.
-    let soldier = f.sim.unit_types[f.scout].clone();
+    let soldier = f.sim.tables.unit_types[f.scout].clone();
     let soldier = f.sim.add_unit_type(soldier);
-    f.sim.unit_types[soldier].cols.role = ROLE_MILITARY;
-    f.sim.unit_types[soldier].combat.attack = 150;
-    let trader = f.sim.unit_types[f.scout].clone();
+    f.sim.tables.unit_types[soldier].cols.role = ROLE_MILITARY;
+    f.sim.tables.unit_types[soldier].combat.attack = 150;
+    let trader = f.sim.tables.unit_types[f.scout].clone();
     let trader = f.sim.add_unit_type(trader);
-    f.sim.unit_types[trader].combat.roles = crate::combat::role::IS_CARAVAN;
+    f.sim.tables.unit_types[trader].combat.roles = crate::combat::role::IS_CARAVAN;
 
     let squad: Vec<usize> = (0..3)
         .map(|i| spawn(&mut f.sim, 1, soldier, 20 + i, 22))
@@ -894,10 +894,10 @@ fn a_decoy_is_no_unit_of_the_census() {
     let mut f = fix();
     build(&mut f.sim, 1, f.village, 20, 20);
     f.sim.ai[1].census.resize(f.sim.world.region_count(), 2);
-    let soldier = f.sim.unit_types[f.scout].clone();
+    let soldier = f.sim.tables.unit_types[f.scout].clone();
     let soldier = f.sim.add_unit_type(soldier);
-    f.sim.unit_types[soldier].cols.role = ROLE_MILITARY;
-    f.sim.unit_types[soldier].combat.attack = 150;
+    f.sim.tables.unit_types[soldier].cols.role = ROLE_MILITARY;
+    f.sim.tables.unit_types[soldier].combat.attack = 150;
     spawn(&mut f.sim, 1, soldier, 20, 22);
     let copy = spawn(&mut f.sim, 1, soldier, 22, 22);
     f.sim.units[copy].decoy = true;
@@ -922,7 +922,7 @@ fn invaders_land_on_the_owner_s_record() {
     }
     let u = spawn(&mut f.sim, 1, f.scout, 34, 34);
     let ty = f.sim.units[u].ty.unwrap();
-    f.sim.unit_types[ty].cols.role = ROLE_MILITARY;
+    f.sim.tables.unit_types[ty].cols.role = ROLE_MILITARY;
     f.sim.ai[0].census.resize(f.sim.world.region_count(), 2);
 
     f.sim.census(1);

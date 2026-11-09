@@ -266,7 +266,7 @@ impl Sim {
         // The city `calc_gather` is handed is a seam here: the count it
         // decides reads none of what the sim models of it.
         max_gatherers_steps(
-            self.build_types[ty].has(flags::FLAT),
+            self.tables.build_types[ty].has(flags::FLAT),
             true,
             || bd.alive && bd.active,
             || bd.city.map_or(-1, |c| i32::try_from(c).unwrap_or(-1)),
@@ -283,7 +283,7 @@ impl Sim {
     /// corner tile, as [`Sim::tile_corner`] gives it.
     pub fn max_gatherers_at(&self, ty: usize, who: Player, corner: Pos) -> i32 {
         max_gatherers_steps(
-            self.build_types[ty].has(flags::FLAT),
+            self.tables.build_types[ty].has(flags::FLAT),
             false,
             || false,
             || -1,
@@ -376,7 +376,7 @@ impl Sim {
     /// [`max_gatherers_steps`] applies: [`Sim::site_gather_count`] and
     /// [`Sim::max_gatherers`] are its two readers.
     fn gather_slots_raw(&self, ty: usize, who: Player, corner: Pos, from: &Source) -> i32 {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         if t.has(flags::FLAT) {
             return MAX_FLAT_GATHERERS;
         }
@@ -436,7 +436,7 @@ impl Sim {
         // `calc_gather@00639e40`: positive timber capacity takes the
         // French term before the access cap. Empty/taken ground stays so.
         if slots > 0 && timber && self.nation[who as usize].french {
-            slots += self.tuning.french_woodies;
+            slots += self.tables.tuning.french_woodies;
         }
         // The wonder additions (`taj_farms`, `kremlin_farms`) remain unmodelled.
         let list: &[Pos] = match from {
@@ -477,7 +477,7 @@ impl Sim {
     /// beside a cliff on Southwest Mesa lists cliff 7's 189 tiles
     /// (`docs/AI.md` §395, §400).
     pub fn gather_tcoords(&self, ty: usize, who: Player, corner: Pos) -> Vec<Pos> {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let Some(good) = gather_good(t.ident) else {
             return Vec::new();
         };
@@ -595,7 +595,7 @@ impl Sim {
     /// university's list is always empty, so nothing it walks differs.
     fn walks_gather_tiles(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
-            let t = &self.build_types[ty];
+            let t = &self.tables.build_types[ty];
             t.has(flags::GATHERER) && !t.has(flags::FLAT)
         })
     }
@@ -682,7 +682,7 @@ impl Sim {
     /// `corner_tile@006364c0`'s own answer: the footprint's centre in world
     /// units, `(size + 2·corner) · 96`.
     pub fn footprint_centre(&self, ty: usize, corner: Pos) -> Pos {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         Pos::new(
             corner.x * UNITS_PER_TILE + t.x_size * half,
@@ -693,7 +693,7 @@ impl Sim {
     /// `corner_tile@006364c0`: the footprint's centre in world units, as the
     /// tile the distance test measures from and the cell the walk anchors on.
     fn gather_anchor(&self, ty: usize, corner: Pos) -> (Pos, Cell) {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         let wx = corner.x * UNITS_PER_TILE + t.x_size * half;
         let wy = corner.y * UNITS_PER_TILE + t.y_size * half;
@@ -757,7 +757,7 @@ impl Sim {
     /// gather access and stand more than three tiles from the footprint's
     /// centre. Twice this is the cap on the count.
     fn total_gather_access(&self, list: &[Pos], ty: usize, corner: Pos, who: Player) -> i32 {
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         let cx = corner.x * UNITS_PER_TILE + t.x_size * half;
         let cy = corner.y * UNITS_PER_TILE + t.y_size * half;

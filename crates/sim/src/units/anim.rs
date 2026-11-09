@@ -808,7 +808,7 @@ impl Sim {
     fn leader_build_continent(&self, who: Player) -> i32 {
         self.tech
             .get(who as usize)
-            .and_then(|p| self.tech_tree.tribes.get(p.tribe))
+            .and_then(|p| self.tables.tech_tree.tribes.get(p.tribe))
             .map_or(0, |t| t.build_continent)
     }
 
@@ -817,6 +817,7 @@ impl Sim {
             return (0, 0);
         };
         let style = self
+            .tables
             .tech_tree
             .tribes
             .get(p.tribe)
@@ -865,7 +866,7 @@ impl Sim {
         guy_num: u8,
         packed: bool,
     ) -> Option<i32> {
-        let t = self.unit_types.get(ty)?.type_index;
+        let t = self.tables.unit_types.get(ty)?.type_index;
         if t < 0x32 {
             return None;
         }
@@ -890,7 +891,7 @@ impl Sim {
         // `LAB_0090c2ff`: the gender bit is the object number's low bit,
         // and a type the packet exempts (`unit_flags2 & 4`) or an object
         // number of −1 never takes it. `packed` overrides all three.
-        let gender = packed || (!self.unit_types[ty].combat.packs && o >= 0 && o & 1 == 1);
+        let gender = packed || (!self.tables.unit_types[ty].combat.packs && o >= 0 && o & 1 == 1);
         let walk = |style: i32, gender: bool| {
             (0..=bracket)
                 .rev()
@@ -983,7 +984,7 @@ impl Sim {
         let walk = gpiece_walk(
             SQUAD_SIZE as i8,
             SQUAD_SIZE as i32,
-            self.unit_types[ty].combat.crew_size,
+            self.tables.unit_types[ty].combat.crew_size,
             i32::try_from(len).unwrap_or(i32::MAX),
         );
         for n in walk {
@@ -1088,7 +1089,8 @@ impl Sim {
         let packed = unit.combat.packed;
         let ty = ty.or(unit.ty);
         let count = ty.map_or(SQUAD_SIZE, |t| {
-            usize::try_from(self.unit_types[t].combat.crew_size + SQUAD_SIZE as i32).unwrap_or(0)
+            usize::try_from(self.tables.unit_types[t].combat.crew_size + SQUAD_SIZE as i32)
+                .unwrap_or(0)
         });
         let mut guys = Vec::with_capacity(count);
         for n in 0..count {
@@ -1203,7 +1205,8 @@ impl Sim {
     pub(crate) fn reinit_guys_begin(&mut self, u: usize, ty: usize) -> usize {
         self.units[u].guy_flag_0x20 = false;
         let count =
-            usize::try_from(self.unit_types[ty].combat.crew_size + SQUAD_SIZE as i32).unwrap_or(0);
+            usize::try_from(self.tables.unit_types[ty].combat.crew_size + SQUAD_SIZE as i32)
+                .unwrap_or(0);
         self.units[u].guys.truncate(count);
         count
     }
@@ -1286,7 +1289,10 @@ impl Sim {
     /// unit and leaves the flags (`docs/ANIM.md` §4.8).
     pub(crate) fn guy_turns(&self, u: usize, g: usize) -> bool {
         let unit = &self.units[u];
-        if unit.ty.is_some_and(|t| self.unit_types[t].combat.packs) {
+        if unit
+            .ty
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs)
+        {
             return true;
         }
         let Some(guy) = unit.guys.get(g).copied() else {
@@ -1738,7 +1744,7 @@ impl Sim {
                 }
             }
         } else {
-            let base = unit.ty.map_or(0, |t| self.unit_types[t].moves);
+            let base = unit.ty.map_or(0, |t| self.tables.unit_types[t].moves);
             // **The asked guy's own average**, `this->field_0x84` at
             // `005db438` — not guy 0's. A tracked crew figure keeps its
             // own `avg_speed`, and `Guy::move`'s tracked branch pays it
@@ -2086,7 +2092,7 @@ impl Sim {
                     let pivot = crate::pivot::release_node(guy.gpiece, guy.anim, start, node);
                     let pivots = self.units[u]
                         .ty
-                        .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))
+                        .and_then(|ty| self.art.pivots.get(&self.tables.unit_types[ty].type_index))
                         .map_or(0, |n| n.len());
                     let k = (i32::from(node) & 3) as usize;
                     if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
@@ -2318,7 +2324,7 @@ impl Sim {
     /// payment and nothing else here.
     fn is_hero(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t]
+            self.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_GENERAL)
         })
@@ -2624,7 +2630,7 @@ impl Sim {
     fn packs(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs)
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs)
     }
 
     /// The walk a unit plays — `CHAR_WALK`, or a carrying walk when the

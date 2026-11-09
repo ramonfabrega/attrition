@@ -86,7 +86,7 @@ impl Sim {
     /// stopped timer's negative stamp gains one, so time lost to a stop is
     /// earned back at a fifth of the rate it ran.
     pub(crate) fn refresh_victory_timers(&mut self, who: usize) {
-        let r = i64::from(self.tuning.timer_refresh_ratio);
+        let r = i64::from(self.tables.tuning.timer_refresh_ratio);
         if r == 0 || self.frame % r != 0 {
             return;
         }

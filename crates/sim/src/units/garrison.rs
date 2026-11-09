@@ -69,21 +69,21 @@ impl Sim {
         let level = self.nation[self.buildings[b].owner as usize]
             .fort_garrison_level
             .clamp(1, 4);
-        let mut limit = self.build_types[ty].garrison_max;
-        if build::is_tower(&self.build_types, ty) {
-            limit += (level - 1) * self.tuning.tower_garrison_upgrade;
+        let mut limit = self.tables.build_types[ty].garrison_max;
+        if build::is_tower(&self.tables.build_types, ty) {
+            limit += (level - 1) * self.tables.tuning.tower_garrison_upgrade;
         }
-        if build::is_fort(&self.build_types, ty) {
-            limit += (level - 1) * self.tuning.fort_garrison_upgrade;
+        if build::is_fort(&self.tables.build_types, ty) {
+            limit += (level - 1) * self.tables.tuning.fort_garrison_upgrade;
         }
         limit
     }
 
     /// `UnitTypeData::can_garrison(unit type, building type)`.
     pub fn can_garrison(&self, unit_ty: usize, build_ty: usize) -> bool {
-        let ut = &self.unit_types[unit_ty];
+        let ut = &self.tables.unit_types[unit_ty];
         let g = ut.garrison;
-        let types = &self.build_types;
+        let types = &self.tables.build_types;
         let sea = matches!(ut.kind.domain, Domain::Sea);
         if sea && g.transport {
             return false;
@@ -147,7 +147,7 @@ impl Sim {
     fn slot_cost(&self, unit: usize) -> i32 {
         match self.units[unit].ty {
             Some(t) => {
-                let ut = &self.unit_types[t];
+                let ut = &self.tables.unit_types[t];
                 if ut.garrison.gov_hero {
                     1
                 } else {
@@ -175,10 +175,14 @@ impl Sim {
             |&u| {
                 self.units[u]
                     .ty
-                    .is_none_or(|t| self.unit_types[t].garrison.gov_hero)
+                    .is_none_or(|t| self.tables.unit_types[t].garrison.gov_hero)
             },
             |_| false,
-            |&u| self.units[u].ty.map_or(1, |t| self.unit_types[t].price.pop),
+            |&u| {
+                self.units[u]
+                    .ty
+                    .map_or(1, |t| self.tables.unit_types[t].price.pop)
+            },
         )
     }
 
@@ -471,7 +475,7 @@ impl Sim {
         let mut pushed = None;
         if self.units[captain]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.uber_size > 1)
+            .is_some_and(|t| self.tables.unit_types[t].combat.uber_size > 1)
         {
             let mut g = crate::group::Group::stack(self.units[captain].owner);
             self.group_add(&mut g, captain);
@@ -515,7 +519,7 @@ impl Sim {
         // plane's first step (run265's 778, item 836).
         if self.frame != 0
             && self.buildings[b].ty.is_some_and(|t| {
-                crate::build::is(&self.build_types, t, crate::build::Ident::Airbase)
+                crate::build::is(&self.tables.build_types, t, crate::build::Ident::Airbase)
             })
         {
             self.exit_at_airbase(captain, b, avg);
@@ -755,20 +759,20 @@ impl Sim {
         let owner = u.owner as usize;
         let n = &self.nation[owner];
         let level = self.heal_level(u.owner);
-        let mut period = self.tuning.unit_heal_rate[level];
-        if self.build_types[bty].ident == Ident::RedFort || n.red_fort {
-            period = period * 100 / (self.tuning.red_fort_heal + 100);
+        let mut period = self.tables.tuning.unit_heal_rate[level];
+        if self.tables.build_types[bty].ident == Ident::RedFort || n.red_fort {
+            period = period * 100 / (self.tables.tuning.red_fort_heal + 100);
         }
-        if matches!(u.kind.domain, Domain::Sea) && build::is_dock(&self.build_types, bty) {
+        if matches!(u.kind.domain, Domain::Sea) && build::is_dock(&self.tables.build_types, bty) {
             period = (2 * period + 2) / 3;
         }
         let period = i64::from(period.max(1));
         if (i64::from(u.index) + frame) % period != 0 {
             return;
         }
-        let types = &self.build_types;
+        let types = &self.tables.build_types;
         let trained =
-            u.ty.and_then(|t| self.unit_types[t].garrison.trained_at)
+            u.ty.and_then(|t| self.tables.unit_types[t].garrison.trained_at)
                 .is_some_and(|w| build::is(types, bty, types[w].ident));
         let eligible = trained
             || build::is_city(types, bty)
@@ -808,7 +812,7 @@ impl Sim {
     /// Whether a building type is a hangar — `can_carry(AIR)`.
     pub fn is_hangar(&self, ty: usize) -> bool {
         matches!(
-            self.build_types[ty].ident,
+            self.tables.build_types[ty].ident,
             Ident::Airbase | Ident::MissileSilo
         )
     }
@@ -816,7 +820,7 @@ impl Sim {
     /// A building's garrison-related flags, for tests: whether it needs a
     /// city and its limit.
     pub fn needs_city(&self, ty: usize) -> bool {
-        !self.build_types[ty].has(flags::NO_CITY)
+        !self.tables.build_types[ty].has(flags::NO_CITY)
     }
 }
 

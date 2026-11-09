@@ -192,7 +192,7 @@ impl Sim {
     /// tile centre, an even one on a tile corner. The oil and dock searches
     /// are [`Sim::snap_center_placed`]'s.
     pub fn snap_center(&self, ty: usize, pos: Pos) -> Pos {
-        let b = &self.build_types[ty];
+        let b = &self.tables.build_types[ty];
         let t = pos.tile();
         Pos::new(
             t.x * UNITS_PER_TILE + if b.x_size & 1 == 1 { 96 } else { 0 },
@@ -217,7 +217,7 @@ impl Sim {
     /// seen cell flagged `0x800`. `Sim::init_build` still takes the plain
     /// snap; the harness's `add` is this function's one caller.
     pub fn snap_center_placed(&self, ty: usize, pos: Pos, who: Option<Player>) -> Pos {
-        if build::is_dock(&self.build_types, ty) {
+        if build::is_dock(&self.tables.build_types, ty) {
             let t = pos.tile();
             let centre = |x: i32, y: i32| {
                 Pos::new(
@@ -246,13 +246,13 @@ impl Sim {
     /// `BuildTypeData::tile_corner`: the top-left tile of the footprint of a
     /// building centred at `pos` ([`tile_corner_of`] over its sizes).
     pub fn tile_corner(&self, ty: usize, pos: Pos) -> Pos {
-        let b = &self.build_types[ty];
+        let b = &self.tables.build_types[ty];
         tile_corner_of(b.x_size, b.y_size, pos)
     }
 
     /// Every tile of a footprint with its corner at `corner`.
     pub fn footprint(&self, ty: usize, corner: Pos) -> Vec<Pos> {
-        let b = &self.build_types[ty];
+        let b = &self.tables.build_types[ty];
         let mut out = Vec::with_capacity(b.area() as usize);
         for v in 0..b.y_size {
             for u in 0..b.x_size {
@@ -266,7 +266,7 @@ impl Sim {
     /// corners — what `check_land_adjacent`, `count_mountains_adjacent` and
     /// `count_trees_adjacent` scan.
     pub(crate) fn ring(&self, ty: usize, corner: Pos, ring: i32) -> Vec<Pos> {
-        let b = &self.build_types[ty];
+        let b = &self.tables.build_types[ty];
         let (x0, y0, x1, y1) = (
             corner.x - ring,
             corner.y - ring,
@@ -331,7 +331,8 @@ impl Sim {
                 b.alive
                     && b.active
                     && b.owner == who
-                    && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t))
+                    && b.ty
+                        .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
                     && self.world.region_of(b.pos.cell()) == Some(reg)
             })
             .count() as i32
@@ -351,7 +352,8 @@ impl Sim {
             (b.alive
                 && !b.active
                 && b.owner == who
-                && b.ty.is_some_and(|t| build::is_city(&self.build_types, t)))
+                && b.ty
+                    .is_some_and(|t| build::is_city(&self.tables.build_types, t)))
             .then_some(i)
         })
     }
@@ -361,7 +363,8 @@ impl Sim {
             (b.alive
                 && !b.active
                 && b.owner == who
-                && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t)))
+                && b.ty
+                    .is_some_and(|t| build::is_fort(&self.tables.build_types, t)))
             .then_some(i)
         })
     }
@@ -371,7 +374,8 @@ impl Sim {
             (b.alive
                 && b.active
                 && b.owner == who
-                && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t)))
+                && b.ty
+                    .is_some_and(|t| build::is_fort(&self.tables.build_types, t)))
             .then_some(i)
         })
     }
@@ -419,11 +423,11 @@ impl Sim {
         pos: Pos,
         exclude: Option<usize>,
     ) -> (Blocked, i32) {
-        let b = &self.build_types[ty];
+        let b = &self.tables.build_types[ty];
         let corner = self.tile_corner(ty, pos);
         // A human who, or whose ally, lost a city in the last 75 frames may
         // not place a city.
-        if build::is_city(&self.build_types, ty)
+        if build::is_city(&self.tables.build_types, ty)
             && let Some(w) = who
             && self.nation[w as usize].human
         {
@@ -466,7 +470,7 @@ impl Sim {
         if first == Blocked::Seen {
             return (first, 0);
         }
-        if b.x_size * b.y_size / 2 < unseen && !build::is_dock(&self.build_types, ty) {
+        if b.x_size * b.y_size / 2 < unseen && !build::is_dock(&self.tables.build_types, ty) {
             return (Blocked::Seen, 0);
         }
         if first == Blocked::Water {
@@ -513,7 +517,7 @@ impl Sim {
         };
         bd.ty.is_some_and(|ty| {
             let c = self.tile_corner(ty, bd.pos);
-            let bt = &self.build_types[ty];
+            let bt = &self.tables.build_types[ty];
             t.x >= c.x && t.x < c.x + bt.x_size && t.y >= c.y && t.y < c.y + bt.y_size
         })
     }
@@ -580,10 +584,12 @@ impl Sim {
     /// 2026-09-02, which is why no AI in any capture could put a city on a
     /// second island (`docs/CITIES.md` §2.6.1).
     pub(crate) fn colonize_preq_held(&self, who: Player) -> bool {
-        match self.tech_tree.roles.colonize_preq {
-            Some(t) => self
-                .tech_tree
-                .has_tech(&self.setup, &self.tech[who as usize], t),
+        match self.tables.tech_tree.roles.colonize_preq {
+            Some(t) => {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who as usize], t)
+            }
             None => true,
         }
     }
@@ -663,7 +669,10 @@ impl Sim {
         };
         let who = bd.owner;
         let corner = self.tile_corner(ty, bd.pos);
-        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (xs, ys) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         let (x0, y0, x1, y1) = (corner.x - 1, corner.y - 1, corner.x + xs, corner.y + ys);
         let mut last = -1;
         for x in x0..=x1 {
@@ -744,7 +753,7 @@ impl Sim {
                 return None;
             }
         }
-        let b = &self.build_types[ty];
+        let b = &self.tables.build_types[ty];
         if wants_town(b.flags) {
             self.find_town_at(who, pos)
         } else {
@@ -778,8 +787,8 @@ impl Sim {
                 continue;
             }
             if let Some(ty) = ty
-                && self.build_types[ty].has(flags::ONE_PER_CITY)
-                && self.count_buildings(ci, self.build_types[ty].ident, false) != 0
+                && self.tables.build_types[ty].has(flags::ONE_PER_CITY)
+                && self.count_buildings(ci, self.tables.build_types[ty].ident, false) != 0
             {
                 d += 100;
             }
@@ -802,7 +811,7 @@ impl Sim {
             let Some(bt) = self.buildings[c.building].ty else {
                 continue;
             };
-            if !build::is(&self.build_types, bt, Ident::Town) {
+            if !build::is(&self.tables.build_types, bt, Ident::Town) {
                 continue;
             }
             let cp = c.pos.tile();
@@ -836,12 +845,12 @@ impl Sim {
         let n = &self.nation[who as usize];
         let mut civic = self.tech[who as usize].epoch[crate::tech::Line::Civic as usize];
         if n.bantu && civic != 0 {
-            civic += self.tuning.bantu_city_limit;
+            civic += self.tables.tuning.bantu_city_limit;
         }
         let mut limit = civic + 1;
         let held = self.wonders_held(who) & (1 << crate::tech::wonder::PYRAMIDS) != 0;
         if held || n.pyramids {
-            limit += self.tuning.pyramids_city_limit;
+            limit += self.tables.tuning.pyramids_city_limit;
         }
         limit
     }

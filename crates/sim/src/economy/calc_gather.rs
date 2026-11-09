@@ -521,11 +521,11 @@ impl Sim {
     /// [`crate::tech::TechTree::is`]. A type with `<FROM>none</FROM>` — the
     /// shipped Fishermen — answers 0.
     pub(crate) fn upgrade_level(&self, t: TypeId) -> i32 {
-        let types = &self.tech_tree.types;
+        let types = &self.tables.tech_tree.types;
         upgrade_steps(
             t,
             |c| types.get(c).and_then(|d| d.from),
-            |next| self.tech_tree.is(t, next, false),
+            |next| self.tables.tech_tree.is(t, next, false),
         )
     }
 
@@ -538,7 +538,7 @@ impl Sim {
     pub(crate) fn gather_radius(&self, u: usize) -> i32 {
         let Some(t) = self.unit_tree(u) else { return 2 };
         let level = self.upgrade_level(t);
-        if MERCHANTS.contains(&t) || self.tech_tree.is(t, crate::fish::FISHERMEN, false) {
+        if MERCHANTS.contains(&t) || self.tables.tech_tree.is(t, crate::fish::FISHERMEN, false) {
             level * 4 + 4
         } else {
             level + 2
@@ -559,7 +559,7 @@ impl Sim {
     /// rare-collector arm (`docs/ORDERS.md` §23).
     pub(crate) fn is_rare_collector(&self, u: usize) -> bool {
         self.unit_tree(u).is_some_and(|t| {
-            MERCHANTS.contains(&t) || self.tech_tree.is(t, crate::fish::FISHERMEN, false)
+            MERCHANTS.contains(&t) || self.tables.tech_tree.is(t, crate::fish::FISHERMEN, false)
         })
     }
 

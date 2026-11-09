@@ -432,7 +432,7 @@ impl Sim {
                     continue;
                 }
                 let Some(t) = self.units[u].ty else { continue };
-                let c = type_cat(&self.unit_types[t], t, human);
+                let c = type_cat(&self.tables.unit_types[t], t, human);
                 if (c == cat::FORM_CAT_COMMAND) != commanders {
                     continue;
                 }
@@ -463,7 +463,7 @@ impl Sim {
                 f.cat_id[i] = f.num_category[c];
                 f.num_category[c] += 1;
 
-                let p = &self.unit_types[t].combat;
+                let p = &self.tables.unit_types[t].combat;
                 let (w, d) = (p.x_spacing, p.y_spacing);
                 if p.uber_size == 1 {
                     f.x_spacing[c] = f.x_spacing[c].max(w);
@@ -539,11 +539,14 @@ impl Sim {
             .tech
             .get(self.units[u].owner as usize)
             .is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    p,
+                    crate::ai::tribe::IROQUOIS,
+                )
             });
         self.units[u].ty.is_some_and(|t| {
-            let ty = &self.unit_types[t];
+            let ty = &self.tables.unit_types[t];
             ty.cols.unit_flags & 0x100 != 0 && (iroquois || ty.combat.age > 5)
         })
     }
@@ -874,7 +877,7 @@ impl Sim {
         let (last_cap, last_slot, right_side) = (lead.cap, lead.slot, lead.right_side);
         let gs = self.units[u]
             .ty
-            .map_or(0, |t| self.unit_types[t].combat.guy_spacing);
+            .map_or(0, |t| self.tables.unit_types[t].combat.guy_spacing);
         let base = if right_side { gs } else { -gs };
         let dx = if f.reverse { -base } else { base };
         // The last captain's own `x`, before the anchor slide.

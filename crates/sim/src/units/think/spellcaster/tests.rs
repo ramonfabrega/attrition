@@ -11,7 +11,7 @@ fn ai_scout() -> (Sim, usize) {
     s.nation[0].human = true;
     s.nation[1].human = false;
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
+    s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_SCOUT | uflags2::CASTER;
     let mut u = crate::Unit::new(1, 0, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
     u.ty = Some(t);
     let u = s.add_unit(u);
@@ -46,10 +46,10 @@ fn ai_general() -> (Sim, usize, [u32; 2]) {
     let (mut s, _) = ai_scout();
     s.lobby.difficulty = 5;
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
-    s.unit_types[t].mana = 1000;
+    s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
+    s.tables.unit_types[t].mana = 1000;
     // `TypeIndex` `0x36`, the General: the crafts' `FROM`.
-    s.unit_types[t].tree = Some(0x36);
+    s.tables.unit_types[t].tree = Some(0x36);
     let mut u = crate::Unit::new(1, 1, crate::Pos::new(5 * 768 + 384, 5 * 768 + 384), 20);
     u.ty = Some(t);
     u.captain = true;
@@ -208,10 +208,10 @@ fn a_forced_march_lifts_the_units_near_its_hero() {
     assert_eq!(sim.unit_speed(out), 25, "one past it");
     assert_eq!(sim.unit_speed(fast), 60, "a march never slows a unit");
     assert_eq!(sim.unit_speed(theirs), 25, "another leader's");
-    sim.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    sim.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     sim.units[a].kind.domain = crate::attrition::Domain::Sea;
     assert_eq!(sim.unit_speed(a), 25, "a type not of the land");
-    sim.unit_types[t].combat.domain = crate::attrition::Domain::Land;
+    sim.tables.unit_types[t].combat.domain = crate::attrition::Domain::Land;
     sim.units[a].kind.domain = crate::attrition::Domain::Land;
     // The Senator's reach: an economic patriot's tile more.
     sim.units[g].type_index = 0x161;
@@ -232,7 +232,7 @@ fn a_siege_unit_near_its_monarch_walks_at_double() {
     let (mut sim, g, _) = ai_general();
     let at = sim.units[g].pos;
     let siege = sim.add_unit_type(crate::UnitType::default());
-    sim.unit_types[siege].combat.siege = true;
+    sim.tables.unit_types[siege].combat.siege = true;
     let foot = sim.add_unit_type(crate::UnitType::default());
     sim.units[g].type_index = 0x162;
     let reach = sim.hero_radius(g) * 0xc0;

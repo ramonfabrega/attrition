@@ -40,8 +40,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
             let ty = sim.add_build_type(crate::build::BuildType::default());
-            sim.build_types[ty].x_size = rd(m, 0x234);
-            sim.build_types[ty].y_size = rd(m, 0x238);
+            sim.tables.build_types[ty].x_size = rd(m, 0x234);
+            sim.tables.build_types[ty].y_size = rd(m, 0x238);
             i64::from(sim.count_water(ty, crate::Pos::new(a[0], a[1])))
         }
     });

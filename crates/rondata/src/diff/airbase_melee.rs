@@ -78,6 +78,7 @@ fn airbase_melee_staging_walk() {
         crate::diff::setup::with_staged_script(script, || build_sim(&loaded, &init, Tuning::RON));
     let ab = built
         .sim
+        .tables
         .build_types
         .iter()
         .position(|t| t.ident == sim::build::Ident::Airbase)

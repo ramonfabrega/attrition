@@ -390,25 +390,25 @@ impl PlunderView for SimPlunder<'_> {
         (-1, -1)
     }
     fn thedespot_unit_plunder(&mut self) -> i32 {
-        self.sim.tuning.thedespot_unit_plunder
+        self.sim.tables.tuning.thedespot_unit_plunder
     }
     fn general_plunder(&mut self) -> i32 {
-        self.sim.tuning.general_plunder
+        self.sim.tables.tuning.general_plunder
     }
     fn caravan_plunder(&mut self) -> i32 {
-        self.sim.tuning.caravan_plunder
+        self.sim.tables.tuning.caravan_plunder
     }
     fn slay_bonus_of_killer(&mut self) -> i32 {
-        self.sim.tuning.aztec_slay_bonus
+        self.sim.tables.tuning.aztec_slay_bonus
     }
     fn aztec_slay_cap(&mut self) -> i32 {
-        self.sim.tuning.aztec_slay_cap
+        self.sim.tables.tuning.aztec_slay_cap
     }
     fn aztec_plunder(&mut self) -> i32 {
-        self.sim.tuning.aztec_plunder
+        self.sim.tables.tuning.aztec_plunder
     }
     fn inca_refund(&mut self) -> i32 {
-        self.sim.tuning.inca_refund
+        self.sim.tables.tuning.inca_refund
     }
     fn hero_count(&mut self, _who: i32, _ty: i32) -> i32 {
         // `find_hero` counts them itself.
@@ -472,7 +472,7 @@ impl PlunderView for SimPlunder<'_> {
     }
     fn unit_is_caravan(&mut self, _who: i32, _index: i32) -> bool {
         self.sim.units[self.v].ty.is_some_and(|t| {
-            self.sim.unit_types[t]
+            self.sim.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         })

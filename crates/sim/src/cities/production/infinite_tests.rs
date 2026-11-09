@@ -30,8 +30,8 @@ fn barracks(researched: bool) -> (Sim, usize, usize) {
     ty.price.base[crate::economy::Resource::Wealth.index()] = 50;
     let rec = sim.add_unit_type(ty);
     sim.muster[0].researched[rec] = researched;
-    let brec = sim.build_types.len();
-    sim.build_types.push(BuildType {
+    let brec = sim.tables.build_types.len();
+    sim.tables.build_types.push(BuildType {
         ident: Ident::Barracks,
         tree: Some(build),
         flags: flags::TRAINS,
@@ -58,7 +58,7 @@ fn barracks(researched: bool) -> (Sim, usize, usize) {
 fn a_disband_queued_at_a_barracks_closes_it_when_the_job_completes() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.build_types[bt].job_time = 420;
+    s.tables.build_types[bt].job_time = 420;
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(bt);
     assert_eq!(s.action_queue_disband(&[b]), 1);
@@ -94,7 +94,7 @@ fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
     // A type that needs a city (`NO_CITY` clear): the arm is asked.
-    s.build_types[bt].flags &= !crate::build::flags::NO_CITY;
+    s.tables.build_types[bt].flags &= !crate::build::flags::NO_CITY;
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(bt);
     s.buildings[b].city = Some(0);
@@ -127,9 +127,9 @@ fn a_city_holds_one_disband_at_the_queue_and_allows_its_own_at_the_finish() {
 fn a_no_city_building_skips_the_city_s_disband_count() {
     let (mut s, b, _) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.build_types[bt].flags |= crate::build::flags::NO_CITY;
-    let temple = s.build_types.len();
-    s.build_types.push(BuildType::default());
+    s.tables.build_types[bt].flags |= crate::build::flags::NO_CITY;
+    let temple = s.tables.build_types.len();
+    s.tables.build_types.push(BuildType::default());
     let b2 = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[b2].ty = Some(temple);
     s.buildings[b].city = Some(0);
@@ -150,8 +150,8 @@ fn a_no_city_building_skips_the_city_s_disband_count() {
 fn university_admission_counts_seated_and_queued_scholars_before_charging() {
     let (mut s, b, rec) = barracks(true);
     let bt = s.buildings[b].ty.unwrap();
-    s.build_types[bt].ident = Ident::University;
-    s.unit_types[rec].worker = crate::orders::Worker::Scholar;
+    s.tables.build_types[bt].ident = Ident::University;
+    s.tables.unit_types[rec].worker = crate::orders::Worker::Scholar;
     for o in 0..6 {
         let mut u = crate::Unit::new(0, o, s.buildings[b].pos, 100);
         u.ty = Some(rec);
@@ -177,7 +177,7 @@ fn university_admission_counts_seated_and_queued_scholars_before_charging() {
         ..crate::UnitType::default()
     });
     assert!(s.unit_queue_has_room(b, citizen));
-    s.build_types[bt].ident = Ident::Barracks;
+    s.tables.build_types[bt].ident = Ident::Barracks;
     assert!(s.unit_queue_has_room(b, rec));
     s.buildings[b].queue.capacity = s.buildings[b].queue.items.len();
     assert!(
@@ -352,19 +352,19 @@ fn a_press_on_a_barracks_and_a_stable_queues_only_where_the_type_is_made() {
         s.tech[0].tech[t] = true;
     }
     let bt = s.buildings[barracks].ty.unwrap();
-    s.build_types[bt].tree = Some(bar);
-    s.unit_types[bowmen].tree = Some(bow);
+    s.tables.build_types[bt].tree = Some(bar);
+    s.tables.unit_types[bowmen].tree = Some(bow);
     // The tree's install clears the availability bits.
     s.muster[0].researched[bowmen] = true;
-    let srec = s.build_types.len();
-    s.build_types.push(BuildType {
+    let srec = s.tables.build_types.len();
+    s.tables.build_types.push(BuildType {
         ident: Ident::Stable,
         tree: Some(stab),
-        ..s.build_types[bt].clone()
+        ..s.tables.build_types[bt].clone()
     });
     let stable = s.add_building(0, crate::Pos::new(10 * 256, 10 * 256), 20);
     s.buildings[stable].ty = Some(srec);
-    let mut lh = s.unit_types[bowmen].clone();
+    let mut lh = s.tables.unit_types[bowmen].clone();
     lh.tree = Some(horse);
     let lhrec = s.add_unit_type(lh);
     s.muster[0].researched[lhrec] = true;

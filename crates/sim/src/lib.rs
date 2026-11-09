@@ -256,7 +256,9 @@ pub use world::{Cell, Owner, Player, Pos, Terrain, World};
 /// recomputed territory map — rather than only through its parts.
 #[derive(Clone, Debug)]
 pub struct Sim {
-    pub tuning: Tuning,
+    /// The load-time tables: the unit, building and tech types, the lobby
+    /// setup and the tuning (`core::Tables`).
+    pub tables: crate::core::Tables,
     pub world: World,
     pub players: Vec<attrition::PlayerState>,
     pub sources: Vec<territory::Source>,
@@ -274,10 +276,6 @@ pub struct Sim {
     /// accrued, and changes every frame.
     pub holdings: Vec<economy::Holdings>,
     pub ledgers: Vec<economy::Ledger>,
-    /// The unit types this simulation can build. A type's index is its id, the
-    /// way the original's tables are index-keyed; see `docs/DECISIONS.md`
-    /// entry 9.
-    pub unit_types: Vec<UnitType>,
     /// The fifty `resourcerules.xml` goods' payouts, record index as id —
     /// the six basics first and then the forty-four rares
     /// (`crates/rondata/src/load.rs`). Only `LeaderData::calc_rare` reads
@@ -303,13 +301,6 @@ pub struct Sim {
     /// starting positions are built from the higher start slot down, so
     /// the AI's farms come before the human's in every `DUMP_ALL` dump.
     pub farm_order: Vec<usize>,
-    /// The tech tree — what may be bought and what owning it changes; see
-    /// `docs/TECH.md`. Empty until [`Sim::set_tech_tree`], and a unit type
-    /// joins it through [`UnitType::tree`].
-    pub tech_tree: tech::TechTree,
-    /// The lobby settings the tree reads: starting and ending ages, the
-    /// game rules, the no-powers flags.
-    pub setup: tech::Setup,
     /// One per player: the tech bits and counters — `LeaderData::tech`,
     /// `ages`, `epochs`, `epoch[4]`.
     pub tech: Vec<tech::PlayerTech>,
@@ -436,11 +427,6 @@ pub struct Sim {
     /// Every delivery of damage so far, newest last. Tests read it; nothing
     /// in the simulation does.
     pub hits: Vec<combat::Hit>,
-    /// The building types — `docs/CITIES.md` §1.5. A building with
-    /// [`Building::ty`] set obeys the placement, construction, city and
-    /// garrison rules; one without is the bare production-and-combat object
-    /// the earlier mechanics used.
-    pub build_types: Vec<build::BuildType>,
     /// The city records — `docs/CITIES.md` §5.
     pub cities: Vec<city::City>,
     /// One per player: the nation, wonder and tech inputs this mechanic reads.
@@ -678,8 +664,6 @@ impl Sim {
             tech: (0..players)
                 .map(|_| tech::PlayerTech::new(&tech_tree))
                 .collect(),
-            tech_tree,
-            setup: tech::Setup::STANDARD,
             staged_marks: Vec::new(),
             ai_off: false,
             trace_phases: false,
@@ -696,7 +680,6 @@ impl Sim {
             at_war: vec![vec![false; players]; players],
             holdings: vec![economy::Holdings::new(); players],
             ledgers: vec![economy::Ledger::starting(&tuning); players],
-            unit_types: Vec::new(),
             good_types: Vec::new(),
             unit_stats_dirty: vec![false; players],
             muster: vec![Muster::new(&tuning); players],
@@ -719,7 +702,6 @@ impl Sim {
             game_seed: 0,
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
-            build_types: Vec::new(),
             cities: Vec::new(),
             nation: vec![city::Nation::default(); players],
             borders: vec![territory::PlayerBorders::plain(&tuning); players],
@@ -761,7 +743,13 @@ impl Sim {
             building_log: Vec::new(),
             retargets: vec![0; players.max(10)],
             second_range: None,
-            tuning,
+            tables: crate::core::Tables {
+                tech_tree,
+                setup: tech::Setup::STANDARD,
+                unit_types: Vec::new(),
+                build_types: Vec::new(),
+                tuning,
+            },
             world,
             frame: 0,
         }
@@ -775,16 +763,18 @@ impl Sim {
     pub fn add_player(&mut self) -> Player {
         let who = self.players.len();
         self.players.push(attrition::PlayerState::default());
-        self.tech.push(tech::PlayerTech::new(&self.tech_tree));
+        self.tech
+            .push(tech::PlayerTech::new(&self.tables.tech_tree));
         self.supply.push(supply::Network::default());
         self.holdings.push(economy::Holdings::new());
         self.unit_stats_dirty.push(false);
-        self.ledgers.push(economy::Ledger::starting(&self.tuning));
-        self.muster.push(Muster::new(&self.tuning));
+        self.ledgers
+            .push(economy::Ledger::starting(&self.tables.tuning));
+        self.muster.push(Muster::new(&self.tables.tuning));
         self.mods.push(combat::Modifiers::default());
         self.nation.push(city::Nation::default());
         self.borders
-            .push(territory::PlayerBorders::plain(&self.tuning));
+            .push(territory::PlayerBorders::plain(&self.tables.tuning));
         self.defeated.push(false);
         self.lost_city_stamp.push(None);
         self.city_tally.push(city::Tally::default());

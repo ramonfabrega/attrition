@@ -668,7 +668,7 @@ pub fn group_build(
     }
     let record = usize::try_from(build - crate::load::BASE_BUILDTYPES)
         .ok()
-        .filter(|&r| r < built.sim.build_types.len());
+        .filter(|&r| r < built.sim.tables.build_types.len());
     if let Some(ty) = record {
         built.sim.group_action_build(&g, at, ty, queue_pos(queued));
     }
@@ -984,10 +984,11 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
         built.type_index[t] == ty
             && built
                 .sim
+                .tables
                 .tech_tree
                 .types
                 .get(t)
-                .is_some_and(|_| built.sim.tech_tree.kind(t).is_tech())
+                .is_some_and(|_| built.sim.tables.tech_tree.kind(t).is_tech())
     });
     if list.is_empty() || (unit.is_none() && tech.is_none()) {
         return 0;

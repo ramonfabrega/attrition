@@ -95,7 +95,7 @@ fn fx() -> Fx {
     w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
     let mut sim = Sim::new(Tuning::RON, w, 2);
     sim.nation[1].human = false;
-    let t = &mut sim.tech_tree;
+    let t = &mut sim.tables.tech_tree;
     for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
         t.add(TypeDef::good(n));
     }
@@ -119,7 +119,7 @@ fn fx() -> Fx {
     t.roles.university = Some(university);
     t.roles.town = Some(town);
     sim.tech = (0..2)
-        .map(|_| crate::tech::PlayerTech::new(&sim.tech_tree))
+        .map(|_| crate::tech::PlayerTech::new(&sim.tables.tech_tree))
         .collect();
 
     let village_rec = sim.add_build_type(bt(Ident::Village, village, 7, 7, 0));
@@ -521,9 +521,9 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
     // type *and* an upgrade, and the upgrade test comes first. Both
     // producers are stubs, so the routing is not yet observable through
     // a return value; what is pinned here is the predicate that picks it.
-    assert!(s.type_is_role(f.town, s.tech_tree.roles.town, false));
+    assert!(s.type_is_role(f.town, s.tables.tech_tree.roles.town, false));
     assert!(s.slot64(f.town), "and it is also is_city, hence the order");
-    assert!(!s.type_is_role(f.village, s.tech_tree.roles.town, false));
+    assert!(!s.type_is_role(f.village, s.tables.tech_tree.roles.town, false));
     s.ai[1].make_list.list[0] = slot(f.town, 500);
     assert!(!s.make_this(1, 0));
 
@@ -547,7 +547,7 @@ fn make_this_dispatches_by_class_and_demotes_on_a_buy() {
     s.ai[1].make_list.list[0] = m;
     assert!(s.make_this(1, 0), "produce_building placed the farm");
     assert_eq!(s.ai[1].make_list.list[0].val, 5, "val /= 100");
-    assert_eq!(s.build_types[f.farm_rec].ident, Ident::Farm);
+    assert_eq!(s.tables.build_types[f.farm_rec].ident, Ident::Farm);
 }
 
 /// An active market of my own, which is half the gate.
@@ -778,13 +778,14 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
     // A make-list head that costs 64 wealth and nothing else, which is
     // the shape of Great Lakes 8582 — and that map's own bucket.
     let rec = s
+        .tables
         .build_types
         .iter()
         .position(|b| b.ident == Ident::Tower)
         .expect("the fixture's tower");
     // The fixture's prices come out of `type_price` ten times their
     // base, so 6 is the 60 a make-list slot sees.
-    s.build_types[rec].price = cost::Price::free().with_base(Resource::Wealth, 6);
+    s.tables.build_types[rec].price = cost::Price::free().with_base(Resource::Wealth, 6);
     s.ai[1].make_list.list[0] = slot(f_tower, 500);
     s.holdings[1].available = [true, true, true, true, true, false];
     s.ledgers[1].bucket = [58, 55, 43, 68, 54, 0];
@@ -821,7 +822,7 @@ fn the_market_draws_once_for_wealth_behind_coinage() {
     // And a shortfall in anything but wealth is **bought**, not sold
     // for, when wealth can stand the buy price — and a buy spends no
     // draw at all.
-    s.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
+    s.tables.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
     s.ledgers[1].bucket = [0, 0, 10_000, 0, 0, 0];
     s.market.price = [50; crate::market::GOODS];
     assert_eq!(
@@ -924,11 +925,17 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     // The tree's first unit type is the one `produce_building` counts
     // as a citizen (`0x32`/`0x33` in the original): record 0 here.
     let citizen = s
+        .tables
         .unit_types
         .iter()
         .position(|t| {
             t.tree.is_some_and(|id| {
-                Some(id) == s.tech_tree.types.iter().position(|d| d.kind.is_unit())
+                Some(id)
+                    == s.tables
+                        .tech_tree
+                        .types
+                        .iter()
+                        .position(|d| d.kind.is_unit())
             })
         })
         .expect("the counted type");

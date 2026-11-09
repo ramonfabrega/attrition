@@ -669,7 +669,8 @@ impl BoatView for SimBoat<'_> {
     }
     fn is_transport(&mut self, u: usize) -> bool {
         self.0.units[u].ty.is_some_and(|t| {
-            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
+            self.0.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+                != 0
         })
     }
     fn find_units(&mut self, u: usize, at: Pos, size: i32, _circles: i32) -> Vec<usize> {
@@ -709,7 +710,7 @@ impl BoatView for SimBoat<'_> {
     fn packs(&mut self, o: usize) -> bool {
         self.0.units[o]
             .ty
-            .map(|t| self.0.unit_types[t].cols)
+            .map(|t| self.0.tables.unit_types[t].cols)
             .is_some_and(|c| c.flag2(crate::ai_load::uflags2::PACKS))
     }
     fn packed(&mut self, o: usize) -> bool {
@@ -724,7 +725,7 @@ impl BoatView for SimBoat<'_> {
     fn is_tank(&mut self, o: usize) -> bool {
         self.0.units[o]
             .ty
-            .map(|t| self.0.unit_types[t].cols)
+            .map(|t| self.0.tables.unit_types[t].cols)
             .is_some_and(|c| c.flag(crate::ai_load::uflags::TANK))
     }
     fn is_moving(&mut self, o: usize) -> bool {
@@ -824,7 +825,9 @@ impl<'a> SimDetect<'a> {
                 || s.units[w].coll_at.is_some()
                 || s.units[w].pos.cell() != self.cell
                 || !s.units[w].ty.is_some_and(|t| {
-                    s.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                    s.tables.unit_types[t].cols.unit_flags
+                        & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                        != 0
                 })
                 || !s.unit_is_here(w, self.hit)
             {
@@ -1337,7 +1340,7 @@ impl Sim {
             ..m.turning
         };
         let rate = crate::movement::turn_speed(
-            &self.tuning,
+            &self.tables.tuning,
             &turning,
             m.body.last_speed,
             m.body.avg_speed,
@@ -1929,7 +1932,7 @@ impl Sim {
                     && !self.units[u].decoy
                     && self.units[u]
                         .ty
-                        .is_none_or(|t| self.unit_types[t].combat.domain == Domain::Land)
+                        .is_none_or(|t| self.tables.unit_types[t].combat.domain == Domain::Land)
                     && self.world.cell_data(to.cell()).flags & crate::world::cell::GOODY != 0
                 {
                     self.explore_goody(u);
@@ -2381,7 +2384,7 @@ impl Sim {
                     || self.units[w].coll_at.is_some()
                     || self.units[w].pos.cell() != p.cell()
                     || !self.units[w].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags
+                        self.tables.unit_types[t].cols.unit_flags
                             & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
                             != 0
                     })

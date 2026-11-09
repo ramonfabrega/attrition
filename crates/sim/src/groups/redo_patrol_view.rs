@@ -180,7 +180,7 @@ impl RedoPatrolView for SimRedoPatrol<'_> {
     fn obj_masks(&mut self, m: i32) -> u32 {
         self.sim.units[m as usize]
             .ty
-            .map_or(0, |t| self.sim.unit_types[t].combat.obj_masks)
+            .map_or(0, |t| self.sim.tables.unit_types[t].combat.obj_masks)
     }
     fn p_word(&self, off: i32) -> i32 {
         match off {

@@ -106,10 +106,10 @@ fn worker_type(village: usize, worker: Worker) -> UnitType {
 
 fn spawn(sim: &mut Sim, owner: P, ty: usize, pos: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = Unit::new(owner, index, pos, hits);
     u.ty = Some(ty);
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     u.movement.speed = 25;
     u.movement.turning = movement::Turning {
         type_turn_speed: movement::degrees_to_angle(45).0,
@@ -179,9 +179,9 @@ fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
     sim.units[h].on_map = false;
     assert_eq!(sim.ceo_city(0), None, "off the map");
     sim.units[h].on_map = true;
-    sim.unit_types[ceo].cols.unit_flags2 = 0;
+    sim.tables.unit_types[ceo].cols.unit_flags2 = 0;
     assert_eq!(sim.ceo_city(0), None, "not a hero");
-    sim.unit_types[ceo].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
+    sim.tables.unit_types[ceo].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     sim.muster[1].by_type[ceo] = 1;
     assert_eq!(sim.ceo_city(1), None, "another player's hero");
 }
@@ -216,8 +216,8 @@ fn a_farm_with_one_gathering_citizen_pays_the_peasant_rate() {
         }],
         "the farm is a site the moment it is finished, with nobody on it"
     );
-    let bare = economy::assemble(&sim.tuning, &sim.holdings[0]);
-    assert_eq!(bare[0], sim.tuning.city_gather[0] * RATE_SCALE);
+    let bare = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);
+    assert_eq!(bare[0], sim.tables.tuning.city_gather[0] * RATE_SCALE);
 
     // Now put a citizen on it and walk it there.
     let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
@@ -233,10 +233,10 @@ fn a_farm_with_one_gathering_citizen_pays_the_peasant_rate() {
         dirty: true,
         ..economy::Ledger::default()
     };
-    for frame in 0..i64::from(sim.tuning.gather_rate) {
-        economy::process(&sim.tuning, &mut ledger, &sim.holdings[0], 0, frame);
+    for frame in 0..i64::from(sim.tables.tuning.gather_rate) {
+        economy::process(&sim.tables.tuning, &mut ledger, &sim.holdings[0], 0, frame);
     }
-    let expected = (sim.tuning.peasant_rate >> 8) + sim.tuning.city_gather[0];
+    let expected = (sim.tables.tuning.peasant_rate >> 8) + sim.tables.tuning.city_gather[0];
     assert_eq!(expected, 20);
     assert_eq!(ledger.rate[0], expected * RATE_SCALE);
     assert_eq!(ledger.bucket[Resource::Food.index()], expected);
@@ -257,9 +257,9 @@ fn a_japanese_farmer_gathers_a_quarter_more_food() {
     gather_until_arrived(&mut sim, u, farm);
     let rate = |sim: &mut Sim| {
         sim.assemble_holdings(0);
-        economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])[0]
+        economy::city_rates(&sim.tables.tuning, &sim.holdings[0].cities[0])[0]
     };
-    let city = sim.tuning.city_gather[0] * RATE_SCALE;
+    let city = sim.tables.tuning.city_gather[0] * RATE_SCALE;
     let plain = rate(&mut sim);
     assert_eq!(plain - city, 160, "PEASANT_RATE, in sixteenths");
     sim.set_tribe(0, 15);
@@ -295,7 +295,7 @@ fn an_inca_mine_pays_ten_wealth_a_miner() {
     let m = build(&mut sim, 0, mine, 42, 32);
     let rates = |sim: &mut Sim| {
         sim.assemble_holdings(0);
-        economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])
+        economy::city_rates(&sim.tables.tuning, &sim.holdings[0].cities[0])
     };
     let w = Resource::Wealth.index();
     let city = rates(&mut sim)[w];
@@ -312,7 +312,7 @@ fn an_inca_mine_pays_ten_wealth_a_miner() {
             sim.tick();
         }
         assert_eq!(sim.num_gatherers(m, true, true), n, "miner {n} arrived");
-        assert_eq!(sim.tuning.inca_wealth_per_miner, 10);
+        assert_eq!(sim.tables.tuning.inca_wealth_per_miner, 10);
         assert_eq!(
             rates(&mut sim)[w] - city,
             10 * RATE_SCALE * n,
@@ -337,14 +337,15 @@ fn an_egyptian_worked_farm_pays_two_wealth_flat() {
     let farm = build(&mut sim, 0, t.farm, 40, 32);
     let wealth = |sim: &mut Sim| {
         sim.assemble_holdings(0);
-        economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])[Resource::Wealth.index()]
+        economy::city_rates(&sim.tables.tuning, &sim.holdings[0].cities[0])
+            [Resource::Wealth.index()]
     };
-    let city = sim.tuning.city_gather[Resource::Wealth.index()] * RATE_SCALE;
+    let city = sim.tables.tuning.city_gather[Resource::Wealth.index()] * RATE_SCALE;
     sim.set_tribe(0, 7);
     assert_eq!(wealth(&mut sim), city, "an unworked Farm pays nothing");
     let u = spawn(&mut sim, 0, t.citizen, tile_pos(44, 32));
     gather_until_arrived(&mut sim, u, farm);
-    assert_eq!(sim.tuning.egyptian_farm_wealth, 2);
+    assert_eq!(sim.tables.tuning.egyptian_farm_wealth, 2);
     assert_eq!(wealth(&mut sim) - city, 2 * RATE_SCALE, "two wealth a Farm");
     let v = spawn(&mut sim, 0, t.citizen, tile_pos(44, 34));
     gather_until_arrived(&mut sim, v, farm);
@@ -440,14 +441,14 @@ fn a_market_a_library_and_a_granary_are_read_off_the_member_chain() {
     assert!(!full.university, "a library is not a university");
     assert_eq!(full.buildings, 4);
     // GRANARY_BONUS level 1, the level a player with no bonus type holds.
-    assert_eq!(full.granary, sim.tuning.granary_bonus[0]);
+    assert_eq!(full.granary, sim.tables.tuning.granary_bonus[0]);
     assert_eq!(full.lumber_mill, 0, "no lumber mill, no percentage");
 
     // A market is ten wealth per thirty seconds. A library on its own is
     // worth nothing — `LIBRARY_LITERACY` ships as zero, and its value is
     // that scholars can live in it — and so is a granary with nobody
     // farming under it.
-    let rate = economy::assemble(&sim.tuning, &sim.holdings[0]);
+    let rate = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);
     assert_eq!(rate[Resource::Wealth.index()], 10 * RATE_SCALE);
     assert_eq!(rate[Resource::Knowledge.index()], 0);
 }
@@ -529,12 +530,12 @@ fn a_scholar_in_a_university_gathers_knowledge_at_the_leader_s_level() {
     assert_eq!(site.gatherers, 1);
     assert_eq!(site.level, 1);
 
-    let base = economy::assemble(&sim.tuning, &sim.holdings[0]);
+    let base = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);
     // A university is ten knowledge of literacy plus one scholar at
     // SCHOLAR_RATE level 1.
     assert_eq!(
         base[Resource::Knowledge.index()],
-        10 * RATE_SCALE + economy::per_gatherer(&sim.tuning, Resource::Knowledge, 1)
+        10 * RATE_SCALE + economy::per_gatherer(&sim.tables.tuning, Resource::Knowledge, 1)
     );
 
     // The last university level is worth five times the first.
@@ -545,7 +546,7 @@ fn a_scholar_in_a_university_gathers_knowledge_at_the_leader_s_level() {
             ..Levels::BASE
         },
     );
-    let top = economy::assemble(&sim.tuning, &sim.holdings[0]);
+    let top = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);
     assert_eq!(
         top[Resource::Knowledge.index()] - 10 * RATE_SCALE,
         25 * RATE_SCALE
@@ -754,7 +755,7 @@ fn the_five_ladders_floor_at_one_except_taxation_which_floors_at_zero() {
 fn each_ladder_answers_the_highest_rung_held() {
     let mut sim = world_sim();
     with_the_ladders(&mut sim);
-    let roles = sim.tech_tree.roles.clone();
+    let roles = sim.tables.tech_tree.roles.clone();
     for (rows, floor, want) in [
         (roles.granary_preq.to_vec(), 1, 5),
         (roles.lumbermill_preq.to_vec(), 1, 4),
@@ -798,19 +799,22 @@ fn taxation_reaches_the_territory_tax() {
 
     sim.assemble_holdings(0);
     assert_eq!(sim.holdings[0].taxation, 0, "no TAX_n held");
-    assert_eq!(economy::territory_tax(&sim.tuning, &sim.holdings[0]), 0);
+    assert_eq!(
+        economy::territory_tax(&sim.tables.tuning, &sim.holdings[0]),
+        0
+    );
 
-    let tax2 = sim.tech_tree.roles.taxation_preq[1].unwrap();
+    let tax2 = sim.tables.tech_tree.roles.taxation_preq[1].unwrap();
     sim.tech[0].tech[tax2] = true;
     sim.assemble_holdings(0);
     assert_eq!(sim.holdings[0].taxation, 2);
     let h = &sim.holdings[0];
     assert_eq!(
-        economy::territory_tax(&sim.tuning, h),
-        h.territory * sim.tuning.territory_taxes[2] * RATE_SCALE / h.land_size,
+        economy::territory_tax(&sim.tables.tuning, h),
+        h.territory * sim.tables.tuning.territory_taxes[2] * RATE_SCALE / h.land_size,
     );
     assert!(
-        economy::territory_tax(&sim.tuning, h) > 0,
+        economy::territory_tax(&sim.tables.tuning, h) > 0,
         "the line the audit called unfirable",
     );
 }
@@ -827,8 +831,8 @@ fn the_commerce_level_is_the_commerce_epoch() {
     sim.assemble_holdings(0);
     assert_eq!(sim.holdings[0].commerce, 3);
     assert_eq!(
-        economy::commerce_cap(&sim.tuning, &sim.holdings[0], Resource::Food),
-        sim.tuning.commerce_cap[3] * RATE_SCALE
+        economy::commerce_cap(&sim.tables.tuning, &sim.holdings[0], Resource::Food),
+        sim.tables.tuning.commerce_cap[3] * RATE_SCALE
     );
 }
 
@@ -884,7 +888,7 @@ fn a_lost_city_stops_paying() {
     build(&mut sim, 0, t.farm, 40, 32);
     sim.assemble_holdings(0);
     assert_eq!(sim.holdings[0].cities.len(), 1);
-    let with = economy::assemble(&sim.tuning, &sim.holdings[0]);
+    let with = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);
     assert!(with[0] > 0);
 
     sim.buildings[city].alive = false;
@@ -892,7 +896,7 @@ fn a_lost_city_stops_paying() {
     sim.cities[c].alive = false;
     sim.assemble_holdings(0);
     assert!(sim.holdings[0].cities.is_empty());
-    let without = economy::assemble(&sim.tuning, &sim.holdings[0]);
+    let without = economy::assemble(&sim.tables.tuning, &sim.holdings[0]);
     assert_eq!(without, [0; RESOURCES], "BASIC_GATHER ships as zero");
 }
 
@@ -902,6 +906,6 @@ fn rate_now_is_the_assembly_without_the_cadence() {
     let t = install(&mut sim);
     build(&mut sim, 0, t.village, 32, 32);
     let rate = rate_now(&mut sim, 0);
-    assert_eq!(rate[0], sim.tuning.city_gather[0] * RATE_SCALE);
-    assert_eq!(rate[1], sim.tuning.city_gather[1] * RATE_SCALE);
+    assert_eq!(rate[0], sim.tables.tuning.city_gather[0] * RATE_SCALE);
+    assert_eq!(rate[1], sim.tables.tuning.city_gather[1] * RATE_SCALE);
 }

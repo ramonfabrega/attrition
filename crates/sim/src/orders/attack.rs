@@ -152,14 +152,14 @@ impl AttackGroundView for SimAttackGround<'_> {
     }
     fn sideways(&mut self) -> bool {
         self.s.units[self.u].ty.is_some_and(|t| {
-            self.s.unit_types[t]
+            self.s.tables.unit_types[t]
                 .cols
                 .flag(crate::ai_load::uflags::SIDEWAYS)
         })
     }
     fn rocks(&self) -> bool {
         self.s.units[self.u].ty.is_some_and(|t| {
-            self.s.unit_types[t]
+            self.s.tables.unit_types[t]
                 .cols
                 .flag(crate::ai_load::uflags::ROCKS)
         })
@@ -203,7 +203,7 @@ impl AttackGroundView for SimAttackGround<'_> {
     fn packs_and_packed(&self) -> bool {
         self.s.units[self.u]
             .ty
-            .is_some_and(|t| self.s.unit_types[t].combat.packs)
+            .is_some_and(|t| self.s.tables.unit_types[t].combat.packs)
             && self.s.units[self.u].combat.packed
     }
     fn unpack(&mut self) {
@@ -319,7 +319,7 @@ impl Sim {
         }
         let (m, t) = (unit.pos, self.pos_of(target));
         if vector_dist((m.x - t.x).abs(), (m.y - t.y).abs())
-            <= self.tuning.city_capture_radius * 0xc0
+            <= self.tables.tuning.city_capture_radius * 0xc0
         {
             return false;
         }
@@ -399,7 +399,7 @@ impl Sim {
         // capture has an emplaced weapon there.
         let emplaced = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::EMPLACED));
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::EMPLACED));
         let latch = emplaced
             && match self.units[u].combat.target {
                 Some(t) => !self.valid_target(me, t),
@@ -413,9 +413,11 @@ impl Sim {
         // run1189b's `1/46` reads `recharging` 35 on block 4170 and theirs
         // rolls the guard's `fight+0x824` under its `ATTACKORDER`, where
         // ours stood and rolled the reload idle.
-        let walks_on = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        let walks_on = self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag(uflags::MELEE_AND_RANGED)
+        });
         if state.recharging == 0 || latch || walks_on {
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
             self.set_new_location(u, snap, true);
@@ -775,7 +777,7 @@ impl Sim {
         // have walked inside the three-tile minimum (§57.3).
         let packs = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs);
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs);
         if packs && !self.units[u].combat.packed && a.ever_in_range {
             self.kill_current_order(u);
             return false;
@@ -897,7 +899,11 @@ impl Sim {
             return false;
         }
         let r = self.max_range_of(Obj::Unit(u));
-        let mut reach = self.tuning.unit_defensive_respond_range.wrapping_mul(0xc0);
+        let mut reach = self
+            .tables
+            .tuning
+            .unit_defensive_respond_range
+            .wrapping_mul(0xc0);
         if reach < r.wrapping_mul(0xc0) {
             reach = r.wrapping_mul(0xc0);
         }
@@ -1132,11 +1138,11 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if !self.unit_types[t].combat.packs
+        if !self.tables.unit_types[t].combat.packs
             || !self.units[u].combat.packed
             || self
                 .unit_tree(u)
-                .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+                .is_some_and(|ti| self.tables.tech_tree.is(ti, MERCHANTDUTCH, true))
         {
             return false;
         }
@@ -1195,11 +1201,11 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if !self.unit_types[t].combat.packs
+        if !self.tables.unit_types[t].combat.packs
             || self.units[u].combat.packed
             || self
                 .unit_tree(u)
-                .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+                .is_some_and(|ti| self.tables.tech_tree.is(ti, MERCHANTDUTCH, true))
         {
             return false;
         }
@@ -1283,7 +1289,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        let ty = &self.unit_types[t];
+        let ty = &self.tables.unit_types[t];
         let p = ty.combat;
         ground_attacker(
             p.max_range,
@@ -1348,7 +1354,7 @@ impl Sim {
         let n = match c {
             Obj::Unit(t) => self.units[t]
                 .ty
-                .is_some_and(|ty| self.unit_types[ty].cols.unit_flags & 0x2000 != 0),
+                .is_some_and(|ty| self.tables.unit_types[ty].cols.unit_flags & 0x2000 != 0),
             Obj::Building(_) => false,
         };
         !combat || n
@@ -1557,7 +1563,7 @@ impl Sim {
         let who = self.units[u].owner;
         let siege = self.units[u]
             .ty
-            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
+            .is_some_and(|ty| self.tables.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
         let city = self.buildings[b]
             .city
             .is_some_and(|c| self.cities[c].building == b);
@@ -2062,7 +2068,7 @@ impl CheckTargetView for SimCheckTarget<'_> {
         self.s.max_range_of(self.me())
     }
     fn respond_range(&mut self) -> i32 {
-        self.s.tuning.unit_defensive_respond_range
+        self.s.tables.tuning.unit_defensive_respond_range
     }
     fn unit_pos(&mut self) -> (i32, i32) {
         let p = self.s.units[self.u].pos;

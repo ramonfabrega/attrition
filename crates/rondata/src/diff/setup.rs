@@ -1118,7 +1118,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     if region_map.is_empty() {
         for b in &mut sim.buildings {
             let flat =
-                b.ty.is_some_and(|t| sim.build_types[t].has(sim::build::flags::FLAT));
+                b.ty.is_some_and(|t| sim.tables.build_types[t].has(sim::build::flags::FLAT));
             if !flat {
                 b.gather_max = None;
             }
@@ -1341,8 +1341,9 @@ pub(crate) fn start_of_game(
             .iter()
             .filter(|l| {
                 l.who == w
-                    && l.kind
-                        .is_some_and(|k| sim.unit_types[k].worker != sim::orders::Worker::None)
+                    && l.kind.is_some_and(|k| {
+                        sim.tables.unit_types[k].worker != sim::orders::Worker::None
+                    })
             })
             .collect();
         citizens.sort_by_key(|l| l.o);
@@ -2566,7 +2567,7 @@ mod tests {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
-        let tree = &built.sim.tech_tree;
+        let tree = &built.sim.tables.tech_tree;
         let id = |name: &str| {
             tree.types
                 .iter()
@@ -3261,7 +3262,7 @@ mod tests {
             if who < 8 {
                 continue;
             }
-            let index = sim.unit_types[ty].type_index;
+            let index = sim.tables.unit_types[ty].type_index;
             for (&(p, slot), &n) in &sim.art.lengths {
                 if p != piece {
                     continue;
@@ -3392,7 +3393,7 @@ mod tests {
                     "{name}: {}/{} (type_index {}) stance",
                     link.who,
                     link.o,
-                    built.sim.unit_types[ty].type_index
+                    built.sim.tables.unit_types[ty].type_index
                 );
                 checked += 1;
                 match them {

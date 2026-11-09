@@ -268,10 +268,10 @@ impl TcoordView for SimTcoord<'_> {
         self.sim.world.owner(cell).player().map_or(-1, i32::from)
     }
     fn this_is(&mut self, id: Ident) -> bool {
-        build::is(&self.sim.build_types, self.ty, id)
+        build::is(&self.sim.tables.build_types, self.ty, id)
     }
     fn domain(&self) -> i32 {
-        match self.sim.build_types[self.ty].domain() {
+        match self.sim.tables.build_types[self.ty].domain() {
             build::BuildDomain::Land => 0,
             build::BuildDomain::Water => 1,
             build::BuildDomain::Both => 2,
@@ -298,19 +298,19 @@ impl TcoordView for SimTcoord<'_> {
         found.map_or(-1, |i| i as i32)
     }
     fn flags(&self) -> u32 {
-        self.sim.build_types[self.ty].flags
+        self.sim.tables.build_types[self.ty].flags
     }
     fn is_city(&mut self) -> bool {
-        build::is_city(&self.sim.build_types, self.ty)
+        build::is_city(&self.sim.tables.build_types, self.ty)
     }
     fn is_fort(&mut self) -> bool {
-        build::is_fort(&self.sim.build_types, self.ty)
+        build::is_fort(&self.sim.tables.build_types, self.ty)
     }
     fn gathers(&mut self) -> bool {
-        self.sim.build_types[self.ty].has(flags::GATHERER)
+        self.sim.tables.build_types[self.ty].has(flags::GATHERER)
     }
     fn flat(&mut self) -> bool {
-        self.sim.build_types[self.ty].has(flags::FLAT)
+        self.sim.tables.build_types[self.ty].has(flags::FLAT)
     }
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool {
         let n = &self.sim.nation[who as usize];
@@ -321,7 +321,7 @@ impl TcoordView for SimTcoord<'_> {
         }
     }
     fn dutch_fort_placement(&self) -> i32 {
-        self.sim.tuning.dutch_fort_placement
+        self.sim.tables.tuning.dutch_fort_placement
     }
     fn tregion(&mut self, x: i32, y: i32) -> i32 {
         self.sim
@@ -351,7 +351,8 @@ impl TcoordView for SimTcoord<'_> {
         (t.x, t.y)
     }
     fn good(&mut self) -> i32 {
-        crate::ai_place::gather_good(self.sim.build_types[self.ty].ident).map_or(-1, |g| g as i32)
+        crate::ai_place::gather_good(self.sim.tables.build_types[self.ty].ident)
+            .map_or(-1, |g| g as i32)
     }
     fn land(&mut self, x: i32, y: i32) -> i32 {
         self.sim.world.land_class_tile(Pos::new(x, y))

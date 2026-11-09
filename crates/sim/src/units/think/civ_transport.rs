@@ -350,7 +350,7 @@ impl CivTransportView for SimCivTransport<'_> {
     fn rec_type_flags(&self) -> i32 {
         self.sim.units[self.u]
             .ty
-            .map_or(0, |t| self.sim.unit_types[t].cols.unit_flags as i32)
+            .map_or(0, |t| self.sim.tables.unit_types[t].cols.unit_flags as i32)
     }
     fn can_transport(&mut self) -> bool {
         self.sim.unit_can_transport(self.u)

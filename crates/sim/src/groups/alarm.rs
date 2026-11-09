@@ -175,7 +175,7 @@ impl Sim {
     /// holds the type's tree node.
     pub(crate) fn unit_is_index(&self, u: usize, ti: i32) -> bool {
         self.unit_rec_of_index(ti)
-            .and_then(|r| self.unit_types[r].tree)
+            .and_then(|r| self.tables.unit_types[r].tree)
             .is_some_and(|t| self.unit_line_is(u, t))
     }
 
@@ -185,7 +185,9 @@ impl Sim {
         if self.units[u].decoy {
             return 0;
         }
-        self.units[u].ty.map_or(0, |t| self.unit_types[t].price.pop)
+        self.units[u]
+            .ty
+            .map_or(0, |t| self.tables.unit_types[t].price.pop)
     }
 
     /// `Object::eject_contents(0, PEASANTS, 0, 0)@0064cd20` on a building:

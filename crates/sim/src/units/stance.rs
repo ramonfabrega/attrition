@@ -282,7 +282,7 @@ impl crate::Sim {
     /// [`stance_type`] for a type in [`crate::Sim::unit_types`].
     #[must_use]
     pub fn type_stance_type(&self, ty: usize) -> StanceType {
-        let t = &self.unit_types[ty];
+        let t = &self.tables.unit_types[ty];
         stance_type(t.cols.role, t.cols.unit_flags2, t.type_index)
     }
 
@@ -313,7 +313,7 @@ impl crate::Sim {
         let Some(t) = bl.ty else { return 0 };
         let human = self.nation.get(bl.owner as usize).is_some_and(|n| n.human);
         build_init_stance(
-            build_stance_type(&self.build_types, t),
+            build_stance_type(&self.tables.build_types, t),
             self.leader_options(bl.owner),
             human,
             self.lobby.resources_unlimited(),
@@ -333,7 +333,7 @@ impl crate::Sim {
     #[must_use]
     pub fn trained_stance(&self, ty: usize, b: usize) -> Option<u8> {
         let t = self.buildings[b].ty?;
-        (self.type_stance_type(ty) == build_stance_type(&self.build_types, t))
+        (self.type_stance_type(ty) == build_stance_type(&self.tables.build_types, t))
             .then(|| self.build_stance(b))
     }
 

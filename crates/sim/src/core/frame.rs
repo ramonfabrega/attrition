@@ -123,7 +123,7 @@ impl Sim {
                 self.ai[who].census.escrow_rate
             };
             economy::process(
-                &self.tuning,
+                &self.tables.tuning,
                 &mut self.ledgers[who],
                 &self.holdings[who],
                 player,

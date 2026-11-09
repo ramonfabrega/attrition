@@ -47,7 +47,7 @@ fn sea_sim() -> (Sim, usize) {
     s.nation[1].human = false;
     s.good_types = good_table();
     {
-        let t = &mut s.tech_tree;
+        let t = &mut s.tables.tech_tree;
         for i in 0..50 {
             t.add(tech::TypeDef::good(&format!("good{i}")));
         }
@@ -61,7 +61,7 @@ fn sea_sim() -> (Sim, usize) {
         assert_eq!(boat, crate::fish::FISHERMEN);
     }
     s.tech = (0..2)
-        .map(|_| tech::PlayerTech::new(&s.tech_tree))
+        .map(|_| tech::PlayerTech::new(&s.tables.tech_tree))
         .collect();
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
@@ -69,9 +69,9 @@ fn sea_sim() -> (Sim, usize) {
         tree: Some(crate::fish::FISHERMEN),
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.packs = true;
-    s.unit_types[t].combat.obj_masks |= crate::combat::mask::NAVAL;
-    s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::NAVAL;
+    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);
@@ -782,10 +782,10 @@ fn a_bantu_citizen_moves_a_quarter_faster() {
 fn a_national_replacement_takes_its_line_s_gunpowder_scale() {
     let (mut s, _) = sea_sim();
     let at = |s: &mut Sim, idx: usize, def: tech::TypeDef| {
-        while s.tech_tree.types.len() <= idx {
-            s.tech_tree.add(tech::TypeDef::plain("filler", -1));
+        while s.tables.tech_tree.types.len() <= idx {
+            s.tables.tech_tree.add(tech::TypeDef::plain("filler", -1));
         }
-        s.tech_tree.types[idx] = def;
+        s.tables.tech_tree.types[idx] = def;
     };
     let traits = tech::UnitTraits::default;
     // The four lines themselves, then one replacement under each by a
@@ -898,10 +898,10 @@ fn the_rare_mask_s_change_recomputes_the_pop_cap() {
 fn the_whales_bonus_truncates_where_the_dump_does() {
     let (mut s, u) = sea_sim();
     let boat_ty = s.units[u].ty.unwrap();
-    s.unit_types[boat_ty].moves = 38;
+    s.tables.unit_types[boat_ty].moves = 38;
     s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
     assert_eq!(s.type_speed(1, boat_ty), 45);
-    s.unit_types[boat_ty].moves = 25;
+    s.tables.unit_types[boat_ty].moves = 25;
     assert_eq!(s.type_speed(1, boat_ty), 30);
 }
 

@@ -2131,8 +2131,8 @@ fn french_east_indies_buys_its_fifth_city_at_a_third_off() {
         built.tick();
     }
     let sim = &built.sim;
-    let village = (0..sim.build_types.len())
-        .find(|&t| sim.build_types[t].ident == sim::build::Ident::Village)
+    let village = (0..sim.tables.build_types.len())
+        .find(|&t| sim.tables.build_types[t].ident == sim::build::Ident::Village)
         .unwrap();
     assert_eq!(sim.city_limit(1), 5, "four cities and the Pyramids");
     let price = sim.building_price(1, village);

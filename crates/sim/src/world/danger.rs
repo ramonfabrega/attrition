@@ -98,7 +98,7 @@ impl crate::Sim {
                     && u.on_map
                     && u.owner < 8
                     && u.ty.is_some_and(|t| {
-                        self.unit_types[t]
+                        self.tables.unit_types[t]
                             .cols
                             .is(crate::ai_load::role::ROLE_MILITARY)
                     })
@@ -204,7 +204,7 @@ impl crate::Sim {
         bd.city.is_some()
             || bd
                 .ty
-                .is_some_and(|t| self.build_types[t].has(build::flags::NO_CITY))
+                .is_some_and(|t| self.tables.build_types[t].has(build::flags::NO_CITY))
     }
 
     /// What one building is worth: a fort or a tower its own remaining hit
@@ -215,7 +215,8 @@ impl crate::Sim {
         let bd = &self.buildings[b];
         let ty = bd.ty;
         if ty.is_some_and(|t| {
-            build::is_fort(&self.build_types, t) || build::is_tower(&self.build_types, t)
+            build::is_fort(&self.tables.build_types, t)
+                || build::is_tower(&self.tables.build_types, t)
         }) {
             return bd.health.max(0) / 2;
         }
@@ -223,8 +224,8 @@ impl crate::Sim {
             return 100;
         }
         if ty.is_some_and(|t| {
-            build::is(&self.build_types, t, build::Ident::Airbase)
-                || build::is_dock(&self.build_types, t)
+            build::is(&self.tables.build_types, t, build::Ident::Airbase)
+                || build::is_dock(&self.tables.build_types, t)
         }) {
             return 100;
         }
@@ -233,7 +234,7 @@ impl crate::Sim {
         // Auto Plant, upgraded from a Factory, weighs fifty and not ten
         // (`docs/AI.md` §159).
         if ty.is_some_and(|t| {
-            self.build_types[self.build_root(t)].has(build::flags::MILITARY_TRAINER)
+            self.tables.build_types[self.build_root(t)].has(build::flags::MILITARY_TRAINER)
         }) {
             50
         } else {

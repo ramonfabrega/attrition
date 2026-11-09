@@ -72,7 +72,7 @@ fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
         type_index: 0x165,
         ..crate::UnitType::default()
     });
-    s.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_GENERAL;
+    s.tables.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_GENERAL;
     let at = s.units[u].pos;
     let mut h = crate::Unit::new(0, 1, Pos::new(at.x + 0x300, at.y), 20);
     h.ty = Some(ceo);
@@ -87,7 +87,7 @@ fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
     assert_eq!(s.unit_data_los(u), 8, "out of the hero's radius");
     s.units[h].pos = Pos::new(at.x + 0x300, at.y);
     let t = s.units[u].ty.unwrap();
-    s.unit_types[t].combat.siege = true;
+    s.tables.unit_types[t].combat.siege = true;
     assert_eq!(s.unit_data_los(u), 8, "a siege unit");
 }
 
@@ -194,7 +194,7 @@ fn a_building_seen_by_the_enemy_is_first_contact() {
 fn site(wonder: bool) -> (crate::Sim, usize) {
     let (mut s, b) = fog_build(6, 0, 4);
     let t = s.buildings[b].ty.unwrap();
-    s.build_types[t].wonder = wonder;
+    s.tables.build_types[t].wonder = wonder;
     let bd = &mut s.buildings[b];
     bd.owner = 1;
     (bd.started, bd.active) = (false, false);
@@ -263,7 +263,7 @@ fn a_city_flagged_wonder_is_not_first_contact() {
             ..crate::build::BuildType::default()
         });
         let t = s.buildings[b].ty.unwrap();
-        s.build_types[t].from = Some(root);
+        s.tables.build_types[t].from = Some(root);
         s.start_building(b);
         assert_eq!(lit_for_all(&s), 0, "no seen-plane write, fort={as_fort}");
         s.check_ever_seen(b, false);
@@ -388,7 +388,7 @@ fn a_tower_sees_further_with_each_tower_fort_los_bit() {
     s.set_tech_tree(tree);
     let t = s.buildings[b].ty.expect("typed");
     assert_eq!(s.build_los(b), 15, "not a tower");
-    s.build_types[t].ident = Ident::Tower;
+    s.tables.build_types[t].ident = Ident::Tower;
     assert_eq!(s.build_los(b), 15, "no bit: get_tower_fort_los 1, entry 0");
     for (k, want) in [(0, 17), (1, 19), (2, 21)] {
         s.tech[0].tech[bits[k]] = true;
@@ -402,7 +402,7 @@ fn a_tower_sees_further_with_each_tower_fort_los_bit() {
     s.buildings[b].active = false;
     assert_eq!(s.build_los(b), 0, "an unfinished tower");
     s.buildings[b].active = true;
-    s.build_types[t].ident = Ident::Fort;
+    s.tables.build_types[t].ident = Ident::Fort;
     assert_eq!(s.build_los(b), 15, "a fort");
 }
 
@@ -421,7 +421,7 @@ fn a_fort_sees_further_with_each_fort_los_level() {
     tree.roles.fort_los_preq = levels.map(Some);
     s.set_tech_tree(tree);
     let t = s.buildings[b].ty.expect("typed");
-    s.build_types[t].ident = Ident::Fort;
+    s.tables.build_types[t].ident = Ident::Fort;
     assert_eq!(s.build_los(b), 14, "level 1: entry 0");
     for (k, want) in [(0, 16), (1, 18), (2, 20)] {
         s.tech[0].tech[levels[k]] = true;
@@ -432,7 +432,7 @@ fn a_fort_sees_further_with_each_fort_los_level() {
     assert_eq!(s.build_los(b), 16, "the Romans' 1/2013");
     s.update_build_los(b);
     assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(8));
-    s.build_types[t].ident = Ident::Tower;
+    s.tables.build_types[t].ident = Ident::Tower;
     assert_eq!(s.build_los(b), 14, "a tower takes no fort term");
 }
 
@@ -445,7 +445,7 @@ fn an_unfinished_building_sees_one_plus_half_its_footprint() {
     s.buildings[b].active = false;
     assert_eq!(s.build_los(b), 0, "an ordinary site: `is_wonder` is 0");
     let t = s.buildings[b].ty.expect("typed");
-    s.build_types[t].wonder = true;
+    s.tables.build_types[t].wonder = true;
     assert_eq!(s.build_los(b), 4);
     s.buildings[b].started = false;
     assert_eq!(s.build_los(b), 0);
@@ -465,7 +465,7 @@ fn a_buildings_mylos_is_refreshed_only_where_the_original_calls_update_los() {
     let t = s.buildings[b].ty.expect("typed");
     s.buildings[b].active = false;
     s.buildings[b].started = false;
-    s.build_types[t].wonder = true;
+    s.tables.build_types[t].wonder = true;
     s.update_build_los(b);
     assert_eq!(s.buildings[b].mylos, 0, "unstarted at `Wall::init`");
     s.buildings[b].started = true;
@@ -476,7 +476,7 @@ fn a_buildings_mylos_is_refreshed_only_where_the_original_calls_update_los() {
     s.buildings[b].active = true;
     s.update_build_los(b);
     assert_eq!(s.buildings[b].mylos, 15);
-    s.build_types[t].science_los = 2;
+    s.tables.build_types[t].science_los = 2;
     s.tech[0].epoch[crate::tech::Line::Science.index()] = 1;
     assert_eq!(s.buildings[b].mylos, 15, "the gain alone moves nothing");
     s.calc_wall_stats(0);
@@ -577,8 +577,8 @@ fn troops_sim() -> (crate::Sim, usize, usize, crate::tech::TypeId) {
         tree.add(TypeDef::unit("Merchant", crate::tech::UnitTraits::default()).at(market_id));
     tree.roles.troops_los_preq = [Some(herbal), None, None];
     s.set_tech_tree(tree);
-    s.build_types[barracks].tree = Some(barracks_id);
-    s.build_types[market].tree = Some(market_id);
+    s.tables.build_types[barracks].tree = Some(barracks_id);
+    s.tables.build_types[market].tree = Some(market_id);
     let mut add = |tree_id| {
         let t = s.add_unit_type(crate::UnitType {
             hits: 20,
@@ -608,9 +608,9 @@ fn a_troops_los_level_adds_two_tiles_to_a_barracks_unit_only() {
     assert_eq!(s.troops_los_level(0), 1);
     assert_eq!(
         (s.unit_los(explorer), s.unit_los(merchant)),
-        (6 + s.tuning.troops_upgrade_los, 6)
+        (6 + s.tables.tuning.troops_upgrade_los, 6)
     );
-    assert_eq!(s.tuning.troops_upgrade_los, 2);
+    assert_eq!(s.tables.tuning.troops_upgrade_los, 2);
 }
 
 /// §2: the tech reaches a unit's `mylos` through `gain_tech`'s tail —
@@ -1070,7 +1070,7 @@ fn an_animal_is_seen_through_the_ever_seen_plane() {
     s.units[a].herd = None;
     assert!(s.target_seen_by(1, t), "a herdless one reads was_seen");
     s.units[a].herd = Some(0);
-    s.setup.starting_town = true;
+    s.tables.setup.starting_town = true;
     s.tech[1].has_city = true;
     s.tech[1].power = Some(9);
     assert!(s.target_seen_by(1, t), "a Spanish viewer reads was_seen");

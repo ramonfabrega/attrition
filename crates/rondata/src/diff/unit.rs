@@ -270,7 +270,7 @@ mod tests {
                         continue;
                     };
                     let Some(ty) = link.kind else { continue };
-                    let crew = built.sim.unit_types[ty].combat.crew_size;
+                    let crew = built.sim.tables.unit_types[ty].combat.crew_size;
                     let ours = usize::try_from(crew + sim::anim::SQUAD_SIZE as i32).unwrap_or(0);
                     rows += 1;
                     *counts.entry(u.guys.len()).or_default() += 1;
@@ -2939,7 +2939,7 @@ mod tests {
         let named = |t: i32| {
             usize::try_from(t)
                 .ok()
-                .and_then(|t| built.sim.tech_tree.types.get(t))
+                .and_then(|t| built.sim.tables.tech_tree.types.get(t))
                 .map(|d| d.name.clone())
                 .unwrap_or_default()
         };

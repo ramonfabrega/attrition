@@ -20,10 +20,10 @@ fn an_unpack_puts_a_trackless_crew_figure_on_its_leader() {
         hits: 100,
         ..UnitType::default()
     });
-    s.unit_types[ty].combat.packs = true;
+    s.tables.unit_types[ty].combat.packs = true;
     // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
-    s.unit_types[ty].combat.crew_size = 1;
-    s.unit_types[ty].type_index = 0x7f;
+    s.tables.unit_types[ty].combat.crew_size = 1;
+    s.tables.unit_types[ty].type_index = 0x7f;
     let piece = |guy: i32, gender: bool| {
         0x7f - 0x32
             + FIRST_UNIT_PIECE
@@ -83,10 +83,10 @@ fn an_unpack_puts_a_tracked_crew_figure_on_its_new_offset() {
         hits: 100,
         ..UnitType::default()
     });
-    s.unit_types[ty].combat.packs = true;
+    s.tables.unit_types[ty].combat.packs = true;
     // Two figures: `CREW_SIZE 1`, which `gpiece_walk` bounds the crew by.
-    s.unit_types[ty].combat.crew_size = 1;
-    s.unit_types[ty].type_index = 0x7f;
+    s.tables.unit_types[ty].combat.crew_size = 1;
+    s.tables.unit_types[ty].type_index = 0x7f;
     let piece = |guy: i32, gender: bool| {
         0x7f - 0x32
             + FIRST_UNIT_PIECE
@@ -242,7 +242,7 @@ fn a_pushed_unit_s_trackless_crew_rolls_its_idle_alone() {
 fn an_unpacked_packer_s_moving_figure_asks_for_no_walk() {
     let mut s = sim_at(12345);
     let t = s.add_unit_type(crate::UnitType::default());
-    s.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.packs = true;
     let u = animal(&mut s, 0, 6, -1, DEFAULT, 5, 79);
     s.units[u].ty = Some(t);
     s.units[u].combat.packed = false;
@@ -1065,8 +1065,8 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     barge.combat.domain = crate::attrition::Domain::Sea;
     barge.combat.block_radius = 48;
     let b = s.add_unit_type(barge);
-    s.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
-    s.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
+    s.tables.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
+    s.tables.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
     let index = s.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE).unwrap();
     let mut unit = Unit::new(1, index, tile_pos(30, 14), 40);
     unit.ty = Some(walker);

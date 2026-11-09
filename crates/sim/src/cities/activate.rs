@@ -113,12 +113,13 @@ impl ActivateHeadView for SimHead<'_> {
         self.sim.nation[self.who as usize].chinese
     }
     fn chinese_large_cities(&mut self) -> bool {
-        self.sim.tuning.chinese_large_cities != 0
+        self.sim.tables.tuning.chinese_large_cities != 0
     }
     fn set_type(&mut self, id: i32) {
         debug_assert_eq!(id, 0x19f, "the head converts to a Town");
         if let Some(town) = self
             .sim
+            .tables
             .build_types
             .iter()
             .position(|t| t.ident == Ident::Town)
@@ -126,7 +127,7 @@ impl ActivateHeadView for SimHead<'_> {
             let b = self.b;
             self.sim.buildings[b].ty = Some(town);
             self.sim.buildings[b].combat =
-                Some(self.sim.build_types[town].combat.unwrap_or_default());
+                Some(self.sim.tables.build_types[town].combat.unwrap_or_default());
         }
     }
     /// SEAM: the city arm's `mask_city` masks the converted centre.
@@ -333,9 +334,11 @@ impl ActivateHeadView for SimArms<'_> {
     fn cities_add(&mut self, _d: i32) {}
     fn tribe_bonus(&mut self, bonus: i32) -> bool {
         debug_assert_eq!(bonus, 0x17, "the arms ask the Persian bonus only");
-        self.sim
-            .tech_tree
-            .has_tribe_bonus(&self.sim.setup, &self.sim.tech[self.who as usize], 0x17)
+        self.sim.tables.tech_tree.has_tribe_bonus(
+            &self.sim.tables.setup,
+            &self.sim.tech[self.who as usize],
+            0x17,
+        )
     }
     fn chinese_large_cities(&mut self) -> bool {
         false
@@ -378,8 +381,9 @@ impl ActivateArmsView for SimArms<'_> {
     fn get_gov_hero(&mut self) -> i32 {
         let who = self.who as usize;
         self.sim
+            .tables
             .tech_tree
-            .get_gov_hero(&self.sim.setup, &self.sim.tech[who])
+            .get_gov_hero(&self.sim.tables.setup, &self.sim.tech[who])
             .and_then(|h| self.sim.unit_record(h))
             .map_or(-1, |r| r as i32)
     }

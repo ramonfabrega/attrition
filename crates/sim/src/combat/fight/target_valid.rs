@@ -63,7 +63,7 @@ impl Sim {
         let worker = match target {
             Obj::Unit(t) => self.units[t]
                 .ty
-                .is_some_and(|ty| (0x32..=0x35).contains(&self.unit_types[ty].type_index)),
+                .is_some_and(|ty| (0x32..=0x35).contains(&self.tables.unit_types[ty].type_index)),
             Obj::Building(_) => true,
         };
         let k = if !worker && self.ai_driven(self.units[u].owner) {
@@ -71,7 +71,7 @@ impl Sim {
         } else {
             2
         };
-        let r = self.tuning.unit_guard_respond_range * k * 0x60;
+        let r = self.tables.tuning.unit_guard_respond_range * k * 0x60;
         let (to, me, post) = (self.pos_of(target), self.units[u].pos, g.guard);
         if vector_dist(to.x - post.x, to.y - post.y) > r
             || vector_dist(me.x - post.x, me.y - post.y) > r
@@ -341,7 +341,7 @@ impl Sim {
         if let Obj::Unit(u) = attacker
             && self.units[u]
                 .ty
-                .is_some_and(|ty| self.unit_types[ty].cols.flag(0x10_2000))
+                .is_some_and(|ty| self.tables.unit_types[ty].cols.flag(0x10_2000))
             && (!matches!(tp.domain, Domain::Sea) || matches!(target, Obj::Building(_)))
         {
             return false;
@@ -392,7 +392,9 @@ impl Sim {
                 && self.is_helicopter(t)
                 && (self.is_siege_unit(a)
                     || self.units[a].ty.is_some_and(|ty| {
-                        self.unit_types[ty].cols.flag(crate::ai_load::uflags::TANK)
+                        self.tables.unit_types[ty]
+                            .cols
+                            .flag(crate::ai_load::uflags::TANK)
                     })
                     || self.is_bomber(a))
             {
@@ -517,9 +519,11 @@ impl Sim {
         let p = self.units[u].pos;
         let (fx, fy) = (p.x / fog, p.y / fog);
         let bonus = |n| {
-            self.tech
-                .get(who as usize)
-                .is_some_and(|t| self.tech_tree.has_tribe_bonus(&self.setup, t, n))
+            self.tech.get(who as usize).is_some_and(|t| {
+                self.tables
+                    .tech_tree
+                    .has_tribe_bonus(&self.tables.setup, t, n)
+            })
         };
         if self.units[u].herd.is_none() || bonus(9) || bonus(4) {
             self.was_seen_fog(fx, fy, who)
@@ -548,7 +552,7 @@ impl Sim {
         let Some(t) = un.ty else {
             return false;
         };
-        let cols = self.unit_types[t].cols;
+        let cols = self.tables.unit_types[t].cols;
         cols.flag(crate::ai_load::uflags::STEALTH)
             && !cols.flag(crate::ai_load::uflags::CLOAKED)
             && !un.cloak
@@ -560,7 +564,7 @@ impl Sim {
         let Some(t) = un.ty else {
             return false;
         };
-        let cols = self.unit_types[t].cols;
+        let cols = self.tables.unit_types[t].cols;
         let stealthy = un.cloak
             || cols.flag(crate::ai_load::uflags::CLOAKED)
             || un.unit_masks2 & 0x8000 != 0
@@ -647,7 +651,7 @@ impl Sim {
         if self.sees_every_unit(who) {
             return true;
         }
-        if self.holds_bonus(who, self.tech_tree.roles.territory_reveal_preq)
+        if self.holds_bonus(who, self.tables.tech_tree.roles.territory_reveal_preq)
             && let crate::world::Owner::Player(o) =
                 self.world.owner(crate::Cell::new(fx >> 1, fy >> 1))
             && self.is_ally(who, o)

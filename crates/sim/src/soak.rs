@@ -317,7 +317,7 @@ fn scenario(rng: &mut Rng) -> (Sim, Types) {
         let who = (i % 2) as Player;
         let worker = rng.get(0, 1) == 0;
         let ty = if worker { types.citizen } else { types.soldier };
-        let t = &sim.unit_types[ty];
+        let t = &sim.tables.unit_types[ty];
         let (hits, moves, turn) = (t.hits, t.moves, t.turn_speed);
         let pos = centre(Cell::new(rng.get(1, CELLS - 2), rng.get(1, CELLS - 2)));
         let mut u = Unit::new(who, i as i16, pos, hits);

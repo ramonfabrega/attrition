@@ -27,19 +27,24 @@ impl Sim {
             return;
         }
         let steps = self
+            .tables
             .tech_tree
             .roles
             .attrition_preq
             .iter()
             .take_while(|row| {
-                row.is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[w], t))
+                row.is_some_and(|t| {
+                    self.tables
+                        .tech_tree
+                        .has_tech(&self.tables.setup, &self.tech[w], t)
+                })
             })
             .count();
         let mods = attrition::StrengthMods {
             russian: self.nation.get(w).is_some_and(|n| n.russians),
             ..attrition::StrengthMods::default()
         };
-        self.players[w].strength = attrition::strength(&self.tuning, steps, &mods);
+        self.players[w].strength = attrition::strength(&self.tables.tuning, steps, &mods);
     }
 
     /// Gives a dead unit's supply slot back — `Unit::close` — and takes it
@@ -94,7 +99,7 @@ impl Sim {
     /// no bookkeeping anywhere.
     pub fn supplied_at(&self, owner: Player, at: Pos) -> bool {
         let upgrades = self.supply_upgrade_level(owner);
-        self.supply[owner as usize].supplies(&self.tuning, upgrades, at, |u| {
+        self.supply[owner as usize].supplies(&self.tables.tuning, upgrades, at, |u| {
             self.units.get(u).map(|w| supply::Wagon {
                 pos: w.pos,
                 active: w.alive(),
@@ -168,13 +173,13 @@ impl Sim {
     pub(crate) fn player_borders(&self, who: Player) -> territory::PlayerBorders {
         let w = who as usize;
         let civic = self.tech[w].epoch[tech::Line::Civic.index()].max(0);
-        let roles = &self.tech_tree.roles;
+        let roles = &self.tables.tech_tree.roles;
         let temple_level = 1 + self.bonus_level(who, &roles.temple_borders_preq) as i32;
         let fort_level = 1 + self.bonus_level(who, &roles.fort_borders_preq) as i32;
         let n = &self.nation[w];
         let held = self.wonders_held(who);
         territory::PlayerBorders::new(
-            &self.tuning,
+            &self.tables.tuning,
             civic as usize,
             temple_level,
             fort_level,
@@ -206,7 +211,7 @@ impl Sim {
         let players = u8::try_from(self.players.len()).expect("too many players");
         let by_source = territory::compute_all_territory_won(
             &mut self.world,
-            &self.tuning,
+            &self.tables.tuning,
             &self.sources,
             players,
         );
@@ -320,7 +325,7 @@ impl Sim {
             conquest_exempt: false,
         };
         attrition::process(
-            &self.tuning,
+            &self.tables.tuning,
             &unit.kind,
             unit.owner,
             victim,

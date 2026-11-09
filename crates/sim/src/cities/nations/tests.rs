@@ -115,7 +115,7 @@ fn a_tribe_of_minus_one_is_a_leader_with_no_nation() {
 #[test]
 fn the_lobby_s_no_nation_powers_puts_every_flag_out() {
     let mut s = sim();
-    s.setup.no_nation_powers = true;
+    s.tables.setup.no_nation_powers = true;
     s.set_tribe(0, 11);
     assert_eq!(s.tech[0].power, Some(11), "the nation is still the nation");
     assert!(!s.nation[0].british, "but the power is off");
@@ -128,7 +128,7 @@ fn the_lobby_s_no_nation_powers_puts_every_flag_out() {
     t.set_tribe(0, 11);
     assert!(t.nation[0].british, "a starting town opens the gate");
     let mut n = sim();
-    n.setup.starting_town = false;
+    n.tables.setup.starting_town = false;
     n.tech[0].has_city = false;
     n.set_tribe(0, 11);
     assert!(!n.nation[0].british, "nomads have no power without a city");
@@ -146,7 +146,7 @@ fn run40_s_british_cap_follows_from_the_dump_s_tribe() {
     s.set_tribe(1, 11); // the AI, British
     s.assemble_holdings(0);
     s.assemble_holdings(1);
-    let t = &s.tuning;
+    let t = &s.tables.tuning;
     let cap = |w: usize| economy::commerce_cap(t, &s.holdings[w], Resource::Food);
     assert_eq!(cap(0), 1120, "70 x 16");
     assert_eq!(cap(1), 1392, "70 x 125 / 100 = 87, then x 16");

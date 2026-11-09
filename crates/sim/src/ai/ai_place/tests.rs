@@ -134,8 +134,8 @@ fn check_building_wcoord_gates_on_the_cell_before_the_corners() {
 #[test]
 fn the_city_centre_is_the_friend_of_four_cells() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
-    let rec = sim.build_types.len();
-    sim.build_types.push(crate::build::BuildType {
+    let rec = sim.tables.build_types.len();
+    sim.tables.build_types.push(crate::build::BuildType {
         ident: Ident::Village,
         x_size: 7,
         y_size: 7,
@@ -173,8 +173,8 @@ fn the_city_centre_is_the_friend_of_four_cells() {
         "`param_3` filters by owner"
     );
     // Four tiles or fewer: exactly one cell, and the two readings agree.
-    sim.build_types[rec].x_size = 4;
-    sim.build_types[rec].y_size = 4;
+    sim.tables.build_types[rec].x_size = 4;
+    sim.tables.build_types[rec].y_size = 4;
     sim.buildings[b].pos = Pos::new(51 * 768 + 384, 52 * 768 + 384);
     let small: Vec<(i32, i32)> = (50..53)
         .flat_map(|x| (51..54).map(move |y| (x, y)))
@@ -192,8 +192,8 @@ fn the_city_centre_is_the_friend_of_four_cells() {
 #[test]
 fn a_placed_site_holds_no_centre_until_it_starts() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
-    let rec = sim.build_types.len();
-    sim.build_types.push(crate::build::BuildType {
+    let rec = sim.tables.build_types.len();
+    sim.tables.build_types.push(crate::build::BuildType {
         x_size: 4,
         y_size: 4,
         hits: 100,
@@ -222,8 +222,8 @@ fn a_placed_site_holds_no_centre_until_it_starts() {
 fn an_enhancer_counts_the_gather_buildings_of_its_good() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let mut ty = |ident: Ident| {
-        let rec = sim.build_types.len();
-        sim.build_types.push(crate::build::BuildType {
+        let rec = sim.tables.build_types.len();
+        sim.tables.build_types.push(crate::build::BuildType {
             ident,
             x_size: 4,
             y_size: 4,
@@ -278,8 +278,8 @@ fn an_enhancer_counts_the_gather_buildings_of_its_good() {
 fn a_missile_silo_counts_the_trainers_the_derived_flag_names() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let mut ty = |ident: Ident, trainer: bool| {
-        let rec = sim.build_types.len();
-        sim.build_types.push(crate::build::BuildType {
+        let rec = sim.tables.build_types.len();
+        sim.tables.build_types.push(crate::build::BuildType {
             ident,
             x_size: 4,
             y_size: 4,
@@ -314,7 +314,7 @@ fn a_missile_silo_counts_the_trainers_the_derived_flag_names() {
     );
     // Off the flag, the same Silo falls to the "anything else" arm: the
     // Library counts and a non-city trainer is nothing.
-    sim.build_types[silo].flags = 0;
+    sim.tables.build_types[silo].flags = 0;
     assert_eq!(sim.find_friends(silo, at, None, 1), 2, "the Library alone");
 }
 
@@ -328,8 +328,8 @@ fn a_missile_silo_counts_the_trainers_the_derived_flag_names() {
 fn a_keep_counts_its_gather_neighbours_as_a_tower_does() {
     let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
     let mut ty = |ident: Ident, from: Option<usize>, letters: &str, attack: i32| {
-        let rec = sim.build_types.len();
-        sim.build_types.push(crate::build::BuildType {
+        let rec = sim.tables.build_types.len();
+        sim.tables.build_types.push(crate::build::BuildType {
             ident,
             from,
             flags: flags::parse(letters),

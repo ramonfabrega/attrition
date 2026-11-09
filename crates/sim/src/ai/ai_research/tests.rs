@@ -193,7 +193,7 @@ fn sim() -> (Sim, Types) {
 
     sim.set_tech_tree(tree);
     for (rec, id) in recs.iter().zip(ids.iter()) {
-        sim.build_types[*rec].tree = Some(*id);
+        sim.tables.build_types[*rec].tree = Some(*id);
     }
     sim.nation[0].human = true;
     let t = Types {
@@ -258,7 +258,9 @@ fn small(sim: &mut Sim, who: Player) {
 
 /// The value one tech would be offered at, straight from the scorer.
 fn value(sim: &mut Sim, who: Player, t: TypeId) -> Option<(i32, i32)> {
-    let where_ = sim.tech_tree.types[t].where_.expect("a research building");
+    let where_ = sim.tables.tech_tree.types[t]
+        .where_
+        .expect("a research building");
     let rec = sim.build_record(where_).expect("a building record");
     let low = sim.lowest_epoch(who);
     let over = sim.goods_over_cap(who);
@@ -412,9 +414,9 @@ fn the_recency_factors_only_fall_below_their_cap_on_a_future_stamp() {
 fn the_british_pay_half_for_the_taxation_line() {
     let (mut sim, t) = sim();
     for x in [t.taxation, t.religion] {
-        sim.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
+        sim.tables.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
     }
-    sim.tech_tree.roles.taxation_line = vec![t.taxation];
+    sim.tables.tech_tree.roles.taxation_line = vec![t.taxation];
     sim.holdings[1].available = [true, true, true, true, true, false];
     sim.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
     sim.tech[1].has_city = true;
@@ -443,9 +445,9 @@ fn the_british_pay_half_for_the_taxation_line() {
 fn the_germans_pay_half_for_the_industry_lines() {
     let (mut sim, t) = sim();
     for x in [t.taxation, t.religion] {
-        sim.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
+        sim.tables.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
     }
-    sim.tech_tree.types[t.taxation].name = "Carpentry".into();
+    sim.tables.tech_tree.types[t.taxation].name = "Carpentry".into();
     sim.holdings[1].available = [true, true, true, true, true, false];
     sim.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
     sim.tech[1].has_city = true;
@@ -473,7 +475,7 @@ fn the_germans_pay_half_for_the_industry_lines() {
 fn an_american_government_is_free() {
     let (mut sim, t) = sim();
     for x in [t.gov_b, t.taxation] {
-        sim.tech_tree.types[x].cost = [7, 0, 0, 0, 7, 0];
+        sim.tables.tech_tree.types[x].cost = [7, 0, 0, 0, 7, 0];
     }
     sim.holdings[1].available = [true, true, true, true, true, false];
     let plain = sim.tech_price(1, t.gov_b);
@@ -494,15 +496,15 @@ fn democracy_prices_non_library_research_before_british_taxation() {
     let (mut sim, t) = sim();
     sim.holdings[1].available = [true, true, true, true, true, false];
     sim.tech[1].has_city = true;
-    sim.tech_tree.types[t.religion].cost = [15, 0, 15, 0, 0, 0];
-    sim.tech_tree.types[t.agriculture].cost = [18, 0, 18, 0, 0, 0];
+    sim.tables.tech_tree.types[t.religion].cost = [15, 0, 15, 0, 0, 0];
+    sim.tables.tech_tree.types[t.agriculture].cost = [18, 0, 18, 0, 0, 0];
     sim.ledgers[1].bucket = [193, 189, 242, 619, 218, 0];
     let income = |s: &Sim| s.check_income(1, t.agriculture, 0x400, None, true, -1, 1, 0);
     assert_eq!(sim.tech_price(1, t.religion), [165, 0, 165, 0, 0, 0]);
     assert_eq!(income(&sim), 0x40, "198 food exceeds the 193 held");
     let lower = [Preq::Of(t.gov_a), Preq::None, Preq::None];
     let higher = [Preq::Of(t.gov_b), Preq::Of(t.gov_a), Preq::None];
-    sim.tech_tree.roles.democracy_preqs = [Some(lower), Some(higher)];
+    sim.tables.tech_tree.roles.democracy_preqs = [Some(lower), Some(higher)];
     sim.tech[1].tech[t.gov_b] = true;
     assert_eq!(
         sim.tech_price(1, t.religion)[0],
@@ -520,27 +522,28 @@ fn democracy_prices_non_library_research_before_british_taxation() {
 
     // Separate tiers so the else-chain cannot accidentally compound them
     // or select the lower one: shipped bonuses are both 20.
-    sim.tuning.democracy_tech_bonus = [10, 20];
+    sim.tables.tuning.democracy_tech_bonus = [10, 20];
     assert_eq!(sim.tech_price(1, t.religion)[0], 132);
     sim.tech[1].tech[t.gov_b] = false;
     assert_eq!(sim.tech_price(1, t.religion)[0], 148);
-    sim.tech_tree.roles.democracy_preqs[0] = Some([Preq::Of(t.gov_a), Preq::None, Preq::Disabled]);
+    sim.tables.tech_tree.roles.democracy_preqs[0] =
+        Some([Preq::Of(t.gov_a), Preq::None, Preq::Disabled]);
     assert_eq!(
         sim.tech_price(1, t.religion)[0],
         165,
         "disabled prerequisite refuses"
     );
-    sim.tech_tree.roles.democracy_preqs[0] = Some(lower);
-    sim.tuning.democracy_tech_bonus = [20, 20];
+    sim.tables.tech_tree.roles.democracy_preqs[0] = Some(lower);
+    sim.tables.tuning.democracy_tech_bonus = [20, 20];
 
-    let library = sim.build_types[t.library].tree.unwrap();
+    let library = sim.tables.build_types[t.library].tree.unwrap();
     for (id, kind) in [
         (t.classical, "age"),
         (t.science1, "epoch"),
         (t.taxation, "plain library tech"),
     ] {
-        sim.tech_tree.types[id].cost = [15, 0, 15, 0, 0, 0];
-        sim.tech_tree.types[id].where_ = Some(library);
+        sim.tables.tech_tree.types[id].cost = [15, 0, 15, 0, 0, 0];
+        sim.tables.tech_tree.types[id].where_ = Some(library);
         sim.tech[1].tech[t.gov_a] = false;
         let price = sim.tech_price(1, id);
         sim.tech[1].tech[t.gov_a] = true;
@@ -548,13 +551,13 @@ fn democracy_prices_non_library_research_before_british_taxation() {
     }
     // Even a mislocated age/epoch is excluded by its kind first.
     for id in [t.classical, t.science1] {
-        sim.tech_tree.types[id].where_ = sim.tech_tree.types[t.religion].where_;
+        sim.tables.tech_tree.types[id].where_ = sim.tables.tech_tree.types[t.religion].where_;
         assert_eq!(sim.democracy_tech_discount(1, id), 0);
     }
-    sim.tech_tree.roles.taxation_line = vec![t.religion];
+    sim.tables.tech_tree.roles.taxation_line = vec![t.religion];
     sim.tech[1].power = Some(0xb);
     // A base that distinguishes the two sequential truncations.
-    sim.tech_tree.types[t.religion].cost = [13, 0, 13, 0, 0, 0];
+    sim.tables.tech_tree.types[t.religion].cost = [13, 0, 13, 0, 0, 0];
     assert_eq!(
         sim.tech_price(1, t.religion)[0],
         57,
@@ -569,7 +572,7 @@ fn democracy_prices_non_library_research_before_british_taxation() {
 fn silver_takes_its_percent_off_an_age_and_nothing_else() {
     let (mut sim, t) = sim();
     for x in [t.classical, t.science1, t.taxation] {
-        sim.tech_tree.types[x].cost = [45, 0, 0, 45, 0, 0];
+        sim.tables.tech_tree.types[x].cost = [45, 0, 0, 45, 0, 0];
     }
     sim.holdings[1].available = [true, true, true, true, true, false];
     let (age, epoch, plain) = (
@@ -594,7 +597,7 @@ fn the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.tech_tree.types[t.science1].cost = [10, 0, 0, 0, 0, 0];
+    sim.tables.tech_tree.types[t.science1].cost = [10, 0, 0, 0, 0, 0];
     sim.holdings[1].available = [true, true, true, true, true, false];
     let price = sim.tech_price(1, t.science1)[0];
     let head = |escrow| crate::ai::MakeObject {
@@ -635,9 +638,9 @@ fn the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket() {
 #[test]
 fn a_line_s_rare_and_nations_take_their_percent_off_its_epochs() {
     let (mut sim, t) = sim();
-    let civic1 = sim.tech_tree.epochs[Line::Civic.index()][1].unwrap();
+    let civic1 = sim.tables.tech_tree.epochs[Line::Civic.index()][1].unwrap();
     for x in [civic1, t.commerce2, t.military1, t.taxation] {
-        sim.tech_tree.types[x].cost = [160, 0, 0, 0, 0, 0];
+        sim.tables.tech_tree.types[x].cost = [160, 0, 0, 0, 0, 0];
     }
     sim.holdings[1].available = [true, true, true, true, true, false];
     let price = |sim: &Sim, x| sim.tech_price(1, x)[0];
@@ -680,7 +683,7 @@ fn a_line_s_rare_and_nations_take_their_percent_off_its_epochs() {
     // another line.
     sim.tech[1].power = None;
     sim.ledgers[1].rare = 0;
-    sim.tech_tree.roles.despotism_preq = [Some(t.taxation); 3];
+    sim.tables.tech_tree.roles.despotism_preq = [Some(t.taxation); 3];
     sim.tech[1].tech[t.taxation] = true;
     assert_eq!(
         price(&sim, t.military1),
@@ -774,8 +777,8 @@ fn a_tower_tech_is_refused_below_difficulty_two_and_takes_slot_six() {
     let (hard, slot) = value(&mut sim, 1, t.fortification).expect("offered at 2");
     assert_eq!(slot, 6, "the Tower overrides the category's slot");
     // The ×100 is the Tower's: the same tech at a Temple takes ×4.
-    let temple_id = sim.build_types[t.temple].tree.expect("a tree entry");
-    sim.tech_tree.types[t.fortification].where_ = Some(temple_id);
+    let temple_id = sim.tables.build_types[t.temple].tree.expect("a tree entry");
+    sim.tables.tech_tree.types[t.fortification].where_ = Some(temple_id);
     building(&mut sim, 1, t.temple, 16, 5);
     let (soft, slot) = value(&mut sim, 1, t.fortification).expect("offered");
     assert_eq!(slot, 8);
@@ -801,8 +804,8 @@ fn the_university_multiplies_by_a_thousand() {
     building(&mut sim, 1, t.university, 12, 5);
     small(&mut sim, 1);
     let (uni, _) = value(&mut sim, 1, t.agriculture).expect("valued");
-    let temple_id = sim.build_types[t.temple].tree.expect("a tree entry");
-    sim.tech_tree.types[t.agriculture].where_ = Some(temple_id);
+    let temple_id = sim.tables.build_types[t.temple].tree.expect("a tree entry");
+    sim.tables.tech_tree.types[t.agriculture].where_ = Some(temple_id);
     building(&mut sim, 1, t.temple, 16, 5);
     let (tem, _) = value(&mut sim, 1, t.agriculture).expect("valued");
     assert_eq!(uni / 1000, tem / 4);
@@ -883,8 +886,8 @@ fn the_line_at_the_lowest_epoch_is_worth_ten_times_as_much() {
     city(&mut sim, &t, 1, 5, 5);
     // Read the ×10 away from the Library, whose own branch divides the
     // score by the line's level and would confound it.
-    let temple_id = sim.build_types[t.temple].tree.expect("a tree entry");
-    sim.tech_tree.types[t.science1].where_ = Some(temple_id);
+    let temple_id = sim.tables.build_types[t.temple].tree.expect("a tree entry");
+    sim.tables.tech_tree.types[t.science1].where_ = Some(temple_id);
     building(&mut sim, 1, t.temple, 12, 5);
     small(&mut sim, 1);
     sim.lobby.difficulty = 3;
@@ -901,14 +904,14 @@ fn the_transport_bonus_s_prerequisite_is_worth_thirty_times_on_a_sea_map() {
     // 20000 (item 3515, `docs/AI.md` §304).
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
-    let temple_id = sim.build_types[t.temple].tree.expect("a tree entry");
-    sim.tech_tree.types[t.science1].where_ = Some(temple_id);
+    let temple_id = sim.tables.build_types[t.temple].tree.expect("a tree entry");
+    sim.tables.tech_tree.types[t.science1].where_ = Some(temple_id);
     building(&mut sim, 1, t.temple, 12, 5);
     small(&mut sim, 1);
     sim.lobby.difficulty = 3;
     sim.world.set_sea_map(2);
     let (plain, _) = value(&mut sim, 1, t.science1).expect("valued");
-    sim.tech_tree.roles.transport_preq = Some(t.science1);
+    sim.tables.tech_tree.roles.transport_preq = Some(t.science1);
     let (needed, _) = value(&mut sim, 1, t.science1).expect("valued");
     assert_eq!(needed, mul(plain, 30));
     // One landmass class or fewer: no multiplier.
@@ -994,7 +997,7 @@ fn the_knowledge_stockpile_gates_an_epoch() {
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
     sim.lobby.difficulty = 3;
-    sim.tech_tree.types[t.science1].cost[KNOWLEDGE] = 1_000_000;
+    sim.tables.tech_tree.types[t.science1].cost[KNOWLEDGE] = 1_000_000;
     sim.ledgers[1].bucket[KNOWLEDGE] = 10;
     assert_eq!(value(&mut sim, 1, t.science1), None);
     sim.ledgers[1].bucket[KNOWLEDGE] = 10_000_000;
@@ -1040,9 +1043,11 @@ fn produce_tech_prefers_the_undamaged_and_the_shorter_queue() {
     let a = building(&mut sim, 1, t.barracks, 12, 5);
     let b = building(&mut sim, 1, t.barracks, 12, 12);
     sim.ai[1].mil_trainers = vec![a, b];
-    let bt_id = sim.build_types[t.barracks].tree.expect("the tree entry");
-    sim.tech_tree.types[t.military1].where_ = Some(bt_id);
-    sim.tech_tree.types[t.science1].where_ = Some(bt_id);
+    let bt_id = sim.tables.build_types[t.barracks]
+        .tree
+        .expect("the tree entry");
+    sim.tables.tech_tree.types[t.military1].where_ = Some(bt_id);
+    sim.tables.tech_tree.types[t.science1].where_ = Some(bt_id);
     // `Build+0x24` is `ObjectData::damage`: a damaged trainer scores
     // lower, so the second one wins even though it is second in the
     // list.
@@ -1074,8 +1079,10 @@ fn a_military_trainer_is_searched_in_the_leaders_own_list() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     let bar = building(&mut sim, 1, t.barracks, 12, 5);
-    let bt_id = sim.build_types[t.barracks].tree.expect("the tree entry");
-    sim.tech_tree.types[t.military1].where_ = Some(bt_id);
+    let bt_id = sim.tables.build_types[t.barracks]
+        .tree
+        .expect("the tree entry");
+    sim.tables.tech_tree.types[t.military1].where_ = Some(bt_id);
     // Activating it filed it — `Wall::increment_stats`, `docs/AI.md` §29.
     assert_eq!(
         sim.ai[1].mil_trainers,

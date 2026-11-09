@@ -168,7 +168,8 @@ impl Sim {
     /// loaded it. A world stood up without the tables has none, and then
     /// the sampling records its spawns and creates nothing.
     pub fn bird_type(&self) -> Option<usize> {
-        self.unit_types
+        self.tables
+            .unit_types
             .iter()
             .position(|t| t.type_index == BIRD_TYPE_INDEX)
     }
@@ -217,14 +218,14 @@ impl Sim {
         let index = self
             .find_free(BIRD_OWNER, crate::UNIT_BASE, crate::BUILD_BASE)
             .unwrap_or(i16::MAX);
-        let mut unit = crate::Unit::new(BIRD_OWNER, index, at, self.unit_types[ty].hits);
-        unit.kind = self.unit_types[ty].kind;
+        let mut unit = crate::Unit::new(BIRD_OWNER, index, at, self.tables.unit_types[ty].hits);
+        unit.kind = self.tables.unit_types[ty].kind;
         unit.ty = Some(ty);
         // `TypeIndex::BIRD`. `set_anim` names it by identity twice — the
         // wing-beat coin and the early return it is exempt from — so a
         // bird that carried the default −1 was a bird whose animation
         // could never resolve (`docs/SYNC.md` §3.9).
-        unit.type_index = self.unit_types[ty].type_index;
+        unit.type_index = self.tables.unit_types[ty].type_index;
         unit.form = crate::init_form(unit.type_index);
         // The flight reads both (`crate::air`): `MOVES` is already position
         // units a frame, and `TURN_SPEED` is what scales the bank's rate.

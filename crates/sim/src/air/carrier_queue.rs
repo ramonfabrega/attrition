@@ -62,7 +62,7 @@ impl Sim {
             return None;
         }
         let rec = self.unit_rec_of_index(ti)?;
-        if self.unit_types[rec].combat.domain != attrition::Domain::Air {
+        if self.tables.unit_types[rec].combat.domain != attrition::Domain::Air {
             return None;
         }
         let mut queued = 0;
@@ -105,8 +105,9 @@ impl Sim {
             .filter(|p| {
                 p.alive()
                     && p.inside_unit == Some(carrier)
-                    && p.ty
-                        .is_some_and(|t| self.unit_types[t].combat.domain == attrition::Domain::Air)
+                    && p.ty.is_some_and(|t| {
+                        self.tables.unit_types[t].combat.domain == attrition::Domain::Air
+                    })
             })
             .count() as i32
     }
@@ -116,7 +117,7 @@ impl Sim {
     /// building's ([`Sim::airbase_pad_full`]).
     fn unit_aircraft_limit(&self, u: usize) -> i32 {
         if self.unit_line_is(u, AIRCRAFTCARRIER) {
-            self.tuning.max_aircraft_per_carrier
+            self.tables.tuning.max_aircraft_per_carrier
         } else {
             0
         }
@@ -135,13 +136,13 @@ impl Sim {
             return;
         };
         let target = self.unit_train_target(who, t, false);
-        let accel = self.tuning.accel_train;
+        let accel = self.tables.tuning.accel_train;
         self.units[u].queue_time += accel;
         if self.units[u].queue_time < target {
             return;
         }
         let muster = &self.muster[who as usize];
-        if muster.cap < self.unit_types[t].price.pop + muster.control {
+        if muster.cap < self.tables.unit_types[t].price.pop + muster.control {
             self.units[u].queue_time -= accel;
             return;
         }

@@ -95,7 +95,7 @@ impl Sim {
         if !self.group_is_on_map(g) || !g.list.iter().any(|&u| self.units[u].alive()) {
             return None;
         }
-        let tree = self.build_types[ty].tree?;
+        let tree = self.tables.build_types[ty].tree?;
         if self.type_avail(g.who, tree) != crate::tech::AVAILABLE {
             return None;
         }
@@ -531,7 +531,7 @@ impl Sim {
             // citizen carries the group's `form_mod` like every other
             // member (run157's `1/1` on 990, §24).
             if !self.units[u].ty.is_some_and(|t| {
-                self.unit_types[t]
+                self.tables.unit_types[t]
                     .cols
                     .is(crate::ai_load::role::ROLE_CITIZEN)
             }) {
@@ -654,10 +654,11 @@ impl Sim {
             let grouped = self.gstate(g).is_some()
                 && matches!(kind, MoveKind::MoveTo | MoveKind::AttackTo)
                 && !self.is_modern_infantry(u)
-                && !(self.units[u]
-                    .ty
-                    .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::ROLE_SCOUT))
-                    && !self.ai_driven(g.who))
+                && !(self.units[u].ty.is_some_and(|t| {
+                    self.tables.unit_types[t]
+                        .cols
+                        .is(crate::ai_load::role::ROLE_SCOUT)
+                }) && !self.ai_driven(g.who))
                 && g.num() >= 2
                 && !self.units[u].in_danger
                 && self.group_domain(u) != Domain::Sea
@@ -741,7 +742,7 @@ impl Sim {
     pub(crate) fn region_spot_type(&self, u: usize, s0: Pos) -> Option<usize> {
         let own = self.units[u].ty?;
         let who = self.units[u].owner;
-        if self.unit_types[own].combat.domain == Domain::Land
+        if self.tables.unit_types[own].combat.domain == Domain::Land
             && self.invalid_loc(u, s0.tile(), true, true, false, false, false) != 0
             && self.transport_level(who) != crate::transport::TransportType::None
         {
@@ -759,7 +760,7 @@ impl Sim {
     pub(crate) fn clear_keeping_pack(&mut self, u: usize) -> bool {
         let packs = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs);
+            .is_some_and(|t| self.tables.unit_types[t].combat.packs);
         if !packs || !self.is_packing(u) {
             return false;
         }
@@ -985,7 +986,7 @@ impl Sim {
             let flag = |f: u32| {
                 self.units[m]
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.flag(f))
+                    .is_some_and(|t| self.tables.unit_types[t].cols.flag(f))
             };
             let admitted = flag(uflags::FLAG_HELICOPTER)
                 || self.group_domain(m) == dom
@@ -1523,7 +1524,7 @@ impl Sim {
             (Flight::Home, Obj::Building(b))
                 if self.buildings[b].owner == g.who
                     && self.buildings[b].ty.is_some_and(|t| {
-                        crate::build::is(&self.build_types, t, crate::build::Ident::Airbase)
+                        crate::build::is(&self.tables.build_types, t, crate::build::Ident::Airbase)
                     }) =>
             {
                 Some(b)

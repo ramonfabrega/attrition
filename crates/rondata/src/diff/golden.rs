@@ -2409,8 +2409,8 @@ fn widen_civilians_walk(
                 let bd = &s.built.sim.buildings[b];
                 let cycles = bd
                     .ty
-                    .and_then(|t| s.built.sim.build_types[t].tree)
-                    .is_some_and(|id| s.built.sim.tech_tree.types[id].wall_cycle.is_some());
+                    .and_then(|t| s.built.sim.tables.build_types[t].tree)
+                    .is_some_and(|id| s.built.sim.tables.tech_tree.types[id].wall_cycle.is_some());
                 // **Every armed building's target** (item 3970, `docs/GOLDEN.md`
                 // §176): `attack_ox`/`attack_whom` on a building whose attack
                 // is not zero as well, the Tower and Fort lines and a city

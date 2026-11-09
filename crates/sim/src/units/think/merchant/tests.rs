@@ -20,7 +20,7 @@ fn merchant_sim() -> (Sim, usize) {
     s.nation[0].human = true;
     s.nation[1].human = false;
     {
-        let t = &mut s.tech_tree;
+        let t = &mut s.tables.tech_tree;
         while t.types.len() < 0x3d {
             t.add(crate::tech::TypeDef::plain("filler", -1));
         }
@@ -31,7 +31,7 @@ fn merchant_sim() -> (Sim, usize) {
         assert_eq!(m, 0x3d, "the fixture's ids are TypeIndex's");
     }
     s.tech = (0..2)
-        .map(|_| crate::tech::PlayerTech::new(&s.tech_tree))
+        .map(|_| crate::tech::PlayerTech::new(&s.tables.tech_tree))
         .collect();
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
@@ -40,7 +40,7 @@ fn merchant_sim() -> (Sim, usize) {
         type_index: 0x3d,
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.packs = true;
     let at = Pos::new(20 * UNITS_PER_CELL + 384, 20 * UNITS_PER_CELL + 384);
     let mut u = crate::Unit::new(1, 19, at, 20);
     u.ty = Some(t);
@@ -171,9 +171,9 @@ fn a_unit_on_a_candidate_s_corner_refuses_the_spot() {
     let (mut s, u) = merchant_sim();
     // `BLOCK_RADIUS 1`, `coll_size 1` — the profile that blocks.
     let rec = s.units[u].ty.expect("a type");
-    s.unit_types[rec].combat.block_radius = 48;
-    s.unit_types[rec].combat.big_radius = 48;
-    s.unit_types[rec].combat.uber_size = 1;
+    s.tables.unit_types[rec].combat.block_radius = 48;
+    s.tables.unit_types[rec].combat.big_radius = 48;
+    s.tables.unit_types[rec].combat.uber_size = 1;
     // The merchant stands inside tile `t`, off its corner's unit cell.
     let t = Pos::new(82, 106);
     let corner = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
@@ -313,8 +313,8 @@ fn a_dutch_merchant_searches_one_frame_in_thirty_two() {
     for (ty, walks) in [(0x3e, true), (0x3d, false)] {
         let (mut s, u) = merchant_sim();
         let t = s.units[u].ty.unwrap();
-        s.unit_types[t].tree = Some(ty);
-        s.unit_types[t].type_index = ty as i32;
+        s.tables.unit_types[t].tree = Some(ty);
+        s.tables.unit_types[t].type_index = ty as i32;
         s.units[u].type_index = ty as i32;
         let good = a_good(&mut s, Cell::new(5, 20));
         s.units[u].idle = 5;
@@ -346,7 +346,10 @@ fn a_dutch_merchant_gains_hits_attack_and_armour_by_age() {
     let (hits, armor) = (s.unit_hits(1, rec), s.armor_of(o));
     assert_eq!(s.attack_of(o), 0, "a merchant has no attack of its own");
     s.tech[1].power = Some(crate::ai::tribe::DUTCH);
-    let (hp, at) = (s.tuning.dutch_hp_bonus, s.tuning.dutch_attack_bonus);
+    let (hp, at) = (
+        s.tables.tuning.dutch_hp_bonus,
+        s.tables.tuning.dutch_attack_bonus,
+    );
     assert_eq!(s.unit_hits(1, rec), hits + 2 * hp);
     assert_eq!(s.attack_of(o), 2 * at * 10);
     assert_eq!(s.armor_of(o), armor + 2 * at);
@@ -363,9 +366,9 @@ fn a_caravan_with_the_attack_bonus_has_its_attack_replaced() {
     use crate::combat::Obj;
     let (mut s, u) = merchant_sim();
     let rec = s.units[u].ty.unwrap();
-    s.unit_types[rec].combat.attack = 30;
+    s.tables.unit_types[rec].combat.attack = 30;
     let o = Obj::Unit(u);
-    let mut tree = s.tech_tree.clone();
+    let mut tree = s.tables.tech_tree.clone();
     let tech = tree.types.len();
     tree.types.push(crate::tech::TypeDef::new(
         "Caravan Attack",
@@ -378,16 +381,23 @@ fn a_caravan_with_the_attack_bonus_has_its_attack_replaced() {
     }
     s.tech[1].tech[tech] = true;
     assert_eq!(s.attack_of(o), 30, "not a caravan: its own");
-    s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
-    assert_eq!(s.attack_of(o), s.tuning.caravan_attack_bonus, "replaced");
-    assert_eq!(s.tuning.caravan_attack_bonus, 20);
+    s.tables.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    assert_eq!(
+        s.attack_of(o),
+        s.tables.tuning.caravan_attack_bonus,
+        "replaced"
+    );
+    assert_eq!(s.tables.tuning.caravan_attack_bonus, 20);
     s.tech[1].tech[tech] = false;
     assert_eq!(s.attack_of(o), 30, "no tech: its own");
     s.tech[1].tech[tech] = true;
     s.tech[1].ages = 2;
     s.tech[1].has_city = true;
     s.tech[1].power = Some(crate::ai::tribe::DUTCH);
-    assert_eq!(s.attack_of(o), 20 + 2 * s.tuning.dutch_attack_bonus * 10);
+    assert_eq!(
+        s.attack_of(o),
+        20 + 2 * s.tables.tuning.dutch_attack_bonus * 10
+    );
 }
 
 /// The caravan arm's gates, from the other side (item 3387): a tree that
@@ -399,22 +409,28 @@ fn the_caravan_arm_is_off_without_the_tech_and_the_dutch_kinds_are_exact() {
     use crate::combat::Obj;
     let (mut s, u) = merchant_sim();
     let rec = s.units[u].ty.unwrap();
-    s.unit_types[rec].combat.attack = 30;
-    s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
+    s.tables.unit_types[rec].combat.attack = 30;
+    s.tables.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::FLAG2_CARAVAN;
     let o = Obj::Unit(u);
-    assert_eq!(s.tech_tree.roles.caravan_attack_preq, None);
+    assert_eq!(s.tables.tech_tree.roles.caravan_attack_preq, None);
     assert_eq!(s.attack_of(o), 30, "no role named: no replacement");
     // Dutch: a neighbouring id is no merchant, a supply flag is one.
-    s.unit_types[rec].cols.unit_flags2 = 0;
-    s.unit_types[rec].type_index = 0x3c;
+    s.tables.unit_types[rec].cols.unit_flags2 = 0;
+    s.tables.unit_types[rec].type_index = 0x3c;
     s.tech[1].ages = 2;
     s.tech[1].has_city = true;
     s.tech[1].power = Some(crate::ai::tribe::DUTCH);
     assert_eq!(s.attack_of(o), 30, "0x3c is no merchant");
-    s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::SUPPLY_OR_HERO;
-    assert_eq!(s.attack_of(o), 30 + 2 * s.tuning.dutch_attack_bonus * 10);
-    s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_CARAVAN;
-    assert_eq!(s.attack_of(o), 30 + 2 * s.tuning.dutch_attack_bonus * 10);
+    s.tables.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::SUPPLY_OR_HERO;
+    assert_eq!(
+        s.attack_of(o),
+        30 + 2 * s.tables.tuning.dutch_attack_bonus * 10
+    );
+    s.tables.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_CARAVAN;
+    assert_eq!(
+        s.attack_of(o),
+        30 + 2 * s.tables.tuning.dutch_attack_bonus * 10
+    );
 }
 
 /// §2.2's two terms that East Indies cannot separate: the good in the
@@ -582,7 +598,7 @@ fn an_enemy_that_can_shoot_refuses_it_at_four_cells() {
         hits: 30,
         ..crate::UnitType::default()
     });
-    s.unit_types[soldier].combat.attack = 5;
+    s.tables.unit_types[soldier].combat.attack = 5;
     // `SEARCH_ENEMY` is `LeaderData::is_enemy`, so a player merely not
     // allied is not searched at all.
     s.declare_war(0, 1);
@@ -659,8 +675,8 @@ fn a_merchant_thinks_on_its_first_idle_frame_and_then_once_in_128() {
 #[test]
 fn a_trained_unit_s_tracked_crew_is_seated_at_birth() {
     let (mut s, _) = merchant_sim();
-    let t = s.unit_types.len() - 1;
-    s.unit_types[t].combat.crew_size = 1;
+    let t = s.tables.unit_types.len() - 1;
+    s.tables.unit_types[t].combat.crew_size = 1;
     // `piece_of` falls back to the dump-keyed table when the install's
     // is empty, so the fixture states guy 1's piece the way a dump
     // would, and gives that piece a track.

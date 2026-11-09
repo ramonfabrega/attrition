@@ -1096,7 +1096,7 @@ impl Sim {
             let at = self.pos_of(t);
             let last = p.last();
             let d = crate::world::vector_dist(at.x - last.x, at.y - last.y);
-            if d > self.tuning.aircraft_respond_range * 0x100 {
+            if d > self.tables.tuning.aircraft_respond_range * 0x100 {
                 self.kill_current_order(u);
                 return false;
             }

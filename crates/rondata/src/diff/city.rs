@@ -768,6 +768,7 @@ mod tests {
             if n == 576 {
                 let village = built
                     .sim
+                    .tables
                     .build_types
                     .iter()
                     .position(|b| b.ident == sim::build::Ident::Village)

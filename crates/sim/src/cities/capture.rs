@@ -360,7 +360,7 @@ impl<'a> SimCapture<'a> {
         let radius = if c == usize::MAX {
             0
         } else {
-            s.tuning.city_capture_radius
+            s.tables.tuning.city_capture_radius
         };
         let reach = (radius.wrapping_mul(0xc0).wrapping_add(0x2ff) / 0x300).max(0);
         let home = bp.cell();
@@ -558,13 +558,13 @@ impl CaptureView for SimCapture<'_> {
                 let x = &self.s.units[u];
                 !x.is_gaia()
                     && x.ty.is_some_and(|t| {
-                        self.s.unit_types[t].combat.attack != 0
-                            && self.s.unit_types[t].combat.combat_role
+                        self.s.tables.unit_types[t].combat.attack != 0
+                            && self.s.tables.unit_types[t].combat.combat_role
                     })
             }
             Obj::Building(b) => {
                 let x = &self.s.buildings[b];
-                x.ty.is_some_and(|t| self.s.build_types[t].attack != 0)
+                x.ty.is_some_and(|t| self.s.tables.build_types[t].attack != 0)
                     && !self.s.building_is_city(b)
                     && x.active
                     && crate::city::health_level(x.hits_now(), x.damage) <= 5
@@ -589,7 +589,7 @@ impl CaptureView for SimCapture<'_> {
         };
         let x = &self.s.buildings[b];
         let fort =
-            x.ty.is_some_and(|t| crate::build::is_fort(&self.s.build_types, t));
+            x.ty.is_some_and(|t| crate::build::is_fort(&self.s.tables.build_types, t));
         x.garrison.len() as i32 + if fort { 12 } else { 6 }
     }
     fn reveal(&mut self, h: usize, who: i32) {
@@ -621,10 +621,10 @@ impl CaptureView for SimCapture<'_> {
         self.s.frame as i32
     }
     fn city_capture_radius(&mut self) -> i32 {
-        self.s.tuning.city_capture_radius
+        self.s.tables.tuning.city_capture_radius
     }
     fn unit_respond_range(&mut self) -> i32 {
-        self.s.tuning.unit_respond_range
+        self.s.tables.tuning.unit_respond_range
     }
     fn valid_tile(&mut self, x: i32, y: i32) -> bool {
         x >= 0 && y >= 0 && x < self.s.world.width() && y < self.s.world.height()

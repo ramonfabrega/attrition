@@ -619,7 +619,7 @@ impl Sim {
     /// `is(SUPPLYWAGON)` as the sim can test it (see [`seams`]).
     fn is_supply_wagon(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            let c = self.unit_types[t].cols;
+            let c = self.tables.unit_types[t].cols;
             c.flag2(uflags2::SUPPLY_OR_HERO) && !c.flag2(uflags2::FLAG2_GENERAL)
         })
     }
@@ -627,7 +627,7 @@ impl Sim {
     fn is_general(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
     }
 
     /// Shrink an army's list to `keep` (a subsequence of it) **and shift the
@@ -694,7 +694,7 @@ impl Sim {
             }
             if self.units[u]
                 .ty
-                .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::CASTER))
+                .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::CASTER))
             {
                 casters += 1;
             }
@@ -873,7 +873,9 @@ impl Sim {
     /// [`Sim::ai_driven`]).
     pub(crate) fn army_count_siege(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
-            s.units[u].ty.is_some_and(|t| s.unit_types[t].combat.siege)
+            s.units[u]
+                .ty
+                .is_some_and(|t| s.tables.unit_types[t].combat.siege)
                 && !(s.units[u].decoy && s.unit_ai_bit(s.units[u].owner))
         })
     }
@@ -894,12 +896,13 @@ impl Sim {
             !s.units[u].decoy
                 && s.units[u]
                     .ty
-                    .and_then(|t| s.unit_types[t].tree)
+                    .and_then(|t| s.tables.unit_types[t].tree)
                     .is_some_and(|t| {
-                        s.tech_tree
+                        s.tables
+                            .tech_tree
                             .roles
                             .cataphract
-                            .is_some_and(|c| s.tech_tree.is(t, c, false))
+                            .is_some_and(|c| s.tables.tech_tree.is(t, c, false))
                     })
         })
     }
@@ -911,7 +914,7 @@ impl Sim {
             !s.units[u].decoy
                 && s.units[u]
                     .ty
-                    .is_some_and(|t| s.unit_types[t].cols.is(role::ROLE_HOPLITE))
+                    .is_some_and(|t| s.tables.unit_types[t].cols.is(role::ROLE_HOPLITE))
         })
     }
 
@@ -927,7 +930,7 @@ impl Sim {
         let pos = self.units[u].pos;
         let sea = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.domain == Domain::Sea);
+            .is_some_and(|t| self.tables.unit_types[t].combat.domain == Domain::Sea);
         let damaged = self.units[u].health < self.units[u].max_health;
         let slot = if sea {
             self.find_army(who, pos, -1, None).map(|(s, _)| s)
@@ -1117,7 +1120,7 @@ impl Sim {
             return;
         }
         let Some(t) = unit.ty else { return };
-        let cols = self.unit_types[t].cols;
+        let cols = self.tables.unit_types[t].cols;
         if cols.flag2(uflags2::SUPPLY_OR_HERO) || cols.flag2(uflags2::FLAG2_GENERAL) {
             self.add_to_army(u);
         }
@@ -1289,7 +1292,8 @@ impl Sim {
         // conscripted run53's woodcutters on frame 307. The other arm —
         // `is(0x3e, 1) && !is_packing_or_unpacking()`, the merchant
         // lineage's — is a seam; a merchant is filtered again below.
-        if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::ROLE_MILITARY)
+        if self.tables.unit_types[t].combat.attack == 0
+            || !self.tables.unit_types[t].cols.is(role::ROLE_MILITARY)
         {
             return None;
         }
@@ -1298,14 +1302,14 @@ impl Sim {
         let home = self.think_attack_home(u);
         if home
             && self.units[u].health < self.units[u].max_health
-            && self.unit_types[t].combat.obj_masks & (mask::FOOT | mask::MOUNTED) != 0
+            && self.tables.unit_types[t].combat.obj_masks & (mask::FOOT | mask::MOUNTED) != 0
         {
             return None;
         }
-        if self.unit_types[t].cols.is(role::ROLE_SCOUT) {
+        if self.tables.unit_types[t].cols.is(role::ROLE_SCOUT) {
             return None;
         }
-        if self.is_merchant(u) || self.unit_types[t].cols.flag2(uflags2::FLAG2_CARAVAN) {
+        if self.is_merchant(u) || self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_CARAVAN) {
             return None;
         }
         self.add_to_army(u)
@@ -1353,14 +1357,14 @@ impl Sim {
             return;
         }
         let Some(t) = self.units[u].ty else { return };
-        if self.unit_types[t].cols.flag2(uflags2::FLAG2_CARAVAN) {
+        if self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_CARAVAN) {
             return;
         }
         if self.unit_tree(u).is_some_and(|ti| MERCHANTS.contains(&ti)) {
             return;
         }
         let bark = self.unit_line_is(u, BARK);
-        let join = if !self.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT) && !bark {
+        let join = if !self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT) && !bark {
             self.unit_line_is(u, SPY)
         } else {
             self.mark(if bark {
@@ -2387,9 +2391,11 @@ impl Sim {
         hero_cap: i32,
     ) -> bool {
         let Some(u) = unit else { return true };
-        let supply = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO));
+        let supply = self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        });
         if supply {
             return self.army_count_supply(who, slot) < supply_cap;
         }
@@ -2645,7 +2651,7 @@ impl Sim {
                         continue;
                     }
                     let Some(t) = b.ty else { continue };
-                    let types = &self.build_types;
+                    let types = &self.tables.build_types;
                     if build::is(types, t, Ident::Barracks)
                         || build::is(types, t, Ident::SiegeFactory)
                         || build::is(types, t, Ident::Stable)
@@ -2968,7 +2974,8 @@ impl FormView for FormSim<'_> {
             b.alive
                 && b.active
                 && self.sim.is_enemy(who, b.owner)
-                && b.ty.is_some_and(|t| self.sim.build_types[t].attack != 0)
+                && b.ty
+                    .is_some_and(|t| self.sim.tables.build_types[t].attack != 0)
                 && dist(b.pos, p) <= UNITS_PER_CELL
         })
     }
@@ -3256,7 +3263,8 @@ impl MarchToView for MarchToSim<'_> {
             b.alive
                 && b.active
                 && self.sim.is_enemy(who, b.owner)
-                && b.ty.is_some_and(|t| self.sim.build_types[t].attack != 0)
+                && b.ty
+                    .is_some_and(|t| self.sim.tables.build_types[t].attack != 0)
                 && dist(b.pos, p) <= UNITS_PER_CELL
         })
     }

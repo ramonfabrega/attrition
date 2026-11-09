@@ -780,6 +780,6 @@ impl AttackView for SimAttack<'_> {
         }
     }
     fn respond_range(&mut self) -> i32 {
-        self.sim.tuning.unit_respond_range
+        self.sim.tables.tuning.unit_respond_range
     }
 }

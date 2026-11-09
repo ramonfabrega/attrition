@@ -19,7 +19,7 @@ fn sim() -> Sim {
         ..crate::UnitType::default()
     });
     // Named after the fact: the fixture's tech tree has no row 0x193.
-    s.unit_types[t].tree = Some(FLOCKBIRD);
+    s.tables.unit_types[t].tree = Some(FLOCKBIRD);
     s
 }
 

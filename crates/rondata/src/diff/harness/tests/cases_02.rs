@@ -690,7 +690,12 @@ mod bodies {
             .units
             .iter()
             .filter(|u| u.alive() && u.farm_animal.is_some_and(|fa| fa.build == pasture))
-            .map(|u| (u.owner, u.ty.and_then(|t| built.sim.unit_types[t].tree)))
+            .map(|u| {
+                (
+                    u.owner,
+                    u.ty.and_then(|t| built.sim.tables.unit_types[t].tree),
+                )
+            })
             .collect();
         assert_eq!(
             stock,
@@ -1974,11 +1979,12 @@ mod bodies {
                     let t = t as sim::tech::TypeId;
                     eprintln!(
                         "  preq {n} t{t}: {:?} level {} epoch {:?} researched {:?}",
-                        built.sim.tech_tree.types[t].preq,
-                        built.sim.tech_tree.military_level_of(t),
+                        built.sim.tables.tech_tree.types[t].preq,
+                        built.sim.tables.tech_tree.military_level_of(t),
                         built.sim.tech[1].epoch,
                         built
                             .sim
+                            .tables
                             .unit_types
                             .iter()
                             .position(|u| u.tree == Some(t))
@@ -1986,7 +1992,7 @@ mod bodies {
                     );
                     eprintln!(
                         "  price {n} 1/t{t} {}: {:?} affordable {} / {}",
-                        built.sim.tech_tree.types[t as usize].name,
+                        built.sim.tables.tech_tree.types[t as usize].name,
                         built.sim.type_price(1, t),
                         built.sim.type_affordable(1, t, true),
                         built.sim.type_affordable(1, t, false),

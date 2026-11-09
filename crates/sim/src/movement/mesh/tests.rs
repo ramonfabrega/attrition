@@ -404,7 +404,7 @@ fn a_building_that_starts_over_a_road_takes_it_under_its_blocked_tiles() {
         ..crate::build::BuildType::default()
     });
     assert!(
-        crate::roads::connects_to_roads(&sim.build_types, bt),
+        crate::roads::connects_to_roads(&sim.tables.build_types, bt),
         "the type connects to roads, so mask_me's own arm lays rather than clears"
     );
     let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);

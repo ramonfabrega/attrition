@@ -315,13 +315,13 @@ impl Sim {
     pub fn building_ident(&self, b: usize) -> Ident {
         self.buildings[b]
             .ty
-            .map_or(Ident::Other, |t| self.build_types[t].ident)
+            .map_or(Ident::Other, |t| self.tables.build_types[t].ident)
     }
 
     pub(crate) fn building_is(&self, b: usize, ident: Ident) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| build::is(&self.build_types, t, ident))
+            .is_some_and(|t| build::is(&self.tables.build_types, t, ident))
     }
 
     /// Whether a building is a city — `flags & 0x20`.
@@ -331,15 +331,19 @@ impl Sim {
 
     /// `LeaderData::get_radius(who, type)`: in tiles, capped at 64.
     pub fn city_radius(&self, who: Player, ty: Option<usize>) -> i32 {
-        let level = ty.map_or(1, |t| build::city_level(&self.build_types, t).max(1));
-        radius_for_level(&self.tuning, level, self.nation[who as usize].indians)
+        let level = ty.map_or(1, |t| build::city_level(&self.tables.build_types, t).max(1));
+        radius_for_level(
+            &self.tables.tuning,
+            level,
+            self.nation[who as usize].indians,
+        )
     }
 
     /// `CityData::get_level`.
     pub fn city_level_of(&self, c: usize) -> i32 {
         self.buildings[self.cities[c].building]
             .ty
-            .map_or(1, |t| build::city_level(&self.build_types, t).max(1))
+            .map_or(1, |t| build::city_level(&self.tables.build_types, t).max(1))
     }
 
     /// The city's radius, `CityData::get_radius`.
@@ -383,7 +387,7 @@ impl Sim {
             std::iter::once(city.building).chain(city.members.iter().copied()),
             |b| {
                 let bd = &self.buildings[b];
-                bd.alive && bd.ty.is_some_and(|t| self.build_types[t].wonder)
+                bd.alive && bd.ty.is_some_and(|t| self.tables.build_types[t].wonder)
             },
             |b| self.building_is(b, Ident::RedFort),
             |b| exclude_city && self.building_is_city(b),
@@ -394,14 +398,14 @@ impl Sim {
     pub fn farm_limit(&self, c: usize) -> i32 {
         let n = &self.nation[self.cities[c].owner as usize];
         let base = if n.egyptians {
-            self.tuning.egyptian_farms_per_city_base
+            self.tables.tuning.egyptian_farms_per_city_base
         } else {
-            self.tuning.farms_per_city_base
+            self.tables.tuning.farms_per_city_base
         };
         farm_limit_by(
             self.city_level_of(c),
             base,
-            self.tuning.farms_per_city_level,
+            self.tables.tuning.farms_per_city_level,
         )
     }
 
@@ -424,7 +428,7 @@ impl Sim {
             && (self.building_is_city(b)
                 || bd
                     .ty
-                    .is_some_and(|t| !self.build_types[t].has(flags::NO_CITY)))
+                    .is_some_and(|t| !self.tables.build_types[t].has(flags::NO_CITY)))
     }
 
     /// `CityData::is_unassimilated`.
@@ -647,7 +651,7 @@ impl Sim {
             }
             let trainer = self.buildings[b].ty.is_some_and(|t| {
                 matches!(
-                    self.build_types[t].ident,
+                    self.tables.build_types[t].ident,
                     Ident::Barracks
                         | Ident::Stable
                         | Ident::AutoPlant
@@ -820,13 +824,13 @@ impl Sim {
     pub fn ready_to_upgrade(&self, c: usize) -> Option<usize> {
         let city = &self.cities[c];
         let t = self.buildings[city.building].ty?;
-        let next = build::upgrades_to(&self.build_types, t)?;
-        if let Some(id) = self.build_types[next].tree
+        let next = build::upgrades_to(&self.tables.build_types, t)?;
+        if let Some(id) = self.tables.build_types[next].tree
             && self.type_avail(city.owner, id) != crate::tech::AVAILABLE
         {
             return None;
         }
-        match upgrade_kinds(&self.tuning, self.build_types[next].ident) {
+        match upgrade_kinds(&self.tables.tuning, self.tables.build_types[next].ident) {
             Some(needed) => self.enough_kinds(c, needed).then_some(next),
             None => Some(next),
         }
@@ -850,7 +854,7 @@ impl Sim {
     /// who=1 cities on block 20036, ours 12000 a frame early).
     pub(crate) fn set_type(&mut self, b: usize, ty: usize) {
         self.buildings[b].ty = Some(ty);
-        self.buildings[b].combat = Some(self.build_types[ty].combat.unwrap_or_default());
+        self.buildings[b].combat = Some(self.tables.build_types[ty].combat.unwrap_or_default());
     }
 
     // ------------------------------------------------------------------
@@ -904,7 +908,7 @@ impl Sim {
             let owner = city.owner;
             let level = (self.city_level_of(c) - 1).clamp(0, 2) as usize;
             let src = territory::city_source(
-                &self.tuning,
+                &self.tables.tuning,
                 owner,
                 &self.borders[owner as usize],
                 &territory::City {
@@ -928,12 +932,14 @@ impl Sim {
             let bd = &self.buildings[b];
             if !bd.alive
                 || !bd.active
-                || !bd.ty.is_some_and(|t| build::is_fort(&self.build_types, t))
+                || !bd
+                    .ty
+                    .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
             {
                 continue;
             }
             let src = territory::fort_source(
-                &self.tuning,
+                &self.tables.tuning,
                 bd.owner,
                 &self.borders[bd.owner as usize],
                 &territory::Fort {
@@ -1137,14 +1143,14 @@ impl Sim {
         if self.iroquois_free_senate(who, ty) {
             return [0; RESOURCES];
         }
-        let wonder = self.build_types[ty].wonder;
-        let is_city = !wonder && build::is_city(&self.build_types, ty);
+        let wonder = self.tables.build_types[ty].wonder;
+        let is_city = !wonder && build::is_city(&self.tables.build_types, ty);
         let of_type = if wonder {
             self.wonder_ramp_count(who, ty)
         } else if is_city {
             let line = |k: usize| {
                 matches!(
-                    self.build_types[k].ident,
+                    self.tables.build_types[k].ident,
                     Ident::Village | Ident::Town | Ident::Metropolis
                 )
             };
@@ -1157,7 +1163,7 @@ impl Sim {
             // Oil Well with its Platforms (`get_cost@00664090`,
             // `0066598f`..`006659be`: the other type's `num_buildings +
             // num_queued`, `+0x556c`/`+0x5d6c` and `+0x556e`/`+0x5d6e`).
-            let sibling = match self.build_types[ty].ident {
+            let sibling = match self.tables.build_types[ty].ident {
                 Ident::OilWell => Some(Ident::OilPlatform),
                 Ident::OilPlatform => Some(Ident::OilWell),
                 _ => None,
@@ -1170,19 +1176,19 @@ impl Sim {
                         && b.owner == who
                         && (b.ty == Some(ty)
                             || sibling.is_some_and(|s| {
-                                b.ty.is_some_and(|k| self.build_types[k].ident == s)
+                                b.ty.is_some_and(|k| self.tables.build_types[k].ident == s)
                             }))
                 })
                 .count() as i32;
-            self.build_types[ty]
+            self.tables.build_types[ty]
                 .tree
                 .map_or(n, |t| cost::building_family_count(t, n))
         };
         let holdings = &self.holdings[who as usize];
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         cost::charges(
-            &self.tuning,
-            &self.build_types[ty].price,
+            &self.tables.tuning,
+            &self.tables.build_types[ty].price,
             cost::Counts {
                 of_type,
                 of_group: 0,
@@ -1190,7 +1196,7 @@ impl Sim {
             &cost::Modifiers {
                 wonder,
                 egyptian_wonders: if wonder && self.nation[who as usize].egyptians {
-                    self.tuning.egyptian_wonders
+                    self.tables.tuning.egyptian_wonders
                 } else {
                     0
                 },
@@ -1232,16 +1238,17 @@ impl Sim {
     /// for the Senate is the Senate.
     pub(crate) fn iroquois_free_senate(&self, who: Player, ty: usize) -> bool {
         let w = who as usize;
-        if self.tuning.iroquois_quick_senate == 0
+        if self.tables.tuning.iroquois_quick_senate == 0
             || w >= self.tech.len()
-            || !build::is(&self.build_types, ty, Ident::Senate)
+            || !build::is(&self.tables.build_types, ty, Ident::Senate)
         {
             return false;
         }
-        if !self
-            .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], crate::ai::tribe::IROQUOIS)
-        {
+        if !self.tables.tech_tree.has_tribe_bonus(
+            &self.tables.setup,
+            &self.tech[w],
+            crate::ai::tribe::IROQUOIS,
+        ) {
             return false;
         }
         self.building_high
@@ -1261,20 +1268,20 @@ impl Sim {
     /// (item 3326, `docs/AI.md` §266).
     fn greek_library_discount(&self, who: Player, ty: usize) -> i32 {
         let library = matches!(
-            self.build_types[ty].tree,
+            self.tables.build_types[ty].tree,
             Some(crate::nations::ty::LIBRARY | crate::nations::ty::UNIVERSITY)
         ) || matches!(
-            self.build_types[ty].ident,
+            self.tables.build_types[ty].ident,
             Ident::Library | Ident::University
         );
         if library
-            && self.tech_tree.has_tribe_bonus(
-                &self.setup,
+            && self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
                 &self.tech[who as usize],
                 crate::nations::power::GREEKS,
             )
         {
-            self.tuning.greek_library_cost
+            self.tables.tuning.greek_library_cost
         } else {
             0
         }
@@ -1287,7 +1294,7 @@ impl Sim {
     /// theirs' who=1 places a building where ours, with 21 timber, could
     /// not pay one (item 3338, `docs/AI.md` §273).
     fn maya_timber_discount(&self, who: Player, ty: usize) -> i32 {
-        let types = &self.build_types;
+        let types = &self.tables.build_types;
         if types[ty].wonder || !self.nation[who as usize].maya {
             return 0;
         }
@@ -1313,7 +1320,7 @@ impl Sim {
         if full {
             0
         } else {
-            self.tuning.maya_building_timber
+            self.tables.tuning.maya_building_timber
         }
     }
 
@@ -1325,15 +1332,15 @@ impl Sim {
     /// placed on frame 0 charged 52 (40 and three Farms' 4) where theirs
     /// charged 40 (item 3335, `docs/AI.md` §271).
     pub(crate) fn indian_ramp(&self, who: Player, ty: usize) -> cost::IndianRamp {
-        if !self.tech_tree.has_tribe_bonus(
-            &self.setup,
+        if !self.tables.tech_tree.has_tribe_bonus(
+            &self.tables.setup,
             &self.tech[who as usize],
             crate::nations::power::INDIANS,
         ) {
             return cost::IndianRamp::Off;
         }
-        let halved = self.build_types[ty].wonder
-            || self.build_types[ty]
+        let halved = self.tables.build_types[ty].wonder
+            || self.tables.build_types[ty]
                 .tree
                 .is_some_and(|t| matches!(t, 0x1b7..=0x1be | 0x209..=0x20d));
         if halved {
@@ -1349,16 +1356,16 @@ impl Sim {
     /// run965's block 570: who=1's timber 52 against theirs 78 (item 3331,
     /// `docs/AI.md` §268).
     fn japanese_farm_discount(&self, who: Player, ty: usize) -> i32 {
-        let farm = self.build_types[ty].tree == Some(crate::nations::ty::FARM)
-            || self.build_types[ty].ident == Ident::Farm;
+        let farm = self.tables.build_types[ty].tree == Some(crate::nations::ty::FARM)
+            || self.tables.build_types[ty].ident == Ident::Farm;
         if farm
-            && self.tech_tree.has_tribe_bonus(
-                &self.setup,
+            && self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
                 &self.tech[who as usize],
                 crate::nations::power::JAPANESE,
             )
         {
-            self.tuning.japanese_farms_cheaper
+            self.tables.tuning.japanese_farms_cheaper
         } else {
             0
         }
@@ -1371,12 +1378,12 @@ impl Sim {
     /// "The Pyramids take a third off a city".
     fn city_discounts(&self, who: Player) -> [i32; 2] {
         let bantu = if self.nation[who as usize].bantu {
-            self.tuning.bantu_city_cost
+            self.tables.tuning.bantu_city_cost
         } else {
             0
         };
         let pyramids = if self.wonders_held(who) & (1 << crate::tech::wonder::PYRAMIDS) != 0 {
-            self.tuning.pyramids_city_discount
+            self.tables.tuning.pyramids_city_discount
         } else {
             0
         };
@@ -1390,8 +1397,8 @@ impl Sim {
     /// and metal 175 ours against 96 and 192 theirs, the third off its
     /// towers that ours charged whole (item 3365, `docs/AI.md` §283).
     fn korean_tower_discount(&self, who: Player, ty: usize) -> i32 {
-        if build::is_tower(&self.build_types, ty) && self.nation[who as usize].koreans {
-            self.tuning.korean_tower_cost
+        if build::is_tower(&self.tables.build_types, ty) && self.nation[who as usize].koreans {
+            self.tables.tuning.korean_tower_cost
         } else {
             0
         }
@@ -1402,17 +1409,17 @@ impl Sim {
     /// `COLOSSEUM_FORT_COST` with the Colosseum held, then `ROMAN_FORT_COST`
     /// for a Roman leader (item 3314, `docs/AI.md` §263).
     fn fort_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
-        let types = &self.build_types;
+        let types = &self.tables.build_types;
         if types[ty].wonder || !(build::is_fort(types, ty) || build::is_tower(types, ty)) {
             return [0; 2];
         }
         let colosseum = if self.wonders_held(who) & (1 << crate::tech::wonder::COLOSSEUM) != 0 {
-            self.tuning.colosseum_fort_cost
+            self.tables.tuning.colosseum_fort_cost
         } else {
             0
         };
         let roman = if self.nation[who as usize].romans {
-            self.tuning.roman_fort_cost
+            self.tables.tuning.roman_fort_cost
         } else {
             0
         };
@@ -1428,7 +1435,7 @@ impl Sim {
     /// active wonders instead.
     fn wonder_ramp_count(&self, who: Player, ty: usize) -> i32 {
         let is_wonder = |b: &crate::Building| {
-            b.alive && b.owner == who && b.ty.is_some_and(|t| self.build_types[t].wonder)
+            b.alive && b.owner == who && b.ty.is_some_and(|t| self.tables.build_types[t].wonder)
         };
         let standing = self.ai.get(who as usize).map_or_else(
             || {
@@ -1447,7 +1454,7 @@ impl Sim {
                 b.alive
                     && !b.active
                     && b.owner == p
-                    && b.ty.and_then(|k| self.build_types[k].tree) == Some(t)
+                    && b.ty.and_then(|k| self.tables.build_types[k].tree) == Some(t)
             })
         };
         let unbuilt = self
@@ -1458,7 +1465,10 @@ impl Sim {
         // `SUPERCOLLIDER` and `SPACEPROGRAM`: a building's tree id is its
         // `TypeIndex`.
         const RACE: [usize; 2] = [0x21d, 0x21e];
-        let space = if !self.build_types[ty].tree.is_some_and(|t| RACE.contains(&t)) {
+        let space = if !self.tables.build_types[ty]
+            .tree
+            .is_some_and(|t| RACE.contains(&t))
+        {
             cost::SpaceRace::None
         } else if RACE.iter().any(|&t| site_of(who, t)) {
             cost::SpaceRace::Own
@@ -1480,8 +1490,8 @@ impl Sim {
         if r != Blocked::Clear {
             return Err(PlaceFail::Blocked(r));
         }
-        if build::is_city(&self.build_types, ty)
-            && self.build_types[ty].ident != Ident::ForbiddenCity
+        if build::is_city(&self.tables.build_types, ty)
+            && self.tables.build_types[ty].ident != Ident::ForbiddenCity
             && self.at_city_limit(who)
         {
             return Err(PlaceFail::CityLimit);
@@ -1506,8 +1516,8 @@ impl Sim {
     /// changing hands keeps the record it already had.
     pub fn init_build(&mut self, who: Player, ty: usize, pos: Pos, restore: bool) -> usize {
         let pos = self.snap_center(ty, pos);
-        let bt = self.build_types[ty].clone();
-        let capacity = crate::build::queue_capacity(&self.build_types, ty);
+        let bt = self.tables.build_types[ty].clone();
+        let capacity = crate::build::queue_capacity(&self.tables.build_types, ty);
         let b = self.buildings.len();
         let index = self
             .find_free(who, crate::BUILD_BASE, crate::WALL_BASE)
@@ -1587,7 +1597,7 @@ impl Sim {
         // The clock — baked now, and again on every `calc_wall_stats`.
         let mods = self.build_mods(who);
         self.buildings[b].constr_time =
-            build::construct_base(&self.tuning, &self.build_types, ty, &mods);
+            build::construct_base(&self.tables.tuning, &self.tables.build_types, ty, &mods);
         self.update_hits(b);
         self.update_build_los(b);
         // `Wall::init@0063e9b0`'s `check_ever_seen(0)`, after `update_los`:
@@ -1615,18 +1625,21 @@ impl Sim {
         // measurement: the AI's three farms had moved 182 tiles of height
         // that the original leaves exactly where the map generator put
         // them.
-        if !restore && self.build_types[ty].ident != Ident::Farm {
-            let (bw, bh) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        if !restore && self.tables.build_types[ty].ident != Ident::Farm {
+            let (bw, bh) = (
+                self.tables.build_types[ty].x_size,
+                self.tables.build_types[ty].y_size,
+            );
             self.terraform_for_building(corner, bw, bh);
         }
         // Membership is decided at placement, restoring or not.
-        if !build::is_city(&self.build_types, ty) {
+        if !build::is_city(&self.tables.build_types, ty) {
             self.find_city(b);
         }
         // `Build::init` line 249, after `find_city` and before the gather
         // survey: a farm's record is created with the *site*, and the city
         // it just joined is what `Farms::add` counts.
-        if !restore && self.build_types[ty].ident == Ident::Farm {
+        if !restore && self.tables.build_types[ty].ident == Ident::Farm {
             self.farms_add(b);
         }
         // `Build::init@00629740` line 256 onwards, and the order is the
@@ -1650,7 +1663,7 @@ impl Sim {
         // half's `Build::close` then gives those tiles back and flags the
         // region, and the copy re-walks them on the next region pass
         // (`crate::gather::Sim::gather_region_building`, `docs/ECONOMY.md` §17).
-        let t = &self.build_types[ty];
+        let t = &self.tables.build_types[ty];
         if t.has(build::flags::GATHERER)
             && !t.has(build::flags::FLAT)
             && t.ident != Ident::University
@@ -1714,7 +1727,8 @@ impl Sim {
         let Some(ty) = bd.ty else {
             return false;
         };
-        let reach = (self.build_types[ty].x_size + self.build_types[ty].y_size) * 0x60;
+        let reach =
+            (self.tables.build_types[ty].x_size + self.tables.build_types[ty].y_size) * 0x60;
         (0..self.units.len()).any(|h| {
             let x = &self.units[h];
             x.owner == bd.owner
@@ -1733,8 +1747,8 @@ impl Sim {
         let bd = &self.buildings[b];
         match bd.ty {
             Some(t) => build::construct_time(
-                &self.tuning,
-                &self.build_types[t],
+                &self.tables.tuning,
+                &self.tables.build_types[t],
                 bd.constr_time,
                 &build::ClockMods {
                     president: self.president_near_building(b),
@@ -1763,16 +1777,20 @@ impl Sim {
     /// ours at 1101, and finished it on 17214.
     pub(crate) fn american_free_wonder(&self, b: usize, t: usize) -> bool {
         let who = self.buildings[b].owner;
-        if !self.build_types[t].wonder
+        if !self.tables.build_types[t].wonder
             || !self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    p,
+                    crate::ai::tribe::AMERICANS,
+                )
             })
         {
             return false;
         }
-        let k = self.build_types[t].tree.and_then(|tr| {
-            self.tech_tree
+        let k = self.tables.build_types[t].tree.and_then(|tr| {
+            self.tables
+                .tech_tree
                 .roles
                 .wonder_line
                 .iter()
@@ -1791,7 +1809,7 @@ impl Sim {
                 x.alive
                     && x.active
                     && x.owner == who
-                    && x.ty.is_some_and(|k| self.build_types[k].wonder)
+                    && x.ty.is_some_and(|k| self.tables.build_types[k].wonder)
             });
         none_yet
             && !self
@@ -1807,9 +1825,9 @@ impl Sim {
     /// holds `myhits` 16250 from 1673, ours 6500).
     pub(crate) fn temple_hp_level(&self, who: Player) -> i32 {
         let p = &self.tech[who as usize];
-        let [l2, l3, l4] = self.tech_tree.roles.temple_hp_preq;
+        let [l2, l3, l4] = self.tables.tech_tree.roles.temple_hp_preq;
         let has = |t: Option<crate::tech::TypeId>| {
-            t.is_some_and(|t| self.tech_tree.has_tech(&self.setup, p, t))
+            t.is_some_and(|t| self.tables.tech_tree.has_tech(&self.tables.setup, p, t))
         };
         if has(l4) {
             4
@@ -1847,7 +1865,8 @@ impl Sim {
             romans: n.romans,
             // `get_building_hp_upgrade` (item 1476): run636's Smelter
             // `1/2047` holds `myhits` 1100 on 14085, Construction's +10 %.
-            hp_upgrade: self.speed_upgrade_level(bd.owner, &self.tech_tree.roles.buildings_hp_preq),
+            hp_upgrade: self
+                .speed_upgrade_level(bd.owner, &self.tables.tech_tree.roles.buildings_hp_preq),
             taj_mahal: has(crate::tech::wonder::TAJ_MAHAL),
             red_fort: has(crate::tech::wonder::RED_FORT),
             nubians: n.nubians,
@@ -1857,7 +1876,7 @@ impl Sim {
         let ct = self.construct_time_of(b);
         let bd = &self.buildings[b];
         let mut q = build::PortAsk {
-            types: &self.build_types,
+            types: &self.tables.build_types,
             ty,
             active: bd.active,
             city_level,
@@ -1867,7 +1886,7 @@ impl Sim {
             ejects: false,
         };
         let me = build::HitsSelf {
-            city_flag: build::is_city(&self.build_types, ty),
+            city_flag: build::is_city(&self.tables.build_types, ty),
             job_counter: bd.job_counter as u32,
             taken: bd.damage,
             // `+0x28` is not carried: a building ejects whenever it holds a
@@ -1875,7 +1894,8 @@ impl Sim {
             slot28_nonneg: true,
             param: 0,
         };
-        let out = build::update_hits_steps(&build::HitsConsts::of(&self.tuning), &me, &mut q);
+        let out =
+            build::update_hits_steps(&build::HitsConsts::of(&self.tables.tuning), &me, &mut q);
         let ejects = q.ejects;
         let bd = &mut self.buildings[b];
         bd.hits = out.full;
@@ -1900,7 +1920,7 @@ impl Sim {
             {
                 let mods = self.build_mods(who);
                 self.buildings[b].constr_time =
-                    build::construct_base(&self.tuning, &self.build_types, ty, &mods);
+                    build::construct_base(&self.tables.tuning, &self.tables.build_types, ty, &mods);
             }
             self.update_hits(b);
             self.update_build_los(b);
@@ -1933,7 +1953,7 @@ impl Sim {
             // Construction on 13782, and run636's five sites under way
             // hold `constr_time` 90000 where `job_time × 100` is 100000.
             speed_upgrade: self
-                .speed_upgrade_level(who, &self.tech_tree.roles.buildings_speed_preq),
+                .speed_upgrade_level(who, &self.tables.tech_tree.roles.buildings_speed_preq),
         }
     }
 
@@ -1969,7 +1989,7 @@ impl Sim {
                     continue;
                 };
                 let oc = self.tile_corner(oty, self.buildings[o].pos);
-                let ot = &self.build_types[oty];
+                let ot = &self.tables.build_types[oty];
                 if t.x >= oc.x
                     && t.x < oc.x + ot.x_size
                     && t.y >= oc.y
@@ -2012,7 +2032,7 @@ impl Sim {
         // §14).
         let who = self.buildings[b].owner;
         if who < 8 && self.world.has_fog() {
-            let t = &self.build_types[ty];
+            let t = &self.tables.build_types[ty];
             let steps = wall_start_seen_steps(
                 (corner.x, corner.y),
                 t.x_size,
@@ -2060,13 +2080,13 @@ impl Sim {
         // (`masks.txt`, `docs/DATALAYER.md`); without one loaded it falls
         // back on the old flat/non-flat line.
         let (xs, ys) = (
-            self.build_types[ty].x_size.max(1),
-            self.build_types[ty].y_size.max(1),
+            self.tables.build_types[ty].x_size.max(1),
+            self.tables.build_types[ty].y_size.max(1),
         );
         // `is_city || connects_to_roads` — the one predicate both of
         // `mask_me`'s road arms read, from opposite sides.
-        let lays = build::is_city(&self.build_types, ty)
-            || crate::roads::connects_to_roads(&self.build_types, ty);
+        let lays = build::is_city(&self.tables.build_types, ty)
+            || crate::roads::connects_to_roads(&self.tables.build_types, ty);
         for (i, t) in self.footprint(ty, corner).into_iter().enumerate() {
             let (u, v) = (i as i32 % xs, i as i32 / xs);
             debug_assert!(v < ys);
@@ -2091,7 +2111,7 @@ impl Sim {
                 // counts are the pathfinder's terrain cost
                 // (`docs/PATHFINDER.md` §5), and they move nowhere else —
                 // and a tile it blocks loses its road (`docs/ROADS.md` §9.5).
-                let blocks = self.build_types[ty].blocks(u, v);
+                let blocks = self.tables.build_types[ty].blocks(u, v);
                 self.set_blocked_at(t, blocks);
                 if !blocks && lays {
                     self.world_set_road_at(t, true, 0, 0);
@@ -2103,7 +2123,7 @@ impl Sim {
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
             }
         }
-        if build::is_dock(&self.build_types, ty) {
+        if build::is_dock(&self.tables.build_types, ty) {
             self.mask_dock_water(b, on);
             if !on {
                 // `Docks::remask_docks@00740c90`: every other live dock,
@@ -2116,14 +2136,14 @@ impl Sim {
                         && other.started
                         && other
                             .ty
-                            .is_some_and(|t| build::is_dock(&self.build_types, t))
+                            .is_some_and(|t| build::is_dock(&self.tables.build_types, t))
                     {
                         self.mask_dock_water(o, true);
                     }
                 }
             }
         }
-        if build::is_city(&self.build_types, ty) {
+        if build::is_city(&self.tables.build_types, ty) {
             let r = match self.buildings[b].city {
                 Some(c) if self.cities[c].alive => self.radius_of(c),
                 _ => self.city_radius(self.buildings[b].owner, Some(ty)),
@@ -2167,7 +2187,10 @@ impl Sim {
             return;
         };
         let corner = self.tile_corner(ty, self.buildings[b].pos);
-        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let (xs, ys) = (
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
+        );
         for dx in -3..xs + 3 {
             for dy in -3..ys + 3 {
                 let t = Pos::new(corner.x + dx, corner.y + dy);
@@ -2220,10 +2243,11 @@ impl Sim {
     /// SEAM: the grant's last factor, `~leader_flags2 & 1`, is read as 1:
     /// no field here carries `leader_flags2`, and every dump prints it 0.
     fn persian_second_capital(&self, who: Player) -> bool {
-        if !self
-            .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x17)
-        {
+        if !self.tables.tech_tree.has_tribe_bonus(
+            &self.tables.setup,
+            &self.tech[who as usize],
+            0x17,
+        ) {
             return false;
         }
         let own = self
@@ -2306,9 +2330,13 @@ impl Sim {
         (0..self.units.len()).any(|u| {
             self.units[u].alive()
                 && self.units[u].owner == who
-                && self
-                    .unit_tree(u)
-                    .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
+                && self.unit_tree(u).is_some_and(|t| {
+                    self.tables
+                        .tech_tree
+                        .kind(t)
+                        .unit()
+                        .is_some_and(|x| x.patriot)
+                })
         })
     }
 
@@ -2316,9 +2344,9 @@ impl Sim {
     /// A building type the tree files as a wonder — the test
     /// `Build::activate` and `Build::close` gate the unit-stats flag on.
     pub(crate) fn is_wonder_building(&self, ty: usize) -> bool {
-        self.build_types[ty].tree.is_some_and(|t| {
+        self.tables.build_types[ty].tree.is_some_and(|t| {
             matches!(
-                self.tech_tree.kind(t),
+                self.tables.tech_tree.kind(t),
                 crate::tech::Kind::Building { wonder: true, .. }
             )
         })
@@ -2352,7 +2380,7 @@ impl Sim {
         };
         // `Build::activate@00623e20` line 1240, ungated: `defense += 1` again
         // for a type with arrows, until the next sweep recounts.
-        if self.build_types[ty].attack != 0 {
+        if self.tables.build_types[ty].attack != 0 {
             self.defense_add(who, 1);
         }
         // `Build::activate@00623e20`, entry to `Wall::activate`: the library
@@ -2367,7 +2395,7 @@ impl Sim {
         // The `Farms` list is joined at *placement* (`Sim::farms_add`), not
         // here — `Farms::add` runs from `Build::init`. This catches a farm
         // the harness stood up from a dump without going through it.
-        if self.build_types[ty].ident == Ident::Farm && !self.farm_order.contains(&b) {
+        if self.tables.build_types[ty].ident == Ident::Farm && !self.farm_order.contains(&b) {
             self.farm_order.push(b);
         }
         {
@@ -2405,8 +2433,8 @@ impl Sim {
         // `Build::activate` line 560: a dock (not a fort) joins the docks
         // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`
         // §5.1–§5.2).
-        let dock = build::is_dock(&self.build_types, ty);
-        if dock && !build::is_fort(&self.build_types, ty) {
+        let dock = build::is_dock(&self.tables.build_types, ty);
+        if dock && !build::is_fort(&self.tables.build_types, ty) {
             self.dock_open(b);
         }
         if self.building_is_city(b) {
@@ -2436,20 +2464,20 @@ impl Sim {
                 i32::from(captured),
                 0,
             );
-            if build::is_fort(&self.build_types, ty) {
+            if build::is_fort(&self.tables.build_types, ty) {
                 self.sync_territory();
             }
             // `Build::activate@00623e20`, `LAB_00626ac1`: a finished
             // Colosseum, Eiffel Tower or Tikal zeroes every region's border
             // stamp, as a fort does — the three wonders
             // `compute_reg_territory` asks `has_wonder` for (item 2106).
-            let line = &self.tech_tree.roles.wonder_line;
+            let line = &self.tables.tech_tree.roles.wonder_line;
             let borders = [
                 crate::tech::wonder::COLOSSEUM,
                 crate::tech::wonder::EIFFEL_TOWER,
                 crate::tech::wonder::TIKAL,
             ];
-            if self.build_types[ty]
+            if self.tables.build_types[ty]
                 .tree
                 .is_some_and(|t| borders.iter().any(|&k| line.get(k) == Some(&t)))
             {
@@ -2532,7 +2560,7 @@ impl Sim {
                 // gather bonuses take.
                 let mut amount = 30;
                 if self.nation[who].germans {
-                    amount = (self.tuning.german_completion_bonus + 100) * amount / 100;
+                    amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
                 self.ledgers[who].bucket[i] += amount;
             }
@@ -2545,8 +2573,11 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return false;
         };
-        build::is_dock(&self.build_types, ty)
-            || matches!(self.build_types[ty].ident, Ident::Market | Ident::Temple)
+        build::is_dock(&self.tables.build_types, ty)
+            || matches!(
+                self.tables.build_types[ty].ident,
+                Ident::Market | Ident::Temple
+            )
     }
 
     /// `Build::activate`'s tail: a finished gather building's slots join the
@@ -2570,9 +2601,9 @@ impl Sim {
         if fresh > 0 {
             ledger.gather_slots_high[i] = ledger.gather_slots[i];
             if self.frame != 0 && !captured && counted {
-                let mut amount = crate::economy::completion_bonus(&self.tuning, r, fresh);
+                let mut amount = crate::economy::completion_bonus(&self.tables.tuning, r, fresh);
                 if self.nation[who].germans {
-                    amount = (self.tuning.german_completion_bonus + 100) * amount / 100;
+                    amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
                 self.ledgers[who].bucket[i] += amount;
             }
@@ -2635,8 +2666,8 @@ impl Sim {
     /// Whether a building type is the Colossus (`is(0x20f, 0)`), by the
     /// wonder line's own type id.
     fn is_colossus(&self, ty: usize) -> bool {
-        let line = &self.tech_tree.roles.wonder_line;
-        self.build_types[ty]
+        let line = &self.tables.tech_tree.roles.wonder_line;
+        self.tables.build_types[ty]
             .tree
             .is_some_and(|t| line.get(crate::tech::wonder::COLOSSUS) == Some(&t))
     }
@@ -2696,7 +2727,7 @@ impl Sim {
         // for a type with arrows.
         if self.buildings[b]
             .ty
-            .is_some_and(|t| self.build_types[t].attack != 0)
+            .is_some_and(|t| self.tables.build_types[t].attack != 0)
         {
             self.defense_add(who, -1);
         }
@@ -2798,7 +2829,7 @@ impl Sim {
         if self.buildings[b].active
             && self.buildings[b]
                 .ty
-                .is_some_and(|t| build::is_fort(&self.build_types, t))
+                .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
         {
             self.sync_territory();
         }
@@ -2810,7 +2841,7 @@ impl Sim {
         // (`docs/TRANSPORT.md` §4).
         if self.buildings[b]
             .ty
-            .is_some_and(|t| build::is_dock(&self.build_types, t))
+            .is_some_and(|t| build::is_dock(&self.tables.build_types, t))
         {
             self.check_transport(who);
         }
@@ -2982,8 +3013,8 @@ impl Sim {
             if bd.damage != 0
                 && self.cities[c].race == Some(bd.owner)
                 && !self.cities[c].no_heal
-                && self.tuning.city_heal_rate > 0
-                && phase % i64::from(self.tuning.city_heal_rate) == 0
+                && self.tables.tuning.city_heal_rate > 0
+                && phase % i64::from(self.tables.tuning.city_heal_rate) == 0
             {
                 let level = self.city_level_of(c);
                 self.repair_building(b, level);
@@ -3076,7 +3107,7 @@ impl Sim {
             for m in self.cities[c].members.clone() {
                 if self.buildings[m]
                     .ty
-                    .is_some_and(|t| !self.build_types[t].has(flags::NO_CITY))
+                    .is_some_and(|t| !self.tables.build_types[t].has(flags::NO_CITY))
                 {
                     to_close.push(m);
                     base += 25;
@@ -3223,16 +3254,16 @@ impl Sim {
         }
         if self.cities[c].has_citizen {
             self.cities[c].assimilation_timer +=
-                1 - i64::from(self.tuning.thecitizen_assimilation_speed);
+                1 - i64::from(self.tables.tuning.thecitizen_assimilation_speed);
         }
         let mut e = frame - self.cities[c].assimilation_timer;
         if self.nation[owner as usize].turks {
-            e = i64::from(self.tuning.turk_assimilate + 100) * e / 100;
+            e = i64::from(self.tables.tuning.turk_assimilate + 100) * e / 100;
         }
         if self.cities[c].founder == owner {
-            e = i64::from(self.tuning.reassimilation + 100) * e / 100;
+            e = i64::from(self.tables.tuning.reassimilation + 100) * e / 100;
         }
-        if e >= i64::from(self.tuning.assimilation_timer) {
+        if e >= i64::from(self.tables.tuning.assimilation_timer) {
             self.assimilate(c);
         }
     }
@@ -3260,7 +3291,8 @@ impl Sim {
             return;
         }
         let hero = self.nation[a as usize].plunder_hero;
-        let russian = self.nation[o as usize].russians && self.tuning.russian_plunder_steal != 0;
+        let russian =
+            self.nation[o as usize].russians && self.tables.tuning.russian_plunder_steal != 0;
         let first_capital = was_capital && !self.city_tally[o as usize].capital_plundered;
         let usable: Vec<usize> = (0..5)
             .filter(|g| {
@@ -3271,7 +3303,7 @@ impl Sim {
             let (take, steal) = if !russian {
                 (
                     if hero {
-                        self.tuning.thedespot_plunder * base / 100
+                        self.tables.tuning.thedespot_plunder * base / 100
                     } else {
                         base
                     },
@@ -3296,11 +3328,11 @@ impl Sim {
             }
         } else {
             self.city_tally[o as usize].capital_plundered = true;
-            let base = base.max(self.tuning.capital_plunder);
+            let base = base.max(self.tables.tuning.capital_plunder);
             let (take, steal) = if !russian {
                 (
                     if hero {
-                        self.tuning.thedespot_plunder * base / 100
+                        self.tables.tuning.thedespot_plunder * base / 100
                     } else {
                         base
                     },
@@ -3323,17 +3355,17 @@ impl Sim {
         };
         let owner = self.buildings[b].owner;
         let no = &self.nation[owner as usize];
-        if killer == owner && no.lakota && self.tuning.lakota_raze_price != 0 {
+        if killer == owner && no.lakota && self.tables.tuning.lakota_raze_price != 0 {
             return;
         }
-        let bt = &self.build_types[ty];
+        let bt = &self.tables.build_types[ty];
         let mut v = bt.plunder_value;
         let Some(g) = bt.plunder_good else { return };
         if v == 0 || !self.holdings[killer as usize].available[g] {
             return;
         }
         if no.germans && bt.ident == Ident::Mine {
-            v = (100 - self.tuning.german_mine_cost) * v / 100;
+            v = (100 - self.tables.tuning.german_mine_cost) * v / 100;
             if v == 0 {
                 return;
             }
@@ -3344,7 +3376,7 @@ impl Sim {
                 return;
             }
             if bt.ident == Ident::Temple && no.tikal {
-                v = (100 - self.tuning.tikal_temple_cost) * v / 100;
+                v = (100 - self.tables.tuning.tikal_temple_cost) * v / 100;
             }
         }
         if !bd.activated {
@@ -3356,17 +3388,19 @@ impl Sim {
                 .city
                 .is_some_and(|c| self.cities[c].alive && self.cities[c].race != Some(owner));
             if foreign {
-                v = self.tuning.plunder * v / 100;
+                v = self.tables.tuning.plunder * v / 100;
             }
         } else {
-            v = self.tuning.plunder * v / 100;
+            v = self.tables.tuning.plunder * v / 100;
         }
         if v == 0 {
             return;
         }
-        if self.tuning.aztec_plunder != 0 && killer != owner && self.nation[killer as usize].aztecs
+        if self.tables.tuning.aztec_plunder != 0
+            && killer != owner
+            && self.nation[killer as usize].aztecs
         {
-            v = (self.tuning.aztec_plunder + 100) * v / 100;
+            v = (self.tables.tuning.aztec_plunder + 100) * v / 100;
         }
         // `Build::plunder@00623660:136`..`:161`: `find_hero` for THEDESPOT
         // (`0x160`), then SPITAMENES (`0x16d`), around the building's
@@ -3378,11 +3412,11 @@ impl Sim {
             && (self.hero_near(killer, 0x160, at, slack)
                 || self.hero_near(killer, 0x16d, at, slack))
         {
-            self.tuning.thedespot_plunder * v / 100
+            self.tables.tuning.thedespot_plunder * v / 100
         } else {
             0
         };
-        if no.russians && self.tuning.russian_plunder_steal != 0 && killer != owner {
+        if no.russians && self.tables.tuning.russian_plunder_steal != 0 && killer != owner {
             self.ledgers[owner as usize].bucket[g] += v;
             self.ledgers[killer as usize].bucket[g] += hero;
         } else {
@@ -3570,7 +3604,7 @@ impl BuildStartView for StartSite<'_> {
     fn is_wonder(&mut self) -> bool {
         self.sim.buildings[self.b]
             .ty
-            .is_some_and(|ty| self.sim.build_types[ty].wonder)
+            .is_some_and(|ty| self.sim.tables.build_types[ty].wonder)
     }
     fn update_local_seen(&mut self) {
         self.sim.update_local_seen_build(self.b);
@@ -3762,7 +3796,7 @@ impl FindBuildingsView for SimFind<'_> {
         let ty = self.sim.buildings[self.at]
             .ty
             .expect("cityless names a type");
-        self.sim.build_types[ty].has(flags::NO_CITY)
+        self.sim.tables.build_types[ty].has(flags::NO_CITY)
     }
     fn dist(&mut self) -> i32 {
         let bt = self.sim.buildings[self.at].pos.tile();
@@ -4043,12 +4077,14 @@ impl AssimilateView for SimAssimilate<'_> {
         self.sim.sync_territory();
     }
     fn chinese_large_cities(&mut self) -> bool {
-        self.sim.nation[self.owner() as usize].chinese && self.sim.tuning.chinese_large_cities != 0
+        self.sim.nation[self.owner() as usize].chinese
+            && self.sim.tables.tuning.chinese_large_cities != 0
     }
     fn town_up(&mut self) {
         let b = self.sim.cities[self.c].building;
         if let Some(town) = self
             .sim
+            .tables
             .build_types
             .iter()
             .position(|t| t.ident == Ident::Town)
@@ -4098,8 +4134,9 @@ impl AssimilateView for SimAssimilate<'_> {
         let who = self.owner() as usize;
         let hero = self
             .sim
+            .tables
             .tech_tree
-            .get_gov_hero(&self.sim.setup, &self.sim.tech[who])?;
+            .get_gov_hero(&self.sim.tables.setup, &self.sim.tech[who])?;
         self.sim.unit_record(hero).map(|r| r as i32)
     }
     fn train(&mut self, m: i32, ty: i32) {

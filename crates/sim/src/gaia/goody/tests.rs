@@ -18,7 +18,7 @@ fn sim() -> (crate::Sim, usize) {
     for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
         t.add(TypeDef::good(n));
     }
-    s.tech_tree = t;
+    s.tables.tech_tree = t;
     s.frame = 1;
     // Empty buckets, so a pile is legible as itself rather than as a
     // delta on `STARTING_GOODS`.
@@ -134,7 +134,7 @@ fn a_box_on_its_own_ground_is_seen_once_the_leader_holds_computerization() {
     use crate::world::Owner;
     let (mut s, u) = sweeper();
     assert!(s.world.set_fog(vec![0; 16 * 16]));
-    let mut tree = s.tech_tree.clone();
+    let mut tree = s.tables.tech_tree.clone();
     let electronics = tree.types.len();
     tree.types.push(TypeDef::new("Electronics", Kind::Final));
     let computerization = tree.types.len();
@@ -172,7 +172,7 @@ fn a_spanish_box_on_its_own_ground_answers_was_seen() {
     use crate::world::Owner;
     let (mut s, u) = sweeper();
     assert!(s.world.set_fog(vec![0; 16 * 16]));
-    s.setup.starting_town = true;
+    s.tables.setup.starting_town = true;
     s.tech[1].power = Some(crate::nations::power::SPANISH);
     assert!(!s.find_goody_box(u), "nobody's ground: the line of sight");
     let c = Cell::new(3, 2);
@@ -354,7 +354,7 @@ fn a_player_who_can_gather_nothing_is_paid_in_wealth() {
     let (mut s, u) = sim();
     s.trace_phases = true;
     for g in 0..RESOURCES {
-        s.tech_tree.types[g].preq[0] = Preq::Disabled;
+        s.tables.tech_tree.types[g].preq[0] = Preq::Disabled;
     }
     step_onto_the_goody(&mut s, u);
     assert_eq!(
@@ -405,7 +405,7 @@ fn a_sea_type_leaves_the_goody_where_it_is() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     s.units[u].ty = Some(t);
     step_onto_the_goody(&mut s, u);
     assert_ne!(s.world.cell_data(Cell::new(3, 2)).flags & GOODY, 0);

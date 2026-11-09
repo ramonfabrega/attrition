@@ -23,8 +23,8 @@ fn come_out_s_army_coin_is_thrown_by_the_two_scout_lineages_alone() {
             hits: 40,
             ..crate::UnitType::default()
         });
-        sim.unit_types[t].cols.unit_flags2 = flags2;
-        sim.unit_types[t].tree = tree;
+        sim.tables.unit_types[t].cols.unit_flags2 = flags2;
+        sim.tables.unit_types[t].tree = tree;
         let index = sim
             .find_free(1, crate::UNIT_BASE, crate::BUILD_BASE)
             .unwrap();
@@ -167,9 +167,9 @@ fn the_hoplite_and_siege_terms_skip_decoys() {
         let (mut sim, c) = sim_with_city();
         sim.nation[1].human = human;
         let hop = soldier_type(&mut sim);
-        sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
+        sim.tables.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
         let ram = soldier_type(&mut sim);
-        sim.unit_types[ram].combat.siege = true;
+        sim.tables.unit_types[ram].combat.siege = true;
         let slot = sim.init_army(1, Some(c));
         for i in 0..3 {
             for t in [hop, ram] {
@@ -256,7 +256,7 @@ fn an_enemy_city_s_bordering_is_read_off_its_owner() {
     sim.cities[c].no_muster = true;
     let slot = sim.init_army(1, Some(c));
     let hop = soldier_type(&mut sim);
-    sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
+    sim.tables.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
     for i in 0..4 {
         let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
         sim.army_add_unit(1, slot, u);
@@ -346,14 +346,16 @@ fn target_strength_counts_living_nondecoy_cavalry_lineage() {
             .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
         sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
         let root = sim
+            .tables
             .tech_tree
             .add(TypeDef::unit("Cataphract", UnitTraits::default()));
         let upgrade = sim
+            .tables
             .tech_tree
             .add(TypeDef::unit("Knight", UnitTraits::default()).from(root));
-        sim.tech_tree.roles.cataphract = Some(root);
+        sim.tables.tech_tree.roles.cataphract = Some(root);
         let t = soldier_type(&mut sim);
-        sim.unit_types[t].tree = Some(upgrade);
+        sim.tables.unit_types[t].tree = Some(upgrade);
         let slot = sim.init_army(1, Some(c));
         for i in 0..4 {
             let u = put(&mut sim, 1, t, Pos::new(0x3000 + i * 48, 0x3000));
@@ -400,7 +402,7 @@ fn sim_with_rival_city() -> (Sim, usize, usize) {
     sim.cities[c].reg = sim.world.region_of(sim.cities[c].pos.cell());
     sim.cities[c].no_heal = true;
     let hop = soldier_type(&mut sim);
-    sim.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
+    sim.tables.unit_types[hop].cols.role |= role::ROLE_HOPLITE;
     let slot = sim.init_army(1, Some(c));
     for i in 0..4 {
         let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
@@ -468,7 +470,7 @@ fn a_wagonless_army_past_military_two_scores_no_enemy_city() {
         sim.armies[1].list[slot].num_standard = 7;
         if wagon {
             let t = soldier_type(&mut sim);
-            sim.unit_types[t].cols.unit_flags2 |= uflags2::SUPPLY_OR_HERO;
+            sim.tables.unit_types[t].cols.unit_flags2 |= uflags2::SUPPLY_OR_HERO;
             let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3030));
             sim.army_add_unit(1, slot, u);
         }
@@ -497,11 +499,11 @@ fn soldier_type(sim: &mut Sim) -> usize {
 
 fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = crate::Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     u.movement.speed = 25;
     u.movement.turning = crate::movement::Turning {
         type_turn_speed: crate::movement::degrees_to_angle(45).0,

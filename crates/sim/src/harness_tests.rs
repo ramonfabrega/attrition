@@ -802,7 +802,7 @@ fn the_greeks_keep_their_opening_knowledge_past_the_ancient_age() {
     let mut world = World::new(8, 8);
     world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
     let mut sim = Sim::new(Tuning::RON, world, 2);
-    sim.setup.starting_town = true;
+    sim.tables.setup.starting_town = true;
     sim.tech[0].power = Some(5);
     let knowledge = economy::Resource::Knowledge.index();
     let paid = |sim: &mut Sim, ages: i32| {
@@ -2386,7 +2386,7 @@ fn a_chinese_citizen_trains_at_once() {
         !instant(&sim, other),
         "only a Citizen, a merchant, a caravan"
     );
-    sim.tuning.chinese_citizen_instant = 0;
+    sim.tables.tuning.chinese_citizen_instant = 0;
     assert!(
         sim.train_tail(0, citizen)
             .iter()
@@ -2748,10 +2748,10 @@ fn a_research_is_charged_for_the_army_it_refits() {
     // The old line unowned is priced by its research — unless it carries
     // `h`, which `get_cost:425` sends to the train arm regardless.
     assert!(sim.research_modifiers(0, old).is_some());
-    sim.unit_types[old].cols.unit_flags = crate::ai_load::uflags::NO_RESEARCH_PRICE;
+    sim.tables.unit_types[old].cols.unit_flags = crate::ai_load::uflags::NO_RESEARCH_PRICE;
     assert_eq!(sim.research_modifiers(0, old), None);
     // And owned, a train job whatever its flags.
-    sim.unit_types[old].cols.unit_flags = 0;
+    sim.tables.unit_types[old].cols.unit_flags = 0;
     sim.tech[0].tech[old_t] = true;
     assert_eq!(sim.research_modifiers(0, old), None);
 }
@@ -2934,7 +2934,7 @@ fn archer_type() -> UnitType {
 /// Places a unit of a type for a player at a position, facing a way.
 fn combatant(sim: &mut Sim, owner: Player, ty: usize, at: Pos, facing: movement::Angle) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = Unit::new(owner, index, at, hits);
     u.ty = Some(ty);
     let i = sim.add_unit(u);
@@ -4067,7 +4067,7 @@ fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
             moves: 40,
             ..crate::UnitType::default()
         });
-        sim.unit_types[ty].combat.packs = packs;
+        sim.tables.unit_types[ty].combat.packs = packs;
         let start = Pos::new(4000, 400);
         let mut u = Unit::new(0, 0, start, 100);
         u.ty = Some(ty);
@@ -4144,7 +4144,7 @@ fn a_standing_turn_re_slots_the_crew_before_its_arrival_stand() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    sim.unit_types[ty].combat.packs = true;
+    sim.tables.unit_types[ty].combat.packs = true;
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![
@@ -4201,7 +4201,7 @@ fn a_tracked_crew_figure_between_untracked_ones_turns_in_its_slot() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    sim.unit_types[ty].combat.packs = true;
+    sim.tables.unit_types[ty].combat.packs = true;
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![
@@ -4264,7 +4264,7 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    sim.unit_types[ty].combat.packs = true;
+    sim.tables.unit_types[ty].combat.packs = true;
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![
@@ -4329,8 +4329,8 @@ fn a_monarch_halves_a_siege_unit_s_unpack() {
             moves: 40,
             ..crate::UnitType::default()
         });
-        sim.unit_types[ty].combat.packs = true;
-        sim.unit_types[ty].combat.siege = siege;
+        sim.tables.unit_types[ty].combat.packs = true;
+        sim.tables.unit_types[ty].combat.siege = siege;
         let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
         u.ty = Some(ty);
         u.guys = vec![anim::Guy::fresh(1)];
@@ -4339,7 +4339,7 @@ fn a_monarch_halves_a_siege_unit_s_unpack() {
         sim.seat_guys(unit);
         sim.units[unit].combat.packed = true;
         let hero = sim.add_unit_type(crate::UnitType::default());
-        sim.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
+        sim.tables.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::FLAG2_GENERAL;
         let mut m = Unit::new(0, 1, monarch_at, 20);
         m.ty = Some(hero);
         m.type_index = 0x162;
@@ -4376,7 +4376,7 @@ fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    sim.unit_types[ty].combat.packs = true;
+    sim.tables.unit_types[ty].combat.packs = true;
     let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
     u.ty = Some(ty);
     u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
@@ -4634,7 +4634,7 @@ fn a_marine_digs_in_at_idle_seven_and_a_step_leaves_the_trench() {
         movement::Angle::NORTH,
     );
     sim.units[m].unit_masks2 |= combat::umask2::MARINE;
-    assert_eq!(sim.tuning.marine_entrench_idle(), 7);
+    assert_eq!(sim.tables.tuning.marine_entrench_idle(), 7);
     let mut dug = None;
     for f in 0..200 {
         let before = sim.units[m].idle;

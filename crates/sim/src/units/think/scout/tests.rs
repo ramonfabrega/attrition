@@ -33,7 +33,7 @@ fn scout_sim(fog: bool) -> (Sim, usize, usize) {
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.unit_types[t].cols.role = role::ROLE_SCOUT;
+    s.tables.unit_types[t].cols.role = role::ROLE_SCOUT;
 
     let centre = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let bldg = s.add_building(1, centre, 4);
@@ -159,7 +159,7 @@ fn a_computers_caster_scout_throws_the_special_coin_before_the_walk() {
     for d in [0, 5] {
         let (mut s, ai, _) = scout_sim(false);
         let t = s.units[ai].ty.expect("typed");
-        s.unit_types[t].cols.unit_flags2 = flags;
+        s.tables.unit_types[t].cols.unit_flags2 = flags;
         s.lobby.difficulty = d;
         let before = s.rng.seed;
         assert!(!s.think_scout(ai), "difficulty {d}: nothing is found");
@@ -269,7 +269,7 @@ fn a_computers_spy_explores_by_the_region_scan() {
         moves: 40,
         ..crate::UnitType::default()
     });
-    s.unit_types[spy_type].tree = Some(SPY);
+    s.tables.unit_types[spy_type].tree = Some(SPY);
     let at = s.units[ai].pos;
     let mut u = crate::Unit::new(1, s.units.len() as i16, at, 20);
     u.ty = Some(spy_type);
@@ -395,8 +395,8 @@ fn a_leader_with_no_city_scans_its_whole_region() {
 fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     let citizen = |s: &mut Sim, u: usize| {
         let t = s.units[u].ty.expect("the fixture's type");
-        s.unit_types[t].cols.role = 0;
-        s.unit_types[t].worker = crate::orders::Worker::Citizen;
+        s.tables.unit_types[t].cols.role = 0;
+        s.tables.unit_types[t].worker = crate::orders::Worker::Citizen;
         s.units[u].type_index = 0x32;
         // `stance > 1` is what skips the job search, so the tail is
         // what this test reaches (`005f5920`).
@@ -474,8 +474,8 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
 fn a_scholar_keeps_its_builder_bit_where_a_citizen_loses_it() {
     let (mut s, ai, _) = scout_sim(true);
     let t = s.units[ai].ty.expect("the fixture's type");
-    s.unit_types[t].cols.role = 0;
-    s.unit_types[t].worker = crate::orders::Worker::Scholar;
+    s.tables.unit_types[t].cols.role = 0;
+    s.tables.unit_types[t].worker = crate::orders::Worker::Scholar;
     s.units[ai].type_index = 0x34;
     s.units[ai].stance = 2;
     s.units[ai].idle = 1;
@@ -484,7 +484,7 @@ fn a_scholar_keeps_its_builder_bit_where_a_citizen_loses_it() {
     assert!(s.units[ai].was_builder, "a scholar never reaches the clear");
 
     s.units[ai].type_index = 0x32;
-    s.unit_types[t].worker = crate::orders::Worker::Citizen;
+    s.tables.unit_types[t].worker = crate::orders::Worker::Citizen;
     let r = s
         .world
         .tregion_alt(s.units[ai].pos.tile())
@@ -630,7 +630,7 @@ fn a_sibling_of_the_scout_s_lineage_blocks_a_cell_whatever_its_rung() {
     s.set_tech_tree(tree);
     let rec = s.units[ai].ty.expect("the fixture's type");
     let typed = |s: &mut Sim, t| {
-        let mut ty = s.unit_types[rec].clone();
+        let mut ty = s.tables.unit_types[rec].clone();
         ty.tree = Some(t);
         s.add_unit_type(ty)
     };
@@ -729,9 +729,9 @@ fn a_sea_scout_with_nothing_to_see_joins_the_nearest_sea_army() {
         ..crate::UnitType::default()
     });
     // A ship in all three places the crate reads a domain from.
-    s.unit_types[t].cols.role = role::ROLE_SCOUT;
-    s.unit_types[t].kind.domain = Domain::Sea;
-    s.unit_types[t].combat.domain = Domain::Sea;
+    s.tables.unit_types[t].cols.role = role::ROLE_SCOUT;
+    s.tables.unit_types[t].kind.domain = Domain::Sea;
+    s.tables.unit_types[t].combat.domain = Domain::Sea;
     let spawn = |s: &mut Sim, at: Pos| {
         let mut u = crate::Unit::new(1, s.units.len() as i16, at, 20);
         u.ty = Some(t);

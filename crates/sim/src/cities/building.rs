@@ -226,13 +226,13 @@ pub struct Produced {
 impl Sim {
     /// Registers a building type and returns its id.
     pub fn add_build_type(&mut self, ty: build::BuildType) -> usize {
-        self.build_types.push(ty);
-        if self.table.builds() < self.build_types.len() {
+        self.tables.build_types.push(ty);
+        if self.table.builds() < self.tables.build_types.len() {
             self.table = self
                 .table
-                .grown(self.unit_types.len(), self.build_types.len());
+                .grown(self.tables.unit_types.len(), self.tables.build_types.len());
         }
-        self.build_types.len() - 1
+        self.tables.build_types.len() - 1
     }
 
     /// Adds a production building and returns its index.

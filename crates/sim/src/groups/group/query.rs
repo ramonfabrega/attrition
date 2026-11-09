@@ -122,7 +122,7 @@ impl Sim {
                 let key = self.units[u]
                     .ty
                     .map_or(crate::form::cat::FORM_CAT_NUM, |t| {
-                        crate::form::type_cat(&self.unit_types[t], t, human)
+                        crate::form::type_cat(&self.tables.unit_types[t], t, human)
                     });
                 if best.is_none_or(|(k, _, _)| key < k) {
                     best = Some((key, u, i));
@@ -321,7 +321,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return StanceType::None;
         };
-        let c = &self.unit_types[t];
+        let c = &self.tables.unit_types[t];
         if c.cols.is(crate::ai_load::role::ROLE_MILITARY) {
             return if c.combat.packs {
                 StanceType::Packer
@@ -571,14 +571,15 @@ impl Sim {
 
     pub(crate) fn is_siege_unit(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].combat.siege || self.unit_types[t].cols.flag(uflags::FLAG_SIEGE)
+            self.tables.unit_types[t].combat.siege
+                || self.tables.unit_types[t].cols.flag(uflags::FLAG_SIEGE)
         })
     }
 
     pub(crate) fn is_hero_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_GENERAL))
     }
 
     /// `UnitData::is_supply@0046ce80`, the base every unit vtable's `+0xcc`
@@ -587,21 +588,23 @@ impl Sim {
     /// 356 — answers yes, so `action_siege_attack_to`'s supply arm takes
     /// it before a later Supply Wagon (item 3682, `docs/AI.md` §346.2).
     pub(crate) fn is_supply_unit(&self, u: usize) -> bool {
-        self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO))
+        self.units[u].ty.is_some_and(|t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        })
     }
 
     pub(crate) fn is_special_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT))
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::FLAG2_SCOUT))
     }
 
     pub(crate) fn group_domain(&self, u: usize) -> Domain {
         self.units[u]
             .ty
-            .map_or(Domain::Land, |t| self.unit_types[t].combat.domain)
+            .map_or(Domain::Land, |t| self.tables.unit_types[t].combat.domain)
     }
 
     /// `UnitData::is_plane@0046ce40` — `domain == 2 && !(unit_flags & 0x20)`.
@@ -614,7 +617,7 @@ impl Sim {
         self.group_domain(u) == Domain::Air
             && !self.units[u]
                 .ty
-                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::FLAG_HELICOPTER))
+                .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::FLAG_HELICOPTER))
     }
 
     /// `Group::is_attacking_to@0070ea70` (item 1012, `docs/COMBAT.md`

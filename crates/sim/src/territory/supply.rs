@@ -454,12 +454,13 @@ impl crate::Sim {
     /// the player holds.
     pub(crate) fn spy_upgrade_level(&self, who: Player) -> i32 {
         let p = &self.tech[who as usize];
-        self.tech_tree
+        self.tables
+            .tech_tree
             .roles
             .spy_upgrade_preq
             .iter()
             .flatten()
-            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .filter(|&&t| self.tables.tech_tree.has_tech(&self.tables.setup, p, t))
             .count() as i32
     }
 
@@ -471,19 +472,21 @@ impl crate::Sim {
         let Some(p) = self.tech.get(who as usize) else {
             return 0;
         };
-        self.tech_tree
+        self.tables
+            .tech_tree
             .roles
             .general_upgrade_preq
             .iter()
             .flatten()
-            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .filter(|&&t| self.tables.tech_tree.has_tech(&self.tables.setup, p, t))
             .count() as i32
     }
 
     /// `ObjectData::is(0x3a, 0)` on a unit type: the Spy line.
     pub(crate) fn is_spy_type(&self, rec: usize) -> bool {
-        self.unit_types[rec].tree.is_some_and(|t| {
-            self.tech_tree.types.get(0x3a).is_some() && self.tech_tree.is(t, 0x3a, false)
+        self.tables.unit_types[rec].tree.is_some_and(|t| {
+            self.tables.tech_tree.types.get(0x3a).is_some()
+                && self.tables.tech_tree.is(t, 0x3a, false)
         })
     }
 
@@ -491,12 +494,13 @@ impl crate::Sim {
     /// supply-upgrade prerequisite, not a leading run.
     pub(crate) fn supply_upgrade_level(&self, who: Player) -> i32 {
         let p = &self.tech[who as usize];
-        self.tech_tree
+        self.tables
+            .tech_tree
             .roles
             .supply_upgrade_preq
             .iter()
             .flatten()
-            .filter(|&&t| self.tech_tree.has_tech(&self.setup, p, t))
+            .filter(|&&t| self.tables.tech_tree.has_tech(&self.tables.setup, p, t))
             .count() as i32
     }
 }

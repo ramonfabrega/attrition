@@ -35,7 +35,7 @@ fn a_follower_whose_target_died_takes_its_captain_s() {
         let mut u = crate::Unit::new(who, index, p, 100);
         u.ty = Some(ty);
         u.on_map = true;
-        u.kind = sim.unit_types[ty].kind;
+        u.kind = sim.tables.unit_types[ty].kind;
         sim.add_unit(u)
     };
     let c = 30 * 0x300 + 0x198;
@@ -102,7 +102,7 @@ fn a_target_running_from_the_chaser_s_heading_keeps_the_chase() {
         let mut u = crate::Unit::new(who, index, p, 100);
         u.ty = Some(ty);
         u.on_map = true;
-        u.kind = sim.unit_types[ty].kind;
+        u.kind = sim.tables.unit_types[ty].kind;
         sim.add_unit(u)
     };
     let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
@@ -189,7 +189,7 @@ fn a_living_target_out_of_sight_keeps_the_chase() {
         let mut u = crate::Unit::new(who, index, p, 100);
         u.ty = Some(ty);
         u.on_map = true;
-        u.kind = sim.unit_types[ty].kind;
+        u.kind = sim.tables.unit_types[ty].kind;
         sim.add_unit(u)
     };
     let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);

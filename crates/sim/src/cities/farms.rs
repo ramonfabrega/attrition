@@ -780,10 +780,15 @@ impl Sim {
             return Vec::new();
         }
         let chicken = self
+            .tables
             .unit_types
             .iter()
             .position(|t| t.tree == Some(FARMCHICKEN));
-        let pig = self.unit_types.iter().position(|t| t.tree == Some(FARMPIG));
+        let pig = self
+            .tables
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(FARMPIG));
         let Some(any) = chicken.or(pig) else {
             return Vec::new();
         };
@@ -853,9 +858,9 @@ impl Sim {
         drawn: bool,
     ) -> Option<usize> {
         let index = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE)?;
-        let hits = self.unit_types[ty].hits.max(1);
+        let hits = self.tables.unit_types[ty].hits.max(1);
         let mut unit = crate::Unit::new(9, index, at, hits);
-        unit.kind = self.unit_types[ty].kind;
+        unit.kind = self.tables.unit_types[ty].kind;
         unit.ty = Some(ty);
         // `Objects::init_unit`'s own two, without which the `MOVE_TO`
         // `think_farm_animal` hands out is an order the animal can
@@ -871,13 +876,13 @@ impl Sim {
         // which of the two species it is, is exactly what the coin
         // said and nothing else records.
         if typed {
-            unit.type_index = self.unit_types[ty].type_index;
+            unit.type_index = self.tables.unit_types[ty].type_index;
         }
         // `Unit::init@00612100:282–309` (`crate::stance`); a pasture
         // animal is not a worker type and takes the `default:` 0.
         unit.stance = self.init_stance(9, ty);
         // `Unit::init`'s formation byte: not a civilian, so 0.
-        unit.form = crate::init_form(self.unit_types[ty].type_index);
+        unit.form = crate::init_form(self.tables.unit_types[ty].type_index);
         unit.farm_animal = Some(FarmAnimal { build: b, slot });
         let u = self.add_unit(unit);
         if drawn {

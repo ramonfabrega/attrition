@@ -61,11 +61,11 @@ fn the_emulated_original_agrees_on_every_row() {
             panic!("nine arguments in `{line}`");
         };
         let (u, ty) = units[general as usize][owner as usize];
-        s.unit_types[ty].mana = i32::try_from(mana).unwrap();
+        s.tables.unit_types[ty].mana = i32::try_from(mana).unwrap();
         s.units[u].mana_burn = i16::try_from(burn).unwrap();
-        s.tuning.french_special_craft = i32::try_from(fsc).unwrap();
-        s.setup.no_nation_powers = nonation != 0;
-        s.setup.starting_town = town != 0;
+        s.tables.tuning.french_special_craft = i32::try_from(fsc).unwrap();
+        s.tables.setup.no_nation_powers = nonation != 0;
+        s.tables.setup.starting_town = town != 0;
         s.tech[owner as usize].has_city = city != 0;
         s.tech[owner as usize].power = (french != 0).then_some(crate::nations::power::FRENCH);
         s.tech[1 - owner as usize].power = None;

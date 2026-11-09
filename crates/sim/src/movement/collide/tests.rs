@@ -1470,7 +1470,7 @@ fn a_captain_bumped_by_another_enemy_strikes_what_it_can_reach() {
             let mut u = Unit::new(who, index, at, 100);
             u.ty = Some(ty);
             u.on_map = true;
-            u.kind = sim.unit_types[ty].kind;
+            u.kind = sim.tables.unit_types[ty].kind;
             sim.add_unit(u)
         };
         let me = put(&mut sim, 0, here);
@@ -1514,7 +1514,7 @@ fn a_captain_bumped_by_another_enemy_strikes_what_it_can_reach() {
     // A siege captain at ten takes §6 as before.
     let (mut sim, me, far, _) = setup(10);
     let ty = sim.units[me].ty.unwrap();
-    sim.unit_types[ty].combat.siege = true;
+    sim.tables.unit_types[ty].combat.siege = true;
     sim.resolve_unit_collision(me);
     assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(far)));
     assert_eq!(sim.units[me].collide, 1, "§6 step 5's count");
@@ -1644,7 +1644,7 @@ fn a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall() {
     let wreck = |grouped: bool| {
         let (mut sim, x, y) = pair(a, b);
         let ty = sim.units[y].ty.expect("typed");
-        sim.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
+        sim.tables.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::BLOCKS_WHILE_DEAD;
         if grouped {
             let slot = sim.init_army(0, None);
             sim.army_add_unit(0, slot, x);
@@ -2006,7 +2006,7 @@ fn the_list_branch_subtracts_the_candidates_radius_and_walks_by_leader() {
         hits: 40,
         ..crate::UnitType::default()
     });
-    sim.unit_types[t].combat.big_radius = 96;
+    sim.tables.unit_types[t].combat.big_radius = 96;
     let put = |sim: &mut Sim, owner: u8, index: i16, p: Pos| {
         let mut un = Unit::new(owner, index, p, 40);
         un.ty = Some(t);
@@ -2598,7 +2598,7 @@ fn a_parked_unit_on_the_waypoint_widens_the_tolerance() {
     // `big_radius` is `ObjectType +0x244` and `block_radius` `+0x240`;
     // they are the same number for every unit in every capture, so
     // give them different ones here and the test says which is read.
-    sim.unit_types[0].combat.big_radius = 96;
+    sim.tables.unit_types[0].combat.big_radius = 96;
     assert_eq!(sim.coll_size(y), 1, "still a one-cell block");
     // Straight onto the standing unit, ten cells away.
     sim.order_move(x, b);

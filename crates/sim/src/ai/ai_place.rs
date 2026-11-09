@@ -347,8 +347,8 @@ impl Sim {
     /// `006e2129` (item 1377, `docs/AI.md` §100).
     pub(crate) fn placement_lines(&self, rec: usize, nocity: bool) -> (bool, bool) {
         (
-            nocity && crate::build::is_tower(&self.build_types, rec),
-            crate::build::is_fort(&self.build_types, rec),
+            nocity && crate::build::is_tower(&self.tables.build_types, rec),
+            crate::build::is_fort(&self.tables.build_types, rec),
         )
     }
 
@@ -476,7 +476,7 @@ impl Sim {
         city: Option<usize>,
         escrow: bool,
     ) -> bool {
-        let bt = self.build_types[rec].clone();
+        let bt = self.tables.build_types[rec].clone();
         let ident = bt.ident;
         let frame = self.frame;
         // 4.1 The anchor and the permission: an active city building lends
@@ -494,7 +494,7 @@ impl Sim {
         // Shipyard or a Port answers it too (`docs/TRANSPORT.md`, "The
         // slot"). It gates three things here — the spiral's start, the
         // site block's extent, and the slide below.
-        let is_dock = crate::build::is_dock(&self.build_types, rec);
+        let is_dock = crate::build::is_dock(&self.tables.build_types, rec);
         let (tower, is_fort) = self.placement_lines(rec, nocity);
         let circle = circle();
         let mut start = 0usize;
@@ -723,8 +723,9 @@ impl Sim {
                     if tower {
                         let near_tower = self.buildings.iter().any(|b| {
                             b.alive
-                                && b.ty
-                                    .is_some_and(|t| self.build_types[t].ident == Ident::Tower)
+                                && b.ty.is_some_and(|t| {
+                                    self.tables.build_types[t].ident == Ident::Tower
+                                })
                                 && vector_dist(b.pos.x - cand.x, b.pos.y - cand.y) <= 0x600
                         });
                         if near_tower {
@@ -834,13 +835,14 @@ impl Sim {
         // own record (`ecx = [ebp+8]` at `006e25d9`).
         let (rec, bt, ident) = if oil && best > 0 && self.world.is_ocean(cand.cell()) {
             let platform = self
+                .tables
                 .build_types
                 .iter()
                 .position(|b| b.ident == Ident::OilPlatform)
                 .unwrap_or(rec);
             (
                 platform,
-                self.build_types[platform].clone(),
+                self.tables.build_types[platform].clone(),
                 Ident::OilPlatform,
             )
         } else {
@@ -857,7 +859,12 @@ impl Sim {
         };
         let mut builder: Option<(usize, u8)> = None;
         if frame != 0 {
-            let citizen = self.tech_tree.types.iter().position(|d| d.kind.is_unit());
+            let citizen = self
+                .tables
+                .tech_tree
+                .types
+                .iter()
+                .position(|d| d.kind.is_unit());
             let mut best_d = i32::MAX;
             // **In object-number order** (`006e2650`–`006e27b6`): the loop
             // walks `objects->units[who][0..count]`, so a tie keeps the
@@ -877,8 +884,8 @@ impl Sim {
                 }
                 let is_citizen = citizen.is_some_and(|c| {
                     unit.ty
-                        .and_then(|r| self.unit_types[r].tree)
-                        .is_some_and(|t| self.tech_tree.is(t, c, false))
+                        .and_then(|r| self.tables.unit_types[r].tree)
+                        .is_some_and(|t| self.tables.tech_tree.is(t, c, false))
                 });
                 if !is_citizen {
                     continue;

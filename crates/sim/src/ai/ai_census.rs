@@ -177,7 +177,7 @@ impl Sim {
                     && b.active
                     && b.owner == who
                     && b.ty
-                        .is_some_and(|t| build::city_level(&self.build_types, t) > 0)
+                        .is_some_and(|t| build::city_level(&self.tables.build_types, t) > 0)
                     && self.world.region_of(b.pos.cell()) == Some(r)
             })
             .count() as i32
@@ -187,18 +187,20 @@ impl Sim {
     fn unit_domain(&self, u: usize) -> Domain {
         self.units[u]
             .ty
-            .map_or(Domain::Land, |t| self.unit_types[t].combat.domain)
+            .map_or(Domain::Land, |t| self.tables.unit_types[t].combat.domain)
     }
 
     /// The unit's `TypeIndex`, when the tree knows it.
     pub(crate) fn unit_tree(&self, u: usize) -> Option<crate::tech::TypeId> {
-        self.units[u].ty.and_then(|t| self.unit_types[t].tree)
+        self.units[u]
+            .ty
+            .and_then(|t| self.tables.unit_types[t].tree)
     }
 
     /// `ObjectData::is(t, 0)` on a unit — the lineage test.
     pub(crate) fn unit_line_is(&self, u: usize, t: crate::tech::TypeId) -> bool {
         self.unit_tree(u)
-            .is_some_and(|ut| self.tech_tree.is(ut, t, false))
+            .is_some_and(|ut| self.tables.tech_tree.is(ut, t, false))
     }
 
     /// `ObjectsData::find_city@0065ba90(x, y, SEARCH_FRIENDLY, who, 0x200)`
@@ -249,7 +251,7 @@ impl Sim {
         if self.unit_domain(u) != Domain::Sea {
             return plain;
         }
-        let Some(bt) = container.ty.map(|t| &self.build_types[t]) else {
+        let Some(bt) = container.ty.map(|t| &self.tables.build_types[t]) else {
             return plain;
         };
         if bt.domain() == build::BuildDomain::Land {
@@ -562,7 +564,7 @@ impl Sim {
             }
             // `type->control_cost != 0`: a unit that costs no population is
             // not counted at all.
-            let control_cost = unit.ty.map_or(0, |t| self.unit_types[t].price.pop);
+            let control_cost = unit.ty.map_or(0, |t| self.tables.unit_types[t].price.pop);
             if control_cost == 0 {
                 continue;
             }
@@ -571,7 +573,7 @@ impl Sim {
             };
             let land_reg = self.region_is_land(reg);
             let domain = self.unit_domain(u);
-            let profile = unit.ty.map(|t| &self.unit_types[t].combat);
+            let profile = unit.ty.map(|t| &self.tables.unit_types[t].combat);
             // **`UnitTypeData::role`, not [`crate::combat::Profile::roles`]**
             // — item 295. The two words share no bit assignment: this
             // crate's own profile bitfield puts `CARAVAN` at `1 << 16` and
@@ -585,10 +587,12 @@ impl Sim {
             let military = roles & ROLE_MILITARY != 0;
             // `UnitTypeData::carry` and `unit_flags2 & 4` — a transport and
             // a fisherman.
-            let carry = unit.ty.is_some_and(|t| self.unit_types[t].cols.carry != 0);
+            let carry = unit
+                .ty
+                .is_some_and(|t| self.tables.unit_types[t].cols.carry != 0);
             let fisherman = unit
                 .ty
-                .is_some_and(|t| self.unit_types[t].cols.unit_flags2 & 4 != 0);
+                .is_some_and(|t| self.tables.unit_types[t].cols.unit_flags2 & 4 != 0);
             // `attack() / 10`, or a flat 10 off the ground.
             let strength = if domain == Domain::Land {
                 self.attack_of(Obj::Unit(u)) / 10
@@ -854,7 +858,7 @@ impl Sim {
         if let Some(b) = self.units[u].inside {
             if self.buildings[b]
                 .ty
-                .is_some_and(|t| build::is(&self.build_types, t, build::Ident::OilPlatform))
+                .is_some_and(|t| build::is(&self.tables.build_types, t, build::Ident::OilPlatform))
             {
                 self.ai[w].census.filled_gather_slots[5] += 1;
             }
@@ -896,7 +900,7 @@ impl Sim {
             let Some(rec) = bd.ty else {
                 continue;
             };
-            let bt = &self.build_types[rec];
+            let bt = &self.tables.build_types[rec];
             let reg = self.world.region_of(bd.pos.cell());
             // **The active test gates the gather slots alone**: its `je`
             // at `006bb09c` lands on `006bb15a`, the defensive count's own
@@ -915,9 +919,9 @@ impl Sim {
             let Some(r) = reg.filter(|r| self.region_is_land(*r)) else {
                 continue;
             };
-            let n = if build::is_tower(&self.build_types, rec) {
+            let n = if build::is_tower(&self.tables.build_types, rec) {
                 1
-            } else if build::is_fort(&self.build_types, rec) {
+            } else if build::is_fort(&self.tables.build_types, rec) {
                 2
             } else {
                 0
@@ -979,7 +983,7 @@ impl Sim {
         for c in self.cities_of(who) {
             let level = self.city_level_of(c);
             let indians = self.nation[w].indians;
-            let radius = radius_for_level(&self.tuning, level, indians);
+            let radius = radius_for_level(&self.tables.tuning, level, indians);
             let k = ((radius + 2) / 4) as usize;
             let city_reg = self.cities[c].reg;
             let centre = self.cities[c].pos.cell();
@@ -1277,7 +1281,7 @@ impl Sim {
                     bd.alive
                         && bd.active
                         && bd.owner == who
-                        && bd.ty.is_some_and(|t| self.build_types[t].wonder)
+                        && bd.ty.is_some_and(|t| self.tables.build_types[t].wonder)
                 })
                 .collect();
             let cs = &mut self.ai[w].census;
@@ -1307,8 +1311,10 @@ impl Sim {
                 cs.wonder_slots[i] = Some(b);
                 cs.wonder_mark = cs.wonder_mark.max(i as i32 + 1);
                 // `Game::wonders[t − 0x20e] |= 1`, in the same call.
-                let tree = self.buildings[b].ty.and_then(|t| self.build_types[t].tree);
-                let line = &self.tech_tree.roles.wonder_line;
+                let tree = self.buildings[b]
+                    .ty
+                    .and_then(|t| self.tables.build_types[t].tree);
+                let line = &self.tables.tech_tree.roles.wonder_line;
                 if let Some(k) = tree.and_then(|tr| line.iter().position(|&w| w == tr)) {
                     self.wonders_built |= 1 << k;
                 }

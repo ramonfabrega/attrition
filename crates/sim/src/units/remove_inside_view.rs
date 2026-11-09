@@ -178,7 +178,7 @@ impl RemoveInsideView for SimRemoveInside<'_> {
     fn is_peasant(&mut self) -> bool {
         self.sim.units[self.unit].ty.is_some_and(|t| {
             matches!(
-                self.sim.unit_types[t].worker,
+                self.sim.tables.unit_types[t].worker,
                 crate::orders::Worker::Citizen
             )
         })
@@ -198,7 +198,7 @@ impl RemoveInsideView for SimRemoveInside<'_> {
         // scout line alone — a Bark (the role word's other `0x10`) is not
         // one, and a Bark born at a dock raises nothing.
         self.sim.units[self.unit].ty.is_some_and(|t| {
-            self.sim.unit_types[t]
+            self.sim.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
         })
@@ -208,9 +208,11 @@ impl RemoveInsideView for SimRemoveInside<'_> {
         match id {
             BONUS_LAKOTA => self.sim.nation.get(who).is_some_and(|n| n.lakota),
             BONUS_AMERICANS => self.sim.tech.get(who).is_some_and(|p| {
-                self.sim
-                    .tech_tree
-                    .has_tribe_bonus(&self.sim.setup, p, crate::ai::tribe::AMERICANS)
+                self.sim.tables.tech_tree.has_tribe_bonus(
+                    &self.sim.tables.setup,
+                    p,
+                    crate::ai::tribe::AMERICANS,
+                )
             }),
             _ => false,
         }
@@ -226,10 +228,10 @@ impl RemoveInsideView for SimRemoveInside<'_> {
         }
     }
     fn lakota_food(&mut self) -> i32 {
-        self.sim.tuning.lakota_food
+        self.sim.tables.tuning.lakota_food
     }
     fn barracks_gather(&mut self) -> i32 {
-        self.sim.tuning.americans_barracks_gather
+        self.sim.tables.tuning.americans_barracks_gather
     }
     fn set_leader_flag(&mut self) {
         let who = self.sim.units[self.unit].owner;

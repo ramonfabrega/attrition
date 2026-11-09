@@ -557,7 +557,7 @@ impl Sim {
     fn city_span(&self, city: usize) -> i32 {
         let b = self.cities[city].building;
         self.buildings[b].ty.map_or(0, |ty| {
-            let t = &self.build_types[ty];
+            let t = &self.tables.build_types[ty];
             if t.x_size > t.y_size {
                 t.x_size * 0x60
             } else {
@@ -706,13 +706,16 @@ impl Sim {
             |pa, pb| self.trade_distance(pa, pb),
             |end_a| self.city_trade_value(if end_a { a } else { b }),
             |bonus| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, &self.tech[lead as usize], bonus)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    &self.tech[lead as usize],
+                    bonus,
+                )
             },
             self.has_rare(lead, crate::economy::SPICE),
             (
-                self.tuning.indians_caravan,
-                self.tuning.spice_caravan_income,
+                self.tables.tuning.indians_caravan,
+                self.tables.tuning.spice_caravan_income,
             ),
         )
     }
@@ -749,11 +752,11 @@ impl Sim {
         };
         // `TOWN` (0x19f) is the Large City; `METROPOLIS` (0x1a0) and
         // `FORBIDDENCITY` (0x213) are the two that score four.
-        if self.build_types[ty].ident == crate::build::Ident::Town {
+        if self.tables.build_types[ty].ident == crate::build::Ident::Town {
             return n + 2;
         }
         if matches!(
-            self.build_types[ty].ident,
+            self.tables.build_types[ty].ident,
             crate::build::Ident::Metropolis | crate::build::Ident::ForbiddenCity
         ) {
             return n + 4;

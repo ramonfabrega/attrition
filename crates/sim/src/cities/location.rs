@@ -558,7 +558,7 @@ pub struct SimLocation<'a> {
 
 impl SimLocation<'_> {
     fn bt(&self) -> &build::BuildType {
-        &self.sim.build_types[self.ty]
+        &self.sim.tables.build_types[self.ty]
     }
     fn player(i: i32) -> Option<crate::Player> {
         crate::Player::try_from(i).ok()
@@ -643,13 +643,13 @@ impl LocationView for SimLocation<'_> {
             OIL_PLATFORM => Ident::OilPlatform,
             _ => return false,
         };
-        build::is(&self.sim.build_types, self.ty, ident)
+        build::is(&self.sim.tables.build_types, self.ty, ident)
     }
     fn is_city(&mut self) -> bool {
-        build::is_city(&self.sim.build_types, self.ty)
+        build::is_city(&self.sim.tables.build_types, self.ty)
     }
     fn is_fort(&mut self) -> bool {
-        build::is_fort(&self.sim.build_types, self.ty)
+        build::is_fort(&self.sim.tables.build_types, self.ty)
     }
     fn gathers(&mut self) -> bool {
         self.bt().has(flags::GATHERER)
@@ -669,7 +669,7 @@ impl LocationView for SimLocation<'_> {
         false
     }
     fn konst(&self, k: Konst) -> i32 {
-        let t = &self.sim.tuning;
+        let t = &self.sim.tables.tuning;
         match k {
             Konst::CitySpacing => t.city_spacing,
             Konst::RelaxCitySpacing => t.relax_city_spacing,

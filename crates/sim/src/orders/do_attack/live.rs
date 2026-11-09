@@ -145,7 +145,7 @@ impl DoAttackView for SimDoAttack<'_> {
             let unit = &self.s.units[m];
             let attacks = unit
                 .ty
-                .is_some_and(|t| self.s.unit_types[t].combat.attack != 0);
+                .is_some_and(|t| self.s.tables.unit_types[t].combat.attack != 0);
             if unit.alive()
                 && unit.on_map
                 && !self.s.is_plane(m)
@@ -160,7 +160,7 @@ impl DoAttackView for SimDoAttack<'_> {
     fn is_supply(&mut self) -> bool {
         self.s.units[self.u]
             .ty
-            .is_some_and(|t| self.s.unit_types[t].cols.unit_flags2 & 0x40 != 0)
+            .is_some_and(|t| self.s.tables.unit_types[t].cols.unit_flags2 & 0x40 != 0)
     }
     fn target_set(&mut self) -> bool {
         self.target.is_some()
@@ -168,7 +168,7 @@ impl DoAttackView for SimDoAttack<'_> {
     fn target_footprint(&mut self) -> i32 {
         match self.target {
             Some(Obj::Building(b)) => self.s.buildings[b].ty.map_or(0, |t| {
-                self.s.build_types[t].x_size + self.s.build_types[t].y_size
+                self.s.tables.build_types[t].x_size + self.s.tables.build_types[t].y_size
             }),
             _ => 0,
         }
@@ -206,7 +206,7 @@ impl DoAttackView for SimDoAttack<'_> {
     fn unit_flags(&mut self) -> u32 {
         self.s.units[self.u]
             .ty
-            .map_or(0, |t| self.s.unit_types[t].cols.unit_flags)
+            .map_or(0, |t| self.s.tables.unit_types[t].cols.unit_flags)
     }
     fn track_target(&mut self) {}
     fn stance(&mut self) -> i32 {

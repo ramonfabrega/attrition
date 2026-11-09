@@ -25,7 +25,7 @@ impl Sim {
     pub fn profile(&self, o: Obj) -> Profile {
         match o {
             Obj::Unit(i) => self.units[i].ty.map_or_else(no_profile, |t| {
-                let mut p = self.unit_types[t].combat;
+                let mut p = self.tables.unit_types[t].combat;
                 if self.second_range == Some(t) {
                     p.max_range = p.second_max_range;
                 }
@@ -42,9 +42,11 @@ impl Sim {
     /// and 0 after it, which is the value [`uflags::MELEE_AND_RANGED`]
     /// leaves there at load ([`Sim::second_range`]).
     pub(crate) fn with_second_range<R>(&mut self, u: usize, f: impl FnOnce(&mut Self) -> R) -> R {
-        let swap = self.units[u]
-            .ty
-            .filter(|&t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        let swap = self.units[u].ty.filter(|&t| {
+            self.tables.unit_types[t]
+                .cols
+                .flag(uflags::MELEE_AND_RANGED)
+        });
         let Some(t) = swap else {
             return f(self);
         };
@@ -148,7 +150,7 @@ impl Sim {
                     self.trainer_ident(ty) == Some(crate::build::Ident::Stable)
                 }) && self.has_general(u, 0x162) =>
             {
-                self.tuning.themonarch_cav_attack * 10
+                self.tables.tuning.themonarch_cav_attack * 10
             }
             _ => 0,
         }
@@ -169,7 +171,9 @@ impl Sim {
     /// [`crate::unit_attack_view`] holds them all, swept, unwired.
     pub(super) fn citizen_attack(&self, o: Obj) -> i32 {
         match o {
-            Obj::Unit(u) if self.has_general(u, 0x164) => self.tuning.thecitizen_attack_bonus * 10,
+            Obj::Unit(u) if self.has_general(u, 0x164) => {
+                self.tables.tuning.thecitizen_attack_bonus * 10
+            }
             _ => 0,
         }
     }
@@ -180,7 +184,7 @@ impl Sim {
     pub(super) fn dutch_term(&self, o: Obj) -> i32 {
         match o {
             Obj::Unit(u) => self.units[u].ty.map_or(0, |rec| {
-                self.dutch_ages(self.units[u].owner, rec) * self.tuning.dutch_attack_bonus
+                self.dutch_ages(self.units[u].owner, rec) * self.tables.tuning.dutch_attack_bonus
             }),
             Obj::Building(_) => 0,
         }
@@ -201,7 +205,10 @@ impl Sim {
     pub(super) fn mods_of(&self, owner: usize) -> combat::Modifiers {
         let mut m = self.mods.get(owner).copied().unwrap_or_default();
         if let Some(p) = self.tech.get(owner)
-            && self.tech_tree.has_tribe_bonus(&self.setup, p, 0xf)
+            && self
+                .tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, 0xf)
         {
             m.japanese_level = Some(p.ages.min(p.epoch[crate::tech::Line::Military.index()]));
         }
@@ -250,7 +257,7 @@ impl Sim {
     pub(super) fn senator_build_armor(&self, b: usize) -> i32 {
         const THESENATOR: i32 = 0x161;
         if self.hero_near_building(b, THESENATOR) {
-            self.tuning.thesenator_build_armor
+            self.tables.tuning.thesenator_build_armor
         } else {
             0
         }
@@ -296,7 +303,7 @@ impl Sim {
             return 0;
         }
         let citizen = if self.has_general(u, 0x164) {
-            self.tuning.thecitizen_armor_bonus
+            self.tables.tuning.thecitizen_armor_bonus
         } else {
             0
         };
@@ -305,11 +312,11 @@ impl Sim {
             .is_some_and(|ty| self.trainer_ident(ty) == Some(crate::build::Ident::Stable))
             && self.has_general(u, 0x162)
         {
-            self.tuning.themonarch_cav_armor
+            self.tables.tuning.themonarch_cav_armor
         } else {
             0
         };
-        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1)
+        self.tables.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1)
             + citizen
             + monarch
     }
@@ -352,7 +359,7 @@ impl Sim {
         }
         let who = self.units[u].owner as usize;
         if self.nation[who].turks {
-            self.tuning.turk_siege_range
+            self.tables.tuning.turk_siege_range
         } else {
             0
         }
@@ -380,7 +387,7 @@ impl Sim {
             return 0;
         };
         if self.near_own_ceo(u) {
-            self.tuning.theceo_unit_range
+            self.tables.tuning.theceo_unit_range
         } else {
             0
         }
@@ -399,6 +406,7 @@ impl Sim {
         }
         let who = self.units[u].owner;
         let counted = self
+            .tables
             .unit_types
             .iter()
             .position(|t| t.type_index == CEO)
@@ -454,7 +462,7 @@ impl Sim {
     pub(crate) fn bleeds_in_enemy_land(&self, b: usize) -> bool {
         let dock = self.buildings[b]
             .ty
-            .is_some_and(|t| crate::build::is_dock(&self.build_types, t));
+            .is_some_and(|t| crate::build::is_dock(&self.tables.build_types, t));
         if !dock {
             return self.in_unfriendly_territory(b);
         }

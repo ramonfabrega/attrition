@@ -33,11 +33,11 @@ fn field(fires: bool) -> (Sim, usize) {
 
 fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
     let index = i16::try_from(sim.units.len()).unwrap();
-    let hits = sim.unit_types[ty].hits;
+    let hits = sim.tables.unit_types[ty].hits;
     let mut u = crate::Unit::new(who, index, p, hits);
     u.ty = Some(ty);
     u.on_map = true;
-    u.kind = sim.unit_types[ty].kind;
+    u.kind = sim.tables.unit_types[ty].kind;
     let i = sim.add_unit(u);
     sim.units[i].guys.push(crate::anim::Guy::fresh(-1));
     i
@@ -103,11 +103,11 @@ fn a_unit_that_fires_on_the_move_finds_shoots_and_walks_on() {
 fn a_captain_firing_on_the_move_retargets_before_it_shoots() {
     for captain in [true, false] {
         let (mut sim, ty) = field(true);
-        let mut cheap = sim.unit_types[ty].clone();
+        let mut cheap = sim.tables.unit_types[ty].clone();
         cheap.combat.combat_role = false;
         cheap.combat.cost = 1;
         let cheap = sim.add_unit_type(cheap);
-        sim.unit_types[ty].combat.cost = 1000;
+        sim.tables.unit_types[ty].combat.cost = 1000;
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         let held = put(&mut sim, 0, cheap, Pos::new(3000, 3900));
         let dear = put(&mut sim, 0, ty, Pos::new(3200, 3900));
@@ -152,7 +152,7 @@ fn a_city_at_its_ceiling_is_still_borne_on() {
     for alive in [true, false] {
         let (mut sim, ty) = field(true);
         const CAVARCHERS: i32 = 188;
-        sim.unit_types[ty].type_index = CAVARCHERS;
+        sim.tables.unit_types[ty].type_index = CAVARCHERS;
         sim.art
             .pivots
             .insert(CAVARCHERS, [(4, (-180, 180))].into_iter().collect());
@@ -218,11 +218,11 @@ fn the_fire_on_the_move_bears_off_the_heading_not_the_facing() {
 fn a_bark_captain_firing_on_the_move_keeps_a_target_that_is_not_combat() {
     for held_combat in [false, true] {
         let (mut sim, ty) = field(true);
-        let mut cheap = sim.unit_types[ty].clone();
+        let mut cheap = sim.tables.unit_types[ty].clone();
         cheap.combat.combat_role = held_combat;
         cheap.combat.cost = 1;
         let cheap = sim.add_unit_type(cheap);
-        sim.unit_types[ty].combat.cost = 1000;
+        sim.tables.unit_types[ty].combat.cost = 1000;
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         let held = put(&mut sim, 0, cheap, Pos::new(3000, 3900));
         let dear = put(&mut sim, 0, ty, Pos::new(3200, 3900));
@@ -304,7 +304,7 @@ fn a_melee_and_ranged_type_keeps_its_wait_under_an_attack_action() {
     for k in [false, true] {
         let (mut sim, ty) = field(true);
         if k {
-            sim.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
+            sim.tables.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
         }
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         let foe = put(&mut sim, 0, ty, Pos::new(3000, 30000));
@@ -331,7 +331,7 @@ fn a_melee_and_ranged_type_walks_past_the_reload_gate() {
     for k in [false, true] {
         let (mut sim, ty) = field(false);
         if k {
-            sim.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
+            sim.tables.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
         }
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         let foe = put(&mut sim, 0, ty, Pos::new(3000, 30000));
@@ -343,7 +343,7 @@ fn a_melee_and_ranged_type_walks_past_the_reload_gate() {
         // In range: no blow, the reload untouched.
         let (mut sim, ty) = field(false);
         if k {
-            sim.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
+            sim.tables.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
         }
         let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
         let foe = put(&mut sim, 0, ty, Pos::new(3000, 3400));
@@ -360,7 +360,7 @@ fn a_melee_and_ranged_type_walks_past_the_reload_gate() {
 /// melee at its first range, 8 at its second, firing on the move.
 fn mahout(k: bool) -> (Sim, usize) {
     let (mut sim, ty) = field(true);
-    let t = &mut sim.unit_types[ty];
+    let t = &mut sim.tables.unit_types[ty];
     t.combat.max_range = 0;
     t.combat.second_max_range = 8;
     if k {
@@ -468,7 +468,7 @@ fn an_empty_search_twice_waits_for_the_thirty_two_frame_phase() {
 fn the_step_attack_walks_while_the_turret_bears() {
     for (at, bears) in [(Pos::new(3000, 4200), true), (Pos::new(3000, 1800), false)] {
         let (mut sim, ty) = field(true);
-        let ti = sim.unit_types[ty].type_index;
+        let ti = sim.tables.unit_types[ty].type_index;
         sim.art
             .pivots
             .insert(ti, [(4, (-90, 90))].into_iter().collect());
@@ -500,7 +500,7 @@ fn the_step_attack_walks_while_the_turret_bears() {
 fn an_empty_search_of_a_v_type_resets_the_pivots_and_only_that() {
     for fires in [true, false] {
         let (mut sim, ty) = field(fires);
-        let ti = sim.unit_types[ty].type_index;
+        let ti = sim.tables.unit_types[ty].type_index;
         sim.art
             .pivots
             .insert(ti, [(4, (-150, 150))].into_iter().collect());

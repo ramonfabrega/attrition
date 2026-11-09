@@ -238,6 +238,7 @@ impl Host for ScriptHost<'_> {
                     let tribe = self.sim.tech[w as usize].tribe;
                     Value::Str(
                         self.sim
+                            .tables
                             .tech_tree
                             .tribes
                             .get(tribe)
@@ -283,15 +284,18 @@ impl Host for ScriptHost<'_> {
                     } else {
                         match self
                             .sim
+                            .tables
                             .tech_tree
                             .ages
                             .get(p.ages as usize)
                             .copied()
                             .flatten()
                         {
-                            Some(age) => {
-                                int(self.sim.tech_tree.techs_per_age(&self.sim.setup, p, age))
-                            }
+                            Some(age) => int(self.sim.tables.tech_tree.techs_per_age(
+                                &self.sim.tables.setup,
+                                p,
+                                age,
+                            )),
                             None => BAD,
                         }
                     }
@@ -484,6 +488,7 @@ impl ScriptHost<'_> {
     /// `TypeIndex` order for the first display name that matches.
     fn type_index(&self, name: &str) -> Option<TypeId> {
         self.sim
+            .tables
             .tech_tree
             .types
             .iter()
@@ -491,7 +496,7 @@ impl ScriptHost<'_> {
     }
 
     fn class(&self, t: TypeId) -> Class {
-        match self.sim.tech_tree.kind(t) {
+        match self.sim.tables.tech_tree.kind(t) {
             Kind::Good => Class::Good,
             Kind::Unit(_) => Class::Unit,
             Kind::Building { .. } => Class::Build,
@@ -501,12 +506,20 @@ impl ScriptHost<'_> {
 
     /// The unit record a tree id names.
     fn unit_record(&self, t: TypeId) -> Option<usize> {
-        self.sim.unit_types.iter().position(|u| u.tree == Some(t))
+        self.sim
+            .tables
+            .unit_types
+            .iter()
+            .position(|u| u.tree == Some(t))
     }
 
     /// The building record a tree id names.
     fn build_record(&self, t: TypeId) -> Option<usize> {
-        self.sim.build_types.iter().position(|b| b.tree == Some(t))
+        self.sim
+            .tables
+            .build_types
+            .iter()
+            .position(|b| b.tree == Some(t))
     }
 
     /// A good's ledger slot: the tree's goods are the six common ones first.
@@ -519,21 +532,22 @@ impl ScriptHost<'_> {
     fn building_is(&self, b: usize, t: TypeId) -> bool {
         self.sim.buildings[b]
             .ty
-            .and_then(|r| self.sim.build_types[r].tree)
-            .is_some_and(|bt| self.sim.tech_tree.is(bt, t, false))
+            .and_then(|r| self.sim.tables.build_types[r].tree)
+            .is_some_and(|bt| self.sim.tables.tech_tree.is(bt, t, false))
     }
 
     /// The same on a unit.
     fn unit_is(&self, u: usize, t: TypeId) -> bool {
         self.sim.units[u]
             .ty
-            .and_then(|r| self.sim.unit_types[r].tree)
-            .is_some_and(|ut| self.sim.tech_tree.is(ut, t, false))
+            .and_then(|r| self.sim.tables.unit_types[r].tree)
+            .is_some_and(|ut| self.sim.tables.tech_tree.is(ut, t, false))
     }
 
     /// `types.list[BASE_UNITTYPES]` — the Citizen, the tree's first unit.
     fn citizen_type(&self) -> Option<TypeId> {
         self.sim
+            .tables
             .tech_tree
             .types
             .iter()
@@ -543,10 +557,11 @@ impl ScriptHost<'_> {
     /// `LeaderData::current_upgrade` then `get_graft`, the normalisation
     /// `num_type_with_queued` and the trainers apply.
     fn line_of(&self, w: Player, t: TypeId) -> TypeId {
-        let tree = &self.sim.tech_tree;
+        let tree = &self.sim.tables.tech_tree;
         let p = &self.sim.tech[w as usize];
-        let up = tree.current_upgrade(&self.sim.setup, p, t);
-        tree.get_graft(&self.sim.setup, p, Some(up)).unwrap_or(up)
+        let up = tree.current_upgrade(&self.sim.tables.setup, p, t);
+        tree.get_graft(&self.sim.tables.setup, p, Some(up))
+            .unwrap_or(up)
     }
 
     /// `LeaderData::num_buildings[t]`: live, finished buildings of exactly
@@ -858,13 +873,15 @@ impl ScriptHost<'_> {
         let p = &self.sim.tech[w as usize];
         let t = if self
             .sim
+            .tables
             .tech_tree
-            .tribe_can_type(&self.sim.setup, p, citizen)
+            .tribe_can_type(&self.sim.tables.setup, p, citizen)
             == 0
         {
             self.sim
+                .tables
                 .tech_tree
-                .get_graft(&self.sim.setup, p, Some(citizen))
+                .get_graft(&self.sim.tables.setup, p, Some(citizen))
                 .unwrap_or(citizen)
         } else {
             citizen
@@ -932,10 +949,10 @@ impl ScriptHost<'_> {
             .items
             .iter()
             .filter(|i| match i.tech {
-                Some(tt) => self.sim.tech_tree.is(tt, t, false),
-                None => self.sim.unit_types[i.ty]
+                Some(tt) => self.sim.tables.tech_tree.is(tt, t, false),
+                None => self.sim.tables.unit_types[i.ty]
                     .tree
-                    .is_some_and(|ut| self.sim.tech_tree.is(ut, t, false)),
+                    .is_some_and(|ut| self.sim.tables.tech_tree.is(ut, t, false)),
             })
             .count();
         int(n as i32)
@@ -1000,10 +1017,11 @@ impl ScriptHost<'_> {
             return BAD;
         };
         if upgrade {
-            t = self
-                .sim
-                .tech_tree
-                .current_upgrade(&self.sim.setup, &self.sim.tech[w as usize], t);
+            t = self.sim.tables.tech_tree.current_upgrade(
+                &self.sim.tables.setup,
+                &self.sim.tech[w as usize],
+                t,
+            );
         }
         let Some(rec) = self.build_record(t) else {
             return BAD;
@@ -1043,11 +1061,11 @@ impl ScriptHost<'_> {
             None => {
                 // The producing building: the type's `where`, upgraded to
                 // the player's level.
-                let Some(where_) = self.sim.tech_tree.types[t].where_ else {
+                let Some(where_) = self.sim.tables.tech_tree.types[t].where_ else {
                     return BAD;
                 };
-                let producer = self.sim.tech_tree.current_upgrade(
-                    &self.sim.setup,
+                let producer = self.sim.tables.tech_tree.current_upgrade(
+                    &self.sim.tables.setup,
                     &self.sim.tech[w as usize],
                     where_,
                 );
@@ -1093,13 +1111,14 @@ impl ScriptHost<'_> {
         if self.sim.tech[w as usize].tech[t] {
             return OK;
         }
-        let Some(where_) = self.sim.tech_tree.types[t].where_ else {
+        let Some(where_) = self.sim.tables.tech_tree.types[t].where_ else {
             return BAD;
         };
-        let producer =
-            self.sim
-                .tech_tree
-                .current_upgrade(&self.sim.setup, &self.sim.tech[w as usize], where_);
+        let producer = self.sim.tables.tech_tree.current_upgrade(
+            &self.sim.tables.setup,
+            &self.sim.tech[w as usize],
+            where_,
+        );
         let cursor = self.sim.script_env.find_counters[counter::RESEARCH_PRODUCER];
         let found = self.lap_builds(w, cursor).find(|&o| {
             self.sim

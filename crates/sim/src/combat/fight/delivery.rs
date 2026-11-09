@@ -114,7 +114,7 @@ impl Sim {
         let owner = self.owner_of(attacker) as usize;
         let pct = self.table_pct(attacker, target);
         let mut dmg = combat::get_damage(
-            &self.tuning,
+            &self.tables.tuning,
             &ap,
             at,
             &tp,
@@ -140,7 +140,7 @@ impl Sim {
             }
             let u = &mut self.units[t];
             if u.combat.damage_frame == 0
-                || frame - u.combat.damage_frame >= i64::from(self.tuning.overkill_frames)
+                || frame - u.combat.damage_frame >= i64::from(self.tables.tuning.overkill_frames)
             {
                 u.combat.damage_frame = frame;
                 u.combat.damage_o = at.captain;
@@ -323,8 +323,8 @@ impl Sim {
         let heavy = (matches!(attacker, Obj::Unit(_)) && siege) || {
             let bd = &self.buildings[b];
             let defense = bd.ty.is_some_and(|t| {
-                crate::build::is_fort(&self.build_types, t)
-                    || crate::build::is_tower(&self.build_types, t)
+                crate::build::is_fort(&self.tables.build_types, t)
+                    || crate::build::is_tower(&self.tables.build_types, t)
             });
             let ceiling = if defense || self.building_is_city(b) {
                 bd.hits_now() / 10
@@ -412,7 +412,7 @@ impl Sim {
                     continue;
                 }
                 if self.nation[unit.owner as usize].koreans
-                    && self.tuning.korean_build_under_fire != 0
+                    && self.tables.tuning.korean_build_under_fire != 0
                 {
                     continue;
                 }
@@ -663,7 +663,7 @@ impl Sim {
         use crate::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
         const SPITAMENES: i32 = 0x16d;
-        let amount = self.tuning.thedespot_unit_plunder;
+        let amount = self.tables.tuning.thedespot_unit_plunder;
         let victim = &self.units[v];
         if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
             return;
@@ -693,7 +693,7 @@ impl Sim {
         }
         let kind = self.units[v]
             .ty
-            .map_or(0, |t| self.unit_types[t].cols.unit_flags2);
+            .map_or(0, |t| self.tables.unit_types[t].cols.unit_flags2);
         // `take_damage@00652020`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)`
         // arm (`LAB_0065332c`): `plunder(v, k, who, 0, 0)` — no Despot search,
         // the base constant in wealth (item 3788; run1461b's who=2 takes
@@ -743,7 +743,7 @@ impl Sim {
             return;
         }
         let vw = victim.owner;
-        if self.tuning.inca_refund == 0
+        if self.tables.tuning.inca_refund == 0
             || self.is_ally(vw, self.owner_of(by))
             || !self.holdings[vw as usize].inca
         {
@@ -761,7 +761,8 @@ impl Sim {
     /// The leader's per-type count at `+0x56fe + ti × 2` — the muster's
     /// count of type `ti` — non-zero: `has_general`'s early `return -1`.
     pub(crate) fn hero_counted(&self, who: Player, ti: i32) -> bool {
-        self.unit_types
+        self.tables
+            .unit_types
             .iter()
             .position(|t| t.type_index == ti)
             .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
@@ -859,7 +860,9 @@ impl Sim {
         dtype != 0
             && self.units[i].on_map
             && self.units[i].ty.is_some_and(|t| {
-                self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                    != 0
             })
     }
 
@@ -875,7 +878,7 @@ impl Sim {
     /// the message and the sound; the dead-target refund arm.
     pub(crate) fn cast_sabotage_building(&mut self, b: usize) {
         let frame = self.frame;
-        let dmg = (self.buildings[b].health / 2).max(self.tuning.commando_min_damage);
+        let dmg = (self.buildings[b].health / 2).max(self.tables.tuning.commando_min_damage);
         self.damage_building(
             b,
             Sixteenths {
@@ -911,9 +914,9 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
-        let fortlike = crate::build::is_fort(&self.build_types, ty)
-            || crate::build::is(&self.build_types, ty, crate::build::Ident::Temple)
-            || crate::build::is(&self.build_types, ty, crate::build::Ident::Town);
+        let fortlike = crate::build::is_fort(&self.tables.build_types, ty)
+            || crate::build::is(&self.tables.build_types, ty, crate::build::Ident::Temple)
+            || crate::build::is(&self.tables.build_types, ty, crate::build::Ident::Town);
         if !fortlike {
             return;
         }
@@ -1082,7 +1085,7 @@ impl Sim {
             return;
         }
         let Some(ty) = u.ty else { return };
-        if self.unit_types[ty].price.pop == 0 && !self.type_is_hero(ty) {
+        if self.tables.unit_types[ty].price.pop == 0 && !self.type_is_hero(ty) {
             return;
         }
         // Gaia's animals carry population in some rows and hold no muster
@@ -1269,7 +1272,8 @@ impl Sim {
         // neighbour's block, and nothing puts it back but the neighbour's
         // sixty-fourth-frame repaint.
         if !self.units[i].ty.is_some_and(|t| {
-            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+            self.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                != 0
         }) {
             for k in 0..self.units[i].guys.len() {
                 self.coll_kill_guy(i, k);
@@ -1321,7 +1325,9 @@ impl Sim {
             .rposition(|u| i32::from(u.owner) == r.who && i32::from(u.index) == r.o)
             .and_then(|u| self.units[u].ty)
             .is_some_and(|t| {
-                self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
+                    != 0
             })
     }
 
@@ -1606,7 +1612,7 @@ impl Sim {
             {
                 let blocks = !self.units[u].alive()
                     && self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags
+                        self.tables.unit_types[t].cols.unit_flags
                             & crate::ai_load::uflags::BLOCKS_WHILE_DEAD
                             != 0
                     });

@@ -46,9 +46,9 @@ fn the_filter_wants_a_finished_building_with_a_city_or_a_type_that_needs_none() 
     assert!(!sim.danger_counts_building(b), "unfinished");
     sim.buildings[b].active = true;
     assert!(!sim.danger_counts_building(b), "finished, but no city");
-    sim.build_types[barracks].flags |= flags::NO_CITY;
+    sim.tables.build_types[barracks].flags |= flags::NO_CITY;
     assert!(sim.danger_counts_building(b), "NO_CITY needs none");
-    sim.build_types[barracks].flags &= !flags::NO_CITY;
+    sim.tables.build_types[barracks].flags &= !flags::NO_CITY;
     sim.buildings[b].city = Some(0);
     assert!(sim.danger_counts_building(b), "a member of a city");
 }
@@ -73,7 +73,7 @@ fn an_upgrade_weighs_the_trainer_bit_of_its_basic_type() {
     let b = sim.init_build(0, upgrade, tile_pos(8 * 4 + 1, 8 * 4 + 1), false);
     sim.buildings[b].active = true;
     assert_eq!(sim.danger_building_value(b), 50);
-    sim.build_types[barracks].flags &= !flags::MILITARY_TRAINER;
+    sim.tables.build_types[barracks].flags &= !flags::MILITARY_TRAINER;
     assert_eq!(sim.danger_building_value(b), 10);
 }
 
@@ -84,7 +84,7 @@ fn an_upgrade_weighs_the_trainer_bit_of_its_basic_type() {
 #[test]
 fn an_owner_s_own_building_is_a_negative_block_of_nine() {
     let (mut sim, _city, barracks) = fx();
-    sim.build_types[barracks].flags |= flags::NO_CITY;
+    sim.tables.build_types[barracks].flags |= flags::NO_CITY;
     // Cell (8, 8) is half-cell (4, 4).
     let b = sim.init_build(0, barracks, tile_pos(8 * 4 + 1, 8 * 4 + 1), false);
     sim.buildings[b].active = true;
@@ -115,7 +115,7 @@ fn an_owner_s_own_building_is_a_negative_block_of_nine() {
 #[test]
 fn an_enemy_s_building_adds_and_the_unseen_halving_is_the_only_one_at_war() {
     let (mut sim, _city, barracks) = fx();
-    sim.build_types[barracks].flags |= flags::NO_CITY;
+    sim.tables.build_types[barracks].flags |= flags::NO_CITY;
     // A fog grid nobody has lit: without one `was_seen_fog` answers
     // "everything is seen", which is the fixture's default and not
     // what a capture looks like.
@@ -156,7 +156,7 @@ fn an_enemy_s_building_adds_and_the_unseen_halving_is_the_only_one_at_war() {
 #[test]
 fn a_lit_fog_does_not_see_a_building_its_ever_seen_byte_has_not() {
     let (mut sim, _city, barracks) = fx();
-    sim.build_types[barracks].flags |= flags::NO_CITY;
+    sim.tables.build_types[barracks].flags |= flags::NO_CITY;
     assert!(
         sim.world.set_fog(vec![0xff; 32 * 32]),
         "a 16 x 16 world's fog"
@@ -307,7 +307,7 @@ fn the_four_weights() {
 #[test]
 fn the_map_is_rebuilt_every_two_hundredth_frame_and_never_between() {
     let (mut sim, _city, barracks) = fx();
-    sim.build_types[barracks].flags |= flags::NO_CITY;
+    sim.tables.build_types[barracks].flags |= flags::NO_CITY;
     sim.tick(); // frame 0 builds an empty map
     assert_eq!(sim.world.danger_half(0, Cell::new(8, 8)), 0);
     let b = sim.init_build(0, barracks, tile_pos(8 * 4 + 1, 8 * 4 + 1), false);

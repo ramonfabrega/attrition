@@ -154,8 +154,8 @@ fn the_emulated_original_agrees_on_every_row() {
                         _ => trainer(Ident::Wonder),
                     };
                     let mut sim = Sim::new(Tuning::RON, World::new(8, 8), 4);
-                    sim.build_types = types;
-                    sim.unit_types = vec![UnitType {
+                    sim.tables.build_types = types;
+                    sim.tables.unit_types = vec![UnitType {
                         kind: UnitKind {
                             domain: if sea { Domain::Sea } else { Domain::Land },
                             ..UnitKind::default()

@@ -54,7 +54,7 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         },
         ..crate::UnitType::default()
     });
-    s.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
+    s.tables.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
     let probe = s.add_unit_type(crate::UnitType {
         hits: 130,
         combat: crate::combat::Profile {
@@ -65,11 +65,11 @@ fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
     });
     let put = |s: &mut Sim, ty: usize, p: Pos| {
         let index = i16::try_from(s.units.len()).unwrap();
-        let hits = s.unit_types[ty].hits;
+        let hits = s.tables.unit_types[ty].hits;
         let mut u = crate::Unit::new(0, index, p, hits);
         u.ty = Some(ty);
         u.on_map = true;
-        u.kind = s.unit_types[ty].kind;
+        u.kind = s.tables.unit_types[ty].kind;
         s.add_unit(u)
     };
     let n = put(&mut s, nuke, Pos::new(19200, 34560));
@@ -232,7 +232,7 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
         },
         ..crate::UnitType::default()
     });
-    s.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
+    s.tables.unit_types[nuke].tree = Some(crate::airbase::NUCLEARMISSILE);
     let probe = s.add_unit_type(crate::UnitType {
         hits: 130,
         combat: crate::combat::Profile {
@@ -243,11 +243,11 @@ fn a_landing_lights_its_circle_and_a_hit_marks_the_treaties() {
     });
     let put = |s: &mut Sim, who: Player, ty: usize, p: Pos| {
         let index = i16::try_from(s.units.len()).unwrap();
-        let hits = s.unit_types[ty].hits;
+        let hits = s.tables.unit_types[ty].hits;
         let mut u = crate::Unit::new(who, index, p, hits);
         u.ty = Some(ty);
         u.on_map = true;
-        u.kind = s.unit_types[ty].kind;
+        u.kind = s.tables.unit_types[ty].kind;
         s.add_unit(u)
     };
     let n = put(&mut s, 1, nuke, Pos::new(19200, 34560));

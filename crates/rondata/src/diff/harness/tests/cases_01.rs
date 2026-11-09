@@ -2011,7 +2011,7 @@ mod bodies {
                     .map(|i| {
                         (
                             i.tech.map_or_else(
-                                || i64::from(built.sim.unit_types[i.ty].type_index),
+                                || i64::from(built.sim.tables.unit_types[i.ty].type_index),
                                 |x| i64::from(loaded.type_index(x)),
                             ),
                             i64::from(i.job_counter),

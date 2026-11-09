@@ -37,15 +37,15 @@ fn plane(s: &mut Sim, base: usize, line: crate::tech::TypeId) -> usize {
     };
     let ty = s.add_unit_type(t);
     // The line only: `air_line_is` reads the id itself before the tree.
-    s.unit_types[ty].tree = Some(line);
+    s.tables.unit_types[ty].tree = Some(line);
     let index = i16::try_from(s.units.len()).unwrap();
     let mut u = Unit::new(0, index, s.buildings[base].pos, 100);
     u.ty = Some(ty);
     u.on_map = true;
     let u = s.add_unit(u);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     s.units[u].movement.speed = 75;
-    s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+    s.units[u].movement.turning = crate::turning_of(&s.tables.unit_types[ty]);
     s.init_guys(u, Some(ty));
     s.go_inside(u, base);
     u
@@ -415,7 +415,7 @@ fn an_airbase_with_ten_homed_aircraft_refuses_another() {
     plane(&mut s, b, BIPLANE);
     assert_eq!(s.aircraft_homed(b), 10);
     assert!(s.airbase_pad_full(b, ty), "ten homed: full");
-    s.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+    s.tables.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     assert!(!s.airbase_pad_full(b, ty), "a helicopter's type is exempt");
 }
 
@@ -433,11 +433,11 @@ fn a_full_airbase_trains_the_helicopter_behind_a_refused_plane() {
         let plane_ty = s.units[planes[2]].ty.unwrap();
         let h = plane(&mut s, b, HELICOPTER);
         let heli_ty = s.units[h].ty.unwrap();
-        s.unit_types[heli_ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+        s.tables.unit_types[heli_ty].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
         // No technology tree in this fixture: the lines are ids a
         // tree would index.
-        s.unit_types[heli_ty].tree = None;
-        s.unit_types[plane_ty].tree = None;
+        s.tables.unit_types[heli_ty].tree = None;
+        s.tables.unit_types[plane_ty].tree = None;
         assert!(s.airbase_pad_full(b, plane_ty));
         s.muster[0].researched[plane_ty] = true;
         s.muster[0].researched[heli_ty] = true;
@@ -528,7 +528,7 @@ fn a_helicopter_launched_on_the_ground_takes_a_move_to_the_cell_centre() {
     let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 40, 40]);
     let h = plane(&mut s, b, HELICOPTER);
     let t = s.units[h].ty.unwrap();
-    s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+    s.tables.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     let here = s.units[h].pos;
     s.group_action_launch_patrol(&[b], p, QueuePos::New, Keys::default());
     assert!(
@@ -555,19 +555,19 @@ fn a_helicopter_launched_on_the_ground_takes_a_move_to_the_cell_centre() {
 /// missile (`obj_masks & 0x8000000`), its template standing in `b`.
 fn air_type(s: &mut Sim, b: usize, line: crate::tech::TypeId, heli: bool, missile: bool) -> usize {
     // The tree holds the line's id, so `init_unit` can read its entry.
-    if s.tech_tree.types.len() <= line {
+    if s.tables.tech_tree.types.len() <= line {
         let unit = crate::tech::TypeDef::new("", crate::tech::Kind::Unit(Default::default()));
-        let mut tree = s.tech_tree.clone();
+        let mut tree = s.tables.tech_tree.clone();
         tree.types.resize(line + 1, unit);
         s.set_tech_tree(tree);
     }
     let p = plane(s, b, line);
     let t = s.units[p].ty.unwrap();
     if heli {
-        s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
+        s.tables.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::FLAG_HELICOPTER;
     }
     if missile {
-        s.unit_types[t].combat.obj_masks |= crate::combat::mask::MISSILE;
+        s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::MISSILE;
     }
     t
 }
@@ -654,7 +654,10 @@ fn a_missile_or_a_helicopter_under_a_point_reads_the_first_point_alone() {
     s.buildings[other].health = 1200;
     // The Airbase's own 4-by-4 footprint, which the search reads.
     let t = s.buildings[other].ty.unwrap();
-    (s.build_types[t].x_size, s.build_types[t].y_size) = (4, 4);
+    (
+        s.tables.build_types[t].x_size,
+        s.tables.build_types[t].y_size,
+    ) = (4, 4);
     s.buildings[b].gather = vec![point(Pos::new(8544, 14688))];
     let u = s.build_train(b, heli).unit;
     let o = s.units[u].orders.front().copied().expect("a flight home");
@@ -964,8 +967,8 @@ fn silo_with_a_v2() -> (Sim, usize, usize, usize) {
         ..combat::Profile::default()
     });
     let t = air_type(&mut s, silo, 0x139, false, true);
-    s.unit_types[t].combat.to_hit = 300;
-    s.unit_types[t].combat.attenuate = 3;
+    s.tables.unit_types[t].combat.to_hit = 300;
+    s.tables.unit_types[t].combat.attenuate = 3;
     let v2 = s.units.len() - 1;
     let enemy = enemy_barracks(&mut s, Pos::new(13824, 14976));
     (s, silo, v2, enemy)
@@ -1015,7 +1018,7 @@ fn a_missile_s_strike_from_its_silo_is_an_air_attack_on_the_point() {
 #[test]
 fn the_shield_refuses_a_missile_s_order_on_its_holder() {
     let (mut s, silo, v2, enemy) = silo_with_a_v2();
-    let mut tree = s.tech_tree.clone();
+    let mut tree = s.tables.tech_tree.clone();
     let shield = tree.types.len();
     tree.types.push(crate::tech::TypeDef::new(
         "Missile Shield",
@@ -1063,7 +1066,7 @@ fn a_nuke_s_launch_shows_its_silo_and_its_round_does_not_scatter() {
         let (mut s, silo, m, enemy) = silo_with_a_v2();
         let ty = s.units[m].ty.unwrap();
         if nuke {
-            s.unit_types[ty].tree = Some(NUCLEARMISSILE);
+            s.tables.unit_types[ty].tree = Some(NUCLEARMISSILE);
         }
         s.group_action_launch_flight(
             0,
@@ -1122,7 +1125,7 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
         s.nation[0].human = case == "human";
         if case != "a V2" {
             let ty = s.units[m].ty.unwrap();
-            s.unit_types[ty].tree = Some(NUCLEARMISSILE);
+            s.tables.unit_types[ty].tree = Some(NUCLEARMISSILE);
         }
         // Past 0x1800 of the silo itself, an object of its owner's.
         s.buildings[enemy].pos = Pos::new(20160, 20160);
@@ -1194,7 +1197,7 @@ fn a_computer_s_silo_strikes_an_enemy_city_with_its_nuke() {
 fn a_missile_that_fires_leaves_its_type_s_count() {
     let (mut s, silo, v2, enemy) = silo_with_a_v2();
     let ty = s.units[v2].ty.unwrap();
-    s.unit_types[ty].price.pop = 1;
+    s.tables.unit_types[ty].price.pop = 1;
     let before = s.muster[0].by_type[ty];
     s.group_action_launch_flight(
         0,

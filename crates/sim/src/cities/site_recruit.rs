@@ -53,7 +53,7 @@ impl Sim {
         let wonder = self.is_wonder_site(b);
         let fort = bd
             .ty
-            .is_some_and(|t| crate::build::is_fort(&self.build_types, t))
+            .is_some_and(|t| crate::build::is_fort(&self.tables.build_types, t))
             && bd.damage == 0;
         if !wonder && !fort {
             return;
@@ -95,7 +95,11 @@ impl Sim {
         let bd = &self.buildings[b];
         if bd.phase(frame) & 0x7f != 0
             || !bd.ty.is_some_and(|t| {
-                crate::build::is(&self.build_types, t, crate::build::Ident::OilPlatform)
+                crate::build::is(
+                    &self.tables.build_types,
+                    t,
+                    crate::build::Ident::OilPlatform,
+                )
             })
         {
             return false;
@@ -136,7 +140,7 @@ impl Sim {
     fn is_wonder_site(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| self.build_types[t].wonder)
+            .is_some_and(|t| self.tables.build_types[t].wonder)
     }
 
     /// The wonder's extra builders: one for every unbuilt wonder of the
@@ -208,7 +212,12 @@ impl Sim {
         range: i32,
     ) -> Option<usize> {
         let region = self.world.region_of(at.cell());
-        let root = self.tech_tree.types.iter().position(|d| d.kind.is_unit())?;
+        let root = self
+            .tables
+            .tech_tree
+            .types
+            .iter()
+            .position(|d| d.kind.is_unit())?;
         let fits = |u: usize| -> Option<i32> {
             let unit = &self.units[u];
             if !unit.alive() || !unit.on_map || unit.owner != who {
@@ -216,8 +225,8 @@ impl Sim {
             }
             let citizen = unit
                 .ty
-                .and_then(|r| self.unit_types[r].tree)
-                .is_some_and(|t| self.tech_tree.is(t, root, true));
+                .and_then(|r| self.tables.unit_types[r].tree)
+                .is_some_and(|t| self.tables.tech_tree.is(t, root, true));
             if !citizen {
                 return None;
             }

@@ -22,7 +22,7 @@ pub enum Class {
 impl Sim {
     /// The class of a tree id.
     pub fn type_class(&self, t: TypeId) -> Class {
-        match self.tech_tree.kind(t) {
+        match self.tables.tech_tree.kind(t) {
             Kind::Good => Class::Good,
             Kind::Unit(_) => Class::Unit,
             Kind::Building { .. } => Class::Build,
@@ -32,12 +32,18 @@ impl Sim {
 
     /// The unit record (an index into `unit_types`) a tree id names.
     pub fn unit_record(&self, t: TypeId) -> Option<usize> {
-        self.unit_types.iter().position(|u| u.tree == Some(t))
+        self.tables
+            .unit_types
+            .iter()
+            .position(|u| u.tree == Some(t))
     }
 
     /// The building record (an index into `build_types`) a tree id names.
     pub fn build_record(&self, t: TypeId) -> Option<usize> {
-        self.build_types.iter().position(|b| b.tree == Some(t))
+        self.tables
+            .build_types
+            .iter()
+            .position(|b| b.tree == Some(t))
     }
 
     /// `LeaderData::num_buildings[t]`: live, finished buildings of exactly
@@ -65,7 +71,7 @@ impl Sim {
         let mut guard = 0;
         while let Some(x) = r {
             n += self.num_buildings_of(who, x);
-            r = self.build_types[x].to;
+            r = self.tables.build_types[x].to;
             guard += 1;
             if guard > 16 {
                 break;
@@ -186,10 +192,10 @@ impl Sim {
                 continue;
             }
             let Some(rec) = bd.ty else { continue };
-            if !self.build_types[rec].has(crate::build::flags::GATHERER) {
+            if !self.tables.build_types[rec].has(crate::build::flags::GATHERER) {
                 continue;
             }
-            let Some(g) = crate::ai_place::gather_good(self.build_types[rec].ident) else {
+            let Some(g) = crate::ai_place::gather_good(self.tables.build_types[rec].ident) else {
                 continue;
             };
             let max = bd.gather_max.unwrap_or(0);

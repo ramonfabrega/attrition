@@ -282,7 +282,7 @@ impl Sim {
                 s.units[i].ty.is_some_and(|ty| {
                     s.art
                         .pivots
-                        .get(&s.unit_types[ty].type_index)
+                        .get(&s.tables.unit_types[ty].type_index)
                         .is_some_and(|nodes| !nodes.is_empty())
                 })
             },
@@ -337,7 +337,7 @@ impl Sim {
         let Some(nodes) = self
             .art
             .pivots
-            .get(&self.unit_types[ty].type_index)
+            .get(&self.tables.unit_types[ty].type_index)
             .cloned()
         else {
             return false;
@@ -429,7 +429,7 @@ impl Sim {
         let Some(ty) = self.units[i].ty else {
             return direct;
         };
-        let t = &self.unit_types[ty];
+        let t = &self.tables.unit_types[ty];
         if !t.cols.flag(uflags::SIDEWAYS) {
             return direct;
         }
@@ -487,7 +487,7 @@ impl Sim {
     pub(super) fn swing_anim(&mut self, i: usize, angle: Angle) {
         let rocks = self.units[i]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::ROCKS));
+            .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::ROCKS));
         if rocks {
             let attack_angle = self.units[i].movement.heading;
             let slot = if angle.0.wrapping_sub(attack_angle.0) >= 0 {
@@ -825,7 +825,7 @@ impl Sim {
     /// third, 1 for the fourth and fifth, 2 past them.
     pub(super) fn building_shot(&self, b: usize) -> i32 {
         let bl = &self.buildings[b];
-        if let Some(n) = bl.ty.and_then(|t| self.build_types[t].shot) {
+        if let Some(n) = bl.ty.and_then(|t| self.tables.build_types[t].shot) {
             return n;
         }
         match self.tech[bl.owner as usize].ages {
@@ -976,8 +976,14 @@ impl Sim {
         let strafes = self.strafes(shooter);
         let s = match ground {
             Some(g) if g.sea => 0,
-            Some(_) => combat::scatter(&self.tuning, acc, true, false, strafes),
-            None => combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), strafes),
+            Some(_) => combat::scatter(&self.tables.tuning, acc, true, false, strafes),
+            None => combat::scatter(
+                &self.tables.tuning,
+                acc,
+                land_unit,
+                p.has(mask::MISSILE),
+                strafes,
+            ),
         };
         // A building target shot by a non-siege, **non-tank** unit: aim at the
         // near face. The gate is the shooter type's vslots `+0x10c`
@@ -987,7 +993,7 @@ impl Sim {
         let tank = match shooter {
             Obj::Unit(u) => self.units[u]
                 .ty
-                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::TANK)),
+                .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::TANK)),
             Obj::Building(_) => false,
         };
         let mut aim = target_pos;
@@ -1347,7 +1353,7 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
     }
     fn is_caravan(&mut self) -> bool {
         self.rec().is_some_and(|r| {
-            self.sim.unit_types[r]
+            self.sim.tables.unit_types[r]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
         })
@@ -1355,44 +1361,51 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
     fn has_caravan_preq(&mut self) -> bool {
         // A tree that does not name the bonus's prerequisite holds it for nobody.
         match (
-            self.sim.tech_tree.roles.caravan_attack_preq,
+            self.sim.tables.tech_tree.roles.caravan_attack_preq,
             self.sim.tech.get(self.owner()),
         ) {
-            (Some(t), Some(p)) => self.sim.tech_tree.has_tech(&self.sim.setup, p, t),
+            (Some(t), Some(p)) => self
+                .sim
+                .tables
+                .tech_tree
+                .has_tech(&self.sim.tables.setup, p, t),
             _ => false,
         }
     }
     fn caravan_attack_bonus(&mut self) -> i32 {
-        self.sim.tuning.caravan_attack_bonus
+        self.sim.tables.tuning.caravan_attack_bonus
     }
     fn has_dutch_bonus(&mut self) -> bool {
         self.sim.tech.get(self.owner()).is_some_and(|p| {
-            self.sim
-                .tech_tree
-                .has_tribe_bonus(&self.sim.setup, p, crate::ai::tribe::DUTCH)
+            self.sim.tables.tech_tree.has_tribe_bonus(
+                &self.sim.tables.setup,
+                p,
+                crate::ai::tribe::DUTCH,
+            )
         })
     }
     fn dutch_attack_bonus(&mut self) -> i32 {
-        self.sim.tuning.dutch_attack_bonus
+        self.sim.tables.tuning.dutch_attack_bonus
     }
     fn is_unit(&mut self) -> bool {
         matches!(self.o, Obj::Unit(_))
     }
     fn type_index(&mut self) -> i32 {
-        self.rec().map_or(0, |r| self.sim.unit_types[r].type_index)
+        self.rec()
+            .map_or(0, |r| self.sim.tables.unit_types[r].type_index)
     }
     fn is_supply(&mut self) -> bool {
         self.rec().is_some_and(|r| {
-            self.sim.unit_types[r]
+            self.sim.tables.unit_types[r]
                 .cols
                 .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
         })
     }
     fn gov_hero_slot(&mut self) -> bool {
         self.rec().is_some_and(|r| {
-            self.sim.unit_types[r]
+            self.sim.tables.unit_types[r]
                 .tree
-                .and_then(|i| self.sim.tech_tree.types.get(i))
+                .and_then(|i| self.sim.tables.tech_tree.types.get(i))
                 .and_then(|d| d.kind.unit())
                 .is_some_and(|u| u.patriot)
         })

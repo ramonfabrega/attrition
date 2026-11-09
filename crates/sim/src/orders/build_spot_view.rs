@@ -112,7 +112,7 @@ impl<'a> SimBuildSpot<'a> {
 
 impl BuildSpotView for SimBuildSpot<'_> {
     fn respond_range(&self) -> i32 {
-        self.s.tuning.unit_build_respond_range
+        self.s.tables.tuning.unit_build_respond_range
     }
     fn worker_stance(&mut self) -> i32 {
         i32::from(self.s.units[self.u].stance)

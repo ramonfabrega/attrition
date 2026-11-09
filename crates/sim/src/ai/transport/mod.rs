@@ -191,16 +191,18 @@ impl Sim {
     pub(crate) fn unit_is(&self, u: usize, t: TypeId) -> bool {
         self.units[u]
             .ty
-            .and_then(|i| self.unit_types[i].tree)
+            .and_then(|i| self.tables.unit_types[i].tree)
             .is_some_and(|ut| {
-                ut == t || (ut < self.tech_tree.types.len() && self.tech_tree.is(ut, t, false))
+                ut == t
+                    || (ut < self.tables.tech_tree.types.len()
+                        && self.tables.tech_tree.is(ut, t, false))
             })
     }
 
     /// The unit type's domain; a typeless unit is what its kind says.
     pub(crate) fn unit_domain_of(&self, u: usize) -> Domain {
         self.units[u].ty.map_or(self.units[u].kind.domain, |t| {
-            self.unit_types[t].combat.domain
+            self.tables.unit_types[t].combat.domain
         })
     }
 
@@ -210,11 +212,13 @@ impl Sim {
             return TransportType::Scout;
         }
         let unit = &self.units[u];
-        let worker = unit.ty.map_or(Worker::None, |t| self.unit_types[t].worker);
+        let worker = unit
+            .ty
+            .map_or(Worker::None, |t| self.tables.unit_types[t].worker);
         if worker != Worker::None {
             return TransportType::Civilian;
         }
-        let base = unit.ty.and_then(|t| self.unit_types[t].tree);
+        let base = unit.ty.and_then(|t| self.tables.unit_types[t].tree);
         if self.unit_is(u, ty::CARAVAN) || base.is_some_and(|b| ty::MERCHANTS.contains(&b)) {
             return TransportType::Civilian;
         }
@@ -227,7 +231,7 @@ impl Sim {
         let unit = &self.units[u];
         let always = unit
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.unit_flags & 0x10 != 0);
+            .is_some_and(|t| self.tables.unit_types[t].cols.unit_flags & 0x10 != 0);
         (unit.auto_transport && !unit.never_transport) || always
     }
 
@@ -240,7 +244,7 @@ impl Sim {
             || {
                 self.units[u]
                     .ty
-                    .is_some_and(|t| self.unit_types[t].cols.carry != 0)
+                    .is_some_and(|t| self.tables.unit_types[t].cols.carry != 0)
             },
             || self.unit_is(u, ty::AIRCRAFTCARRIER),
         )
@@ -273,10 +277,12 @@ impl Sim {
     /// tree names it in `roles.transport_preq`; a tree that does not know it
     /// grants it, the way every type outside the tree is ungated.
     fn transport_preq_held(&self, who: Player) -> bool {
-        match self.tech_tree.roles.transport_preq {
-            Some(t) => self
-                .tech_tree
-                .has_tech(&self.setup, &self.tech[who as usize], t),
+        match self.tables.tech_tree.roles.transport_preq {
+            Some(t) => {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who as usize], t)
+            }
             None => true,
         }
     }
@@ -290,7 +296,8 @@ impl Sim {
                 b.owner == who
                     && b.alive
                     && b.active
-                    && b.ty.is_some_and(|t| build::is_dock(&self.build_types, t))
+                    && b.ty
+                        .is_some_and(|t| build::is_dock(&self.tables.build_types, t))
             })
             .count() as i32
     }
@@ -414,6 +421,7 @@ impl Sim {
         // the gull spawns nothing and draws nothing, as `init_unit` failing
         // would.
         let gull_ty = self
+            .tables
             .unit_types
             .iter()
             .position(|t| t.tree == Some(ty::GULLBIRD));
@@ -428,15 +436,15 @@ impl Sim {
                 crate::gaia::init_snap(pos.x - GULL_OFFSET),
                 crate::gaia::init_snap(pos.y - GULL_OFFSET),
             );
-            let mut unit = Unit::new(9, index, at, self.unit_types[gt].hits);
-            unit.kind = self.unit_types[gt].kind;
+            let mut unit = Unit::new(9, index, at, self.tables.unit_types[gt].hits);
+            unit.kind = self.tables.unit_types[gt].kind;
             unit.ty = Some(gt);
             // `TypeIndex::GULLBIRD`. `Guy::set_anim` names the three gaia
             // bird types by identity in its walk arm (`set_anim:620`), so a
             // gull that carried the default −1 could never throw the wing
             // beat's coin — the pasture's own bug, one type over
             // (`docs/SYNC.md` §3.11).
-            unit.type_index = self.unit_types[gt].type_index;
+            unit.type_index = self.tables.unit_types[gt].type_index;
             unit.movement.speed = self.type_speed(9, gt);
             unit.movement.turning = self.turning_for(gt);
             // `Unit::init@00612100:282–309` (`crate::stance`).
@@ -976,12 +984,16 @@ impl Sim {
         // A tree that does not carry the base type — the harness's small
         // fixtures — has no upgrade to offer, and the base is the answer.
         let id = match self.tech.get(who) {
-            Some(p) if base < self.tech_tree.types.len() => {
-                self.tech_tree.current_upgrade(&self.setup, p, base)
-            }
+            Some(p) if base < self.tables.tech_tree.types.len() => self
+                .tables
+                .tech_tree
+                .current_upgrade(&self.tables.setup, p, base),
             _ => base,
         };
-        self.unit_types.iter().position(|t| t.tree == Some(id))
+        self.tables
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(id))
     }
 
     /// `SpellType::cast_transport(o, who)@00670db0` (§6) — the shore
@@ -1020,9 +1032,10 @@ impl Sim {
         // A tree that does not carry the base type — the harness's small
         // fixtures — has no upgrade to offer, and the base is the answer.
         match self.tech.get(who) {
-            Some(p) if base < self.tech_tree.types.len() => {
-                self.tech_tree.current_upgrade(&self.setup, p, base)
-            }
+            Some(p) if base < self.tables.tech_tree.types.len() => self
+                .tables
+                .tech_tree
+                .current_upgrade(&self.tables.setup, p, base),
             _ => base,
         }
     }
@@ -1031,10 +1044,10 @@ impl Sim {
     /// type `ty` born at `at`: its index, or none when the list is full.
     pub(crate) fn transport_boat(&mut self, who: Player, ty: usize, at: Pos) -> Option<usize> {
         let index = self.find_free(who, UNIT_BASE, BUILD_BASE)?;
-        let mut boat = Unit::new(who, index, at, self.unit_types[ty].hits);
-        boat.kind = self.unit_types[ty].kind;
+        let mut boat = Unit::new(who, index, at, self.tables.unit_types[ty].hits);
+        boat.kind = self.tables.unit_types[ty].kind;
         boat.ty = Some(ty);
-        boat.type_index = self.unit_types[ty].type_index;
+        boat.type_index = self.tables.unit_types[ty].type_index;
         // **`Unit::update_speed`, not the type's raw `MOVES`.** The boat is
         // born like any other unit and takes the cached speed the same way
         // — which for a `NAVAL` type whose owner holds the Whales rare is
@@ -1125,7 +1138,7 @@ impl Sim {
             }
             if self.units[f]
                 .ty
-                .is_some_and(|t| self.unit_types[t].combat.uber_size > 1)
+                .is_some_and(|t| self.tables.unit_types[t].combat.uber_size > 1)
             {
                 self.clear_orders(f);
             }
@@ -1226,7 +1239,7 @@ impl Sim {
         let air = self.unit_tree(boat).is_some_and(|ut| {
             [0x1bf, 0x15f, 0x208]
                 .into_iter()
-                .any(|t| self.tech_tree.is(ut, t, true))
+                .any(|t| self.tables.tech_tree.is(ut, t, true))
         });
         if air {
             return;
@@ -1344,7 +1357,7 @@ impl Sim {
             //    the route's `o` (`+0xa`) names the passenger, and the
             //    boat's goes to −1 — so the boat's death closes no route.
             if self.units[boat].ty.is_some_and(|t| {
-                self.unit_types[t]
+                self.tables.unit_types[t]
                     .cols
                     .flag2(crate::ai_load::uflags2::FLAG2_CARAVAN)
             }) {
@@ -1374,7 +1387,7 @@ impl Sim {
             }
             if self.units[r]
                 .ty
-                .is_some_and(|t| self.unit_types[t].combat.uber_size == 1)
+                .is_some_and(|t| self.tables.unit_types[t].combat.uber_size == 1)
             {
                 self.hand_over_orders(boat, r);
             } else {
@@ -1459,7 +1472,7 @@ impl Sim {
     pub(crate) fn can_carry_ground(&self, boat: usize) -> bool {
         let carry = self.units[boat]
             .ty
-            .is_some_and(|t| self.unit_types[t].cols.carry != 0);
+            .is_some_and(|t| self.tables.unit_types[t].cols.carry != 0);
         carry && self.units[boat].type_index != 0x15f
     }
 

@@ -103,7 +103,7 @@ fn the_price_step() {
 #[test]
 fn delta_rounds_away_from_zero() {
     let mut s = sim_with(1);
-    s.tuning.market_trend_range = 1; // no spread: len = MIN_TREND = 8
+    s.tables.tuning.market_trend_range = 1; // no spread: len = MIN_TREND = 8
     s.market.flux = [15; GOODS];
     s.calc_markets(0);
     for i in 0..GOODS {

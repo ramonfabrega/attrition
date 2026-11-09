@@ -242,7 +242,7 @@ impl CaptureView for SimCapture<'_> {
         self.sim.city_level_of(nc)
     }
     fn plunder_per_level(&mut self) -> i32 {
-        self.sim.tuning.city_plunder_per_level
+        self.sim.tables.tuning.city_plunder_per_level
     }
     fn achieve(&mut self, _kind: i32, _who: Player, _o: Player, _c: usize) {}
     fn city_capture(&mut self, nc: usize, _o: Player, c: usize, a: Player, n: usize) {
@@ -263,11 +263,11 @@ impl CaptureView for SimCapture<'_> {
         // A member with no type is skipped, as the unconverted.
         self.sim.buildings[m]
             .ty
-            .is_none_or(|t| self.sim.build_types[t].has(flags::NOT_CIVILIAN))
+            .is_none_or(|t| self.sim.tables.build_types[t].has(flags::NOT_CIVILIAN))
     }
     fn is_ident(&mut self, _o: Player, m: usize, id: i32) -> bool {
         match (self.sim.buildings[m].ty, ident_of(id)) {
-            (Some(t), Some(i)) => build::is(&self.sim.build_types, t, i),
+            (Some(t), Some(i)) => build::is(&self.sim.tables.build_types, t, i),
             _ => false,
         }
     }

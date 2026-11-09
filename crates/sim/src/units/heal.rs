@@ -84,7 +84,7 @@ impl Sim {
     /// 3686a, which named it the Comrade's).
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
         const THECEO: i32 = 0x165;
-        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
@@ -99,7 +99,11 @@ impl Sim {
             return;
         };
         let damaged = self.has_damage(i);
-        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+        if !damaged
+            || self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        {
             return;
         }
         if u.attrition != 0 && u.unit_masks2 & 0x40000 == 0 {
@@ -154,22 +158,31 @@ impl Sim {
         };
         let owner = u.owner;
         let french = self.tech.get(owner as usize).is_some_and(|p| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, p, crate::ai::tribe::FRENCH)
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, p, crate::ai::tribe::FRENCH)
         });
         let versailles = self.wonders_held(owner) & (1 << crate::tech::wonder::VERSAILLES) != 0;
-        let rate = i64::from(crate::supply::heal_period(&self.tuning, french, versailles));
+        let rate = i64::from(crate::supply::heal_period(
+            &self.tables.tuning,
+            french,
+            versailles,
+        ));
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
         let damaged = self.has_damage(i);
-        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+        if !damaged
+            || self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        {
             return;
         }
         let at = self.units[i].pos;
         let upgrades = self.supply_upgrade_level(owner);
         let terra_cotta = self.supply[owner as usize].player.terra_cotta;
-        let radius = crate::supply::supply_radius(&self.tuning, upgrades, terra_cotta);
+        let radius = crate::supply::supply_radius(&self.tables.tuning, upgrades, terra_cotta);
         let found = self.supply[owner as usize].list.find(at, radius, |w| {
             self.units.get(w).map(|w| crate::supply::Wagon {
                 pos: w.pos,
@@ -222,7 +235,7 @@ impl Sim {
         if bd.damage == 0 && bd.damage_frac == 0 {
             return;
         }
-        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
         if rate == 0 || bd.phase(frame) % rate != 0 {
             return;
         }
@@ -230,7 +243,8 @@ impl Sim {
             return;
         };
         let at = bd.pos;
-        let reach = (self.build_types[ty].x_size + self.build_types[ty].y_size) * 0x60;
+        let reach =
+            (self.tables.build_types[ty].x_size + self.tables.build_types[ty].y_size) * 0x60;
         let ally_ground = match self.world.owner_at(at) {
             crate::Owner::Player(t) => Some(self.is_ally(who, t)),
             _ => None,
@@ -283,7 +297,7 @@ impl Sim {
     /// by `has_general`'s walk, which finds no Senator without one.
     pub(crate) fn senator_heal(&mut self, i: usize, frame: i64) {
         const THESENATOR: i32 = 0x161;
-        let rate = i64::from(self.tuning.french_supply_heal_rate);
+        let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
@@ -299,7 +313,11 @@ impl Sim {
         };
         let owner = u.owner;
         let damaged = self.has_damage(i);
-        if !damaged || self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+        if !damaged
+            || self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        {
             return;
         }
         let ally = match self.world.owner_at(self.units[i].pos) {
@@ -391,7 +409,7 @@ impl Sim {
         let Some(ty) = self.units[tail].ty else {
             return;
         };
-        let uber = self.unit_types[ty].combat.uber_size;
+        let uber = self.tables.unit_types[ty].combat.uber_size;
         if self.curr_uber_size(tail) >= uber {
             return;
         }
@@ -529,7 +547,7 @@ impl Sim {
     /// carried since item 3961 ([`Sim::mark_healed`]).
     pub(crate) fn ship_heal(&mut self, i: usize, frame: i64) {
         const AIRCRAFTCARRIER: i32 = 0x15f;
-        let rate = i64::from(self.tuning.unit_heal_rate[0]);
+        let rate = i64::from(self.tables.tuning.unit_heal_rate[0]);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
@@ -548,12 +566,16 @@ impl Sim {
             return;
         }
         let owner = u.owner;
-        let ut = &self.unit_types[t];
+        let ut = &self.tables.unit_types[t];
         let transport = ut.cols.flag(crate::ai_load::uflags::FLAG_TRANSPORT);
         let carrier = ut.type_index == AIRCRAFTCARRIER
             || ut.tree.is_some_and(|tr| {
-                self.tech_tree.types.get(AIRCRAFTCARRIER as usize).is_some()
-                    && self.tech_tree.is(tr, AIRCRAFTCARRIER as usize, true)
+                self.tables
+                    .tech_tree
+                    .types
+                    .get(AIRCRAFTCARRIER as usize)
+                    .is_some()
+                    && self.tables.tech_tree.is(tr, AIRCRAFTCARRIER as usize, true)
             });
         if !transport && self.has_rare(owner, crate::economy::CITRUS) {
             self.repair_unit_damage(i, 1);
@@ -608,10 +630,13 @@ impl Sim {
         if u.blown || !self.iroquois(owner) || self.is_moving(i) {
             return;
         }
-        if self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO) {
+        if self.tables.unit_types[t]
+            .cols
+            .flag2(uflags2::SUPPLY_OR_HERO)
+        {
             return;
         }
-        let rate = i64::from(self.tuning.iroquois_heal_rate[self.heal_level(owner)]);
+        let rate = i64::from(self.tables.tuning.iroquois_heal_rate[self.heal_level(owner)]);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
@@ -637,12 +662,12 @@ impl Sim {
     /// loop's `BUY_SELL` arm (`0x2ad`) lies outside its range and never
     /// runs.
     pub(crate) fn heal_level(&self, who: crate::world::Player) -> usize {
-        let ladder = self.tech_tree.roles.heal_faster_preq;
+        let ladder = self.tables.tech_tree.roles.heal_faster_preq;
         self.speed_upgrade_level(who, &ladder) as usize
     }
 
     pub(crate) fn civilian_heal(&mut self, i: usize, frame: i64) {
-        let rate = i64::from(self.tuning.civilian_heal_rate);
+        let rate = i64::from(self.tables.tuning.civilian_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
@@ -661,11 +686,11 @@ impl Sim {
         if !damaged {
             return;
         }
-        let cols = self.unit_types[t].cols;
+        let cols = self.tables.unit_types[t].cols;
         if cols.flag2(uflags2::SUPPLY_OR_HERO) || u.unit_masks2 & STRUCK != 0 {
             return;
         }
-        let id = self.unit_types[t].type_index;
+        let id = self.tables.unit_types[t].type_index;
         let civilian = WORKERS.contains(&id)
             || cols.flag2(uflags2::FLAG2_CARAVAN)
             || self.is_merchant(i)

@@ -1765,7 +1765,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
         let name = |t: i32| -> String {
             usize::try_from(t)
                 .ok()
-                .and_then(|t| built.sim.tech_tree.types.get(t))
+                .and_then(|t| built.sim.tables.tech_tree.types.get(t))
                 .map_or_else(|| "-".to_string(), |r| r.name.clone())
         };
         let slots: Vec<String> = l
@@ -1785,7 +1785,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
                     m.escrow,
                     usize::try_from(m.t)
                         .ok()
-                        .filter(|&t| t < built.sim.tech_tree.types.len())
+                        .filter(|&t| t < built.sim.tables.tech_tree.types.len())
                         .and_then(|t| built.sim.type_price(w as sim::Player, t))
                         .unwrap_or([0; 6]),
                 )
@@ -2677,7 +2677,7 @@ pub(crate) fn debug_tech(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    let name = |t: usize| built.sim.tech_tree.types[t].name.clone();
+    let name = |t: usize| built.sim.tables.tech_tree.types[t].name.clone();
     LAST.with(|last| {
         let mut last = last.borrow_mut();
         last.resize(built.sim.players.len(), Vec::new());
@@ -2745,7 +2745,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
     {
         let ty = b.orig_ty.map_or_else(
             || "-".to_string(),
-            |t| format!("{:?}#{t}", built.sim.build_types[t].ident),
+            |t| format!("{:?}#{t}", built.sim.tables.build_types[t].ident),
         );
         let q: Vec<String> = b
             .queue
@@ -2756,7 +2756,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
                     sim::queue_disband::DISBAND.to_string()
                 } else {
                     i.tech.map_or_else(
-                        || built.sim.unit_types[i.ty].type_index.to_string(),
+                        || built.sim.tables.unit_types[i.ty].type_index.to_string(),
                         |x| format!("tech{x}"),
                     )
                 };
@@ -2893,7 +2893,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         // The `TypeIndex` the dump's `GUY` block would write (item 1555).
         u.ty.and_then(|t| built.unit_tree.get(t))
             .and_then(|id| built.type_index.get(*id)),
-        u.ty.map(|t| built.sim.unit_types[t].combat.packs),
+        u.ty.map(|t| built.sim.tables.unit_types[t].combat.packs),
         built
             .sim
             .units

@@ -50,7 +50,7 @@ fn fish_sim() -> (Sim, usize) {
     // `think` and `add_cast_order` are the real ones. `FISH` is 6 and
     // `OIL` 5, as `TypeIndex` has them.
     {
-        let t = &mut s.tech_tree;
+        let t = &mut s.tables.tech_tree;
         for n in [
             "Food",
             "Timber",
@@ -72,7 +72,7 @@ fn fish_sim() -> (Sim, usize) {
         assert_eq!(boat, FISHERMEN, "the fixture's ids are TypeIndex's");
     }
     s.tech = (0..2)
-        .map(|_| crate::tech::PlayerTech::new(&s.tech_tree))
+        .map(|_| crate::tech::PlayerTech::new(&s.tables.tech_tree))
         .collect();
     let t = s.add_unit_type(crate::UnitType {
         hits: 20,
@@ -80,8 +80,8 @@ fn fish_sim() -> (Sim, usize) {
         tree: Some(FISHERMEN),
         ..crate::UnitType::default()
     });
-    s.unit_types[t].combat.packs = true;
-    s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+    s.tables.unit_types[t].combat.packs = true;
+    s.tables.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
     let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
     let mut u = crate::Unit::new(1, 14, at, 20);
     u.ty = Some(t);

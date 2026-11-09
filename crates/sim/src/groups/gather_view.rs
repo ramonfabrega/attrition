@@ -339,7 +339,7 @@ impl GatherPointView for SimGather<'_> {
         self.sim.covers_tile(h, Pos::new(x, y).tile())
     }
     fn count_type(&mut self, _id: i32) -> i32 {
-        let types = &self.sim.build_types;
+        let types = &self.sim.tables.build_types;
         self.members
             .iter()
             .filter(|&&b| {
@@ -373,7 +373,7 @@ impl GatherPointView for SimGather<'_> {
     fn trains(&mut self, h: usize) -> bool {
         self.sim.buildings[h]
             .ty
-            .is_some_and(|t| build::is_training_building(&self.sim.build_types, t))
+            .is_some_and(|t| build::is_training_building(&self.sim.tables.build_types, t))
     }
     fn garrison_limit(&mut self, h: usize) -> i32 {
         self.sim.garrison_limit(h)

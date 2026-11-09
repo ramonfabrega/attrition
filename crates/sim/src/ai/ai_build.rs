@@ -137,9 +137,9 @@ impl Sim {
             if i == root {
                 return true;
             }
-            cur = self.build_types[i].from;
+            cur = self.tables.build_types[i].from;
             guard += 1;
-            if guard > self.build_types.len() {
+            if guard > self.tables.build_types.len() {
                 break;
             }
         }
@@ -204,9 +204,9 @@ impl Sim {
             if i == t {
                 return true;
             }
-            cur = self.build_types[i].to;
+            cur = self.tables.build_types[i].to;
             guard += 1;
-            if guard > self.build_types.len() {
+            if guard > self.tables.build_types.len() {
                 break;
             }
         }
@@ -233,7 +233,7 @@ impl Sim {
     /// Redoubt's own record has no such bit and its root has (item 1738,
     /// run781's packet: the divisor 7 is `(reg + (queued + 2·have)·2)·2 + 1`).
     fn is_training_building(&self, rec: usize) -> bool {
-        build::is_training_building(&self.build_types, rec)
+        build::is_training_building(&self.tables.build_types, rec)
     }
 
     /// `BuildTypeData::is_military_trainer@0063bcf0`, the derived flag on the
@@ -243,18 +243,19 @@ impl Sim {
     /// this crate listed here before item 1496 were all an Ancient-to-Industrial
     /// lobby ever offered (`docs/AI.md` §129).
     fn is_trainer_type(&self, rec: usize) -> bool {
-        build::is_military_trainer(&self.build_types, rec)
+        build::is_military_trainer(&self.tables.build_types, rec)
     }
 
     /// `BuildTypeData::is_defensive` — a tower, a fort, an Airbase, or
     /// anything that shoots ([`build::is_defensive`]).
     fn is_defensive_type(&self, rec: usize) -> bool {
-        build::is_defensive(&self.build_types, rec)
+        build::is_defensive(&self.tables.build_types, rec)
     }
 
     /// The tree id of the `g`th good, in `goodrules.xml` order.
     fn good_type(&self, g: usize) -> Option<TypeId> {
-        self.tech_tree
+        self.tables
+            .tech_tree
             .types
             .iter()
             .enumerate()
@@ -265,7 +266,8 @@ impl Sim {
 
     /// The tree id of the first build record with this identity.
     fn ident_tree(&self, ident: Ident) -> Option<TypeId> {
-        self.build_types
+        self.tables
+            .build_types
             .iter()
             .find(|b| b.ident == ident)
             .and_then(|b| b.tree)
@@ -274,8 +276,9 @@ impl Sim {
     /// `LeaderData::has_tech(t)` for a named building type.
     fn has_building_tech(&self, who: Player, ident: Ident) -> bool {
         self.ident_tree(ident).is_some_and(|t| {
-            self.tech_tree
-                .has_tech(&self.setup, &self.tech[who as usize], t)
+            self.tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[who as usize], t)
         })
     }
 
@@ -328,11 +331,11 @@ impl Sim {
                 let Some(f) = self.city_facts(who, c, ci) else {
                     continue;
                 };
-                for rec in 0..self.build_types.len() {
+                for rec in 0..self.tables.build_types.len() {
                     let Some(l) = self.building_value(who, &f, rec, pass) else {
                         continue;
                     };
-                    let Some(t) = self.build_types[rec].tree else {
+                    let Some(t) = self.tables.build_types[rec].tree else {
                         continue;
                     };
                     // `check_income(t, mult << 8, o = −1, escrow, city, 1,
@@ -405,9 +408,9 @@ impl Sim {
     #[allow(clippy::too_many_lines)]
     fn building_value(&mut self, who: Player, f: &Facts, rec: usize, pass: u32) -> Option<Listing> {
         let w = who as usize;
-        let bt = self.build_types[rec].clone();
+        let bt = self.tables.build_types[rec].clone();
         let ident = bt.ident;
-        if build::is_city(&self.build_types, rec) {
+        if build::is_city(&self.tables.build_types, rec) {
             return None;
         }
         let gather = bt.has(flags::GATHERER);
@@ -425,7 +428,7 @@ impl Sim {
         }
         let n = (bt.x_size.max(bt.y_size) - 2).clamp(0, 2) as usize;
         let fit = f.space[n];
-        let dock = build::is_dock(&self.build_types, rec);
+        let dock = build::is_dock(&self.tables.build_types, rec);
         let water = bt.domain() == BuildDomain::Water;
         if water {
             if f.ocean_open == 0 {
@@ -444,7 +447,7 @@ impl Sim {
         // the building its `WHERE` names, which must already stand here.
         if bt.from.is_some() && !bt.has(flags::UPGRADES) {
             up = 1;
-            let where_rec = self.tech_tree.types[tree]
+            let where_rec = self.tables.tech_tree.types[tree]
                 .where_
                 .and_then(|x| self.build_record(x))?;
             if self.city_count_exact(f.c, where_rec, true) == 0 {
@@ -457,7 +460,7 @@ impl Sim {
         if water && !dock {
             return None;
         }
-        if self.lobby.rush_rules == 8 && build::is(&self.build_types, rec, Ident::Lookout) {
+        if self.lobby.rush_rules == 8 && build::is(&self.tables.build_types, rec, Ident::Lookout) {
             return None;
         }
         if bt.has(flags::ONE_PER_CITY) && self.city_count_line(f.c, rec, false) != 0 {
@@ -488,7 +491,7 @@ impl Sim {
         if !gather
             && !is_enhancer(ident)
             && bt.attack == 0
-            && !build::is(&self.build_types, rec, Ident::Temple)
+            && !build::is(&self.tables.build_types, rec, Ident::Temple)
             && self.buildings_of_line(who, rec) + self.queued_of(who, rec) > 2
         {
             return None;
@@ -533,7 +536,7 @@ impl Sim {
                 }
                 v = t;
             }
-            if build::is(&self.build_types, rec, Ident::Lookout) {
+            if build::is(&self.tables.build_types, rec, Ident::Lookout) {
                 if self.tech[w].epoch[3] < 4 {
                     return None;
                 }
@@ -612,9 +615,10 @@ impl Sim {
                 .good_type(g)
                 .is_some_and(|t| self.type_available(who, t));
             let cap = self.mod_resource_cap(who, g);
-            let lakota = self
-                .tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[w], 0x13);
+            let lakota =
+                self.tables
+                    .tech_tree
+                    .has_tribe_bonus(&self.tables.setup, &self.tech[w], 0x13);
             if !(avail
                 && self.ledgers[w].income[g] < cap
                 && (nfilled > 2 || g == 5)
@@ -655,9 +659,9 @@ impl Sim {
             let rawq = self.queued_of(who, rec);
             if self.reg_buildings_of_line(who, f.reg, rec) == 0 && rawq == 0 {
                 let doubled = v.wrapping_mul(2);
-                let bs = build::is(&self.build_types, rec, Ident::Barracks)
-                    || build::is(&self.build_types, rec, Ident::Stable)
-                    || (build::is(&self.build_types, rec, Ident::SiegeFactory)
+                let bs = build::is(&self.tables.build_types, rec, Ident::Barracks)
+                    || build::is(&self.tables.build_types, rec, Ident::Stable)
+                    || (build::is(&self.tables.build_types, rec, Ident::SiegeFactory)
                         && raw == 0
                         && rawq == 0);
                 v = if bs { v.wrapping_mul(400) } else { doubled };
@@ -676,13 +680,13 @@ impl Sim {
             // The nation's favourite trainer. The Dock arm of this chain is
             // unreachable: a dock never gets here.
             let tribe = self.tech[w].tribe;
-            let quad = if build::is(&self.build_types, rec, Ident::Barracks) {
+            let quad = if build::is(&self.tables.build_types, rec, Ident::Barracks) {
                 tribe == 0 || tribe == 6
-            } else if build::is(&self.build_types, rec, Ident::Stable) {
+            } else if build::is(&self.tables.build_types, rec, Ident::Stable) {
                 tribe == 0x11
-            } else if build::is(&self.build_types, rec, Ident::SiegeFactory) {
+            } else if build::is(&self.tables.build_types, rec, Ident::SiegeFactory) {
                 tribe == 8
-            } else if build::is(&self.build_types, rec, Ident::Airbase) {
+            } else if build::is(&self.tables.build_types, rec, Ident::Airbase) {
                 tribe == 0xc
             } else {
                 false
@@ -735,12 +739,12 @@ impl Sim {
         // ---- §3.6 the civic block onward. A dock reaches it too: its own
         // branch ends in `goto LAB_006c3320`, which is this block's head.
         {
-            let is_market = build::is(&self.build_types, rec, Ident::Market);
-            let is_temple = build::is(&self.build_types, rec, Ident::Temple);
-            let is_library = build::is(&self.build_types, rec, Ident::Library);
-            let is_senate = build::is(&self.build_types, rec, Ident::Senate);
+            let is_market = build::is(&self.tables.build_types, rec, Ident::Market);
+            let is_temple = build::is(&self.tables.build_types, rec, Ident::Temple);
+            let is_library = build::is(&self.tables.build_types, rec, Ident::Library);
+            let is_senate = build::is(&self.tables.build_types, rec, Ident::Senate);
             let civic = (deep
-                && !build::is(&self.build_types, rec, Ident::University)
+                && !build::is(&self.tables.build_types, rec, Ident::University)
                 && !is_enhancer(ident))
                 || is_market;
             if civic {
@@ -817,8 +821,8 @@ impl Sim {
             }
 
             // ---- §3.7 towers, forts, airbases ----
-            let tower = build::is(&self.build_types, rec, Ident::Tower);
-            let fort = build::is_fort(&self.build_types, rec);
+            let tower = build::is(&self.tables.build_types, rec, Ident::Tower);
+            let fort = build::is_fort(&self.tables.build_types, rec);
             if tower || fort {
                 let dmod = self.ai[w].defense_mod;
                 let d = dmod.wrapping_mul(v);
@@ -901,7 +905,7 @@ impl Sim {
                     v = reach.wrapping_mul(base);
                 }
             }
-            if build::is(&self.build_types, rec, Ident::Airbase) {
+            if build::is(&self.tables.build_types, rec, Ident::Airbase) {
                 if self.lobby.rush_rules == 8 {
                     return None;
                 }
@@ -941,9 +945,9 @@ impl Sim {
                 (have + queued) * 4 + 1 + reg
             } else if self.is_training_building(rec) {
                 (reg + (queued + 2 * have) * 2) * 2 + 1
-            } else if build::is(&self.build_types, rec, Ident::Tower) {
+            } else if build::is(&self.tables.build_types, rec, Ident::Tower) {
                 (queued + have) * 4 + 1
-            } else if build::is_fort(&self.build_types, rec) {
+            } else if build::is_fort(&self.tables.build_types, rec) {
                 (queued + 2 * have) * 4 + 1
             } else {
                 (self.buildings_of_line(who, rec) + 2 * have + queued) * 4 + 1
@@ -957,7 +961,7 @@ impl Sim {
                 let head_gather = matches!(self.type_class(ht), Class::Build)
                     && self
                         .build_record(ht)
-                        .is_some_and(|r| self.build_types[r].has(flags::GATHERER));
+                        .is_some_and(|r| self.tables.build_types[r].has(flags::GATHERER));
                 if !head_gather {
                     let mine = gather_good(ident);
                     for g in 0..RESOURCES {
@@ -998,7 +1002,7 @@ impl Sim {
             return false;
         }
         let t = head.t as usize;
-        if t >= self.tech_tree.types.len() {
+        if t >= self.tables.tech_tree.types.len() {
             return false;
         }
         self.type_affordable(who, t, head.escrow != 0) >= head.num
@@ -1020,7 +1024,7 @@ impl Sim {
         if self.lobby.starting_resources == 8 {
             return None;
         }
-        let ident = self.build_types[rec].ident;
+        let ident = self.tables.build_types[rec].ident;
         let good = gather_good(ident)?;
         let cen = &self.ai[w].census;
         if cen.filled_gather_slots[good] < self.ledgers[w].gather_slots[good] * 3 / 4 {
@@ -1052,13 +1056,13 @@ impl Sim {
         } else {
             if f.level == 1
                 && self.has_building_tech(who, Ident::Town)
-                && f.nb < self.tuning.city_buildings + 1
+                && f.nb < self.tables.tuning.city_buildings + 1
             {
                 base = base.wrapping_mul(2);
             }
             if f.level == 2
                 && self.has_building_tech(who, Ident::Metropolis)
-                && f.nb < self.tuning.metro_buildings + 1
+                && f.nb < self.tables.tuning.metro_buildings + 1
             {
                 base = base.wrapping_mul(2);
             }
@@ -1119,9 +1123,9 @@ impl Sim {
                 if (g == 0 || g == 1 || g == 2) && self.city_num(who) + self.village_num(who) < 5 {
                     m0 = 0x200;
                 }
-                let n = (self.build_types[rec]
+                let n = (self.tables.build_types[rec]
                     .x_size
-                    .max(self.build_types[rec].y_size)
+                    .max(self.tables.build_types[rec].y_size)
                     - 2)
                 .clamp(0, 2) as usize;
                 let fit = f.space[n];
@@ -1318,7 +1322,7 @@ impl Sim {
         };
         // `type.vslot(+0x118)` (`6c2c76`) is `get_wonder_value`, the
         // type's own `WONDER_VAL` (§124): Tikal's 2 doubles it.
-        let points = self.build_types[rec].wonder_points();
+        let points = self.tables.build_types[rec].wonder_points();
         Some(
             self.city_level_of(f.c)
                 .wrapping_mul(points)
@@ -1343,7 +1347,7 @@ impl Sim {
             .take(mark)
             .flatten()
             .filter_map(|&b| self.buildings.get(b)?.ty)
-            .map(|t| self.build_types[t].wonder_points())
+            .map(|t| self.tables.build_types[t].wonder_points())
             .sum()
     }
 
@@ -1356,7 +1360,7 @@ impl Sim {
             .iter()
             .filter(|b| b.alive && !b.active && b.owner == who)
             .filter_map(|b| b.ty)
-            .map(|t| self.build_types[t].wonder_points())
+            .map(|t| self.tables.build_types[t].wonder_points())
             .sum()
     }
 
@@ -1447,7 +1451,7 @@ impl Sim {
         };
         let level = self.city_level_of(c).max(1);
         let strict = matches!(self.type_class(t), Class::Build);
-        let Some(where_t) = self.tech_tree.types[t].where_ else {
+        let Some(where_t) = self.tables.tech_tree.types[t].where_ else {
             return false;
         };
         let Some(where_rec) = self.build_record(where_t) else {

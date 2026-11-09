@@ -247,7 +247,7 @@ fn build(s: &Scene, held: &[Option<Held>; 8]) -> Sim {
         let mut u = Unit::new(su.owner, su.index, su.pos, if su.alive { 100 } else { 0 });
         u.ty = Some(ty);
         u.on_map = su.on_map;
-        u.kind = sim.unit_types[ty].kind;
+        u.kind = sim.tables.unit_types[ty].kind;
         u.captain = su.captain;
         u.o_up = su.up;
         sim.add_unit(u);

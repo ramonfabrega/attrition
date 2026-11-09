@@ -1416,9 +1416,9 @@ mod tests {
             let at = sim::world::Pos::new(birth.0, birth.1);
             let mut u = sim::Unit::new(sim::gaia::BIRD_OWNER, 0, at, 1);
             u.ty = Some(ty);
-            u.kind = s.unit_types[ty].kind;
+            u.kind = s.tables.unit_types[ty].kind;
             u.movement.speed = 35;
-            u.movement.turning = sim::turning_of(&s.unit_types[ty]);
+            u.movement.turning = sim::turning_of(&s.tables.unit_types[ty]);
             let b = s.add_unit(u);
             assert_eq!(s.units[b].movement.heading, sim::movement::Angle::INITIAL);
             s.gaia

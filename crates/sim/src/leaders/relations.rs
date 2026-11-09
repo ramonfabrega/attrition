@@ -130,7 +130,7 @@ impl Sim {
     /// `Leader::set_age(n)` on one leader, which is all the `age` cheat
     /// does — the four epochs stay where they were (`docs/INPUT.md` §11).
     pub fn set_leader_age(&mut self, who: Player, n: i32) -> Vec<tech::Gained> {
-        let row = self.tech_tree.ages;
+        let row = self.tables.tech_tree.ages;
         self.set_leader_levels(who, &row, n)
     }
 
@@ -140,7 +140,7 @@ impl Sim {
         let Some(line) = tech::Line::of(cat) else {
             return Vec::new();
         };
-        let row = self.tech_tree.epochs[line.index()];
+        let row = self.tables.tech_tree.epochs[line.index()];
         self.set_leader_levels(who, &row, level)
     }
 
@@ -174,18 +174,29 @@ impl Sim {
         }
         let n = n.clamp(0, tech::LEVELS as i32) as usize;
         for &t in row[n..].iter().rev().flatten() {
-            if self.tech_tree.has_tech(&self.setup, &self.tech[w], t) {
-                self.tech_tree.lose_tech(&self.setup, &mut self.tech[w], t);
+            if self
+                .tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
+            {
+                self.tables
+                    .tech_tree
+                    .lose_tech(&self.tables.setup, &mut self.tech[w], t);
             }
         }
         let mut events = Vec::new();
         for &t in row[..n].iter().flatten() {
-            if !self.tech_tree.has_tech(&self.setup, &self.tech[w], t) {
+            if !self
+                .tables
+                .tech_tree
+                .has_tech(&self.tables.setup, &self.tech[w], t)
+            {
                 events.extend(self.gain_tech(who, t));
             }
         }
-        self.tech_tree
-            .drop_unfollowed(&self.setup, &mut self.tech[w]);
+        self.tables
+            .tech_tree
+            .drop_unfollowed(&self.tables.setup, &mut self.tech[w]);
         self.apply_gained(who);
         events
     }

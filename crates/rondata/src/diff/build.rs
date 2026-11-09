@@ -780,6 +780,7 @@ mod tests {
         // it, then place and finish the dock.
         let preq = built
             .sim
+            .tables
             .tech_tree
             .roles
             .transport_preq
@@ -867,10 +868,10 @@ mod tests {
         let barracks = loaded.build_named("Barracks").expect("a Barracks type");
         let bowmen = loaded.unit_named("Bowmen").expect("a Bowmen type");
         assert_eq!(
-            sim.unit_types[bowmen].combat.uber_size, 3,
+            sim.tables.unit_types[bowmen].combat.uber_size, 3,
             "UBER_SIZE 3, from the install's own unitrules.xml"
         );
-        let pop = sim.unit_types[bowmen].price.pop;
+        let pop = sim.tables.unit_types[bowmen].price.pop;
         let archers = |s: &sim::Sim, who: sim::Player| -> Vec<usize> {
             s.units
                 .iter()

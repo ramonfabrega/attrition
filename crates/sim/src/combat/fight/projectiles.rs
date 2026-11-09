@@ -129,7 +129,7 @@ impl Sim {
         let target_pos = self.pos_of(target);
         let acc = combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(me, target));
         let land_unit = matches!(target, Obj::Unit(_)) && matches!(tp.domain, Domain::Land);
-        let s = combat::scatter(&self.tuning, acc, land_unit, false, false);
+        let s = combat::scatter(&self.tables.tuning, acc, land_unit, false, false);
         let xs = p.x_size * 0x60;
         let ys = p.y_size * 0x60;
         for _ in 0..p.ammo_per_att.max(1) {

@@ -138,7 +138,7 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
     s.spells[at(spell::COUNTERINTEL)].range = 10 * 192;
     s.spells[at(spell::INFORMER)].range = 10 * 192;
     s.spells[at(0x281)].range = 12 * 192;
-    let mut tree = s.tech_tree.clone();
+    let mut tree = s.tables.tech_tree.clone();
     let steps = ["one", "two", "three"].map(|n| tree.add(crate::tech::TypeDef::plain(n, 0)));
     tree.roles.spy_upgrade_preq = steps.map(Some);
     s.set_tech_tree(tree);
@@ -172,15 +172,15 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
         "another leader"
     );
     let t = s.units[filler].ty.unwrap();
-    s.unit_types[t].combat.siege = true;
+    s.tables.unit_types[t].combat.siege = true;
     assert_eq!(s.spell_range(spell::BRIBE, who, u), 192, "a siege unit");
     assert_eq!(
         s.spell_range(spell::INFORMER, who, u),
         3648,
         "not the Informer's"
     );
-    s.unit_types[t].combat.siege = false;
-    s.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
+    s.tables.unit_types[t].combat.siege = false;
+    s.tables.unit_types[t].cols.unit_flags2 |= crate::ai_load::uflags2::SUPPLY_OR_HERO;
     assert_eq!(
         s.spell_range(spell::COUNTERINTEL, who, u),
         192,
@@ -191,7 +191,7 @@ fn get_range_adds_the_spy_upgrades_and_collapses_on_siege_and_buildings() {
         12 * 192,
         "the Sniper, no vehicle"
     );
-    s.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
+    s.tables.unit_types[t].combat.obj_masks |= crate::combat::mask::VEHICLE;
     assert_eq!(s.spell_range(0x281, who, u), 192, "the Sniper on a vehicle");
 }
 
@@ -209,7 +209,7 @@ fn strategy_halves_bribe_and_the_informer_s_hold() {
     s.spells[at(spell::BRIBE)].job_time = 100;
     s.spells[at(spell::INFORMER)].job_time = 40;
     s.spells[at(spell::COUNTERINTEL)].job_time = 40;
-    let mut tree = s.tech_tree.clone();
+    let mut tree = s.tables.tech_tree.clone();
     let strategy = tree.add(crate::tech::TypeDef::plain("strategy", 0));
     tree.roles.spies_craft_faster_preq = Some(strategy);
     s.set_tech_tree(tree);
@@ -252,7 +252,7 @@ fn a_refused_bribe_hands_its_mana_back() {
     s.units[filler].owner = 0;
     s.units[filler].type_index = 0x165;
     let ty = s.units[filler].ty.unwrap();
-    s.unit_types[ty].cols = UnitCols {
+    s.tables.unit_types[ty].cols = UnitCols {
         unit_flags2: uflags2::FLAG2_GENERAL,
         ..UnitCols::default()
     };
@@ -282,7 +282,7 @@ fn a_cloaked_caster_of_a_craft_without_l_is_blown() {
     s.spells[at(0x281)].flags = 0;
     let cloak = |s: &mut Sim, u: usize, flags: u32| {
         let t = s.units[u].ty.unwrap();
-        s.unit_types[t].cols = UnitCols {
+        s.tables.unit_types[t].cols = UnitCols {
             unit_flags: flags,
             ..UnitCols::default()
         };
@@ -372,7 +372,7 @@ fn bribe_takes_only_an_enemy_s_armed_land_unit() {
     s.declare_war(0, 1);
     assert!(!s.spell_valid_target(spell::BRIBE, 1, t), "unarmed");
     let ty = s.units[target].ty.unwrap();
-    s.unit_types[ty].combat.attack = 5;
+    s.tables.unit_types[ty].combat.attack = 5;
     assert!(
         s.spell_valid_target(spell::BRIBE, 1, t),
         "an enemy's soldier"
@@ -403,7 +403,7 @@ fn sniper_takes_only_an_enemy_s_armed_land_unit() {
     s.declare_war(0, 1);
     assert!(!s.spell_valid_target(0x281, 1, t), "unarmed");
     let ty = s.units[target].ty.unwrap();
-    s.unit_types[ty].combat.attack = 5;
+    s.tables.unit_types[ty].combat.attack = 5;
     assert!(s.spell_valid_target(0x281, 1, t), "an enemy's soldier");
     assert!(
         !s.spell_valid_target(0x281, 0, Obj::Unit(spy)),
@@ -558,7 +558,7 @@ fn steps(s: &mut Sim, u: usize) -> [i16; 2] {
 #[test]
 fn the_recover_craft_bonus_doubles_a_generals_and_a_spys_rate() {
     let (mut s, [general, spy, _, filler]) = casters(Tuning::RON);
-    s.tech_tree.roles.spy_general_recover_preq = Some(0x40);
+    s.tables.tech_tree.roles.spy_general_recover_preq = Some(0x40);
     s.tech[1].tech.resize(0x41, false);
     assert_eq!(steps(&mut s, general), [1, 1], "the prerequisite not held");
     s.tech[1].tech[0x40] = true;

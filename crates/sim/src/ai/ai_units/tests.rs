@@ -101,7 +101,7 @@ fn check_income_is_a_factor_in_two_hundred_and_fifty_sixths() {
         sim.set_tech_tree(tree);
         u
     };
-    sim.unit_types[a].tree = Some(t);
+    sim.tables.unit_types[a].tree = Some(t);
     // Owned, so the price is the train arm's: an unowned type is priced
     // by its research (`docs/AI.md` §56).
     sim.tech[0].tech[t] = true;
@@ -361,8 +361,8 @@ fn the_air_arm_sets_remaining_to_the_air_cap() {
     ty.combat.domain = crate::attrition::Domain::Air;
     ty.group = Some(0);
     sim.add_unit_type(ty);
-    let rec = sim.build_types.len();
-    sim.build_types.push(crate::build::BuildType {
+    let rec = sim.tables.build_types.len();
+    sim.tables.build_types.push(crate::build::BuildType {
         ident: Ident::Airbase,
         tree: Some(airbase),
         ..crate::build::BuildType::default()
@@ -457,8 +457,8 @@ struct Barracks {
 fn the_sea_branch_s_dock_is_the_nearest_of_mine_around_the_city() {
     use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE};
     let mut sim = bare();
-    let dock = sim.build_types.len();
-    sim.build_types.push(crate::build::BuildType {
+    let dock = sim.tables.build_types.len();
+    sim.tables.build_types.push(crate::build::BuildType {
         ident: Ident::Dock,
         ..crate::build::BuildType::default()
     });
@@ -539,8 +539,8 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
     let rec = sim.add_unit_type(ty);
 
     // The building type: a military trainer (`BUILD_FLAGS 5`).
-    let brec = sim.build_types.len();
-    sim.build_types.push(crate::build::BuildType {
+    let brec = sim.tables.build_types.len();
+    sim.tables.build_types.push(crate::build::BuildType {
         ident: Ident::Barracks,
         tree: Some(build),
         flags: MILITARY_TRAINER,
@@ -659,7 +659,7 @@ fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
     sim.activate(out, false, true);
     assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b3]);
     // With `NO_CITY` the same building would have joined.
-    sim.build_types[ids.brec].flags |= crate::build::flags::NO_CITY;
+    sim.tables.build_types[ids.brec].flags |= crate::build::flags::NO_CITY;
     let free = trainer(&mut sim, 6);
     sim.buildings[free].city = None;
     sim.activate(free, false, true);
@@ -720,7 +720,7 @@ fn upgrade_units_draws_once_per_eligible_type_and_never_on_moderate() {
 fn an_upgrade_whose_predecessor_is_in_research_is_not_offered() {
     let (mut sim, ids) = barracks_sim(false);
     // Two rungs above the trained type: Hoplites → Phalanx → Elite.
-    let mut tree = sim.tech_tree.clone();
+    let mut tree = sim.tables.tech_tree.clone();
     let mid = tree.add(tech::TypeDef::unit(
         "Phalanx",
         tech::UnitTraits {
@@ -748,7 +748,7 @@ fn an_upgrade_whose_predecessor_is_in_research_is_not_offered() {
     sim.tech[0].tech[ids.unit] = true;
     sim.tech[0].tech[build.expect("the barracks")] = true;
     for t in [mid, top] {
-        let mut ty = sim.unit_types[ids.rec].clone();
+        let mut ty = sim.tables.unit_types[ids.rec].clone();
         ty.tree = Some(t);
         sim.add_unit_type(ty);
     }
@@ -783,7 +783,7 @@ fn an_upgrade_whose_predecessor_is_in_research_is_not_offered() {
 #[test]
 fn an_escrowed_order_draws_the_reservation_down_and_an_ordinary_one_abandons_it() {
     let (mut sim, ids) = barracks_sim(false);
-    sim.unit_types[ids.rec].price.base[0] = 60;
+    sim.tables.unit_types[ids.rec].price.base[0] = 60;
     let charges = sim.price_of(0, ids.rec);
     let g = (0..crate::economy::RESOURCES)
         .find(|&g| charges[g] > 0)
@@ -839,7 +839,7 @@ fn a_batch_s_second_unit_pays_the_first_one_s_group_ramp_step() {
     // Triangular by group, one timber a step — the shape nearly every
     // fighting unit ships with.
     {
-        let price = &mut sim.unit_types[ids.rec].price;
+        let price = &mut sim.tables.unit_types[ids.rec].price;
         price.progression = crate::cost::Progression::PROGRESSIVE_BY_GROUP;
         price.support = [Some((crate::economy::Resource::Timber, 1)), None];
     }
@@ -908,7 +908,7 @@ fn produce_unit_queues_the_whole_batch_down_the_city_walk() {
     // Not a military trainer any more, so `produce_unit` takes the
     // city-chain branch; the building is still the type the unit is
     // made at, and it is the capital's own.
-    sim.build_types[ids.brec].flags &= !MILITARY_TRAINER;
+    sim.tables.build_types[ids.brec].flags &= !MILITARY_TRAINER;
     sim.ai[0].mil_trainers.clear();
     assert!(sim.produce_unit(0, ids.unit, Some(0), 3, 0));
     assert_eq!(

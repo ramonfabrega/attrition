@@ -43,7 +43,7 @@ fn fix() -> Fix {
     sea.combat.domain = Domain::Sea;
     let ship = sim.add_unit_type(sea.clone());
     let barge = sim.add_unit_type(sea);
-    sim.unit_types[barge].tree = Some(TRANSPORTBARGE);
+    sim.tables.unit_types[barge].tree = Some(TRANSPORTBARGE);
     Fix {
         sim,
         foot,

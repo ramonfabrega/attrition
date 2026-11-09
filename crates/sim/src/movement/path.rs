@@ -1411,7 +1411,9 @@ impl Sim {
             // frames early with it.
             let can_transport = (self.units[u].auto_transport && !self.units[u].never_transport)
                 || self.units[u].ty.is_some_and(|t| {
-                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
+                    self.tables.unit_types[t].cols.unit_flags
+                        & crate::ai_load::uflags::FLAG_TRANSPORT
+                        != 0
                 });
             let mut tolerance = match step {
                 STEP_WORLD => 0x180,
@@ -1603,12 +1605,12 @@ impl Sim {
     #[cfg(test)]
     fn army_mode(&self, u: usize) -> bool {
         let armed = self.units[u].ty.is_some_and(|t| {
-            let ty = &self.unit_types[t];
+            let ty = &self.tables.unit_types[t];
             ty.combat.attack > 0 || ty.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
         });
         let worker = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].worker != orders::Worker::None);
+            .is_some_and(|t| self.tables.unit_types[t].worker != orders::Worker::None);
         // `is_attacking`: the current order's `is_attack` (`006896b9`).
         let attacking = self
             .current_order(u)
@@ -1687,7 +1689,8 @@ impl AstarView for SimAstar<'_> {
     }
     fn transport_type(&mut self) -> bool {
         self.sim.units[self.u].ty.is_some_and(|t| {
-            self.sim.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
+            self.sim.tables.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+                != 0
         })
     }
     fn ai_bit(&mut self) -> bool {

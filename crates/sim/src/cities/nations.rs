@@ -96,7 +96,7 @@ impl Sim {
         let power = usize::try_from(tribe).ok();
         self.tech[w].power = power;
         self.tech[w].tribe = power
-            .filter(|&i| i < self.tech_tree.tribes.len())
+            .filter(|&i| i < self.tables.tech_tree.tribes.len())
             .unwrap_or(0);
         self.refresh_nation_powers(who);
     }
@@ -118,16 +118,16 @@ impl Sim {
     /// [`crate::tech::Setup`] holds them — "No Nation Powers" and the
     /// starting town — and every player's city half brought in line.
     pub fn sync_setup_from_lobby(&mut self) {
-        self.setup.no_nation_powers = self.lobby.no_nation_powers;
-        self.setup.starting_town = self.lobby.starting_town != 0;
+        self.tables.setup.no_nation_powers = self.lobby.no_nation_powers;
+        self.tables.setup.starting_town = self.lobby.starting_town != 0;
         // The age the game opens in, which `Leader::init`'s starting
         // position reads (`docs/TECH.md`, "The starting position"): every
         // lobby on file before item 1466 was Ancient, to the Information
         // age, so the default `Setup::STANDARD` was right until a lobby
         // said otherwise (run650..652).
-        self.setup.starting_age = self.lobby.starting_technology;
-        self.setup.starting_age2 = self.lobby.starting_technology2;
-        self.setup.ending = self.lobby.ending_technology;
+        self.tables.setup.starting_age = self.lobby.starting_technology;
+        self.tables.setup.starting_age2 = self.lobby.starting_technology2;
+        self.tables.setup.ending = self.lobby.ending_technology;
         for who in 0..self.tech.len() {
             self.sync_has_city(who as Player);
         }
@@ -143,13 +143,13 @@ impl Sim {
     /// Information. The combat table (`Balance`) is built at load from the
     /// loader's ages and is not rebuilt here (item 3589, `docs/AI.md` §315).
     pub fn finalize_type_ages(&mut self) {
-        let (tree, setup) = (&self.tech_tree, &self.setup);
-        for u in &mut self.unit_types {
+        let (tree, setup) = (&self.tables.tech_tree, &self.tables.setup);
+        for u in &mut self.tables.unit_types {
             if let Some(t) = u.tree {
                 u.combat.age = tree.age_in(setup, t);
             }
         }
-        for b in &mut self.build_types {
+        for b in &mut self.tables.build_types {
             if let (Some(t), Some(c)) = (b.tree, b.combat.as_mut()) {
                 c.age = tree.age_in(setup, t);
             }
@@ -168,8 +168,9 @@ impl Sim {
     pub fn refresh_nation_powers(&mut self, who: Player) {
         let w = who as usize;
         let on: [bool; ROSTER.len()] = std::array::from_fn(|n| {
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[w], n)
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, &self.tech[w], n)
         });
         let n = &mut self.nation[w];
         n.aztecs = on[0];
@@ -244,7 +245,7 @@ impl Sim {
     fn base_build_type(&self, rec: usize) -> usize {
         let mut cur = rec;
         let mut guard = 0;
-        while let Some(x) = self.build_types[cur].from {
+        while let Some(x) = self.tables.build_types[cur].from {
             cur = x;
             guard += 1;
             if guard > 16 {
@@ -260,43 +261,43 @@ impl Sim {
     /// diff behind it (`docs/CITIES.md` §4.3, Coverage).
     fn free_units_for(&mut self, b: usize, rec: usize) {
         let who = self.buildings[b].owner;
-        let t = self.build_types[rec].tree;
+        let t = self.tables.build_types[rec].tree;
         if t == Some(ty::MARKET) {
             // The Nubian caravan. `NUBIAN_FREE_CARAVAN` ships as 0, so the
             // arm is live and inert at once.
-            let n = i32::from(self.tuning.nubian_free_caravan != 0);
+            let n = i32::from(self.tables.tuning.nubian_free_caravan != 0);
             self.free_train(b, power::NUBIANS, ty::CARAVAN, n, true);
         } else if t == Some(ty::BARRACKS) {
             self.barracks_free_units(b, who);
         } else if t.is_some_and(|x| ty::SIEGE_FACTORIES.contains(&x)) {
-            let siege = self.tuning.turk_free_siege;
+            let siege = self.tables.tuning.turk_free_siege;
             self.free_train(b, power::TURKS, ty::CATAPULT, siege, true);
             // The French wagon and general are the two arms that skip
             // `current_upgrade`: the graft's answer is trained as it stands.
-            let wagons = i32::from(self.tuning.french_free_supply != 0);
+            let wagons = i32::from(self.tables.tuning.french_free_supply != 0);
             self.free_train(b, power::FRENCH, ty::SUPPLYWAGON, wagons, false);
         } else if t.is_some_and(|x| ty::DOCKS.contains(&x)) {
             // The Spanish trireme is gated on the age as well as the count:
             // `ages < 5`, so it stops at Gunpowder.
             let ships = if self.tech[who as usize].ages < 5 {
-                self.tuning.spanish_free_trireme
+                self.tables.tuning.spanish_free_trireme
             } else {
                 0
             };
             self.free_train(b, power::SPANISH, ty::TRIREME, ships, true);
-            let barks = self.tuning.dutch_free_light_ship;
+            let barks = self.tables.tuning.dutch_free_light_ship;
             self.free_train(b, power::DUTCH, ty::BARK, barks, true);
-            let fishers = self.tuning.british_free_fishermen;
+            let fishers = self.tables.tuning.british_free_fishermen;
             self.free_train(b, power::BRITISH, ty::FISHERMEN, fishers, true);
         } else if t == Some(ty::UNIVERSITY) {
             // The third arm with no `current_upgrade`.
-            let scholars = self.tuning.americans_free_scholar;
+            let scholars = self.tables.tuning.americans_free_scholar;
             self.free_train(b, power::AMERICANS, ty::SCHOLARS, scholars, false);
-        } else if crate::build::is_fort(&self.build_types, rec) {
-            let generals = i32::from(self.tuning.french_free_general != 0);
+        } else if crate::build::is_fort(&self.tables.build_types, rec) {
+            let generals = i32::from(self.tables.tuning.french_free_general != 0);
             self.free_train(b, power::FRENCH, ty::GENERAL, generals, false);
         } else if t == Some(ty::AIRBASE) {
-            let fighters = self.tuning.german_free_fighter;
+            let fighters = self.tables.tuning.german_free_fighter;
             self.free_train(b, power::GERMANS, ty::BIPLANE, fighters, true);
             // The American bomber wants the Modern age as well as the base:
             // `has_tech(MODERN_AGE)`, the original's `0x225`. The tree lays
@@ -304,12 +305,13 @@ impl Sim {
             // `0x220 + i` (`rondata::load`'s table), so the age is asked for
             // by its place in the ladder, never by the original's number —
             // `0x225` here is the Information Age (item 3509).
-            let modern = self.tech_tree.ages[MODERN].is_some_and(|a| {
-                self.tech_tree
-                    .has_tech(&self.setup, &self.tech[who as usize], a)
+            let modern = self.tables.tech_tree.ages[MODERN].is_some_and(|a| {
+                self.tables
+                    .tech_tree
+                    .has_tech(&self.tables.setup, &self.tech[who as usize], a)
             });
             let bombers = if modern {
-                self.tuning.americans_free_bomber
+                self.tables.tuning.americans_free_bomber
             } else {
                 0
             };
@@ -317,7 +319,7 @@ impl Sim {
         } else if !self.building_is_city(b) {
             if t.is_some_and(|x| ty::STABLES.contains(&x)) {
                 let epoch = self.tech[who as usize].epoch[0];
-                let g = &self.tuning;
+                let g = &self.tables.tuning;
                 let mut horse = if epoch < 2 {
                     g.mongol_start_cavalry
                 } else {
@@ -334,18 +336,18 @@ impl Sim {
             // count already includes the city being founded, which
             // `Build::activate` raised a few lines above this block.
             let i = (self.city_num(who) - 1).clamp(0, 7) as usize;
-            let n = self.tuning.korean_citizens[i];
+            let n = self.tables.tuning.korean_citizens[i];
             self.free_train(b, power::KOREANS, ty::PEASANTS, n, false);
         }
     }
 
     /// The Barracks' four arms, in the order the original tests them.
     fn barracks_free_units(&mut self, b: usize, who: Player) {
-        let scouts = self.tuning.iroquois_free_scout;
+        let scouts = self.tables.tuning.iroquois_free_scout;
         self.free_train(b, power::IROQUOIS, ty::SCOUT, scouts, true);
 
         let age = self.nation_age(who);
-        let g = &self.tuning;
+        let g = &self.tables.tuning;
         let legions = free_scaled(
             g.roman_barracks_legion,
             g.roman_max_legion,
@@ -360,7 +362,7 @@ impl Sim {
 
         // The British ladder has **no multiplier and no cap**: the tier is
         // the count, where the Roman and Aztec arms scale and clamp theirs.
-        let g = &self.tuning;
+        let g = &self.tables.tuning;
         let archers = free_tier(
             age,
             g.british_age_for_1_archer,
@@ -372,7 +374,7 @@ impl Sim {
         // The Aztec ladder is not the other two's: it is 1 below the first
         // age, then 2, then 3 past the third. Only the patch-4 arm is
         // modelled — the older one reads `ages` where this reads the min.
-        let g = &self.tuning;
+        let g = &self.tables.tuning;
         let tier = if age == 0 { 1 } else { 2 + i32::from(age > 2) };
         let light = free_scaled(g.aztec_barracks_light, g.aztec_max_light, tier);
         self.free_train(b, power::AZTECS, ty::SLINGERS, light, true);
@@ -397,16 +399,18 @@ impl Sim {
         // `Ident`.
         let market = self.buildings[b]
             .ty
-            .is_some_and(|r| self.build_types[r].ident == crate::build::Ident::Market);
+            .is_some_and(|r| self.tables.build_types[r].ident == crate::build::Ident::Market);
         if !market || self.buildings[b].phase(frame) % 15 != 0 {
             return;
         }
         let who = self.buildings[b].owner;
         let w = who as usize;
         if w >= self.tech.len()
-            || !self
-                .tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[w], power::PERSIANS)
+            || !self.tables.tech_tree.has_tribe_bonus(
+                &self.tables.setup,
+                &self.tech[w],
+                power::PERSIANS,
+            )
         {
             return;
         }
@@ -418,7 +422,8 @@ impl Sim {
             return;
         };
         let m = &self.muster[w];
-        if crate::cost::exceeds_population(m.cap, m.control, self.unit_types[rec].price.pop) {
+        if crate::cost::exceeds_population(m.cap, m.control, self.tables.unit_types[rec].price.pop)
+        {
             return;
         }
         self.build_train(b, rec);
@@ -428,7 +433,7 @@ impl Sim {
     fn is_terra_cotta(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|r| self.build_types[r].tree == Some(0x211))
+            .is_some_and(|r| self.tables.build_types[r].tree == Some(0x211))
     }
 
     /// `Build::activate@00623e20:1370`: the wonder finishes with its clock
@@ -437,7 +442,7 @@ impl Sim {
     /// (3395) and its first soldier is born on 3843, 450 frames on.
     pub(crate) fn terra_cotta_activate(&mut self, b: usize) {
         if self.is_terra_cotta(b) {
-            self.buildings[b].recharging = self.tuning.terra_cotta_free * 15;
+            self.buildings[b].recharging = self.tables.tuning.terra_cotta_free * 15;
         }
     }
 
@@ -445,7 +450,7 @@ impl Sim {
     fn is_kremlin(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|r| self.build_types[r].tree == Some(0x21a))
+            .is_some_and(|r| self.tables.build_types[r].tree == Some(0x21a))
     }
 
     /// **The Kremlin's start** — `Build::activate@00623e20:1376`..`1400`
@@ -461,7 +466,11 @@ impl Sim {
             return;
         }
         let who = self.buildings[b].owner;
-        self.buildings[b].recharging = if captured { self.tuning.kremlin_spy } else { 1 };
+        self.buildings[b].recharging = if captured {
+            self.tables.tuning.kremlin_spy
+        } else {
+            1
+        };
         let tagged = (0..self.units.len()).any(|u| {
             self.units[u].alive()
                 && self.units[u].owner == who
@@ -505,13 +514,13 @@ impl Sim {
             return;
         }
         self.tech[w].kremlin_spy_due = false;
-        self.buildings[b].recharging = self.tuning.kremlin_spy;
+        self.buildings[b].recharging = self.tables.tuning.kremlin_spy;
         let Some(rec) = self.unit_record(0x3a) else {
             return;
         };
         let spy = self.build_train(b, rec);
         self.units[spy.unit].kremlin_spy = true;
-        self.muster[w].control -= self.unit_types[rec].price.pop;
+        self.muster[w].control -= self.tables.unit_types[rec].price.pop;
     }
 
     /// **`Unit::close@0060ee50:98`..`106`: a hero's death stamps its
@@ -530,10 +539,10 @@ impl Sim {
         }
         let hero = self
             .unit_tree(u)
-            .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.hero));
+            .is_some_and(|t| self.tables.tech_tree.kind(t).unit().is_some_and(|x| x.hero));
         if hero {
             self.tech[who].gov_hero_frame =
-                i64::from(self.tuning.gov_hero_respawn) * 15 + self.frame;
+                i64::from(self.tables.tuning.gov_hero_respawn) * 15 + self.frame;
         }
     }
 
@@ -558,7 +567,11 @@ impl Sim {
         if !self.building_is(b, crate::build::Ident::Senate) {
             return;
         }
-        let Some(hero) = self.tech_tree.get_gov_hero(&self.setup, &self.tech[who]) else {
+        let Some(hero) = self
+            .tables
+            .tech_tree
+            .get_gov_hero(&self.tables.setup, &self.tech[who])
+        else {
             return;
         };
         let Some(rec) = self.unit_record(hero) else {
@@ -580,7 +593,7 @@ impl Sim {
                     && b.active
                     && b.owner as usize == who
                     && b.ty
-                        .is_some_and(|r| self.build_types[r].tree == Some(0x21a))
+                        .is_some_and(|r| self.tables.build_types[r].tree == Some(0x21a))
             })
         {
             self.tech[who].kremlin_spy_due = true;
@@ -624,13 +637,13 @@ impl Sim {
         let w = who as usize;
         let barracks_units = self.barracks_units(who);
         // The file's `7` is half a second; any other value is frames.
-        let delay = self.tuning.terra_cotta_delay;
+        let delay = self.tables.tuning.terra_cotta_delay;
         let added = if delay == 7 {
             barracks_units * 15 / 2
         } else {
             barracks_units * delay
         };
-        self.buildings[b].recharging = self.tuning.terra_cotta_free * 15 + added;
+        self.buildings[b].recharging = self.tables.tuning.terra_cotta_free * 15 + added;
         let Some(rec) = self.free_unit_record(who, TERRA_COTTA_BASE, true) else {
             return;
         };
@@ -652,15 +665,16 @@ impl Sim {
         let who = self.buildings[b].owner;
         let w = who as usize;
         if !self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[w], power)
+            .has_tribe_bonus(&self.tables.setup, &self.tech[w], power)
         {
             return;
         }
         let Some(rec) = self.free_unit_record(who, base, upgrade) else {
             return;
         };
-        let pop = self.unit_types[rec].price.pop;
+        let pop = self.tables.unit_types[rec].price.pop;
         for _ in 0..n {
             let m = &self.muster[w];
             if crate::cost::exceeds_population(m.cap, m.control, pop) {
@@ -674,12 +688,17 @@ impl Sim {
     /// index into [`Sim::unit_types`].
     fn free_unit_record(&self, who: Player, base: TypeId, upgrade: bool) -> Option<usize> {
         let p = self.tech.get(who as usize)?;
-        if base >= self.tech_tree.types.len() {
+        if base >= self.tables.tech_tree.types.len() {
             return None;
         }
-        let t = self.tech_tree.get_graft(&self.setup, p, Some(base))?;
+        let t = self
+            .tables
+            .tech_tree
+            .get_graft(&self.tables.setup, p, Some(base))?;
         let t = if upgrade {
-            self.tech_tree.current_upgrade(&self.setup, p, t)
+            self.tables
+                .tech_tree
+                .current_upgrade(&self.tables.setup, p, t)
         } else {
             t
         };

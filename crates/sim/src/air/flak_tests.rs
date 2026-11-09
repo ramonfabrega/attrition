@@ -40,7 +40,7 @@ fn unit(s: &mut Sim, who: crate::Player, at: Pos, prof: combat::Profile) -> usiz
     u.ty = Some(ty);
     u.on_map = true;
     let u = s.add_unit(u);
-    s.units[u].kind = s.unit_types[ty].kind;
+    s.units[u].kind = s.tables.unit_types[ty].kind;
     u
 }
 
@@ -104,7 +104,7 @@ fn radar(s: &mut Sim, with_cycle: bool) -> usize {
             releases: vec![(2, 0, false)],
             launch: Some((136, -136, 227)),
         });
-        let id = s.tech_tree.add(d);
+        let id = s.tables.tech_tree.add(d);
         let bt = s.add_build_type(crate::build::BuildType {
             tree: Some(id),
             ..crate::build::BuildType::default()
@@ -392,7 +392,7 @@ fn a_plane_of_cat_air_crashes_and_a_missile_does_not() {
     let mut s = sim();
     let b = unit(&mut s, 0, Pos::new(21120, 16512), bomber());
     let ty = s.units[b].ty.unwrap();
-    s.unit_types[ty].cols.cat = super::CAT_AIR;
+    s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
     let mut probe = s.rng;
     let _ = probe.roll();
     assert!(s.crashes(b));
@@ -409,7 +409,7 @@ fn a_plane_of_cat_air_crashes_and_a_missile_does_not() {
         },
     );
     let mty = s.units[missile].ty.unwrap();
-    s.unit_types[mty].cols.cat = super::CAT_AIR;
+    s.tables.unit_types[mty].cols.cat = super::CAT_AIR;
     assert!(!s.crashes(missile), "a missile takes add_death");
     let foot = unit(
         &mut s,
@@ -450,8 +450,8 @@ fn a_plane_shot_down_lays_the_crash_round_run405_prints() {
     ] {
         let b = unit(&mut s, 0, at, bomber());
         let ty = s.units[b].ty.unwrap();
-        s.unit_types[ty].cols.cat = super::CAT_AIR;
-        s.unit_types[ty].moves = 60;
+        s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
+        s.tables.unit_types[ty].moves = 60;
         s.units[b].movement.body.pos = at;
         s.units[b].movement.facing = crate::movement::Angle(facing);
         s.units[b].airframe.z = z;
@@ -512,8 +512,8 @@ fn a_crash_round_strikes_the_building_it_comes_down_on() {
             },
         );
         let ty = s.units[b].ty.unwrap();
-        s.unit_types[ty].cols.cat = super::CAT_AIR;
-        s.unit_types[ty].moves = 60;
+        s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
+        s.tables.unit_types[ty].moves = 60;
         s.units[b].movement.body.pos = at;
         s.units[b].airframe.z = 300;
         assert!(s.crashes(b));
@@ -918,7 +918,7 @@ fn a_building_s_search_skips_a_unit_out_of_its_range() {
     );
     for u in [gone, near] {
         let t = s.units[u].ty.unwrap();
-        s.unit_types[t].combat.cost = 20_000;
+        s.tables.unit_types[t].combat.cost = 20_000;
     }
     // The departing one inside the search's radius and out of range;
     // the near one walks (`/4`); the departing one is the target (`×2`).

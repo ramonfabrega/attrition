@@ -205,7 +205,7 @@ impl Sim {
     pub fn scout_thinks(&self, u: usize) -> bool {
         let unit = &self.units[u];
         let Some(rec) = unit.ty else { return false };
-        if self.unit_types[rec].kind.supply_unit {
+        if self.tables.unit_types[rec].kind.supply_unit {
             return false;
         }
         if !self.unit_is_scout(u) && !self.unit_is_spy(u) {
@@ -220,13 +220,13 @@ impl Sim {
         let Some(rec) = self.units[u].ty else {
             return false;
         };
-        let cols = self.unit_types[rec].cols.role;
+        let cols = self.tables.unit_types[rec].cols.role;
         if cols != 0 {
             return cols & role::ROLE_SCOUT != 0;
         }
         // A type the loader never filled — a harness fixture. The tree id is
         // what `role_word` needs for its `Scout` lineage test.
-        self.unit_types[rec]
+        self.tables.unit_types[rec]
             .tree
             .is_some_and(|t| self.role_word(t, rec) & role::ROLE_SCOUT != 0)
     }
@@ -246,7 +246,7 @@ impl Sim {
     /// twice: by `Unit::think`'s human block (§2) and by §11's `local_74`.
     pub(crate) fn unit_is_special(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|r| {
-            self.unit_types[r]
+            self.tables.unit_types[r]
                 .cols
                 .flag2(crate::ai_load::uflags2::FLAG2_SCOUT)
         })
@@ -347,7 +347,7 @@ impl Sim {
         let Some(rec) = self.units[u].ty else {
             return false;
         };
-        let domain = self.unit_types[rec].kind.domain;
+        let domain = self.tables.unit_types[rec].kind.domain;
         let type_index = self.units[u].type_index;
 
         // The head, and it comes before the region read: a land unit that
@@ -360,7 +360,7 @@ impl Sim {
         // (`think_scout+0x7c`, `unit_flags2 & 2`): `think_spellcaster`,
         // whose AI arm draws from difficulty 2 up (`docs/AI.md` §80.5).
         if !self.nation[who as usize].human
-            && self.unit_types[rec]
+            && self.tables.unit_types[rec]
                 .cols
                 .flag2(crate::ai_load::uflags2::CASTER)
             && self.think_spellcaster(u)
@@ -450,7 +450,7 @@ impl Sim {
         let near = self.scout_find_city(u, who, region);
         let land = self.units[u]
             .ty
-            .is_some_and(|r| self.unit_types[r].kind.domain == Domain::Land);
+            .is_some_and(|r| self.tables.unit_types[r].kind.domain == Domain::Land);
 
         for i in 0..8u8 {
             let leader = (who + i) & 7;
@@ -573,7 +573,7 @@ impl Sim {
     /// §7 and §8 — one candidate cell: the filter, the draw, the score.
     fn scout_cell(&mut self, u: usize, who: Player, c: Cell, scan: &mut Scan, ring: i32) {
         let Some(rec) = self.units[u].ty else { return };
-        let domain = self.unit_types[rec].kind.domain;
+        let domain = self.tables.unit_types[rec].kind.domain;
         if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
             return;
         }
@@ -751,11 +751,11 @@ impl Sim {
     /// own record, so two such units match only on the same record.
     fn unit_base_type(&self, u: usize) -> Result<crate::tech::TypeId, Option<usize>> {
         let rec = self.units[u].ty;
-        let Some(mut t) = rec.and_then(|i| self.unit_types[i].tree) else {
+        let Some(mut t) = rec.and_then(|i| self.tables.unit_types[i].tree) else {
             return Err(rec);
         };
         let mut guard = 0;
-        while let Some(f) = self.tech_tree.types.get(t).and_then(|d| d.from) {
+        while let Some(f) = self.tables.tech_tree.types.get(t).and_then(|d| d.from) {
             t = f;
             guard += 1;
             if guard > 16 {
@@ -807,7 +807,7 @@ impl Sim {
     /// surface tests.
     fn scout_region_scan(&mut self, u: usize, who: Player, region: u16, scan: &mut Scan) {
         let Some(rec) = self.units[u].ty else { return };
-        let domain = self.unit_types[rec].kind.domain;
+        let domain = self.tables.unit_types[rec].kind.domain;
 
         // `local_74`, stored at `005f68dc` and read twice in the score. The
         // branch at `005f6888` skips the store when the leader **is**

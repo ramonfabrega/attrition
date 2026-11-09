@@ -473,7 +473,7 @@ fn coverage_pair_start_owns_every_age() {
     let init = log.initial().expect("a start dump");
     let built = build_sim(&loaded, &init, Tuning::RON);
     assert_eq!(built.sim.lobby.starting_technology, 8);
-    assert_eq!(built.sim.setup.starting_age, 8);
+    assert_eq!(built.sim.tables.setup.starting_age, 8);
     for who in 0..2 {
         let t = &built.sim.tech[who];
         assert_eq!(t.ages, 7, "who {who} owns every age at frame 0");

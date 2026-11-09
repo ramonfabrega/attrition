@@ -615,7 +615,7 @@ fn american_information_pair_an_american_aircraft_costs_a_fifth_less() {
     .into_iter()
     .map(|(name, ti)| {
         let ty = loaded.unit_named(name).expect(name);
-        let tree = sim.unit_types[ty].tree.expect("in the tree");
+        let tree = sim.tables.unit_types[ty].tree.expect("in the tree");
         assert_eq!(loaded.type_index(tree), ti, "{name}'s TypeIndex");
         (name, ty)
     })
@@ -630,7 +630,7 @@ fn american_information_pair_an_american_aircraft_costs_a_fifth_less() {
             .collect()
     };
     let with = read(sim);
-    sim.tuning.americans_aircraft = 0;
+    sim.tables.tuning.americans_aircraft = 0;
     let without = read(sim);
     // The Fighter Bomber takes one step, not two: its trainer in the
     // tree is not the Airbase, so only its own lineage's test enters.

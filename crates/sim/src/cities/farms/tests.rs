@@ -146,7 +146,7 @@ fn a_pasture_s_close_takes_its_animals_and_spends_no_draw() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let animals = s.farm_add_animals(b, &[]);
     let t = s.buildings[b].ty.unwrap();
@@ -175,7 +175,7 @@ fn a_pasture_spends_no_crop_draw_and_six_on_its_animals() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let animals = s.farm_add_animals(b, &[]);
     assert_eq!(animals.len(), FARM_ANIMALS as usize, "five animals");
@@ -244,12 +244,12 @@ fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     let pig = s.add_unit_type(crate::UnitType {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[pig].tree = Some(FARMPIG);
+    s.tables.unit_types[pig].tree = Some(FARMPIG);
 
     let pos = crate::Pos::new(5 * 192 + 96, 5 * 192 + 96);
     let b = s.init_build(0, t, pos, false);
@@ -341,7 +341,7 @@ fn think_farm_animal_s_phase_and_its_covers_tile() {
         hits: 10,
         ..crate::UnitType::default()
     });
-    s.unit_types[pig].tree = Some(FARMPIG);
+    s.tables.unit_types[pig].tree = Some(FARMPIG);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let animals = s.farm_add_animals(b, &[]);
 
@@ -359,7 +359,7 @@ fn think_farm_animal_s_phase_and_its_covers_tile() {
     // farm, `been_there` clear — leaves the reference on the **farm**,
     // which covers its own tile, so the draw is spent.
     s.frame = 0;
-    s.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHERER;
+    s.tables.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHERER;
     let citizen = s.add_unit_type(crate::UnitType {
         hits: 10,
         worker: crate::orders::Worker::Citizen,
@@ -427,7 +427,7 @@ fn an_animal_is_born_on_the_snap_of_its_two_draws() {
         moves: 25,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     // `+0x134` and `+0x182` are a `y` and an `x` offset in
     // `[−0xc0, 0xbf]`; neither of these lands on a cell centre.
@@ -460,7 +460,7 @@ fn the_walk_lands_on_the_slot_s_corner_of_the_tile_it_picks() {
         moves: 25,
         ..crate::UnitType::default()
     });
-    s.unit_types[chicken].tree = Some(FARMCHICKEN);
+    s.tables.unit_types[chicken].tree = Some(FARMCHICKEN);
     s.buildings[b].farm.farm_type = ANIMAL_FARM;
     let seeds = [AnimalSeed {
         chicken: true,

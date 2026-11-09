@@ -194,7 +194,7 @@ fn electronics_or_a_fouche_sees_every_cell() {
     let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
     assert!(!sim.was_seen_fog(fx, fy, 1), "the fog alone: unseen");
 
-    let mut tree = sim.tech_tree.clone();
+    let mut tree = sim.tables.tech_tree.clone();
     let electronics = tree.types.len();
     tree.types.push(TypeDef::new("Electronics", Kind::Final));
     tree.roles.explore_map_preq = Some(electronics);
@@ -233,7 +233,7 @@ fn the_spanish_see_every_cell_once_they_hold_the_bonus() {
     assert!(sim.world.set_fog(vec![0; 8 * 8 * 4]));
     let (fx, fy) = (2 * 5 + 1, 2 * 5 + 1);
     sim.tech[1].power = Some(crate::nations::power::SPANISH);
-    sim.setup.starting_town = false;
+    sim.tables.setup.starting_town = false;
     sim.tech[1].has_city = false;
     assert!(!sim.was_seen_fog(fx, fy, 1), "no city, no bonus: unseen");
     sim.tech[1].has_city = true;
@@ -242,7 +242,7 @@ fn the_spanish_see_every_cell_once_they_hold_the_bonus() {
     sim.tech[1].power = Some(crate::nations::power::FRENCH);
     assert!(!sim.was_seen_fog(fx, fy, 1), "another power: unseen");
     sim.tech[1].power = Some(crate::nations::power::SPANISH);
-    sim.setup.no_nation_powers = true;
+    sim.tables.setup.no_nation_powers = true;
     assert!(!sim.was_seen_fog(fx, fy, 1), "powers off: unseen");
 }
 
@@ -618,7 +618,7 @@ fn city_ai_fixture() -> (Sim, usize, TypeId) {
         dist: 8,
         rank: 9,
     };
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     (sim, k.village, village_t)
 }
 
@@ -743,7 +743,7 @@ fn the_human_cap_stops_the_ai_at_the_best_human_s_count() {
 fn the_nearest_citizen_is_sent_with_the_gatherer_s_penalty() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     // A city of mine, so this is not the nomad path (which sends every
     // citizen at once) — far enough away not to crowd the site, with
     // the site's own cells owned so the placement is in my territory.
@@ -809,7 +809,7 @@ fn the_nearest_citizen_is_sent_with_the_gatherer_s_penalty() {
 fn a_nomad_sends_every_citizen() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     let a = spawn(
         &mut sim,
         1,
@@ -841,7 +841,7 @@ fn a_nomad_sends_every_citizen() {
 fn no_citizen_in_the_region_means_no_city() {
     let (mut sim, k) = kit(16, 16, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     sim.world
         .fill_region(Terrain::Land, Cell::new(8, 0), Cell::new(15, 15));
     spawn(
@@ -863,7 +863,7 @@ fn no_citizen_in_the_region_means_no_city() {
 fn the_census_decrement_uses_the_last_examined_citizen_s_action() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     let home = sim.init_build(
         1,
         k.village,
@@ -910,7 +910,7 @@ fn the_census_decrement_uses_the_last_examined_citizen_s_action() {
 fn the_last_examined_citizen_is_the_highest_numbered_not_the_last_slot() {
     let (mut sim, k) = kit(64, 8, 2);
     sim.frame = 1;
-    let village_t = sim.build_types[k.village].tree.unwrap();
+    let village_t = sim.tables.build_types[k.village].tree.unwrap();
     let home = sim.init_build(
         1,
         k.village,

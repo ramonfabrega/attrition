@@ -247,10 +247,13 @@ impl Sim {
     /// it counts and the cells it slides to (run651's block 1, `docs/AI.md`
     /// §141).
     pub(crate) fn sees_every_cell(&self, who: Player) -> bool {
-        self.holds_bonus(who, self.tech_tree.roles.explore_map_preq)
+        self.holds_bonus(who, self.tables.tech_tree.roles.explore_map_preq)
             || self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::nations::power::SPANISH)
+                self.tables.tech_tree.has_tribe_bonus(
+                    &self.tables.setup,
+                    p,
+                    crate::nations::power::SPANISH,
+                )
             })
             || self.sees_every_unit(who)
     }
@@ -261,7 +264,7 @@ impl Sim {
     /// `num_units[0x141]`, a Fouché standing. `is_seen` lacks the `0x1000`
     /// arm [`Sim::sees_every_cell`] adds — an explored map is not a lit one.
     pub(crate) fn sees_every_unit(&self, who: Player) -> bool {
-        if self.holds_bonus(who, self.tech_tree.roles.reveal_enemy_preq) {
+        if self.holds_bonus(who, self.tables.tech_tree.roles.reveal_enemy_preq) {
             return true;
         }
         if self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
@@ -280,7 +283,7 @@ impl Sim {
         let Some(tech) = self.tech.get(who as usize) else {
             return false;
         };
-        preq.is_some_and(|t| self.tech_tree.has_tech(&self.setup, tech, t))
+        preq.is_some_and(|t| self.tables.tech_tree.has_tech(&self.tables.setup, tech, t))
     }
 
     /// `WorldData::is_ocean@006b4830`: **the cell's own kind**, not its
@@ -310,14 +313,19 @@ impl Sim {
             b.alive
                 && b.active
                 && b.owner == who
-                && b.ty.is_some_and(|t| build::is_fort(&self.build_types, t))
+                && b.ty
+                    .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
                 && b.pos.cell() == c
         })
     }
 
     /// `types.list[BASE_UNITTYPES]` — the tree's first unit, the Citizen.
     fn citizen_root(&self) -> Option<TypeId> {
-        self.tech_tree.types.iter().position(|d| d.kind.is_unit())
+        self.tables
+            .tech_tree
+            .types
+            .iter()
+            .position(|d| d.kind.is_unit())
     }
 
     /// A unit in the Citizen line (the seam for `type == PEASANTS ||
@@ -328,18 +336,22 @@ impl Sim {
         };
         self.units[u]
             .ty
-            .and_then(|r| self.unit_types[r].tree)
-            .is_some_and(|t| self.tech_tree.is(t, root, false))
+            .and_then(|r| self.tables.unit_types[r].tree)
+            .is_some_and(|t| self.tables.tech_tree.is(t, root, false))
     }
 
     /// The build record of a city level, by ident.
     fn city_record(&self, ident: Ident) -> Option<usize> {
-        self.build_types.iter().position(|b| b.ident == ident)
+        self.tables
+            .build_types
+            .iter()
+            .position(|b| b.ident == ident)
     }
 
     /// The six goods' tree ids, in `econ`/`Resource` order.
     fn good_types(&self) -> Vec<TypeId> {
-        self.tech_tree
+        self.tables
+            .tech_tree
             .types
             .iter()
             .enumerate()
@@ -970,7 +982,7 @@ impl Sim {
         let Some(village) = self.city_record(Ident::Village) else {
             return;
         };
-        let Some(village_t) = self.build_types[village].tree else {
+        let Some(village_t) = self.tables.build_types[village].tree else {
             return;
         };
 
@@ -1084,7 +1096,9 @@ impl Sim {
             for b in &self.buildings {
                 if b.owner != other
                     || !b.alive
-                    || !b.ty.is_some_and(|t| build::is_city(&self.build_types, t))
+                    || !b
+                        .ty
+                        .is_some_and(|t| build::is_city(&self.tables.build_types, t))
                 {
                     continue;
                 }

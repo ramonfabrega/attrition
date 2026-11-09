@@ -96,7 +96,7 @@ fn sim() -> (Sim, Types) {
         .collect();
     sim.set_tech_tree(tree);
     for (rec, id) in recs.iter().zip(ids.iter()) {
-        sim.build_types[*rec].tree = Some(*id);
+        sim.tables.build_types[*rec].tree = Some(*id);
     }
     for t in &mut sim.tech {
         t.tribe = crate::ai::tribe::MAYA;
@@ -169,12 +169,12 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
 /// `check_income` and `make_me`.
 fn value(sim: &mut Sim, who: Player, c: usize, rec: usize) -> Option<Listing> {
     let f = sim.city_facts(who, c, 0)?;
-    let pass = u32::from(sim.build_types[rec].has(flags::GATHERER));
+    let pass = u32::from(sim.tables.build_types[rec].has(flags::GATHERER));
     sim.building_value(who, &f, rec, pass)
 }
 
 fn listed(sim: &Sim, who: Player, rec: usize) -> Option<MakeObject> {
-    let id = sim.build_types[rec].tree.expect("in the tree") as i32;
+    let id = sim.tables.build_types[rec].tree.expect("in the tree") as i32;
     sim.ai[who as usize]
         .make_list
         .list
@@ -318,7 +318,7 @@ fn the_capital_countdown_leaves_only_military_trainers() {
 fn a_one_per_city_type_is_not_offered_twice() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
-    assert!(sim.build_types[t.market].has(flags::ONE_PER_CITY));
+    assert!(sim.tables.build_types[t.market].has(flags::ONE_PER_CITY));
     assert!(value(&mut sim, 0, c, t.market).is_some());
     let b = sim
         .place_building(0, t.market, tile_pos(48, 40))
@@ -471,7 +471,7 @@ fn a_redoubt_is_a_training_building_through_the_fort_it_comes_from() {
     redoubt.from = Some(root);
     let redoubt = sim.add_build_type(redoubt);
     assert!(
-        !sim.build_types[redoubt].has(flags::TRAINS),
+        !sim.tables.build_types[redoubt].has(flags::TRAINS),
         "the bit is on the root alone"
     );
     assert!(sim.is_training_building(redoubt));
@@ -594,7 +594,9 @@ fn a_gather_offer_is_escrowed_on_every_exit_of_the_head_test() {
     let f = value(&mut sim, 0, c, t.farm).expect("a farm is listed");
     assert_eq!(f.escrow, 1, "an empty head: the first compare fails");
     let mut head = MakeObject::EMPTY;
-    head.t = sim.build_types[t.barracks].tree.expect("in the tree") as i32;
+    head.t = sim.tables.build_types[t.barracks]
+        .tree
+        .expect("in the tree") as i32;
     head.val = i32::MAX;
     sim.ai[0].make_list.list[0] = head;
     let g = value(&mut sim, 0, c, t.farm).expect("still listed");
@@ -687,7 +689,7 @@ fn a_wonder_already_standing_in_the_city_blocks_the_next() {
 #[test]
 fn an_unfinished_wonder_site_shuts_its_city_out_of_the_other_wonders() {
     let (mut sim, t) = sim();
-    sim.build_types[t.silo].wonder = true;
+    sim.tables.build_types[t.silo].wonder = true;
     let a = city(&mut sim, &t, 0, 40, 40);
     let _b = city(&mut sim, &t, 0, 80, 40);
     sim.lobby.difficulty = 3;
@@ -724,15 +726,15 @@ fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
     use crate::economy::Resource;
     let (mut sim, t) = sim();
     let wealth = Resource::Wealth as usize;
-    sim.build_types[t.silo].wonder = true;
-    sim.build_types[t.wonder].price = Price {
+    sim.tables.build_types[t.silo].wonder = true;
+    sim.tables.build_types[t.wonder].price = Price {
         kind: Kind::Building,
         class: RampClass::Building,
         ..Price::free()
             .with_base(Resource::Wealth, 20)
             .with_support(Resource::Wealth, 60)
     };
-    sim.build_types[t.barracks].price = Price {
+    sim.tables.build_types[t.barracks].price = Price {
         kind: Kind::Building,
         class: RampClass::Building,
         ..Price::free()
@@ -747,7 +749,7 @@ fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
     pass_draws(&mut sim, 0);
     let before = listed(&sim, 0, t.wonder).expect("listed with no site");
     assert!(before.val > 0, "affordable: {before:?}");
-    let tree = sim.build_types[t.wonder].tree.expect("in the tree");
+    let tree = sim.tables.build_types[t.wonder].tree.expect("in the tree");
     assert!(sim.check_income(0, tree, 4 << 8, Some(a), false, -1, 1, 0) > 0);
     let site = sim
         .place_building(0, t.silo, tile_pos(48, 40))
@@ -800,8 +802,8 @@ fn a_city_is_priced_by_every_city_of_the_line() {
             .with_base(Resource::Food, 1)
             .with_support(Resource::Food, 50)
     };
-    sim.build_types[t.village].price = priced.clone();
-    sim.build_types[t.barracks].price = priced;
+    sim.tables.build_types[t.village].price = priced.clone();
+    sim.tables.build_types[t.barracks].price = priced;
     let _a = city(&mut sim, &t, 0, 40, 40);
     let b = city(&mut sim, &t, 0, 80, 40);
     let two_small = sim.building_price(0, t.village)[food];
@@ -853,7 +855,7 @@ fn pass_draws(sim: &mut Sim, who: Player) -> usize {
 #[test]
 fn an_easy_ai_wants_no_second_wonder_once_its_first_stands() {
     let (mut sim, t) = sim();
-    sim.build_types[t.silo].wonder = true;
+    sim.tables.build_types[t.silo].wonder = true;
     let _a = city(&mut sim, &t, 0, 40, 40);
     let _b = city(&mut sim, &t, 0, 80, 40);
     sim.lobby.difficulty = 1;
@@ -917,7 +919,7 @@ fn a_wonder_is_worth_its_own_points() {
     let _c = city(&mut sim, &t, 0, 40, 40);
     sim.lobby.difficulty = 3;
     let one = wonder_listed(&sim, t.wonder);
-    sim.build_types[t.wonder].wonder_val = 2;
+    sim.tables.build_types[t.wonder].wonder_val = 2;
     let two = wonder_listed(&sim, t.wonder);
     assert!(one.val > 0);
     assert!(
@@ -926,7 +928,7 @@ fn a_wonder_is_worth_its_own_points() {
         one.val,
         two.val
     );
-    assert_eq!(sim.build_types[t.barracks].wonder_points(), 0);
+    assert_eq!(sim.tables.build_types[t.barracks].wonder_points(), 0);
 }
 
 /// §124, the other half of Tikal's four: `(team + 1)`, the points of
@@ -939,8 +941,8 @@ fn a_held_wonder_doubles_the_next() {
     sim.lobby.difficulty = 3;
     // A second wonder type's site in both: it shuts city b and prices
     // the wonder alike, so the team's points are the only difference.
-    sim.build_types[t.silo].wonder = true;
-    sim.build_types[t.silo].wonder_val = 1;
+    sim.tables.build_types[t.silo].wonder = true;
+    sim.tables.build_types[t.silo].wonder_val = 1;
     let b = sim
         .place_building(0, t.silo, tile_pos(88, 40))
         .expect("the other wonder's site places");
@@ -975,7 +977,7 @@ fn an_enemy_s_wonder_site_past_half_the_target_shuts_the_draws() {
     let _a = city(&mut sim, &t, 0, 40, 40);
     let _b = city(&mut sim, &t, 1, 80, 40);
     sim.lobby.difficulty = 3;
-    sim.build_types[t.wonder].wonder_val = 3;
+    sim.tables.build_types[t.wonder].wonder_val = 3;
     sim.place_building(1, t.wonder, tile_pos(88, 40))
         .expect("the enemy's site places");
     assert_eq!(sim.enemy_unbuilt_wonder_points(0), 3);
@@ -1000,7 +1002,7 @@ fn an_ally_winning_by_wonders_shuts_the_draws() {
     let _b = city(&mut sim, &t, 1, 80, 40);
     sim.lobby.difficulty = 3;
     sim.set_diplo(0, 1, 2);
-    sim.build_types[t.wonder].wonder_val = 8;
+    sim.tables.build_types[t.wonder].wonder_val = 8;
     let b = sim
         .place_building(1, t.wonder, tile_pos(88, 40))
         .expect("the ally's wonder places");
@@ -1071,8 +1073,8 @@ fn the_wonder_mod_wants_a_wonder_and_devalues_everything_else() {
 // ------------------------------------------------------------------
 
 fn tech_at(sim: &mut Sim, at: usize) -> TypeId {
-    let lib_t = sim.build_types[at].tree.expect("in the tree");
-    let mut tree = sim.tech_tree.clone();
+    let lib_t = sim.tables.build_types[at].tree.expect("in the tree");
+    let mut tree = sim.tables.tech_tree.clone();
     let mut d = TypeDef::plain("Writing", 1);
     d.where_ = Some(lib_t);
     d.tribe_mask = u32::MAX;
@@ -1133,7 +1135,7 @@ fn produce_upgrade_skips_a_site_and_takes_the_finished_building() {
 fn produce_spell_never_casts() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 0, 40, 40);
-    let id = sim.build_types[t.temple].tree.expect("in the tree");
+    let id = sim.tables.build_types[t.temple].tree.expect("in the tree");
     assert!(!sim.produce_spell(0, id, Some(c), 1));
 }
 
@@ -1147,20 +1149,20 @@ fn produce_spell_never_casts() {
 fn gaining_the_keep_turns_the_leader_s_standing_tower_into_one() {
     let (mut sim, t) = sim();
     let _c = city(&mut sim, &t, 0, 40, 40);
-    let tower_id = sim.build_types[t.tower].tree.expect("in the tree");
+    let tower_id = sim.tables.build_types[t.tower].tree.expect("in the tree");
     let mut keep = bt(Ident::Tower, "ecan", 2, 2);
     keep.attack = 12;
     keep.from = Some(t.tower);
     let keep = sim.add_build_type(keep);
-    sim.build_types[t.tower].to = Some(keep);
-    let mut tree = sim.tech_tree.clone();
+    sim.tables.build_types[t.tower].to = Some(keep);
+    let mut tree = sim.tables.tech_tree.clone();
     let mut d = TypeDef::building("Keep");
     d.tribe_mask = u32::MAX;
     d.from = Some(tower_id);
     let keep_id = tree.add(d);
     tree.types[tower_id].upgrade = Some(keep_id);
     sim.set_tech_tree(tree);
-    sim.build_types[keep].tree = Some(keep_id);
+    sim.tables.build_types[keep].tree = Some(keep_id);
 
     let mine = sim
         .place_building(0, t.tower, tile_pos(46, 40))

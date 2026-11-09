@@ -209,7 +209,7 @@ impl Sim {
         let Some(t) = self.units[u].ty else {
             return false;
         };
-        if self.unit_types[t].kind.domain != crate::attrition::Domain::Land {
+        if self.tables.unit_types[t].kind.domain != crate::attrition::Domain::Land {
             return false;
         }
         let who = self.units[u].owner;
@@ -331,8 +331,9 @@ impl Sim {
             return true;
         }
         if self
+            .tables
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9)
+            .has_tribe_bonus(&self.tables.setup, &self.tech[who as usize], 9)
             && self.world.owner(c) == crate::world::Owner::Player(who)
         {
             return self.was_seen_fog(x + 1, y + 1, who);
@@ -368,10 +369,11 @@ impl Sim {
     /// §3 has the listing that settles it.
     fn goody_amount(&self, who: Player) -> i32 {
         let level = self.tech[who as usize].epoch[Line::Science.index()];
-        let t = &self.tuning;
-        let spanish = self
-            .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9);
+        let t = &self.tables.tuning;
+        let spanish =
+            self.tables
+                .tech_tree
+                .has_tribe_bonus(&self.tables.setup, &self.tech[who as usize], 9);
         goody_pile(
             level,
             spanish,
