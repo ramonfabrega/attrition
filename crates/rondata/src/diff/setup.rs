@@ -1561,7 +1561,8 @@ pub(crate) fn start_of_game(
             // `starting_resources == 8` places the citizen at the building
             // and gives it no order.
             if !skip_orders {
-                sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
+                sim.command()
+                    .add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
             }
             births.push((link.unit, link.o, b));
         }
@@ -1723,7 +1724,7 @@ impl Built {
         }
         let frame = self.sim.frame;
         let word_before = self.sim.rng.seed;
-        self.sim.tick();
+        self.sim.command().tick();
         // The frame's own draws, named, before anything is installed —
         // the harness's side of `Trace::labels(frame)`.
         if self.sim.trace.trace_phases
@@ -2640,7 +2641,7 @@ mod tests {
             ..Frame::default()
         };
         let mut built = built;
-        built.sim.tick();
+        built.sim.command().tick();
         let r = compare(&built, &frame, 1);
         assert_eq!(r.compared, 2);
         assert!(r.diverged.is_empty());
@@ -2709,7 +2710,7 @@ mod tests {
         assert_eq!(theirs.int("peasants"), Some(5), "the record is level 9");
 
         // Frame 0: the sweep, which arms the step machine.
-        built.sim.tick();
+        built.sim.command().tick();
         let c = &built.sim.ai.ai[1].census;
         let scalars: [(&str, i32); 15] = [
             ("active", c.active),
@@ -2810,7 +2811,7 @@ mod tests {
         // original's, and with run3's heights the slide is the original's,
         // so the record's best site is asserted when both are on hand and
         // reported otherwise.
-        built.sim.tick();
+        built.sim.command().tick();
         let theirs_sites: Vec<(i64, i64, i64, i64)> = theirs
             .kids("SITE")
             .map(|s| {

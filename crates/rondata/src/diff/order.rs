@@ -1728,8 +1728,9 @@ mod tests {
         built.builds.push((b, 2001));
         built
             .sim
+            .command()
             .add_build_order(u, b, sim::orders::QueuePos::New, true);
-        built.sim.add_move_order(
+        built.sim.command().add_move_order(
             u,
             Pos::new(4300, 28700),
             sim::orders::MoveKind::ExploreTo,

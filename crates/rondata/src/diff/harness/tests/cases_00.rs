@@ -1169,7 +1169,7 @@ mod bodies {
             assert_eq!(built.sim.rng.seed, word, "{dump_name}: and the harness's");
 
             built.sim.trace.trace_phases = true;
-            built.sim.tick();
+            built.sim.command().tick();
             let ours =
                 mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
             let theirs = trace.labels(0);

@@ -280,7 +280,7 @@ mod tests {
             Some(0),
             "site (44,52), fog (89,105)"
         );
-        built.sim.tick();
+        built.sim.command().tick();
         // The per-region census, **every region** — run9's check compares
         // the home region alone, which on one landmass is every land
         // region there is. The site scorer's step 9 multiplies by what
@@ -405,7 +405,7 @@ mod tests {
             "the CITY record disagrees:\n  {}",
             wrong.join("\n  ")
         );
-        built.sim.tick();
+        built.sim.command().tick();
         let theirs_full: Vec<(i64, i64, i64, i64, i64)> = theirs
             .kids("SITE")
             .map(|s| {

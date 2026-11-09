@@ -1392,7 +1392,7 @@ pub(crate) fn seat_walk(
             if closing_next {
                 for who in 0..players {
                     if built.sim.cities.nation[who].human {
-                        built.sim.resign(who as sim::Player);
+                        built.sim.command().resign(who as sim::Player);
                     }
                 }
             }

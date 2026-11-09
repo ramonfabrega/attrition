@@ -128,7 +128,7 @@ mod tests {
         let frames = log.frames();
         // Block 4 is the quit's own: a `FRAME 4` header with no dump.
         for n in 1..=3 {
-            built.sim.tick();
+            built.sim.command().tick();
             let (_, block) = *frames
                 .iter()
                 .find(|(f, _)| *f == n)

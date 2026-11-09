@@ -147,7 +147,7 @@ pub fn group_move_to(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     // `OrderIndex`: 1 `MOVE_TO`, 2 `ATTACK_TO`, 3 `EXPLORE_TO`, 4
@@ -159,7 +159,7 @@ pub fn group_move_to(
         4 => MoveKind::FleeTo,
         _ => MoveKind::MoveTo,
     };
-    built.sim.group_action_move_to(
+    built.sim.command().group_action_move_to(
         &g,
         to,
         queue_pos(queued),
@@ -195,10 +195,13 @@ pub fn group_patrol(built: &mut Built, who: i32, objects: &[i16], to: Pos, queue
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
-    built.sim.group_action_patrol(&g, to, queue_pos(queued));
+    built
+        .sim
+        .command()
+        .group_action_patrol(&g, to, queue_pos(queued));
     g.list.len()
 }
 
@@ -233,11 +236,12 @@ pub fn group_air_attack_ground(
     if !built.sim.is_plane(leader) {
         return None;
     }
-    if !built.sim.push_group(&mut g, true) {
+    if !built.sim.command().push_group(&mut g, true) {
         return Some(0);
     }
     built
         .sim
+        .command()
         .group_action_air_attack_ground(&g, to, queue_pos(queued));
     Some(g.list.len())
 }
@@ -260,10 +264,10 @@ pub fn group_recall_units(built: &mut Built, who: i32, objects: &[i16]) -> usize
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
-    built.sim.group_action_recall(&g);
+    built.sim.command().group_action_recall(&g);
     g.list.len()
 }
 
@@ -285,10 +289,10 @@ pub fn group_alarm_peasant(built: &mut Built, who: i32, objects: &[i16]) -> usiz
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
-    built.sim.action_alarm_peasant(&g);
+    built.sim.command().action_alarm_peasant(&g);
     g.list.len()
 }
 
@@ -330,7 +334,7 @@ pub fn group_guard(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let charge = i16::try_from(ox).ok().and_then(|o| {
@@ -344,6 +348,7 @@ pub fn group_guard(
     if let Some(t) = charge {
         built
             .sim
+            .command()
             .group_action_guard(&g, t, queue_pos(queued), false);
     }
     g.list.len()
@@ -384,7 +389,7 @@ pub fn group_follow(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let leader = i16::try_from(ox).ok().and_then(|o| {
@@ -396,7 +401,10 @@ pub fn group_follow(
             .or_else(|| built.sim.unit_by_o(whom as sim::Player, o))
     });
     if let Some(t) = leader {
-        built.sim.group_action_follow(&g, t, queue_pos(queued));
+        built
+            .sim
+            .command()
+            .group_action_follow(&g, t, queue_pos(queued));
     }
     g.list.len()
 }
@@ -435,14 +443,17 @@ pub fn group_garrison(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let b = i16::try_from(ox)
         .ok()
         .and_then(|o| built.sim.building_by_o(whom as sim::Player, o));
     if let Some(b) = b {
-        built.sim.group_action_garrison(&g, b, queue_pos(queued));
+        built
+            .sim
+            .command()
+            .group_action_garrison(&g, b, queue_pos(queued));
     }
     g.list.len()
 }
@@ -477,11 +488,12 @@ pub fn group_form(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     built
         .sim
+        .command()
         .group_action_form(&g, form, rotate, queue_pos(queued));
     g.list.len()
 }
@@ -526,7 +538,7 @@ pub fn group_attack(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let target = i16::try_from(ox).ok().and_then(|o| {
@@ -551,6 +563,7 @@ pub fn group_attack(
     if let Some(t) = target {
         built
             .sim
+            .command()
             .group_action_attack(&g, t, true, queue_pos(queued), ignore);
     }
     g.list.len()
@@ -593,7 +606,7 @@ pub fn group_flight(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let target = i16::try_from(ox).ok().and_then(|o| {
@@ -621,7 +634,7 @@ pub fn group_flight(
         _ => None,
     };
     if let (Some(t), Some(k)) = (target, kind) {
-        built.sim.group_action_flight(&g, t, k);
+        built.sim.command().group_action_flight(&g, t, k);
     }
     g.list.len()
 }
@@ -663,14 +676,17 @@ pub fn group_build(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let record = usize::try_from(build - crate::load::BASE_BUILDTYPES)
         .ok()
         .filter(|&r| r < built.sim.tables.build_types.len());
     if let Some(ty) = record {
-        built.sim.group_action_build(&g, at, ty, queue_pos(queued));
+        built
+            .sim
+            .command()
+            .group_action_build(&g, at, ty, queue_pos(queued));
     }
     g.list.len()
 }
@@ -706,7 +722,7 @@ pub fn group_spell(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let target = i16::try_from(ox).ok().and_then(|o| {
@@ -728,7 +744,10 @@ pub fn group_spell(
                     .map(sim::combat::Obj::Building)
             })
     });
-    built.sim.group_action_spell(&g, spell, target, at);
+    built
+        .sim
+        .command()
+        .group_action_spell(&g, spell, target, at);
     g.list.len()
 }
 
@@ -758,10 +777,13 @@ pub fn group_set_transport(built: &mut Built, who: i32, objects: &[i16], flag: i
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
-    built.sim.set_transport(player, &g.list, flag != 0);
+    built
+        .sim
+        .command()
+        .set_transport(player, &g.list, flag != 0);
     g.list.len()
 }
 
@@ -787,10 +809,10 @@ pub fn group_stance(built: &mut Built, who: i32, objects: &[i16], stance: i32) -
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
-    built.sim.group_action_stance(&g, stance);
+    built.sim.command().group_action_stance(&g, stance);
     g.list.len()
 }
 
@@ -825,7 +847,7 @@ pub fn group_swarm_around(
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let site = i16::try_from(ox)
@@ -834,6 +856,7 @@ pub fn group_swarm_around(
     if let (Some(b), Ok(orders)) = (site, u8::try_from(orders)) {
         built
             .sim
+            .command()
             .group_swarm_around(&g, b, queue_pos(queued), orders);
     }
     g.list.len()
@@ -856,8 +879,8 @@ pub fn group_alarm(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
-    built.sim.action_alarm(player, &list);
+    built.sim.command().push_command_buildings(player, &list);
+    built.sim.command().action_alarm(player, &list);
     list.len()
 }
 
@@ -884,7 +907,7 @@ pub fn group_gather(built: &mut Built, who: i32, objects: &[i16], ox: i32, queue
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
     let site = i16::try_from(ox)
@@ -892,7 +915,7 @@ pub fn group_gather(built: &mut Built, who: i32, objects: &[i16], ox: i32, queue
         .and_then(|o| built.sim.building_by_o(player, o))
         .filter(|&b| built.sim.buildings[b].alive);
     if let Some(b) = site {
-        built.sim.group_gather(&g, b, queue_pos(queued));
+        built.sim.command().group_gather(&g, b, queue_pos(queued));
     }
     g.list.len()
 }
@@ -917,8 +940,8 @@ pub fn group_eject_all(built: &mut Built, who: i32, buildings: &[i16]) -> usize 
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
-    built.sim.action_eject_all(player, &list, -1, -1);
+    built.sim.command().push_command_buildings(player, &list);
+    built.sim.command().action_eject_all(player, &list, -1, -1);
     list.len()
 }
 
@@ -943,8 +966,8 @@ pub fn group_buildmask(built: &mut Built, who: i32, buildings: &[i16], mask: i32
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
-    built.sim.action_buildmask(&list, mask);
+    built.sim.command().push_command_buildings(player, &list);
+    built.sim.command().action_buildmask(&list, mask);
     list.len()
 }
 
@@ -975,8 +998,8 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
         if list.is_empty() {
             return 0;
         }
-        built.sim.push_command_buildings(player, &list);
-        return built.sim.action_queue_disband(&list);
+        built.sim.command().push_command_buildings(player, &list);
+        return built.sim.command().action_queue_disband(&list);
     }
     let unit = (0..built.unit_tree.len())
         .find(|&t| built.type_index.get(built.unit_tree[t]).copied() == Some(ty));
@@ -993,10 +1016,10 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
     if list.is_empty() || (unit.is_none() && tech.is_none()) {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
+    built.sim.command().push_command_buildings(player, &list);
     match (unit, tech) {
-        (Some(unit), _) => built.sim.action_queue_up(&list, unit, num),
-        (None, Some(t)) => built.sim.action_queue_research(&list, t),
+        (Some(unit), _) => built.sim.command().action_queue_up(&list, unit, num),
+        (None, Some(t)) => built.sim.command().action_queue_research(&list, t),
         (None, None) => 0,
     }
 }
@@ -1026,9 +1049,10 @@ pub fn group_gather_point(
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
+    built.sim.command().push_command_buildings(player, &list);
     built
         .sim
+        .command()
         .action_gather_point(player, &list, at, action, add_to_end);
     list.len()
 }
@@ -1059,14 +1083,17 @@ pub fn group_launch_patrol(
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
+    built.sim.command().push_command_buildings(player, &list);
     let queue = if all {
         sim::orders::QueuePos::Last
     } else {
         sim::orders::QueuePos::New
     };
     let keys = sim::airbase::Keys { shift: all, ..keys };
-    built.sim.group_action_launch_patrol(&list, at, queue, keys);
+    built
+        .sim
+        .command()
+        .group_action_launch_patrol(&list, at, queue, keys);
     list.len()
 }
 
@@ -1086,8 +1113,11 @@ pub fn group_recall(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
-    built.sim.group_action_recall_buildings(player, &list);
+    built.sim.command().push_command_buildings(player, &list);
+    built
+        .sim
+        .command()
+        .group_action_recall_buildings(player, &list);
     list.len()
 }
 
@@ -1106,8 +1136,8 @@ pub fn group_scramble(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
-    built.sim.group_action_scramble(&list);
+    built.sim.command().push_command_buildings(player, &list);
+    built.sim.command().group_action_scramble(&list);
     list.len()
 }
 
@@ -1129,8 +1159,8 @@ pub fn group_city_gather(built: &mut Built, who: i32, buildings: &[i16], kind: i
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
-    built.sim.group_action_city_gather(&list, kind);
+    built.sim.command().push_command_buildings(player, &list);
+    built.sim.command().group_action_city_gather(&list, kind);
     list.len()
 }
 
@@ -1163,10 +1193,10 @@ pub fn group_stop_spell(built: &mut Built, who: i32, objects: &[i16]) -> usize {
     let n = g.list.len();
     for _ in 0..n {
         let mut once = g.clone();
-        if !built.sim.push_group(&mut once, true) {
+        if !built.sim.command().push_group(&mut once, true) {
             return 0;
         }
-        built.sim.group_action_stop_spell(&once);
+        built.sim.command().group_action_stop_spell(&once);
     }
     n
 }
@@ -1194,10 +1224,10 @@ pub fn group_disband(built: &mut Built, who: i32, objects: &[i16], all: bool) ->
             built.sim.group_add(&mut g, u);
         }
     }
-    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+    if g.list.is_empty() || !built.sim.command().push_group(&mut g, true) {
         return 0;
     }
-    built.sim.group_action_disband(&g, all)
+    built.sim.command().group_action_disband(&g, all)
 }
 
 /// **`CommandPackage::process_flight@00947db0`** on the player's own
@@ -1227,7 +1257,7 @@ pub fn group_launch_flight(
     if list.is_empty() {
         return 0;
     }
-    built.sim.push_command_buildings(player, &list);
+    built.sim.command().push_command_buildings(player, &list);
     let target = i16::try_from(ox).ok().and_then(|o| {
         if o >= 2000 {
             built
@@ -1249,6 +1279,7 @@ pub fn group_launch_flight(
     if let (Some(t), Some(k)) = (target, kind) {
         built
             .sim
+            .command()
             .group_action_launch_flight(player, &list, t, k, keys);
     }
     list.len()
@@ -1274,7 +1305,7 @@ pub fn unqueue(built: &mut Built, who: i32, o: i32, p: i32) -> usize {
     else {
         return 0;
     };
-    built.sim.action_unqueue(b, p);
+    built.sim.command().action_unqueue(b, p);
     1
 }
 
@@ -1293,7 +1324,7 @@ pub fn unqueue_unit(built: &mut Built, who: i32, o: i16) -> usize {
     if !built.sim.units[u].alive() {
         return 0;
     }
-    built.sim.unit_action_unqueue(u, true);
+    built.sim.command().unit_action_unqueue(u, true);
     1
 }
 
@@ -1408,7 +1439,10 @@ impl Stream {
                 for u in self.selected_units(it.play, built) {
                     // `process_move_to` → `Group::action_move_to(..., 1, ...)`:
                     // the action bit is set (`docs/ORDERS.md` §14's table).
-                    built.sim.add_move_order(u, to, MoveKind::MoveTo, pos, true);
+                    built
+                        .sim
+                        .command()
+                        .add_move_order(u, to, MoveKind::MoveTo, pos, true);
                     done.orders += 1;
                     any = true;
                 }

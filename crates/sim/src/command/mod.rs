@@ -37,11 +37,6 @@ impl Sim {
 impl Command<'_> {
     // The selection: `CommandPackage::process_group`, and the building
     // group a command on buildings pushes first.
-    /// [`Sim::group_add`] (`groups/group/pool.rs`).
-    pub fn group_add(&mut self, g: &mut Group, u: usize) {
-        self.sim.group_add(g, u)
-    }
-
     /// [`Sim::push_group`] (`groups/group/pool.rs`).
     pub fn push_group(&mut self, g: &mut Group, force: bool) -> bool {
         self.sim.push_group(g, force)
@@ -50,16 +45,6 @@ impl Command<'_> {
     /// [`Sim::push_command_buildings`] (`units/garrison.rs`).
     pub fn push_command_buildings(&mut self, who: crate::world::Player, list: &[usize]) {
         self.sim.push_command_buildings(who, list)
-    }
-
-    /// [`Sim::group_find_leader`] (`groups/group/query.rs`).
-    pub fn group_find_leader(&mut self, g: &Group) -> Option<usize> {
-        self.sim.group_find_leader(g)
-    }
-
-    /// [`Sim::is_plane`] (`groups/group/query.rs`).
-    pub fn is_plane(&mut self, u: usize) -> bool {
-        self.sim.is_plane(u)
     }
 
     // One unit's orders: `Unit::add_*_order`, as the replay and the soak give them.

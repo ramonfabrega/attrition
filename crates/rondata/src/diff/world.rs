@@ -246,7 +246,7 @@ mod tests {
         // Frame 0 through the harness, so frame 1 starts on the original's
         // own word and its clocks; then frame 1 raw, so the marks survive.
         built.tick();
-        built.sim.tick();
+        built.sim.command().tick();
         let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         let theirs = trace.labels(1);
         assert_eq!(theirs.len(), 53, "the original's frame 1");
@@ -417,7 +417,7 @@ mod tests {
         built.sim.trace.trace_phases = true;
 
         built.tick();
-        built.sim.tick();
+        built.sim.command().tick();
         let ours = mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).expect("our sites");
         let theirs = trace.labels(1);
         assert_eq!(theirs.len(), 45, "the original's frame 1");

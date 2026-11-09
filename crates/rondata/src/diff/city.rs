@@ -43,7 +43,7 @@ mod tests {
         let log = Log::parse(&text);
         let mut built = build_sim(&loaded, &replay_initial(&log).unwrap(), Tuning::RON);
         for _ in 0..3 {
-            built.sim.tick();
+            built.sim.command().tick();
         }
         let theirs = log.leader_block(2, 1).expect("FRAME 2 LEADERDATA who 1");
         let rate: Vec<i64> = theirs
