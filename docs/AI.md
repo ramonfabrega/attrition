@@ -1580,7 +1580,7 @@ The script side: §3.
    `make_stuff`/`use_market`/`market_speculation` — with `MakeList` and
    `produce_*`. Pin: run7's table in §5, all of it.
 4. ~~**Armies**, as its own document (`docs/ARMY.md`)~~ — **done
-   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/ai/army/mod.rs`,
+   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/ai/army.rs`,
    `docs/audit/2026-08-25-army.md`; the sea half's part stays in
    `docs/TRANSPORT.md` §8. ~~The state machine and
    `find_target`. Its oracle is a longer run with a war in it, which does
@@ -1707,7 +1707,7 @@ held as an errata section until 2026-08-25 and are now folded into §2 itself
 (§14 records where each went). What is not yet
 folded back into §2's prose.
 
-- **`crates/sim/src/ai/mod.rs`** — the driver's pure half: `Personality::roll`,
+- **`crates/sim/src/ai.rs`** — the driver's pure half: `Personality::roll`,
   `Leader::choose_script`, `MakeList::make_me`, the goods picture, the
   cadence, the `Step` machine, `Lobby`; and now the records the sweep
   writes — `Census` (every count under `LeaderData`'s names, the per-region
@@ -8968,7 +8968,7 @@ two hits are `Leader::init` and `LeaderData::log_data`):
   `leaders[this.who].frame_attacked = frame` — **the struck object's
   owner**, human or computer, with no `attacked_by`.
 
-This crate wrote only the first (`crates/sim/src/ai/mod.rs` called the field
+This crate wrote only the first (`crates/sim/src/ai.rs` called the field
 "the frame an enemy army last took a target of this leader's", and
 `docs/ARMY.md` §12's gate "7,200 frames since I last took a target against
 `L`"; `docs/COMBAT.md` §7.2 step 3 named the stamp as "the owner's
@@ -15060,7 +15060,7 @@ the sub-group's record, sorts its list as the layout did and writes the parent's
 `off`/`curr`/`angles` at each member's parent index (the arrays are brought up to
 the list's length first) and re-points every group order of the member
 (`GroupMove::form_id`); `Sim::group_update_positions` rotates `form_num` slots;
-`Sim::army_keep_units` (`crates/sim/src/ai/army/mod.rs`), called from `army_normalize`
+`Sim::army_keep_units` (`crates/sim/src/ai/army.rs`), called from `army_normalize`
 and `groups_process`. Test
 `a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index`.
 The diff harness's slot loop (`second::widen_records`) ran to `form_num`; it runs
@@ -16883,7 +16883,7 @@ run678 (977..1233) holds it whole. Each claim is *diff-backed* unless marked.
    citizens (`count_inside(PEASANTS)`) swarming a **land** building searches as its `inside_down` passenger's type, and every
    other member as its own.
 
-**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders/mod.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
+**Built.** `Sim::swarm_seeker_type` (`crates/sim/src/orders.rs`), asked by `swarm_spot` for both sweeps (a `Seeker::TypeFor`
 with the site's footprint), and `Sim::barge_type` (`transport.rs`, `current_upgrade(TRANSPORTBARGE)` as a unit type, shared
 with `transport_type_for`). Unit test `transport::tests::a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports`:
 no level, no approach; the civilian level, an `ExploreTo` on the water; a water Dock, the citizen's own ring. `docs/ORDERS.md`
@@ -17117,7 +17117,7 @@ marked.
    `1/24` (42665, 36966) is a citizen carried at sea towards the Mine — its tile is the water of a coastal cell, `tregion_alt`
    0 against the searcher's 12 — so the original counts 2028 at **1**, and the first strict minimum is 2028.
 
-**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders/mod.rs`) walks every cell of the ring and gates each unit by
+**Built.** `Sim::build_crowd`'s circle walk (`crates/sim/src/orders.rs`) walks every cell of the ring and gates each unit by
 `World::tregion_alt` of its own tile against the searcher's, as the list walk has since §148. Unit test
 `cities_tests::the_builder_tally_counts_no_builder_on_a_coastal_cell_s_water`: a builder on a coastal cell's water is not
 counted (the tie goes to the first site), one on its land is. `docs/ORDERS.md` §5.10's region-gate paragraph is struck and
@@ -17361,7 +17361,7 @@ claim is *diff-backed* unless marked.
    time, whatever the members reported. Ours' `Sim::army_normalize` pruned and recounted but never wrote the cap.
    *Listing-backed* as far as the condition's arithmetic: ours' `army_process` already took the same phase.
 
-**Built.** `Sim::army_normalize` (`crates/sim/src/ai/army/mod.rs`) ends its prune with `Group::normalize`'s speed tail
+**Built.** `Sim::army_normalize` (`crates/sim/src/ai/army.rs`) ends its prune with `Group::normalize`'s speed tail
 (`Sim::seat_set_speed` on the army's seat). It runs on every army normalize — the periodic one, the 256-frame tick's, and the
 ones `army_add_unit`'s kill half asks for — as the original's does. Unit test
 `army::tests::an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed`: a cap a slow follower drove to 25 goes back to
@@ -17541,7 +17541,7 @@ Each claim is *diff-backed* unless marked.
    non-air animal whose farm reference (`AnimalData +0x150/+0x152`) is the building, through `Unit::close(0, −1, 0)`:
    no death draw. *Listing-backed*; each moved the word in its own run.
 
-**Built.** `Sim::silo_strike` (`crates/sim/src/air/mod.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
+**Built.** `Sim::silo_strike` (`crates/sim/src/air.rs`), from `computer_sortie` where a silo returned: the nuke arm, the
 cities' loop, and `own_object_within` for the friendly search. `Sim::nuke_do_damage` (`crates/sim/src/combat/nuke.rs`) passes over a
 unit of owner 8 or more. `Sim::close_pasture_animals` (`crates/sim/src/cities/farms.rs`), from `close_building` for a Farm. Unit
 tests `airbase::tests::a_computer_s_silo_strikes_an_enemy_city_with_its_nuke` (cadence, a V2, an unseen city, a friend
@@ -17608,7 +17608,7 @@ unless marked.
    ICBM's number is held to about 1871 rather than 1841, so the 1852 birth takes 62 and the 1908 citizen 42, as the
    original's uids 129 and 131 do. *Listing-backed* for the arithmetic; the births confirm the 30 on this one number.
 
-**Built.** `Sim::transport_into_platform` (`crates/sim/src/ai/transport/mod.rs`), from `do_gather`'s arrival for an Oil Platform
+**Built.** `Sim::transport_into_platform` (`crates/sim/src/ai/transport.rs`), from `do_gather`'s arrival for an Oil Platform
 before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
 shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/combat/fight.rs`), added in `hold_dead_slot`. Unit test
 `transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
@@ -17670,7 +17670,7 @@ position on 2164. Each claim is *diff-backed* unless marked.
    then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
    farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
 
-**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/ai/transport/mod.rs`) with
+**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/ai/transport.rs`) with
 the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
 
 **What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
@@ -17849,7 +17849,7 @@ Each claim is *diff-backed* unless marked.
    when it has none. The machine gun's unpacked crew piece names no track, so `1/74`'s second figure stands on guy 0's
    point on block 2894, (35208, 36984) where it had stood at (35275, 36884); run715's `1/89` likewise on 2928.
 
-**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders/mod.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
+**Built.** `Sim::guard_unpacks` (`crates/sim/src/orders.rs`) from `do_guard`'s tail; `Sim::cast_job_time`
 (`crates/sim/src/lib.rs`), which `do_cast`'s clock reads; `cast_unpack`'s tail re-seat (`transport.rs`); and
 `Sim::update_gpiece` (`anim.rs`) re-reading a crew figure's track — a tracked figure whose new piece has none loses its
 `Follow`, and one that gains a track is given one on guy 0's point. `UnitData::spell_time` is now compared on every
@@ -18718,7 +18718,7 @@ at `QUEUE_NEW`, and `finish_insert` re-issues each copy at `QUEUE_LAST` — a
 Build copy through `action_swarm_around(QUEUE_LAST)`, i.e. a *fresh* approach
 from where the unit stands. This crate took the re-entry as a plain
 `swarm_around`, which left the queued second site's old approach. Built in
-`Sim::do_build` (`crates/sim/src/orders/mod.rs`) with the existing
+`Sim::do_build` (`crates/sim/src/orders.rs`) with the existing
 `group_set_up_insert` / `group_action_halt` / `group_finish_insert`;
 `a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh` (`cities_tests`)
 fails without it (made to fail once, the dance replaced by the plain swarm).
@@ -18943,7 +18943,7 @@ candidates below.
 
 **Candidates, none built.** (a) The original's `Unit::think` tail gives an idle `TRANSPORTFREIGHTER` a job ours omits —
 `think_civilian_transport(u, false)` is reached only through `think_scout`'s tail and a citizen's colonist arm in this crate
-(`crates/sim/src/ai/transport/mod.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
+(`crates/sim/src/ai/transport.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
 unit's whole `think`. (b) The slot-reuse kill and the Build order's `exists` test differ in the original by a frame (ours kills twice in
 2177; `Unit::work@0060d180:319` kills once and returns). Killer: whether theirs holds `[Build]` on 2178 — a window around 2170 would
 say, and no dump on disk does.
@@ -19271,7 +19271,7 @@ flagged, the unit walks to the shore, stops there on 3130, and the army's cast p
 
 ### 200.3 What was built
 
-`crates/sim/src/orders/mod.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
+`crates/sim/src/orders.rs` (`do_move`'s refusal branch, the non-final top's pop): a popped top with `TRANSPORT` pops the next entry, sets
 the bit and pushes it back. Walk-held: run788's window 151 → 149 keys (`1/27`'s two rows), run799's `1/27` rows gone after 3131 and **the word 3131 →
 3188** (`mongol_pair::`; the floors and the diff walks that reach a refusal with a flagged top moved nothing else).
 A mutation (the hand-down block removed) fails `run788_s_word_frame_is_widened_whole` (151 against 149) and `mongol_pair_first_parting` (3131).
@@ -20193,7 +20193,7 @@ General carries `0x20` alone and a Supply Wagon `0x40` alone.
    sent The Despot down the hero arm: army 0 has no General, so the nearer army won. The original sends it down the wagon arm.
    Army 0's three wagons refuse it, and army 5's two admit it. Group 89 is that army.
 
-**Built** (`crates/sim/src/spells/cast.rs`, `crates/sim/src/ai/army/mod.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
+**Built** (`crates/sim/src/spells/cast.rs`, `crates/sim/src/ai/army.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
 `army_admits`' arm on the joiner's `SUPPLY_OR_HERO` alone. The counts are unchanged: `army_count_supply` still counts `0x40`
 without `0x20`, which is what `COUNT_TYPE 0x3f`'s lineage counts for every type this lobby has. Tests
 `rares::tests::a_supply_unit_adds_the_supply_hp_upgrade` (a patriot type of both bits is 150 at level 3) and
@@ -20272,7 +20272,7 @@ it to 0 and back to 1, and 4482 reads 1.
 ### 214.4 The build
 
 `Sim::toggle_leader_facing` (`crates/sim/src/groups/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
-and so does `land_tail` (`crates/sim/src/ai/transport/mod.rs`) on a reversing turn to the host's angle. The probe counted
+and so does `land_tail` (`crates/sim/src/ai/transport.rs`) on a reversing turn to the host's angle. The probe counted
 thirty reversing landings in this game before 4637, twelve of them by the group's leader, which now toggle. They run
 from 2105 on: `1/29` on 4255, `1/48` on 4195, and army 0's wagons among them.
 The walk stays clean past all of them, because a later hand-back overwrites the flag before a layout reads it.
@@ -20599,7 +20599,7 @@ capture's player holds one.
 **What is not established.** Which arm makes the Lakota's food income 864 on frame 1 (the successor pair's was the
 Mongol food term, §191); that the word's draw delta is that income's (the frame is the booking, the mechanism the next
 item's hypothesis). Every census row in point 1 is a prediction. The peace's end at 4500 and `Game::war_allowed`'s time
-arm stand modelled as "always allowed" (`crates/sim/src/ai/army/mod.rs`'s seam list), parked 2321.
+arm stand modelled as "always allowed" (`crates/sim/src/ai/army.rs`'s seam list), parked 2321.
 
 **Diff-backed**: the lobby's read-back, the game's end at 6822, the first word and its widening. **Reading only**: the
 callers in point 1.
@@ -21811,7 +21811,7 @@ Army 1's target is the human's `0/2000` at (6240, 7008) (`RON_DEBUG_ARMIES`, sta
 which snaps to **(6552, 7320)**. The snap's remainder is 6552 − 8 × 768 = **408**: theirs' order and offset, to the unit. This
 crate had no attack arm. `think_carry` answered no, the tail asked nothing of a boat, and the freighter stood.
 
-**Built** (`crates/sim/src/ai/transport/mod.rs`):
+**Built** (`crates/sim/src/ai/transport.rs`):
 - `Sim::think_carry` counts the attacking captains aboard;
 - `Sim::think_carry_army` reads the head rider's `group_ptr` and the army on that pool slot (straight off the group, not through
   `get_army`'s membership test). It runs the nine-cell test against `reg`, then sends the live target's cell centre through
@@ -21984,7 +21984,7 @@ nearby_add`, mandatory false. On the word's block 6822, before the fix: `1/124` 
 652]` (the unpack). The target `0/2000`, the human's capital, reaches `damage` 1560 of `myhits` 1560 on 6821 on both sides —
 capture-eligible, health 0.
 
-**Three terms, each read off the original and built** (`crates/sim/src/orders/mod.rs`):
+**Three terms, each read off the original and built** (`crates/sim/src/orders.rs`):
 
 1. **The army shortcut on the idle think.** `find_nearby_target@00648da0:198`–`222` gives a packed computer siege engine its
    army's target (`Army +0x30/+0x34`) at `QUEUE_FIRST`, **mandatory 1**. This crate had it as `take_siege_army_target`
@@ -25906,7 +25906,7 @@ shore cell, and when it already stands in that quarter-cell it builds a one-boat
 holds anything and is not `can_carry(AIR)` (`is(0x1bf|0x15f|0x208, 1)`), `Object::eject_contents(0, −1, 0, 1)`:
 `disembark`'s steps with **`param_3 = 0`**, so the passenger keeps its own empty list (`eject_contents:254`). Then a
 boat of the `TRANSPORTBARGE` or `MERCHANTFLEET` lineage with nothing left inside dies. The eject had been a stated
-seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/ai/transport/mod.rs`),
+seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/ai/transport.rs`),
 sharing `disembark`'s loop through `eject_riders(boat, carry)`.
 
 **The value diff, on the word's frame** (run1153c, block 3674): `1/10 pos` ours (37236, 26520) against theirs
@@ -26342,7 +26342,7 @@ the reload ends (`docs/ORDERS.md` §7.12) and stands. The draws agree throughout
 **The mechanism** (`Unit::fight@005fd4d0:94`–`102`): `local_1c` is set when the type's `unit_flags2 & 1` (the
 machine-gun and flamethrower lineages, `uflags2::EMPLACED`) is set and the order's target fails `valid_target`.
 It walks past the reload gate at `:102` to `:196`'s kill. This crate had it as a `SEAM` ("no capture on disk has a
-unit in it"). **Built** (`crates/sim/src/orders/mod.rs`, `do_attack_fight`'s `latch`). The test is
+unit in it"). **Built** (`crates/sim/src/orders.rs`, `do_attack_fight`'s `latch`). The test is
 `fight::tests::an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging`, with the bit and without it.
 `tools/mutate.py` was run with the latch forced false. It held: the unit test failed, the closing state went back
 to 14 off, and run1184 went back to 239 keys. The latch's other half is still not modelled (3540c): the current
@@ -29776,7 +29776,7 @@ re-issues the copied action-flagged build on 2030 at `QUEUE_LAST`, which is
 the new explore to (36600, 43320) and the `0x2000` clear. Theirs:
 `[BUILD 2030, EXPLORE (36600, 43320)]`.
 
-`Sim::swarm_around` (`crates/sim/src/orders/mod.rs`) queued the approach only
+`Sim::swarm_around` (`crates/sim/src/orders.rs`) queued the approach only
 when a spot was found, but inserted the order every time. So ours kept a
 `Build(2023)` with no approach in front of it, and `1/17` stood on it.
 `swarm_around` now returns when the ring finds no spot. This is the shape
@@ -30228,7 +30228,7 @@ caller: a `GROUP_ATTACK_TO` head on an active member of a group still
 walking its attack-move hands the find to `Group::action_attack`. Ours had
 it as a SEAM, carried "for the attack-move's own look alone".
 
-**Built.** `crates/sim/src/orders/mod.rs`: `nearby_add` is
+**Built.** `crates/sim/src/orders.rs`: `nearby_add` is
 `attack_move_add`, the whole arm (the guard's `local_2c`, the group
 hand-off, else the alone add); the seam is retired. Mutation through
 `tools/mutate.py`, `nearby_add` back to `nearby_normalize` +
@@ -30378,7 +30378,7 @@ frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
 
 **The hypothesis for the next item.** `Sim::roll_upath_retry`
 (`crates/sim/src/movement/path.rs`) writes `retry` into the unit's front order, and
-`do_move`'s refused-line branch (`crates/sim/src/orders/mod.rs`, the `r == 0`
+`do_move`'s refused-line branch (`crates/sim/src/orders.rs`, the `r == 0`
 arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
 flags)`) stores back its copy `mo`, taken before the search, over it. The
 original clears `dest` in place and keeps the roll. I built nothing.
@@ -30422,7 +30422,7 @@ order into `mo` at entry, and every store after the planner call wrote the
 pre-search copy back; here it was the refused arm's `store_move`.
 `seams.py --field retry` names no seam on the arm, and `roll_upath_retry`
 is the one planner writer of `retry`. So **the fix re-reads `retry` from
-the live order after the planner call** (`crates/sim/src/orders/mod.rs`,
+the live order after the planner call** (`crates/sim/src/orders.rs`,
 beside the unchanged-length refusal), and every later store carries it.
 3625's hypothesis was right, and it is built as read.
 
@@ -30764,7 +30764,7 @@ and kept the cargo.
 `eject_contents`' deferral (`+0x60 |= 0x4000`) is not a unit host's: the
 riders come out on the frame, as `boat_eject_all`'s do (§303).
 
-**Built** (`crates/sim/src/ai/transport/mod.rs`, `Sim::think_carry_army`): the
+**Built** (`crates/sim/src/ai/transport.rs`, `Sim::think_carry_army`): the
 ashore arm calls `eject_riders(boat, false)`, which is
 `eject_contents`' loop with `param_3 = 0`, so each rider keeps its own
 empty list. Then the boat goes through `transport_dies` when nothing is
@@ -35949,7 +35949,7 @@ The arm then **points the unit's army at the find** (`Object::get_army@00649d70`
 Only after that does the tail choose the queue and hand a non-siege `GROUP_ATTACK_TO` member's find to
 `Group::action_attack` (`649c88`–`649d13`), so the hand-off never meets the arm.
 
-**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders/mod.rs`), asked after `nearby_normalize` on the three
+**Built**: `Sim::nearby_siege_city` (`crates/sim/src/orders.rs`), asked after `nearby_normalize` on the three
 adds that follow it:
 - the attack-move look's `attack_move_add`;
 - `find_melee_target_added_in` (`find_new_target`, `think`, `target_opportunity`);

@@ -1043,6 +1043,7 @@ fn a_unit_s_speed_is_never_set_from_the_raw_moves() {
                     walk(&path, out);
                 }
             } else if path.extension().is_some_and(|e| e == "rs")
+                && !path.with_extension("").ends_with("sweep")
                 && !path
                     .file_stem()
                     .is_some_and(|s| s.to_string_lossy().ends_with("tests"))

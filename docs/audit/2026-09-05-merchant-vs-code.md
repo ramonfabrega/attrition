@@ -84,7 +84,7 @@ which no ini category on disk currently writes.
 | | |
 |---|---|
 | document | MERCHANT.md §4, the middle table row: "`is_rare_collector` **and `leader_flags & 4`** and packed, on `idle == 1` or every 32: `do_gather(search)` and then `unpack_merchant(this, 4)`" |
-| code | `crates/sim/src/orders/mod.rs:1376`–`1470` (`Sim::think`) — no such arm; `Sim::unpack_merchant` has exactly **one** caller, `crates/sim/src/units/think/merchant.rs:71`, with ring 3 |
+| code | `crates/sim/src/orders.rs:1376`–`1470` (`Sim::think`) — no such arm; `Sim::unpack_merchant` has exactly **one** caller, `crates/sim/src/units/think/merchant.rs:71`, with ring 3 |
 | document says | a human player's merchant or fishing boat, standing idle and packed, runs `do_gather` and then a ring-4 `unpack_merchant`, with a message and `S_INVALID_ORDER` when the spot search refuses |
 | code does | nothing — the arm is absent, and `unpack_merchant` is never asked with ring 4. `merchant.rs:241`–`243` alludes to it ("asks with ring 4 and no capture reaches it") without saying it is unbuilt, and MERCHANT.md §7 lists the *Dutch* arm as unmodelled but not this one. |
 | difference shows | no capture — every capture is AI-side, and `leader_flags & 4` gates the arm to a human. It becomes observable the first time a traced human walks a packed merchant or fishing boat onto a deposit and leaves it idle. |
@@ -134,7 +134,7 @@ immediately after the spot search succeeds.
 | | |
 |---|---|
 | document | MERCHANT.md §2.3, "The tail is `Unit::add_move_order@00616ed0` inlined: `unit_masks &= ~0x4000000`, `path.length = 0`, `close_orders`, `clear_partial_path`, `update_action`, then the order" |
-| code | `crates/sim/src/units/think/merchant.rs:155` → `crates/sim/src/orders/mod.rs:827`–`838` → `crates/sim/src/orders/mod.rs:699`–`715` (`enqueue`, `QueuePos::New`): `path.clear()`, `close_orders`, `clear_partial_path`, `update_action`, push, `update_action`. Four of the five; the mask clear has no counterpart anywhere in the crate. |
+| code | `crates/sim/src/units/think/merchant.rs:155` → `crates/sim/src/orders.rs:827`–`838` → `crates/sim/src/orders.rs:699`–`715` (`enqueue`, `QueuePos::New`): `path.clear()`, `close_orders`, `clear_partial_path`, `update_action`, push, `update_action`. Four of the five; the mask clear has no counterpart anywhere in the crate. |
 | document says | five things happen before the order is built |
 | code does | four. `Unit.cant_reach` is `SubObjectData::flags & 0x10` (`crates/sim/src/lib.rs:234`), a different bit; grep finds no model of `unit_masks & 0x4000000`. |
 | difference shows | nothing in this crate, because neither of the bit's two readers is modelled either: `Unit::think@005f6e40:233` (a text bubble and a `0xfbffffff` clear of its own, console-side) and `Unit::work@0060d180:124`, which re-issues the tail move order at `QUEUE_FIRST` when the bit is set. The second one **is** sim-visible, so this row is really "the bit and its setter are unmodelled", not "the merchant forgot a clear". |
@@ -151,7 +151,7 @@ MERCHANT.md pass, and worth an item of its own.
 | | |
 |---|---|
 | document | MERCHANT.md §4, the first table row: "the auto-attack block, `think:146` — `is(MERCHANTDUTCH 0x3e, 1)` and packed — the Dutch merchant only" |
-| code | `crates/sim/src/orders/mod.rs:1405`–`1415` (the auto-attack arm of `Sim::think`) — no merchant branch |
+| code | `crates/sim/src/orders.rs:1405`–`1415` (the auto-attack arm of `Sim::think`) — no merchant branch |
 | document says | a packed `MERCHANTDUTCH` reaches `think_merchant` from inside the auto-attack block, **ahead of everything else**, and so does not wait for the mod-32 tail gate or the mod-128 merchant cadence |
 | code does | a Dutch merchant takes only the step-5 arm at `orders.rs:1462`, so its first think is up to 127 frames late relative to the original's |
 | difference shows | `UnitsSync` `orders_x`/`orders_y` and the frame of the first `MOVE_TO`, for a Dutch player's merchant. No capture has one — neither East Indies nor Great Lakes is the Dutch. |

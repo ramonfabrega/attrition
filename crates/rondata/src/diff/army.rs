@@ -1,5 +1,5 @@
 //! The `ARMY` records against `docs/ARMY.md`'s implementation
-//! (`crates/sim/src/ai/army/mod.rs`): the whole record, every valid slot, per
+//! (`crates/sim/src/ai/army.rs`): the whole record, every valid slot, per
 //! the working agreement's "diff the whole record".
 
 use super::*;

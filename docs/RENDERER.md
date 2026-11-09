@@ -229,7 +229,7 @@ walks (57 modules), so `view` is taken.
    visible on screen" and no draw order. Projection and culling are the
    client's.
 
-**As built (item 4017, `crates/sim/src/observe/mod.rs`).** The shape above
+**As built (item 4017, `crates/sim/src/observe.rs`).** The shape above
 holds, with five readings the text left open:
 - `ObjId` is `{ who: Player, o: i16 }`.
 - `buildings` holds the store's buildings with `alive` set. A building's

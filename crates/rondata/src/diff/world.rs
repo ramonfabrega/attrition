@@ -1363,7 +1363,7 @@ mod tests {
     ///
     /// **What it settles.** Seeded only with `Unit::init`'s own birth state
     /// — the patrol point's tile centre, and `Angle::INITIAL` — and fed the
-    /// original's own goal each frame, `crates/sim/src/air/mod.rs` reproduces
+    /// original's own goal each frame, `crates/sim/src/air.rs` reproduces
     /// every one of the ten wild birds' flights **exactly, to the last
     /// frame of the capture**: up to 5,272 consecutive frames, position for
     /// position. The bank's zero-crossings agree too, frame for frame,

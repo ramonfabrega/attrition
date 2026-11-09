@@ -34,7 +34,7 @@ contains either. Where that is so, the row's "difference shows" says it.
 | document | CITIES.md §3.3, "`share = amount / (helpers + 1);  if build_masks & 0x800 == 0: recharging++, build_masks \|= 0x800`" — and the confirmed-run paragraph, "**`recharging` counts up one per frame while building** (0, 1, 2, …), which is the `build_masks & 0x800` step" |
 | code | `crates/sim/src/cities/city.rs:1332-1343` (`fn do_construct`) |
 | document says | Every frame a builder contributes, the site's `recharging` (`BuildData +0x7a`) is incremented once — once per *frame*, not once per builder — and `build_masks & 0x800` is the once-a-frame latch that enforces it. |
-| code does | `do_construct` computes the share, bumps `helpers`, adds to `job_counter`/`job_counter_2` and returns. It touches neither `recharging` nor `gather_bumped` (this crate's name for `build_masks & 0x800`, `crates/sim/src/lib.rs:1026`). The only writers of a building's `recharging` in the crate are the two gather paths — `crates/sim/src/orders/mod.rs:4166` and `crates/sim/src/orders/mod.rs:4221` — and the tower reload, `crates/sim/src/combat/fight.rs:1112`/`1034`. |
+| code does | `do_construct` computes the share, bumps `helpers`, adds to `job_counter`/`job_counter_2` and returns. It touches neither `recharging` nor `gather_bumped` (this crate's name for `build_masks & 0x800`, `crates/sim/src/lib.rs:1026`). The only writers of a building's `recharging` in the crate are the two gather paths — `crates/sim/src/orders.rs:4166` and `crates/sim/src/orders.rs:4221` — and the tower reload, `crates/sim/src/combat/fight.rs:1112`/`1034`. |
 | difference shows | `BUILDDATA.recharging` for any site under construction, from the first frame a builder is adjacent. Printed from `BUILDS=6`; the 2026-08-20 tower/barracks run the document cites (§3.3) is exactly the capture that read it. Not currently asserted — `crates/rondata/src/diff.rs:2440-2460` compares only `x_internal`, `y_internal`, the queue and the gather list out of a `BUILDDATA` row, so this diverges silently today. |
 | reached | reached (`Wall::do_construct@006434d0` is not in `/Users/rf-studio/ron-audit-scratch/blind-all-68traces.txt`) |
 
@@ -54,7 +54,7 @@ bd.job_counter += share;
 that sits between the share and the counters in the document has no
 counterpart. The gather side does model the latch — `if
 !self.buildings[b].gather_bumped { self.buildings[b].recharging += 1;
-self.buildings[b].gather_bumped = true; }` at `crates/sim/src/orders/mod.rs:4165-4168`
+self.buildings[b].gather_bumped = true; }` at `crates/sim/src/orders.rs:4165-4168`
 — so the omission is specific to the construction path, not a missing field.
 
 ### R2 — `Build::activate` does not clear `recharging`
@@ -104,7 +104,7 @@ heal at `Build::process@0061edf0:728` reads `(GameAccess::game->frame + (int)*(s
 | document | CITIES.md §2.5, "`not an oil type: W.flags & 8 → ROCK 3;   oil type: not W.flags & 0x800 → NO_OIL 5`" |
 | code | `crates/sim/src/cities/place.rs:313-405` (`fn blocked_tcoord`) |
 | document says | Between the `T & 0x200` building test and the `T & 0x80` placed test, one tile is refused with `ROCK` (3) when its cell carries `WData.flags & 8` and the type is not an oil type; an oil type is refused with `NO_OIL` (5) when the cell does **not** carry `WData.flags & 0x800`. |
-| code does | Neither test exists. `Blocked::Rock` (`crates/sim/src/cities/place.rs:25`) and `Blocked::NoOil` (`:27`) are declared in the enum and returned from nowhere in the crate — the only two `Blocked` values in that stretch that are returned at all are `Ruins` at `:327` and `Rare` at `:355`. The data is present and named: `crates/sim/src/world/mod.rs:350` is `cell::ROCK = 0x8` (`WorldData::is_rocks@006b4380`) and `:366` is `cell::OIL = 0x800` (`WorldData::is_oil_at@00472af0`), and `World::land_class` already reads both (`crates/sim/src/world/mod.rs:1009-1012`). |
+| code does | Neither test exists. `Blocked::Rock` (`crates/sim/src/cities/place.rs:25`) and `Blocked::NoOil` (`:27`) are declared in the enum and returned from nowhere in the crate — the only two `Blocked` values in that stretch that are returned at all are `Ruins` at `:327` and `Rare` at `:355`. The data is present and named: `crates/sim/src/world.rs:350` is `cell::ROCK = 0x8` (`WorldData::is_rocks@006b4380`) and `:366` is `cell::OIL = 0x800` (`WorldData::is_oil_at@00472af0`), and `World::land_class` already reads both (`crates/sim/src/world.rs:1009-1012`). |
 | difference shows | The AI's site picture first: `docs/AI.md` §2.13 step 2 zeroes a cell's base score on a refused `blocked_site(TOWN, …)`, so every rock cell of a map scores as buildable here and does not in the original — a `CITY` record's `ter[6]`/`space[3]` and, downstream, *where* the AI puts its second city. Great Lakes (run53) and East Indies (run63) both have rock. The oil half is only reachable once an oil well is placed, which no capture on disk does. |
 | reached | reached (`BuildTypeData::blocked_tcoord` is entered) |
 
@@ -138,7 +138,7 @@ untested.
 | document | CITIES.md §7.5, "`Wall::swap_team`: `t = current_upgrade(A, B.type)` — **the building becomes A's current upgrade of that type**; `n = init_build(A, t, x, y, restore = 1)`" |
 | code | `crates/sim/src/cities/city.rs:2191` (`fn swap_team`): `let n = self.init_build(a, ty, pos, true);` |
 | document says | A captured or converted building is re-created as the **captor's** newest researched type in the line — a captured Tower becomes a Keep for an owner who has the Keep. |
-| code does | Re-creates it as `ty`, the type it already was. `TechTree::current_upgrade` exists and is used for exactly this shape elsewhere — `crates/sim/src/cities/nations.rs:423`, `crates/sim/src/ai/transport/mod.rs:882`, `crates/sim/src/ai/ai_host.rs:548` — and is not called here. |
+| code does | Re-creates it as `ty`, the type it already was. `TechTree::current_upgrade` exists and is used for exactly this shape elsewhere — `crates/sim/src/cities/nations.rs:423`, `crates/sim/src/ai/transport.rs:882`, `crates/sim/src/ai/ai_host.rs:548` — and is not called here. |
 | difference shows | `BUILDDATA.orig_type` and the building's `myhits` on the frame after any capture or any `find_buildings` conversion (§5.4), which fires on founding, level-up and every Civic tech, not only on capture. No capture on disk contains a building conversion; the falsifying capture is a `frame_window` with `BUILDS=6` over a `find_buildings` sweep that catches a foreign building — cheapest as a scripted `add NEW` of an enemy tower inside a city radius. |
 | reached | reached (`Build::swap_team` / `Wall::swap_team` are not in `/Users/rf-studio/ron-audit-scratch/blind-all-68traces.txt`; some trace enters them, though no capture *on disk* carries a city capture) |
 

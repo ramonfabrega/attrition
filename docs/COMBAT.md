@@ -74,7 +74,7 @@ taken, that siege fire at a unit is ground fire, the splash search square,
 and the anti-air building gate. It also added the `total_time` floor and the
 moving-target lead the first reading had missed.
 
-**Where the implementation is.** `crates/sim/src/combat/mod.rs` (the RNG, the
+**Where the implementation is.** `crates/sim/src/combat.rs` (the RNG, the
 profile, the table, the damage formula, the scaling and the take, recharge,
 accuracy, scatter, flight time, the hit tests, splash, arrows, `attack_dist`,
 `is_in_range`); `crates/sim/src/combat/fight.rs` (the `Sim` glue: the attack step,
@@ -2234,7 +2234,7 @@ probe**:
    overload `@00602e60`, a thunk that fills the last two arguments with
    the caller's own encrypted position.
 
-~~`crates/sim/src/ai/army/mod.rs` files step 1 as "a group order (seam); nothing
+~~`crates/sim/src/ai/army.rs` files step 1 as "a group order (seam); nothing
 changes."~~ That comment was false — the probe is the whole of frame 8186
 — and item 328 replaced it with `Sim::find_target_probe`.
 
@@ -3151,7 +3151,7 @@ bit cleared by thinking, and a unit that has just failed to reach something
 keeps searching every frame until something else clears it.
 
 This crate **never clears it at all** — `cant_reach` has three writers and
-no reader but the gate (`grep cant_reach crates/sim/src/orders/mod.rs`) — so the
+no reader but the gate (`grep cant_reach crates/sim/src/orders.rs`) — so the
 mirror's return is faithful by accident and the captain path is not. Not
 implemented, because the clear moves the cadence of every unit on both long
 captures that has ever failed to reach anything and no diff asks for it.

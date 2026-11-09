@@ -296,7 +296,7 @@ direct callees into C — the integer and scalar-SSE subsets, `fs:` as the
 guest TIB, imports through the IAT — and `difftest.py` diffs it row for
 row against unicorn on `callfn.py`'s own sweep and on every object of a
 packet. Verified: 3,516 sweep rows; `turn_speed` on 268 guys, asserted by
-`crates/sim/src/movement/mod.rs`'s `RON_TURN_TABLE` test (skips without the
+`crates/sim/src/movement.rs`'s `RON_TURN_TABLE` test (skips without the
 table); `norm` bit-exact on 1,088 chosen vectors and `air_turn_speed`'s
 truncation on 5,715 banks; `create_units` and 264 callees reproducing the
 original's `LeaderData` byte for byte. 741 of 771 cited functions lift;

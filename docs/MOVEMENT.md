@@ -41,7 +41,7 @@ read end to end, and the one thing that looked wrong turned out to be a
 misreading — see the note below, which is kept because the mistake is
 instructive.
 
-**Where the implementation is.** `crates/sim/src/movement/mod.rs`, driven from
+**Where the implementation is.** `crates/sim/src/movement.rs`, driven from
 `Sim::process_movement` in `crates/sim/src/movement/step.rs`.
 
 ---
@@ -225,7 +225,7 @@ the wrap.
 
 So the axis angles work by arithmetic overflow. Widen that multiply while
 "cleaning up" and every unit ordered along an axis stops dead.
-`crates/sim/src/movement/mod.rs` uses a `wrapping_mul` and says why at the site.
+`crates/sim/src/movement.rs` uses a `wrapping_mul` and says why at the site.
 
 ### The mirror is the original's; the decompiled branch is real and unreached (closed 2026-08-27)
 
@@ -1422,7 +1422,7 @@ the checks below.
 ## Second reading (2026-08-20) — landed
 
 Blind second derivation and adjudication: `docs/audit/2026-08-20-movement.md`.
-All nine disagreements are landed above and in `crates/sim/src/movement/mod.rs` /
+All nine disagreements are landed above and in `crates/sim/src/movement.rs` /
 `lib.rs`: the two-position model (D1), the 11/8 as the body's rate (D2), the
 post-turn facing in the trig (D3), `UNIT_TURN_SPEED = 256` and
 `degrees_to_angle` (D4), the instant and moving-mode turn rules (D5), the

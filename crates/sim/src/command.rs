@@ -242,7 +242,7 @@ impl Command<'_> {
         self.sim.group_swarm_around(g, b, queued, orders)
     }
 
-    /// [`Sim::set_transport`] (`ai/transport/mod.rs`).
+    /// [`Sim::set_transport`] (`ai/transport.rs`).
     pub fn set_transport(&mut self, who: Player, units: &[usize], on: bool) {
         self.sim.set_transport(who, units, on)
     }
@@ -293,7 +293,7 @@ impl Command<'_> {
         self.sim.action_alarm(who, list)
     }
 
-    /// [`Sim::action_buildmask`] (`air/mod.rs`).
+    /// [`Sim::action_buildmask`] (`air.rs`).
     pub fn action_buildmask(&mut self, buildings: &[usize], mask: i32) -> usize {
         self.sim.action_buildmask(buildings, mask)
     }

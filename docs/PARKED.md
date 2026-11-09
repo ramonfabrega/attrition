@@ -5583,7 +5583,7 @@ The port assumes every member already points at the slot. The sweep holds the he
 
 (2321) **The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers** (item 2320, `docs/AI.md` §218).
     `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
-    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/ai/army/mod.rs`'s seam list models it as "always
+    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/ai/army.rs`'s seam list models it as "always
     allowed" in `release_mustering`~~ (item 2388, `docs/AI.md` §221: built, the word 2040 → 3302), and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
     ~~`Leader::diplomacy`~~ (item 2384, `docs/AI.md` §220: modelled; team style 1 sends its message whether war is
     allowed or not), `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
@@ -9493,7 +9493,7 @@ words and edits nothing here; a refill lands when two remain.
 
 - **3408a. Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)**, no score until a Nomad lobby is captured: the original admits citizen kinds `0x32` and `0x33`, and the port's `citizen_type` (`crates/sim/src/ai/ai_host.rs:535`) has not been shown to cover Korea's; the original writes the unit's `UnitData.group` −1 and the port does not. A Nomad capture (§144.3's last row) is what names a score.
 - **3408b. `Sim::unit_swap_team` (`crates/sim/src/spells/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the old chain only; and the original's unlink loop overwrites `this->o/who` with cargo** (§144.2). No Bribe is staged, so no score names it; it books with §107's staging.
-- **3408c. `Sim::disembark_squad` (`crates/sim/src/ai/transport/mod.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
+- **3408c. `Sim::disembark_squad` (`crates/sim/src/ai/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
 - **3408d. Stale texts this reading found, none a score.** `crates/sim/src/cities/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
 
 ## Parked by item 3409, 2026-10-21 — the AI track's blind readings: a leader bit, a vtable-only predicate, a stale backed list
@@ -9595,7 +9595,7 @@ is an oracle-agreed module the live sim does not call.
 ## Parked by item 3417, 2026-10-21 — the peace pair at `cover=1`: an unmodelled cheat, and an owed table's wrong level
 
 - **3417a. The sim has no `treaty_off`, and run1016c is its diff.** `Sim::treaty_on` writes the met bit
-  (`crates/sim/src/vision/mod.rs`), but nothing clears it, and the console's `unmeet` (`ConsoleWin::run_cmd` case `0x30`) is
+  (`crates/sim/src/vision.rs`), but nothing clears it, and the console's `unmeet` (`ConsoleWin::run_cmd` case `0x30`) is
   not an input the harness takes. run1016c (`1480 unmeet who=1`) clears bit 0 on both sides at 1481, and the two
   leaders meet again at 1488. Which writer re-sets it is not established: the dump prints the bit, not who wrote it
   (`docs/AI.md` §297). It is a cheat path that no pinned word plays, so it names no score.
@@ -13050,7 +13050,7 @@ score.
 ## Parked by item 3784, 2026-10-29 — the Dragoon walks home, and a dead crew holds its number once per figure
 
 - **3784a. The invalid-target branch's two spellings of `find_new_target`** (`docs/GOLDEN.md` §149.10.1):
-  `do_attack_fight`'s inlined branch (`crates/sim/src/orders/mod.rs`) now keeps the post arm, but still calls no
+  `do_attack_fight`'s inlined branch (`crates/sim/src/orders.rs`) now keeps the post arm, but still calls no
   `repath` where `Sim::find_new_target` does, and finds through `find_melee_target_added` where `find_new_target`
   uses `find_melee_target_headed`. `Unit::fight`'s `LAB_005fdb9e` calls the whole function, so one of the two is
   a spelling of the other or a divergence. Unexamined against the floors; it names no score.
