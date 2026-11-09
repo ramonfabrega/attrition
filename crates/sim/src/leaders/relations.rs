@@ -210,7 +210,7 @@ impl Sim {
         self.leaders.at_war[b as usize][a as usize] = true;
         // `Leader::set_diplo` → `Armies::diplo_change` on the declarer
         // (`docs/ARMY.md` §15.9).
-        if changed && (a as usize) < self.armies.len() {
+        if changed && (a as usize) < self.ai_state.armies.len() {
             self.armies_diplo_change(a);
         }
     }

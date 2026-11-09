@@ -514,7 +514,7 @@ impl Sim {
         // sweep walks the circle. A reused slot kept the dead city's
         // picture here, and a captured city read 0/0 where Great Sahara's
         // Napata `1/2086` reads 9/1 on its capture frame.
-        let rec = &mut self.ai[who as usize].city_ai;
+        let rec = &mut self.ai_state.ai[who as usize].city_ai;
         if rec.len() <= c {
             rec.resize(c + 1, crate::ai::CityAi::default());
         }
@@ -526,7 +526,7 @@ impl Sim {
         // `LeaderData::home_reg`: the capital's region, which the AI's
         // sweep reads (`docs/AI.md` §2.3 step 15) and nothing else wrote.
         if capital && let Some(r) = reg {
-            self.ai[who as usize].census.home_reg = i32::from(r);
+            self.ai_state.ai[who as usize].census.home_reg = i32::from(r);
         }
         // **`reg_cities[reg]` + 1** (`City::init@00737050`, beside `reg_pop`'s
         // add, on the city building's cell region below `0x40`): the count is
@@ -545,7 +545,7 @@ impl Sim {
     fn bump_reg_cities(&mut self, who: Player, reg: Option<u16>, by: i32) {
         if let Some(r) = reg
             && r < 0x40
-            && let Some(a) = self.ai.get_mut(who as usize)
+            && let Some(a) = self.ai_state.ai.get_mut(who as usize)
             && let Some(n) = a.census.reg_cities.get_mut(r as usize)
         {
             *n += by;
@@ -1043,7 +1043,7 @@ impl Sim {
     pub(crate) fn check_borders(&mut self) {
         if self.territory.borders_fixed {
             self.territory.borders_fixed = false;
-            for a in &mut self.ai {
+            for a in &mut self.ai_state.ai {
                 a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
             }
         }
@@ -1101,7 +1101,7 @@ impl Sim {
     /// contributes to `pop` and to no region.
     pub(crate) fn sync_leader_pop(&mut self) {
         let regions = self.world.region_count();
-        for a in &mut self.ai {
+        for a in &mut self.ai_state.ai {
             a.census.pop = 0;
             a.census.reg_pop.clear();
             a.census.reg_pop.resize(regions, 0);
@@ -1120,7 +1120,7 @@ impl Sim {
                     .pos
                     .cell(),
             );
-            let Some(a) = self.ai.get_mut(owner) else {
+            let Some(a) = self.ai_state.ai.get_mut(owner) else {
                 continue;
             };
             a.census.pop += value;
@@ -1451,7 +1451,7 @@ impl Sim {
         let is_wonder = |b: &crate::Building| {
             b.alive && b.owner == who && b.ty.is_some_and(|t| self.tables.build_types[t].wonder)
         };
-        let standing = self.ai.get(who as usize).map_or_else(
+        let standing = self.ai_state.ai.get(who as usize).map_or_else(
             || {
                 self.buildings
                     .iter()
@@ -1715,7 +1715,7 @@ impl Sim {
         {
             return;
         }
-        if let Some(l) = self.ai.get_mut(who as usize) {
+        if let Some(l) = self.ai_state.ai.get_mut(who as usize) {
             l.census.defense += n;
         }
     }
@@ -1826,6 +1826,7 @@ impl Sim {
             return false;
         }
         let none_yet = self
+            .ai_state
             .ai
             .get(who as usize)
             .is_none_or(|a| a.census.wonder_mark == 0)

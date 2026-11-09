@@ -201,7 +201,7 @@ impl Sim {
         // (item 2235, `docs/GOLDEN.md` §81).
         if alarm && !killed {
             let tw = self.owner_of(target);
-            if (tw as usize) < self.armies.len() {
+            if (tw as usize) < self.ai_state.armies.len() {
                 self.armies_emergency(tw);
             }
         }
@@ -338,7 +338,7 @@ impl Sim {
             return false;
         }
         if self.cities_state.cities[c].capital {
-            let stamp = &mut self.ai[vic as usize].capital_stamp[att as usize];
+            let stamp = &mut self.ai_state.ai[vic as usize].capital_stamp[att as usize];
             if frame - *stamp > 300 {
                 *stamp = frame;
                 return true;
@@ -483,7 +483,7 @@ impl Sim {
         // frames (`docs/ARMY.md` §12, `docs/AI.md` §71).
         if self.ai_difficulty() < 2 {
             let owner = self.owner_of(target) as usize;
-            if let Some(l) = self.ai.get_mut(owner) {
+            if let Some(l) = self.ai_state.ai.get_mut(owner) {
                 l.frame_attacked = _frame;
             }
         }
@@ -1096,7 +1096,7 @@ impl Sim {
         // Gaia's animals carry population in some rows and hold no muster
         // here: this crate keeps one per player slot.
         let who = u.owner;
-        if (who as usize) < self.roster.muster.len() && (who as usize) < self.ai.len() {
+        if (who as usize) < self.roster.muster.len() && (who as usize) < self.ai_state.ai.len() {
             self.track_unit_type(who, ty, -1);
         }
     }

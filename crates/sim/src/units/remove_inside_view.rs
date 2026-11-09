@@ -224,7 +224,7 @@ impl RemoveInsideView for SimRemoveInside<'_> {
     }
     fn bump(&mut self, which: Garr, delta: i32) {
         let who = self.sim.units[self.unit].owner as usize;
-        let census = &mut self.sim.ai[who].census;
+        let census = &mut self.sim.ai_state.ai[who].census;
         match which {
             Garr::Peasants => census.peasants_garr += delta,
             Garr::Stable => census.stable_garr += delta,

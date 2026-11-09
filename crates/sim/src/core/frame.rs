@@ -120,7 +120,7 @@ impl Sim {
             self.economy.holdings[who].escrow_rate = if self.cities_state.nation[who].human {
                 [0; economy::RESOURCES]
             } else {
-                self.ai[who].census.escrow_rate
+                self.ai_state.ai[who].census.escrow_rate
             };
             economy::process(
                 &self.tables.tuning,

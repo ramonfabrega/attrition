@@ -693,7 +693,7 @@ impl Sim {
         if let Some(g) = group {
             muster.by_group[g] += delta;
         }
-        self.ai[who as usize].census.active += delta;
+        self.ai_state.ai[who as usize].census.active += delta;
         self.track_civilian_type(who, ty, delta);
     }
 
@@ -719,7 +719,7 @@ impl Sim {
         let scout = self.tables.unit_types[ty]
             .cols
             .is(crate::ai_load::role::ROLE_SCOUT);
-        let census = &mut self.ai[who as usize].census;
+        let census = &mut self.ai_state.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,
             crate::orders::Worker::Scholar => census.scholars += delta,

@@ -190,7 +190,7 @@ impl Sim {
     /// per expiring duplicate (§2.6 step 4).
     pub fn make_stuff(&mut self, who: Player) -> bool {
         let w = who as usize;
-        let head = *self.ai[w].make_list.head();
+        let head = *self.ai_state.ai[w].make_list.head();
         // The head's `t` is compared against `−1` exactly, and its `val`
         // against zero.
         if head.t == -1 || head.val == 0 {
@@ -247,7 +247,7 @@ impl Sim {
 
         // Step 6: slots 1..10.
         for slot in 1..MAKE_SLOTS {
-            let m = self.ai[w].make_list.list[slot];
+            let m = self.ai_state.ai[w].make_list.list[slot];
             if m.t < 0 || m.val == 0 {
                 continue;
             }
@@ -267,7 +267,7 @@ impl Sim {
             // are not themselves subject to the test.
             if slot > 3
                 && (0..4).any(|k| {
-                    let h = self.ai[w].make_list.list[k];
+                    let h = self.ai_state.ai[w].make_list.list[k];
                     h.t == m.t && h.city == m.city
                 })
             {
@@ -287,7 +287,7 @@ impl Sim {
                 buy = false;
                 if slot == 5 {
                     // The unit slot: buy anyway with no workers at all.
-                    let c = &self.ai[w].census;
+                    let c = &self.ai_state.ai[w].census;
                     buy = c.free_peasants == 0 && c.gatherers == 0;
                 } else if slot == 4 {
                     buy = self.gather_exception(who, t);
@@ -311,7 +311,7 @@ impl Sim {
         }
 
         if !any_city_kind {
-            self.ai[w].site_mark = self.ai[w].site_mark.wrapping_add(1);
+            self.ai_state.ai[w].site_mark = self.ai_state.ai[w].site_mark.wrapping_add(1);
         }
         bought_head
     }
@@ -334,13 +334,13 @@ impl Sim {
             SITE_EXPIRE_SLOT
         };
         for k in from..MAKE_SLOTS {
-            if self.ai[w].make_list.list[k].t != t {
+            if self.ai_state.ai[w].make_list.list[k].t != t {
                 continue;
             }
             self.mark(site);
             let r = self.rng.get(0, 0xffff);
             if r % 3 == 0 || unconditional {
-                self.ai[w].make_list.list[k].t = -1;
+                self.ai_state.ai[w].make_list.list[k].t = -1;
             }
         }
     }
@@ -357,7 +357,7 @@ impl Sim {
         let Some(g) = gather_good(self.tables.build_types[rec].ident) else {
             return false;
         };
-        self.good_avail(who, g) && self.ai[who as usize].econ[g] & 4 != 0
+        self.good_avail(who, g) && self.ai_state.ai[who as usize].econ[g] & 4 != 0
     }
 
     // ------------------------------------------------------------------
@@ -368,7 +368,7 @@ impl Sim {
     /// bought.
     pub fn make_this(&mut self, who: Player, slot: usize) -> bool {
         let w = who as usize;
-        let m = self.ai[w].make_list.list[slot];
+        let m = self.ai_state.ai[w].make_list.list[slot];
         let Ok(t) = usize::try_from(m.t) else {
             return false;
         };
@@ -394,7 +394,7 @@ impl Sim {
             false
         };
         if bought {
-            self.ai[w].make_list.list[slot].val /= 100;
+            self.ai_state.ai[w].make_list.list[slot].val /= 100;
         }
         bought
     }
@@ -463,7 +463,7 @@ impl Sim {
         // both come off `build_flags` at `+0x2c0`.
         if bt.domain() == BuildDomain::Land && !bt.has(flags::NO_CITY) {
             let big = bt.x_size.max(bt.y_size);
-            let ai = self.ai[w].city_ai.get(c);
+            let ai = self.ai_state.ai[w].city_ai.get(c);
             if let Some(ai) = ai
                 && ai.land - ai.filled < 2
             {
@@ -488,7 +488,7 @@ impl Sim {
         let Some(r) = reg.map(usize::from) else {
             return false;
         };
-        let c = &self.ai[who as usize].census;
+        let c = &self.ai_state.ai[who as usize].census;
         c.reg_free_peasants.get(r).copied().unwrap_or(0) != 0
             || c.reg_gatherers.get(r).copied().unwrap_or(0) != 0
     }
@@ -630,7 +630,7 @@ impl Sim {
         let commerce = self.tech[w].epoch[Line::Commerce.index()].max(1);
         let mut need = [0i32; RESOURCES];
         for slot in 0..(commerce as usize).min(MAKE_SLOTS) {
-            let m = self.ai[w].make_list.list[slot];
+            let m = self.ai_state.ai[w].make_list.list[slot];
             // `val > 0 && t > 0`, both strict.
             if m.val <= 0 || m.t <= 0 {
                 continue;
@@ -822,7 +822,7 @@ impl Sim {
     /// (`docs/ECONOMY.md` §13).
     pub fn market_speculation(&mut self, who: Player) {
         let w = who as usize;
-        if self.lobby.resources_unlimited() || !self.market_gate(who) {
+        if self.ai_state.lobby.resources_unlimited() || !self.market_gate(who) {
             return;
         }
         let mut tier = 0i32;

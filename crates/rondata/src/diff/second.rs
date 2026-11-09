@@ -75,7 +75,7 @@ pub(crate) fn walk_second_probed(
     }
     let mut built = build_sim(&loaded, &init, Tuning::RON);
     built.sim.trace_phases = true;
-    let difficulty = built.sim.lobby.difficulty;
+    let difficulty = built.sim.ai_state.lobby.difficulty;
     let last = trace.frames.last().map_or(0, |(n, _)| *n);
     let window = site_window();
     for f in 0..last {
@@ -267,6 +267,7 @@ pub(crate) fn widen_records_from_groups(
             let theirs = pool.iter().find(|g| g.id == id).filter(|g| g.num > 0);
             let army = built
                 .sim
+                .ai_state
                 .armies
                 .get(who as usize)
                 .into_iter()

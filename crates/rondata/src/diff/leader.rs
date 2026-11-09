@@ -89,7 +89,7 @@ const GOODS: [&str; RESOURCES] = ["food", "timber", "wealth", "knowledge", "meta
 pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> Vec<Row> {
     let l = &built.sim.economy.ledgers[who];
     let h = &built.sim.economy.holdings[who];
-    let a = &built.sim.ai[who];
+    let a = &built.sim.ai_state.ai[who];
     let c = &a.census;
     let mut out: Vec<Row> = Vec::new();
     fn six(out: &mut Vec<Row>, key: &str, v: [i32; RESOURCES]) {
@@ -178,7 +178,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         out.push((format!("agendas[{i}]"), i64::from(agenda)));
         // `aggression`, `strong`, `weak` (`+0x210`, `+0x230`, `+0x250`):
         // `Leader::diplomacy`'s view of `i` (item 2384, `docs/AI.md` §220).
-        if let Some(l) = built.sim.ai.get(who).filter(|_| i < 8) {
+        if let Some(l) = built.sim.ai_state.ai.get(who).filter(|_| i < 8) {
             out.push((format!("aggression[{i}]"), i64::from(l.aggression[i])));
             out.push((format!("strong[{i}]"), i64::from(l.strong[i])));
             out.push((format!("weak[{i}]"), i64::from(l.weak[i])));
@@ -189,7 +189,12 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // this one.
     out.push((
         "got_diplo_message".to_string(),
-        built.sim.ai.get(who).map_or(0, |l| l.got_diplo_message),
+        built
+            .sim
+            .ai_state
+            .ai
+            .get(who)
+            .map_or(0, |l| l.got_diplo_message),
     ));
     // The AI's own step machine and its biases.
     out.push(("production_step".to_string(), i64::from(a.step.number())));
@@ -569,7 +574,7 @@ pub(crate) const REGION_ARRAYS: &[(&str, usize, i64)] = &[
 /// region `d` (`Built::region_map` is the translation); a dump region this
 /// crate has no region for reads 0, which is what a sweep leaves there.
 pub(crate) fn region_rows(built: &Built, who: usize) -> Vec<Row> {
-    let c = &built.sim.ai[who].census;
+    let c = &built.sim.ai_state.ai[who].census;
     let mut out = Vec::new();
     for &(key, width, base) in REGION_ARRAYS {
         let ours: &[i32] = match key {
@@ -1144,10 +1149,10 @@ mod tests {
             return;
         };
         assert_eq!(
-            built.sim.ai[1].unit_offers_frame, 9380,
+            built.sim.ai_state.ai[1].unit_offers_frame, 9380,
             "the recorder's frame"
         );
-        let ours: Vec<(i32, i32, i32, i32)> = built.sim.ai[1]
+        let ours: Vec<(i32, i32, i32, i32)> = built.sim.ai_state.ai[1]
             .unit_offers
             .iter()
             .map(|m| (m.t, m.val, m.city, m.cat))

@@ -2101,7 +2101,7 @@ fn run(
     }
     match parse(&line.text) {
         Cheat::Ai(state) => {
-            built.sim.ai_off = state.map_or(!built.sim.ai_off, |on| !on);
+            built.sim.ai_state.ai_off = state.map_or(!built.sim.ai_state.ai_off, |on| !on);
             done.ran += 1;
         }
         Cheat::Age { who, level } => {

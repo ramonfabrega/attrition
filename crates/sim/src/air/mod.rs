@@ -383,7 +383,7 @@ impl AirPhysicsView for SimAirPhysics<'_> {
         self.sim.get_speed(self.u, 1)
     }
     fn ai_speed(&self) -> i32 {
-        self.sim.ai_speed
+        self.sim.ai_state.ai_speed
     }
     fn heading(&self) -> Angle {
         self.sim.units[self.u].movement.heading
@@ -950,8 +950,8 @@ impl Sim {
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
+        if self.ai_state.ai_speed > 1 {
+            speed *= self.ai_state.ai_speed;
         }
         // **The landing test** (`+0x1ea`), a flight home's alone:
         // Manhattan inside a step and a half, the point not clamped. The

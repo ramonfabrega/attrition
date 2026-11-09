@@ -24,17 +24,17 @@ impl Sim {
     /// `GroupData::role` is.
     pub(crate) fn groups_process(&mut self, frame: i64) {
         let s = u8::try_from(frame.rem_euclid(64)).expect("under 64");
-        for w in 0..self.armies.len() {
+        for w in 0..self.ai_state.armies.len() {
             let who = w as Player;
-            for a in 0..self.armies[w].list.len() {
-                if self.armies[w].list[a].group.pool != Some(s) {
+            for a in 0..self.ai_state.armies[w].list.len() {
+                if self.ai_state.armies[w].list[a].group.pool != Some(s) {
                     continue;
                 }
                 // `normalize`'s prune, on the army's list too (§23): a
                 // member whose `+0x80` no longer names this slot is
                 // dropped. The army's own counts are `Army::normalize`'s
                 // and wait for it.
-                let keep: Vec<usize> = self.armies[w].list[a]
+                let keep: Vec<usize> = self.ai_state.armies[w].list[a]
                     .units
                     .iter()
                     .copied()
@@ -43,7 +43,7 @@ impl Sim {
                 self.army_keep_units(w, a, keep);
                 let g = self.army_group(who, a);
                 let v = self.group_compute_speed(&g);
-                let st = &mut self.armies[w].list[a].group;
+                let st = &mut self.ai_state.armies[w].list[a].group;
                 st.speed = v;
                 st.new_speed = v;
             }
@@ -193,7 +193,7 @@ impl Sim {
     /// moving unit per frame and [`Sim::group_of`] clones the list.
     pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
         match self.seat_of(u) {
-            Some(Seat::Army(w, a)) => self.armies[w as usize].list[a].group.speed,
+            Some(Seat::Army(w, a)) => self.ai_state.armies[w as usize].list[a].group.speed,
             Some(Seat::Pushed(i)) => self.orders.pushed[i].state.speed,
             None => 0,
         }
@@ -205,7 +205,7 @@ impl Sim {
     /// simulation calls it.
     pub fn group_speed_pair_of(&self, u: usize) -> Option<(i32, i32)> {
         let st = match self.seat_of(u)? {
-            Seat::Army(w, a) => &self.armies[w as usize].list[a].group,
+            Seat::Army(w, a) => &self.ai_state.armies[w as usize].list[a].group,
             Seat::Pushed(i) => &self.orders.pushed[i].state,
         };
         Some((st.speed, st.new_speed))
@@ -708,6 +708,7 @@ impl Sim {
         match (g.army, g.pushed) {
             (Some(s), _) => {
                 let slot = self
+                    .ai_state
                     .armies
                     .get(g.who as usize)
                     .and_then(|a| a.list.get(s))

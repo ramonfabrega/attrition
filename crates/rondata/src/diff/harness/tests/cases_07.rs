@@ -1129,14 +1129,14 @@ mod bodies {
         // The lobby, read from `GAMEINFO`: `docs/INPUT.md` §2's settings,
         // and MAP_STYLE 14 named through rules.xml's `mapstyles` order.
         let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
-        assert_eq!(built.sim.lobby.difficulty, 0, "Easiest");
-        assert_eq!(built.sim.lobby.starting_town, 2, "Small Town");
-        assert_eq!(built.sim.lobby.starting_resources, 1);
-        assert_eq!(built.sim.lobby.map_style, 14);
-        assert_eq!(built.sim.lobby.map_style_name, "Great Lakes");
-        assert_eq!(built.sim.lobby.rush_rules, 0);
-        assert_eq!(built.sim.lobby.victory, 0);
-        assert!(!built.sim.lobby.no_nation_powers);
+        assert_eq!(built.sim.ai_state.lobby.difficulty, 0, "Easiest");
+        assert_eq!(built.sim.ai_state.lobby.starting_town, 2, "Small Town");
+        assert_eq!(built.sim.ai_state.lobby.starting_resources, 1);
+        assert_eq!(built.sim.ai_state.lobby.map_style, 14);
+        assert_eq!(built.sim.ai_state.lobby.map_style_name, "Great Lakes");
+        assert_eq!(built.sim.ai_state.lobby.rush_rules, 0);
+        assert_eq!(built.sim.ai_state.lobby.victory, 0);
+        assert!(!built.sim.ai_state.lobby.no_nation_powers);
 
         // Run6 is the run7/run9/run10 lobby and seed: the siblings' setup
         // trace and end-of-frame words put the AI's frame-1 coin on the

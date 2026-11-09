@@ -431,7 +431,9 @@ impl Sim {
     /// is clear (the branch's own test is the bit, not `has_tech`'s
     /// prerequisite half).
     fn tech_race_shield(&self, who: Player) -> Option<TypeId> {
-        if self.lobby.starting_resources != 7 || self.lobby.starting_technology != 8 {
+        if self.ai_state.lobby.starting_resources != 7
+            || self.ai_state.lobby.starting_technology != 8
+        {
             return None;
         }
         let shield = self
@@ -449,7 +451,7 @@ impl Sim {
     /// list. Draws from the sync stream for governments only (§2.14).
     pub fn research_techs(&mut self, who: Player) {
         let w = who as usize;
-        if self.lobby.elimination == 1 && !self.holds_capital(who) {
+        if self.ai_state.lobby.elimination == 1 && !self.holds_capital(who) {
             return;
         }
         let low = self.lowest_epoch(who);
@@ -491,7 +493,7 @@ impl Sim {
                 }
             }
             if let Some((val, slot)) = self.tech_value(who, t, rec, low, over) {
-                self.ai[w]
+                self.ai_state.ai[w]
                     .make_list
                     .make_me(t as i32, val, 1, slot, -1, 0, 1, 0, 0);
             }
@@ -517,8 +519,8 @@ impl Sim {
         // `base = (pop × 200 / max(1, cities + villages)) × infra_mod / 256`.
         // **Seam** — `village_num` has no model, so this is the city count.
         let cities = self.city_num(who);
-        let mut base = self.ai[w].census.pop.wrapping_mul(200) / cities.max(1);
-        base = shr8(mul(base, self.ai[w].infra_mod));
+        let mut base = self.ai_state.ai[w].census.pop.wrapping_mul(200) / cities.max(1);
+        base = shr8(mul(base, self.ai_state.ai[w].infra_mod));
 
         // *(The `starting_resources == 7 && starting_technology == 8` lobby's
         // branch stands in [`Sim::research_techs`], before this call — item
@@ -584,7 +586,7 @@ impl Sim {
                         );
                         if cat == 0 {
                             if self.roster.muster[w].cap.wrapping_mul(7) / 8
-                                <= self.ai[w].effective_pop
+                                <= self.ai_state.ai[w].effective_pop
                             {
                                 n += 4;
                             }
@@ -603,7 +605,7 @@ impl Sim {
                 } else if level_now > low + 1 {
                     return None;
                 }
-                if matches!(cat, 1 | 2) && matches!(self.lobby.victory, 8 | 9) {
+                if matches!(cat, 1 | 2) && matches!(self.ai_state.lobby.victory, 8 | 9) {
                     base = mul(base, 30);
                 }
                 if self.world.sea_map() > 1 && self.transport_bonus_needs(t) {
@@ -625,13 +627,13 @@ impl Sim {
         // The eleven weights against the census.
         let ai = self.tech_ai_weights(t);
         let facts = WeightFacts {
-            team_style: self.lobby.team_style,
+            team_style: self.ai_state.lobby.team_style,
             cities,
-            full_cities: self.ai[w].census.full_cities,
-            my_team_terr: self.ai[w].census.my_team_terr,
-            other_team_terr: self.ai[w].census.other_team_terr,
-            min_other_team_terr: self.ai[w].census.min_other_team_terr,
-            active_wars: self.ai[w].census.active_wars,
+            full_cities: self.ai_state.ai[w].census.full_cities,
+            my_team_terr: self.ai_state.ai[w].census.my_team_terr,
+            other_team_terr: self.ai_state.ai[w].census.other_team_terr,
+            min_other_team_terr: self.ai_state.ai[w].census.min_other_team_terr,
+            active_wars: self.ai_state.ai[w].census.active_wars,
             sea_map: self.world.sea_map(),
         };
         let mut val = mul(weight_total(&ai, &facts), base);
@@ -642,7 +644,7 @@ impl Sim {
                 val /= 10;
                 let cap = self.roster.muster[w].cap;
                 if cap < 200 {
-                    if cap.wrapping_mul(5) / 6 < self.ai[w].effective_pop {
+                    if cap.wrapping_mul(5) / 6 < self.ai_state.ai[w].effective_pop {
                         val = mul(val, 20);
                     } else if self.tech[w].epoch[0] > 1 {
                         val /= 10;
@@ -668,7 +670,7 @@ impl Sim {
             _ => {
                 if diff >= 4 && cat == 3 {
                     if let Some(g) = self.gather_line_good(t) {
-                        let e = self.ai[w].econ[g];
+                        let e = self.ai_state.ai[w].econ[g];
                         if e & 4 != 0 {
                             val = mul(val, 2);
                         }
@@ -688,7 +690,7 @@ impl Sim {
         }
 
         // The Tech Race.
-        if self.lobby.victory == 9 {
+        if self.ai_state.lobby.victory == 9 {
             val = mul(val, if matches!(kind, Kind::Age(_)) { 9 } else { 3 });
         }
 
@@ -721,7 +723,7 @@ impl Sim {
             // The coin (one draw, and only when `pers.raid == 0`) picks
             // which column of the three government pairs is thrown away;
             // whichever survives is then multiplied by a second draw.
-            let raid = self.ai[w].pers.raid;
+            let raid = self.ai_state.ai[w].pers.raid;
             let drop_first = raid < 0
                 || (raid == 0 && {
                     self.mark(SITE_GOV_COIN);
@@ -742,21 +744,21 @@ impl Sim {
 
         // The two recency factors — both pinned constants in practice.
         let f1 = recency(
-            self.frame_delta(self.ai[w].tech_frame),
-            self.ai_speed,
+            self.frame_delta(self.ai_state.ai[w].tech_frame),
+            self.ai_state.ai_speed,
             14400,
             12,
             4,
         );
         let f2 = recency(
-            self.frame_delta(self.ai[w].tech_cat_frame[cat]),
-            self.ai_speed,
+            self.frame_delta(self.ai_state.ai[w].tech_cat_frame[cat]),
+            self.ai_state.ai_speed,
             25600,
             16,
             3,
         );
         val = mul(f2, mul(f1, val) / 2) / 2;
-        if self.ai[w].shortages == 0 {
+        if self.ai_state.ai[w].shortages == 0 {
             val = mul(val, 2);
         }
 
@@ -782,7 +784,7 @@ impl Sim {
         if val < 0 {
             val = 9_999_999;
         }
-        let no_wonder = self.ai[w].wonder_mod == 0;
+        let no_wonder = self.ai_state.ai[w].wonder_mod == 0;
         if !no_wonder {
             val /= 2;
         }
@@ -857,7 +859,7 @@ impl Sim {
 
         let mut best: Option<(i32, usize)> = None;
         if trainer {
-            for b in self.ai[w].mil_trainers.clone() {
+            for b in self.ai_state.ai[w].mil_trainers.clone() {
                 if !self.research_candidate(who, b, where_, t) {
                     continue;
                 }

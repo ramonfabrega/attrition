@@ -621,7 +621,7 @@ impl Sim {
         // `calc_gather@006ceee0:66–75` does past its gate — the census
         // writes the array and this is the sum's only writer
         // (`docs/AI.md` §55).
-        if let Some(a) = self.ai.get_mut(w) {
+        if let Some(a) = self.ai_state.ai.get_mut(w) {
             a.known_rares = a.census.reg_known_rares.iter().sum();
         }
 
@@ -648,7 +648,7 @@ impl Sim {
         let handicap = if self.cities_state.nation[w].human {
             0
         } else {
-            let d = self.lobby.difficulty.clamp(0, i32::from(u8::MAX));
+            let d = self.ai_state.lobby.difficulty.clamp(0, i32::from(u8::MAX));
             economy::gather_handicap(u8::try_from(d).unwrap_or(0))
         };
 
@@ -675,7 +675,7 @@ impl Sim {
                 )
             });
         let american_units = if americans {
-            self.barracks_units(who) - self.ai[w].census.barracks_garr
+            self.barracks_units(who) - self.ai_state.ai[w].census.barracks_garr
         } else {
             0
         };
@@ -781,7 +781,7 @@ impl Sim {
 
     pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
         let w = who as usize;
-        let c = &self.ai[w].census;
+        let c = &self.ai_state.ai[w].census;
         let mut n = c.peasants + c.scouts - c.peasants_garr - c.stable_garr - c.scout_garr;
         for t in 0..self.tables.unit_types.len() {
             let k = self.roster.muster[w].by_type[t];

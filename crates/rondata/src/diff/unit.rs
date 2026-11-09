@@ -2834,7 +2834,7 @@ mod tests {
         for f in 0..7586i64 {
             if f == 7585 {
                 shop = Some((
-                    built.sim.ai[1].make_list.clone(),
+                    built.sim.ai_state.ai[1].make_list.clone(),
                     built.sim.economy.ledgers[1].bucket,
                 ));
             }

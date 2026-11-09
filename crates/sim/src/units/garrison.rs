@@ -562,6 +562,7 @@ impl Sim {
         s: u8,
     ) -> Option<(&crate::group::GroupState, Vec<i16>)> {
         let army = self
+            .ai_state
             .armies
             .get(who as usize)
             .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(s)));

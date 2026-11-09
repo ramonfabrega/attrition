@@ -1391,8 +1391,8 @@ impl Sim {
         // Infantry's `× 5 / 4`, truncating (`5f8893`..`5f88cb`; item 1109:
         // run404's Infantry steps 42 on a speed of 34).
         let mut speed = self.get_speed(u, 0);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
+        if self.ai_state.ai_speed > 1 {
+            speed *= self.ai_state.ai_speed;
         }
         if self.is_modern_infantry(u) {
             speed = speed * 5 / 4;

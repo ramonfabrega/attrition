@@ -29,14 +29,14 @@ pub mod seams {}
 impl Sim {
     /// `GameDaemon::process_victory`'s POPWIN arm: the territory timers.
     pub(crate) fn process_victory_territory(&mut self) {
-        if !matches!(self.lobby.victory, 0 | 1 | 7) {
+        if !matches!(self.ai_state.lobby.victory, 0 | 1 | 7) {
             return;
         }
         let land = self.land_size();
         if land <= 0 {
             return;
         }
-        let share = self.lobby.pop_win_percent;
+        let share = self.ai_state.lobby.pop_win_percent;
         let n = self.territory.players.len();
         // `LeaderData::get_team_terr@006d62e0` over `LeaderData::territory`
         // — the leader's own count, which `Leader::calc_gather` rewrites on
@@ -66,15 +66,15 @@ impl Sim {
                 })
                 .count();
             if terr[i] * 100 / land < share || rivals != 0 {
-                let l = &mut self.ai[i];
+                let l = &mut self.ai_state.ai[i];
                 if l.popwin_timer != 0 {
                     l.popwin_timer = 0;
                     l.popwin_stamp -= frame;
                 }
                 continue;
             }
-            if self.lobby.victory == 0 && self.ai[i].popwin_timer == 0 {
-                let l = &mut self.ai[i];
+            if self.ai_state.lobby.victory == 0 && self.ai_state.ai[i].popwin_timer == 0 {
+                let l = &mut self.ai_state.ai[i];
                 l.popwin_timer = 1;
                 l.popwin_stamp += frame;
             }
@@ -90,7 +90,7 @@ impl Sim {
         if r == 0 || self.frame % r != 0 {
             return;
         }
-        let l = &mut self.ai[who];
+        let l = &mut self.ai_state.ai[who];
         if l.popwin_stamp < 0 && l.popwin_timer == 0 {
             l.popwin_stamp += 1;
         }

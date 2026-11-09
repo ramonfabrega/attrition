@@ -357,7 +357,7 @@ impl Sim {
             if self.find_build_spot(u) || self.find_repair_spot(u) {
                 return;
             }
-            if !self.lobby.resources_unlimited() {
+            if !self.ai_state.lobby.resources_unlimited() {
                 self.find_gather_spot(u, self.tables.tuning.unit_gather_respond_range * TILE);
             }
             return;
@@ -3144,7 +3144,7 @@ impl GatherSpotView for GatherSpotSim<'_> {
         // `city_ai` only exists as far as the last census reached, and a
         // human leader never runs one — so an absent record is zero, which
         // is what the original's `CityData` holds for the same reason.
-        self.sim.ai[self.who as usize]
+        self.sim.ai_state.ai[self.who as usize]
             .city_ai
             .get(c as usize)
             .map_or(0, |r| i32::from(r.free) + i32::from(r.gatherers))

@@ -352,7 +352,7 @@ pub(crate) struct SimGate<'a> {
 
 impl SimGate<'_> {
     fn army(&self) -> &crate::army::Army {
-        &self.sim.armies[self.who as usize].list[self.slot]
+        &self.sim.ai_state.armies[self.who as usize].list[self.slot]
     }
     fn live(&self, a: usize) -> bool {
         a < self.sim.territory.players.len() && !self.sim.leaders.defeated[a]
@@ -423,31 +423,31 @@ impl TargetGateView for SimGate<'_> {
         self.sim.cities_of(a as crate::Player).len() as i32
     }
     fn w444(&self, a: usize) -> i32 {
-        self.sim.ai[a].popwin_timer
+        self.sim.ai_state.ai[a].popwin_timer
     }
     fn w44c(&self, _a: usize) -> i32 {
         0
     }
     fn raid(&self, a: usize) -> i32 {
-        self.sim.ai[a].pers.raid
+        self.sim.ai_state.ai[a].pers.raid
     }
     fn early(&self, a: usize) -> i32 {
-        self.sim.ai[a].pers.early_army
+        self.sim.ai_state.ai[a].pers.early_army
     }
     fn defmod(&self, a: usize) -> i32 {
-        self.sim.ai[a].defense_mod
+        self.sim.ai_state.ai[a].defense_mod
     }
     fn combat(&self, a: usize) -> i32 {
-        self.sim.ai[a].census.combat
+        self.sim.ai_state.ai[a].census.combat
     }
     fn sea(&self, a: usize) -> i32 {
-        self.sim.ai[a].census.sea_combat
+        self.sim.ai_state.ai[a].census.sea_combat
     }
     fn frame_attacked(&self, a: usize) -> i32 {
-        self.sim.ai[a].frame_attacked as i32
+        self.sim.ai_state.ai[a].frame_attacked as i32
     }
     fn attacked_by(&self, a: usize) -> i32 {
-        self.sim.ai[a].attacked_by
+        self.sim.ai_state.ai[a].attacked_by
     }
     fn military(&self, a: usize) -> i32 {
         self.sim.tech[a].military_level() as i32
@@ -459,16 +459,17 @@ impl TargetGateView for SimGate<'_> {
         self.sim.ai_difficulty()
     }
     fn team_style(&self) -> i32 {
-        self.sim.lobby.team_style
+        self.sim.ai_state.lobby.team_style
     }
     fn frame(&self) -> i32 {
         self.sim.frame as i32
     }
     fn start_list(&self, k: i32) -> i32 {
-        self.sim.lobby.start_list[(k & 7) as usize] as i32
+        self.sim.ai_state.lobby.start_list[(k & 7) as usize] as i32
     }
     fn start_index(&self, id: i32) -> i32 {
         self.sim
+            .ai_state
             .lobby
             .start_list
             .iter()
@@ -488,8 +489,12 @@ impl TargetGateView for SimGate<'_> {
             .map_or(-1, |c| i32::from(self.sim.cities_state.cities[c].founder))
     }
     fn city_ocean(&self, a: usize, k: usize) -> i32 {
-        self.city(a, k)
-            .map_or(0, |c| self.sim.ai[a].city_ai.get(c).map_or(0, |r| r.ocean))
+        self.city(a, k).map_or(0, |c| {
+            self.sim.ai_state.ai[a]
+                .city_ai
+                .get(c)
+                .map_or(0, |r| r.ocean)
+        })
     }
     fn capital_cell(&self, owner: i32, idx: i32) -> (i32, i32) {
         let c = self.sim.cities_of(owner as crate::Player)[idx as usize];

@@ -60,7 +60,7 @@ fn a_good(s: &mut Sim, c: Cell) -> usize {
         ty: 26,
         alive: true,
     });
-    s.ai[1].new_rares.push(gi);
+    s.ai_state.ai[1].new_rares.push(gi);
     gi
 }
 
@@ -302,7 +302,11 @@ fn a_deployed_merchant_ends_the_think_and_searches_nothing() {
     s.units[u].combat.packed = false;
     assert!(s.think_merchant(u), "a deployed merchant answers 1");
     assert!(s.units[u].orders.is_empty(), "and issues nothing");
-    assert_eq!(s.ai[1].new_rares, vec![west], "and rotates nothing");
+    assert_eq!(
+        s.ai_state.ai[1].new_rares,
+        vec![west],
+        "and rotates nothing"
+    );
 }
 
 /// §4, item 3329: **the Dutch merchant also thinks on the auto-attack's
@@ -451,7 +455,7 @@ fn the_own_region_bonus_outweighs_the_list_position() {
     );
     assert!(s.think_merchant(u), "it found one");
     assert_eq!(
-        s.ai[1].new_rares,
+        s.ai_state.ai[1].new_rares,
         vec![west, east],
         "200 against 190 + 100: the winner is taken out and appended"
     );
@@ -475,7 +479,7 @@ fn with_no_bonus_the_head_of_the_list_wins() {
     let b = a_good(&mut s, Cell::new(6, 20));
     assert!(s.think_merchant(u));
     assert_eq!(
-        s.ai[1].new_rares,
+        s.ai_state.ai[1].new_rares,
         vec![b, a],
         "200 beats 190, and neither is in the merchant's region"
     );
@@ -495,7 +499,7 @@ fn eleven_positions_outweigh_the_own_region_bonus() {
     }
     // Index 11, in the merchant's own region: 200 − 110 + 100 = 190.
     let mine = a_good(&mut s, Cell::new(30, 20));
-    assert_eq!(s.ai[1].new_rares.len(), 12);
+    assert_eq!(s.ai_state.ai[1].new_rares.len(), 12);
     assert!(s.think_merchant(u));
     assert_eq!(
         walking_to(&s, u),
@@ -503,7 +507,7 @@ fn eleven_positions_outweigh_the_own_region_bonus() {
         "200 for the head against 190 for the good in its own region"
     );
     assert_eq!(
-        *s.ai[1].new_rares.last().expect("twelve"),
+        *s.ai_state.ai[1].new_rares.last().expect("twelve"),
         head,
         "and the winner is the one appended"
     );
@@ -636,9 +640,9 @@ fn an_empty_list_answers_nothing() {
         ty: 26,
         alive: false,
     });
-    s.ai[1].new_rares.push(gi);
+    s.ai_state.ai[1].new_rares.push(gi);
     assert!(!s.think_merchant(u), "a dead good is not a destination");
-    assert_eq!(s.ai[1].new_rares, vec![gi], "and nothing rotated");
+    assert_eq!(s.ai_state.ai[1].new_rares, vec![gi], "and nothing rotated");
 }
 
 /// §4's cadence, through `Unit::do_idle` — the first idle frame and

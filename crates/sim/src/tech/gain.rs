@@ -149,19 +149,19 @@ impl Sim {
     /// Conquer the World's `ctw_nomad_starting_res_x` is the third arm and
     /// is cut from v1.
     pub(crate) fn starting_good(&self, who: Player, g: usize) -> i32 {
-        if self.lobby.resources_unlimited() {
+        if self.ai_state.lobby.resources_unlimited() {
             return economy::UNLIMITED_GOODS;
         }
         let mut base = self.tables.tuning.starting_goods[g];
-        if self.lobby.starting_resources == 7 && g != 3 {
+        if self.ai_state.lobby.starting_resources == 7 && g != 3 {
             base = self.tables.tuning.starting_goods[0];
         }
-        let (lo, _hi) = self.lobby.starting_resources_row;
+        let (lo, _hi) = self.ai_state.lobby.starting_resources_row;
         let amount = if lo == 0 { base / 2 } else { lo * base };
         // Barbarians at the Gates pays the defending team the *other* row's
         // index as a multiplier, which is what both callers write.
-        if self.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
-            return (self.lobby.starting_resources2 + 1) * amount;
+        if self.ai_state.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
+            return (self.ai_state.lobby.starting_resources2 + 1) * amount;
         }
         amount
     }

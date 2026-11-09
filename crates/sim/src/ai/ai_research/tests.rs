@@ -228,13 +228,13 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
     }
     let c = sim.buildings[b].city.expect("a finished city has a record");
     let w = who as usize;
-    sim.ai[w]
+    sim.ai_state.ai[w]
         .census
         .resize(sim.world.region_count(), sim.territory.players.len());
-    sim.ai[w]
+    sim.ai_state.ai[w]
         .city_ai
         .resize(sim.cities_state.cities.len(), Default::default());
-    sim.ai[w].census.pop = 20;
+    sim.ai_state.ai[w].census.pop = 20;
     c
 }
 
@@ -252,8 +252,8 @@ fn building(sim: &mut Sim, who: Player, rec: usize, tx: i32, ty: i32) -> usize {
 /// shortage, so the deep multiplier chains do not wrap the way the
 /// original's do.
 fn small(sim: &mut Sim, who: Player) {
-    sim.ai[who as usize].census.pop = 1;
-    sim.ai[who as usize].shortages = 1;
+    sim.ai_state.ai[who as usize].census.pop = 1;
+    sim.ai_state.ai[who as usize].shortages = 1;
 }
 
 /// The value one tech would be offered at, straight from the scorer.
@@ -268,7 +268,7 @@ fn value(sim: &mut Sim, who: Player, t: TypeId) -> Option<(i32, i32)> {
 }
 
 fn offered(sim: &Sim, who: Player) -> Vec<i32> {
-    sim.ai[who as usize]
+    sim.ai_state.ai[who as usize]
         .make_list
         .list
         .iter()
@@ -609,7 +609,7 @@ fn the_cheap_tick_prices_an_escrowed_head_against_the_whole_bucket() {
         ..crate::ai::MakeObject::EMPTY
     };
     let ready = |sim: &mut Sim, escrow| {
-        sim.ai[1].make_list.list[0] = head(escrow);
+        sim.ai_state.ai[1].make_list.list[0] = head(escrow);
         sim.economy.ledgers[1].bucket = [price + 1; RESOURCES];
         sim.economy.ledgers[1].escrow = [0; RESOURCES];
         sim.economy.ledgers[1].escrow[0] = 10;
@@ -736,7 +736,7 @@ fn a_leader_with_no_research_building_offers_nothing() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     sim.research_techs(1);
-    assert_eq!(sim.ai[1].make_list.head().t, -1);
+    assert_eq!(sim.ai_state.ai[1].make_list.head().t, -1);
 }
 
 #[test]
@@ -745,7 +745,7 @@ fn a_library_offers_the_library_lines_in_their_category_slots() {
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
     sim.research_techs(1);
-    let list = &sim.ai[1].make_list;
+    let list = &sim.ai_state.ai[1].make_list;
     assert!(list.head().t >= 0, "something was offered");
     assert_eq!(list.list[8].t, t.science1 as i32, "Science is cat 3");
     assert_eq!(list.list[10].t, t.military1 as i32, "Military is cat 0");
@@ -756,13 +756,13 @@ fn the_capital_countdown_lobby_stops_a_leader_that_lost_its_capital() {
     let (mut sim, t) = sim();
     let c = city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.lobby.elimination = 1;
+    sim.ai_state.lobby.elimination = 1;
     sim.cities_state.cities[c].capital = false;
     sim.research_techs(1);
-    assert_eq!(sim.ai[1].make_list.head().t, -1);
+    assert_eq!(sim.ai_state.ai[1].make_list.head().t, -1);
     sim.cities_state.cities[c].capital = true;
     sim.research_techs(1);
-    assert!(sim.ai[1].make_list.head().t >= 0);
+    assert!(sim.ai_state.ai[1].make_list.head().t >= 0);
 }
 
 #[test]
@@ -771,9 +771,9 @@ fn a_tower_tech_is_refused_below_difficulty_two_and_takes_slot_six() {
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.tower, 12, 5);
     small(&mut sim, 1);
-    sim.lobby.difficulty = 1;
+    sim.ai_state.lobby.difficulty = 1;
     assert_eq!(value(&mut sim, 1, t.fortification), None);
-    sim.lobby.difficulty = 2;
+    sim.ai_state.lobby.difficulty = 2;
     let (hard, slot) = value(&mut sim, 1, t.fortification).expect("offered at 2");
     assert_eq!(slot, 6, "the Tower overrides the category's slot");
     // The ×100 is the Tower's: the same tech at a Temple takes ×4.
@@ -818,7 +818,7 @@ fn the_government_coin_is_one_draw_and_the_dropped_column_is_not_offered() {
     building(&mut sim, 1, t.senate, 12, 5);
     // `pers.raid < 0` short-circuits the coin: no draw for it, and
     // column 0 is thrown away.
-    sim.ai[1].pers.raid = -1;
+    sim.ai_state.ai[1].pers.raid = -1;
     let before = sim.rng;
     sim.research_techs(1);
     // Only the first tier's pair is reachable in this tree: one of it
@@ -836,7 +836,7 @@ fn a_raid_zero_leader_spends_one_extra_draw_on_the_coin() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.senate, 12, 5);
-    sim.ai[1].pers.raid = 0;
+    sim.ai_state.ai[1].pers.raid = 0;
     let before = sim.rng;
     sim.research_techs(1);
     // The coin is inside the per-tech loop: each of the two reachable
@@ -858,7 +858,7 @@ fn a_raiding_leader_drops_the_second_column_without_a_coin() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.senate, 12, 5);
-    sim.ai[1].pers.raid = 1;
+    sim.ai_state.ai[1].pers.raid = 1;
     let before = sim.rng;
     sim.research_techs(1);
     let mut check = before;
@@ -890,7 +890,7 @@ fn the_line_at_the_lowest_epoch_is_worth_ten_times_as_much() {
     sim.tables.tech_tree.types[t.science1].where_ = Some(temple_id);
     building(&mut sim, 1, t.temple, 12, 5);
     small(&mut sim, 1);
-    sim.lobby.difficulty = 3;
+    sim.ai_state.lobby.difficulty = 3;
     let (level, _) = value(&mut sim, 1, t.science1).expect("valued");
     sim.tech[1].epoch[Line::Science.index()] = 1;
     let (ahead, _) = value(&mut sim, 1, t.science1).expect("valued");
@@ -908,7 +908,7 @@ fn the_transport_bonus_s_prerequisite_is_worth_thirty_times_on_a_sea_map() {
     sim.tables.tech_tree.types[t.science1].where_ = Some(temple_id);
     building(&mut sim, 1, t.temple, 12, 5);
     small(&mut sim, 1);
-    sim.lobby.difficulty = 3;
+    sim.ai_state.lobby.difficulty = 3;
     sim.world.set_sea_map(2);
     let (plain, _) = value(&mut sim, 1, t.science1).expect("valued");
     sim.tables.tech_tree.roles.transport_preq = Some(t.science1);
@@ -925,7 +925,7 @@ fn the_age_gate_holds_the_ai_a_step_behind_the_human() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.lobby.difficulty = 0;
+    sim.ai_state.lobby.difficulty = 0;
     assert_eq!(
         value(&mut sim, 1, t.classical),
         None,
@@ -943,7 +943,7 @@ fn a_stamped_age_waits_out_the_human_delay() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.lobby.difficulty = 0;
+    sim.ai_state.lobby.difficulty = 0;
     sim.tech[0].ages = 1;
     sim.tech[0].age_stamp[0] = Some(0);
     // `(who + 16) × 225` = 3825 frames for leader 1.
@@ -969,12 +969,12 @@ fn difficulty_two_waits_on_the_previous_ages_stamp() {
     sim.frame = 0;
 
     // Difficulty 0 reads `age_stamp[0]` and holds for `(1 + 16) × 225`.
-    sim.lobby.difficulty = 0;
+    sim.ai_state.lobby.difficulty = 0;
     assert_eq!(value(&mut sim, 1, t.classical), None);
 
     // Difficulty 2 reads the age before it — there is none, so the
     // original's call returns −1 and the gate opens at once.
-    sim.lobby.difficulty = 2;
+    sim.ai_state.lobby.difficulty = 2;
     assert!(
         value(&mut sim, 1, t.classical).is_some(),
         "the first age has no previous stamp to wait on"
@@ -986,7 +986,7 @@ fn a_difficulty_three_leader_is_unpaced() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.lobby.difficulty = 3;
+    sim.ai_state.lobby.difficulty = 3;
     sim.tech[0].ages = 0;
     assert!(value(&mut sim, 1, t.classical).is_some());
 }
@@ -996,7 +996,7 @@ fn the_knowledge_stockpile_gates_an_epoch() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.lobby.difficulty = 3;
+    sim.ai_state.lobby.difficulty = 3;
     sim.tables.tech_tree.types[t.science1].cost[KNOWLEDGE] = 1_000_000;
     sim.economy.ledgers[1].bucket[KNOWLEDGE] = 10;
     assert_eq!(value(&mut sim, 1, t.science1), None);
@@ -1009,9 +1009,9 @@ fn no_shortage_doubles_the_value() {
     let (mut sim, t) = sim();
     city(&mut sim, &t, 1, 5, 5);
     building(&mut sim, 1, t.library, 12, 5);
-    sim.ai[1].shortages = 0;
+    sim.ai_state.ai[1].shortages = 0;
     let (easy, _) = value(&mut sim, 1, t.science1).expect("valued");
-    sim.ai[1].shortages = 1;
+    sim.ai_state.ai[1].shortages = 1;
     let (tight, _) = value(&mut sim, 1, t.science1).expect("valued");
     assert_eq!(easy, mul(tight, 2));
 }
@@ -1028,8 +1028,11 @@ fn produce_tech_queues_at_the_research_building() {
     assert_eq!(sim.buildings[lib].queue.items.len(), 1);
     // `Build::queue_up` stamps the leader's `tech_frame` and its
     // category's `tech_cat_frame` (item 1496: run656, block 5).
-    assert_eq!(sim.ai[1].tech_frame, 4);
-    assert_eq!(sim.ai[1].tech_cat_frame[sim.tech_cat(t.science1)], 4);
+    assert_eq!(sim.ai_state.ai[1].tech_frame, 4);
+    assert_eq!(
+        sim.ai_state.ai[1].tech_cat_frame[sim.tech_cat(t.science1)],
+        4
+    );
     // Already being researched: the original returns "queued" and
     // touches nothing.
     assert!(sim.produce_tech(1, t.science1, 1));
@@ -1042,7 +1045,7 @@ fn produce_tech_prefers_the_undamaged_and_the_shorter_queue() {
     city(&mut sim, &t, 1, 5, 5);
     let a = building(&mut sim, 1, t.barracks, 12, 5);
     let b = building(&mut sim, 1, t.barracks, 12, 12);
-    sim.ai[1].mil_trainers = vec![a, b];
+    sim.ai_state.ai[1].mil_trainers = vec![a, b];
     let bt_id = sim.tables.build_types[t.barracks]
         .tree
         .expect("the tree entry");
@@ -1085,16 +1088,16 @@ fn a_military_trainer_is_searched_in_the_leaders_own_list() {
     sim.tables.tech_tree.types[t.military1].where_ = Some(bt_id);
     // Activating it filed it — `Wall::increment_stats`, `docs/AI.md` §29.
     assert_eq!(
-        sim.ai[1].mil_trainers,
+        sim.ai_state.ai[1].mil_trainers,
         vec![bar],
         "an active trainer joins the list when it activates"
     );
-    sim.ai[1].mil_trainers.clear();
+    sim.ai_state.ai[1].mil_trainers.clear();
     assert!(
         !sim.produce_tech(1, t.military1, 1),
         "a trainer not in `mil_trainers` is invisible"
     );
-    sim.ai[1].mil_trainers.push(bar);
+    sim.ai_state.ai[1].mil_trainers.push(bar);
     assert!(sim.produce_tech(1, t.military1, 1));
     assert_eq!(sim.buildings[bar].queue.items.len(), 1);
 }

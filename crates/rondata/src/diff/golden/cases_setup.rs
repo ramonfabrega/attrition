@@ -900,7 +900,7 @@ pub(super) fn run249_s_transport_is_the_original_s_unit_for_unit() {
         for l in &frame.leaders {
             let Some(t) = usize::try_from(l.who)
                 .ok()
-                .and_then(|w| sim.transport.get(w))
+                .and_then(|w| sim.ai_state.transport.get(w))
             else {
                 continue;
             };

@@ -323,7 +323,12 @@ impl Sim {
                 || self.was_really_seen_fog(x + 1, y, who)
                 || self.was_really_seen_fog(x, y, who)
         } else {
-            let mask = self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who);
+            let mask = self
+                .ai_state
+                .ai
+                .get(who as usize)
+                .map_or(0, |a| a.census.ally_mask)
+                | (1 << who);
             self.goody_item_at(c)
                 .is_some_and(|i| u32::from(self.goody_items[i].ever_seen) & mask != 0)
         };

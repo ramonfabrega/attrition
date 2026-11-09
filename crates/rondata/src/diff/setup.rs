@@ -628,7 +628,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // sim's own draws are lined up against the trace's sites with
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
     sim.trace_phases = true;
-    sim.lobby = lobby_of(
+    sim.ai_state.lobby = lobby_of(
         &init.game_info,
         &loaded.map_styles,
         &loaded.wonder_wins,
@@ -1171,7 +1171,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // per-cell goods scan (`compute_reg_territory`), the one the installed
     // owners stand in for (`docs/AI.md` §133).
     sim.claim_oil_from_owners();
-    let seeded: usize = (0..players).map(|w| sim.ai[w].new_rares.len()).sum();
+    let seeded: usize = (0..players)
+        .map(|w| sim.ai_state.ai[w].new_rares.len())
+        .sum();
     if seeded > 0 {
         notes.push(format!(
             "rares: {seeded} already-seen good(s) replayed into new_rares"
@@ -1368,7 +1370,7 @@ pub(crate) fn start_of_game(
         // `starting_resources == 7` adds 8, `== 8` adds 12), which is what
         // lets run651's thirteen citizens read as a Small Town's five
         // (item 1496, `docs/AI.md` §129).
-        let lobby_extra = match sim.lobby.starting_resources {
+        let lobby_extra = match sim.ai_state.lobby.starting_resources {
             7 => 8,
             8 => 12,
             _ => 0,
@@ -1516,7 +1518,7 @@ pub(crate) fn start_of_game(
         };
         let mut births: Vec<(usize, i64, usize)> = Vec::new();
         let mut cursor = 0i64;
-        let skip_orders = sim.lobby.starting_resources == 8;
+        let skip_orders = sim.ai_state.lobby.starting_resources == 8;
         for (i, link) in citizens.iter().enumerate() {
             let target = if i < ordered {
                 // Unconditional — a dead `2001` sends the citizen idle rather
@@ -2710,7 +2712,7 @@ mod tests {
 
         // Frame 0: the sweep, which arms the step machine.
         built.sim.tick();
-        let c = &built.sim.ai[1].census;
+        let c = &built.sim.ai_state.ai[1].census;
         let scalars: [(&str, i32); 15] = [
             ("active", c.active),
             ("combat", c.combat),
@@ -2822,7 +2824,7 @@ mod tests {
                 )
             })
             .collect();
-        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai[1]
+        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai_state.ai[1]
             .sites
             .iter()
             .map(|s| (s.wx, s.wy, s.val, s.rank))
@@ -2830,7 +2832,7 @@ mod tests {
         eprintln!(
             "sites — theirs: {theirs_sites:?}\n        ours:   {ours_sites:?}\n  site_mark theirs {:?} ours {}",
             theirs.int("site_mark"),
-            built.sim.ai[1].site_mark
+            built.sim.ai_state.ai[1].site_mark
         );
         if traced {
             let best_theirs = theirs_sites
@@ -2869,7 +2871,7 @@ mod tests {
                     )
                 })
                 .collect();
-            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai[1]
+            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai_state.ai[1]
                 .sites
                 .iter()
                 .map(|s| {
@@ -2902,7 +2904,7 @@ mod tests {
         // `Array<MakeObject>::init@0047d300` fills and `MakeList::clear`
         // rewrites, and the harness must start from the same one.
         let theirs_list = make_list_of(theirs);
-        let ours_list = built.sim.ai[1].make_list.list;
+        let ours_list = built.sim.ai_state.ai[1].make_list.list;
         assert_eq!(
             theirs_list
                 .iter()
@@ -3151,7 +3153,7 @@ mod tests {
                 if let Some(e) = expiries.iter().find(|e| e.frame == frame) {
                     let mut s = loaded.sim(Tuning::RON, World::new(4, 4), 2);
                     let who = w.who as sim::Player;
-                    s.ai[w.who as usize].make_list.list = prev;
+                    s.ai_state.ai[w.who as usize].make_list.list = prev;
                     s.rng = sim::combat::Rng::new(e.seed);
                     // Step 3: the head's `make_this` demotes it before step
                     // 4's walk; step 6: each bought slot's `make_this`, then
@@ -3159,13 +3161,13 @@ mod tests {
                     let head = prev[0];
                     let wi = w.who as usize;
                     if e.bought.contains(&0) {
-                        s.ai[wi].make_list.list[0].val /= 100;
+                        s.ai_state.ai[wi].make_list.list[0].val /= 100;
                     }
                     let unc = s.expire_all(head.t as usize, true);
                     s.expire(who, head.t, 0, unc);
                     for &slot in e.bought.iter().filter(|&&k| k != 0) {
-                        s.ai[wi].make_list.list[slot].val /= 100;
-                        let t = s.ai[wi].make_list.list[slot].t;
+                        s.ai_state.ai[wi].make_list.list[slot].val /= 100;
+                        let t = s.ai_state.ai[wi].make_list.list[slot].t;
                         let unc = s.expire_all(t as usize, false);
                         s.expire(who, t, slot, unc);
                     }
@@ -3173,7 +3175,7 @@ mod tests {
                         s.rng.seed, e.after,
                         "{what}: the walk's draw count, by the trace's seeds"
                     );
-                    assert_list_eq(&what, &next, &s.ai[wi].make_list.list);
+                    assert_list_eq(&what, &next, &s.ai_state.ai[wi].make_list.list);
                     make_stuffs.push(frame);
                     continue;
                 }
@@ -3536,7 +3538,7 @@ mod tests {
             built.notes
         );
         assert_eq!(
-            personality_fields(&built.sim.ai[1].pers),
+            personality_fields(&built.sim.ai_state.ai[1].pers),
             personality_of(&log, 1),
             "the personality, rolled from the original's own state, is the original's"
         );

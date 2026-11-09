@@ -135,7 +135,7 @@ impl Sim {
     /// `get_diff()`: the difficulty the AI plays at — the lobby's in a solo
     /// game (`docs/AI.md` §10).
     pub fn ai_difficulty(&self) -> i32 {
-        self.lobby.difficulty
+        self.ai_state.lobby.difficulty
     }
 
     /// `LeaderData::get_mod_resource_cap@006d65b0` — the commerce cap **as
@@ -157,7 +157,7 @@ impl Sim {
     /// pass (§2.5), `create_buildings`' three, `create_units`' two and
     /// `research_techs`' one.
     pub fn mod_resource_cap(&self, who: Player, g: usize) -> i32 {
-        if self.lobby.resources_unlimited() {
+        if self.ai_state.lobby.resources_unlimited() {
             return 0;
         }
         let cap = self.economy.ledgers[who as usize].cap[g];
@@ -221,7 +221,7 @@ impl Sim {
 
     /// `LeaderData::village_num` — [`crate::ai::Census::village_num`].
     pub fn village_num(&self, who: Player) -> i32 {
-        self.ai[who as usize].census.village_num
+        self.ai_state.ai[who as usize].census.village_num
     }
 
     /// `world+0x34`, `sea_map`: the map style's sea class every producer

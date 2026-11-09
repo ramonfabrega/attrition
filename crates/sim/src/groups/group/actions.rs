@@ -362,7 +362,7 @@ impl Sim {
         // different facts, because the clear loop and the order loop do not
         // gate on the same one.
         let ai = self.ai_army_group(g);
-        let hurry = ai && self.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
+        let hurry = ai && self.ai_state.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
         let hurry_city = if hurry {
             self.city_near(g.who, to)
         } else {

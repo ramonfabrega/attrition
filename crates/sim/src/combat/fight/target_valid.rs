@@ -645,7 +645,7 @@ impl Sim {
     /// reading, which is what its callers take — the original has no
     /// bounds test here at all and would read past the plane.
     pub(crate) fn world_is_seen_fog(&self, fx: i32, fy: i32, who: crate::Player) -> bool {
-        if who > 7 || self.lobby.reveal_map == 3 {
+        if who > 7 || self.ai_state.lobby.reveal_map == 3 {
             return true;
         }
         if self.sees_every_unit(who) {

@@ -329,7 +329,7 @@ impl Sim {
     /// cell's first half reads `2c`, not `2c + 1`
     /// (`docs/PATHFINDER.md` §5).
     pub(crate) fn was_really_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
-        if who >= 8 || self.lobby.reveal_map == 3 {
+        if who >= 8 || self.ai_state.lobby.reveal_map == 3 {
             return true;
         }
         // The two leader exits, ahead of the grid: the peace pair's who=1
@@ -341,7 +341,12 @@ impl Sim {
         let Some(bits) = self.world.seen2(fx, fy) else {
             return true;
         };
-        let mask = self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who);
+        let mask = self
+            .ai_state
+            .ai
+            .get(who as usize)
+            .map_or(0, |a| a.census.ally_mask)
+            | (1 << who);
         u32::from(bits) & mask != 0
     }
 

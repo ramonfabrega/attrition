@@ -380,7 +380,7 @@ struct BesiegedSim<'a> {
 
 impl BesiegedSim<'_> {
     fn army(&self) -> &Army {
-        &self.sim.armies[self.who as usize].list[self.slot]
+        &self.sim.ai_state.armies[self.who as usize].list[self.slot]
     }
     fn nth_city(&self, j: i32, k: i32) -> Option<usize> {
         self.sim
@@ -466,14 +466,14 @@ impl BesiegedView for BesiegedSim<'_> {
         })
     }
     fn army_valid(&self, j: i32, s: i32) -> bool {
-        self.sim.armies[j as usize].list[s as usize].valid
+        self.sim.ai_state.armies[j as usize].list[s as usize].valid
     }
     fn army_in_city(&self, j: i32, s: i32, k: i32) -> bool {
-        let city = self.sim.armies[j as usize].list[s as usize].city;
+        let city = self.sim.ai_state.armies[j as usize].list[s as usize].city;
         city.is_some() && city == self.nth_city(j, k)
     }
     fn army_standard(&self, j: i32, s: i32) -> i32 {
-        self.sim.armies[j as usize].list[s as usize].num_standard
+        self.sim.ai_state.armies[j as usize].list[s as usize].num_standard
     }
     fn city_pos(&self, j: i32, k: i32) -> Pos {
         self.sim.cities_state.cities[self.nth_city(j, k).expect("a found city")].pos
@@ -492,22 +492,22 @@ impl BesiegedView for BesiegedSim<'_> {
         (m.x, m.y)
     }
     fn set_muster_from_pos(&mut self) {
-        let a = &mut self.sim.armies[self.who as usize].list[self.slot];
+        let a = &mut self.sim.ai_state.armies[self.who as usize].list[self.slot];
         a.muster = a.pos.cell();
     }
     fn set_muster_angle(&mut self, angle: Angle) {
-        self.sim.armies[self.who as usize].list[self.slot].muster_angle = angle;
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].muster_angle = angle;
     }
     fn find_angle(&mut self, dx: i32, dy: i32) -> Angle {
         find_angle(dx, dy)
     }
     fn set_pos(&mut self, p: Pos) {
-        self.sim.armies[self.who as usize].list[self.slot].pos = p;
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].pos = p;
     }
     fn set_target(&mut self, j: i32, k: i32) {
         let c = self.nth_city(j, k).expect("a found city");
         let b = self.sim.cities_state.cities[c].building;
-        self.sim.armies[self.who as usize].list[self.slot].target = Some(Obj::Building(b));
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].target = Some(Obj::Building(b));
     }
 }
 
@@ -523,7 +523,7 @@ impl Sim {
         let mut fewest = 9999;
         let mut slot = None;
         for s in 0..SLOTS {
-            let a = &self.armies[w].list[s];
+            let a = &self.ai_state.armies[w].list[s];
             if !a.valid {
                 slot = Some(s);
                 break;
@@ -547,8 +547,8 @@ impl Sim {
         // it (twenty-fourth pass, group 4; A5 #10). The crate's pool record
         // carries no `army` back-pointer, so the seat is the orphan's, the
         // same one `close_army` leaves — without its halt.
-        if self.armies[who as usize].list[slot].valid {
-            let old = &mut self.armies[who as usize].list[slot];
+        if self.ai_state.armies[who as usize].list[slot].valid {
+            let old = &mut self.ai_state.armies[who as usize].list[slot];
             let list = std::mem::take(&mut old.units);
             let state = std::mem::take(&mut old.group);
             if state.pool.is_some() && list.iter().any(|&u| self.units[u].alive()) {
@@ -565,7 +565,7 @@ impl Sim {
             a.pos = Pos::new(cd.pos.x, cd.pos.y + UNITS_PER_CELL);
             a.muster = a.pos.cell();
         }
-        self.armies[who as usize].list[slot] = a;
+        self.ai_state.armies[who as usize].list[slot] = a;
     }
 
     /// `Army::close@006f8ea0`: `Group::action_halt(g, 0)` on the one group
@@ -583,12 +583,12 @@ impl Sim {
     /// wagon's new army took another slot, and the escort's stale pointers
     /// at 71 are what its collisions read on 18938.
     pub fn close_army(&mut self, who: Player, slot: usize) {
-        if !self.armies[who as usize].list[slot].valid {
+        if !self.ai_state.armies[who as usize].list[slot].valid {
             return;
         }
         let g = self.army_group(who, slot);
         self.group_action_halt(&g, 0);
-        let a = &mut self.armies[who as usize].list[slot];
+        let a = &mut self.ai_state.armies[who as usize].list[slot];
         a.valid = false;
         a.status = 0;
         a.human_frame = 0;
@@ -639,7 +639,7 @@ impl Sim {
     /// stay behind at an index another member now holds (item 1493: army
     /// 65's `off[31]`, `[61]`, `[62]` on run653 block 14357).
     pub(crate) fn army_keep_units(&mut self, w: usize, slot: usize, keep: Vec<usize>) {
-        let a = &mut self.armies[w].list[slot];
+        let a = &mut self.ai_state.armies[w].list[slot];
         for i in (0..a.units.len()).rev() {
             if keep.contains(&a.units[i]) {
                 continue;
@@ -664,8 +664,8 @@ impl Sim {
         // `Group::normalize` on the group first (§3.3): the dead, and a
         // member whose `+0x80` no longer names the group (`docs/GROUPS.md`
         // §23) — `1/64` once the sort of 11512 has cleared it.
-        let pool = self.armies[w].list[slot].group.pool;
-        let units: Vec<usize> = self.armies[w].list[slot]
+        let pool = self.ai_state.armies[w].list[slot].group.pool;
+        let units: Vec<usize> = self.ai_state.armies[w].list[slot]
             .units
             .iter()
             .copied()
@@ -716,7 +716,7 @@ impl Sim {
         // 0 (mod 128)`, and its leader `1/28` lifts the cap from the slow
         // squad's 25 to its own 47 (`docs/AI.md` §161).
         self.seat_set_speed(crate::group::Seat::Army(who, slot));
-        let a = &mut self.armies[w].list[slot];
+        let a = &mut self.ai_state.armies[w].list[slot];
         a.role = 0;
         a.num_units = a.units.len() as i32;
         a.num_captains = captains;
@@ -750,7 +750,7 @@ impl Sim {
         }
         let w = who as usize;
         // `Army::member(o, who)@006f8de0` — the **list**, not the pointer.
-        if self.armies[w].list[slot].units.contains(&u) {
+        if self.ai_state.armies[w].list[slot].units.contains(&u) {
             return;
         }
         // **The push arm is an army with no group** (`Army::add_unit
@@ -768,11 +768,11 @@ impl Sim {
         // walk's last figure is listed. Chapter 128's `1/6..1/8` rejoin
         // army 0 on 642 as `[8]` (run1555's `GROUPDATA 64`), not `[6 7 8]`
         // (item 4000, `docs/GOLDEN.md` §190).
-        let live = self.armies[w].list[slot]
+        let live = self.ai_state.armies[w].list[slot]
             .units
             .iter()
             .any(|&m| self.units[m].alive());
-        let group = &self.armies[w].list[slot].group;
+        let group = &self.ai_state.armies[w].list[slot].group;
         let pool = if group.pool.is_none() || (!live && !group.unlinked) {
             // The stack group's `Group::add`: `captain, o_down, …`.
             let mut g = crate::group::Group::stack(who);
@@ -794,7 +794,7 @@ impl Sim {
                     self.army_normalize(who, a);
                 }
             }
-            self.armies[w].list[slot].group = if equal {
+            self.ai_state.armies[w].list[slot].group = if equal {
                 crate::group::GroupState {
                     pool: Some(s),
                     unlinked: false,
@@ -805,7 +805,7 @@ impl Sim {
             };
             for f in chain {
                 let captain = self.is_captain(f);
-                let a = &mut self.armies[w].list[slot];
+                let a = &mut self.ai_state.armies[w].list[slot];
                 if a.units.contains(&f) {
                     continue;
                 }
@@ -816,9 +816,9 @@ impl Sim {
             s
         } else {
             let seat = crate::group::Seat::Army(who, slot);
-            let before = self.armies[w].list[slot].units.len() as i32;
+            let before = self.ai_state.armies[w].list[slot].units.len() as i32;
             self.seat_add(seat, u, false, false);
-            let a = &mut self.armies[w].list[slot];
+            let a = &mut self.ai_state.armies[w].list[slot];
             a.num_units += a.units.len() as i32 - before;
             a.num_captains += 1;
             a.group.pool.expect("a live group has a slot")
@@ -830,7 +830,7 @@ impl Sim {
     /// groups, walked in `list` order and skipping building groups. The
     /// simulation's army is one group (§3.2), so this is its `units[k]`.
     pub fn army_get_unit(&self, who: Player, slot: usize, k: usize) -> Option<usize> {
-        let a = &self.armies[who as usize].list[slot];
+        let a = &self.ai_state.armies[who as usize].list[slot];
         if k >= a.num_units as usize {
             return None;
         }
@@ -846,7 +846,8 @@ impl Sim {
     pub fn army_of(&self, u: usize) -> Option<usize> {
         let s = self.units[u].group_ptr?;
         let who = self.units[u].owner as usize;
-        self.armies
+        self.ai_state
+            .armies
             .get(who)?
             .valid()
             .find(|(_, a)| a.group.pool == Some(s) && a.units.contains(&u))
@@ -854,7 +855,7 @@ impl Sim {
     }
 
     fn army_count(&self, who: Player, slot: usize, f: impl Fn(&Sim, usize) -> bool) -> i32 {
-        self.armies[who as usize].list[slot]
+        self.ai_state.armies[who as usize].list[slot]
             .units
             .iter()
             .filter(|&&u| self.units[u].alive() && f(self, u))
@@ -965,7 +966,7 @@ impl Sim {
         if let Some(p) = self.army_pool_record(who, slot)
             && !self.orders.pushed[p].list.contains(&u)
         {
-            let s = self.armies[who as usize].list[slot].group.pool;
+            let s = self.ai_state.armies[who as usize].list[slot].group.pool;
             let first = self.orders.pushed[p]
                 .list
                 .iter()
@@ -983,7 +984,7 @@ impl Sim {
         // jumps straight to the add (`005f7891`). `ArmyData::get_unit(0)`
         // is the army's first member — the unit every later joiner is sent
         // to stand beside.
-        if self.armies[who as usize].list[slot].num_units != 0
+        if self.ai_state.armies[who as usize].list[slot].num_units != 0
             && let Some(first) = self.army_get_unit(who, slot, 0)
             && self.units[first].alive()
         {
@@ -1006,7 +1007,7 @@ impl Sim {
     /// army's index with a live member, when the army's own seat lists
     /// none.
     fn army_pool_record(&self, who: Player, slot: usize) -> Option<usize> {
-        let a = &self.armies[who as usize].list[slot];
+        let a = &self.ai_state.armies[who as usize].list[slot];
         let s = a.group.pool?;
         let mine = |m: usize| self.units[m].alive() && self.units[m].group_ptr == Some(s);
         if a.units.iter().any(|&m| mine(m)) {
@@ -1394,7 +1395,7 @@ impl Sim {
             }
             let who = w as Player;
             for s in 0..SLOTS {
-                let a = &mut self.armies[w].list[s];
+                let a = &mut self.ai_state.armies[w].list[s];
                 if !a.valid {
                     continue;
                 }
@@ -1416,7 +1417,7 @@ impl Sim {
     /// offered [`Sim::think_spellcaster`]; the first that casts ends the
     /// turn.
     fn use_generals(&mut self, who: Player, slot: usize) {
-        let members = self.armies[who as usize].list[slot].units.clone();
+        let members = self.ai_state.armies[who as usize].list[slot].units.clone();
         generals_walk(
             self,
             members,
@@ -1430,7 +1431,7 @@ impl Sim {
     /// member's `is(SPY)` (vslot `0xb8`) for the hero test. A Spy's
     /// [`Sim::think_spellcaster`] draws nothing (its cloak is a seam).
     fn use_spies(&mut self, who: Player, slot: usize) {
-        let members = self.armies[who as usize].list[slot].units.clone();
+        let members = self.ai_state.armies[who as usize].list[slot].units.clone();
         generals_walk(
             self,
             members,
@@ -1445,7 +1446,7 @@ impl Sim {
     /// `TypeData +0x2b8 & 0x10`) for the hero test — the Scout's turn,
     /// whose special arm throws the coin at `+0x413`.
     fn use_scouts(&mut self, who: Player, slot: usize) {
-        let members = self.armies[who as usize].list[slot].units.clone();
+        let members = self.ai_state.armies[who as usize].list[slot].units.clone();
         generals_walk(
             self,
             members,
@@ -1460,7 +1461,7 @@ impl Sim {
     /// `strategy[reg]` of the leader's census, 0 off the table.
     fn strategy_of(&self, who: Player, reg: Option<u16>) -> i32 {
         reg.and_then(|r| {
-            self.ai[who as usize]
+            self.ai_state.ai[who as usize]
                 .census
                 .strategy
                 .get(r as usize)
@@ -1476,7 +1477,7 @@ impl Sim {
         let w = who as usize;
         let released = self.release_mustering(who, slot);
         let (city, reg, navy, captains) = {
-            let a = &self.armies[w].list[slot];
+            let a = &self.ai_state.armies[w].list[slot];
             (a.city, a.reg, a.navy, a.num_captains)
         };
         let s = self.strategy_of(who, reg);
@@ -1489,7 +1490,7 @@ impl Sim {
             {
                 let b = self.cities_state.cities[c].building;
                 if self.find_muster_spot(who, slot, Obj::Building(b), true) {
-                    self.armies[w].list[slot].status |= status::FORMING;
+                    self.ai_state.armies[w].list[slot].status |= status::FORMING;
                     return;
                 }
             }
@@ -1509,7 +1510,7 @@ impl Sim {
         } else {
             status::MARCHING
         };
-        let a = &mut self.armies[w].list[slot];
+        let a = &mut self.ai_state.armies[w].list[slot];
         a.status = new_status;
         a.city = None;
         a.pos = cell_centre(a.muster);
@@ -1519,7 +1520,7 @@ impl Sim {
     /// `Army::release_mustering` (§7): true means go.
     pub fn release_mustering(&self, who: Player, slot: usize) -> bool {
         let w = who as usize;
-        let a = &self.armies[w].list[slot];
+        let a = &self.ai_state.armies[w].list[slot];
         let Some(c) = a.city else { return true };
         if self.cities_state.cities[c].owner != who || !self.cities_state.cities[c].alive {
             return true;
@@ -1529,7 +1530,7 @@ impl Sim {
         // its five standard at the muster through the five minutes' peace;
         // released, it spent `find_target`'s two scores on 2040 that the
         // original never spent (item 2388, `docs/AI.md` §221).
-        if self.lobby.rush_rules != 0 && !self.war_allowed() {
+        if self.ai_state.lobby.rush_rules != 0 && !self.war_allowed() {
             return false;
         }
         let n = a.num_standard;
@@ -1554,7 +1555,7 @@ impl Sim {
             return true;
         }
         let p = self.roster.muster[w].cap;
-        if p * 7 / 8 <= self.ai[w].effective_pop || p / 8 <= n {
+        if p * 7 / 8 <= self.ai_state.ai[w].effective_pop || p / 8 <= n {
             return true;
         }
         let mustering = self.num_armies(who, status::MUSTERING, a.reg).max(1);
@@ -1572,7 +1573,7 @@ impl Sim {
         // and Military 2: six standard stay mustering (`n >= 16`), and it
         // is the army `1/68` joins on 12057.
         let age = self.tech[w].military_level() as i32;
-        let pers = &self.ai[w].pers;
+        let pers = &self.ai_state.ai[w].pers;
         if pers.rush == -1 {
             return n >= 33;
         }
@@ -1616,7 +1617,7 @@ impl Sim {
     /// `find_target`'s coin once and its per-candidate score twice
     /// there and this crate spent nothing (item 317).
     fn do_marching(&mut self, who: Player, slot: usize) {
-        let t = self.armies[who as usize].list[slot].target;
+        let t = self.ai_state.armies[who as usize].list[slot].target;
         do_marching_steps(&mut MarchSim {
             sim: self,
             who,
@@ -1656,7 +1657,7 @@ impl Sim {
     fn army_stance_rule(&mut self, who: Player, slot: usize) {
         let w = who as usize;
         let (target, hurry) = {
-            let a = &self.armies[w].list[slot];
+            let a = &self.ai_state.armies[w].list[slot];
             (a.target, a.hurry)
         };
         let Some(t) = target else { return };
@@ -1679,9 +1680,15 @@ impl Sim {
     fn army_set_stance(&mut self, who: Player, slot: usize, s: Stance) {
         set_stance_steps(
             self,
-            |sim| i16::from(!sim.armies[who as usize].list[slot].units.is_empty()),
+            |sim| {
+                i16::from(
+                    !sim.ai_state.armies[who as usize].list[slot]
+                        .units
+                        .is_empty(),
+                )
+            },
             |_, _| 0,
-            |sim, _| sim.armies[who as usize].list[slot].units.len() as i32,
+            |sim, _| sim.ai_state.armies[who as usize].list[slot].units.len() as i32,
             |sim, _| {
                 let g = sim.army_group(who, slot);
                 sim.group_stance_type(&g) == crate::group::StanceType::Combat
@@ -1701,16 +1708,17 @@ impl Sim {
     pub fn send_here(&mut self, who: Player, slot: usize, p: Pos, kind: MoveKind) {
         let w = who as usize;
         let p = self.restrict(p);
-        let here = self.armies[w].list[slot].pos;
+        let here = self.ai_state.armies[w].list[slot].pos;
         if p.x != here.x && p.y != here.y {
-            self.armies[w].list[slot].muster_angle = find_angle(p.x - here.x, p.y - here.y);
+            self.ai_state.armies[w].list[slot].muster_angle =
+                find_angle(p.x - here.x, p.y - here.y);
         }
         {
-            let a = &mut self.armies[w].list[slot];
+            let a = &mut self.ai_state.armies[w].list[slot];
             a.pos = p;
             a.muster = p.cell();
         }
-        let ang = self.armies[w].list[slot].muster_angle;
+        let ang = self.ai_state.armies[w].list[slot].muster_angle;
         let g = self.army_group(who, slot);
         self.group_action_move_to(&g, p, QueuePos::New, true, ang, kind, true);
     }
@@ -1718,7 +1726,7 @@ impl Sim {
     /// `Army::charge(o, who)`: a siege unit under attack drags its army
     /// onto the attacker.
     pub fn army_charge(&mut self, who: Player, slot: usize, target: Obj) {
-        if !self.armies[who as usize].list[slot].valid {
+        if !self.ai_state.armies[who as usize].list[slot].valid {
             return;
         }
         let p = self.pos_of(target);
@@ -1732,7 +1740,7 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
-        self.armies[who as usize].list[slot].target = Some(target);
+        self.ai_state.armies[who as usize].list[slot].target = Some(target);
     }
 
     // ---- defending (§10) ----
@@ -1746,9 +1754,9 @@ impl Sim {
         if self.army_is_engaged(who, slot) {
             return;
         }
-        self.armies[w].list[slot].status &= !status::MARCHED;
+        self.ai_state.armies[w].list[slot].status &= !status::MARCHED;
         let (st, target) = {
-            let a = &self.armies[w].list[slot];
+            let a = &self.ai_state.armies[w].list[slot];
             (a.status, a.target)
         };
         if st & status::MARCHING != 0
@@ -1762,37 +1770,37 @@ impl Sim {
             {
                 return;
             }
-            let a = &mut self.armies[w].list[slot];
+            let a = &mut self.ai_state.armies[w].list[slot];
             a.target = None;
             a.muster = a.pos.cell();
             a.status = (a.status & !(status::DEFENDING | status::MARCHING)) | status::FORMING;
             return;
         }
         if self.find_besieged_city(who, slot) {
-            self.armies[w].list[slot].status |= status::MARCHING;
+            self.ai_state.armies[w].list[slot].status |= status::MARCHING;
             return;
         }
-        let pos = self.armies[w].list[slot].pos;
+        let pos = self.ai_state.armies[w].list[slot].pos;
         let city = self.nearest_friendly_city(who, pos);
         {
-            let a = &mut self.armies[w].list[slot];
+            let a = &mut self.ai_state.armies[w].list[slot];
             a.target = None;
             a.city = city;
         }
         if let Some(c) = city {
-            self.armies[w].list[slot].status &= !(status::DEFENDING | status::MARCHING);
+            self.ai_state.armies[w].list[slot].status &= !(status::DEFENDING | status::MARCHING);
             let cpos = self.cities_state.cities[c].pos;
             let p = self.restrict(Pos::new(cpos.x, cpos.y + UNITS_PER_CELL));
-            self.armies[w].list[slot].pos = p;
+            self.ai_state.armies[w].list[slot].pos = p;
             let b = self.cities_state.cities[c].building;
             if self.find_muster_spot(who, slot, Obj::Building(b), true) {
-                self.armies[w].list[slot].status |= status::FORMING;
+                self.ai_state.armies[w].list[slot].status |= status::FORMING;
             } else {
                 self.close_army(who, slot);
             }
             return;
         }
-        let a = &mut self.armies[w].list[slot];
+        let a = &mut self.ai_state.armies[w].list[slot];
         a.muster = a.pos.cell();
         a.status = (a.status & !(status::DEFENDING | status::MARCHING)) | status::FORMING;
     }
@@ -1819,7 +1827,7 @@ impl Sim {
     // ---- engagement (§11) ----
 
     fn army_centre_of_gravity(&self, who: Player, slot: usize) -> Cell {
-        let a = &self.armies[who as usize].list[slot];
+        let a = &self.ai_state.armies[who as usize].list[slot];
         let mut n = 0;
         let mut sx = 0;
         let mut sy = 0;
@@ -1847,7 +1855,7 @@ impl Sim {
         self.army_normalize(who, slot);
         let w = who as usize;
         let (units, pos, n) = {
-            let a = &self.armies[w].list[slot];
+            let a = &self.ai_state.armies[w].list[slot];
             (a.units.clone(), a.pos, a.num_units)
         };
         if n <= 0 {
@@ -1907,7 +1915,7 @@ impl Sim {
     pub fn army_engagement_seed(&mut self, who: Player, slot: usize) -> Option<(usize, Obj)> {
         let w = who as usize;
         let (units, pos) = {
-            let a = &self.armies[w].list[slot];
+            let a = &self.ai_state.armies[w].list[slot];
             (a.units.clone(), a.pos)
         };
         let cog = cell_centre(self.army_centre_of_gravity(who, slot));
@@ -1981,7 +1989,7 @@ impl Sim {
     /// 316 dumps).
     #[cfg(test)]
     pub(crate) fn start_list_target(&self, who: Player) -> usize {
-        let list = &self.lobby.start_list;
+        let list = &self.ai_state.lobby.start_list;
         let at = list.iter().position(|&l| l == who as usize).unwrap_or(0);
         for j in 0..8 {
             let l = list[(at + 1 + j) & 7];
@@ -2137,7 +2145,7 @@ impl Sim {
             return;
         };
         for k in 0..SLOTS {
-            let n = &self.armies[w].list[k];
+            let n = &self.ai_state.armies[w].list[k];
             if !n.valid || !n.navy || n.num_captains <= 2 {
                 continue;
             }
@@ -2147,7 +2155,7 @@ impl Sim {
                 continue;
             };
             if self.world.is_coast(sea, a) && self.world.is_coast(sea, b) {
-                self.armies[w].list[k].target = Some(target);
+                self.ai_state.armies[w].list[k].target = Some(target);
                 self.army_process(who, k, false);
             }
         }
@@ -2177,7 +2185,7 @@ impl Sim {
         frame: i64,
     ) {
         let w = who as usize;
-        let units = self.armies[w].list[slot].units.clone();
+        let units = self.ai_state.armies[w].list[slot].units.clone();
         let (Some(&first), Some(&last)) = (units.first(), units.last()) else {
             return;
         };
@@ -2196,7 +2204,7 @@ impl Sim {
         }
         let target = Obj::Building(self.cities_state.cities[c].building);
         let tpos = self.pos_of(target);
-        let farm = if self.ai[tw as usize].census.combat == 0 {
+        let farm = if self.ai_state.ai[tw as usize].census.combat == 0 {
             self.find_probe_farm(tpos, tw)
         } else {
             None
@@ -2230,8 +2238,8 @@ impl Sim {
             );
         }
         self.group_normalize(&mut g);
-        self.ai[tw as usize].frame_attacked = frame;
-        self.ai[tw as usize].attacked_by = i32::from(who);
+        self.ai_state.ai[tw as usize].frame_attacked = frame;
+        self.ai_state.ai[tw as usize].attacked_by = i32::from(who);
     }
 
     /// `ObjectsData::find_building(x, y, SEARCH_FRIENDLY, who, −1,
@@ -2346,7 +2354,7 @@ impl Sim {
     /// out of land on 11549, sailed for the wrong one (§9.4, item 642).
     pub fn go_here(&self, r: u16, who: Player) -> i32 {
         let w = who as usize;
-        let census = &self.ai[w].census;
+        let census = &self.ai_state.ai[w].census;
         let mine = census.reg_cities.get(r as usize).copied().unwrap_or(0);
         let peasants = census.reg_peasants.get(r as usize).copied().unwrap_or(0);
         go_here_bits(
@@ -2424,7 +2432,7 @@ impl Sim {
         // a coastal cell is in the sea, not the land the cell belongs to.
         let reg = self.world.tregion_alt(p.tile());
         let mut best: Option<(usize, i32)> = None;
-        for (s, a) in self.armies[w].valid() {
+        for (s, a) in self.ai_state.armies[w].valid() {
             if a.reg != reg {
                 continue;
             }
@@ -2452,7 +2460,7 @@ impl Sim {
         let reg = self.world.tregion(p.tile());
         let diff = self.ai_difficulty();
         let mut best: Option<(usize, i32)> = None;
-        for (s, a) in self.armies[w].valid() {
+        for (s, a) in self.ai_state.armies[w].valid() {
             if a.reg != reg {
                 continue;
             }
@@ -2486,7 +2494,7 @@ impl Sim {
         let reg = self.world.tregion(p.tile());
         let level = self.transport_level(who) as i32 != 0;
         let mut best: Option<(usize, i32)> = None;
-        for (s, a) in self.armies[w].valid() {
+        for (s, a) in self.ai_state.armies[w].valid() {
             if a.num_captains == 0 || !((!a.navy && level) || a.reg == reg) {
                 continue;
             }
@@ -2505,7 +2513,7 @@ impl Sim {
     /// `Armies::find_aggressive_army`: the first army of two or more
     /// captains, not mustering, standing outside its owner's territory.
     pub fn find_aggressive_army(&self, who: Player) -> Option<usize> {
-        self.armies[who as usize]
+        self.ai_state.armies[who as usize]
             .valid()
             .find(|(_, a)| {
                 aggressive(
@@ -2521,7 +2529,7 @@ impl Sim {
 
     /// `Armies::num_armies(who, mask, reg)`.
     pub fn num_armies(&self, who: Player, mask: i32, reg: Option<u16>) -> i32 {
-        self.armies[who as usize]
+        self.ai_state.armies[who as usize]
             .valid()
             .filter(|(_, a)| a.status & mask != 0 && (reg.is_none() || a.reg == reg))
             .count() as i32
@@ -2535,7 +2543,7 @@ impl Sim {
                 continue;
             }
             for s in 0..SLOTS {
-                let a = &mut self.armies[w].list[s];
+                let a = &mut self.ai_state.armies[w].list[s];
                 if a.valid && a.target == Some(old) {
                     a.target = Some(new);
                     if new_who as usize == w {
@@ -2554,10 +2562,10 @@ impl Sim {
             return;
         }
         for s in 0..SLOTS {
-            if !self.armies[w].list[s].valid {
+            if !self.ai_state.armies[w].list[s].valid {
                 continue;
             }
-            self.armies[w].list[s].target = None;
+            self.ai_state.armies[w].list[s].target = None;
             self.army_process(who, s, true);
         }
     }
@@ -2569,7 +2577,7 @@ impl Sim {
             return;
         }
         for s in 0..SLOTS {
-            if self.armies[w].list[s].valid {
+            if self.ai_state.armies[w].list[s].valid {
                 self.army_process(who, s, true);
             }
         }
@@ -2581,7 +2589,7 @@ impl Sim {
     pub fn armies_leader_defeated(&mut self, who: Player) {
         let w = who as usize;
         for s in 0..SLOTS {
-            if !self.armies[w].list[s].valid {
+            if !self.ai_state.armies[w].list[s].valid {
                 continue;
             }
             let g = self.army_group(who, s);
@@ -2595,14 +2603,14 @@ impl Sim {
         let owner = self.cities_state.cities[c].owner as usize;
         for w in 0..self.territory.players.len() {
             for s in 0..SLOTS {
-                let a = &self.armies[w].list[s];
+                let a = &self.ai_state.armies[w].list[s];
                 if !a.valid {
                     continue;
                 }
                 if w == owner && a.city == Some(c) && a.status & status::MUSTERING != 0 {
                     self.close_army(w as Player, s);
                 } else if a.target == Some(Obj::Building(building)) {
-                    self.armies[w].list[s].target = None;
+                    self.ai_state.armies[w].list[s].target = None;
                 }
             }
         }
@@ -2626,7 +2634,7 @@ impl Sim {
         // processing phase (docs/ARMY.md §24).
         regions.sort_unstable();
         for reg in regions {
-            let here = self.armies[w]
+            let here = self.ai_state.armies[w]
                 .valid()
                 .filter(|(_, a)| {
                     a.reg == reg && a.status & (status::MUSTERING | status::DEFENDING) != 0
@@ -2640,7 +2648,7 @@ impl Sim {
                 if self.cities_state.cities[k].reg != reg {
                     continue;
                 }
-                if self.armies[w]
+                if self.ai_state.armies[w]
                     .valid()
                     .any(|(_, a)| a.city == Some(k) && a.status & status::MUSTERING != 0)
                 {
@@ -2924,7 +2932,7 @@ struct FormSim<'a> {
 
 impl FormSim<'_> {
     fn tw(&self) -> Option<Player> {
-        self.sim.armies[self.who as usize].list[self.slot]
+        self.sim.ai_state.armies[self.who as usize].list[self.slot]
             .target
             .map(|t| self.sim.owner_of(t))
     }
@@ -2935,13 +2943,13 @@ impl FormView for FormSim<'_> {
         self.sim.army_is_engaged(self.who, self.slot)
     }
     fn group_count(&self) -> i32 {
-        self.sim.armies[self.who as usize].list[self.slot].num_groups()
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].num_groups()
     }
     fn muster(&self) -> Cell {
-        self.sim.armies[self.who as usize].list[self.slot].muster
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].muster
     }
     fn muster_angle(&self) -> Angle {
-        self.sim.armies[self.who as usize].list[self.slot].muster_angle
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].muster_angle
     }
     fn group_id(&self, i: i32) -> i32 {
         i
@@ -2951,7 +2959,7 @@ impl FormView for FormSim<'_> {
     }
     fn group_claim(&mut self, _: i32) {}
     fn hurry(&self) -> bool {
-        self.sim.armies[self.who as usize].list[self.slot].hurry != 0
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].hurry != 0
     }
     fn has_target_who(&self) -> bool {
         self.tw().is_some()
@@ -2989,12 +2997,12 @@ impl FormView for FormSim<'_> {
         self.tw().is_some_and(|tw| self.sim.is_ally(self.who, tw))
     }
     fn has_target_obj(&self) -> bool {
-        self.sim.armies[self.who as usize].list[self.slot]
+        self.sim.ai_state.armies[self.who as usize].list[self.slot]
             .target
             .is_some()
     }
     fn target_city_flags(&mut self) -> Option<i32> {
-        let t = self.sim.armies[self.who as usize].list[self.slot].target?;
+        let t = self.sim.ai_state.armies[self.who as usize].list[self.slot].target?;
         match t {
             Obj::Building(b) => self.sim.buildings[b].city.map(|c| {
                 let cd = &self.sim.cities_state.cities[c];
@@ -3205,7 +3213,7 @@ struct MarchToSim<'a> {
 
 impl MarchToSim<'_> {
     fn army(&self) -> &Army {
-        &self.sim.armies[self.who as usize].list[self.slot]
+        &self.sim.ai_state.armies[self.who as usize].list[self.slot]
     }
     fn tw(&self) -> Option<Player> {
         self.army().target.map(|t| self.sim.owner_of(t))
@@ -3223,7 +3231,7 @@ impl MarchToView for MarchToSim<'_> {
         self.army().status
     }
     fn set_status(&mut self, s: i32) {
-        self.sim.armies[self.who as usize].list[self.slot].status = s;
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].status = s;
     }
     fn muster_angle(&self) -> Angle {
         self.army().muster_angle
@@ -3241,7 +3249,7 @@ impl MarchToView for MarchToSim<'_> {
     }
     fn find_angle(&mut self, dx: i32, dy: i32) -> Angle {
         let angle = find_angle(dx, dy);
-        self.sim.armies[self.who as usize].list[self.slot].angle = angle;
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].angle = angle;
         angle
     }
     fn target_enemy(&mut self) -> bool {
@@ -3477,18 +3485,18 @@ impl MarchView for MarchSim<'_> {
         self.sim.close_army(self.who, self.slot);
     }
     fn has_target(&self) -> bool {
-        self.sim.armies[self.who as usize].list[self.slot]
+        self.sim.ai_state.armies[self.who as usize].list[self.slot]
             .target
             .is_some()
     }
     fn clear_target(&mut self) {
-        self.sim.armies[self.who as usize].list[self.slot].target = None;
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].target = None;
     }
     fn status(&self) -> i32 {
-        self.sim.armies[self.who as usize].list[self.slot].status
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].status
     }
     fn set_status(&mut self, s: i32) {
-        self.sim.armies[self.who as usize].list[self.slot].status = s;
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].status = s;
     }
     fn target_valid(&mut self) -> bool {
         self.t.is_some_and(|t| self.sim.active(t))
@@ -3509,7 +3517,7 @@ impl MarchView for MarchSim<'_> {
         })
     }
     fn navy(&self) -> bool {
-        self.sim.armies[self.who as usize].list[self.slot].navy
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].navy
     }
     fn city_unassimilated(&mut self) -> bool {
         self.city()
@@ -3541,7 +3549,7 @@ impl MarchView for MarchSim<'_> {
     }
     fn find_target(&mut self) -> bool {
         self.sim.find_target(self.who, self.slot);
-        self.sim.armies[self.who as usize].list[self.slot].valid
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].valid
     }
     fn do_forming(&mut self) {
         self.sim.do_forming(self.who, self.slot);
@@ -3678,17 +3686,17 @@ struct TransSim<'a> {
 
 impl TransSim<'_> {
     fn army(&mut self) -> &mut Army {
-        &mut self.sim.armies[self.who as usize].list[self.slot]
+        &mut self.sim.ai_state.armies[self.who as usize].list[self.slot]
     }
 }
 
 impl TransView for TransSim<'_> {
     fn at_home(&mut self) -> bool {
-        let a = &self.sim.armies[self.who as usize].list[self.slot];
+        let a = &self.sim.ai_state.armies[self.who as usize].list[self.slot];
         self.sim.world.region_of(a.pos.cell()) == a.reg
     }
     fn my_region(&self) -> Option<u16> {
-        self.sim.armies[self.who as usize].list[self.slot].reg
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].reg
     }
     fn regions(&mut self, my: u16) -> Vec<u16> {
         self.sim
@@ -3730,16 +3738,16 @@ impl TransView for TransSim<'_> {
     }
     fn find_target(&mut self) -> bool {
         self.sim.find_target(self.who, self.slot);
-        self.sim.armies[self.who as usize].list[self.slot].valid
+        self.sim.ai_state.armies[self.who as usize].list[self.slot].valid
     }
     fn has_target(&self) -> bool {
-        self.sim.armies[self.who as usize].list[self.slot]
+        self.sim.ai_state.armies[self.who as usize].list[self.slot]
             .target
             .is_some()
     }
     fn region_home(&mut self) {
         let here = {
-            let a = &self.sim.armies[self.who as usize].list[self.slot];
+            let a = &self.sim.ai_state.armies[self.who as usize].list[self.slot];
             self.sim.world.region_of(a.pos.cell())
         };
         self.army().reg = here;
@@ -3767,10 +3775,10 @@ struct SimProcess<'a> {
 
 impl SimProcess<'_> {
     fn a(&self) -> &Army {
-        &self.s.armies[self.who as usize].list[self.slot]
+        &self.s.ai_state.armies[self.who as usize].list[self.slot]
     }
     fn am(&mut self) -> &mut Army {
-        &mut self.s.armies[self.who as usize].list[self.slot]
+        &mut self.s.ai_state.armies[self.who as usize].list[self.slot]
     }
 }
 
@@ -3850,7 +3858,7 @@ impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
         self.s.cities_state.cities[c].pos
     }
     fn peer(&mut self, k: usize) -> crate::army_process_view::Peer {
-        let b = &self.s.armies[self.who as usize].list[k];
+        let b = &self.s.ai_state.armies[self.who as usize].list[k];
         crate::army_process_view::Peer {
             valid: b.valid,
             navy: b.navy,
@@ -3954,10 +3962,10 @@ struct SimIsMoving<'a> {
 
 impl crate::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
     fn count(&self) -> i32 {
-        self.s.armies[self.who as usize].list[self.slot].num_units
+        self.s.ai_state.armies[self.who as usize].list[self.slot].num_units
     }
     fn unit(&mut self, i: i32) -> i32 {
-        let a = &self.s.armies[self.who as usize].list[self.slot];
+        let a = &self.s.ai_state.armies[self.who as usize].list[self.slot];
         a.units.get(i as usize).map_or(-1, |&u| u as i32)
     }
     fn is_active(&mut self, u: i32) -> bool {
@@ -3973,7 +3981,7 @@ impl crate::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
             .map(crate::orders::Order::is_move)
     }
     fn outside_region(&mut self, u: i32) -> bool {
-        let reg = self.s.armies[self.who as usize].list[self.slot].reg;
+        let reg = self.s.ai_state.armies[self.who as usize].list[self.slot].reg;
         self.s.world.region_of(self.s.units[u as usize].pos.cell()) != reg
     }
     fn centre_of_gravity(&mut self) -> Pos {

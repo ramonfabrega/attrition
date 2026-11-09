@@ -394,8 +394,8 @@ impl Sim {
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
-        if self.ai_speed > 1 {
-            speed *= self.ai_speed;
+        if self.ai_state.ai_speed > 1 {
+            speed *= self.ai_state.ai_speed;
         }
         if returning && dx.abs() + dy.abs() < speed * 3 / 2 && !clamped {
             self.flockbird_dies(u);

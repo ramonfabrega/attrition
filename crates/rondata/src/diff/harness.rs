@@ -1179,7 +1179,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `CityData` itself, where one leader's sweep writes them for its
         // own cities; this crate keeps a copy per leader, so the owner's is
         // the one the dump is showing.
-        let ai = built.sim.ai[w].city_ai.get(ci).copied().unwrap_or_default();
+        let ai = built.sim.ai_state.ai[w]
+            .city_ai
+            .get(ci)
+            .copied()
+            .unwrap_or_default();
         // `city_flags`, bit by bit rather than as a word: four of its bits
         // are the "an active TEMPLE / GRANARY / LUMBERMILL / MARKET stands
         // here" marks of §1.4, which this crate keeps on the economy's own
@@ -1675,7 +1679,7 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    for (w, armies) in built.sim.armies.iter().enumerate() {
+    for (w, armies) in built.sim.ai_state.armies.iter().enumerate() {
         for (slot, a) in armies.valid() {
             let members: Vec<String> = a
                 .units
@@ -1768,7 +1772,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
         if built.sim.cities_state.nation[w].human || built.sim.leaders.defeated[w] {
             continue;
         }
-        let l = &built.sim.ai[w];
+        let l = &built.sim.ai_state.ai[w];
         let name = |t: i32| -> String {
             usize::try_from(t)
                 .ok()
@@ -7679,7 +7683,7 @@ pub(crate) mod tests {
                             g.members.iter().map(|m| m.o).collect();
                     }
                 }
-                for (w, side) in built.sim.armies.iter().enumerate().take(players) {
+                for (w, side) in built.sim.ai_state.armies.iter().enumerate().take(players) {
                     for (a, x) in side.list.iter().enumerate() {
                         if !x.valid || x.units.is_empty() {
                             continue;

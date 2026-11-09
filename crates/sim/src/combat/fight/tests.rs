@@ -3451,7 +3451,7 @@ fn a_packed_computer_siege_engine_skips_what_it_cannot_reach() {
     ] {
         let (mut sim, foe_ty) = at_war();
         sim.cities_state.nation[0].human = human;
-        sim.lobby.difficulty = difficulty;
+        sim.ai_state.lobby.difficulty = difficulty;
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -5134,7 +5134,7 @@ fn a_squad_leaves_the_muster_with_its_last_figure() {
         (
             s.roster.muster[0].by_type[ty],
             s.roster.muster[0].control,
-            s.ai[0].census.active,
+            s.ai_state.ai[0].census.active,
         )
     };
     for f in [a, b] {
@@ -5459,14 +5459,17 @@ fn a_hit_stamps_the_struck_owner_s_frame_attacked_below_difficulty_two() {
     let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
     let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
     let hit = combat::Sixteenths { whole: 1, frac: 0 };
-    sim.lobby.difficulty = 1;
+    sim.ai_state.lobby.difficulty = 1;
     sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10_233);
-    assert_eq!(sim.ai[0].frame_attacked, 10_233, "the struck owner's stamp");
-    assert_eq!(sim.ai[1].frame_attacked, 0, "never the attacker's");
-    sim.lobby.difficulty = 2;
+    assert_eq!(
+        sim.ai_state.ai[0].frame_attacked, 10_233,
+        "the struck owner's stamp"
+    );
+    assert_eq!(sim.ai_state.ai[1].frame_attacked, 0, "never the attacker's");
+    sim.ai_state.lobby.difficulty = 2;
     sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10_300);
     assert_eq!(
-        sim.ai[0].frame_attacked, 10_233,
+        sim.ai_state.ai[0].frame_attacked, 10_233,
         "difficulty 2 and above: no stamp"
     );
 }
@@ -5621,7 +5624,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
     ] {
         let (mut sim, foe_ty) = at_war();
         sim.cities_state.nation[0].human = case == "human";
-        sim.lobby.difficulty = if case == "easiest" { 0 } else { 5 };
+        sim.ai_state.lobby.difficulty = if case == "easiest" { 0 } else { 5 };
         let ty = sim.add_unit_type(crate::UnitType {
             hits: 100,
             combat: Profile {
@@ -5650,7 +5653,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
         assert_eq!(sim.attack_dist(Obj::Unit(me), Obj::Unit(foe)), distance);
         let army = sim.init_army(0, None);
         sim.army_add_unit(0, army, me);
-        sim.armies[0].list[army].target = (case != "no target").then_some(Obj::Unit(foe));
+        sim.ai_state.armies[0].list[army].target = (case != "no target").then_some(Obj::Unit(foe));
         let dest = Pos::new(0x6000, 0x1200);
         sim.add_move_order(me, dest, MoveKind::AttackTo, QueuePos::New, true);
         let dest = sim.units[me].orders[0].move_dest().unwrap();
@@ -5682,7 +5685,7 @@ fn packed_ai_siege_takes_its_army_target_before_the_attack_move_search() {
 fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
     let (mut sim, foe_ty) = at_war();
     sim.cities_state.nation[0].human = false;
-    sim.lobby.difficulty = 5;
+    sim.ai_state.lobby.difficulty = 5;
     let ty = sim.add_unit_type(crate::UnitType {
         hits: 100,
         combat: Profile {
@@ -5703,7 +5706,7 @@ fn idle_packed_engine(distance: i32, in_army: bool) -> (Sim, usize, usize) {
     if in_army {
         let army = sim.init_army(0, None);
         sim.army_add_unit(0, army, me);
-        sim.armies[0].list[army].target = Some(Obj::Unit(foe));
+        sim.ai_state.armies[0].list[army].target = Some(Obj::Unit(foe));
     }
     (sim, me, foe)
 }
@@ -5826,7 +5829,7 @@ fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
     for flagged in [true, false] {
         let (mut sim, foe_ty) = at_war();
         sim.cities_state.nation[0].human = false;
-        sim.lobby.difficulty = 5;
+        sim.ai_state.lobby.difficulty = 5;
         let mut ty = crate::UnitType {
             hits: 100,
             combat: Profile {

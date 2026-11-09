@@ -387,7 +387,7 @@ fn oil_world(cells: &[(i32, i32)]) -> (Sim, Vec<usize>) {
             alive: true,
         });
         gis.push(gi);
-        sim.ai[1].oil_patches.push(gi);
+        sim.ai_state.ai[1].oil_patches.push(gi);
     }
     (sim, gis)
 }
@@ -426,7 +426,7 @@ fn an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned() {
         ))
     );
     assert_eq!(
-        sim.ai[1].oil_patches,
+        sim.ai_state.ai[1].oil_patches,
         [gis[0], gis[1]],
         "the third is another leader's land, and goes"
     );
@@ -510,7 +510,7 @@ fn a_sea_patch_waits_for_a_transport_level_and_is_not_pruned() {
     assert!(sim.world.is_ocean(c));
     let (best, _, cand) = sim.pick_oil_patch(1, Cell::new(6, 6), &well());
     assert_eq!((best, cand), (0, None));
-    assert_eq!(sim.ai[1].oil_patches, [gis[0]], "kept");
+    assert_eq!(sim.ai_state.ai[1].oil_patches, [gis[0]], "kept");
 }
 
 /// **`reveal_fog`'s oil arm** adds the first live good on a cell whose
@@ -519,27 +519,31 @@ fn a_sea_patch_waits_for_a_transport_level_and_is_not_pruned() {
 #[test]
 fn a_reveal_and_a_claim_each_add_the_patch_once() {
     let (mut sim, gis) = oil_world(&[(5, 5), (8, 8)]);
-    sim.ai[1].oil_patches.clear();
+    sim.ai_state.ai[1].oil_patches.clear();
     // No `0x800` on the cell: the reveal adds nothing.
     sim.reveal_fog(10, 10, 1);
-    assert!(sim.ai[1].oil_patches.is_empty());
+    assert!(sim.ai_state.ai[1].oil_patches.is_empty());
     let mut d = sim.world.cell_data(Cell::new(5, 5));
     d.flags |= crate::world::cell::OIL;
     sim.world.set_cell_data(Cell::new(5, 5), d);
     sim.reveal_fog(10, 10, 1);
     sim.reveal_fog(11, 10, 1);
-    assert_eq!(sim.ai[1].oil_patches, [gis[0]], "once, for two fog cells");
+    assert_eq!(
+        sim.ai_state.ai[1].oil_patches,
+        [gis[0]],
+        "once, for two fog cells"
+    );
     // The claim needs no flag, only the patch standing on the cell.
     sim.claim_cell_goods(Cell::new(8, 8), 1);
     sim.claim_cell_goods(Cell::new(8, 8), 1);
-    assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
+    assert_eq!(sim.ai_state.ai[1].oil_patches, [gis[0], gis[1]]);
     sim.claim_cell_goods(Cell::new(9, 9), 1);
-    assert_eq!(sim.ai[1].oil_patches.len(), 2, "no good on (9, 9)");
+    assert_eq!(sim.ai_state.ai[1].oil_patches.len(), 2, "no good on (9, 9)");
     // The wholesale form walks the goods list, for whoever owns the cell.
-    sim.ai[1].oil_patches.clear();
+    sim.ai_state.ai[1].oil_patches.clear();
     sim.claim_oil_from_owners();
-    assert_eq!(sim.ai[1].oil_patches, [gis[0], gis[1]]);
-    assert!(sim.ai[0].oil_patches.is_empty());
+    assert_eq!(sim.ai_state.ai[1].oil_patches, [gis[0], gis[1]]);
+    assert!(sim.ai_state.ai[0].oil_patches.is_empty());
 }
 
 /// **A land patch joins the list in the per-cell scan's order, not the
@@ -559,12 +563,15 @@ fn a_wholesale_claim_adds_land_patches_in_cell_scan_order() {
         Cell::new(0, 0),
         Cell::new(19, 9),
     );
-    sim.ai[1].oil_patches.clear();
+    sim.ai_state.ai[1].oil_patches.clear();
     sim.claim_oil_from_owners();
-    assert_eq!(sim.ai[1].oil_patches, [gis[2], gis[0], gis[1], gis[3]]);
+    assert_eq!(
+        sim.ai_state.ai[1].oil_patches,
+        [gis[2], gis[0], gis[1], gis[3]]
+    );
     // From (8, 8) the patches at (6, 3) and (10, 3) tie at 2 · 20 − 6;
     // the walk ends on the list's first, the earlier row's.
-    sim.ai[1]
+    sim.ai_state.ai[1]
         .oil_patches
         .retain(|g| *g == gis[0] || *g == gis[2]);
     let (best, _, cand) = sim.pick_oil_patch(1, Cell::new(8, 8), &well());

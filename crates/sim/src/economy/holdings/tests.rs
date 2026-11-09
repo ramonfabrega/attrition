@@ -848,7 +848,7 @@ fn only_an_ai_carries_the_difficulty_handicap() {
     let t = install(&mut sim);
     build(&mut sim, 0, t.village, 32, 32);
     build(&mut sim, 1, t.village, 8, 8);
-    sim.lobby.difficulty = 5;
+    sim.ai_state.lobby.difficulty = 5;
     sim.cities_state.nation[1].human = false;
 
     sim.assemble_holdings(0);

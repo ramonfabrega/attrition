@@ -82,7 +82,7 @@ impl Sim {
 
         let mut best: Option<usize> = None;
         let mut best_score = -1i32;
-        let list = self.ai[who as usize].new_rares.clone();
+        let list = self.ai_state.ai[who as usize].new_rares.clone();
         for (i, &gi) in list.iter().enumerate() {
             // `local_30`, decremented at the loop tail whatever the slot
             // did — so a refused good still costs the ones behind it ten.
@@ -139,7 +139,7 @@ impl Sim {
         // down, and the good is appended — so the winner goes to the back
         // of the list and is the *last* thing the next merchant scores.
         // The list is a rotation, not a queue: nothing is ever dropped.
-        let rares = &mut self.ai[who as usize].new_rares;
+        let rares = &mut self.ai_state.ai[who as usize].new_rares;
         if let Some(at) = rares.iter().position(|&x| x == gi) {
             rares.remove(at);
         }

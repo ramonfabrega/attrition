@@ -292,15 +292,8 @@ pub struct Sim {
     /// of the frame's own marks instead, which is where the original
     /// spends them. `crate::golden::Script::stage` is the only writer.
     pub staged_marks: Vec<(String, u32)>,
-    /// The engine's global `GameAccess::ai_off`, which the `ai off` cheat
-    /// toggles (`Game::action_cheat_ai_toggle@005930c0` is the whole of
-    /// it: one flag, flipped, in a single-player game). Three readers in
-    /// the simulation's own territory — `Leader::production_ai`'s head,
-    /// `Leader::diplomacy`'s head, and the computer block of
-    /// `Unit::think@005f6e40:205` — and they are what `docs/INPUT.md` §11
-    /// models. Off by default; only the golden record's interpreter sets
-    /// it.
-    pub ai_off: bool,
+    /// The `ai/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub ai_state: crate::ai::AiState,
     /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,
@@ -352,27 +345,6 @@ pub struct Sim {
     /// map at once — and one after it takes the daemon's pass
     /// ([`border_pass`], item 1106).
     pub in_play: bool,
-    /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
-    pub lobby: ai::Lobby,
-    /// `ScenarioData::find_counters[]` and `ScriptTimers` — the global
-    /// state the script host functions keep between calls.
-    pub script_env: ai_host::ScriptEnv,
-    /// The loaded opening scripts and their statics, once
-    /// [`Sim::load_scripts`] has run; `None` is a game with no script.
-    pub scripts: Option<ai_host::Scripts>,
-    /// One per player: the production AI's state — the step machine, the
-    /// personality, the make list, the goods picture (`docs/AI.md` §2).
-    /// A human's is never stepped.
-    pub ai: Vec<ai::Leader>,
-    /// `ai_speed`: 1, plus one per `ai speed increase` cheat.
-    pub ai_speed: i32,
-    /// One per player: the transport level bits, the lock and the scouts
-    /// option (`docs/TRANSPORT.md` §2).
-    pub transport: Vec<transport::LeaderTransport>,
-    /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
-    pub docks: Vec<transport::Docks>,
-    /// One per player: the sixteen army slots (`docs/ARMY.md`).
-    pub armies: Vec<army::Armies>,
     /// The herds and the birds' sampling (`gaia.rs`).
     pub gaia: gaia::Gaia,
     /// The `world/` subsystem's state (`docs/STRUCTURE.md` §3).
@@ -415,16 +387,10 @@ impl Sim {
         let mut mesh = mesh::RoadMesh::default();
         mesh.seed(&world);
         Sim {
-            transport: vec![transport::LeaderTransport::default(); players],
-            docks: vec![transport::Docks::default(); players],
-            armies: (0..players)
-                .map(|w| army::Armies::new(w as Player))
-                .collect(),
             tech: (0..players)
                 .map(|_| tech::PlayerTech::new(&tech_tree))
                 .collect(),
             staged_marks: Vec::new(),
-            ai_off: false,
             trace_phases: false,
             phase_marks: Vec::new(),
             trace_costs: false,
@@ -482,7 +448,6 @@ impl Sim {
             },
             goody_items: Vec::new(),
             in_play: false,
-            lobby: ai::Lobby::default(),
             roster: crate::units::UnitsState {
                 unit_stats_dirty: vec![false; players],
                 muster: vec![Muster::new(&tuning); players],
@@ -492,10 +457,19 @@ impl Sim {
                 marks: vec![Marks::default(); players.max(10)],
                 leader_options: vec![stance::LeaderOptions::default(); players.max(10)],
             },
-            script_env: ai_host::ScriptEnv::default(),
-            scripts: None,
-            ai: vec![ai::Leader::new(); players],
-            ai_speed: 1,
+            ai_state: crate::ai::AiState {
+                transport: vec![transport::LeaderTransport::default(); players],
+                docks: vec![transport::Docks::default(); players],
+                armies: (0..players)
+                    .map(|w| army::Armies::new(w as Player))
+                    .collect(),
+                ai_off: false,
+                lobby: ai::Lobby::default(),
+                script_env: ai_host::ScriptEnv::default(),
+                scripts: None,
+                ai: vec![ai::Leader::new(); players],
+                ai_speed: 1,
+            },
             sweep_watch: None,
             probe_refuse: None,
             terrain: crate::world::WorldState {
@@ -568,10 +542,12 @@ impl Sim {
         self.roster.marks.push(Marks::default());
         self.movement.repaths.push(0);
         self.combat.retargets.push(0);
-        self.ai.push(ai::Leader::new());
-        self.transport.push(transport::LeaderTransport::default());
-        self.docks.push(transport::Docks::default());
-        self.armies.push(army::Armies::new(
+        self.ai_state.ai.push(ai::Leader::new());
+        self.ai_state
+            .transport
+            .push(transport::LeaderTransport::default());
+        self.ai_state.docks.push(transport::Docks::default());
+        self.ai_state.armies.push(army::Armies::new(
             u8::try_from(who).expect("too many players"),
         ));
         for row in &mut self.leaders.at_war {

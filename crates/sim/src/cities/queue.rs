@@ -150,7 +150,7 @@ impl Sim {
                 id,
                 true,
             ) == tech::RESEARCHABLE
-            && let Some(ai) = self.ai.get_mut(who as usize)
+            && let Some(ai) = self.ai_state.ai.get_mut(who as usize)
         {
             ai.tech_frame = self.frame;
         }
@@ -767,7 +767,7 @@ impl Sim {
         // frame, for every technology queued (item 1496: run656's block 5
         // holds both at 4, the frame the AI bought Missile Shield).
         let cat = self.tech_cat(t);
-        if let Some(ai) = self.ai.get_mut(who as usize) {
+        if let Some(ai) = self.ai_state.ai.get_mut(who as usize) {
             ai.tech_frame = self.frame;
             if let Some(f) = ai.tech_cat_frame.get_mut(cat) {
                 *f = self.frame;

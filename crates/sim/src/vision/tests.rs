@@ -1062,7 +1062,7 @@ fn an_animal_is_seen_through_the_ever_seen_plane() {
     a.herd = Some(0);
     let a = s.add_unit(a);
     let t = crate::combat::Obj::Unit(a);
-    s.lobby.reveal_map = 2;
+    s.ai_state.lobby.reveal_map = 2;
     assert!(
         !s.target_seen_by(1, t),
         "a herd animal reads was_really_seen"

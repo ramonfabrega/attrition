@@ -13,7 +13,7 @@ impl Sim {
             who,
             army: Some(slot),
             pushed: None,
-            list: self.armies[who as usize].list[slot].units.clone(),
+            list: self.ai_state.armies[who as usize].list[slot].units.clone(),
         }
     }
 
@@ -34,7 +34,7 @@ impl Sim {
     /// `UnitData::group == -1`.
     pub(crate) fn gstate(&self, g: &Group) -> Option<&GroupState> {
         match (g.army, g.pushed) {
-            (Some(s), _) => Some(&self.armies[g.who as usize].list[s].group),
+            (Some(s), _) => Some(&self.ai_state.armies[g.who as usize].list[s].group),
             (None, Some(i)) => self.orders.pushed.get(i).map(|x| &x.state),
             (None, None) => None,
         }
@@ -43,7 +43,7 @@ impl Sim {
     /// [`Self::gstate`], to write.
     pub(crate) fn gstate_mut(&mut self, g: &Group) -> Option<&mut GroupState> {
         match (g.army, g.pushed) {
-            (Some(s), _) => Some(&mut self.armies[g.who as usize].list[s].group),
+            (Some(s), _) => Some(&mut self.ai_state.armies[g.who as usize].list[s].group),
             (None, Some(i)) => self.orders.pushed.get_mut(i).map(|x| &mut x.state),
             (None, None) => None,
         }
@@ -214,9 +214,13 @@ impl Sim {
         // chapter ninety-four's Scout `1/0` joins army 0 this way on 846
         // and gets its `ATTACK_TO` to the muster on 1021 (`docs/GOLDEN.md`
         // §120). Only the empty case: the equal arm above is parked row 9's.
-        if let Some(a) = self.armies[g.who as usize].list.iter_mut().find(|a| {
-            a.valid && a.num_units != 0 && a.group.pool == Some(pool) && a.units.is_empty()
-        }) {
+        if let Some(a) = self.ai_state.armies[g.who as usize]
+            .list
+            .iter_mut()
+            .find(|a| {
+                a.valid && a.num_units != 0 && a.group.pool == Some(pool) && a.units.is_empty()
+            })
+        {
             a.units = g.list.clone();
         }
         pool
@@ -252,7 +256,7 @@ impl Sim {
         for i in 0..self.orders.pushed.len() {
             self.seat_drop(Seat::Pushed(i), &leaving);
         }
-        for slot in 0..self.armies[w].list.len() {
+        for slot in 0..self.ai_state.armies[w].list.len() {
             if self.seat_drop(Seat::Army(g.who, slot), &leaving) && !touched.contains(&slot) {
                 touched.push(slot);
             }
@@ -384,7 +388,7 @@ impl Sim {
             .pushed
             .iter()
             .position(|x| x.who == who && x.state.pool == Some(s));
-        let army = self.armies.get(who as usize).and_then(|x| {
+        let army = self.ai_state.armies.get(who as usize).and_then(|x| {
             x.list
                 .iter()
                 .find(|a| a.valid && a.group.pool == Some(s))
@@ -421,7 +425,7 @@ impl Sim {
         let Some(pool) = self.orders.pushed.get(i).and_then(|e| e.state.pool) else {
             return false;
         };
-        self.armies.get(g.who as usize).is_some_and(|x| {
+        self.ai_state.armies.get(g.who as usize).is_some_and(|x| {
             x.list
                 .iter()
                 .any(|a| a.valid && a.num_units != 0 && a.group.pool == Some(pool))
@@ -432,7 +436,7 @@ impl Sim {
     /// group sits on it, else the [`Pushed`] entry that names it.
     pub(super) fn pool_seat(&self, who: Player, s: u8) -> Option<Seat> {
         let w = who as usize;
-        if let Some(a) = self.armies.get(w).and_then(|x| {
+        if let Some(a) = self.ai_state.armies.get(w).and_then(|x| {
             x.list
                 .iter()
                 .position(|a| a.valid && a.group.pool == Some(s))
@@ -464,7 +468,7 @@ impl Sim {
                 .collect()
         };
         let w = who as usize;
-        self.armies[w]
+        self.ai_state.armies[w]
             .list
             .iter()
             .filter(|a| a.valid && a.group.pool == Some(s))
@@ -496,7 +500,8 @@ impl Sim {
         let who = self.units[u].owner;
         let w = who as usize;
         let armies = || {
-            self.armies
+            self.ai_state
+                .armies
                 .get(w)
                 .into_iter()
                 .flat_map(|x| x.list.iter().enumerate())
@@ -540,7 +545,7 @@ impl Sim {
 
     pub(crate) fn seat_list(&self, seat: Seat) -> &Vec<usize> {
         match seat {
-            Seat::Army(w, a) => &self.armies[w as usize].list[a].units,
+            Seat::Army(w, a) => &self.ai_state.armies[w as usize].list[a].units,
             Seat::Pushed(i) => &self.orders.pushed[i].list,
         }
     }
@@ -555,7 +560,7 @@ impl Sim {
     pub(crate) fn seat_parts(&mut self, seat: Seat) -> (&mut Vec<usize>, &mut GroupState) {
         match seat {
             Seat::Army(w, a) => {
-                let x = &mut self.armies[w as usize].list[a];
+                let x = &mut self.ai_state.armies[w as usize].list[a];
                 (&mut x.units, &mut x.group)
             }
             Seat::Pushed(i) => {
@@ -939,6 +944,7 @@ impl Sim {
     /// Does slot `s` of `who` hold a building group now?
     pub(super) fn pool_is_building_group(&self, who: Player, s: u8) -> bool {
         let army = self
+            .ai_state
             .armies
             .get(who as usize)
             .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(s)));
@@ -971,7 +977,7 @@ impl Sim {
         let last = self.orders.last_group[w];
         let equal = self.orders.pushed.iter().any(|x| {
             x.who == who && x.state.pool == Some(last) && x.builds == list && x.list.is_empty()
-        }) && !self.armies[w]
+        }) && !self.ai_state.armies[w]
             .list
             .iter()
             .any(|a| a.valid && a.group.pool == Some(last));
@@ -1009,6 +1015,7 @@ impl Sim {
     pub fn pool_state(&self, who: Player, s: u8) -> Option<&GroupState> {
         let w = who as usize;
         let army = self
+            .ai_state
             .armies
             .get(w)
             .into_iter()
@@ -1033,6 +1040,7 @@ impl Sim {
         let names = |l: &[usize]| l.iter().map(|&u| self.units[u].index).collect();
         let w = who as usize;
         let armies = self
+            .ai_state
             .armies
             .get(w)
             .into_iter()
@@ -1055,6 +1063,7 @@ impl Sim {
     pub fn pool_list(&self, who: Player, s: u8) -> Vec<i16> {
         let w = who as usize;
         let army = self
+            .ai_state
             .armies
             .get(w)
             .into_iter()

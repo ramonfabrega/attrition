@@ -375,10 +375,10 @@ impl Sim {
     ) -> (i32, i32, Option<Pos>) {
         let (mut best, mut best_sp, mut best_cand) = (0, 0, None);
         let transport = self.transport_level(who) as i32 != 0;
-        let mut i = self.ai[who as usize].oil_patches.len();
+        let mut i = self.ai_state.ai[who as usize].oil_patches.len();
         while i > 0 {
             i -= 1;
-            let gi = self.ai[who as usize].oil_patches[i];
+            let gi = self.ai_state.ai[who as usize].oil_patches[i];
             let g = self.world.goods()[gi];
             if !g.alive {
                 continue;
@@ -389,7 +389,7 @@ impl Sim {
                     continue;
                 }
             } else if self.world.owner(c).player() != Some(who) {
-                self.ai[who as usize].oil_patches.remove(i);
+                self.ai_state.ai[who as usize].oil_patches.remove(i);
                 continue;
             }
             let mask = self
@@ -537,7 +537,7 @@ impl Sim {
         }
         let (xs, ys) = (self.world.width(), self.world.height());
         let big = bt.x_size.max(bt.y_size);
-        let unlimited = self.lobby.resources_unlimited();
+        let unlimited = self.ai_state.lobby.resources_unlimited();
         let mut step = 1;
         let mut best = oil_best;
         let mut best_sp = oil_sp;
@@ -742,7 +742,11 @@ impl Sim {
                     let o2 = self.world.second(cell).player();
                     match o2 {
                         Some(p) if p != who && !self.is_ally(who, p) => {
-                            score *= if self.lobby.team_style == 2 { 4 } else { 8 };
+                            score *= if self.ai_state.lobby.team_style == 2 {
+                                4
+                            } else {
+                                8
+                            };
                         }
                         _ => score /= 2,
                     }
@@ -757,7 +761,7 @@ impl Sim {
                     // weighs the distance and danger terms ten to one
                     // against `0xff − val`, which is added after it.
                     let bordering = city.is_some_and(|c| {
-                        self.ai[who as usize]
+                        self.ai_state.ai[who as usize]
                             .city_ai
                             .get(c)
                             .is_some_and(|r| r.bordering != 0)
@@ -1041,7 +1045,7 @@ impl Sim {
         // frame 2 shows `gatherers 5 → 4` for exactly this farm.
         let w = who as usize;
         if let Some(c) = city {
-            let leader = &mut self.ai[w];
+            let leader = &mut self.ai_state.ai[w];
             if leader.city_ai.len() <= c {
                 leader.city_ai.resize(c + 1, crate::ai::CityAi::default());
             }
@@ -1053,7 +1057,7 @@ impl Sim {
             }
         }
         if frame != 0 {
-            let leader = &mut self.ai[w];
+            let leader = &mut self.ai_state.ai[w];
             let reg = areg.map(|r| r as usize);
             let gatherer = builder.is_some_and(|(_, k)| k == index::GATHER);
             if gatherer {

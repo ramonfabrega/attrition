@@ -25,7 +25,7 @@ fn ai_scout() -> (Sim, usize) {
 fn an_ai_scout_throws_the_special_coin_from_difficulty_two() {
     let (mut sim, scout) = ai_scout();
     for d in 0..=5 {
-        sim.lobby.difficulty = d;
+        sim.ai_state.lobby.difficulty = d;
         let mut probe = sim.rng;
         let coin = probe.roll();
         let before = sim.rng;
@@ -44,7 +44,7 @@ fn an_ai_scout_throws_the_special_coin_from_difficulty_two() {
 fn ai_general() -> (Sim, usize, [u32; 2]) {
     use crate::orders::{MoveKind, QueuePos, SpellType, spell};
     let (mut s, _) = ai_scout();
-    s.lobby.difficulty = 5;
+    s.ai_state.lobby.difficulty = 5;
     let t = s.add_unit_type(crate::UnitType::default());
     s.tables.unit_types[t].cols.unit_flags2 = uflags2::FLAG2_GENERAL;
     s.tables.unit_types[t].mana = 1000;
@@ -297,7 +297,7 @@ fn a_general_standing_draws_nothing_and_a_still_one_makes_decoys() {
 #[test]
 fn a_human_s_scout_and_a_decoy_throw_nothing() {
     let (mut sim, scout) = ai_scout();
-    sim.lobby.difficulty = 5;
+    sim.ai_state.lobby.difficulty = 5;
     sim.units[scout].decoy = true;
     let before = sim.rng;
     assert!(!sim.think_spellcaster(scout));

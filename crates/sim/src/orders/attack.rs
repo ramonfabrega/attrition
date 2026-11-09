@@ -1576,7 +1576,7 @@ impl Sim {
         }
         if let Some(slot) = self.army_of(u) {
             let (at, to) = (self.units[u].pos, self.buildings[b].pos);
-            let a = &mut self.armies[who as usize].list[slot];
+            let a = &mut self.ai_state.armies[who as usize].list[slot];
             a.target = Some(t);
             a.muster = at.cell();
             a.muster_angle = find_angle(to.x - at.x, to.y - at.y);

@@ -298,7 +298,7 @@ impl crate::Sim {
             self.type_stance_type(ty),
             self.leader_options(who),
             human,
-            self.lobby.resources_unlimited(),
+            self.ai_state.lobby.resources_unlimited(),
         )
     }
 
@@ -324,7 +324,7 @@ impl crate::Sim {
             build_stance_type(&self.tables.build_types, t),
             self.leader_options(bl.owner),
             human,
-            self.lobby.resources_unlimited(),
+            self.ai_state.lobby.resources_unlimited(),
         )
     }
 

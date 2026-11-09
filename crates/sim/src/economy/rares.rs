@@ -441,7 +441,7 @@ impl Sim {
     /// `ArrayBase<int>::add` guarded by the linear scan both writers make
     /// first: the patch joins the leader's list once.
     pub(crate) fn add_oil_patch(&mut self, who: Player, gi: usize) {
-        let list = &mut self.ai[who as usize].oil_patches;
+        let list = &mut self.ai_state.ai[who as usize].oil_patches;
         if !list.contains(&gi) {
             list.push(gi);
         }
@@ -619,13 +619,13 @@ impl Sim {
             {
                 continue;
             }
-            if self.ai[w].new_rares.contains(&gi) {
+            if self.ai_state.ai[w].new_rares.contains(&gi) {
                 continue;
             }
             if self.type_avail(w as Player, ty) == crate::tech::NOT_AVAILABLE {
                 continue;
             }
-            self.ai[w].new_rares.push(gi);
+            self.ai_state.ai[w].new_rares.push(gi);
         }
     }
 
@@ -912,13 +912,15 @@ impl RevealFogView for SimRevealFog<'_> {
         (c.x, c.y)
     }
     fn oil_count(&mut self, who: i32) -> i32 {
-        self.sim.ai[who as usize].oil_patches.len() as i32
+        self.sim.ai_state.ai[who as usize].oil_patches.len() as i32
     }
     fn oil_at(&mut self, who: i32, k: i32) -> i32 {
-        self.sim.ai[who as usize].oil_patches[k as usize] as i32
+        self.sim.ai_state.ai[who as usize].oil_patches[k as usize] as i32
     }
     fn oil_add(&mut self, who: i32, gi: i32) {
-        self.sim.ai[who as usize].oil_patches.push(gi as usize);
+        self.sim.ai_state.ai[who as usize]
+            .oil_patches
+            .push(gi as usize);
     }
     fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32 {
         let c = crate::world::Cell::new(cx, cy);

@@ -567,7 +567,10 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
         build_sim(&loaded, &init, Tuning::RON)
     });
     built.sim.trace_phases = true;
-    assert_ne!(built.sim.lobby.reveal_map, 0, "the lobby is REVEAL_MAP 1");
+    assert_ne!(
+        built.sim.ai_state.lobby.reveal_map, 0,
+        "the lobby is REVEAL_MAP 1"
+    );
     // The frame each pair's met bit lands on: the tick that processes it.
     let mut first = [[None::<i64>; 3]; 3];
     while built.sim.frame < 751 {
@@ -611,7 +614,7 @@ fn gunpowder_melee_s_strike_meets_before_the_census() {
         "army 2/0 does not march on 760"
     );
     assert_eq!(*ours, tr.labels(WORD), "760's whole draw sequence");
-    let a = &built.sim.armies[2].list[0];
+    let a = &built.sim.ai_state.armies[2].list[0];
     assert_eq!(
         a.status & sim::army::status::MARCHING,
         0,

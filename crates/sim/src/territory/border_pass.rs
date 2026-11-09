@@ -68,7 +68,7 @@ impl Sim {
     /// which every land region's first call makes (its resume index at 0)
     /// **before** its budget test, so the last region to start wins.
     fn clear_bordering(&mut self) {
-        for leader in &mut self.ai {
+        for leader in &mut self.ai_state.ai {
             for c in &mut leader.city_ai {
                 c.bordering = 0;
             }
@@ -96,7 +96,7 @@ impl Sim {
         let bits = (1i32 << (p & 31)) | (1i32 << (q & 31));
         let at = self.cities_state.cities[c].pos.cell();
         let near = (cell.x - at.x).abs() + (cell.y - at.y).abs() < 5;
-        if let Some(a) = self.ai.get_mut(owner) {
+        if let Some(a) = self.ai_state.ai.get_mut(owner) {
             // A human's leader never sweeps, so its table starts short.
             if a.city_ai.len() <= c {
                 a.city_ai.resize(c + 1, crate::ai::CityAi::default());
@@ -123,7 +123,7 @@ impl Sim {
     /// who=1 on tick 5575, run1241). The block's third write, the
     /// leader's `ushort` at `+0x145e + 2r`, has no field in this crate.
     fn zero_region_rares(&mut self, r: u16) {
-        for leader in &mut self.ai {
+        for leader in &mut self.ai_state.ai {
             if let Some(slot) = leader.census.reg_known_rares.get_mut(usize::from(r)) {
                 *slot = 0;
             }

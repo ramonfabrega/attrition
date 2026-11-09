@@ -771,20 +771,20 @@ fn the_lobbys_resource_row_prices_the_opening_stockpile() {
         "row 1: as written"
     );
 
-    sim.lobby.starting_resources = 7;
-    sim.lobby.starting_resources_row = (100, 100);
+    sim.ai_state.lobby.starting_resources = 7;
+    sim.ai_state.lobby.starting_resources_row = (100, 100);
     assert_eq!(
         paid(&mut sim),
         [20000, 20000, 20000, 10000, 20000, 20000],
         "Deathmatch"
     );
 
-    sim.lobby.starting_resources = 0;
-    sim.lobby.starting_resources_row = (0, 0);
+    sim.ai_state.lobby.starting_resources = 0;
+    sim.ai_state.lobby.starting_resources_row = (0, 0);
     assert_eq!(paid(&mut sim), [100, 100, 50, 50, 50, 50], "Low halves");
 
-    sim.lobby.starting_resources = 5;
-    sim.lobby.starting_resources_row = (10, 10);
+    sim.ai_state.lobby.starting_resources = 5;
+    sim.ai_state.lobby.starting_resources_row = (10, 10);
     assert_eq!(
         paid(&mut sim),
         [2000, 2000, 1000, 1000, 1000, 1000],

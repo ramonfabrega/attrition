@@ -274,7 +274,7 @@ fn the_deploy_waits_out_its_job_time_and_then_clears_the_packed_bit() {
 fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
     let (mut s, u) = fish_sim();
     s.cities_state.nation[1].human = true;
-    s.ai_off = true;
+    s.ai_state.ai_off = true;
     let at = s.units[u].pos;
     s.world.add_good(crate::world::Good {
         pos: at,
@@ -295,7 +295,7 @@ fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
     // `ai off` loses the tail, `think_fish` with it.
     let (mut s, u) = fish_sim();
     s.cities_state.nation[1].human = true;
-    s.ai_off = true;
+    s.ai_state.ai_off = true;
     s.units[u].combat.packed = false;
     s.work(u, 0);
     assert!(
@@ -311,14 +311,14 @@ fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
 fn a_human_s_packed_boat_with_no_fish_bumps_its_idle() {
     let (mut s, u) = fish_sim();
     s.cities_state.nation[1].human = true;
-    s.ai_off = true;
+    s.ai_state.ai_off = true;
     s.units[u].idle = 0;
     s.work(u, 0);
     assert!(s.units[u].orders.is_empty(), "no deploy without a good");
     let once = {
         let (mut s2, u2) = fish_sim();
         s2.cities_state.nation[1].human = true;
-        s2.ai_off = true;
+        s2.ai_state.ai_off = true;
         s2.units[u2].combat.packed = false;
         s2.units[u2].idle = 0;
         s2.work(u2, 0);

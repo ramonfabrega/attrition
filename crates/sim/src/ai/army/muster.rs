@@ -420,11 +420,11 @@ impl<'a> SimMuster<'a> {
     }
 
     fn army(&self) -> &Army {
-        &self.sim.armies[self.who as usize].list[self.slot]
+        &self.sim.ai_state.armies[self.who as usize].list[self.slot]
     }
 
     fn army_mut(&mut self) -> &mut Army {
-        &mut self.sim.armies[self.who as usize].list[self.slot]
+        &mut self.sim.ai_state.armies[self.who as usize].list[self.slot]
     }
 
     fn found_at(&mut self, p: Cell) -> i32 {
@@ -580,13 +580,13 @@ impl MusterView for SimMuster<'_> {
     }
 
     fn armies(&self) -> i32 {
-        self.sim.armies[self.who as usize].list.len() as i32
+        self.sim.ai_state.armies[self.who as usize].list.len() as i32
     }
     fn army_valid(&self, j: i32) -> bool {
-        self.sim.armies[self.who as usize].list[j as usize].valid
+        self.sim.ai_state.armies[self.who as usize].list[j as usize].valid
     }
     fn army_muster(&self, j: i32) -> (i32, i32) {
-        let m = self.sim.armies[self.who as usize].list[j as usize].muster;
+        let m = self.sim.ai_state.armies[self.who as usize].list[j as usize].muster;
         (m.x, m.y)
     }
 

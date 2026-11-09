@@ -165,7 +165,7 @@ impl Sim {
             if self.holds_unit_bit(owner, 0x43) {
                 los += 2;
             }
-            if self.holds_unit_bit(owner, 0x44) || self.lobby.starting_town == 0 {
+            if self.holds_unit_bit(owner, 0x44) || self.ai_state.lobby.starting_town == 0 {
                 los += 2;
             }
         }

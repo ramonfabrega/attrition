@@ -990,8 +990,8 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     let m = Modes::default();
     let from = Pos::new(0x180, 0x180);
     let to = Pos::new(0x180 + 0x300, 0x180);
-    sim.lobby.rush_rules = 10;
-    sim.lobby.rush_minutes = 5;
+    sim.ai_state.lobby.rush_rules = 10;
+    sim.ai_state.lobby.rush_minutes = 5;
     sim.frame = 4499;
     let cost = |sim: &Sim| sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 0).0;
     assert_eq!(cost(&sim), 32, "unowned");
@@ -1010,7 +1010,7 @@ fn the_no_rush_timer_charges_another_leader_s_cell_during_the_peace() {
     sim.frame = 4500;
     assert_eq!(cost(&sim), 32, "the peace is over");
     sim.frame = 0;
-    sim.lobby.rush_rules = 0;
+    sim.ai_state.lobby.rush_rules = 0;
     assert_eq!(cost(&sim), 32, "no rush rules");
 }
 
