@@ -3154,12 +3154,8 @@ impl Sim {
     }
 
     /// `UnitData::is_flying_high@0060a310`: a fixed-wing unit on the map that
-    /// is not low.
-    ///
-    /// SEAM: its caller is `valid_target`'s air ladder (`docs/COMBAT.md`
-    /// §61), which still reads every plane as high; run404's Infantry
-    /// never weighed a low Bomber, so no capture parts on it.
-    #[allow(dead_code)]
+    /// is not low. Its caller is `valid_target`'s air ladder
+    /// (`docs/COMBAT.md` §61, item 4007).
     pub(crate) fn is_flying_high(&self, u: usize) -> bool {
         let unit = &self.units[u];
         flying_high_by(
