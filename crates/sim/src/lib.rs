@@ -36,6 +36,7 @@
 //! only add rounding the original does not have.
 
 pub mod groups;
+pub mod ids;
 pub use self::groups::{action_gather_view, action_spell_view};
 pub mod ai;
 pub use self::ai::ai_build;

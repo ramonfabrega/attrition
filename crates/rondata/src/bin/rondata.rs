@@ -1010,6 +1010,28 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         ),
     );
 
+    // And each named nation id (`sim::ids::tribe`), which is what
+    // `has_tribe_bonus(n)` is written with: the list above being in order
+    // says nothing about a constant that names the wrong index.
+    let wrong: Vec<String> = sim::ids::tribe::NAMED_TRIBES
+        .iter()
+        .filter(|(name, i)| roster.get(*i).map(String::as_str) != Some(*name))
+        .map(|(name, i)| format!("{name} is {i}"))
+        .collect();
+    failures += check(
+        "every named nation id is its roster index",
+        !roster.is_empty() && wrong.is_empty(),
+        &format!(
+            "{} named{}",
+            sim::ids::tribe::NAMED_TRIBES.len(),
+            if wrong.is_empty() {
+                String::new()
+            } else {
+                format!("; {}", join(wrong.iter().cloned()))
+            }
+        ),
+    );
+
     // And each nation's `<UNIT_CONTINENT>`, which is the art style
     // `GraphicPieces::get_unit_gpiece` multiplies by `num_unit_pieces` —
     // a simulation input, because the piece decides the packet and the

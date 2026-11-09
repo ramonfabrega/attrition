@@ -103,38 +103,8 @@ pub mod ty {
 }
 
 /// The roster indices `Build::activate`'s free-unit block passes
-/// `has_tribe_bonus`, in the order the block tests them.
-pub(crate) mod power {
-    pub const AZTECS: usize = 0;
-    pub const NUBIANS: usize = 4;
-    pub const ROMANS: usize = 6;
-    pub const TURKS: usize = 8;
-    pub const SPANISH: usize = 9;
-    pub const FRENCH: usize = 10;
-    pub const BRITISH: usize = 11;
-    pub const GERMANS: usize = 12;
-    pub const KOREANS: usize = 16;
-    pub const MONGOLS: usize = 17;
-    pub const IROQUOIS: usize = 18;
-    pub const AMERICANS: usize = 20;
-    pub const DUTCH: usize = 22;
-    /// Not `Build::activate`'s: the Greeks' research arm is
-    /// `ObjectData::train_time`'s (`Sim::greek_research`).
-    pub const GREEKS: usize = 5;
-    /// The Japanese' Farm arm is `get_cost`'s (`Sim::japanese_farm_discount`).
-    pub const JAPANESE: usize = 15;
-    /// The Indians' building ramp is `get_cost`'s (`Sim::indian_ramp`).
-    pub const INDIANS: usize = 21;
-    /// The Egyptians' Farm wealth is `BuildTypeData::calc_gather`'s
-    /// (`Sim::site_of`, item 3332).
-    pub const EGYPTIANS: usize = 7;
-    /// The Inca's wealth per miner is `BuildTypeData::calc_gather`'s
-    /// (`Sim::site_of`, item 3360).
-    pub const INCA: usize = 2;
-    /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
-    /// (`Sim::persian_market_caravan`).
-    pub const PERSIANS: usize = 23;
-}
+/// `has_tribe_bonus` — [`crate::ids::tribe`] under the name its readers use.
+pub(crate) use crate::ids::tribe as power;
 
 /// The nation roster, in the order `rules.xml`'s `TRIBES` block lists it.
 ///
