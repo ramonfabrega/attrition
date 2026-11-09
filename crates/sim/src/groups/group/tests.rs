@@ -725,12 +725,18 @@ fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
     let mounted = typed(&mut s, mask::MOUNTED, 0);
     let mech = typed(&mut s, mask::VEHICLE, 0);
     let human = s.nation[1].human;
-    assert_eq!(type_cat(&s.unit_types[mech], mech, human), cat::FORM_CAT_MECH);
+    assert_eq!(
+        type_cat(&s.unit_types[mech], mech, human),
+        cat::FORM_CAT_MECH
+    );
     assert_eq!(
         type_cat(&s.unit_types[mounted], mounted, human),
         cat::FORM_CAT_MOUNTED
     );
-    assert_eq!(type_cat(&s.unit_types[foot], foot, human), cat::FORM_CAT_FOOT);
+    assert_eq!(
+        type_cat(&s.unit_types[foot], foot, human),
+        cat::FORM_CAT_FOOT
+    );
     assert_eq!(
         type_cat(&s.unit_types[archer], archer, human),
         cat::FORM_CAT_FOOT_RANGED

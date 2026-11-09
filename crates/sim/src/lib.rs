@@ -5003,7 +5003,9 @@ impl Sim {
         // Airbase's pad. Run834's Market `1/2019` holds a done Caravan at
         // 17304 from 2995 to the game's end with `caras` 8 at the limit 8.
         let caravan_full = researched
-            && self.unit_types[ty].cols.flag2(ai_load::uflags2::FLAG2_CARAVAN)
+            && self.unit_types[ty]
+                .cols
+                .flag2(ai_load::uflags2::FLAG2_CARAVAN)
             && self.unit_types[ty]
                 .tree
                 .is_some_and(|t| self.line_count(who, t, false) >= self.caravan_cap(who));
@@ -6584,7 +6586,9 @@ impl Sim {
         // `scouts` (`+0x988`) is the third arm of the same chain —
         // `role & 0x10` on a type neither peasant nor scholar — and no
         // sweep recounts it (`docs/AI.md` §219).
-        let scout = self.unit_types[ty].cols.is(crate::ai_load::role::ROLE_SCOUT);
+        let scout = self.unit_types[ty]
+            .cols
+            .is(crate::ai_load::role::ROLE_SCOUT);
         let census = &mut self.ai[who as usize].census;
         match worker {
             crate::orders::Worker::Citizen => census.peasants += delta,

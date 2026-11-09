@@ -18,7 +18,10 @@ fn the_citizen_s_word_is_the_original_s() {
         ..facts()
     });
     assert_eq!(r, 0x40300);
-    assert_eq!(r, role::ROLE_LAND | role::ROLE_CITIZEN | role::ROLE_CIVILIAN);
+    assert_eq!(
+        r,
+        role::ROLE_LAND | role::ROLE_CITIZEN | role::ROLE_CIVILIAN
+    );
 }
 
 #[test]
@@ -129,7 +132,11 @@ fn small_tree() -> (TechTree, Vec<UnitType>, Vec<BuildType>) {
     let unit = UnitType {
         tree: Some(unit_id),
         cols: UnitCols {
-            role: role::ROLE_LAND | role::ROLE_MILITARY | role::ROLE_FOOT | role::ROLE_INFANTRY | role::ROLE_MELEE,
+            role: role::ROLE_LAND
+                | role::ROLE_MILITARY
+                | role::ROLE_FOOT
+                | role::ROLE_INFANTRY
+                | role::ROLE_MELEE,
             ..UnitCols::default()
         },
         ..UnitType::default()

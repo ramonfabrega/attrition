@@ -1851,9 +1851,11 @@ impl Sim {
                 if on_map_only && !self.units[u].on_map {
                     continue;
                 }
-                let key = self.units[u].ty.map_or(crate::form::cat::FORM_CAT_NUM, |t| {
-                    crate::form::type_cat(&self.unit_types[t], t, human)
-                });
+                let key = self.units[u]
+                    .ty
+                    .map_or(crate::form::cat::FORM_CAT_NUM, |t| {
+                        crate::form::type_cat(&self.unit_types[t], t, human)
+                    });
                 if best.is_none_or(|(k, _, _)| key < k) {
                     best = Some((key, u, i));
                 }
@@ -2896,10 +2898,11 @@ impl Sim {
             // store at `00705749` (`+0xab`) is outside the test, so a
             // citizen carries the group's `form_mod` like every other
             // member (run157's `1/1` on 990, §24).
-            if !self.units[u]
-                .ty
-                .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::ROLE_CITIZEN))
-            {
+            if !self.units[u].ty.is_some_and(|t| {
+                self.unit_types[t]
+                    .cols
+                    .is(crate::ai_load::role::ROLE_CITIZEN)
+            }) {
                 self.units[u].form = form as i8;
             }
             self.units[u].form_width = width as i8;

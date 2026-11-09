@@ -948,7 +948,9 @@ impl Sim {
         // 9. (`docs/AI.md` §2.7's "1 + count" counts the other nine.)
         for i in 0..SITE_SLOTS {
             let v = self.ai[w].sites[i].val;
-            let rank = (0..SITE_SLOTS).filter(|j| self.ai[w].sites[*j].val <= v).count();
+            let rank = (0..SITE_SLOTS)
+                .filter(|j| self.ai[w].sites[*j].val <= v)
+                .count();
             self.ai[w].sites[i].rank = rank as i32;
         }
     }

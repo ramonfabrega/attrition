@@ -203,8 +203,14 @@ fn the_rank_stack_puts_a_later_category_behind_an_earlier_one() {
     let mut s = sim();
     let foot = ty(&mut s, mask::FOOT, 100, 100);
     let ship = ty(&mut s, mask::NAVAL, 200, 200);
-    assert_eq!(type_cat(&s.unit_types[foot], foot, false), cat::FORM_CAT_FOOT);
-    assert_eq!(type_cat(&s.unit_types[ship], ship, false), cat::FORM_CAT_ARTILLERY);
+    assert_eq!(
+        type_cat(&s.unit_types[foot], foot, false),
+        cat::FORM_CAT_FOOT
+    );
+    assert_eq!(
+        type_cat(&s.unit_types[ship], ship, false),
+        cat::FORM_CAT_ARTILLERY
+    );
     let a = spawn(&mut s, foot, Pos::new(0x8000, 0x8000));
     let b = spawn(&mut s, foot, Pos::new(0x8100, 0x8000));
     let c = spawn(&mut s, ship, Pos::new(0x8200, 0x8000));
@@ -219,7 +225,14 @@ fn the_rank_stack_puts_a_later_category_behind_an_earlier_one() {
         false,
         &[],
     );
-    assert_eq!(f.category, [cat::FORM_CAT_FOOT, cat::FORM_CAT_FOOT, cat::FORM_CAT_ARTILLERY]);
+    assert_eq!(
+        f.category,
+        [
+            cat::FORM_CAT_FOOT,
+            cat::FORM_CAT_FOOT,
+            cat::FORM_CAT_ARTILLERY
+        ]
+    );
     assert_eq!(f.num_category[cat::FORM_CAT_FOOT], 2);
     assert_eq!(f.num_category[cat::FORM_CAT_ARTILLERY], 1);
     assert_eq!(
@@ -468,7 +481,11 @@ fn a_follower_hangs_off_the_last_captain_alternating_sides() {
     );
     // Only the captains are categorised; the followers keep the memset
     // zero there and are placed by the arm under test.
-    assert_eq!(f.num_category[cat::FORM_CAT_FOOT], 2, "two captains, six figures");
+    assert_eq!(
+        f.num_category[cat::FORM_CAT_FOOT],
+        2,
+        "two captains, six figures"
+    );
     let off = quantised(&f);
     for squad in 0..2usize {
         let (c, a, b) = (off[squad * 3], off[squad * 3 + 1], off[squad * 3 + 2]);
@@ -578,16 +595,37 @@ fn type_cat_returns_eight_of_its_eighteen_and_the_player_flag_moves_one() {
     let mech = ty(&mut s, mask::VEHICLE, 100, 100);
     let flak = ty(&mut s, mask::ANTI_AIR, 100, 100);
     let horse = ty(&mut s, mask::MOUNTED, 100, 100);
-    assert_eq!(type_cat(&s.unit_types[civ], civ, false), cat::FORM_CAT_CIVILIAN);
-    assert_eq!(type_cat(&s.unit_types[foot], foot, false), cat::FORM_CAT_FOOT);
-    assert_eq!(type_cat(&s.unit_types[ship], ship, false), cat::FORM_CAT_ARTILLERY);
-    assert_eq!(type_cat(&s.unit_types[mech], mech, false), cat::FORM_CAT_MECH);
-    assert_eq!(type_cat(&s.unit_types[flak], flak, false), cat::FORM_CAT_ARTILLERY);
-    assert_eq!(type_cat(&s.unit_types[horse], horse, false), cat::FORM_CAT_MOUNTED);
+    assert_eq!(
+        type_cat(&s.unit_types[civ], civ, false),
+        cat::FORM_CAT_CIVILIAN
+    );
+    assert_eq!(
+        type_cat(&s.unit_types[foot], foot, false),
+        cat::FORM_CAT_FOOT
+    );
+    assert_eq!(
+        type_cat(&s.unit_types[ship], ship, false),
+        cat::FORM_CAT_ARTILLERY
+    );
+    assert_eq!(
+        type_cat(&s.unit_types[mech], mech, false),
+        cat::FORM_CAT_MECH
+    );
+    assert_eq!(
+        type_cat(&s.unit_types[flak], flak, false),
+        cat::FORM_CAT_ARTILLERY
+    );
+    assert_eq!(
+        type_cat(&s.unit_types[horse], horse, false),
+        cat::FORM_CAT_MOUNTED
+    );
     // `max_range != 0` is the ranged discriminator for both pairs.
     s.unit_types[foot].combat.max_range = 6;
     s.unit_types[horse].combat.max_range = 6;
-    assert_eq!(type_cat(&s.unit_types[foot], foot, false), cat::FORM_CAT_FOOT_RANGED);
+    assert_eq!(
+        type_cat(&s.unit_types[foot], foot, false),
+        cat::FORM_CAT_FOOT_RANGED
+    );
     assert_eq!(
         type_cat(&s.unit_types[horse], horse, false),
         cat::FORM_CAT_MOUNTED,

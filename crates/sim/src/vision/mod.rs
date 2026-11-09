@@ -23,11 +23,11 @@ use crate::movement::{cos_component, sin_component};
 use crate::world::{Pos, vector_dist};
 use std::sync::OnceLock;
 
+/// A fog cell in position units: half a world cell.
+pub use crate::ids::scale::UNITS_PER_FOG;
 /// A tile in position units — `TCoord`'s scale, and what `<LOS>` is measured
 /// in.
 use crate::ids::scale::UNITS_PER_TILE;
-/// A fog cell in position units: half a world cell.
-pub use crate::ids::scale::UNITS_PER_FOG;
 /// `Object::update_seen`'s cap on the radius, in fog cells.
 const MAX_RADIUS: i32 = 0x40;
 /// `ring_init`'s last ring, and the ring branch's own clamp.

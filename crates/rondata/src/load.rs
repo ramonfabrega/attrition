@@ -1369,7 +1369,11 @@ pub fn load_tables(
         set(&mut roles, role::IS_MERCHANT, merchant);
         set(&mut roles, role::IS_SUPPLY, is_supply);
         set(&mut roles, role::IS_CARAVAN, is_caravan);
-        set(&mut roles, role::IS_IMMORTALS, is_named_unit(i, "Immortals"));
+        set(
+            &mut roles,
+            role::IS_IMMORTALS,
+            is_named_unit(i, "Immortals"),
+        );
         set(
             &mut roles,
             role::IS_PATROLBOAT,
@@ -2553,11 +2557,7 @@ impl UnitCols {
         let support = l
             .text("SUPPORT")
             .and_then(Cost::parse)
-            .map(|c| {
-                c.0.into_iter()
-                    .map(|(res, n)| (res, n))
-                    .collect()
-            })
+            .map(|c| c.0.into_iter().map(|(res, n)| (res, n)).collect())
             .unwrap_or_default();
         let job_extra_time = l
             .text("JOB_EXTRA_TIME")

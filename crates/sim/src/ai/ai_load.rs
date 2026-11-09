@@ -267,8 +267,10 @@ pub fn determine_roles(f: &RoleFacts) -> u32 {
     if f.carry != 0 {
         r |= role::ROLE_CARRY;
     }
-    let military =
-        f.attack != 0 && f.cat != cat::UNIT_CAT_CIVILIAN && f.cat != cat::UNIT_CAT_COMMAND && r & role::ROLE_CITIZEN == 0;
+    let military = f.attack != 0
+        && f.cat != cat::UNIT_CAT_CIVILIAN
+        && f.cat != cat::UNIT_CAT_COMMAND
+        && r & role::ROLE_CITIZEN == 0;
     if !military {
         return r | role::ROLE_CIVILIAN;
     }
@@ -345,7 +347,14 @@ pub fn flags2(f: &Flags2Facts) -> (u32, u32) {
     if f.machinegun || f.flamethrower {
         v |= uflags2::EMPLACED;
     }
-    (v, if f.transport { uflags::FLAG_TRANSPORT } else { 0 })
+    (
+        v,
+        if f.transport {
+            uflags::FLAG_TRANSPORT
+        } else {
+            0
+        },
+    )
 }
 
 /// `UnitType::init_spellcasters@0061aae0`, over every type in id order.

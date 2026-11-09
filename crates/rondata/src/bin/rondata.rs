@@ -1071,7 +1071,11 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     // record at `id - 0x32` and each building the `buildingrules.xml` one
     // at `id - 0x19e`.
     let type_name = |id: usize| -> Option<&str> {
-        let (table, base) = if id < 0x19e { (&units, 0x32) } else { (&buildings, 0x19e) };
+        let (table, base) = if id < 0x19e {
+            (&units, 0x32)
+        } else {
+            (&buildings, 0x19e)
+        };
         table.records.get(id.checked_sub(base)?)?.text("NAME")
     };
     let wrong: Vec<String> = sim::ids::ty::NAMED_TYPES

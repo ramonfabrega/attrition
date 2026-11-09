@@ -5583,7 +5583,9 @@ impl Sim {
                         && let crate::combat::Obj::Building(_) = t
                     {
                         let siege = self.units[u].ty.is_some_and(|ty| {
-                            self.unit_types[ty].cols.flag(crate::ai_load::uflags::FLAG_SIEGE)
+                            self.unit_types[ty]
+                                .cols
+                                .flag(crate::ai_load::uflags::FLAG_SIEGE)
                         });
                         if !(siege && self.ai_driven(self.units[u].owner))
                             && self.is_in_range(me, t)
@@ -5680,7 +5682,9 @@ impl Sim {
                             && self.units[u].phase(frame) % 16 == 0
                         {
                             let siege = self.units[u].ty.is_some_and(|ty| {
-                                self.unit_types[ty].cols.flag(crate::ai_load::uflags::FLAG_SIEGE)
+                                self.unit_types[ty]
+                                    .cols
+                                    .flag(crate::ai_load::uflags::FLAG_SIEGE)
                             });
                             let word = if siege {
                                 crate::fight::search::BUILDINGS
@@ -5759,7 +5763,8 @@ impl Sim {
                         (self.units[u].pos.y - mo.dest.y).abs(),
                     );
                     let transport = self.units[u].ty.is_some_and(|t| {
-                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT != 0
+                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::FLAG_TRANSPORT
+                            != 0
                     });
                     if d <= 0x480 && !transport {
                         self.repath(u);

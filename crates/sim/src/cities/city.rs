@@ -1651,7 +1651,9 @@ impl Sim {
         // region, and the copy re-walks them on the next region pass
         // (`crate::gather::Sim::gather_region_building`, `docs/ECONOMY.md` §17).
         let t = &self.build_types[ty];
-        if t.has(build::flags::GATHERER) && !t.has(build::flags::FLAT) && t.ident != Ident::University
+        if t.has(build::flags::GATHERER)
+            && !t.has(build::flags::FLAT)
+            && t.ident != Ident::University
         {
             self.find_gather_tiles(b);
         } else {

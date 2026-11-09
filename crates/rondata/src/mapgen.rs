@@ -621,7 +621,9 @@ pub fn resource_inputs(
                 let (ty, kind) = match good_key(ty) {
                     Some(g) => (g, 0),
                     None if ty.eq_ignore_ascii_case("Random") => (NO_TYPE, 1),
-                    None if ty.len() >= 5 && ty[..5].eq_ignore_ascii_case("Goody") => (GOODY_TYPE, 0),
+                    None if ty.len() >= 5 && ty[..5].eq_ignore_ascii_case("Goody") => {
+                        (GOODY_TYPE, 0)
+                    }
                     None if ty.eq_ignore_ascii_case("Early") => (NO_TYPE, 2),
                     None if ty.eq_ignore_ascii_case("Late") => (NO_TYPE, 3),
                     None => continue,

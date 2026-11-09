@@ -48,12 +48,18 @@ fn get_stance_type_tests_military_before_everything_else() {
     assert_eq!(stance_type(0, 0, 0x36), StanceType::None);
     assert_eq!(stance_type(0, 0, 0x31), StanceType::None);
     // Military wins over the worker indices, though nothing is both.
-    assert_eq!(stance_type(role::ROLE_MILITARY, 0, 0x32), StanceType::Combat);
+    assert_eq!(
+        stance_type(role::ROLE_MILITARY, 0, 0x32),
+        StanceType::Combat
+    );
     assert_eq!(
         stance_type(role::ROLE_MILITARY, uflags2::PACKS, 0x60),
         StanceType::Packer
     );
-    assert_eq!(stance_type(role::ROLE_MILITARY, 0, 0x60), StanceType::Combat);
+    assert_eq!(
+        stance_type(role::ROLE_MILITARY, 0, 0x60),
+        StanceType::Combat
+    );
     // `(unit_flags2 & 6) == 2` — a caster that does not also pack. A
     // civilian type that packs is neither, because the packer arm is
     // military-only.

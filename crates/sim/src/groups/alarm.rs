@@ -287,7 +287,8 @@ impl Sim {
                 i -= 1;
                 continue;
             }
-            let gatherer = matches!(ti, 0x32 | 0x33) || self.spell_castable(spell::CAST_CIVILIAN, u);
+            let gatherer =
+                matches!(ti, 0x32 | 0x33) || self.spell_castable(spell::CAST_CIVILIAN, u);
             if !gatherer {
                 i -= 1;
                 continue;
@@ -335,13 +336,27 @@ impl Sim {
                 let castable = self.spell_castable(spell::CAST_CIVILIAN, u);
                 if pos == QueuePos::Last {
                     if castable {
-                        self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::Last, true);
+                        self.add_cast_order_on(
+                            u,
+                            spell::CAST_CIVILIAN,
+                            None,
+                            at,
+                            QueuePos::Last,
+                            true,
+                        );
                     }
                     self.add_gather_order(u, site, QueuePos::Last, true);
                 } else {
                     self.add_gather_order(u, site, QueuePos::New, true);
                     if castable {
-                        self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::First, true);
+                        self.add_cast_order_on(
+                            u,
+                            spell::CAST_CIVILIAN,
+                            None,
+                            at,
+                            QueuePos::First,
+                            true,
+                        );
                     }
                 }
                 if let Some(seat) = Self::seat_of_group(g) {

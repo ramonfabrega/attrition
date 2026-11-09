@@ -1666,18 +1666,30 @@ mod tests {
             for bit in [role::ROLE_SEA, role::ROLE_SEA_MILITARY, role::ROLE_MILITARY] {
                 assert!(has(navy, bit), "{f}: the navy's role lacks {bit:#x}");
             }
-            assert!(!has(navy, role::ROLE_LAND), "{f}: a navy is not a land group");
+            assert!(
+                !has(navy, role::ROLE_LAND),
+                "{f}: a navy is not a land group"
+            );
             for bit in [role::ROLE_LAND, role::ROLE_MILITARY] {
                 assert!(has(army0, bit), "{f}: army 0's role lacks {bit:#x}");
             }
-            assert!(!has(army0, role::ROLE_SEA), "{f}: army 0 is not a sea group");
+            assert!(
+                !has(army0, role::ROLE_SEA),
+                "{f}: army 0 is not a sea group"
+            );
             // The whole word, as observed: `LAND | MILITARY | RANGED |
             // MOUNTED | MELEE` — a mixed army. `Group::kill` never clears a
             // bit, so the word is the OR over every member the group has
             // *ever* had, not only the seven it has now.
             assert_eq!(
                 army0.role,
-                i64::from(role::ROLE_LAND | role::ROLE_MILITARY | role::ROLE_RANGED | role::ROLE_MOUNTED | role::ROLE_MELEE),
+                i64::from(
+                    role::ROLE_LAND
+                        | role::ROLE_MILITARY
+                        | role::ROLE_RANGED
+                        | role::ROLE_MOUNTED
+                        | role::ROLE_MELEE
+                ),
                 "{f}: army 0's accumulated role word"
             );
 
@@ -2588,7 +2600,10 @@ mod tests {
         assert_ne!(ranged, foot, "two types");
         assert!(kinds[..12].iter().all(|&t| t == ranged));
         assert!(kinds[12..].iter().all(|&t| t == foot));
-        assert_eq!(type_cat(&loaded.unit_types[foot], foot, true), cat::FORM_CAT_FOOT);
+        assert_eq!(
+            type_cat(&loaded.unit_types[foot], foot, true),
+            cat::FORM_CAT_FOOT
+        );
         assert_eq!(
             type_cat(&loaded.unit_types[ranged], ranged, true),
             cat::FORM_CAT_FOOT_RANGED
@@ -2637,10 +2652,26 @@ mod tests {
             )
         };
         let probe = table(false, click, Angle(0));
-        assert_eq!(probe.num_category[cat::FORM_CAT_FOOT], 8, "eight hoplite captains");
-        assert_eq!(probe.num_category[cat::FORM_CAT_FOOT_RANGED], 4, "four slinger ones");
-        assert_eq!(probe.x_spacing[cat::FORM_CAT_FOOT], 432, "3 × X_SPACING 12 × 12");
-        assert_eq!(probe.y_spacing[cat::FORM_CAT_FOOT], 144, "⌈3/3⌉ × Y_SPACING 12 × 12");
+        assert_eq!(
+            probe.num_category[cat::FORM_CAT_FOOT],
+            8,
+            "eight hoplite captains"
+        );
+        assert_eq!(
+            probe.num_category[cat::FORM_CAT_FOOT_RANGED],
+            4,
+            "four slinger ones"
+        );
+        assert_eq!(
+            probe.x_spacing[cat::FORM_CAT_FOOT],
+            432,
+            "3 × X_SPACING 12 × 12"
+        );
+        assert_eq!(
+            probe.y_spacing[cat::FORM_CAT_FOOT],
+            144,
+            "⌈3/3⌉ × Y_SPACING 12 × 12"
+        );
         // The anchor is the first member of the lowest non-empty category,
         // which is the leader `find_leader` names.
         assert_eq!(

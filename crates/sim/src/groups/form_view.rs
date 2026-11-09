@@ -23,13 +23,13 @@
 //! slot `+0x18` and whose unit is no plane takes the byte `+0xaa`. At
 //! `QUEUE_NEW` and `QUEUE_LAST` the group then moves to `get_loc_to`.
 
+/// `QUEUE_FIRST`.
+pub use crate::ids::queue::QUEUE_FIRST;
+/// `QUEUE_LAST`.
+pub use crate::ids::queue::QUEUE_LAST;
 /// `QUEUE_NEW`, `QUEUE_LAST`, `QUEUE_FIRST` in the original's numbering
 /// (`QUEUE_FIRST` 0, `QUEUE_LAST` 1, `QUEUE_NEW` 2: the listing's `cmovne`).
 pub use crate::ids::queue::QUEUE_NEW;
-/// `QUEUE_LAST`.
-pub use crate::ids::queue::QUEUE_LAST;
-/// `QUEUE_FIRST`.
-pub use crate::ids::queue::QUEUE_FIRST;
 /// `MOVE_TO`.
 const MOVE_TO: i32 = crate::ids::order::MOVE_TO as i32;
 

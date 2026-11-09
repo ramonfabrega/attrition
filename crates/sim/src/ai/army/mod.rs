@@ -1289,7 +1289,8 @@ impl Sim {
         // conscripted run53's woodcutters on frame 307. The other arm —
         // `is(0x3e, 1) && !is_packing_or_unpacking()`, the merchant
         // lineage's — is a seam; a merchant is filtered again below.
-        if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::ROLE_MILITARY) {
+        if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::ROLE_MILITARY)
+        {
             return None;
         }
         // The own-territory arm: inside a city's radius (`tile & 0x100`)
