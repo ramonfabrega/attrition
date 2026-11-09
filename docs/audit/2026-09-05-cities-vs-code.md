@@ -138,7 +138,7 @@ untested.
 | document | CITIES.md §7.5, "`Wall::swap_team`: `t = current_upgrade(A, B.type)` — **the building becomes A's current upgrade of that type**; `n = init_build(A, t, x, y, restore = 1)`" |
 | code | `crates/sim/src/cities/city.rs:2191` (`fn swap_team`): `let n = self.init_build(a, ty, pos, true);` |
 | document says | A captured or converted building is re-created as the **captor's** newest researched type in the line — a captured Tower becomes a Keep for an owner who has the Keep. |
-| code does | Re-creates it as `ty`, the type it already was. `TechTree::current_upgrade` exists and is used for exactly this shape elsewhere — `crates/sim/src/cities/nations.rs:423`, `crates/sim/src/transport.rs:882`, `crates/sim/src/ai/ai_host.rs:548` — and is not called here. |
+| code does | Re-creates it as `ty`, the type it already was. `TechTree::current_upgrade` exists and is used for exactly this shape elsewhere — `crates/sim/src/cities/nations.rs:423`, `crates/sim/src/ai/transport/mod.rs:882`, `crates/sim/src/ai/ai_host.rs:548` — and is not called here. |
 | difference shows | `BUILDDATA.orig_type` and the building's `myhits` on the frame after any capture or any `find_buildings` conversion (§5.4), which fires on founding, level-up and every Civic tech, not only on capture. No capture on disk contains a building conversion; the falsifying capture is a `frame_window` with `BUILDS=6` over a `find_buildings` sweep that catches a foreign building — cheapest as a scripted `add NEW` of an enemy tower inside a city radius. |
 | reached | reached (`Build::swap_team` / `Wall::swap_team` are not in `/Users/rf-studio/ron-audit-scratch/blind-all-68traces.txt`; some trace enters them, though no capture *on disk* carries a city capture) |
 

@@ -1364,3 +1364,6 @@ pub mod scenario_add;
 
 // `ai/army/` (item 4012, `docs/STRUCTURE.md` §3).
 pub mod army;
+
+// `ai/transport/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod transport;

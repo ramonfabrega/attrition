@@ -250,7 +250,7 @@ Not per frame: per dock finished. `Build::activate` → `Docks::init_dock` →
 `process` in the objects phase (§3.2). Run21, frame 3579: draws 0 and 1
 are `Guy::init_real+0x52 < Unit::init < Animal::init` and `Dock::init+0x125
 < Docks::init_dock+0x128 < Build::activate+0xcbf`. `docs/TRANSPORT.md`
-§5.2; landed in `crates/sim/src/transport.rs` (`dock_open`).
+§5.2; landed in `crates/sim/src/ai/transport/mod.rs` (`dock_open`).
 
 **The dock's own frame is not the end of it, and that was East Indies'
 word at 3579** (2026-09-01). Two things stood in the way and both were

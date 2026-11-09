@@ -17608,7 +17608,7 @@ unless marked.
    ICBM's number is held to about 1871 rather than 1841, so the 1852 birth takes 62 and the 1908 citizen 42, as the
    original's uids 129 and 131 do. *Listing-backed* for the arithmetic; the births confirm the 30 on this one number.
 
-**Built.** `Sim::transport_into_platform` (`crates/sim/src/transport.rs`), from `do_gather`'s arrival for an Oil Platform
+**Built.** `Sim::transport_into_platform` (`crates/sim/src/ai/transport/mod.rs`), from `do_gather`'s arrival for an Oil Platform
 before the scholar-and-platform `go_inside`; `Sim::transport_dies`, the boat's death `disembark` already carried, now
 shared by both. `Sim::NUKE_SPREAD` (`crates/sim/src/combat/fight.rs`), added in `hold_dead_slot`. Unit test
 `transport::tests::a_transport_at_its_oil_platform_dies_and_hands_in_its_passenger` (through `work`, and a ship with no
@@ -17670,7 +17670,7 @@ position on 2164. Each claim is *diff-backed* unless marked.
    then reaches `CollCheck::move_unit(old, spot)` through `Guy::set_new_location@005d86f0`, clearing the old disc's cells
    farther than `coll_size` from the spot. *Export-backed*; the bit's clear on 1113 is the diff. `docs/COLLISION.md` §25.
 
-**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/transport.rs`) with
+**Built.** `Sim::coll_come_out` (`crates/sim/src/movement/collide.rs`), from `land_passenger` (`crates/sim/src/ai/transport/mod.rs`) with
 the body's point as it was aboard. Unit test `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
 
 **What it moved.** The word **2166 → 2288**, count and sequence: ours 38 game draws against 39, index 34, ours
@@ -18943,7 +18943,7 @@ candidates below.
 
 **Candidates, none built.** (a) The original's `Unit::think` tail gives an idle `TRANSPORTFREIGHTER` a job ours omits —
 `think_civilian_transport(u, false)` is reached only through `think_scout`'s tail and a citizen's colonist arm in this crate
-(`crates/sim/src/transport.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
+(`crates/sim/src/ai/transport/mod.rs`, `docs/TRANSPORT.md` §7). Killer: a packet at 2178 (`docs/EMULATOR.md` §8) and a call trace of the
 unit's whole `think`. (b) The slot-reuse kill and the Build order's `exists` test differ in the original by a frame (ours kills twice in
 2177; `Unit::work@0060d180:319` kills once and returns). Killer: whether theirs holds `[Build]` on 2178 — a window around 2170 would
 say, and no dump on disk does.
@@ -20272,7 +20272,7 @@ it to 0 and back to 1, and 4482 reads 1.
 ### 214.4 The build
 
 `Sim::toggle_leader_facing` (`crates/sim/src/groups/group.rs`) is `set_angle`'s group arm on its own. `unit_set_angle` calls it,
-and so does `land_tail` (`crates/sim/src/transport.rs`) on a reversing turn to the host's angle. The probe counted
+and so does `land_tail` (`crates/sim/src/ai/transport/mod.rs`) on a reversing turn to the host's angle. The probe counted
 thirty reversing landings in this game before 4637, twelve of them by the group's leader, which now toggle. They run
 from 2105 on: `1/29` on 4255, `1/48` on 4195, and army 0's wagons among them.
 The walk stays clean past all of them, because a later hand-back overwrites the flag before a layout reads it.
@@ -21811,7 +21811,7 @@ Army 1's target is the human's `0/2000` at (6240, 7008) (`RON_DEBUG_ARMIES`, sta
 which snaps to **(6552, 7320)**. The snap's remainder is 6552 − 8 × 768 = **408**: theirs' order and offset, to the unit. This
 crate had no attack arm. `think_carry` answered no, the tail asked nothing of a boat, and the freighter stood.
 
-**Built** (`crates/sim/src/transport.rs`):
+**Built** (`crates/sim/src/ai/transport/mod.rs`):
 - `Sim::think_carry` counts the attacking captains aboard;
 - `Sim::think_carry_army` reads the head rider's `group_ptr` and the army on that pool slot (straight off the group, not through
   `get_army`'s membership test). It runs the nine-cell test against `reg`, then sends the live target's cell centre through
@@ -25905,7 +25905,7 @@ shore cell, and when it already stands in that quarter-cell it builds a one-boat
 holds anything and is not `can_carry(AIR)` (`is(0x1bf|0x15f|0x208, 1)`), `Object::eject_contents(0, −1, 0, 1)`:
 `disembark`'s steps with **`param_3 = 0`**, so the passenger keeps its own empty list (`eject_contents:254`). Then a
 boat of the `TRANSPORTBARGE` or `MERCHANTFLEET` lineage with nothing left inside dies. The eject had been a stated
-seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/transport.rs`),
+seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/ai/transport/mod.rs`),
 sharing `disembark`'s loop through `eject_riders(boat, carry)`.
 
 **The value diff, on the word's frame** (run1153c, block 3674): `1/10 pos` ours (37236, 26520) against theirs
@@ -30763,7 +30763,7 @@ and kept the cargo.
 `eject_contents`' deferral (`+0x60 |= 0x4000`) is not a unit host's: the
 riders come out on the frame, as `boat_eject_all`'s do (§303).
 
-**Built** (`crates/sim/src/transport.rs`, `Sim::think_carry_army`): the
+**Built** (`crates/sim/src/ai/transport/mod.rs`, `Sim::think_carry_army`): the
 ashore arm calls `eject_riders(boat, false)`, which is
 `eject_contents`' loop with `param_3 = 0`, so each rider keeps its own
 empty list. Then the boat goes through `transport_dies` when nothing is

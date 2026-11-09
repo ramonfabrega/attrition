@@ -775,7 +775,7 @@ from `/clear` to commit.
   `do_mustering`'s expand arm hands an army to `do_transporting`, which is
   a one-shot region retarget; `init_navy`/`send_navy` are the navy's two
   hooks.
-- **The implementation** (`crates/sim/src/transport.rs`): the level, the
+- **The implementation** (`crates/sim/src/ai/transport/mod.rs`): the level, the
   predicates, the registry with its draws, `needs_transport`,
   `is_dock_tile`, and the coast masks from the cells. Two census seams
   closed, `carry` and fishermen wired. The unit AI's island choice and the
