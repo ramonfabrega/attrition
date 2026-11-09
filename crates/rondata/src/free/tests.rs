@@ -668,7 +668,7 @@ fn clock_the_draw_list() {
     let (mut drawn, mut worst) = (0, std::time::Duration::ZERO);
     free.run_to(AZTEC_MODERN.length + 1, None, |s| {
         let t = std::time::Instant::now();
-        let list = render::draw::draw_list(&placed(s), &camera, &screen, Some(SIZE), None);
+        let list = render::draw::draw_list(&placed(s), &[], &camera, &screen, Some(SIZE), None);
         worst = worst.max(t.elapsed());
         drawn += list.len();
     });
@@ -866,8 +866,9 @@ pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3842, 3842);
 /// in register. The building types now decode, 20 of 21
 /// (`M_BUILDING_TYPES_DECODING`), and still count toward no K: the draw
 /// list carries no building, so condition 2 is unmet, not vacuous
-/// (`docs/RENDERER.md` §5.4): **K 38 of M 59**.
-pub(crate) const RENDER_K: (usize, usize, usize, usize) = (38, 38, 38, 38);
+/// (`docs/RENDERER.md` §5.4): **K 38 of M 59**. Item 4035: renamed from
+/// `RENDER_K`, now the pieces' half beside [`RENDER_K_BUILDINGS`]; 38.
+pub(crate) const RENDER_K_PIECES: (usize, usize, usize, usize) = (38, 38, 38, 38);
 
 #[test]
 fn the_draw_list_s_frames_are_in_register() {
@@ -922,7 +923,7 @@ fn the_draw_list_s_frames_are_in_register() {
             let id = ObjId { who: p.who, o: p.o };
             all_pieces.insert((s.frame, id, p.figure as usize), p.piece);
         }
-        let list = render::draw::draw_list(&placed, &camera, &screen, Some(SIZE), None);
+        let list = render::draw::draw_list(&placed, &[], &camera, &screen, Some(SIZE), None);
         let at: BTreeMap<_, _> = placed
             .iter()
             .map(|p| ((p.who, p.o, p.figure), [p.x, p.y, p.z]))
@@ -930,14 +931,11 @@ fn the_draw_list_s_frames_are_in_register() {
         ours.insert(
             s.frame,
             list.iter()
-                .map(|d| {
+                .filter_map(|d| Some((d, d.figure()?)))
+                .map(|(d, figure)| {
                     (
-                        (ObjId { who: d.who, o: d.o }, d.figure as usize),
-                        (
-                            at[&(d.who, d.o, d.figure)],
-                            (d.anchor.x, d.anchor.y),
-                            d.piece,
-                        ),
+                        (ObjId { who: d.who, o: d.o }, figure as usize),
+                        (at[&(d.who, d.o, figure)], (d.anchor.x, d.anchor.y), d.piece),
                     )
                 })
                 .collect(),
@@ -1055,11 +1053,304 @@ fn the_draw_list_s_frames_are_in_register() {
     );
     pin_eq!(
         (k, decoding.len(), registered.len(), pieces.len()),
-        RENDER_K,
+        RENDER_K_PIECES,
         "K, decoding, in register, M's pieces"
     );
 }
 
 fn fog_visible_is_render_s() -> bool {
     sim::observe::fog::VISIBLE == render::draw::FOG_VISIBLE
+}
+
+// ---- Buildings in the draw list (item 4035) ----
+
+/// **§5.4's K**, both halves: M's pieces' K ([`RENDER_K_PIECES`]) and M's
+/// building types' ([`RENDER_K_BUILDINGS`]). Item 4035: the draw list
+/// carries buildings, so a building type's condition 2 is live.
+pub(crate) const RENDER_K: usize = RENDER_K_PIECES.0 + RENDER_K_BUILDINGS.0;
+
+/// M's building types that count toward K, `(K, decoding, in register,
+/// M's types)`: a type (`orig_type`) counts when it decodes (condition 1,
+/// [`M_BUILDING_TYPES_DECODING`]) and every record of it the lobby's
+/// dumps print is in register (condition 2,
+/// [`the_draw_list_s_buildings_are_in_register`]). Item 4035: new —
+/// **20 of 21**: all 21 in register, 20 decoding; the farm (417) is short
+/// on condition 1 alone ([`M_BUILDING_TYPES_DECODING`]). With the pieces'
+/// 38, **K 58 of M 59** (+20).
+pub(crate) const RENDER_K_BUILDINGS: (usize, usize, usize, usize) = (20, 20, 21, 21);
+
+/// The dumped frames that print a building — run1428's two, run1429's
+/// start block and its closing block 3390, and run1429b's 95 — on which
+/// every building record is in register, of them (item 4035: new, 99 of
+/// 99).
+pub(crate) const BUILDING_FRAMES_IN_REGISTER: (usize, usize) = (99, 99);
+
+/// The building records in register on those frames, of all printed:
+/// drawn on both sides or on neither, and where drawn, our anchor within
+/// one pixel of the original's projection and our piece the dump's
+/// (item 4035: new, 4,564 of 4,564).
+pub(crate) const BUILDINGS_IN_REGISTER: (usize, usize) = (4564, 4564);
+
+/// The building records whose piece — `GraphicPieces::get_build_gpiece`'s
+/// walk from the door's type, nation and age
+/// ([`crate::artdata::BuildLook::piece`]) — is the dump's `gpiece`, of all
+/// printed (item 4035: new, 4,564 of 4,564).
+pub(crate) const BUILDING_PIECES_AGREEING: (usize, usize) = (4564, 4564);
+
+/// One building record a dump prints, as the reference reads it.
+#[derive(Clone, Copy, Debug)]
+struct DumpedBuilding {
+    pos: [i64; 3],
+    orig_type: i64,
+    gpiece: i32,
+    active: bool,
+    job_counter: i64,
+    constr_time: i64,
+}
+
+/// **Buildings in register** (`docs/RENDERER.md` §3.5, §5.4 condition 2;
+/// item 4035). On every frame a dump of the lobby prints buildings on, the
+/// draw list's building entries are compared with the original's own
+/// projection of each dumped building: `WallOut::draw@00641930`'s point —
+/// the dumped `x_internal`, `y_internal`, `z_internal`, moved back
+/// `0x60 · halfoffset` on both axes, `halfoffset` the dumped piece's
+/// `<BUILD>`'s — through `MiscAccess::world_to_screen` under unicorn. The
+/// drawn set is `WallOut::draw`'s predicate on each side's own state (the
+/// dumps print no draw): a building is in register when both sides draw it
+/// or neither, and, drawn, when its anchor is within one pixel and its
+/// piece is the dump's.
+#[test]
+fn the_draw_list_s_buildings_are_in_register() {
+    let _pins = Pins::hold();
+    let Some(c) = captures() else {
+        return;
+    };
+    let Some(window) = dump(RUN1429B) else {
+        eprintln!("skipping: no {RUN1429B}");
+        return;
+    };
+    let inst = install().unwrap();
+    let look = crate::artdata::BuildLook::new(&inst);
+    let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+    let rules = inst.buildings().unwrap();
+    let build_graphs: Vec<String> = rules
+        .records
+        .iter()
+        .map(|r| r.text("GRAPH").unwrap_or_default().to_string())
+        .collect();
+    let names = [AZTEC_MODERN.start, AZTEC_MODERN.long.0, RUN1429B];
+    let paths = [c.start.clone(), c.long.clone(), PathBuf::from(window)];
+    // (dump, frame) → the buildings it prints.
+    type Printed = BTreeMap<(usize, i64), BTreeMap<ObjId, DumpedBuilding>>;
+    let mut printed = Printed::new();
+    for (i, path) in paths.iter().enumerate() {
+        let mut src = IndexedCapture::open(path).unwrap();
+        let setup = src.read_replay_setup().unwrap();
+        let setup_log = Log::parse(&setup);
+        let init = setup_log.replay_initial().unwrap();
+        let mut put = |n: i64, builds: &[crate::gamelog::BuildDump]| {
+            let recs: BTreeMap<ObjId, DumpedBuilding> = builds
+                .iter()
+                .filter_map(|b| {
+                    Some((
+                        ObjId {
+                            who: b.who as sim::Player,
+                            o: b.o as i16,
+                        },
+                        DumpedBuilding {
+                            pos: [b.pos.x, b.pos.y, b.pos.z],
+                            orig_type: b.orig_type?,
+                            gpiece: b.gpiece? as i32,
+                            active: b.flags & 4 != 0,
+                            job_counter: b.job_counter.unwrap_or(0),
+                            constr_time: b.constr_time.unwrap_or(1),
+                        },
+                    ))
+                })
+                .collect();
+            if !recs.is_empty() {
+                printed.insert((i, n), recs);
+            }
+        };
+        put(0, &init.builds);
+        for frame in src.frame_states() {
+            let f: Frame = frame.unwrap();
+            put(f.n, &f.builds);
+        }
+    }
+    let wanted: BTreeSet<i64> = printed.keys().map(|(_, n)| *n).collect();
+    let mut free = c.runner();
+    let terrain = free.terrain();
+    let (camera, screen) = pinned_camera(terrain.width, terrain.height);
+    // Ours on each wanted frame: id → (placed, drawn pixel if drawn).
+    type Ours = BTreeMap<ObjId, (render::draw::PlacedBuilding, Option<(i32, i32)>)>;
+    let mut ours: BTreeMap<i64, Ours> = BTreeMap::new();
+    let mut see = |s: &Scene| {
+        if !wanted.contains(&s.frame) {
+            return;
+        }
+        let blds = placed_buildings(s, &look, &tribes);
+        let list = render::draw::draw_list(&[], &blds, &camera, &screen, Some(SIZE), None);
+        let px: BTreeMap<ObjId, (i32, i32)> = list
+            .iter()
+            .map(|d| (ObjId { who: d.who, o: d.o }, (d.anchor.x, d.anchor.y)))
+            .collect();
+        ours.insert(
+            s.frame,
+            blds.iter()
+                .map(|b| {
+                    let id = ObjId { who: b.who, o: b.o };
+                    (id, (*b, px.get(&id).copied()))
+                })
+                .collect(),
+        );
+    };
+    see(&free.scene(None));
+    free.run_to(AZTEC_MODERN.length + 1, None, &mut see);
+    // The reference: the dumped building as `WallOut::draw` reads it.
+    let theirs_placed = |id: ObjId, d: &DumpedBuilding| {
+        let type_index = crate::artdata::build_piece_name(d.gpiece, &build_graphs)
+            .map_or(d.orig_type as i32, |(t, _)| t);
+        render::draw::PlacedBuilding {
+            who: id.who,
+            o: id.o,
+            x: d.pos[0] as i32,
+            y: d.pos[1] as i32,
+            z: d.pos[2] as i32,
+            type_index,
+            orig_type: d.orig_type as i32,
+            piece: d.gpiece,
+            half_offset: look.half_offset(type_index),
+            active: d.active,
+            job_counter: d.job_counter as i32,
+            construct_time: d.constr_time as i32,
+        }
+    };
+    let tag = |i: usize, n: i64, id: ObjId| format!("b{i}/{n}/{}/{}", id.who, id.o);
+    let points: Vec<(String, [i64; 3])> = printed
+        .iter()
+        .flat_map(|(&(i, n), recs)| {
+            recs.iter().filter_map(move |(&id, d)| {
+                let p = theirs_placed(id, d);
+                let (x, y, z) = p.anchor_point();
+                p.drawn()
+                    .then(|| (tag(i, n, id), [x as i64, y as i64, z as i64]))
+            })
+        })
+        .collect();
+    let Some(theirs) = original_pixels(
+        &inst.root().join("riseofnations.exe"),
+        &state_line(&camera, &screen),
+        &points,
+    ) else {
+        return;
+    };
+    let (mut frames_ok, mut recs_ok, mut recs_all) = (0, 0, 0);
+    let (mut pieces_ok, mut first_out) = (0, None);
+    let mut misses: Vec<String> = Vec::new();
+    let mut bad_types: BTreeSet<i64> = BTreeSet::new();
+    let mut type_pieces: BTreeMap<i64, BTreeSet<i32>> = BTreeMap::new();
+    let mut parted_pieces: BTreeMap<(i64, i32, i32), usize> = BTreeMap::new();
+    for (&(i, n), recs) in &printed {
+        let mine = ours.get(&n).cloned().unwrap_or_default();
+        let mut frame_ok = true;
+        for (&id, d) in recs {
+            recs_all += 1;
+            type_pieces.entry(d.orig_type).or_default().insert(d.gpiece);
+            let them = theirs.get(&tag(i, n, id)).copied();
+            let ok = match mine.get(&id) {
+                Some((b, px)) => {
+                    if b.piece == d.gpiece {
+                        pieces_ok += 1;
+                    } else {
+                        *parted_pieces
+                            .entry((d.orig_type, d.gpiece, b.piece))
+                            .or_default() += 1;
+                    }
+                    match (px, them) {
+                        (Some(p), Some(t)) => {
+                            b.piece == d.gpiece && (p.0 - t.0).abs() <= 1 && (p.1 - t.1).abs() <= 1
+                        }
+                        (None, None) => true,
+                        _ => false,
+                    }
+                }
+                None => false,
+            };
+            if ok {
+                recs_ok += 1;
+            } else {
+                frame_ok = false;
+                bad_types.insert(d.orig_type);
+                misses.push(format!(
+                    "{} frame {n} {}/{} type {}: dump {:?} piece {} at {them:?}, ours {:?}",
+                    names[i],
+                    id.who,
+                    id.o,
+                    d.orig_type,
+                    d.pos,
+                    d.gpiece,
+                    mine.get(&id)
+                        .map(|(b, px)| ((b.x, b.y, b.z), b.piece, b.half_offset, *px))
+                ));
+            }
+        }
+        if frame_ok {
+            frames_ok += 1;
+        } else if first_out.is_none() {
+            first_out = Some((names[i], n));
+        }
+    }
+    // Condition 1, as the M test reads it (item 4028).
+    let all_build: BTreeSet<i32> = type_pieces.values().flatten().copied().collect();
+    let builds = crate::artdata::building_decoding(&inst, &all_build);
+    let decoding: BTreeSet<i64> = type_pieces
+        .iter()
+        .filter(|(_, ps)| ps.iter().all(|p| matches!(builds[p], Ok(n) if n > 0)))
+        .map(|(t, _)| *t)
+        .collect();
+    let registered: BTreeSet<i64> = type_pieces
+        .keys()
+        .filter(|t| !bad_types.contains(t))
+        .copied()
+        .collect();
+    let k = decoding.intersection(&registered).count();
+    eprintln!(
+        "BUILDINGS {}: frames in register {frames_ok} of {}, first out {first_out:?}; records {recs_ok} of {recs_all} \
+         ({} drawn by the original's predicate); \
+         pieces {pieces_ok} of {recs_all}, parting (type, dump, ours) → records {parted_pieces:?}; \
+         K {k} of M's {} building types (decoding {:?}, in register {:?}; out {bad_types:?})\n  {}",
+        AZTEC_MODERN.name,
+        printed.len(),
+        points.len(),
+        type_pieces.len(),
+        decoding,
+        registered,
+        misses
+            .iter()
+            .take(40)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n  ")
+    );
+    pin_eq!(
+        (frames_ok, printed.len()),
+        BUILDING_FRAMES_IN_REGISTER,
+        "building frames in register"
+    );
+    pin_eq!(
+        (recs_ok, recs_all),
+        BUILDINGS_IN_REGISTER,
+        "building records in register"
+    );
+    pin_eq!(
+        (pieces_ok, recs_all),
+        BUILDING_PIECES_AGREEING,
+        "building pieces agreeing"
+    );
+    pin_eq!(
+        (k, decoding.len(), registered.len(), type_pieces.len()),
+        RENDER_K_BUILDINGS,
+        "K, decoding, in register, M's building types"
+    );
 }

@@ -8389,6 +8389,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 4026: the draw list's walk of the same pair.
     ("the_draw_list_s_frames_are_in_register", 2),
     ("clock_the_draw_list", 2),
+    // Item 4035: the draw list's buildings, the same walk.
+    ("the_draw_list_s_buildings_are_in_register", 2),
     // Item 3752: the British Modern pair's first walk, run1433 from
     // run1432's start.
     ("british_modern_pair_first_parting", 11),

@@ -1535,10 +1535,12 @@ impl Sim {
         let index = self
             .find_free(who, crate::BUILD_BASE, crate::WALL_BASE)
             .expect("a player's building band is full");
+        let z = self.world.object_z(pos.tile());
         self.buildings.push(Building {
             owner: who,
             index,
             pos,
+            z,
             queue: crate::cities::production::Queue::new(capacity),
             is_library: bt.ident == Ident::Library,
             combat: Some(bt.combat.unwrap_or_default()),
@@ -1644,6 +1646,9 @@ impl Sim {
                 self.tables.build_types[ty].y_size,
             );
             self.terraform_for_building(corner, bw, bh);
+            // The building's own `z_internal` is the ground after its own
+            // terraform (item 4035; `Building::z`).
+            self.buildings[b].z = self.world.object_z(self.buildings[b].pos.tile());
         }
         // Membership is decided at placement, restoring or not.
         if !build::is_city(&self.tables.build_types, ty) {

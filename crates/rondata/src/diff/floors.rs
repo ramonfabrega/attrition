@@ -533,7 +533,7 @@ pub fn renderer_line() -> String {
     let (pieces, of_pieces) = crate::artdata::PIECES_DECODING;
     format!(
         "Renderer: K {} of M {RENDER_M} \u{b7} frames {frames} of {of_frames} \u{b7} pieces {pieces} of {of_pieces}",
-        RENDER_K.0
+        RENDER_K
     )
 }
 

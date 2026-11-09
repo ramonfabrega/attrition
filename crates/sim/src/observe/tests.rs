@@ -65,10 +65,19 @@ fn a_scene_agrees_with_the_sim_it_copies() {
                 }
             );
             assert_eq!(
-                (s.ty, s.pos, s.health, s.hits),
-                (b.ty, b.pos, b.health, b.hits)
+                (s.ty, s.pos, s.z, s.health, s.hits),
+                (b.ty, b.pos, b.z, b.health, b.hits)
             );
             assert_eq!((s.active, s.constr_time), (b.active, b.constr_time));
+            assert_eq!(
+                (s.orig_ty, s.job_counter, s.tribe, s.age),
+                (
+                    b.orig_ty,
+                    b.job_counter,
+                    sim.tech[b.founder as usize].tribe,
+                    sim.tech[b.owner as usize].ages
+                )
+            );
         }
         assert_eq!(scene.projectiles.len(), sim.combat.projectiles.len());
         assert_eq!(scene.deaths.len(), sim.combat.deaths.len());
