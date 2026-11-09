@@ -12215,7 +12215,7 @@ Item 2416 (Claude Sonnet 5.5, `--effort medium`). **Not a closed chapter, and no
 census row moved, and run 857 was not taken. This section is the staging analysis the queue asked for first, so the next
 lane that books one of these arms starts from it.
 
-**How it was established.** `crates/sim/src/diplomacy.rs`'s `SEAM`s read against parked 2387, 2390, 2391 and 2332;
+**How it was established.** `crates/sim/src/leaders/diplomacy.rs`'s `SEAM`s read against parked 2387, 2390, 2391 and 2332;
 `tools/seams.py --item 2416`; `tools/gamelog/captures.txt`'s run 846–849 recipes (the peace pair's `--profile` lines);
 `crates/rondata/src/diff/setup.rs::lobby_of` (`TEAM_STYLE` is read from `GAME INFO`).
 
@@ -16454,7 +16454,7 @@ The leader keys follow from `0/16` alone:
 - `active` and `control` come off with the close (`close_count`: `+0x93c` and the population, POP 1);
 - `num_units[263]` is the V2's count.
 
-**Built** (`crates/sim/src/resign.rs`): `Sim::resign(who)`. It sets the leader defeated, lets the armies go, and walks
+**Built** (`crates/sim/src/leaders/resign.rs`): `Sim::resign(who)`. It sets the leader defeated, lets the armies go, and walks
 every live unit of who's. A plane (`Sim::is_plane`) dies quietly: the `cast_sniper_unit` tail at `dtype` 0, with
 `close_unit`'s first test drawing nothing. `close_unit` is `pub(crate)` for it.
 

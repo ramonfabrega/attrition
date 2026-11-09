@@ -20706,7 +20706,7 @@ block 1474. So 1984 is the first view after contact. `when Leader::diplomacy` on
 - The draw at `+0x1168` is the peace coin: difficulty 3, a human target with no more wars than mine.
 
 **Built.**
-- `crates/sim/src/diplomacy.rs`: `Sim::diplomacy` (one leader, from `strategy_all` after `plan_strategy`),
+- `crates/sim/src/leaders/diplomacy.rs`: `Sim::diplomacy` (one leader, from `strategy_all` after `plan_strategy`),
   `diplomacy_with` (one target), `war_allowed` and `current_age`. Four draw sites: `+0x1168` (peace coin),
   `+0x1322` (the target's cities that were mine), `+0x1388` (mine that were the target's), `+0x1b12` (the quiet
   coin).
@@ -20962,7 +20962,7 @@ agrees through 4543 in both.
 **Not carried before.** No code in `crates/sim` wrote `at_war` during a game. The matrix stood as the lobby left
 it.
 
-**Built.** `Sim::end_the_peace` (`crates/sim/src/diplomacy.rs`), called before `strategy_all` in the frame step:
+**Built.** `Sim::end_the_peace` (`crates/sim/src/leaders/diplomacy.rs`), called before `strategy_all` in the frame step:
 the rule's frame, the team-style gate, and the pair walk through `allied_both` and `not_at_war`. Team style 7's
 neutrals and a computer declarer's `diplo_change` are `SEAM`s. `update_leader_list` is the interface's. Test:
 `diplomacy::tests::the_peace_s_end_declares_war_both_ways_on_its_one_frame` (4499 and 4501 nothing; 4500 both
