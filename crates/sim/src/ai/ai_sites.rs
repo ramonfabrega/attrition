@@ -791,8 +791,8 @@ impl Sim {
         let map = self.lobby.map_style;
         if map != 0xc && map != 0x11 && (cities == 1 || self.lobby.team_style == 2) {
             let mut sum = 0i32;
-            let nations = self.players.len() as i32;
-            for i in 0..self.players.len() {
+            let nations = self.territory.players.len() as i32;
+            for i in 0..self.territory.players.len() {
                 let l = i as Player;
                 if self.defeated[i] || l == who || self.is_ally(who, l) {
                     continue;
@@ -1085,7 +1085,7 @@ impl Sim {
 
         // Any live city — mine, or any leader's who holds one in this
         // region — within five cells drops the site.
-        for l in 0..self.players.len() {
+        for l in 0..self.territory.players.len() {
             let other = l as Player;
             if self.defeated[l] {
                 continue;

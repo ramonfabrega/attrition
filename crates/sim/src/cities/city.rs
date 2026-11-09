@@ -878,8 +878,8 @@ impl Sim {
         // its cities project. This crate cached the table at `add_player`
         // and never rewrote it, which cost the AI its `CIVIC_UPGRADE_TERR`
         // step for the whole of a game (item 113).
-        for w in 0..self.players.len() {
-            self.borders[w] = self.player_borders(w as Player);
+        for w in 0..self.territory.players.len() {
+            self.territory.borders[w] = self.player_borders(w as Player);
         }
         // Drop every source a city or fort owns, keep the ones tests put in
         // by hand, then add the live ones back.
@@ -892,7 +892,7 @@ impl Sim {
         owned.sort_unstable();
         owned.dedup();
         for i in owned.into_iter().rev() {
-            self.sources.remove(i);
+            self.territory.sources.remove(i);
         }
         for c in &mut self.cities {
             c.source = None;
@@ -910,7 +910,7 @@ impl Sim {
             let src = territory::city_source(
                 &self.tables.tuning,
                 owner,
-                &self.borders[owner as usize],
+                &self.territory.borders[owner as usize],
                 &territory::City {
                     pos: city.pos,
                     level,
@@ -925,8 +925,8 @@ impl Sim {
                     owner_agrees: true,
                 },
             );
-            self.sources.push(src);
-            self.cities[c].source = Some(self.sources.len() - 1);
+            self.territory.sources.push(src);
+            self.cities[c].source = Some(self.territory.sources.len() - 1);
         }
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
@@ -941,14 +941,14 @@ impl Sim {
             let src = territory::fort_source(
                 &self.tables.tuning,
                 bd.owner,
-                &self.borders[bd.owner as usize],
+                &self.territory.borders[bd.owner as usize],
                 &territory::Fort {
                     pos: bd.pos,
                     red_fort: self.building_ident(b) == Ident::RedFort,
                 },
             );
-            self.sources.push(src);
-            self.buildings[b].fort_source = Some(self.sources.len() - 1);
+            self.territory.sources.push(src);
+            self.buildings[b].fort_source = Some(self.territory.sources.len() - 1);
         }
         self.recompute_territory();
         self.start_border_pass(before);
@@ -968,7 +968,7 @@ impl Sim {
     /// it computes, the cell tallies) are not carried: the harness takes
     /// the sea class from the dump ([`crate::world::World::sea_map`]).
     fn analyze_player_regions(&mut self) {
-        let players = self.players.len();
+        let players = self.territory.players.len();
         let lands: Vec<u16> = self
             .world
             .regions()
@@ -1024,7 +1024,7 @@ impl Sim {
         if !self.in_play {
             return;
         }
-        self.borders_fixed = true;
+        self.territory.borders_fixed = true;
     }
 
     /// `GameDaemon::check_borders@00732060`'s one modelled effect: after
@@ -1032,8 +1032,8 @@ impl Sim {
     /// zeroes a region again on every frame its pass has not yet reached
     /// under the 256-cell budget; this crate zeroes once (§76.5).
     pub(crate) fn check_borders(&mut self) {
-        if self.borders_fixed {
-            self.borders_fixed = false;
+        if self.territory.borders_fixed {
+            self.territory.borders_fixed = false;
             for a in &mut self.ai {
                 a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
             }
@@ -1472,7 +1472,7 @@ impl Sim {
             cost::SpaceRace::None
         } else if RACE.iter().any(|&t| site_of(who, t)) {
             cost::SpaceRace::Own
-        } else if (0..self.players.len())
+        } else if (0..self.territory.players.len())
             .map(|p| p as Player)
             .any(|p| p != who && self.is_ally(who, p) && RACE.iter().any(|&t| site_of(p, t)))
         {

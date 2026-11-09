@@ -230,6 +230,7 @@ impl Sim {
     pub(crate) fn good_seen_bit(&self, gi: usize, who: Player) -> bool {
         who < 8
             && self
+                .territory
                 .good_seen_bits
                 .get(gi)
                 .is_some_and(|b| b >> who & 1 != 0)

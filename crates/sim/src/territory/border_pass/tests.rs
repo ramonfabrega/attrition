@@ -36,14 +36,23 @@ fn a_fix_reaches_the_map_at_256_cells_a_frame_in_region_order() {
         Owner::None,
         "the budget ends it"
     );
-    assert_eq!(sim.border_pass.as_ref().unwrap().index, vec![200, 56, 0]);
+    assert_eq!(
+        sim.territory.border_pass.as_ref().unwrap().index,
+        vec![200, 56, 0]
+    );
     sim.advance_border_pass();
     // Frame two: region 1's other 144, region 2's first 112.
-    assert_eq!(sim.border_pass.as_ref().unwrap().index, vec![200, 200, 112]);
+    assert_eq!(
+        sim.territory.border_pass.as_ref().unwrap().index,
+        vec![200, 200, 112]
+    );
     assert_eq!(sim.world.owner(Cell::new(111, 2)), Owner::Player(1));
     assert_eq!(sim.world.owner(Cell::new(112, 2)), Owner::None);
     sim.advance_border_pass();
-    assert!(sim.border_pass.is_none(), "the third frame finishes it");
+    assert!(
+        sim.territory.border_pass.is_none(),
+        "the third frame finishes it"
+    );
     assert_eq!(sim.world.owner(Cell::new(199, 2)), Owner::Player(1));
 }
 
@@ -137,7 +146,7 @@ fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
         let mut target = before.clone();
         target.fill((Owner::Player(1), Owner::Player(0)));
         sim.world.set_owners(&target);
-        sim.territory_won = vec![won; 8];
+        sim.territory.territory_won = vec![won; 8];
         sim.start_border_pass(before);
         sim.advance_border_pass();
     };
@@ -155,7 +164,7 @@ fn a_rival_s_runner_up_marks_the_winning_city_s_bordering() {
     let mut target = before.clone();
     target.fill((Owner::Player(1), Owner::None));
     sim.world.set_owners(&target);
-    sim.territory_won = vec![0; 8];
+    sim.territory.territory_won = vec![0; 8];
     sim.start_border_pass(before);
     sim.advance_border_pass();
     assert_eq!(bordering(&sim), 0, "the region's first call clears it");

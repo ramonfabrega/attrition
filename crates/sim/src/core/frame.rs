@@ -88,7 +88,7 @@ impl Sim {
         // `Objects::process_all`, so every player is paid for the frame before
         // any unit in it moves, fights or bleeds. That ordering is observable:
         // a citizen that dies this frame was already paid for it.
-        for who in 0..self.players.len() {
+        for who in 0..self.territory.players.len() {
             let player = u8::try_from(who).expect("too many players");
             // `Leader::process@006b88b0`'s head: the frame's retarget
             // count starts again at zero (`docs/COLLISION.md` §14).

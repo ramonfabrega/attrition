@@ -471,11 +471,11 @@ impl Sim {
     /// `GoodData::ever_seen |= 1 << who` (`+0x20`), as `reveal_fog`'s rare
     /// arm and `compute_reg_territory`'s goods scan both write it.
     pub(crate) fn mark_good_seen(&mut self, gi: usize, who: Player) {
-        if self.good_seen_bits.len() <= gi {
-            self.good_seen_bits.resize(gi + 1, 0);
+        if self.territory.good_seen_bits.len() <= gi {
+            self.territory.good_seen_bits.resize(gi + 1, 0);
         }
         if who < 8 {
-            self.good_seen_bits[gi] |= 1 << who;
+            self.territory.good_seen_bits[gi] |= 1 << who;
         }
     }
 
@@ -566,7 +566,7 @@ impl Sim {
                 if bits == 0 {
                     continue;
                 }
-                for who in 0..self.players.len().min(8) {
+                for who in 0..self.territory.players.len().min(8) {
                     if bits >> who & 1 != 0 {
                         self.reveal_fog_goods(fx, fy, who as Player);
                     }
@@ -604,7 +604,7 @@ impl Sim {
         {
             return;
         }
-        for w in 0..self.players.len() {
+        for w in 0..self.territory.players.len() {
             if self.defeated[w] || self.nation[w].human {
                 continue;
             }

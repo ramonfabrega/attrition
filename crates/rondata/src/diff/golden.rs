@@ -2248,7 +2248,7 @@ fn widen_civilians_walk(
             && std::env::var_os("RON_DISABLE_GOLDEN_READERS").is_none(),
     )
     .with_civilian(ammo);
-    let players = s.built.sim.players.len();
+    let players = s.built.sim.territory.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
@@ -3717,7 +3717,7 @@ fn widen_chapter_three(
     // `!quit` block is written one past it.
     let no_block = LAST - 1;
     let mut s = stage_script(run, stem)?;
-    let players = s.built.sim.players.len();
+    let players = s.built.sim.territory.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut at_word: Vec<String> = Vec::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -8689,7 +8689,7 @@ fn casts_field_for_field(
 )> {
     use std::collections::BTreeMap;
     let mut s = stage_script(run, stem)?;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
     let mut decoys = 0usize;

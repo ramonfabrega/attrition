@@ -535,13 +535,13 @@ impl Sim {
         let held = self
             .tech
             .iter()
-            .take(self.players.len().min(8))
+            .take(self.territory.players.len().min(8))
             .filter(|p| p.tech[t])
             .count() as i32;
         if held == 0 {
             return Vec::new();
         }
-        let players = self.players.len() as i32;
+        let players = self.territory.players.len() as i32;
         vec![production::Adjust::Ratio(players - held + 1, players + 1)]
     }
 
@@ -571,7 +571,7 @@ impl Sim {
         }
         let me = &self.tech[who as usize];
         let mine = me.ages + me.epochs;
-        let n: i32 = (0..self.players.len().min(8))
+        let n: i32 = (0..self.territory.players.len().min(8))
             .filter(|&p| {
                 let o = &self.tech[p];
                 mine + 3 < o.ages + o.epochs
@@ -581,7 +581,7 @@ impl Sim {
         if n == 0 {
             return Vec::new();
         }
-        let nations = 2 * self.players.len() as i32;
+        let nations = 2 * self.territory.players.len() as i32;
         vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
     }
 
@@ -603,7 +603,7 @@ impl Sim {
         }
         let me = &self.tech[who as usize];
         let mine = me.ages + i32::from(me.ages_queued);
-        let n: i32 = (0..self.players.len().min(8))
+        let n: i32 = (0..self.territory.players.len().min(8))
             .filter(|&p| {
                 let o = &self.tech[p];
                 mine + 1 < o.ages + i32::from(o.ages_queued)
@@ -613,7 +613,7 @@ impl Sim {
         if n == 0 {
             return Vec::new();
         }
-        let nations = 2 * self.players.len() as i32;
+        let nations = 2 * self.territory.players.len() as i32;
         vec![production::Adjust::Ratio(nations - n + 2, nations + 2)]
     }
 

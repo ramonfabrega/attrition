@@ -339,7 +339,7 @@ impl Sim {
         let mine = self.get_nukes(who);
         let mut max_enemy = 0;
         let mut vulnerable = false;
-        for j in 0..self.players.len() {
+        for j in 0..self.territory.players.len() {
             let jw = j as Player;
             if self.defeated[j] || self.is_ally(who, jw) {
                 continue;
@@ -1297,7 +1297,7 @@ impl Sim {
         let mut max_e = 0;
         let mut sum = 0;
         let mut count = 0;
-        for j in 0..self.players.len() {
+        for j in 0..self.territory.players.len() {
             let jw = j as Player;
             if self.defeated[j] || jw == who || self.is_ally(jw, who) {
                 continue;
@@ -1785,7 +1785,7 @@ impl Sim {
     /// `Leaders::max_age()` — the highest age among leaders still in the
     /// game, which the rush-rules gate compares against.
     fn leaders_max_age(&self) -> i32 {
-        (0..self.players.len())
+        (0..self.territory.players.len())
             .filter(|&j| !self.defeated[j])
             .map(|j| self.tech[j].ages)
             .max()
@@ -1863,7 +1863,7 @@ impl Sim {
         // else the strongest of the rest I am at war with at all.
         let mut active = 0;
         let mut other = 0;
-        for j in 0..self.players.len() {
+        for j in 0..self.territory.players.len() {
             let jw = j as Player;
             if jw == who || self.defeated[j] {
                 continue;
@@ -2084,7 +2084,7 @@ impl Sim {
     /// `Leaders::max_enemy_age(who)`: the highest age among leaders not
     /// allied to me.
     fn max_enemy_age(&self, who: Player) -> i32 {
-        (0..self.players.len())
+        (0..self.territory.players.len())
             .filter(|&j| j as Player != who && !self.defeated[j] && !self.is_ally(who, j as Player))
             .map(|j| self.tech[j].ages)
             .max()
@@ -2388,7 +2388,7 @@ impl Sim {
         let anti_air = self.tables.unit_types[f.rec].combat.obj_masks & 0x8000_0000 != 0;
         let mut sum: i32 = 0;
         let mut total = 0;
-        for j in 0..self.players.len() {
+        for j in 0..self.territory.players.len() {
             let jw = j as Player;
             if jw == who || self.defeated[j] {
                 continue;

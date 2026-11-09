@@ -230,7 +230,7 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
     let w = who as usize;
     sim.ai[w]
         .census
-        .resize(sim.world.region_count(), sim.players.len());
+        .resize(sim.world.region_count(), sim.territory.players.len());
     sim.ai[w]
         .city_ai
         .resize(sim.cities.len(), Default::default());

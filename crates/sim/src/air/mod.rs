@@ -1600,7 +1600,7 @@ impl Sim {
             });
         let mut best = -1;
         let mut target: Option<(crate::Player, usize)> = None;
-        for l in 0..self.players.len() as crate::Player {
+        for l in 0..self.territory.players.len() as crate::Player {
             if self.defeated[l as usize] || self.is_peace(owner, l) {
                 continue;
             }
@@ -1703,7 +1703,7 @@ impl Sim {
         let reach = self.get_speed(m, 1) * self.unit_mana(m);
         let mut best = -1;
         let mut target = None;
-        for l in 0..self.players.len().min(8) as crate::Player {
+        for l in 0..self.territory.players.len().min(8) as crate::Player {
             if !self.is_enemy(owner, l) || self.missile_defense_held(l) {
                 continue;
             }

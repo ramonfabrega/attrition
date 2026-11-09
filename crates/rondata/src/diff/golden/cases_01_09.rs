@@ -614,7 +614,7 @@ pub(super) fn chapter_one_s_word_frame_is_widened_whole() {
         eprintln!("no g6 capture: the GUY clock rows are unchecked (docs/RUNS.md run110)");
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let players = built.sim.players.len();
+    let players = built.sim.territory.players.len();
     let mut script = chapter(1);
     use std::collections::BTreeMap;
     // Every key that parted, against the **first** block it parted on and
@@ -1424,7 +1424,7 @@ pub(super) fn chapter_two_s_word_frame_is_widened_whole() {
     let mut clock_rows = 0usize;
     let mut clock_blocks = 0usize;
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let players = built.sim.players.len();
+    let players = built.sim.territory.players.len();
     let mut script = chapter(2);
     // Every key that parted, against the **first** frame it parted on —
     // a residue standing before the window opened is not this word's.
@@ -2095,7 +2095,7 @@ pub(super) fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
     }
     let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let players = built.sim.players.len();
+    let players = built.sim.territory.players.len();
     let mut script = chapter(2);
     /// One past the last frame read — the chapter's last logged block,
     /// as [`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`]
@@ -2257,7 +2257,7 @@ pub(super) fn chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame() {
     }
     let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let players = built.sim.players.len();
+    let players = built.sim.territory.players.len();
     let mut script = chapter(2);
     /// One past the last frame read — the chapter's last logged block.
     const LAST: i64 = 899;
@@ -2607,7 +2607,7 @@ pub(super) fn chapter_five_s_word_frame_is_widened_whole() {
     }
     let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let players = built.sim.players.len();
+    let players = built.sim.territory.players.len();
     let mut script = chapter(5);
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -2921,7 +2921,7 @@ pub(super) fn chapter_four_s_border_is_widened_cell_for_cell() {
     let Some(mut s) = stage_chapter_four("ch4b") else {
         return;
     };
-    let players = s.built.sim.players.len();
+    let players = s.built.sim.territory.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let (mut blocks, mut cells_compared) = (0usize, 0usize);
     let mut counts: Vec<(i64, [i64; 2], [i64; 2], usize)> = Vec::new();
@@ -3170,7 +3170,7 @@ pub(super) fn chapter_four_s_word_frame_is_widened_whole() {
     let Some(mut s) = stage_chapter_four("ch4u") else {
         return;
     };
-    let players = s.built.sim.players.len();
+    let players = s.built.sim.territory.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut missing = std::collections::BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows) = (0usize, 0usize, 0usize);

@@ -633,7 +633,7 @@ impl Script {
             .nth(1)
             .and_then(|t| parse_who(t, true));
         match who {
-            Some(w) if (w as usize) < built.sim.players.len() => {
+            Some(w) if (w as usize) < built.sim.territory.players.len() => {
                 self.seat = w;
                 done.ran += 1;
             }
@@ -2130,7 +2130,7 @@ fn run(
                 return;
             };
             let me = CONSOLE_WHO as sim::Player;
-            let live: Vec<sim::Player> = (0..built.sim.players.len() as sim::Player)
+            let live: Vec<sim::Player> = (0..built.sim.territory.players.len() as sim::Player)
                 .filter(|&w| w != me)
                 .collect();
             let whom: Vec<sim::Player> = match target {
@@ -2284,7 +2284,7 @@ fn run(
                 );
                 return;
             }
-            if !(0..built.sim.players.len() as i32).contains(&who) {
+            if !(0..built.sim.territory.players.len() as i32).contains(&who) {
                 done.skip(&word, "no such leader");
                 return;
             }
@@ -2351,7 +2351,7 @@ fn add(
         done.skip(word, "no x,y and the channel has no cursor");
         return;
     };
-    if !(0..built.sim.players.len() as i32).contains(&who) {
+    if !(0..built.sim.territory.players.len() as i32).contains(&who) {
         done.skip(word, "no such leader");
         return;
     }

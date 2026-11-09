@@ -127,7 +127,7 @@ impl Window {
         );
         self.seed_inputs = built.frame_seeds.len();
         self.guy_inputs = built.frame_guys.len();
-        let players = built.sim.players.len() as i64;
+        let players = built.sim.territory.players.len() as i64;
         let mut units = Vec::new();
         for unit in &frame.units {
             let scope = (0..players).contains(&unit.who);

@@ -38,7 +38,7 @@ fn skirmish(tech_steps: usize) -> Sim {
         &NationBonuses::default(),
         0,
     );
-    sim.sources.push(city_source(
+    sim.territory.sources.push(city_source(
         &t,
         1,
         &borders,
@@ -50,7 +50,7 @@ fn skirmish(tech_steps: usize) -> Sim {
             owner_agrees: true,
         },
     ));
-    sim.players[1] = PlayerState {
+    sim.territory.players[1] = PlayerState {
         strength: strength(&t, tech_steps, &StrengthMods::default()),
         ..PlayerState::default()
     };
@@ -394,7 +394,7 @@ fn a_players_own_territory_is_safe() {
 #[test]
 fn the_statue_of_liberty_walks_through_anything() {
     let mut sim = skirmish(4);
-    sim.players[0].resistance = Resistance::Immune;
+    sim.territory.players[0].resistance = Resistance::Immune;
     sim.units
         .push(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
     assert!(run(&mut sim, 600).is_empty());

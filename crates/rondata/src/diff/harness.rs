@@ -1757,7 +1757,7 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    for w in 0..built.sim.players.len() {
+    for w in 0..built.sim.territory.players.len() {
         if built.sim.nation[w].human || built.sim.defeated[w] {
             continue;
         }
@@ -2680,8 +2680,8 @@ pub(crate) fn debug_tech(built: &Built, frame: i64) {
     let name = |t: usize| built.sim.tables.tech_tree.types[t].name.clone();
     LAST.with(|last| {
         let mut last = last.borrow_mut();
-        last.resize(built.sim.players.len(), Vec::new());
-        for w in 0..built.sim.players.len() {
+        last.resize(built.sim.territory.players.len(), Vec::new());
+        for w in 0..built.sim.territory.players.len() {
             if built.sim.nation[w].human || built.sim.defeated[w] {
                 continue;
             }
@@ -4928,7 +4928,7 @@ pub(crate) mod tests {
         }
         let resumed_at = built.sim.frame;
         let setup_time = started.elapsed();
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut round_firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
@@ -7429,7 +7429,7 @@ pub(crate) mod tests {
             borrow_pasture(&mut init, &tr);
             build_sim(&loaded, &init, Tuning::RON)
         };
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();

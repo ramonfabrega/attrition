@@ -580,7 +580,7 @@ impl Sim {
         if let Some((i, _)) = mine {
             return Some((i, who));
         }
-        (0..self.players.len() as Player)
+        (0..self.territory.players.len() as Player)
             .filter(|&o| o != who)
             .find_map(|o| {
                 self.cities_of(o)
@@ -617,7 +617,7 @@ impl Sim {
         // this leader's cities, because `compute_reg_territory` reads the
         // level rather than a cached bonus. Guarded on the table actually
         // changing so an ordinary tech does not repaint 3,600 cells.
-        if self.borders[who as usize] != self.player_borders(who) {
+        if self.territory.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
         }
     }

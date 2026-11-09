@@ -557,7 +557,7 @@ impl Sim {
         if self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0 {
             return 0;
         }
-        (0..self.players.len())
+        (0..self.territory.players.len())
             .map(|p| p as Player)
             .filter(|&p| !self.defeated[p as usize] && (p == who || self.is_ally(who, p)))
             .map(|p| self.my_nuke_embargo(p))

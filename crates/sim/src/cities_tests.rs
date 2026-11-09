@@ -361,7 +361,7 @@ fn a_city_finished_in_play_counts_at_once_and_takes_its_ground_at_the_pass_s_pac
     }
     assert_eq!(frames, 5, "1,221 cells at 256 a frame");
     assert_eq!(sim.holdings[0].territory, 0, "the region is not done yet");
-    while sim.border_pass.is_some() {
+    while sim.territory.border_pass.is_some() {
         sim.check_borders();
     }
     assert!(sim.holdings[0].territory > 0, "summed when the pass ends");
@@ -666,7 +666,7 @@ fn a_fort_s_close_fixes_the_borders_only_once_it_is_built() {
     sim.settle_borders();
     sim.close_building(site, false);
     assert!(
-        sim.border_pass.is_none() && !sim.borders_fixed,
+        sim.territory.border_pass.is_none() && !sim.territory.borders_fixed,
         "an unbuilt fort's close fixes nothing"
     );
     let fort = sim
@@ -674,10 +674,10 @@ fn a_fort_s_close_fixes_the_borders_only_once_it_is_built() {
         .expect("a second fort site");
     finish(&mut sim, fort);
     sim.settle_borders();
-    sim.borders_fixed = false;
+    sim.territory.borders_fixed = false;
     sim.close_building(fort, false);
     assert!(
-        sim.border_pass.is_some() && sim.borders_fixed,
+        sim.territory.border_pass.is_some() && sim.territory.borders_fixed,
         "a built fort's close fixes the borders"
     );
 }
@@ -9549,7 +9549,9 @@ fn a_second_capital_projects_its_level_s_border_not_the_capital_s() {
     let (_, c0) = city_at(&mut sim, &t, 0, 8, 8);
     let (_, c1) = city_at(&mut sim, &t, 0, 33, 8);
     assert!(sim.cities[c1].capital && !sim.cities[c1].founding_capital);
-    let bonus = |sim: &Sim, c: usize| sim.sources[sim.cities[c].source.expect("a source")].bonuses;
+    let bonus = |sim: &Sim, c: usize| {
+        sim.territory.sources[sim.cities[c].source.expect("a source")].bonuses
+    };
     assert_eq!(
         bonus(&sim, c0) - bonus(&sim, c1),
         sim.tables.tuning.capital_territory_bonus - sim.tables.tuning.city_upgrade_terr[0],
@@ -9972,7 +9974,7 @@ fn a_plain_tech_another_seat_holds_is_researched_faster() {
         tree.types[t].job_time = 400;
     }
     sim.set_tech_tree(tree);
-    let n = sim.players.len() as i32;
+    let n = sim.territory.players.len() as i32;
     assert!(n >= 2, "two seats at least");
     let plain = [classical, despotism].map(|t| sim.tech_time(0, t));
     sim.tech[1].tech[despotism] = true;
@@ -10545,7 +10547,7 @@ fn the_age_catch_up_reads_the_queued_ages() {
     }
     sim.set_tech_tree(tree);
     let plain = [classical, city_state].map(|t| sim.tech_time(0, t));
-    let nations = 2 * sim.players.len() as i32;
+    let nations = 2 * sim.territory.players.len() as i32;
     let n = if sim.is_ally(1, 0) { 1 } else { 2 };
     let caught = plain[0] * (nations - n + 2) / (nations + 2);
     sim.tech[1].ages = 1;

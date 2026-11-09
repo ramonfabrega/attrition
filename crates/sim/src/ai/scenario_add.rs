@@ -61,7 +61,7 @@ impl Sim {
         (x, y): (i32, i32),
         num: i32,
     ) -> Option<Vec<usize>> {
-        if who as usize >= self.players.len() || !(0..=2000).contains(&num) {
+        if who as usize >= self.territory.players.len() || !(0..=2000).contains(&num) {
             return None;
         }
         // `LeaderData::get_graft`: the leader's own version of the type.

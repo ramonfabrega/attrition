@@ -1242,7 +1242,7 @@ mod tests {
                 // `my_team_terr` is a snapshot of it taken on the AI's
                 // sweep and lags by up to a sweep, so it is not the field
                 // to compare.
-                let mut owned = vec![0i64; built.sim.players.len()];
+                let mut owned = vec![0i64; built.sim.territory.players.len()];
                 for y in 0..built.sim.world.height() {
                     for x in 0..built.sim.world.width() {
                         if let sim::world::Owner::Player(p) =
@@ -1434,7 +1434,7 @@ mod tests {
 
         // Each frame's own leader row, and the border pass under it.
         let owned = |sim: &sim::Sim| -> Vec<i64> {
-            let mut out = vec![0i64; sim.players.len()];
+            let mut out = vec![0i64; sim.territory.players.len()];
             for y in 0..sim.world.height() {
                 for x in 0..sim.world.width() {
                     if let sim::world::Owner::Player(p) =

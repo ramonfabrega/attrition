@@ -23,7 +23,7 @@ impl Sim {
     /// crate holds no wonder a player owns.
     pub(crate) fn calc_attrition(&mut self, who: Player) {
         let w = who as usize;
-        if w >= self.players.len() {
+        if w >= self.territory.players.len() {
             return;
         }
         let steps = self
@@ -44,7 +44,7 @@ impl Sim {
             russian: self.nation.get(w).is_some_and(|n| n.russians),
             ..attrition::StrengthMods::default()
         };
-        self.players[w].strength = attrition::strength(&self.tables.tuning, steps, &mods);
+        self.territory.players[w].strength = attrition::strength(&self.tables.tuning, steps, &mods);
     }
 
     /// Gives a dead unit's supply slot back — `Unit::close` — and takes it
@@ -61,7 +61,7 @@ impl Sim {
     pub(crate) fn close_supply_in(&mut self, unit: usize, keep_disc: bool) {
         let owner = self.units[unit].owner as usize;
         if let Some(slot) = self.units[unit].supply_slot.take() {
-            self.supply[owner].list.close(slot);
+            self.territory.supply[owner].list.close(slot);
         }
         // `Unit::close@0060ee50`'s own: the route goes back with the unit.
         if let Some(slot) = self.units[unit].caravan.take() {
@@ -99,7 +99,7 @@ impl Sim {
     /// no bookkeeping anywhere.
     pub fn supplied_at(&self, owner: Player, at: Pos) -> bool {
         let upgrades = self.supply_upgrade_level(owner);
-        self.supply[owner as usize].supplies(&self.tables.tuning, upgrades, at, |u| {
+        self.territory.supply[owner as usize].supplies(&self.tables.tuning, upgrades, at, |u| {
             self.units.get(u).map(|w| supply::Wagon {
                 pos: w.pos,
                 active: w.alive(),
@@ -121,7 +121,7 @@ impl Sim {
     /// change the original's flag exists for.
     pub fn update_territory_holdings(&mut self) {
         let mut land = 0;
-        let mut owned = vec![0; self.players.len()];
+        let mut owned = vec![0; self.territory.players.len()];
         for (region, terrain) in self.world.regions().collect::<Vec<_>>() {
             if terrain != Terrain::Land {
                 continue;
@@ -208,20 +208,20 @@ impl Sim {
     /// [`crate::border_pass`] copies it onto the map at that pace (item 1106,
     /// `docs/ATTRITION.md`, "Territory").
     pub fn recompute_territory(&mut self) {
-        let players = u8::try_from(self.players.len()).expect("too many players");
+        let players = u8::try_from(self.territory.players.len()).expect("too many players");
         let by_source = territory::compute_all_territory_won(
             &mut self.world,
             &self.tables.tuning,
-            &self.sources,
+            &self.territory.sources,
             players,
         );
-        let mut city_of = vec![-1; self.sources.len()];
+        let mut city_of = vec![-1; self.territory.sources.len()];
         for (c, city) in self.cities.iter().enumerate() {
             if let Some(si) = city.source.filter(|&si| si < city_of.len()) {
                 city_of[si] = c as i32;
             }
         }
-        self.territory_won = by_source
+        self.territory.territory_won = by_source
             .into_iter()
             .map(|si| usize::try_from(si).map_or(-1, |si| city_of[si]))
             .collect();
@@ -311,7 +311,7 @@ impl Sim {
     pub(crate) fn attrition_for(&self, i: usize) -> attrition::Outcome {
         let unit = &self.units[i];
         let ground = self.world.owner_at(unit.pos);
-        let victim = &self.players[unit.owner as usize];
+        let victim = &self.territory.players[unit.owner as usize];
         let at_war = ground
             .player()
             .is_none_or(|o| self.at_war[unit.owner as usize][o as usize]);
@@ -330,7 +330,7 @@ impl Sim {
             unit.owner,
             victim,
             &situation,
-            |p| self.players[p as usize],
+            |p| self.territory.players[p as usize],
         )
     }
 }

@@ -477,7 +477,7 @@ impl MusterView for SimMuster<'_> {
     }
     fn friend(&mut self, a: i32, b: i32) -> bool {
         // Total: a leader outside the table is nobody's friend.
-        let n = self.sim.players.len() as i32;
+        let n = self.sim.territory.players.len() as i32;
         (0..n).contains(&a) && (0..n).contains(&b) && self.sim.is_ally(a as Player, b as Player)
     }
     fn transports(&self) -> bool {

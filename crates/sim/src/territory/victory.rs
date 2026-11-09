@@ -37,7 +37,7 @@ impl Sim {
             return;
         }
         let share = self.lobby.pop_win_percent;
-        let n = self.players.len();
+        let n = self.territory.players.len();
         // `LeaderData::get_team_terr@006d62e0` over `LeaderData::territory`
         // — the leader's own count, which `Leader::calc_gather` rewrites on
         // its reassembly frames ([`crate::holdings`]), not the live map: a

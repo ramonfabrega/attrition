@@ -381,7 +381,7 @@ impl Sim {
     }
 
     fn players(&self) -> impl Iterator<Item = Player> {
-        (0..self.players.len()).map(|p| p as Player)
+        (0..self.territory.players.len()).map(|p| p as Player)
     }
 
     pub(crate) fn player_alive(&self, p: Player) -> bool {

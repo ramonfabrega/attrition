@@ -26,7 +26,7 @@ impl Sim {
         // `leader_flags & 3 == 3` that is not an ally and not `& 0x10` — the
         // human included (corrected 2026-08-24 against the decompile; the
         // first reading said "computer leader").
-        let rivals: Vec<ai::Rival> = (0..self.players.len())
+        let rivals: Vec<ai::Rival> = (0..self.territory.players.len())
             .filter(|&i| i != w && !self.defeated[i] && !(self.allied[w][i] && self.allied[i][w]))
             .map(|i| ai::Rival {
                 tribe: self.tech[i].tribe,
@@ -63,7 +63,7 @@ impl Sim {
     /// from frame 1 and its `peasant_dist` moving on leader 0's own phase
     /// frame; an AI navy reads the human city's `ocean` when it scores it.
     pub fn strategy_all(&mut self) {
-        for w in 0..self.players.len() {
+        for w in 0..self.territory.players.len() {
             if self.defeated[w] {
                 continue;
             }

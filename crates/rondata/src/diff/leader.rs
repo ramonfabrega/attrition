@@ -142,7 +142,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     // parts on every window until a visibility model exists. It is the
     // gate `weight_total`'s war term hangs on, so it is compared rather
     // than left out (`docs/AI.md` §45).
-    for i in 0..built.sim.players.len() {
+    for i in 0..built.sim.territory.players.len() {
         let d = if i == who {
             2
         } else if built.sim.at_war[who][i] {

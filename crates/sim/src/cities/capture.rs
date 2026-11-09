@@ -462,7 +462,7 @@ impl CaptureView for SimCapture<'_> {
     }
     fn leader_flags(&mut self, who: i32) -> i32 {
         match usize::try_from(who) {
-            Ok(w) if w < self.s.players.len() => {
+            Ok(w) if w < self.s.territory.players.len() => {
                 1 | if self.s.defeated.get(w).copied().unwrap_or(true) {
                     0
                 } else {

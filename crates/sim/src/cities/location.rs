@@ -689,8 +689,9 @@ impl LocationView for SimLocation<'_> {
     }
 
     fn alive(&self, i: i32) -> bool {
-        Self::player(i)
-            .is_some_and(|p| usize::from(p) < self.sim.players.len() && self.sim.player_alive(p))
+        Self::player(i).is_some_and(|p| {
+            usize::from(p) < self.sim.territory.players.len() && self.sim.player_alive(p)
+        })
     }
     fn city_num(&self, i: i32) -> i32 {
         Self::player(i).map_or(0, |p| self.sim.city_num(p))

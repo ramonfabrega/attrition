@@ -1243,7 +1243,7 @@ impl Sim {
         // else's problem. The original's `job_counter / construct_time >
         // 0.25` is a compare of two integers widened to a float; `4 · job >
         // time` is the same verdict without one.
-        for p in 0..self.players.len() {
+        for p in 0..self.territory.players.len() {
             let other = p as Player;
             if self.defeated.get(p).copied().unwrap_or(false) {
                 continue;
@@ -1367,7 +1367,7 @@ impl Sim {
     /// The leaders the three sums walk: the slots whose `flags & 1` is set,
     /// read as every player not defeated.
     fn wonder_leaders(&self) -> impl Iterator<Item = Player> + '_ {
-        (0..self.players.len())
+        (0..self.territory.players.len())
             .filter(|&p| !self.defeated.get(p).copied().unwrap_or(true))
             .map(|p| p as Player)
     }

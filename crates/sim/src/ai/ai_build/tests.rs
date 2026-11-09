@@ -137,7 +137,7 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
     let c = sim.buildings[b].city.expect("a finished city has a record");
     let w = who as usize;
     let regions = sim.world.region_count();
-    let players = sim.players.len();
+    let players = sim.territory.players.len();
     sim.ai[w].census.resize(regions, players);
     sim.ai[w]
         .city_ai

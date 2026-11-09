@@ -54,7 +54,7 @@ pub(super) fn run255_s_repair_is_the_original_s_unit_for_unit() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_TWENTY_ONE;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let (mut rows, mut repairs) = (0usize, 0usize);
     for f in 0..last - 1 {
@@ -574,7 +574,7 @@ pub(super) fn run245_s_cast_is_the_original_s_field_for_field() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_NINETEEN;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
     for f in 0..last - 1 {
@@ -758,7 +758,7 @@ pub(super) fn run265_s_launch_is_the_original_s_field_for_field() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_TWENTY_TWO;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
     for f in 0..last - 1 {
@@ -869,7 +869,7 @@ pub(super) fn run249_s_transport_is_the_original_s_unit_for_unit() {
         return;
     };
     let (first, last) = WIDENING_CHAPTER_TWENTY;
-    let players = s.built.sim.players.len() as i64;
+    let players = s.built.sim.territory.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let (mut rows, mut casts, mut boards) = (0usize, 0usize, 0usize);
     for f in 0..last - 1 {

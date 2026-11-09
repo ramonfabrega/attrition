@@ -54,7 +54,7 @@ impl Sim {
     /// `Game::current_age@005946d0`: the highest `ages` among the leaders
     /// in play (`leader_flags & 1`), never below 0.
     fn current_age(&self) -> i32 {
-        (0..self.players.len())
+        (0..self.territory.players.len())
             .filter(|&j| !self.defeated[j])
             .map(|j| self.tech[j].ages)
             .max()
@@ -86,7 +86,7 @@ impl Sim {
         // whose slot 0 is a computer) — `Army::process(army, 1)`.
         // `update_leader_list` (`+0x1f4`), zeroed for each leader, is the
         // interface's.
-        let players = self.players.len().min(8);
+        let players = self.territory.players.len().min(8);
         for i in 0..players {
             if self.defeated[i] {
                 continue;
@@ -146,7 +146,7 @@ impl Sim {
         if self.nation[me].human || self.ai_off {
             return;
         }
-        let players = self.players.len().min(8);
+        let players = self.territory.players.len().min(8);
         // Leaders in play that are not my mutual ally (`LeaderData::is_ally`
         // asked of each about me; I am my own ally).
         let non_allies = (0..players)
@@ -218,7 +218,7 @@ impl Sim {
             .count();
         // Third parties: their cities I founded, and how many have more
         // than fourteen units on my land.
-        let players = self.players.len().min(8);
+        let players = self.territory.players.len().min(8);
         let mut founded_by_me = 0;
         let mut invaded_by = 0;
         for k in 0..players {

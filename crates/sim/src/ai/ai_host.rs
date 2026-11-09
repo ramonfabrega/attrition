@@ -457,7 +457,7 @@ impl ScriptHost<'_> {
     /// `leader_flags & 1` only — `num_cities`' weaker guard.
     fn leader_any(&self, who: i32) -> Option<Player> {
         let w0 = who.checked_sub(1)?;
-        (0..self.sim.players.len() as i32)
+        (0..self.sim.territory.players.len() as i32)
             .contains(&w0)
             .then_some(w0 as Player)
     }

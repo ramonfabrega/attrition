@@ -260,13 +260,9 @@ pub struct Sim {
     /// setup and the tuning (`core::Tables`).
     pub tables: crate::core::Tables,
     pub world: World,
-    pub players: Vec<attrition::PlayerState>,
-    pub sources: Vec<territory::Source>,
+    /// The `territory/` subsystem's state (`docs/STRUCTURE.md` §3).
+    pub territory: crate::territory::TerritoryState,
     pub units: Vec<Unit>,
-    /// One supply network per player. Never shared: an ally's supply wagon
-    /// does nothing for your units, which is a rule of the original and not a
-    /// simplification here.
-    pub supply: Vec<supply::Network>,
     /// Diplomacy, as a full matrix. `at_war[a][b]` is symmetric in practice
     /// but stored both ways, because the original reads it both ways.
     pub at_war: Vec<Vec<bool>>,
@@ -431,9 +427,6 @@ pub struct Sim {
     pub cities: Vec<city::City>,
     /// One per player: the nation, wonder and tech inputs this mechanic reads.
     pub nation: Vec<city::Nation>,
-    /// One per player: the border bonuses a city or fort of theirs projects,
-    /// `docs/ATTRITION.md`. Zero until something sets them.
-    pub borders: Vec<territory::PlayerBorders>,
     /// Alliance, as a matrix; `is_ally` needs it both ways.
     pub allied: Vec<Vec<bool>>,
     /// `LeaderData::treaties` (`+0x94`), `int[8]` — the standing agreements
@@ -486,24 +479,6 @@ pub struct Sim {
     /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
     /// built for everyone").
     pub wonders_built: u32,
-    /// Every region's `Region::borders` resume index reset since the last
-    /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
-    /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
-    pub borders_fixed: bool,
-    /// **The fixed pass still reaching the map** (item 1106,
-    /// [`border_pass`]): the owners a fix computed and every region's resume
-    /// index. `None` once every land region is done.
-    pub border_pass: Option<border_pass::BorderPass>,
-    /// Per cell (row-major), the city whose claim [`Sim::recompute_territory`]
-    /// last found winning it, `−1` for none or a fort's — `compute_reg_territory`'s
-    /// `local_1c`, which names the city a runner-up marks `bordering`
-    /// (`docs/AI.md` §167).
-    pub territory_won: Vec<i32>,
-    /// `GoodData::ever_seen` (`+0x20`), the bits `World::compute_reg_territory`'s
-    /// per-cell goods scan sets beside `Leader::new_rare` (item 1555,
-    /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
-    /// answered by the fog read in [`Sim::good_ever_seen`].
-    pub good_seen_bits: Vec<u8>,
     /// The goody boxes as `Objects::init_item` laid them down, with each
     /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
     /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
@@ -663,10 +638,7 @@ impl Sim {
             trace_costs: false,
             cost_marks: Vec::new(),
             road_marks: Vec::new(),
-            players: vec![attrition::PlayerState::default(); players],
-            sources: Vec::new(),
             units: Vec::new(),
-            supply: vec![supply::Network::default(); players],
             at_war: vec![vec![false; players]; players],
             holdings: vec![economy::Holdings::new(); players],
             ledgers: vec![economy::Ledger::starting(&tuning); players],
@@ -692,7 +664,6 @@ impl Sim {
             hits: Vec::new(),
             cities: Vec::new(),
             nation: vec![city::Nation::default(); players],
-            borders: vec![territory::PlayerBorders::plain(&tuning); players],
             allied: vec![vec![false; players]; players],
             treaties: vec![vec![0; players]; players],
             agendas: vec![vec![0; players]; players],
@@ -705,10 +676,16 @@ impl Sim {
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
             wonders_built: 0,
-            borders_fixed: false,
-            border_pass: None,
-            territory_won: Vec::new(),
-            good_seen_bits: Vec::new(),
+            territory: crate::territory::TerritoryState {
+                players: vec![attrition::PlayerState::default(); players],
+                sources: Vec::new(),
+                supply: vec![supply::Network::default(); players],
+                borders: vec![territory::PlayerBorders::plain(&tuning); players],
+                borders_fixed: false,
+                border_pass: None,
+                territory_won: Vec::new(),
+                good_seen_bits: Vec::new(),
+            },
             goody_items: Vec::new(),
             in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
@@ -753,11 +730,13 @@ impl Sim {
     /// leaves the others short, and the failure shows up as an index panic in
     /// whichever pass reaches the longest one first.
     pub fn add_player(&mut self) -> Player {
-        let who = self.players.len();
-        self.players.push(attrition::PlayerState::default());
+        let who = self.territory.players.len();
+        self.territory
+            .players
+            .push(attrition::PlayerState::default());
         self.tech
             .push(tech::PlayerTech::new(&self.tables.tech_tree));
-        self.supply.push(supply::Network::default());
+        self.territory.supply.push(supply::Network::default());
         self.holdings.push(economy::Holdings::new());
         self.unit_stats_dirty.push(false);
         self.ledgers
@@ -765,7 +744,8 @@ impl Sim {
         self.muster.push(Muster::new(&self.tables.tuning));
         self.mods.push(combat::Modifiers::default());
         self.nation.push(city::Nation::default());
-        self.borders
+        self.territory
+            .borders
             .push(territory::PlayerBorders::plain(&self.tables.tuning));
         self.defeated.push(false);
         self.lost_city_stamp.push(None);

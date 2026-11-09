@@ -115,7 +115,7 @@ impl Sim {
             self.units[i].combat.stance = crate::combat::Stance::StandGround;
         }
         if source {
-            self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
+            self.units[i].supply_slot = Some(self.territory.supply[owner].list.register(i));
         }
         // `Unit::init@00612100:436` — a **land** caravan takes a slot in its
         // leader's `Caravans` list. `is_caravan` is `unit_flags2 & 8` and

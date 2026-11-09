@@ -49,9 +49,9 @@ impl Sim {
         if !self.in_play {
             // Setup's pass, before the first frame: wholesale, and any pass
             // an earlier setup fix left is superseded by this target.
-            self.border_pass = None;
+            self.territory.border_pass = None;
             let target = self.world.owners();
-            let won = self.territory_won.clone();
+            let won = self.territory.territory_won.clone();
             self.wholesale_bordering(&target, &won);
             self.update_territory_holdings();
             self.claim_oil_from_owners();
@@ -60,8 +60,8 @@ impl Sim {
         let target = self.world.owners();
         self.world.set_owners(&before);
         let index = vec![0; self.world.region_count()];
-        let won = self.territory_won.clone();
-        self.border_pass = Some(BorderPass { target, index, won });
+        let won = self.territory.territory_won.clone();
+        self.territory.border_pass = Some(BorderPass { target, index, won });
     }
 
     /// Every city's `bordering` back to zero — `compute_reg_territory:92`,
@@ -155,7 +155,7 @@ impl Sim {
     /// at setup, before the first frame, and what a test that wants a fix
     /// visible on the same frame asks for.
     pub fn settle_borders(&mut self) {
-        if let Some(pass) = self.border_pass.take() {
+        if let Some(pass) = self.territory.border_pass.take() {
             self.world.set_owners(&pass.target);
             self.wholesale_bordering(&pass.target, &pass.won);
             self.update_territory_holdings();
@@ -167,7 +167,7 @@ impl Sim {
     /// [`CELLS_PER_FRAME`] cells, land regions in order, each from its
     /// resume index.
     pub(crate) fn advance_border_pass(&mut self) {
-        let Some(mut pass) = self.border_pass.take() else {
+        let Some(mut pass) = self.territory.border_pass.take() else {
             return;
         };
         let mut budget = 0;
@@ -226,7 +226,7 @@ impl Sim {
             }
         }
         if open {
-            self.border_pass = Some(pass);
+            self.territory.border_pass = Some(pass);
         } else if finished_one {
             // `check_borders`' tail: every region done, so `territory` is
             // the sum of the regions' counts again.

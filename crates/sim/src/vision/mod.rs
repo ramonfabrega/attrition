@@ -754,7 +754,7 @@ impl Sim {
     /// leader allied with it.
     pub(crate) fn seen_ally_mask(&self, who: crate::Player) -> u8 {
         let mut m = 1u8 << (who & 7);
-        for i in 0..self.players.len().min(8) {
+        for i in 0..self.territory.players.len().min(8) {
             let o = i as crate::Player;
             if o != who && self.is_ally(who, o) {
                 m |= 1 << i;
@@ -801,7 +801,7 @@ impl Sim {
         let mine = self.seen_ally_mask(who);
         // `game->everyone_mask` — the bits of the leaders in this game, so
         // the scan stops once every one of them has seen it.
-        let all = ((1u16 << self.players.len().min(8)) - 1) as u8;
+        let all = ((1u16 << self.territory.players.len().min(8)) - 1) as u8;
         let want = if started { all } else { mine };
         if self.buildings[b].ever_seen & want != want
             || self.buildings[b].ever_seen_completed & want != want
@@ -851,7 +851,7 @@ impl Sim {
         // still relights the footprint.
         let mut met = false;
         let mut greet = Vec::new();
-        for w in 0..self.players.len().min(8) {
+        for w in 0..self.territory.players.len().min(8) {
             let o = w as crate::Player;
             // `leaders[o].leader_flags & 1` is a slot in use, and a defeat
             // clears only bit 1 (`Leader::defeat@006ecb00:63`): a defeated

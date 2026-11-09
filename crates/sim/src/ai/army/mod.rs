@@ -395,7 +395,7 @@ impl BesiegedSim<'_> {
 
 impl BesiegedView for BesiegedSim<'_> {
     fn leaders(&self) -> i32 {
-        self.sim.players.len() as i32
+        self.sim.territory.players.len() as i32
     }
     fn who(&self) -> i32 {
         i32::from(self.who)
@@ -1385,7 +1385,7 @@ impl Sim {
     /// `Armies::process_all`: every in-use, non-human leader's valid
     /// armies, the hurry bit consumed into the bypass.
     pub fn armies_process_all(&mut self) {
-        for w in 0..self.players.len() {
+        for w in 0..self.territory.players.len() {
             if self.nation[w].human {
                 continue;
             }
@@ -1533,7 +1533,7 @@ impl Sim {
         if n < 2 {
             return false;
         }
-        for i in 0..self.players.len() {
+        for i in 0..self.territory.players.len() {
             let ip = i as Player;
             if self.defeated[i] || !self.is_ally(who, ip) {
                 continue;
@@ -1982,7 +1982,7 @@ impl Sim {
         let at = list.iter().position(|&l| l == who as usize).unwrap_or(0);
         for j in 0..8 {
             let l = list[(at + 1 + j) & 7];
-            if l < self.players.len() && !self.defeated[l] {
+            if l < self.territory.players.len() && !self.defeated[l] {
                 return l;
             }
         }
@@ -2353,7 +2353,7 @@ impl Sim {
             mine,
             peasants,
             self.strategy_of(who, Some(r)) & 4 != 0,
-            self.players.len(),
+            self.territory.players.len(),
             |i| !self.defeated[i],
             |i| self.leader_reg_cities(i as Player, r),
             |i| self.is_enemy(who, i as Player),
@@ -2527,7 +2527,7 @@ impl Sim {
     /// `Armies::update_city`: a captured city's targeters follow it; the
     /// new owner's own armies are hurried.
     pub fn armies_update_city(&mut self, old: Obj, new: Obj, new_who: Player) {
-        for w in 0..self.players.len() {
+        for w in 0..self.territory.players.len() {
             if self.nation[w].human {
                 continue;
             }
@@ -2590,7 +2590,7 @@ impl Sim {
     /// armies targeting its building drop the target.
     pub fn armies_city_closed(&mut self, c: usize, building: usize) {
         let owner = self.cities[c].owner as usize;
-        for w in 0..self.players.len() {
+        for w in 0..self.territory.players.len() {
             for s in 0..SLOTS {
                 let a = &self.armies[w].list[s];
                 if !a.valid {

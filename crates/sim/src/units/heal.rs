@@ -181,15 +181,17 @@ impl Sim {
         }
         let at = self.units[i].pos;
         let upgrades = self.supply_upgrade_level(owner);
-        let terra_cotta = self.supply[owner as usize].player.terra_cotta;
+        let terra_cotta = self.territory.supply[owner as usize].player.terra_cotta;
         let radius = crate::supply::supply_radius(&self.tables.tuning, upgrades, terra_cotta);
-        let found = self.supply[owner as usize].list.find(at, radius, |w| {
-            self.units.get(w).map(|w| crate::supply::Wagon {
-                pos: w.pos,
-                active: w.alive(),
-                on_map: w.on_map,
-            })
-        });
+        let found = self.territory.supply[owner as usize]
+            .list
+            .find(at, radius, |w| {
+                self.units.get(w).map(|w| crate::supply::Wagon {
+                    pos: w.pos,
+                    active: w.alive(),
+                    on_map: w.on_map,
+                })
+            });
         if found.is_some() {
             self.repair_unit_damage(i, 1);
             self.mark_healed(i, rate);

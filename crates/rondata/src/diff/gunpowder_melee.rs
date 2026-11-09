@@ -89,7 +89,7 @@ fn gunpowder_melee_staging_walk() {
     for (w, n) in built.sim.nation.iter().enumerate() {
         eprintln!(
             "  who={w} human={} age {}",
-            n.human, built.sim.players[w].age
+            n.human, built.sim.territory.players[w].age
         );
     }
     assert_eq!(
@@ -1331,7 +1331,7 @@ pub(crate) fn seat_walk(
         borrow_from_siblings(&mut init, &[&sibling]);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let players = built.sim.players.len();
+        let players = built.sim.territory.players.len();
         let mut theirs = BTreeMap::new();
         let mut trailing = BTreeMap::new();
         // Each window's frames, and the dump after its last `BEGIN FRAME`

@@ -153,7 +153,7 @@ impl Sim {
     /// `LeaderData::get_team_terr@006d62e0`: my territory plus every ally's.
     fn team_terr(&self, who: Player) -> i32 {
         let w = who as usize;
-        (0..self.players.len())
+        (0..self.territory.players.len())
             .filter(|&i| i == w || (!self.defeated[i] && self.diplo_ally(w, i)))
             .map(|i| self.territory_of(i as Player))
             .sum()
@@ -297,7 +297,7 @@ impl Sim {
     pub fn census(&mut self, who: Player) {
         let w = who as usize;
         let regions = self.world.region_count();
-        let players = self.players.len();
+        let players = self.territory.players.len();
         self.ai[w].census.resize(regions, players);
         let n = self.cities.len();
         self.ai[w].city_ai.resize(n, CityAi::default());
@@ -354,7 +354,7 @@ impl Sim {
         let mine = self.team_terr(who);
         let mut other = 0;
         let mut min_other = 0;
-        for i in 0..self.players.len() {
+        for i in 0..self.territory.players.len() {
             // **Every other leader the roster holds, the human included**
             // (item 368). `plan_strategy@006b9620:159-166`'s gate is
             // `leader_flags & 2`, `i != who` and `i >= 0` — and bit 1 is
@@ -384,7 +384,7 @@ impl Sim {
     fn census_ally_mask(&mut self, who: Player) {
         let w = who as usize;
         let mut mask = 1u32 << (w & 0x1f);
-        for i in 0..self.players.len() {
+        for i in 0..self.territory.players.len() {
             if i == w || self.defeated[i] || self.nation[i].human {
                 continue;
             }
@@ -419,7 +419,7 @@ impl Sim {
             return;
         }
         let w = who as usize;
-        for i in 0..self.players.len().min(8) {
+        for i in 0..self.territory.players.len().min(8) {
             if i == w || self.defeated[i] || self.has_met(who, i) {
                 continue;
             }
@@ -439,7 +439,7 @@ impl Sim {
     /// mine included; step 10 refills it.
     fn census_clear_invaders(&mut self, who: Player) {
         let w = who as usize;
-        let players = self.players.len();
+        let players = self.territory.players.len();
         for i in 0..players {
             if self.defeated[i] {
                 continue;
@@ -659,7 +659,7 @@ impl Sim {
                 && o as usize != w
                 && !self.defeated[o as usize]
             {
-                let players = self.players.len();
+                let players = self.territory.players.len();
                 let inv = &mut self.ai[o as usize].census.invaders;
                 inv.resize(players, 0);
                 inv[w] += 1;
@@ -1117,7 +1117,7 @@ impl Sim {
         let w = who as usize;
         let mut wars = 0;
         let mut allies = 0;
-        for i in 0..self.players.len() {
+        for i in 0..self.territory.players.len() {
             if i == w || !self.met(who, i) {
                 continue;
             }
@@ -1143,7 +1143,7 @@ impl Sim {
     /// §2.3 step 15 does not mention it.
     fn census_strategy(&mut self, who: Player) {
         let w = who as usize;
-        let players = self.players.len();
+        let players = self.territory.players.len();
         // `world+0x34`, the style's sea class (`World::sea_map`).
         let sea_map = self.world.sea_map();
         let difficulty = self.ai_difficulty();
