@@ -7,7 +7,7 @@
 //! leader arm are [`do_group_move_steps`] over a [`GroupMoveView`] that names
 //! every access they make in the order they make them. [`SimGroupMove`]
 //! answers from this crate's state; the sweep
-//! (`crates/sim/src/sweep/unit_do_group_move_leader.rs`) answers from the
+//! (`crates/sim/tests/sweep/unit_do_group_move_leader.rs`) answers from the
 //! emulated original's windows, and ends the call where the follower arm
 //! first asks for the leader's object (`--stop-stub`).
 //!

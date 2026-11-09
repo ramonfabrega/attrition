@@ -4753,8 +4753,8 @@ a non-tail stub with `nargs` = the function's own and `ret 4·N`. `--tail` is th
 leaves `esp` wrong here, and the generated script holds neither `esp` nor what the slot was handed; both were by
 hand. A `--jmp` flag (non-tail stub, `--own N`, the handed arguments and `ecx` in the row) would take them, and a
 slot whose answer is a function of its first argument (`GoodTypeData::is_flat`'s three asks of `+0x60`) beside it.
-Also: three tracked `crates/sim/src/sweep/world_data_is_valid_*.rs-E` files are BSD `sed -i -E` leftovers from
-item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.
+~~Also: three tracked `world_data_is_valid_*.rs-E` files under the sweep directory are BSD `sed -i -E` leftovers
+from item 1834's scaffold — dead, compiled by nothing; a one-line `git rm`.~~ Removed by item 4009.
 
 ## Parked by item 2032, 2026-10-13 — chapter sixty-one
 
@@ -9452,7 +9452,7 @@ words and edits nothing here; a refill lands when two remain.
   GoodType receiver is not read. `WallData::hits@00642bb0` has the same shape and §142 reads it as reached. A scan
   of `+0x94` vcalls by receiver type would settle both.
 - **3409c. `docs/audit/census-backed.txt` predates item 3346.** `Object::disband@006455c0` has a sweep
-  (`crates/sim/src/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
+  (`crates/sim/tests/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
 
 ## Parked by item 3410, 2026-10-21 — the first five never-entered unmarked rows swept
 
@@ -15618,13 +15618,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot DH — reserved
+## Parked by item 4009, 2026-11-08 — the sweeps leave the source
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(4009a) **`sweep_gen.py` still draws the unfolded `obj with windows` skeleton** (Loop; names no score). Item 4009
+folded 787 such sweeps' generated row-parsing and asserts into `sweep::support::obj_rows`, but the generator's
+template still writes them out whole, so a new sweep lands unfolded. And `--regen` on a folded sweep has no
+port block where `kept_port` looks for one (the line above the port is indented one level less inside the
+closure), so it refuses as Loop 2792 says it should, unless `--port`, `--port-file` or `--reset-port` is
+given. The fix: the template emits the `obj_rows` call and `kept_port` reads both forms. It moves no count:
+the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
 
 ## Parked by item 4018, 2026-11-08 — the camera's motion and its start
 
@@ -15665,6 +15667,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

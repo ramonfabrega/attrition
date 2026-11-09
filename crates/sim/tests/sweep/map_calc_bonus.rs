@@ -1,0 +1,48 @@
+//! `Map::calc_bonus@00692f10` under the emulator against the port (item 2122; tools/sweep_gen.py, obj with windows).
+
+#[allow(dead_code)]
+fn rd(m: &[u8], off: usize) -> i32 {
+    i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
+}
+
+#[allow(dead_code)]
+fn wr(m: &mut [u8], off: usize, v: i32) {
+    m[off..off + 4].copy_from_slice(&v.to_le_bytes());
+}
+
+/// `Map::calc_bonus@00692f10`, run by `tools/emu/sweep_obj.py` on its row `map_calc_bonus` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 2 argument(s), the global cell 0x00c06188 points at 320 random bytes; the global cell 0x00c061b8 points at 32 random bytes; the word at `c0+0x134` points at 28 random bytes less `(i32(c[0],0)*a[1]+a[0])*0x1c` (placed); the word at `c1+0x10` points at 8 random bytes less `i16(p[0],4)*0x88` (placed); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+#[test]
+fn the_emulated_original_agrees_on_every_row() {
+    let Some(rows) = super::emu_obj("map_calc_bonus") else {
+        return;
+    };
+    let obj = super::Obj {
+        name: "calc_bonus",
+        full: "Map::calc_bonus@00692f10",
+        cells: 2,
+        calls: false,
+        eax: true,
+        min_rows: 200,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, _log| {
+        let _ = (&a, &m, &c, &p);
+        {
+            let r = i16::from_le_bytes([p[0][4], p[0][5]]);
+            let f = if r == 0 { rd(m, 0x1c) } else { rd(&p[1], 0) };
+            if f == 0 {
+                0
+            } else {
+                let (x, y, s) = (a[0], a[1], rd(&c[0], 0x7c));
+                i64::from(
+                    (x % f).wrapping_mul(f).wrapping_add(y % f)
+                        == (y / f)
+                            .wrapping_mul(0x11)
+                            .wrapping_add((x / f).wrapping_mul(0x3d))
+                            .wrapping_add(s)
+                            .wrapping_rem(f.wrapping_mul(f)),
+                )
+            }
+        }
+    });
+}

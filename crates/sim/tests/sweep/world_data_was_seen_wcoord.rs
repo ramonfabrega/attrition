@@ -1,0 +1,73 @@
+//! `WorldData::was_seen_wcoord@006b25f0` under the emulator against the port (item 2966; tools/sweep_gen.py, obj with windows).
+
+#[allow(dead_code)]
+fn rd(m: &[u8], off: usize) -> i32 {
+    i32::from_le_bytes(m[off..off + 4].try_into().expect("four bytes"))
+}
+
+#[allow(dead_code)]
+fn wr(m: &mut [u8], off: usize, v: i32) {
+    m[off..off + 4].copy_from_slice(&v.to_le_bytes());
+}
+
+/// `WorldData::was_seen_wcoord@006b25f0`, run by `tools/emu/sweep_obj.py` on its row `world_data_was_seen_wcoord` of
+/// `tools/emu/sweep_obj.tsv` under unicorn (tools/emu): 64 random bytes of object, 3 argument(s), `p` windows in order: p0..p1 pointed argument(s), p2..p41 sparse table 0 (8 rows × 5 slice(s), row-major), p42..p44 the place(s), in flag order; argument 0 names 4 random bytes; argument 1 names 4 random bytes; callee 0x006b4d80 (2 args) stubbed; callee 0x006edb50 (1 args) stubbed; callee 0x006b5680 (2 args) stubbed; the word at `0xc061e8` points at 64 random bytes less `0` (placed); the word at `0xc061d0` points at 320 random bytes less `0` (placed); the word at `p43+0x134` points at 512 random bytes less `0` (placed); stub 1 answered from [0, 1, 1, 1] (90%); stub 0 answers -1..7 every row; stub 2 answers 0..3 every row; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 8 rows 0x6eec apart at `0xc061e0`, slices +0x0:0x4, +0x125e:0x8, +0x12de:0x8, +0x59e4:0x4, +0x6929:0x1 (`p` windows after the pointed buffers, before the places); `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments).
+#[test]
+fn the_emulated_original_agrees_on_every_row() {
+    let Some(rows) = super::emu_obj("world_data_was_seen_wcoord") else {
+        return;
+    };
+    let obj = super::Obj {
+        name: "was_seen_wcoord",
+        full: "WorldData::was_seen_wcoord@006b25f0",
+        cells: 0,
+        calls: true,
+        eax: true,
+        min_rows: 200,
+    };
+    super::obj_rows(&rows, &obj, |a, m, c, p, log| {
+        let _ = (&a, &m, &c, &p);
+        // `a` is the x and y pointers (windows `p0`, `p1`), the player, then the answers
+        // of `get_whose`, `is_ally` and `get_region`. A player past 7, a reveal-map
+        // setting above 1 (the game's byte +0x30, `p42`), a defeated or observing leader
+        // (flags 0x1000/0x800 of the leaders row, `p[2+5r]`) or a nonzero short at its
+        // +0x59e4 sees everything; else a tile owned by an ally (`get_whose` >= 0 and
+        // `is_ally`) that its region's seen shorts (+0x125e/+0x12de of the owner's row)
+        // mark is seen; else the tile's byte (`p44`, 0x1c an entry) masked by the
+        // leader's ally mask (+0x6929).
+        let who = a[2];
+        let row = |r: i32| 2 + 5 * r as usize;
+        let seen: i64 = 'out: {
+            if who >= 8 || p[42][0x30] > 1 {
+                break 'out 1;
+            }
+            let b = row(who);
+            if rd(&p[b], 0) & 0x1800 != 0 || i16::from_le_bytes([p[b + 3][0], p[b + 3][1]]) != 0 {
+                break 'out 1;
+            }
+            let whose = a[3];
+            log.push("s0:p43+0x0,p0+0x0,p1+0x0".to_string());
+            if whose >= 0 {
+                log.push(format!("s1:p{}+0x0,{whose}", b));
+                if a[4] != 0 {
+                    log.push("s2:p43+0x0,p0+0x0,p1+0x0".to_string());
+                    let o = row(whose);
+                    let at = 2 * a[5] as usize;
+                    for w in [&p[o + 1], &p[o + 2]] {
+                        if i16::from_le_bytes([w[at], w[at + 1]]) != 0 {
+                            break 'out 1;
+                        }
+                    }
+                }
+            }
+            let idx = rd(&p[1], 0)
+                .wrapping_mul(rd(&p[43], 0))
+                .wrapping_add(rd(&p[0], 0));
+            i64::from(p[44][0x14 + 0x1c * idx as usize] & p[b + 4][0])
+        };
+        if log.is_empty() {
+            log.push("-".to_string());
+        }
+        seen
+    });
+}

@@ -10,7 +10,8 @@ structure track (`docs/STRUCTURE.md` §5) moves those files into directories.
 A citation that names a file no longer there is a reader sent nowhere, and
 nothing failed on one until item 4008.
 
-**What a citation is.** The text `crates/sim/src/` and the path characters
+**What a citation is.** The text `crates/sim/src/` or `crates/sim/tests/`
+(item 4009) and the path characters
 after it (letters, digits, `_ . / - *`, and `{a,b}` brace lists), trailing
 punctuation dropped. It resolves when every path it spells names a file or
 directory that exists; one carrying `*` is a glob and resolves when it
@@ -40,7 +41,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PREFIX = 'crates/sim/src/'
-CITATION = re.compile(r'crates/sim/src/(?:[A-Za-z0-9_./*-]|\{[A-Za-z0-9_.,*-]*\})*')
+# Item 4009 moved the standalone sweeps to `crates/sim/tests/sweep/`, so the
+# crate's `tests/` is cited and checked as `src/` is.
+BARE = (PREFIX, 'crates/sim/tests/')
+CITATION = re.compile(r'crates/sim/(?:src|tests)/(?:[A-Za-z0-9_./*-]|\{[A-Za-z0-9_.,*-]*\})*')
 
 
 # The guard that holds `--check`'s known list quotes the citations it pins.
@@ -86,7 +90,7 @@ def citations(text):
             cite = m.group(0)
             if not cite.endswith('/'):
                 cite = cite.rstrip('.,-')
-            if cite != PREFIX:
+            if cite not in BARE:
                 out.append((i, cite))
     return out
 
@@ -153,19 +157,28 @@ def rewrite_braces(cite, moves):
     """A brace-list citation with each moved alternative rewritten in place
     — `crates/sim/src/{air,nuke}.rs` with `air.rs` → `air/mod.rs` is
     `crates/sim/src/{air/mod,nuke}.rs` — or `None` when an alternative
-    moved somewhere the list's prefix and suffix cannot spell."""
+    moved somewhere the list's prefix and suffix cannot spell. An
+    alternative that keeps its name and changes only the directory before
+    it starts a list of its own under its new head, the lists joined by
+    `, ` in the order their first alternative stood (item 4009: the
+    standalone sweeps left `crates/sim/src/sweep/` for
+    `crates/sim/tests/sweep/` and `mod.rs` stayed), and a list of one is
+    spelt plainly."""
     m = re.search(r'\{([^{}]*)\}', cite)
     head, tail = cite[:m.start()], cite[m.end():]
-    alts = []
+    groups = {}
     for alt in m.group(1).split(','):
         to = moved(head + alt + tail, moves)
         if to is None:
-            alts.append(alt)
+            groups.setdefault(head, []).append(alt)
         elif to.startswith(head) and to.endswith(tail) and len(to) >= len(head) + len(tail):
-            alts.append(to[len(head):len(to) - len(tail)])
+            groups.setdefault(head, []).append(to[len(head):len(to) - len(tail)])
+        elif to.endswith(alt + tail):
+            groups.setdefault(to[:len(to) - len(alt + tail)], []).append(alt)
         else:
             return None
-    return head + '{' + ','.join(alts) + '}' + tail
+    return ', '.join(h + ('{' + ','.join(a) + '}' if len(a) > 1 else a[0]) + tail
+                     for h, a in groups.items())
 
 
 def rewrite(text, moves, unmoved=None):
@@ -173,8 +186,9 @@ def rewrite(text, moves, unmoved=None):
     brace list that cannot be rewritten is appended to `unmoved`."""
     n = 0
     for old, new in moves:
-        text, k = pattern(old).subn(new, text)
-        n += k
+        if old in text:
+            text, k = pattern(old).subn(new, text)
+            n += k
 
     def braces(m):
         nonlocal n

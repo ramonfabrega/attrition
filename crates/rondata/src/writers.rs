@@ -1165,6 +1165,8 @@ fn three_views() -> (String, String, String) {
         }
     }
     tests_under(&sim_dir().join("sweep"), &mut tests);
+    // The standalone sweeps, which item 4009 moved to the crate's `tests/`.
+    tests_under(&sim_dir().join("../tests/sweep"), &mut tests);
     let mut harness = String::new();
     fn walk(dir: &std::path::Path, out: &mut String) {
         let Ok(entries) = std::fs::read_dir(dir) else {

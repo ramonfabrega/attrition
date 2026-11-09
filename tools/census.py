@@ -471,6 +471,15 @@ def tests_in(text):
         yield "\n".join(lines[top:i]) + "\n" + rest[:end]
 
 
+def sweep_files(src):
+    """Every `.rs` file a sweep test can stand in: under `src`, and under
+    the crate's `tests/` beside it, where item 4009 moved the 1,305
+    standalone sweeps (`crates/sim/tests/sweep/`)."""
+    tests = os.path.join(os.path.dirname(os.path.normpath(src)), "tests")
+    return (glob.glob(os.path.join(src, "**", "*.rs"), recursive=True)
+            + glob.glob(os.path.join(tests, "**", "*.rs"), recursive=True))
+
+
 def sweep_backed(src, by_name, emu_dir=None):
     """Every function a `crates/sim` test that runs the original under the
     emulator cites, in its doc comment or its body — less the callees its
@@ -480,7 +489,7 @@ def sweep_backed(src, by_name, emu_dir=None):
     beside the function swept; a function the sweep answers for is one it
     never runs)."""
     out = set()
-    for p in glob.glob(os.path.join(src, "**", "*.rs"), recursive=True):
+    for p in sweep_files(src):
         if os.path.basename(p) in NOT_A_SWEEP:
             continue
         with open(p, errors="replace") as f:
@@ -568,7 +577,7 @@ def hooked_in_sweeps(src, emu_dir, by_name=None):
     `by_name` a callee cited by name counts as cited (item 2341: the audit
     read neither, and `UnitData::speed` was counted beside its caller)."""
     out = []
-    for p in sorted(glob.glob(os.path.join(src, "**", "*.rs"), recursive=True)):
+    for p in sorted(sweep_files(src)):
         if os.path.basename(p) in NOT_A_SWEEP:
             continue
         with open(p, errors="replace") as f:
@@ -914,7 +923,7 @@ def cited_bare(src, by_name=None):
     function's name is whole as it stands: with `by_name`, a name the export
     knows is not bare."""
     out = []
-    for p in sorted(glob.glob(os.path.join(src, "**", "*.rs"), recursive=True)):
+    for p in sorted(sweep_files(src)):
         if os.path.basename(p) in NOT_A_SWEEP:
             continue
         with open(p, errors="replace") as f:

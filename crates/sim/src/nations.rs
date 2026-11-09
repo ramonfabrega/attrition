@@ -1007,9 +1007,9 @@ mod tests {
                 }
             }
         }
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")); // `src/` and `tests/` (item 4009).
         let mut files = Vec::new();
-        walk(&root, &mut files);
+        walk(root, &mut files);
         files
             .into_iter()
             .map(|p| {

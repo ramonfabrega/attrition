@@ -28,6 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SIM = str(ROOT / "crates/sim/src")
+SWEEPS = str(ROOT / "crates/sim/tests/sweep")
 DOC = ROOT / "docs/NATIONS.md"
 
 PREFIX = [
@@ -40,7 +41,7 @@ PREFIX = [
 ]
 
 src_raw, src_code, load_code = {}, {}, ""
-sweep_only = set()  # file names found only under `crates/sim/src/sweep/`
+sweep_only = set()  # file names found only under a `sweep/` (`crates/sim/src/sweep/`, `crates/sim/tests/sweep/`)
 
 
 def best_file(pattern, code=True, literal=None):
@@ -84,7 +85,8 @@ def load(export, rules_path):
     """Reads the sim's sources, the export and the rules into the module's
     tables (the tool was a script; its tables stay module-level)."""
     global src_raw, src_code, load_code, rules, consts, tuning, sweep_only
-    paths = glob.glob(SIM + "/**/*.rs", recursive=True)
+    # Item 4009 moved the standalone sweeps beside `src/`, into the crate's tests.
+    paths = glob.glob(SIM + "/**/*.rs", recursive=True) + glob.glob(SWEEPS + "/**/*.rs", recursive=True)
     src_raw = {os.path.basename(p): open(p, errors="replace").read() for p in paths}
     dirs = {}
     for p in paths:

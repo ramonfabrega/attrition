@@ -3,7 +3,7 @@
 //! the bounds of `TypeIndex`'s blocks; the port keeps the answer as a table's
 //! column ([`crate::tech::Kind`], the spell rows of [`crate::orders::spell`])
 //! and never needed the bounds as a function. These are the bounds, each one
-//! backed by `crates/sim/src/sweep/type_*.rs` against the executable, and each
+//! backed by `crates/sim/tests/sweep/type_*.rs` against the executable, and each
 //! names the reader it drives:
 //!
 //! - [`is_unit_type`], [`is_build_type`], [`is_tech_type`], [`is_final_type`],
