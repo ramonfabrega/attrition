@@ -304,6 +304,39 @@ fn entry_pieces(name: &str, by_graph: &BTreeMap<String, Vec<i32>>) -> Option<Vec
     Some(types.iter().map(|&ty| p.piece(ty)).collect())
 }
 
+/// `first_bird_piece`, the first of the gaia ("bird") pieces —
+/// `GraphicPieces::init_piece_ranges@008f70e0` writes `0xea8d`, and
+/// `num_bird_pieces` `0x24`: three variants for each of the twelve gaia
+/// types `0x192..0x19e`, `get_type@00902540` reading a piece back as
+/// `(piece - first_bird_piece) / 3 + 0x192`.
+pub const FIRST_BIRD_PIECE: i32 = 0xea8d;
+
+/// **A gaia entry's pieces** (item 4028): `{GRAPH}-TYPE{v}` is piece
+/// `first_bird_piece + 3·(TypeIndex − 0x192) + v`.
+/// `GraphicPieces::unit_node_from_gpiece@00901c30` builds exactly that name
+/// for a piece past `first_bird_piece` — the type's `GRAPH` (`+0x88`),
+/// `-`, `TYPE`, then `(piece − first_bird_piece) % 3` — and takes the
+/// `<UNIT>` whose `name` equals it under `String::operator==@00a1f140`,
+/// which compares without case (`_wcsicmp`). There is no `-TYPE0`
+/// fall-back in the loader: a variant with no entry is a piece with no
+/// node, and `init_unit_data@008f4290` returns `LIBERR_FILE_NOT_FOUND` for
+/// it. Diff-backed by the start dumps: the sheep's 60063–60065 and the
+/// fish's 60072–60074 are the pieces `GUY` prints for owner 9's herds.
+fn bird_pieces(name: &str, graphs: &[String]) -> Option<Vec<i32>> {
+    let (graph, v) = name.rsplit_once("-TYPE")?;
+    let v: i32 = v.parse().ok().filter(|v| (0..3).contains(v))?;
+    let pieces: Vec<i32> = graphs
+        .iter()
+        .enumerate()
+        .filter_map(|(i, g)| {
+            let ty = 0x32 + i as i32;
+            ((0x192..0x19e).contains(&ty) && g.trim().eq_ignore_ascii_case(graph))
+                .then_some(FIRST_BIRD_PIECE + 3 * (ty - 0x192) + v)
+        })
+        .collect();
+    (!pieces.is_empty()).then_some(pieces)
+}
+
 /// `GRAPH` to the `TypeIndex`es that play it, keyed **upper case**. The
 /// gaia records (`0x192` up) are left out: their pieces come from
 /// `first_bird_piece`, not from the unit arithmetic ([`gaia_lengths`]).
@@ -1082,7 +1115,9 @@ pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
                 (*slot, anim.clone(), file)
             })
             .collect();
-        let pieces = entry_pieces(&name, &by_graph).unwrap_or_default();
+        let pieces = entry_pieces(&name, &by_graph)
+            .or_else(|| bird_pieces(&name, graphs))
+            .unwrap_or_default();
         out.push(UnitArt {
             name,
             model: model.trim().to_string(),
@@ -1124,6 +1159,34 @@ pub struct PieceDecoding {
     /// The K's pieces themselves, so a count over another set — the
     /// renderer's M (item 4020) — can be taken against them.
     pub decoded_pieces: std::collections::BTreeSet<i32>,
+    /// Every piece with an entry, by what fails in it: whether its model
+    /// decodes, and the slots whose animation does not — so §5.4's
+    /// condition 1 can be read on the slots a run plays
+    /// ([`PieceDecoding::decodes_on`]).
+    pub by_piece: BTreeMap<i32, PieceFiles>,
+}
+
+/// One piece's files, as [`piece_decoding`] found them.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct PieceFiles {
+    /// The `.bh3` decodes.
+    pub model: bool,
+    /// The slots whose `.bha` is missing, unnamed or undecodable.
+    pub failing_slots: std::collections::BTreeSet<i8>,
+}
+
+impl PieceDecoding {
+    /// **`docs/RENDERER.md` §5.4's condition 1, as it is written** (item
+    /// 4028): the piece's `.BH3` and every `.BHa` *its captured slots
+    /// name* decode — `played` is the slots a run shows the piece in. A
+    /// slot the run never plays is not drawn, so its file is not asked;
+    /// [`PIECES_DECODING`] stays the stricter every-slot count. `false` for
+    /// a piece no entry names.
+    pub fn decodes_on(&self, piece: i32, played: &std::collections::BTreeSet<i8>) -> bool {
+        self.by_piece
+            .get(&piece)
+            .is_some_and(|f| f.model && f.failing_slots.is_disjoint(played))
+    }
 }
 
 /// **Pieces decoding: K of N** (item 4019; `docs/RENDERER.md` §5.4's
@@ -1135,14 +1198,17 @@ pub struct PieceDecoding {
 /// install does not ship (`armsuplytruck_attackwalk`, `ceo_crew3_idle3`,
 /// `siegeship_ship_walk`: 14 pieces' worth, overlapping) and one model,
 /// `citizen6_fem_NA.bh3`, has a node run past its vertices. New, so no
-/// delta.
-pub const PIECES_DECODING: (usize, usize) = (1439, 1452);
+/// delta. Item 4028: **(1465, 1478)**, +26 of +26 — the gaia entries
+/// (`{GRAPH}-TYPE{v}`, [`bird_pieces`]) are pieces now, 26 entries of one
+/// piece each (1,425 of the 1,435 entries), and every one decodes.
+pub const PIECES_DECODING: (usize, usize) = (1465, 1478);
 
 /// Of [`PIECES_DECODING`]'s K, the pieces whose model's node tree and every
 /// played animation's tree have the same shape — beside K, never part of
 /// it; what the other 638 mean is the next render item's question
-/// (`docs/FORMATS.md` §3, "What is not established").
-pub const SAME_SHAPE: usize = 801;
+/// (`docs/FORMATS.md` §3, "What is not established"). Item 4028: 823,
+/// +22 of the 26 gaia pieces.
+pub const SAME_SHAPE: usize = 823;
 
 /// Resolve every entry's files and decode each once: `K of N`, and every
 /// file that costs a piece named with its reason.
@@ -1170,13 +1236,18 @@ pub fn piece_decoding(install: &Install, graphs: &[String]) -> PieceDecoding {
             })
             .clone();
         let mut fails: Vec<(String, ArtFailure)> = Vec::new();
+        let mut files = PieceFiles {
+            model: model.is_ok(),
+            ..PieceFiles::default()
+        };
         let mut shapes_agree = true;
         match &model {
             Ok(_) => {}
             Err(f) => fails.push((e.model.clone(), f.clone())),
         }
-        for (_, anim, file) in &e.anims {
+        for (slot, anim, file) in &e.anims {
             let Some(file) = file else {
+                files.failing_slots.insert(*slot);
                 fails.push((anim.clone(), ArtFailure::Unnamed(anim.clone())));
                 continue;
             };
@@ -1188,7 +1259,10 @@ pub fn piece_decoding(install: &Install, graphs: &[String]) -> PieceDecoding {
             match (a, &model) {
                 (Ok(a), Ok(m)) => shapes_agree &= a.shape() == m.shape(),
                 (Ok(_), Err(_)) => shapes_agree = false,
-                (Err(f), _) => fails.push((file.clone(), f.clone())),
+                (Err(f), _) => {
+                    files.failing_slots.insert(*slot);
+                    fails.push((file.clone(), f.clone()));
+                }
             }
         }
         let fresh: Vec<i32> = e
@@ -1197,6 +1271,9 @@ pub fn piece_decoding(install: &Install, graphs: &[String]) -> PieceDecoding {
             .copied()
             .filter(|p| seen.insert(*p))
             .collect();
+        for p in &fresh {
+            out.by_piece.insert(*p, files.clone());
+        }
         if fails.is_empty() {
             out.decoded_pieces.extend(&fresh);
         }
@@ -1209,6 +1286,236 @@ pub fn piece_decoding(install: &Install, graphs: &[String]) -> PieceDecoding {
         for (key, f) in fails {
             out.failures.entry(key).or_insert((f, 0)).1 += fresh;
         }
+    }
+    out
+}
+
+/// `first_build_piece`, `num_build_pieces` and `num_build_pieces_per_age`
+/// as `GraphicPieces::init_piece_ranges@008f70e0` writes them: `0xc606`
+/// (the unit pieces' end), `0x81` (one per building record — the 129 of
+/// `buildingrules.xml`, `TypeIndex` `0x19e + i`) and `0x489`, nine art
+/// styles of 129; `total_num_build_pieces` `0x2448` is eight ages of it.
+pub const FIRST_BUILD_PIECE: i32 = 0xc606;
+pub const NUM_BUILD_PIECES: i32 = 0x81;
+pub const BUILD_PIECES_PER_AGE: i32 = 0x489;
+
+/// The nine building art styles, by the index a nation's
+/// `BUILD_CONTINENT` carries — `say_build_art_style_name@006f03f0`'s
+/// switch: arm 0 is the empty string, which `build_node_from_gpiece`
+/// writes as `Default` (string 402), and arms 1–8 are
+/// `internal_strings.xml` entries 6920–6927 (`0x21ca0 / 0x14` on): `NEurope`,
+/// `Asian`, `Korean`, `American`, `Arab`, `Iroquois`, `Colonial`,
+/// `EIndian`. Upper case here, as the loader's comparison ignores case.
+pub const BUILD_STYLES: [&str; 9] = [
+    "DEFAULT", "NEUROPE", "ASIAN", "KOREAN", "AMERICAN", "ARAB", "IROQUOIS", "COLONIAL", "EINDIAN",
+];
+
+/// **A building piece's `<BUILD>` name** (item 4028), as
+/// `GraphicPieces::build_node_from_gpiece@008fd550` builds it: the
+/// record's `GRAPH`, `-`, the style, `-AGE`, the age — with the piece read
+/// back as `first_build_piece + 0x81·style + 0x489·age + (TypeIndex −
+/// 0x19e)`, the arithmetic `get_build_gpiece@0090bce0` adds. The age is the
+/// raw age, not a bracket (`(piece − first) / 0x489`). `build_graphs` is
+/// `buildingrules.xml`'s `GRAPH` column in file order. `(TypeIndex, name)`,
+/// or `None` for a piece outside the building range.
+pub fn build_piece_name(piece: i32, build_graphs: &[String]) -> Option<(i32, String)> {
+    let r = piece - FIRST_BUILD_PIECE;
+    if !(0..BUILD_PIECES_PER_AGE * 8).contains(&r) {
+        return None;
+    }
+    let (age, style, ty) = (
+        r / BUILD_PIECES_PER_AGE,
+        (r % BUILD_PIECES_PER_AGE) / NUM_BUILD_PIECES,
+        r % NUM_BUILD_PIECES,
+    );
+    let graph = build_graphs.get(ty as usize)?.trim().to_ascii_uppercase();
+    Some((
+        0x19e + ty,
+        format!("{graph}-{}-AGE{age}", BUILD_STYLES[style as usize]),
+    ))
+}
+
+/// What one building piece's `<BUILD>` names, as
+/// `GraphicPieces::init_build_data@008f2f20` and `init_build_events@008ea3c0`
+/// read it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BuildArt {
+    pub piece: i32,
+    pub type_index: i32,
+    /// The `<BUILD name>` the piece is.
+    pub name: String,
+    /// `texture=` — the building's sprite. A texture is outside §5.4's
+    /// condition 1, as a unit's is.
+    pub texture: String,
+    /// `zbuffer=`, the depth model: `init_build_data` loads the piece only
+    /// when it is empty or the file exists.
+    pub zbuffer: Option<String>,
+    /// `anim=`, through `decipher_animation`: `(name, file)`.
+    pub anim: Option<(String, Option<String>)>,
+    /// Each distinct `EXISTEVENT`'s `subject` — an ammo piece, matched to
+    /// `effects_graphics.xml`'s `<AMMO name>` without case — with its
+    /// `model=`, and its `anim` with its file.
+    pub addons: Vec<(String, Option<String>, String, Option<String>)>,
+}
+
+/// **The building pieces' art, resolved through the loader** (item 4028):
+/// each piece's [`build_piece_name`], the `<BUILD>` of that name under
+/// `building_graphics.xml`'s `<BUILDINGS>` (compared without case,
+/// `build_node_from_gpiece@00905050`), and what it names. A piece with no
+/// `<BUILD>` maps to `Err` of the name it built — the loader's
+/// `LIBERR_FILE_NOT_FOUND` (`init_build_data@008f2f20`); a piece outside
+/// the building range, to `Err` of the empty name.
+pub fn build_art(
+    install: &Install,
+    pieces: &std::collections::BTreeSet<i32>,
+) -> BTreeMap<i32, Result<BuildArt, String>> {
+    let mut out = BTreeMap::new();
+    let (bpath, epath, apath) = (
+        install.data("building_graphics.xml"),
+        install.data("effects_graphics.xml"),
+        install.data("anim_graphics.xml"),
+    );
+    let (Ok(btext), Ok(etext), Ok(atext)) = (
+        crate::read(&bpath),
+        crate::read(&epath),
+        crate::read(&apath),
+    ) else {
+        return out;
+    };
+    let (Ok(bdoc), Ok(edoc), Ok(adoc)) = (
+        crate::parse(&bpath, &btext),
+        crate::parse(&epath, &etext),
+        crate::parse(&apath, &atext),
+    ) else {
+        return out;
+    };
+    let Ok(rules) = install.buildings() else {
+        return out;
+    };
+    let graphs: Vec<String> = rules
+        .records
+        .iter()
+        .map(|r| r.text("GRAPH").unwrap_or_default().to_string())
+        .collect();
+    let files = anim_files(&adoc);
+    let ammo: BTreeMap<String, Option<String>> = edoc
+        .descendants()
+        .filter(|n| n.has_tag_name("AMMO"))
+        .filter_map(|n| {
+            let name = n.attribute("name")?.trim().to_ascii_uppercase();
+            Some((name, n.attribute("model").map(|m| m.trim().to_string())))
+        })
+        .collect();
+    let builds: BTreeMap<String, roxmltree::Node<'_, '_>> = bdoc
+        .descendants()
+        .filter(|n| n.has_tag_name("BUILD"))
+        .filter_map(|n| Some((n.attribute("name")?.trim().to_ascii_uppercase(), n)))
+        .collect();
+    let named = |n: roxmltree::Node<'_, '_>, a: &str| {
+        n.attribute(a)
+            .map(str::trim)
+            .filter(|v| !v.is_empty())
+            .map(str::to_string)
+    };
+    for &piece in pieces {
+        let Some((type_index, name)) = build_piece_name(piece, &graphs) else {
+            out.insert(piece, Err(String::new()));
+            continue;
+        };
+        let Some(&b) = builds.get(&name) else {
+            out.insert(piece, Err(name));
+            continue;
+        };
+        let anim = named(b, "anim").map(|a| {
+            let f = files.get(&anim_key(&a)).map(|(f, _)| f.clone());
+            (a, f)
+        });
+        let mut addons: Vec<(String, Option<String>, String, Option<String>)> = b
+            .children()
+            .filter(|n| n.has_tag_name("EXISTEVENT"))
+            .filter_map(|n| {
+                let subject = named(n, "subject")?;
+                let a = named(n, "anim").unwrap_or_default();
+                let model = ammo.get(&subject.to_ascii_uppercase()).cloned().flatten();
+                let f = files.get(&anim_key(&a)).map(|(f, _)| f.clone());
+                Some((subject, model, a, f))
+            })
+            .collect();
+        addons.sort();
+        addons.dedup();
+        out.insert(
+            piece,
+            Ok(BuildArt {
+                piece,
+                type_index,
+                name,
+                texture: named(b, "texture").unwrap_or_default(),
+                zbuffer: named(b, "zbuffer"),
+                anim,
+                addons,
+            }),
+        );
+    }
+    out
+}
+
+/// **A building piece's condition 1** (item 4028, `docs/RENDERER.md`
+/// §5.4): every model and animation its [`BuildArt`] names — the
+/// `zbuffer` `.bh3`, the building's own `anim`, each addon's `.bh3` and
+/// `.bha` — decodes under `render`'s readers. `Ok(files decoded)`, or the
+/// failing files; a piece with no `<BUILD>` fails as `Unnamed` its name.
+pub fn building_decoding(
+    install: &Install,
+    pieces: &std::collections::BTreeSet<i32>,
+) -> BTreeMap<i32, Result<usize, Vec<ArtFailure>>> {
+    let read = |rel: &str| -> Result<Vec<u8>, ArtFailure> {
+        let path = resolve(install.root(), rel).ok_or_else(|| ArtFailure::Missing(rel.into()))?;
+        std::fs::read(path).map_err(|_| ArtFailure::Missing(rel.into()))
+    };
+    let model = |rel: &str| -> Result<(), ArtFailure> {
+        render::bh3::decode(&read(rel)?)
+            .map(|_| ())
+            .map_err(|e| ArtFailure::Undecodable(rel.into(), e.to_string()))
+    };
+    let anim = |rel: &str| -> Result<(), ArtFailure> {
+        render::bha::decode(&read(rel)?)
+            .map(|_| ())
+            .map_err(|e| ArtFailure::Undecodable(rel.into(), e.to_string()))
+    };
+    let mut out = BTreeMap::new();
+    for (piece, art) in build_art(install, pieces) {
+        let art = match art {
+            Ok(art) => art,
+            Err(name) => {
+                out.insert(piece, Err(vec![ArtFailure::Unnamed(name)]));
+                continue;
+            }
+        };
+        let (mut n, mut fails) = (0, Vec::new());
+        let mut check = |r: Result<(), ArtFailure>| match r {
+            Ok(()) => n += 1,
+            Err(f) => fails.push(f),
+        };
+        if let Some(z) = &art.zbuffer {
+            check(model(z));
+        }
+        if let Some((a, f)) = &art.anim {
+            check(
+                f.as_deref()
+                    .map_or(Err(ArtFailure::Unnamed(a.clone())), anim),
+            );
+        }
+        for (subject, m, a, f) in &art.addons {
+            check(
+                m.as_deref()
+                    .map_or(Err(ArtFailure::Unnamed(subject.clone())), model),
+            );
+            check(
+                f.as_deref()
+                    .map_or(Err(ArtFailure::Unnamed(a.clone())), anim),
+            );
+        }
+        out.insert(piece, if fails.is_empty() { Ok(n) } else { Err(fails) });
     }
     out
 }
@@ -1416,6 +1723,89 @@ mod tests {
             ArtFailure::Missing(_)
         ));
         assert_eq!(d.same_shape, SAME_SHAPE);
+    }
+
+    /// **A gaia entry is `first_bird_piece + 3·(TypeIndex − 0x192) + v`**
+    /// (item 4028, `unit_node_from_gpiece@00901c30`'s name): the sheep's
+    /// `-TYPE2` is 60065 whatever its case, a variant past 2 is no piece, and
+    /// a player unit's `GRAPH` with a `-TYPE` tail is not a gaia piece.
+    #[test]
+    fn a_gaia_entry_s_piece_is_the_bird_range_s() {
+        let mut graphs = vec![String::new(); 0x19e - 0x32];
+        graphs[0x198 - 0x32] = "HERDSHEEP".into();
+        graphs[0x19b - 0x32] = "HERDFISH".into();
+        graphs[0] = "SCOUT".into();
+        assert_eq!(bird_pieces("HerdSheep-TYPE2", &graphs), Some(vec![60065]));
+        assert_eq!(bird_pieces("HERDFISH-TYPE0", &graphs), Some(vec![60072]));
+        assert_eq!(bird_pieces("HERDSHEEP-TYPE3", &graphs), None);
+        assert_eq!(bird_pieces("SCOUT-TYPE0", &graphs), None);
+        assert_eq!(FIRST_BIRD_PIECE, 60045);
+    }
+
+    /// **A building piece reads back to its `<BUILD>` name** (item 4028,
+    /// `build_node_from_gpiece@008fd550`): run1428's capital `0/2000`
+    /// prints piece 57144, which is age 5, style 5 (`ARAB`), record 0.
+    #[test]
+    fn a_building_piece_names_its_build_entry() {
+        let graphs: Vec<String> = ["VILLAGE", "CITY", "METROPOLIS", "FARM"]
+            .map(String::from)
+            .to_vec();
+        assert_eq!(
+            build_piece_name(57144, &graphs),
+            Some((414, "VILLAGE-ARAB-AGE5".into()))
+        );
+        assert_eq!(
+            build_piece_name(FIRST_BUILD_PIECE + 3, &graphs),
+            Some((417, "FARM-DEFAULT-AGE0".into()))
+        );
+        assert_eq!(
+            build_piece_name(51212, &graphs),
+            Some((416, "METROPOLIS-AMERICAN-AGE0".into()))
+        );
+        assert_eq!(build_piece_name(FIRST_BUILD_PIECE - 1, &graphs), None);
+        assert_eq!(
+            build_piece_name(FIRST_BUILD_PIECE + 8 * BUILD_PIECES_PER_AGE, &graphs),
+            None
+        );
+        assert_eq!(BUILD_PIECES_PER_AGE, 9 * NUM_BUILD_PIECES);
+    }
+
+    /// **A building's addon subject is matched without case** (item 4028):
+    /// `VILLAGE-ARAB-AGE5`'s `EXISTEVENT`s cite `metro_6t_ADDON`, which
+    /// `effects_graphics.xml` writes `metro_6t_addon`; the loader's
+    /// `String::operator==@00a1f140` falls to `_wcsicmp`, so the addon has a
+    /// model, and every file the piece names decodes.
+    #[test]
+    fn a_building_s_addon_subject_matches_without_case() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let pieces = std::collections::BTreeSet::from([57144, FIRST_BUILD_PIECE + 3]);
+        let art = build_art(&inst, &pieces);
+        let village = art[&57144].as_ref().unwrap();
+        eprintln!("{village:?}");
+        assert_eq!(village.zbuffer.as_deref(), Some(".\\art\\village_6tz.bh3"));
+        assert_eq!(village.addons.len(), 2);
+        assert!(
+            village
+                .addons
+                .iter()
+                .all(|(s, m, _, f)| s == "metro_6t_ADDON" && m.is_some() && f.is_some())
+        );
+        let farm = art[&(FIRST_BUILD_PIECE + 3)].as_ref().unwrap();
+        assert_eq!((farm.zbuffer.as_ref(), farm.addons.len()), (None, 0));
+        let d = building_decoding(&inst, &pieces);
+        assert_eq!(
+            d[&57144],
+            Ok(5),
+            "a zbuffer, two addon models, two animations"
+        );
+        assert_eq!(
+            d[&(FIRST_BUILD_PIECE + 3)],
+            Ok(0),
+            "the farm names no model"
+        );
     }
 
     /// **Every turn slot the install ships names a looping file** (item

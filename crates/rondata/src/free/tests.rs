@@ -238,11 +238,35 @@ pub(crate) const RUNNER_BUILDING_TYPES: usize = 23;
 /// Of M's pieces, those whose model and every slot's animation decode
 /// under `render`'s readers (`artdata::piece_decoding`, item 4019's K), of
 /// M's pieces (item 4020: 32 of 39; item 4026: 31 of 38, piece 265 left M
-/// and it decoded). The seven short: the six gaia pieces
-/// 60063–60065 and 60072–60074, which no `<UNIT>` entry names (4019's walk
-/// is over `unit_graphics.xml`'s entries), and 38322,
-/// `THECITIZEN-DEFAULT-AGE0-CREW3`, an entry with a failing file.
-pub(crate) const M_PIECES_DECODING: (usize, usize) = (31, 38);
+/// and it decoded). The seven short were the six gaia pieces
+/// 60063–60065 and 60072–60074 and 38322, `THECITIZEN-DEFAULT-AGE0-CREW3`.
+/// Item 4028: **38 of 38**, +7. The gaia six resolve through the loader's
+/// own name, `{GRAPH}-TYPE{v}` (`artdata::bird_pieces`, from
+/// `unit_node_from_gpiece@00901c30`), and decode. 38322's one failing file,
+/// `ceo_crew3_idle3.bha` (not in the install), is `CHAR_IDLE2`'s, which the
+/// run never plays: condition 1 is read on the captured slots, as §5.4
+/// writes it (`PieceDecoding::decodes_on`, [`played_slots`]).
+pub(crate) const M_PIECES_DECODING: (usize, usize) = (38, 38);
+
+/// M's building types whose art resolves and decodes (item 4028),
+/// `(decoding, M's types, the pieces the dumps print for them, files
+/// decoded)`: each `orig_type`'s pieces are the `gpiece`s its records print
+/// (`BuildDump::gpiece`), each named and decoded through
+/// `artdata::building_decoding`. New, so no delta: **20 of 21**, from 25
+/// pieces and 80 files (zbuffer models, addon models and their
+/// animations); the one short is the farm (417), whose
+/// `FARM-DEFAULT-AGE0` names no model — its look is the `<FARM>` element's,
+/// which nothing here reads (`docs/RENDERER.md` §5.4).
+pub(crate) const M_BUILDING_TYPES_DECODING: (usize, usize, usize, usize) = (20, 21, 25, 80);
+
+/// The slots each piece is shown in on a scene: §5.4's "captured
+/// animation slots" (item 4028), read on the runner's scenes, which equal
+/// the harness's on every tick.
+fn played_slots(u: &UnitScene, played: &mut BTreeMap<i32, BTreeSet<i8>>) {
+    for f in u.figures.iter().filter(|f| f.gpiece >= 0) {
+        played.entry(f.gpiece).or_default().insert(f.anim);
+    }
+}
 
 /// **M is counted from the runner and agrees with every dump of the
 /// lobby** (`docs/RENDERER.md` §5.4): on each frame run1428, run1429 or
@@ -263,6 +287,9 @@ fn m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps() {
     let paths = [c.start.clone(), c.long.clone(), PathBuf::from(window)];
     // Per dump: frame → the figures and the buildings it prints.
     type Printed = BTreeMap<i64, (BTreeMap<(ObjId, usize), i32>, Vec<(ObjId, i64)>)>;
+    // Every building type the dumps print, with every `gpiece` a record of
+    // that type carries (item 4028): the art the original drew it with.
+    let mut type_pieces: BTreeMap<i64, BTreeSet<i32>> = BTreeMap::new();
     let mut printed: Vec<Printed> = Vec::new();
     for path in &paths {
         let mut src = IndexedCapture::open(path).unwrap();
@@ -280,7 +307,11 @@ fn m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps() {
                         who: b.who as sim::Player,
                         o: b.o as i16,
                     };
-                    b.orig_type.map(|t| (id, t))
+                    let t = b.orig_type?;
+                    if let Some(p) = b.gpiece {
+                        type_pieces.entry(t).or_default().insert(p as i32);
+                    }
+                    Some((id, t))
                 })
                 .collect::<Vec<_>>();
             if !figs.is_empty() || !blds.is_empty() {
@@ -306,11 +337,13 @@ fn m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps() {
     let mut dump_pieces: Vec<BTreeSet<i32>> = vec![BTreeSet::new(); paths.len()];
     let mut dump_types: BTreeSet<i64> = BTreeSet::new();
     let (mut pieces, mut runner_types) = (BTreeSet::new(), BTreeSet::new());
+    let mut played: BTreeMap<i32, BTreeSet<i8>> = BTreeMap::new();
     let (mut mismatches, mut building_mismatches) = (Vec::new(), Vec::new());
     let mut see = |s: &Scene| {
         // `-1` is a figure with no piece: nothing to draw.
         for u in &s.units {
             pieces.extend(u.figures.iter().map(|f| f.gpiece).filter(|p| *p >= 0));
+            played_slots(u, &mut played);
         }
         runner_types.extend(
             s.buildings
@@ -398,15 +431,46 @@ fn m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps() {
         .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
         .collect();
     let art = crate::artdata::piece_decoding(&install().unwrap(), &graphs);
-    let decoding = pieces.intersection(&art.decoded_pieces).count();
+    let decoding = pieces
+        .iter()
+        .filter(|p| art.decodes_on(**p, &played[p]))
+        .count();
     let entries = crate::artdata::unit_art(&install().unwrap(), &graphs);
-    let short: Vec<(i32, Option<&str>)> = pieces
-        .difference(&art.decoded_pieces)
+    let short: Vec<(i32, Option<&str>, &BTreeSet<i8>)> = pieces
+        .iter()
+        .filter(|p| !art.decodes_on(**p, &played[p]))
         .map(|p| {
             let e = entries.iter().find(|e| e.pieces.contains(p));
-            (*p, e.map(|e| e.name.as_str()))
+            (*p, e.map(|e| e.name.as_str()), &played[p])
         })
         .collect();
+    // The building half (item 4028): each type's pieces resolved and
+    // decoded; a type decodes when every piece the dumps print for it does
+    // and names a model — the farm's `<BUILD>` names none (`texture`,
+    // `zbuffer` and `anim` empty), and an empty list is not a decode.
+    let all_build: BTreeSet<i32> = type_pieces.values().flatten().copied().collect();
+    let builds = crate::artdata::building_decoding(&install().unwrap(), &all_build);
+    let named = crate::artdata::build_art(&install().unwrap(), &all_build);
+    for (t, ps) in &type_pieces {
+        for p in ps {
+            eprintln!(
+                "M building type {t}: piece {p} {:?} → {:?}",
+                named[p]
+                    .as_ref()
+                    .map(|a| (&a.name, &a.zbuffer, a.addons.len())),
+                builds[p]
+            );
+        }
+    }
+    let types_decoding = dump_types
+        .iter()
+        .filter(|t| {
+            type_pieces
+                .get(t)
+                .is_some_and(|ps| ps.iter().all(|p| matches!(builds[p], Ok(n) if n > 0)))
+        })
+        .count();
+    let build_files: usize = builds.values().filter_map(|r| r.as_ref().ok()).sum();
     eprintln!(
         "M buildings parting: {} records, {parting:?}; pieces {pieces:?}; \
          of them decoding (artdata::piece_decoding) {decoding}: short {:?}",
@@ -487,6 +551,23 @@ fn m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps() {
         (decoding, pieces.len()),
         M_PIECES_DECODING,
         "M's pieces decoding"
+    );
+    let unnamed = builds
+        .values()
+        .filter(
+            |r| matches!(r, Err(f) if matches!(f[..], [crate::artdata::ArtFailure::Unnamed(_)])),
+        )
+        .count();
+    pin_eq!(unnamed, 0, "building pieces that name no `<BUILD>`");
+    pin_eq!(
+        (
+            types_decoding,
+            dump_types.len(),
+            all_build.len(),
+            build_files
+        ),
+        M_BUILDING_TYPES_DECODING,
+        "M's building types decoding, of M's, their pieces and files"
     );
     pin_eq!(pieces.len(), RENDER_M_PIECES, "M's pieces");
     pin_eq!(
@@ -780,8 +861,13 @@ pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3842, 3842);
 /// — 31 decode, 36 in register (232 and 11264 out). Item 4027: **K 31**,
 /// +2 — 31 decode (the seven short are `M_PIECES_DECODING`'s), 38 of 38
 /// in register. M's 21 building types have no decoder and no dumped
-/// frame, and count toward no K: **K 31 of M 59**.
-pub(crate) const RENDER_K: (usize, usize, usize, usize) = (31, 31, 38, 38);
+/// frame, and count toward no K: **K 31 of M 59**. Item 4028: **K 38**, +7
+/// — 38 decode on the slots the run plays (`M_PIECES_DECODING`), 38 of 38
+/// in register. The building types now decode, 20 of 21
+/// (`M_BUILDING_TYPES_DECODING`), and still count toward no K: the draw
+/// list carries no building, so condition 2 is unmet, not vacuous
+/// (`docs/RENDERER.md` §5.4): **K 38 of M 59**.
+pub(crate) const RENDER_K: (usize, usize, usize, usize) = (38, 38, 38, 38);
 
 #[test]
 fn the_draw_list_s_frames_are_in_register() {
@@ -822,9 +908,11 @@ fn the_draw_list_s_frames_are_in_register() {
     let mut ours: BTreeMap<i64, Ours> = BTreeMap::new();
     let mut all_pieces: BTreeMap<(i64, ObjId, usize), i32> = BTreeMap::new();
     let last = AZTEC_MODERN.length + 1;
+    let mut played: BTreeMap<i32, BTreeSet<i8>> = BTreeMap::new();
     let mut see = |s: &Scene| {
         for u in &s.units {
             pieces.extend(u.figures.iter().map(|f| f.gpiece).filter(|p| *p >= 0));
+            played_slots(u, &mut played);
         }
         if !dumped.contains_key(&s.frame) {
             return;
@@ -925,7 +1013,11 @@ fn the_draw_list_s_frames_are_in_register() {
         .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
         .collect();
     let art = crate::artdata::piece_decoding(&inst, &graphs);
-    let decoding: BTreeSet<i32> = pieces.intersection(&art.decoded_pieces).copied().collect();
+    let decoding: BTreeSet<i32> = pieces
+        .iter()
+        .filter(|p| art.decodes_on(**p, &played[p]))
+        .copied()
+        .collect();
     let registered: BTreeSet<i32> = pieces.difference(&bad_pieces).copied().collect();
     let k = decoding.intersection(&registered).count();
     eprintln!(

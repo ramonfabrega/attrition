@@ -2326,6 +2326,12 @@ pub struct BuildDump {
     /// makes it the one field of the dump that dates an age to a block
     /// (`docs/TECH.md`, "An age snaps every figure").
     pub max_age: Option<i64>,
+    /// `WallData::gpiece`, the building's graphic piece, printed at
+    /// `WALLDATA`'s own indent after its `OBJECT` (item 4028): the piece
+    /// `GraphicPieces::get_build_gpiece@0090bce0` chose, which names the
+    /// `<BUILD>` it draws (`rondata::artdata::build_piece_name`). Read by
+    /// the renderer's K of M; nothing in `sim` carries it.
+    pub gpiece: Option<i64>,
     /// `ObjectData::healing` (`+0x38`) as `BuildData::log_data` prints it on
     /// the record's own level (item 3961, `docs/AI.md` §405): written only
     /// by `Build::process`'s patriot repair and counted down there; 0 on
@@ -3611,6 +3617,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         damage_frac: obj.and_then(|o| o.int("damage_frac")),
         orig_type: b.int("orig_type"),
         max_age: b.int("max_age"),
+        gpiece: wall.and_then(|w| w.int("gpiece")),
         healing: b.int("healing"),
         mylos: obj.and_then(|o| o.int("mylos")),
         // **`WALLDATA`'s, not `BUILDDATA`'s** (item 478). The name says

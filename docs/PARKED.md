@@ -15684,13 +15684,28 @@ the obj sweeps are outside `src/` now. The fold's rule is in the 4009 journal.
   building group is pushed and the site razed on 929. **Score**: `WANT_CH135`'s two rows on 930; compare what the
   original writes into a pushed building group's speeds (`Group::add` / the pool's reuse) against ours.
 
-## Parked by the next landing, slot DL — reserved
+## Parked by item 4028, 2026-11-09 — the building half of K
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot DL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **4028a. Buildings in the draw list: condition 2 for M's building types.** This takes up 4026c, and it now
+  names a score: up to **+20 on K** (`RENDER_K`, `docs/RENDERER.md` §5.4). Twenty of M's 21 building types decode
+  (`M_BUILDING_TYPES_DECODING`), and §5.4's ruling holds them out of K only because the draw list carries no
+  building. Three things are needed:
+  - `BuildingScene` carries the building's piece. `BuildDump::gpiece` is the dump's side, and nothing in `sim`
+    models it.
+  - The draw list gains a building entry anchored at the building's position.
+  - The anchor is compared against the original's projection of each dumped `BUILDDATA` position on the logged
+    frames.
+
+  Grep first: whether run1429's logged frames print buildings at all (4026c says not, while the M test's walk
+  counts run1429's start block and run1429b's 95 blocks). Then read how `GraphicPieces::draw_build@008e7610`
+  anchors a sprite: a building draws a TGA, not a mesh at its point.
+- **4028b. The farm's art** (§5.4, `docs/FORMATS.md` "The gaia pieces and the building pieces"). `FARM-DEFAULT-AGE0`
+  writes `texture`, `zbuffer` and `anim` empty. The farm's look is the `<FARM>` element (`farm_wheat_1.tga` and the
+  stalk colours), and the reader for it is not found: `GraphicPieces::init_farm_map` only returns `LIBERR_OK`, and no pinned trace enters it. It is the 21st
+  type's condition 1, so it names K +1 only after 4028a.
+- **4028c. The snowy-tileset texture variant** (`init_build_data@008f2f20`, string `0x12b9c`, gated on the
+  tileset's `snowy_buildings`). Whether Great Lakes takes it decides which TGA a building draws. That is outside
+  condition 1, so it names no score until textures do.
 
 ## Parked by item 4026, 2026-11-09 — the draw list's viewer, order and buildings
 

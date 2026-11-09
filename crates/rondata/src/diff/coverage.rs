@@ -204,7 +204,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/BUILDDATA/BUILDQUEUE", "queue_size"),
     (
         "GAME/FRAME/BUILDDATA/WALLDATA",
-        "demolition frame_started gpiece helpers job_counter_2",
+        "demolition frame_started helpers job_counter_2",
     ),
     // **Item 836 added `flags increment length size`**: an Airbase's
     // `launching` array (`ObjectData +0x44`), which `Object::do_launch`
@@ -3795,7 +3795,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 8377..8380 neither held an unfinished site: `job_counter` returned.
     // Item 1286's Toughest window on 8785..8788 holds one, so on the tree
     // merged with it `job_counter` is compared and off this pin again.
-    ("BuildDump", "cliff flags max_age mining_size mtn orig_type"),
+    // **Item 4028 parsed `gpiece`** (`WALLDATA`'s): the renderer's K of M
+    // resolves each building type's art from the piece the dump prints
+    // (`docs/RENDERER.md` §5.4); the simulation models no building piece,
+    // so nothing compares it.
+    (
+        "BuildDump",
+        "cliff flags gpiece max_age mining_size mtn orig_type",
+    ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     // Item 3578: the Korean pair's closing walk reads run1200's closing
     // block at its `endgame:` detail, `DEATHS=1`, so every death field but

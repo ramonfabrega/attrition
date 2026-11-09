@@ -95,6 +95,7 @@ record!(BuildDump {
     max_age: Option<i64>,
     healing: Option<i64>,
     mylos: Option<i64>,
+    gpiece: Option<i64>,
     build_masks: Option<i64>,
     gather_from: Vec<(i64, i64)>,
     mining_len: Option<i64>,
