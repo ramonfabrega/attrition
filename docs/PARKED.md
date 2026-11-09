@@ -3875,6 +3875,8 @@ is the finish line's. Names no score; the loop's.
 
 (4044) **A reader that knows a module by its directory goes blind when the module file moves** (4032's "for the Loop" line, the seventy-sixth tranche): seven readers skipped `sweep/` by name and none failed when `sweep.rs` left it — only `shape.py`'s pinned count moved; and at the booking `shape.py`'s `flat` read 7 in the lane's worktree and 11 on the committed tree, because a `git mv` of a lone `foo/mod.rs` leaves `foo/` empty on the mover's disk and `flat` asked only `is_dir()` (fixed at the booking, red first on an empty `command/`: 10 → 11). Candidate: the readers read the module tree (`no_float::module_tree`) rather than a directory's name, and a guard that skips a set asserts the set's size; a lane gate that reads the tree's shape reads it from `git ls-files`, never the disk. Names no score; the loop's.
 
+(4045) **A start item's lane gate does not name its own tests** (4033's "for the Loop" line, the seventy-sixth tranche): briefed with the `chapter` kind until a `start` kind exists, 4033's gate line ran `diff::setup coverage:: first_parting …` and none of `diff::start` or `the_handoff_s_start_line_is_the_pinned_counter`; the lane added `diff::start` by hand. Candidate: a `start` kind in `tools/brief.py` whose `ALWAYS_TESTS` carry `diff::start` and `diff::setup`, red first on the kind refused, its rows the start track's (START.md, the lobby counter, the value diff on frame 0) rather than a chapter's. Names no score; the loop's.
+
 ## Loop, filed 2026-11-08 — the seventy-fifth tranche's
 
 **4023** (The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name) — **built by the seventy-fifth pass with 4022 (red first: `['ccc update att-<n>'] != []`): the landing row reads `ccc update lane-{item}`, filled per lane, and a test holds every `ccc` verb the frame spells to a `lane-` row.** The row as filed: (4023) **The frame's `ccc update att-<n>` names a worktree, and ccc takes the row's name** (4021's journal, the seventy-fifth
@@ -15835,6 +15837,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot DR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot DX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot DX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
