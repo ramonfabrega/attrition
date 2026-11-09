@@ -590,9 +590,9 @@ impl Sim {
     /// (`count_inside(COUNT_ATTACK)`) takes the attack-carrier's arm,
     /// [`Sim::think_carry_army`] (`docs/AI.md` §235).
     ///
-    /// SEAM: the arm with nothing of the three aboard — `think_carry_idle`
-    /// (`005f2f30`), the walk to the nearest coastal city with a dock — is
-    /// not modelled, and answers `false`: the think goes on to the tail.
+    /// The arm with nothing of the three aboard is `think_carry_idle`
+    /// (`005f2f30`, [`Sim::think_carry_idle`]), the walk to the nearest
+    /// coastal city with a dock (item 3995).
     pub(crate) fn think_carry(&mut self, u: usize) -> bool {
         // `count_inside` opens on `is_on_map` of the carrier itself.
         let riders: Vec<usize> = if self.units[u].on_map {
@@ -1916,10 +1916,10 @@ impl CarryView for SimCarry<'_> {
     fn military(&mut self) -> i32 {
         i32::from(self.sim.think_carry_army(self.u, self.riders[0]))
     }
-    /// SEAM: `think_carry_idle` (`005f2f30`), the walk to the nearest coastal
-    /// city with a dock, is not modelled and answers `false`.
+    /// `think_carry_idle` (`005f2f30`), the walk to the nearest coastal city
+    /// with a dock (item 3995, `crate::units::think::carry_idle`).
     fn idle(&mut self) -> i32 {
-        0
+        i32::from(self.sim.think_carry_idle(self.u))
     }
 }
 
