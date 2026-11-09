@@ -20,7 +20,7 @@ use crate::load::BASE_BUILDTYPES;
 use crate::testenv::{dump, install};
 use sim::observe::{ObjId, UnitScene};
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// The pair's captures on this machine, or `None` (the test then skips, as
 /// every dump-backed test does).
@@ -217,8 +217,11 @@ pub(crate) const RENDER_M: usize = RENDER_M_PIECES + RENDER_M_BUILDING_TYPES;
 
 /// M's pieces: the distinct `gpiece` of every figure of every unit on the
 /// map, over the runner's 3,391 scenes, frame 0 to the closing block —
-/// `-1`, a figure with no piece, left out (item 4020: 39).
-pub(crate) const RENDER_M_PIECES: usize = 39;
+/// `-1`, a figure with no piece, left out (item 4020: 39). Item 4026: **38
+/// (−1)** — the read door stopped reporting a unit at no health (the
+/// original has taken it out of its object array; `1/68`'s number is a
+/// new plane's by 2701), and piece 265 was played only by such a record.
+pub(crate) const RENDER_M_PIECES: usize = 38;
 
 /// M's building types: the distinct `orig_type` of the captures' building
 /// records, the start's and run1429b's window (run1429 prints none past the
@@ -234,11 +237,12 @@ pub(crate) const RUNNER_BUILDING_TYPES: usize = 23;
 
 /// Of M's pieces, those whose model and every slot's animation decode
 /// under `render`'s readers (`artdata::piece_decoding`, item 4019's K), of
-/// M's pieces (item 4020: 32 of 39). The seven short: the six gaia pieces
+/// M's pieces (item 4020: 32 of 39; item 4026: 31 of 38, piece 265 left M
+/// and it decoded). The seven short: the six gaia pieces
 /// 60063–60065 and 60072–60074, which no `<UNIT>` entry names (4019's walk
 /// is over `unit_graphics.xml`'s entries), and 38322,
 /// `THECITIZEN-DEFAULT-AGE0-CREW3`, an entry with a failing file.
-pub(crate) const M_PIECES_DECODING: (usize, usize) = (32, 39);
+pub(crate) const M_PIECES_DECODING: (usize, usize) = (31, 38);
 
 /// **M is counted from the runner and agrees with every dump of the
 /// lobby** (`docs/RENDERER.md` §5.4): on each frame run1428, run1429 or
@@ -523,6 +527,14 @@ pub(crate) const RUNNER_CLOCK: Clock = (431, 952, 325);
 /// The runner's peak is 133 MiB under it: what reading two dumps whole costs.
 pub(crate) const HARNESS_CLOCK: Clock = (540, 1088, 458);
 
+/// **The runner with the draw list on** (item 4026, `clock_the_draw_list`,
+/// measured as [`RUNNER_CLOCK`] is, the median of three on 2026-11-09:
+/// 434, 493, 428 ms; 994, 1,077, 978 ms; 340,541,440 bytes peak; the
+/// slowest single list 18 µs). The runner alone, interleaved with it the
+/// same hour: 428 ms, 974 ms, 340,721,664 bytes. So the list costs about
+/// 20 ms over 3,390 ticks — 6 µs a tick for 109 figures — and no memory.
+pub(crate) const DRAW_CLOCK: Clock = (434, 994, 325);
+
 /// One clock reading: milliseconds from the test's start to frame zero (the
 /// install's tables loaded, the trace read, the `Sim` built) and to the
 /// pair's closing block.
@@ -555,6 +567,33 @@ fn clock_the_free_runner() {
     clock_line("free runner", t0, zero);
     eprintln!("CLOCK free runner pinned: {RUNNER_CLOCK:?}");
     eprintln!("CLOCK free runner: {figures} figures handed out");
+}
+
+/// **The clock with the draw list on** (item 4026): the free runner's
+/// reading again, every tick's scene copied into the draw list's input and
+/// the list built at the pinned camera — what a client pays before its
+/// first pixel. Measured as [`RUNNER_CLOCK`] is, the same day, alone.
+#[test]
+#[ignore = "a measurement: the renderer's clock, read alone under /usr/bin/time -l"]
+fn clock_the_draw_list() {
+    let t0 = std::time::Instant::now();
+    let Some(c) = captures() else {
+        return;
+    };
+    let mut free = c.runner();
+    let terrain = free.terrain();
+    let (camera, screen) = pinned_camera(terrain.width, terrain.height);
+    let zero = t0.elapsed();
+    let (mut drawn, mut worst) = (0, std::time::Duration::ZERO);
+    free.run_to(AZTEC_MODERN.length + 1, None, |s| {
+        let t = std::time::Instant::now();
+        let list = render::draw::draw_list(&placed(s), &camera, &screen, Some(SIZE), None);
+        worst = worst.max(t.elapsed());
+        drawn += list.len();
+    });
+    clock_line("draw list", t0, zero);
+    eprintln!("CLOCK draw list pinned: {DRAW_CLOCK:?}; slowest list {worst:?}");
+    eprintln!("CLOCK draw list: {drawn} figures drawn");
 }
 
 /// **The clock's harness half**: the same pair the harness's way — the
@@ -590,4 +629,328 @@ fn clock_the_harness() {
     clock_line("harness", t0, zero);
     eprintln!("CLOCK harness pinned: {HARNESS_CLOCK:?}");
     eprintln!("CLOCK harness: {diverged} unit positions parted");
+}
+
+// ---- The draw list, and frames in register (item 4026) ----
+
+/// The pinned camera: the game's own as run1484's packet holds it (logger
+/// frame 676; `docs/RENDERER.md` §3.4 — the default zoom, `tilt` 60, `dir`
+/// 45, the parallel projection) moved to look at the map's centre, at the
+/// packet's 1920×1080.
+fn pinned_camera(width: i32, height: i32) -> (render::Camera, render::Screen) {
+    let cell = sim::world::UNITS_PER_CELL as f32;
+    (
+        render::Camera {
+            zoom_distance: f32::from_bits(0x46a2_f59c),
+            camera_scale: 1.0,
+            tilt_angle: 60.0,
+            dir_angle: 45.0,
+            loc_x: width as f32 * cell / 2.0,
+            loc_y: height as f32 * cell / 2.0,
+            loc_x_adjust: 0.0,
+            loc_y_adjust: 0.0,
+            loc_z_adjust: 0.0,
+            angle: 45.0,
+            near_plane: 6589.402,
+            far_plane: 36262.105,
+            view_ratio: 0.563_020_8,
+            parallel: true,
+            parallel_distance: f32::from_bits(0x4622_f59c),
+        },
+        render::Screen {
+            scaled_xs: 1920,
+            scaled_ys: 1080,
+            natural_ratio: 1.0,
+            console_y: 0,
+        },
+    )
+}
+
+/// The pinned screen size every point is projected at.
+const SIZE: (i32, i32) = (1920, 1080);
+
+/// `camera_oracle.py points`' camera line, in the sweep's field order.
+fn state_line(c: &render::Camera, s: &render::Screen) -> String {
+    let h = |v: f32| format!("{:08x}", v.to_bits());
+    format!(
+        "state {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+        h(c.zoom_distance),
+        h(c.camera_scale),
+        h(c.tilt_angle),
+        h(c.dir_angle),
+        h(c.loc_x),
+        h(c.loc_y),
+        h(c.loc_x_adjust),
+        h(c.loc_y_adjust),
+        h(c.loc_z_adjust),
+        h(c.angle),
+        h(c.near_plane),
+        h(c.far_plane),
+        h(c.view_ratio),
+        u8::from(c.parallel),
+        h(c.parallel_distance),
+        s.scaled_xs,
+        s.scaled_ys,
+        h(s.natural_ratio),
+        s.console_y
+    )
+}
+
+/// The original's `MiscAccess::world_to_screen` on every point, under
+/// unicorn (`tools/render/camera_oracle.py points`, item 4026), or `None`
+/// (said) with no `uv`. Each row: the tag, the pixel.
+fn original_pixels(
+    exe: &Path,
+    camera: &str,
+    points: &[(String, [i64; 3])],
+) -> Option<BTreeMap<String, (i32, i32)>> {
+    let dir = std::env::temp_dir().join(format!("att-draw-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let file = dir.join("points.txt");
+    let mut text = format!("{camera}\n");
+    for (tag, [x, y, z]) in points {
+        text += &format!("pt {tag} {x} {y} {z} {} {}\n", SIZE.0, SIZE.1);
+    }
+    std::fs::write(&file, text).unwrap();
+    let root = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."));
+    let out = std::process::Command::new("uv")
+        .args(["run", "--locked", "--project"])
+        .arg(root.join("tools/emu"))
+        .arg("python")
+        .arg(root.join("tools/render/camera_oracle.py"))
+        .arg(exe)
+        .arg("points")
+        .arg(&file)
+        .output();
+    let _ = std::fs::remove_dir_all(&dir);
+    let out = match out {
+        Err(e) => {
+            eprintln!("skipping: uv not runnable ({e})");
+            return None;
+        }
+        Ok(o) => o,
+    };
+    assert!(
+        out.status.success(),
+        "camera_oracle.py points failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let rows = String::from_utf8(out.stdout).unwrap();
+    Some(
+        rows.lines()
+            .filter(|l| l.starts_with("pt "))
+            .map(|l| {
+                let t: Vec<&str> = l.split_whitespace().collect();
+                (
+                    t[1].to_string(),
+                    (t[8].parse().unwrap(), t[9].parse().unwrap()),
+                )
+            })
+            .collect(),
+    )
+}
+
+/// **Frames in register** (`docs/RENDERER.md` §5.1, candidate A, kept as a
+/// floor): of run1429's logged frames, those on which the free runner's
+/// draw list, at the pinned camera, holds exactly the figures the dump
+/// prints on the map and puts each within one pixel of the original's own
+/// projection of the dumped figure's point (item 4026: 33 of 35). The two
+/// out are each one figure whose own point stands apart from its unit's,
+/// which the simulation does not carry (`docs/RENDERER.md` §3.5):
+/// - 2501, `1/9` guy 0 (piece 11264): the dump's figure at (39869, 23358,
+///   305), the original's pixel (3554, 1827); ours at its unit's (39879,
+///   23369, 305), pixel (3554, 1829) — 2 px. The dumped figure stands on
+///   its unit's `orders_x`/`orders_y`.
+/// - 3001, `1/67` guy 0 (piece 232): the dump's (37576, 19846, −16), pixel
+///   (3746, 1433); ours (37591, 19892, −14), pixel (3741, 1438) — 5 px.
+pub(crate) const FRAMES_IN_REGISTER: (usize, usize) = (33, 35);
+
+/// Figures in register, of every figure the dump prints on the map on
+/// those frames (item 4026: 3840 of 3842 — the two above).
+pub(crate) const FIGURES_IN_REGISTER: (usize, usize) = (3840, 3842);
+
+/// **§5.4's K**: of M's pieces, those whose model and slots decode
+/// (condition 1, `artdata::piece_decoding`) and whose every logged frame
+/// is in register wherever a figure plays it (condition 2), and the two
+/// halves apart: (K, decoding, in register, M's pieces). Item 4026: K 29
+/// — 31 decode (the seven short are `M_PIECES_DECODING`'s), 36 in
+/// register (232 and 11264 are out, above). M's 21 building types have
+/// no decoder and no dumped frame, and count toward no K: **K 29 of M 59**.
+pub(crate) const RENDER_K: (usize, usize, usize, usize) = (29, 31, 36, 38);
+
+#[test]
+fn the_draw_list_s_frames_are_in_register() {
+    let _pins = Pins::hold();
+    let Some(c) = captures() else {
+        return;
+    };
+    let inst = install().unwrap();
+    // The dump's figures on the map, by logged frame: `inside_up` −1 is a
+    // unit standing in the world rather than garrisoned or carried.
+    let mut src = IndexedCapture::open(&c.long).unwrap();
+    let mut dumped: BTreeMap<i64, BTreeMap<(ObjId, usize), [i64; 3]>> = BTreeMap::new();
+    for frame in src.frame_states() {
+        let f: Frame = frame.unwrap();
+        let figs = dumped.entry(f.n).or_default();
+        for u in f
+            .units
+            .iter()
+            .filter(|u| u.inside_up.is_none_or(|i| i == -1))
+        {
+            let id = ObjId {
+                who: u.who as sim::Player,
+                o: u.o as i16,
+            };
+            for (k, g) in u.guys.iter().enumerate() {
+                if let Some(p) = g.pos {
+                    figs.insert((id, g.guy_num.map_or(k, |n| n as usize)), [p.x, p.y, p.z]);
+                }
+            }
+        }
+    }
+    let mut free = c.runner();
+    let terrain = free.terrain();
+    let (camera, screen) = pinned_camera(terrain.width, terrain.height);
+    let mut pieces: BTreeSet<i32> = BTreeSet::new();
+    // Ours on each logged frame: (id, guy) → (point, pixel, piece).
+    type Ours = BTreeMap<(ObjId, usize), ([i32; 3], (i32, i32), i32)>;
+    let mut ours: BTreeMap<i64, Ours> = BTreeMap::new();
+    let mut all_pieces: BTreeMap<(i64, ObjId, usize), i32> = BTreeMap::new();
+    let last = AZTEC_MODERN.length + 1;
+    let mut see = |s: &Scene| {
+        for u in &s.units {
+            pieces.extend(u.figures.iter().map(|f| f.gpiece).filter(|p| *p >= 0));
+        }
+        if !dumped.contains_key(&s.frame) {
+            return;
+        }
+        let placed = placed(s);
+        for p in &placed {
+            let id = ObjId { who: p.who, o: p.o };
+            all_pieces.insert((s.frame, id, p.figure as usize), p.piece);
+        }
+        let list = render::draw::draw_list(&placed, &camera, &screen, Some(SIZE), None);
+        let at: BTreeMap<_, _> = placed
+            .iter()
+            .map(|p| ((p.who, p.o, p.figure), [p.x, p.y, p.z]))
+            .collect();
+        ours.insert(
+            s.frame,
+            list.iter()
+                .map(|d| {
+                    (
+                        (ObjId { who: d.who, o: d.o }, d.figure as usize),
+                        (
+                            at[&(d.who, d.o, d.figure)],
+                            (d.anchor.x, d.anchor.y),
+                            d.piece,
+                        ),
+                    )
+                })
+                .collect(),
+        );
+    };
+    see(&free.scene(None));
+    free.run_to(last, None, &mut see);
+    // The reference: the original's projection of every dumped point.
+    let tag = |n: i64, id: ObjId, k: usize| format!("{n}/{}/{}/{k}", id.who, id.o);
+    let points: Vec<(String, [i64; 3])> = dumped
+        .iter()
+        .flat_map(|(&n, figs)| figs.iter().map(move |(&(id, k), &p)| (tag(n, id, k), p)))
+        .collect();
+    let Some(theirs) = original_pixels(
+        &inst.root().join("riseofnations.exe"),
+        &state_line(&camera, &screen),
+        &points,
+    ) else {
+        return;
+    };
+    let (mut frames_ok, mut figs_ok, mut figs_all) = (0, 0, 0);
+    let mut misses: Vec<String> = Vec::new();
+    let mut bad_pieces: BTreeSet<i32> = BTreeSet::new();
+    let mut first_out = None;
+    for (&n, figs) in &dumped {
+        let mine = ours.get(&n).cloned().unwrap_or_default();
+        let mut frame_ok = true;
+        for (&(id, k), p) in figs {
+            figs_all += 1;
+            let them = theirs[&tag(n, id, k)];
+            match mine.get(&(id, k)) {
+                Some((at, px, piece))
+                    if (px.0 - them.0).abs() <= 1 && (px.1 - them.1).abs() <= 1 =>
+                {
+                    let _ = (at, piece);
+                    figs_ok += 1;
+                }
+                other => {
+                    frame_ok = false;
+                    if let Some(&pc) = all_pieces.get(&(n, id, k)) {
+                        bad_pieces.insert(pc);
+                    }
+                    misses.push(format!(
+                        "frame {n} {}/{} guy {k}: dump {p:?} at {them:?}, ours {:?}",
+                        id.who,
+                        id.o,
+                        other.map(|(at, px, pc)| (at, px, pc))
+                    ));
+                }
+            }
+        }
+        for (&(id, k), (at, px, piece)) in &mine {
+            if !figs.contains_key(&(id, k)) {
+                frame_ok = false;
+                bad_pieces.insert(*piece);
+                misses.push(format!(
+                    "frame {n} {}/{} guy {k}: drawn by us at {at:?} {px:?} piece {piece}, not in the dump",
+                    id.who, id.o
+                ));
+            }
+        }
+        if frame_ok {
+            frames_ok += 1;
+        } else if first_out.is_none() {
+            first_out = Some(n);
+        }
+    }
+    let graphs: Vec<String> = inst
+        .units()
+        .unwrap()
+        .records
+        .iter()
+        .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+        .collect();
+    let art = crate::artdata::piece_decoding(&inst, &graphs);
+    let decoding: BTreeSet<i32> = pieces.intersection(&art.decoded_pieces).copied().collect();
+    let registered: BTreeSet<i32> = pieces.difference(&bad_pieces).copied().collect();
+    let k = decoding.intersection(&registered).count();
+    eprintln!(
+        "DRAW {}: frames in register {frames_ok} of {}, first out {first_out:?}; figures {figs_ok} of {figs_all}; \
+         K {k} of M's {} pieces (decoding {}, in register {}; pieces out {bad_pieces:?})\n  {}",
+        AZTEC_MODERN.name,
+        dumped.len(),
+        pieces.len(),
+        decoding.len(),
+        registered.len(),
+        misses.join("\n  ")
+    );
+    pin_eq!(fog_visible_is_render_s(), true, "the fog's VISIBLE value");
+    pin_eq!(
+        (frames_ok, dumped.len()),
+        FRAMES_IN_REGISTER,
+        "frames in register"
+    );
+    pin_eq!(
+        (figs_ok, figs_all),
+        FIGURES_IN_REGISTER,
+        "figures in register"
+    );
+    pin_eq!(
+        (k, decoding.len(), registered.len(), pieces.len()),
+        RENDER_K,
+        "K, decoding, in register, M's pieces"
+    );
+}
+
+fn fog_visible_is_render_s() -> bool {
+    sim::observe::fog::VISIBLE == render::draw::FOG_VISIBLE
 }

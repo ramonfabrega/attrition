@@ -31,7 +31,7 @@ fn a_scene_agrees_with_the_sim_it_copies() {
         let scene = sim.observe(None);
         assert_eq!(scene.frame, sim.frame);
         assert_eq!(scene.fog, None);
-        let on_map: Vec<_> = sim.units.iter().filter(|u| u.on_map).collect();
+        let on_map: Vec<_> = sim.units.iter().filter(|u| u.on_map && u.alive()).collect();
         assert_eq!(scene.units.len(), on_map.len());
         for (s, u) in scene.units.iter().zip(&on_map) {
             assert_eq!(
@@ -115,6 +115,20 @@ fn a_scene_agrees_with_the_sim_it_copies() {
     assert_eq!((s.figures[0].cur_time, s.figures[0].end_time), (4, 9));
     assert_eq!(s.figures[0].pos, sim.units[u].pos);
     assert_eq!((s.figures[1].pos, s.figures[1].facing), (body, f.facing));
+    // Each figure stands on the ground under its own point (item 4026),
+    // not on its unit's tile.
+    if sim.unit_domain_of(u) == Domain::Land {
+        for fig in &s.figures {
+            assert_eq!(fig.z, sim.world.data_z(fig.pos.x, fig.pos.y).0);
+        }
+    }
+    // And a unit at no health leaves the scene though its record stays on
+    // the map: the original has taken it out of its object array.
+    sim.units[u].health = 0;
+    let gone = sim.observe(None);
+    assert!(sim.units[u].on_map);
+    assert!(!gone.units.iter().any(|g| g.id == s.id));
+    assert_eq!(gone.units.len(), scene.units.len() - 1);
 }
 
 /// The grids: one entry per cell, and the territory counter moves when a

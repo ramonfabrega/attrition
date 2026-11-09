@@ -17,6 +17,7 @@
 //!    "visible on screen".
 
 use crate::movement::Angle;
+use crate::territory::attrition::Domain;
 use crate::{Owner, Player, Pos, Sim};
 
 /// An object's identity as the original keeps it: its owner and its number
@@ -36,7 +37,10 @@ pub struct ObjId {
 pub struct Scene {
     /// The frame count, [`Sim::frame`].
     pub frame: i64,
-    /// Every unit on the map, in the simulation's store order.
+    /// Every living unit on the map, in the simulation's store order. A
+    /// unit at no health keeps its record here until it is reused, but the
+    /// original has taken it out of its object array — a corpse is drawn
+    /// from [`Scene::deaths`] (item 4026).
     pub units: Vec<UnitScene>,
     /// Every building in use, in the store order.
     pub buildings: Vec<BuildingScene>,
@@ -83,6 +87,13 @@ pub struct FigureScene {
     /// The figure's own position — a crew body's, where it has one, and
     /// otherwise its unit's.
     pub pos: Pos,
+    /// The figure's own height, the `GUY` record's `z` (`GuyData +0x14`),
+    /// as `Guy::update_z@005d9950` keeps it: a sea unit's figure at 0, the
+    /// water's surface; an aircraft's at its own altitude (`Airframe::z`);
+    /// every other on the ground under its point (`World::data_z`), which
+    /// may be below zero. Not the unit's [`UnitScene::z`]: a figure stands
+    /// where the renderer draws it (`docs/RENDERER.md` §2.3, item 4026).
+    pub z: i32,
     /// The figure's own facing where it has one, otherwise its unit's.
     pub facing: Angle,
     /// The graphic piece.
@@ -179,9 +190,11 @@ impl Sim {
         let units = self
             .units
             .iter()
-            .filter(|u| u.on_map)
-            .map(|u| {
+            .enumerate()
+            .filter(|(_, u)| u.on_map && u.alive())
+            .map(|(i, u)| {
                 let facing = u.movement.facing;
+                let domain = self.unit_domain_of(i);
                 UnitScene {
                     id: ObjId {
                         who: u.owner,
@@ -197,13 +210,21 @@ impl Sim {
                     figures: u
                         .guys
                         .iter()
-                        .map(|g| FigureScene {
-                            pos: g.follow.map_or(u.pos, |f| f.body.pos),
-                            facing: g.follow.map_or(facing, |f| f.facing),
-                            gpiece: g.gpiece,
-                            anim: g.anim,
-                            cur_time: g.cur_time,
-                            end_time: g.end_time,
+                        .map(|g| {
+                            let pos = g.follow.map_or(u.pos, |f| f.body.pos);
+                            FigureScene {
+                                pos,
+                                z: match domain {
+                                    Domain::Sea => 0,
+                                    Domain::Air => u.airframe.z,
+                                    Domain::Land => self.world.data_z(pos.x, pos.y).0,
+                                },
+                                facing: g.follow.map_or(facing, |f| f.facing),
+                                gpiece: g.gpiece,
+                                anim: g.anim,
+                                cur_time: g.cur_time,
+                                end_time: g.end_time,
+                            }
                         })
                         .collect(),
                 }
