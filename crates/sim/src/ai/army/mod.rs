@@ -3982,3 +3982,12 @@ impl crate::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
 
 #[cfg(test)]
 mod tests;
+
+// The files of `ai/army/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod army_do_defending_view;
+pub mod army_is_moving_view;
+pub mod army_normalize_view;
+pub mod army_process_view;
+pub mod muster;
+pub mod target_gate;
+pub mod target_score;

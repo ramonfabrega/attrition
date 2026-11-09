@@ -11512,7 +11512,7 @@ On 900 `1/12` finds army 0 with `units []`.
   attack on `0/7`. **Value diff, block 702**: `1/9 orders.len` was 1 here against 2 there, and is 2 on both sides
   (`[ATTACK 0/7, ATTACK_TO (45720, 32472)]`). Block 703's `path[0].to` was (44376, 31656) against (45720, 32472),
   and now agrees. All four of 702–703's rows leave.
-- **An army reads the pool record on its index** (`crates/sim/src/army.rs`, `army_pool_record` and `add_to_army`).
+- **An army reads the pool record on its index** (`crates/sim/src/ai/army/mod.rs`, `army_pool_record` and `add_to_army`).
   When the army's own seat lists no live member and a pushed group of the same player stands on the army's pool
   index with a live member, that group is the army's record: its first live member is `get_unit(0)`, the walk goes
   there, and the join is that group's `Group::add`. A joiner the record already lists is `Army::member` there, and the

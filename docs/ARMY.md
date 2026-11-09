@@ -389,7 +389,7 @@ addresses are the two arms, and that is what names them. Run21's first
 the frame is odd; run33's 1,850 frames enter neither this nor
 `Army::add_unit`.
 
-`crates/sim/src/army.rs`'s `come_out_join_army` is the tail, called from
+`crates/sim/src/ai/army/mod.rs`'s `come_out_join_army` is the tail, called from
 `garrison::come_out` (the trained unit's way in) and from
 `transport::disembark` (the passenger's).
 
@@ -1789,7 +1789,7 @@ against `Farms::inc_time+0x1ae` at 8663.
 
 ## 17. What the simulation carries, and what checks it
 
-`crates/sim/src/army.rs`: the record and the pool (§2 — `init_army`'s
+`crates/sim/src/ai/army/mod.rs`: the record and the pool (§2 — `init_army`'s
 slot rule and eviction, `Army::init`'s muster cell from the city, `close`),
 the counts as a function of the groups' units (§3.3), `add_to_army`'s
 army choice **and its walk to `get_unit(0)`** — `army_get_unit`,

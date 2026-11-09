@@ -1580,7 +1580,7 @@ The script side: §3.
    `make_stuff`/`use_market`/`market_speculation` — with `MakeList` and
    `produce_*`. Pin: run7's table in §5, all of it.
 4. ~~**Armies**, as its own document (`docs/ARMY.md`)~~ — **done
-   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/army.rs`,
+   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/ai/army/mod.rs`,
    `docs/audit/2026-08-25-army.md`; the sea half's part stays in
    `docs/TRANSPORT.md` §8. ~~The state machine and
    `find_target`. Its oracle is a longer run with a war in it, which does
@@ -15060,7 +15060,7 @@ the sub-group's record, sorts its list as the layout did and writes the parent's
 `off`/`curr`/`angles` at each member's parent index (the arrays are brought up to
 the list's length first) and re-points every group order of the member
 (`GroupMove::form_id`); `Sim::group_update_positions` rotates `form_num` slots;
-`Sim::army_keep_units` (`crates/sim/src/army.rs`), called from `army_normalize`
+`Sim::army_keep_units` (`crates/sim/src/ai/army/mod.rs`), called from `army_normalize`
 and `groups_process`. Test
 `a_siege_unit_s_slot_is_copied_into_the_army_s_table_at_its_own_index`.
 The diff harness's slot loop (`second::widen_records`) ran to `form_num`; it runs
@@ -17361,7 +17361,7 @@ claim is *diff-backed* unless marked.
    time, whatever the members reported. Ours' `Sim::army_normalize` pruned and recounted but never wrote the cap.
    *Listing-backed* as far as the condition's arithmetic: ours' `army_process` already took the same phase.
 
-**Built.** `Sim::army_normalize` (`crates/sim/src/army.rs`) ends its prune with `Group::normalize`'s speed tail
+**Built.** `Sim::army_normalize` (`crates/sim/src/ai/army/mod.rs`) ends its prune with `Group::normalize`'s speed tail
 (`Sim::seat_set_speed` on the army's seat). It runs on every army normalize — the periodic one, the 256-frame tick's, and the
 ones `army_add_unit`'s kill half asks for — as the original's does. Unit test
 `army::tests::an_army_normalize_resets_its_group_s_cap_to_the_leader_s_speed`: a cap a slow follower drove to 25 goes back to
@@ -20193,7 +20193,7 @@ General carries `0x20` alone and a Supply Wagon `0x40` alone.
    sent The Despot down the hero arm: army 0 has no General, so the nearer army won. The original sends it down the wagon arm.
    Army 0's three wagons refuse it, and army 5's two admit it. Group 89 is that army.
 
-**Built** (`crates/sim/src/spells/cast.rs`, `crates/sim/src/army.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
+**Built** (`crates/sim/src/spells/cast.rs`, `crates/sim/src/ai/army/mod.rs`): `unit_hits`' supply term on `SUPPLY_OR_HERO` alone, and
 `army_admits`' arm on the joiner's `SUPPLY_OR_HERO` alone. The counts are unchanged: `army_count_supply` still counts `0x40`
 without `0x20`, which is what `COUNT_TYPE 0x3f`'s lineage counts for every type this lobby has. Tests
 `rares::tests::a_supply_unit_adds_the_supply_hp_upgrade` (a patriot type of both bits is 150 at level 3) and
@@ -20599,7 +20599,7 @@ capture's player holds one.
 **What is not established.** Which arm makes the Lakota's food income 864 on frame 1 (the successor pair's was the
 Mongol food term, §191); that the word's draw delta is that income's (the frame is the booking, the mechanism the next
 item's hypothesis). Every census row in point 1 is a prediction. The peace's end at 4500 and `Game::war_allowed`'s time
-arm stand modelled as "always allowed" (`crates/sim/src/army.rs`'s seam list), parked 2321.
+arm stand modelled as "always allowed" (`crates/sim/src/ai/army/mod.rs`'s seam list), parked 2321.
 
 **Diff-backed**: the lobby's read-back, the game's end at 6822, the first word and its widening. **Reading only**: the
 callers in point 1.

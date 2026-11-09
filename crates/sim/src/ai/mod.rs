@@ -1361,3 +1361,6 @@ pub mod ai_units;
 pub mod bhs;
 pub mod relative_value;
 pub mod scenario_add;
+
+// `ai/army/` (item 4012, `docs/STRUCTURE.md` §3).
+pub mod army;

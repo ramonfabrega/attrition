@@ -2234,7 +2234,7 @@ probe**:
    overload `@00602e60`, a thunk that fills the last two arguments with
    the caller's own encrypted position.
 
-~~`crates/sim/src/army.rs` files step 1 as "a group order (seam); nothing
+~~`crates/sim/src/ai/army/mod.rs` files step 1 as "a group order (seam); nothing
 changes."~~ That comment was false — the probe is the whole of frame 8186
 — and item 328 replaced it with `Sim::find_target_probe`.
 

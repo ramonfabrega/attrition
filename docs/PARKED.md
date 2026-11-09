@@ -5536,7 +5536,7 @@ The port assumes every member already points at the slot. The sweep holds the he
 
 (2321) **The peace pair's rush rules: `Game::war_allowed`'s time arm and its readers** (item 2320, `docs/AI.md` §218).
     `RUSH_RULES 10` forbids war until frame 4500 (`rush_rules` table minutes 5 × 900; `war_allowed@00594670`, the
-    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/army.rs`'s seam list models it as "always
+    `9 <= rush_rules` arm after `current_age@005946d0`). ~~`crates/sim/src/ai/army/mod.rs`'s seam list models it as "always
     allowed" in `release_mustering`~~ (item 2388, `docs/AI.md` §221: built, the word 2040 → 3302), and the other readers — `Unit::process_attrition`, `PathFinder::calc_cost`,
     ~~`Leader::diplomacy`~~ (item 2384, `docs/AI.md` §220: modelled; team style 1 sends its message whether war is
     allowed or not), `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,

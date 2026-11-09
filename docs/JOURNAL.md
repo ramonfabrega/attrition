@@ -864,7 +864,7 @@ past 14586.
   `do_mustering` set marching, `do_marching` found no attacker, `close`.
   The ring search is the seam the first capture reaches; `docs/ARMY.md`
   §18 says so and what would close it.
-- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/army.rs` (the
+- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/ai/army/mod.rs` (the
   record and the decisions; the group orders, the ring search and the
   fort pass as named seams), wired into the census's step 16,
   `create_units`, the unit think, city close and capture, defeat, damage

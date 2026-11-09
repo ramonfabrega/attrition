@@ -3588,7 +3588,7 @@ pub(crate) mod tests {
     /// to one mechanic rather than to combat in general.
     ///
     /// **What the frame is.** `find_target@006f69b0:1120`-`1199` is the
-    /// probe `crates/sim/src/army.rs` files as "a group order (seam);
+    /// probe `crates/sim/src/ai/army/mod.rs` files as "a group order (seam);
     /// nothing changes": two units off the army (`ArmyData::get_unit(0)`
     /// and `get_unit(count − 1)`), `Groups::push_group`, a
     /// `find_building(SEARCH_FRIENDLY, …, 0x200, FILTER_TYPE, 0x1a1)` —

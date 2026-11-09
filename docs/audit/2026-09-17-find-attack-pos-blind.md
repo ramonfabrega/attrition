@@ -5,7 +5,7 @@ Blind second reading. Sources: the Ghidra decompile export
 `types.txt`, `vtables.txt`) and `llvm-objdump -d` over
 `riseofnations.exe` (image base 0x400000; every address below is a VA).
 I did not open `docs/COMBAT.md`, `docs/ARMY.md`, `docs/QUEUE.md`,
-`crates/sim/src/combat*`, `crates/sim/src/army.rs`, or any journal file.
+`crates/sim/src/combat*`, `crates/sim/src/ai/army/mod.rs`, or any journal file.
 
 Confidence tags used per claim: **[bytes]** = read off the
 disassembly; **[decomp]** = read off Ghidra's C and believed;
