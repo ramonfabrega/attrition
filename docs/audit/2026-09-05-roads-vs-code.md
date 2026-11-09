@@ -146,7 +146,7 @@ true before §9's mesh made each `set_road_at` a full pass.
 | | |
 |---|---|
 | document | ROADS.md §7.3, "a cell whose owner is an ally … is seen outright when that owner's `reg_cities` **or** `reg_forts` for the cell's *region* is non-zero (`LeaderData +0x125e` / `+0x12de`)" |
-| code | `crates/sim/src/ai_sites.rs:183-189` (`fn was_seen_fog`) |
+| code | `crates/sim/src/ai/ai_sites.rs:183-189` (`fn was_seen_fog`) |
 | document says | either count opens the shortcut |
 | code does | tests `self.leader_reg_cities(o, r) != 0` and nothing else — a region where the owner holds a fort but no city falls through to the fog read, and `calc_road_cost` doubles the node the original leaves alone |
 | difference shows | a doubled `PathFinder::calc_road_cost` price under the run62 recipe, on a node in a fogged cell of a region where the searcher has a fort and no city — the same signature as §7.3's six nodes. No capture on disk reaches it: `ai_sites.rs:146` records that no fort stands in any capture at the sweep, so the term has never been exercised |

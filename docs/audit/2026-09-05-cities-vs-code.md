@@ -138,7 +138,7 @@ untested.
 | document | CITIES.md §7.5, "`Wall::swap_team`: `t = current_upgrade(A, B.type)` — **the building becomes A's current upgrade of that type**; `n = init_build(A, t, x, y, restore = 1)`" |
 | code | `crates/sim/src/cities/city.rs:2191` (`fn swap_team`): `let n = self.init_build(a, ty, pos, true);` |
 | document says | A captured or converted building is re-created as the **captor's** newest researched type in the line — a captured Tower becomes a Keep for an owner who has the Keep. |
-| code does | Re-creates it as `ty`, the type it already was. `TechTree::current_upgrade` exists and is used for exactly this shape elsewhere — `crates/sim/src/cities/nations.rs:423`, `crates/sim/src/transport.rs:882`, `crates/sim/src/ai_host.rs:548` — and is not called here. |
+| code does | Re-creates it as `ty`, the type it already was. `TechTree::current_upgrade` exists and is used for exactly this shape elsewhere — `crates/sim/src/cities/nations.rs:423`, `crates/sim/src/transport.rs:882`, `crates/sim/src/ai/ai_host.rs:548` — and is not called here. |
 | difference shows | `BUILDDATA.orig_type` and the building's `myhits` on the frame after any capture or any `find_buildings` conversion (§5.4), which fires on founding, level-up and every Civic tech, not only on capture. No capture on disk contains a building conversion; the falsifying capture is a `frame_window` with `BUILDS=6` over a `find_buildings` sweep that catches a foreign building — cheapest as a scripted `add NEW` of an enemy tower inside a city radius. |
 | reached | reached (`Build::swap_team` / `Wall::swap_team` are not in `/Users/rf-studio/ron-audit-scratch/blind-all-68traces.txt`; some trace enters them, though no capture *on disk* carries a city capture) |
 
@@ -151,9 +151,9 @@ argument that is wrong.
 | | |
 |---|---|
 | document | CITIES.md §4.2, "Callers: `Wall::activate` **when `build_flags & 0x10` or in a city** … **A finished building outside any city without `build_flags & 0x10` is not counted** — the tech tree's 'has a temple' predicates follow the same rule." |
-| code | `crates/sim/src/ai_types.rs:45-50` (`fn num_buildings_of`) |
+| code | `crates/sim/src/ai/ai_types.rs:45-50` (`fn num_buildings_of`) |
 | document says | `LeaderData::num_buildings[type]` moves only through `increment_stats`/`decrement_stats`, and `Wall::activate` calls it only for a type carrying the `e` flag (`NO_CITY`) or a building that is in a city. A temple, granary, market, library, senate, university, farm or smelter standing outside every city is invisible to the counter. |
-| code does | `num_buildings_of` counts every `alive && active` building of the type and owner, with no city or flag test. Every reader goes through it: `buildings_of_line` (`crates/sim/src/ai_types.rs:62-75`), which is what `claim_building_high` measures the free-unit high-water mark with (`crates/sim/src/cities/nations.rs:232`), and the AI's and tech tree's "how many of these do I have". |
+| code does | `num_buildings_of` counts every `alive && active` building of the type and owner, with no city or flag test. Every reader goes through it: `buildings_of_line` (`crates/sim/src/ai/ai_types.rs:62-75`), which is what `claim_building_high` measures the free-unit high-water mark with (`crates/sim/src/cities/nations.rs:232`), and the AI's and tech tree's "how many of these do I have". |
 | difference shows | Reachable only after a city dies: §8.4's `City::close` re-homes members and `decrement_stats` runs "unless `e`", so a temple whose city was destroyed and that finds no new city is counted here and not there. The tech-tree consequence is the visible one — a prerequisite of the form "has a temple" stays satisfied in this crate after the city is razed, so `type_avail` and the AI's build order diverge from that frame on. Capture: a `CITIES=5`/`BUILDS=6` window over a razed city with a surviving non-`e` member; none on disk. |
 | reached | reached (`Wall::increment_stats` entered) |
 

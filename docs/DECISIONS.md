@@ -737,7 +737,7 @@ rounded, so the original is deterministic here and the port is exact.
 
 **Chosen:** the shipped `ai/scripts/*.bhs` are read from the user's install at
 load time, like the XML tables, and executed by an interpreter of our own —
-`crates/sim/src/bhs.rs`, a tree-walker written from the language's observed
+`crates/sim/src/ai/bhs.rs`, a tree-walker written from the language's observed
 semantics (`docs/AI.md` §3, §11) over a `Host` trait the simulation
 implements. The engine's bytecode compiler and VM were read for what the
 language *means* — that truth is `> 0`, that arguments evaluate right to left,

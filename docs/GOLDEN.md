@@ -13580,7 +13580,7 @@ view (`Console::on_right_up@007cd3c0`), never one of these.
 |---|---|---|
 | **`WorldMap::on_right_up@008c7050` is the minimap's right-click**, not the main view's: it bumps `accum_minimap_clicks` (:60) and is vslot `+0xf8` of a `WorldMap` vftable `Window::right_up_event` dispatches. §17's "a plain right-click's arguments, form −1, width −1" (:203) is the minimap's. A main-view ground click is `Console::execute_at_cursor@007c6630:2585` with `drag_form = max(0, get_form)` and `drag_form_mod` from `GroupData::get_form_mod_option`, set at the press (`Console::down@007cd8f0:89–100`). §13's and §23's ctrl arm (:199) has the same bytes as the main view's :411. §18's :206 is a minimap click with a plane selected | the listing; `vtables.txt` lacks this vftable (`.rdata 0xb54b38`) | a main-view ground right-click in run30's or run50's package carrying form −1, width −1 |
 | **`Console::hurry_action@007c3810` is `hurry`, not `finish`**: `run_cmd` case `0x51` (`this` 1 for the bare token) and cheat key `0x45` (`this` 0) are its only callers. `finish` is case `0x4f`, inline (§94), so §90's "the one-token `finish`" names the wrong verb, and ~~**no capture has entered it at any cover**~~ run1063 enters it (item 3445, §91) | `ConsoleWin::run_cmd@007d6a70:8842`, `Console::exec_keymap@007c2ce0:269` | chapter seventy-four's take with `hurry` for `finish`: the Library's `job_counter` moves 500000, not 10000 |
-| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai_host.rs:1192`. Its two gaps, `0x32`/`0x33` and `group` −1, are read in §148 | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`); run1068 |
+| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai/ai_host.rs:1192`. Its two gaps, `0x32`/`0x33` and `group` −1, are read in §148 | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`); run1068 |
 | **`ScenarioData::issue_order@00996ac0` is a scenario file's initial orders**, applied once at import (`ScenarioRead::import` chunk 6 → `issue_queued_orders`), not the trigger system as §29 says. Cut from v1 with scenario games either way | the export | a random-map trace entering `ScenarioRead::import` |
 | `Options::picked_spot@00721c40`'s Repair pick always passes `QUEUE_NEW`, whatever the keys, and on an undamaged own building with room and gatherers selected it issues `issue_gather` (:668), not a repair. A right-click reaches `picked_spot` only under the profile pref `prefs & 0x20` | :536–727 | a shift-held Repair pick logging queued ≠ 2 in `CM` |
 | `Options::set_air_repeat@0071c740` has a units arm §32 omits: with planes selected it sends an inline command `0x20` (`unitmask 0x200000, set 1`), so it always sets and never toggles. No port | :53–76 | a second press logging `set 0` |
@@ -14256,7 +14256,7 @@ sides release.
 **The fix** (`crates/sim/src/combat/fight.rs`): `Sim::set_attacking` calls `treaty_on(owner, who, 1)` first. Ours'
 British and Inca now meet on 620, and the Nubians meet each computer on 659 and 661. Step 15 gives the region word
 `& 4`, and army `2/0` releases on 760 into `DEFENDING`. `Sim::census_meet` (step 6, buildings and walls,
-`crates/sim/src/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
+`crates/sim/src/ai/ai_census.rs`) stays as the export reads it. A first build walked units too. That build reached the
 same 839, but it met chapters 43 and 46 on 1400, where theirs did not.
 **Every `first_parting` holds**, and chapters 8, 43, 46 and 62 lose their `leader:treaties` rows (ours read 2, `do_damage`'s bit, where theirs read
 3).
@@ -15335,7 +15335,7 @@ no range):
 halving (`0061c26d`–`0061c289`) jumps to the clamp, so the AA gun's third is taken only on the other paths
 (`0061c28b`).
 
-**The build.** `crates/sim/src/relative_value.rs` (`Facts`, `relative_value`), filled at load in
+**The build.** `crates/sim/src/ai/relative_value.rs` (`Facts`, `relative_value`), filled at load in
 `crates/rondata/src/load.rs` as `UnitType::rel`. `unit_prod_value` reads it and stops at the gaia types, as the
 original's `0x32..0x192` does.
 
@@ -17837,7 +17837,7 @@ own point. Block 641: Hoplites `0/10`–`0/15` with no orders, at their slots. N
 is run1511's game on all 901 frames (`rngcmp`).
 
 **What this crate does.** `Sim::scenario_add_unit`, `group_action_transport`, `group_dbg_jump_to_action` and
-`unit_dbg_jump_to_action` (`crates/sim/src/scenario_add.rs`). The harness's console takes `eval create_unit(…)` as
+`unit_dbg_jump_to_action` (`crates/sim/src/ai/scenario_add.rs`). The harness's console takes `eval create_unit(…)` as
 `Cheat::CreateUnit` (`crates/rondata/src/golden.rs`), and `eval` joins the console-only words. The draw stream agrees
 to the trace's end, by value and by site: `GOLDEN_WORD_CHAPTER_ONE_HUNDRED_AND_FOURTEEN` = **900**, closed
 (`chapter_one_hundred_and_fourteen_holds_to_the_golden_word`). Two findings were built on the way. The host swap

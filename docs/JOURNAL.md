@@ -274,8 +274,8 @@ dated heading on, the journal is by date.
     reading is complete (the driver, the census, the step machine, the
     make list, the sites, the city AI, research, the market, the scripts;
     four readers' reports for the language, the 55 host functions and the
-    two `create_*` producers, ratified in §11), `crates/sim/src/ai.rs`
-    holds the driver's pure half and `crates/sim/src/bhs.rs` the script
+    two `create_*` producers, ratified in §11), `crates/sim/src/ai/mod.rs`
+    holds the driver's pure half and `crates/sim/src/ai/bhs.rs` the script
     interpreter (`docs/DECISIONS.md` entry 20). The finding that reframes
     this item: **the skirmish AI's opening is the shipped `economic.bhs` /
     `defensive.bhs`**, run through the scripting VM at production step 1 —
@@ -509,7 +509,7 @@ dated heading on, the journal is by date.
 
     **The loader's half of the producers' seams landed, 2026-08-25** —
     `docs/DATALAYER.md`, "The derived words no column carries", and
-    `crates/sim/src/ai_load.rs`. What made it cheap: **the type dump carries
+    `crates/sim/src/ai/ai_load.rs`. What made it cheap: **the type dump carries
     the derived words too.** `UnitType::log_data` prints `role`,
     `unit_flags` and `unit_flags2`; `BuildType::log_data` prints
     `build_flags`; `TechType::log_data` prints the **eleven `ai[scan]`
@@ -13678,7 +13678,7 @@ a capture and not a reading.
 
 **The cause was one host function returning zero.** `game/ai/scripts/
 economic.bhs` builds merchants inside a loop bounded by
-`num_rare_resources_seen(who)`, and `crates/sim/src/ai_host.rs` answered a
+`num_rare_resources_seen(who)`, and `crates/sim/src/ai/ai_host.rs` answered a
 flat `0` with the comment "Rares are not in the simulation: none seen" —
 true when it was written and false since `rares.rs` landed. So no AI on any
 map had ever trained a Merchant.

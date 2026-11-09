@@ -9444,7 +9444,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3408, 2026-10-21 — GOLDEN's never-entered functions read: port gaps and stale texts the reading found
 
-- **3408a. Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)**, no score until a Nomad lobby is captured: the original admits citizen kinds `0x32` and `0x33`, and the port's `citizen_type` (`crates/sim/src/ai_host.rs:535`) has not been shown to cover Korea's; the original writes the unit's `UnitData.group` −1 and the port does not. A Nomad capture (§144.3's last row) is what names a score.
+- **3408a. Port gaps against `citizen_repair_order` (`docs/GOLDEN.md` §144.2)**, no score until a Nomad lobby is captured: the original admits citizen kinds `0x32` and `0x33`, and the port's `citizen_type` (`crates/sim/src/ai/ai_host.rs:535`) has not been shown to cover Korea's; the original writes the unit's `UnitData.group` −1 and the port does not. A Nomad capture (§144.3's last row) is what names a score.
 - **3408b. `Sim::unit_swap_team` (`crates/sim/src/spells/bribe.rs:47`) walks both squads' chains and stops when either ends, where the original's bound is the old chain only; and the original's unlink loop overwrites `this->o/who` with cargo** (§144.2). No Bribe is staged, so no score names it; it books with §107's staging.
 - **3408c. `Sim::disembark_squad` (`crates/sim/src/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
 - **3408d. Stale texts this reading found, none a score.** `crates/sim/src/cities/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
@@ -9510,7 +9510,7 @@ is an oracle-agreed module the live sim does not call.
 
 ## Parked by item 3412, 2026-10-21 — NATIONS's never-entered functions read: port gaps and stale texts the reading found
 
-- **3412a. `Sim::has_market` (`crates/sim/src/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buildings[0x16] ≠ 0` and then a city the leader owns with `city_flags & 1` and `& 0x800`** (`docs/NATIONS.md` §9.1). What `0x800` is, and whether any capture holds a Market with no qualifying city, is not established. No score names it until a market capture (§9.2's first rows) is taken.
+- **3412a. `Sim::has_market` (`crates/sim/src/ai/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buildings[0x16] ≠ 0` and then a city the leader owns with `city_flags & 1` and `& 0x800`** (`docs/NATIONS.md` §9.1). What `0x800` is, and whether any capture holds a Market with no qualifying city, is not established. No score names it until a market capture (§9.2's first rows) is taken.
 - **3412b. `Object::disband`'s two port questions** (§9.1): `SimDisband::price` (`crates/sim/src/units/disband.rs`) answers the full arm (last argument −1) and the partial (`orig_type`) with one price, and the Aztec plunder arm is the sweep's alone because the sim disbands no unit. Books with §9.2's Lakota delete.
 - **3412c. `get_vehicle_speed_upgrade`'s port asks one stored prerequisite per bonus where the original's `has_preq` asks the bonus's whole PREQ list** (§9.1). Inert while each `VEHICLES_FASTER` has one; books with §9.2's queue-time capture.
 - **3412d. Stale texts, none a score.** `crates/rondata/src/input.rs:1189` skips `Command::Buy`/`Sell` as "the market is not modelled", but `ai_make.rs` carries `do_buy`, `do_sell` and `calc_market_prices`. §5's generated census calls `process_sell` `carried at command_package_process_sell.rs`: that is the emulator sweep, and `crates/sim` has no `process_sell` (§9.1); `tools/nations_census.py`'s `HAND` could say so.
@@ -9772,7 +9772,7 @@ is an oracle-agreed module the live sim does not call.
 compared it against the port's `citizen_type()`. Score: a `NEVER`-neutral fidelity row. It needs the Nomad lobby
 (run1068's line) with `--ai-tribe` set to that nation, read on the computer's step-2 frame. One reach.
 
-(3447b) **The port's `citizen_repair_order` pushes no group** (GOLDEN §148, gap 2; `crates/sim/src/ai_host.rs:1192`).
+(3447b) **The port's `citizen_repair_order` pushes no group** (GOLDEN §148, gap 2; `crates/sim/src/ai/ai_host.rs:1192`).
 The original clears `UnitData.group` to −1, `Group::add`s the Citizen into a fresh group, `push_group`s it and swarms
 from the pushed group. On run1068's block 377 the computer's `1/1` reads `group 65` where block 376 read 67, and
 `1/0` (66) and `1/2` (64) read back their old indices. The port leaves the placement's group. Nothing pins the

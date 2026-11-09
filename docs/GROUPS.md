@@ -428,7 +428,7 @@ unit go to the first group, everything else to the second — and the same
 recursion applies under the same `army < 0` guard. The test at `704cf4` is
 `(ptype->+0x2b4 & 0x10) == 0`, `unit_flags` bit `e`, which this project has
 named `uflags::TRANSPORT` since the AI mechanic
-(`crates/sim/src/ai_load.rs`); it is **not** `is_special`, which is
+(`crates/sim/src/ai/ai_load.rs`); it is **not** `is_special`, which is
 `unit_flags2 +0x2b8 & 0x10`.
 
 ### 6.2 `QUEUE_FIRST`

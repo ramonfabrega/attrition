@@ -1077,7 +1077,7 @@ and between the level-0 base and the level-9 tail sit **every count
 `MAKEOBJECT`s). `tools/gamelog/leader.py FRAME WHO [file]` prints one
 leader's record flattened, arrays summarised to their non-zero entries.
 Run8's frame 1 is the AI leader after its frame-0 sweep and is the
-acceptance oracle for `crates/sim/src/ai_census.rs`; the human's block
+acceptance oracle for `crates/sim/src/ai/ai_census.rs`; the human's block
 carries `peasants`/`gatherers` too, from `Leader::calc_gather@006ceee0`
 (the goods display's pass), not the sweep.
 

@@ -2065,7 +2065,7 @@ one. §12's `use_market` runs inside `make_stuff` and is what a short good
 provokes; this runs one step earlier in the production rotation, reads no
 make list at all, and buys or sells on the **stockpile alone**.
 
-Its sell and buy passes were a declared seam in `crates/sim/src/ai_make.rs`
+Its sell and buy passes were a declared seam in `crates/sim/src/ai/ai_make.rs`
 from the day the function was written — both need `calc_market_prices`,
 which did not exist then. §12 built it on 2026-09-18 and the comment
 outlived it by four days.
@@ -2284,7 +2284,7 @@ the emptied slot is in slot 1 when `Make2` sums the need. Coverage over
 
 The Merchant is `docs/AI.md` §38.5's standing residue: the original has
 offered one since at least dump-block 8181, and this crate never does. The
-merchant arm of `civilian_value` (`crates/sim/src/ai_units.rs`) returns
+merchant arm of `civilian_value` (`crates/sim/src/ai/ai_units.rs`) returns
 `None` unless `known_rares` less the Merchants queued and alive is
 positive. This crate sums that total from `census.reg_known_rares`,
 which the census zeroes every sweep and **nothing writes**, so the arm

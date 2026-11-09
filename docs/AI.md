@@ -1073,7 +1073,7 @@ reading (one worker, 2026-08-24, line by line against the decompile and
 the listing where the decompile printed a local that could not be right),
 promoted here from what used to be §14.5 so that the blind second reading
 has a claim to compare against. The full derivation is
-`crates/sim/src/ai_units.rs`'s docstrings; this is its load-bearing half.
+`crates/sim/src/ai/ai_units.rs`'s docstrings; this is its load-bearing half.
 
 1. **The army-size ladder differs by branch**: rung 2 is `×3/2` in the air
    branch (line 442) and `×2` in the land branch (1430).
@@ -1100,7 +1100,7 @@ has a claim to compare against. The full derivation is
 
 ### 2.19 Buildings — `create_buildings@006c1be0`
 
-Same provenance as §2.18 (was §14.6; `crates/sim/src/ai_build.rs`).
+Same provenance as §2.18 (was §14.6; `crates/sim/src/ai/ai_build.rs`).
 
 1. **The gather multiplier's cap is a real `min` at `0x100`** (listing
    `0x6c2762–0x6c276b`: `cmp; cmovl; mov` — the running cap ratchets
@@ -1142,7 +1142,7 @@ Same provenance as §2.18 (was §14.6; `crates/sim/src/ai_build.rs`).
 
 ### 2.20 Placing one — `produce_building`
 
-Same provenance as §2.18 (was §14.7; `crates/sim/src/ai_place.rs`).
+Same provenance as §2.18 (was §14.7; `crates/sim/src/ai/ai_place.rs`).
 
 The census adjustments at the tail (lines 1114–1151) are **kept, not
 discarded**: `filled += 1`, `space[n − 2] = max(0, · − 1)` for
@@ -1707,19 +1707,19 @@ held as an errata section until 2026-08-25 and are now folded into §2 itself
 (§14 records where each went). What is not yet
 folded back into §2's prose.
 
-- **`crates/sim/src/ai.rs`** — the driver's pure half: `Personality::roll`,
+- **`crates/sim/src/ai/mod.rs`** — the driver's pure half: `Personality::roll`,
   `Leader::choose_script`, `MakeList::make_me`, the goods picture, the
   cadence, the `Step` machine, `Lobby`; and now the records the sweep
   writes — `Census` (every count under `LeaderData`'s names, the per-region
   arrays one slot per sim region), `CityAi` (the per-city `free`/`busy`/
   `gatherers`/`peasant_dist` and the circle picture), `Site` × 10,
   `mil_trainers`, `tech_frame`/`tech_cat_frame`.
-- **`crates/sim/src/ai_types.rs`** — the shared type helpers: `Class`,
+- **`crates/sim/src/ai/ai_types.rs`** — the shared type helpers: `Class`,
   `unit_record`/`build_record`, `num_buildings_of`/`num_sites_of`/
   `buildings_of_line`, `type_price`/`type_affordable`/`type_available`,
   `cities_of`/`city_chain`, `count_gather_slots` (`City::count_gather_slots
   @00737dc0`, knowledge excluded from the total), `village_num`, `sea_map`.
-- **`crates/sim/src/ai_census.rs`** — `plan_strategy`'s sixteen sweep steps
+- **`crates/sim/src/ai/ai_census.rs`** — `plan_strategy`'s sixteen sweep steps
   (§2.3) and `check_explore`; the seams tabulated in the module. **Pinned
   against the original's own leader record**: run9's frame-1 `LEADERDATA
   who 1` (`LEADERS=9`, §5) agrees with the harness's frame-0 sweep on the
@@ -1727,27 +1727,27 @@ folded back into §2's prose.
   per-region active/peasants/gatherers/cities, `reg_land 43`, `strategy 1`,
   `escrow_rate`, `filled_gather_slots` — with one ceiling: the woodcutter
   camp's five gather slots are `calc_gather`'s (§13).
-- **`crates/sim/src/ai_sites.rs`** — `compute_sites`, `compute_site_stats`,
+- **`crates/sim/src/ai/ai_sites.rs`** — `compute_sites`, `compute_site_stats`,
   `found_cities`, `produce_city`, `place_city_with_cost`'s body
   (`place_city_ai_impl`); `move_x/move_y[0..25]`, the ring `[81..121]` and
   `corner_x/y` read from the PE's `.rdata` (`rise_z.map` names them,
   `compass.obj`); §13's distance loop settled in the listing.
-- **`crates/sim/src/ai_research.rs`** — `research_techs`, `produce_tech`;
+- **`crates/sim/src/ai/ai_research.rs`** — `research_techs`, `produce_tech`;
   the eleven `ai[]` weights traced to `TechType::compute_ai_values@0066cdc0`
   (§2.14) and seamed to zero until the loader ports them.
-- **`crates/sim/src/ai_units.rs`** — `create_units` (every branch: air,
+- **`crates/sim/src/ai/ai_units.rs`** — `create_units` (every branch: air,
   missiles, sea, land civilians, scout, land military, the shared tail),
   `upgrade_units`, `produce_unit`, `queued_units`, `check_income`,
   `unit_prod_value`; the type flags the sim does not carry are seams.
-- **`crates/sim/src/ai_build.rs`** — `create_buildings` (both passes, every
+- **`crates/sim/src/ai/ai_build.rs`** — `create_buildings` (both passes, every
   family), `produce_upgrade`, `produce_spell`; the gather multiplier's cap
   settled (§2.19).
-- **`crates/sim/src/ai_make.rs`** — `make_stuff`, `make_this`, `use_market`,
+- **`crates/sim/src/ai/ai_make.rs`** — `make_stuff`, `make_this`, `use_market`,
   `market_speculation` (the market's gates and draws' *positions*; it trades
   nothing until `docs/ECONOMY.md`'s market lands), `check_orphaned_buildings`.
-- **`crates/sim/src/ai_place.rs`** — `produce_building`, now with §4.6's
+- **`crates/sim/src/ai/ai_place.rs`** — `produce_building`, now with §4.6's
   census adjustments in place (run8 frame 2: `gatherers 5 → 4`).
-- **`crates/sim/src/ai_drive.rs`** — the sweep calls the census, the orphan
+- **`crates/sim/src/ai/ai_drive.rs`** — the sweep calls the census, the orphan
   check and `compute_sites`; the cheap research tick; every step calls its
   producer; `effective_pop` computed on entry.
 - **The world** (`world.rs`) carries the rest of each cell's `WData` —
@@ -1828,7 +1828,7 @@ folded back into §2's prose.
    — is `docs/SYNC.md` §6, and it is the next item here.
 3. ~~**The loader's half of the producers**~~ — **done, 2026-08-25**,
    `docs/DATALAYER.md`, "The derived words no column carries", and
-   `crates/sim/src/ai_load.rs`: `UnitType::cols` (`unit_flags`,
+   `crates/sim/src/ai/ai_load.rs`: `UnitType::cols` (`unit_flags`,
    `unit_flags2`, `cat`, `carry`, `role`), the six derived `build_flags`
    bits, and `TypeDef::ai[11]`. Every one of them is checked against the
    program's own loaded values — a `DUMP_ALL` type dump prints `role`,
@@ -2467,7 +2467,7 @@ without looking at any corner when the cell is another leader's (`who ≥ 0
 its own `flags & 0x70` test, so the first two are redundant there; the
 placement spiral (§2.20) reaches it directly, and there they are new.
 
-**Landed**: `crates/sim/src/ai_place.rs` — `GRID_ORDER`, `GRID_THREES`, the
+**Landed**: `crates/sim/src/ai/ai_place.rs` — `GRID_ORDER`, `GRID_THREES`, the
 rewritten `space_at_corner`, the three-way gate; three unit tests, one of
 which fails on the old code at `space(&[(0,0)]) == 3` and at every-non-
 centre-tile-blocked `== 2`; and the run20 guard's pin retired — the record
@@ -3019,7 +3019,7 @@ Indies' scout to the wrong island on 11549.
 `CityData::ter[6]` is the best per-good gather amount over the city's
 occupied tiles, written by step 13's circle sweep out of
 `World::gather_at@006b07f0`. `World::gather_at` is a **declared seam** in
-`crates/sim/src/ai_census.rs` that answers `[0; 6]`, so `CityAi::ter` is
+`crates/sim/src/ai/ai_census.rs` that answers `[0; 6]`, so `CityAi::ter` is
 zero everywhere, for every player, on every frame.
 
 It is not inert. `gather_value` — §3.2, the gather families' half of the
@@ -4058,7 +4058,7 @@ The dump carries the receipt on the next block: slot 5's `val` goes
 `9999999` is not a valuation. It is `create_units`' tail —
 `out = fac × (want × val / divisor) / 256`, and then **`if out < 0 { out =
 9999999 }`**, the guard the original puts on a wrapped 32-bit product
-(`crates/sim/src/ai_units.rs`, the `wm` note). The original's answer for
+(`crates/sim/src/ai/ai_units.rs`, the `wm` note). The original's answer for
 the same Slingers on the same frame is **360,000**, so its product did not
 wrap. This crate's did, the guard turned a negative into the largest value
 in the list, and the Slingers took rank 0 from the Temple.
@@ -4119,7 +4119,7 @@ crate's own arithmetic applied to a **census that had two independent
 faults**, and with the census right the same code produces the original's
 `val 360000, num 1` on the first run.
 
-Both faults are in `Sim::census_units` (`crates/sim/src/ai_census.rs`),
+Both faults are in `Sim::census_units` (`crates/sim/src/ai/ai_census.rs`),
 §2.3's step 10, and the widening found them without a reading: run91
 already prints the whole leader record, and `combat`/`non_siege` part at
 **ours 1, theirs 3** on every one of its 86 blocks.
@@ -5244,7 +5244,7 @@ is. On block 9178, read off this crate's own `check_income`, `income` is
 | this crate | 26,400,000 | 1,689,600,000 | **6,600,000** |
 
 `the_tech_ceiling_is_the_income_multiply_wrapping_not_a_saturation`
-(`crates/sim/src/ai_research.rs`) pins both rows and the cliff either
+(`crates/sim/src/ai/ai_research.rs`) pins both rows and the cliff either
 side, and [`ai_research::income_scaled`] is that tail as one function so
 the claim has something to assert against. Made to fail on purpose.
 
@@ -5962,7 +5962,7 @@ and not in the offer's final value.
 ### 49.5 Coverage
 
 `the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap`
-(`crates/sim/src/ai_units.rs`) — the five terms, the 64-bit product, the
+(`crates/sim/src/ai/ai_units.rs`) — the five terms, the 64-bit product, the
 wrap, the sign, and §45's guard still firing on a negative wrap, which is
 what says the finding is about the sign. This crate's five terms are
 instrument-measured; the original's 5,755,741 is read off run111 block
@@ -8968,7 +8968,7 @@ two hits are `Leader::init` and `LeaderData::log_data`):
   `leaders[this.who].frame_attacked = frame` — **the struck object's
   owner**, human or computer, with no `attacked_by`.
 
-This crate wrote only the first (`crates/sim/src/ai.rs` called the field
+This crate wrote only the first (`crates/sim/src/ai/mod.rs` called the field
 "the frame an enemy army last took a target of this leader's", and
 `docs/ARMY.md` §12's gate "7,200 frames since I last took a target against
 `L`"; `docs/COMBAT.md` §7.2 step 3 named the stamp as "the owner's
@@ -9485,7 +9485,7 @@ stands.
 ### 75.4 The fix
 
 - `Census::wonder_slots` carries the list, by building index.
-- `Sim::note_wonders` (`crates/sim/src/ai_census.rs`) derives both
+- `Sim::note_wonders` (`crates/sim/src/ai/ai_census.rs`) derives both
   writers off the buildings, for every leader. An entry closes when its
   building is no longer an alive, activated wonder of the leader's. An
   activation takes the first clear entry under the mark.
@@ -14392,7 +14392,7 @@ every other city of every capture is a rim cell of `space` 0 too, so the
 totals agreed by luck wherever that rim cell was out of the city's radius.
 `1/2031`'s rim cell `(35, 27)` is inside it and open.
 
-**Built.** `Sim::census_city_sites` (`crates/sim/src/ai_census.rs`) walks
+**Built.** `Sim::census_city_sites` (`crates/sim/src/ai/ai_census.rs`) walks
 `1..outer`, and `census_site_cell`'s inner cutoff is `i >= inner`. Test
 `the_circle_walk_starts_at_entry_one` (`ai_census.rs`): a neighbour owning
 the centre cell changes nothing, one owning the last inner entry takes a
@@ -17745,7 +17745,7 @@ run711's 2183. Each claim is *diff-backed* unless marked.
 
 **Built.** `world::cell::CLOSED` (`0x2`); `Sim::mark_closed_cell`, from `close_building` for every reason but 5 and from
 the two conversions (`crates/sim/src/cities/city.rs`); the oil arm names the bit and the spiral's arm is new
-(`crates/sim/src/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
+(`crates/sim/src/ai/ai_place.rs`). Unit tests `ai_place::tests::a_patch_a_building_closed_on_is_passed_over_once` and
 `cities_tests::a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near`.
 
 **What it moved.** The word **2288 → 2296**, count and sequence: ours 51 game draws against 52, index 3, ours
@@ -17791,9 +17791,9 @@ hypothesis leader 1's pool row 70 on 2293. Each claim is *diff-backed* unless ma
    `gatherers`, `free_peasants`, `attacked`, `wars`, `active_wars` and `active_wars_with` (§43, §45: the human's war census
    on run115's 8001 agrees).
 
-**Built.** `Sim::plan_strategy_human` (`crates/sim/src/ai_drive.rs`): on the human's phase frame the census and
+**Built.** `Sim::plan_strategy_human` (`crates/sim/src/ai/ai_drive.rs`): on the human's phase frame the census and
 `compute_sites` (whose own human gate stands), then the machine armed; on the next frame disarmed. Step 16 is gated on a
-human in `Sim::census` (`crates/sim/src/ai_census.rs`). Unit test `ai_census::tests::a_human_s_sweep_fills_its_city_and_seeds_no_army`.
+human in `Sim::census` (`crates/sim/src/ai/ai_census.rs`). Unit test `ai_census::tests::a_human_s_sweep_fills_its_city_and_seeds_no_army`.
 
 **What it moved.** The word **2296 → 2868**, count and sequence: ours 17 game draws against 18, index 7, ours
 `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, past run714's last
@@ -18615,7 +18615,7 @@ owner-of-the-second-border test, so the test's `/ 2`, `× 8` or `× 4` scales
 it too. This crate carried the arm without the term (a SEAM: "no walk reaches
 a Fort placement on a cell with danger", §100). The Persians' danger map is
 non-zero around the second city. Built in `Sim::produce_building`
-(`crates/sim/src/ai_place.rs`); `a_fort_is_placed_where_the_danger_is`
+(`crates/sim/src/ai/ai_place.rs`); `a_fort_is_placed_where_the_danger_is`
 (`cities_tests`) fails without it (made to fail once, the term × 0).
 Hypotheses the floor killed on the way: a stride phase one candidate off
 (`idx >= circle_radius[3]`: run766 parts on 5620 keys from the first
@@ -19385,7 +19385,7 @@ It sits inside the Fort arm only (the `else` that reads the danger grid),
 and `0xff − val` is added after it. Ten times over, the distance and
 danger terms outweigh `val`: (49, 28) is 40212 and (49, 31) 40215, the
 original's cell. Built in `Sim::produce_building`
-(`crates/sim/src/ai_place.rs`), reading `city_ai[c].bordering`, which the
+(`crates/sim/src/ai/ai_place.rs`), reading `city_ai[c].bordering`, which the
 border pass writes (item 1600).
 
 **What moved.** The Redoubt stands at (38304, 24288) as the original's

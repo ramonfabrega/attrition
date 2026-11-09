@@ -42,7 +42,7 @@ must not hoist it.
 | document | ECONOMY.md §"Paying it out", "`if t == KNOWLEDGE and tech_cost > 4: rate = rate * 3/4 if tech_cost < 7 else rate / 2`" |
 | code | `crates/sim/src/economy/mod.rs:751` (`fn pay`) |
 | document says | after the handicap, a knowledge rate is cut to three quarters at tech-cost setting 5–6 and halved from 7, truncating toward zero |
-| code does | applies `h.handicap` and nothing else; there is no tech-cost term, and `Holdings` carries no tech-cost field. `crates/sim/src/ai.rs:968` has a `tech_cost` (default 3) but it is the AI's lobby knob, read by `ai_research`, and `economy` never sees it |
+| code does | applies `h.handicap` and nothing else; there is no tech-cost term, and `Holdings` carries no tech-cost field. `crates/sim/src/ai/mod.rs:968` has a `tech_cost` (default 3) but it is the AI's lobby knob, read by `ai_research`, and `economy` never sees it |
 | difference shows | `LEADERDATA`'s `bucket[3]` and `leftover[3]` divergence beginning on the first frame a knowledge rate is non-zero, in any capture whose `rise.ini` sets tech cost above 4. Every capture on disk runs the default (setting 3), so no capture reaches it |
 | reached | reached |
 
