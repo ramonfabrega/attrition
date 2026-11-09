@@ -174,7 +174,7 @@ pub fn do_cast_clock_steps(v: &mut impl DoCastClock) -> DoCastFlow {
                 v.merchant_repiece();
             }
             v.face_guy0();
-            (crate::anim::PACK, true)
+            (crate::anim::ANIM_PACK, true)
         } else if v.type_is_unpack(idx) {
             v.rebuild_options();
             if !v.packed() {
@@ -192,7 +192,7 @@ pub fn do_cast_clock_steps(v: &mut impl DoCastClock) -> DoCastFlow {
                 v.seat_on_cell();
             }
             v.face_guy0();
-            (crate::anim::UNPACK, true)
+            (crate::anim::ANIM_UNPACK, true)
         } else if !v.caster_is_hero() {
             (crate::anim::DEFAULT, true)
         } else {

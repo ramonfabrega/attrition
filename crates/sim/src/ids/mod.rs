@@ -130,7 +130,7 @@ pub mod spell {
     /// `Rally!`, the row before `CREATE_DECOY` — the third craft
     /// `Unit::do_cast` plays a hero's attack slot for.
     pub const RALLY: i32 = 0x279;
-    pub const CIVILIAN: i32 = 0x293;
+    pub const CAST_CIVILIAN: i32 = 0x293;
     pub const TO_ARMS: i32 = 0x294;
 
     /// The four **pack** rows and the four **unpack** ones, in the pairs
@@ -172,7 +172,7 @@ pub mod spell {
         ("Deploy", UNPACK_MERCHANT),
         ("Pack", PACK_FISHERMEN),
         ("Deploy", UNPACK_FISHERMEN),
-        ("Civilian", CIVILIAN),
+        ("Civilian", CAST_CIVILIAN),
         ("To Arms", TO_ARMS),
         ("Bribe", FIRST),
         ("Cancel Alliance", LAST),

@@ -419,7 +419,7 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     citizen(&mut s, ai);
     let r = region(&s, ai);
     s.ai[1].census.resize(64, 8);
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
     assert!(s.think_peasant(ai, false), "the tail issued the explore");
     assert!(explored(&s, ai), "and it is an EXPLORE_TO");
 
@@ -427,7 +427,7 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     let (mut s, ai, _) = scout_sim(true);
     citizen(&mut s, ai);
     s.ai[1].census.resize(64, 8);
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
     s.ai[1].sites[3] = crate::ai::Site {
         val: 1,
         reg: i32::from(r),
@@ -448,7 +448,7 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     let (mut s, ai, _) = scout_sim(true);
     citizen(&mut s, ai);
     s.ai[1].census.resize(64, 8);
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
     s.ai[1].sites[3] = crate::ai::Site {
         val: 0,
         reg: i32::from(r),
@@ -462,7 +462,7 @@ fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
     citizen(&mut s, ai);
     s.ai[1].census.resize(64, 8);
     s.ai[1].census.reg_cities[r as usize] = 1;
-    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+    s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITE_SLOTS];
     assert!(!s.think_peasant(ai, false), "a city in the region: stay");
     assert!(!explored(&s, ai));
 }

@@ -137,7 +137,7 @@ fn small_tree() -> (TechTree, Vec<UnitType>, Vec<BuildType>) {
     let build = BuildType {
         ident: Ident::Farm,
         tree: Some(build_id),
-        flags: flags::GATHER,
+        flags: flags::GATHERER,
         ..BuildType::default()
     };
     (tree, vec![unit], vec![build])

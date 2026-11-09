@@ -7931,7 +7931,7 @@ fn untargeted_sim() -> (Sim, [usize; 4], crate::tech::TypeId) {
         from: [Some(citizen_t), None],
         ..Default::default()
     };
-    rows[row(spell::CIVILIAN)] = crate::orders::SpellType {
+    rows[row(spell::CAST_CIVILIAN)] = crate::orders::SpellType {
         job_time: 5,
         from: [Some(militia_t), None],
         ..Default::default()
@@ -8013,7 +8013,7 @@ fn a_militia_s_civilian_turns_back_to_what_rare_holds() {
     let m = sim.init_unit(0, militia, tile_pos(20, 20));
     assert_eq!(sim.units[m].rare, 0);
     sim.units[m].health = 50 - 13;
-    assert_eq!(press(&mut sim, m, spell::CIVILIAN), 1);
+    assert_eq!(press(&mut sim, m, spell::CAST_CIVILIAN), 1);
     for _ in 0..5 {
         sim.tick();
     }
@@ -8407,7 +8407,7 @@ fn a_militia_in_a_repair_swarm_takes_the_civilian_between_its_approach_and_the_r
     );
     match sim.units[m].orders[1].body {
         Body::Cast(c) => {
-            assert_eq!(c.spell, spell::CIVILIAN);
+            assert_eq!(c.spell, spell::CAST_CIVILIAN);
             assert_eq!(c.target, None, "untargeted: (−1, −1)");
             assert_eq!(c.at, at, "on the point it stood on at the swarm");
         }
@@ -8438,7 +8438,7 @@ fn a_militia_s_gather_puts_the_civilian_in_front_of_the_gather() {
     sim.group_gather(&g, farm, QueuePos::New);
     let u = &sim.units[m];
     assert_eq!(u.orders.len(), 2);
-    assert!(matches!(u.orders[0].body, Body::Cast(c) if c.spell == spell::CIVILIAN));
+    assert!(matches!(u.orders[0].body, Body::Cast(c) if c.spell == spell::CAST_CIVILIAN));
     assert_eq!(u.orders[1].index(), index::GATHER);
     for _ in 0..6 {
         sim.tick();

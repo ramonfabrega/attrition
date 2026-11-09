@@ -154,7 +154,7 @@ fn the_unpack_s_first_frame_seats_the_merchant_s_crew() {
     assert_eq!(s.units[u].pos, at, "and the merchant itself has not moved");
     assert_eq!(
         s.units[u].guys[0].anim,
-        crate::anim::UNPACK,
+        crate::anim::ANIM_UNPACK,
         "the animation the re-seat comes just ahead of"
     );
     assert_eq!(s.units[u].spell_time, 1, "and the clock has started");

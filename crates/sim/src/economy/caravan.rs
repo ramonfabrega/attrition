@@ -513,14 +513,14 @@ impl Sim {
             true,
         );
         // The next waypoint in another region is a **transport** waypoint:
-        // the same `path_flag::TRANSPORT` the tile grid writes, popped and
+        // the same `path_flag::BOARDS_TRANSPORT` the tile grid writes, popped and
         // pushed back rather than edited in place (`docs/PATHFINDER.md` §7).
         if let Some(top) = self.units[u].path.last().copied() {
             let mine = self.world.tregion(here.tile());
             if self.world.tregion(top.to.tile()) != mine {
                 self.units[u].path.pop();
                 self.units[u].path.push(PathData {
-                    flags: top.flags | path_flag::TRANSPORT,
+                    flags: top.flags | path_flag::BOARDS_TRANSPORT,
                     ..top
                 });
             }
@@ -868,7 +868,7 @@ impl Sim {
     /// `0x180` and sets a countdown of four, and the next four are dropped
     /// outright — unless fewer than five nodes have been written or fewer
     /// than five are left, at the two ends, where every one is kept.
-    /// Everything else lays a road tile and takes [`path_flag::ROAD`]. Both
+    /// Everything else lays a road tile and takes [`path_flag::ROAD_LAID`]. Both
     /// ends of what survives take [`path_flag::FINAL`].
     ///
     /// The tolerance is the search's own `0x60` (`astar_caravan_road`
@@ -900,7 +900,7 @@ impl Sim {
                 // `set_diags` tail counts its corners the same way (item
                 // 3287, `docs/ROADS.md` §12).
                 self.world_set_road_at(t, true, 1, 0);
-                e.flags |= path_flag::ROAD;
+                e.flags |= path_flag::ROAD_LAID;
                 run = 0;
             }
             if out.is_empty() || i == 0 {
@@ -915,7 +915,7 @@ impl Sim {
     /// **`Unit::do_move@005f7b30:437`–`478` — a caravan taking a waypoint
     /// its road was laid on** (`docs/CARAVAN.md` §10). With the unit's
     /// action a `TRADE_ROUTE` and the new waypoint flagged
-    /// [`path_flag::ROAD`], a tile that is no longer road (`mask & 0x30 !=
+    /// [`path_flag::ROAD_LAID`], a tile that is no longer road (`mask & 0x30 !=
     /// 0x10`) and is built on or blocked — `WorldData::is_built_at@0046f880`
     /// is `(mask & 3) == 3 || mask & 0x80`, and `mask & 0x4000` beside it —
     /// has the route **verified** and every waypoint of the unit's own path
@@ -937,7 +937,7 @@ impl Sim {
             self.caravan_verify_road(self.units[u].owner, v);
         }
         for p in &mut self.units[u].path {
-            p.flags &= !path_flag::ROAD;
+            p.flags &= !path_flag::ROAD_LAID;
         }
     }
 

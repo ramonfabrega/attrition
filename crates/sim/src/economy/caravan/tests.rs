@@ -167,7 +167,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
     let flagged = |p: Pos| PathData {
         to: p,
         tolerance: 0x60,
-        flags: path_flag::ROAD,
+        flags: path_flag::ROAD_LAID,
     };
     sim.units[u].path = vec![flagged(road), flagged(built)];
     sim.caravans[1].slots[v].road = vec![flagged(road), flagged(built)];
@@ -181,7 +181,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
         sim.units[u]
             .path
             .iter()
-            .all(|p| p.flags & path_flag::ROAD != 0)
+            .all(|p| p.flags & path_flag::ROAD_LAID != 0)
     );
     // Plain ground, nothing on it: nothing asked either.
     sim.caravan_road_step(u, open);
@@ -192,7 +192,7 @@ fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
         sim.units[u]
             .path
             .iter()
-            .all(|p| p.flags & path_flag::ROAD == 0),
+            .all(|p| p.flags & path_flag::ROAD_LAID == 0),
         "every waypoint loses the flag"
     );
     assert!(

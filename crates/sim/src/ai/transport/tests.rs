@@ -468,7 +468,7 @@ fn a_step_into_the_sea_becomes_a_boat_with_the_walker_inside() {
     let top = crate::orders::PathData {
         to: tile_pos(33, 14),
         tolerance: 0,
-        flags: crate::orders::path_flag::TRANSPORT,
+        flags: crate::orders::path_flag::BOARDS_TRANSPORT,
     };
     f.sim.units[u].path.push(top);
 
@@ -837,7 +837,7 @@ fn the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it() {
     f.sim.units[rider].path = vec![node(attack, 1), node(tile_pos(25, 17), 0)];
     f.sim.units[boat].path = vec![
         node(explore, 1),
-        node(tile_pos(29, 12), path_flag::TRANSPORT),
+        node(tile_pos(29, 12), path_flag::BOARDS_TRANSPORT),
     ];
     f.sim.hand_over_orders(boat, rider);
     let kinds: Vec<_> = f.sim.units[rider]
@@ -1318,7 +1318,7 @@ fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
     f.sim.units[boat].path.push(crate::orders::PathData {
         to: tile_pos(30, 14),
         tolerance: 0,
-        flags: crate::orders::path_flag::TRANSPORT,
+        flags: crate::orders::path_flag::BOARDS_TRANSPORT,
     });
     f.sim.units[rider]
         .movement
@@ -1543,7 +1543,7 @@ fn a_barge_taking_a_goal_ashore_flags_it_and_keeps_it() {
             .path
             .last()
             .map(|p| (p.to, p.tolerance, p.flags)),
-        Some((goal, 0, 1 | crate::orders::path_flag::TRANSPORT)),
+        Some((goal, 0, 1 | crate::orders::path_flag::BOARDS_TRANSPORT)),
         "the final leg is flagged, and its point is the land tile still"
     );
     assert_eq!(
@@ -1596,12 +1596,12 @@ fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
         PathData {
             to: tile_pos(20, 14),
             tolerance: 96,
-            flags: path_flag::FINAL | path_flag::ROAD,
+            flags: path_flag::FINAL | path_flag::ROAD_LAID,
         },
         PathData {
             to: goal,
             tolerance: 96,
-            flags: path_flag::ROAD,
+            flags: path_flag::ROAD_LAID,
         },
     ];
     assert_ne!(
@@ -1616,7 +1616,7 @@ fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
             .iter()
             .map(|p| p.flags)
             .collect::<Vec<_>>(),
-        vec![path_flag::FINAL, path_flag::TRANSPORT],
+        vec![path_flag::FINAL, path_flag::BOARDS_TRANSPORT],
         "the strip reaches every entry, the pushed top's too"
     );
 }
@@ -1859,8 +1859,8 @@ fn needs_transport_reads_the_shore() {
     let land2 = Pos::new(21, 10);
     let water = Pos::new(40, 10);
     assert_eq!(f.sim.needs_transport(land, land2), 0);
-    assert_eq!(f.sim.needs_transport(land, water), EMBARK);
-    assert_eq!(f.sim.needs_transport(water, land), DISEMBARK);
+    assert_eq!(f.sim.needs_transport(land, water), NEEDS_EMBARK);
+    assert_eq!(f.sim.needs_transport(water, land), NEEDS_DISEMBARK);
     assert_eq!(f.sim.needs_transport(water, water), 0);
 }
 

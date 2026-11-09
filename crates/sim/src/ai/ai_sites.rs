@@ -50,7 +50,7 @@
 //!   taken as the citizen *lineage*, the same predicate `ai_place.rs` uses
 //!   for `FILTER_BASE_TYPE 0x32`.
 
-use crate::ai::{Census, SITES, Site};
+use crate::ai::{Census, SITE_SLOTS, Site};
 use crate::build::{self, Ident};
 use crate::economy::RESOURCES;
 use crate::orders::{Body, index};
@@ -836,9 +836,9 @@ impl Sim {
         let w = who as usize;
 
         if self.frame == 0 {
-            self.ai[w].sites = [Site::default(); SITES];
+            self.ai[w].sites = [Site::default(); SITE_SLOTS];
         } else {
-            for i in 0..SITES {
+            for i in 0..SITE_SLOTS {
                 let s = self.ai[w].sites[i];
                 if s.rank < 6 || s.val < 1 {
                     self.ai[w].sites[i] = Site::default();
@@ -920,7 +920,7 @@ impl Sim {
                 let mut min = 0i32;
                 let mut idx: i32 = -1;
                 let mut duplicate = false;
-                for j in 0..SITES {
+                for j in 0..SITE_SLOTS {
                     let s = self.ai[w].sites[j];
                     if s.wx == st.wx && s.wy == st.wy && s.val > 0 {
                         duplicate = true;
@@ -946,9 +946,9 @@ impl Sim {
         // `rank[i]` = how many of the ten score no more than site `i` —
         // itself included, so a set of one 370 and nine zeroes ranks 10 and
         // 9. (`docs/AI.md` §2.7's "1 + count" counts the other nine.)
-        for i in 0..SITES {
+        for i in 0..SITE_SLOTS {
             let v = self.ai[w].sites[i].val;
-            let rank = (0..SITES).filter(|j| self.ai[w].sites[*j].val <= v).count();
+            let rank = (0..SITE_SLOTS).filter(|j| self.ai[w].sites[*j].val <= v).count();
             self.ai[w].sites[i].rank = rank as i32;
         }
     }
@@ -978,7 +978,7 @@ impl Sim {
             && (self.ai[w].census.free_peasants != 0 || self.ai[w].census.gatherers != 0)
             && !self.human_capped(who)
         {
-            for i in 0..SITES {
+            for i in 0..SITE_SLOTS {
                 want |= self.offer_site(who, village, village_t, i);
             }
         }

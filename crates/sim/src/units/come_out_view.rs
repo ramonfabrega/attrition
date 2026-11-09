@@ -43,7 +43,7 @@ pub const MISSILE_FIGURE_90: u32 = 0x42b4_0000;
 pub const GATHER_REACH: i32 = 0x600;
 pub const GATHER_BIAS: i32 = 0x5555_5555;
 /// The tail's `set_new_location(·, ·, 1, 1)`.
-pub const PLACED: (i32, i32) = (1, 1);
+pub const PLACE_ARGS: (i32, i32) = (1, 1);
 
 /// One `UnitType::find_nearby_spot@0061de70` call, the arguments it varies:
 /// the centre, the ring `[min, max]`, the bearing, the filter and the two

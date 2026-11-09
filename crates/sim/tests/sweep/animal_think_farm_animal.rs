@@ -98,7 +98,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 let b = sim.init_build(0, t, bpos, false);
                 sim.activate(b, false, true);
                 sim.buildings[b].farm.farm_type = crate::farms::ANIMAL_FARM;
-                sim.build_types[t].flags |= crate::build::flags::GATHER;
+                sim.build_types[t].flags |= crate::build::flags::GATHERER;
                 let pig = sim.add_unit_type(crate::UnitType {
                     hits: 10,
                     moves: 25,

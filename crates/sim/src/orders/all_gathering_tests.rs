@@ -119,7 +119,7 @@ fn all_gathering_drops_a_dead_member_before_it_reads_the_chain() {
     });
     let camp = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
     sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
-        flags: bflags::GATHER,
+        flags: bflags::GATHERER,
         ..crate::build::BuildType::default()
     }));
     let put = |sim: &mut Sim, x: i32| {
@@ -171,7 +171,7 @@ fn all_gathering_drops_a_member_walking_a_waypoint_first() {
     });
     let camp = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
     sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
-        flags: bflags::GATHER,
+        flags: bflags::GATHERER,
         ..crate::build::BuildType::default()
     }));
     let put = |sim: &mut Sim, x: i32| {

@@ -498,7 +498,7 @@ fn the_categories() {
     assert_eq!(category(ATTACK3), 12);
     assert_eq!(category(CHOP_WOOD), 25);
     assert_eq!(category(SOW), 35);
-    assert_eq!(category(FARM), 37);
+    assert_eq!(category(ANIM_FARM), 37);
     assert_eq!(category(40), 0);
 }
 
@@ -1099,7 +1099,7 @@ fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
     s.units[u].path.push(crate::orders::PathData {
         to: tile_pos(33, 14),
         tolerance: 0,
-        flags: crate::orders::path_flag::TRANSPORT,
+        flags: crate::orders::path_flag::BOARDS_TRANSPORT,
     });
     assert!(!s.set_new_location(u, tile_pos(33, 14), false));
 

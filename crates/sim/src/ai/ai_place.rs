@@ -489,7 +489,7 @@ impl Sim {
         let areg = self.world.region_of(anchor);
         let mut rings = ((self.city_radius(who, self.buildings[near].ty) + 2) / 4).max(0) as usize;
         let nocity = frame != 0 && bt.has(flags::NO_CITY);
-        let gather = bt.has(flags::GATHER);
+        let gather = bt.has(flags::GATHERER);
         // `is(0x1b0)`, the dock **lineage** test, not `ident == Dock`: a
         // Shipyard or a Port answers it too (`docs/TRANSPORT.md`, "The
         // slot"). It gates three things here — the spiral's start, the

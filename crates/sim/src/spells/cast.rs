@@ -34,15 +34,15 @@ pub mod craft {
     /// `b`: a unit may be the target.
     pub const UNIT: u32 = 0x2;
     /// `c`: a building may be the target.
-    pub const BUILDING: u32 = 0x4;
+    pub const CRAFT_BUILDING: u32 = 0x4;
     /// `d`: the target is a point, not an object.
     pub const AREA: u32 = 0x8;
     /// `e`: one's own object may be the target.
-    pub const OWN: u32 = 0x10;
+    pub const CRAFT_OWN: u32 = 0x10;
     /// `f`: an enemy's.
     pub const ENEMY: u32 = 0x20;
     /// `g`: `action_spell` kills the caster's head casts and queues first.
-    pub const FIRST: u32 = 0x40;
+    pub const CRAFT_FIRST: u32 = 0x40;
     /// `h`: an ally's.
     pub const ALLY: u32 = 0x80;
     /// `k`: a peace partner's.
@@ -348,12 +348,12 @@ impl Sim {
         if d.flags & craft::TARGETED == 0 || d.flags & craft::AREA != 0 {
             return true;
         }
-        if matches!(t, Obj::Building(_)) && d.flags & craft::BUILDING == 0 {
+        if matches!(t, Obj::Building(_)) && d.flags & craft::CRAFT_BUILDING == 0 {
             return false;
         }
         let whom = self.owner_of(t);
         let allowed = if who == whom {
-            d.flags & craft::OWN != 0
+            d.flags & craft::CRAFT_OWN != 0
         } else if self.is_enemy(who, whom) {
             d.flags & craft::ENEMY != 0
         } else if self.is_ally(who, whom) {
@@ -649,7 +649,7 @@ impl Sim {
                 self.units[u].cast_target = target;
                 self.units[u].cavarch_who = whom;
             }
-            let pos = if d.flags & craft::FIRST != 0 {
+            let pos = if d.flags & craft::CRAFT_FIRST != 0 {
                 while matches!(self.current_order(u).map(|o| o.body), Some(Body::Cast(_))) {
                     self.kill_current_order(u);
                 }

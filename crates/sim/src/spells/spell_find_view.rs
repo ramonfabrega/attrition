@@ -7,7 +7,7 @@
 //! this is the port, written from the listing and held only by the sweep.
 
 /// `SearchIndexBH` as the original numbers it.
-pub const SEARCH_ALL: i32 = 0;
+pub use crate::ids::search::SEARCH_ALL;
 pub use crate::ids::search::SEARCH_FRIENDLY;
 pub const SEARCH_ALLIED: i32 = 4;
 pub const SEARCH_NON_FRIENDLY: i32 = 6;

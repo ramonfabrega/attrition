@@ -72,7 +72,7 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
             .piece_lengths
             .entry(PIECE)
             .or_default()
-            .insert(crate::anim::PACK, 22);
+            .insert(crate::anim::ANIM_PACK, 22);
         let from = s.units[u].pos;
         s.order_move(u, Pos::new(from.x + 0x60 * 60, from.y));
         let mut seen = Vec::new();
@@ -84,7 +84,7 @@ fn a_walking_modern_infantry_packs_on_its_own_phase() {
                 crate::orders::Body::Move(m) => Some((m.retry, m.attempts)),
                 _ => None,
             });
-            if s.units[u].guys[0].anim == crate::anim::PACK && mo == Some((22, -3)) {
+            if s.units[u].guys[0].anim == crate::anim::ANIM_PACK && mo == Some((22, -3)) {
                 seen.push((f, at == s.units[u].pos));
             }
         }

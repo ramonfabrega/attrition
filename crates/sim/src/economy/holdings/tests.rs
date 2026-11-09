@@ -649,7 +649,7 @@ fn an_oil_well_s_gatherer_stands_on_the_farm_animation_and_rolls_no_arrival() {
     }
     assert_eq!(
         sim.units[u].guys[0].anim,
-        crate::anim::FARM,
+        crate::anim::ANIM_FARM,
         "the worker works the well on the farm animation"
     );
     assert_eq!(arrivals, 0, "and it rolls no arrival stand");

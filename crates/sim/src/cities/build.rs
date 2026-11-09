@@ -30,7 +30,7 @@ pub mod flags {
     /// `f`: exempt from the friendly-territory test (no shipped building).
     pub const TERRITORY_EXEMPT: u32 = 0x20;
     /// `g`: a gatherer.
-    pub const GATHER: u32 = 0x40;
+    pub const GATHERER: u32 = 0x40;
     /// `j`: one per city.
     pub const ONE_PER_CITY: u32 = 0x200;
     /// `k`: always `BLOCKED_NEED_WALL` (unused).

@@ -693,7 +693,7 @@ impl Sim {
             } else {
                 let gathers = building
                     .ty
-                    .is_some_and(|t| self.build_types[t].has(build::flags::GATHER));
+                    .is_some_and(|t| self.build_types[t].has(build::flags::GATHERER));
                 if building.alive
                     && gathers
                     && self.building_ident(tb) != Ident::University
@@ -795,7 +795,7 @@ impl Sim {
                 } else if self.buildings[tb].damage == 0 {
                     let gathers = self.buildings[tb]
                         .ty
-                        .is_some_and(|t| self.build_types[t].has(build::flags::GATHER));
+                        .is_some_and(|t| self.build_types[t].has(build::flags::GATHERER));
                     if last.action != 0
                         && self.buildings[tb].alive
                         && gathers

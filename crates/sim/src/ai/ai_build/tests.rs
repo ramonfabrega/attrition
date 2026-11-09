@@ -169,7 +169,7 @@ fn city(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> usize {
 /// `check_income` and `make_me`.
 fn value(sim: &mut Sim, who: Player, c: usize, rec: usize) -> Option<Listing> {
     let f = sim.city_facts(who, c, 0)?;
-    let pass = u32::from(sim.build_types[rec].has(flags::GATHER));
+    let pass = u32::from(sim.build_types[rec].has(flags::GATHERER));
     sim.building_value(who, &f, rec, pass)
 }
 

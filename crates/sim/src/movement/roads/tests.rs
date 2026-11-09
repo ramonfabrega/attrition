@@ -74,12 +74,12 @@ fn a_gatherer_neither_rings_nor_roads_and_a_university_does_both() {
     let types = vec![
         BuildType {
             ident: Ident::Farm,
-            flags: flags::GATHER,
+            flags: flags::GATHERER,
             ..BuildType::default()
         },
         BuildType {
             ident: Ident::University,
-            flags: flags::GATHER,
+            flags: flags::GATHERER,
             ..BuildType::default()
         },
         BuildType {

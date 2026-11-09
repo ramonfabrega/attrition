@@ -208,9 +208,9 @@ impl Sim {
             if self.action_of(u).is_some() {
                 self.repath(u);
             }
-            if militia && self.spell_castable(spell::CIVILIAN, u) {
+            if militia && self.spell_castable(spell::CAST_CIVILIAN, u) {
                 let at = self.buildings[b].pos;
-                self.add_cast_order_on(u, spell::CIVILIAN, None, at, QueuePos::First, true);
+                self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::First, true);
             }
             if !self.come_out(u) {
                 return;
@@ -287,7 +287,7 @@ impl Sim {
                 i -= 1;
                 continue;
             }
-            let gatherer = matches!(ti, 0x32 | 0x33) || self.spell_castable(spell::CIVILIAN, u);
+            let gatherer = matches!(ti, 0x32 | 0x33) || self.spell_castable(spell::CAST_CIVILIAN, u);
             if !gatherer {
                 i -= 1;
                 continue;
@@ -332,16 +332,16 @@ impl Sim {
                     continue;
                 };
                 let at = self.units[u].pos;
-                let castable = self.spell_castable(spell::CIVILIAN, u);
+                let castable = self.spell_castable(spell::CAST_CIVILIAN, u);
                 if pos == QueuePos::Last {
                     if castable {
-                        self.add_cast_order_on(u, spell::CIVILIAN, None, at, QueuePos::Last, true);
+                        self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::Last, true);
                     }
                     self.add_gather_order(u, site, QueuePos::Last, true);
                 } else {
                     self.add_gather_order(u, site, QueuePos::New, true);
                     if castable {
-                        self.add_cast_order_on(u, spell::CIVILIAN, None, at, QueuePos::First, true);
+                        self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::First, true);
                     }
                 }
                 if let Some(seat) = Self::seat_of_group(g) {

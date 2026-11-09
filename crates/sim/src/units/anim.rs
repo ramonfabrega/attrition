@@ -81,8 +81,8 @@ pub const DEATH_SPLODED1: i8 = 19;
 pub const DEATH_SPLODED2: i8 = 20;
 pub const TURN_LEFT: i8 = 21;
 pub const TURN_RIGHT: i8 = 22;
-pub const PACK: i8 = 23;
-pub const UNPACK: i8 = 24;
+pub const ANIM_PACK: i8 = 23;
+pub const ANIM_UNPACK: i8 = 24;
 pub const CHOP_WOOD: i8 = 25;
 pub const WALK_WITH_WOOD: i8 = 26;
 pub const DUMP_WOOD: i8 = 27;
@@ -92,10 +92,10 @@ pub const WALK_WITH_ORE: i8 = 30;
 pub const DUMP_ORE: i8 = 31;
 pub const WALK_TO_ORE: i8 = 32;
 pub const BUILD: i8 = 33;
-pub const REPAIR: i8 = 34;
+pub const ANIM_REPAIR: i8 = 34;
 pub const SOW: i8 = 35;
 pub const REAP: i8 = 36;
-pub const FARM: i8 = 37;
+pub const ANIM_FARM: i8 = 37;
 pub const NUM_ANIMS: usize = 38;
 
 /// The idle roll's draw sites, and the creation roll's.
@@ -392,7 +392,7 @@ pub fn category(anim: i8) -> i8 {
 /// animation id and is non-looping whatever this rule says. The caller
 /// asks both (§3.6).
 pub fn non_looping(anim: i8) -> bool {
-    ((ATTACKWALK..=UNPACK).contains(&anim) && anim != TURN_LEFT && anim != TURN_RIGHT)
+    ((ATTACKWALK..=ANIM_UNPACK).contains(&anim) && anim != TURN_LEFT && anim != TURN_RIGHT)
         || anim == DUMP_WOOD
         || anim == DUMP_ORE
 }

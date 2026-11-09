@@ -902,7 +902,7 @@ impl Sim {
             // at `006bb09c` lands on `006bb15a`, the defensive count's own
             // guard, so an unfinished Keep counts (item 1377).
             if bd.active
-                && bt.has(build::flags::GATHER)
+                && bt.has(build::flags::GATHERER)
                 && let Some(good) = crate::ai_place::gather_good(bt.ident)
             {
                 slots[good] += bd.gather_max.unwrap_or(0);

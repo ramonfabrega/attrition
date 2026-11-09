@@ -93,7 +93,7 @@ fn flags_parse_letters_and_digits_the_loaders_way() {
         flags::NO_CITY | 0x1 | flags::NOT_CIVILIAN
     );
     assert_eq!(flags::parse("jam"), flags::ONE_PER_CITY | 0x1 | 0x1000);
-    assert_eq!(flags::parse("gda"), flags::GATHER | 0x8 | 0x1);
+    assert_eq!(flags::parse("gda"), flags::GATHERER | 0x8 | 0x1);
     assert_eq!(
         flags::parse("ebn") & (flags::WATER | flags::NO_CITY),
         flags::WATER | flags::NO_CITY

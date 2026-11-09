@@ -353,7 +353,7 @@ pub mod path_flag {
     pub const TURN_FIRST: u8 = 0x4;
     /// The same bit, as the pathfinder writes it: this waypoint boards a
     /// transport (`docs/PATHFINDER.md` §7). One bit, two producers.
-    pub const TRANSPORT: u8 = 0x4;
+    pub const BOARDS_TRANSPORT: u8 = 0x4;
     /// A `go_around_building` mid-detour point — the turn-in corner between
     /// the lane the unit is in and the one it is stepping into. It
     /// suppresses the collision test entirely (`docs/ORDERS.md` §4.1).
@@ -371,7 +371,7 @@ pub mod path_flag {
     /// ~~Nothing in the executable reads it back.~~ `Unit::do_move@005f7b30`
     /// does, on the waypoint a caravan takes: a road tile that has been
     /// built over verifies the route (`docs/CARAVAN.md` §10, item 695).
-    pub const ROAD: u8 = 0x20;
+    pub const ROAD_LAID: u8 = 0x20;
 }
 
 /// The fields of `GatherOrder` (§1.1, §6).
@@ -5809,7 +5809,7 @@ impl Sim {
             self.unit_set_angle(u, facing);
             let at = self.units[u].movement.body.pos;
             self.set_new_location(u, at, true);
-            self.set_anim(u, crate::anim::PACK, false, true);
+            self.set_anim(u, crate::anim::ANIM_PACK, false, true);
             // A figure with no art has no length (`anim::UNKNOWN`): it
             // does not wait, where the original always has one.
             mo.retry = self.units[u]
@@ -5869,7 +5869,7 @@ impl Sim {
             // `do_move@005f7b30:437`: under a `TRADE_ROUTE` action, a
             // waypoint the road was laid on asks whether the road is still
             // there (`docs/CARAVAN.md` §10).
-            if top.flags & path_flag::ROAD != 0
+            if top.flags & path_flag::ROAD_LAID != 0
                 && self
                     .action_of(u)
                     .is_some_and(|i| self.units[u].orders[i].index() == index::TRADE_ROUTE)
@@ -5902,7 +5902,7 @@ impl Sim {
             {
                 let flagged = PathData {
                     tolerance: 0,
-                    flags: top.flags | path_flag::TRANSPORT,
+                    flags: top.flags | path_flag::BOARDS_TRANSPORT,
                     ..top
                 };
                 self.units[u].path.pop();
@@ -6151,10 +6151,10 @@ impl Sim {
                         // back with `flags |= 4`, tolerance kept — the walk
                         // to a shore the first plan marked still ends in a
                         // cast.
-                        if top.flags & path_flag::TRANSPORT != 0
+                        if top.flags & path_flag::BOARDS_TRANSPORT != 0
                             && let Some(mut next) = self.units[u].path.pop()
                         {
-                            next.flags |= path_flag::TRANSPORT;
+                            next.flags |= path_flag::BOARDS_TRANSPORT;
                             self.units[u].path.push(next);
                         }
                         mo.has_waypoint = false;
@@ -7735,9 +7735,9 @@ impl Sim {
         // (`−1, −1`) at the point it stands on at the swarm
         // (`00710520`/`007105a3`, item 1167, `docs/GOLDEN.md` §49).
         // SEAM: `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`.
-        if self.spell_castable(spell::CIVILIAN, u) {
+        if self.spell_castable(spell::CAST_CIVILIAN, u) {
             let at = self.units[u].pos;
-            self.add_cast_order_on(u, spell::CIVILIAN, None, at, QueuePos::Last, action);
+            self.add_cast_order_on(u, spell::CAST_CIVILIAN, None, at, QueuePos::Last, action);
         }
         match body {
             Body::Repair(_) => self.add_repair_order(u, b, QueuePos::Last, action),
@@ -8271,7 +8271,7 @@ impl Sim {
     pub fn is_gather_type(&self, b: usize) -> bool {
         self.buildings[b]
             .ty
-            .is_some_and(|t| self.build_types[t].has(bflags::GATHER))
+            .is_some_and(|t| self.build_types[t].has(bflags::GATHERER))
     }
 
     /// `build_flags & FLAT`.
@@ -10978,7 +10978,7 @@ impl DoRepairView for SimDoRepair<'_> {
         // §5.6's first line, and unlike `do_build`'s it is **ahead of every
         // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
         // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
-        self.s.set_anim(self.u, anim::REPAIR, false, true);
+        self.s.set_anim(self.u, anim::ANIM_REPAIR, false, true);
     }
     fn site_damage(&mut self) -> i32 {
         self.s.buildings[self.b].damage
@@ -11482,10 +11482,10 @@ pub fn do_gather_steps<V: DoGatherView>(v: &mut V) {
         if !v.site_counted() {
             v.bump_site_counter();
         }
-        if v.cur_anim() == i32::from(anim::FARM) {
+        if v.cur_anim() == i32::from(anim::ANIM_FARM) {
             return;
         }
-        v.set_anim(i32::from(anim::FARM));
+        v.set_anim(i32::from(anim::ANIM_FARM));
         v.face_east();
         let (sx, sy) = v.site_pos();
         v.set_new_location(sx.wrapping_add(OILWELL_OFFSET), sy);

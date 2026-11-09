@@ -134,7 +134,7 @@ fn fx() -> Fx {
     // flat half is what keeps `blocked_location`'s gather tail off it
     // (`docs/CITIES.md` §2.6.7). Without it a farm on this bare test
     // world is refused for having nothing to gather.
-    f.flags |= flags::GATHER | flags::FLAT;
+    f.flags |= flags::GATHERER | flags::FLAT;
     let farm_rec = sim.add_build_type(f);
     // The barracks costs two goods, so that `need`'s mean has something
     // to average.

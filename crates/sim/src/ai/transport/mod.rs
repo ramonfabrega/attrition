@@ -155,8 +155,8 @@ pub const GULL_OFFSET: i32 = 0xc0;
 pub const SITE_GULL_ANGLE: &str = "Dock::init+0x125";
 
 /// `needs_transport`'s answers (§6).
-pub const DISEMBARK: i32 = 1;
-pub const EMBARK: i32 = 2;
+pub const NEEDS_DISEMBARK: i32 = 1;
+pub const NEEDS_EMBARK: i32 = 2;
 
 /// `orthog_x[1..=4]`, `orthog_y[1..=4]` — north, east, south, west
 /// (`.rdata 0x00add250` / `0x00add210`).
@@ -259,9 +259,9 @@ impl Sim {
         if a == b {
             0
         } else if a {
-            DISEMBARK
+            NEEDS_DISEMBARK
         } else {
-            EMBARK
+            NEEDS_EMBARK
         }
     }
 
@@ -831,7 +831,7 @@ impl Sim {
         if matches!(
             s,
             spell::TO_ARMS
-                | spell::CIVILIAN
+                | spell::CAST_CIVILIAN
                 | spell::CREATE_DECOY
                 | spell::FORCED_MARCH
                 | spell::AMBUSH
@@ -840,7 +840,7 @@ impl Sim {
         {
             match s {
                 spell::TO_ARMS => self.cast_to_arms(u),
-                spell::CIVILIAN => self.cast_civilian(u),
+                spell::CAST_CIVILIAN => self.cast_civilian(u),
                 spell::FORCED_MARCH => self.cast_march(u),
                 spell::AMBUSH => self.cast_ambush(u),
                 // …and its Entrench (`cast_entrench`, item 3919).
@@ -1399,7 +1399,7 @@ impl Sim {
         let path = std::mem::take(&mut self.units[boat].path);
         self.units[r].path.extend(path);
         if let Some(top) = self.units[r].path.last_mut() {
-            top.flags &= !crate::orders::path_flag::TRANSPORT;
+            top.flags &= !crate::orders::path_flag::BOARDS_TRANSPORT;
         }
     }
 

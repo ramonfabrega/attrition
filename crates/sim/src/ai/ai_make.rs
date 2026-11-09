@@ -348,7 +348,7 @@ impl Sim {
         let Some(rec) = self.build_record(t) else {
             return false;
         };
-        if !self.build_types[rec].has(flags::GATHER) {
+        if !self.build_types[rec].has(flags::GATHERER) {
             return false;
         }
         let Some(g) = gather_good(self.build_types[rec].ident) else {

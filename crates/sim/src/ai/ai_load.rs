@@ -769,7 +769,7 @@ impl AiValuesView for TreeView<'_> {
         self.builds[b].from.is_none()
     }
     fn build_gather(&mut self, b: usize) -> bool {
-        self.builds[b].has(crate::build::flags::GATHER)
+        self.builds[b].has(crate::build::flags::GATHERER)
     }
     fn build_research_here(&self, b: usize) -> bool {
         self.builds[b].has(crate::build::flags::RESEARCH_HERE)

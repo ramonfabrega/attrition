@@ -4988,7 +4988,7 @@ fn a_gatherer_killed_by_damage_leaves_its_building_s_chain() {
     });
     let camp = sim.add_building(0, Pos::new(0x1000, 0x1000), 1);
     sim.buildings[camp].ty = Some(sim.add_build_type(crate::build::BuildType {
-        flags: crate::build::flags::GATHER,
+        flags: crate::build::flags::GATHERER,
         ..crate::build::BuildType::default()
     }));
     let stays = put(&mut sim, 0, citizen, Pos::new(0x1100, 0x1000));

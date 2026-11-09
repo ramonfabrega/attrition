@@ -1,6 +1,6 @@
 //! `UnitData::needs_transport@00609920` under the emulator against the port (item 2038; hand-written on tools/emu/hooks.py).
 
-use crate::transport::{DISEMBARK, EMBARK};
+use crate::transport::{NEEDS_DISEMBARK, NEEDS_EMBARK};
 use crate::world::tile;
 
 /// `UnitData::needs_transport@00609920`, run by `tools/emu/sweep_unit_data_needs_transport.py` under unicorn
@@ -20,8 +20,8 @@ fn the_emulated_original_agrees_on_every_row() {
             0
         } else {
             match (water(a[4]), water(a[5])) {
-                (true, false) => DISEMBARK,
-                (false, true) => EMBARK,
+                (true, false) => NEEDS_DISEMBARK,
+                (false, true) => NEEDS_EMBARK,
                 _ => 0,
             }
         };

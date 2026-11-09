@@ -1083,7 +1083,7 @@ mod tests {
                     continue;
                 };
                 let theirs: Vec<Block> = block.kids("SITE").collect();
-                if theirs.len() != sim::ai::SITES {
+                if theirs.len() != sim::ai::SITE_SLOTS {
                     continue;
                 }
                 for (i, t) in theirs.iter().enumerate() {

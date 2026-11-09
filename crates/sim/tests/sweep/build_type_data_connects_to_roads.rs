@@ -3,7 +3,7 @@
 use crate::build::flags;
 
 /// `BuildTypeData::connects_to_roads@006398c0`, run by `tools/emu/sweep_build_type_data_connects_to_roads.py`
-/// under unicorn (tools/emu): a gatherer ([`flags::GATHER`], read inline when its own slot `+0x90` is the base,
+/// under unicorn (tools/emu): a gatherer ([`flags::GATHERER`], read inline when its own slot `+0x90` is the base,
 /// asked of the slot otherwise) or a type needing no city ([`flags::NO_CITY`]) connects only if slot `+0x60`
 /// says it is `0x1a4`, the University; anything else connects. `roads.rs`'s `connects_to_roads` is the port.
 #[test]
@@ -17,7 +17,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let (mode, f, g, is) = (a[0], a[1] as i32 as u32, a[2], a[3]);
         assert_eq!(a[7], 1, "every slot's ecx is this — row `{line}`");
         let gather = if mode == 1 {
-            f & flags::GATHER != 0
+            f & flags::GATHERER != 0
         } else {
             g != 0
         };

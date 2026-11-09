@@ -4306,7 +4306,7 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
         facing,
         "and the tracked figure's des_angle follows it"
     );
-    assert_eq!(sim.units[unit].guys[0].anim, anim::UNPACK, "and unpacks");
+    assert_eq!(sim.units[unit].guys[0].anim, anim::ANIM_UNPACK, "and unpacks");
 }
 
 /// **A Monarch halves a siege unit's unpack** (item 3390, `docs/AI.md`
@@ -4390,7 +4390,7 @@ fn a_pack_brings_the_units_angle_to_guy_zero_s_too() {
         sim.units[unit].movement.heading, sim.units[unit].movement.facing,
         "the unit's angle is guy 0's"
     );
-    assert_eq!(sim.units[unit].guys[0].anim, anim::PACK, "and packs");
+    assert_eq!(sim.units[unit].guys[0].anim, anim::ANIM_PACK, "and packs");
 }
 
 /// **Three of the six resources are not available from the start, and until

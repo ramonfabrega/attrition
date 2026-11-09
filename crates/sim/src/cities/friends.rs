@@ -178,7 +178,7 @@ impl FriendsView for SimFriends<'_> {
     }
     fn nb_gathers(&mut self, nb: i32) -> bool {
         self.ty(nb)
-            .is_some_and(|t| self.sim.build_types[t].has(flags::GATHER))
+            .is_some_and(|t| self.sim.build_types[t].has(flags::GATHERER))
     }
     fn nb_gather_enhancer(&mut self, nb: i32) -> bool {
         self.ty(nb).is_some_and(|t| {

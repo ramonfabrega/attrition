@@ -402,7 +402,7 @@ pub struct Site {
 }
 
 /// `Sites` holds ten.
-pub const SITES: usize = 10;
+pub const SITE_SLOTS: usize = 10;
 
 /// The per-city AI record — the `CityData` fields the census writes and
 /// the producers read (`docs/AI.md` §2.3 steps 2 and 13; `create-buildings.md`
@@ -684,7 +684,7 @@ pub struct Leader {
     /// census.
     pub city_ai: Vec<CityAi>,
     /// The ten city sites — `docs/AI.md` §2.7.
-    pub sites: [Site; SITES],
+    pub sites: [Site; SITE_SLOTS],
     /// `mil_trainers`: the leader's military trainers, by building index.
     pub mil_trainers: Vec<usize>,
     /// `tech_frame`, `tech_cat_frame[4]`: written by `Leader::init` and by
@@ -897,7 +897,7 @@ impl Leader {
                 reg: 0,
                 dist: 0,
                 rank: 0,
-            }; SITES],
+            }; SITE_SLOTS],
             mil_trainers: Vec::new(),
             tech_frame: 0,
             frame_attacked: 0,

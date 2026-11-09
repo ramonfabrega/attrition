@@ -39,7 +39,7 @@ use crate::terrain_groups::{OIL_GOOD, tile_at};
 use crate::terrain_init::{HalfLand, MOVE, ORTHOG, coord};
 
 /// `check_and_set_halfland_wcoord`'s threshold (`__real_c1f00000`), −30.
-pub const WATERLINE: Single = Single(0xc1f0_0000);
+pub use crate::map_heights::WATERLINE;
 
 /// The tileset's numbers `is_combo_acceptable` reads: `COAST_BASE` and
 /// `num_tiles` per land (`None` where the loader is not read for it).

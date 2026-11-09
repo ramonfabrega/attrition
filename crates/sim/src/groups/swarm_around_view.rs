@@ -597,7 +597,7 @@ impl SwarmView for SimSwarm<'_> {
     }
     fn m_castable(&mut self, _p: i32, m: i32) -> bool {
         self.sim
-            .spell_castable(crate::orders::spell::CIVILIAN, m as usize)
+            .spell_castable(crate::orders::spell::CAST_CIVILIAN, m as usize)
     }
     fn site_slot_1c(&mut self, _who: i32, _b: i32) -> bool {
         true
@@ -694,7 +694,7 @@ impl SwarmView for SimSwarm<'_> {
     fn add_cast(&mut self, _p: i32, m: i32, x: i32, y: i32, action: i32) {
         self.sim.add_cast_order_on(
             m as usize,
-            crate::orders::spell::CIVILIAN,
+            crate::orders::spell::CAST_CIVILIAN,
             None,
             crate::Pos::new(x, y),
             crate::orders::QueuePos::Last,
